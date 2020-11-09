@@ -75,9 +75,11 @@ import org.springframework.data.neo4j.config.AbstractNeo4jConfig;
 import org.springframework.data.neo4j.core.DatabaseSelection;
 import org.springframework.data.neo4j.core.DatabaseSelectionProvider;
 import org.springframework.data.neo4j.core.Neo4jTemplate;
+import org.springframework.data.neo4j.core.convert.Neo4jConversions;
+import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.integration.imperative.repositories.PersonRepository;
 import org.springframework.data.neo4j.integration.imperative.repositories.ThingRepository;
-import org.springframework.data.neo4j.integration.shared.KotlinPerson;
+import org.springframework.data.neo4j.integration.shared.common.KotlinPerson;
 import org.springframework.data.neo4j.integration.shared.common.AltHobby;
 import org.springframework.data.neo4j.integration.shared.common.AltLikedByPersonRelationship;
 import org.springframework.data.neo4j.integration.shared.common.AltPerson;
@@ -3314,6 +3316,16 @@ class RepositoryIT {
 		@Override
 		protected Collection<String> getMappingBasePackages() {
 			return Arrays.asList(PersonWithAllConstructor.class.getPackage().getName());
+		}
+
+		@Bean
+		public Neo4jMappingContext neo4jMappingContext(Neo4jConversions neo4JConversions) throws ClassNotFoundException {
+
+			Neo4jMappingContext mappingContext = new Neo4jMappingContext(neo4JConversions);
+			mappingContext.setInitialEntitySet(getInitialEntitySet());
+			mappingContext.setStrict(true);
+
+			return mappingContext;
 		}
 
 		@Bean

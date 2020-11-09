@@ -34,7 +34,6 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.context.ApplicationContext;
-import org.springframework.data.annotation.Persistent;
 import org.springframework.data.mapping.MappingException;
 import org.springframework.data.mapping.PersistentEntity;
 import org.springframework.data.mapping.context.AbstractMappingContext;
@@ -50,7 +49,6 @@ import org.springframework.data.neo4j.core.convert.Neo4jPersistentPropertyConver
 import org.springframework.data.neo4j.core.convert.Neo4jSimpleTypes;
 import org.springframework.data.neo4j.core.schema.IdGenerator;
 import org.springframework.data.neo4j.core.schema.Node;
-import org.springframework.data.neo4j.core.schema.RelationshipProperties;
 import org.springframework.data.util.ReflectionUtils;
 import org.springframework.data.util.TypeInformation;
 import org.springframework.lang.Nullable;
@@ -95,8 +93,6 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 	private final Neo4jConversionService conversionService;
 
 	private @Nullable AutowireCapableBeanFactory beanFactory;
-
-	private boolean strict = false;
 
 	public Neo4jMappingContext() {
 
@@ -144,20 +140,6 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 		return conversionService.hasCustomWriteTarget(targetType);
 	}
 
-	@Override
-	protected boolean shouldCreatePersistentEntityFor(TypeInformation<?> type) {
-		return super.shouldCreatePersistentEntityFor(type)
-				&& (!this.strict || (type.getType().isAnnotationPresent(Node.class)
-								|| type.getType().isAnnotationPresent(Persistent.class)
-								|| type.getType().isAnnotationPresent(RelationshipProperties.class)));
-	}
-
-	@Override
-	public void setStrict(boolean strict) {
-		super.setStrict(strict);
-		this.strict = strict;
-	}
-
 	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.mapping.context.AbstractMappingContext#createPersistentEntity(org.springframework.data.util.TypeInformation)
@@ -197,11 +179,11 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 		Class<? super T> superclass = typeInformation.getType().getSuperclass();
 
 		if (isValidParentNode(superclass)) {
-			Neo4jPersistentEntity<?> parentNodeDescription = getPersistentEntity(superclass);
-			if (parentNodeDescription != null) {
+			addPersistentEntity(superclass).ifPresent(parentNodeDescription -> {
 				parentNodeDescription.addChildNodeDescription(newEntity);
 				newEntity.setParentNodeDescription(parentNodeDescription);
-			}
+			});
+
 		}
 
 		return newEntity;

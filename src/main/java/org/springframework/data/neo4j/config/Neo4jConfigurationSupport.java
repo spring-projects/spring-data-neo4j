@@ -29,6 +29,7 @@ import org.springframework.data.annotation.Persistent;
 import org.springframework.data.neo4j.core.convert.Neo4jConversions;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.schema.Node;
+import org.springframework.data.neo4j.core.schema.RelationshipProperties;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 
@@ -117,6 +118,7 @@ abstract class Neo4jConfigurationSupport {
 				false);
 		componentProvider.addIncludeFilter(new AnnotationTypeFilter(Node.class));
 		componentProvider.addIncludeFilter(new AnnotationTypeFilter(Persistent.class));
+		componentProvider.addIncludeFilter(new AnnotationTypeFilter(RelationshipProperties.class));
 
 		ClassLoader classLoader = Neo4jConfigurationSupport.class.getClassLoader();
 		for (BeanDefinition candidate : componentProvider.findCandidateComponents(basePackage)) {

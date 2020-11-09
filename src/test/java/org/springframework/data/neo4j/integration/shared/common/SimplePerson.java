@@ -13,12 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.springframework.data.neo4j.integration.shared.common;
 
-package org.springframework.data.neo4j.integration.shared
-
-import org.springframework.data.neo4j.repository.Neo4jRepository
+import org.springframework.data.neo4j.core.schema.GeneratedValue;
+import org.springframework.data.neo4j.core.schema.Id;
+import org.springframework.data.neo4j.core.schema.Node;
 
 /**
  * @author Gerrit Meier
  */
-interface KotlinRepository : Neo4jRepository<KotlinPerson, Long>
+@Node
+public class SimplePerson {
+
+	@Id
+	@GeneratedValue
+	private Long id;
+
+	private String name;
+
+	public SimplePerson(String name) {
+		this.name = name;
+	}
+
+	public String getName() {
+		return name;
+	}
+}

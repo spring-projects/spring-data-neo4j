@@ -27,6 +27,8 @@ import org.springframework.data.neo4j.core.schema.GeneratedValue
 import org.springframework.data.neo4j.core.schema.Id
 import org.springframework.data.neo4j.core.schema.Node
 import org.springframework.data.neo4j.core.schema.Relationship
+import org.springframework.data.neo4j.integration.shared.common.DeviceEntity
+import org.springframework.data.neo4j.integration.shared.common.ImmutableKotlinPerson
 import org.springframework.data.neo4j.repository.Neo4jRepository
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories
 import org.springframework.data.neo4j.test.Neo4jExtension
@@ -122,26 +124,3 @@ class ImmutableRelationshipsIT @Autowired constructor(
 
 interface DeviceRepository : Neo4jRepository<DeviceEntity, String>
 interface ImmutableKotlinPersonRepository : Neo4jRepository<ImmutableKotlinPerson, String>
-
-@Node
-data class DeviceEntity(
-        @Id
-        val deviceId: String,
-        val phoneNumber: String,
-        @Relationship(type = "LATEST_LOCATION", direction = Relationship.Direction.OUTGOING)
-        val location: LocationEntity?
-)
-
-@Node
-data class LocationEntity(
-        @Id
-        @GeneratedValue
-        val locationId: Long? = null,
-        val latitude: Double,
-        val longitude: Double,
-        @Relationship(type = "PREVIOUS_LOCATION", direction = Relationship.Direction.OUTGOING)
-        val previousLocation: LocationEntity?
-)
-
-@Node
-data class ImmutableKotlinPerson(@Id val name: String, val wasOnboardedBy: List<ImmutableKotlinPerson>)
