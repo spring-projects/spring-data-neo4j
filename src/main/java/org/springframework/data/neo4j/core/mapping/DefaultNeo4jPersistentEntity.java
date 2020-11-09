@@ -29,6 +29,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.springframework.data.annotation.Persistent;
 import org.springframework.data.mapping.Association;
 import org.springframework.data.mapping.PropertyHandler;
 import org.springframework.data.mapping.model.BasicPersistentEntity;
@@ -89,7 +90,7 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 	DefaultNeo4jPersistentEntity(TypeInformation<T> information) {
 		super(information);
 
-		this.isExplicitEntity = this.isAnnotationPresent(Node.class);
+		this.isExplicitEntity = this.isAnnotationPresent(Node.class) || this.isAnnotationPresent(Persistent.class);
 		this.primaryLabel = computePrimaryLabel();
 		this.additionalLabels = Lazy.of(this::computeAdditionalLabels);
 		this.graphProperties = Lazy.of(this::computeGraphProperties);

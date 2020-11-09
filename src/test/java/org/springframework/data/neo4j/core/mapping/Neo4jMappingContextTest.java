@@ -29,6 +29,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.internal.value.StringValue;
@@ -184,6 +185,7 @@ class Neo4jMappingContextTest {
 	}
 
 	@Test
+	@Disabled("There is no implicit registration of entities anymore")
 	void complexPropertyWithoutConverterShouldBeConsideredAsAssociation() {
 
 		Neo4jMappingContext schema = new Neo4jMappingContext(new Neo4jConversions());
@@ -298,6 +300,7 @@ class Neo4jMappingContextTest {
 		@Property(name = "firstName") String first_name;
 	}
 
+	@Node
 	static class SomeOtherClass {
 
 	}
@@ -318,6 +321,7 @@ class Neo4jMappingContextTest {
 		}
 	}
 
+	@Node
 	static class BikeNode {
 
 		@Id private String id;
@@ -334,6 +338,7 @@ class Neo4jMappingContextTest {
 		Map<String, Object> funnyDynamicProperties;
 	}
 
+	@Node
 	static class EnumRelNode {
 
 		@Id private String id;
@@ -343,6 +348,7 @@ class Neo4jMappingContextTest {
 		Map<ExtendedA, BikeNode> relEA;
 	}
 
+	@Node
 	static class TripNode {
 
 		@Id private String id;
@@ -350,11 +356,13 @@ class Neo4jMappingContextTest {
 		String name;
 	}
 
+	@Node
 	static class InvalidId {
 
 		@Id @GeneratedValue @Property("getMappingFunctionFor") private String id;
 	}
 
+	@Node
 	static class InvalidIdType {
 
 		@Id @GeneratedValue private String id;

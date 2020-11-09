@@ -17,7 +17,7 @@ package org.springframework.data.neo4j.integration.imperative.repositories;
 
 import java.util.List;
 
-import org.springframework.data.neo4j.integration.shared.ThingWithAssignedId;
+import org.springframework.data.neo4j.integration.shared.common.ThingWithAssignedId;
 import org.springframework.data.neo4j.repository.query.Query;
 import org.springframework.data.repository.CrudRepository;
 

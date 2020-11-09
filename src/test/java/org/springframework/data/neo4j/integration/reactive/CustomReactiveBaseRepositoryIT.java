@@ -31,7 +31,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.data.neo4j.config.AbstractReactiveNeo4jConfig;
 import org.springframework.data.neo4j.core.ReactiveNeo4jOperations;
-import org.springframework.data.neo4j.integration.shared.PersonWithAllConstructor;
+import org.springframework.data.neo4j.integration.shared.common.PersonWithAllConstructor;
 import org.springframework.data.neo4j.repository.ReactiveNeo4jRepository;
 import org.springframework.data.neo4j.repository.config.EnableReactiveNeo4jRepositories;
 import org.springframework.data.neo4j.repository.support.Neo4jEntityInformation;

@@ -19,10 +19,10 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.neo4j.integration.shared.DtoPersonProjection;
-import org.springframework.data.neo4j.integration.shared.PersonProjection;
-import org.springframework.data.neo4j.integration.shared.PersonWithAllConstructor;
-import org.springframework.data.neo4j.integration.shared.ThingWithGeneratedId;
+import org.springframework.data.neo4j.integration.shared.common.DtoPersonProjection;
+import org.springframework.data.neo4j.integration.shared.common.PersonProjection;
+import org.springframework.data.neo4j.integration.shared.common.PersonWithAllConstructor;
+import org.springframework.data.neo4j.integration.shared.common.ThingWithGeneratedId;
 import org.springframework.data.neo4j.repository.ReactiveNeo4jRepository;
 import org.springframework.data.neo4j.repository.query.Query;
 import org.springframework.data.neo4j.types.GeographicPoint2d;
