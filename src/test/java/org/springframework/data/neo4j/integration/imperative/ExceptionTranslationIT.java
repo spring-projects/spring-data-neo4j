@@ -36,9 +36,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor;
 import org.springframework.data.neo4j.config.AbstractNeo4jConfig;
 import org.springframework.data.neo4j.core.Neo4jClient;
-import org.springframework.data.neo4j.core.schema.GeneratedValue;
-import org.springframework.data.neo4j.core.schema.Id;
-import org.springframework.data.neo4j.core.schema.Node;
+import org.springframework.data.neo4j.integration.shared.common.SimplePerson;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.data.neo4j.repository.support.Neo4jPersistenceExceptionTranslator;
@@ -108,22 +106,6 @@ class ExceptionTranslationIT {
 		assertThatExceptionOfType(DataIntegrityViolationException.class).isThrownBy(() -> customDAO.createPerson())
 				.withMessageMatching(
 						"Node\\(\\d+\\) already exists with label `SimplePerson` and property `name` = '[\\w\\s]+'; Error code 'Neo.ClientError.Schema.ConstraintValidationFailed'");
-	}
-
-	@Node
-	static class SimplePerson {
-
-		@Id @GeneratedValue private Long id;
-
-		private String name;
-
-		SimplePerson(String name) {
-			this.name = name;
-		}
-
-		public String getName() {
-			return name;
-		}
 	}
 
 	interface SimplePersonRepository extends Neo4jRepository<SimplePerson, Long> {}

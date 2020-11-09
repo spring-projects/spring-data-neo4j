@@ -23,6 +23,7 @@ import org.neo4j.driver.Values;
 import org.springframework.data.mapping.Association;
 import org.springframework.data.mapping.MappingException;
 import org.springframework.data.mapping.PersistentEntity;
+import org.springframework.data.mapping.PersistentProperty;
 import org.springframework.data.mapping.model.AnnotationBasedPersistentProperty;
 import org.springframework.data.mapping.model.Property;
 import org.springframework.data.mapping.model.SimpleTypeHolder;
@@ -95,31 +96,30 @@ final class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProp
 			Class<?> type = getRelationshipPropertiesTargetType(getActualType());
 			obverseOwner = this.mappingContext.getPersistentEntity(type);
 			relationshipPropertiesClass = this.mappingContext.getPersistentEntity(getActualType());
-		} else if (dynamicAssociation) {
-
-			TypeInformation<?> mapValueType = this.getTypeInformation().getMapValueType();
-
-			boolean relationshipPropertiesCollection =
-					this.mappingContext.getPersistentEntity(mapValueType.getActualType().getType())
-							.isRelationshipPropertiesEntity();
-
-			boolean relationshipPropertiesScalar =
-					mapValueType.getType().isAnnotationPresent(RelationshipProperties.class);
-
-			if (relationshipPropertiesCollection) {
-				Class<?> type = getRelationshipPropertiesTargetType(mapValueType.getActualType().getType());
-				obverseOwner = this.mappingContext.getPersistentEntity(type);
-				relationshipPropertiesClass = this.mappingContext
-						.getPersistentEntity(mapValueType.getComponentType().getType());
-
-			} else if (relationshipPropertiesScalar) {
-				obverseOwner = this.mappingContext.getPersistentEntity(this.getAssociationTargetType());
-				relationshipPropertiesClass = this.mappingContext.getPersistentEntity(mapValueType.getType());
-			} else {
-				obverseOwner = this.mappingContext.getPersistentEntity(this.getAssociationTargetType());
-			}
 		} else {
-			obverseOwner = this.mappingContext.getPersistentEntity(this.getAssociationTargetType());
+			Class<?> associationTargetType = this.getAssociationTargetType();
+			obverseOwner = this.mappingContext.addPersistentEntity(associationTargetType).get();
+			if (dynamicAssociation) {
+
+				TypeInformation<?> mapValueType = this.getTypeInformation().getMapValueType();
+
+				boolean relationshipPropertiesCollection =
+						this.mappingContext.getPersistentEntity(mapValueType.getActualType().getType())
+								.isRelationshipPropertiesEntity();
+
+				boolean relationshipPropertiesScalar =
+						mapValueType.getType().isAnnotationPresent(RelationshipProperties.class);
+
+				if (relationshipPropertiesCollection) {
+					Class<?> type = getRelationshipPropertiesTargetType(mapValueType.getActualType().getType());
+					obverseOwner = this.mappingContext.getPersistentEntity(type);
+					relationshipPropertiesClass = this.mappingContext
+							.getPersistentEntity(mapValueType.getComponentType().getType());
+
+				} else if (relationshipPropertiesScalar) {
+					relationshipPropertiesClass = this.mappingContext.getPersistentEntity(mapValueType.getType());
+				}
+			}
 		}
 
 		Relationship outgoingRelationship = this.findAnnotation(Relationship.class);
@@ -154,12 +154,11 @@ final class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProp
 
 	@NonNull
 	private Class<?> getRelationshipPropertiesTargetType(Class<?> relationshipPropertiesType) {
-		Neo4jPersistentProperty persistentProperty = this.mappingContext.getPersistentEntity(relationshipPropertiesType)
-				.getPersistentProperty(TargetNode.class);
-		if (persistentProperty == null) {
-			throw new MappingException("Missing @TargetNode declaration in " + relationshipPropertiesType);
-		}
-		return persistentProperty.getType();
+		return this.mappingContext.addPersistentEntity(relationshipPropertiesType)
+				.map(entity -> entity.getPersistentProperty(TargetNode.class))
+				.map(PersistentProperty::getType)
+				.orElseThrow(
+						() -> new MappingException("Missing @TargetNode declaration in " + relationshipPropertiesType));
 	}
 
 	@Override

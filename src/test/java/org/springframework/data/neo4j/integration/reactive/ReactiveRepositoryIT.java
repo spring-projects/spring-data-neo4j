@@ -19,9 +19,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.tuple;
 
-import org.springframework.data.neo4j.integration.shared.AltLikedByPersonRelationship;
-import org.springframework.data.neo4j.integration.shared.AltPerson;
-import org.springframework.data.neo4j.integration.shared.WorksInClubRelationship;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -32,11 +29,9 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -61,7 +56,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.convert.ConverterNotFoundException;
-import org.springframework.core.convert.converter.GenericConverter;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.data.domain.PageRequest;
@@ -69,28 +63,29 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.config.AbstractReactiveNeo4jConfig;
 import org.springframework.data.neo4j.core.DatabaseSelection;
 import org.springframework.data.neo4j.core.ReactiveDatabaseSelectionProvider;
-import org.springframework.data.neo4j.core.convert.Neo4jConversions;
 import org.springframework.data.neo4j.integration.reactive.repositories.ReactivePersonRepository;
 import org.springframework.data.neo4j.integration.reactive.repositories.ReactiveThingRepository;
-import org.springframework.data.neo4j.integration.shared.AltHobby;
-import org.springframework.data.neo4j.integration.shared.AnotherThingWithAssignedId;
-import org.springframework.data.neo4j.integration.shared.BidirectionalEnd;
-import org.springframework.data.neo4j.integration.shared.BidirectionalStart;
-import org.springframework.data.neo4j.integration.shared.Club;
-import org.springframework.data.neo4j.integration.shared.DeepRelationships;
-import org.springframework.data.neo4j.integration.shared.EntityWithConvertedId;
-import org.springframework.data.neo4j.integration.shared.Hobby;
-import org.springframework.data.neo4j.integration.shared.ImmutablePerson;
-import org.springframework.data.neo4j.integration.shared.LikesHobbyRelationship;
-import org.springframework.data.neo4j.integration.shared.MultipleLabels;
-import org.springframework.data.neo4j.integration.shared.PersonWithAllConstructor;
-import org.springframework.data.neo4j.integration.shared.PersonWithRelationship;
-import org.springframework.data.neo4j.integration.shared.PersonWithRelationshipWithProperties;
-import org.springframework.data.neo4j.integration.shared.Pet;
-import org.springframework.data.neo4j.integration.shared.SimilarThing;
-import org.springframework.data.neo4j.integration.shared.ThingWithAssignedId;
-import org.springframework.data.neo4j.integration.shared.ThingWithCustomTypes;
-import org.springframework.data.neo4j.integration.shared.ThingWithGeneratedId;
+import org.springframework.data.neo4j.integration.shared.common.AltHobby;
+import org.springframework.data.neo4j.integration.shared.common.AltLikedByPersonRelationship;
+import org.springframework.data.neo4j.integration.shared.common.AltPerson;
+import org.springframework.data.neo4j.integration.shared.common.AnotherThingWithAssignedId;
+import org.springframework.data.neo4j.integration.shared.common.BidirectionalEnd;
+import org.springframework.data.neo4j.integration.shared.common.BidirectionalStart;
+import org.springframework.data.neo4j.integration.shared.common.Club;
+import org.springframework.data.neo4j.integration.shared.common.DeepRelationships;
+import org.springframework.data.neo4j.integration.shared.common.EntityWithConvertedId;
+import org.springframework.data.neo4j.integration.shared.common.Hobby;
+import org.springframework.data.neo4j.integration.shared.common.ImmutablePerson;
+import org.springframework.data.neo4j.integration.shared.common.LikesHobbyRelationship;
+import org.springframework.data.neo4j.integration.shared.common.MultipleLabels;
+import org.springframework.data.neo4j.integration.shared.common.PersonWithAllConstructor;
+import org.springframework.data.neo4j.integration.shared.common.PersonWithRelationship;
+import org.springframework.data.neo4j.integration.shared.common.PersonWithRelationshipWithProperties;
+import org.springframework.data.neo4j.integration.shared.common.Pet;
+import org.springframework.data.neo4j.integration.shared.common.SimilarThing;
+import org.springframework.data.neo4j.integration.shared.common.ThingWithAssignedId;
+import org.springframework.data.neo4j.integration.shared.common.ThingWithGeneratedId;
+import org.springframework.data.neo4j.integration.shared.common.WorksInClubRelationship;
 import org.springframework.data.neo4j.repository.ReactiveNeo4jRepository;
 import org.springframework.data.neo4j.repository.config.EnableReactiveNeo4jRepositories;
 import org.springframework.data.neo4j.repository.query.Query;
@@ -2202,52 +2197,6 @@ class ReactiveRepositoryIT {
 
 	}
 
-	@Nested
-	class Converter extends ReactiveIntegrationTestBase {
-
-		@Test
-		void findByConvertedCustomType(@Autowired EntityWithCustomTypePropertyRepository repository) {
-			try (Session session = createSession()) {
-				session.run("CREATE (:CustomTypes{customType:'XYZ'})");
-			}
-
-			StepVerifier.create(repository.findByCustomType(ThingWithCustomTypes.CustomType.of("XYZ"))).expectNextCount(1)
-					.verifyComplete();
-		}
-
-		@Test
-		void findByConvertedCustomTypeWithCustomQuery(@Autowired EntityWithCustomTypePropertyRepository repository) {
-			try (Session session = createSession()) {
-				session.run("CREATE (:CustomTypes{customType:'XYZ'})");
-			}
-
-			StepVerifier.create(repository.findByCustomTypeCustomQuery(ThingWithCustomTypes.CustomType.of("XYZ")))
-					.expectNextCount(1).verifyComplete();
-		}
-
-		@Test
-		void findByConvertedCustomTypeWithSpELPropertyAccessQuery(
-				@Autowired EntityWithCustomTypePropertyRepository repository) {
-			try (Session session = createSession()) {
-				session.run("CREATE (:CustomTypes{customType:'XYZ'})");
-			}
-
-			StepVerifier
-					.create(repository.findByCustomTypeCustomSpELPropertyAccessQuery(ThingWithCustomTypes.CustomType.of("XYZ")))
-					.expectNextCount(1).verifyComplete();
-		}
-
-		@Test
-		void findByConvertedCustomTypeWithSpELObjectQuery(@Autowired EntityWithCustomTypePropertyRepository repository) {
-			try (Session session = createSession()) {
-				session.run("CREATE (:CustomTypes{customType:'XYZ'})");
-			}
-
-			StepVerifier.create(repository.findByCustomTypeSpELObjectQuery(ThingWithCustomTypes.CustomType.of("XYZ")))
-					.expectNextCount(1).verifyComplete();
-		}
-	}
-
 	interface BidirectionalStartRepository extends ReactiveNeo4jRepository<BidirectionalStart, Long> {}
 
 	interface BidirectionalEndRepository extends ReactiveNeo4jRepository<BidirectionalEnd, Long> {}
@@ -2309,23 +2258,6 @@ class ReactiveRepositoryIT {
 	interface EntityWithConvertedIdRepository
 			extends ReactiveNeo4jRepository<EntityWithConvertedId, EntityWithConvertedId.IdentifyingEnum> {}
 
-	interface EntityWithCustomTypePropertyRepository extends ReactiveNeo4jRepository<ThingWithCustomTypes, Long> {
-
-		Mono<ThingWithCustomTypes> findByCustomType(ThingWithCustomTypes.CustomType customType);
-
-		@Query("MATCH (c:CustomTypes) WHERE c.customType = $customType return c")
-		Mono<ThingWithCustomTypes> findByCustomTypeCustomQuery(
-				@Param("customType") ThingWithCustomTypes.CustomType customType);
-
-		@Query("MATCH (c:CustomTypes) WHERE c.customType = :#{#customType.value} return c")
-		Mono<ThingWithCustomTypes> findByCustomTypeCustomSpELPropertyAccessQuery(
-				@Param("customType") ThingWithCustomTypes.CustomType customType);
-
-		@Query("MATCH (c:CustomTypes) WHERE c.customType = :#{#customType} return c")
-		Mono<ThingWithCustomTypes> findByCustomTypeSpELObjectQuery(
-				@Param("customType") ThingWithCustomTypes.CustomType customType);
-	}
-
 	@SpringJUnitConfig(ReactiveRepositoryIT.Config.class)
 	static abstract class ReactiveIntegrationTestBase {
 
@@ -2371,14 +2303,6 @@ class ReactiveRepositoryIT {
 		@Bean
 		public Driver driver() {
 			return neo4jConnectionSupport.getDriver();
-		}
-
-		@Override
-		public Neo4jConversions neo4jConversions() {
-			Set<GenericConverter> additionalConverters = new HashSet<>();
-			additionalConverters.add(new ThingWithCustomTypes.CustomTypeConverter());
-
-			return new Neo4jConversions(additionalConverters);
 		}
 
 		@Override

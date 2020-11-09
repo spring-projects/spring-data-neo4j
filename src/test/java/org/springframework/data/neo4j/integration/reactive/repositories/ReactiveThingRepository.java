@@ -17,7 +17,7 @@ package org.springframework.data.neo4j.integration.reactive.repositories;
 
 import reactor.core.publisher.Mono;
 
-import org.springframework.data.neo4j.integration.shared.ThingWithAssignedId;
+import org.springframework.data.neo4j.integration.shared.common.ThingWithAssignedId;
 import org.springframework.data.neo4j.repository.query.Query;
 import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 
