@@ -29,7 +29,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.internal.value.StringValue;
