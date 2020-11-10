@@ -185,7 +185,6 @@ class Neo4jMappingContextTest {
 	}
 
 	@Test
-	@Disabled("There is no implicit registration of entities anymore")
 	void complexPropertyWithoutConverterShouldBeConsideredAsAssociation() {
 
 		Neo4jMappingContext schema = new Neo4jMappingContext(new Neo4jConversions());
