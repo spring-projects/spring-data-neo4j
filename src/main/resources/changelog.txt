@@ -1,6 +1,18 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 6.0.1 (2020-11-11)
+-------------------------------------
+* DATAGRAPH-1425 - Support strict mode for entity detection.
+* DATAGRAPH-1424 - Make derived queries target the correct path with multiple relationships to the same target node.
+* DATAGRAPH-1423 - Add a better error message when persisting invalid implicit entities.
+* DATAGRAPH-1422 - Section hightlighting in the current reference documentation is mostly broken.
+* DATAGRAPH-1421 - Fix issues in the new reference documentation.
+* DATAGRAPH-1420 - Check for TargetNode in RelationshipProperties.
+* DATAGRAPH-1419 - Enable Maven repository caching for Jenkins jobs.
+* DATAGRAPH-1417 - Release 6.0.1 (2020.0.1).
+
+
 Changes in version 6.0.0 (2020-10-28)
 -------------------------------------
 * DATAGRAPH-1414 - Documentation for relationships and mapping.
@@ -1905,6 +1917,7 @@ General
 * Support for building traversal descriptions
 * Support for cross-store persistence including basic transaction support
 * Abstract configuration class
+
 
 
 
