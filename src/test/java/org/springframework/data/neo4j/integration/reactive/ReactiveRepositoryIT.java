@@ -63,6 +63,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.config.AbstractReactiveNeo4jConfig;
 import org.springframework.data.neo4j.core.DatabaseSelection;
 import org.springframework.data.neo4j.core.ReactiveDatabaseSelectionProvider;
+import org.springframework.data.neo4j.core.ReactiveNeo4jTemplate;
 import org.springframework.data.neo4j.integration.reactive.repositories.ReactivePersonRepository;
 import org.springframework.data.neo4j.integration.reactive.repositories.ReactiveThingRepository;
 import org.springframework.data.neo4j.integration.shared.common.AltHobby;
@@ -78,6 +79,7 @@ import org.springframework.data.neo4j.integration.shared.common.Hobby;
 import org.springframework.data.neo4j.integration.shared.common.ImmutablePerson;
 import org.springframework.data.neo4j.integration.shared.common.LikesHobbyRelationship;
 import org.springframework.data.neo4j.integration.shared.common.MultipleLabels;
+import org.springframework.data.neo4j.integration.shared.common.Person;
 import org.springframework.data.neo4j.integration.shared.common.PersonWithAllConstructor;
 import org.springframework.data.neo4j.integration.shared.common.PersonWithRelationship;
 import org.springframework.data.neo4j.integration.shared.common.PersonWithRelationshipWithProperties;
@@ -143,8 +145,6 @@ class ReactiveRepositoryIT {
 
 		@Override
 		void setupData(Transaction transaction) {
-
-			transaction.run("MATCH (n) detach delete n");
 
 			id1 = transaction.run("" + "CREATE (n:PersonWithAllConstructor) "
 					+ "  SET n.name = $name, n.sameValue = $sameValue, n.first_name = $firstName, n.cool = $cool, n.personNumber = $personNumber, n.bornOn = $bornOn, n.nullable = 'something', n.things = ['a', 'b'], n.place = $place "
@@ -501,6 +501,24 @@ class ReactiveRepositoryIT {
 
 			StepVerifier.create(repository.getAllPersonsViaQuery()).expectNextMatches(personList::contains)
 					.expectNextMatches(personList::contains).verifyComplete();
+		}
+
+		@Test // DATAGRAPH-1429
+		void aggregateThroughQueryIntoListShouldWork(@Autowired ReactivePersonRepository repository) {
+			List<PersonWithAllConstructor> personList = Arrays.asList(person1, person2);
+
+			StepVerifier.create(repository.aggregateAllPeople()).expectNextMatches(personList::contains)
+					.expectNextMatches(personList::contains).verifyComplete();
+		}
+
+		@Test // DATAGRAPH-1429
+		void queryAggregatesShouldWorkWithTheTemplate(@Autowired ReactiveNeo4jTemplate template) {
+
+			Flux<Person> people = template.findAll("unwind range(1,5) as i with i create (p:Person {firstName: toString(i)}) return p", Person.class);
+
+			StepVerifier.create(people.map(Person::getFirstName))
+					.expectNext("1", "2", "3", "4", "5")
+					.verifyComplete();
 		}
 
 		@Test

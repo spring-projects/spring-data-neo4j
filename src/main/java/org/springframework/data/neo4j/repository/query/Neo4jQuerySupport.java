@@ -25,9 +25,9 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import org.apache.commons.logging.LogFactory;
-import org.neo4j.driver.Record;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
+import org.neo4j.driver.types.MapAccessor;
 import org.neo4j.driver.types.TypeSystem;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.data.domain.Range;
@@ -91,20 +91,20 @@ abstract class Neo4jQuerySupport {
 				actualParameters);
 	}
 
-	protected final BiFunction<TypeSystem, Record, ?> getMappingFunction(final ResultProcessor resultProcessor) {
+	protected final BiFunction<TypeSystem, MapAccessor, ?> getMappingFunction(final ResultProcessor resultProcessor) {
 
 		final ReturnedType returnedTypeMetadata = resultProcessor.getReturnedType();
 		final Class<?> returnedType = returnedTypeMetadata.getReturnedType();
 		final Class<?> domainType = returnedTypeMetadata.getDomainType();
 
-		final BiFunction<TypeSystem, Record, ?> mappingFunction;
+		final BiFunction<TypeSystem, MapAccessor, ?> mappingFunction;
 
 		if (Neo4jSimpleTypes.HOLDER.isSimpleType(returnedType)) {
 			// Clients automatically selects a single value mapping function.
 			// It will thrown an error if the query contains more than one column.
 			mappingFunction = null;
 		} else if (returnedTypeMetadata.isProjecting()) {
-			BiFunction<TypeSystem, Record, ?> target = this.mappingContext.getRequiredMappingFunctionFor(domainType);
+			BiFunction<TypeSystem, MapAccessor, ?> target = this.mappingContext.getRequiredMappingFunctionFor(domainType);
 			mappingFunction = (t, r) -> new EntityInstanceWithSource(target.apply(t, r), t, r);
 		} else {
 			mappingFunction = this.mappingContext.getRequiredMappingFunctionFor(domainType);

@@ -21,7 +21,7 @@ import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.LongSupplier;
 
-import org.neo4j.driver.Record;
+import org.neo4j.driver.types.MapAccessor;
 import org.neo4j.driver.types.TypeSystem;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.domain.Pageable;
@@ -33,7 +33,7 @@ import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.data.repository.query.ResultProcessor;
 import org.springframework.data.repository.query.ReturnedType;
-import org.springframework.data.repository.support.PageableExecutionUtils;
+import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
@@ -109,7 +109,7 @@ abstract class AbstractNeo4jQuery extends Neo4jQuerySupport implements Repositor
 	protected abstract <T extends Object> PreparedQuery<T> prepareQuery(Class<T> returnedType,
 			List<String> includedProperties, Neo4jParameterAccessor parameterAccessor,
 			@Nullable Neo4jQueryType queryType,
-			@Nullable BiFunction<TypeSystem, Record, ?> mappingFunction);
+			@Nullable BiFunction<TypeSystem, MapAccessor, ?> mappingFunction);
 
 	protected Optional<PreparedQuery<Long>> getCountQuery(Neo4jParameterAccessor parameterAccessor) {
 		return Optional.empty();

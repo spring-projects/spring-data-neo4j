@@ -19,10 +19,12 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiFunction;
 
 import org.apiguardian.api.API;
 import org.neo4j.driver.Record;
+import org.neo4j.driver.types.MapAccessor;
 import org.neo4j.driver.types.TypeSystem;
 import org.springframework.lang.Nullable;
 
@@ -53,7 +55,12 @@ public final class PreparedQuery<T> {
 
 	private PreparedQuery(OptionalBuildSteps<T> optionalBuildSteps) {
 		this.resultType = optionalBuildSteps.resultType;
-		this.mappingFunction = (BiFunction<TypeSystem, Record, T>) optionalBuildSteps.mappingFunction;
+		if (optionalBuildSteps.mappingFunction == null) {
+			this.mappingFunction = null;
+		} else {
+			this.mappingFunction = (BiFunction<TypeSystem, Record, T>) new ListAggregatingMappingFunction(
+					optionalBuildSteps.mappingFunction);
+		}
 		this.cypherQuery = optionalBuildSteps.cypherQuery;
 		this.parameters = optionalBuildSteps.parameters;
 	}
@@ -64,6 +71,10 @@ public final class PreparedQuery<T> {
 
 	public Optional<BiFunction<TypeSystem, Record, T>> getOptionalMappingFunction() {
 		return Optional.ofNullable(mappingFunction);
+	}
+
+	boolean resultsHaveBeenAggregated() {
+		return this.mappingFunction != null && ((ListAggregatingMappingFunction) this.mappingFunction).hasAggregated();
 	}
 
 	public String getCypherQuery() {
@@ -99,7 +110,7 @@ public final class PreparedQuery<T> {
 		final Class<CT> resultType;
 		final String cypherQuery;
 		Map<String, Object> parameters = Collections.emptyMap();
-		@Nullable BiFunction<TypeSystem, Record, ?> mappingFunction;
+		@Nullable BiFunction<TypeSystem, MapAccessor, ?> mappingFunction;
 
 		OptionalBuildSteps(Class<CT> resultType, String cypherQuery) {
 			this.resultType = resultType;
@@ -117,13 +128,37 @@ public final class PreparedQuery<T> {
 			return this;
 		}
 
-		public OptionalBuildSteps<CT> usingMappingFunction(@Nullable BiFunction<TypeSystem, Record, ?> newMappingFunction) {
+		public OptionalBuildSteps<CT> usingMappingFunction(
+				@Nullable BiFunction<TypeSystem, MapAccessor, ?> newMappingFunction) {
 			this.mappingFunction = newMappingFunction;
 			return this;
 		}
 
 		public PreparedQuery<CT> build() {
 			return new PreparedQuery<>(this);
+		}
+	}
+
+	private static class ListAggregatingMappingFunction implements BiFunction<TypeSystem, Record, Object> {
+
+		private final BiFunction<TypeSystem, MapAccessor, ?> target;
+		private final AtomicBoolean aggregated = new AtomicBoolean(false);
+
+		ListAggregatingMappingFunction(BiFunction<TypeSystem, MapAccessor, ?> target) {
+			this.target = target;
+		}
+
+		@Override
+		public Object apply(TypeSystem t, Record r) {
+			if (r.size() == 1 && r.get(0).hasType(t.LIST())) {
+				aggregated.compareAndSet(false, true);
+				return r.get(0).asList(v -> target.apply(t, v));
+			}
+			return target.apply(t, new RecordMapAccessor(r));
+		}
+
+		boolean hasAggregated() {
+			return aggregated.get();
 		}
 	}
 }

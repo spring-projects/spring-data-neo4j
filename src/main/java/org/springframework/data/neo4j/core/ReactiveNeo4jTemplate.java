@@ -49,18 +49,18 @@ import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.mapping.AssociationHandler;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
 import org.springframework.data.mapping.callback.ReactiveEntityCallbacks;
+import org.springframework.data.neo4j.core.mapping.Constants;
+import org.springframework.data.neo4j.core.mapping.CreateRelationshipStatementHolder;
+import org.springframework.data.neo4j.core.mapping.CypherGenerator;
 import org.springframework.data.neo4j.core.mapping.MappingSupport;
-import org.springframework.data.neo4j.core.mapping.NestedRelationshipContext;
-import org.springframework.data.neo4j.core.mapping.NestedRelationshipProcessingStateMachine;
-import org.springframework.data.neo4j.core.mapping.NestedRelationshipProcessingStateMachine.ProcessState;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentProperty;
-import org.springframework.data.neo4j.core.mapping.Constants;
-import org.springframework.data.neo4j.core.mapping.CypherGenerator;
+import org.springframework.data.neo4j.core.mapping.NestedRelationshipContext;
+import org.springframework.data.neo4j.core.mapping.NestedRelationshipProcessingStateMachine;
+import org.springframework.data.neo4j.core.mapping.NestedRelationshipProcessingStateMachine.ProcessState;
 import org.springframework.data.neo4j.core.mapping.NodeDescription;
 import org.springframework.data.neo4j.core.mapping.RelationshipDescription;
-import org.springframework.data.neo4j.core.mapping.CreateRelationshipStatementHolder;
 import org.springframework.data.neo4j.repository.event.ReactiveBeforeBindCallback;
 import org.springframework.data.util.ClassTypeInformation;
 import org.springframework.lang.Nullable;
@@ -301,16 +301,8 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 
 		Function<T, Map<String, Object>> binderFunction = neo4jMappingContext.getRequiredBinderFunctionFor(domainClass);
 		return getDatabaseName().flatMapMany(databaseName -> Flux.fromIterable(entities)
-				.flatMap(eventSupport::maybeCallBeforeBind).collectList().flatMapMany(entitiesToBeSaved -> Mono.defer(() -> { // Defer
-																																																											// the
-																																																											// actual
-																																																											// save
-																																																											// statement
-																																																											// until
-																																																											// the
-																																																											// previous
-																																																											// flux
-																																																											// completes
+				.flatMap(eventSupport::maybeCallBeforeBind).collectList().flatMapMany(entitiesToBeSaved -> Mono.defer(() -> {
+					// Defer the actual save statement until the previous flux completes
 					List<Map<String, Object>> boundedEntityList = entitiesToBeSaved.stream().map(binderFunction)
 							.collect(Collectors.toList());
 
@@ -525,7 +517,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 			ReactiveNeo4jClient.RecordFetchSpec<T> fetchSpec = preparedQuery.getOptionalMappingFunction()
 					.map(mappingFunction -> mappingSpec.mappedBy(mappingFunction)).orElse(mappingSpec);
 
-			return new DefaultReactiveExecutableQuery<>(fetchSpec);
+			return new DefaultReactiveExecutableQuery<>(preparedQuery, fetchSpec);
 		});
 	}
 
@@ -537,17 +529,26 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 
 	final class DefaultReactiveExecutableQuery<T> implements ExecutableQuery<T> {
 
+		private final PreparedQuery<T> preparedQuery;
 		private final ReactiveNeo4jClient.RecordFetchSpec<T> fetchSpec;
 
-		DefaultReactiveExecutableQuery(ReactiveNeo4jClient.RecordFetchSpec<T> fetchSpec) {
+		DefaultReactiveExecutableQuery(PreparedQuery<T> preparedQuery, ReactiveNeo4jClient.RecordFetchSpec<T> fetchSpec) {
+			this.preparedQuery = preparedQuery;
 			this.fetchSpec = fetchSpec;
 		}
 
 		/**
 		 * @return All results returned by this query.
 		 */
+		@SuppressWarnings("unchecked")
 		public Flux<T> getResults() {
-			return fetchSpec.all();
+
+			return fetchSpec.all().switchOnFirst((signal, f) -> {
+				if (preparedQuery.resultsHaveBeenAggregated()) {
+					return f.flatMap(nested -> Flux.fromIterable((Collection<T>) nested));
+				}
+				return f;
+			});
 		}
 
 		/**
