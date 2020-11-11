@@ -79,7 +79,6 @@ import org.springframework.data.neo4j.core.convert.Neo4jConversions;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.integration.imperative.repositories.PersonRepository;
 import org.springframework.data.neo4j.integration.imperative.repositories.ThingRepository;
-import org.springframework.data.neo4j.integration.shared.common.KotlinPerson;
 import org.springframework.data.neo4j.integration.shared.common.AltHobby;
 import org.springframework.data.neo4j.integration.shared.common.AltLikedByPersonRelationship;
 import org.springframework.data.neo4j.integration.shared.common.AltPerson;
@@ -98,9 +97,11 @@ import org.springframework.data.neo4j.integration.shared.common.FriendshipRelati
 import org.springframework.data.neo4j.integration.shared.common.Hobby;
 import org.springframework.data.neo4j.integration.shared.common.ImmutablePerson;
 import org.springframework.data.neo4j.integration.shared.common.Inheritance;
+import org.springframework.data.neo4j.integration.shared.common.KotlinPerson;
 import org.springframework.data.neo4j.integration.shared.common.LikesHobbyRelationship;
 import org.springframework.data.neo4j.integration.shared.common.MultipleLabels;
 import org.springframework.data.neo4j.integration.shared.common.ParentNode;
+import org.springframework.data.neo4j.integration.shared.common.Person;
 import org.springframework.data.neo4j.integration.shared.common.PersonWithAllConstructor;
 import org.springframework.data.neo4j.integration.shared.common.PersonWithNoConstructor;
 import org.springframework.data.neo4j.integration.shared.common.PersonWithRelationship;
@@ -345,6 +346,51 @@ class RepositoryIT {
 			List<PersonWithAllConstructor> persons = repository.getAllPersonsViaQuery();
 
 			assertThat(persons).anyMatch(person -> person.getName().equals(TEST_PERSON1_NAME));
+		}
+
+		@Test  // DATAGRAPH-1429
+		void aggregateThroughQueryIntoListShouldWork(@Autowired PersonRepository repository) {
+
+			List<PersonWithAllConstructor> people = repository.aggregateAllPeople();
+			assertThat(people)
+					.hasSize(2)
+					.extracting(PersonWithAllConstructor::getName)
+					.containsExactlyInAnyOrder(TEST_PERSON1_NAME, TEST_PERSON2_NAME);
+		}
+
+		@Test  // DATAGRAPH-1429
+		void aggregateThroughQueryIntoCustomObjectShouldWork(@Autowired PersonRepository repository) {
+
+			PersonRepository.CustomAggregation customAggregation = repository.aggregateAllPeopleCustom();
+			assertThat(customAggregation)
+					.hasSize(2)
+					.extracting(PersonWithAllConstructor::getName)
+					.containsExactlyInAnyOrder(TEST_PERSON1_NAME, TEST_PERSON2_NAME);
+		}
+
+		@Test // DATAGRAPH-1429
+		void aggregateThroughQueryIntoCustomObjectDTOShouldWork(@Autowired PersonRepository repository) {
+
+			PersonRepository.CustomAggregationOfDto customAggregation = repository
+					.findAllDtoProjectionsWithAdditionalPropertiesAsCustomAggregation(TEST_PERSON1_NAME);
+			assertThat(customAggregation)
+					.isNotEmpty();
+			assertThat(customAggregation.getBySomeLongValue(4711L))
+					.satisfies(dto -> {
+						assertThat(dto.getFirstName()).isEqualTo(TEST_PERSON1_FIRST_NAME);
+						assertThat(dto.getSomeDoubles()).containsExactly(21.42, 42.21);
+						assertThat(dto.getOtherPeople()).hasSize(1)
+								.first()
+								.extracting(PersonWithAllConstructor::getFirstName)
+								.isEqualTo(TEST_PERSON2_FIRST_NAME);
+					});
+		}
+
+		@Test  // DATAGRAPH-1429
+		void queryAggregatesShouldWorkWithTheTemplate(@Autowired Neo4jTemplate template) {
+
+			List<Person> people = template.findAll("unwind range(1,5) as i with i create (p:Person {firstName: toString(i)}) return p", Person.class);
+			assertThat(people).extracting(Person::getFirstName).containsExactly("1", "2", "3", "4", "5");
 		}
 
 		@Test

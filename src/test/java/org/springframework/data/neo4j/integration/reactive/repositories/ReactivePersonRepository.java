@@ -41,6 +41,9 @@ public interface ReactivePersonRepository extends ReactiveNeo4jRepository<Person
 	@Query("MATCH (n:PersonWithAllConstructor) return n")
 	Flux<PersonWithAllConstructor> getAllPersonsViaQuery();
 
+	@Query("MATCH (n:PersonWithAllConstructor) return collect(n)")
+	Flux<PersonWithAllConstructor> aggregateAllPeople();
+
 	@Query("MATCH (n:PersonWithAllConstructor{name:'Test'}) return n")
 	Mono<PersonWithAllConstructor> getOnePersonViaQuery();
 

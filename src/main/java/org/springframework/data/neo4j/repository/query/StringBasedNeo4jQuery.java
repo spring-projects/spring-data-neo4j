@@ -21,7 +21,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiFunction;
 
-import org.neo4j.driver.Record;
+import org.neo4j.driver.types.MapAccessor;
 import org.neo4j.driver.types.TypeSystem;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mapping.MappingException;
@@ -135,7 +135,7 @@ final class StringBasedNeo4jQuery extends AbstractNeo4jQuery {
 	@Override
 	protected <T extends Object> PreparedQuery<T> prepareQuery(Class<T> returnedType, List<String> includedProperties,
 			Neo4jParameterAccessor parameterAccessor, @Nullable Neo4jQueryType queryType,
-			@Nullable BiFunction<TypeSystem, Record, ?> mappingFunction) {
+			@Nullable BiFunction<TypeSystem, MapAccessor, ?> mappingFunction) {
 
 		return PreparedQuery.queryFor(returnedType).withCypherQuery(cypherQuery)
 				.withParameters(bindParameters(parameterAccessor)).usingMappingFunction(mappingFunction).build();

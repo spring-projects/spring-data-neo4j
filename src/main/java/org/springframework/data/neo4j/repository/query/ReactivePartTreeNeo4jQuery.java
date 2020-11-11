@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.BiFunction;
 
-import org.neo4j.driver.Record;
+import org.neo4j.driver.types.MapAccessor;
 import org.neo4j.driver.types.TypeSystem;
 import org.springframework.data.neo4j.core.PreparedQuery;
 import org.springframework.data.neo4j.core.ReactiveNeo4jOperations;
@@ -59,7 +59,7 @@ final class ReactivePartTreeNeo4jQuery extends AbstractReactiveNeo4jQuery {
 	@Override
 	protected <T extends Object> PreparedQuery<T> prepareQuery(Class<T> returnedType, List<String> includedProperties,
 			Neo4jParameterAccessor parameterAccessor, @Nullable Neo4jQueryType queryType,
-			@Nullable BiFunction<TypeSystem, Record, ?> mappingFunction) {
+			@Nullable BiFunction<TypeSystem, MapAccessor, ?> mappingFunction) {
 
 		CypherQueryCreator queryCreator = new CypherQueryCreator(mappingContext, getDomainType(queryMethod),
 				Optional.ofNullable(queryType).orElseGet(() -> Neo4jQueryType.fromPartTree(tree)), tree, parameterAccessor,

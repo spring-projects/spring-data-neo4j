@@ -107,12 +107,10 @@ class Neo4jClientTest {
 		parameters.put("bikeName", "M.*");
 		parameters.put("location", "Sweden");
 
-		String cypher = "MATCH (o:User {name: $name}) - [:OWNS] -> (b:Bike) - [:USED_ON] -> (t:Trip) "
-				+ "WHERE t.takenOn > $aDate " + "  AND b.name =~ $bikeName " + "  AND t.location = $location " + // TODO Nice
-																																																					// place to
-																																																					// add
-																																																					// coordinates
-				"RETURN b";
+		String cypher = ""
+						+ "MATCH (o:User {name: $name}) - [:OWNS] -> (b:Bike) - [:USED_ON] -> (t:Trip) "
+						+ "WHERE t.takenOn > $aDate " + "  AND b.name =~ $bikeName " + "  AND t.location = $location "
+						+ "RETURN b";
 
 		Collection<Map<String, Object>> usedBikes = client.query(cypher).bind("michael").to("name").bindAll(parameters)
 				.bind(LocalDate.of(2019, 1, 1)).to("aDate").fetch().all();

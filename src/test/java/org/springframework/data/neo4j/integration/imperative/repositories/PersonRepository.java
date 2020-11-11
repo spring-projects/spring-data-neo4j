@@ -17,8 +17,11 @@ package org.springframework.data.neo4j.integration.imperative.repositories;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.neo4j.driver.types.Point;
@@ -42,6 +45,7 @@ import org.springframework.data.neo4j.repository.query.BoundingBox;
 import org.springframework.data.neo4j.repository.query.Query;
 import org.springframework.data.neo4j.types.GeographicPoint2d;
 import org.springframework.data.repository.query.Param;
+import org.springframework.data.util.Streamable;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -53,6 +57,28 @@ public interface PersonRepository extends Neo4jRepository<PersonWithAllConstruct
 	@Transactional
 	@Query("RETURN 1")
 	Long customQuery();
+
+	@Query("MATCH (n:PersonWithAllConstructor) return collect(n)")
+	List<PersonWithAllConstructor> aggregateAllPeople();
+
+	/**
+	 * A custom aggregate that allows for something like getFriend1, 2 or other stuff...
+	 */
+	class CustomAggregation implements Streamable<PersonWithAllConstructor> {
+
+		private final Streamable<PersonWithAllConstructor> delegate;
+
+		public CustomAggregation(Streamable<PersonWithAllConstructor> delegate) {
+			this.delegate = delegate;
+		}
+
+		@Override public Iterator<PersonWithAllConstructor> iterator() {
+			return delegate.iterator();
+		}
+	}
+
+	@Query("MATCH (n:PersonWithAllConstructor) return collect(n)")
+	CustomAggregation aggregateAllPeopleCustom();
 
 	@Query("MATCH (n:PersonWithAllConstructor) return n")
 	List<PersonWithAllConstructor> getAllPersonsViaQuery();
@@ -238,6 +264,35 @@ public interface PersonRepository extends Neo4jRepository<PersonWithAllConstruct
 			+ "WITH n MATCH(m:PersonWithAllConstructor) WHERE id(n) <> id(m) "
 			+ "RETURN n, collect(m) AS otherPeople, 4711 AS someLongValue, [21.42, 42.21] AS someDoubles")
 	List<DtoPersonProjectionContainingAdditionalFields> findAllDtoProjectionsWithAdditionalProperties(@Param("name") String name);
+
+	/**
+	 * A custom aggregate that allows for something like getFriend1, 2 or other stuff...
+	 */
+	class CustomAggregationOfDto implements Streamable<DtoPersonProjectionContainingAdditionalFields> {
+
+		private final Streamable<DtoPersonProjectionContainingAdditionalFields> delegate;
+
+		public CustomAggregationOfDto(Streamable<DtoPersonProjectionContainingAdditionalFields> delegate) {
+			this.delegate = delegate;
+		}
+
+		@Override public Iterator<DtoPersonProjectionContainingAdditionalFields> iterator() {
+			return delegate.iterator();
+		}
+
+		public DtoPersonProjectionContainingAdditionalFields getBySomeLongValue(long value) {
+
+			return delegate.stream()
+					.collect(Collectors.toMap(DtoPersonProjectionContainingAdditionalFields::getSomeLongValue, Function.identity()))
+					.get(value);
+		}
+	}
+
+	@Query(""
+		   + "MATCH (n:PersonWithAllConstructor) where n.name = $name "
+		   + "WITH n MATCH(m:PersonWithAllConstructor) WHERE id(n) <> id(m) "
+		   + "RETURN [{n: n, otherPeople: collect(m), someLongValue: 4711, someDoubles: [21.42, 42.21]}]")
+	CustomAggregationOfDto findAllDtoProjectionsWithAdditionalPropertiesAsCustomAggregation(@Param("name") String name);
 
 	@Query("MATCH (n:PersonWithAllConstructor) where n.name = $name return n{.name}")
 	PersonProjection findByNameWithCustomQueryAndMapProjection(@Param("name") String name);
