@@ -19,8 +19,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
 
-import org.neo4j.driver.Record;
 import org.neo4j.driver.Value;
+import org.neo4j.driver.types.MapAccessor;
 import org.neo4j.driver.types.TypeSystem;
 import org.springframework.core.CollectionFactory;
 import org.springframework.core.convert.converter.Converter;
@@ -112,7 +112,7 @@ class DtoInstantiatingConverter implements Converter<EntityInstanceWithSource, O
 			PersistentPropertyAccessor sourceAccessor, EntityInstanceWithSource entityInstanceAndSource) {
 
 		TypeSystem typeSystem = entityInstanceAndSource.getTypeSystem();
-		Record sourceRecord = entityInstanceAndSource.getSourceRecord();
+		MapAccessor sourceRecord = entityInstanceAndSource.getSourceRecord();
 
 		String targetPropertyName = targetProperty.getName();
 		PersistentProperty<?> sourceProperty = sourceEntity.getPersistentProperty(targetPropertyName);

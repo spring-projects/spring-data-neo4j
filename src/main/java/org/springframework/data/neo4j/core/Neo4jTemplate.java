@@ -45,18 +45,18 @@ import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.mapping.AssociationHandler;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
 import org.springframework.data.mapping.callback.EntityCallbacks;
-import org.springframework.data.neo4j.core.mapping.MappingSupport;
-import org.springframework.data.neo4j.core.mapping.NestedRelationshipContext;
-import org.springframework.data.neo4j.core.mapping.NestedRelationshipProcessingStateMachine;
-import org.springframework.data.neo4j.core.mapping.NestedRelationshipProcessingStateMachine.ProcessState;
 import org.springframework.data.neo4j.core.mapping.Constants;
+import org.springframework.data.neo4j.core.mapping.CreateRelationshipStatementHolder;
 import org.springframework.data.neo4j.core.mapping.CypherGenerator;
+import org.springframework.data.neo4j.core.mapping.MappingSupport;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentProperty;
+import org.springframework.data.neo4j.core.mapping.NestedRelationshipContext;
+import org.springframework.data.neo4j.core.mapping.NestedRelationshipProcessingStateMachine;
+import org.springframework.data.neo4j.core.mapping.NestedRelationshipProcessingStateMachine.ProcessState;
 import org.springframework.data.neo4j.core.mapping.NodeDescription;
 import org.springframework.data.neo4j.core.mapping.RelationshipDescription;
-import org.springframework.data.neo4j.core.mapping.CreateRelationshipStatementHolder;
 import org.springframework.data.neo4j.repository.NoResultException;
 import org.springframework.data.neo4j.repository.event.BeforeBindCallback;
 import org.springframework.data.util.ClassTypeInformation;
@@ -118,7 +118,8 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 	public long count(Class<?> domainType) {
 
 		Neo4jPersistentEntity entityMetaData = neo4jMappingContext.getPersistentEntity(domainType);
-		Statement statement = cypherGenerator.prepareMatchOf(entityMetaData).returning(Functions.count(asterisk())).build();
+		Statement statement = cypherGenerator.prepareMatchOf(entityMetaData).returning(Functions.count(asterisk()))
+				.build();
 
 		return count(statement);
 	}
@@ -189,7 +190,8 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 	public <T> Optional<T> findById(Object id, Class<T> domainType) {
 		Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getPersistentEntity(domainType);
 		Statement statement = cypherGenerator
-				.prepareMatchOf(entityMetaData, entityMetaData.getIdExpression().isEqualTo(parameter(Constants.NAME_OF_ID)))
+				.prepareMatchOf(entityMetaData,
+						entityMetaData.getIdExpression().isEqualTo(parameter(Constants.NAME_OF_ID)))
 				.returning(cypherGenerator.createReturnStatementForMatch(entityMetaData)).build();
 		return createExecutableQuery(domainType, statement, Collections
 				.singletonMap(Constants.NAME_OF_ID, convertIdValues(entityMetaData.getRequiredIdProperty(), id)))
@@ -211,7 +213,8 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 	private Object convertIdValues(@Nullable Neo4jPersistentProperty idProperty, Object idValues) {
 
 		return neo4jMappingContext.getConversionService().writeValue(idValues,
-				ClassTypeInformation.from(idValues.getClass()), idProperty == null ? null : idProperty.getOptionalWritingConverter());
+				ClassTypeInformation.from(idValues.getClass()),
+				idProperty == null ? null : idProperty.getOptionalWritingConverter());
 	}
 
 	@Override
@@ -228,7 +231,8 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 		DynamicLabels dynamicLabels = determineDynamicLabels(entityToBeSaved, entityMetaData, inDatabase);
 
 		Optional<Long> optionalInternalId = neo4jClient
-				.query(() -> renderer.render(cypherGenerator.prepareSaveOf(entityMetaData, dynamicLabels))).in(inDatabase)
+				.query(() -> renderer.render(cypherGenerator.prepareSaveOf(entityMetaData, dynamicLabels)))
+				.in(inDatabase)
 				.bind((T) entityToBeSaved)
 				.with(neo4jMappingContext.getRequiredBinderFunctionFor((Class<T>) entityToBeSaved.getClass()))
 				.fetchAs(Long.class).one();
@@ -257,7 +261,8 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 			Neo4jClient.RunnableSpecTightToDatabase runnableQuery = neo4jClient
 					.query(() -> renderer.render(cypherGenerator.createStatementReturningDynamicLabels(entityMetaData)))
 					.in(inDatabase).bind(propertyAccessor.getProperty(entityMetaData.getRequiredIdProperty()))
-					.to(Constants.NAME_OF_ID).bind(entityMetaData.getStaticLabels()).to(Constants.NAME_OF_STATIC_LABELS_PARAM);
+					.to(Constants.NAME_OF_ID).bind(entityMetaData.getStaticLabels())
+					.to(Constants.NAME_OF_STATIC_LABELS_PARAM);
 
 			if (entityMetaData.hasVersionProperty()) {
 				runnableQuery = runnableQuery
@@ -296,13 +301,16 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 			return entities.stream().map(e -> saveImpl(e, databaseName)).collect(Collectors.toList());
 		}
 
-		List<T> entitiesToBeSaved = entities.stream().map(eventSupport::maybeCallBeforeBind).collect(Collectors.toList());
+		List<T> entitiesToBeSaved = entities.stream().map(eventSupport::maybeCallBeforeBind)
+				.collect(Collectors.toList());
 
 		// Save roots
 		Function<T, Map<String, Object>> binderFunction = neo4jMappingContext.getRequiredBinderFunctionFor(domainClass);
-		List<Map<String, Object>> entityList = entitiesToBeSaved.stream().map(binderFunction).collect(Collectors.toList());
+		List<Map<String, Object>> entityList = entitiesToBeSaved.stream().map(binderFunction)
+				.collect(Collectors.toList());
 		ResultSummary resultSummary = neo4jClient
-				.query(() -> renderer.render(cypherGenerator.prepareSaveOfMultipleInstancesOf(entityMetaData))).in(databaseName)
+				.query(() -> renderer.render(cypherGenerator.prepareSaveOfMultipleInstancesOf(entityMetaData)))
+				.in(databaseName)
 				.bind(entityList).to(Constants.NAME_OF_ENTITY_LIST_PARAM).run();
 
 		// Save related
@@ -385,7 +393,8 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 
 		Assert.notNull(neo4jMappingContext.getPersistentEntity(domainType), "Cannot get or create persistent entity.");
 		PreparedQuery<T> preparedQuery = PreparedQuery.queryFor(domainType).withCypherQuery(cypherStatement)
-				.withParameters(parameters).usingMappingFunction(neo4jMappingContext.getRequiredMappingFunctionFor(domainType))
+				.withParameters(parameters)
+				.usingMappingFunction(neo4jMappingContext.getRequiredMappingFunctionFor(domainType))
 				.build();
 		return toExecutableQuery(preparedQuery);
 	}
@@ -466,7 +475,8 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 				if (targetNodeDescription.isUsingInternalIds()) {
 					PersistentPropertyAccessor<?> targetPropertyAccessor = targetNodeDescription
 							.getPropertyAccessor(relatedNode);
-					targetPropertyAccessor.setProperty(targetNodeDescription.getRequiredIdProperty(), relatedInternalId);
+					targetPropertyAccessor
+							.setProperty(targetNodeDescription.getRequiredIdProperty(), relatedInternalId);
 				}
 				if (processState != ProcessState.PROCESSED_ALL_VALUES) {
 					processNestedRelations(targetNodeDescription, relatedNode, inDatabase, stateMachine);
@@ -524,8 +534,14 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 			this.fetchSpec = fetchSpec;
 		}
 
+		@SuppressWarnings("unchecked")
 		public List<T> getResults() {
-			return fetchSpec.all().stream().collect(Collectors.toList());
+
+			Collection<T> all = fetchSpec.all();
+			if (preparedQuery.resultsHaveBeenAggregated()) {
+				return all.stream().flatMap(nested -> ((Collection<T>) nested).stream()).collect(Collectors.toList());
+			}
+			return all.stream().collect(Collectors.toList());
 		}
 
 		public Optional<T> getSingleResult() {

@@ -15,7 +15,7 @@
  */
 package org.springframework.data.neo4j.repository.query;
 
-import org.neo4j.driver.Record;
+import org.neo4j.driver.types.MapAccessor;
 import org.neo4j.driver.types.TypeSystem;
 
 /**
@@ -39,9 +39,9 @@ final class EntityInstanceWithSource {
 	/**
 	 * The record from which the source above was hydrated and which might contain top level properties that are elligable to mapping.
 	 */
-	private final Record sourceRecord;
+	private final MapAccessor sourceRecord;
 
-	EntityInstanceWithSource(Object entityInstance, TypeSystem typeSystem, Record sourceRecord) {
+	EntityInstanceWithSource(Object entityInstance, TypeSystem typeSystem, MapAccessor sourceRecord) {
 
 		this.entityInstance = entityInstance;
 		this.typeSystem = typeSystem;
@@ -56,7 +56,7 @@ final class EntityInstanceWithSource {
 		return typeSystem;
 	}
 
-	public Record getSourceRecord() {
+	public MapAccessor getSourceRecord() {
 		return sourceRecord;
 	}
 }

@@ -22,7 +22,7 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import org.apiguardian.api.API;
-import org.neo4j.driver.Record;
+import org.neo4j.driver.types.MapAccessor;
 import org.neo4j.driver.types.TypeSystem;
 import org.springframework.data.mapping.MappingException;
 import org.springframework.data.neo4j.core.schema.IdGenerator;
@@ -87,12 +87,12 @@ public interface Schema {
 	 * @return The default, stateless and reusable mapping function for the given target class
 	 * @throws UnknownEntityException When {@code targetClass} is not a managed class
 	 */
-	default <T> BiFunction<TypeSystem, Record, T> getRequiredMappingFunctionFor(Class<T> targetClass) {
+	default <T> BiFunction<TypeSystem, MapAccessor, T> getRequiredMappingFunctionFor(Class<T> targetClass) {
 		NodeDescription<?> nodeDescription = getNodeDescription(targetClass);
 		if (nodeDescription == null) {
 			throw new UnknownEntityException(targetClass);
 		}
-		return (typeSystem, record) -> getEntityConverter().read(targetClass, new RecordMapAccessor(record));
+		return (typeSystem, record) -> getEntityConverter().read(targetClass, record);
 	}
 
 	/**
