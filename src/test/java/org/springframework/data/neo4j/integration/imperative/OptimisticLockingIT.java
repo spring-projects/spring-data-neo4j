@@ -205,6 +205,71 @@ class OptimisticLockingIT {
 
 	}
 
+	@Test
+	void shouldNotFailOnDeleteByIdWithNullVersion(@Autowired VersionedThingWithAssignedIdRepository repository) {
+		try (Session session = driver.session()) {
+			session.writeTransaction(tx -> tx.run("CREATE (v:VersionedThingWithAssignedId {id:1})").consume());
+		}
+
+		repository.deleteById(1L);
+
+		try (Session session = driver.session()) {
+			long count = session.readTransaction(tx ->
+					tx.run("MATCH (v:VersionedThingWithAssignedId) return count(v) as vCount").next()
+							.get("vCount").asLong());
+
+			assertThat(count).isEqualTo(0);
+		}
+	}
+
+	@Test
+	void shouldNotFailOnDeleteByEntityWithNullVersion(@Autowired VersionedThingWithAssignedIdRepository repository) {
+		try (Session session = driver.session()) {
+			session.writeTransaction(tx -> tx.run("CREATE (v:VersionedThingWithAssignedId {id:1})").consume());
+		}
+
+		VersionedThingWithAssignedId thing = repository.findById(1L).get();
+		repository.delete(thing);
+
+		try (Session session = driver.session()) {
+			long count = session.readTransaction(tx ->
+					tx.run("MATCH (v:VersionedThingWithAssignedId) return count(v) as vCount").next()
+							.get("vCount").asLong());
+
+			assertThat(count).isEqualTo(0);
+		}
+	}
+
+	@Test
+	void shouldNotFailOnDeleteByIdWithAnyVersion(@Autowired VersionedThingWithAssignedIdRepository repository) {
+		try (Session session = driver.session()) {
+			session.writeTransaction(tx ->
+					tx.run("CREATE (v:VersionedThingWithAssignedId {id:1, myVersion:3})").consume());
+		}
+
+		repository.deleteById(1L);
+
+		try (Session session = driver.session()) {
+			long count = session.readTransaction(tx ->
+					tx.run("MATCH (v:VersionedThingWithAssignedId) return count(v) as vCount").next()
+							.get("vCount").asLong());
+
+			assertThat(count).isEqualTo(0);
+		}
+	}
+
+	@Test
+	void shouldFailOnDeleteByEntityWithWrongVersion(@Autowired VersionedThingWithAssignedIdRepository repository) {
+		try (Session session = driver.session()) {
+			session.writeTransaction(tx ->
+					tx.run("CREATE (v:VersionedThingWithAssignedId {id:1, myVersion:2})").consume());
+		}
+
+		VersionedThingWithAssignedId thing = repository.findById(1L).get();
+		thing.setMyVersion(3L);
+		assertThatExceptionOfType(OptimisticLockingFailureException.class).isThrownBy(() -> repository.delete(thing));
+	}
+
 	interface VersionedThingRepository extends Neo4jRepository<VersionedThing, Long> {}
 
 	interface VersionedThingWithAssignedIdRepository extends Neo4jRepository<VersionedThingWithAssignedId, Long> {}

@@ -15,6 +15,7 @@
  */
 package org.springframework.data.neo4j.core;
 
+import org.springframework.data.neo4j.core.mapping.Neo4jPersistentProperty;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -194,6 +195,9 @@ public interface ReactiveNeo4jOperations {
 	 * @param <T> the type of the entity.
 	 */
 	<T> Mono<Void> deleteById(Object id, Class<T> domainType);
+
+	<T> Mono<Void> deleteByIdWithVersion(Object id, Class<T> domainType, Neo4jPersistentProperty versionProperty,
+										 Object versionValue);
 
 	/**
 	 * Deletes all entities with one of the given ids, including all entities related to that entity.

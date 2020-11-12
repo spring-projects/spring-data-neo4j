@@ -22,6 +22,7 @@ import java.util.Optional;
 import org.apiguardian.api.API;
 import org.neo4j.cypherdsl.core.Statement;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
+import org.springframework.data.neo4j.core.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.repository.NoResultException;
 
 /**
@@ -195,6 +196,8 @@ public interface Neo4jOperations {
 	 * @param <T> the type of the entity.
 	 */
 	<T> void deleteById(Object id, Class<T> domainType);
+
+	<T> void deleteByIdWithVersion(Object id, Class<T> domainType, Neo4jPersistentProperty versionProperty, Object versionValue);
 
 	/**
 	 * Deletes all entities with one of the given ids, including all entities related to that entity.
