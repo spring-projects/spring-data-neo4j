@@ -18,6 +18,7 @@ package org.springframework.data.neo4j.core;
 import static org.neo4j.cypherdsl.core.Cypher.asterisk;
 import static org.neo4j.cypherdsl.core.Cypher.parameter;
 
+import org.neo4j.cypherdsl.core.Cypher;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.util.function.Tuple2;
@@ -26,6 +27,7 @@ import reactor.util.function.Tuples;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -346,6 +348,36 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 				.in(databaseName.getValue())
 				.bind(convertIdValues(entityMetaData.getRequiredIdProperty(), id))
 				.to(nameOfParameter).run().then());
+	}
+
+	@Override
+	public <T> Mono<Void> deleteByIdWithVersion(Object id, Class<T> domainType, Neo4jPersistentProperty versionProperty,
+										  Object versionValue) {
+
+		String nameOfParameter = "id";
+		Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getPersistentEntity(domainType);
+		Condition condition = entityMetaData.getIdExpression().isEqualTo(parameter(nameOfParameter))
+				.and(Cypher.property(Constants.NAME_OF_ROOT_NODE, versionProperty.getPropertyName())
+						.isEqualTo(parameter(Constants.NAME_OF_VERSION_PARAM))
+						.or(Cypher.property(Constants.NAME_OF_ROOT_NODE, versionProperty.getPropertyName()).isNull()));
+
+		Statement statement = cypherGenerator.prepareMatchOf(entityMetaData, condition)
+				.returning(Constants.NAME_OF_ROOT_NODE).build();
+
+		Map<String, Object> parameters = new HashMap<>();
+		parameters.put(nameOfParameter, convertIdValues(entityMetaData.getRequiredIdProperty(), id));
+		parameters.put(Constants.NAME_OF_VERSION_PARAM, versionValue);
+
+		return getDatabaseName().flatMap(databaseName -> this.neo4jClient.query(() -> renderer.render(statement))
+				.in(databaseName.getValue())
+				.bindAll(parameters)
+				.fetch().one().switchIfEmpty(Mono.defer(() -> {
+					if (entityMetaData.hasVersionProperty()) {
+						return Mono.error(() -> new OptimisticLockingFailureException(OPTIMISTIC_LOCKING_ERROR_MESSAGE));
+					}
+					return Mono.empty();
+				})))
+		.then(deleteById(id, domainType));
 	}
 
 	@Override

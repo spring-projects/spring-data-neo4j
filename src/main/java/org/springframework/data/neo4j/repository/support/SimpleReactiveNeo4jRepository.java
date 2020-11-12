@@ -15,6 +15,7 @@
  */
 package org.springframework.data.neo4j.repository.support;
 
+import org.springframework.data.neo4j.core.mapping.Neo4jPersistentProperty;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -170,9 +171,17 @@ public class SimpleReactiveNeo4jRepository<T, ID> implements ReactiveSortingRepo
 	@Override
 	@Transactional
 	public Mono<Void> delete(T entity) {
-
 		Assert.notNull(entity, "The given entity must not be null!");
-		return deleteById(this.entityInformation.getId(entity));
+
+		ID id = this.entityInformation.getId(entity);
+		if (entityMetaData.hasVersionProperty()) {
+			Neo4jPersistentProperty versionProperty = entityMetaData.getRequiredVersionProperty();
+			Object versionValue = entityMetaData.getPropertyAccessor(entity).getProperty(versionProperty);
+			return this.neo4jOperations.deleteByIdWithVersion(id, this.entityInformation.getJavaType(), versionProperty, versionValue);
+		} else {
+			return this.deleteById(id);
+		}
+
 	}
 
 	/*

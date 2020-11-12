@@ -29,8 +29,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.core.Neo4jOperations;
-import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.core.mapping.CypherGenerator;
+import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
+import org.springframework.data.neo4j.core.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.repository.query.CypherAdapterUtils;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.data.repository.support.PageableExecutionUtils;
@@ -149,7 +150,13 @@ public class SimpleNeo4jRepository<T, ID> implements PagingAndSortingRepository<
 	public void delete(T entity) {
 
 		ID id = this.entityInformation.getId(entity);
-		this.deleteById(id);
+		if (entityMetaData.hasVersionProperty()) {
+			Neo4jPersistentProperty versionProperty = entityMetaData.getRequiredVersionProperty();
+			Object versionValue = entityMetaData.getPropertyAccessor(entity).getProperty(versionProperty);
+			this.neo4jOperations.deleteByIdWithVersion(id, this.entityInformation.getJavaType(), versionProperty, versionValue);
+		} else {
+			this.deleteById(id);
+		}
 	}
 
 	@Override
