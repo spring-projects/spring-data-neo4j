@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.assertj.core.api.Assertions.tuple;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -1890,6 +1891,18 @@ class RepositoryIT {
 
 			assertThat(repository.existsById(id1)).isFalse();
 			assertThat(repository.existsById(id2)).isFalse();
+		}
+
+		@Test // DATAGRAPH-1428
+		void deleteAllById(@Autowired PersonRepository repository) {
+
+			PersonWithAllConstructor person3 = new PersonWithAllConstructor(id1, TEST_PERSON1_NAME, TEST_PERSON1_FIRST_NAME,
+					TEST_PERSON_SAMEVALUE, true, 1L, TEST_PERSON1_BORN_ON, "something", Arrays.asList("a", "b"), NEO4J_HQ,
+					Instant.now());
+
+			repository.deleteAllById(Arrays.asList(person1.getId(), person3.getId()));
+
+			assertThat(repository.findAll()).extracting(PersonWithAllConstructor::getId).containsExactly(id2);
 		}
 
 		@Test
