@@ -1,0 +1,30 @@
+== ADR 7: Optimistic locking on delete
+
+=== Status
+
+accepted
+
+=== Context
+
+At the moment there is no optimistic locking check at all when it comes to entity deletion via `delete...` API calls.
+
+=== Decision
+
+For `deleteById`:
+It won't make any sense with just an identifier provided, to load the current data from the database and compare it on save with the retrieved version.
+In 99.999(...)% of the use-cases it will be the same version.
+For the rest it would mean that the data has just been modified between loading the version and the delete call.
+If the latter would have been the only call against the database, it would have removed the entity correctly.
+
+For `delete(entity)`:
+There should be a check against the version of the previously loaded entity.
+As a consequent throw a `OptimisticLockingFailureException` if the versions have a mismatch on delete.
+
+Non-existing version parameters during `delete(entity)`:
+Fall back to `OR <versionField> IS NULL` to provide a relaxed mode.
+Otherwise, we would initialize the version actively to just delete the node.
+
+=== Consequences
+
+A clean line between what is supposed to work with optimistic locking and what does not.
+Additionally, this aligns the Neo4j module with the other Spring Data modules.

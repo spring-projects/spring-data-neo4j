@@ -204,6 +204,69 @@ class ReactiveOptimisticLockingIT {
 
 	}
 
+	@Test
+	void shouldNotFailOnDeleteByIdWithNullVersion(@Autowired VersionedThingWithAssignedIdRepository repository) {
+		try (Session session = driver.session()) {
+			session.writeTransaction(tx -> tx.run("CREATE (v:VersionedThingWithAssignedId {id:1})").consume());
+		}
+
+		StepVerifier.create(repository.deleteById(1L))
+				.verifyComplete();
+
+		try (Session session = driver.session()) {
+			long count = session.readTransaction(tx ->
+					tx.run("MATCH (v:VersionedThingWithAssignedId) return count(v) as vCount").next()
+							.get("vCount").asLong());
+
+			assertThat(count).isEqualTo(0);
+		}
+	}
+
+	@Test
+	void shouldNotFailOnDeleteByEntityWithNullVersion(@Autowired VersionedThingWithAssignedIdRepository repository) {
+		try (Session session = driver.session()) {
+			session.writeTransaction(tx -> tx.run("CREATE (v:VersionedThingWithAssignedId {id:1})").consume());
+		}
+
+		StepVerifier.create(repository.findById(1L).map(thing -> repository.deleteById(1L)))
+				.expectNextCount(1L)
+				.verifyComplete();
+
+	}
+
+	@Test
+	void shouldNotFailOnDeleteByIdWithAnyVersion(@Autowired VersionedThingWithAssignedIdRepository repository) {
+		try (Session session = driver.session()) {
+			session.writeTransaction(tx ->
+					tx.run("CREATE (v:VersionedThingWithAssignedId {id:1, myVersion:3})").consume());
+		}
+
+		StepVerifier.create(repository.deleteById(1L))
+				.verifyComplete();
+
+		try (Session session = driver.session()) {
+			long count = session.readTransaction(tx ->
+					tx.run("MATCH (v:VersionedThingWithAssignedId) return count(v) as vCount").next()
+							.get("vCount").asLong());
+
+			assertThat(count).isEqualTo(0);
+		}
+	}
+
+	@Test
+	void shouldFailOnDeleteByEntityWithWrongVersion(@Autowired VersionedThingWithAssignedIdRepository repository) {
+		try (Session session = driver.session()) {
+			session.writeTransaction(tx -> tx.run("CREATE (v:VersionedThingWithAssignedId {id:1, myVersion:2})").consume());
+		}
+
+		StepVerifier.create(repository.findById(1L)
+				.flatMap(thing -> {
+					thing.setMyVersion(3L);
+					return repository.delete(thing);
+		})).verifyError(OptimisticLockingFailureException.class);
+
+	}
+
 	interface VersionedThingRepository extends ReactiveNeo4jRepository<VersionedThing, Long> {}
 
 	interface VersionedThingWithAssignedIdRepository

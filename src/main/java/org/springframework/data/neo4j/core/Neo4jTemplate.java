@@ -21,6 +21,7 @@ import static org.neo4j.cypherdsl.core.Cypher.parameter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -30,6 +31,7 @@ import java.util.stream.Collectors;
 import org.apache.commons.logging.LogFactory;
 import org.apiguardian.api.API;
 import org.neo4j.cypherdsl.core.Condition;
+import org.neo4j.cypherdsl.core.Cypher;
 import org.neo4j.cypherdsl.core.Functions;
 import org.neo4j.cypherdsl.core.Statement;
 import org.neo4j.cypherdsl.core.renderer.Renderer;
@@ -341,6 +343,32 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 
 		log.debug(() -> String.format("Deleted %d nodes and %d relationships.", summary.counters().nodesDeleted(),
 				summary.counters().relationshipsDeleted()));
+	}
+
+	@Override
+	public <T> void deleteByIdWithVersion(Object id, Class<T> domainType, Neo4jPersistentProperty versionProperty,
+										  Object versionValue) {
+
+		Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getPersistentEntity(domainType);
+
+		String nameOfParameter = "id";
+		Condition condition = entityMetaData.getIdExpression().isEqualTo(parameter(nameOfParameter))
+				.and(Cypher.property(Constants.NAME_OF_ROOT_NODE, versionProperty.getPropertyName())
+						.isEqualTo(parameter(Constants.NAME_OF_VERSION_PARAM))
+						.or(Cypher.property(Constants.NAME_OF_ROOT_NODE, versionProperty.getPropertyName()).isNull()));
+
+		Statement statement = cypherGenerator.prepareMatchOf(entityMetaData, condition)
+				.returning(Constants.NAME_OF_ROOT_NODE).build();
+
+		Map<String, Object> parameters = new HashMap<>();
+		parameters.put(nameOfParameter, convertIdValues(entityMetaData.getRequiredIdProperty(), id));
+		parameters.put(Constants.NAME_OF_VERSION_PARAM, versionValue);
+
+		createExecutableQuery(domainType, statement, parameters).getSingleResult().orElseThrow(
+				() -> new OptimisticLockingFailureException(OPTIMISTIC_LOCKING_ERROR_MESSAGE)
+		);
+
+		deleteById(id, domainType);
 	}
 
 	@Override
