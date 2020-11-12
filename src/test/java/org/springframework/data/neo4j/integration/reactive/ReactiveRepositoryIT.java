@@ -109,6 +109,7 @@ import org.springframework.transaction.reactive.TransactionalOperator;
  * @author Gerrit Meier
  * @author Michael J. Simons
  * @author Philipp Tölle
+ * @author Jens Schauder
  */
 @ExtendWith(Neo4jExtension.class)
 @SpringJUnitConfig
@@ -2030,6 +2031,13 @@ class ReactiveRepositoryIT {
 		void deleteAllEntitiesPublisher(@Autowired ReactivePersonRepository repository) {
 
 			repository.deleteAll(Flux.just(person1, person2)).then(repository.existsById(id1))
+					.concatWith(repository.existsById(id2)).as(StepVerifier::create).expectNext(false, false).verifyComplete();
+		}
+
+		@Test // DATAGRAPH-1428
+		void deleteAllById(@Autowired ReactivePersonRepository repository) {
+
+			repository.deleteAllById(Arrays.asList(person1.getId(), person2.getId())).then(repository.existsById(id1))
 					.concatWith(repository.existsById(id2)).as(StepVerifier::create).expectNext(false, false).verifyComplete();
 		}
 

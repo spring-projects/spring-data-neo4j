@@ -41,6 +41,7 @@ import org.springframework.util.Assert;
  *
  * @author Gerrit Meier
  * @author Michael J. Simons
+ * @author Jens Schauder
  * @since 6.0
  * @param <T> the type of the domain class managed by this repository
  * @param <ID> the type of the unique identifier of the domain class
@@ -204,8 +205,17 @@ public class SimpleReactiveNeo4jRepository<T, ID> implements ReactiveSortingRepo
 	public Mono<Void> deleteAll(Iterable<? extends T> entities) {
 
 		Assert.notNull(entities, "The given Iterable of entities must not be null!");
+
 		List<ID> ids = StreamSupport.stream(entities.spliterator(), false).map(this.entityInformation::getId)
 				.collect(Collectors.toList());
+		return this.neo4jOperations.deleteAllById(ids, this.entityInformation.getJavaType());
+	}
+
+	@Override
+	public Mono<Void> deleteAllById(Iterable<? extends ID> ids) {
+
+		Assert.notNull(ids, "The given Iterable of ids must not be null!");
+
 		return this.neo4jOperations.deleteAllById(ids, this.entityInformation.getJavaType());
 	}
 

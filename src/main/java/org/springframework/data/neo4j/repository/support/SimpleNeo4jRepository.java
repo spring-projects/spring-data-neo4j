@@ -44,6 +44,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Gerrit Meier
  * @author Michael J. Simons
  * @author Ján Šúr
+ * @author Jens Schauder
  * @since 6.0
  * @param <T> the type of the domain class managed by this repository
  * @param <ID> the type of the unique identifier of the domain class
@@ -172,6 +173,13 @@ public class SimpleNeo4jRepository<T, ID> implements PagingAndSortingRepository<
 
 		List<Object> ids = StreamSupport.stream(entities.spliterator(), false).map(this.entityInformation::getId)
 				.collect(Collectors.toList());
+
+		this.neo4jOperations.deleteAllById(ids, this.entityInformation.getJavaType());
+	}
+
+	@Override
+	@Transactional
+	public void deleteAllById(Iterable<? extends ID> ids) {
 
 		this.neo4jOperations.deleteAllById(ids, this.entityInformation.getJavaType());
 	}
