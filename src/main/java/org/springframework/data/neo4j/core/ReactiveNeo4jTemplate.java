@@ -301,16 +301,8 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 
 		Function<T, Map<String, Object>> binderFunction = neo4jMappingContext.getRequiredBinderFunctionFor(domainClass);
 		return getDatabaseName().flatMapMany(databaseName -> Flux.fromIterable(entities)
-				.flatMap(eventSupport::maybeCallBeforeBind).collectList().flatMapMany(entitiesToBeSaved -> Mono.defer(() -> { // Defer
-																																																											// the
-																																																											// actual
-																																																											// save
-																																																											// statement
-																																																											// until
-																																																											// the
-																																																											// previous
-																																																											// flux
-																																																											// completes
+				.flatMap(eventSupport::maybeCallBeforeBind).collectList().flatMapMany(entitiesToBeSaved -> Mono.defer(() -> {
+					// Defer the actual save statement until the previous flux completes
 					List<Map<String, Object>> boundedEntityList = entitiesToBeSaved.stream().map(binderFunction)
 							.collect(Collectors.toList());
 
