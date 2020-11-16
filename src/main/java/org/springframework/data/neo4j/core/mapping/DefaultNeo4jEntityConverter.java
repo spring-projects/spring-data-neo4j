@@ -391,7 +391,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 			mappedObjectHandler = (type, mappedObject) -> value.add(mappedObject);
 		}
 
-		Value list = allValues.get(relationshipDescription.generateRelatedNodesCollectionName());
+		Value list = values.get(relationshipDescription.generateRelatedNodesCollectionName());
 
 		List<Object> relationshipsAndProperties = new ArrayList<>();
 

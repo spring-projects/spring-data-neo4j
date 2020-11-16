@@ -110,6 +110,7 @@ import org.springframework.data.neo4j.integration.shared.common.PersonWithRelati
 import org.springframework.data.neo4j.integration.shared.common.PersonWithWither;
 import org.springframework.data.neo4j.integration.shared.common.Pet;
 import org.springframework.data.neo4j.integration.shared.common.SimilarThing;
+import org.springframework.data.neo4j.integration.shared.common.SimpleEntityWithRelationshipA;
 import org.springframework.data.neo4j.integration.shared.common.ThingWithAssignedId;
 import org.springframework.data.neo4j.integration.shared.common.ThingWithGeneratedId;
 import org.springframework.data.neo4j.integration.shared.common.WorksInClubRelationship;
@@ -1023,6 +1024,22 @@ class RepositoryIT {
 			ThingWithAssignedId relatedThing = pet.getThings().get(0);
 			assertThat(relatedThing.getTheId()).isEqualTo("t1");
 			assertThat(relatedThing.getName()).isEqualTo("Thing1");
+		}
+
+		@Test // DATAGRAPH-1431
+		void findAndMapMultipleLevelsOfSimpleRelationships(@Autowired SimpleEntityWithRelationshipARepository repository) {
+			Long aId = null;
+			try (Session session = createSession()) {
+				aId = session.writeTransaction(tx -> tx.run("CREATE (a:SimpleEntityWithRelationshipA)" +
+						"-[:TO_B]->(:SimpleEntityWithRelationshipB)" +
+						"-[:TO_C]->(:SimpleEntityWithRelationshipC)" +
+						" RETURN id(a) as aId").single().get("aId").asLong());
+			}
+
+			SimpleEntityWithRelationshipA entityA = repository.findById(aId).get();
+			assertThat(entityA).isNotNull();
+			assertThat(entityA.getBs()).hasSize(1);
+			assertThat(entityA.getBs().get(0).getCs()).hasSize(1);
 		}
 
 	}
@@ -3321,6 +3338,8 @@ class RepositoryIT {
 		 */
 		Optional<ExtendedParentNode> findExtendedParentNodeBySomeOtherAttribute(String someOtherAttribute);
 	}
+
+	interface SimpleEntityWithRelationshipARepository extends Neo4jRepository<SimpleEntityWithRelationshipA, Long> {}
 
 	@SpringJUnitConfig(Config.class)
 	static abstract class IntegrationTestBase {
