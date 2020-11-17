@@ -228,7 +228,12 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 	private <T> T saveImpl(T instance, @Nullable String inDatabase) {
 
 		Neo4jPersistentEntity entityMetaData = neo4jMappingContext.getPersistentEntity(instance.getClass());
+		Object idBeforeCallback = entityMetaData.getPropertyAccessor(instance).getProperty(entityMetaData.getRequiredIdProperty());
+
 		T entityToBeSaved = eventSupport.maybeCallBeforeBind(instance);
+
+		Object idAfterCallback = entityMetaData.getPropertyAccessor(entityToBeSaved).getProperty(entityMetaData.getRequiredIdProperty());
+		boolean isIdWiseNew = hasNewIdentifierValue(idBeforeCallback, idAfterCallback);
 
 		DynamicLabels dynamicLabels = determineDynamicLabels(entityToBeSaved, entityMetaData, inDatabase);
 
@@ -245,14 +250,18 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 
 		PersistentPropertyAccessor<T> propertyAccessor = entityMetaData.getPropertyAccessor(entityToBeSaved);
 		if (!entityMetaData.isUsingInternalIds()) {
-			processRelations(entityMetaData, entityToBeSaved, inDatabase);
+			processRelations(entityMetaData, entityToBeSaved, inDatabase, isIdWiseNew);
 			return entityToBeSaved;
 		} else {
 			propertyAccessor.setProperty(entityMetaData.getRequiredIdProperty(), optionalInternalId.get());
-			processRelations(entityMetaData, entityToBeSaved, inDatabase);
+			processRelations(entityMetaData, entityToBeSaved, inDatabase, isIdWiseNew);
 
 			return propertyAccessor.getBean();
 		}
+	}
+
+	private boolean hasNewIdentifierValue(Object idBeforeCallback, Object idAfterCallback) {
+		return idBeforeCallback == null || !idBeforeCallback.equals(idAfterCallback);
 	}
 
 	private <T> DynamicLabels determineDynamicLabels(T entityToBeSaved, Neo4jPersistentEntity<?> entityMetaData,
@@ -316,7 +325,7 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 				.bind(entityList).to(Constants.NAME_OF_ENTITY_LIST_PARAM).run();
 
 		// Save related
-		entitiesToBeSaved.forEach(entityToBeSaved -> processRelations(entityMetaData, entityToBeSaved, databaseName));
+		entitiesToBeSaved.forEach(entityToBeSaved -> processRelations(entityMetaData, entityToBeSaved, databaseName, false));
 
 		SummaryCounters counters = resultSummary.counters();
 		log.debug(() -> String.format(
@@ -428,14 +437,14 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 	}
 
 	private void processRelations(Neo4jPersistentEntity<?> neo4jPersistentEntity, Object parentObject,
-			@Nullable String inDatabase) {
+			@Nullable String inDatabase, boolean isIdWiseNew) {
 
 		processNestedRelations(neo4jPersistentEntity, parentObject, inDatabase,
-				new NestedRelationshipProcessingStateMachine());
+				new NestedRelationshipProcessingStateMachine(), isIdWiseNew);
 	}
 
 	private void processNestedRelations(Neo4jPersistentEntity<?> neo4jPersistentEntity, Object parentObject,
-			@Nullable String inDatabase, NestedRelationshipProcessingStateMachine stateMachine) {
+			@Nullable String inDatabase, NestedRelationshipProcessingStateMachine stateMachine, boolean isIdWiseNew) {
 
 		PersistentPropertyAccessor<?> propertyAccessor = neo4jPersistentEntity.getPropertyAccessor(parentObject);
 		Object fromId = propertyAccessor.getProperty(neo4jPersistentEntity.getRequiredIdProperty());
@@ -460,7 +469,7 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 
 			// remove all relationships before creating all new if the entity is not new
 			// this avoids the usage of cache but might have significant impact on overall performance
-			if (!neo4jPersistentEntity.isNew(parentObject)) {
+			if (!neo4jPersistentEntity.isNew(parentObject) && !isIdWiseNew) {
 				Neo4jPersistentEntity<?> previouslyRelatedPersistentEntity = neo4jMappingContext
 						.getPersistentEntity(relationshipContext.getAssociationTargetType());
 
@@ -507,7 +516,7 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 							.setProperty(targetNodeDescription.getRequiredIdProperty(), relatedInternalId);
 				}
 				if (processState != ProcessState.PROCESSED_ALL_VALUES) {
-					processNestedRelations(targetNodeDescription, relatedNode, inDatabase, stateMachine);
+					processNestedRelations(targetNodeDescription, relatedNode, inDatabase, stateMachine, isIdWiseNew);
 				}
 			}
 		});
