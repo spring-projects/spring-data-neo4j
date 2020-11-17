@@ -18,7 +18,6 @@ package org.springframework.data.neo4j.core;
 import static org.neo4j.cypherdsl.core.Cypher.asterisk;
 import static org.neo4j.cypherdsl.core.Cypher.parameter;
 
-import org.neo4j.cypherdsl.core.Cypher;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.util.function.Tuple2;
@@ -36,6 +35,7 @@ import java.util.stream.Collectors;
 import org.apache.commons.logging.LogFactory;
 import org.apiguardian.api.API;
 import org.neo4j.cypherdsl.core.Condition;
+import org.neo4j.cypherdsl.core.Cypher;
 import org.neo4j.cypherdsl.core.Functions;
 import org.neo4j.cypherdsl.core.Statement;
 import org.neo4j.cypherdsl.core.renderer.Renderer;
@@ -223,7 +223,8 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 	private <T> Mono<T> saveImpl(T instance, @Nullable String inDatabase) {
 
 		Neo4jPersistentEntity entityMetaData = neo4jMappingContext.getPersistentEntity(instance.getClass());
-		return Mono.just(instance).flatMap(eventSupport::maybeCallBeforeBind)
+		return Mono.just(entityMetaData.isNew(instance))
+				.flatMap(isNewEntity -> Mono.just(instance).flatMap(eventSupport::maybeCallBeforeBind)
 				.flatMap(entity -> determineDynamicLabels(entity, entityMetaData, inDatabase)).flatMap(t -> {
 					T entity = t.getT1();
 					DynamicLabels dynamicLabels = t.getT2();
@@ -240,7 +241,8 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 							}));
 
 					if (!entityMetaData.isUsingInternalIds()) {
-						return idMono.then(processRelations(entityMetaData, entity, inDatabase)).thenReturn(entity);
+						return idMono.then(processRelations(entityMetaData, entity, isNewEntity, inDatabase))
+								.thenReturn(entity);
 					} else {
 						return idMono.map(internalId -> {
 							PersistentPropertyAccessor<T> propertyAccessor = entityMetaData.getPropertyAccessor(entity);
@@ -248,9 +250,10 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 
 							return propertyAccessor.getBean();
 						}).flatMap(
-								savedEntity -> processRelations(entityMetaData, savedEntity, inDatabase).thenReturn(savedEntity));
+								savedEntity -> processRelations(entityMetaData, savedEntity, isNewEntity, inDatabase)
+										.thenReturn(savedEntity));
 					}
-				});
+				}));
 	}
 
 	private <T> Mono<Tuple2<T, DynamicLabels>> determineDynamicLabels(T entityToBeSaved,
@@ -302,12 +305,12 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 		}
 
 		Function<T, Map<String, Object>> binderFunction = neo4jMappingContext.getRequiredBinderFunctionFor(domainClass);
+		String isNewIndicatorKey = "isNewIndicator";
 		return getDatabaseName().flatMapMany(databaseName -> Flux.fromIterable(entities)
 				.flatMap(eventSupport::maybeCallBeforeBind).collectList().flatMapMany(entitiesToBeSaved -> Mono.defer(() -> {
 					// Defer the actual save statement until the previous flux completes
 					List<Map<String, Object>> boundedEntityList = entitiesToBeSaved.stream().map(binderFunction)
 							.collect(Collectors.toList());
-
 					return neo4jClient
 							.query(() -> renderer.render(cypherGenerator.prepareSaveOfMultipleInstancesOf(entityMetaData)))
 							.in(databaseName.getValue()).bind(boundedEntityList).to(Constants.NAME_OF_ENTITY_LIST_PARAM).run();
@@ -317,7 +320,23 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 							"Created %d and deleted %d nodes, created %d and deleted %d relationships and set %d properties.",
 							counters.nodesCreated(), counters.nodesDeleted(), counters.relationshipsCreated(),
 							counters.relationshipsDeleted(), counters.propertiesSet()));
-				}).thenMany(Flux.fromIterable(entitiesToBeSaved))));
+				}).thenMany(
+						Flux.deferContextual(ctx -> {
+							List<Boolean> isNewIndicator = ctx.get(isNewIndicatorKey);
+							return Flux.fromIterable(entitiesToBeSaved)
+									.index()
+									.flatMap(t -> {
+												T entityToBeSaved = t.getT2();
+												boolean isNew = isNewIndicator.get(Math.toIntExact(t.getT1()));
+												return processRelations(entityMetaData, entityToBeSaved, isNew,
+														databaseName.getValue())
+														.then(Mono.just(entityToBeSaved));
+											}
+									);
+						})
+				)))
+				.contextWrite(ctx -> ctx.put(isNewIndicatorKey, entities.stream()
+						.map(entity -> entityMetaData.isNew(entity)).collect(Collectors.toList())));
 	}
 
 	@Override
@@ -414,14 +433,14 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 	}
 
 	private Mono<Void> processRelations(Neo4jPersistentEntity<?> neo4jPersistentEntity, Object parentObject,
-			@Nullable String inDatabase) {
+			boolean isParentObjectNew, @Nullable String inDatabase) {
 
-		return processNestedRelations(neo4jPersistentEntity, parentObject, inDatabase,
+		return processNestedRelations(neo4jPersistentEntity, parentObject, isParentObjectNew, inDatabase,
 				new NestedRelationshipProcessingStateMachine());
 	}
 
 	private Mono<Void> processNestedRelations(Neo4jPersistentEntity<?> neo4jPersistentEntity, Object parentObject,
-			@Nullable String inDatabase, NestedRelationshipProcessingStateMachine stateMachine) {
+		  boolean isParentObjectNew, @Nullable String inDatabase, NestedRelationshipProcessingStateMachine stateMachine) {
 
 		return Mono.defer(() -> {
 			PersistentPropertyAccessor<?> propertyAccessor = neo4jPersistentEntity.getPropertyAccessor(parentObject);
@@ -448,7 +467,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 
 				// remove all relationships before creating all new if the entity is not new
 				// this avoids the usage of cache but might have significant impact on overall performance
-				if (!neo4jPersistentEntity.isNew(parentObject)) {
+				if (!isParentObjectNew) {
 					Neo4jPersistentEntity<?> previouslyRelatedPersistentEntity = neo4jMappingContext
 							.getPersistentEntity(relationshipContext.getAssociationTargetType());
 
@@ -475,7 +494,8 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 							.flatMap(valueToBeSaved -> {
 								Neo4jPersistentEntity<?> targetNodeDescription = neo4jMappingContext
 										.getPersistentEntity(valueToBeSavedPreEvt.getClass());
-								return saveRelatedNode(valueToBeSaved, relationshipContext.getAssociationTargetType(),
+								return Mono.just(targetNodeDescription.isNew(valueToBeSaved)).flatMap(isNew ->
+										saveRelatedNode(valueToBeSaved, relationshipContext.getAssociationTargetType(),
 										targetNodeDescription, inDatabase).flatMap(relatedInternalId -> {
 
 											// if an internal id is used this must get set to link this entity in the next iteration
@@ -498,11 +518,12 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 
 											if (processState != ProcessState.PROCESSED_ALL_VALUES) {
 												return relationshipCreationMonoNested.checkpoint().then(
-														processNestedRelations(targetNodeDescription, valueToBeSaved, inDatabase, stateMachine));
+														processNestedRelations(targetNodeDescription, valueToBeSaved,
+																isNew, inDatabase, stateMachine));
 											} else {
 												return relationshipCreationMonoNested.checkpoint().then();
 											}
-										}).checkpoint();
+										}).checkpoint());
 							});
 					relationshipCreationMonos.add(createRelationship);
 				}

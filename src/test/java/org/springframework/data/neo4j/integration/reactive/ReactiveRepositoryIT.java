@@ -19,6 +19,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.tuple;
 
+import org.springframework.data.neo4j.integration.shared.common.SimplePerson;
+import org.springframework.data.neo4j.integration.shared.common.ThingWithFixedGeneratedId;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -1574,6 +1576,108 @@ class ReactiveRepositoryIT {
 			repository.count().as(StepVerifier::create).expectNext(21L).verifyComplete();
 		}
 
+		@Test // DATAGRAPH-1430
+		void saveNewEntityWithGeneratedIdShouldNotIssueRelationshipDeleteStatement(
+				@Autowired ThingWithFixedGeneratedIdRepository repository) {
+
+			try (Session session = createSession()) {
+				session.writeTransaction(tx ->
+						tx.run("CREATE (:ThingWithFixedGeneratedId{theId:'ThingWithFixedGeneratedId'})" +
+								"-[r:KNOWS]->(:SimplePerson) return id(r) as rId").consume());
+			}
+
+			ThingWithFixedGeneratedId thing = new ThingWithFixedGeneratedId("name");
+			// this will create a duplicated relationship because we use the same ids
+			thing.setPerson(new SimplePerson("someone"));
+			repository.save(thing).block();
+
+			// ensure that no relationship got deleted upfront
+			try (Session session = createSession()) {
+				Long relCount = session.readTransaction(tx ->
+						tx.run("MATCH (:ThingWithFixedGeneratedId{theId:'ThingWithFixedGeneratedId'})" +
+								"-[r:KNOWS]-(:SimplePerson) return count(r) as rCount")
+								.next().get("rCount").asLong());
+
+				assertThat(relCount).isEqualTo(2);
+			}
+		}
+
+		@Test // DATAGRAPH-1430
+		void updateEntityWithGeneratedIdShouldIssueRelationshipDeleteStatement(
+				@Autowired ThingWithFixedGeneratedIdRepository repository) {
+
+			Long rId;
+			try (Session session = createSession()) {
+				rId = session.writeTransaction(tx ->
+						tx.run("CREATE (:ThingWithFixedGeneratedId{theId:'ThingWithFixedGeneratedId'})" +
+								"-[r:KNOWS]->(:SimplePerson) return id(r) as rId")
+								.next().get("rId").asLong());
+			}
+
+			repository.findById("ThingWithFixedGeneratedId").flatMap(repository::save).block();
+
+			try (Session session = createSession()) {
+				Long newRid = session.readTransaction(tx ->
+						tx.run("MATCH (:ThingWithFixedGeneratedId{theId:'ThingWithFixedGeneratedId'})" +
+								"-[r:KNOWS]-(:SimplePerson) return id(r) as rId")
+								.next().get("rId").asLong());
+
+				assertThat(rId).isNotEqualTo(newRid);
+			}
+		}
+
+		@Test // DATAGRAPH-1430
+		void saveAllNewEntityWithGeneratedIdShouldNotIssueRelationshipDeleteStatement(
+				@Autowired ThingWithFixedGeneratedIdRepository repository) {
+
+			try (Session session = createSession()) {
+				session.writeTransaction(tx ->
+						tx.run("CREATE (:ThingWithFixedGeneratedId{theId:'ThingWithFixedGeneratedId'})" +
+								"-[r:KNOWS]->(:SimplePerson) return id(r) as rId").consume());
+			}
+
+			ThingWithFixedGeneratedId thing = new ThingWithFixedGeneratedId("name");
+			// this will create a duplicated relationship because we use the same ids
+			thing.setPerson(new SimplePerson("someone"));
+			repository.saveAll(Collections.singletonList(thing)).then().block();
+
+			// ensure that no relationship got deleted upfront
+			try (Session session = createSession()) {
+				Long relCount = session.readTransaction(tx ->
+						tx.run("MATCH (:ThingWithFixedGeneratedId{theId:'ThingWithFixedGeneratedId'})" +
+								"-[r:KNOWS]-(:SimplePerson) return count(r) as rCount")
+								.next().get("rCount").asLong());
+
+				assertThat(relCount).isEqualTo(2);
+			}
+		}
+
+		@Test // DATAGRAPH-1430
+		void updateAllEntityWithGeneratedIdShouldIssueRelationshipDeleteStatement(
+				@Autowired ThingWithFixedGeneratedIdRepository repository) {
+
+			Long rId;
+			try (Session session = createSession()) {
+				rId = session.writeTransaction(tx ->
+						tx.run("CREATE (:ThingWithFixedGeneratedId{theId:'ThingWithFixedGeneratedId'})" +
+								"-[r:KNOWS]->(:SimplePerson) return id(r) as rId")
+								.next().get("rId").asLong());
+			}
+
+			repository.findById("ThingWithFixedGeneratedId")
+					.flatMap(loadedThing -> repository.saveAll(Collections.singletonList(loadedThing)).then())
+					.block();
+
+			try (Session session = createSession()) {
+				Long newRid = session.readTransaction(tx ->
+						tx.run("MATCH (:ThingWithFixedGeneratedId{theId:'ThingWithFixedGeneratedId'})" +
+								"-[r:KNOWS]-(:SimplePerson) return id(r) as rId")
+								.next().get("rId").asLong());
+
+				assertThat(rId).isNotEqualTo(newRid);
+			}
+		}
+
 		@Test
 		void saveWithConvertedId(@Autowired EntityWithConvertedIdRepository repository) {
 			EntityWithConvertedId entity = new EntityWithConvertedId();
@@ -2275,6 +2379,8 @@ class ReactiveRepositoryIT {
 
 	interface EntityWithConvertedIdRepository
 			extends ReactiveNeo4jRepository<EntityWithConvertedId, EntityWithConvertedId.IdentifyingEnum> {}
+
+	interface ThingWithFixedGeneratedIdRepository extends ReactiveNeo4jRepository<ThingWithFixedGeneratedId, String> {}
 
 	@SpringJUnitConfig(ReactiveRepositoryIT.Config.class)
 	static abstract class ReactiveIntegrationTestBase {
