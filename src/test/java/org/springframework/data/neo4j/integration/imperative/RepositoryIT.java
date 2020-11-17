@@ -1410,8 +1410,8 @@ class RepositoryIT {
 		}
 
 		@Test
-		void saveNewEntityWithGeneratedIdShouldNotIssueRelationshipDeleteStatement
-				(@Autowired ThingWithFixedGeneratedIdRepository repository) {
+		void saveNewEntityWithGeneratedIdShouldNotIssueRelationshipDeleteStatement(
+				@Autowired ThingWithFixedGeneratedIdRepository repository) {
 
 			try (Session session = createSession()) {
 				session.writeTransaction(tx ->
@@ -1436,8 +1436,8 @@ class RepositoryIT {
 		}
 
 		@Test
-		void updateEntityWithGeneratedIdShouldIssueRelationshipDeleteStatement
-				(@Autowired ThingWithFixedGeneratedIdRepository repository) {
+		void updateEntityWithGeneratedIdShouldIssueRelationshipDeleteStatement(
+				@Autowired ThingWithFixedGeneratedIdRepository repository) {
 
 			Long rId;
 			try (Session session = createSession()) {
@@ -1449,6 +1449,57 @@ class RepositoryIT {
 
 			ThingWithFixedGeneratedId loadedThing = repository.findById("ThingWithFixedGeneratedId").get();
 			repository.save(loadedThing);
+
+			try (Session session = createSession()) {
+				Long newRid = session.readTransaction(tx ->
+						tx.run("MATCH (:ThingWithFixedGeneratedId{theId:'ThingWithFixedGeneratedId'})" +
+								"-[r:KNOWS]-(:SimplePerson) return id(r) as rId")
+								.next().get("rId").asLong());
+
+				assertThat(rId).isNotEqualTo(newRid);
+			}
+		}
+
+		@Test
+		void saveAllNewEntityWithGeneratedIdShouldNotIssueRelationshipDeleteStatement(
+				@Autowired ThingWithFixedGeneratedIdRepository repository) {
+
+			try (Session session = createSession()) {
+				session.writeTransaction(tx ->
+						tx.run("CREATE (:ThingWithFixedGeneratedId{theId:'ThingWithFixedGeneratedId'})" +
+								"-[r:KNOWS]->(:SimplePerson) return id(r) as rId").consume());
+			}
+
+			ThingWithFixedGeneratedId thing = new ThingWithFixedGeneratedId("name");
+			// this will create a duplicated relationship because we use the same ids
+			thing.setPerson(new SimplePerson("someone"));
+			repository.saveAll(Collections.singletonList(thing));
+
+			// ensure that no relationship got deleted upfront
+			try (Session session = createSession()) {
+				Long relCount = session.readTransaction(tx ->
+						tx.run("MATCH (:ThingWithFixedGeneratedId{theId:'ThingWithFixedGeneratedId'})" +
+								"-[r:KNOWS]-(:SimplePerson) return count(r) as rCount")
+								.next().get("rCount").asLong());
+
+				assertThat(relCount).isEqualTo(2);
+			}
+		}
+
+		@Test
+		void updateAllEntityWithGeneratedIdShouldIssueRelationshipDeleteStatement(
+				@Autowired ThingWithFixedGeneratedIdRepository repository) {
+
+			Long rId;
+			try (Session session = createSession()) {
+				rId = session.writeTransaction(tx ->
+						tx.run("CREATE (:ThingWithFixedGeneratedId{theId:'ThingWithFixedGeneratedId'})" +
+								"-[r:KNOWS]->(:SimplePerson) return id(r) as rId")
+								.next().get("rId").asLong());
+			}
+
+			ThingWithFixedGeneratedId loadedThing = repository.findById("ThingWithFixedGeneratedId").get();
+			repository.saveAll(Collections.singletonList(loadedThing));
 
 			try (Session session = createSession()) {
 				Long newRid = session.readTransaction(tx ->
