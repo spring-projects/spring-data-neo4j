@@ -63,7 +63,7 @@ final class IdPopulator {
 			return entity;
 		}
 
-		PersistentPropertyAccessor propertyAccessor = nodeDescription.getPropertyAccessor(entity);
+		PersistentPropertyAccessor<?> propertyAccessor = nodeDescription.getPropertyAccessor(entity);
 		Neo4jPersistentProperty idProperty = nodeDescription.getRequiredIdProperty();
 
 		// Check existing ID
