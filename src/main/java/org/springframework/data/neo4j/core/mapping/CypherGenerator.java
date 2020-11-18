@@ -329,10 +329,8 @@ public enum CypherGenerator {
 
 		SymbolicName nodeName = Constants.NAME_OF_ROOT_NODE;
 		List<RelationshipDescription> processedRelationships = new ArrayList<>();
-		boolean containsPossibleCircles = containsPossibleCircles(nodeDescription);
 
-		return projectPropertiesAndRelationships(nodeDescription, nodeName, includeField,
-				processedRelationships, containsPossibleCircles);
+		return projectPropertiesAndRelationships(nodeDescription, nodeName, includeField, processedRelationships);
 	}
 
 	// recursive entry point for relationships in return statement
@@ -341,19 +339,17 @@ public enum CypherGenerator {
 
 		Predicate<String> includeAllFields = (field) -> true;
 		// Because we are getting called recursive, there cannot be any circle
-		return projectPropertiesAndRelationships(nodeDescription, nodeName, includeAllFields, processedRelationships,
-				false);
+		return projectPropertiesAndRelationships(nodeDescription, nodeName, includeAllFields, processedRelationships);
 	}
 
 	private MapProjection projectPropertiesAndRelationships(NodeDescription<?> nodeDescription, SymbolicName nodeName,
-			Predicate<String> includeProperty, List<RelationshipDescription> processedRelationships,
-			boolean containsPossibleCircles) {
+			Predicate<String> includeProperty, List<RelationshipDescription> processedRelationships) {
 
 		List<Object> propertiesProjection = projectNodeProperties(nodeDescription, nodeName, includeProperty);
 		List<Object> contentOfProjection = new ArrayList<>(propertiesProjection);
-		if (containsPossibleCircles) {
-			Relationship pattern = anyNode(nodeName).relationshipBetween(anyNode(),
-					collectAllRelationshipTypes(nodeDescription)).unbounded();
+		if (nodeDescription.containsPossibleCircles()) {
+			Node node = anyNode(nodeName);
+			Relationship pattern = createRelationships(node, nodeDescription.getRelationships());
 			NamedPath p = Cypher.path("p").definedBy(pattern);
 			contentOfProjection.add(Constants.NAME_OF_PATHS);
 			contentOfProjection.add(Cypher.listBasedOn(p).returning(p));
@@ -364,41 +360,37 @@ public enum CypherGenerator {
 		return Cypher.anyNode(nodeName).project(contentOfProjection);
 	}
 
-	private boolean containsPossibleCircles(NodeDescription<?> nodeDescription) {
-		Collection<RelationshipDescription> relationships = nodeDescription.getRelationships();
+	private Relationship createRelationships(Node node, Collection<RelationshipDescription> relationshipDescriptions) {
+		if (org.springframework.data.neo4j.core.schema.Relationship.Direction.OUTGOING.equals(asdf(relationshipDescriptions))) {
 
-		Set<RelationshipDescription> processedRelationships = new HashSet<>();
-		for (RelationshipDescription relationship : relationships) {
-			if (processedRelationships.contains(relationship)) {
-				return true;
-			}
-			processedRelationships.add(relationship);
-			if (containsPossibleCircles(relationship.getTarget(), processedRelationships)) {
-				return true;
-			}
+			return node.relationshipTo(anyNode(), collectAllRelationshipTypes(relationshipDescriptions));
+		} else if (org.springframework.data.neo4j.core.schema.Relationship.Direction.INCOMING.equals(asdf(relationshipDescriptions))) {
+
+			return node.relationshipFrom(anyNode(), collectAllRelationshipTypes(relationshipDescriptions));
 		}
-		return false;
+		return node.relationshipBetween(anyNode(), collectAllRelationshipTypes(relationshipDescriptions));
 	}
 
-	private boolean containsPossibleCircles(NodeDescription<?> nodeDescription, Set<RelationshipDescription> processedRelationships) {
-		Collection<RelationshipDescription> relationships = nodeDescription.getRelationships();
+	@Nullable
+	org.springframework.data.neo4j.core.schema.Relationship.Direction asdf(
+			Collection<RelationshipDescription> relationshipDescriptions) {
 
-		for (RelationshipDescription relationship : relationships) {
-			if (processedRelationships.contains(relationship)) {
-				return true;
+		org.springframework.data.neo4j.core.schema.Relationship.Direction direction = null;
+		for (RelationshipDescription relationshipDescription : relationshipDescriptions) {
+			if (direction == null){
+				direction = relationshipDescription.getDirection();
 			}
-			processedRelationships.add(relationship);
-			if (containsPossibleCircles(relationship.getTarget(), processedRelationships)) {
-				return true;
+			if (!direction.equals(relationshipDescription.getDirection())) {
+				return null;
 			}
 		}
-		return false;
+		return direction;
 	}
 
-	private String[] collectAllRelationshipTypes(NodeDescription<?> nodeDescription) {
+	private String[] collectAllRelationshipTypes(Collection<RelationshipDescription> relationshipDescriptions) {
 		Set<String> relationshipTypes = new HashSet<>();
 
-		for (RelationshipDescription relationshipDescription : nodeDescription.getRelationships()) {
+		for (RelationshipDescription relationshipDescription : relationshipDescriptions) {
 			String relationshipType = relationshipDescription.getType();
 			if (relationshipTypes.contains(relationshipType)) {
 				continue;

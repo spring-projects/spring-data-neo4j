@@ -87,6 +87,8 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 
 	private final Lazy<Boolean> isRelationshipPropertiesEntity;
 
+	private final Lazy<Boolean> containsPossibleCircles;
+
 	DefaultNeo4jPersistentEntity(TypeInformation<T> information) {
 		super(information);
 
@@ -97,6 +99,7 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 		this.dynamicLabelsProperty = Lazy.of(() -> getGraphProperties().stream().map(Neo4jPersistentProperty.class::cast)
 				.filter(Neo4jPersistentProperty::isDynamicLabels).findFirst().orElse(null));
 		this.isRelationshipPropertiesEntity = Lazy.of(() -> isAnnotationPresent(RelationshipProperties.class));
+		this.containsPossibleCircles = Lazy.of(this::calculatePossibleCircles);
 	}
 
 	/*
@@ -409,5 +412,41 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 
 	private NodeDescription<?> getParentNodeDescription() {
 		return parentNodeDescription;
+	}
+
+	@Override
+	public boolean containsPossibleCircles() {
+		return containsPossibleCircles.get();
+	}
+
+	private boolean calculatePossibleCircles() {
+		Collection<RelationshipDescription> relationships = getRelationships();
+
+		Set<RelationshipDescription> processedRelationships = new HashSet<>();
+		for (RelationshipDescription relationship : relationships) {
+			if (processedRelationships.contains(relationship)) {
+				return true;
+			}
+			processedRelationships.add(relationship);
+			if (containsPossibleCircles(relationship.getTarget(), processedRelationships)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private boolean containsPossibleCircles(NodeDescription<?> nodeDescription, Set<RelationshipDescription> processedRelationships) {
+		Collection<RelationshipDescription> relationships = nodeDescription.getRelationships();
+
+		for (RelationshipDescription relationship : relationships) {
+			if (processedRelationships.contains(relationship)) {
+				return true;
+			}
+			processedRelationships.add(relationship);
+			if (containsPossibleCircles(relationship.getTarget(), processedRelationships)) {
+				return true;
+			}
+		}
+		return false;
 	}
 }

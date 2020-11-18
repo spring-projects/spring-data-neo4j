@@ -128,4 +128,7 @@ public interface NodeDescription<T> {
 
 		return this.getIdDescription().asIdExpression();
 	}
+
+	boolean containsPossibleCircles();
+
 }
