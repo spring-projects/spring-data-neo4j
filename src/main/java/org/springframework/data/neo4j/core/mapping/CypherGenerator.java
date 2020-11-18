@@ -42,12 +42,14 @@ import org.neo4j.cypherdsl.core.NamedPath;
 import org.neo4j.cypherdsl.core.Node;
 import org.neo4j.cypherdsl.core.Parameter;
 import org.neo4j.cypherdsl.core.Relationship;
+import org.neo4j.cypherdsl.core.RelationshipPattern;
 import org.neo4j.cypherdsl.core.Statement;
 import org.neo4j.cypherdsl.core.StatementBuilder;
 import org.neo4j.cypherdsl.core.StatementBuilder.OngoingMatchAndUpdate;
 import org.neo4j.cypherdsl.core.SymbolicName;
 import org.springframework.data.mapping.MappingException;
 import org.springframework.data.mapping.PersistentProperty;
+import org.springframework.data.neo4j.core.schema.Relationship.Direction;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
@@ -329,10 +331,8 @@ public enum CypherGenerator {
 
 		SymbolicName nodeName = Constants.NAME_OF_ROOT_NODE;
 		List<RelationshipDescription> processedRelationships = new ArrayList<>();
-		boolean containsPossibleCircles = containsPossibleCircles(nodeDescription);
 
-		return projectPropertiesAndRelationships(nodeDescription, nodeName, includeField,
-				processedRelationships, containsPossibleCircles);
+		return projectPropertiesAndRelationships(nodeDescription, nodeName, includeField, processedRelationships);
 	}
 
 	// recursive entry point for relationships in return statement
@@ -341,19 +341,17 @@ public enum CypherGenerator {
 
 		Predicate<String> includeAllFields = (field) -> true;
 		// Because we are getting called recursive, there cannot be any circle
-		return projectPropertiesAndRelationships(nodeDescription, nodeName, includeAllFields, processedRelationships,
-				false);
+		return projectPropertiesAndRelationships(nodeDescription, nodeName, includeAllFields, processedRelationships);
 	}
 
 	private MapProjection projectPropertiesAndRelationships(NodeDescription<?> nodeDescription, SymbolicName nodeName,
-			Predicate<String> includeProperty, List<RelationshipDescription> processedRelationships,
-			boolean containsPossibleCircles) {
+			Predicate<String> includeProperty, List<RelationshipDescription> processedRelationships) {
 
 		List<Object> propertiesProjection = projectNodeProperties(nodeDescription, nodeName, includeProperty);
 		List<Object> contentOfProjection = new ArrayList<>(propertiesProjection);
-		if (containsPossibleCircles) {
-			Relationship pattern = anyNode(nodeName).relationshipBetween(anyNode(),
-					collectAllRelationshipTypes(nodeDescription)).unbounded();
+		if (nodeDescription.containsPossibleCircles()) {
+			Node node = anyNode(nodeName);
+			RelationshipPattern pattern = createRelationships(node, nodeDescription.getRelationships());
 			NamedPath p = Cypher.path("p").definedBy(pattern);
 			contentOfProjection.add(Constants.NAME_OF_PATHS);
 			contentOfProjection.add(Cypher.listBasedOn(p).returning(p));
@@ -364,41 +362,116 @@ public enum CypherGenerator {
 		return Cypher.anyNode(nodeName).project(contentOfProjection);
 	}
 
-	private boolean containsPossibleCircles(NodeDescription<?> nodeDescription) {
-		Collection<RelationshipDescription> relationships = nodeDescription.getRelationships();
+	private RelationshipPattern createRelationships(Node node, Collection<RelationshipDescription> relationshipDescriptions) {
+		RelationshipPattern relationship;
 
-		Set<RelationshipDescription> processedRelationships = new HashSet<>();
-		for (RelationshipDescription relationship : relationships) {
-			if (processedRelationships.contains(relationship)) {
-				return true;
-			}
-			processedRelationships.add(relationship);
-			if (containsPossibleCircles(relationship.getTarget(), processedRelationships)) {
-				return true;
+		Direction determinedDirection = determineDirection(relationshipDescriptions);
+		if (Direction.OUTGOING.equals(determinedDirection)) {
+			relationship = node.relationshipTo(anyNode(), collectFirstLevelRelationshipTypes(relationshipDescriptions));
+		} else if (Direction.INCOMING.equals(determinedDirection)) {
+			relationship = node.relationshipFrom(anyNode(), collectFirstLevelRelationshipTypes(relationshipDescriptions));
+		} else {
+			relationship = node.relationshipBetween(anyNode(), collectFirstLevelRelationshipTypes(relationshipDescriptions));
+		}
+
+		Set<RelationshipDescription> processedRelationshipDescriptions = new HashSet<>(relationshipDescriptions);
+		for (RelationshipDescription relationshipDescription : relationshipDescriptions) {
+			Collection<RelationshipDescription> relationships = relationshipDescription.getTarget().getRelationships();
+			if (relationships.size() > 0) {
+				relationship = createRelationships(relationship, relationships, processedRelationshipDescriptions)
+						.relationship;
 			}
 		}
-		return false;
+
+		return relationship;
 	}
 
-	private boolean containsPossibleCircles(NodeDescription<?> nodeDescription, Set<RelationshipDescription> processedRelationships) {
-		Collection<RelationshipDescription> relationships = nodeDescription.getRelationships();
+	private RelationshipProcessState createRelationships(RelationshipPattern existingRelationship,
+				Collection<RelationshipDescription> relationshipDescriptions,
+				Set<RelationshipDescription> processedRelationshipDescriptions) {
 
-		for (RelationshipDescription relationship : relationships) {
-			if (processedRelationships.contains(relationship)) {
-				return true;
+		RelationshipPattern relationship = existingRelationship;
+		String[] relationshipTypes = collectAllRelationshipTypes(relationshipDescriptions);
+		if (processedRelationshipDescriptions.containsAll(relationshipDescriptions)) {
+			return new RelationshipProcessState(
+					relationship.relationshipBetween(anyNode(),
+							relationshipTypes).unbounded().min(0), true);
+		}
+		processedRelationshipDescriptions.addAll(relationshipDescriptions);
+
+		// we can process through the path
+		if (relationshipDescriptions.size() == 1) {
+			RelationshipDescription relationshipDescription = relationshipDescriptions.iterator().next();
+			switch (relationshipDescription.getDirection()) {
+				case OUTGOING:
+					relationship = existingRelationship.relationshipTo(anyNode(),
+							collectFirstLevelRelationshipTypes(relationshipDescriptions)).unbounded().min(0).max(1);
+					break;
+				case INCOMING:
+					relationship = existingRelationship.relationshipFrom(anyNode(),
+							collectFirstLevelRelationshipTypes(relationshipDescriptions)).unbounded().min(0).max(1);
+					break;
+				default:
+					relationship = existingRelationship.relationshipBetween(anyNode(),
+							collectFirstLevelRelationshipTypes(relationshipDescriptions)).unbounded().min(0).max(1);
 			}
-			processedRelationships.add(relationship);
-			if (containsPossibleCircles(relationship.getTarget(), processedRelationships)) {
-				return true;
+
+			RelationshipProcessState relationships = createRelationships(relationship,
+					relationshipDescription.getTarget().getRelationships(), processedRelationshipDescriptions);
+
+			if (!relationships.done) {
+				relationship = relationships.relationship;
+			}
+		} else {
+			Direction determinedDirection = determineDirection(relationshipDescriptions);
+			if (Direction.OUTGOING.equals(determinedDirection)) {
+				relationship = existingRelationship.relationshipTo(anyNode(), relationshipTypes).unbounded().min(0);
+			} else if (Direction.INCOMING.equals(determinedDirection)) {
+				relationship = existingRelationship.relationshipFrom(anyNode(), relationshipTypes).unbounded().min(0);
+			} else {
+				relationship = existingRelationship.relationshipBetween(anyNode(), relationshipTypes).unbounded().min(0);
+			}
+			return new RelationshipProcessState(relationship, true);
+		}
+		return new RelationshipProcessState(relationship, false);
+	}
+
+	@Nullable
+	Direction determineDirection(Collection<RelationshipDescription> relationshipDescriptions) {
+
+		Direction direction = null;
+		for (RelationshipDescription relationshipDescription : relationshipDescriptions) {
+			if (direction == null) {
+				direction = relationshipDescription.getDirection();
+			}
+			if (!direction.equals(relationshipDescription.getDirection())) {
+				return null;
 			}
 		}
-		return false;
+		return direction;
 	}
 
-	private String[] collectAllRelationshipTypes(NodeDescription<?> nodeDescription) {
+	private String[] collectFirstLevelRelationshipTypes(Collection<RelationshipDescription> relationshipDescriptions) {
 		Set<String> relationshipTypes = new HashSet<>();
 
-		for (RelationshipDescription relationshipDescription : nodeDescription.getRelationships()) {
+		for (RelationshipDescription relationshipDescription : relationshipDescriptions) {
+			String relationshipType = relationshipDescription.getType();
+			if (relationshipTypes.contains(relationshipType)) {
+				continue;
+			}
+			if (relationshipDescription.isDynamic()) {
+				relationshipTypes.clear();
+				continue;
+			}
+			relationshipTypes.add(relationshipType);
+		}
+		return relationshipTypes.toArray(new String[0]);
+	}
+
+	private String[] collectAllRelationshipTypes(Collection<RelationshipDescription> relationshipDescriptions) {
+		Set<String> relationshipTypes = new HashSet<>();
+
+		for (RelationshipDescription relationshipDescription : relationshipDescriptions) {
 			String relationshipType = relationshipDescription.getType();
 			if (relationshipTypes.contains(relationshipType)) {
 				continue;
@@ -421,6 +494,7 @@ public enum CypherGenerator {
 				continue;
 			}
 			processedRelationshipTypes.add(relationshipType);
+			collectAllRelationshipTypes(relationshipDescription.getTarget(), processedRelationshipTypes);
 		}
 	}
 
@@ -546,4 +620,15 @@ public enum CypherGenerator {
 	private static Condition conditionOrNoCondition(@Nullable Condition condition) {
 		return condition == null ? Conditions.noCondition() : condition;
 	}
+
+	private static class RelationshipProcessState {
+		private final RelationshipPattern relationship;
+		private final boolean done;
+
+		RelationshipProcessState(RelationshipPattern relationship, boolean done) {
+			this.relationship = relationship;
+			this.done = done;
+		}
+	}
+
 }
