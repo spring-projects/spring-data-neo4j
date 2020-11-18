@@ -1409,7 +1409,7 @@ class RepositoryIT {
 			}
 		}
 
-		@Test
+		@Test // DATAGRAPH-1430
 		void saveNewEntityWithGeneratedIdShouldNotIssueRelationshipDeleteStatement(
 				@Autowired ThingWithFixedGeneratedIdRepository repository) {
 
@@ -1435,7 +1435,7 @@ class RepositoryIT {
 			}
 		}
 
-		@Test
+		@Test // DATAGRAPH-1430
 		void updateEntityWithGeneratedIdShouldIssueRelationshipDeleteStatement(
 				@Autowired ThingWithFixedGeneratedIdRepository repository) {
 
@@ -1460,7 +1460,7 @@ class RepositoryIT {
 			}
 		}
 
-		@Test
+		@Test // DATAGRAPH-1430
 		void saveAllNewEntityWithGeneratedIdShouldNotIssueRelationshipDeleteStatement(
 				@Autowired ThingWithFixedGeneratedIdRepository repository) {
 
@@ -1486,7 +1486,7 @@ class RepositoryIT {
 			}
 		}
 
-		@Test
+		@Test // DATAGRAPH-1430
 		void updateAllEntityWithGeneratedIdShouldIssueRelationshipDeleteStatement(
 				@Autowired ThingWithFixedGeneratedIdRepository repository) {
 
