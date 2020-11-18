@@ -317,7 +317,12 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 							"Created %d and deleted %d nodes, created %d and deleted %d relationships and set %d properties.",
 							counters.nodesCreated(), counters.nodesDeleted(), counters.relationshipsCreated(),
 							counters.relationshipsDeleted(), counters.propertiesSet()));
-				}).thenMany(Flux.fromIterable(entitiesToBeSaved))));
+				}).thenMany(Flux.fromIterable(entitiesToBeSaved)
+						.flatMap(entityToBeSaved ->
+								processRelations(entityMetaData, entityToBeSaved, databaseName.getValue())
+										.then(Mono.just(entityToBeSaved))
+						)
+				)));
 	}
 
 	@Override
