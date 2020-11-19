@@ -356,6 +356,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 				.filter(r -> r.getFieldName().equals(persistentProperty.getName())).findFirst().get();
 
 		String relationshipType = relationshipDescription.getType();
+		String sourceLabel = relationshipDescription.getSource().getPrimaryLabel();
 		String targetLabel = relationshipDescription.getTarget().getPrimaryLabel();
 
 		Neo4jPersistentEntity<?> genericTargetNodeDescription = (Neo4jPersistentEntity<?>) relationshipDescription
@@ -491,7 +492,9 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 				Object valueEntry = map(relatedEntity, allValues, concreteTargetNodeDescription, knownObjects, processedSegments);
 
 				if (relationshipDescription.hasRelationshipProperties()) {
-					Relationship relatedEntityRelationship = relatedEntity.get(RelationshipDescription.NAME_OF_RELATIONSHIP)
+					String relationshipSymbolicName = sourceLabel
+							+ RelationshipDescription.NAME_OF_RELATIONSHIP + targetLabel;
+					Relationship relatedEntityRelationship = relatedEntity.get(relationshipSymbolicName)
 							.asRelationship();
 
 					Object relationshipProperties = map(relatedEntityRelationship, allValues,

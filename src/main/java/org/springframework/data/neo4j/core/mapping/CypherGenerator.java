@@ -492,8 +492,10 @@ public enum CypherGenerator {
 
 		String relationshipType = relationshipDescription.getType();
 		String relationshipTargetName = relationshipDescription.generateRelatedNodesCollectionName();
+		String sourcePrimaryLabel = relationshipDescription.getSource().getPrimaryLabel();
 		String targetPrimaryLabel = relationshipDescription.getTarget().getPrimaryLabel();
 		List<String> targetAdditionalLabels = relationshipDescription.getTarget().getAdditionalLabels();
+		String relationshipSymbolicName = sourcePrimaryLabel + RelationshipDescription.NAME_OF_RELATIONSHIP + targetPrimaryLabel;
 
 		Node startNode = anyNode(nodeName);
 		SymbolicName relationshipFieldName = nodeName.concat("_" + fieldName);
@@ -512,7 +514,7 @@ public enum CypherGenerator {
 					new ArrayList<>(processedRelationships));
 
 			if (relationshipDescription.hasRelationshipProperties()) {
-				relationship = relationship.named(RelationshipDescription.NAME_OF_RELATIONSHIP);
+				relationship = relationship.named(relationshipSymbolicName);
 				mapProjection = mapProjection.and(relationship);
 			}
 
@@ -530,7 +532,7 @@ public enum CypherGenerator {
 					new ArrayList<>(processedRelationships));
 
 			if (relationshipDescription.hasRelationshipProperties()) {
-				relationship = relationship.named(RelationshipDescription.NAME_OF_RELATIONSHIP);
+				relationship = relationship.named(relationshipSymbolicName);
 				mapProjection = mapProjection.and(relationship);
 			}
 

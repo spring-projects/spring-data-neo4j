@@ -91,6 +91,7 @@ import org.springframework.data.neo4j.integration.shared.common.DeepRelationship
 import org.springframework.data.neo4j.integration.shared.common.DtoPersonProjection;
 import org.springframework.data.neo4j.integration.shared.common.DtoPersonProjectionContainingAdditionalFields;
 import org.springframework.data.neo4j.integration.shared.common.EntityWithConvertedId;
+import org.springframework.data.neo4j.integration.shared.common.EntityWithRelationshipPropertiesPath;
 import org.springframework.data.neo4j.integration.shared.common.ExtendedParentNode;
 import org.springframework.data.neo4j.integration.shared.common.Friend;
 import org.springframework.data.neo4j.integration.shared.common.FriendshipRelationship;
@@ -1392,6 +1393,27 @@ class RepositoryIT {
 
 			assertThat(likedBy).containsExactlyInAnyOrder(rel1, rel2);
 		}
+
+		@Test // DATAGRAPH-1434
+		void findAndMapMultipleLevelRelationshipProperties(
+				@Autowired EntityWithRelationshipPropertiesPathRepository repository) {
+
+			long eId;
+
+			try (Session session = createSession()) {
+				eId = session.run("CREATE (n:EntityWithRelationshipPropertiesPath)-[:RelationshipA]->(:EntityA)" +
+						"-[:RelationshipB]->(:EntityB)" +
+						" RETURN id(n) as eId").single().get("eId").asLong();
+			}
+
+			EntityWithRelationshipPropertiesPath entity = repository.findById(eId).get();
+			assertThat(entity).isNotNull();
+			assertThat(entity.getRelationshipA()).isNotNull();
+			assertThat(entity.getRelationshipA().getEntityA()).isNotNull();
+			assertThat(entity.getRelationshipA().getEntityA().getRelationshipB()).isNotNull();
+			assertThat(entity.getRelationshipA().getEntityA().getRelationshipB().getEntityB()).isNotNull();
+		}
+
 	}
 
 	@Nested
@@ -3474,6 +3496,9 @@ class RepositoryIT {
 	interface SimpleEntityWithRelationshipARepository extends Neo4jRepository<SimpleEntityWithRelationshipA, Long> {}
 
 	interface ThingWithFixedGeneratedIdRepository extends Neo4jRepository<ThingWithFixedGeneratedId, String> {}
+
+	interface EntityWithRelationshipPropertiesPathRepository
+			extends Neo4jRepository<EntityWithRelationshipPropertiesPath, Long> {}
 
 	@SpringJUnitConfig(Config.class)
 	static abstract class IntegrationTestBase {
