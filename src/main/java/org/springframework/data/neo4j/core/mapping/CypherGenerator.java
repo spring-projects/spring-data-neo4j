@@ -42,12 +42,14 @@ import org.neo4j.cypherdsl.core.NamedPath;
 import org.neo4j.cypherdsl.core.Node;
 import org.neo4j.cypherdsl.core.Parameter;
 import org.neo4j.cypherdsl.core.Relationship;
+import org.neo4j.cypherdsl.core.RelationshipPattern;
 import org.neo4j.cypherdsl.core.Statement;
 import org.neo4j.cypherdsl.core.StatementBuilder;
 import org.neo4j.cypherdsl.core.StatementBuilder.OngoingMatchAndUpdate;
 import org.neo4j.cypherdsl.core.SymbolicName;
 import org.springframework.data.mapping.MappingException;
 import org.springframework.data.mapping.PersistentProperty;
+import org.springframework.data.neo4j.core.schema.Relationship.Direction;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
@@ -349,7 +351,7 @@ public enum CypherGenerator {
 		List<Object> contentOfProjection = new ArrayList<>(propertiesProjection);
 		if (nodeDescription.containsPossibleCircles()) {
 			Node node = anyNode(nodeName);
-			Relationship pattern = createRelationships(node, nodeDescription.getRelationships());
+			RelationshipPattern pattern = createRelationships(node, nodeDescription.getRelationships());
 			NamedPath p = Cypher.path("p").definedBy(pattern);
 			contentOfProjection.add(Constants.NAME_OF_PATHS);
 			contentOfProjection.add(Cypher.listBasedOn(p).returning(p));
@@ -360,22 +362,85 @@ public enum CypherGenerator {
 		return Cypher.anyNode(nodeName).project(contentOfProjection);
 	}
 
-	private Relationship createRelationships(Node node, Collection<RelationshipDescription> relationshipDescriptions) {
-		if (org.springframework.data.neo4j.core.schema.Relationship.Direction.OUTGOING.equals(asdf(relationshipDescriptions))) {
+	private RelationshipPattern createRelationships(Node node, Collection<RelationshipDescription> relationshipDescriptions) {
+		RelationshipPattern relationship;
 
-			return node.relationshipTo(anyNode(), collectAllRelationshipTypes(relationshipDescriptions));
-		} else if (org.springframework.data.neo4j.core.schema.Relationship.Direction.INCOMING.equals(asdf(relationshipDescriptions))) {
-
-			return node.relationshipFrom(anyNode(), collectAllRelationshipTypes(relationshipDescriptions));
+		Direction determinedDirection = determineDirection(relationshipDescriptions);
+		if (Direction.OUTGOING.equals(determinedDirection)) {
+			// todo split paths here
+			relationship = node.relationshipTo(anyNode(), collectFirstLevelRelationshipTypes(relationshipDescriptions));
+		} else if (Direction.INCOMING.equals(determinedDirection)) {
+			relationship = node.relationshipFrom(anyNode(), collectFirstLevelRelationshipTypes(relationshipDescriptions));
+		} else {
+			relationship = node.relationshipBetween(anyNode(), collectFirstLevelRelationshipTypes(relationshipDescriptions));
 		}
-		return node.relationshipBetween(anyNode(), collectAllRelationshipTypes(relationshipDescriptions));
+
+		Set<RelationshipDescription> processedRelationshipDescriptions = new HashSet<>(relationshipDescriptions);
+		for (RelationshipDescription relationshipDescription : relationshipDescriptions) {
+			Collection<RelationshipDescription> relationships = relationshipDescription.getTarget().getRelationships();
+			if (relationships.size() > 0) {
+				relationship = createRelationships(relationship, relationships, processedRelationshipDescriptions).relationship;
+			}
+		}
+
+		return relationship;
+	}
+
+	private RelationshipProcessState createRelationships(RelationshipPattern existingRelationship, Collection<RelationshipDescription> relationshipDescriptions, Set<RelationshipDescription> processedRelationshipDescriptions) {
+		RelationshipPattern relationship = existingRelationship;
+		if (processedRelationshipDescriptions.containsAll(relationshipDescriptions)){
+			return new RelationshipProcessState(relationship.relationshipBetween(anyNode(), collectAllRelationshipTypes(relationshipDescriptions)).unbounded().min(0), true);
+		}
+		processedRelationshipDescriptions.addAll(relationshipDescriptions);
+
+		// we can process through the path
+		if (relationshipDescriptions.size() == 1) {
+			RelationshipDescription next = relationshipDescriptions.iterator().next();
+			switch (next.getDirection()) {
+				case OUTGOING:
+					relationship = existingRelationship.relationshipTo(anyNode(), collectFirstLevelRelationshipTypes(relationshipDescriptions)).unbounded().min(0).max(1);
+					break;
+				case INCOMING:
+					relationship = existingRelationship.relationshipFrom(anyNode(), collectFirstLevelRelationshipTypes(relationshipDescriptions)).unbounded().min(0).max(1);
+					break;
+				default:
+					relationship = existingRelationship.relationshipBetween(anyNode(), collectFirstLevelRelationshipTypes(relationshipDescriptions)).unbounded().min(0).max(1);
+			}
+			for (RelationshipDescription relationshipDescription : relationshipDescriptions) {
+				RelationshipProcessState relationships = createRelationships(relationship, relationshipDescription.getTarget().getRelationships(), processedRelationshipDescriptions);
+				if (relationships.done) {
+					continue;
+				}
+				relationship = relationships.relationship;
+			}
+		} else {
+			Direction determinedDirection = determineDirection(relationshipDescriptions);
+			if (Direction.OUTGOING.equals(determinedDirection)) {
+				relationship = existingRelationship.relationshipTo(anyNode(), collectAllRelationshipTypes(relationshipDescriptions)).unbounded().min(0);
+			} else if (Direction.INCOMING.equals(determinedDirection)) {
+				relationship = existingRelationship.relationshipFrom(anyNode(), collectAllRelationshipTypes(relationshipDescriptions)).unbounded().min(0);
+			} else {
+				relationship = existingRelationship.relationshipBetween(anyNode(), collectAllRelationshipTypes(relationshipDescriptions)).unbounded().min(0);
+			}
+			return new RelationshipProcessState(relationship, true);
+		}
+		return new RelationshipProcessState(relationship, false);
+	}
+
+	static class RelationshipProcessState {
+		private final RelationshipPattern relationship;
+		private final boolean done;
+
+		RelationshipProcessState(RelationshipPattern relationship, boolean done) {
+			this.relationship = relationship;
+			this.done = done;
+		}
 	}
 
 	@Nullable
-	org.springframework.data.neo4j.core.schema.Relationship.Direction asdf(
-			Collection<RelationshipDescription> relationshipDescriptions) {
+	Direction determineDirection(Collection<RelationshipDescription> relationshipDescriptions) {
 
-		org.springframework.data.neo4j.core.schema.Relationship.Direction direction = null;
+		Direction direction = null;
 		for (RelationshipDescription relationshipDescription : relationshipDescriptions) {
 			if (direction == null){
 				direction = relationshipDescription.getDirection();
@@ -385,6 +450,23 @@ public enum CypherGenerator {
 			}
 		}
 		return direction;
+	}
+
+	private String[] collectFirstLevelRelationshipTypes(Collection<RelationshipDescription> relationshipDescriptions) {
+		Set<String> relationshipTypes = new HashSet<>();
+
+		for (RelationshipDescription relationshipDescription : relationshipDescriptions) {
+			String relationshipType = relationshipDescription.getType();
+			if (relationshipTypes.contains(relationshipType)) {
+				continue;
+			}
+			if (relationshipDescription.isDynamic()) {
+				relationshipTypes.clear();
+				continue;
+			}
+			relationshipTypes.add(relationshipType);
+		}
+		return relationshipTypes.toArray(new String[0]);
 	}
 
 	private String[] collectAllRelationshipTypes(Collection<RelationshipDescription> relationshipDescriptions) {
@@ -413,6 +495,7 @@ public enum CypherGenerator {
 				continue;
 			}
 			processedRelationshipTypes.add(relationshipType);
+			collectAllRelationshipTypes(relationshipDescription.getTarget(), processedRelationshipTypes);
 		}
 	}
 
