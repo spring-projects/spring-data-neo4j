@@ -778,6 +778,30 @@ class RepositoryIT {
 		}
 
 		@Test
+		void findBySameLabelRelationshipProperty(@Autowired PetRepository repository) {
+			try (Session session = createSession()) {
+				session.run("CREATE (p1:Pet{name: 'Pet1'})-[:Has]->(p2:Pet{name: 'Pet2'})");
+			}
+
+			Pet pet = repository.findByFriendsName("Pet2");
+			assertThat(pet).isNotNull();
+			assertThat(pet.getFriends()).isNotEmpty();
+		}
+
+		@Test
+		void findBySameLabelRelationshipPropertyMultipleLevels(@Autowired PetRepository repository) {
+			try (Session session = createSession()) {
+				session.run(
+						"CREATE (p1:Pet{name: 'Pet1'})-[:Has]->(p2:Pet{name: 'Pet2'})-[:Has]->(p3:Pet{name: 'Pet3'})");
+			}
+
+			Pet pet = repository.findByFriendsFriendsName("Pet3");
+			assertThat(pet).isNotNull();
+			assertThat(pet.getFriends()).isNotEmpty();
+			assertThat(pet.getFriends().get(0).getFriends()).isNotEmpty();
+		}
+
+		@Test
 		void findLoopingDeepRelationships(@Autowired LoopingRelationshipRepository loopingRelationshipRepository) {
 
 			long type1Id;
@@ -3360,6 +3384,10 @@ class RepositoryIT {
 		@Query(value = "MATCH (p:Pet) where p.name=$petName return p SKIP $skip LIMIT $limit",
 				countQuery = "MATCH (p:Pet) return count(p)")
 		Page<Pet> pagedPetsWithParameter(@Param("petName") String petName, Pageable pageable);
+
+		Pet findByFriendsName(String friendName);
+
+		Pet findByFriendsFriendsName(String friendName);
 
 	}
 

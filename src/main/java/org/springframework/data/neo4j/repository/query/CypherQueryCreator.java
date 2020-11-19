@@ -534,7 +534,7 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryAndParameters, 
 		Neo4jPersistentEntity<?> owner = (Neo4jPersistentEntity<?>) leafProperty.getOwner();
 		Expression expression;
 
-		if (owner.equals(this.nodeDescription)) {
+		if (owner.equals(this.nodeDescription) && path.getLength() == 1) {
 			expression = Cypher.property(Constants.NAME_OF_ROOT_NODE, leafProperty.getPropertyName());
 		} else {
 			PropertyPathWrapper propertyPathWrapper = propertyPathWrappers.stream()
