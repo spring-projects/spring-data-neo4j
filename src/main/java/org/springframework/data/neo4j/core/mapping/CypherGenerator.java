@@ -367,7 +367,6 @@ public enum CypherGenerator {
 
 		Direction determinedDirection = determineDirection(relationshipDescriptions);
 		if (Direction.OUTGOING.equals(determinedDirection)) {
-			// todo split paths here
 			relationship = node.relationshipTo(anyNode(), collectFirstLevelRelationshipTypes(relationshipDescriptions));
 		} else if (Direction.INCOMING.equals(determinedDirection)) {
 			relationship = node.relationshipFrom(anyNode(), collectFirstLevelRelationshipTypes(relationshipDescriptions));
@@ -379,62 +378,62 @@ public enum CypherGenerator {
 		for (RelationshipDescription relationshipDescription : relationshipDescriptions) {
 			Collection<RelationshipDescription> relationships = relationshipDescription.getTarget().getRelationships();
 			if (relationships.size() > 0) {
-				relationship = createRelationships(relationship, relationships, processedRelationshipDescriptions).relationship;
+				relationship = createRelationships(relationship, relationships, processedRelationshipDescriptions)
+						.relationship;
 			}
 		}
 
 		return relationship;
 	}
 
-	private RelationshipProcessState createRelationships(RelationshipPattern existingRelationship, Collection<RelationshipDescription> relationshipDescriptions, Set<RelationshipDescription> processedRelationshipDescriptions) {
+	private RelationshipProcessState createRelationships(RelationshipPattern existingRelationship,
+				Collection<RelationshipDescription> relationshipDescriptions,
+				Set<RelationshipDescription> processedRelationshipDescriptions) {
+
 		RelationshipPattern relationship = existingRelationship;
-		if (processedRelationshipDescriptions.containsAll(relationshipDescriptions)){
-			return new RelationshipProcessState(relationship.relationshipBetween(anyNode(), collectAllRelationshipTypes(relationshipDescriptions)).unbounded().min(0), true);
+		String[] relationshipTypes = collectAllRelationshipTypes(relationshipDescriptions);
+		if (processedRelationshipDescriptions.containsAll(relationshipDescriptions)) {
+			return new RelationshipProcessState(
+					relationship.relationshipBetween(anyNode(),
+							relationshipTypes).unbounded().min(0), true);
 		}
 		processedRelationshipDescriptions.addAll(relationshipDescriptions);
 
 		// we can process through the path
 		if (relationshipDescriptions.size() == 1) {
-			RelationshipDescription next = relationshipDescriptions.iterator().next();
-			switch (next.getDirection()) {
+			RelationshipDescription relationshipDescription = relationshipDescriptions.iterator().next();
+			switch (relationshipDescription.getDirection()) {
 				case OUTGOING:
-					relationship = existingRelationship.relationshipTo(anyNode(), collectFirstLevelRelationshipTypes(relationshipDescriptions)).unbounded().min(0).max(1);
+					relationship = existingRelationship.relationshipTo(anyNode(),
+							collectFirstLevelRelationshipTypes(relationshipDescriptions)).unbounded().min(0).max(1);
 					break;
 				case INCOMING:
-					relationship = existingRelationship.relationshipFrom(anyNode(), collectFirstLevelRelationshipTypes(relationshipDescriptions)).unbounded().min(0).max(1);
+					relationship = existingRelationship.relationshipFrom(anyNode(),
+							collectFirstLevelRelationshipTypes(relationshipDescriptions)).unbounded().min(0).max(1);
 					break;
 				default:
-					relationship = existingRelationship.relationshipBetween(anyNode(), collectFirstLevelRelationshipTypes(relationshipDescriptions)).unbounded().min(0).max(1);
+					relationship = existingRelationship.relationshipBetween(anyNode(),
+							collectFirstLevelRelationshipTypes(relationshipDescriptions)).unbounded().min(0).max(1);
 			}
-			for (RelationshipDescription relationshipDescription : relationshipDescriptions) {
-				RelationshipProcessState relationships = createRelationships(relationship, relationshipDescription.getTarget().getRelationships(), processedRelationshipDescriptions);
-				if (relationships.done) {
-					continue;
-				}
+
+			RelationshipProcessState relationships = createRelationships(relationship,
+					relationshipDescription.getTarget().getRelationships(), processedRelationshipDescriptions);
+
+			if (!relationships.done) {
 				relationship = relationships.relationship;
 			}
 		} else {
 			Direction determinedDirection = determineDirection(relationshipDescriptions);
 			if (Direction.OUTGOING.equals(determinedDirection)) {
-				relationship = existingRelationship.relationshipTo(anyNode(), collectAllRelationshipTypes(relationshipDescriptions)).unbounded().min(0);
+				relationship = existingRelationship.relationshipTo(anyNode(), relationshipTypes).unbounded().min(0);
 			} else if (Direction.INCOMING.equals(determinedDirection)) {
-				relationship = existingRelationship.relationshipFrom(anyNode(), collectAllRelationshipTypes(relationshipDescriptions)).unbounded().min(0);
+				relationship = existingRelationship.relationshipFrom(anyNode(), relationshipTypes).unbounded().min(0);
 			} else {
-				relationship = existingRelationship.relationshipBetween(anyNode(), collectAllRelationshipTypes(relationshipDescriptions)).unbounded().min(0);
+				relationship = existingRelationship.relationshipBetween(anyNode(), relationshipTypes).unbounded().min(0);
 			}
 			return new RelationshipProcessState(relationship, true);
 		}
 		return new RelationshipProcessState(relationship, false);
-	}
-
-	static class RelationshipProcessState {
-		private final RelationshipPattern relationship;
-		private final boolean done;
-
-		RelationshipProcessState(RelationshipPattern relationship, boolean done) {
-			this.relationship = relationship;
-			this.done = done;
-		}
 	}
 
 	@Nullable
@@ -442,7 +441,7 @@ public enum CypherGenerator {
 
 		Direction direction = null;
 		for (RelationshipDescription relationshipDescription : relationshipDescriptions) {
-			if (direction == null){
+			if (direction == null) {
 				direction = relationshipDescription.getDirection();
 			}
 			if (!direction.equals(relationshipDescription.getDirection())) {
@@ -621,4 +620,15 @@ public enum CypherGenerator {
 	private static Condition conditionOrNoCondition(@Nullable Condition condition) {
 		return condition == null ? Conditions.noCondition() : condition;
 	}
+
+	private static class RelationshipProcessState {
+		private final RelationshipPattern relationship;
+		private final boolean done;
+
+		RelationshipProcessState(RelationshipPattern relationship, boolean done) {
+			this.relationship = relationship;
+			this.done = done;
+		}
+	}
+
 }
