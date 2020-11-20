@@ -428,14 +428,14 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 				return true;
 			}
 			processedRelationships.add(relationship);
-			if (containsPossibleCircles(relationship.getTarget(), processedRelationships)) {
+			if (calculatePossibleCircles(relationship.getTarget(), processedRelationships)) {
 				return true;
 			}
 		}
 		return false;
 	}
 
-	private boolean containsPossibleCircles(NodeDescription<?> nodeDescription, Set<RelationshipDescription> processedRelationships) {
+	private boolean calculatePossibleCircles(NodeDescription<?> nodeDescription, Set<RelationshipDescription> processedRelationships) {
 		Collection<RelationshipDescription> relationships = nodeDescription.getRelationships();
 
 		for (RelationshipDescription relationship : relationships) {
@@ -443,7 +443,7 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 				return true;
 			}
 			processedRelationships.add(relationship);
-			if (containsPossibleCircles(relationship.getTarget(), processedRelationships)) {
+			if (calculatePossibleCircles(relationship.getTarget(), processedRelationships)) {
 				return true;
 			}
 		}

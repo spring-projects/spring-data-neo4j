@@ -129,6 +129,9 @@ public interface NodeDescription<T> {
 		return this.getIdDescription().asIdExpression();
 	}
 
+	/**
+	 * @return Information if the domain would contain schema circles.
+	 */
 	boolean containsPossibleCircles();
 
 }
