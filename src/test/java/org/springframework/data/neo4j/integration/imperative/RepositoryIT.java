@@ -2838,7 +2838,7 @@ class RepositoryIT {
 		void setupData(Transaction transaction) {
 			id1 = transaction.run(
 					"CREATE (n:PersonWithAllConstructor) "
-							+ "SET n.name = $name, n.sameValue = $sameValue, n.first_name = $firstName " + "RETURN id(n)",
+							+ "SET n.name = $name, n.sameValue = $sameValue, n.nullable = 'something', n.first_name = $firstName " + "RETURN id(n)",
 					Values.parameters("name", TEST_PERSON1_NAME, "sameValue", TEST_PERSON_SAMEVALUE, "firstName",
 							TEST_PERSON1_FIRST_NAME))
 					.next().get(0).asLong();
@@ -2865,6 +2865,21 @@ class RepositoryIT {
 					.hasSize(1)
 					.extracting(DtoPersonProjection::getFirstName)
 					.first().isEqualTo(TEST_PERSON1_FIRST_NAME);
+		}
+
+		@Test // DATAGRAPH-1438
+		void mapsOptionalDtoProjectionWithDerivedFinderMethod(@Autowired PersonRepository repository) {
+
+			assertThat(repository.findOneByFirstName(TEST_PERSON1_FIRST_NAME))
+					.map(DtoPersonProjection::getFirstName)
+					.hasValue(TEST_PERSON1_FIRST_NAME);
+			assertThat(repository.findOneByFirstName("foobar"))
+					.isEmpty();
+
+			assertThat(repository.findOneByNullable("something")).isNotNull()
+					.extracting(DtoPersonProjection::getFirstName)
+					.isEqualTo(TEST_PERSON1_FIRST_NAME);
+			assertThat(repository.findOneByNullable("foobar")).isNull();
 		}
 
 		@Test
@@ -2897,7 +2912,7 @@ class RepositoryIT {
 		}
 
 		@Test
-		void mapsInterfaceProjectionWithCustomQueryAndNodeReturn2(@Autowired PersonRepository repository) {
+		void mapDtoProjectionWithCustomQueryAndNodeReturn(@Autowired PersonRepository repository) {
 
 			List<DtoPersonProjectionContainingAdditionalFields> projectedPeople = repository
 					.findAllDtoProjectionsWithAdditionalProperties(TEST_PERSON1_NAME);

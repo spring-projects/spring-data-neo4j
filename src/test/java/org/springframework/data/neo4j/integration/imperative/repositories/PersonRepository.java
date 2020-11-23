@@ -259,6 +259,10 @@ public interface PersonRepository extends Neo4jRepository<PersonWithAllConstruct
 
 	List<DtoPersonProjection> findByFirstName(String firstName);
 
+	Optional<DtoPersonProjection> findOneByFirstName(String firstName);
+
+	DtoPersonProjection findOneByNullable(String nullable);
+
 	@Query(""
 			+ "MATCH (n:PersonWithAllConstructor) where n.name = $name "
 			+ "WITH n MATCH(m:PersonWithAllConstructor) WHERE id(n) <> id(m) "

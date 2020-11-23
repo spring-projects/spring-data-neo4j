@@ -80,4 +80,6 @@ public interface ReactivePersonRepository extends ReactiveNeo4jRepository<Person
 
 	@Query("MATCH (n:PersonWithAllConstructor) return n")
 	Flux<PersonProjection> loadAllProjectionsWithNodeReturn();
+
+	Mono<DtoPersonProjection> findOneByFirstName(String firstName);
 }
