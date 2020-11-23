@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.tuple;
 
+import org.springframework.data.neo4j.integration.shared.common.DtoPersonProjection;
 import org.springframework.data.neo4j.integration.shared.common.SimplePerson;
 import org.springframework.data.neo4j.integration.shared.common.ThingWithFixedGeneratedId;
 import reactor.core.publisher.Flux;
@@ -2144,6 +2145,16 @@ class ReactiveRepositoryIT {
 			StepVerifier.create(repository.loadAllProjectionsWithNodeReturn()).expectNextCount(2).verifyComplete();
 		}
 
+		@Test // DATAGRAPH-1438
+		void mapsOptionalDtoProjectionWithDerivedFinderMethod(@Autowired ReactivePersonRepository repository) {
+
+			StepVerifier.create(repository.findOneByFirstName(TEST_PERSON1_FIRST_NAME).map(DtoPersonProjection::getFirstName))
+					.expectNext(TEST_PERSON1_FIRST_NAME)
+					.verifyComplete();
+
+			StepVerifier.create(repository.findOneByFirstName("foobar").map(DtoPersonProjection::getFirstName))
+					.verifyComplete();
+		}
 	}
 
 	@Nested
