@@ -61,6 +61,8 @@ import org.springframework.data.neo4j.core.mapping.NodeDescription;
 import org.springframework.data.neo4j.core.mapping.RelationshipDescription;
 import org.springframework.data.neo4j.repository.NoResultException;
 import org.springframework.data.neo4j.repository.event.BeforeBindCallback;
+import org.springframework.data.neo4j.repository.event.IdGeneratingBeforeBindCallback;
+import org.springframework.data.neo4j.repository.event.OptimisticLockingBeforeBindCallback;
 import org.springframework.data.util.ClassTypeInformation;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
@@ -607,6 +609,8 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 
 		Neo4jEvents(EntityCallbacks entityCallbacks) {
 			this.entityCallbacks = entityCallbacks;
+			this.entityCallbacks.addEntityCallback(new IdGeneratingBeforeBindCallback(neo4jMappingContext));
+			this.entityCallbacks.addEntityCallback(new OptimisticLockingBeforeBindCallback(neo4jMappingContext));
 		}
 
 		public <T> T maybeCallBeforeBind(T object) {

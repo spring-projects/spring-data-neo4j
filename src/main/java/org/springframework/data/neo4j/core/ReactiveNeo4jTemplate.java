@@ -64,6 +64,8 @@ import org.springframework.data.neo4j.core.mapping.NestedRelationshipProcessingS
 import org.springframework.data.neo4j.core.mapping.NodeDescription;
 import org.springframework.data.neo4j.core.mapping.RelationshipDescription;
 import org.springframework.data.neo4j.repository.event.ReactiveBeforeBindCallback;
+import org.springframework.data.neo4j.repository.event.ReactiveIdGeneratingBeforeBindCallback;
+import org.springframework.data.neo4j.repository.event.ReactiveOptimisticLockingBeforeBindCallback;
 import org.springframework.data.util.ClassTypeInformation;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
@@ -629,6 +631,8 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 
 		ReactiveNeo4jEvents(ReactiveEntityCallbacks entityCallbacks) {
 			this.entityCallbacks = entityCallbacks;
+			this.entityCallbacks.addEntityCallback(new ReactiveIdGeneratingBeforeBindCallback(neo4jMappingContext));
+			this.entityCallbacks.addEntityCallback(new ReactiveOptimisticLockingBeforeBindCallback(neo4jMappingContext));
 		}
 
 		<T> Mono<T> maybeCallBeforeBind(T object) {
