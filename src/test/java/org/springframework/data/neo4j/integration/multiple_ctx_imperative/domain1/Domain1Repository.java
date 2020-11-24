@@ -13,22 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.repository.event;
+package org.springframework.data.neo4j.integration.multiple_ctx_imperative.domain1;
 
-import java.util.Date;
-
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.annotation.LastModifiedDate;
-import org.springframework.data.annotation.Version;
+import org.springframework.data.neo4j.repository.Neo4jRepository;
 
 /**
  * @author Michael J. Simons
+ * @soundtrack Various - T2 Trainspotting
  */
-class Sample {
-
-	@Id String id;
-	@Version Long version;
-	@CreatedDate Date created;
-	@LastModifiedDate Date modified;
+public interface Domain1Repository extends Neo4jRepository<Domain1Entity, Long> {
 }

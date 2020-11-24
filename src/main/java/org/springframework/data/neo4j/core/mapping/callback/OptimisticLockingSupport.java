@@ -13,33 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.repository.event;
+package org.springframework.data.neo4j.core.mapping.callback;
 
-import org.apiguardian.api.API;
-import org.springframework.core.Ordered;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentProperty;
 
 /**
- * Callback to increment the value of the version property for a given entity.
+ * Common logic for retrieving entity metadata from the context and incrementing the version property if necessary.
  *
- * @author Gerrit Meier
- * @since 6.0
+ * @author Michael J. Simons
+ * @soundtrack Body Count - Violent Demise: The Last Days
  */
-@API(status = API.Status.INTERNAL, since = "6.0")
-public final class OptimisticLockingBeforeBindCallback implements BeforeBindCallback<Object>, Ordered {
+final class OptimisticLockingSupport {
 
-	private final Neo4jMappingContext neo4jMappingContext;
+	private final Neo4jMappingContext mappingContext;
 
-	public OptimisticLockingBeforeBindCallback(Neo4jMappingContext neo4jMappingContext) {
-		this.neo4jMappingContext = neo4jMappingContext;
+	OptimisticLockingSupport(Neo4jMappingContext mappingContext) {
+		this.mappingContext = mappingContext;
 	}
 
-	@Override
-	public Object onBeforeBind(Object entity) {
-		Neo4jPersistentEntity<?> neo4jPersistentEntity = (Neo4jPersistentEntity<?>) neo4jMappingContext
+	Object getAndIncrementVersionPropertyIfNecessary(Object entity) {
+
+		Neo4jPersistentEntity<?> neo4jPersistentEntity = (Neo4jPersistentEntity<?>) mappingContext
 				.getRequiredNodeDescription(entity.getClass());
 
 		if (neo4jPersistentEntity.hasVersionProperty()) {
@@ -60,10 +57,5 @@ public final class OptimisticLockingBeforeBindCallback implements BeforeBindCall
 			propertyAccessor.setProperty(versionProperty, newVersionValue);
 		}
 		return entity;
-	}
-
-	@Override
-	public int getOrder() {
-		return AuditingBeforeBindCallback.NEO4J_AUDITING_ORDER + 11;
 	}
 }
