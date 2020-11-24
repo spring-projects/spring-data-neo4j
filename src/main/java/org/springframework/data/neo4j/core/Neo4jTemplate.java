@@ -462,7 +462,8 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 
 			// break recursive procession and deletion of previously created relationships
 			ProcessState processState = stateMachine.getStateOf(relationshipDescriptionObverse, relatedValuesToStore);
-			if (processState == ProcessState.PROCESSED_BOTH) {
+			if (processState == ProcessState.PROCESSED_ALL_VALUES) {
+//			if (processState == ProcessState.PROCESSED_ONLY_RELATIONSHIP) {
 				return;
 			}
 

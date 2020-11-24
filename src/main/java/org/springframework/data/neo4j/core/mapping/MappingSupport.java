@@ -22,7 +22,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.apiguardian.api.API;
-import org.springframework.lang.Nullable;
 
 /**
  * @author Michael J. Simons
@@ -41,7 +40,6 @@ public final class MappingSupport {
 	 * @return A unified collection (Either a collection of Map.Entry for dynamic and relationships with properties or a
 	 *         list of related values)
 	 */
-	@Nullable
 	public static Collection<?> unifyRelationshipValue(Neo4jPersistentProperty property, Object rawValue) {
 		Collection<?> unifiedValue;
 		if (property.isDynamicAssociation()) {

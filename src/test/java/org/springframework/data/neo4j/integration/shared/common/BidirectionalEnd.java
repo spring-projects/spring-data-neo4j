@@ -46,4 +46,8 @@ public class BidirectionalEnd {
 	public BidirectionalStart getAnotherStart() {
 		return anotherStart;
 	}
+
+	public void setStart(BidirectionalStart start) {
+		this.start = start;
+	}
 }

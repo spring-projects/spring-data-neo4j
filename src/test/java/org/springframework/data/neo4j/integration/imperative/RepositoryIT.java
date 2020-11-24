@@ -29,9 +29,11 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.StreamSupport;
@@ -915,6 +917,17 @@ class RepositoryIT {
 			assertThat(end.getAnotherStart()).isNotNull();
 			assertThat(end.getAnotherStart().getName()).isEqualTo("Elmo");
 
+		}
+
+		@Test
+		void asdfasdf(@Autowired BidirectionalStartRepository repository) {
+			BidirectionalEnd end = new BidirectionalEnd("Bla");
+			Set<BidirectionalEnd> ends = new HashSet<>();
+			ends.add(end);
+			BidirectionalStart start = new BidirectionalStart("Blubb", ends);
+			end.setStart(start);
+
+			repository.save(start);
 		}
 
 		@Test
