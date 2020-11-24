@@ -15,6 +15,8 @@
  */
 package org.springframework.data.neo4j.core.mapping.callback;
 
+import static org.apiguardian.api.API.Status.STABLE;
+
 import org.apiguardian.api.API;
 import org.springframework.data.mapping.callback.EntityCallback;
 
@@ -28,7 +30,7 @@ import org.springframework.data.mapping.callback.EntityCallback;
  * @soundtrack Bon Jovi - Slippery When Wet
  */
 @FunctionalInterface
-@API(status = API.Status.STABLE, since = "6.0")
+@API(status = STABLE, since = "6.0")
 public interface BeforeBindCallback<T> extends EntityCallback<T> {
 
 	/**

@@ -15,7 +15,6 @@
  */
 package org.springframework.data.neo4j.core.mapping.callback;
 
-import org.apiguardian.api.API;
 import org.springframework.core.Ordered;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
@@ -28,12 +27,11 @@ import org.springframework.data.neo4j.core.mapping.Neo4jPersistentProperty;
  * @author Gerrit Meier
  * @since 6.0
  */
-@API(status = API.Status.INTERNAL, since = "6.0")
-public final class OptimisticLockingBeforeBindCallback implements BeforeBindCallback<Object>, Ordered {
+final class OptimisticLockingBeforeBindCallback implements BeforeBindCallback<Object>, Ordered {
 
 	private final Neo4jMappingContext neo4jMappingContext;
 
-	public OptimisticLockingBeforeBindCallback(Neo4jMappingContext neo4jMappingContext) {
+	OptimisticLockingBeforeBindCallback(Neo4jMappingContext neo4jMappingContext) {
 		this.neo4jMappingContext = neo4jMappingContext;
 	}
 

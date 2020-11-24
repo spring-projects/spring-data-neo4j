@@ -15,6 +15,8 @@
  */
 package org.springframework.data.neo4j.core.mapping.callback;
 
+import static org.apiguardian.api.API.Status.STABLE;
+
 import org.apiguardian.api.API;
 import org.reactivestreams.Publisher;
 import org.springframework.data.mapping.callback.EntityCallback;
@@ -31,7 +33,7 @@ import org.springframework.data.mapping.callback.ReactiveEntityCallbacks;
  * @since 6.0
  */
 @FunctionalInterface
-@API(status = API.Status.STABLE, since = "6.0")
+@API(status = STABLE, since = "6.0")
 public interface ReactiveBeforeBindCallback<T> extends EntityCallback<T> {
 
 	/**

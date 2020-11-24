@@ -17,7 +17,6 @@ package org.springframework.data.neo4j.core.mapping.callback;
 
 import reactor.core.publisher.Mono;
 
-import org.apiguardian.api.API;
 import org.reactivestreams.Publisher;
 import org.springframework.core.Ordered;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
@@ -31,12 +30,11 @@ import org.springframework.data.neo4j.core.mapping.Neo4jPersistentProperty;
  * @author Gerrit Meier
  * @since 6.0
  */
-@API(status = API.Status.INTERNAL, since = "6.0")
-public final class ReactiveOptimisticLockingBeforeBindCallback implements ReactiveBeforeBindCallback<Object>, Ordered {
+final class ReactiveOptimisticLockingBeforeBindCallback implements ReactiveBeforeBindCallback<Object>, Ordered {
 
 	private final Neo4jMappingContext neo4jMappingContext;
 
-	public ReactiveOptimisticLockingBeforeBindCallback(Neo4jMappingContext neo4jMappingContext) {
+	ReactiveOptimisticLockingBeforeBindCallback(Neo4jMappingContext neo4jMappingContext) {
 		this.neo4jMappingContext = neo4jMappingContext;
 	}
 

@@ -15,6 +15,8 @@
  */
 package org.springframework.data.neo4j.core.mapping.callback;
 
+import static org.apiguardian.api.API.Status.STABLE;
+
 import org.apiguardian.api.API;
 import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.core.Ordered;
@@ -30,7 +32,7 @@ import org.springframework.util.Assert;
  * @soundtrack Iron Maiden - Iron Maiden
  * @since 6.0
  */
-@API(status = API.Status.INTERNAL, since = "6.0")
+@API(status = STABLE, since = "6.0")
 public final class AuditingBeforeBindCallback implements BeforeBindCallback<Object>, Ordered {
 
 	public static final int NEO4J_AUDITING_ORDER = 100;

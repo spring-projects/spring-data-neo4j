@@ -15,6 +15,8 @@
  */
 package org.springframework.data.neo4j.core.mapping.callback;
 
+import static org.apiguardian.api.API.Status.STABLE;
+
 import org.apiguardian.api.API;
 import org.reactivestreams.Publisher;
 import org.springframework.beans.factory.ObjectFactory;
@@ -31,7 +33,7 @@ import org.springframework.util.Assert;
  * @soundtrack Iron Maiden - The Number Of The Beast
  * @since 6.0
  */
-@API(status = API.Status.INTERNAL, since = "6.0")
+@API(status = STABLE, since = "6.0")
 public final class ReactiveAuditingBeforeBindCallback implements ReactiveBeforeBindCallback<Object>, Ordered {
 
 	public static final int NEO4J_REACTIVE_AUDITING_ORDER = 100;

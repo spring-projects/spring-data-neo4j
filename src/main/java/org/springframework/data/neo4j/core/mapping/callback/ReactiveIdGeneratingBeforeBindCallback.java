@@ -17,7 +17,6 @@ package org.springframework.data.neo4j.core.mapping.callback;
 
 import reactor.core.publisher.Mono;
 
-import org.apiguardian.api.API;
 import org.reactivestreams.Publisher;
 import org.springframework.core.Ordered;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
@@ -29,12 +28,11 @@ import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
  * @soundtrack Various - Kung Fury (Original Motion Picture Soundtrack)
  * @since 6.0
  */
-@API(status = API.Status.INTERNAL, since = "6.0")
-public final class ReactiveIdGeneratingBeforeBindCallback implements ReactiveBeforeBindCallback<Object>, Ordered {
+final class ReactiveIdGeneratingBeforeBindCallback implements ReactiveBeforeBindCallback<Object>, Ordered {
 
 	private final IdPopulator idPopulator;
 
-	public ReactiveIdGeneratingBeforeBindCallback(Neo4jMappingContext neo4jMappingContext) {
+	ReactiveIdGeneratingBeforeBindCallback(Neo4jMappingContext neo4jMappingContext) {
 		this.idPopulator = new IdPopulator(neo4jMappingContext);
 	}
 

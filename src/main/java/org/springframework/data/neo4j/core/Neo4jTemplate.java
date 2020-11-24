@@ -59,10 +59,8 @@ import org.springframework.data.neo4j.core.mapping.NestedRelationshipProcessingS
 import org.springframework.data.neo4j.core.mapping.NestedRelationshipProcessingStateMachine.ProcessState;
 import org.springframework.data.neo4j.core.mapping.NodeDescription;
 import org.springframework.data.neo4j.core.mapping.RelationshipDescription;
-import org.springframework.data.neo4j.core.mapping.callback.BeforeBindCallback;
+import org.springframework.data.neo4j.core.mapping.callback.Neo4jEventSupport;
 import org.springframework.data.neo4j.repository.NoResultException;
-import org.springframework.data.neo4j.core.mapping.callback.IdGeneratingBeforeBindCallback;
-import org.springframework.data.neo4j.core.mapping.callback.OptimisticLockingBeforeBindCallback;
 import org.springframework.data.util.ClassTypeInformation;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
@@ -89,7 +87,7 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 
 	private final CypherGenerator cypherGenerator;
 
-	private Neo4jEvents eventSupport;
+	private Neo4jEventSupport eventSupport;
 
 	private final DatabaseSelectionProvider databaseSelectionProvider;
 
@@ -113,7 +111,7 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 		this.neo4jClient = neo4jClient;
 		this.neo4jMappingContext = neo4jMappingContext;
 		this.cypherGenerator = CypherGenerator.INSTANCE;
-		this.eventSupport = new Neo4jEvents(entityCallbacks);
+		this.eventSupport = Neo4jEventSupport.useExisting(neo4jMappingContext, entityCallbacks);
 
 		this.databaseSelectionProvider = databaseSelectionProvider;
 	}
@@ -550,7 +548,7 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
 
-		this.eventSupport = new Neo4jEvents(EntityCallbacks.create(beanFactory));
+		this.eventSupport = Neo4jEventSupport.discover(neo4jMappingContext, beanFactory);
 	}
 
 	@Override
@@ -596,27 +594,6 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 
 		public T getRequiredSingleResult() {
 			return fetchSpec.one().orElseThrow(() -> new NoResultException(1, preparedQuery.getCypherQuery()));
-		}
-	}
-
-	/**
-	 * Utility class that orchestrates {@link EntityCallbacks}. All the methods provided here check for their availability
-	 * and do nothing when an event cannot be published.
-	 */
-	final class Neo4jEvents {
-
-		private final EntityCallbacks entityCallbacks;
-
-		Neo4jEvents(EntityCallbacks entityCallbacks) {
-			this.entityCallbacks = entityCallbacks;
-			this.entityCallbacks.addEntityCallback(new IdGeneratingBeforeBindCallback(neo4jMappingContext));
-			this.entityCallbacks.addEntityCallback(new OptimisticLockingBeforeBindCallback(neo4jMappingContext));
-		}
-
-		@SuppressWarnings("deprecation")
-		public <T> T maybeCallBeforeBind(T object) {
-			T o = entityCallbacks.callback(org.springframework.data.neo4j.repository.event.BeforeBindCallback.class, object);
-			return entityCallbacks.callback(BeforeBindCallback.class, o);
 		}
 	}
 }
