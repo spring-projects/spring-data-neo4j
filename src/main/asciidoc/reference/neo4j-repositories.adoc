@@ -637,7 +637,7 @@ It is highly recommended to create _JSR-303_ annotations on actual Java Beans, s
 
 [[reference_programming-model_conversion]]
 === Conversion Service
-It is possible to have Spring Data Neo4j use converters registered with https://docs.spring.io/spring-framework/docs/{springVersion}/spring-framework-reference/core.html#core-convert[Spring's ConversionService].
+It is possible to have Spring Data Neo4j use converters registered with https://docs.spring.io/spring-framework/docs/{springVersion}/reference/html/core.html#core-convert[Spring's ConversionService].
 There must be one unique instance of a `ConversionService`-Bean in your application context to use this.
 If there is more than one instance, you have to mark the one to be used by SDN with `@Primary`, otherwise an internal conversion service will be used.
 
