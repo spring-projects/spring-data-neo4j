@@ -94,7 +94,6 @@ abstract class Neo4jConfigurationSupport {
 	 * @deprecated since 6.0.2 Use {@link Neo4jEntityScanner} instead.
 	 */
 	@Deprecated
-	@API(status = API.Status.DEPRECATED, since = "6.0.2")
 	protected final Set<Class<?>> scanForEntities(String basePackage) throws ClassNotFoundException {
 
 		return Neo4jEntityScanner.get().scan(basePackage);
