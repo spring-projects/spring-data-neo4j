@@ -30,10 +30,10 @@ import org.springframework.data.neo4j.core.Neo4jOperations;
  * @author Michael J. Simons
  * @soundtrack AC/DC - High Voltage
  * @since 6.0
- * @deprecated Empty implementation, not needed anymore since 6.0.2, default callbacks will be added directly via our
+ * @deprecated since 6.0.2, now an empty implementation, not needed anymore and our default callbacks will be added directly via our
  * infrastructure.
  */
-@API(status = API.Status.DEPRECATED, since = "6.0.2")
+@API(status = API.Status.DEPRECATED, since = "6.0")
 @Deprecated
 public final class Neo4jDefaultCallbacksRegistrar implements ImportBeanDefinitionRegistrar {
 
