@@ -1900,6 +1900,8 @@ class RepositoryIT {
 					TEST_PERSON_SAMEVALUE, true, 1L, TEST_PERSON1_BORN_ON, "something", Arrays.asList("a", "b"), NEO4J_HQ,
 					Instant.now());
 
+			repository.save(person3);
+
 			repository.deleteAllById(Arrays.asList(person1.getId(), person3.getId()));
 
 			assertThat(repository.findAll()).extracting(PersonWithAllConstructor::getId).containsExactly(id2);
