@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.repository.event;
+package org.springframework.data.neo4j.core.mapping.callback;
 
 import java.util.Optional;
 

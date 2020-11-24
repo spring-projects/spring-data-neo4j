@@ -63,9 +63,9 @@ import org.springframework.data.neo4j.core.mapping.NestedRelationshipProcessingS
 import org.springframework.data.neo4j.core.mapping.NestedRelationshipProcessingStateMachine.ProcessState;
 import org.springframework.data.neo4j.core.mapping.NodeDescription;
 import org.springframework.data.neo4j.core.mapping.RelationshipDescription;
-import org.springframework.data.neo4j.repository.event.ReactiveBeforeBindCallback;
-import org.springframework.data.neo4j.repository.event.ReactiveIdGeneratingBeforeBindCallback;
-import org.springframework.data.neo4j.repository.event.ReactiveOptimisticLockingBeforeBindCallback;
+import org.springframework.data.neo4j.core.mapping.callback.ReactiveBeforeBindCallback;
+import org.springframework.data.neo4j.core.mapping.callback.ReactiveIdGeneratingBeforeBindCallback;
+import org.springframework.data.neo4j.core.mapping.callback.ReactiveOptimisticLockingBeforeBindCallback;
 import org.springframework.data.util.ClassTypeInformation;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
@@ -635,8 +635,10 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 			this.entityCallbacks.addEntityCallback(new ReactiveOptimisticLockingBeforeBindCallback(neo4jMappingContext));
 		}
 
+		@SuppressWarnings("deprecation")
 		<T> Mono<T> maybeCallBeforeBind(T object) {
-			return entityCallbacks.callback(ReactiveBeforeBindCallback.class, object);
+			return entityCallbacks.callback(org.springframework.data.neo4j.repository.event.ReactiveBeforeBindCallback.class, object)
+					.flatMap(o -> entityCallbacks.callback(ReactiveBeforeBindCallback.class, o));
 		}
 	}
 }

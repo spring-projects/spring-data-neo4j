@@ -25,7 +25,7 @@ import org.springframework.data.auditing.config.AuditingBeanDefinitionRegistrarS
 import org.springframework.data.auditing.config.AuditingConfiguration;
 import org.springframework.data.config.ParsingUtils;
 import org.springframework.data.mapping.context.PersistentEntities;
-import org.springframework.data.neo4j.repository.event.AuditingBeforeBindCallback;
+import org.springframework.data.neo4j.core.mapping.callback.AuditingBeforeBindCallback;
 import org.springframework.util.Assert;
 
 /**

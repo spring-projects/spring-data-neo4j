@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.repository.event;
+package org.springframework.data.neo4j.core.mapping.callback;
 
 import org.apiguardian.api.API;
 import org.springframework.data.mapping.callback.EntityCallback;
@@ -26,11 +26,9 @@ import org.springframework.data.mapping.callback.EntityCallback;
  * @param <T> The type of the entity.
  * @since 6.0
  * @soundtrack Bon Jovi - Slippery When Wet
- * @deprecated since 6.0.2, please use {@link org.springframework.data.neo4j.core.mapping.callback.BeforeBindCallback}.
  */
 @FunctionalInterface
-@API(status = API.Status.DEPRECATED, since = "6.0")
-@Deprecated
+@API(status = API.Status.STABLE, since = "6.0")
 public interface BeforeBindCallback<T> extends EntityCallback<T> {
 
 	/**

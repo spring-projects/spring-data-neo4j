@@ -13,12 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.repository.event;
-
-import reactor.core.publisher.Mono;
+package org.springframework.data.neo4j.core.mapping.callback;
 
 import org.apiguardian.api.API;
-import org.reactivestreams.Publisher;
 import org.springframework.core.Ordered;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 
@@ -30,22 +27,21 @@ import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
  * @since 6.0
  */
 @API(status = API.Status.INTERNAL, since = "6.0")
-public final class ReactiveIdGeneratingBeforeBindCallback implements ReactiveBeforeBindCallback<Object>, Ordered {
+public final class IdGeneratingBeforeBindCallback implements BeforeBindCallback<Object>, Ordered {
 
 	private final IdPopulator idPopulator;
 
-	public ReactiveIdGeneratingBeforeBindCallback(Neo4jMappingContext neo4jMappingContext) {
+	public IdGeneratingBeforeBindCallback(Neo4jMappingContext neo4jMappingContext) {
 		this.idPopulator = new IdPopulator(neo4jMappingContext);
 	}
 
 	@Override
-	public Publisher<Object> onBeforeBind(Object entity) {
-
-		return Mono.fromSupplier(() -> idPopulator.populateIfNecessary(entity));
+	public Object onBeforeBind(Object entity) {
+		return idPopulator.populateIfNecessary(entity);
 	}
 
 	@Override
 	public int getOrder() {
-		return ReactiveAuditingBeforeBindCallback.NEO4J_REACTIVE_AUDITING_ORDER + 10;
+		return AuditingBeforeBindCallback.NEO4J_AUDITING_ORDER + 10;
 	}
 }

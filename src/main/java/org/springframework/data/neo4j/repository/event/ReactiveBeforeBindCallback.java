@@ -29,9 +29,11 @@ import org.springframework.data.mapping.callback.ReactiveEntityCallbacks;
  * @soundtrack Iron Maiden - Killers
  * @see ReactiveEntityCallbacks
  * @since 6.0
+ * @deprecated since 6.0.2, please use {@link org.springframework.data.neo4j.core.mapping.callback.ReactiveAuditingBeforeBindCallback}.
  */
 @FunctionalInterface
-@API(status = API.Status.STABLE, since = "6.0")
+@API(status = API.Status.DEPRECATED, since = "6.0")
+@Deprecated
 public interface ReactiveBeforeBindCallback<T> extends EntityCallback<T> {
 
 	/**

@@ -13,38 +13,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.repository.event;
+package org.springframework.data.neo4j.core.mapping.callback;
 
 import org.apiguardian.api.API;
-import org.reactivestreams.Publisher;
 import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.core.Ordered;
 import org.springframework.data.auditing.AuditingHandler;
-import org.springframework.data.auditing.ReactiveIsNewAwareAuditingHandler;
+import org.springframework.data.auditing.IsNewAwareAuditingHandler;
 import org.springframework.data.mapping.callback.EntityCallback;
 import org.springframework.util.Assert;
 
 /**
- * Reactive {@link EntityCallback} to populate auditing related fields on an entity about to be bound to a record.
+ * {@link EntityCallback} to populate auditing related fields on an entity about to be bound to a record.
  *
  * @author Michael J. Simons
- * @soundtrack Iron Maiden - The Number Of The Beast
+ * @soundtrack Iron Maiden - Iron Maiden
  * @since 6.0
  */
 @API(status = API.Status.INTERNAL, since = "6.0")
-public final class ReactiveAuditingBeforeBindCallback implements ReactiveBeforeBindCallback<Object>, Ordered {
+public final class AuditingBeforeBindCallback implements BeforeBindCallback<Object>, Ordered {
 
-	public static final int NEO4J_REACTIVE_AUDITING_ORDER = 100;
+	public static final int NEO4J_AUDITING_ORDER = 100;
 
-	private final ObjectFactory<ReactiveIsNewAwareAuditingHandler> auditingHandlerFactory;
+	private final ObjectFactory<IsNewAwareAuditingHandler> auditingHandlerFactory;
 
 	/**
-	 * Creates a new {@link ReactiveAuditingBeforeBindCallback} using the {@link AuditingHandler} provided by the given
+	 * Creates a new {@link AuditingBeforeBindCallback} using the given {@link AuditingHandler} provided by the given
 	 * {@link ObjectFactory}.
 	 *
 	 * @param auditingHandlerFactory must not be {@literal null}.
 	 */
-	public ReactiveAuditingBeforeBindCallback(ObjectFactory<ReactiveIsNewAwareAuditingHandler> auditingHandlerFactory) {
+	public AuditingBeforeBindCallback(ObjectFactory<IsNewAwareAuditingHandler> auditingHandlerFactory) {
 
 		Assert.notNull(auditingHandlerFactory, "IsNewAwareAuditingHandler must not be null!");
 		this.auditingHandlerFactory = auditingHandlerFactory;
@@ -52,11 +51,10 @@ public final class ReactiveAuditingBeforeBindCallback implements ReactiveBeforeB
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.neo4j.repository.event.ReactiveBeforeBindCallback#onBeforeBind(java.lang.Object)
+	 * @see org.springframework.data.neo4j.repository.event.BeforeBindCallback#onBeforeBind(java.lang.Object)
 	 */
 	@Override
-	public Publisher<Object> onBeforeBind(Object entity) {
-
+	public Object onBeforeBind(Object entity) {
 		return auditingHandlerFactory.getObject().markAudited(entity);
 	}
 
@@ -66,6 +64,6 @@ public final class ReactiveAuditingBeforeBindCallback implements ReactiveBeforeB
 	 */
 	@Override
 	public int getOrder() {
-		return NEO4J_REACTIVE_AUDITING_ORDER;
+		return NEO4J_AUDITING_ORDER;
 	}
 }

@@ -31,10 +31,10 @@ import org.springframework.data.neo4j.core.Neo4jOperations;
 import org.springframework.data.neo4j.core.Neo4jTemplate;
 import org.springframework.data.neo4j.core.convert.Neo4jConversions;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
+import org.springframework.data.neo4j.core.mapping.callback.BeforeBindCallback;
 import org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager;
-import org.springframework.data.neo4j.repository.event.BeforeBindCallback;
-import org.springframework.data.neo4j.repository.event.IdGeneratingBeforeBindCallback;
-import org.springframework.data.neo4j.repository.event.OptimisticLockingBeforeBindCallback;
+import org.springframework.data.neo4j.core.mapping.callback.IdGeneratingBeforeBindCallback;
+import org.springframework.data.neo4j.core.mapping.callback.OptimisticLockingBeforeBindCallback;
 import org.springframework.transaction.PlatformTransactionManager;
 
 /**
