@@ -85,6 +85,7 @@ public class Domain2Config {
 	public Neo4jMappingContext domain2Context(Neo4jConversions neo4jConversions) throws ClassNotFoundException {
 		Neo4jMappingContext context = new Neo4jMappingContext(neo4jConversions);
 		context.setInitialEntitySet(Neo4jEntityScanner.get().scan(this.getClass().getPackage().getName()));
+		context.setStrict(true);
 		return context;
 	}
 }
