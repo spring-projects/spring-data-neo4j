@@ -63,7 +63,7 @@ import org.springframework.data.neo4j.core.mapping.NestedRelationshipProcessingS
 import org.springframework.data.neo4j.core.mapping.NestedRelationshipProcessingStateMachine.ProcessState;
 import org.springframework.data.neo4j.core.mapping.NodeDescription;
 import org.springframework.data.neo4j.core.mapping.RelationshipDescription;
-import org.springframework.data.neo4j.repository.event.ReactiveBeforeBindCallback;
+import org.springframework.data.neo4j.core.mapping.callback.ReactiveEventSupport;
 import org.springframework.data.util.ClassTypeInformation;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
@@ -90,7 +90,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 
 	private final CypherGenerator cypherGenerator;
 
-	private ReactiveNeo4jEvents eventSupport;
+	private ReactiveEventSupport eventSupport;
 
 	private final ReactiveDatabaseSelectionProvider databaseSelectionProvider;
 
@@ -104,7 +104,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 		this.neo4jClient = neo4jClient;
 		this.neo4jMappingContext = neo4jMappingContext;
 		this.cypherGenerator = CypherGenerator.INSTANCE;
-		this.eventSupport = new ReactiveNeo4jEvents(ReactiveEntityCallbacks.create());
+		this.eventSupport = ReactiveEventSupport.useExistingCallbacks(neo4jMappingContext, ReactiveEntityCallbacks.create());
 		this.databaseSelectionProvider = databaseSelectionProvider;
 	}
 
@@ -577,7 +577,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
 
-		this.eventSupport = new ReactiveNeo4jEvents(ReactiveEntityCallbacks.create(beanFactory));
+		this.eventSupport = ReactiveEventSupport.discoverCallbacks(neo4jMappingContext, beanFactory);
 	}
 
 	final class DefaultReactiveExecutableQuery<T> implements ExecutableQuery<T> {
@@ -616,23 +616,6 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 				// So there has been an incorrect result size, but not to few results but to many.
 				throw new IncorrectResultSizeDataAccessException(1);
 			}
-		}
-	}
-
-	/**
-	 * Utility class that orchestrates {@link ReactiveEntityCallbacks}. All the methods provided here check for their
-	 * availability and do nothing when an event cannot be published.
-	 */
-	final class ReactiveNeo4jEvents {
-
-		private final ReactiveEntityCallbacks entityCallbacks;
-
-		ReactiveNeo4jEvents(ReactiveEntityCallbacks entityCallbacks) {
-			this.entityCallbacks = entityCallbacks;
-		}
-
-		<T> Mono<T> maybeCallBeforeBind(T object) {
-			return entityCallbacks.callback(ReactiveBeforeBindCallback.class, object);
 		}
 	}
 }

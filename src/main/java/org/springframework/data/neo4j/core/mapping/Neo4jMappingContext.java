@@ -27,7 +27,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.apiguardian.api.API;
 import org.neo4j.cypherdsl.core.Statement;
-import org.neo4j.driver.Driver;
+import org.neo4j.driver.internal.types.InternalTypeSystem;
 import org.neo4j.driver.types.TypeSystem;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.BeansException;
@@ -105,22 +105,21 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 	}
 
 	/**
-	 * This API is primarly used from inside the CDI extension to configure the type system. This is necessary as
+	 * This API is primarily used from inside the CDI extension to configure the type system. This is necessary as
 	 * we don't get notified of the context via {@link #setApplicationContext(ApplicationContext applicationContext)}.
 	 *
 	 * @param neo4jConversions The conversions to be used
-	 * @param typeSystem       The current drivers typeystem
+	 * @param typeSystem       The current drivers typeystem. If this is null, we use the default one without accessing the driver.
 	 */
 	@API(status = API.Status.INTERNAL, since = "6.0")
-	public Neo4jMappingContext(Neo4jConversions neo4jConversions, TypeSystem typeSystem) {
+	public Neo4jMappingContext(Neo4jConversions neo4jConversions, @Nullable TypeSystem typeSystem) {
 
 		super.setSimpleTypeHolder(Neo4jSimpleTypes.HOLDER);
 		this.conversionService = new DefaultNeo4jConversionService(neo4jConversions);
 
-		DefaultNeo4jEntityConverter defaultNeo4jConverter = new DefaultNeo4jEntityConverter(INSTANTIATORS, conversionService, nodeDescriptionStore);
-		if (typeSystem != null) {
-			defaultNeo4jConverter.setTypeSystem(typeSystem);
-		}
+		DefaultNeo4jEntityConverter defaultNeo4jConverter = new DefaultNeo4jEntityConverter(INSTANTIATORS,
+				conversionService, nodeDescriptionStore);
+		defaultNeo4jConverter.setTypeSystem(typeSystem == null ? InternalTypeSystem.TYPE_SYSTEM : typeSystem);
 		this.entityConverter = defaultNeo4jConverter;
 	}
 
@@ -287,8 +286,6 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 		super.setApplicationContext(applicationContext);
 
 		this.beanFactory = applicationContext.getAutowireCapableBeanFactory();
-		Driver driver = this.beanFactory.getBean(Driver.class);
-		((DefaultNeo4jEntityConverter) this.entityConverter).setTypeSystem(driver.defaultTypeSystem());
 	}
 
 	public CreateRelationshipStatementHolder createStatement(Neo4jPersistentEntity<?> neo4jPersistentEntity, NestedRelationshipContext relationshipContext,

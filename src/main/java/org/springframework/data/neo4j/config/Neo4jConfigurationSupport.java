@@ -17,21 +17,13 @@ package org.springframework.data.neo4j.config;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Set;
 
 import org.apiguardian.api.API;
-import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
-import org.springframework.core.type.filter.AnnotationTypeFilter;
-import org.springframework.data.annotation.Persistent;
 import org.springframework.data.neo4j.core.convert.Neo4jConversions;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.schema.Node;
-import org.springframework.data.neo4j.core.schema.RelationshipProperties;
-import org.springframework.util.ClassUtils;
-import org.springframework.util.StringUtils;
 
 /**
  * Internal support class for basic configuration. The support infrastructure here is basically all around finding out
@@ -90,13 +82,7 @@ abstract class Neo4jConfigurationSupport {
 	 */
 	protected final Set<Class<?>> getInitialEntitySet() throws ClassNotFoundException {
 
-		Set<Class<?>> initialEntitySet = new HashSet<Class<?>>();
-
-		for (String basePackage : getMappingBasePackages()) {
-			initialEntitySet.addAll(scanForEntities(basePackage));
-		}
-
-		return initialEntitySet;
+		return Neo4jEntityScanner.get().scan(getMappingBasePackages());
 	}
 
 	/**
@@ -105,26 +91,11 @@ abstract class Neo4jConfigurationSupport {
 	 * @param basePackage must not be {@literal null}.
 	 * @return found entities in the package to scan.
 	 * @throws ClassNotFoundException if the given class cannot be loaded by the class loader.
+	 * @deprecated since 6.0.2 Use {@link Neo4jEntityScanner} instead.
 	 */
+	@Deprecated
 	protected final Set<Class<?>> scanForEntities(String basePackage) throws ClassNotFoundException {
 
-		if (!StringUtils.hasText(basePackage)) {
-			return Collections.emptySet();
-		}
-
-		Set<Class<?>> initialEntitySet = new HashSet<Class<?>>();
-
-		ClassPathScanningCandidateComponentProvider componentProvider = new ClassPathScanningCandidateComponentProvider(
-				false);
-		componentProvider.addIncludeFilter(new AnnotationTypeFilter(Node.class));
-		componentProvider.addIncludeFilter(new AnnotationTypeFilter(Persistent.class));
-		componentProvider.addIncludeFilter(new AnnotationTypeFilter(RelationshipProperties.class));
-
-		ClassLoader classLoader = Neo4jConfigurationSupport.class.getClassLoader();
-		for (BeanDefinition candidate : componentProvider.findCandidateComponents(basePackage)) {
-			initialEntitySet.add(ClassUtils.forName(candidate.getBeanClassName(), classLoader));
-		}
-
-		return initialEntitySet;
+		return Neo4jEntityScanner.get().scan(basePackage);
 	}
 }

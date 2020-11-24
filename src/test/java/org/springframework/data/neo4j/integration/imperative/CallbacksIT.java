@@ -26,11 +26,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.neo4j.config.AbstractNeo4jConfig;
+import org.springframework.data.neo4j.core.mapping.callback.BeforeBindCallback;
 import org.springframework.data.neo4j.integration.imperative.repositories.ThingRepository;
 import org.springframework.data.neo4j.integration.shared.common.CallbacksITBase;
 import org.springframework.data.neo4j.integration.shared.common.ThingWithAssignedId;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
-import org.springframework.data.neo4j.repository.event.BeforeBindCallback;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 /**

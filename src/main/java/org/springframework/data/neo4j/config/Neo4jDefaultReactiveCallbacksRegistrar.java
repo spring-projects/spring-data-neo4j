@@ -16,15 +16,11 @@
 package org.springframework.data.neo4j.config;
 
 import org.apiguardian.api.API;
-import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.BeanNameGenerator;
-import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.context.annotation.ImportBeanDefinitionRegistrar;
 import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.data.neo4j.core.Neo4jOperations;
-import org.springframework.data.neo4j.repository.event.ReactiveIdGeneratingBeforeBindCallback;
-import org.springframework.data.neo4j.repository.event.ReactiveOptimisticLockingBeforeBindCallback;
 
 /**
  * This brings in the default callbacks required for the default implementation of {@link Neo4jOperations} to work. The
@@ -34,23 +30,15 @@ import org.springframework.data.neo4j.repository.event.ReactiveOptimisticLocking
  * @author Michael J. Simons
  * @soundtrack AC/DC - High Voltage
  * @since 6.0
+ * @deprecated since 6.0.2, now an empty implementation, not needed anymore and our default callbacks will be added directly via our
+ * infrastructure.
  */
-@API(status = API.Status.STABLE, since = "6.0")
+@API(status = API.Status.DEPRECATED, since = "6.0")
+@Deprecated
 public final class Neo4jDefaultReactiveCallbacksRegistrar implements ImportBeanDefinitionRegistrar {
 
 	@Override
 	public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry,
 			BeanNameGenerator beanNameGenerator) {
-		// Id Generator
-		RootBeanDefinition beanDefinition = new RootBeanDefinition(ReactiveIdGeneratingBeforeBindCallback.class);
-		beanDefinition.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
-		String beanName = beanNameGenerator.generateBeanName(beanDefinition, registry);
-		registry.registerBeanDefinition(beanName, beanDefinition);
-
-		// Optimistic locking support
-		beanDefinition = new RootBeanDefinition(ReactiveOptimisticLockingBeforeBindCallback.class);
-		beanDefinition.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
-		beanName = beanNameGenerator.generateBeanName(beanDefinition, registry);
-		registry.registerBeanDefinition(beanName, beanDefinition);
 	}
 }
