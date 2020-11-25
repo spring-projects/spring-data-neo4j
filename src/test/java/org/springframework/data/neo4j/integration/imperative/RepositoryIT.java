@@ -30,9 +30,11 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.StreamSupport;
@@ -2064,6 +2066,24 @@ class RepositoryIT {
 
 			assertThat(people).hasSize(4);
 
+		}
+
+		@Test
+		void saveBidirectionalRelationship(@Autowired BidirectionalStartRepository repository) {
+			BidirectionalEnd end = new BidirectionalEnd("End");
+			Set<BidirectionalEnd> ends = new HashSet<>();
+			ends.add(end);
+			BidirectionalStart start = new BidirectionalStart("Start", ends);
+			end.setStart(start);
+
+			repository.save(start);
+
+			try (Session session = createSession()) {
+				List<Record> records = session.run("MATCH (end:BidirectionalEnd)<-[r:CONNECTED]-(start:BidirectionalStart)" +
+								" RETURN start, r, end").list();
+
+				assertThat(records).hasSize(1);
+			}
 		}
 	}
 
