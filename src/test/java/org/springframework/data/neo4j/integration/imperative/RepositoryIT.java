@@ -920,17 +920,6 @@ class RepositoryIT {
 		}
 
 		@Test
-		void asdfasdf(@Autowired BidirectionalStartRepository repository) {
-			BidirectionalEnd end = new BidirectionalEnd("Bla");
-			Set<BidirectionalEnd> ends = new HashSet<>();
-			ends.add(end);
-			BidirectionalStart start = new BidirectionalStart("Blubb", ends);
-			end.setStart(start);
-
-			repository.save(start);
-		}
-
-		@Test
 		void findEntityWithSelfReferencesInBothDirections(@Autowired PetRepository repository) {
 			long petId;
 			try (Session session = createSession()) {
@@ -2076,6 +2065,24 @@ class RepositoryIT {
 
 			assertThat(people).hasSize(4);
 
+		}
+
+		@Test
+		void saveBidirectionalRelationship(@Autowired BidirectionalStartRepository repository) {
+			BidirectionalEnd end = new BidirectionalEnd("End");
+			Set<BidirectionalEnd> ends = new HashSet<>();
+			ends.add(end);
+			BidirectionalStart start = new BidirectionalStart("Start", ends);
+			end.setStart(start);
+
+			repository.save(start);
+
+			try (Session session = createSession()) {
+				List<Record> records = session.run("MATCH (end:BidirectionalEnd)<-[r:CONNECTED]-(start:BidirectionalStart)" +
+								" RETURN start, r, end").list();
+
+				assertThat(records).hasSize(1);
+			}
 		}
 	}
 
