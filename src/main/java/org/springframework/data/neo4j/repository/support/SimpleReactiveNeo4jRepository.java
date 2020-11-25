@@ -191,6 +191,7 @@ public class SimpleReactiveNeo4jRepository<T, ID> implements ReactiveSortingRepo
 	 * @see org.springframework.data.repository.reactive.ReactiveCrudRepository#deleteAllById(java.lang.Iterabl)
 	 */
 	@Override
+	@Transactional
 	public Mono<Void> deleteAllById(Iterable<? extends ID> ids) {
 
 		Assert.notNull(ids, "The given Iterable of ids must not be null!");
