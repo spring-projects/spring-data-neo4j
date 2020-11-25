@@ -75,10 +75,11 @@ public final class ReactiveEventSupport {
 		this.entityCallbacks = entityCallbacks;
 	}
 
-	@SuppressWarnings("deprecation")
 	public <T> Mono<T> maybeCallBeforeBind(T object) {
-		return entityCallbacks
-				.callback(org.springframework.data.neo4j.repository.event.ReactiveBeforeBindCallback.class, object)
-				.flatMap(o -> entityCallbacks.callback(ReactiveBeforeBindCallback.class, o));
+
+		if (object == null) {
+			return Mono.empty();
+		}
+		return entityCallbacks.callback(ReactiveBeforeBindCallback.class, object);
 	}
 }

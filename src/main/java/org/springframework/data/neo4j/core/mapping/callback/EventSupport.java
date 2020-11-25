@@ -71,14 +71,11 @@ public final class EventSupport {
 		this.entityCallbacks = entityCallbacks;
 	}
 
-	@SuppressWarnings("deprecation")
 	public <T> T maybeCallBeforeBind(T object) {
 
 		if (object == null) {
 			return object;
 		}
-		T o = entityCallbacks
-				.callback(org.springframework.data.neo4j.repository.event.BeforeBindCallback.class, object);
-		return entityCallbacks.callback(BeforeBindCallback.class, o);
+		return entityCallbacks.callback(BeforeBindCallback.class, object);
 	}
 }
