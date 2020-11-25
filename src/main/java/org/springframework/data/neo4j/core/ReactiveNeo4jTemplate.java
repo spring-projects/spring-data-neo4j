@@ -461,7 +461,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 
 				// break recursive procession and deletion of previously created relationships
 				ProcessState processState = stateMachine.getStateOf(relationshipDescriptionObverse, relatedValuesToStore);
-				if (processState == ProcessState.PROCESSED_BOTH) {
+				if (processState == ProcessState.PROCESSED_ALL_RELATIONSHIPS) {
 					return;
 				}
 

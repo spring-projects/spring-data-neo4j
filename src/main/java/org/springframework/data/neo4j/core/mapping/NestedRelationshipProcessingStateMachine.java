@@ -38,7 +38,7 @@ public final class NestedRelationshipProcessingStateMachine {
 	 * Valid processing states.
 	 */
 	public enum ProcessState {
-		PROCESSED_NONE, PROCESSED_BOTH, PROCESSED_ONLY_RELATIONSHIP, PROCESSED_ALL_VALUES
+		PROCESSED_NONE, PROCESSED_BOTH, PROCESSED_ALL_RELATIONSHIPS, PROCESSED_ALL_VALUES
 	}
 
 	private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
@@ -70,7 +70,7 @@ public final class NestedRelationshipProcessingStateMachine {
 				return ProcessState.PROCESSED_BOTH;
 			}
 			if (hasProcessedRelationship) {
-				return ProcessState.PROCESSED_ONLY_RELATIONSHIP;
+				return ProcessState.PROCESSED_ALL_RELATIONSHIPS;
 			}
 			if (hasProcessedAllValues) {
 				return ProcessState.PROCESSED_ALL_VALUES;
