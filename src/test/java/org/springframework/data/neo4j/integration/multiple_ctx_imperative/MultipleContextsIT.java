@@ -21,8 +21,10 @@ import java.util.Collections;
 
 import org.junit.jupiter.api.Test;
 import org.neo4j.driver.AuthTokens;
+import org.neo4j.driver.Config;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.GraphDatabase;
+import org.neo4j.driver.Logging;
 import org.neo4j.driver.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.integration.multiple_ctx_imperative.domain1.Domain1Config;
@@ -66,7 +68,10 @@ public class MultipleContextsIT {
 	}
 
 	@Test // DATAGRAPH-1441
-	void repositoriesShouldTargetTheCorrectDatabase(@Autowired Domain1Repository repo1, @Autowired Domain2Repository repo2) {
+	void repositoriesShouldTargetTheCorrectDatabase(
+			@Autowired Domain1Repository repo1,
+			@Autowired Domain2Repository repo2
+	) {
 
 		Domain1Entity newEntity1 = repo1.save(new Domain1Entity("For domain 1"));
 		newEntity1.setAnAttribute(newEntity1.getAnAttribute() + " updated");
@@ -78,18 +83,35 @@ public class MultipleContextsIT {
 		newEntity2 = repo2.save(newEntity2);
 		long id2 = repo2.save(newEntity2).getId();
 
-		try (Driver driver = GraphDatabase.driver(container1.getBoltUrl(), AuthTokens.basic("neo4j", container1.getAdminPassword()));
+		try (Driver driver = newDriver(container1.getBoltUrl(), container1.getAdminPassword());
 				Session session = driver.session()) {
 			verifyExistenceAndVersion(id1, session);
 		}
 
-		try (Driver driver = GraphDatabase.driver(container2.getBoltUrl(), AuthTokens.basic("neo4j", container2.getAdminPassword()));
+		try (Driver driver = newDriver(container2.getBoltUrl(), container2.getAdminPassword());
 				Session session = driver.session()) {
 			verifyExistenceAndVersion(id2, session);
 		}
 	}
 
-	private void verifyExistenceAndVersion(long id1, Session session) {
+	/**
+	 * Create drivers independend from the setup under test.
+	 *
+	 * @param boltUrl  Where to connect to
+	 * @param password Which password
+	 * @return Minimal driver instance.
+	 */
+	private static Driver newDriver(String boltUrl, String password) {
+
+		Config driverConfig = Config.builder()
+				.withMaxConnectionPoolSize(1)
+				.withLogging(Logging.none())
+				.withEventLoopThreads(1)
+				.build();
+		return GraphDatabase.driver(boltUrl, AuthTokens.basic("neo4j", password), driverConfig);
+	}
+
+	private static void verifyExistenceAndVersion(long id1, Session session) {
 		Long version = session
 				.readTransaction(tx -> tx.run("MATCH (n) WHERE id(n) = $id RETURN n.version", Collections
 						.singletonMap("id", id1)).single().get(0).asLong());
