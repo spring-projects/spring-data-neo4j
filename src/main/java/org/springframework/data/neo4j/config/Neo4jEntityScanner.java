@@ -26,6 +26,7 @@ import org.apiguardian.api.API;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.core.type.filter.AnnotationTypeFilter;
 import org.springframework.data.annotation.Persistent;
 import org.springframework.data.neo4j.core.schema.Node;
@@ -44,26 +45,26 @@ import org.springframework.util.StringUtils;
 @API(status = API.Status.STABLE, since = "6.0.2")
 public final class Neo4jEntityScanner {
 
-	private @Nullable final ApplicationContext context;
-
 	public static Neo4jEntityScanner get() {
 
 		return new Neo4jEntityScanner(null);
 	}
 
-	public static Neo4jEntityScanner get(@Nullable ApplicationContext context) {
+	public static Neo4jEntityScanner get(@Nullable ResourceLoader resourceLoader) {
 
-		return new Neo4jEntityScanner(context);
+		return new Neo4jEntityScanner(resourceLoader);
 	}
+
+	private @Nullable final ResourceLoader resourceLoader;
 
 	/**
 	 * Create a new {@link Neo4jEntityScanner} instance.
 	 *
-	 * @param context the source application context
+	 * @param resourceLoader an optional resource loader used for class scanning.
 	 */
-	private Neo4jEntityScanner(@Nullable ApplicationContext context) {
+	private Neo4jEntityScanner(@Nullable ResourceLoader resourceLoader) {
 
-		this.context = context;
+		this.resourceLoader = resourceLoader;
 	}
 
 	/**
@@ -92,11 +93,13 @@ public final class Neo4jEntityScanner {
 			return Collections.emptySet();
 		}
 
-		ClassPathScanningCandidateComponentProvider scanner = createClassPathScanningCandidateComponentProvider(
-				this.context);
+		ClassPathScanningCandidateComponentProvider scanner =
+				createClassPathScanningCandidateComponentProvider(this.resourceLoader);
 
 		ClassLoader classLoader =
-				this.context == null ? Neo4jConfigurationSupport.class.getClassLoader() : this.context.getClassLoader();
+				this.resourceLoader == null ?
+						Neo4jConfigurationSupport.class.getClassLoader() :
+						this.resourceLoader.getClassLoader();
 
 		Set<Class<?>> entitySet = new HashSet<>();
 		for (String basePackage : packages) {
@@ -113,16 +116,15 @@ public final class Neo4jEntityScanner {
 	 * Create a {@link ClassPathScanningCandidateComponentProvider} to scan entities based
 	 * on the specified {@link ApplicationContext}.
 	 *
-	 * @param context the optional {@link ApplicationContext} to use
+	 * @param resourceLoader an optional {@link ResourceLoader} to use
 	 * @return a {@link ClassPathScanningCandidateComponentProvider} suitable to scan for Neo4j entities
 	 */
 	private static ClassPathScanningCandidateComponentProvider createClassPathScanningCandidateComponentProvider(
-			ApplicationContext context) {
+			ResourceLoader resourceLoader) {
 
 		ClassPathScanningCandidateComponentProvider delegate = new ClassPathScanningCandidateComponentProvider(false);
-		if (context != null) {
-			delegate.setEnvironment(context.getEnvironment());
-			delegate.setResourceLoader(context);
+		if (resourceLoader != null) {
+			delegate.setResourceLoader(resourceLoader);
 		}
 
 		delegate.addIncludeFilter(new AnnotationTypeFilter(Node.class));
