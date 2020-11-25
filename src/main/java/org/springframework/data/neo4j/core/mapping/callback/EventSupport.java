@@ -17,12 +17,9 @@ package org.springframework.data.neo4j.core.mapping.callback;
 
 import static org.apiguardian.api.API.Status.INTERNAL;
 
-import reactor.core.publisher.Mono;
-
 import org.apiguardian.api.API;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.data.mapping.callback.EntityCallbacks;
-import org.springframework.data.mapping.callback.ReactiveEntityCallbacks;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 
 /**
@@ -32,54 +29,56 @@ import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
  * @since 6.0.2
  */
 @API(status = INTERNAL, since = "6.0.2")
-public final class ReactiveNeo4jEventSupport {
+public final class EventSupport {
 
 	/**
 	 * Creates event support containing the required default events plus all entity callbacks discoverable through
 	 * the {@link BeanFactory}.
 	 *
-	 * @param context     The mapping context that is used in some of the callbacks.
+	 * @param context The mapping context that is used in some of the callbacks.
 	 * @param beanFactory The bean factory used to discover additional callbacks.
 	 * @return A new instance of the event support
 	 */
-	public static ReactiveNeo4jEventSupport discover(Neo4jMappingContext context, BeanFactory beanFactory) {
+	public static EventSupport discoverCallbacks(Neo4jMappingContext context, BeanFactory beanFactory) {
 
-		ReactiveEntityCallbacks entityCallbacks = ReactiveEntityCallbacks.create(beanFactory);
+		EntityCallbacks entityCallbacks = EntityCallbacks.create(beanFactory);
 		addDefaultEntityCallbacks(context, entityCallbacks);
-		return new ReactiveNeo4jEventSupport(entityCallbacks);
+		return new EventSupport(entityCallbacks);
 	}
 
 	/**
 	 * Creates event support containing the required default events plus all explicitly defined events.
 	 *
-	 * @param context         The mapping context that is used in some of the callbacks.
+	 * @param context The mapping context that is used in some of the callbacks.
 	 * @param entityCallbacks predefined callbacks.
 	 * @return A new instance of the event support
 	 */
-	public static ReactiveNeo4jEventSupport useExisting(Neo4jMappingContext context,
-			ReactiveEntityCallbacks entityCallbacks) {
+	public static EventSupport useExistingCallbacks(Neo4jMappingContext context, EntityCallbacks entityCallbacks) {
 
 		addDefaultEntityCallbacks(context, entityCallbacks);
-		return new ReactiveNeo4jEventSupport(entityCallbacks);
+		return new EventSupport(entityCallbacks);
 	}
 
-	private static void addDefaultEntityCallbacks(Neo4jMappingContext context,
-			ReactiveEntityCallbacks entityCallbacks) {
+	private static void addDefaultEntityCallbacks(Neo4jMappingContext context, EntityCallbacks entityCallbacks) {
 
-		entityCallbacks.addEntityCallback(new ReactiveIdGeneratingBeforeBindCallback(context));
-		entityCallbacks.addEntityCallback(new ReactiveOptimisticLockingBeforeBindCallback(context));
+		entityCallbacks.addEntityCallback(new IdGeneratingBeforeBindCallback(context));
+		entityCallbacks.addEntityCallback(new OptimisticLockingBeforeBindCallback(context));
 	}
 
-	private final ReactiveEntityCallbacks entityCallbacks;
+	private final EntityCallbacks entityCallbacks;
 
-	private ReactiveNeo4jEventSupport(ReactiveEntityCallbacks entityCallbacks) {
+	private EventSupport(EntityCallbacks entityCallbacks) {
 		this.entityCallbacks = entityCallbacks;
 	}
 
 	@SuppressWarnings("deprecation")
-	public <T> Mono<T> maybeCallBeforeBind(T object) {
-		return entityCallbacks
-				.callback(org.springframework.data.neo4j.repository.event.ReactiveBeforeBindCallback.class, object)
-				.flatMap(o -> entityCallbacks.callback(ReactiveBeforeBindCallback.class, o));
+	public <T> T maybeCallBeforeBind(T object) {
+
+		if (object == null) {
+			return object;
+		}
+		T o = entityCallbacks
+				.callback(org.springframework.data.neo4j.repository.event.BeforeBindCallback.class, object);
+		return entityCallbacks.callback(BeforeBindCallback.class, o);
 	}
 }

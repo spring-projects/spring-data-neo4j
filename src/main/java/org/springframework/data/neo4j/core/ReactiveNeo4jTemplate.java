@@ -63,7 +63,7 @@ import org.springframework.data.neo4j.core.mapping.NestedRelationshipProcessingS
 import org.springframework.data.neo4j.core.mapping.NestedRelationshipProcessingStateMachine.ProcessState;
 import org.springframework.data.neo4j.core.mapping.NodeDescription;
 import org.springframework.data.neo4j.core.mapping.RelationshipDescription;
-import org.springframework.data.neo4j.core.mapping.callback.ReactiveNeo4jEventSupport;
+import org.springframework.data.neo4j.core.mapping.callback.ReactiveEventSupport;
 import org.springframework.data.util.ClassTypeInformation;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
@@ -90,7 +90,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 
 	private final CypherGenerator cypherGenerator;
 
-	private ReactiveNeo4jEventSupport eventSupport;
+	private ReactiveEventSupport eventSupport;
 
 	private final ReactiveDatabaseSelectionProvider databaseSelectionProvider;
 
@@ -104,7 +104,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 		this.neo4jClient = neo4jClient;
 		this.neo4jMappingContext = neo4jMappingContext;
 		this.cypherGenerator = CypherGenerator.INSTANCE;
-		this.eventSupport = ReactiveNeo4jEventSupport.useExisting(neo4jMappingContext, ReactiveEntityCallbacks.create());
+		this.eventSupport = ReactiveEventSupport.useExistingCallbacks(neo4jMappingContext, ReactiveEntityCallbacks.create());
 		this.databaseSelectionProvider = databaseSelectionProvider;
 	}
 
@@ -577,7 +577,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
 
-		this.eventSupport = ReactiveNeo4jEventSupport.discover(neo4jMappingContext, beanFactory);
+		this.eventSupport = ReactiveEventSupport.discoverCallbacks(neo4jMappingContext, beanFactory);
 	}
 
 	final class DefaultReactiveExecutableQuery<T> implements ExecutableQuery<T> {

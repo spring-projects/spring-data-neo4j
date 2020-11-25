@@ -59,7 +59,7 @@ import org.springframework.data.neo4j.core.mapping.NestedRelationshipProcessingS
 import org.springframework.data.neo4j.core.mapping.NestedRelationshipProcessingStateMachine.ProcessState;
 import org.springframework.data.neo4j.core.mapping.NodeDescription;
 import org.springframework.data.neo4j.core.mapping.RelationshipDescription;
-import org.springframework.data.neo4j.core.mapping.callback.Neo4jEventSupport;
+import org.springframework.data.neo4j.core.mapping.callback.EventSupport;
 import org.springframework.data.neo4j.repository.NoResultException;
 import org.springframework.data.util.ClassTypeInformation;
 import org.springframework.lang.Nullable;
@@ -87,7 +87,7 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 
 	private final CypherGenerator cypherGenerator;
 
-	private Neo4jEventSupport eventSupport;
+	private EventSupport eventSupport;
 
 	private final DatabaseSelectionProvider databaseSelectionProvider;
 
@@ -111,7 +111,7 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 		this.neo4jClient = neo4jClient;
 		this.neo4jMappingContext = neo4jMappingContext;
 		this.cypherGenerator = CypherGenerator.INSTANCE;
-		this.eventSupport = Neo4jEventSupport.useExisting(neo4jMappingContext, entityCallbacks);
+		this.eventSupport = EventSupport.useExistingCallbacks(neo4jMappingContext, entityCallbacks);
 
 		this.databaseSelectionProvider = databaseSelectionProvider;
 	}
@@ -548,7 +548,7 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
 
-		this.eventSupport = Neo4jEventSupport.discover(neo4jMappingContext, beanFactory);
+		this.eventSupport = EventSupport.discoverCallbacks(neo4jMappingContext, beanFactory);
 	}
 
 	@Override

@@ -65,9 +65,9 @@ class Neo4jCdiConfigurationSupport {
 
 	@Produces @Builtin @Singleton
 	public Neo4jOperations neo4jOperations(
-			final @Any Instance<Neo4jClient> neo4jClient,
-			final @Any Instance<Neo4jMappingContext> mappingContext,
-			final @Any Instance<DatabaseSelectionProvider> databaseNameProvider
+			@Any Instance<Neo4jClient> neo4jClient,
+			@Any Instance<Neo4jMappingContext> mappingContext,
+			@Any Instance<DatabaseSelectionProvider> databaseNameProvider
 	) {
 		return new Neo4jTemplate(resolve(neo4jClient), resolve(mappingContext), resolve(databaseNameProvider));
 	}
@@ -78,12 +78,9 @@ class Neo4jCdiConfigurationSupport {
 	}
 
 	@Produces @Singleton
-	public Neo4jMappingContext neo4jMappingContext(final Driver driver,
-			final @Any Instance<Neo4jConversions> neo4JConversions) {
+	public Neo4jMappingContext neo4jMappingContext(Driver driver, @Any Instance<Neo4jConversions> neo4JConversions) {
 
-		Neo4jMappingContext neo4jMappingContext = new Neo4jMappingContext(resolve(neo4JConversions),
-				driver.defaultTypeSystem());
-		return neo4jMappingContext;
+		return new Neo4jMappingContext(resolve(neo4JConversions), driver.defaultTypeSystem());
 	}
 
 	@Produces @Singleton
