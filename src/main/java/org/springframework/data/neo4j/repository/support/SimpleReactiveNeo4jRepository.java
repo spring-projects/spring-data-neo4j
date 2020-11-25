@@ -15,7 +15,6 @@
  */
 package org.springframework.data.neo4j.repository.support;
 
-import org.springframework.data.neo4j.core.mapping.Neo4jPersistentProperty;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -26,10 +25,12 @@ import java.util.stream.StreamSupport;
 import org.apiguardian.api.API;
 import org.neo4j.cypherdsl.core.Statement;
 import org.reactivestreams.Publisher;
+
 import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.core.ReactiveNeo4jOperations;
-import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.core.mapping.CypherGenerator;
+import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
+import org.springframework.data.neo4j.core.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.repository.query.CypherAdapterUtils;
 import org.springframework.data.repository.reactive.ReactiveSortingRepository;
 import org.springframework.stereotype.Repository;
@@ -187,13 +188,14 @@ public class SimpleReactiveNeo4jRepository<T, ID> implements ReactiveSortingRepo
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.reactive.ReactiveCrudRepository#deleteAll()
+	 * @see org.springframework.data.repository.reactive.ReactiveCrudRepository#deleteAllById(java.lang.Iterabl)
 	 */
 	@Override
-	@Transactional
-	public Mono<Void> deleteAll() {
+	public Mono<Void> deleteAllById(Iterable<? extends ID> ids) {
 
-		return this.neo4jOperations.deleteAll(this.entityInformation.getJavaType());
+		Assert.notNull(ids, "The given Iterable of ids must not be null!");
+
+		return this.neo4jOperations.deleteAllById(ids, this.entityInformation.getJavaType());
 	}
 
 	/*
@@ -211,14 +213,6 @@ public class SimpleReactiveNeo4jRepository<T, ID> implements ReactiveSortingRepo
 		return this.neo4jOperations.deleteAllById(ids, this.entityInformation.getJavaType());
 	}
 
-	@Override
-	public Mono<Void> deleteAllById(Iterable<? extends ID> ids) {
-
-		Assert.notNull(ids, "The given Iterable of ids must not be null!");
-
-		return this.neo4jOperations.deleteAllById(ids, this.entityInformation.getJavaType());
-	}
-
 	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.reactive.ReactiveCrudRepository#deleteAll(org.reactivestreams.Publisher)
@@ -229,5 +223,16 @@ public class SimpleReactiveNeo4jRepository<T, ID> implements ReactiveSortingRepo
 
 		Assert.notNull(entitiesPublisher, "The given Publisher of entities must not be null!");
 		return Flux.from(entitiesPublisher).flatMap(this::delete).then();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.data.repository.reactive.ReactiveCrudRepository#deleteAll()
+	 */
+	@Override
+	@Transactional
+	public Mono<Void> deleteAll() {
+
+		return this.neo4jOperations.deleteAll(this.entityInformation.getJavaType());
 	}
 }

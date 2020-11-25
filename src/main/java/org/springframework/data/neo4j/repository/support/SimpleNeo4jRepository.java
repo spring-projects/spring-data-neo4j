@@ -162,9 +162,9 @@ public class SimpleNeo4jRepository<T, ID> implements PagingAndSortingRepository<
 
 	@Override
 	@Transactional
-	public void deleteAll() {
+	public void deleteAllById(Iterable<? extends ID> ids) {
 
-		this.neo4jOperations.deleteAll(this.entityInformation.getJavaType());
+		this.neo4jOperations.deleteAllById(ids, this.entityInformation.getJavaType());
 	}
 
 	@Override
@@ -179,8 +179,8 @@ public class SimpleNeo4jRepository<T, ID> implements PagingAndSortingRepository<
 
 	@Override
 	@Transactional
-	public void deleteAllById(Iterable<? extends ID> ids) {
+	public void deleteAll() {
 
-		this.neo4jOperations.deleteAllById(ids, this.entityInformation.getJavaType());
+		this.neo4jOperations.deleteAll(this.entityInformation.getJavaType());
 	}
 }
