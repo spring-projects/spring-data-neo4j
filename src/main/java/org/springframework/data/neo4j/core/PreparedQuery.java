@@ -15,17 +15,29 @@
  */
 package org.springframework.data.neo4j.core;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiFunction;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.apiguardian.api.API;
 import org.neo4j.driver.Record;
+import org.neo4j.driver.Value;
+import org.neo4j.driver.Values;
 import org.neo4j.driver.types.MapAccessor;
+import org.neo4j.driver.types.Path;
 import org.neo4j.driver.types.TypeSystem;
+import org.springframework.data.neo4j.core.mapping.Constants;
+import org.springframework.data.neo4j.core.mapping.MappingSupport;
+import org.springframework.data.neo4j.core.mapping.NoRootNodeMappingException;
 import org.springframework.lang.Nullable;
 
 /**
@@ -58,7 +70,7 @@ public final class PreparedQuery<T> {
 		if (optionalBuildSteps.mappingFunction == null) {
 			this.mappingFunction = null;
 		} else {
-			this.mappingFunction = (BiFunction<TypeSystem, Record, T>) new ListAggregatingMappingFunction(
+			this.mappingFunction = (BiFunction<TypeSystem, Record, T>) new AggregatingMappingFunction(
 					optionalBuildSteps.mappingFunction);
 		}
 		this.cypherQuery = optionalBuildSteps.cypherQuery;
@@ -74,7 +86,7 @@ public final class PreparedQuery<T> {
 	}
 
 	boolean resultsHaveBeenAggregated() {
-		return this.mappingFunction != null && ((ListAggregatingMappingFunction) this.mappingFunction).hasAggregated();
+		return this.mappingFunction != null && ((AggregatingMappingFunction) this.mappingFunction).hasAggregated();
 	}
 
 	public String getCypherQuery() {
@@ -139,22 +151,84 @@ public final class PreparedQuery<T> {
 		}
 	}
 
-	private static class ListAggregatingMappingFunction implements BiFunction<TypeSystem, Record, Object> {
+	private static class AggregatingMappingFunction implements BiFunction<TypeSystem, Record, Object> {
 
 		private final BiFunction<TypeSystem, MapAccessor, ?> target;
 		private final AtomicBoolean aggregated = new AtomicBoolean(false);
 
-		ListAggregatingMappingFunction(BiFunction<TypeSystem, MapAccessor, ?> target) {
+		AggregatingMappingFunction(BiFunction<TypeSystem, MapAccessor, ?> target) {
 			this.target = target;
+		}
+
+		private Collection<?> aggregateList(TypeSystem t, Value value) {
+
+			if (MappingSupport.isListContainingOnly(t.LIST(), t.PATH()).test(value)) {
+				Set<Object> result = new LinkedHashSet<>();
+				for (Value path : value.values()) {
+					result.addAll(aggregatePath(t, path, Collections.emptyList()));
+				}
+				return result;
+			}
+			return value.asList(v -> target.apply(t, v));
+		}
+
+		private Collection<?> aggregatePath(TypeSystem t, Value value,
+				List<Map.Entry<String, Value>> additionalValues) {
+			Path path = value.asPath();
+
+			// We are using a linked hash set here so that the order of nodes will be stable and
+			// match the one the path
+			Set<Object> result = new LinkedHashSet<>();
+			path.iterator().forEachRemaining(segment -> {
+
+				Map<String, Value> mapValue = new HashMap<>();
+				mapValue.put(Constants.NAME_OF_IS_PATH_SEGMENT, Values.value(true));
+				mapValue.put(Constants.PATH_START, Values.value(segment.start()));
+				mapValue.put(Constants.PATH_RELATIONSHIP, Values.value(segment.relationship()));
+				mapValue.put(Constants.PATH_END, Values.value(segment.end()));
+				additionalValues.forEach(e -> mapValue.put(e.getKey(), e.getValue()));
+
+				Value v = Values.value(mapValue);
+				try {
+					result.add(target.apply(t, v));
+				} catch (NoRootNodeMappingException e) {
+					// This is the case for nodes on the path that are not of the target type
+					// We can safely ignore those.
+				}
+			});
+
+			return result;
 		}
 
 		@Override
 		public Object apply(TypeSystem t, Record r) {
-			if (r.size() == 1 && r.get(0).hasType(t.LIST())) {
-				aggregated.compareAndSet(false, true);
-				return r.get(0).asList(v -> target.apply(t, v));
+
+			if (r.size() == 1) {
+				Value value = r.get(0);
+				if (value.hasType(t.LIST())) {
+					aggregated.compareAndSet(false, true);
+					return aggregateList(t, value);
+				} else if (value.hasType(t.PATH())) {
+					aggregated.compareAndSet(false, true);
+					return aggregatePath(t, value, Collections.emptyList());
+				}
 			}
-			return target.apply(t, new RecordMapAccessor(r));
+
+			try {
+				return target.apply(t, new RecordMapAccessor(r));
+			} catch (NoRootNodeMappingException e) {
+
+				// We didn't find anything on the top level. It still can be a path plus some additional information
+				// to enrich the nodes on the path with.
+				Map<Boolean, List<Map.Entry<String, Value>>> pathValues = r.asMap(Function.identity()).entrySet()
+						.stream()
+						.collect(Collectors.partitioningBy(entry -> entry.getValue().hasType(t.PATH())));
+				if (pathValues.get(true).size() == 1) {
+					aggregated.compareAndSet(false, true);
+					return aggregatePath(t, pathValues.get(true).get(0).getValue(), pathValues.get(false));
+				}
+				throw e;
+			}
 		}
 
 		boolean hasAggregated() {

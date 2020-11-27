@@ -92,7 +92,8 @@ public interface Schema {
 		if (nodeDescription == null) {
 			throw new UnknownEntityException(targetClass);
 		}
-		return (typeSystem, record) -> getEntityConverter().read(targetClass, record);
+		Neo4jEntityConverter entityConverter = getEntityConverter();
+		return (typeSystem, record) -> entityConverter.read(targetClass, record);
 	}
 
 	/**
@@ -106,9 +107,10 @@ public interface Schema {
 			throw new UnknownEntityException(sourceClass);
 		}
 
+		Neo4jEntityConverter entityConverter = getEntityConverter();
 		return t -> {
 			Map<String, Object> parameters = new HashMap<>();
-			getEntityConverter().write(t, parameters);
+			entityConverter.write(t, parameters);
 			return parameters;
 		};
 	}

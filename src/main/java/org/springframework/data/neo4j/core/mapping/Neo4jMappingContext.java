@@ -85,10 +85,7 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 	 */
 	private final NodeDescriptionStore nodeDescriptionStore = new NodeDescriptionStore();
 
-	/**
-	 * The converter used in this mapping context.
-	 */
-	private final Neo4jEntityConverter entityConverter;
+	private final TypeSystem typeSystem;
 
 	private final Neo4jConversionService conversionService;
 
@@ -117,14 +114,11 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 		super.setSimpleTypeHolder(Neo4jSimpleTypes.HOLDER);
 		this.conversionService = new DefaultNeo4jConversionService(neo4jConversions);
 
-		DefaultNeo4jEntityConverter defaultNeo4jConverter = new DefaultNeo4jEntityConverter(INSTANTIATORS,
-				conversionService, nodeDescriptionStore);
-		defaultNeo4jConverter.setTypeSystem(typeSystem == null ? InternalTypeSystem.TYPE_SYSTEM : typeSystem);
-		this.entityConverter = defaultNeo4jConverter;
+		this.typeSystem = typeSystem == null ? InternalTypeSystem.TYPE_SYSTEM : typeSystem;
 	}
 
 	public Neo4jEntityConverter getEntityConverter() {
-		return entityConverter;
+		return new DefaultNeo4jEntityConverter(INSTANTIATORS, conversionService, nodeDescriptionStore, typeSystem);
 	}
 
 	public Neo4jConversionService getConversionService() {
@@ -317,7 +311,7 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 				neo4jPersistentEntity, relationshipContext.getRelationship(), relatedInternalId);
 		Map<String, Object> propMap = new HashMap<>();
 		// write relationship properties
-		entityConverter.write(relatedValue.getRelationshipProperties(), propMap);
+		getEntityConverter().write(relatedValue.getRelationshipProperties(), propMap);
 
 		return new CreateRelationshipStatementHolder(relationshipCreationQuery, propMap);
 	}

@@ -1,0 +1,39 @@
+== ADR 8: Strictness of node mapping
+
+=== Status
+
+accepted
+
+=== Context
+
+Up until 6.0.1 included SDN might map arbitrary nodes onto domain classes if there's no exact fit.
+We could keep it that way or be more strict about what to map.
+This became apparent while working on hydrating domain objects on paths.
+
+=== Decision
+
+SDN prior to 6.0.2 did the following when there was not exactly one node with the primary target label in the result set:
+
+* Check if there are structures having a `MAP` type in the result record
+* Take the first one
+
+As it happens, driver type `MAP` is not mutual exclusive from `NODE` or `RELATIONSHIP`.
+That means a mapping request for an entity labeled `A` and a record containing only nodes labeled `B` and `C`
+would either map `B` or `C` to the entity.
+
+These results are not desirable and would lead in the worst case to data loss (attributes not being populated
+with a write afterwards) or to a non-deterministic mapping in case SDN was dealing was custom query that did return
+`*` without enumerating columns explicitly.
+
+The decision was made to be strict, both in what types are mapped as fallbacks (only "pure" maps) and that
+only nodes with a matching label are mapped.
+
+In the context of this, the `Neo4jEntityConverter` has been made stateful as well so that it is able to
+distinguish between objects it has already seen and objects that are new.
+
+=== Consequences
+
+Some users might see an exception of type `NoRootNodeMappingException` or a general `MappingException`.
+This happens usually on either custom queries that don't contain all the necessary content or on mappings
+that like we had in the `RepositoryIT`. There we needed to fix a test that accidentally created DTO projections
+based on data that wouldn't have fit the original entity.

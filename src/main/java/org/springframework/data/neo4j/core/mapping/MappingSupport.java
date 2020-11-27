@@ -19,9 +19,12 @@ import java.util.AbstractMap.SimpleEntry;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import org.apiguardian.api.API;
+import org.neo4j.driver.Value;
+import org.neo4j.driver.types.Type;
 
 /**
  * @author Michael J. Simons
@@ -60,6 +63,29 @@ public final class MappingSupport {
 		return unifiedValue;
 	}
 
+	/**
+	 * A helper that produces a predicate to check whether a {@link Value} is a list value and contains only other
+	 * values with a given type.
+	 *
+	 * @param collectionType The required collection type system
+	 * @param requiredType   The required type
+	 * @return A predicate
+	 */
+	public static Predicate<Value> isListContainingOnly(Type collectionType, Type requiredType) {
+
+		Predicate<Value> containsOnlyRequiredType = entry -> {
+			for (Value listEntry : entry.values()) {
+				if (!listEntry.hasType(requiredType)) {
+					return false;
+				}
+			}
+			return true;
+		};
+
+		Predicate<Value> isList = entry -> entry.hasType(collectionType);
+		return isList.and(containsOnlyRequiredType);
+	}
+
 	private MappingSupport() {}
 
 	/**
@@ -83,5 +109,4 @@ public final class MappingSupport {
 			return relatedEntity;
 		}
 	}
-
 }
