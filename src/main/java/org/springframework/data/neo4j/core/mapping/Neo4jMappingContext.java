@@ -133,6 +133,15 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 		return conversionService.hasCustomWriteTarget(targetType);
 	}
 
+	@Nullable
+	public Neo4jPersistentEntity<?> getPersistentEntity(Class<?> type) {
+		NodeDescription<?> existingDescription = this.getNodeDescription(type);
+		if (existingDescription != null) {
+			return (Neo4jPersistentEntity<?>) existingDescription;
+		}
+		return super.getPersistentEntity(type);
+	}
+
 	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.mapping.context.AbstractMappingContext#createPersistentEntity(org.springframework.data.util.TypeInformation)
@@ -144,26 +153,28 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 		String primaryLabel = newEntity.getPrimaryLabel();
 
 		if (this.nodeDescriptionStore.containsKey(primaryLabel)) {
-			// @formatter:off
-			throw new MappingException(String.format(Locale.ENGLISH,
-					"The schema already contains a node description under the primary label %s", primaryLabel));
-			// @formatter:on
+
+			Neo4jPersistentEntity existingEntity = (Neo4jPersistentEntity) this.nodeDescriptionStore.get(primaryLabel);
+			if (!existingEntity.getTypeInformation().getRawTypeInformation().equals(typeInformation.getRawTypeInformation())) {
+				String message = String.format(Locale.ENGLISH, "The schema already contains a node description under the primary label %s", primaryLabel);
+				throw new MappingException(message);
+			}
 		}
 
 		if (this.nodeDescriptionStore.containsValue(newEntity)) {
-			Optional<String> label = this.nodeDescriptionStore.entrySet().stream().filter(e -> e.getValue().equals(newEntity))
-					.map(Map.Entry::getKey).findFirst();
+			Optional<String> label = this.nodeDescriptionStore.entrySet().stream().filter(e -> e.getValue().equals(newEntity)).map(Map.Entry::getKey).findFirst();
 
-			throw new MappingException(String.format(Locale.ENGLISH,
-					"The schema already contains description %s under the primary label %s", newEntity, label.orElse("n/a")));
+			String message = String.format(Locale.ENGLISH, "The schema already contains description %s under the primary label %s", newEntity, label.orElse("n/a"));
+			throw new MappingException(message);
 		}
 
 		NodeDescription<?> existingDescription = this.getNodeDescription(newEntity.getUnderlyingClass());
 		if (existingDescription != null) {
 
-			throw new MappingException(String.format(Locale.ENGLISH,
-					"The schema already contains description with the underlying class %s under the primary label %s",
-					newEntity.getUnderlyingClass().getName(), existingDescription.getPrimaryLabel()));
+			if (!existingDescription.getPrimaryLabel().equals(newEntity.getPrimaryLabel())) {
+				String message = String.format(Locale.ENGLISH, "The schema already contains description with the underlying class %s under the primary label %s", newEntity.getUnderlyingClass().getName(), existingDescription.getPrimaryLabel());
+				throw new MappingException(message);
+			}
 		}
 
 		this.nodeDescriptionStore.put(primaryLabel, newEntity);
