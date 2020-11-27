@@ -40,7 +40,7 @@ class CypherGeneratorTest {
 		RelationshipDescription relationshipDescription = Mockito.mock(RelationshipDescription.class);
 		when(relationshipDescription.isDynamic()).thenReturn(true);
 
-		Statement statement = CypherGenerator.INSTANCE.createRelationshipCreationQuery(persistentEntity,
+		Statement statement = CypherGenerator.INSTANCE.prepareSaveOfRelationship(persistentEntity,
 				relationshipDescription, "REL", 1L);
 
 		String expectedQuery = "MATCH (startNode:`Entity1`) WHERE startNode.id = $fromId MATCH (endNode)"
@@ -55,7 +55,7 @@ class CypherGeneratorTest {
 		RelationshipDescription relationshipDescription = Mockito.mock(RelationshipDescription.class);
 		when(relationshipDescription.isDynamic()).thenReturn(true);
 
-		Statement statement = CypherGenerator.INSTANCE.createRelationshipCreationQuery(persistentEntity,
+		Statement statement = CypherGenerator.INSTANCE.prepareSaveOfRelationship(persistentEntity,
 				relationshipDescription, "REL", 1L);
 
 		String expectedQuery = "MATCH (startNode:`Entity1`:`MultipleLabel`) WHERE startNode.id = $fromId MATCH (endNode)"
@@ -73,7 +73,7 @@ class CypherGeneratorTest {
 		when(persistentEntity.isUsingInternalIds()).thenReturn(true);
 		when(persistentEntity.getRequiredIdProperty()).thenReturn(persistentProperty);
 
-		Statement statement = CypherGenerator.INSTANCE.createRelationshipCreationQuery(persistentEntity,
+		Statement statement = CypherGenerator.INSTANCE.prepareSaveOfRelationship(persistentEntity,
 				relationshipDescription, "REL", 1L);
 
 		String expectedQuery = "MATCH (startNode) WHERE id(startNode) = $fromId MATCH (endNode)"

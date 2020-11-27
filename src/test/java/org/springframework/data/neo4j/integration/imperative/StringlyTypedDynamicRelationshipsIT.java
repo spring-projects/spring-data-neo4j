@@ -172,7 +172,7 @@ class StringlyTypedDynamicRelationshipsIT extends DynamicRelationshipsITBase<Per
 				.extracting(Hobby::getName).containsExactly("Football");
 	}
 
-	@Test
+	@Test // DATAGRAPH-1447
 	void shouldWriteDynamicRelationships(@Autowired PersonWithRelativesRepository repository) {
 
 		PersonWithStringlyTypedRelatives newPerson = new PersonWithStringlyTypedRelatives("Test");
@@ -199,9 +199,10 @@ class StringlyTypedDynamicRelationshipsIT extends DynamicRelationshipsITBase<Per
 		clubRelationship2.setClub(club2);
 		clubs.put("BASEBALL", clubRelationship2);
 
-		newPerson = repository.save(newPerson);
-		relatives = newPerson.getRelatives();
-		assertThat(relatives).containsOnlyKeys("RELATIVE_1", "RELATIVE_2");
+		newPerson = repository.findById(repository.save(newPerson).getId()).get();
+
+		assertThat(newPerson.getRelatives()).containsOnlyKeys("RELATIVE_1", "RELATIVE_2");
+		assertThat(newPerson.getClubs()).containsOnlyKeys("BASEBALL", "FOOTBALL");
 
 		try (Transaction transaction = driver.session().beginTransaction()) {
 			long numberOfRelations = transaction
@@ -217,7 +218,7 @@ class StringlyTypedDynamicRelationshipsIT extends DynamicRelationshipsITBase<Per
 		}
 	}
 
-	@Test // GH-216
+	@Test // GH-216 // DATAGRAPH-1447
 	void shouldWriteDynamicCollectionRelationships(@Autowired PersonWithRelativesRepository repository) {
 
 		PersonWithStringlyTypedRelatives newPerson = new PersonWithStringlyTypedRelatives("Test");
@@ -244,7 +245,8 @@ class StringlyTypedDynamicRelationshipsIT extends DynamicRelationshipsITBase<Per
 		hobbyRelationship2.setHobby(hobby2);
 		hobbyRelationships.add(hobbyRelationship2);
 
-		newPerson = repository.save(newPerson);
+		newPerson = repository.findById(repository.save(newPerson).getId()).get();
+
 		pets = newPerson.getPets();
 		assertThat(pets).containsOnlyKeys("MONSTERS", "FISH");
 
