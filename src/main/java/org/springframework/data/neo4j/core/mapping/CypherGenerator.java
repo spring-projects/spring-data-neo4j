@@ -289,13 +289,17 @@ public enum CypherGenerator {
 	}
 
 	@NonNull
-	public Statement createRelationshipRemoveQuery(Neo4jPersistentEntity<?> neo4jPersistentEntity,
-			RelationshipDescription relationshipDescription, Neo4jPersistentEntity relatedNode) {
+	public Statement prepareDeleteOf(
+			Neo4jPersistentEntity<?> neo4jPersistentEntity,
+			RelationshipDescription relationshipDescription
+	) {
 		final Node startNode = neo4jPersistentEntity.isUsingInternalIds() ? anyNode(START_NODE_NAME)
 				: node(neo4jPersistentEntity.getPrimaryLabel(), neo4jPersistentEntity.getAdditionalLabels())
 						.named(START_NODE_NAME);
 
-		final Node endNode = node(relatedNode.getPrimaryLabel(), relatedNode.getAdditionalLabels());
+		NodeDescription<?> target = relationshipDescription.getTarget();
+		Node endNode = node(target.getPrimaryLabel(), target.getAdditionalLabels());
+
 		String idPropertyName = neo4jPersistentEntity.getRequiredIdProperty().getPropertyName();
 		boolean outgoing = relationshipDescription.isOutgoing();
 

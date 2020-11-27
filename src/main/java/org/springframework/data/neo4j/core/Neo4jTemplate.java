@@ -469,14 +469,11 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 			// remove all relationships before creating all new if the entity is not new
 			// this avoids the usage of cache but might have significant impact on overall performance
 			if (!isParentObjectNew) {
-				Neo4jPersistentEntity<?> previouslyRelatedPersistentEntity = neo4jMappingContext
-						.getPersistentEntity(relationshipContext.getAssociationTargetType());
-
-				Statement relationshipRemoveQuery = cypherGenerator.createRelationshipRemoveQuery(neo4jPersistentEntity,
-						relationshipDescription, previouslyRelatedPersistentEntity);
+				Statement relationshipRemoveQuery = cypherGenerator.prepareDeleteOf(neo4jPersistentEntity,
+						relationshipDescription);
 
 				neo4jClient.query(renderer.render(relationshipRemoveQuery)).in(inDatabase)
-						.bind(convertIdValues(previouslyRelatedPersistentEntity.getIdProperty(), fromId))
+						.bind(convertIdValues(neo4jPersistentEntity.getIdProperty(), fromId))
 						.to(Constants.FROM_ID_PARAMETER_NAME).run();
 			}
 
@@ -489,7 +486,7 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 
 			for (Object relatedValueToStore : relatedValuesToStore) {
 
-				// here map entry is not always anymore a dynamic association
+				// here a map entry is not always anymore a dynamic association
 				Object relatedNode = relationshipContext.identifyAndExtractRelationshipTargetNode(relatedValueToStore);
 				Neo4jPersistentEntity<?> targetNodeDescription = neo4jMappingContext
 						.getPersistentEntity(relatedNode.getClass());

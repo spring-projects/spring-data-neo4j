@@ -92,7 +92,7 @@ class StringlyTypedDynamicRelationshipsIT extends DynamicRelationshipsITBase<Per
 
 	}
 
-	@Test
+	@Test // DATAGRAPH-1449
 	void shouldUpdateDynamicRelationships(@Autowired PersonWithRelativesRepository repository) {
 
 		PersonWithStringlyTypedRelatives person = repository.findById(idOfExistingPerson).get();
@@ -116,7 +116,9 @@ class StringlyTypedDynamicRelationshipsIT extends DynamicRelationshipsITBase<Per
 		clubRelationship.setClub(club);
 		clubs.put("BASEBALL", clubRelationship);
 
-		person = repository.save(person);
+		repository.save(person);
+
+		person = repository.findById(idOfExistingPerson).get();
 		relatives = person.getRelatives();
 		assertThat(relatives).containsOnlyKeys("HAS_DAUGHTER", "HAS_SON");
 		assertThat(relatives.get("HAS_DAUGHTER").getFirstName()).isEqualTo("C2");
@@ -129,7 +131,7 @@ class StringlyTypedDynamicRelationshipsIT extends DynamicRelationshipsITBase<Per
 				.extracting(Club::getName).isEqualTo("Red Sox");
 	}
 
-	@Test // GH-216
+	@Test // GH-216 // DATAGRAPH-1449
 	void shouldUpdateDynamicCollectionRelationships(@Autowired PersonWithRelativesRepository repository) {
 
 		PersonWithStringlyTypedRelatives person = repository.findById(idOfExistingPerson).get();
@@ -153,7 +155,10 @@ class StringlyTypedDynamicRelationshipsIT extends DynamicRelationshipsITBase<Per
 		hobbyRelationship.setHobby(hobby);
 		hobbies.put("WATCHING", Collections.singletonList(hobbyRelationship));
 
-		person = repository.save(person);
+		repository.save(person);
+
+		person = repository.findById(idOfExistingPerson).get();
+
 		pets = person.getPets();
 		assertThat(pets).containsOnlyKeys("CATS", "FISH");
 		assertThat(pets.get("CATS")).extracting(Pet::getName).containsExactlyInAnyOrder("Tom", "Garfield", "Delilah");
