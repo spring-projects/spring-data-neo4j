@@ -182,7 +182,7 @@ class ReactiveDynamicRelationshipsIT extends DynamicRelationshipsITBase<PersonWi
 		}).verifyComplete();
 	}
 
-	@Test
+	@Test // DATAGRAPH-1447
 	void shouldWriteDynamicRelationships(@Autowired PersonWithRelativesRepository repository) {
 
 		PersonWithRelatives newPerson = new PersonWithRelatives("Test");
@@ -207,7 +207,9 @@ class ReactiveDynamicRelationshipsIT extends DynamicRelationshipsITBase<PersonWi
 		clubs.put(TypeOfClub.BASEBALL, clubRelationship);
 
 		List<PersonWithRelatives> recorded = new ArrayList<>();
-		repository.save(newPerson).as(StepVerifier::create).recordWith(() -> recorded)
+		repository.save(newPerson)
+				.flatMap(p -> repository.findById(p.getId()))
+				.as(StepVerifier::create).recordWith(() -> recorded)
 				.consumeNextWith(personWithRelatives -> {
 					Map<TypeOfRelative, Person> relatives = personWithRelatives.getRelatives();
 					assertThat(relatives).containsOnlyKeys(TypeOfRelative.RELATIVE_1, TypeOfRelative.RELATIVE_2);
@@ -227,7 +229,7 @@ class ReactiveDynamicRelationshipsIT extends DynamicRelationshipsITBase<PersonWi
 		}
 	}
 
-	@Test // GH-216
+	@Test // GH-216 // DATAGRAPH-1447
 	void shouldWriteDynamicCollectionRelationships(@Autowired PersonWithRelativesRepository repository) {
 
 		PersonWithRelatives newPerson = new PersonWithRelatives("Test");
@@ -257,7 +259,10 @@ class ReactiveDynamicRelationshipsIT extends DynamicRelationshipsITBase<PersonWi
 		hobbyRelationships.add(hobbyRelationship2);
 
 		List<PersonWithRelatives> recorded = new ArrayList<>();
-		repository.save(newPerson).as(StepVerifier::create).recordWith(() -> recorded).consumeNextWith(person -> {
+		repository.save(newPerson)
+				.flatMap(p -> repository.findById(p.getId()))
+				.as(StepVerifier::create)
+				.recordWith(() -> recorded).consumeNextWith(person -> {
 			Map<TypeOfPet, List<Pet>> writtenPets = person.getPets();
 			assertThat(writtenPets).containsOnlyKeys(TypeOfPet.MONSTERS, TypeOfPet.FISH);
 		}).verifyComplete();

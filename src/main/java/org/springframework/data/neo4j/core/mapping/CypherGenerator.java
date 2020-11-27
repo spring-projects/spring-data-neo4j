@@ -242,7 +242,7 @@ public enum CypherGenerator {
 	}
 
 	@NonNull
-	public Statement createRelationshipCreationQuery(Neo4jPersistentEntity<?> neo4jPersistentEntity,
+	public Statement prepareSaveOfRelationship(Neo4jPersistentEntity<?> neo4jPersistentEntity,
 			RelationshipDescription relationship, @Nullable String dynamicRelationshipType, Long relatedInternalId) {
 		final Node startNode = neo4jPersistentEntity.isUsingInternalIds() ? anyNode(START_NODE_NAME)
 				: node(neo4jPersistentEntity.getPrimaryLabel(), neo4jPersistentEntity.getAdditionalLabels())
@@ -263,8 +263,8 @@ public enum CypherGenerator {
 	}
 
 	@NonNull
-	public Statement createRelationshipWithPropertiesCreationQuery(Neo4jPersistentEntity<?> neo4jPersistentEntity,
-			RelationshipDescription relationship, Long relatedInternalId) {
+	public Statement prepareSaveOfRelationshipWithProperties(Neo4jPersistentEntity<?> neo4jPersistentEntity,
+			RelationshipDescription relationship, @Nullable String dynamicRelationshipType, Long relatedInternalId) {
 
 		Assert.isTrue(relationship.hasRelationshipProperties(),
 				"Properties required to create a relationship with properties");
@@ -275,7 +275,7 @@ public enum CypherGenerator {
 
 		Parameter idParameter = parameter(Constants.FROM_ID_PARAMETER_NAME);
 		Parameter relationshipProperties = parameter(Constants.NAME_OF_PROPERTIES_PARAM);
-		String type = relationship.getType();
+		String type = relationship.isDynamic() ? dynamicRelationshipType : relationship.getType();
 
 		Relationship relOutgoing = startNode.relationshipTo(endNode, type).named(RELATIONSHIP_NAME);
 		Relationship relIncoming = startNode.relationshipFrom(endNode, type).named(RELATIONSHIP_NAME);
