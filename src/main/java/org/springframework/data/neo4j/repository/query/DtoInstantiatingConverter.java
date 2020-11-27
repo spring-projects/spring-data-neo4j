@@ -79,7 +79,7 @@ class DtoInstantiatingConverter implements Converter<EntityInstanceWithSource, O
 		PersistentEntity<?, ?> sourceEntity = context.getRequiredPersistentEntity(entityInstance.getClass());
 		PersistentPropertyAccessor sourceAccessor = sourceEntity.getPropertyAccessor(entityInstance);
 
-		PersistentEntity<?, ?> targetEntity = context.addPersistentEntity(targetType).get();
+		PersistentEntity<?, ?> targetEntity = context.addPersistentEntity(ClassTypeInformation.from(targetType)).get();
 		PreferredConstructor<?, ? extends PersistentProperty<?>> constructor = targetEntity
 				.getPersistenceConstructor();
 

@@ -37,6 +37,7 @@ import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.core.convert.converter.GenericConverter;
 import org.springframework.data.annotation.Transient;
 import org.springframework.data.mapping.Association;
+import org.springframework.data.neo4j.config.Neo4jEntityScanner;
 import org.springframework.data.neo4j.core.convert.Neo4jConversionService;
 import org.springframework.data.neo4j.core.convert.Neo4jConversions;
 import org.springframework.data.neo4j.core.convert.Neo4jPersistentPropertyToMapConverter;
@@ -45,6 +46,8 @@ import org.springframework.data.neo4j.core.mapping.datagraph1446.C;
 import org.springframework.data.neo4j.core.mapping.datagraph1446.P;
 import org.springframework.data.neo4j.core.mapping.datagraph1446.R1;
 import org.springframework.data.neo4j.core.mapping.datagraph1446.R2;
+import org.springframework.data.neo4j.core.mapping.datagraph1448.A_S3;
+import org.springframework.data.neo4j.core.mapping.datagraph1448.RelatedThing;
 import org.springframework.data.neo4j.core.schema.CompositeProperty;
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
@@ -296,6 +299,37 @@ class Neo4jMappingContextTest {
 				)
 				.extracting(r -> (Class) r.getTarget().getUnderlyingClass())
 				.containsExactly(B.class, C.class);
+	}
+
+	@Test // DATAGRAPH-1448
+	void abstractClassesInRelationshipPropertiesShouldWork() {
+
+		Neo4jMappingContext schema = new Neo4jMappingContext();
+		schema.initialize();
+		Neo4jPersistentEntity<?> entity = schema.getPersistentEntity(A_S3.class);
+		assertThat(entity).isNotNull();
+	}
+
+	@Test // DATAGRAPH-1448
+	void abstractClassesInRelationshipPropertiesShouldWorkInStrictMode() throws ClassNotFoundException {
+
+		Neo4jMappingContext schema = new Neo4jMappingContext();
+		schema.setStrict(true);
+		schema.setInitialEntitySet(Neo4jEntityScanner.get().scan(A_S3.class.getPackage().getName()));
+		schema.initialize();
+		Neo4jPersistentEntity<?> entity = schema.getPersistentEntity(A_S3.class);
+		assertThat(entity).isNotNull();
+	}
+
+	@Test // DATAGRAPH-1448
+	void shouldNotOverwriteDiscoveredBaseClassWhenSeeingClassAsGenericPropertyAgain() throws ClassNotFoundException {
+
+		Neo4jMappingContext schema = new Neo4jMappingContext();
+		schema.setInitialEntitySet(Neo4jEntityScanner.get().scan(A_S3.class.getPackage().getName()));
+		schema.initialize();
+		Neo4jPersistentEntity<?> entity = schema.getPersistentEntity(RelatedThing.class);
+		assertThat(entity.getChildNodeDescriptionsInHierarchy()).hasSize(2);
+		assertThat(entity).isNotNull();
 	}
 
 	static class DummyIdGenerator implements IdGenerator<Void> {

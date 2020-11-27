@@ -59,9 +59,10 @@ import org.springframework.lang.Nullable;
  * classes through {@link #setInitialEntitySet(Set)}.
  *
  * @author Michael J. Simons
+ * @author Gerrit Meier
  * @since 6.0
  */
-@API(status = API.Status.INTERNAL, since = "6.0")
+@API(status = API.Status.STABLE, since = "6.0")
 public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersistentEntity<?>, Neo4jPersistentProperty>
 		implements Schema {
 
@@ -91,6 +92,8 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 
 	private @Nullable AutowireCapableBeanFactory beanFactory;
 
+	private boolean strict = false;
+
 	public Neo4jMappingContext() {
 
 		this(new Neo4jConversions());
@@ -99,6 +102,18 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 	public Neo4jMappingContext(Neo4jConversions neo4jConversions) {
 
 		this(neo4jConversions, null);
+	}
+
+	/**
+	 * We need to set the context to non-strict in case we must dynamically add parent classes. As there is no
+	 * way to access the original value without reflection, we track it's change.
+	 *
+	 * @param strict The new value for the strict setting.
+	 */
+	@Override
+	public void setStrict(boolean strict) {
+		super.setStrict(strict);
+		this.strict = strict;
 	}
 
 	/**
@@ -133,14 +148,6 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 		return conversionService.hasCustomWriteTarget(targetType);
 	}
 
-	@Nullable
-	public Neo4jPersistentEntity<?> getPersistentEntity(Class<?> type) {
-		NodeDescription<?> existingDescription = this.getNodeDescription(type);
-		if (existingDescription != null) {
-			return (Neo4jPersistentEntity<?>) existingDescription;
-		}
-		return super.getPersistentEntity(type);
-	}
 
 	/*
 	 * (non-Javadoc)
@@ -183,11 +190,15 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 		Class<? super T> superclass = typeInformation.getType().getSuperclass();
 
 		if (isValidParentNode(superclass)) {
-			addPersistentEntity(superclass).ifPresent(parentNodeDescription -> {
-				parentNodeDescription.addChildNodeDescription(newEntity);
-				newEntity.setParentNodeDescription(parentNodeDescription);
-			});
-
+			synchronized (this) {
+				super.setStrict(false);
+				Neo4jPersistentEntity<?> parentNodeDescription = getPersistentEntity(superclass);
+				if (parentNodeDescription != null) {
+					parentNodeDescription.addChildNodeDescription(newEntity);
+					newEntity.setParentNodeDescription(parentNodeDescription);
+				}
+				this.setStrict(strict);
+			}
 		}
 
 		return newEntity;
@@ -227,8 +238,24 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 	}
 
 	@Override
-	public Optional<Neo4jPersistentEntity<?>> addPersistentEntity(Class<?> type) {
-		return super.addPersistentEntity(type);
+	@Nullable
+	public Neo4jPersistentEntity<?> getPersistentEntity(TypeInformation<?> typeInformation) {
+
+		NodeDescription<?> existingDescription = this.getNodeDescription(typeInformation.getRawTypeInformation().getType());
+		if (existingDescription != null) {
+			return (Neo4jPersistentEntity<?>) existingDescription;
+		}
+		return super.getPersistentEntity(typeInformation);
+	}
+
+	@Override
+	public Optional<Neo4jPersistentEntity<?>> addPersistentEntity(TypeInformation<?> typeInformation) {
+
+		NodeDescription<?> existingDescription = this.getNodeDescription(typeInformation.getRawTypeInformation().getType());
+		if (existingDescription != null) {
+			return Optional.of((Neo4jPersistentEntity<?>) existingDescription);
+		}
+		return super.addPersistentEntity(typeInformation);
 	}
 
 	private <T> T createBeanOrInstantiate(Class<T> t) {
