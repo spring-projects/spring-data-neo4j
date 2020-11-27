@@ -19,7 +19,6 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiFunction;
@@ -310,7 +309,7 @@ class DefaultNeo4jClient implements Neo4jClient {
 
 			try (AutoCloseableQueryRunner statementRunner = getQueryRunner(this.targetDatabase)) {
 				Result result = runnableStatement.runWith(statementRunner);
-				List<T> values = result.stream().map(partialMappingFunction(typeSystem)).collect(Collectors.toList());
+				Collection<T> values = result.stream().map(partialMappingFunction(typeSystem)).collect(Collectors.toList());
 				ResultSummaries.process(result.consume());
 				return values;
 			} catch (RuntimeException e) {

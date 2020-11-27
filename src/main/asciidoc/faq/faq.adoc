@@ -229,6 +229,120 @@ movieExample = Example.of(
 movies = this.movieRepository.findAll(movieExample);
 ----
 
+[[faq.path-mapping]]
+== Can I map named paths?
+
+A series of connected nodes and relationships is called a "path" in Neo4j.
+Cypher allows paths to be named using an identifer, as exemplified by:
+
+[source,cypher]
+----
+p = (a)-[*3..5]->(b)
+----
+
+or as in the infamous Movie graph, that includes the following path (in that case, one of the shortest path between two actors):
+
+[[bacon-distance]]
+[source,cypher]
+.The "Bacon" distance
+----
+MATCH p=shortestPath((bacon:Person {name:"Kevin Bacon"})-[*]-(meg:Person {name:"Meg Ryan"}))
+RETURN p
+----
+
+Which looks like this:
+
+image::bacon-distance.png[]
+
+We find 3 nodes labeled `Person` and 2 nodes labeled `Movie`. Both can be mapped with a custom queury.
+Assume there's a node entity for both `Person` and `Movie` as well as `Actor` taking care of the relationship:
+
+
+[source,java]
+."Standard" movie graph domain model
+----
+@Node
+public final class Person {
+
+	@Id @GeneratedValue
+	private final Long id;
+
+	private final String name;
+
+	private Integer born;
+
+	@Relationship("REVIEWED")
+	private List<Movie> reviewed = new ArrayList<>();
+}
+
+@RelationshipProperties
+public final class Actor {
+
+	@TargetNode
+	private final Person person;
+
+	private final List<String> roles;
+}
+
+@Node
+public final class Movie {
+
+	@Id
+	private final String title;
+
+	@Property("tagline")
+	private final String description;
+
+	@Relationship(value = "ACTED_IN", direction = Direction.INCOMING)
+	private final List<Actor> actors;
+}
+----
+
+When using a query as shown in <<bacon-distance>> for a domain class of type `Person` like this
+
+[source,java]
+----
+interface PeopleRepository extends Neo4jRepository<Person, Long> {
+    @Query(""
+        + "MATCH p=shortestPath((bacon:Person {name: $person1})-[*]-(meg:Person {name: $person2}))\n"
+        + "RETURN p"
+    )
+    List<Person> findAllOnShortestPathBetween(@Param("person1") String person1, @Param("person2") String person2);
+}
+----
+
+it will retrieve all people from the path and map them.
+If there are relationship types on the path like `REVIEWED` that are also present on the domain, these
+will be filled accordingly from the path.
+
+WARNING: Take special care when you use nodes hydrated from a path based query to save data.
+         If not all relationships are hydrated, data will be lost.
+
+The other way round works as well. The same query can be used with the `Movie` entity.
+It then will only populate movies.
+The following listing shows how todo this as well as how the query can be enriched with additional data
+not found on the path. That data is used to correctly populate the missing relationships (in that case, all the actors)
+
+[source,java]
+----
+interface MovieRepository extends Neo4jRepository<Movie, String> {
+
+    @Query(""
+        + "MATCH p=shortestPath(\n"
+        + "(bacon:Person {name: $person1})-[*]-(meg:Person {name: $person2}))\n"
+        + "WITH p, [n IN nodes(p) WHERE n:Movie] AS x\n"
+        + "UNWIND x AS m\n"
+        + "MATCH (m) <-[r:DIRECTED]-(d:Person)\n"
+        + "RETURN p, collect(r), collect(d)"
+    )
+    List<Movie> findAllOnShortestPathBetween(@Param("person1") String person1, @Param("person2") String person2);
+}
+----
+
+The query returns the path plus all relationships and related nodes collected so that the movie entities are fully hydrated.
+
+The path mapping works for single paths as well for multiple records of paths (which are returned by the `allShortestPath` function.)
+
 [[faq.spring-boot.sdn]]
 == Do I need Spring Boot to use Spring Data Neo4j?
 

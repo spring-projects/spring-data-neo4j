@@ -37,8 +37,6 @@ import org.springframework.data.neo4j.integration.shared.common.DtoPersonProject
 import org.springframework.data.neo4j.integration.shared.common.DtoPersonProjectionContainingAdditionalFields;
 import org.springframework.data.neo4j.integration.shared.common.PersonProjection;
 import org.springframework.data.neo4j.integration.shared.common.PersonWithAllConstructor;
-import org.springframework.data.neo4j.integration.shared.common.PersonWithNoConstructor;
-import org.springframework.data.neo4j.integration.shared.common.PersonWithWither;
 import org.springframework.data.neo4j.integration.shared.common.ThingWithGeneratedId;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.repository.query.BoundingBox;
@@ -83,7 +81,7 @@ public interface PersonRepository extends Neo4jRepository<PersonWithAllConstruct
 	@Query("MATCH (n:PersonWithAllConstructor) return n")
 	List<PersonWithAllConstructor> getAllPersonsViaQuery();
 
-	@Query("MATCH (n:UnknownLabel) return n")
+	@Query("MATCH (n) WHERE 1 = 2 return n")
 	List<PersonWithAllConstructor> getNobodyViaQuery();
 
 	@Query("MATCH (n:PersonWithAllConstructor{name:'Test'}) return n")
@@ -101,24 +99,6 @@ public interface PersonRepository extends Neo4jRepository<PersonWithAllConstruct
 
 	Optional<PersonWithAllConstructor> getOptionalPersonViaNamedQuery(@Param("part1") String part1,
 			@Param("part2") String part2);
-
-	@Query("MATCH (n:PersonWithNoConstructor) return n")
-	List<PersonWithNoConstructor> getAllPersonsWithNoConstructorViaQuery();
-
-	@Query("MATCH (n:PersonWithNoConstructor{name:'Test'}) return n")
-	PersonWithNoConstructor getOnePersonWithNoConstructorViaQuery();
-
-	@Query("MATCH (n:PersonWithNoConstructor{name:'Test'}) return n")
-	Optional<PersonWithNoConstructor> getOptionalPersonWithNoConstructorViaQuery();
-
-	@Query("MATCH (n:PersonWithWither) return n")
-	List<PersonWithWither> getAllPersonsWithWitherViaQuery();
-
-	@Query("MATCH (n:PersonWithWither{name:'Test'}) return n")
-	PersonWithWither getOnePersonWithWitherViaQuery();
-
-	@Query("MATCH (n:PersonWithWither{name:'Test'}) return n")
-	Optional<PersonWithWither> getOptionalPersonWithWitherViaQuery();
 
 	// Derived finders, should be extracted into another repo.
 	Optional<PersonWithAllConstructor> findOneByNameAndFirstName(String name, String firstName);
@@ -138,11 +118,6 @@ public interface PersonRepository extends Neo4jRepository<PersonWithAllConstruct
 	List<PersonWithAllConstructor> findAllByNameOrName(String aName, String anotherName);
 
 	Stream<PersonWithAllConstructor> findAllByNameLike(String aName);
-
-	// TODO
-	// due to a needed bug fix in Spring Data commons commented because this will turn
-	// the repository in a reactive one
-	// CompletableFuture<PersonWithAllConstructor> findOneByFirstName(String aName);
 
 	List<PersonWithAllConstructor> findAllBySameValue(String sameValue);
 

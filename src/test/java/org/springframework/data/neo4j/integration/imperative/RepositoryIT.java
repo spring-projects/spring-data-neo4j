@@ -80,6 +80,8 @@ import org.springframework.data.neo4j.core.Neo4jTemplate;
 import org.springframework.data.neo4j.core.convert.Neo4jConversions;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.integration.imperative.repositories.PersonRepository;
+import org.springframework.data.neo4j.integration.imperative.repositories.PersonWithNoConstructorRepository;
+import org.springframework.data.neo4j.integration.imperative.repositories.PersonWithWitherRepository;
 import org.springframework.data.neo4j.integration.imperative.repositories.ThingRepository;
 import org.springframework.data.neo4j.integration.shared.common.AltHobby;
 import org.springframework.data.neo4j.integration.shared.common.AltLikedByPersonRelationship;
@@ -448,7 +450,7 @@ class RepositoryIT {
 		}
 
 		@Test
-		void loadAllPersonsWithNoConstructor(@Autowired PersonRepository repository) {
+		void loadAllPersonsWithNoConstructor(@Autowired PersonWithNoConstructorRepository repository) {
 
 			List<PersonWithNoConstructor> persons = repository.getAllPersonsWithNoConstructorViaQuery();
 
@@ -457,7 +459,7 @@ class RepositoryIT {
 		}
 
 		@Test
-		void loadOnePersonWithNoConstructor(@Autowired PersonRepository repository) {
+		void loadOnePersonWithNoConstructor(@Autowired PersonWithNoConstructorRepository repository) {
 
 			PersonWithNoConstructor person = repository.getOnePersonWithNoConstructorViaQuery();
 			assertThat(person.getName()).isEqualTo(TEST_PERSON1_NAME);
@@ -465,7 +467,7 @@ class RepositoryIT {
 		}
 
 		@Test
-		void loadOptionalPersonWithNoConstructor(@Autowired PersonRepository repository) {
+		void loadOptionalPersonWithNoConstructor(@Autowired PersonWithNoConstructorRepository repository) {
 
 			Optional<PersonWithNoConstructor> person = repository.getOptionalPersonWithNoConstructorViaQuery();
 			assertThat(person).isPresent();
@@ -474,7 +476,7 @@ class RepositoryIT {
 		}
 
 		@Test
-		void loadAllPersonsWithWither(@Autowired PersonRepository repository) {
+		void loadAllPersonsWithWither(@Autowired PersonWithWitherRepository repository) {
 
 			List<PersonWithWither> persons = repository.getAllPersonsWithWitherViaQuery();
 
@@ -482,14 +484,14 @@ class RepositoryIT {
 		}
 
 		@Test
-		void loadOnePersonWithWither(@Autowired PersonRepository repository) {
+		void loadOnePersonWithWither(@Autowired PersonWithWitherRepository repository) {
 
 			PersonWithWither person = repository.getOnePersonWithWitherViaQuery();
 			assertThat(person.getName()).isEqualTo(TEST_PERSON1_NAME);
 		}
 
 		@Test
-		void loadOptionalPersonWithWither(@Autowired PersonRepository repository) {
+		void loadOptionalPersonWithWither(@Autowired PersonWithWitherRepository repository) {
 
 			Optional<PersonWithWither> person = repository.getOptionalPersonWithWitherViaQuery();
 			assertThat(person).isPresent();

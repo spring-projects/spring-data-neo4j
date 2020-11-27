@@ -21,7 +21,8 @@ import org.neo4j.cypherdsl.core.Cypher;
 import org.neo4j.cypherdsl.core.SymbolicName;
 
 /**
- * A pool of constants used in our Cypher generation. These constants may change without further notice.
+ * A pool of constants used in our Cypher generation. These constants may change without further notice and are meant
+ * for internal use only.
  *
  * @author Michael J. Simons
  * @soundtrack Milky Chance - Sadnecessary
@@ -42,8 +43,14 @@ public final class Constants {
 	public static final String NAME_OF_ENTITY_LIST_PARAM = "__entities__";
 	public static final String NAME_OF_PATHS = "__paths__";
 	public static final String NAME_OF_ALL_PROPERTIES = "__allProperties__";
+	public static final String NAME_OF_IS_PATH_SEGMENT = "__is_path_segment__";
+
+	public static final String PATH_START = "__start__";
+	public static final String PATH_RELATIONSHIP = "__relationship__";
+	public static final String PATH_END = "__end__";
 
 	public static final String FROM_ID_PARAMETER_NAME = "fromId";
 
-	private Constants() {}
+	private Constants() {
+	}
 }
