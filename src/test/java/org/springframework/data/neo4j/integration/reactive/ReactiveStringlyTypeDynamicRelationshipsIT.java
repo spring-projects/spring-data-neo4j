@@ -97,7 +97,7 @@ class ReactiveStringlyTypeDynamicRelationshipsIT extends DynamicRelationshipsITB
 		}).verifyComplete();
 	}
 
-	@Test
+	@Test // DATAGRAPH-1449
 	void shouldUpdateDynamicRelationships(@Autowired PersonWithRelativesRepository repository) {
 
 		repository.findById(idOfExistingPerson).map(person -> {
@@ -122,7 +122,9 @@ class ReactiveStringlyTypeDynamicRelationshipsIT extends DynamicRelationshipsITB
 			clubs.put("BASEBALL", clubRelationship);
 
 			return person;
-		}).flatMap(repository::save).as(StepVerifier::create).consumeNextWith(person -> {
+		}).flatMap(repository::save)
+				.flatMap(p -> repository.findById(p.getId()))
+				.as(StepVerifier::create).consumeNextWith(person -> {
 			Map<String, Person> relatives = person.getRelatives();
 			assertThat(relatives).containsOnlyKeys("HAS_DAUGHTER", "HAS_SON");
 			assertThat(relatives.get("HAS_DAUGHTER").getFirstName()).isEqualTo("C2");
@@ -136,7 +138,7 @@ class ReactiveStringlyTypeDynamicRelationshipsIT extends DynamicRelationshipsITB
 		}).verifyComplete();
 	}
 
-	@Test // GH-216
+	@Test // GH-216 // DATAGRAPH-1449
 	void shouldUpdateDynamicCollectionRelationships(@Autowired PersonWithRelativesRepository repository) {
 
 		repository.findById(idOfExistingPerson).map(person -> {
@@ -161,7 +163,9 @@ class ReactiveStringlyTypeDynamicRelationshipsIT extends DynamicRelationshipsITB
 			hobbies.put("WATCHING", Collections.singletonList(hobbyRelationship));
 
 			return person;
-		}).flatMap(repository::save).as(StepVerifier::create).consumeNextWith(person -> {
+		}).flatMap(repository::save)
+				.flatMap(p -> repository.findById(p.getId()))
+				.as(StepVerifier::create).consumeNextWith(person -> {
 			Map<String, List<Pet>> pets = person.getPets();
 			assertThat(pets).containsOnlyKeys("CATS", "FISH");
 			assertThat(pets.get("CATS")).extracting(Pet::getName).containsExactlyInAnyOrder("Tom", "Garfield", "Delilah");

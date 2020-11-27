@@ -100,7 +100,7 @@ class ReactiveDynamicRelationshipsIT extends DynamicRelationshipsITBase<PersonWi
 		}).verifyComplete();
 	}
 
-	@Test
+	@Test // DATAGRAPH-1449
 	void shouldUpdateDynamicRelationships(@Autowired PersonWithRelativesRepository repository) {
 
 		repository.findById(idOfExistingPerson).map(person -> {
@@ -124,7 +124,9 @@ class ReactiveDynamicRelationshipsIT extends DynamicRelationshipsITBase<PersonWi
 			clubRelationship.setClub(club);
 			clubs.put(TypeOfClub.BASEBALL, clubRelationship);
 			return person;
-		}).flatMap(repository::save).as(StepVerifier::create).consumeNextWith(person -> {
+		}).flatMap(repository::save)
+				.flatMap(p -> repository.findById(p.getId()))
+				.as(StepVerifier::create).consumeNextWith(person -> {
 			Map<TypeOfRelative, Person> relatives = person.getRelatives();
 			assertThat(relatives).containsOnlyKeys(TypeOfRelative.HAS_DAUGHTER, TypeOfRelative.HAS_SON);
 			assertThat(relatives.get(TypeOfRelative.HAS_DAUGHTER).getFirstName()).isEqualTo("C2");
@@ -138,7 +140,7 @@ class ReactiveDynamicRelationshipsIT extends DynamicRelationshipsITBase<PersonWi
 		}).verifyComplete();
 	}
 
-	@Test // GH-216
+	@Test // GH-216 // DATAGRAPH-1449
 	void shouldUpdateDynamicCollectionRelationships(@Autowired PersonWithRelativesRepository repository) {
 
 		repository.findById(idOfExistingPerson).map(person -> {
@@ -162,7 +164,9 @@ class ReactiveDynamicRelationshipsIT extends DynamicRelationshipsITBase<PersonWi
 			hobbyRelationship.setHobby(hobby);
 			hobbies.put(TypeOfHobby.WATCHING, Collections.singletonList(hobbyRelationship));
 			return person;
-		}).flatMap(repository::save).as(StepVerifier::create).consumeNextWith(person -> {
+		}).flatMap(repository::save)
+				.flatMap(p -> repository.findById(p.getId()))
+				.as(StepVerifier::create).consumeNextWith(person -> {
 			Map<TypeOfPet, List<Pet>> pets = person.getPets();
 			assertThat(pets).containsOnlyKeys(TypeOfPet.CATS, TypeOfPet.FISH);
 			assertThat(pets.get(TypeOfPet.CATS)).extracting(Pet::getName).containsExactlyInAnyOrder("Tom", "Garfield",

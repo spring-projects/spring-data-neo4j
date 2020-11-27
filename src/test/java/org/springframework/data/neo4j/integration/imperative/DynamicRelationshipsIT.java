@@ -95,7 +95,7 @@ class DynamicRelationshipsIT extends DynamicRelationshipsITBase<PersonWithRelati
 		assertThat(hobbies.get(TypeOfHobby.ACTIVE)).extracting(HobbyRelationship::getHobby).extracting(Hobby::getName).containsExactly("Biking");
 	}
 
-	@Test
+	@Test // DATAGRAPH-1449
 	void shouldUpdateDynamicRelationships(@Autowired PersonWithRelativesRepository repository) {
 
 		PersonWithRelatives person = repository.findById(idOfExistingPerson).get();
@@ -119,7 +119,10 @@ class DynamicRelationshipsIT extends DynamicRelationshipsITBase<PersonWithRelati
 		clubRelationship.setClub(club);
 		clubs.put(TypeOfClub.BASEBALL, clubRelationship);
 
-		person = repository.save(person);
+		repository.save(person);
+
+		person = repository.findById(idOfExistingPerson).get();
+
 		relatives = person.getRelatives();
 		assertThat(relatives).containsOnlyKeys(TypeOfRelative.HAS_DAUGHTER, TypeOfRelative.HAS_SON);
 		assertThat(relatives.get(TypeOfRelative.HAS_DAUGHTER).getFirstName()).isEqualTo("C2");
@@ -132,7 +135,7 @@ class DynamicRelationshipsIT extends DynamicRelationshipsITBase<PersonWithRelati
 				.extracting(Club::getName).isEqualTo("Red Sox");
 	}
 
-	@Test // GH-216
+	@Test // GH-216 // DATAGRAPH-1449
 	void shouldUpdateDynamicCollectionRelationships(@Autowired PersonWithRelativesRepository repository) {
 
 		PersonWithRelatives person = repository.findById(idOfExistingPerson).get();
@@ -156,7 +159,10 @@ class DynamicRelationshipsIT extends DynamicRelationshipsITBase<PersonWithRelati
 		hobbyRelationship.setHobby(hobby);
 		hobbies.put(TypeOfHobby.WATCHING, Collections.singletonList(hobbyRelationship));
 
-		person = repository.save(person);
+		repository.save(person);
+
+		person = repository.findById(idOfExistingPerson).get();
+
 		pets = person.getPets();
 		assertThat(pets).containsOnlyKeys(TypeOfPet.CATS, TypeOfPet.FISH);
 		assertThat(pets.get(TypeOfPet.CATS)).extracting(Pet::getName).containsExactlyInAnyOrder("Tom", "Garfield",
