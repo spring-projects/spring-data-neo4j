@@ -93,7 +93,7 @@ final class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProp
 		Neo4jPersistentEntity<?> relationshipPropertiesClass = null;
 
 		if (this.hasActualTypeAnnotation(RelationshipProperties.class)) {
-			Class<?> type = getRelationshipPropertiesTargetType(getActualType());
+			TypeInformation<?> type = getRelationshipPropertiesTargetType(getActualType());
 			obverseOwner = this.mappingContext.getPersistentEntity(type);
 			relationshipPropertiesClass = this.mappingContext.getPersistentEntity(getActualType());
 		} else {
@@ -111,7 +111,7 @@ final class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProp
 						mapValueType.getType().isAnnotationPresent(RelationshipProperties.class);
 
 				if (relationshipPropertiesCollection) {
-					Class<?> type = getRelationshipPropertiesTargetType(mapValueType.getActualType().getType());
+					TypeInformation<?> type = getRelationshipPropertiesTargetType(mapValueType.getActualType().getType());
 					obverseOwner = this.mappingContext.getPersistentEntity(type);
 					relationshipPropertiesClass = this.mappingContext
 							.getPersistentEntity(mapValueType.getComponentType().getType());
@@ -153,10 +153,10 @@ final class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProp
 	}
 
 	@NonNull
-	private Class<?> getRelationshipPropertiesTargetType(Class<?> relationshipPropertiesType) {
+	private TypeInformation<?> getRelationshipPropertiesTargetType(Class<?> relationshipPropertiesType) {
 		return this.mappingContext.addPersistentEntity(relationshipPropertiesType)
 				.map(entity -> entity.getPersistentProperty(TargetNode.class))
-				.map(PersistentProperty::getType)
+				.map(PersistentProperty::getTypeInformation)
 				.orElseThrow(
 						() -> new MappingException("Missing @TargetNode declaration in " + relationshipPropertiesType));
 	}

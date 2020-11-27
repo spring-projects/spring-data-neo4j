@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -39,6 +40,11 @@ import org.springframework.data.mapping.Association;
 import org.springframework.data.neo4j.core.convert.Neo4jConversionService;
 import org.springframework.data.neo4j.core.convert.Neo4jConversions;
 import org.springframework.data.neo4j.core.convert.Neo4jPersistentPropertyToMapConverter;
+import org.springframework.data.neo4j.core.mapping.datagraph1446.B;
+import org.springframework.data.neo4j.core.mapping.datagraph1446.C;
+import org.springframework.data.neo4j.core.mapping.datagraph1446.P;
+import org.springframework.data.neo4j.core.mapping.datagraph1446.R1;
+import org.springframework.data.neo4j.core.mapping.datagraph1446.R2;
 import org.springframework.data.neo4j.core.schema.CompositeProperty;
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
@@ -272,6 +278,24 @@ class Neo4jMappingContextTest {
 		assertThatIllegalArgumentException()
 				.isThrownBy(() -> schema.getOptionalCustomConversionsFor(property))
 				.withMessageMatching("@CompositeProperty can only be used on Map properties with a key type of String or enum. Was used on `.*` in `.*`");
+	}
+
+	@Test // DATAGRAPH-1446
+	void relationshipPropertiesShouldBeAbleToContainGenerics() {
+		Neo4jMappingContext schema = new Neo4jMappingContext();
+
+		schema.initialize();
+		Neo4jPersistentEntity<?> entity = schema.getPersistentEntity(P.class);
+		assertThat(
+				entity.getRelationships().stream().sorted(Comparator.comparing(RelationshipDescription::getFieldName)))
+				.hasSize(2)
+				.satisfies(l -> assertThat(l)
+						.extracting(RelationshipDescription::getRelationshipPropertiesEntity)
+						.extracting(e -> (Class) e.getUnderlyingClass())
+						.containsExactly(R1.class, R2.class)
+				)
+				.extracting(r -> (Class) r.getTarget().getUnderlyingClass())
+				.containsExactly(B.class, C.class);
 	}
 
 	static class DummyIdGenerator implements IdGenerator<Void> {
