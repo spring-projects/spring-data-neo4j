@@ -32,6 +32,7 @@ import org.springframework.data.neo4j.core.schema.CompositeProperty;
 import org.springframework.data.neo4j.core.schema.Relationship;
 import org.springframework.data.neo4j.core.schema.RelationshipProperties;
 import org.springframework.data.neo4j.core.schema.TargetNode;
+import org.springframework.data.util.ClassTypeInformation;
 import org.springframework.data.util.Lazy;
 import org.springframework.data.util.TypeInformation;
 import org.springframework.lang.NonNull;
@@ -98,7 +99,7 @@ final class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProp
 			relationshipPropertiesClass = this.mappingContext.getPersistentEntity(getActualType());
 		} else {
 			Class<?> associationTargetType = this.getAssociationTargetType();
-			obverseOwner = this.mappingContext.addPersistentEntity(associationTargetType).get();
+			obverseOwner = this.mappingContext.addPersistentEntity(ClassTypeInformation.from(associationTargetType)).get();
 			if (dynamicAssociation) {
 
 				TypeInformation<?> mapValueType = this.getTypeInformation().getMapValueType();
@@ -154,7 +155,7 @@ final class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProp
 
 	@NonNull
 	private TypeInformation<?> getRelationshipPropertiesTargetType(Class<?> relationshipPropertiesType) {
-		return this.mappingContext.addPersistentEntity(relationshipPropertiesType)
+		return this.mappingContext.addPersistentEntity(ClassTypeInformation.from(relationshipPropertiesType))
 				.map(entity -> entity.getPersistentProperty(TargetNode.class))
 				.map(PersistentProperty::getTypeInformation)
 				.orElseThrow(
