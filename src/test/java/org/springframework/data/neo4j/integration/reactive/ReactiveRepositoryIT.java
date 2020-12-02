@@ -632,6 +632,39 @@ class ReactiveRepositoryIT {
 							entity -> assertThat(entity.getIdentifyingEnum()).isEqualTo(EntityWithConvertedId.IdentifyingEnum.A))
 					.verifyComplete();
 		}
+
+		@Test
+		void loadOptionalPersonWithAllConstructorWithSpelParameters(@Autowired ReactivePersonRepository repository) {
+
+			Flux<PersonWithAllConstructor> person = repository
+					.getOptionalPersonViaQuery(TEST_PERSON1_NAME.substring(0, 2), TEST_PERSON1_NAME.substring(2));
+			person.map(PersonWithAllConstructor::getName)
+					.as(StepVerifier::create)
+					.expectNext(TEST_PERSON1_NAME)
+					.verifyComplete();
+		}
+
+		@Test
+		void loadOptionalPersonWithAllConstructorWithSpelParametersAndDynamicSort(@Autowired ReactivePersonRepository repository) {
+
+			Flux<PersonWithAllConstructor> person = repository
+					.getOptionalPersonViaQueryWithSort(TEST_PERSON1_NAME.substring(0, 2), TEST_PERSON1_NAME.substring(2), Sort.by("n.name").ascending());
+			person.map(PersonWithAllConstructor::getName)
+					.as(StepVerifier::create)
+					.expectNext(TEST_PERSON1_NAME)
+					.verifyComplete();
+		}
+
+		@Test
+		void loadOptionalPersonWithAllConstructorWithSpelParametersAndNamedQuery(@Autowired ReactivePersonRepository repository) {
+
+			Flux<PersonWithAllConstructor> person = repository
+					.getOptionalPersonViaNamedQuery(TEST_PERSON1_NAME.substring(0, 2), TEST_PERSON1_NAME.substring(2));
+			person.map(PersonWithAllConstructor::getName)
+					.as(StepVerifier::create)
+					.expectNext(TEST_PERSON1_NAME)
+					.verifyComplete();
+		}
 	}
 
 	@Nested

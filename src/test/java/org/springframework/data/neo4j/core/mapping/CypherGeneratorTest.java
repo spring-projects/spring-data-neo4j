@@ -16,6 +16,7 @@
 package org.springframework.data.neo4j.core.mapping;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
@@ -31,9 +32,6 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mockito;
 import org.neo4j.cypherdsl.core.Statement;
 import org.neo4j.cypherdsl.core.renderer.Renderer;
-import org.springframework.data.domain.AbstractPageRequest;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
@@ -54,7 +52,7 @@ class CypherGeneratorTest {
 				relationshipDescription, "REL", 1L);
 
 		String expectedQuery = "MATCH (startNode:`Entity1`) WHERE startNode.id = $fromId MATCH (endNode)"
-				+ " WHERE id(endNode) = 1 MERGE (startNode)<-[:`REL`]-(endNode)";
+							   + " WHERE id(endNode) = 1 MERGE (startNode)<-[:`REL`]-(endNode)";
 		Assert.assertEquals(expectedQuery, Renderer.getDefaultRenderer().render(statement));
 	}
 
@@ -88,7 +86,7 @@ class CypherGeneratorTest {
 				relationshipDescription, "REL", 1L);
 
 		String expectedQuery = "MATCH (startNode) WHERE id(startNode) = $fromId MATCH (endNode)"
-				+ " WHERE id(endNode) = 1 MERGE (startNode)<-[:`REL`]-(endNode)";
+							   + " WHERE id(endNode) = 1 MERGE (startNode)<-[:`REL`]-(endNode)";
 		Assert.assertEquals(expectedQuery, Renderer.getDefaultRenderer().render(statement));
 	}
 
@@ -142,37 +140,42 @@ class CypherGeneratorTest {
 
 	private static Stream<Arguments> pageables() {
 		return Stream.of(
-				Arguments.of(PageRequest.of(1, 2, Sort.by("a", "b").and(
-						Sort.by(Sort.Order.asc("foo"), Sort.Order.desc("bar")))),
+				Arguments.of(Sort.by("a", "b").and(
+						Sort.by(Sort.Order.asc("foo"), Sort.Order.desc("bar"))),
 						Optional.of("ORDER BY a ASC, b ASC, foo ASC, bar DESC")),
 				Arguments.of(null, Optional.empty()),
-				Arguments.of(PageRequest.of(1, 2, Sort.unsorted()), Optional.empty()),
-				Arguments.of(new AbstractPageRequest(1, 2) {
-					@Override public Pageable next() {
-						return null;
-					}
-
-					@Override public Pageable previous() {
-						return null;
-					}
-
-					@Override public Pageable first() {
-						return null;
-					}
-
-					@Override public Sort getSort() {
-						return null;
-					}
-				}, Optional.empty())
+				Arguments.of(Sort.unsorted(), Optional.empty()),
+				Arguments.of(Sort.by("n.a").ascending(), Optional.of("ORDER BY n.a ASC"))
 		);
 	}
 
-	@ParameterizedTest
+	@ParameterizedTest // DATAGRAPH-1440
 	@MethodSource("pageables")
-	void shouldRenderOrderByFragment(Pageable pageable, Optional<String> expectValue) {
+	void shouldRenderOrderByFragment(Sort sort, Optional<String> expectValue) {
 
-		Optional<String> fragment = CypherGenerator.INSTANCE.createOrderByFragment(pageable);
+		Optional<String> fragment = Optional.ofNullable(CypherGenerator.INSTANCE.createOrderByFragment(sort));
 		assertThat(fragment).isEqualTo(expectValue);
+	}
+
+	@Test
+	void shouldFailOnInvalidPath() {
+
+		assertThatIllegalArgumentException().isThrownBy(() -> CypherGenerator.INSTANCE.createOrderByFragment(Sort.by("n.")))
+				.withMessageMatching("Cannot handle order property `.*`, it must be a simple property or one-hop path\\.");
+	}
+
+	@Test
+	void shouldFailOnInvalidPathWithMultipleHops() {
+
+		assertThatIllegalArgumentException().isThrownBy(() -> CypherGenerator.INSTANCE.createOrderByFragment(Sort.by("n.n.n")))
+				.withMessageMatching("Cannot handle order property `.*`, it must be a simple property or one-hop path\\.");
+	}
+
+	@Test
+	void shouldFailOnInvalidSymbolicNames() {
+
+		assertThatIllegalArgumentException().isThrownBy(() -> CypherGenerator.INSTANCE.createOrderByFragment(Sort.by("n()")))
+				.withMessage("Name must be a valid identifier.");
 	}
 
 	@Node

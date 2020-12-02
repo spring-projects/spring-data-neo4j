@@ -442,6 +442,15 @@ class RepositoryIT {
 		}
 
 		@Test
+		void loadOptionalPersonWithAllConstructorWithSpelParametersAndDynamicSort(@Autowired PersonRepository repository) {
+
+			Optional<PersonWithAllConstructor> person = repository
+					.getOptionalPersonViaQueryWithSort(TEST_PERSON1_NAME.substring(0, 2), TEST_PERSON1_NAME.substring(2), Sort.by("n.name").ascending());
+			assertThat(person).isPresent();
+			assertThat(person.get().getName()).isEqualTo(TEST_PERSON1_NAME);
+		}
+
+		@Test
 		void loadOptionalPersonWithAllConstructorWithSpelParametersAndNamedQuery(@Autowired PersonRepository repository) {
 
 			Optional<PersonWithAllConstructor> person = repository
@@ -3202,6 +3211,24 @@ class RepositoryIT {
 		}
 
 		@Test
+		void findByDynamicLabel(@Autowired BaseClassRepository baseClassRepository) {
+
+			Inheritance.ConcreteClassA ccA = new Inheritance.ConcreteClassA("cc1", "test");
+			Inheritance.ConcreteClassB ccB = new Inheritance.ConcreteClassB("cc2", 42);
+			baseClassRepository.save(ccA);
+			baseClassRepository.save(ccB);
+
+			assertThat(baseClassRepository.findByLabel("ConcreteClassA")).hasSize(1)
+					.first().isInstanceOf(Inheritance.ConcreteClassA.class)
+					.extracting(Inheritance.BaseClass::getName)
+					.isEqualTo("cc1");
+			assertThat(baseClassRepository.findByLabel("ConcreteClassB")).hasSize(1)
+					.first().isInstanceOf(Inheritance.ConcreteClassB.class)
+					.extracting(Inheritance.BaseClass::getName)
+					.isEqualTo("cc2");
+		}
+
+		@Test
 		void findAllWithInheritance(@Autowired BaseClassRepository baseClassRepository) {
 			Inheritance.ConcreteClassA ccA = new Inheritance.ConcreteClassA("cc1", "test");
 			Inheritance.ConcreteClassB ccB = new Inheritance.ConcreteClassB("cc2", 42);
@@ -3517,7 +3544,11 @@ class RepositoryIT {
 
 	interface SimilarThingRepository extends Neo4jRepository<SimilarThing, Long> {}
 
-	interface BaseClassRepository extends Neo4jRepository<Inheritance.BaseClass, Long> {}
+	interface BaseClassRepository extends Neo4jRepository<Inheritance.BaseClass, Long> {
+
+		@Query("MATCH (n::#{literal(#label)}) RETURN n")
+		List<Inheritance.BaseClass> findByLabel(@Param("label") String label);
+	}
 
 	interface SuperBaseClassRepository extends Neo4jRepository<Inheritance.SuperBaseClass, Long> {
 

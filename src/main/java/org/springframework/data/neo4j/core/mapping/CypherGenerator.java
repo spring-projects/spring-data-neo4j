@@ -27,7 +27,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
@@ -50,7 +49,6 @@ import org.neo4j.cypherdsl.core.StatementBuilder;
 import org.neo4j.cypherdsl.core.StatementBuilder.OngoingMatchAndUpdate;
 import org.neo4j.cypherdsl.core.SymbolicName;
 import org.neo4j.cypherdsl.core.renderer.Renderer;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mapping.MappingException;
 import org.springframework.data.mapping.PersistentProperty;
@@ -329,28 +327,35 @@ public enum CypherGenerator {
 	/**
 	 * Creates an order by fragment, assuming the node to match is named `n`
 	 *
-	 * @param pageable The page request that should be turned into a valid Cypher {@code ORDER}-clause
-	 * @return An optional order clause. Will be empty on page requests that are {@literal null} or a unsorted.
+	 * @param sort The {@link Sort sort} that should be turned into a valid Cypher {@code ORDER}-clause
+	 * @return An optional order clause. Will be {@literal null} on sorts that are {@literal null} or a unsorted.
 	 */
-	public Optional<String> createOrderByFragment(@Nullable Pageable pageable) {
+	public @Nullable String createOrderByFragment(@Nullable Sort sort) {
 
-		if (pageable == null) {
-			return Optional.empty();
-		}
-
-		Sort sort = pageable.getSort();
 		if (sort == null || sort.isUnsorted()) {
-			return Optional.empty();
+			return null;
 		}
 
 		Statement statement = Cypher.match(Cypher.anyNode()).returning("n")
 				.orderBy(sort.stream().filter(order -> order != null).map(order -> {
-					SymbolicName name = Cypher.name(order.getProperty());
-					return order.isAscending() ? name.ascending() : name.descending();
+					String property = order.getProperty();
+					Expression expression;
+					if (property.contains(".")) {
+						String[] path = property.split("\\.");
+						if (path.length != 2) {
+							throw new IllegalArgumentException(String.format(
+									"Cannot handle order property `%s`, it must be a simple property or one-hop path.",
+									property));
+						}
+						expression = Cypher.property(path[0], path[1]);
+					} else {
+						expression = Cypher.name(property);
+					}
+					return order.isAscending() ? expression.ascending() : expression.descending();
 				}).toArray(SortItem[]::new))
 				.build();
 		String renderedStatement = Renderer.getDefaultRenderer().render(statement);
-		return Optional.of(renderedStatement.substring(renderedStatement.indexOf("ORDER BY")).trim());
+		return renderedStatement.substring(renderedStatement.indexOf("ORDER BY")).trim();
 	}
 
 	/**
