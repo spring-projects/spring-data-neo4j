@@ -15,16 +15,26 @@
  */
 package org.springframework.data.neo4j.core.mapping;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
 import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Stream;
 
 import org.junit.Assert;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mockito;
 import org.neo4j.cypherdsl.core.Statement;
 import org.neo4j.cypherdsl.core.renderer.Renderer;
+import org.springframework.data.domain.AbstractPageRequest;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
 
@@ -58,7 +68,8 @@ class CypherGeneratorTest {
 		Statement statement = CypherGenerator.INSTANCE.prepareSaveOfRelationship(persistentEntity,
 				relationshipDescription, "REL", 1L);
 
-		String expectedQuery = "MATCH (startNode:`Entity1`:`MultipleLabel`) WHERE startNode.id = $fromId MATCH (endNode)"
+		String expectedQuery =
+				"MATCH (startNode:`Entity1`:`MultipleLabel`) WHERE startNode.id = $fromId MATCH (endNode)"
 				+ " WHERE id(endNode) = 1 MERGE (startNode)<-[:`REL`]-(endNode)";
 		Assert.assertEquals(expectedQuery, Renderer.getDefaultRenderer().render(statement));
 	}
@@ -98,7 +109,8 @@ class CypherGeneratorTest {
 	void itShouldCreateRelationshipRemoveQueryWithMultipleLabels() {
 		Neo4jPersistentEntity<?> persistentEntity = new Neo4jMappingContext()
 				.getPersistentEntity(MultipleLabelEntity1.class);
-		Neo4jPersistentEntity<?> relatedEntity = new Neo4jMappingContext().getPersistentEntity(MultipleLabelEntity2.class);
+		Neo4jPersistentEntity<?> relatedEntity = new Neo4jMappingContext()
+				.getPersistentEntity(MultipleLabelEntity2.class);
 		RelationshipDescription relationshipDescription = Mockito.mock(RelationshipDescription.class);
 		doReturn(relatedEntity).when(relationshipDescription).getTarget();
 
@@ -126,6 +138,41 @@ class CypherGeneratorTest {
 
 		String expectedQuery = "MATCH (startNode)<-[rel]-(:`Entity2`) WHERE id(startNode) = $fromId DELETE rel";
 		Assert.assertEquals(expectedQuery, Renderer.getDefaultRenderer().render(statement));
+	}
+
+	private static Stream<Arguments> pageables() {
+		return Stream.of(
+				Arguments.of(PageRequest.of(1, 2, Sort.by("a", "b").and(
+						Sort.by(Sort.Order.asc("foo"), Sort.Order.desc("bar")))),
+						Optional.of("ORDER BY a ASC, b ASC, foo ASC, bar DESC")),
+				Arguments.of(null, Optional.empty()),
+				Arguments.of(PageRequest.of(1, 2, Sort.unsorted()), Optional.empty()),
+				Arguments.of(new AbstractPageRequest(1, 2) {
+					@Override public Pageable next() {
+						return null;
+					}
+
+					@Override public Pageable previous() {
+						return null;
+					}
+
+					@Override public Pageable first() {
+						return null;
+					}
+
+					@Override public Sort getSort() {
+						return null;
+					}
+				}, Optional.empty())
+		);
+	}
+
+	@ParameterizedTest
+	@MethodSource("pageables")
+	void shouldRenderOrderByFragment(Pageable pageable, Optional<String> expectValue) {
+
+		Optional<String> fragment = CypherGenerator.INSTANCE.createOrderByFragment(pageable);
+		assertThat(fragment).isEqualTo(expectValue);
 	}
 
 	@Node

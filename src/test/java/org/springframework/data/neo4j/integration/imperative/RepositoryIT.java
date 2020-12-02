@@ -608,10 +608,12 @@ class RepositoryIT {
 		void findSliceShouldWork(@Autowired PersonRepository repository) {
 
 			Slice<PersonWithAllConstructor> slice = repository.findSliceByNameOrName(TEST_PERSON1_NAME, TEST_PERSON2_NAME, PageRequest.of(0, 1, Sort.by("name").descending()));
+			assertThat(slice.getSize()).isEqualTo(1);
 			assertThat(slice.get()).hasSize(1).extracting("name").containsExactly(TEST_PERSON2_NAME);
 			assertThat(slice.hasNext()).isTrue();
 
 			slice = repository.findSliceByNameOrName(TEST_PERSON1_NAME, TEST_PERSON2_NAME, slice.nextPageable());
+			assertThat(slice.getSize()).isEqualTo(1);
 			assertThat(slice.get()).hasSize(1).extracting("name").containsExactly(TEST_PERSON1_NAME);
 			assertThat(slice.hasNext()).isFalse();
 		}
@@ -691,6 +693,33 @@ class RepositoryIT {
 			assertThat(loadedPets.isLast()).isTrue();
 		}
 
+		@Test // DATAGRAPH-1440
+		void findSliceByCustomQueryWithoutCount(@Autowired PersonRepository repository) {
+
+			Slice<PersonWithAllConstructor> slice = repository.findSliceByCustomQueryWithoutCount(TEST_PERSON1_NAME, TEST_PERSON2_NAME, PageRequest.of(0, 1, Sort.unsorted()));
+			assertThat(slice.getSize()).isEqualTo(1);
+			assertThat(slice.get()).hasSize(1).extracting("name").containsExactly(TEST_PERSON2_NAME);
+			assertThat(slice.hasNext()).isTrue();
+
+			slice = repository.findSliceByCustomQueryWithoutCount(TEST_PERSON1_NAME,  TEST_PERSON2_NAME, slice.nextPageable());
+			assertThat(slice.getSize()).isEqualTo(1);
+			assertThat(slice.get()).hasSize(1).extracting("name").containsExactly(TEST_PERSON1_NAME);
+			assertThat(slice.hasNext()).isFalse();
+		}
+
+		@Test // DATAGRAPH-1440
+		void findSliceByCustomQueryWithCountShouldWork(@Autowired PersonRepository repository) {
+
+			Slice<PersonWithAllConstructor> slice = repository.findSliceByCustomQueryWithCount(TEST_PERSON1_NAME, TEST_PERSON2_NAME, PageRequest.of(0, 1, Sort.unsorted()));
+			assertThat(slice.getSize()).isEqualTo(1);
+			assertThat(slice.get()).hasSize(1).extracting("name").containsExactly(TEST_PERSON2_NAME);
+			assertThat(slice.hasNext()).isTrue();
+
+			slice = repository.findSliceByCustomQueryWithCount(TEST_PERSON1_NAME,  TEST_PERSON2_NAME, slice.nextPageable());
+			assertThat(slice.getSize()).isEqualTo(1);
+			assertThat(slice.get()).hasSize(1).extracting("name").containsExactly(TEST_PERSON1_NAME);
+			assertThat(slice.hasNext()).isFalse();
+		}
 	}
 
 	@Nested

@@ -86,11 +86,6 @@ abstract class Neo4jQuerySupport {
 		this.queryType = queryType;
 	}
 
-	protected final Neo4jParameterAccessor getParameterAccessor(Object[] actualParameters) {
-		return new Neo4jParameterAccessor((Neo4jQueryMethod.Neo4jParameters) this.queryMethod.getParameters(),
-				actualParameters);
-	}
-
 	protected final BiFunction<TypeSystem, MapAccessor, ?> getMappingFunction(final ResultProcessor resultProcessor) {
 
 		final ReturnedType returnedTypeMetadata = resultProcessor.getReturnedType();

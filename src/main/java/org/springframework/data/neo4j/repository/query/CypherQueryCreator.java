@@ -28,6 +28,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -114,9 +115,15 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryAndParameters, 
 
 	private final List<PropertyPathWrapper> propertyPathWrappers;
 
+	/**
+	 * Can be used to modify the limit of a paged or sliced query.
+	 */
+	private final UnaryOperator<Integer> limitModifier;
+
 	CypherQueryCreator(Neo4jMappingContext mappingContext, Class<?> domainType, Neo4jQueryType queryType, PartTree tree,
 			Neo4jParameterAccessor actualParameters, List<String> includedProperties,
-			BiFunction<Object, Function<Object, Value>, Object> parameterConversion) {
+			BiFunction<Object, Function<Object, Value>, Object> parameterConversion,
+			UnaryOperator<Integer> limitModifier) {
 		super(tree, actualParameters);
 		this.mappingContext = mappingContext;
 
@@ -132,6 +139,7 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryAndParameters, 
 		this.parameterConversion = parameterConversion;
 
 		this.pagingParameter = actualParameters.getPageable();
+		this.limitModifier = limitModifier;
 
 		AtomicInteger symbolicNameIndex = new AtomicInteger();
 
@@ -305,7 +313,7 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryAndParameters, 
 			} else {
 				long skip = pagingParameter.getOffset();
 				int pageSize = pagingParameter.getPageSize();
-				statement = ongoingMatchAndReturnWithOrder.skip(skip).limit(pageSize).build();
+				statement = ongoingMatchAndReturnWithOrder.skip(skip).limit(limitModifier.apply(pageSize)).build();
 			}
 		}
 		return statement;

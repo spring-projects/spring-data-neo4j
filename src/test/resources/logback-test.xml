@@ -32,6 +32,7 @@
     <logger name="org.springframework.data.neo4j.cypher" level="info"/>
     <logger name="org.springframework.data.neo4j" level="info"/>
     <logger name="org.springframework.data.neo4j.test" level="info"/>
+    <logger name="org.springframework.data.neo4j.repository.query.Neo4jQuerySupport" level="debug" />
 
     <root level="warn">
         <appender-ref ref="console"/>

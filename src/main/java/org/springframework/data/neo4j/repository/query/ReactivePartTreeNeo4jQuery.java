@@ -18,6 +18,7 @@ package org.springframework.data.neo4j.repository.query;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.BiFunction;
+import java.util.function.UnaryOperator;
 
 import org.neo4j.driver.types.MapAccessor;
 import org.neo4j.driver.types.TypeSystem;
@@ -63,7 +64,7 @@ final class ReactivePartTreeNeo4jQuery extends AbstractReactiveNeo4jQuery {
 
 		CypherQueryCreator queryCreator = new CypherQueryCreator(mappingContext, getDomainType(queryMethod),
 				Optional.ofNullable(queryType).orElseGet(() -> Neo4jQueryType.fromPartTree(tree)), tree, parameterAccessor,
-				includedProperties, this::convertParameter);
+				includedProperties, this::convertParameter, UnaryOperator.identity());
 
 		QueryAndParameters queryAndParameters = queryCreator.createQuery();
 

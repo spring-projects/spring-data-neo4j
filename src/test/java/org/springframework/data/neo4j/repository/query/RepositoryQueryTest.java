@@ -27,9 +27,11 @@ import static org.mockito.Mockito.when;
 import reactor.core.publisher.Mono;
 
 import java.lang.reflect.Method;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Nested;
@@ -39,6 +41,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -47,12 +50,16 @@ import org.neo4j.driver.types.Point;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.mapping.MappingException;
 import org.springframework.data.neo4j.core.Neo4jOperations;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
+import org.springframework.data.neo4j.test.LogbackCapture;
+import org.springframework.data.neo4j.test.LogbackCapturingExtension;
 import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
 import org.springframework.data.repository.CrudRepository;
@@ -60,6 +67,7 @@ import org.springframework.data.repository.core.NamedQueries;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.core.support.DefaultRepositoryMetadata;
 import org.springframework.data.repository.query.Param;
+import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.QueryMethodEvaluationContextProvider;
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.data.repository.query.ReturnedType;
@@ -85,6 +93,38 @@ final class RepositoryQueryTest {
 			TestRepository.class);
 
 	private static final ProjectionFactory PROJECTION_FACTORY = new SpelAwareProxyProjectionFactory();
+
+	@ParameterizedTest
+	@ValueSource(strings = {
+			"RETURN 1 SKIP $skip LIMIT $limit",
+			"RETURN 1 sKip $skip limit $limit",
+			"match(n) return              $\n"
+			+ "       skip                 \n"
+			+ "       skip                $\n"
+			+ "       skip                 \n"
+			+ "       LIMIT $ limit",
+			"MATCH (n) RETURN n Skip $skip LIMIT /* No */ $ "
+			+ " /* NO */ limit",
+			"MATCH (n) RETURN n Skip $skip LIMIT /* No */$/* NO */ limit",
+			"MATCH (n) RETURN n Skip $skip LIMIT // No, no\n"
+			+ " $ /* really, not a */ limit"
+	})
+	void shouldDetectValidSkipAndLimitPlaceholders(String template) {
+
+		assertThat(StringBasedNeo4jQuery.hasSkipAndLimitKeywordsAndPlaceholders(template)).isTrue();
+	}
+
+	@ParameterizedTest
+	@ValueSource(strings = {
+			"RETURN 1 SKIP $SKIP LIMIT $LIMIT",
+			"RETURN 1 skip $skiP limit $lImit",
+			"RETURN 1 skip // $skiP limit $lImit",
+			"RETURN 1 skip $skiP limit // $lImit",
+	})
+	void shouldDetectValidSkipAndLimitPlaceholdersNegative(String template) {
+
+		assertThat(StringBasedNeo4jQuery.hasSkipAndLimitKeywordsAndPlaceholders(template)).isFalse();
+	}
 
 	@Mock NamedQueries namedQueries;
 
@@ -179,6 +219,7 @@ final class RepositoryQueryTest {
 	}
 
 	@Nested
+	@ExtendWith(LogbackCapturingExtension.class)
 	class StringBasedNeo4jQueryTest {
 
 		@Test
@@ -225,6 +266,58 @@ final class RepositoryQueryTest {
 					.withMessage("Expected paging query method to have a count query!");
 		}
 
+		@Test // DATAGRAPH-1409
+		void shouldAllowMissingCountOnSlicedQuery(LogbackCapture logbackCapture) {
+
+			Neo4jQueryMethod method = neo4jQueryMethod("missingCountQueryOnSlice", Pageable.class);
+			StringBasedNeo4jQuery.create(mock(Neo4jOperations.class), mock(Neo4jMappingContext.class),
+					QueryMethodEvaluationContextProvider.DEFAULT, method);
+			assertThat(logbackCapture.getFormattedMessages())
+					.anyMatch(s -> s.matches("(?s)You provided a string based query returning a slice for '.*\\.missingCountQueryOnSlice'\\. You might want to consider adding a count query if more slices than you expect are returned\\."));
+		}
+
+		@Test // DATAGRAPH-1440
+		void shouldDetectMissingPlaceHoldersOnPagedQuery(LogbackCapture logbackCapture) {
+
+			Neo4jQueryMethod method = neo4jQueryMethod("missingPlaceHoldersOnPage", Pageable.class);
+			StringBasedNeo4jQuery.create(mock(Neo4jOperations.class), mock(Neo4jMappingContext.class),
+					QueryMethodEvaluationContextProvider.DEFAULT, method);
+			assertThat(logbackCapture.getFormattedMessages())
+					.anyMatch(s -> s.matches("(?s)The custom query.*MATCH \\(n:Page\\) return n.*for '.*\\.missingPlaceHoldersOnPage' is supposed to work with a page or slicing query but does not have the required parameter placeholders `\\$skip` and `\\$limit`\\..*"));
+		}
+
+		@Test // DATAGRAPH-1440
+		void shouldDetectMissingPlaceHoldersOnSlicedQuery(LogbackCapture logbackCapture) {
+
+			Neo4jQueryMethod method = neo4jQueryMethod("missingPlaceHoldersOnSlice", Pageable.class);
+			StringBasedNeo4jQuery.create(mock(Neo4jOperations.class), mock(Neo4jMappingContext.class),
+					QueryMethodEvaluationContextProvider.DEFAULT, method);
+			assertThat(logbackCapture.getFormattedMessages())
+					.anyMatch(s -> s.matches("(?s)The custom query.*MATCH \\(n:Slice\\) return n.*is supposed to work with a page or slicing query but does not have the required parameter placeholders `\\$skip` and `\\$limit`\\..*"));
+		}
+
+		@Test // DATAGRAPH-1440
+		void shouldWarnWhenUsingSortedPageable(LogbackCapture logbackCapture) {
+
+			Neo4jQueryMethod method = neo4jQueryMethod("noWarningsPerSe", Pageable.class);
+			AbstractNeo4jQuery query =
+					StringBasedNeo4jQuery.create(mock(Neo4jOperations.class), mock(Neo4jMappingContext.class),
+					QueryMethodEvaluationContextProvider.DEFAULT, method);
+			Parameters<Neo4jQueryMethod.Neo4jParameters, Neo4jQueryMethod.Neo4jParameter> parameters
+					= method.createParameters(queryMethod("noWarningsPerSe", Pageable.class));
+			query.prepareQuery(
+					TestEntity.class,
+					Collections.emptyList(),
+					new Neo4jParameterAccessor(parameters, new Object[]{ PageRequest.of(1, 1, Sort.by("name").ascending()) }),
+					Neo4jQueryType.DEFAULT,
+					(typeSystem, mapAccessor) -> new TestEntity(),
+					UnaryOperator.identity()
+			);
+			assertThat(logbackCapture.getFormattedMessages())
+					.anyMatch(s -> s.matches(".*Please specify the order in the query itself and use an unsorted page request\\..*"))
+					.anyMatch(s -> s.matches("(?s).*One possible order clause matching your page reguest would be the following fragment:.*ORDER BY name ASC"));
+		}
+
 		@Test
 		void shouldBindParameters() {
 
@@ -238,7 +331,8 @@ final class RepositoryQueryTest {
 			doAnswer(invocation -> invocation.getArgument(0)).when(repositoryQuery).convertParameter(any());
 
 			Map<String, Object> resolveParameters = repositoryQuery.bindParameters(new Neo4jParameterAccessor(
-					(Neo4jQueryMethod.Neo4jParameters) method.getParameters(), new Object[] { "A String", "Another String" }));
+					(Neo4jQueryMethod.Neo4jParameters) method.getParameters(), new Object[] { "A String", "Another String" }), true,
+					UnaryOperator.identity());
 
 			assertThat(resolveParameters).containsEntry("0", "A String").containsEntry("1", "Another String");
 		}
@@ -258,7 +352,7 @@ final class RepositoryQueryTest {
 			Point thePoint = Values.point(4223, 1, 2).asPoint();
 			Map<String, Object> resolveParameters = repositoryQuery
 					.bindParameters(new Neo4jParameterAccessor((Neo4jQueryMethod.Neo4jParameters) method.getParameters(),
-							new Object[] { thePoint, "TheName", "TheFirstName" }));
+							new Object[] { thePoint, "TheName", "TheFirstName" }), true, UnaryOperator.identity());
 
 			assertThat(resolveParameters).hasSize(8).containsEntry("0", thePoint).containsEntry("location", thePoint)
 					.containsEntry("1", "TheName").containsEntry("name", "TheName").containsEntry("2", "TheFirstName")
@@ -321,13 +415,12 @@ final class RepositoryQueryTest {
 
 	static Neo4jQueryMethod neo4jQueryMethod(String name, Class<?>... parameters) {
 
-		return new Neo4jQueryMethod(ReflectionUtils.findMethod(TestRepository.class, name, parameters),
-				TEST_REPOSITORY_METADATA, PROJECTION_FACTORY);
+		return new Neo4jQueryMethod(queryMethod(name, parameters), TEST_REPOSITORY_METADATA, PROJECTION_FACTORY);
 	}
 
 	static ReactiveNeo4jQueryMethod reactiveNeo4jQueryMethod(String name, Class<?>... parameters) {
 
-		return new ReactiveNeo4jQueryMethod(ReflectionUtils.findMethod(TestRepository.class, name, parameters),
+		return new ReactiveNeo4jQueryMethod(queryMethod(name, parameters),
 				TEST_REPOSITORY_METADATA, PROJECTION_FACTORY);
 	}
 
@@ -399,8 +492,21 @@ final class RepositoryQueryTest {
 
 		List<ExtendedTestEntity> findAllExtendedEntites();
 
-		@Query("MATCH (n:Test) SKIP $skip LIMIT $limit")
+		@Query("MATCH (n:Test) RETURN n SKIP $skip LIMIT $limit")
 		Page<TestEntity> missingCountQuery(Pageable pageable);
+
+		@Query("MATCH (n:Test) RETURN n SKIP $skip LIMIT $limit")
+		Slice<TestEntity> missingCountQueryOnSlice(Pageable pageable);
+
+		@Query(value = "MATCH (n:Test) RETURN n SKIP $skip LIMIT $limit", countQuery = "MATCH (n:Test) RETURN count(n)")
+		Slice<TestEntity> noWarningsPerSe(Pageable pageable);
+
+		// The complexity of the queries here doesn't matter, we the tests aim for having the appropriate skip/limits and count queries.
+		@Query(value = "MATCH (n:Page) return n", countQuery = "RETURN 1")
+		Page<TestEntity> missingPlaceHoldersOnPage(Pageable pageable);
+
+		@Query(value = "MATCH (n:Slice) return n", countQuery = "RETURN 1")
+		Slice<TestEntity> missingPlaceHoldersOnSlice(Pageable pageable);
 	}
 
 	private RepositoryQueryTest() {}
