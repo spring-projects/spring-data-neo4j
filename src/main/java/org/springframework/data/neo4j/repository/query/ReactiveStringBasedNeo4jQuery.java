@@ -68,13 +68,6 @@ final class ReactiveStringBasedNeo4jQuery extends AbstractReactiveNeo4jQuery {
 	private final SpelEvaluator spelEvaluator;
 
 	/**
-	 * The Cypher string used for this query. The cypher query will not be changed after parsed via
-	 * {@link #SPEL_QUERY_CONTEXT}. All SpEL expressions will be substituted via "native" parameter placeholders. This
-	 * will be done via the {@link #spelEvaluator}.
-	 */
-	private final String cypherQuery;
-
-	/**
 	 * Create a {@link ReactiveStringBasedNeo4jQuery} for a query method that is annotated with {@link Query @Query}. The
 	 * annotation is expected to have a value.
 	 *
@@ -126,13 +119,6 @@ final class ReactiveStringBasedNeo4jQuery extends AbstractReactiveNeo4jQuery {
 
 		SpelExtractor spelExtractor = SPEL_QUERY_CONTEXT.parse(cypherTemplate);
 		this.spelEvaluator = new SpelEvaluator(evaluationContextProvider, queryMethod.getParameters(), spelExtractor);
-		this.cypherQuery = spelExtractor.getQueryString();
-	}
-
-	static String getQueryTemplate(Query queryAnnotation) {
-
-		return Optional.ofNullable(queryAnnotation.value()).filter(StringUtils::hasText)
-				.orElseThrow(() -> new MappingException("Expected @Query annotation to have a value, but it did not."));
 	}
 
 	@Override
@@ -140,8 +126,21 @@ final class ReactiveStringBasedNeo4jQuery extends AbstractReactiveNeo4jQuery {
 			Neo4jParameterAccessor parameterAccessor, @Nullable Neo4jQueryType queryType,
 			@Nullable BiFunction<TypeSystem, MapAccessor, ?> mappingFunction) {
 
-		return PreparedQuery.queryFor(returnedType).withCypherQuery(cypherQuery)
-				.withParameters(bindParameters(parameterAccessor)).usingMappingFunction(mappingFunction).build();
+		Map<String, Object> boundParameters = bindParameters(parameterAccessor);
+		Neo4jSpelSupport.QueryContext queryContext = new Neo4jSpelSupport.QueryContext(
+				queryMethod.getRepositoryName() + "." + queryMethod.getName(),
+				spelEvaluator.getQueryString(),
+				boundParameters
+		);
+
+		Neo4jSpelSupport.replaceLiteralsIn(queryContext);
+		Neo4jSpelSupport.logWarningsIfNecessary(queryContext, parameterAccessor);
+
+		return PreparedQuery.queryFor(returnedType)
+				.withCypherQuery(queryContext.query)
+				.withParameters(boundParameters)
+				.usingMappingFunction(mappingFunction)
+				.build();
 	}
 
 	Map<String, Object> bindParameters(Neo4jParameterAccessor parameterAccessor) {
@@ -151,8 +150,16 @@ final class ReactiveStringBasedNeo4jQuery extends AbstractReactiveNeo4jQuery {
 
 		// Values from the parameter accessor can only get converted after evaluation
 		for (Map.Entry<String, Object> evaluatedParam : spelEvaluator.evaluate(parameterAccessor.getValues()).entrySet()) {
-			resolvedParameters.put(evaluatedParam.getKey(), super.convertParameter(evaluatedParam.getValue()));
+			Object value;
+
+			if (evaluatedParam.getValue() instanceof Neo4jSpelSupport.LiteralReplacement) {
+				value = evaluatedParam.getValue();
+			} else {
+				value = super.convertParameter(evaluatedParam.getValue());
+			}
+			resolvedParameters.put(evaluatedParam.getKey(), value);
 		}
+
 		formalParameters.stream().filter(Parameter::isBindable).forEach(parameter -> {
 
 			int parameterIndex = parameter.getIndex();

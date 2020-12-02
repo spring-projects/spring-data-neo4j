@@ -49,6 +49,8 @@ final class Neo4jRepositoryFactory extends RepositoryFactorySupport {
 
 		this.neo4jOperations = neo4jOperations;
 		this.mappingContext = mappingContext;
+
+		setEvaluationContextProvider(QueryMethodEvaluationContextProvider.DEFAULT);
 	}
 
 	@Override

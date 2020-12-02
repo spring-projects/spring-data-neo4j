@@ -20,7 +20,6 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assumptions.assumeThat;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
@@ -32,6 +31,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.UnaryOperator;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Nested;
@@ -42,11 +42,13 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.Answers;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.neo4j.driver.Values;
 import org.neo4j.driver.types.Point;
+import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.domain.Page;
@@ -56,8 +58,10 @@ import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mapping.MappingException;
 import org.springframework.data.neo4j.core.Neo4jOperations;
+import org.springframework.data.neo4j.core.PreparedQuery;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
+import org.springframework.data.neo4j.repository.support.Neo4jEvaluationContextExtension;
 import org.springframework.data.neo4j.test.LogbackCapture;
 import org.springframework.data.neo4j.test.LogbackCapturingExtension;
 import org.springframework.data.projection.ProjectionFactory;
@@ -66,8 +70,8 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.core.NamedQueries;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.core.support.DefaultRepositoryMetadata;
+import org.springframework.data.repository.query.ExtensionAwareQueryMethodEvaluationContextProvider;
 import org.springframework.data.repository.query.Param;
-import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.QueryMethodEvaluationContextProvider;
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.data.repository.query.ReturnedType;
@@ -93,6 +97,12 @@ final class RepositoryQueryTest {
 			TestRepository.class);
 
 	private static final ProjectionFactory PROJECTION_FACTORY = new SpelAwareProxyProjectionFactory();
+
+	@Mock(answer = Answers.RETURNS_DEEP_STUBS)
+	private Neo4jMappingContext neo4jMappingContext;
+
+	@Mock
+	private Neo4jOperations neo4jOperations;
 
 	@ParameterizedTest
 	@ValueSource(strings = {
@@ -173,7 +183,8 @@ final class RepositoryQueryTest {
 		@Test
 		void shouldFailForPageableParameterOnMonoOfSliceAsReturnType() {
 			assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
-					.isThrownBy(() -> reactiveNeo4jQueryMethod("findAllByNameStartingWith", String.class, Pageable.class));
+					.isThrownBy(
+							() -> reactiveNeo4jQueryMethod("findAllByNameStartingWith", String.class, Pageable.class));
 		}
 	}
 
@@ -183,8 +194,9 @@ final class RepositoryQueryTest {
 		@Test
 		void shouldSelectPartTreeNeo4jQuery() {
 
-			final Neo4jQueryLookupStrategy lookupStrategy = new Neo4jQueryLookupStrategy(mock(Neo4jOperations.class),
-					mock(Neo4jMappingContext.class, Mockito.RETURNS_DEEP_STUBS), QueryMethodEvaluationContextProvider.DEFAULT);
+			final Neo4jQueryLookupStrategy lookupStrategy = new Neo4jQueryLookupStrategy(neo4jOperations,
+					neo4jMappingContext,
+					QueryMethodEvaluationContextProvider.DEFAULT);
 
 			RepositoryQuery query = lookupStrategy.resolveQuery(queryMethod("findById", Object.class),
 					TEST_REPOSITORY_METADATA, PROJECTION_FACTORY, namedQueries);
@@ -194,8 +206,8 @@ final class RepositoryQueryTest {
 		@Test
 		void shouldSelectStringBasedNeo4jQuery() {
 
-			final Neo4jQueryLookupStrategy lookupStrategy = new Neo4jQueryLookupStrategy(mock(Neo4jOperations.class),
-					mock(Neo4jMappingContext.class), QueryMethodEvaluationContextProvider.DEFAULT);
+			final Neo4jQueryLookupStrategy lookupStrategy = new Neo4jQueryLookupStrategy(neo4jOperations,
+					neo4jMappingContext, QueryMethodEvaluationContextProvider.DEFAULT);
 
 			RepositoryQuery query = lookupStrategy.resolveQuery(queryMethod("annotatedQueryWithValidTemplate"),
 					TEST_REPOSITORY_METADATA, PROJECTION_FACTORY, namedQueries);
@@ -209,11 +221,12 @@ final class RepositoryQueryTest {
 			when(namedQueries.hasQuery(namedQueryName)).thenReturn(true);
 			when(namedQueries.getQuery(namedQueryName)).thenReturn("MATCH (n) RETURN n");
 
-			final Neo4jQueryLookupStrategy lookupStrategy = new Neo4jQueryLookupStrategy(mock(Neo4jOperations.class),
-					mock(Neo4jMappingContext.class), QueryMethodEvaluationContextProvider.DEFAULT);
+			final Neo4jQueryLookupStrategy lookupStrategy = new Neo4jQueryLookupStrategy(neo4jOperations,
+					neo4jMappingContext, QueryMethodEvaluationContextProvider.DEFAULT);
 
-			RepositoryQuery query = lookupStrategy.resolveQuery(queryMethod("findAllByANamedQuery"), TEST_REPOSITORY_METADATA,
-					PROJECTION_FACTORY, namedQueries);
+			RepositoryQuery query = lookupStrategy
+					.resolveQuery(queryMethod("findAllByANamedQuery"), TEST_REPOSITORY_METADATA,
+							PROJECTION_FACTORY, namedQueries);
 			assertThat(query).isInstanceOf(StringBasedNeo4jQuery.class);
 		}
 	}
@@ -237,13 +250,15 @@ final class RepositoryQueryTest {
 			query = spelExtractor.getQueryString();
 
 			assertThat(query)
-					.isEqualTo("MATCH (user:User) WHERE user.name = $__SpEL__0 and user.middleName = $__SpEL__1 RETURN user");
+					.isEqualTo(
+							"MATCH (user:User) WHERE user.name = $__SpEL__0 and user.middleName = $__SpEL__1 RETURN user");
 
 			template = "MATCH (user:User) WHERE user.name=?#{[0]} and user.name=:#{[0]} RETURN user";
 			spelExtractor = spelQueryContext.parse(template);
 			query = spelExtractor.getQueryString();
 
-			assertThat(query).isEqualTo("MATCH (user:User) WHERE user.name=$__SpEL__0 and user.name=$__SpEL__1 RETURN user");
+			assertThat(query)
+					.isEqualTo("MATCH (user:User) WHERE user.name=$__SpEL__0 and user.name=$__SpEL__1 RETURN user");
 		}
 
 		@Test
@@ -251,8 +266,9 @@ final class RepositoryQueryTest {
 
 			Neo4jQueryMethod method = neo4jQueryMethod("annotatedQueryWithoutTemplate");
 			assertThatExceptionOfType(MappingException.class)
-					.isThrownBy(() -> StringBasedNeo4jQuery.create(mock(Neo4jOperations.class), mock(Neo4jMappingContext.class),
-							QueryMethodEvaluationContextProvider.DEFAULT, method))
+					.isThrownBy(() -> StringBasedNeo4jQuery
+							.create(neo4jOperations, neo4jMappingContext,
+									QueryMethodEvaluationContextProvider.DEFAULT, method))
 					.withMessage("Expected @Query annotation to have a value, but it did not.");
 		}
 
@@ -261,8 +277,9 @@ final class RepositoryQueryTest {
 
 			Neo4jQueryMethod method = neo4jQueryMethod("missingCountQuery", Pageable.class);
 			assertThatExceptionOfType(MappingException.class)
-					.isThrownBy(() -> StringBasedNeo4jQuery.create(mock(Neo4jOperations.class), mock(Neo4jMappingContext.class),
-							QueryMethodEvaluationContextProvider.DEFAULT, method))
+					.isThrownBy(() -> StringBasedNeo4jQuery
+							.create(neo4jOperations, neo4jMappingContext,
+									QueryMethodEvaluationContextProvider.DEFAULT, method))
 					.withMessage("Expected paging query method to have a count query!");
 		}
 
@@ -270,30 +287,60 @@ final class RepositoryQueryTest {
 		void shouldAllowMissingCountOnSlicedQuery(LogbackCapture logbackCapture) {
 
 			Neo4jQueryMethod method = neo4jQueryMethod("missingCountQueryOnSlice", Pageable.class);
-			StringBasedNeo4jQuery.create(mock(Neo4jOperations.class), mock(Neo4jMappingContext.class),
+			StringBasedNeo4jQuery.create(neo4jOperations, neo4jMappingContext,
 					QueryMethodEvaluationContextProvider.DEFAULT, method);
 			assertThat(logbackCapture.getFormattedMessages())
-					.anyMatch(s -> s.matches("(?s)You provided a string based query returning a slice for '.*\\.missingCountQueryOnSlice'\\. You might want to consider adding a count query if more slices than you expect are returned\\."));
+					.anyMatch(s -> s.matches(
+							"(?s)You provided a string based query returning a slice for '.*\\.missingCountQueryOnSlice'\\. You might want to consider adding a count query if more slices than you expect are returned\\."));
 		}
 
 		@Test // DATAGRAPH-1440
 		void shouldDetectMissingPlaceHoldersOnPagedQuery(LogbackCapture logbackCapture) {
 
 			Neo4jQueryMethod method = neo4jQueryMethod("missingPlaceHoldersOnPage", Pageable.class);
-			StringBasedNeo4jQuery.create(mock(Neo4jOperations.class), mock(Neo4jMappingContext.class),
+			StringBasedNeo4jQuery.create(neo4jOperations, neo4jMappingContext,
 					QueryMethodEvaluationContextProvider.DEFAULT, method);
 			assertThat(logbackCapture.getFormattedMessages())
-					.anyMatch(s -> s.matches("(?s)The custom query.*MATCH \\(n:Page\\) return n.*for '.*\\.missingPlaceHoldersOnPage' is supposed to work with a page or slicing query but does not have the required parameter placeholders `\\$skip` and `\\$limit`\\..*"));
+					.anyMatch(s -> s.matches(
+							"(?s)The custom query.*MATCH \\(n:Page\\) return n.*for '.*\\.missingPlaceHoldersOnPage' is supposed to work with a page or slicing query but does not have the required parameter placeholders `\\$skip` and `\\$limit`\\..*"));
 		}
 
 		@Test // DATAGRAPH-1440
 		void shouldDetectMissingPlaceHoldersOnSlicedQuery(LogbackCapture logbackCapture) {
 
 			Neo4jQueryMethod method = neo4jQueryMethod("missingPlaceHoldersOnSlice", Pageable.class);
-			StringBasedNeo4jQuery.create(mock(Neo4jOperations.class), mock(Neo4jMappingContext.class),
+			StringBasedNeo4jQuery.create(neo4jOperations, neo4jMappingContext,
 					QueryMethodEvaluationContextProvider.DEFAULT, method);
 			assertThat(logbackCapture.getFormattedMessages())
-					.anyMatch(s -> s.matches("(?s)The custom query.*MATCH \\(n:Slice\\) return n.*is supposed to work with a page or slicing query but does not have the required parameter placeholders `\\$skip` and `\\$limit`\\..*"));
+					.anyMatch(s -> s.matches(
+							"(?s)The custom query.*MATCH \\(n:Slice\\) return n.*is supposed to work with a page or slicing query but does not have the required parameter placeholders `\\$skip` and `\\$limit`\\..*"));
+		}
+
+		@Test // DATAGRAPH-1440
+		void shouldWarnWhenUsingSortedAndCustomQuery(LogbackCapture logbackCapture) {
+
+			Neo4jQueryMethod method = neo4jQueryMethod("findAllExtendedEntitiesWithCustomQuery", Sort.class);
+			AbstractNeo4jQuery query =
+					StringBasedNeo4jQuery.create(neo4jOperations, neo4jMappingContext,
+							QueryMethodEvaluationContextProvider.DEFAULT, method);
+
+			Neo4jParameterAccessor parameterAccessor = new Neo4jParameterAccessor(
+					(Neo4jQueryMethod.Neo4jParameters) method.getParameters(),
+					new Object[] {Sort.by("name").ascending() });
+
+			query.prepareQuery(
+					TestEntity.class,
+					Collections.emptyList(),
+					parameterAccessor,
+					Neo4jQueryType.DEFAULT,
+					(typeSystem, mapAccessor) -> new TestEntity(),
+					UnaryOperator.identity()
+			);
+			assertThat(logbackCapture.getFormattedMessages())
+					.anyMatch(s -> s.matches(
+							".*" + Pattern.quote("Please specify the order in the query itself and use an unsorted request or use the SpEL extension `:#{orderBy(#sort)}`.")  + ".*"))
+					.anyMatch(s -> s.matches(
+							"(?s).*One possible order clause matching your page reguest would be the following fragment:.*ORDER BY name ASC"));
 		}
 
 		@Test // DATAGRAPH-1440
@@ -301,21 +348,87 @@ final class RepositoryQueryTest {
 
 			Neo4jQueryMethod method = neo4jQueryMethod("noWarningsPerSe", Pageable.class);
 			AbstractNeo4jQuery query =
-					StringBasedNeo4jQuery.create(mock(Neo4jOperations.class), mock(Neo4jMappingContext.class),
-					QueryMethodEvaluationContextProvider.DEFAULT, method);
-			Parameters<Neo4jQueryMethod.Neo4jParameters, Neo4jQueryMethod.Neo4jParameter> parameters
-					= method.createParameters(queryMethod("noWarningsPerSe", Pageable.class));
+					StringBasedNeo4jQuery.create(neo4jOperations, neo4jMappingContext,
+							QueryMethodEvaluationContextProvider.DEFAULT, method);
+			Neo4jParameterAccessor parameterAccessor = new Neo4jParameterAccessor(
+					(Neo4jQueryMethod.Neo4jParameters) method.getParameters(),
+					new Object[] { PageRequest.of(1, 1, Sort.by("name").ascending()) });
+
 			query.prepareQuery(
 					TestEntity.class,
 					Collections.emptyList(),
-					new Neo4jParameterAccessor(parameters, new Object[]{ PageRequest.of(1, 1, Sort.by("name").ascending()) }),
+					parameterAccessor,
 					Neo4jQueryType.DEFAULT,
 					(typeSystem, mapAccessor) -> new TestEntity(),
 					UnaryOperator.identity()
 			);
 			assertThat(logbackCapture.getFormattedMessages())
-					.anyMatch(s -> s.matches(".*Please specify the order in the query itself and use an unsorted page request\\..*"))
-					.anyMatch(s -> s.matches("(?s).*One possible order clause matching your page reguest would be the following fragment:.*ORDER BY name ASC"));
+					.anyMatch(s -> s.matches(
+							".*" + Pattern
+									.quote("Please specify the order in the query itself and use an unsorted request or use the SpEL extension `:#{orderBy(#sort)}`.")
+							+ ".*"))
+					.anyMatch(s -> s.matches(
+							"(?s).*One possible order clause matching your page reguest would be the following fragment:.*ORDER BY name ASC"));
+		}
+
+		@Test // DATAGRAPH-1454
+		void orderBySpelShouldWork(LogbackCapture logbackCapture) {
+
+			ConfigurableApplicationContext context = new GenericApplicationContext();
+			context.getBeanFactory().registerSingleton(Neo4jEvaluationContextExtension.class.getSimpleName(),
+					new Neo4jEvaluationContextExtension());
+			context.refresh();
+
+			Neo4jQueryMethod method = neo4jQueryMethod("orderBySpel", Pageable.class);
+			StringBasedNeo4jQuery query = StringBasedNeo4jQuery.create(neo4jOperations, neo4jMappingContext,
+							new ExtensionAwareQueryMethodEvaluationContextProvider(context.getBeanFactory()), method);
+
+			Neo4jParameterAccessor parameterAccessor = new Neo4jParameterAccessor(
+					(Neo4jQueryMethod.Neo4jParameters) method.getParameters(),
+					new Object[] { PageRequest.of(1, 1, Sort.by("name").ascending()) });
+			PreparedQuery pq = query.prepareQuery(
+					TestEntity.class,
+					Collections.emptyList(),
+					parameterAccessor,
+					Neo4jQueryType.DEFAULT,
+					(typeSystem, mapAccessor) -> new TestEntity(),
+					UnaryOperator.identity()
+			);
+			assertThat(pq.getCypherQuery())
+					.isEqualTo("MATCH (n:Test) RETURN n ORDER BY name ASC SKIP $skip LIMIT $limit");
+			assertThat(logbackCapture.getFormattedMessages())
+					.noneMatch(s -> s.matches(
+							".*Please specify the order in the query itself and use an unsorted page request\\..*"))
+					.noneMatch(s -> s.matches(
+							"(?s).*One possible order clause matching your page reguest would be the following fragment:.*ORDER BY name ASC"));
+		}
+
+		@Test // DATAGRAPH-1454
+		void literalReplacementsShouldWork() {
+
+			ConfigurableApplicationContext context = new GenericApplicationContext();
+			context.getBeanFactory().registerSingleton(Neo4jEvaluationContextExtension.class.getSimpleName(),
+					new Neo4jEvaluationContextExtension());
+			context.refresh();
+
+			Neo4jQueryMethod method = neo4jQueryMethod("makeStaticThingsDynamic", String.class, String.class, String.class, String.class, Sort.class);
+			StringBasedNeo4jQuery query = StringBasedNeo4jQuery.create(neo4jOperations, neo4jMappingContext,
+							new ExtensionAwareQueryMethodEvaluationContextProvider(context.getBeanFactory()), method);
+
+			Neo4jParameterAccessor parameterAccessor = new Neo4jParameterAccessor(
+					(Neo4jQueryMethod.Neo4jParameters) method.getParameters(),
+					new Object[] { "A valid ", "dynamic Label", "dyn prop", "static value",
+							Sort.by("name").ascending() });
+			PreparedQuery pq = query.prepareQuery(
+					TestEntity.class,
+					Collections.emptyList(),
+					parameterAccessor,
+					Neo4jQueryType.DEFAULT,
+					(typeSystem, mapAccessor) -> new TestEntity(),
+					UnaryOperator.identity()
+			);
+			assertThat(pq.getCypherQuery())
+					.isEqualTo("MATCH (n:`A valid dynamic Label`) SET n.`dyn prop` = 'static value' RETURN n ORDER BY name ASC SKIP $skip LIMIT $limit");
 		}
 
 		@Test
@@ -324,8 +437,8 @@ final class RepositoryQueryTest {
 			Neo4jQueryMethod method = RepositoryQueryTest.neo4jQueryMethod("annotatedQueryWithValidTemplate", String.class,
 					String.class);
 
-			StringBasedNeo4jQuery repositoryQuery = spy(StringBasedNeo4jQuery.create(mock(Neo4jOperations.class),
-					mock(Neo4jMappingContext.class), QueryMethodEvaluationContextProvider.DEFAULT, method));
+			StringBasedNeo4jQuery repositoryQuery = spy(StringBasedNeo4jQuery.create(neo4jOperations,
+					neo4jMappingContext, QueryMethodEvaluationContextProvider.DEFAULT, method));
 
 			// skip conversion
 			doAnswer(invocation -> invocation.getArgument(0)).when(repositoryQuery).convertParameter(any());
@@ -343,8 +456,8 @@ final class RepositoryQueryTest {
 			Neo4jQueryMethod method = RepositoryQueryTest.neo4jQueryMethod("findByDontDoThisInRealLiveNamed",
 					org.neo4j.driver.types.Point.class, String.class, String.class);
 
-			StringBasedNeo4jQuery repositoryQuery = spy(StringBasedNeo4jQuery.create(mock(Neo4jOperations.class),
-					mock(Neo4jMappingContext.class), QueryMethodEvaluationContextProvider.DEFAULT, method));
+			StringBasedNeo4jQuery repositoryQuery = spy(StringBasedNeo4jQuery.create(neo4jOperations,
+					neo4jMappingContext, QueryMethodEvaluationContextProvider.DEFAULT, method));
 
 			// skip conversion
 			doAnswer(invocation -> invocation.getArgument(0)).when(repositoryQuery).convertParameter(any());
@@ -408,39 +521,39 @@ final class RepositoryQueryTest {
 		}
 	}
 
-	static Method queryMethod(String name, Class<?>... parameters) {
+	private static Method queryMethod(String name, Class<?>... parameters) {
 
 		return ReflectionUtils.findMethod(TestRepository.class, name, parameters);
 	}
 
-	static Neo4jQueryMethod neo4jQueryMethod(String name, Class<?>... parameters) {
+	private static Neo4jQueryMethod neo4jQueryMethod(String name, Class<?>... parameters) {
 
 		return new Neo4jQueryMethod(queryMethod(name, parameters), TEST_REPOSITORY_METADATA, PROJECTION_FACTORY);
 	}
 
-	static ReactiveNeo4jQueryMethod reactiveNeo4jQueryMethod(String name, Class<?>... parameters) {
+	private static ReactiveNeo4jQueryMethod reactiveNeo4jQueryMethod(String name, Class<?>... parameters) {
 
 		return new ReactiveNeo4jQueryMethod(queryMethod(name, parameters),
 				TEST_REPOSITORY_METADATA, PROJECTION_FACTORY);
 	}
 
-	static class TestEntity {
+	private static class TestEntity {
 		@Id @GeneratedValue private Long id;
 
 		private String name;
 	}
 
-	static class ExtendedTestEntity extends TestEntity {
+	private static class ExtendedTestEntity extends TestEntity {
 
 		private String otherAttribute;
 	}
 
-	interface TestEntityInterfaceProjection {
+	private interface TestEntityInterfaceProjection {
 
 		String getName();
 	}
 
-	static class TestEntityDTOProjection {
+	private  static class TestEntityDTOProjection {
 
 		private String name;
 
@@ -463,7 +576,7 @@ final class RepositoryQueryTest {
 		}
 	}
 
-	interface TestRepository extends CrudRepository<TestEntity, Long> {
+	private interface TestRepository extends CrudRepository<TestEntity, Long> {
 
 		@Query("MATCH (n:Test) WHERE n.name = $name AND n.firstName = :#{#firstName} AND n.fullName = ?#{#name + #firstName} AND p.location = $location return n")
 		Optional<TestEntity> findByDontDoThisInRealLiveNamed(@Param("location") org.neo4j.driver.types.Point location,
@@ -493,6 +606,9 @@ final class RepositoryQueryTest {
 		List<ExtendedTestEntity> findAllExtendedEntites();
 
 		@Query("MATCH (n:Test) RETURN n SKIP $skip LIMIT $limit")
+		List<ExtendedTestEntity> findAllExtendedEntitiesWithCustomQuery(Sort sort);
+
+		@Query("MATCH (n:Test) RETURN n SKIP $skip LIMIT $limit")
 		Page<TestEntity> missingCountQuery(Pageable pageable);
 
 		@Query("MATCH (n:Test) RETURN n SKIP $skip LIMIT $limit")
@@ -507,7 +623,23 @@ final class RepositoryQueryTest {
 
 		@Query(value = "MATCH (n:Slice) return n", countQuery = "RETURN 1")
 		Slice<TestEntity> missingPlaceHoldersOnSlice(Pageable pageable);
+
+		@Query(value = "MATCH (n:Test) RETURN n :#{ orderBy (#pageable.sort)} SKIP $skip LIMIT $limit", countQuery = "MATCH (n:Test) RETURN count(n)")
+		Slice<TestEntity> orderBySpel(Pageable page);
+
+		@Query(value = "MATCH (n:`:#{literal(#aDynamicLabelPt1 + #aDynamicLabelPt2)}`) "
+					   + "SET n.`:#{literal(#aDynamicProperty)}` = :#{literal('''' + #enforcedLiteralValue + '''')} "
+					   + "RETURN n :#{orderBy(#sort)} SKIP $skip LIMIT $limit"
+		)
+		List<TestEntity> makeStaticThingsDynamic(
+				@Param("aDynamicLabelPt1") String aDynamicLabelPt1,
+				@Param("aDynamicLabelPt2") String aDynamicLabelPt2,
+				@Param("aDynamicProperty") String aDynamicProperty,
+				@Param("enforcedLiteralValue") String enforcedLiteralValue,
+				Sort sort
+		);
 	}
 
-	private RepositoryQueryTest() {}
+	private RepositoryQueryTest() {
+	}
 }

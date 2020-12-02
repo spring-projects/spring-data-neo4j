@@ -18,6 +18,7 @@ package org.springframework.data.neo4j.repository.query;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.UnaryOperator;
@@ -29,8 +30,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.mapping.MappingException;
 import org.springframework.data.neo4j.core.Neo4jOperations;
 import org.springframework.data.neo4j.core.PreparedQuery;
-import org.springframework.data.neo4j.core.mapping.CypherGenerator;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
+import org.springframework.data.neo4j.repository.query.Neo4jSpelSupport.LiteralReplacement;
+import org.springframework.data.neo4j.repository.query.Neo4jSpelSupport.QueryContext;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.QueryMethodEvaluationContextProvider;
 import org.springframework.data.repository.query.RepositoryQuery;
@@ -79,13 +81,6 @@ final class StringBasedNeo4jQuery extends AbstractNeo4jQuery {
 	 * with the help of the formal parameters during the building of the {@link PreparedQuery}.
 	 */
 	private final SpelEvaluator spelEvaluator;
-
-	/**
-	 * The Cypher string used for this query. The cypher query will not be changed after parsed via
-	 * {@link #SPEL_QUERY_CONTEXT}. All SpEL expressions will be substituted via "native" parameter placeholders. This
-	 * will be done via the {@link #spelEvaluator}.
-	 */
-	private final String cypherQuery;
 
 	/**
 	 * Create a {@link StringBasedNeo4jQuery} for a query method that is annotated with {@link Query @Query}. The
@@ -164,7 +159,6 @@ final class StringBasedNeo4jQuery extends AbstractNeo4jQuery {
 
 		SpelExtractor spelExtractor = SPEL_QUERY_CONTEXT.parse(cypherTemplate);
 		this.spelEvaluator = new SpelEvaluator(evaluationContextProvider, queryMethod.getParameters(), spelExtractor);
-		this.cypherQuery = spelExtractor.getQueryString();
 	}
 
 	@Override
@@ -174,31 +168,39 @@ final class StringBasedNeo4jQuery extends AbstractNeo4jQuery {
 			UnaryOperator<Integer> limitModifier
 	) {
 
-		if ((queryMethod.isSliceQuery() || queryMethod.isPageQuery()) && !parameterAccessor.getPageable().getSort().isUnsorted()) {
+		Map<String, Object> boundParameters = bindParameters(parameterAccessor, true, limitModifier);
+		QueryContext queryContext = new QueryContext(
+				queryMethod.getRepositoryName() + "." + queryMethod.getName(),
+				spelEvaluator.getQueryString(),
+				boundParameters
+		);
 
-			Neo4jQuerySupport.REPOSITORY_QUERY_LOG.warn(() ->
-					String.format(
-							"You passed a sorted page request to the custom query for '%s.%s'. SDN won't apply any sort information from that object to the query. "
-							+ "Please specify the order in the query itself and use an unsorted page request.", queryMethod.getRepositoryName(), queryMethod.getName()));
+		Neo4jSpelSupport.replaceLiteralsIn(queryContext);
+		Neo4jSpelSupport.logWarningsIfNecessary(queryContext, parameterAccessor);
 
-			CypherGenerator.INSTANCE.createOrderByFragment(parameterAccessor.getPageable()).ifPresent(fragment ->
-					Neo4jQuerySupport.REPOSITORY_QUERY_LOG.warn(() -> String.format("One possible order clause matching your page reguest would be the following fragment:%n%s", fragment))
-			);
-		}
-
-		return PreparedQuery.queryFor(returnedType).withCypherQuery(cypherQuery)
-				.withParameters(bindParameters(parameterAccessor, true, limitModifier)).usingMappingFunction(mappingFunction).build();
+		return PreparedQuery.queryFor(returnedType)
+				.withCypherQuery(queryContext.query)
+				.withParameters(boundParameters)
+				.usingMappingFunction(mappingFunction)
+				.build();
 	}
 
-	Map<String, Object> bindParameters(Neo4jParameterAccessor parameterAccessor, boolean includePageableParameter, UnaryOperator<Integer> limitModifier) {
+	Map<String, Object> bindParameters(Neo4jParameterAccessor parameterAccessor, boolean includePageableParameter,
+			UnaryOperator<Integer> limitModifier) {
 
 		final Parameters<?, ?> formalParameters = parameterAccessor.getParameters();
 		Map<String, Object> resolvedParameters = new HashMap<>();
 
 		// Values from the parameter accessor can only get converted after evaluation
-		for (Map.Entry<String, Object> evaluatedParam : spelEvaluator.evaluate(parameterAccessor.getValues())
-				.entrySet()) {
-			resolvedParameters.put(evaluatedParam.getKey(), super.convertParameter(evaluatedParam.getValue()));
+		for (Entry<String, Object> evaluatedParam : spelEvaluator.evaluate(parameterAccessor.getValues()).entrySet()) {
+			Object value;
+
+			if (evaluatedParam.getValue() instanceof LiteralReplacement) {
+				value = evaluatedParam.getValue();
+			} else {
+				value = super.convertParameter(evaluatedParam.getValue());
+			}
+			resolvedParameters.put(evaluatedParam.getKey(), value);
 		}
 
 		formalParameters.getBindableParameters().forEach(parameter -> {

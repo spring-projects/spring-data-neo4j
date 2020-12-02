@@ -19,6 +19,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.integration.shared.common.DtoPersonProjection;
 import org.springframework.data.neo4j.integration.shared.common.PersonProjection;
 import org.springframework.data.neo4j.integration.shared.common.PersonWithAllConstructor;
@@ -31,6 +32,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Gerrit Meier
+ * @author Michael J. Simons
  */
 public interface ReactivePersonRepository extends ReactiveNeo4jRepository<PersonWithAllConstructor, Long> {
 
@@ -82,4 +84,15 @@ public interface ReactivePersonRepository extends ReactiveNeo4jRepository<Person
 	Flux<PersonProjection> loadAllProjectionsWithNodeReturn();
 
 	Mono<DtoPersonProjection> findOneByFirstName(String firstName);
+
+	@Query("MATCH (n:PersonWithAllConstructor{name::#{#part1 + #part2}}) return n")
+	Flux<PersonWithAllConstructor> getOptionalPersonViaQuery(@Param("part1") String part1,
+			@Param("part2") String part2);
+
+	@Query("MATCH (n:PersonWithAllConstructor{name::#{#part1 + #part2}}) return n :#{orderBy(#sort)}")
+	Flux<PersonWithAllConstructor> getOptionalPersonViaQueryWithSort(@Param("part1") String part1,
+			@Param("part2") String part2, Sort sort);
+
+	Flux<PersonWithAllConstructor> getOptionalPersonViaNamedQuery(@Param("part1") String part1,
+			@Param("part2") String part2);
 }

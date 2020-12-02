@@ -29,6 +29,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Range;
 import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.geo.Box;
 import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.Distance;
@@ -96,6 +97,10 @@ public interface PersonRepository extends Neo4jRepository<PersonWithAllConstruct
 	@Query("MATCH (n:PersonWithAllConstructor{name::#{#part1 + #part2}}) return n")
 	Optional<PersonWithAllConstructor> getOptionalPersonViaQuery(@Param("part1") String part1,
 			@Param("part2") String part2);
+
+	@Query("MATCH (n:PersonWithAllConstructor{name::#{#part1 + #part2}}) return n :#{orderBy(#sort)}")
+	Optional<PersonWithAllConstructor> getOptionalPersonViaQueryWithSort(@Param("part1") String part1,
+			@Param("part2") String part2, Sort sort);
 
 	Optional<PersonWithAllConstructor> getOptionalPersonViaNamedQuery(@Param("part1") String part1,
 			@Param("part2") String part2);
