@@ -57,7 +57,7 @@ class ResultSummariesTest {
 
 	@ParameterizedTest(name = "{index}: Notifications for \"{0}\"")
 	@MethodSource("params")
-	void f(String query, int line, int column, String expected) {
+	void shouldFormatNotifications(String query, int line, int column, String expected) {
 
 		InputPosition inputPosition = mock(InputPosition.class);
 		when(inputPosition.line()).thenReturn(line);

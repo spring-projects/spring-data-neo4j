@@ -20,11 +20,16 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.LongSupplier;
+import java.util.function.Supplier;
+import java.util.function.UnaryOperator;
 
 import org.neo4j.driver.types.MapAccessor;
 import org.neo4j.driver.types.TypeSystem;
 import org.springframework.core.convert.converter.Converter;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
 import org.springframework.data.neo4j.core.Neo4jOperations;
 import org.springframework.data.neo4j.core.PreparedQuery;
@@ -36,6 +41,7 @@ import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * Base class for {@link RepositoryQuery} implementations for Neo4j.
@@ -66,12 +72,15 @@ abstract class AbstractNeo4jQuery extends Neo4jQuerySupport implements Repositor
 	@Override
 	public final Object execute(Object[] parameters) {
 
-		Neo4jParameterAccessor parameterAccessor = getParameterAccessor(parameters);
-		ResultProcessor resultProcessor = queryMethod.getResultProcessor().withDynamicProjection(parameterAccessor);
+		boolean incrementLimit = queryMethod.isSliceQuery() && !queryMethod.getQueryAnnotation().map(q -> q.countQuery()).filter(StringUtils::hasText).isPresent();
+		Neo4jParameterAccessor parameterAccessor = new Neo4jParameterAccessor(
+				(Neo4jQueryMethod.Neo4jParameters) this.queryMethod.getParameters(),
+				parameters);
 
+		ResultProcessor resultProcessor = queryMethod.getResultProcessor().withDynamicProjection(parameterAccessor);
 		ReturnedType returnedType = resultProcessor.getReturnedType();
 		PreparedQuery<?> preparedQuery = prepareQuery(returnedType.getReturnedType(),
-				getInputProperties(resultProcessor), parameterAccessor, null, getMappingFunction(resultProcessor));
+				getInputProperties(resultProcessor), parameterAccessor, null, getMappingFunction(resultProcessor), incrementLimit ? l -> l + 1 : UnaryOperator.identity());
 
 		Object rawResult = new Neo4jQueryExecution.DefaultQueryExecution(neo4jOperations).execute(preparedQuery,
 				queryMethod.isCollectionLikeQuery() || queryMethod.isPageQuery() || queryMethod.isSliceQuery());
@@ -87,29 +96,56 @@ abstract class AbstractNeo4jQuery extends Neo4jQuerySupport implements Repositor
 
 		Object processedResult = resultProcessor.processResult(rawResult, preparingConverter);
 
-		LongSupplier totalSupplier = () -> {
-
-			PreparedQuery<Long> countQuery = getCountQuery(parameterAccessor)
-					.orElse(
-						prepareQuery(Long.class, Collections.emptyList(), parameterAccessor, Neo4jQueryType.COUNT, null)
-					);
-			return neo4jOperations.toExecutableQuery(countQuery).getRequiredSingleResult();
-		};
 		if (queryMethod.isPageQuery()) {
-			return PageableExecutionUtils.getPage((List<?>) processedResult, parameterAccessor.getPageable(), totalSupplier);
+			return createPage(parameterAccessor, (List<?>) processedResult);
 		} else if (queryMethod.isSliceQuery()) {
-			long total = totalSupplier.getAsLong();
-			Pageable pageable = parameterAccessor.getPageable();
-			return new SliceImpl<>((List<?>) processedResult, pageable, pageable.getOffset() + pageable.getPageSize() < total);
+			return createSlice(incrementLimit, parameterAccessor, (List<?>) processedResult);
 		} else {
 			return processedResult;
+		}
+	}
+
+	private Page<?> createPage(Neo4jParameterAccessor parameterAccessor, List<?> processedResult) {
+
+		LongSupplier totalSupplier = () -> {
+
+			Supplier<PreparedQuery<Long>> defaultCountQuery = () -> prepareQuery(Long.class,
+					Collections.emptyList(), parameterAccessor, Neo4jQueryType.COUNT, null, UnaryOperator.identity());
+			PreparedQuery<Long> countQuery = getCountQuery(parameterAccessor).orElseGet(defaultCountQuery);
+
+			return neo4jOperations.toExecutableQuery(countQuery).getRequiredSingleResult();
+		};
+		return PageableExecutionUtils.getPage(processedResult, parameterAccessor.getPageable(), totalSupplier);
+	}
+
+	private Slice<?> createSlice(boolean incrementLimit, Neo4jParameterAccessor parameterAccessor, List<?> processedResults) {
+
+		Pageable pageable = parameterAccessor.getPageable();
+
+		if (incrementLimit) {
+			return new SliceImpl<>(
+					processedResults.subList(0, Math.min(processedResults.size(), pageable.getPageSize())),
+					PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), pageable.getSort()),
+					processedResults.size() > pageable.getPageSize()
+			);
+		} else {
+			PreparedQuery<Long> countQuery = getCountQuery(parameterAccessor)
+					.orElseGet(() -> prepareQuery(Long.class, Collections.emptyList(), parameterAccessor,
+							Neo4jQueryType.COUNT, null, UnaryOperator.identity()));
+			long total = neo4jOperations.toExecutableQuery(countQuery).getRequiredSingleResult();
+			return new SliceImpl<>(
+					processedResults,
+					pageable,
+					pageable.getOffset() + pageable.getPageSize() < total
+			);
 		}
 	}
 
 	protected abstract <T extends Object> PreparedQuery<T> prepareQuery(Class<T> returnedType,
 			List<String> includedProperties, Neo4jParameterAccessor parameterAccessor,
 			@Nullable Neo4jQueryType queryType,
-			@Nullable BiFunction<TypeSystem, MapAccessor, ?> mappingFunction);
+			@Nullable BiFunction<TypeSystem, MapAccessor, ?> mappingFunction,
+			@Nullable UnaryOperator<Integer> limitModifier);
 
 	protected Optional<PreparedQuery<Long>> getCountQuery(Neo4jParameterAccessor parameterAccessor) {
 		return Optional.empty();

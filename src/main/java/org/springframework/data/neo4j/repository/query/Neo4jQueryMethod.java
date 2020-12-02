@@ -45,6 +45,8 @@ class Neo4jQueryMethod extends QueryMethod {
 	 */
 	private @Nullable final Query queryAnnotation;
 
+	private final String repositoryName;
+
 	/**
 	 * Creates a new {@link Neo4jQueryMethod} from the given parameters. Looks up the correct query to use for following
 	 * invocations of the method given.
@@ -56,7 +58,12 @@ class Neo4jQueryMethod extends QueryMethod {
 	Neo4jQueryMethod(Method method, RepositoryMetadata metadata, ProjectionFactory factory) {
 		super(method, metadata, factory);
 
+		this.repositoryName = method.getDeclaringClass().getName();
 		this.queryAnnotation = AnnotatedElementUtils.findMergedAnnotation(method, Query.class);
+	}
+
+	String getRepositoryName() {
+		return repositoryName;
 	}
 
 	boolean isCollectionLikeQuery() {
