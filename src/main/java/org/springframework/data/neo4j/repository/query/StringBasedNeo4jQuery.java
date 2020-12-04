@@ -32,7 +32,6 @@ import org.springframework.data.neo4j.core.Neo4jOperations;
 import org.springframework.data.neo4j.core.PreparedQuery;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.repository.query.Neo4jSpelSupport.LiteralReplacement;
-import org.springframework.data.neo4j.repository.query.Neo4jSpelSupport.QueryContext;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.QueryMethodEvaluationContextProvider;
 import org.springframework.data.repository.query.RepositoryQuery;
@@ -175,8 +174,8 @@ final class StringBasedNeo4jQuery extends AbstractNeo4jQuery {
 				boundParameters
 		);
 
-		Neo4jSpelSupport.replaceLiteralsIn(queryContext);
-		Neo4jSpelSupport.logWarningsIfNecessary(queryContext, parameterAccessor);
+		replaceLiteralsIn(queryContext);
+		logWarningsIfNecessary(queryContext, parameterAccessor);
 
 		return PreparedQuery.queryFor(returnedType)
 				.withCypherQuery(queryContext.query)
