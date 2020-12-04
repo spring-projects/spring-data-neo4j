@@ -19,6 +19,7 @@ import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
@@ -36,6 +37,7 @@ import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.Metrics;
 import org.springframework.data.neo4j.core.convert.Neo4jSimpleTypes;
+import org.springframework.data.neo4j.core.mapping.CypherGenerator;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.data.repository.query.ResultProcessor;
@@ -160,6 +162,68 @@ abstract class Neo4jQuerySupport {
 		// TODO Good hook to check the NodeManager whether the thing is an entity and we replace the value with a known id.
 		return mappingContext.getConversionService().writeValue(parameter,
 				ClassTypeInformation.from(parameter.getClass()), conversionOverride);
+	}
+
+	static class QueryContext {
+
+		final String repositoryMethodName;
+
+		final String template;
+
+		final Map<String, Object> boundParameters;
+
+		String query;
+
+		private boolean hasLiteralReplacementForSort = false;
+
+		QueryContext(String repositoryMethodName, String template, Map<String, Object> boundParameters) {
+			this.repositoryMethodName = repositoryMethodName;
+			this.template = template;
+			this.query = this.template;
+			this.boundParameters = boundParameters;
+		}
+	}
+
+	void replaceLiteralsIn(QueryContext queryContext) {
+
+		String cypherQuery = queryContext.template;
+		Iterator<Map.Entry<String, Object>> iterator = queryContext.boundParameters.entrySet().iterator();
+		while (iterator.hasNext()) {
+			Map.Entry<String, Object> entry = iterator.next();
+			Object value = entry.getValue();
+			if (!(value instanceof Neo4jSpelSupport.LiteralReplacement)) {
+				continue;
+			}
+			iterator.remove();
+
+			String key = entry.getKey();
+			cypherQuery = cypherQuery.replace("$" + key, ((Neo4jSpelSupport.LiteralReplacement) value).getValue());
+			queryContext.hasLiteralReplacementForSort =
+					queryContext.hasLiteralReplacementForSort ||
+					((Neo4jSpelSupport.LiteralReplacement) value).getTarget() == Neo4jSpelSupport.LiteralReplacement.Target.SORT;
+		}
+		queryContext.query = cypherQuery;
+	}
+
+	void logWarningsIfNecessary(QueryContext queryContext, Neo4jParameterAccessor parameterAccessor) {
+
+		// Log warning if necessary
+		if (!(queryContext.hasLiteralReplacementForSort || parameterAccessor.getSort().isUnsorted())) {
+
+			Neo4jQuerySupport.REPOSITORY_QUERY_LOG.warn(() ->
+					String.format(
+							"You passed a sorted request to the custom query for '%s'. SDN won't apply any sort information from that object to the query. "
+							+ "Please specify the order in the query itself and use an unsorted request or use the SpEL extension `:#{orderBy(#sort)}`.",
+							queryContext.repositoryMethodName));
+
+			String fragment = CypherGenerator.INSTANCE.createOrderByFragment(parameterAccessor.getSort());
+			if (fragment != null) {
+				Neo4jQuerySupport.REPOSITORY_QUERY_LOG.warn(() ->
+						String.format(
+								"One possible order clause matching your page reguest would be the following fragment:%n%s",
+								fragment));
+			}
+		}
 	}
 
 	private Map<String, Object> convertRange(Range range) {

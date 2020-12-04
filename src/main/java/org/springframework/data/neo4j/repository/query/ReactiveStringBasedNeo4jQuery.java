@@ -127,14 +127,14 @@ final class ReactiveStringBasedNeo4jQuery extends AbstractReactiveNeo4jQuery {
 			@Nullable BiFunction<TypeSystem, MapAccessor, ?> mappingFunction) {
 
 		Map<String, Object> boundParameters = bindParameters(parameterAccessor);
-		Neo4jSpelSupport.QueryContext queryContext = new Neo4jSpelSupport.QueryContext(
+		QueryContext queryContext = new QueryContext(
 				queryMethod.getRepositoryName() + "." + queryMethod.getName(),
 				spelEvaluator.getQueryString(),
 				boundParameters
 		);
 
-		Neo4jSpelSupport.replaceLiteralsIn(queryContext);
-		Neo4jSpelSupport.logWarningsIfNecessary(queryContext, parameterAccessor);
+		replaceLiteralsIn(queryContext);
+		logWarningsIfNecessary(queryContext, parameterAccessor);
 
 		return PreparedQuery.queryFor(returnedType)
 				.withCypherQuery(queryContext.query)
