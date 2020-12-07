@@ -31,6 +31,8 @@ import java.util.Set;
 
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.internal.value.StringValue;
 import org.springframework.core.convert.TypeDescriptor;
@@ -332,6 +334,17 @@ class Neo4jMappingContextTest {
 		assertThat(entity).isNotNull();
 	}
 
+	@ParameterizedTest // DATAGRAPH-1459
+	@ValueSource(classes = {InvalidMultiDynamics1.class, InvalidMultiDynamics2.class, InvalidMultiDynamics3.class, InvalidMultiDynamics4.class})
+	void shouldDetectAllVariantsOfMultipleDynamicRelationships(Class<?> thingWithRelations)  {
+
+		assertThatIllegalStateException().isThrownBy(() -> {
+			Neo4jMappingContext schema = new Neo4jMappingContext();
+			schema.setInitialEntitySet(new HashSet<>(Arrays.asList(TripNode.class, thingWithRelations)));
+			schema.initialize();
+		}).withMessageMatching(".*Only one dynamic relationship between to entities is permitted.");
+	}
+
 	static class DummyIdGenerator implements IdGenerator<Void> {
 
 		@Override
@@ -411,6 +424,59 @@ class Neo4jMappingContextTest {
 
 		String name;
 	}
+
+	@Node
+	static class InvalidMultiDynamics1 {
+
+		@Id private String id;
+
+		String name;
+
+		Map<ExtendedA, BikeNode> relEA;
+
+		Map<ExtendedA, BikeNode> relEB;
+	}
+
+	@Node
+	static class InvalidMultiDynamics2 {
+
+		@Id private String id;
+
+		String name;
+
+		Map<ExtendedA, BikeNode> relEA;
+
+		@Relationship
+		Map<ExtendedA, BikeNode> relEB;
+	}
+
+	@Node
+	static class InvalidMultiDynamics3 {
+
+		@Id private String id;
+
+		String name;
+
+		@Relationship
+		Map<ExtendedA, BikeNode> relEA;
+
+		@Relationship
+		Map<ExtendedA, BikeNode> relEB;
+	}
+
+	@Node
+	static class InvalidMultiDynamics4 {
+
+		@Id private String id;
+
+		String name;
+
+		@Relationship
+		Map<ExtendedA, BikeNode> relEA;
+
+		Map<ExtendedA, BikeNode> relEB;
+	}
+
 
 	@Node
 	static class InvalidId {
