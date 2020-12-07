@@ -132,13 +132,13 @@ final class DefaultRelationshipDescription extends Association<Neo4jPersistentPr
 			return false;
 		}
 		DefaultRelationshipDescription that = (DefaultRelationshipDescription) o;
-		return getType().equals(that.getType()) && getTarget().equals(that.getTarget())
+		return (isDynamic() ? getFieldName().equals(that.getFieldName()) : getType().equals(that.getType())) && getTarget().equals(that.getTarget())
 				&& getSource().equals(that.getSource()) && getDirection().equals(that.getDirection());
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(type, target, source, direction);
+		return Objects.hash(type, type, fieldName, target, source, direction);
 	}
 
 }
