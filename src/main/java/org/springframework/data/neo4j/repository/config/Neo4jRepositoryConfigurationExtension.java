@@ -95,10 +95,14 @@ public final class Neo4jRepositoryConfigurationExtension extends RepositoryConfi
 	@Override
 	public void registerBeansForRoot(BeanDefinitionRegistry registry, RepositoryConfigurationSource configurationSource) {
 
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder
+		registerIfNotAlreadyRegistered(() -> BeanDefinitionBuilder
 				.rootBeanDefinition(Neo4jEvaluationContextExtension.class)
-				.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
-		registry.registerBeanDefinition(Neo4jEvaluationContextExtension.class.getName(), builder.getBeanDefinition());
+				.setRole(BeanDefinition.ROLE_INFRASTRUCTURE)
+				.getBeanDefinition(),
+				registry,
+				Neo4jEvaluationContextExtension.class.getName(),
+				configurationSource.getSource()
+		);
 	}
 
 	@Override
