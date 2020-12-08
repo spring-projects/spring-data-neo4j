@@ -514,28 +514,28 @@ public enum CypherGenerator {
 
 		for (RelationshipDescription relationshipDescription : relationshipDescriptions) {
 			String relationshipType = relationshipDescription.getType();
-			if (relationshipTypes.contains(relationshipType)) {
-				continue;
-			}
 			if (relationshipDescription.isDynamic()) {
 				relationshipTypes.clear();
 				continue;
 			}
 			relationshipTypes.add(relationshipType);
-			collectAllRelationshipTypes(relationshipDescription.getTarget(), relationshipTypes);
+			collectAllRelationshipTypes(relationshipDescription.getTarget(), relationshipTypes, new HashSet<>(relationshipDescriptions));
 		}
 		return relationshipTypes.toArray(new String[0]);
 	}
 
-	private void collectAllRelationshipTypes(NodeDescription<?> nodeDescription, Set<String> processedRelationshipTypes) {
+	private void collectAllRelationshipTypes(NodeDescription<?> nodeDescription, Set<String> relationshipTypes,
+											 Collection<RelationshipDescription> processedRelationshipDescriptions) {
 
 		for (RelationshipDescription relationshipDescription : nodeDescription.getRelationships()) {
 			String relationshipType = relationshipDescription.getType();
-			if (processedRelationshipTypes.contains(relationshipType)) {
+			if (processedRelationshipDescriptions.contains(relationshipDescription)) {
 				continue;
 			}
-			processedRelationshipTypes.add(relationshipType);
-			collectAllRelationshipTypes(relationshipDescription.getTarget(), processedRelationshipTypes);
+			relationshipTypes.add(relationshipType);
+			processedRelationshipDescriptions.add(relationshipDescription);
+			collectAllRelationshipTypes(relationshipDescription.getTarget(), relationshipTypes,
+					processedRelationshipDescriptions);
 		}
 	}
 
