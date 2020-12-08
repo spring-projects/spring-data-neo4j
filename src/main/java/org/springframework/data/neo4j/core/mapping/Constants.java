@@ -34,11 +34,22 @@ public final class Constants {
 	public static final SymbolicName NAME_OF_ROOT_NODE = Cypher.name("n");
 
 	public static final String NAME_OF_INTERNAL_ID = "__internalNeo4jId__";
+	/**
+	 * Indicates the list of dynamic labels.
+	 */
 	public static final String NAME_OF_LABELS = "__nodeLabels__";
+	/**
+	 * Indicates the list of all labels.
+	 */
+	public static final String NAME_OF_ALL_LABELS = "__labels__";
 	public static final String NAME_OF_IDS = "__ids__";
 	public static final String NAME_OF_ID = "__id__";
 	public static final String NAME_OF_VERSION_PARAM = "__version__";
 	public static final String NAME_OF_PROPERTIES_PARAM = "__properties__";
+	/**
+	 * Indicates the parameter that contains the static labels which are required to correctly compute the difference
+	 * in the list of dynamic labels when saving a node.
+	 */
 	public static final String NAME_OF_STATIC_LABELS_PARAM = "__staticLabels__";
 	public static final String NAME_OF_ENTITY_LIST_PARAM = "__entities__";
 	public static final String NAME_OF_PATHS = "__paths__";

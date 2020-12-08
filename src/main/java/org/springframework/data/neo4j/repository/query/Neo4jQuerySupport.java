@@ -159,7 +159,13 @@ abstract class Neo4jQuerySupport {
 			return convertBoundingBox((BoundingBox) parameter);
 		}
 
-		// TODO Good hook to check the NodeManager whether the thing is an entity and we replace the value with a known id.
+		if (mappingContext.hasPersistentEntityFor(parameter.getClass())) {
+
+			Map<String, Object> result = new HashMap<>();
+			Neo4jNestedMapEntityWriter.forContext(mappingContext).write(parameter, result);
+			return result;
+		}
+
 		return mappingContext.getConversionService().writeValue(parameter,
 				ClassTypeInformation.from(parameter.getClass()), conversionOverride);
 	}

@@ -62,6 +62,10 @@ public class PersonWithRelationshipWithProperties {
 		return new PersonWithRelationshipWithProperties(newId, this.name, this.hobbies, this.club);
 	}
 
+	public Long getId() {
+		return id;
+	}
+
 	public String getName() {
 		return name;
 	}

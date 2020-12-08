@@ -91,7 +91,6 @@ import org.springframework.data.neo4j.integration.shared.common.PersonWithRelati
 import org.springframework.data.neo4j.integration.shared.common.Pet;
 import org.springframework.data.neo4j.integration.shared.common.SimilarThing;
 import org.springframework.data.neo4j.integration.shared.common.ThingWithAssignedId;
-import org.springframework.data.neo4j.integration.shared.common.ThingWithGeneratedId;
 import org.springframework.data.neo4j.integration.shared.common.WorksInClubRelationship;
 import org.springframework.data.neo4j.repository.ReactiveNeo4jRepository;
 import org.springframework.data.neo4j.repository.config.EnableReactiveNeo4jRepositories;
@@ -578,7 +577,7 @@ class ReactiveRepositoryIT {
 		void findByPropertyFailsIfNoConverterIsAvailable(@Autowired ReactivePersonRepository repository) {
 
 			assertThatExceptionOfType(ConverterNotFoundException.class)
-					.isThrownBy(() -> repository.findAllByPlace(new ThingWithGeneratedId("hello")))
+					.isThrownBy(() -> repository.findAllByPlace(new ReactivePersonRepository.SomethingThatIsNotKnownAsEntity()))
 					.withMessageStartingWith("No converter found capable of converting from type");
 		}
 
