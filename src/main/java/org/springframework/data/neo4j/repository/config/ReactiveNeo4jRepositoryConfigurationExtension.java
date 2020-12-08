@@ -95,10 +95,14 @@ public final class ReactiveNeo4jRepositoryConfigurationExtension extends Reposit
 	@Override
 	public void registerBeansForRoot(BeanDefinitionRegistry registry, RepositoryConfigurationSource configurationSource) {
 
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder
-				.rootBeanDefinition(Neo4jEvaluationContextExtension.class)
-				.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
-		registry.registerBeanDefinition(Neo4jEvaluationContextExtension.class.getName(), builder.getBeanDefinition());
+		registerIfNotAlreadyRegistered(() -> BeanDefinitionBuilder
+						.rootBeanDefinition(Neo4jEvaluationContextExtension.class)
+						.setRole(BeanDefinition.ROLE_INFRASTRUCTURE)
+						.getBeanDefinition(),
+				registry,
+				Neo4jEvaluationContextExtension.class.getName(),
+				configurationSource.getSource()
+		);
 	}
 
 	@Override
