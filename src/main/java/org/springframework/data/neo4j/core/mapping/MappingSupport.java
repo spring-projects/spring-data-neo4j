@@ -25,6 +25,7 @@ import java.util.stream.Collectors;
 import org.apiguardian.api.API;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.types.Type;
+import org.springframework.lang.Nullable;
 
 /**
  * @author Michael J. Simons
@@ -43,15 +44,16 @@ public final class MappingSupport {
 	 * @return A unified collection (Either a collection of Map.Entry for dynamic and relationships with properties or a
 	 *         list of related values)
 	 */
-	public static Collection<?> unifyRelationshipValue(Neo4jPersistentProperty property, Object rawValue) {
+	public static @Nullable Collection<?> unifyRelationshipValue(Neo4jPersistentProperty property, Object rawValue) {
 		Collection<?> unifiedValue;
 		if (property.isDynamicAssociation()) {
 			if (property.isDynamicOneToManyAssociation()) {
-				unifiedValue = ((Map<String, Collection<?>>) rawValue).entrySet().stream()
-						.flatMap(e -> e.getValue().stream().map(v -> new SimpleEntry(e.getKey(), v))).collect(
-								Collectors.toList());
+				unifiedValue = ((Map<?, Collection<?>>) rawValue)
+						.entrySet().stream()
+						.flatMap(e -> e.getValue().stream().map(v -> new SimpleEntry(e.getKey(), v)))
+						.collect(Collectors.toList());
 			} else {
-				unifiedValue = ((Map<String, Object>) rawValue).entrySet();
+				unifiedValue = ((Map<?, Object>) rawValue).entrySet();
 			}
 		} else if (property.isRelationshipWithProperties()) {
 			unifiedValue = (Collection<Object>) rawValue;
@@ -92,7 +94,7 @@ public final class MappingSupport {
 	 * Class that defines a tuple of relationship with properties and the connected target entity.
 	 */
 	@API(status = API.Status.INTERNAL)
-	final static class RelationshipPropertiesWithEntityHolder {
+	public final static class RelationshipPropertiesWithEntityHolder {
 		private final Object relationshipProperties;
 		private final Object relatedEntity;
 
@@ -101,11 +103,11 @@ public final class MappingSupport {
 			this.relatedEntity = relatedEntity;
 		}
 
-		Object getRelationshipProperties() {
+		public Object getRelationshipProperties() {
 			return relationshipProperties;
 		}
 
-		Object getRelatedEntity() {
+		public Object getRelatedEntity() {
 			return relatedEntity;
 		}
 	}

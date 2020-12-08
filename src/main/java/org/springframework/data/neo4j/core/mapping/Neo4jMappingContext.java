@@ -148,7 +148,6 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 		return conversionService.hasCustomWriteTarget(targetType);
 	}
 
-
 	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.mapping.context.AbstractMappingContext#createPersistentEntity(org.springframework.data.util.TypeInformation)
@@ -339,7 +338,7 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 			String dynamicRelationshipType = null;
 			if (relationshipContext.getRelationship().isDynamic()) {
 				TypeInformation<?> keyType = relationshipContext.getInverse().getTypeInformation().getRequiredComponentType();
-				Object key = ((Map.Entry<String, ?>) relatedValue).getKey();
+				Object key = ((Map.Entry) relatedValue).getKey();
 				dynamicRelationshipType = conversionService.writeValue(key, keyType, relationshipContext.getInverse().getOptionalWritingConverter()).asString();
 			}
 			return createStatementForRelationShipWithProperties(

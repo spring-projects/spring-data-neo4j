@@ -23,7 +23,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.integration.shared.common.DtoPersonProjection;
 import org.springframework.data.neo4j.integration.shared.common.PersonProjection;
 import org.springframework.data.neo4j.integration.shared.common.PersonWithAllConstructor;
-import org.springframework.data.neo4j.integration.shared.common.ThingWithGeneratedId;
 import org.springframework.data.neo4j.repository.ReactiveNeo4jRepository;
 import org.springframework.data.neo4j.repository.query.Query;
 import org.springframework.data.neo4j.types.GeographicPoint2d;
@@ -69,7 +68,13 @@ public interface ReactivePersonRepository extends ReactiveNeo4jRepository<Person
 
 	Flux<PersonWithAllConstructor> findAllByPlace(GeographicPoint2d p);
 
-	Flux<PersonWithAllConstructor> findAllByPlace(ThingWithGeneratedId p);
+	Flux<PersonWithAllConstructor> findAllByPlace(SomethingThatIsNotKnownAsEntity p);
+
+	/**
+	 * Needed to have something that is not mapped in to a map.
+	 */
+	class SomethingThatIsNotKnownAsEntity {
+	}
 
 	@Query("MATCH (n:PersonWithAllConstructor) where n.name = $name return n{.name}")
 	Mono<PersonProjection> findByNameWithCustomQueryAndMapProjection(@Param("name") String name);

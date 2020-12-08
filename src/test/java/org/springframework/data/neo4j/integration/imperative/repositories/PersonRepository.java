@@ -38,7 +38,6 @@ import org.springframework.data.neo4j.integration.shared.common.DtoPersonProject
 import org.springframework.data.neo4j.integration.shared.common.DtoPersonProjectionContainingAdditionalFields;
 import org.springframework.data.neo4j.integration.shared.common.PersonProjection;
 import org.springframework.data.neo4j.integration.shared.common.PersonWithAllConstructor;
-import org.springframework.data.neo4j.integration.shared.common.ThingWithGeneratedId;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.repository.query.BoundingBox;
 import org.springframework.data.neo4j.repository.query.Query;
@@ -205,7 +204,13 @@ public interface PersonRepository extends Neo4jRepository<PersonWithAllConstruct
 
 	List<PersonWithAllConstructor> findAllByPlace(GeographicPoint2d p);
 
-	List<PersonWithAllConstructor> findAllByPlace(ThingWithGeneratedId p);
+	List<PersonWithAllConstructor> findAllByPlace(SomethingThatIsNotKnownAsEntity p);
+
+	/**
+	 * Needed to have something that is not mapped in to a map.
+	 */
+	class SomethingThatIsNotKnownAsEntity {
+	}
 
 	List<PersonWithAllConstructor> findAllByPlaceNear(Point p);
 
@@ -296,4 +301,7 @@ public interface PersonRepository extends Neo4jRepository<PersonWithAllConstruct
 
 	@Query("MATCH (n:PersonWithAllConstructor) return n")
 	List<PersonProjection> loadAllProjectionsWithNodeReturn();
+
+	@Query("CREATE (n:PersonWithAllConstructor) SET n+= $testNode.__properties__ RETURN n")
+	PersonWithAllConstructor createWithCustomQuery(@Param("testNode") PersonWithAllConstructor testNode);
 }

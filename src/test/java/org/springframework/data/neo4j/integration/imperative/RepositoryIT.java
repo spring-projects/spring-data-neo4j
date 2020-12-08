@@ -41,6 +41,7 @@ import java.util.stream.StreamSupport;
 
 import org.assertj.core.api.Assertions;
 import org.assertj.core.groups.Tuple;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -52,6 +53,7 @@ import org.neo4j.driver.SessionConfig;
 import org.neo4j.driver.Transaction;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
+import org.neo4j.driver.internal.util.ServerVersion;
 import org.neo4j.driver.types.Node;
 import org.neo4j.driver.types.Point;
 import org.neo4j.driver.types.Relationship;
@@ -120,7 +122,6 @@ import org.springframework.data.neo4j.integration.shared.common.SimpleEntityWith
 import org.springframework.data.neo4j.integration.shared.common.SimplePerson;
 import org.springframework.data.neo4j.integration.shared.common.ThingWithAssignedId;
 import org.springframework.data.neo4j.integration.shared.common.ThingWithFixedGeneratedId;
-import org.springframework.data.neo4j.integration.shared.common.ThingWithGeneratedId;
 import org.springframework.data.neo4j.integration.shared.common.WorksInClubRelationship;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
@@ -571,7 +572,7 @@ class RepositoryIT {
 		@Test
 		void findByPropertyFailsIfNoConverterIsAvailable(@Autowired PersonRepository repository) {
 			assertThatExceptionOfType(ConverterNotFoundException.class)
-					.isThrownBy(() -> repository.findAllByPlace(new ThingWithGeneratedId("hello")))
+					.isThrownBy(() -> repository.findAllByPlace(new PersonRepository.SomethingThatIsNotKnownAsEntity()))
 					.withMessageStartingWith("No converter found capable of converting from type");
 		}
 
@@ -1758,10 +1759,46 @@ class RepositoryIT {
 				assertThat(node.get("e").get("identifyingEnum").asString()).isEqualTo("A");
 			}
 		}
+
+		@Test // DATAGRAPH-1452
+		void createWithCustomQueryShouldWorkWithPlainObjects(@Autowired PersonRepository repository) {
+
+			PersonWithAllConstructor p = new PersonWithAllConstructor(null, "NewName", "NewFirstName", null, null, null, LocalDate.now(), null, null, null, null);
+
+			PersonWithAllConstructor newPerson = repository.createWithCustomQuery(p);
+			assertThat(newPerson.getName()).isEqualTo(p.getName());
+			assertThat(newPerson.getFirstName()).isEqualTo(p.getFirstName());
+			assertThat(newPerson.getBornOn()).isEqualTo(p.getBornOn());
+		}
 	}
 
 	@Nested
 	class SaveWithRelationships extends IntegrationTestBase {
+
+		@Test // DATAGRAPH-1452
+		void createWithCustomQueryShouldWorkWithNestedObjects(@Autowired Driver driver, @Autowired RelationshipRepository repository) {
+
+			Assumptions.assumeTrue(ServerVersion.version(driver).greaterThanOrEqual(ServerVersion.v4_1_0));
+
+			PersonWithRelationship p = new PersonWithRelationship();
+			p.setName("A Person");
+			p.setId(4711L);
+			Hobby h = new Hobby();
+			h.setName("A Hobby");
+			p.setHobbies(h);
+			p.setPets(Arrays.asList(new Pet("A"), new Pet("B")));
+
+			Club club = new Club();
+			club.setName("C27");
+			p.setClub(club);
+
+			PersonWithRelationship newPerson = repository.createWithCustomQuery(p);
+			newPerson = repository.findById(newPerson.getId()).get();
+			assertThat(newPerson.getName()).isEqualTo(p.getName());
+			assertThat(newPerson.getHobbies().getName()).isEqualTo("A Hobby");
+			assertThat(newPerson.getPets()).extracting(Pet::getName).containsExactlyInAnyOrder("A", "B");
+			assertThat(newPerson.getClub().getName()).isEqualTo("C27");
+		}
 
 		@Test
 		void saveSingleEntityWithRelationships(@Autowired RelationshipRepository repository) {
@@ -3540,6 +3577,36 @@ class RepositoryIT {
 		PersonWithRelationship findByPetsHobbiesName(String hobbyName);
 
 		PersonWithRelationship findByPetsFriendsName(String petName);
+
+		@Query("CREATE (n:PersonWithRelationship) \n"
+			   + "SET n.name = $0.__properties__.name  \n"
+			   + "WITH n, id(n) as parentId\n"
+			   + "UNWIND $0.__properties__.Has as x\n"
+			   + "CALL { WITH x, parentId\n"
+			   + " \n"
+			   + " WITH x, parentId\n"
+			   + " MATCH (_) \n"
+			   + " WHERE id(_) = parentId AND x.__labels__[0] = 'Pet'\n"
+			   + " CREATE (p:Pet {name: x.__properties__.name}) <- [r:Has] - (_)\n"
+			   + " RETURN p, r\n"
+			   + " \n"
+			   + " UNION\n"
+			   + " WITH x, parentId\n"
+			   + " MATCH (_) \n"
+			   + " WHERE id(_) = parentId AND x.__labels__[0] = 'Hobby'\n"
+			   + " CREATE (p:Hobby {name: x.__properties__.name}) <- [r:Has] - (_)\n"
+			   + " RETURN p, r\n"
+			   + "\n"
+			   + " UNION\n"
+			   + " WITH x, parentId\n"
+			   + " MATCH (_) \n"
+			   + " WHERE id(_) = parentId AND x.__labels__[0] = 'Club'\n"
+			   + " CREATE (p:Club {name: x.__properties__.name}) - [r:Has] -> (_)\n"
+			   + " RETURN p, r\n"
+			   + "\n"
+			   + "}\n"
+			   + "RETURN n, collect(r), collect(p)")
+		PersonWithRelationship createWithCustomQuery(PersonWithRelationship p);
 	}
 
 	interface SimilarThingRepository extends Neo4jRepository<SimilarThing, Long> {}
