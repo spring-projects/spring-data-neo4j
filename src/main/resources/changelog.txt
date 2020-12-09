@@ -1,6 +1,30 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 6.0.2 (2020-12-09)
+-------------------------------------
+* DATAGRAPH-1460 - Neo4jEvaluationContextExtension breaks bean overriding setup.
+* DATAGRAPH-1459 - Identify multiple dynamic relationships to the same Class correctly.
+* DATAGRAPH-1456 - More than one level of relationships does not map correctly.
+* DATAGRAPH-1454 - Add support for literal SpEL replacements.
+* DATAGRAPH-1449 - Delete removed dynamic relationships with properties.
+* DATAGRAPH-1447 - Write dynamic relationship types for relationship with properties.
+* DATAGRAPH-1446 - Support abstract, generic base classes for relationship properties.
+* DATAGRAPH-1442 - Avoid redundant statement creation for bidirectional relationships.
+* DATAGRAPH-1441 - Register necessary callbacks internally inside the mapping context.
+* DATAGRAPH-1440 - Improve support for methods returning Slice..
+* DATAGRAPH-1438 - DTO based projections fail on empty result sets.
+* DATAGRAPH-1437 - Support mapping of named paths.
+* DATAGRAPH-1436 - Derived finder for same type creates wrong query.
+* DATAGRAPH-1434 - Second-level relationship fetching via @RelationshipProperties breaks.
+* DATAGRAPH-1433 - Generated query doesn't honor relationship direction.
+* DATAGRAPH-1431 - Objects beyond second level of hierarchy are not retrieved via ReactiveNeo4jRepository.
+* DATAGRAPH-1430 - Should not DELETE relationships on SAVE for new nodes.
+* DATAGRAPH-1429 - Allow the use of one top-level aggregate.
+* DATAGRAPH-1427 - Optimistic Locking on delete.
+* DATAGRAPH-1426 - Release 6.0.2 (2020.0.2).
+
+
 Changes in version 6.1.0-M1 (2020-12-09)
 ----------------------------------------
 * DATAGRAPH-1460 - Neo4jEvaluationContextExtension breaks bean overriding setup.
@@ -1963,6 +1987,7 @@ General
 * Support for building traversal descriptions
 * Support for cross-store persistence including basic transaction support
 * Abstract configuration class
+
 
 
 
