@@ -1,6 +1,12 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 5.2.12.RELEASE (2020-12-09)
+----------------------------------------------
+* DATAGRAPH-1415 - Release 5.2.12 (Moore SR12).
+* DATAGRAPH-1407 - Make consistent use of mayBeReadWrite for deciding to clear the session or not.
+
+
 Changes in version 6.0.1 (2020-11-11)
 -------------------------------------
 * DATAGRAPH-1425 - Support strict mode for entity detection.
@@ -1917,6 +1923,7 @@ General
 * Support for building traversal descriptions
 * Support for cross-store persistence including basic transaction support
 * Abstract configuration class
+
 
 
 
