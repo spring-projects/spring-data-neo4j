@@ -1,6 +1,13 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 5.3.6.RELEASE (2020-12-09)
+---------------------------------------------
+* DATAGRAPH-1439 - Fix link to Spring Framework's conversion service.
+* DATAGRAPH-1416 - Release 5.3.6 (Neumann SR6).
+* DATAGRAPH-1407 - Make consistent use of mayBeReadWrite for deciding to clear the session or not.
+
+
 Changes in version 5.2.12.RELEASE (2020-12-09)
 ----------------------------------------------
 * DATAGRAPH-1415 - Release 5.2.12 (Moore SR12).
@@ -1929,6 +1936,7 @@ General
 * Support for building traversal descriptions
 * Support for cross-store persistence including basic transaction support
 * Abstract configuration class
+
 
 
 
