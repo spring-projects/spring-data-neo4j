@@ -1,6 +1,39 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 6.1.0-M1 (2020-12-09)
+----------------------------------------
+* DATAGRAPH-1460 - Neo4jEvaluationContextExtension breaks bean overriding setup.
+* DATAGRAPH-1459 - Identify multiple dynamic relationships to the same Class correctly.
+* DATAGRAPH-1456 - More than one level of relationships does not map correctly.
+* DATAGRAPH-1454 - Add support for literal SpEL replacements.
+* DATAGRAPH-1452 - Support known entities as parameter for repository methods.
+* DATAGRAPH-1449 - Delete removed dynamic relationships with properties.
+* DATAGRAPH-1447 - Write dynamic relationship types for relationship with properties.
+* DATAGRAPH-1446 - Support abstract, generic base classes for relationship properties.
+* DATAGRAPH-1442 - Avoid redundant statement creation for bidirectional relationships.
+* DATAGRAPH-1441 - Register necessary callbacks internally inside the mapping context.
+* DATAGRAPH-1440 - Improve support for methods returning Slice..
+* DATAGRAPH-1438 - DTO based projections fail on empty result sets.
+* DATAGRAPH-1437 - Support mapping of named paths.
+* DATAGRAPH-1436 - Derived finder for same type creates wrong query.
+* DATAGRAPH-1434 - Second-level relationship fetching via @RelationshipProperties breaks.
+* DATAGRAPH-1433 - Generated query doesn't honor relationship direction.
+* DATAGRAPH-1431 - Objects beyond second level of hierarchy are not retrieved via ReactiveNeo4jRepository.
+* DATAGRAPH-1430 - Should not DELETE relationships on SAVE for new nodes.
+* DATAGRAPH-1429 - Allow the use of one top-level aggregate.
+* DATAGRAPH-1428 - Implement CrudRepository.delete(Iterable<ID> ids).
+* DATAGRAPH-1427 - Optimistic Locking on delete.
+* DATAGRAPH-1425 - Support strict mode for entity detection.
+* DATAGRAPH-1424 - Make derived queries target the correct path with multiple relationships to the same target node.
+* DATAGRAPH-1423 - Add a better error message when persisting invalid implicit entities.
+* DATAGRAPH-1422 - Section hightlighting in the current reference documentation is mostly broken.
+* DATAGRAPH-1421 - Fix issues in the new reference documentation.
+* DATAGRAPH-1420 - Check for TargetNode in RelationshipProperties.
+* DATAGRAPH-1419 - Enable Maven repository caching for Jenkins jobs.
+* DATAGRAPH-1418 - Release 6.1 M1 (2021.0.0).
+
+
 Changes in version 5.3.6.RELEASE (2020-12-09)
 ---------------------------------------------
 * DATAGRAPH-1439 - Fix link to Spring Framework's conversion service.
@@ -1936,6 +1969,7 @@ General
 * Support for building traversal descriptions
 * Support for cross-store persistence including basic transaction support
 * Abstract configuration class
+
 
 
 
