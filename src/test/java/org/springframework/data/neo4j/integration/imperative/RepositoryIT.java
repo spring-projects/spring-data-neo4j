@@ -91,6 +91,7 @@ import org.springframework.data.neo4j.integration.shared.common.AltLikedByPerson
 import org.springframework.data.neo4j.integration.shared.common.AltPerson;
 import org.springframework.data.neo4j.integration.shared.common.AnotherThingWithAssignedId;
 import org.springframework.data.neo4j.integration.shared.common.BidirectionalEnd;
+import org.springframework.data.neo4j.integration.shared.common.BidirectionalSameEntity;
 import org.springframework.data.neo4j.integration.shared.common.BidirectionalStart;
 import org.springframework.data.neo4j.integration.shared.common.Club;
 import org.springframework.data.neo4j.integration.shared.common.ClubRelationship;
@@ -2162,6 +2163,35 @@ class RepositoryIT {
 				assertThat(records).hasSize(1);
 			}
 		}
+
+		@Test // DATAGRAPH-1469
+		void saveBidirectionalSameEntityRelationship(@Autowired BidirectionalSameEntityRepository repository) {
+			BidirectionalSameEntity entity1 = new BidirectionalSameEntity("e1");
+			BidirectionalSameEntity entity2 = new BidirectionalSameEntity("e2");
+
+			BidirectionalSameEntity.BidirectionalSameRelationship e1KnowsE2 =
+					new BidirectionalSameEntity.BidirectionalSameRelationship(entity2);
+			BidirectionalSameEntity.BidirectionalSameRelationship e2KnowsE1 =
+					new BidirectionalSameEntity.BidirectionalSameRelationship(entity1);
+
+			entity1.setKnows(Collections.singletonList(e1KnowsE2));
+			entity2.setKnows(Collections.singletonList(e2KnowsE1));
+
+			repository.save(entity1);
+			try (Session session = createSession()) {
+				List<Record> records = session.run(
+						"MATCH (e:BidirectionalSameEntity{id:'e1'})-[:KNOWS]->(:BidirectionalSameEntity{id:'e2'}) RETURN e")
+						.list();
+
+				assertThat(records).hasSize(1);
+
+				records = session.run(
+						"MATCH (e:BidirectionalSameEntity{id:'e2'})-[:KNOWS]->(:BidirectionalSameEntity{id:'e1'}) RETURN e")
+						.list();
+
+				assertThat(records).hasSize(1);
+			}
+		}
 	}
 
 	@Nested
@@ -3678,6 +3708,8 @@ class RepositoryIT {
 
 	interface EntityWithRelationshipPropertiesPathRepository
 			extends Neo4jRepository<EntityWithRelationshipPropertiesPath, Long> {}
+
+	interface BidirectionalSameEntityRepository extends Neo4jRepository<BidirectionalSameEntity, String> {}
 
 	@SpringJUnitConfig(Config.class)
 	static abstract class IntegrationTestBase {
