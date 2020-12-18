@@ -28,10 +28,12 @@ import java.net.URL;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.Period;
+import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import java.util.TimeZone;
 import java.util.UUID;
 
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
@@ -112,4 +114,8 @@ public class ThingWithAllAdditionalTypes {
 	private List<Double> listOfDoubles;
 
 	private List<SomeEnum> aCollectionOfEnums;
+
+	private TimeZone aTimeZone;
+
+	private ZoneId aZoneId;
 }
