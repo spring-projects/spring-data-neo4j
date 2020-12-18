@@ -121,6 +121,8 @@ public abstract class Neo4jConversionsITBase {
 		hlp.put("anArrayOfEnums", new SomeEnum[] { SomeEnum.ValueA, SomeEnum.ValueB });
 		hlp.put("aCollectionOfEnums", Arrays.asList(SomeEnum.ValueC, SomeEnum.TheUsualMisfit));
 		hlp.put("listOfDoubles", Arrays.asList(1.0));
+		hlp.put("aTimeZone", TimeZone.getTimeZone("America/Los_Angeles"));
+		hlp.put("aZoneId", ZoneId.of("America/New_York"));
 		ADDITIONAL_TYPES = Collections.unmodifiableMap(hlp);
 	}
 
@@ -226,7 +228,10 @@ public abstract class Neo4jConversionsITBase {
 								+ " n.aURL = 'https://www.test.com',"
 								+ " n.aURI = 'urn:isbn:9783864905254',"
 								+ " n.anEnum = 'TheUsualMisfit'," + " n.anArrayOfEnums = ['ValueA', 'ValueB'],"
-								+ " n.aCollectionOfEnums = ['ValueC', 'TheUsualMisfit']" + " RETURN id(n) AS id", parameters)
+								+ " n.aCollectionOfEnums = ['ValueC', 'TheUsualMisfit'],"
+							 	+ " n.aTimeZone = 'America/Los_Angeles', "
+							 	+ " n.aZoneId = 'America/New_York'"
+							 	+ " RETURN id(n) AS id", parameters)
 						.single().get("id").asLong();
 
 				parameters = new HashMap<>();

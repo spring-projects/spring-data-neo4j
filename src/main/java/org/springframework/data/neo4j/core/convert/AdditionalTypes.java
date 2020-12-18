@@ -22,6 +22,7 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
 import java.time.Instant;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAmount;
@@ -33,6 +34,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import java.util.TimeZone;
 import java.util.UUID;
 
 import org.neo4j.driver.Value;
@@ -94,8 +96,34 @@ final class AdditionalTypes {
 		hlp.add(ConverterBuilder.reading(Value.class, UUID.class, AdditionalTypes::asUUID).andWriting(AdditionalTypes::value));
 		hlp.add(ConverterBuilder.reading(Value.class, URL.class, AdditionalTypes::asURL).andWriting(AdditionalTypes::value));
 		hlp.add(ConverterBuilder.reading(Value.class, URI.class, AdditionalTypes::asURI).andWriting(AdditionalTypes::value));
+		hlp.add(ConverterBuilder.reading(Value.class, TimeZone.class, AdditionalTypes::asTimeZone).andWriting(AdditionalTypes::value));
+		hlp.add(ConverterBuilder.reading(Value.class, ZoneId.class, AdditionalTypes::asZoneId).andWriting(AdditionalTypes::value));
 
 		CONVERTERS = Collections.unmodifiableList(hlp);
+	}
+
+	static TimeZone asTimeZone(Value value) {
+		return TimeZone.getTimeZone(value.asString());
+	}
+
+	static Value value(TimeZone timeZone) {
+		if (timeZone == null) {
+			return Values.NULL;
+		}
+
+		return Values.value(timeZone.getID());
+	}
+
+	static ZoneId asZoneId(Value value) {
+		return ZoneId.of(value.asString());
+	}
+
+	static Value value(ZoneId zoneId) {
+		if (zoneId == null) {
+			return Values.NULL;
+		}
+
+		return Values.value(zoneId.getId());
 	}
 
 	static UUID asUUID(Value value) {
