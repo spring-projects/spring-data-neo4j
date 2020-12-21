@@ -253,7 +253,17 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 			Neo4jPersistentEntity<ET> concreteNodeDescription = (Neo4jPersistentEntity<ET>) nodeDescriptionAndLabels
 					.getNodeDescription();
 
-			Collection<RelationshipDescription> relationships = concreteNodeDescription.getRelationships();
+			// If inheritance is in place this is possible just a subset of all relationships
+			Collection<RelationshipDescription> relationships = new HashSet<>(nodeDescription.getRelationships());
+			// Here we get all relationships, including the inherited ones but with another source type
+			concreteNodeDescription.getRelationships().forEach(concreteRelationship -> {
+
+				String fieldName = concreteRelationship.getFieldName();
+
+				if (relationships.stream().noneMatch(relationship -> relationship.getFieldName().equals(fieldName))) {
+					relationships.add(concreteRelationship);
+				}
+			});
 
 			ET instance = instantiate(concreteNodeDescription, queryResult, allValues, relationships,
 					nodeDescriptionAndLabels.getDynamicLabels(), lastMappedEntity, processedSegments);

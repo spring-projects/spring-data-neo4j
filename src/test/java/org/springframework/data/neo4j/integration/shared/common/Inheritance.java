@@ -218,4 +218,59 @@ public class Inheritance {
 			return things;
 		}
 	}
+
+	/**
+	 *  Abstract super base class with relationships
+	 */
+	@Node("SuperBaseClassWithRelationship")
+	public static abstract class SuperBaseClassWithRelationship {
+		@Id @GeneratedValue private Long id;
+
+		@Relationship("RELATED_TO") private List<ConcreteClassB> boing;
+
+		public void setBoing(List<ConcreteClassB> boing) {
+			this.boing = boing;
+		}
+
+		public List<ConcreteClassB> getBoing() {
+			return boing;
+		}
+	}
+
+	/**
+	 *  Abstract base class with relationships
+	 */
+	@Node("BaseClassWithRelationship")
+	public static abstract class BaseClassWithRelationship extends SuperBaseClassWithRelationship {
+
+		@Relationship("HAS") private List<SuperBaseClass> things;
+
+		public void setThings(List<SuperBaseClass> things) {
+			this.things = things;
+		}
+
+		public List<SuperBaseClass> getThings() {
+			return things;
+		}
+	}
+
+	/**
+	 *  Concrete implementation
+	 */
+	@Node
+	public static class ExtendingBaseClassWithRelationship extends BaseClassWithRelationship {
+
+		@Relationship("SOMETHING_ELSE") private List<ConcreteClassA> somethingConcrete;
+
+		public void setSomethingConcrete(List<ConcreteClassA> somethingConcrete) {
+			this.somethingConcrete = somethingConcrete;
+		}
+
+		public List<ConcreteClassA> getSomethingConcrete() {
+			return somethingConcrete;
+		}
+	}
+
+
+
 }

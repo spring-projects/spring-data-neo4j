@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
+import java.util.stream.Collectors;
 
 import org.apiguardian.api.API;
 import org.neo4j.cypherdsl.core.Condition;
@@ -390,15 +391,24 @@ public enum CypherGenerator {
 
 		List<Object> propertiesProjection = projectNodeProperties(nodeDescription, nodeName, includeProperty);
 		List<Object> contentOfProjection = new ArrayList<>(propertiesProjection);
+
+		Collection<RelationshipDescription> relationships = new HashSet<>(nodeDescription.getRelationships());
+		List<RelationshipDescription> sadf = nodeDescription.getChildNodeDescriptionsInHierarchy().stream()
+				.flatMap(childNodeDescription -> childNodeDescription.getRelationships().stream())
+				.collect(Collectors.toList());
+//				.stream().filter(rd -> !rd.getFieldName())
+//		sadf.stream().filter
+		relationships.addAll(sadf);
+
 		if (nodeDescription.containsPossibleCircles()) {
 			Node node = anyNode(nodeName);
-			RelationshipPattern pattern = createRelationships(node, nodeDescription.getRelationships());
+			RelationshipPattern pattern = createRelationships(node, relationships);
 			NamedPath p = Cypher.path("p").definedBy(pattern);
 			contentOfProjection.add(Constants.NAME_OF_PATHS);
 			contentOfProjection.add(Cypher.listBasedOn(p).returning(p));
 		} else {
 			contentOfProjection.addAll(
-					generateListsFor(nodeDescription.getRelationships(), nodeName, includeProperty, processedRelationships));
+					generateListsFor(relationships, nodeName, includeProperty, processedRelationships));
 		}
 		return Cypher.anyNode(nodeName).project(contentOfProjection);
 	}
