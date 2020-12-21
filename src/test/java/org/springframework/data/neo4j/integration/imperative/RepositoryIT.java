@@ -3457,6 +3457,90 @@ class RepositoryIT {
 			assertThat(((Inheritance.ExtendingBaseClassWithRelationship) all.get(0)).getSomethingConcrete())
 					.containsExactlyInAnyOrder(ccC);
 		}
+
+		@Test // DATAGRAPH-1467
+		void findAndInstantiateRelationshipPropertiesWithExtendingRootEntity(
+				@Autowired BaseClassWithRelationshipPropertiesRepository repository) {
+
+			Inheritance.ConcreteClassA ccA = new Inheritance.ConcreteClassA("cc1", "test");
+			Inheritance.ConcreteClassB ccB = new Inheritance.ConcreteClassB("cc2", 42);
+
+			List<Inheritance.SuperBaseClassRelationshipProperties> things = new ArrayList<>();
+
+			Inheritance.SuperBaseClassRelationshipProperties relCcA =
+					new Inheritance.SuperBaseClassRelationshipProperties(ccA);
+
+			Inheritance.SuperBaseClassRelationshipProperties relCcB
+					= new Inheritance.SuperBaseClassRelationshipProperties(ccB);
+
+			things.add(relCcA);
+			things.add(relCcB);
+
+			Inheritance.ExtendingBaseClassWithRelationshipProperties thing
+					= new Inheritance.ExtendingBaseClassWithRelationshipProperties();
+
+			thing.setThings(things);
+			Inheritance.ConcreteClassA ccC = new Inheritance.ConcreteClassA("cc3", "A");
+			Inheritance.ConcreteARelationshipProperties relCcc =
+					new Inheritance.ConcreteARelationshipProperties(ccC);
+
+			thing.setSomethingConcrete(Collections.singletonList(relCcc));
+
+			repository.save(thing);
+
+			List<Inheritance.BaseClassWithRelationshipProperties> all = repository.findAll();
+
+			assertThat(all.get(0).getThings()).containsExactlyInAnyOrder(relCcA, relCcB);
+			assertThat(((Inheritance.ExtendingBaseClassWithRelationshipProperties) all.get(0)).getSomethingConcrete())
+					.containsExactlyInAnyOrder(relCcc);
+		}
+
+		@Test // DATAGRAPH-1467
+		void findAndInstantiateRelationshipPropertiesWithExtendingSuperRootEntity(
+				@Autowired SuperBaseClassWithRelationshipPropertiesRepository repository) {
+
+			Inheritance.ConcreteClassA ccA = new Inheritance.ConcreteClassA("cc1", "test");
+			Inheritance.ConcreteClassB ccB1 = new Inheritance.ConcreteClassB("cc2a", 42);
+			Inheritance.ConcreteClassB ccB2 = new Inheritance.ConcreteClassB("cc2b", 42);
+
+			List<Inheritance.SuperBaseClassRelationshipProperties> things = new ArrayList<>();
+
+			Inheritance.SuperBaseClassRelationshipProperties relCcA =
+					new Inheritance.SuperBaseClassRelationshipProperties(ccA);
+
+			Inheritance.SuperBaseClassRelationshipProperties relCcB1
+					= new Inheritance.SuperBaseClassRelationshipProperties(ccB1);
+
+			Inheritance.ConcreteBRelationshipProperties relCcB2
+					= new Inheritance.ConcreteBRelationshipProperties(ccB2);
+
+			things.add(relCcA);
+			things.add(relCcB1);
+
+			Inheritance.ExtendingBaseClassWithRelationshipProperties thing
+					= new Inheritance.ExtendingBaseClassWithRelationshipProperties();
+
+			thing.setThings(things);
+			Inheritance.ConcreteClassA ccC = new Inheritance.ConcreteClassA("cc3", "A");
+			Inheritance.ConcreteARelationshipProperties relCcc =
+					new Inheritance.ConcreteARelationshipProperties(ccC);
+
+			thing.setSomethingConcrete(Collections.singletonList(relCcc));
+			thing.setBoing(Collections.singletonList(relCcB2));
+
+			repository.save(thing);
+
+			List<Inheritance.SuperBaseClassWithRelationshipProperties> all = repository.findAll();
+
+			assertThat(all.get(0).getBoing())
+					.containsExactlyInAnyOrder(relCcB2);
+
+			assertThat(((Inheritance.ExtendingBaseClassWithRelationshipProperties) all.get(0)).getThings())
+					.containsExactlyInAnyOrder(relCcA, relCcB1);
+
+			assertThat(((Inheritance.ExtendingBaseClassWithRelationshipProperties) all.get(0)).getSomethingConcrete())
+					.containsExactlyInAnyOrder(relCcc);
+		}
 	}
 
 	@Nested
@@ -3724,6 +3808,12 @@ class RepositoryIT {
 
 	interface SuperBaseClassWithRelationshipRepository
 			extends Neo4jRepository<Inheritance.SuperBaseClassWithRelationship, Long> {}
+
+	interface BaseClassWithRelationshipPropertiesRepository
+			extends Neo4jRepository<Inheritance.BaseClassWithRelationshipProperties, Long> {}
+
+	interface SuperBaseClassWithRelationshipPropertiesRepository
+			extends Neo4jRepository<Inheritance.SuperBaseClassWithRelationshipProperties, Long> {}
 
 	interface BaseClassWithLabelsRepository extends Neo4jRepository<Inheritance.BaseClassWithLabels, Long> {}
 
