@@ -22,6 +22,8 @@ import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Relationship;
+import org.springframework.data.neo4j.core.schema.RelationshipProperties;
+import org.springframework.data.neo4j.core.schema.TargetNode;
 
 /**
  * @author Gerrit Meier
@@ -218,4 +220,201 @@ public class Inheritance {
 			return things;
 		}
 	}
+
+	/**
+	 *  Abstract super base class with relationships
+	 */
+	@Node("SuperBaseClassWithRelationship")
+	public static abstract class SuperBaseClassWithRelationship {
+		@Id @GeneratedValue private Long id;
+
+		@Relationship("RELATED_TO") private List<ConcreteClassB> boing;
+
+		public void setBoing(List<ConcreteClassB> boing) {
+			this.boing = boing;
+		}
+
+		public List<ConcreteClassB> getBoing() {
+			return boing;
+		}
+	}
+
+	/**
+	 *  Abstract base class with relationships
+	 */
+	@Node("BaseClassWithRelationship")
+	public static abstract class BaseClassWithRelationship extends SuperBaseClassWithRelationship {
+
+		@Relationship("HAS") private List<SuperBaseClass> things;
+
+		public void setThings(List<SuperBaseClass> things) {
+			this.things = things;
+		}
+
+		public List<SuperBaseClass> getThings() {
+			return things;
+		}
+	}
+
+	/**
+	 *  Concrete implementation
+	 */
+	@Node
+	public static class ExtendingBaseClassWithRelationship extends BaseClassWithRelationship {
+
+		@Relationship("SOMETHING_ELSE") private List<ConcreteClassA> somethingConcrete;
+
+		public void setSomethingConcrete(List<ConcreteClassA> somethingConcrete) {
+			this.somethingConcrete = somethingConcrete;
+		}
+
+		public List<ConcreteClassA> getSomethingConcrete() {
+			return somethingConcrete;
+		}
+	}
+
+	// Same as above but with relationship properties instead of direct relationship links.
+	/**
+	 *  Abstract super base class with relationship properties
+	 */
+	@Node("SuperBaseClassWithRelationshipProperties")
+	public static abstract class SuperBaseClassWithRelationshipProperties {
+		@Id @GeneratedValue private Long id;
+
+		@Relationship("RELATED_TO") private List<ConcreteBRelationshipProperties> boing;
+
+		public void setBoing(List<ConcreteBRelationshipProperties> boing) {
+			this.boing = boing;
+		}
+
+		public List<ConcreteBRelationshipProperties> getBoing() {
+			return boing;
+		}
+	}
+
+	/**
+	 *  Abstract base class with relationship properties
+	 */
+	@Node("BaseClassWithRelationshipProperties")
+	public static abstract class BaseClassWithRelationshipProperties extends SuperBaseClassWithRelationshipProperties {
+
+		@Relationship("HAS") private List<SuperBaseClassRelationshipProperties> things;
+
+		public void setThings(List<SuperBaseClassRelationshipProperties> things) {
+			this.things = things;
+		}
+
+		public List<SuperBaseClassRelationshipProperties> getThings() {
+			return things;
+		}
+	}
+
+	/**
+	 *  Concrete implementation
+	 */
+	@Node
+	public static class ExtendingBaseClassWithRelationshipProperties extends BaseClassWithRelationshipProperties {
+
+		@Relationship("SOMETHING_ELSE") private List<ConcreteARelationshipProperties> somethingConcrete;
+
+		public void setSomethingConcrete(List<ConcreteARelationshipProperties> somethingConcrete) {
+			this.somethingConcrete = somethingConcrete;
+		}
+
+		public List<ConcreteARelationshipProperties> getSomethingConcrete() {
+			return somethingConcrete;
+		}
+	}
+
+	/**
+	 * Relationship properties with target ConcreteClassA.
+	 */
+	@RelationshipProperties
+	public static class ConcreteARelationshipProperties {
+		@TargetNode
+		private ConcreteClassA target;
+
+		public ConcreteARelationshipProperties(ConcreteClassA target) {
+			this.target = target;
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (this == o) {
+				return true;
+			}
+			if (o == null || getClass() != o.getClass()) {
+				return false;
+			}
+			ConcreteARelationshipProperties that = (ConcreteARelationshipProperties) o;
+			return target.equals(that.target);
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(target);
+		}
+	}
+
+	/**
+	 * Relationship properties with target ConcreteClassB.
+	 */
+	@RelationshipProperties
+	public static class ConcreteBRelationshipProperties {
+		@TargetNode
+		private ConcreteClassB target;
+
+		public ConcreteBRelationshipProperties(ConcreteClassB target) {
+			this.target = target;
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (this == o) {
+				return true;
+			}
+			if (o == null || getClass() != o.getClass()) {
+				return false;
+			}
+			ConcreteBRelationshipProperties that = (ConcreteBRelationshipProperties) o;
+			return target.equals(that.target);
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(target);
+		}
+	}
+
+	/**
+	 * Relationship properties with target SuperBaseClass.
+	 */
+	@RelationshipProperties
+	public static class SuperBaseClassRelationshipProperties {
+		@TargetNode
+		private SuperBaseClass target;
+
+		public SuperBaseClassRelationshipProperties(SuperBaseClass target) {
+			this.target = target;
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (this == o) {
+				return true;
+			}
+			if (o == null || getClass() != o.getClass()) {
+				return false;
+			}
+			SuperBaseClassRelationshipProperties that = (SuperBaseClassRelationshipProperties) o;
+			return target.equals(that.target);
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(target);
+		}
+	}
+
+
 }
