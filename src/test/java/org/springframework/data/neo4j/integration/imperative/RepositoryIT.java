@@ -3412,6 +3412,190 @@ class RepositoryIT {
 
 			assertThat(result.getThings()).containsExactlyInAnyOrder(ccA, ccB);
 		}
+
+		@Test // DATAGRAPH-1467
+		void findAndInstantiateRelationshipsWithExtendingRootEntity(
+				@Autowired BaseClassWithRelationshipRepository repository) {
+
+			Inheritance.ConcreteClassA ccA = new Inheritance.ConcreteClassA("cc1", "test");
+			Inheritance.ConcreteClassB ccB = new Inheritance.ConcreteClassB("cc2", 42);
+
+			List<Inheritance.SuperBaseClass> things = new ArrayList<>();
+			things.add(ccA);
+			things.add(ccB);
+			Inheritance.ExtendingBaseClassWithRelationship thing
+					= new Inheritance.ExtendingBaseClassWithRelationship();
+
+			thing.setThings(things);
+			Inheritance.ConcreteClassA ccC = new Inheritance.ConcreteClassA("cc3", "A");
+			thing.setSomethingConcrete(Collections.singletonList(ccC));
+
+			repository.save(thing);
+
+			List<Inheritance.BaseClassWithRelationship> all = repository.findAll();
+
+			assertThat(all.get(0).getThings()).containsExactlyInAnyOrder(ccA, ccB);
+			assertThat(((Inheritance.ExtendingBaseClassWithRelationship) all.get(0)).getSomethingConcrete())
+					.containsExactlyInAnyOrder(ccC);
+		}
+
+		@Test // DATAGRAPH-1467
+		void findAndInstantiateRelationshipsWithExtendingSuperRootEntity(
+				@Autowired SuperBaseClassWithRelationshipRepository repository) {
+
+			Inheritance.ConcreteClassA ccA = new Inheritance.ConcreteClassA("cc1", "test");
+			Inheritance.ConcreteClassB ccB1 = new Inheritance.ConcreteClassB("cc2a", 42);
+			Inheritance.ConcreteClassB ccB2 = new Inheritance.ConcreteClassB("cc2b", 42);
+
+			List<Inheritance.SuperBaseClass> things = new ArrayList<>();
+			things.add(ccA);
+			things.add(ccB1);
+			Inheritance.ExtendingBaseClassWithRelationship thing
+					= new Inheritance.ExtendingBaseClassWithRelationship();
+
+			thing.setThings(things);
+			Inheritance.ConcreteClassA ccC = new Inheritance.ConcreteClassA("cc3", "A");
+			thing.setSomethingConcrete(Collections.singletonList(ccC));
+			thing.setBoing(Collections.singletonList(ccB2));
+
+			repository.save(thing);
+
+			List<Inheritance.SuperBaseClassWithRelationship> all = repository.findAll();
+
+			assertThat(all.get(0).getBoing())
+					.containsExactlyInAnyOrder(ccB2);
+
+			assertThat(((Inheritance.ExtendingBaseClassWithRelationship) all.get(0)).getThings())
+					.containsExactlyInAnyOrder(ccA, ccB1);
+
+			assertThat(((Inheritance.ExtendingBaseClassWithRelationship) all.get(0)).getSomethingConcrete())
+					.containsExactlyInAnyOrder(ccC);
+		}
+
+		@Test // DATAGRAPH-1467
+		void findAndInstantiateRelationshipPropertiesWithExtendingRootEntity(
+				@Autowired BaseClassWithRelationshipPropertiesRepository repository) {
+
+			Inheritance.ConcreteClassA ccA = new Inheritance.ConcreteClassA("cc1", "test");
+			Inheritance.ConcreteClassB ccB = new Inheritance.ConcreteClassB("cc2", 42);
+
+			List<Inheritance.SuperBaseClassRelationshipProperties> things = new ArrayList<>();
+
+			Inheritance.SuperBaseClassRelationshipProperties relCcA =
+					new Inheritance.SuperBaseClassRelationshipProperties(ccA);
+
+			Inheritance.SuperBaseClassRelationshipProperties relCcB
+					= new Inheritance.SuperBaseClassRelationshipProperties(ccB);
+
+			things.add(relCcA);
+			things.add(relCcB);
+
+			Inheritance.ExtendingBaseClassWithRelationshipProperties thing
+					= new Inheritance.ExtendingBaseClassWithRelationshipProperties();
+
+			thing.setThings(things);
+			Inheritance.ConcreteClassA ccC = new Inheritance.ConcreteClassA("cc3", "A");
+			Inheritance.ConcreteARelationshipProperties relCcc =
+					new Inheritance.ConcreteARelationshipProperties(ccC);
+
+			thing.setSomethingConcrete(Collections.singletonList(relCcc));
+
+			repository.save(thing);
+
+			List<Inheritance.BaseClassWithRelationshipProperties> all = repository.findAll();
+
+			assertThat(all.get(0).getThings()).containsExactlyInAnyOrder(relCcA, relCcB);
+			assertThat(((Inheritance.ExtendingBaseClassWithRelationshipProperties) all.get(0)).getSomethingConcrete())
+					.containsExactlyInAnyOrder(relCcc);
+		}
+
+		@Test // DATAGRAPH-1467
+		void findAndInstantiateRelationshipPropertiesWithExtendingSuperRootEntity(
+				@Autowired SuperBaseClassWithRelationshipPropertiesRepository repository) {
+
+			Inheritance.ConcreteClassA ccA = new Inheritance.ConcreteClassA("cc1", "test");
+			Inheritance.ConcreteClassB ccB1 = new Inheritance.ConcreteClassB("cc2a", 42);
+			Inheritance.ConcreteClassB ccB2 = new Inheritance.ConcreteClassB("cc2b", 42);
+
+			List<Inheritance.SuperBaseClassRelationshipProperties> things = new ArrayList<>();
+
+			Inheritance.SuperBaseClassRelationshipProperties relCcA =
+					new Inheritance.SuperBaseClassRelationshipProperties(ccA);
+
+			Inheritance.SuperBaseClassRelationshipProperties relCcB1
+					= new Inheritance.SuperBaseClassRelationshipProperties(ccB1);
+
+			Inheritance.ConcreteBRelationshipProperties relCcB2
+					= new Inheritance.ConcreteBRelationshipProperties(ccB2);
+
+			things.add(relCcA);
+			things.add(relCcB1);
+
+			Inheritance.ExtendingBaseClassWithRelationshipProperties thing
+					= new Inheritance.ExtendingBaseClassWithRelationshipProperties();
+
+			thing.setThings(things);
+			Inheritance.ConcreteClassA ccC = new Inheritance.ConcreteClassA("cc3", "A");
+			Inheritance.ConcreteARelationshipProperties relCcc =
+					new Inheritance.ConcreteARelationshipProperties(ccC);
+
+			thing.setSomethingConcrete(Collections.singletonList(relCcc));
+			thing.setBoing(Collections.singletonList(relCcB2));
+
+			repository.save(thing);
+
+			List<Inheritance.SuperBaseClassWithRelationshipProperties> all = repository.findAll();
+
+			assertThat(all.get(0).getBoing())
+					.containsExactlyInAnyOrder(relCcB2);
+
+			assertThat(((Inheritance.ExtendingBaseClassWithRelationshipProperties) all.get(0)).getThings())
+					.containsExactlyInAnyOrder(relCcA, relCcB1);
+
+			assertThat(((Inheritance.ExtendingBaseClassWithRelationshipProperties) all.get(0)).getSomethingConcrete())
+					.containsExactlyInAnyOrder(relCcc);
+		}
+
+		@Test // DATAGRAPH-1467
+		void findAndInstantiateRelationshipPropertiesWithCustomQuery(
+				@Autowired SuperBaseClassWithRelationshipPropertiesRepository repository) {
+
+			Inheritance.ConcreteClassA ccA = new Inheritance.ConcreteClassA("cc1", "test");
+			Inheritance.ConcreteClassB ccB1 = new Inheritance.ConcreteClassB("cc2a", 42);
+			Inheritance.ConcreteClassB ccB2 = new Inheritance.ConcreteClassB("cc2b", 42);
+
+			List<Inheritance.SuperBaseClassRelationshipProperties> things = new ArrayList<>();
+
+			Inheritance.SuperBaseClassRelationshipProperties relCcA =
+					new Inheritance.SuperBaseClassRelationshipProperties(ccA);
+
+			Inheritance.SuperBaseClassRelationshipProperties relCcB1
+					= new Inheritance.SuperBaseClassRelationshipProperties(ccB1);
+
+			Inheritance.ConcreteBRelationshipProperties relCcB2
+					= new Inheritance.ConcreteBRelationshipProperties(ccB2);
+
+			things.add(relCcA);
+			things.add(relCcB1);
+
+			Inheritance.ExtendingBaseClassWithRelationshipProperties thing
+					= new Inheritance.ExtendingBaseClassWithRelationshipProperties();
+
+			thing.setThings(things);
+			Inheritance.ConcreteClassA ccC = new Inheritance.ConcreteClassA("cc3", "A");
+			Inheritance.ConcreteARelationshipProperties relCcc =
+					new Inheritance.ConcreteARelationshipProperties(ccC);
+
+			thing.setSomethingConcrete(Collections.singletonList(relCcc));
+			thing.setBoing(Collections.singletonList(relCcB2));
+
+			repository.save(thing);
+
+			List<Inheritance.SuperBaseClassWithRelationshipProperties> all = repository.getAllWithHasRelationships();
+
+			assertThat(((Inheritance.ExtendingBaseClassWithRelationshipProperties) all.get(0)).getThings())
+					.containsExactlyInAnyOrder(relCcA, relCcB1);
+		}
 	}
 
 	@Nested
@@ -3672,6 +3856,25 @@ class RepositoryIT {
 
 		@Query("MATCH (n:RelationshipToAbstractClass)-[h:HAS]->(m:SuperBaseClass) return n, collect(h), collect(m)")
 		Inheritance.RelationshipToAbstractClass getAllConcreteRelationships();
+	}
+
+	interface BaseClassWithRelationshipRepository
+			extends Neo4jRepository<Inheritance.BaseClassWithRelationship, Long> {}
+
+	interface SuperBaseClassWithRelationshipRepository
+			extends Neo4jRepository<Inheritance.SuperBaseClassWithRelationship, Long> {}
+
+	interface BaseClassWithRelationshipPropertiesRepository
+			extends Neo4jRepository<Inheritance.BaseClassWithRelationshipProperties, Long> {}
+
+	interface SuperBaseClassWithRelationshipPropertiesRepository
+			extends Neo4jRepository<Inheritance.SuperBaseClassWithRelationshipProperties, Long> {
+
+		@Query("MATCH (n:SuperBaseClassWithRelationshipProperties)" +
+				"-[h:HAS]->" +
+				"(m:SuperBaseClass) return n, collect(h), collect(m)")
+		List<Inheritance.SuperBaseClassWithRelationshipProperties> getAllWithHasRelationships();
+
 	}
 
 	interface BaseClassWithLabelsRepository extends Neo4jRepository<Inheritance.BaseClassWithLabels, Long> {}

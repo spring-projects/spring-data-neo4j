@@ -85,7 +85,7 @@ final class NodeDescriptionStore {
 			String primaryLabel = childNodeDescription.getPrimaryLabel();
 			List<String> additionalLabels = new ArrayList<>(childNodeDescription.getAdditionalLabels());
 			additionalLabels.add(primaryLabel);
-			if (additionalLabels.containsAll(labels)) {
+			if (additionalLabels.containsAll(labels) && childNodeDescription.getChildNodeDescriptionsInHierarchy().isEmpty()) {
 				Set<String> surplusLabels = new HashSet<>(labels);
 				surplusLabels.remove(primaryLabel);
 				surplusLabels.removeAll(additionalLabels);

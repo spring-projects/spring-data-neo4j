@@ -105,9 +105,9 @@ public interface RelationshipDescription {
 	}
 
 	@NonNull
-	default String generateRelatedNodesCollectionName() {
+	default String generateRelatedNodesCollectionName(NodeDescription<?> mostAbstractNodeDescription) {
 
-		return this.getSource().getPrimaryLabel() + "_" + this.getType() + "_" + this.getTarget().getPrimaryLabel();
+		return this.getSource().getMostAbstractParentLabel(mostAbstractNodeDescription) + "_" + this.getType() + "_" + this.getTarget().getPrimaryLabel();
 	}
 
 	/**

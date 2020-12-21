@@ -40,6 +40,8 @@ public interface NodeDescription<T> {
 	 */
 	String getPrimaryLabel();
 
+	String getMostAbstractParentLabel(NodeDescription<?> mostAbstractNodeDescription);
+
 	/**
 	 * @return the list of all additional labels (All labels except the {@link NodeDescription#getPrimaryLabel()}.
 	 */
@@ -121,6 +123,8 @@ public interface NodeDescription<T> {
 	 */
 	void setParentNodeDescription(NodeDescription<?> parent);
 
+	@Nullable
+	NodeDescription<?> getParentNodeDescription();
 	/**
 	 * @return An expression that represents the right identifier type.
 	 */

@@ -390,17 +390,37 @@ public enum CypherGenerator {
 
 		List<Object> propertiesProjection = projectNodeProperties(nodeDescription, nodeName, includeProperty);
 		List<Object> contentOfProjection = new ArrayList<>(propertiesProjection);
+
+		Collection<RelationshipDescription> relationships = getRelationshipDescriptionsUpAndDown(nodeDescription);
+
 		if (nodeDescription.containsPossibleCircles()) {
 			Node node = anyNode(nodeName);
-			RelationshipPattern pattern = createRelationships(node, nodeDescription.getRelationships());
+			RelationshipPattern pattern = createRelationships(node, relationships);
 			NamedPath p = Cypher.path("p").definedBy(pattern);
 			contentOfProjection.add(Constants.NAME_OF_PATHS);
 			contentOfProjection.add(Cypher.listBasedOn(p).returning(p));
 		} else {
 			contentOfProjection.addAll(
-					generateListsFor(nodeDescription.getRelationships(), nodeName, includeProperty, processedRelationships));
+					generateListsFor(relationships, nodeName, includeProperty, processedRelationships));
 		}
 		return Cypher.anyNode(nodeName).project(contentOfProjection);
+	}
+
+	@NonNull
+	static Collection<RelationshipDescription> getRelationshipDescriptionsUpAndDown(NodeDescription<?> nodeDescription) {
+		Collection<RelationshipDescription> relationships = new HashSet<>(nodeDescription.getRelationships());
+
+		for (NodeDescription<?> childDescription : nodeDescription.getChildNodeDescriptionsInHierarchy()) {
+			childDescription.getRelationships().forEach(concreteRelationship -> {
+
+				String fieldName = concreteRelationship.getFieldName();
+
+				if (relationships.stream().noneMatch(relationship -> relationship.getFieldName().equals(fieldName))) {
+					relationships.add(concreteRelationship);
+				}
+			});
+		}
+		return relationships;
 	}
 
 	private RelationshipPattern createRelationships(Node node, Collection<RelationshipDescription> relationshipDescriptions) {
@@ -606,8 +626,8 @@ public enum CypherGenerator {
 			List<RelationshipDescription> processedRelationships, String fieldName, List<Object> mapProjectionLists) {
 
 		String relationshipType = relationshipDescription.getType();
-		String relationshipTargetName = relationshipDescription.generateRelatedNodesCollectionName();
-		String sourcePrimaryLabel = relationshipDescription.getSource().getPrimaryLabel();
+		String relationshipTargetName = relationshipDescription.generateRelatedNodesCollectionName(relationshipDescription.getSource());
+		String sourcePrimaryLabel = relationshipDescription.getSource().getMostAbstractParentLabel(relationshipDescription.getSource());
 		String targetPrimaryLabel = relationshipDescription.getTarget().getPrimaryLabel();
 		List<String> targetAdditionalLabels = relationshipDescription.getTarget().getAdditionalLabels();
 		String relationshipSymbolicName = sourcePrimaryLabel + RelationshipDescription.NAME_OF_RELATIONSHIP + targetPrimaryLabel;

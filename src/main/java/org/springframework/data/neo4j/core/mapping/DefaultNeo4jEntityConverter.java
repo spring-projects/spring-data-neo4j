@@ -247,13 +247,13 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 
 		Supplier<Object> mappedObjectSupplier = () -> {
 
-			List<String> allLabels = getLabels(queryResult);
+			List<String> allLabels = getLabels(queryResult, nodeDescription);
 			NodeDescriptionAndLabels nodeDescriptionAndLabels = NodeDescriptionStore
 					.deriveConcreteNodeDescription(nodeDescription, allLabels);
 			Neo4jPersistentEntity<ET> concreteNodeDescription = (Neo4jPersistentEntity<ET>) nodeDescriptionAndLabels
 					.getNodeDescription();
 
-			Collection<RelationshipDescription> relationships = concreteNodeDescription.getRelationships();
+			Collection<RelationshipDescription> relationships = CypherGenerator.getRelationshipDescriptionsUpAndDown(nodeDescription);
 
 			ET instance = instantiate(concreteNodeDescription, queryResult, allValues, relationships,
 					nodeDescriptionAndLabels.getDynamicLabels(), lastMappedEntity, processedSegments);
@@ -308,7 +308,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 	 * @return The list of labels defined by the query variable {@link Constants#NAME_OF_LABELS}.
 	 */
 	@NonNull
-	private List<String> getLabels(MapAccessor queryResult) {
+	private List<String> getLabels(MapAccessor queryResult, @Nullable NodeDescription<?> nodeDescription) {
 		Value labelsValue = queryResult.get(Constants.NAME_OF_LABELS);
 		List<String> labels = new ArrayList<>();
 		if (!labelsValue.isNull()) {
@@ -316,6 +316,8 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 		} else if (queryResult instanceof Node) {
 			Node nodeRepresentation = (Node) queryResult;
 			nodeRepresentation.labels().forEach(labels::add);
+		} else if (nodeDescription != null) {
+			labels.addAll(nodeDescription.getStaticLabels());
 		}
 		return labels;
 	}
@@ -395,7 +397,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 		Neo4jPersistentEntity<?> genericTargetNodeDescription = (Neo4jPersistentEntity<?>) relationshipDescription
 				.getTarget();
 
-		List<String> allLabels = getLabels(values);
+		List<String> allLabels = getLabels(values, null);
 		NodeDescriptionAndLabels nodeDescriptionAndLabels = NodeDescriptionStore
 				.deriveConcreteNodeDescription(genericTargetNodeDescription, allLabels);
 		Neo4jPersistentEntity<?> concreteTargetNodeDescription = (Neo4jPersistentEntity<?>) nodeDescriptionAndLabels
@@ -425,7 +427,10 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 			mappedObjectHandler = (type, mappedObject) -> value.add(mappedObject);
 		}
 
-		Value list = values.get(relationshipDescription.generateRelatedNodesCollectionName());
+		String collectionName =
+				relationshipDescription.generateRelatedNodesCollectionName(relationshipDescription.getSource());
+
+		Value list = values.get(collectionName);
 
 		List<Object> relationshipsAndProperties = new ArrayList<>();
 

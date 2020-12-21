@@ -111,6 +111,29 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 		return primaryLabel;
 	}
 
+	@Override
+	public String getMostAbstractParentLabel(NodeDescription<?> mostAbstractNodeDescription) {
+		return getMostAbstractParent(mostAbstractNodeDescription).getPrimaryLabel();
+	}
+
+	private NodeDescription<?> getMostAbstractParent(NodeDescription<?> mostAbstractNodeDescription) {
+		if (mostAbstractNodeDescription.equals(this)) {
+			return this;
+		}
+		// It could be "me"
+		NodeDescription<?> mostAbstractParent = this;
+		for (; /* Michael and me smiling at each other */ ;) {
+			NodeDescription<?> parent = mostAbstractParent.getParentNodeDescription();
+			if (parent == null) {
+				return mostAbstractParent;
+			}
+			mostAbstractParent = parent;
+			if (mostAbstractNodeDescription.equals(parent)) {
+				return mostAbstractNodeDescription;
+			}
+		}
+	}
+
 	/*
 	 * (non-Javadoc)
 	 * @see NodeDescription#getUnderlyingClass()
@@ -297,12 +320,13 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 
 	@NonNull
 	private List<String> computeParentLabels() {
-
 		List<String> parentLabels = new ArrayList<>();
-		while (parentNodeDescription != null) {
-			parentLabels.add(parentNodeDescription.getPrimaryLabel());
-			parentLabels.addAll(parentNodeDescription.getAdditionalLabels());
-			parentNodeDescription = ((DefaultNeo4jPersistentEntity<?>) parentNodeDescription).getParentNodeDescription();
+		NodeDescription<?> parentNodeDescriptionCalculated = parentNodeDescription;
+
+		while (parentNodeDescriptionCalculated != null) {
+			parentLabels.add(parentNodeDescriptionCalculated.getPrimaryLabel());
+			parentLabels.addAll(parentNodeDescriptionCalculated.getAdditionalLabels());
+			parentNodeDescriptionCalculated = parentNodeDescriptionCalculated.getParentNodeDescription();
 		}
 		return parentLabels;
 	}
@@ -410,7 +434,8 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 		this.parentNodeDescription = parent;
 	}
 
-	private NodeDescription<?> getParentNodeDescription() {
+	@Nullable
+	public NodeDescription<?> getParentNodeDescription() {
 		return parentNodeDescription;
 	}
 
