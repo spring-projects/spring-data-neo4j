@@ -396,8 +396,7 @@ public enum CypherGenerator {
 		List<RelationshipDescription> sadf = nodeDescription.getChildNodeDescriptionsInHierarchy().stream()
 				.flatMap(childNodeDescription -> childNodeDescription.getRelationships().stream())
 				.collect(Collectors.toList());
-//				.stream().filter(rd -> !rd.getFieldName())
-//		sadf.stream().filter
+
 		relationships.addAll(sadf);
 
 		if (nodeDescription.containsPossibleCircles()) {
