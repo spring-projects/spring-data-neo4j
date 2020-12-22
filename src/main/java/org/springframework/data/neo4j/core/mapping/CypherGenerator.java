@@ -30,7 +30,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
-import java.util.stream.Collectors;
 
 import org.apiguardian.api.API;
 import org.neo4j.cypherdsl.core.Condition;
@@ -392,12 +391,7 @@ public enum CypherGenerator {
 		List<Object> propertiesProjection = projectNodeProperties(nodeDescription, nodeName, includeProperty);
 		List<Object> contentOfProjection = new ArrayList<>(propertiesProjection);
 
-		Collection<RelationshipDescription> relationships = new HashSet<>(nodeDescription.getRelationships());
-		List<RelationshipDescription> sadf = nodeDescription.getChildNodeDescriptionsInHierarchy().stream()
-				.flatMap(childNodeDescription -> childNodeDescription.getRelationships().stream())
-				.collect(Collectors.toList());
-
-		relationships.addAll(sadf);
+		Collection<RelationshipDescription> relationships = getRelationshipDescriptionsUpAndDown(nodeDescription);
 
 		if (nodeDescription.containsPossibleCircles()) {
 			Node node = anyNode(nodeName);
@@ -410,6 +404,23 @@ public enum CypherGenerator {
 					generateListsFor(relationships, nodeName, includeProperty, processedRelationships));
 		}
 		return Cypher.anyNode(nodeName).project(contentOfProjection);
+	}
+
+	@NonNull
+	static Collection<RelationshipDescription> getRelationshipDescriptionsUpAndDown(NodeDescription<?> nodeDescription) {
+		Collection<RelationshipDescription> relationships = new HashSet<>(nodeDescription.getRelationships());
+
+		for (NodeDescription<?> childDescription : nodeDescription.getChildNodeDescriptionsInHierarchy()) {
+			childDescription.getRelationships().forEach(concreteRelationship -> {
+
+				String fieldName = concreteRelationship.getFieldName();
+
+				if (relationships.stream().noneMatch(relationship -> relationship.getFieldName().equals(fieldName))) {
+					relationships.add(concreteRelationship);
+				}
+			});
+		}
+		return relationships;
 	}
 
 	private RelationshipPattern createRelationships(Node node, Collection<RelationshipDescription> relationshipDescriptions) {
@@ -615,8 +626,8 @@ public enum CypherGenerator {
 			List<RelationshipDescription> processedRelationships, String fieldName, List<Object> mapProjectionLists) {
 
 		String relationshipType = relationshipDescription.getType();
-		String relationshipTargetName = relationshipDescription.generateRelatedNodesCollectionName();
-		String sourcePrimaryLabel = relationshipDescription.getSource().getPrimaryLabel();
+		String relationshipTargetName = relationshipDescription.generateRelatedNodesCollectionName(relationshipDescription.getSource());
+		String sourcePrimaryLabel = relationshipDescription.getSource().getMostAbstractParentLabel(relationshipDescription.getSource());
 		String targetPrimaryLabel = relationshipDescription.getTarget().getPrimaryLabel();
 		List<String> targetAdditionalLabels = relationshipDescription.getTarget().getAdditionalLabels();
 		String relationshipSymbolicName = sourcePrimaryLabel + RelationshipDescription.NAME_OF_RELATIONSHIP + targetPrimaryLabel;
