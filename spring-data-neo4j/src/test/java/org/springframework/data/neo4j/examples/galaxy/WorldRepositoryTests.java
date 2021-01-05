@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2020 the original author or authors.
+ * Copyright 2011-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,12 +50,7 @@ public class WorldRepositoryTests extends MultiDriverTestClass {
 
 	boolean failed = false;
 
-	/**
-	 * see https://jira.spring.io/browse/DATAGRAPH-951
-	 *
-	 * @throws Exception
-	 */
-	@Test
+	@Test // DATAGRAPH-951
 	public void multipleThreadsResultsGetMixedUp() throws Exception {
 
 		World world1 = new World("world 1", 1);
@@ -94,12 +89,7 @@ public class WorldRepositoryTests extends MultiDriverTestClass {
 		assertFalse(failed);
 	}
 
-	/**
-	 * see https://jira.spring.io/browse/DATAGRAPH-948
-	 *
-	 * @throws Exception
-	 */
-	@Test(expected = IncorrectResultSizeDataAccessException.class)
+	@Test(expected = IncorrectResultSizeDataAccessException.class) // DATAGRAPH-948
 	public void findByNameSingleResult() throws Exception {
 		World world1 = new World("world 1", 1);
 		worldRepository.save(world1, 0);
