@@ -83,7 +83,7 @@ If you plan on altering the version of the Neo4j-OGM make sure it is a 3.1.0+ re
 === Project metadata
 
 * Version control - https://github.com/spring-projects/spring-data-neo4j
-* Bugtracker - https://jira.spring.io/browse/DATAGRAPH
+* Bugtracker - https://github.com/spring-projects/spring-data-neo4j/issues
 * Release repository - https://repo.spring.io/libs-release
 * Milestone repository - https://repo.spring.io/libs-milestone
 * Snapshot repository - https://repo.spring.io/libs-snapshot
