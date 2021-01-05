@@ -7,7 +7,7 @@
 
 * Base class for repositories `GraphRepository` has been renamed `Neo4jRepository` and parameter types change from `<T>` to `<T, ID>`.
 * All Repository methods can return `Streams`.
-* The repository method naming scheme has changed for SD commons 2.0 as part of https://jira.spring.io/browse/DATACMNS-944[DATACMNS-944].
+* The repository method naming scheme has changed for SD commons 2.0 as part of https://github.com/spring-projects/spring-data-commons/issues/1399[DATACMNS-944].
 ** for example, `findOne` repository methods are renamed `findById` and now return `Optional<T>`.
 ** please check the JavaDoc of `org.springframework.data.repository.CrudRepository`
 * Paged custom queries no longer accept queries without `countQuery` attribute.
@@ -221,7 +221,3 @@ being incompatible with future versions of Neo4j.
 
 ==== Graph Traversal and Node/Relationship Manipulation
 These features cannot be supported by Cypher and have therefore been dropped from `Neo4jTemplate`.
-
-
-Please provide feedback on the new APIs of SDN 5 and the migration needs to spring-data-neo4j@neotechnology.com or via a https://jira.spring.io/browse/DATAGRAPH[JIRA issue]
-
