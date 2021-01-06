@@ -23,6 +23,8 @@ import java.util.Optional;
 
 import org.neo4j.ogm.annotation.NodeEntity;
 import org.neo4j.ogm.annotation.RelationshipEntity;
+import org.springframework.beans.factory.annotation.Autowire;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.AutowireCandidateQualifier;
@@ -189,23 +191,29 @@ public class Neo4jRepositoryConfigurationExtension extends RepositoryConfigurati
 			return;
 		}
 
-		String configuredSessionBeanName = config.getAttribute("sessionBeanName").orElse(GENERATE_BEAN_NAME);
-		this.sessionBeanName = registerWithGeneratedNameOrUseConfigured(createSharedSessionCreatorBeanDefinition(config),
-				registry, configuredSessionBeanName, source);
-
 		String configuredMappingContextBeanName = config.getAttribute("mappingContextBeanName").orElse(GENERATE_BEAN_NAME);
+		String configuredSessionBeanName = config.getAttribute("sessionBeanName").orElse(GENERATE_BEAN_NAME);
+
+		// Register mapping context
 		this.neo4jMappingContextBeanName = registerWithGeneratedNameOrUseConfigured(
 				createNeo4jMappingContextFactoryBeanDefinition(config), registry, configuredMappingContextBeanName, source);
 
-		registerIfNotAlreadyRegistered(() -> new RootBeanDefinition(Neo4jPersistenceExceptionTranslator.class), registry,
-				NEO4J_PERSISTENCE_EXCEPTION_TRANSLATOR_NAME, source);
-
+		// Prepare session factory postprocessor
 		AbstractBeanDefinition rootBeanDefinition = BeanDefinitionBuilder
 				.rootBeanDefinition(Neo4jOgmEntityInstantiatorConfigurationBean.class)
-				.setAutowireMode(AbstractBeanDefinition.AUTOWIRE_BY_TYPE)
+				.setAutowireMode(AbstractBeanDefinition.AUTOWIRE_CONSTRUCTOR)
 				.addConstructorArgReference(getSessionFactoryBeanName(config))
-				.addConstructorArgReference(this.neo4jMappingContextBeanName).getBeanDefinition();
-		registerWithGeneratedNameOrUseConfigured(rootBeanDefinition, registry, GENERATE_BEAN_NAME, source);
+				.addConstructorArgReference(this.neo4jMappingContextBeanName)
+				.getBeanDefinition();
+		String sessionFactoryPostProcessorBeanName = registerWithGeneratedNameOrUseConfigured(
+				rootBeanDefinition, registry, GENERATE_BEAN_NAME, source);
+
+		// Make sure the shared session creator depends on it
+		this.sessionBeanName = registerWithGeneratedNameOrUseConfigured(
+				createSharedSessionCreatorBeanDefinition(config, sessionFactoryPostProcessorBeanName), registry, configuredSessionBeanName, source);
+
+		registerIfNotAlreadyRegistered(() -> new RootBeanDefinition(Neo4jPersistenceExceptionTranslator.class), registry,
+				NEO4J_PERSISTENCE_EXCEPTION_TRANSLATOR_NAME, source);
 	}
 
 	/**
@@ -236,13 +244,17 @@ public class Neo4jRepositoryConfigurationExtension extends RepositoryConfigurati
 		return registeredBeanName;
 	}
 
-	private static AbstractBeanDefinition createSharedSessionCreatorBeanDefinition(RepositoryConfigurationSource config) {
+	private static AbstractBeanDefinition createSharedSessionCreatorBeanDefinition(
+			RepositoryConfigurationSource config,
+			String sessionFactoryPostProcessorBeanName
+	) {
 
 		String sessionFactoryBeanName = getSessionFactoryBeanName(config);
 
 		AbstractBeanDefinition sharedSessionCreatorBeanDefinition = BeanDefinitionBuilder //
 				.rootBeanDefinition(SharedSessionCreator.class, "createSharedSession") //
 				.addConstructorArgReference(sessionFactoryBeanName) //
+				.addDependsOn(sessionFactoryPostProcessorBeanName)
 				.getBeanDefinition();
 
 		sharedSessionCreatorBeanDefinition
