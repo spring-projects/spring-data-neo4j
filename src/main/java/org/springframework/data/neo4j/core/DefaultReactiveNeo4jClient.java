@@ -39,7 +39,6 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.data.neo4j.core.convert.Neo4jConversions;
 import org.springframework.data.neo4j.core.transaction.Neo4jTransactionUtils;
 import org.springframework.data.neo4j.core.transaction.ReactiveNeo4jTransactionManager;
-import org.springframework.data.neo4j.repository.support.Neo4jPersistenceExceptionTranslator;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
