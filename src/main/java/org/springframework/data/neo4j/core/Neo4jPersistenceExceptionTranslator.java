@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.repository.support;
+package org.springframework.data.neo4j.core;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -51,9 +51,9 @@ import org.springframework.dao.support.PersistenceExceptionTranslator;
  *
  * @author Michael J. Simons
  * @soundtrack Kummer - KIOX
- * @since 6.0
+ * @since 6.0.3
  */
-@API(status = API.Status.STABLE, since = "6.0")
+@API(status = API.Status.STABLE, since = "6.0.3")
 public final class Neo4jPersistenceExceptionTranslator implements PersistenceExceptionTranslator {
 
 	private static final LogAccessor log = new LogAccessor(LogFactory.getLog(Neo4jPersistenceExceptionTranslator.class));
