@@ -15,3 +15,4 @@ target/
 *.db
 .DS_Store
 .classpath
+.flattened-pom.xml
