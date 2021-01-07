@@ -2939,6 +2939,20 @@ class RepositoryIT {
 			assertThat(exists).isTrue();
 		}
 
+		@Test // GH-2033
+		void existsByProperty(@Autowired PersonRepository repository) {
+
+			boolean exists = repository.existsByName("Test");
+			assertThat(exists).isTrue();
+		}
+
+		@Test // GH-2033
+		void existsByPropertyNoMatch(@Autowired PersonRepository repository) {
+
+			boolean exists = repository.existsByName("Mr. X");
+			assertThat(exists).isFalse();
+		}
+
 		@Test
 		void findBySomeCaseInsensitiveProperties(@Autowired PersonRepository repository) {
 
