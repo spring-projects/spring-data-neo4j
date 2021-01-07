@@ -203,6 +203,8 @@ public interface PersonRepository extends Neo4jRepository<PersonWithAllConstruct
 
 	List<PersonWithAllConstructor> findAllByNullableExists();
 
+	boolean existsByName(String name);
+
 	List<PersonWithAllConstructor> findAllByPlace(GeographicPoint2d p);
 
 	List<PersonWithAllConstructor> findAllByPlace(ThingWithGeneratedId p);
