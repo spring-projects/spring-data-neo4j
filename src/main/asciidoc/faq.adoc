@@ -10,6 +10,7 @@ OGM can be seen on the same level as a JPA implementation like Hibernate in the 
 
 How do I set up my Spring Configuration with Spring WebMVC projects?::
 If you are using a Spring WebMVC application, the following configuration is all that's required:
++
 [source,java]
 ----
 @Configuration
@@ -32,8 +33,114 @@ public class MyWebAppConfiguration extends WebMvcConfigurerAdapter {
 }
 ----
 
+Do I need to setup an `OpenSessionInViewFilter`?::
+It depends but in most cases the answer is _no_.
++
+First let's recap what a so called `OpenSessionInViewFilter` does:
+As soon as a web request arrives at your application it will make sure, a write transaction is opened and every interaction
+with the Neo4j database will happen in that transaction.
++
+While this removes the need to think about transactional boundaries, it comes at a price:
+As the filter cannot know upfront whether you will only execute read queries or will execute writes.
+Therefore it will open a write transaction. In a cluster environment that will prevent load distribution among the read replicas,
+as they would not be able to answer writes.
++
+The general recommendation is to wrap a chain of calls to the Neo4j-OGM session or any repository inside a dedicated service like this:
++
+[source,java]
+----
+@Service
+public class MyService {
+    // If you need the session, it should be injected like that
+    // The infrastructure will make sure it is always one that fits your transaction.
+    // private final Session session;
+
+    private final MyRepository myRepository;
+
+    public MyService(MyRepository myRepository) {
+        this.myRepository = myRepository;
+    }
+
+    @Transactional // <.>
+    public void doSomething() {
+        MyObject thing = userRepository.findByName("whatever");
+        thing.setProperty("newValue");
+        userRepository.save(thing);
+    }
+}
+----
+<.> Call this method from your web controller instead of relying on the OSIV interceptor.
+    Thus you have a clean transactional boundary at the service level.
++
+If you still want to have the interceptor, you can enable it on a Spring Boot application with `spring.data.neo4j.open-in-view=true` or in a plain Spring application with a configuration like that:
++
+[source,java]
+----
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.data.neo4j.web.support.OpenSessionInViewInterceptor;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+@Configuration
+public class MyWebAppConfiguration {
+
+    @Bean
+    public OpenSessionInViewInterceptor openSessionInViewInterceptor() {
+        return new OpenSessionInViewInterceptor();
+    }
+
+    @Bean
+    WebMvcConfigurer osivMvcConfigurer(
+        OpenSessionInViewInterceptor openSessionInViewInterceptor
+    ) {
+        return new WebMvcConfigurer() {
+            @Override
+            public void addInterceptors(InterceptorRegistry registry) {
+                registry.addWebRequestInterceptor(openSessionInViewInterceptor);
+            }
+        };
+    }
+}
+----
++
+IMPORTANT: There is one special case in which you do *need* an open-session-in-view interceptor and that is when
+           you use Spring Data Neo4j with https://spring.io/projects/spring-data-rest[Spring Data Rest]. In that case
+           however you don't have control over the transactional boundaries. The `PUT` request for example will be executed
+           with at least two repository interactions originating at the request handler.
+           +
+           Also, the configuration above or the Spring Boot property will not be enough to enable open-session-in-view.
+           Instead you want to use a configuration as shown in <<faq.osiv-for-data-rest>>.
++
+[[faq.osiv-for-data-rest]]
+.Enable open-session-in-view for Spring Data Rest
+[source,java]
+----
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.data.neo4j.web.support.OpenSessionInViewInterceptor;
+import org.springframework.web.servlet.handler.MappedInterceptor;
+
+@Configuration
+public class MyWebAppConfigurationForSpringDataRest {
+
+	@Bean // <.>
+	public OpenSessionInViewInterceptor openSessionInViewInterceptor() {
+		return new OpenSessionInViewInterceptor();
+	}
+
+	@Bean // <.>
+	public MappedInterceptor mappedOSIVInterceptor(OpenSessionInViewInterceptor openSessionInViewInterceptor) {
+		return new MappedInterceptor(new String[] { "/**" }, openSessionInViewInterceptor);
+	}
+}
+----
+<.> You don't need this bean if you already have the open-session-in-view interceptor, either through the Spring Boot property or manual configuration.
+<.> This `MappedInterceptor` is required to enable open-session-in-view for Spring Data Rest.
+
 How do I set up my Spring Configuration with a Java Servlet 3.x+ Container project?::
 If you are using a Java Servlet 3.x+ Container, you can configure a Servlet filter with Spring's `AbstractAnnotationConfigDispatcherServletInitializer` like this:
++
 [source,java]
 ----
 public class MyAppInitializer extends AbstractAnnotationConfigDispatcherServletInitializer {
