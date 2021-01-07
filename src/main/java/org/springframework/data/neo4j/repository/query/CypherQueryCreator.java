@@ -59,11 +59,11 @@ import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.Polygon;
 import org.springframework.data.mapping.PersistentProperty;
 import org.springframework.data.mapping.PersistentPropertyPath;
+import org.springframework.data.neo4j.core.mapping.Constants;
+import org.springframework.data.neo4j.core.mapping.CypherGenerator;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentProperty;
-import org.springframework.data.neo4j.core.mapping.Constants;
-import org.springframework.data.neo4j.core.mapping.CypherGenerator;
 import org.springframework.data.neo4j.core.mapping.NodeDescription;
 import org.springframework.data.neo4j.core.mapping.RelationshipDescription;
 import org.springframework.data.neo4j.core.schema.TargetNode;
@@ -299,7 +299,10 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryAndParameters, 
 
 		if (queryType == Neo4jQueryType.COUNT) {
 			statement = matchAndCondition.returning(Functions.count(Cypher.asterisk())).build();
-
+		} else if (queryType == Neo4jQueryType.EXISTS) {
+			statement = matchAndCondition.returning(
+					Functions.count(Constants.NAME_OF_ROOT_NODE).gt(Cypher.literalOf(0))
+			).build();
 		} else {
 			OngoingMatchAndReturnWithOrder ongoingMatchAndReturnWithOrder = matchAndCondition
 					.returning(cypherGenerator.createReturnStatementForMatch(nodeDescription, includedProperties))
