@@ -152,26 +152,7 @@ And here is the reactive version, omitting the setup for brevity:
 include::../../../../src/test/java/org/springframework/data/neo4j/documentation/spring_boot/ReactiveTemplateExampleTest.java[tags=faq.template-reactive]
 ----
 
-[[faq.parameters.custom-query]]
-== How do I specify parameters in custom queries?
-
-You do this exactly the same way as in a standard Cypher query issued in the Neo4j Browser or the Cypher-Shell, with the `$` syntax (from Neo4j 4.0 on upwards, the old `{foo}` syntax for Cypher parameters has been removed from the database);
-
-[source,java,indent=0]
-[[custom-queries-with-parameters]]
-.ARepository.java
-----
-include::../../../../src/test/java/org/springframework/data/neo4j/documentation/repositories/domain_events/ARepository.java[tags=standard-parameter]
-----
-<.> Here we are referring to the parameter by its name.
-You can also use `$0` etc. instead.
-
-NOTE: You need to compile your Java 8+ project with `-parameters` to make named parameters work without further annotations.
-The Spring Boot Maven and Gradle plugins do this automatically for you.
-If this is not feasible for any reason, you can either add
-`@Param`  and specify the name explicitly or use the parameters index.
-
-[[faq.custom-queries]]
+[[faq.custom-queries-with-page-and-slice]]
 == How do I use custom queries with repository methods returning `Page<T>` or `Slice<T>`?
 
 While you don't have to provide anything else apart a `Pageable` as a parameter on derived finder methods

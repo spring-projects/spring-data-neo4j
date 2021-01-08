@@ -8,6 +8,7 @@
 include::conversions.adoc[]
 include::neo4j-client.adoc[]
 include::query-creation.adoc[]
+include::custom-queries.adoc[]
 include::migrating.adoc[]
 include::build.adoc[]
 :leveloffset: -1
