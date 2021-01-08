@@ -289,13 +289,13 @@ Neither labels nor relationship types can be parameterized in Cypher, so they mu
 [source,java]
 .literal-Extension
 ----
-interface BaseClassRepository extends Neo4jRepository<BaseClass, Long> {
+interface BaseClassRepository extends Neo4jRepository<Inheritance.BaseClass, Long> {
 
     @Query("MATCH (n:`:#{literal(#label)}`) RETURN n") // <.>
     List<Inheritance.BaseClass> findByLabel(String label);
 }
 ----
-<.> The `literal` extension will be replaced with the literal value of the evaluate parameter.
+<.> The `literal` extension will be replaced with the literal value of the evaluated parameter.
 Here it has been used to match dynamically on a Label.
 If you pass in `SomeLabel` as a parameter to the method, `MATCH (n:``SomeLabel``) RETURN n`
 will be generated. Ticks have been added to correctly escape values. SDN won't do this
