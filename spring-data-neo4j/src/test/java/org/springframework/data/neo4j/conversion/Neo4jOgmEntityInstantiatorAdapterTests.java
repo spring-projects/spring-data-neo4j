@@ -34,6 +34,7 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.harness.ServerControls;
 import org.neo4j.harness.TestServerBuilders;
 import org.neo4j.ogm.drivers.bolt.driver.BoltDriver;
+import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Name;
@@ -42,6 +43,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.neo4j.conversion.ogm618.CoercedNumericInCtor;
 import org.springframework.data.neo4j.conversion.ogm618.MyNode;
 import org.springframework.data.neo4j.conversion.ogm618.MyNodeRepository;
 import org.springframework.data.neo4j.conversion.ogm618.ResultHolder;
@@ -71,12 +73,27 @@ public class Neo4jOgmEntityInstantiatorAdapterTests {
 
 		serverControls = TestServerBuilders.newInProcessBuilder()
 				.withProcedure(Neo4jOgmEntityInstantiatorAdapterTests.ListReturningThing.class)
-				.withFixture("CREATE (m:MyNode{name: 'All the', things: []})").newServer();
+				.withFixture("CREATE (m:MyNode{name: 'All the', things: []})")
+				.withFixture("CREATE (m:CoercedNumericInCtor{name: 'Whatever', lfdnr: 4711})")
+				.newServer();
 		boltURI = serverControls.boltURI();
 	}
 
 	@Autowired
 	private MyNodeRepository myNodeRepository;
+
+	@Autowired
+	private Session session;
+
+	@Test // GH-1712
+	public void longVsIntMustNotRelyOnConverter() {
+
+		Optional<CoercedNumericInCtor> optionalNode = session.loadAll(CoercedNumericInCtor.class).stream().findFirst();
+		assertThat(optionalNode).hasValueSatisfying(object -> {
+			assertThat(object.getLfdnr()).isEqualTo(4711);
+			assertThat(object.getName()).isEqualTo("Whatever");
+		});
+	}
 
 	@Test
 	public void ctorShouldHandleEmptyArrayFromAttributes() {

@@ -20,6 +20,7 @@ import java.util.Collections;
 import java.util.Map;
 
 import org.neo4j.ogm.metadata.reflect.EntityAccessManager;
+import org.neo4j.ogm.session.Utils;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.convert.EntityInstantiator;
 import org.springframework.data.mapping.PreferredConstructor;
@@ -109,7 +110,8 @@ public class Neo4jOgmEntityInstantiatorAdapter implements org.neo4j.ogm.session.
 						? EntityAccessManager.merge(collectionType, value, new Object[] {}, elementType)
 						: EntityAccessManager.merge(collectionType, value, Collections.EMPTY_LIST, elementType);
 			}
-			return value;
+
+			return Utils.coerceTypes(parameter.getType().getType(), value);
 		}
 	}
 }
