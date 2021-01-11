@@ -137,3 +137,68 @@ interface and its only implementation `org.springframework.data.neo4j.bookmark.C
 
 SDN uses Bookmarks for all transactions, without configuration.
 You can remove the bean declaration of `CaffeineBookmarkManager` as well as the the dependency to `com.github.ben-manes.caffeine:caffeine`.
+
+[[migrating.autoindex]]
+=== Automatic creation of constraints and indexes
+
+SDN 5.3 and prior provided the "Automatic index manager" from Neo4j-OGM.
+
+`@Index`, `@CompositeIndex` and `@Required` have been removed without replacement.
+Why?
+We think that creating the schema - even for a schemaless database - is not part of the domain modelling.
+You could argue that an SDN model is the schema, but than we would answer that we even prefer a https://en.wikipedia.org/wiki/Command–query_separation[Command-query separation],
+meaning that we would rather define separate read and write models.
+Those come in very handy for writing "boring" things and reading graph-shaped answers.
+
+Apart from that, some of those annotations respectively their values are tied to specific Neo4j editions or versions, which makes them
+hard to maintain.
+
+The best argument however is going to production: While all tools that generate a schema are indeed helpful during development, even more so with databases that enforces a strict scheme,
+they tend to be not so nice in production: How do you handle different versions of your application running at the same time?
+Version A asserting the indexes that have been created by a newer version B?
+
+We think it's better to take control about this upfront and recommend using controlled database migrations, based on a tool like https://www.liquigraph.org[Liquigraph] or https://github.com/michael-simons/neo4j-migrations[Neo4j migrations].
+The later has been seen in use with SDN inside the JHipster project.
+Both projects have in common that they store the current version of the schema within the database and make sure that a schema matches expectations before things are being updated.
+
+Migrating off from previous Neo4j-OGM annotations affects `@Index`, `@CompositeIndex` and `@Required` and an example for those is given here in <<indexed.class>>:
+
+[[indexed.class]]
+[source,java]
+.A class making use of Neo4j-OGM automatic index manager
+----
+import org.neo4j.ogm.annotation.CompositeIndex;
+import org.neo4j.ogm.annotation.GeneratedValue;
+import org.neo4j.ogm.annotation.Id;
+import org.neo4j.ogm.annotation.Index;
+import org.neo4j.ogm.annotation.Required;
+
+@CompositeIndex(properties = {"tagline", "released"})
+public class Movie {
+
+    @Id @GeneratedValue Long id;
+
+    @Index(unique = true)
+    private String title;
+
+    private String description;
+
+    private String tagline;
+
+    @Required
+    private Integer released;
+}
+----
+
+It's annotations are equivalent to the following scheme in Cypher (as of Neo4j 4.2):
+
+[source,cypher]
+.Example Cypher based migration
+----
+CREATE CONSTRAINT movies_unique_title ON (m:Movie) ASSERT m.title IS UNIQUE;
+CREATE CONSTRAINT movies_released_exists ON (m:Movie) ASSERT EXISTS (m.released);
+CREATE INDEX movies_tagline_released_idx FOR (m:Movie) ON (m.tagline, m.released);
+----
+
+Using `@Index` without `unique = true` is equivalent to `CREATE INDEX movie_title_index FOR (m:Movie) ON (m.title)`.
+Note that a unique index already implies an index.
