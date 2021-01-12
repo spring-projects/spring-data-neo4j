@@ -247,7 +247,8 @@ public enum CypherGenerator {
 	@NonNull
 	public Statement prepareSaveOfRelationship(Neo4jPersistentEntity<?> neo4jPersistentEntity,
 			RelationshipDescription relationship, @Nullable String dynamicRelationshipType, Long relatedInternalId) {
-		final Node startNode = neo4jPersistentEntity.isUsingInternalIds() ? anyNode(START_NODE_NAME)
+		final Node startNode = neo4jPersistentEntity.isUsingInternalIds()
+				? anyNode(START_NODE_NAME)
 				: node(neo4jPersistentEntity.getPrimaryLabel(), neo4jPersistentEntity.getAdditionalLabels())
 						.named(START_NODE_NAME);
 
@@ -272,7 +273,7 @@ public enum CypherGenerator {
 		Assert.isTrue(relationship.hasRelationshipProperties(),
 				"Properties required to create a relationship with properties");
 
-		Node startNode = anyNode(START_NODE_NAME);
+		Node startNode = node(neo4jPersistentEntity.getPrimaryLabel(), neo4jPersistentEntity.getAdditionalLabels()).named(START_NODE_NAME);
 		Node endNode = anyNode(END_NODE_NAME);
 		String idPropertyName = neo4jPersistentEntity.getRequiredIdProperty().getPropertyName();
 

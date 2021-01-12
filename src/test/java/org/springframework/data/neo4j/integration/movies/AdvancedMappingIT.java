@@ -51,7 +51,7 @@ class AdvancedMappingIT {
 	static void setupData(@Autowired Driver driver) throws IOException {
 
 		try (BufferedReader moviesReader = new BufferedReader(
-				new InputStreamReader(AdvancedMappingIT.class.getClass().getResourceAsStream("/data/movies.cypher")));
+				new InputStreamReader(AdvancedMappingIT.class.getResourceAsStream("/data/movies.cypher")));
 				Session session = driver.session()) {
 			session.run("MATCH (n) DETACH DELETE n");
 			String moviesCypher = moviesReader.lines().collect(Collectors.joining(" "));
