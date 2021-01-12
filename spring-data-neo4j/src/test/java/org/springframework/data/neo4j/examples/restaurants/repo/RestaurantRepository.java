@@ -61,7 +61,11 @@ public interface RestaurantRepository extends Neo4jRepository<Restaurant, Long> 
 
 	List<Restaurant> findByNameStartingWith(String string);
 
+	List<Restaurant> findByNameStartingWithIgnoreCase(String string);
+
 	List<Restaurant> findByNameEndingWith(String string);
+
+	List<Restaurant> findByNameEndingWithIgnoreCase(String string);
 
 	List<Restaurant> findByNameContaining(String string);
 

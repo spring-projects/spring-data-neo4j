@@ -17,8 +17,11 @@ package org.springframework.data.neo4j.repository.query.filter;
 
 import static org.springframework.data.repository.query.parser.Part.Type.*;
 
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.Stack;
 
 import org.neo4j.ogm.cypher.BooleanOperator;
@@ -33,6 +36,17 @@ import org.springframework.util.Assert;
  * @author Michael J. Simons
  */
 class PropertyComparisonBuilder extends FilterBuilder {
+
+	private static final Set<Part.Type> TYPES_SUPPORTING_IGNORE_CASE;
+
+	static {
+		Set<Part.Type> typesSupportingIgnoreCase = new HashSet<>();
+		typesSupportingIgnoreCase.add(SIMPLE_PROPERTY);
+		typesSupportingIgnoreCase.add(CONTAINING);
+		typesSupportingIgnoreCase.add(STARTING_WITH);
+		typesSupportingIgnoreCase.add(ENDING_WITH);
+		TYPES_SUPPORTING_IGNORE_CASE = Collections.unmodifiableSet(typesSupportingIgnoreCase);
+	}
 
 	PropertyComparisonBuilder(Part part, BooleanOperator booleanOperator, Class<?> entityType) {
 		super(part, booleanOperator, entityType);
@@ -128,7 +142,6 @@ class PropertyComparisonBuilder extends FilterBuilder {
 	}
 
 	private boolean isSupportedIgnoreKeyword(Part part) {
-		Part.Type type = part.getType();
-		return type == SIMPLE_PROPERTY || type == CONTAINING;
+		return TYPES_SUPPORTING_IGNORE_CASE.contains(part.getType());
 	}
 }
