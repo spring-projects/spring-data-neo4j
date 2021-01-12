@@ -115,6 +115,7 @@ import org.springframework.data.neo4j.integration.shared.common.PersonWithRelati
 import org.springframework.data.neo4j.integration.shared.common.PersonWithRelationshipWithProperties2;
 import org.springframework.data.neo4j.integration.shared.common.PersonWithWither;
 import org.springframework.data.neo4j.integration.shared.common.Pet;
+import org.springframework.data.neo4j.integration.shared.common.SameIdProperty;
 import org.springframework.data.neo4j.integration.shared.common.SimilarThing;
 import org.springframework.data.neo4j.integration.shared.common.SimpleEntityWithRelationshipA;
 import org.springframework.data.neo4j.integration.shared.common.SimplePerson;
@@ -2154,6 +2155,80 @@ class RepositoryIT {
 				assertThat(records).hasSize(1);
 			}
 		}
+
+		@Test // GH-2108
+		void saveRelatedEntitesWithSameCustomIdsAndRelationshipProperties(
+				@Autowired SameIdEntitiesWithRelationshipPropertiesRepository repository) {
+
+			List<SameIdProperty.RouteProperties> routes = new ArrayList<>();
+			routes.add(new SameIdProperty.RouteProperties()
+					.withPod(new SameIdProperty.PodEntity()
+							.withCode("BEANR")
+					)
+					.withTruck(20d));
+
+			routes.add(new SameIdProperty.RouteProperties()
+					.withPod(new SameIdProperty.PodEntity()
+							.withCode("TRMER") // Here is the duplicated, but for another kind of node.
+					)
+					.withTruck(20d));
+
+			SameIdProperty.PolEntityWithRelationshipProperties polEntity = new SameIdProperty.PolEntityWithRelationshipProperties()
+					.withCode("TRMER")
+					.withRoutes(routes);
+
+			repository.save(polEntity);
+
+			try (Session session = createSession()) {
+				List<Record> list = session.run(
+						"MATCH (pol:PolWithRP{code:'TRMER'})-[:ROUTES]->(pod:Pod{code:'TRMER'}) return pol, pod"
+				).list();
+				assertThat(list).hasSize(1);
+
+				list = session.run(
+						"MATCH (pol:PolWithRP{code:'TRMER'})-[:ROUTES]->(pod:Pod{code:'BEANR'}) return pol, pod"
+				).list();
+				assertThat(list).hasSize(1);
+
+				list = session.run(
+						"MATCH (pod1:Pod{code:'TRMER'})-[:ROUTES]->(pod2:Pod{code:'TRMER'}) return pod1, pod2"
+				).list();
+				assertThat(list).hasSize(0);
+			}
+		}
+
+		@Test // GH-2108
+		void saveRelatedEntitesWithSameCustomIdsAndPlainRelationships(
+				@Autowired SameIdEntitiesRepository repository) {
+
+			List<SameIdProperty.PodEntity> routes = new ArrayList<>();
+			routes.add(new SameIdProperty.PodEntity().withCode("BEANR"));
+
+			routes.add(new SameIdProperty.PodEntity().withCode("TRMER"));
+
+			SameIdProperty.PolEntity polEntity = new SameIdProperty.PolEntity()
+					.withCode("TRMER")
+					.withRoutes(routes);
+
+			repository.save(polEntity);
+
+			try (Session session = createSession()) {
+				List<Record> list = session.run(
+						"MATCH (pol:Pol{code:'TRMER'})-[:ROUTES]->(pod:Pod{code:'TRMER'}) return pol, pod"
+				).list();
+				assertThat(list).hasSize(1);
+
+				list = session.run(
+						"MATCH (pol:Pol{code:'TRMER'})-[:ROUTES]->(pod:Pod{code:'BEANR'}) return pol, pod"
+				).list();
+				assertThat(list).hasSize(1);
+
+				list = session.run(
+						"MATCH (pod1:Pod{code:'TRMER'})-[:ROUTES]->(pod2:Pod{code:'TRMER'}) return pod1, pod2"
+				).list();
+				assertThat(list).hasSize(0);
+			}
+		}
 	}
 
 	@Nested
@@ -3845,6 +3920,11 @@ class RepositoryIT {
 			extends Neo4jRepository<EntityWithRelationshipPropertiesPath, Long> {}
 
 	interface BidirectionalSameEntityRepository extends Neo4jRepository<BidirectionalSameEntity, String> {}
+
+	interface SameIdEntitiesWithRelationshipPropertiesRepository
+			extends Neo4jRepository<SameIdProperty.PolEntityWithRelationshipProperties, String> {}
+
+	interface SameIdEntitiesRepository extends Neo4jRepository<SameIdProperty.PolEntity, String> {}
 
 	@SpringJUnitConfig(Config.class)
 	static abstract class IntegrationTestBase {
