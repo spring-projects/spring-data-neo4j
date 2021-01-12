@@ -22,6 +22,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
+import java.util.function.Supplier;
 
 import org.junit.After;
 import org.junit.Test;
@@ -370,23 +372,26 @@ public class RestaurantTests {
 		assertEquals(0, results.size());
 	}
 
-	/**
-	 * All findByPropertyLike does currently is to require an exact match, ignoring case.
-	 */
-	@Test // DATAGRAPH-904
-	public void shouldFindByNameNotLike() {
-
+	void runTestThatShouldReturnOnlySFO(Supplier<List<Restaurant>> restaurantSupplier) {
 		Restaurant restaurant = new Restaurant("San Francisco International Airport (SFO)", 68.0);
 		restaurantRepository.save(restaurant);
 
 		Restaurant kuroda = new Restaurant("Kuroda", 72.4);
 		restaurantRepository.save(kuroda);
 
-		List<Restaurant> results = restaurantRepository.findByNameNotLike("kuroda");
+		List<Restaurant> results = restaurantSupplier.get();
 		assertNotNull(results);
 		assertEquals(1, results.size());
 		assertEquals("San Francisco International Airport (SFO)", results.get(0).getName());
+	}
 
+	/**
+	 * All findByPropertyLike does currently is to require an exact match, ignoring case.
+	 */
+	@Test // DATAGRAPH-904
+	public void shouldFindByNameNotLike() {
+
+		runTestThatShouldReturnOnlySFO(() -> restaurantRepository.findByNameNotLike("kuroda"));
 	}
 
 	/**
@@ -395,49 +400,32 @@ public class RestaurantTests {
 	@Test // DATAGRAPH-904
 	public void shouldFindByNameLike() {
 
-		Restaurant restaurant = new Restaurant("San Francisco International Airport (SFO)", 68.0);
-		restaurantRepository.save(restaurant);
-
-		Restaurant kuroda = new Restaurant("Kuroda", 72.4);
-		restaurantRepository.save(kuroda);
-
-		List<Restaurant> results = restaurantRepository.findByNameLike("*san francisco international*");
-		assertNotNull(results);
-		assertEquals(1, results.size());
-		assertEquals("San Francisco International Airport (SFO)", results.get(0).getName());
-
+		runTestThatShouldReturnOnlySFO(() -> restaurantRepository.findByNameLike("*san francisco international*"));
 	}
 
 	@Test // DATAGRAPH-904
 	public void shouldFindByNameStartingWith() {
 
-		Restaurant restaurant = new Restaurant("San Francisco International Airport (SFO)", 68.0);
-		restaurantRepository.save(restaurant);
+		runTestThatShouldReturnOnlySFO(() -> restaurantRepository.findByNameStartingWith("San Francisco"));
 
-		Restaurant kuroda = new Restaurant("Kuroda", 72.4);
-		restaurantRepository.save(kuroda);
+	}
 
-		List<Restaurant> results = restaurantRepository.findByNameStartingWith("San Francisco");
-		assertNotNull(results);
-		assertEquals(1, results.size());
-		assertEquals("San Francisco International Airport (SFO)", results.get(0).getName());
+	@Test // DATAGRAPH-1862
+	public void shouldFindByNameStartingWithIgnoringCase() {
 
+		runTestThatShouldReturnOnlySFO(() -> restaurantRepository.findByNameStartingWithIgnoreCase("San Francisco".toLowerCase(Locale.ROOT)));
 	}
 
 	@Test // DATAGRAPH-904
 	public void shouldFindByNameEndingWith() {
 
-		Restaurant restaurant = new Restaurant("San Francisco International Airport (SFO)", 68.0);
-		restaurantRepository.save(restaurant);
+		runTestThatShouldReturnOnlySFO(() -> restaurantRepository.findByNameEndingWith("Airport (SFO)"));
+	}
 
-		Restaurant kuroda = new Restaurant("Kuroda", 72.4);
-		restaurantRepository.save(kuroda);
+	@Test // DATAGRAPH-1862
+	public void shouldFindByNameEndingWithIgnoringCase() {
 
-		List<Restaurant> results = restaurantRepository.findByNameEndingWith("Airport (SFO)");
-		assertNotNull(results);
-		assertEquals(1, results.size());
-		assertEquals("San Francisco International Airport (SFO)", results.get(0).getName());
-
+		runTestThatShouldReturnOnlySFO(() -> restaurantRepository.findByNameEndingWithIgnoreCase("Airport (SFO)".toLowerCase(Locale.ROOT)));
 	}
 
 	@Test // DATAGRAPH-904
@@ -510,17 +498,7 @@ public class RestaurantTests {
 	@Test // DATAGRAPH-904
 	public void shouldFindByNameMatchesRegEx() {
 
-		Restaurant restaurant = new Restaurant("San Francisco International Airport (SFO)", 68.0);
-		restaurantRepository.save(restaurant);
-
-		Restaurant kuroda = new Restaurant("Kuroda", 72.4);
-		restaurantRepository.save(kuroda);
-
-		List<Restaurant> results = restaurantRepository.findByNameMatchesRegex("(?i)san francisco.*");
-		assertNotNull(results);
-		assertEquals(1, results.size());
-		assertEquals("San Francisco International Airport (SFO)", results.get(0).getName());
-
+		runTestThatShouldReturnOnlySFO(() -> restaurantRepository.findByNameMatchesRegex("(?i)san francisco.*"));
 	}
 
 	@Test // DATAGRAPH-904
