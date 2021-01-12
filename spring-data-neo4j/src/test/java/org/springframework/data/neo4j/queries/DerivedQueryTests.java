@@ -21,6 +21,7 @@ import static org.junit.Assert.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
@@ -412,7 +413,7 @@ public class DerivedQueryTests {
 		assertTrue(users.contains(new User("Michal")));
 	}
 
-	@Test // Relates to DATAGRAPH-601 and, to an extent, DATAGRAPH-761
+	@Test // DATAGRAPH-601, DATAGRAPH-761
 	public void shouldFindNodeEntitiesByRegularExpressionMatchingOnPropertiesInDerivedFinderMethods() {
 		executeUpdate("CREATE (:Theatre {name:'Odeon', city:'Preston'}), " + "(:Theatre {name:'Vue', city:'Dumfries'}), "
 				+ "(:Theatre {name:'PVR', city:'Mumbai'}) ");
@@ -681,6 +682,20 @@ public class DerivedQueryTests {
 
 		List<User> users = userRepository.findAllByIdAndName(ids.get(2), "U2");
 		assertThat(users).hasSize(1);
+	}
+
+	@Test // GH-1792
+	public void findByIdInNestedPropertyTraversalShouldWork() {
+		executeUpdate("CREATE (r:Theatre {name:'Ritzy', city:'London', capacity: 7500})"
+					  + " CREATE (u:User {name:'Michal'}) CREATE (u)-[:VISITED]->(r) CREATE (m1:Movie {name:'Speed'})"
+					  + " CREATE (g:Genre {name:'Thriller'}) CREATE (u)-[:INTERESTED]->(g)");
+
+		long genreId = session.queryForObject(Long.class, "MATCH (g:Genre {name:'Thriller'}) RETURN id(g)",
+				Collections.emptyMap());
+
+		List<User> users = userRepository.findAllByInterestedId(genreId);
+		assertEquals(1, users.size());
+		assertEquals("Michal", users.get(0).getName());
 	}
 
 	@Test // DATAGRAPH-1093
