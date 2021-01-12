@@ -20,6 +20,8 @@ import static org.assertj.core.api.Assertions.*;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.neo4j.annotation.EnableBookmarkManagement;
@@ -143,7 +145,7 @@ public class BookmarkManagementTests {
 
 	@Configuration
 	@EnableBookmarkManagement
-	@EnableTransactionManagement()
+	@EnableTransactionManagement
 	static class BookmarkManagementConfiguration {
 
 		@Bean
@@ -164,6 +166,11 @@ public class BookmarkManagementTests {
 		@Bean
 		public UseBookmarkWrapperOnClassBean useBookmarkWrapperOnClassBean() {
 			return new UseBookmarkWrapperOnClassBean();
+		}
+
+		@Bean
+		public BookmarkManager bookmarkManager() {
+			return new CaffeineBookmarkManager();
 		}
 
 		@Bean

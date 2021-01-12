@@ -15,10 +15,14 @@
  */
 package org.springframework.data.neo4j.bookmark;
 
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Role;
+import org.springframework.context.event.ContextRefreshedEvent;
 
 /**
  * Configuration used by @{@link org.springframework.data.neo4j.annotation.EnableBookmarkManagement}
@@ -33,6 +37,7 @@ import org.springframework.context.annotation.Role;
  * provide the BookmarkManager bean.
  *
  * @author Frantisek Hartman
+ * @author Michael J. Simons
  */
 @Configuration
 public class BookmarkManagementConfiguration {
@@ -52,4 +57,33 @@ public class BookmarkManagementConfiguration {
 		return new BookmarkInterceptor();
 	}
 
+	@Bean
+	@Role(BeanDefinition.ROLE_INFRASTRUCTURE)
+	public BookmarkManagerContextValidator bookmarkManagerContextValidator(
+			ObjectProvider<BookmarkManager> bookmarkManagerProvider) {
+		return new BookmarkManagerContextValidator(bookmarkManagerProvider);
+	}
+
+	/**
+	 * A helper class that asserts the presence of a {@link BookmarkManager} on startup.
+	 */
+	static class BookmarkManagerContextValidator implements ApplicationListener<ContextRefreshedEvent> {
+
+		private final ObjectProvider<BookmarkManager> bookmarkManagerProvider;
+
+		public BookmarkManagerContextValidator(ObjectProvider<BookmarkManager> bookmarkManagerProvider) {
+			this.bookmarkManagerProvider = bookmarkManagerProvider;
+		}
+
+		@Override
+		public void onApplicationEvent(ContextRefreshedEvent event) {
+			try {
+				bookmarkManagerProvider.getObject();
+			} catch (NoSuchBeanDefinitionException e) {
+				throw new IllegalStateException(
+						"Bookmark management has been enabled via `@EnableBookmarkManagement` but no bean implementing `org.springframework.data.neo4j.bookmark.BookmarkManager` has been provided.\n"
+						+ "Preventing the start of the context as all `@UseBookmark` annotated methods would fail. Please provide a bookmark manager.");
+			}
+		}
+	}
 }
