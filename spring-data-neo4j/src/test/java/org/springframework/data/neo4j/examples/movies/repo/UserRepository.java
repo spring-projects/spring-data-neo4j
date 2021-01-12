@@ -151,6 +151,8 @@ public interface UserRepository extends PersonRepository<User, Long> {
 
 	List<User> findAllByIdAndName(Long id, String name);
 
+	List<User> findAllByInterestedId(Long id);
+
 	@Query("invalid")
 	void invalidQuery();
 
