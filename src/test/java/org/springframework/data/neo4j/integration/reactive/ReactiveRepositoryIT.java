@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.tuple;
 
 import org.springframework.data.neo4j.integration.shared.common.DtoPersonProjection;
+import org.springframework.data.neo4j.integration.shared.common.EntitiesWithDynamicLabels;
 import org.springframework.data.neo4j.integration.shared.common.SimplePerson;
 import org.springframework.data.neo4j.integration.shared.common.ThingWithFixedGeneratedId;
 import reactor.core.publisher.Flux;
@@ -2342,6 +2343,37 @@ class ReactiveRepositoryIT {
 			}
 		}
 
+		@Test // GH-2110
+		void createNodeWithCustomIdAndDynamicLabels(
+				@Autowired EntityWithCustomIdAndDynamicLabelsRepository repository) {
+
+			EntitiesWithDynamicLabels.EntityWithCustomIdAndDynamicLabels entity1
+					= new EntitiesWithDynamicLabels.EntityWithCustomIdAndDynamicLabels();
+			EntitiesWithDynamicLabels.EntityWithCustomIdAndDynamicLabels entity2
+					= new EntitiesWithDynamicLabels.EntityWithCustomIdAndDynamicLabels();
+
+			entity1.identifier = "id1";
+			entity1.myLabels = Collections.singleton("LabelEntity1");
+
+			entity2.identifier = "id2";
+			entity2.myLabels = Collections.singleton("LabelEntity2");
+
+			Collection<EntitiesWithDynamicLabels.EntityWithCustomIdAndDynamicLabels> entities = new ArrayList<>();
+			entities.add(entity1);
+			entities.add(entity2);
+
+			repository.saveAll(entities).blockLast();
+
+			try (Session session = createSession()) {
+				List<Record> result = session.run("MATCH (e:EntityWithCustomIdAndDynamicLabels:LabelEntity1) return e")
+						.list();
+				assertThat(result).hasSize(1);
+				result = session.run("MATCH (e:EntityWithCustomIdAndDynamicLabels:LabelEntity2) return e")
+						.list();
+				assertThat(result).hasSize(1);
+			}
+		}
+
 		@Test
 		void findNodeWithMultipleLabels(@Autowired ReactiveMultipleLabelWithAssignedIdRepository repository) {
 
@@ -2387,7 +2419,6 @@ class ReactiveRepositoryIT {
 				assertThat(session.run("MATCH (n:X) return n").list()).hasSize(1);
 			}
 		}
-
 	}
 
 	interface BidirectionalStartRepository extends ReactiveNeo4jRepository<BidirectionalStart, Long> {}
@@ -2452,6 +2483,9 @@ class ReactiveRepositoryIT {
 			extends ReactiveNeo4jRepository<EntityWithConvertedId, EntityWithConvertedId.IdentifyingEnum> {}
 
 	interface ThingWithFixedGeneratedIdRepository extends ReactiveNeo4jRepository<ThingWithFixedGeneratedId, String> {}
+
+	interface EntityWithCustomIdAndDynamicLabelsRepository
+			extends ReactiveNeo4jRepository<EntitiesWithDynamicLabels.EntityWithCustomIdAndDynamicLabels, String> {}
 
 	@SpringJUnitConfig(ReactiveRepositoryIT.Config.class)
 	static abstract class ReactiveIntegrationTestBase {

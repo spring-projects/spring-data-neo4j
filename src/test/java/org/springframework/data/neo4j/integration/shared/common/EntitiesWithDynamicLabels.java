@@ -167,5 +167,16 @@ public final class EntitiesWithDynamicLabels {
 		@DynamicLabels public Set<String> moreLabels;
 	}
 
+	/**
+	 * Custom identifier and dynamic labels entity
+	 */
+	@Node
+	public static class EntityWithCustomIdAndDynamicLabels {
+
+		@Id public String identifier;
+
+		@DynamicLabels public Set<String> myLabels;
+	}
+
 	private EntitiesWithDynamicLabels() {}
 }
