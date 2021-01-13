@@ -299,7 +299,8 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 
 		Class<T> domainClass = (Class<T>) CollectionUtils.findCommonElementType(entities);
 		Neo4jPersistentEntity entityMetaData = neo4jMappingContext.getPersistentEntity(domainClass);
-		if (entityMetaData.isUsingInternalIds() || entityMetaData.hasVersionProperty()) {
+		if (entityMetaData.isUsingInternalIds() || entityMetaData.hasVersionProperty()
+				|| entityMetaData.getDynamicLabelsProperty().isPresent()) {
 			log.debug("Saving entities using single statements.");
 
 			return entities.stream().map(e -> saveImpl(e, databaseName)).collect(Collectors.toList());

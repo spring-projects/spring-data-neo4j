@@ -297,7 +297,8 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 		Class<T> domainClass = (Class<T>) CollectionUtils.findCommonElementType(entities);
 		Neo4jPersistentEntity entityMetaData = neo4jMappingContext.getPersistentEntity(domainClass);
 
-		if (entityMetaData.isUsingInternalIds() || entityMetaData.hasVersionProperty()) {
+		if (entityMetaData.isUsingInternalIds() || entityMetaData.hasVersionProperty()
+				|| entityMetaData.getDynamicLabelsProperty().isPresent()) {
 			log.debug("Saving entities using single statements.");
 
 			return getDatabaseName().flatMapMany(

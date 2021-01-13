@@ -95,6 +95,7 @@ import org.springframework.data.neo4j.integration.shared.common.ClubRelationship
 import org.springframework.data.neo4j.integration.shared.common.DeepRelationships;
 import org.springframework.data.neo4j.integration.shared.common.DtoPersonProjection;
 import org.springframework.data.neo4j.integration.shared.common.DtoPersonProjectionContainingAdditionalFields;
+import org.springframework.data.neo4j.integration.shared.common.EntitiesWithDynamicLabels;
 import org.springframework.data.neo4j.integration.shared.common.EntityWithConvertedId;
 import org.springframework.data.neo4j.integration.shared.common.EntityWithRelationshipPropertiesPath;
 import org.springframework.data.neo4j.integration.shared.common.ExtendedParentNode;
@@ -3252,6 +3253,37 @@ class RepositoryIT {
 			}
 		}
 
+		@Test // GH-2110
+		void createNodeWithCustomIdAndDynamicLabels(
+				@Autowired EntityWithCustomIdAndDynamicLabelsRepository repository) {
+
+			EntitiesWithDynamicLabels.EntityWithCustomIdAndDynamicLabels entity1
+					= new EntitiesWithDynamicLabels.EntityWithCustomIdAndDynamicLabels();
+			EntitiesWithDynamicLabels.EntityWithCustomIdAndDynamicLabels entity2
+					= new EntitiesWithDynamicLabels.EntityWithCustomIdAndDynamicLabels();
+
+			entity1.identifier = "id1";
+			entity1.myLabels = Collections.singleton("LabelEntity1");
+
+			entity2.identifier = "id2";
+			entity2.myLabels = Collections.singleton("LabelEntity2");
+
+			Collection<EntitiesWithDynamicLabels.EntityWithCustomIdAndDynamicLabels> entities = new ArrayList<>();
+			entities.add(entity1);
+			entities.add(entity2);
+
+			repository.saveAll(entities);
+
+			try (Session session = createSession()) {
+				List<Record> result = session.run("MATCH (e:EntityWithCustomIdAndDynamicLabels:LabelEntity1) return e")
+						.list();
+				assertThat(result).hasSize(1);
+				result = session.run("MATCH (e:EntityWithCustomIdAndDynamicLabels:LabelEntity2) return e")
+						.list();
+				assertThat(result).hasSize(1);
+			}
+		}
+
 		@Test
 		void findNodeWithMultipleLabels(@Autowired MultipleLabelWithAssignedIdRepository multipleLabelRepository) {
 			long n1Id;
@@ -3925,6 +3957,9 @@ class RepositoryIT {
 			extends Neo4jRepository<SameIdProperty.PolEntityWithRelationshipProperties, String> {}
 
 	interface SameIdEntitiesRepository extends Neo4jRepository<SameIdProperty.PolEntity, String> {}
+
+	interface EntityWithCustomIdAndDynamicLabelsRepository
+			extends Neo4jRepository<EntitiesWithDynamicLabels.EntityWithCustomIdAndDynamicLabels, String> {}
 
 	@SpringJUnitConfig(Config.class)
 	static abstract class IntegrationTestBase {
