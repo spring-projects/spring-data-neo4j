@@ -1,6 +1,23 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 6.1.0-M2 (2021-01-13)
+----------------------------------------
+* DATAGRAPH-1469 - Bidirectional RelationshipProperties persist ends up in StackOverflow.
+* DATAGRAPH-1466 - Add support for storing java.util.Timezone and java.time.ZoneId.
+* DATAGRAPH-1461 - Update CI jobs with Docker Login.
+* #2110 - Dynamic labels won't get persisted on saveAll.
+* #2108 - Link relationships by label and id if a non-generated id is used.
+* #2106 - Update dependencies for 2020.0.3.
+* #2105 - Add documentation for alternatives to the automatic index manager to the migration guide.
+* #2033 - ExistsBy property does not work [DATAGRAPH-1472].
+* #2032 - Document manual query creation. [DATAGRAPH-1471].
+* #2028 - Relationship is always null with inheritance [DATAGRAPH-1467].
+* #2013 - Spring Data Neo4J 6.0.1 throws Exception when connecting to Neo4j 3.5 [DATAGRAPH-1451].
+* #1959 - Resolve neo4j.core <->  neo4j.repository.support package cycle [DATAGRAPH-1398].
+* #899 - Update repository after GitHub issues migration.
+
+
 Changes in version 6.0.3 (2021-01-13)
 -------------------------------------
 * DATAGRAPH-1469 - Bidirectional RelationshipProperties persist ends up in StackOverflow.
@@ -2010,6 +2027,7 @@ General
 * Support for building traversal descriptions
 * Support for cross-store persistence including basic transaction support
 * Abstract configuration class
+
 
 
 
