@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.integration.movies;
+package org.springframework.data.neo4j.integration.movies.shared;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -71,8 +71,6 @@ public final class Person {
 	public List<Movie> getReviewed() {
 		return reviewed;
 	}
-
-
 
 	@Override public String toString() {
 		return "Person{" +
