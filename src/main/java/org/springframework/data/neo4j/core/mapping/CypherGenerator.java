@@ -399,6 +399,8 @@ public enum CypherGenerator {
 			Node node = anyNode(nodeName);
 			RelationshipPattern pattern = createRelationships(node, relationships);
 			NamedPath p = Cypher.path("p").definedBy(pattern);
+			contentOfProjection.add(Constants.NAME_OF_SYNTHESIZED_ROOT_NODE);
+			contentOfProjection.add(Constants.NAME_OF_ROOT_NODE);
 			contentOfProjection.add(Constants.NAME_OF_PATHS);
 			contentOfProjection.add(Cypher.listBasedOn(p).returning(p));
 		} else {
