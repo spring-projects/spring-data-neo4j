@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -632,8 +633,8 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 		public Flux<T> getResults() {
 
 			return fetchSpec.all().switchOnFirst((signal, f) -> {
-				if (preparedQuery.resultsHaveBeenAggregated()) {
-					return f.flatMap(nested -> Flux.fromIterable((Collection<T>) nested).distinct());
+				if (signal.hasValue() && preparedQuery.resultsHaveBeenAggregated()) {
+					return f.flatMap(nested -> Flux.fromIterable((Collection<T>) nested).distinct()).distinct();
 				}
 				return f;
 			});
@@ -645,7 +646,12 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 		 */
 		public Mono<T> getSingleResult() {
 			try {
-				return fetchSpec.one();
+				return fetchSpec.one().map(t -> {
+					if (t instanceof LinkedHashSet) {
+						return (T) ((LinkedHashSet<?>) t).iterator().next();
+					}
+					return t;
+				});
 			} catch (NoSuchRecordException e) {
 				// This exception is thrown by the driver in both cases when there are 0 or 1+n records
 				// So there has been an incorrect result size, but not to few results but to many.

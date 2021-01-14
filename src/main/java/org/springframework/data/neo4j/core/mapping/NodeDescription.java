@@ -136,6 +136,6 @@ public interface NodeDescription<T> {
 	/**
 	 * @return Information if the domain would contain schema circles.
 	 */
-	boolean containsPossibleCircles();
+	boolean containsPossibleCircles(List<String> includeProperties);
 
 }

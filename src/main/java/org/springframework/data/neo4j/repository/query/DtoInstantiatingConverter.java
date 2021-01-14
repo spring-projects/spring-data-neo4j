@@ -127,7 +127,7 @@ class DtoInstantiatingConverter implements Converter<EntityInstanceWithSource, O
 		if (!sourceRecord.containsKey(targetPropertyName)) {
 			Neo4jQuerySupport.REPOSITORY_QUERY_LOG.warn(() -> String.format(""
 							+ "Cannot retrieve a value for property `%s` of DTO `%s` and the property will always be null. "
-							+ "Make sure to project only properties of the domain type of use a custom query that "
+							+ "Make sure to project only properties of the domain type or use a custom query that "
 							+ "returns a mappable data under the name `%1$s`.",
 					targetPropertyName, targetType.getName()));
 		} else if (targetProperty.isMap()) {

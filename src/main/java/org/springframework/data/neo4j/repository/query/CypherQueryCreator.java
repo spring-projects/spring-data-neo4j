@@ -162,8 +162,6 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryAndParameters, 
 			this.propertyPath = propertyPath;
 		}
 
-
-
 		public PersistentPropertyPath<?> getPropertyPath() {
 			return propertyPath;
 		}
@@ -282,19 +280,22 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryAndParameters, 
 
 		Iterator<PropertyPathWrapper> wrapperIterator = propertyPathWrappers.iterator();
 		while (wrapperIterator.hasNext()) {
-			PropertyPathWrapper propertyPathWithRelationship = wrapperIterator.next();
-			if (propertyPathWithRelationship.hasRelationships()) {
+			PropertyPathWrapper possiblePathWithRelationship = wrapperIterator.next();
+			if (possiblePathWithRelationship.hasRelationships()) {
 				// first loop should create the starting relationship
 				if (matches == null) {
-					matches = Cypher.match((RelationshipPattern) propertyPathWithRelationship.createRelationshipChain(startNode));
+					matches = Cypher.match((RelationshipPattern) possiblePathWithRelationship.createRelationshipChain(startNode));
 				} else { // the next ones adds another relationship chain as separated match
-					matches.match(((RelationshipPattern) propertyPathWithRelationship.createRelationshipChain(startNode)));
-				}
-				// closing action: add the condition
-				if (!wrapperIterator.hasNext()) {
-					matchAndCondition = matches.where(condition);
+					matches.match(((RelationshipPattern) possiblePathWithRelationship.createRelationshipChain(startNode)));
 				}
 			}
+		}
+
+		// closing action: add the condition and path match
+		if (nodeDescription.containsPossibleCircles(includedProperties)) {
+			matchAndCondition = cypherGenerator.createPathMatchWithCondition(matches, nodeDescription, includedProperties, condition, startNode);
+		} else if (matches != null) {
+			matchAndCondition = matches.where(condition);
 		}
 
 		Statement statement;
