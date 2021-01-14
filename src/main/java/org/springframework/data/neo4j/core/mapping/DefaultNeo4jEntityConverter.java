@@ -61,6 +61,7 @@ import org.springframework.util.Assert;
  * @author Michael J. Simons
  * @author Gerrit Meier
  * @author Philipp Tölle
+ * @author Jafeyyu
  * @soundtrack The Kleptones - A Night At The Hip-Hopera
  * @since 6.0
  */
@@ -484,7 +485,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 						.filter(r -> r.type().equals(typeOfRelationship) || relationshipDescription.isDynamic())
 						.forEach(allMatchingTypeRelationshipsInResult::add);
 
-				Stream.of(allValues.get(Constants.PATH_START).asNode(), allValues.get(Constants.PATH_START).asNode())
+				Stream.of(allValues.get(Constants.PATH_START).asNode(), allValues.get(Constants.PATH_END).asNode())
 						.filter(n -> n.hasLabel(targetLabel)).collect(Collectors.toList())
 						.forEach(allNodesWithMatchingLabelInResult::add);
 			}
