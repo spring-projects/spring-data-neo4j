@@ -33,6 +33,7 @@ import org.neo4j.driver.Record;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
 import org.neo4j.driver.types.MapAccessor;
+import org.neo4j.driver.types.Node;
 import org.neo4j.driver.types.Path;
 import org.neo4j.driver.types.TypeSystem;
 import org.springframework.data.neo4j.core.mapping.Constants;
@@ -176,26 +177,35 @@ public final class PreparedQuery<T> {
 				List<Map.Entry<String, Value>> additionalValues) {
 			Path path = value.asPath();
 
-			// We are using a linked hash set here so that the order of nodes will be stable and
-			// match the one the path
+			// We are using linked hash sets here so that the order of nodes will be stable and match that of the path.
 			Set<Object> result = new LinkedHashSet<>();
-			path.iterator().forEachRemaining(segment -> {
+			Set<Value> nodes = new LinkedHashSet<>();
+			Set<Value> relationships = new LinkedHashSet<>();
+			Node lastNode = null;
+			for (Path.Segment segment : path) {
+				nodes.add(Values.value(segment.start()));
+				lastNode = segment.end();
+				relationships.add(Values.value(segment.relationship()));
+			}
+			nodes.add(Values.value(lastNode));
 
-				Map<String, Value> mapValue = new HashMap<>();
-				mapValue.put(Constants.NAME_OF_IS_PATH_SEGMENT, Values.value(true));
-				mapValue.put(Constants.PATH_START, Values.value(segment.start()));
-				mapValue.put(Constants.PATH_RELATIONSHIP, Values.value(segment.relationship()));
-				mapValue.put(Constants.PATH_END, Values.value(segment.end()));
-				additionalValues.forEach(e -> mapValue.put(e.getKey(), e.getValue()));
+			// This loop synthesizes a node, it's relationship and all related nodes for all nodes in a path.
+			// All other nodes must be assumed to somehow related
+			Map<String, Value> mapValue = new HashMap<>();
+			// Those values and the combinations with the relationships will stay constant for each node in question
+			additionalValues.forEach(e -> mapValue.put(e.getKey(), e.getValue()));
+			mapValue.put(Constants.NAME_OF_SYNTHESIZED_RELATIONS, Values.value(relationships));
+			mapValue.put(Constants.NAME_OF_SYNTHESIZED_RELATED_NODES, Values.value(nodes));
 
-				Value v = Values.value(mapValue);
+			for (Value rootNode : nodes) {
+				mapValue.put(Constants.NAME_OF_SYNTHESIZED_ROOT_NODE, rootNode);
 				try {
-					result.add(target.apply(t, v));
+					result.add(target.apply(t, Values.value(mapValue)));
 				} catch (NoRootNodeMappingException e) {
 					// This is the case for nodes on the path that are not of the target type
 					// We can safely ignore those.
 				}
-			});
+			}
 
 			return result;
 		}

@@ -31,7 +31,6 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import org.neo4j.driver.Value;
@@ -142,7 +141,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 		List<Node> finalCandidates = matchingNodes.isEmpty() ? seenMatchingNodes : matchingNodes;
 		MapAccessor queryRoot = null;
 
-		if (finalCandidates.size() > 1 && !mapAccessor.containsKey(Constants.NAME_OF_IS_PATH_SEGMENT)) {
+		if (finalCandidates.size() > 1) {
 			throw new MappingException("More than one matching node in the record.");
 		} else if (!finalCandidates.isEmpty()) {
 			if (mapAccessor.size() > 1) {
@@ -459,8 +458,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 					continue;
 				}
 				processedSegments.add(segment);
-				Object mappedObject = map(extractNextNodeAndAppendPath(segment.end(), allPaths), allValues,
-						concreteTargetNodeDescription, knownObjects, processedSegments);
+				Object mappedObject = map(extractNextNodeAndAppendPath(segment.end(), allPaths), allValues, concreteTargetNodeDescription, processedSegments);
 				if (relationshipDescription.hasRelationshipProperties()) {
 
 					Object relationshipProperties = map(segment.relationship(), allValues,
@@ -477,18 +475,6 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 			Collection<Relationship> allMatchingTypeRelationshipsInResult = new ArrayList<>();
 			Collection<Node> allNodesWithMatchingLabelInResult = new ArrayList<>();
 
-			// find relationships and related nodes in the result
-			// Take special care of the components of a path segment
-			if (allValues.containsKey(Constants.NAME_OF_IS_PATH_SEGMENT) && allValues.get(Constants.NAME_OF_IS_PATH_SEGMENT).asBoolean()) {
-				Stream.of(allValues.get(Constants.PATH_RELATIONSHIP).asRelationship())
-						.filter(r -> r.type().equals(typeOfRelationship) || relationshipDescription.isDynamic())
-						.forEach(allMatchingTypeRelationshipsInResult::add);
-
-				Stream.of(allValues.get(Constants.PATH_START).asNode(), allValues.get(Constants.PATH_START).asNode())
-						.filter(n -> n.hasLabel(targetLabel)).collect(Collectors.toList())
-						.forEach(allNodesWithMatchingLabelInResult::add);
-			}
-
 			// Grab everything else
 			StreamSupport.stream(allValues.values().spliterator(), false)
 					.filter(MappingSupport.isListContainingOnly(listType, this.relationshipType))
@@ -502,6 +488,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 					.filter(n -> n.hasLabel(targetLabel)).collect(Collectors.toList())
 					.forEach(allNodesWithMatchingLabelInResult::add);
 
+			// TODO OR
 			if (allNodesWithMatchingLabelInResult.isEmpty() && allMatchingTypeRelationshipsInResult.isEmpty()) {
 				return Optional.empty();
 			}
