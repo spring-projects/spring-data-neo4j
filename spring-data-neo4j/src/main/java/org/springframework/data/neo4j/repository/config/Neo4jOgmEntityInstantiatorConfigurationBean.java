@@ -15,25 +15,44 @@
  */
 package org.springframework.data.neo4j.repository.config;
 
+import javax.annotation.PostConstruct;
+
 import org.neo4j.ogm.metadata.MetaData;
 import org.neo4j.ogm.session.SessionFactory;
 import org.neo4j.ogm.typeconversion.ConversionCallback;
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.config.BeanPostProcessor;
+import org.springframework.core.Ordered;
+import org.springframework.core.PriorityOrdered;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.data.neo4j.conversion.MetaDataDrivenConversionService;
 import org.springframework.data.neo4j.conversion.Neo4jOgmEntityInstantiatorAdapter;
 import org.springframework.data.neo4j.mapping.Neo4jMappingContext;
 
 /**
- *
  * @author Gerrit Meier
  * @author Michael J. Simons
  */
-class Neo4jOgmEntityInstantiatorConfigurationBean {
+class Neo4jOgmEntityInstantiatorConfigurationBean implements InitializingBean {
 
-	public Neo4jOgmEntityInstantiatorConfigurationBean(SessionFactory sessionFactory, Neo4jMappingContext mappingContext,
-			ObjectProvider<ConversionService> conversionServiceObjectProvider) {
+	private final SessionFactory sessionFactory;
+	private final Neo4jMappingContext mappingContext;
+	private final ObjectProvider<ConversionService> conversionServiceObjectProvider;
 
+	public Neo4jOgmEntityInstantiatorConfigurationBean(
+			SessionFactory sessionFactory, Neo4jMappingContext mappingContext,
+			ObjectProvider<ConversionService> conversionServiceObjectProvider
+	) {
+
+		this.sessionFactory = sessionFactory;
+		this.mappingContext = mappingContext;
+		this.conversionServiceObjectProvider = conversionServiceObjectProvider;
+	}
+
+	@Override
+	public void afterPropertiesSet() {
 		MetaData metaData = sessionFactory.metaData();
 		ConversionService conversionService = conversionServiceObjectProvider
 				.getIfUnique(() -> new MetaDataDrivenConversionService(metaData));
