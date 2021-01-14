@@ -43,11 +43,10 @@ public final class Constants {
 	public static final String NAME_OF_ENTITY_LIST_PARAM = "__entities__";
 	public static final String NAME_OF_PATHS = "__paths__";
 	public static final String NAME_OF_ALL_PROPERTIES = "__allProperties__";
-	public static final String NAME_OF_IS_PATH_SEGMENT = "__is_path_segment__";
 
-	public static final String PATH_START = "__start__";
-	public static final String PATH_RELATIONSHIP = "__relationship__";
-	public static final String PATH_END = "__end__";
+	public static final String NAME_OF_SYNTHESIZED_ROOT_NODE = "__sn__";
+	public static final String NAME_OF_SYNTHESIZED_RELATED_NODES = "__srn__";
+	public static final String NAME_OF_SYNTHESIZED_RELATIONS = "__sr__";
 
 	public static final String FROM_ID_PARAMETER_NAME = "fromId";
 
