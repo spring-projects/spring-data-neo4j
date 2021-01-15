@@ -99,24 +99,6 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 	public <R> R read(Class<R> targetType, MapAccessor mapAccessor) {
 
 		Neo4jPersistentEntity<R> rootNodeDescription = (Neo4jPersistentEntity) nodeDescriptionStore.getNodeDescription(targetType);
-		if (!(mapAccessor instanceof NodeValue) && mapAccessor.containsKey("n") && !(mapAccessor.get("n") instanceof NodeValue) && mapAccessor.get("n").asMap(Function.identity()).containsKey("__paths__")) {
-			List<Path> paths = mapAccessor.get("n").asMap(Function.identity()).get("__paths__").asList(Value::asPath);
-
-			Set<Relationship> relationships = paths.stream()
-					.flatMap(value -> StreamSupport.stream(value.relationships().spliterator(), false))
-					.collect(Collectors.toSet());
-
-			Set<Node> nodes = paths.stream()
-					.flatMap(value -> StreamSupport.stream(value.nodes().spliterator(), false))
-					.collect(Collectors.toSet());
-
-			Map<String, Object> mapValue = new HashMap<>(nodes.size() + relationships.size() + 1);
-
-			mapValue.put(Constants.NAME_OF_SYNTHESIZED_ROOT_NODE, mapAccessor.get("n").asMap(Function.identity()).get(Constants.NAME_OF_SYNTHESIZED_ROOT_NODE));
-			mapValue.put(Constants.NAME_OF_SYNTHESIZED_RELATIONS, Values.value(relationships));
-			mapValue.put(Constants.NAME_OF_SYNTHESIZED_RELATED_NODES, Values.value(nodes));
-			mapAccessor = Values.value(mapValue);
-		}
 		MapAccessor queryRoot = determineQueryRoot(mapAccessor, rootNodeDescription);
 		if (queryRoot == null) {
 			throw new NoRootNodeMappingException(String.format("Could not find mappable nodes or relationships inside %s for %s", mapAccessor, rootNodeDescription));
@@ -247,7 +229,6 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 	 * @param queryResult The original query result or a reduced form like a node or similar
 	 * @param allValues The original query result
 	 * @param nodeDescription The node description of the current entity to be mapped from the result
-	 * @param processedSegments Path segments already processed in the mapping process. Only applies to path-based queries
 	 * @param <ET> As in entity type
 	 * @return The mapped entity
 	 */
@@ -533,15 +514,6 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 				return Optional.ofNullable(value.isEmpty() ? null : value.get(0));
 			}
 		}
-	}
-
-	private MapAccessor extractNextNodeAndAppendPath(Node possibleValueNode, List<Path> allPaths) {
-		Map<String, Object> newQueryResult = new HashMap<>(possibleValueNode.asMap());
-		newQueryResult.put(Constants.NAME_OF_INTERNAL_ID, possibleValueNode.id());
-		newQueryResult.put(Constants.NAME_OF_LABELS, possibleValueNode.labels());
-
-		newQueryResult.put(Constants.NAME_OF_PATHS, allPaths);
-		return Values.value(newQueryResult);
 	}
 
 	private static Value extractValueOf(Neo4jPersistentProperty property, MapAccessor propertyContainer) {
