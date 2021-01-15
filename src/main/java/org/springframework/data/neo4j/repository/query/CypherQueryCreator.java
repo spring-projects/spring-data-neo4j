@@ -162,6 +162,8 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryAndParameters, 
 			this.propertyPath = propertyPath;
 		}
 
+
+
 		public PersistentPropertyPath<?> getPropertyPath() {
 			return propertyPath;
 		}

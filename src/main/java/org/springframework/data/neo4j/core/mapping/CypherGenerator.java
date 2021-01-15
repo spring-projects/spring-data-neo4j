@@ -393,6 +393,7 @@ public enum CypherGenerator {
 		List<Object> contentOfProjection = new ArrayList<>(propertiesProjection);
 
 		Collection<RelationshipDescription> relationships = getRelationshipDescriptionsUpAndDown(nodeDescription);
+		relationships.removeIf(r -> !includeProperty.test(r.getFieldName()));
 
 		if (nodeDescription.containsPossibleCircles()) {
 			Node node = anyNode(nodeName);
@@ -401,8 +402,7 @@ public enum CypherGenerator {
 			contentOfProjection.add(Constants.NAME_OF_PATHS);
 			contentOfProjection.add(Cypher.listBasedOn(p).returning(p));
 		} else {
-			contentOfProjection.addAll(
-					generateListsFor(relationships, nodeName, includeProperty, processedRelationships));
+			contentOfProjection.addAll(generateListsFor(relationships, nodeName, processedRelationships));
 		}
 		return Cypher.anyNode(nodeName).project(contentOfProjection);
 	}
@@ -599,16 +599,13 @@ public enum CypherGenerator {
 	 * @see CypherGenerator#projectNodeProperties
 	 */
 	private List<Object> generateListsFor(Collection<RelationshipDescription> relationships, SymbolicName nodeName,
-			Predicate<String> includeField, List<RelationshipDescription> processedRelationships) {
+			List<RelationshipDescription> processedRelationships) {
 
 		List<Object> mapProjectionLists = new ArrayList<>();
 
 		for (RelationshipDescription relationshipDescription : relationships) {
 
 			String fieldName = relationshipDescription.getFieldName();
-			if (!includeField.test(fieldName)) {
-				continue;
-			}
 
 			// if we already processed the other way before, do not try to jump in the infinite loop
 			// unless it is a root node relationship
