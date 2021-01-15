@@ -167,8 +167,7 @@ public class PersistenceConstructorsTests {
 		assertThat(persons.get(0).getGroup().getName()).isEqualTo("ADMIN");
 	}
 
-	@Test
-	@Ignore("final fields are not supported by OGM for now")
+	@Test // GH-1763
 	public void shouldHandleFinalFields() {
 		PersonWithFinalName person = new PersonWithFinalName("foo");
 		pfnRepository.save(person);
