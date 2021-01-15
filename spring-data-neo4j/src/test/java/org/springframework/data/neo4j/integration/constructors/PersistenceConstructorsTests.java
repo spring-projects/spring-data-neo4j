@@ -170,8 +170,7 @@ public class PersistenceConstructorsTests extends MultiDriverTestClass {
 		assertEquals("ADMIN", persons.get(0).getGroup().getName());
 	}
 
-	@Test
-	@Ignore("final fields are not supported by OGM for now")
+	@Test // GH-1763
 	public void shouldHandleFinalFields() {
 		PersonWithFinalName person = new PersonWithFinalName("foo");
 		pfnRepository.save(person);
