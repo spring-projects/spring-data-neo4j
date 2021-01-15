@@ -36,6 +36,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.neo4j.config.AbstractNeo4jConfig;
 import org.springframework.data.neo4j.core.Neo4jTemplate;
+import org.springframework.data.neo4j.repository.Neo4jRepository;
+import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.data.neo4j.test.Neo4jExtension;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
@@ -81,6 +83,62 @@ class AdvancedMappingIT {
 						+ "CREATE (p) -[:ACTED_IN {roles: ['The Oracle']}] -> (m3)\n"
 						+ "RETURN *").consume();
 		}
+	}
+
+	interface MovieProjection {
+
+		String getTitle();
+
+		List<Actor> getActors();
+	}
+
+	static class MovieDTO {
+
+		private final String title;
+
+		private final List<Actor> actors;
+
+		MovieDTO(String title, List<Actor> actors) {
+			this.title = title;
+			this.actors = actors;
+		}
+
+		public String getTitle() {
+			return title;
+		}
+
+		public List<Actor> getActors() {
+			return actors;
+		}
+	}
+
+	interface MovieRepository extends Neo4jRepository<Movie, String> {
+
+		MovieProjection findProjectionByTitle(String title);
+
+		MovieDTO findDTOByTitle(String title);
+	}
+
+	@Test // GH-2117
+	void bothCyclicAndNonCyclicRelationshipsAreExcludedFromProjections(@Autowired MovieRepository movieRepository) {
+
+		// The movie domain is a good fit for this test
+		// as the cyclic dependencies is pretty slow to retrieve from Neo4j
+		// this does OOM in most setups.
+		MovieProjection projection = movieRepository.findProjectionByTitle("The Matrix");
+		assertThat(projection.getTitle()).isNotNull();
+		assertThat(projection.getActors()).isNotEmpty();
+	}
+
+	@Test // GH-2117
+	void bothCyclicAndNonCyclicRelationshipsAreExcludedFromDTOProjections(@Autowired MovieRepository movieRepository) {
+
+		// The movie domain is a good fit for this test
+		// as the cyclic dependencies is pretty slow to retrieve from Neo4j
+		// this does OOM in most setups.
+		MovieDTO dtoProjection = movieRepository.findDTOByTitle("The Matrix");
+		assertThat(dtoProjection.getTitle()).isNotNull();
+		assertThat(dtoProjection.getActors()).isNotEmpty();
 	}
 
 	@Test // GH-2114
@@ -237,6 +295,7 @@ class AdvancedMappingIT {
 
 	@Configuration
 	@EnableTransactionManagement
+	@EnableNeo4jRepositories(considerNestedRepositories = true)
 	static class Config extends AbstractNeo4jConfig {
 
 		@Bean
