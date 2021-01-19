@@ -290,9 +290,14 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryAndParameters, 
 				} else { // the next ones adds another relationship chain as separated match
 					matches.match(((RelationshipPattern) propertyPathWithRelationship.createRelationshipChain(startNode)));
 				}
-				// closing action: add the condition
+				// closing action: add the condition and path match
 				if (!wrapperIterator.hasNext()) {
-					matchAndCondition = matches.where(condition);
+					if (nodeDescription.containsPossibleCircles()) {
+						matchAndCondition = cypherGenerator
+								.createPathMatchWithCondition(matches, nodeDescription, condition, startNode);
+					} else {
+						matchAndCondition = matches.where(condition);
+					}
 				}
 			}
 		}
