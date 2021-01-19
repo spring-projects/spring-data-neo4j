@@ -85,6 +85,15 @@ class AdvancedMappingIT {
 		}
 	}
 
+	interface MovieProjectionWithActorProjection {
+		String getTitle();
+		List<ActorProjection> getActors();
+
+		interface ActorProjection {
+			String getName();
+		}
+	}
+
 	interface MovieProjection {
 
 		String getTitle();
@@ -117,6 +126,8 @@ class AdvancedMappingIT {
 		MovieProjection findProjectionByTitle(String title);
 
 		MovieDTO findDTOByTitle(String title);
+
+		MovieProjectionWithActorProjection findProjectionWithProjectionByTitle(String title);
 	}
 
 	@Test // GH-2117
@@ -139,6 +150,17 @@ class AdvancedMappingIT {
 		MovieDTO dtoProjection = movieRepository.findDTOByTitle("The Matrix");
 		assertThat(dtoProjection.getTitle()).isNotNull();
 		assertThat(dtoProjection.getActors()).isNotEmpty();
+	}
+
+	@Test // GH-2117
+	void bothCyclicAndNonCyclicRelationshipsAreExcludedFromProjectionsWithProjections(@Autowired MovieRepository movieRepository) {
+
+		// The movie domain is a good fit for this test
+		// as the cyclic dependencies is pretty slow to retrieve from Neo4j
+		// this does OOM in most setups.
+		MovieProjectionWithActorProjection projection = movieRepository.findProjectionWithProjectionByTitle("The Matrix");
+		assertThat(projection.getTitle()).isNotNull();
+		assertThat(projection.getActors()).isNotEmpty();
 	}
 
 	@Test // GH-2114
