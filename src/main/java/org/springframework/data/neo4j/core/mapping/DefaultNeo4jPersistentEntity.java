@@ -92,8 +92,6 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 
 	private final Lazy<Boolean> isRelationshipPropertiesEntity;
 
-	private final Lazy<Boolean> containsPossibleCircles;
-
 	DefaultNeo4jPersistentEntity(TypeInformation<T> information) {
 		super(information);
 
@@ -104,7 +102,6 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 		this.dynamicLabelsProperty = Lazy.of(() -> getGraphProperties().stream().map(Neo4jPersistentProperty.class::cast)
 				.filter(Neo4jPersistentProperty::isDynamicLabels).findFirst().orElse(null));
 		this.isRelationshipPropertiesEntity = Lazy.of(() -> isAnnotationPresent(RelationshipProperties.class));
-		this.containsPossibleCircles = Lazy.of(this::calculatePossibleCircles);
 		this.idDescription = Lazy.of(this::computeIdDescription);
 	}
 
@@ -471,15 +468,18 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 	}
 
 	@Override
-	public boolean containsPossibleCircles() {
-		return containsPossibleCircles.get();
+	public boolean containsPossibleCircles(List<String> includedProperties) {
+		return calculatePossibleCircles(includedProperties);
 	}
 
-	private boolean calculatePossibleCircles() {
+	private boolean calculatePossibleCircles(List<String> includedProperties) {
 		Collection<RelationshipDescription> relationships = getRelationships();
 
 		Set<RelationshipDescription> processedRelationships = new HashSet<>();
 		for (RelationshipDescription relationship : relationships) {
+			if (!includedProperties.isEmpty() && !includedProperties.contains(relationship.getFieldName())) {
+				continue;
+			}
 			if (processedRelationships.contains(relationship)) {
 				return true;
 			}

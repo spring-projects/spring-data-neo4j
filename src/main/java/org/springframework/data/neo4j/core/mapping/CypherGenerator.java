@@ -24,11 +24,13 @@ import static org.neo4j.cypherdsl.core.Cypher.parameter;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
+import java.util.stream.Collectors;
 
 import org.apiguardian.api.API;
 import org.neo4j.cypherdsl.core.Condition;
@@ -101,7 +103,13 @@ public enum CypherGenerator {
 	 * @return An ongoing match
 	 */
 	public StatementBuilder.OrderableOngoingReadingAndWith prepareMatchOf(NodeDescription<?> nodeDescription,
-			@Nullable Condition condition) {
+			  @Nullable Condition condition) {
+
+		return prepareMatchOf(nodeDescription, condition, Collections.emptyList());
+	}
+
+	public StatementBuilder.OrderableOngoingReadingAndWith prepareMatchOf(NodeDescription<?> nodeDescription,
+			@Nullable Condition condition, List<String> includedProperties) {
 
 		String primaryLabel = nodeDescription.getPrimaryLabel();
 		List<String> additionalLabels = nodeDescription.getAdditionalLabels();
@@ -112,28 +120,29 @@ public enum CypherGenerator {
 		expressions.add(Constants.NAME_OF_ROOT_NODE);
 		expressions.add(Functions.id(rootNode).as(Constants.NAME_OF_INTERNAL_ID));
 
-		if (nodeDescription.containsPossibleCircles()) {
-			return createPathMatchWithCondition(nodeDescription, condition, rootNode);
+		if (nodeDescription.containsPossibleCircles(includedProperties)) {
+			return createPathMatchWithCondition(nodeDescription, includedProperties, condition, rootNode);
 		} else {
 			return match(rootNode).where(conditionOrNoCondition(condition)).with(expressions.toArray(new Expression[] {}));
 		}
 	}
 
 	private StatementBuilder.OrderableOngoingReadingAndWithWithoutWhere createPathMatchWithCondition(
-			NodeDescription<?> nodeDescription, @Nullable Condition condition, Node rootNode) {
+			NodeDescription<?> nodeDescription, List<String> includedProperties, @Nullable Condition condition, Node rootNode) {
 
-		return createPathMatchWithCondition(null, nodeDescription, condition, rootNode);
+		return createPathMatchWithCondition(null, nodeDescription, includedProperties, condition, rootNode);
 	}
 
 	public StatementBuilder.OrderableOngoingReadingAndWithWithoutWhere createPathMatchWithCondition(
 			@Nullable StatementBuilder.OngoingReadingWithoutWhere previousMatches,
-			NodeDescription<?> nodeDescription, @Nullable Condition condition, Node rootNode) {
+			NodeDescription<?> nodeDescription, List<String> includedProperties, @Nullable Condition condition, Node rootNode) {
 
 		List<Expression> expressions1 = new ArrayList<>();
 		List<Expression> expressions2 = new ArrayList<>();
 
 		String aliasedPathName = "pathPattern";
-		Collection<RelationshipDescription> relationships = getRelationshipDescriptionsUpAndDown(nodeDescription);
+		Predicate<String> includeField = s -> includedProperties.isEmpty() || includedProperties.contains(s);
+		Collection<RelationshipDescription> relationships = getRelationshipDescriptionsUpAndDown(nodeDescription, includeField);
 		RelationshipPattern patternPath = createRelationships(rootNode, relationships);
 		NamedPath path = Cypher.path("p").definedBy(patternPath);
 
@@ -416,7 +425,7 @@ public enum CypherGenerator {
 	}
 
 	public Expression[] createReturnStatementForMatch(NodeDescription<?> nodeDescription) {
-		return createReturnStatementForMatch(nodeDescription, null);
+		return createReturnStatementForMatch(nodeDescription, Collections.emptyList());
 	}
 
 	/**
@@ -455,15 +464,15 @@ public enum CypherGenerator {
 
 	/**
 	 * @param nodeDescription Description of the root node
-	 * @param inputProperties A list of Java properties of the domain to be included. Those properties are compared with
+	 * @param includedProperties A list of Java properties of the domain to be included. Those properties are compared with
 	 *          the field names of graph properties respectively relationships.
 	 * @return An expresion to be returned by a Cypher statement
 	 */
 	public Expression[] createReturnStatementForMatch(NodeDescription<?> nodeDescription,
-			@Nullable List<String> inputProperties) {
+			List<String> includedProperties) {
 
 		List<RelationshipDescription> processedRelationships = new ArrayList<>();
-		if (nodeDescription.containsPossibleCircles()) {
+		if (nodeDescription.containsPossibleCircles(includedProperties)) {
 			List<Expression> returnExpressions = new ArrayList<>();
 			Node rootNode = anyNode(Constants.NAME_OF_ROOT_NODE);
 			returnExpressions.add(rootNode.as(Constants.NAME_OF_SYNTHESIZED_ROOT_NODE));
@@ -471,8 +480,7 @@ public enum CypherGenerator {
 			returnExpressions.add(Cypher.name(Constants.NAME_OF_SYNTHESIZED_RELATIONS));
 			return returnExpressions.toArray(new Expression[]{});
 		} else {
-			Predicate<String> includeField = s -> inputProperties == null || inputProperties.isEmpty()
-					|| inputProperties.contains(s);
+			Predicate<String> includeField = s -> includedProperties.isEmpty() || includedProperties.contains(s);
 			return new Expression[]{projectPropertiesAndRelationships(nodeDescription, Constants.NAME_OF_ROOT_NODE, includeField, processedRelationships)};
 		}
 	}
@@ -487,31 +495,23 @@ public enum CypherGenerator {
 	}
 
 	private MapProjection projectPropertiesAndRelationships(NodeDescription<?> nodeDescription, SymbolicName nodeName,
-			Predicate<String> includeProperty, List<RelationshipDescription> processedRelationships) {
+			Predicate<String> includedProperties, List<RelationshipDescription> processedRelationships) {
 
-		List<Object> contentOfProjection = new ArrayList<>();
+		List<Object> propertiesProjection = projectNodeProperties(nodeDescription, nodeName, includedProperties);
+		List<Object> contentOfProjection = new ArrayList<>(propertiesProjection);
 
-		Collection<RelationshipDescription> relationships = getRelationshipDescriptionsUpAndDown(nodeDescription);
-		relationships.removeIf(r -> !includeProperty.test(r.getFieldName()));
+		Collection<RelationshipDescription> relationships = getRelationshipDescriptionsUpAndDown(nodeDescription, includedProperties);
+		relationships.removeIf(r -> !includedProperties.test(r.getFieldName()));
 
-		if (nodeDescription.containsPossibleCircles()) {
-			Node node = anyNode(nodeName);
-			RelationshipPattern pattern = createRelationships(node, relationships);
-			NamedPath p = Cypher.path("p").definedBy(pattern);
-			contentOfProjection.add(Constants.NAME_OF_SYNTHESIZED_ROOT_NODE);
-			contentOfProjection.add(Constants.NAME_OF_ROOT_NODE);
-			contentOfProjection.add(Constants.NAME_OF_PATHS);
-			contentOfProjection.add(Cypher.listBasedOn(p).returning(p));
-		} else {
-			contentOfProjection.addAll(generateListsFor(relationships, nodeName, processedRelationships));
-		}
+		contentOfProjection.addAll(generateListsFor(relationships, nodeName, processedRelationships));
 		return Cypher.anyNode(nodeName).project(contentOfProjection);
 	}
 
 	@NonNull
-	static Collection<RelationshipDescription> getRelationshipDescriptionsUpAndDown(NodeDescription<?> nodeDescription) {
-		Collection<RelationshipDescription> relationships = new HashSet<>(nodeDescription.getRelationships());
+	static Collection<RelationshipDescription> getRelationshipDescriptionsUpAndDown(NodeDescription<?> nodeDescription,
+			Predicate<String> includedProperties) {
 
+		Collection<RelationshipDescription> relationships = new HashSet<>(nodeDescription.getRelationships());
 		for (NodeDescription<?> childDescription : nodeDescription.getChildNodeDescriptionsInHierarchy()) {
 			childDescription.getRelationships().forEach(concreteRelationship -> {
 
@@ -522,7 +522,10 @@ public enum CypherGenerator {
 				}
 			});
 		}
-		return relationships;
+
+		return relationships.stream().filter(relationshipDescription ->
+				includedProperties.test(relationshipDescription.getFieldName()))
+				.collect(Collectors.toSet());
 	}
 
 	private RelationshipPattern createRelationships(Node node, Collection<RelationshipDescription> relationshipDescriptions) {
