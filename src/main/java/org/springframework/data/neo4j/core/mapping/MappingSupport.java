@@ -46,6 +46,11 @@ public final class MappingSupport {
 	 *         list of related values)
 	 */
 	public static Collection<?> unifyRelationshipValue(Neo4jPersistentProperty property, Object rawValue) {
+
+		if (rawValue == null) {
+			return Collections.emptyList();
+		}
+
 		Collection<?> unifiedValue;
 		if (property.isDynamicAssociation()) {
 			if (property.isDynamicOneToManyAssociation()) {

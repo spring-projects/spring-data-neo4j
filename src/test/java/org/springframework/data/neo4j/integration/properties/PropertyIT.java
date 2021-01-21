@@ -235,6 +235,16 @@ class PropertyIT {
 		}
 	}
 
+	@Test // GH-2124
+	void shouldNotFailWithEmptyOrNullRelationshipProperties() {
+
+		DomainClasses.LonelySourceContainer s = template.save(new DomainClasses.LonelySourceContainer());
+		try (Session session = driver.session()) {
+			long cnt = session.run("MATCH (m) WHERE id(m) = $id RETURN count(m)", Collections.singletonMap("id", s.getId())).single().get(0).asLong();
+			assertThat(cnt).isEqualTo(1L);
+		}
+	}
+
 	@Configuration
 	@EnableTransactionManagement
 	static class Config extends AbstractNeo4jConfig {

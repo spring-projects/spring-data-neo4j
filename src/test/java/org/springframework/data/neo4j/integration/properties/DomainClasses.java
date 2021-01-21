@@ -19,6 +19,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -144,5 +145,33 @@ final class DomainClasses {
 
 		@Relationship(type = "ITS_COMPLICATED")
 		IrrelevantTargetContainer irrelevantTargetContainer;
+	}
+
+	@Node
+	@Getter @Setter
+	static class LonelySourceContainer {
+		@Id @GeneratedValue
+		private Long id;
+
+		@Relationship(type = "RELATIONSHIP_PROPERTY_CONTAINER")
+		RelationshipPropertyContainer single;
+
+		@Relationship(type = "RELATIONSHIP_PROPERTY_CONTAINER_2")
+		List<RelationshipPropertyContainer> multiNull;
+
+		@Relationship(type = "RELATIONSHIP_PROPERTY_CONTAINER_3")
+		List<RelationshipPropertyContainer> multiEmpty = new ArrayList<>();
+
+		@Relationship
+		Map<String, List<IrrelevantTargetContainer>> dynNullList;
+
+		@Relationship
+		Map<String, List<SimpleGeneratedIDPropertyContainer>> dynEmptyList = new HashMap<>();
+
+		@Relationship
+		Map<String, SimpleGeneratedIDPropertyContainerWithVersion> dynNullSingle;
+
+		@Relationship
+		Map<String, SimplePropertyContainer> dynEmptySingle = new HashMap<>();
 	}
 }
