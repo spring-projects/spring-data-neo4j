@@ -23,6 +23,7 @@ import static org.neo4j.cypherdsl.core.Cypher.optionalMatch;
 import static org.neo4j.cypherdsl.core.Cypher.parameter;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -629,7 +630,7 @@ public enum CypherGenerator {
 				continue;
 			}
 			if (relationshipDescription.isDynamic()) {
-				relationshipTypes.clear();
+				handleDynamicRelationship(relationshipTypes, (DefaultRelationshipDescription) relationshipDescription);
 				continue;
 			}
 			relationshipTypes.add(relationshipType);
@@ -643,13 +644,23 @@ public enum CypherGenerator {
 		for (RelationshipDescription relationshipDescription : relationshipDescriptions) {
 			String relationshipType = relationshipDescription.getType();
 			if (relationshipDescription.isDynamic()) {
-				relationshipTypes.clear();
+				handleDynamicRelationship(relationshipTypes, (DefaultRelationshipDescription) relationshipDescription);
 				continue;
 			}
 			relationshipTypes.add(relationshipType);
 			collectAllRelationshipTypes(relationshipDescription.getTarget(), relationshipTypes, new HashSet<>(relationshipDescriptions));
 		}
 		return relationshipTypes.toArray(new String[0]);
+	}
+
+	private void handleDynamicRelationship(Set<String> relationshipTypes, DefaultRelationshipDescription relationshipDescription) {
+		Class<?> componentType = relationshipDescription.getInverse().getComponentType();
+		if (componentType != null && componentType.isEnum()) {
+			Arrays.stream(componentType.getEnumConstants())
+					.forEach(constantName -> relationshipTypes.add(constantName.toString()));
+		} else {
+			relationshipTypes.clear();
+		}
 	}
 
 	private void collectAllRelationshipTypes(NodeDescription<?> nodeDescription, Set<String> relationshipTypes,
