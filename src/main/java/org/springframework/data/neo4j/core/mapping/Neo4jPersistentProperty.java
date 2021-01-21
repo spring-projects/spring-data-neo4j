@@ -31,6 +31,7 @@ import org.springframework.data.neo4j.core.schema.RelationshipProperties;
  *
  * @author Michael J. Simons
  * @author Philipp Tölle
+ * @author Gerrit Meier
  * @since 6.0
  */
 @API(status = API.Status.STABLE, since = "6.0")
@@ -68,10 +69,9 @@ public interface Neo4jPersistentProperty extends PersistentProperty<Neo4jPersist
 	}
 
 	/**
-	 * see if the association has a property class
-	 *
-	 * @return True, if this association has properties
+	 * @deprecated since 6.0.4, no replacement, not needed
 	 */
+	@Deprecated
 	default boolean isRelationshipWithProperties() {
 		return isAssociation() && isCollectionLike() && getActualType().isAnnotationPresent(RelationshipProperties.class);
 	}
@@ -80,7 +80,18 @@ public interface Neo4jPersistentProperty extends PersistentProperty<Neo4jPersist
 
 	Function<Value, Object> getOptionalReadingConverter();
 
-	boolean isEntityInRelationshipWithProperties();
+	/**
+	 * @deprecated since 6.0.4, see #isEntityWithRelationshipProperties()
+	 */
+	@Deprecated
+	default boolean isEntityInRelationshipWithProperties() {
+		return isEntityWithRelationshipProperties();
+	}
+
+	/**
+	 * @return True if this property targets an entity which is a container for relationship properties.
+	 */
+	boolean isEntityWithRelationshipProperties();
 
 	/**
 	 * Computes a prefix to be used on multiple properties on a node when this persistent property is annotated with

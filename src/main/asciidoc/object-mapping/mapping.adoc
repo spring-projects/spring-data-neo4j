@@ -160,6 +160,10 @@ A relationship property class and its usage may look like this:
 include::../../../../src/test/java/org/springframework/data/neo4j/documentation/domain/Roles.java[tags=mapping.relationship.properties]
 ----
 
+You should define a property for the generated, internal ID so that SDN can determine during save which relationships
+can be safely overwritten without losing properties.
+A generated id property is optional in SDN 6.0.4 and upwards and will be required in SDN 6.1 for `@RelationshipProperties`.
+
 .Defining relationship properties for an entity
 [source,java,indent=0]
 ----

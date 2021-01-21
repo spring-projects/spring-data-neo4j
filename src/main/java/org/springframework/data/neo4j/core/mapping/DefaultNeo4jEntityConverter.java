@@ -35,6 +35,7 @@ import java.util.stream.StreamSupport;
 
 import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
+import org.neo4j.driver.types.Entity;
 import org.neo4j.driver.types.MapAccessor;
 import org.neo4j.driver.types.Node;
 import org.neo4j.driver.types.Path;
@@ -336,7 +337,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 					return createInstanceOfRelationships(matchingProperty, values, allValues, relationships, processedSegments).orElse(null);
 				} else if (matchingProperty.isDynamicLabels()) {
 					return createDynamicLabelsProperty(matchingProperty.getTypeInformation(), surplusLabels);
-				} else if (matchingProperty.isEntityInRelationshipWithProperties()) {
+				} else if (matchingProperty.isEntityWithRelationshipProperties()) {
 					return lastMappedEntity;
 				}
 				return conversionService.readValue(extractValueOf(matchingProperty, values), parameter.getType(), matchingProperty.getOptionalReadingConverter());
@@ -488,8 +489,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 					.filter(n -> n.hasLabel(targetLabel)).collect(Collectors.toList())
 					.forEach(allNodesWithMatchingLabelInResult::add);
 
-			// TODO OR
-			if (allNodesWithMatchingLabelInResult.isEmpty() && allMatchingTypeRelationshipsInResult.isEmpty()) {
+			if (allNodesWithMatchingLabelInResult.isEmpty() || allMatchingTypeRelationshipsInResult.isEmpty()) {
 				return Optional.empty();
 			}
 
@@ -567,7 +567,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 
 	private static Value extractValueOf(Neo4jPersistentProperty property, MapAccessor propertyContainer) {
 		if (property.isInternalIdProperty()) {
-			return propertyContainer instanceof Node ? Values.value(((Node) propertyContainer).id())
+			return propertyContainer instanceof Entity ? Values.value(((Entity) propertyContainer).id())
 					: propertyContainer.get(Constants.NAME_OF_INTERNAL_ID);
 		} else if (property.isComposite()) {
 			String prefix = property.computePrefixWithDelimiter();

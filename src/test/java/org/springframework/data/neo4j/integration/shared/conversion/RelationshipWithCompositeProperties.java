@@ -18,6 +18,8 @@ package org.springframework.data.neo4j.integration.shared.conversion;
 import java.util.Map;
 
 import org.springframework.data.neo4j.core.schema.CompositeProperty;
+import org.springframework.data.neo4j.core.schema.GeneratedValue;
+import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.RelationshipProperties;
 import org.springframework.data.neo4j.core.schema.TargetNode;
 import org.springframework.data.neo4j.integration.shared.common.Club;
@@ -30,6 +32,9 @@ import org.springframework.data.neo4j.integration.shared.common.Club;
  */
 @RelationshipProperties
 public class RelationshipWithCompositeProperties {
+
+	@Id @GeneratedValue
+	private Long id;
 
 	@TargetNode
 	private Club otherThing; // Type is irrelevant for the test.

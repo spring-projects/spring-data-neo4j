@@ -43,6 +43,9 @@ public class EntityWithRelationshipPropertiesPath {
 	@RelationshipProperties
 	public static class RelationshipPropertyA {
 
+		@Id @GeneratedValue
+		private Long id;
+
 		@TargetNode
 		private EntityA entityA;
 
@@ -56,6 +59,9 @@ public class EntityWithRelationshipPropertiesPath {
 	 */
 	@RelationshipProperties
 	public static class RelationshipPropertyB {
+
+		@Id @GeneratedValue
+		private Long id;
 
 		@TargetNode
 		private EntityB entityB;

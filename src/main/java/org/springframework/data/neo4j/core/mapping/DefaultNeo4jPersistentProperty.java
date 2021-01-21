@@ -184,7 +184,7 @@ final class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProp
 
 	@Override
 	public boolean isEntity() {
-		return super.isEntity() && isAssociation() || (isEntityInRelationshipWithProperties() && !isComposite());
+		return super.isEntity() && isAssociation() || (isEntityWithRelationshipProperties() && !isComposite());
 	}
 
 	private static Function<Object, Value> nullSafeWrite(Function<Object, Value> delegate) {
@@ -206,7 +206,7 @@ final class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProp
 	}
 
 	@Override
-	public boolean isEntityInRelationshipWithProperties() {
+	public boolean isEntityWithRelationshipProperties() {
 		return super.isEntity() && ((Neo4jPersistentEntity<?>) getOwner()).isRelationshipPropertiesEntity();
 	}
 

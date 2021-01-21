@@ -18,6 +18,8 @@ package org.springframework.data.neo4j.integration.shared.common;
 import java.time.LocalDate;
 import java.util.Objects;
 
+import org.springframework.data.neo4j.core.schema.GeneratedValue;
+import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.RelationshipProperties;
 import org.springframework.data.neo4j.core.schema.TargetNode;
 import org.springframework.data.neo4j.types.CartesianPoint2d;
@@ -27,6 +29,9 @@ import org.springframework.data.neo4j.types.CartesianPoint2d;
  */
 @RelationshipProperties
 public class LikesHobbyRelationship {
+
+	@Id @GeneratedValue
+	private Long id;
 
 	private final Integer since;
 
