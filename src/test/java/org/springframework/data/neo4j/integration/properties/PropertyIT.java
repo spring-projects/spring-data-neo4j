@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeAll;
@@ -218,6 +219,20 @@ class PropertyIT {
 		source2.rels.put("DYN_REL", rel);
 		source2 = template.save(source2);
 		assertThat(source2.getRels().get("DYN_REL").getId()).isNotNull();
+	}
+
+	@Test // GH-2123
+	void customConvertersForRelsMustBeTakenIntoAccount() {
+
+		Date now = new Date();
+		DomainClasses.WeirdSource source = new DomainClasses.WeirdSource(now, new DomainClasses.IrrelevantTargetContainer());
+		template.save(source).getMyFineId();
+		try (Session session = driver.session()) {
+			long cnt = session
+					.run("MATCH (m) - [r:ITS_COMPLICATED] -> (n) WHERE m.id = $id RETURN count(m)",
+							Collections.singletonMap("id", now.getTime())).single().get(0).asLong();
+			assertThat(cnt).isEqualTo(1L);
+		}
 	}
 
 	@Configuration

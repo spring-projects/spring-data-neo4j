@@ -537,7 +537,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 											// in case of no properties the bind will just return an empty map
 											Mono<Long> relationshipCreationMonoNested = neo4jClient
 													.query(renderer.render(statementHolder.getStatement())).in(inDatabase)
-													.bind(convertIdValues(targetEntity.getRequiredIdProperty(), fromId)) //
+													.bind(convertIdValues(sourceEntity.getRequiredIdProperty(), fromId)) //
 														.to(Constants.FROM_ID_PARAMETER_NAME) //
 													.bind(relatedInternalId) //
 														.to(Constants.TO_ID_PARAMETER_NAME) //
