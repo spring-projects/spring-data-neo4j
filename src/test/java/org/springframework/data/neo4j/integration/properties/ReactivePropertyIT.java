@@ -22,6 +22,7 @@ import reactor.test.StepVerifier;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeAll;
@@ -233,6 +234,23 @@ class ReactivePropertyIT {
 				.as(StepVerifier::create)
 				.expectNextMatches(s -> s.getRels().get("DYN_REL").getId() != null)
 				.verifyComplete();
+	}
+
+	@Test // GH-2123
+	void customConvertersForRelsMustBeTakenIntoAccount() {
+
+		Date now = new Date();
+		template.save(new DomainClasses.WeirdSource(now, new DomainClasses.IrrelevantTargetContainer()))
+				.as(StepVerifier::create)
+				.expectNextCount(1)
+				.verifyComplete();
+
+		try (Session session = driver.session()) {
+			long cnt = session
+					.run("MATCH (m) - [r:ITS_COMPLICATED] -> (n) WHERE m.id = $id RETURN count(m)",
+							Collections.singletonMap("id", now.getTime())).single().get(0).asLong();
+			assertThat(cnt).isEqualTo(1L);
+		}
 	}
 
 	@Configuration
