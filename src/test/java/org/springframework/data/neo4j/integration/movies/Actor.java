@@ -18,6 +18,8 @@ package org.springframework.data.neo4j.integration.movies;
 import java.util.Collections;
 import java.util.List;
 
+import org.springframework.data.neo4j.core.schema.GeneratedValue;
+import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.RelationshipProperties;
 import org.springframework.data.neo4j.core.schema.TargetNode;
 
@@ -27,6 +29,9 @@ import org.springframework.data.neo4j.core.schema.TargetNode;
  */
 @RelationshipProperties
 public final class Actor {
+
+	@Id @GeneratedValue
+	private Long id;
 
 	@TargetNode
 	private final Person person;

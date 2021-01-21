@@ -79,7 +79,7 @@ public final class NestedRelationshipContext {
 		return this.relationship.hasRelationshipProperties();
 	}
 
-	public  Object identifyAndExtractRelationshipTargetNode(Object relatedValue) {
+	public Object identifyAndExtractRelationshipTargetNode(Object relatedValue) {
 		Object valueToBeSaved = relatedValue;
 		if (relatedValue instanceof Map.Entry) {
 			Map.Entry<?, ?> relatedValueMapEntry = (Map.Entry<?, ?>) relatedValue;
@@ -97,6 +97,21 @@ public final class NestedRelationshipContext {
 		}
 
 		return valueToBeSaved;
+	}
+
+	public @Nullable PersistentPropertyAccessor<?> getRelationshipPropertiesPropertyAccessor(Object relatedValue) {
+
+		if (!this.hasRelationshipWithProperties() || relatedValue == null) {
+			return null;
+		}
+
+		if (relatedValue instanceof Map.Entry) {
+			Object mapValue = ((Map.Entry<?, ?>) relatedValue).getValue();
+			mapValue = mapValue instanceof List ? ((List<?>) mapValue).get(0) : mapValue;
+			return ((MappingSupport.RelationshipPropertiesWithEntityHolder) mapValue).getRelationshipPropertiesPropertyAccessor();
+		} else {
+			return ((MappingSupport.RelationshipPropertiesWithEntityHolder) relatedValue).getRelationshipPropertiesPropertyAccessor();
+		}
 	}
 
 	public static NestedRelationshipContext of(Association<Neo4jPersistentProperty> handler,
@@ -132,13 +147,15 @@ public final class NestedRelationshipContext {
 					if (mapEntryValue instanceof List) {
 						for (Object relationshipProperty : ((List<Object>) mapEntryValue)) {
 							MappingSupport.RelationshipPropertiesWithEntityHolder oneOfThem =
-									new MappingSupport.RelationshipPropertiesWithEntityHolder(relationshipProperty,
+									new MappingSupport.RelationshipPropertiesWithEntityHolder(
+											relationshipPropertiesEntity, relationshipProperty,
 											getTargetNode(relationshipPropertiesEntity, relationshipProperty));
 							relationshipValues.add(oneOfThem);
 						}
 					} else { // scalar
 						MappingSupport.RelationshipPropertiesWithEntityHolder oneOfThem =
-								new MappingSupport.RelationshipPropertiesWithEntityHolder(mapEntryValue,
+								new MappingSupport.RelationshipPropertiesWithEntityHolder(
+										relationshipPropertiesEntity, mapEntryValue,
 										getTargetNode(relationshipPropertiesEntity, mapEntryValue));
 						relationshipValues.add(oneOfThem);
 					}
@@ -151,13 +168,15 @@ public final class NestedRelationshipContext {
 					for (Object relationshipProperty : ((Collection<Object>) value)) {
 
 						MappingSupport.RelationshipPropertiesWithEntityHolder oneOfThem =
-								new MappingSupport.RelationshipPropertiesWithEntityHolder(relationshipProperty,
+								new MappingSupport.RelationshipPropertiesWithEntityHolder(
+										relationshipPropertiesEntity, relationshipProperty,
 										getTargetNode(relationshipPropertiesEntity, relationshipProperty));
 						relationshipProperties.add(oneOfThem);
 					}
 					value = relationshipProperties;
 				} else {
-					value = new MappingSupport.RelationshipPropertiesWithEntityHolder(value,
+					value = new MappingSupport.RelationshipPropertiesWithEntityHolder(relationshipPropertiesEntity,
+							value,
 							getTargetNode(relationshipPropertiesEntity, value));
 				}
 			}

@@ -26,9 +26,12 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.apache.commons.logging.LogFactory;
+import org.springframework.core.log.LogAccessor;
 import org.springframework.data.annotation.Persistent;
 import org.springframework.data.mapping.Association;
 import org.springframework.data.mapping.PropertyHandler;
@@ -59,6 +62,8 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 	private static final Set<Class<?>> VALID_GENERATED_ID_TYPES = Collections
 			.unmodifiableSet(new HashSet<>(Arrays.asList(Long.class, long.class)));
 
+	private static final LogAccessor log = new LogAccessor(LogFactory.getLog(DefaultNeo4jPersistentProperty.class));
+
 	/**
 	 * If an entity is annotated with {@link Node}, we consider this as an explicit entity that should get validated more
 	 * strictly.
@@ -75,7 +80,7 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 	/**
 	 * Projections need to be also be eligible entities but don't define id fields.
 	 */
-	@Nullable private IdDescription idDescription;
+	private final Lazy<IdDescription> idDescription;
 
 	private final Lazy<Collection<GraphPropertyDescription>> graphProperties;
 
@@ -100,6 +105,7 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 				.filter(Neo4jPersistentProperty::isDynamicLabels).findFirst().orElse(null));
 		this.isRelationshipPropertiesEntity = Lazy.of(() -> isAnnotationPresent(RelationshipProperties.class));
 		this.containsPossibleCircles = Lazy.of(this::calculatePossibleCircles);
+		this.idDescription = Lazy.of(this::computeIdDescription);
 	}
 
 	/*
@@ -150,7 +156,7 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 	@Override
 	@Nullable
 	public IdDescription getIdDescription() {
-		return this.idDescription;
+		return this.idDescription.getNullable();
 	}
 
 	/*
@@ -200,11 +206,18 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 
 		super.verify();
 
-		this.idDescription = computeIdDescription();
-
+		verifyIdDescription();
 		verifyNoDuplicatedGraphProperties();
 		verifyDynamicAssociations();
+		verifyAssociationsWithProperties();
 		verifyDynamicLabels();
+	}
+
+	private void verifyIdDescription() {
+
+		if (this.getIdDescription() == null && isExplicitEntity) {
+			throw new IllegalStateException("Missing id property on " + this.getUnderlyingClass() + ".");
+		}
 	}
 
 	private void verifyNoDuplicatedGraphProperties() {
@@ -241,6 +254,28 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 								+ inverse.getAssociationTargetType()
 								+ ". Only one dynamic relationship between to entities is permitted.");
 				targetEntities.add(inverse.getAssociationTargetType());
+			}
+		});
+	}
+
+	private void verifyAssociationsWithProperties() {
+
+		this.doWithAssociations((Association<Neo4jPersistentProperty> association) -> {
+
+			if (association instanceof RelationshipDescription) {
+				RelationshipDescription relationship = (RelationshipDescription) association;
+				if (relationship.hasRelationshipProperties()) {
+					NodeDescription<?> relationshipPropertiesEntity = relationship.getRelationshipPropertiesEntity();
+					if (relationshipPropertiesEntity.getIdDescription() == null || !relationshipPropertiesEntity.getIdDescription().isInternallyGeneratedId()) {
+						Supplier<CharSequence> messageSupplier = () -> String.format(
+								"The target class `%s` for the properties of the relationship `%s` "
+								+ "is missing a property for the generated, internal ID (`@Id @GeneratedValue Long id`). "
+								+ "It is needed for safely updating properties and will be required from SDN 6.1 upwards.",
+								relationshipPropertiesEntity.getUnderlyingClass().getName(),
+								relationship.getType());
+						log.warn(messageSupplier);
+					}
+				}
 			}
 		});
 	}
@@ -339,9 +374,7 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 	private IdDescription computeIdDescription() {
 
 		Neo4jPersistentProperty idProperty = this.getIdProperty();
-		if (idProperty == null && isExplicitEntity) {
-			throw new IllegalStateException("Missing id property on " + this.getUnderlyingClass() + ".");
-		} else if (idProperty == null) {
+		if (idProperty == null) {
 			return null;
 		}
 

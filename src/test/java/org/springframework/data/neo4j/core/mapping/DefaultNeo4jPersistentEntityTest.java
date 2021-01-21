@@ -431,6 +431,9 @@ class DefaultNeo4jPersistentEntityTest {
 	@RelationshipProperties
 	static class HasTargetNodeRelationshipProperties {
 
+		@Id @GeneratedValue
+		private Long id;
+
 		@TargetNode
 		EntityWithExplicitPrimaryLabel entity;
 	}
@@ -438,5 +441,7 @@ class DefaultNeo4jPersistentEntityTest {
 	@RelationshipProperties
 	static class HasNoTargetNodeRelationshipProperties {
 
+		@Id @GeneratedValue
+		private Long id;
 	}
 }

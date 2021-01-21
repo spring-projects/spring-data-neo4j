@@ -39,41 +39,42 @@ import org.springframework.data.neo4j.core.schema.Node;
 /**
  * @author Davide Fantuzzi
  * @author Andrea Santurbano
+ * @author Michael J. Simons
  */
 class CypherGeneratorTest {
 
 	@Test
-	void itShouldCreateRelationshipCreationQueryWithLabelIfPresent() {
+	void shouldCreateRelationshipCreationQueryWithLabelIfPresent() {
 		Neo4jPersistentEntity<?> persistentEntity = new Neo4jMappingContext().getPersistentEntity(Entity1.class);
 		RelationshipDescription relationshipDescription = Mockito.mock(RelationshipDescription.class);
 		when(relationshipDescription.isDynamic()).thenReturn(true);
 
 		Statement statement = CypherGenerator.INSTANCE.prepareSaveOfRelationship(persistentEntity,
-				relationshipDescription, "REL", 1L);
+				relationshipDescription, "REL");
 
 		String expectedQuery = "MATCH (startNode:`Entity1`) WHERE startNode.id = $fromId MATCH (endNode)"
-							   + " WHERE id(endNode) = 1 MERGE (startNode)<-[:`REL`]-(endNode)";
+							   + " WHERE id(endNode) = $toId MERGE (startNode)<-[relProps:`REL`]-(endNode) RETURN id(relProps)";
 		Assert.assertEquals(expectedQuery, Renderer.getDefaultRenderer().render(statement));
 	}
 
 	@Test
-	void itShouldCreateRelationshipCreationQueryWithMultipleLabels() {
+	void shouldCreateRelationshipCreationQueryWithMultipleLabels() {
 		Neo4jPersistentEntity<?> persistentEntity = new Neo4jMappingContext()
 				.getPersistentEntity(MultipleLabelEntity1.class);
 		RelationshipDescription relationshipDescription = Mockito.mock(RelationshipDescription.class);
 		when(relationshipDescription.isDynamic()).thenReturn(true);
 
 		Statement statement = CypherGenerator.INSTANCE.prepareSaveOfRelationship(persistentEntity,
-				relationshipDescription, "REL", 1L);
+				relationshipDescription, "REL");
 
 		String expectedQuery =
 				"MATCH (startNode:`Entity1`:`MultipleLabel`) WHERE startNode.id = $fromId MATCH (endNode)"
-				+ " WHERE id(endNode) = 1 MERGE (startNode)<-[:`REL`]-(endNode)";
+				+ " WHERE id(endNode) = $toId MERGE (startNode)<-[relProps:`REL`]-(endNode) RETURN id(relProps)";
 		Assert.assertEquals(expectedQuery, Renderer.getDefaultRenderer().render(statement));
 	}
 
 	@Test
-	void itShouldCreateRelationshipCreationQueryWithoutUsingInternalIds() {
+	void shouldCreateRelationshipCreationQueryWithoutUsingInternalIds() {
 		RelationshipDescription relationshipDescription = Mockito.mock(RelationshipDescription.class);
 		Neo4jPersistentEntity<?> persistentEntity = Mockito.mock(Neo4jPersistentEntity.class);
 		Neo4jPersistentProperty persistentProperty = Mockito.mock(Neo4jPersistentProperty.class);
@@ -83,15 +84,15 @@ class CypherGeneratorTest {
 		when(persistentEntity.getRequiredIdProperty()).thenReturn(persistentProperty);
 
 		Statement statement = CypherGenerator.INSTANCE.prepareSaveOfRelationship(persistentEntity,
-				relationshipDescription, "REL", 1L);
+				relationshipDescription, "REL");
 
 		String expectedQuery = "MATCH (startNode) WHERE id(startNode) = $fromId MATCH (endNode)"
-							   + " WHERE id(endNode) = 1 MERGE (startNode)<-[:`REL`]-(endNode)";
+							   + " WHERE id(endNode) = $toId MERGE (startNode)<-[relProps:`REL`]-(endNode) RETURN id(relProps)";
 		Assert.assertEquals(expectedQuery, Renderer.getDefaultRenderer().render(statement));
 	}
 
 	@Test
-	void itShouldCreateRelationshipRemoveQueryWithLabelIfPresent() {
+	void shouldCreateRelationshipRemoveQueryWithLabelIfPresent() {
 		Neo4jPersistentEntity<?> persistentEntity = new Neo4jMappingContext().getPersistentEntity(Entity1.class);
 		Neo4jPersistentEntity<?> relatedEntity = new Neo4jMappingContext().getPersistentEntity(Entity2.class);
 		RelationshipDescription relationshipDescription = Mockito.mock(RelationshipDescription.class);
@@ -99,12 +100,12 @@ class CypherGeneratorTest {
 
 		Statement statement = CypherGenerator.INSTANCE.prepareDeleteOf(persistentEntity, relationshipDescription);
 
-		String expectedQuery = "MATCH (startNode:`Entity1`)<-[rel]-(:`Entity2`) WHERE startNode.id = $fromId DELETE rel";
+		String expectedQuery = "MATCH (startNode:`Entity1`)<-[rel]-(:`Entity2`) WHERE (startNode.id = $fromId AND NOT (id(rel) IN $__knownRelationShipIds__)) DELETE rel";
 		Assert.assertEquals(expectedQuery, Renderer.getDefaultRenderer().render(statement));
 	}
 
 	@Test
-	void itShouldCreateRelationshipRemoveQueryWithMultipleLabels() {
+	void shouldCreateRelationshipRemoveQueryWithMultipleLabels() {
 		Neo4jPersistentEntity<?> persistentEntity = new Neo4jMappingContext()
 				.getPersistentEntity(MultipleLabelEntity1.class);
 		Neo4jPersistentEntity<?> relatedEntity = new Neo4jMappingContext()
@@ -114,12 +115,12 @@ class CypherGeneratorTest {
 
 		Statement statement = CypherGenerator.INSTANCE.prepareDeleteOf(persistentEntity, relationshipDescription);
 
-		String expectedQuery = "MATCH (startNode:`Entity1`:`MultipleLabel`)<-[rel]-(:`Entity2`:`MultipleLabel`) WHERE startNode.id = $fromId DELETE rel";
+		String expectedQuery = "MATCH (startNode:`Entity1`:`MultipleLabel`)<-[rel]-(:`Entity2`:`MultipleLabel`) WHERE (startNode.id = $fromId AND NOT (id(rel) IN $__knownRelationShipIds__)) DELETE rel";
 		Assert.assertEquals(expectedQuery, Renderer.getDefaultRenderer().render(statement));
 	}
 
 	@Test
-	void itShouldCreateRelationshipRemoveQueryWithoutUsingInternalIds() {
+	void shouldCreateRelationshipRemoveQueryWithoutUsingInternalIds() {
 
 		Neo4jPersistentEntity<?> relatedEntity = new Neo4jMappingContext().getPersistentEntity(Entity2.class);
 
@@ -134,7 +135,7 @@ class CypherGeneratorTest {
 
 		Statement statement = CypherGenerator.INSTANCE.prepareDeleteOf(persistentEntity, relationshipDescription);
 
-		String expectedQuery = "MATCH (startNode)<-[rel]-(:`Entity2`) WHERE id(startNode) = $fromId DELETE rel";
+		String expectedQuery = "MATCH (startNode)<-[rel]-(:`Entity2`) WHERE (id(startNode) = $fromId AND NOT (id(rel) IN $__knownRelationShipIds__)) DELETE rel";
 		Assert.assertEquals(expectedQuery, Renderer.getDefaultRenderer().render(statement));
 	}
 

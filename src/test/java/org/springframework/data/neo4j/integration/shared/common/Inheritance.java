@@ -331,6 +331,10 @@ public class Inheritance {
 	 */
 	@RelationshipProperties
 	public static class ConcreteARelationshipProperties {
+
+		@Id @GeneratedValue
+		private Long id;
+
 		@TargetNode
 		private ConcreteClassA target;
 
@@ -361,6 +365,10 @@ public class Inheritance {
 	 */
 	@RelationshipProperties
 	public static class ConcreteBRelationshipProperties {
+
+		@Id @GeneratedValue
+		private Long id;
+
 		@TargetNode
 		private ConcreteClassB target;
 
@@ -391,6 +399,10 @@ public class Inheritance {
 	 */
 	@RelationshipProperties
 	public static class SuperBaseClassRelationshipProperties {
+
+		@Id @GeneratedValue
+		private Long id;
+
 		@TargetNode
 		private SuperBaseClass target;
 

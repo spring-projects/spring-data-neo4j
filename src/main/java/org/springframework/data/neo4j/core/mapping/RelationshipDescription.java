@@ -15,6 +15,8 @@
  */
 package org.springframework.data.neo4j.core.mapping;
 
+import java.util.Optional;
+
 import org.apiguardian.api.API;
 import org.springframework.data.neo4j.core.schema.Relationship;
 import org.springframework.lang.NonNull;
@@ -95,6 +97,12 @@ public interface RelationshipDescription {
 	 * @return {@literal true} if an additional properties are available, otherwise {@literal false}
 	 */
 	boolean hasRelationshipProperties();
+
+	default boolean hasInternalIdProperty() {
+
+		return hasRelationshipProperties() && Optional.ofNullable(getRelationshipPropertiesEntity().getIdDescription())
+				.filter(IdDescription::isInternallyGeneratedId).isPresent();
+	}
 
 	default boolean isOutgoing() {
 		return Relationship.Direction.OUTGOING.equals(this.getDirection());
