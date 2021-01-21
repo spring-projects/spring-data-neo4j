@@ -155,17 +155,21 @@ public enum CypherGenerator {
 		SymbolicName innerNodesListIterator = Cypher.name("e");
 		ListComprehension innerNodesListComprehension = Cypher.listWith(innerNodesListIterator)
 				.in(Cypher.name(aliasedPathName)).returning(Functions.nodes(innerNodesListIterator));
-		FunctionInvocation innerNodesReduce = Functions.reduce(
-				innerNodesAccumulator, Cypher.listOf(),
-				innerNodesVariable,
-				innerNodesListComprehension,
-				innerNodesAccumulator.add(innerNodesVariable));
-		FunctionInvocation outerNodesReduce = Functions.reduce(
-				outerNodesAccumulator, Cypher.listOf(), outerNodesVariable, innerNodesReduce,
-				Cypher.caseExpression()
+
+		FunctionInvocation innerNodesReduce = Functions.reduce(innerNodesVariable)
+				.in(innerNodesListComprehension)
+				.map(innerNodesAccumulator.add(innerNodesVariable))
+				.accumulateOn(innerNodesAccumulator)
+				.withInitialValueOf(Cypher.listOf());
+
+		FunctionInvocation outerNodesReduce = Functions.reduce(outerNodesVariable)
+				.in(innerNodesReduce)
+				.map(Cypher.caseExpression()
 						.when(outerNodesVariable.in(outerNodesAccumulator))
 						.then(outerNodesAccumulator)
-						.elseDefault(outerNodesAccumulator.add(outerNodesVariable)));
+						.elseDefault(outerNodesAccumulator.add(outerNodesVariable)))
+				.accumulateOn(outerNodesAccumulator)
+				.withInitialValueOf(Cypher.listOf());
 
 		// nested relationships flatMap: reduce(...reduce(...))
 		SymbolicName outerRelationshipsAccumulator = Cypher.name("f");
@@ -175,17 +179,20 @@ public enum CypherGenerator {
 		SymbolicName innerRelationshipsListIterator = Cypher.name("j");
 		ListComprehension innerRelationshipsListComprehension = Cypher.listWith(innerRelationshipsListIterator)
 				.in(Cypher.name(aliasedPathName)).returning(Functions.relationships(innerRelationshipsListIterator));
-		FunctionInvocation innerRelationshipReduce = Functions.reduce(
-				innerRelationshipsAccumulator, Cypher.listOf(),
-				innerRelationshipsVariable,
-				innerRelationshipsListComprehension,
-				innerRelationshipsAccumulator.add(innerRelationshipsVariable));
-		FunctionInvocation outerRelationshipsReduce = Functions.reduce(
-				outerRelationshipsAccumulator, Cypher.listOf(), outerRelationshipsVariable, innerRelationshipReduce,
-				Cypher.caseExpression()
+		FunctionInvocation innerRelationshipReduce = Functions.reduce(innerRelationshipsVariable)
+				.in(innerRelationshipsListComprehension)
+				.map(innerRelationshipsAccumulator.add(innerRelationshipsVariable))
+				.accumulateOn(innerRelationshipsAccumulator)
+				.withInitialValueOf(Cypher.listOf());
+
+		FunctionInvocation outerRelationshipsReduce = Functions.reduce(outerRelationshipsVariable)
+				.in(innerRelationshipReduce)
+				.map(Cypher.caseExpression()
 						.when(outerRelationshipsVariable.in(outerRelationshipsAccumulator))
 						.then(outerRelationshipsAccumulator)
-						.elseDefault(outerRelationshipsAccumulator.add(outerRelationshipsVariable)));
+						.elseDefault(outerRelationshipsAccumulator.add(outerRelationshipsVariable)))
+				.accumulateOn(outerRelationshipsAccumulator)
+				.withInitialValueOf(Cypher.listOf());
 
 		// WITH n, collect(p) as pathPattern
 		expressions1.add(Constants.NAME_OF_ROOT_NODE);
