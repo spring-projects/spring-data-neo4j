@@ -15,9 +15,11 @@
  */
 package org.springframework.data.neo4j.integration.properties;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,9 +28,11 @@ import org.springframework.data.annotation.Version;
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
+import org.springframework.data.neo4j.core.schema.Property;
 import org.springframework.data.neo4j.core.schema.Relationship;
 import org.springframework.data.neo4j.core.schema.RelationshipProperties;
 import org.springframework.data.neo4j.core.schema.TargetNode;
+import org.springframework.data.neo4j.core.support.DateLong;
 
 /**
  * @author Michael J. Simons
@@ -126,5 +130,19 @@ final class DomainClasses {
 
 		@Version
 		private Long version;
+	}
+
+	@Node
+	@AllArgsConstructor
+	@Getter @Setter
+	static class WeirdSource {
+
+		@Id
+		@Property("id")
+		@DateLong
+		private Date myFineId;
+
+		@Relationship(type = "ITS_COMPLICATED")
+		IrrelevantTargetContainer irrelevantTargetContainer;
 	}
 }
