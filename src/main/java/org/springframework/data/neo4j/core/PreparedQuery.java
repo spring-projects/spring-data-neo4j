@@ -165,9 +165,9 @@ public final class PreparedQuery<T> {
 
 			if (MappingSupport.isListContainingOnly(t.LIST(), t.PATH()).test(value)) {
 				Set<Object> result = new LinkedHashSet<>();
-				for (Value path : value.values()) {
-					result.addAll(aggregatePath(t, path, Collections.emptyList()));
-				}
+//				for (Value path : value.values()) {
+					result.addAll(aggregatePath(t, value, Collections.emptyList()));
+//				}
 				return result;
 			}
 			return value.asList(v -> target.apply(t, v));
@@ -175,19 +175,33 @@ public final class PreparedQuery<T> {
 
 		private Collection<?> aggregatePath(TypeSystem t, Value value,
 				List<Map.Entry<String, Value>> additionalValues) {
-			Path path = value.asPath();
 
 			// We are using linked hash sets here so that the order of nodes will be stable and match that of the path.
 			Set<Object> result = new LinkedHashSet<>();
 			Set<Value> nodes = new LinkedHashSet<>();
 			Set<Value> relationships = new LinkedHashSet<>();
 			Node lastNode = null;
-			for (Path.Segment segment : path) {
-				nodes.add(Values.value(segment.start()));
-				lastNode = segment.end();
-				relationships.add(Values.value(segment.relationship()));
+
+			if (MappingSupport.isListContainingOnly(t.LIST(), t.PATH()).test(value)) {
+				List<Path> paths = value.asList(Value::asPath);
+				for (Path path : paths) {
+					for (Path.Segment segment : path) {
+						nodes.add(Values.value(segment.start()));
+						lastNode = segment.end();
+						relationships.add(Values.value(segment.relationship()));
+					}
+					nodes.add(Values.value(lastNode));
+				}
+			} else {
+				Path path = value.asPath();
+
+				for (Path.Segment segment : path) {
+					nodes.add(Values.value(segment.start()));
+					lastNode = segment.end();
+					relationships.add(Values.value(segment.relationship()));
+				}
+				nodes.add(Values.value(lastNode));
 			}
-			nodes.add(Values.value(lastNode));
 
 			// This loop synthesizes a node, it's relationship and all related nodes for all nodes in a path.
 			// All other nodes must be assumed to somehow related

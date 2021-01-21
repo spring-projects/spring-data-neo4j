@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.integration.movies;
+package org.springframework.data.neo4j.integration.movies.imperative;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -36,10 +36,15 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.neo4j.config.AbstractNeo4jConfig;
 import org.springframework.data.neo4j.core.Neo4jTemplate;
+import org.springframework.data.neo4j.integration.movies.shared.Actor;
+import org.springframework.data.neo4j.integration.movies.shared.Movie;
+import org.springframework.data.neo4j.integration.movies.shared.Person;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
+import org.springframework.data.neo4j.repository.query.Query;
 import org.springframework.data.neo4j.test.Neo4jExtension;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
+import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 /**
@@ -128,6 +133,12 @@ class AdvancedMappingIT {
 		MovieDTO findDTOByTitle(String title);
 
 		MovieProjectionWithActorProjection findProjectionWithProjectionByTitle(String title);
+
+		@Query("MATCH p=(movie:Movie)<-[r:ACTED_IN]-(n:Person) WHERE movie.title=$title RETURN collect(p)")
+		Movie customPathQueryMovieFind(@Param("title") String title);
+
+		@Query("MATCH p=(movie:Movie)<-[r:ACTED_IN]-(n:Person) WHERE movie.title=$title RETURN collect(p)")
+		List<Movie> customPathQueryMoviesFind(@Param("title") String title);
 	}
 
 	@Test // GH-2117
@@ -313,6 +324,30 @@ class AdvancedMappingIT {
 				.first()
 				.satisfies(m -> assertThat(m.getDirectors()).extracting(Person::getName)
 						.containsAnyOf("Ron Howard", "Rob Reiner"));
+	}
+
+	/**
+	 * This tests checks if the result of a custom path based query will get mapped correctly to an instance
+	 * of the defined type instead of a collection.
+	 */
+	@Test // DATAGRAPH-2107
+	void customPathMappingResultsInScalarResultIfDefined(@Autowired MovieRepository movieRepository) {
+		Movie movie = movieRepository.customPathQueryMovieFind("The Matrix Revolutions");
+
+		assertThat(movie).isNotNull();
+		assertThat(movie.getActors()).hasSize(5);
+	}
+
+	/**
+	 * This tests checks if the result of a custom path based query will get mapped correctly to a collection
+	 * of the defined type with all the fields hydrated.
+	 */
+	@Test // DATAGRAPH-2109
+	void customPathMappingCollectionResultsInHydratedEntities(@Autowired MovieRepository movieRepository) {
+		List<Movie> movies = movieRepository.customPathQueryMoviesFind("The Matrix Revolutions");
+
+		assertThat(movies).hasSize(1);
+		assertThat(movies.get(0).getActors()).hasSize(5);
 	}
 
 	@Configuration

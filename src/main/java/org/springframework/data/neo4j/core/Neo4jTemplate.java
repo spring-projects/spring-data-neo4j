@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -614,7 +615,11 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 
 		public Optional<T> getSingleResult() {
 			try {
-				return fetchSpec.one();
+				Optional<T> one = fetchSpec.one();
+				if (preparedQuery.resultsHaveBeenAggregated()) {
+					return one.map(aggregatedResults -> (T) ((LinkedHashSet<?>) aggregatedResults).iterator().next());
+				}
+				return one;
 			} catch (NoSuchRecordException e) {
 				// This exception is thrown by the driver in both cases when there are 0 or 1+n records
 				// So there has been an incorrect result size, but not to few results but to many.
@@ -623,7 +628,11 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 		}
 
 		public T getRequiredSingleResult() {
-			return fetchSpec.one().orElseThrow(() -> new NoResultException(1, preparedQuery.getCypherQuery()));
+			Optional<T> one = fetchSpec.one();
+			if (preparedQuery.resultsHaveBeenAggregated()) {
+				one = one.map(aggregatedResults -> (T) ((LinkedHashSet<?>) aggregatedResults).iterator().next());
+			}
+			return one.orElseThrow(() -> new NoResultException(1, preparedQuery.getCypherQuery()));
 		}
 	}
 }
