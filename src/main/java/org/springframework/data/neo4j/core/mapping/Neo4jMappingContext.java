@@ -319,8 +319,7 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 		this.beanFactory = applicationContext.getAutowireCapableBeanFactory();
 	}
 
-	public CreateRelationshipStatementHolder createStatement(Neo4jPersistentEntity<?> neo4jPersistentEntity, NestedRelationshipContext relationshipContext,
-			Long relatedInternalId, Object relatedValue) {
+	public CreateRelationshipStatementHolder createStatement(Neo4jPersistentEntity<?> neo4jPersistentEntity, NestedRelationshipContext relationshipContext, Object relatedValue) {
 
 		if (relationshipContext.hasRelationshipWithProperties()) {
 			MappingSupport.RelationshipPropertiesWithEntityHolder relatedValueEntityHolder =
@@ -343,18 +342,18 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 			}
 			return createStatementForRelationShipWithProperties(
 					neo4jPersistentEntity, relationshipContext,
-					dynamicRelationshipType, relatedInternalId, relatedValueEntityHolder
+					dynamicRelationshipType, relatedValueEntityHolder
 			);
 		} else {
-			return createStatementForRelationshipWithoutProperties(neo4jPersistentEntity, relationshipContext, relatedInternalId, relatedValue);
+			return createStatementForRelationshipWithoutProperties(neo4jPersistentEntity, relationshipContext, relatedValue);
 		}
 	}
 
 	private CreateRelationshipStatementHolder createStatementForRelationShipWithProperties(Neo4jPersistentEntity<?> neo4jPersistentEntity,
-			NestedRelationshipContext relationshipContext, @Nullable  String dynamicRelationshipType, Long relatedInternalId, MappingSupport.RelationshipPropertiesWithEntityHolder relatedValue) {
+			NestedRelationshipContext relationshipContext, @Nullable  String dynamicRelationshipType, MappingSupport.RelationshipPropertiesWithEntityHolder relatedValue) {
 
 		Statement relationshipCreationQuery = CypherGenerator.INSTANCE.prepareSaveOfRelationshipWithProperties(
-						neo4jPersistentEntity, relationshipContext.getRelationship(), dynamicRelationshipType, relatedInternalId);
+						neo4jPersistentEntity, relationshipContext.getRelationship(), dynamicRelationshipType);
 		Map<String, Object> propMap = new HashMap<>();
 		// write relationship properties
 		getEntityConverter().write(relatedValue.getRelationshipProperties(), propMap);
@@ -364,7 +363,7 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 
 	private CreateRelationshipStatementHolder createStatementForRelationshipWithoutProperties(
 			Neo4jPersistentEntity<?> neo4jPersistentEntity,
-			NestedRelationshipContext relationshipContext, Long relatedInternalId, Object relatedValue) {
+			NestedRelationshipContext relationshipContext, Object relatedValue) {
 
 		String relationshipType;
 		if (!relationshipContext.getRelationship().isDynamic()) {
@@ -377,7 +376,7 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 		}
 
 		Statement relationshipCreationQuery = CypherGenerator.INSTANCE.prepareSaveOfRelationship(
-				neo4jPersistentEntity, relationshipContext.getRelationship(), relationshipType, relatedInternalId);
+				neo4jPersistentEntity, relationshipContext.getRelationship(), relationshipType);
 		return new CreateRelationshipStatementHolder(relationshipCreationQuery);
 	}
 }

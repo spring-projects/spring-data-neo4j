@@ -52,6 +52,7 @@ public final class Constants {
 	 */
 	public static final String NAME_OF_STATIC_LABELS_PARAM = "__staticLabels__";
 	public static final String NAME_OF_ENTITY_LIST_PARAM = "__entities__";
+	public static final String NAME_OF_KNOWN_RELATIONSHIPS_PARAM = "__knownRelationShipIds__";
 	public static final String NAME_OF_PATHS = "__paths__";
 	public static final String NAME_OF_ALL_PROPERTIES = "__allProperties__";
 
@@ -60,6 +61,7 @@ public final class Constants {
 	public static final String NAME_OF_SYNTHESIZED_RELATIONS = "__sr__";
 
 	public static final String FROM_ID_PARAMETER_NAME = "fromId";
+	public static final String TO_ID_PARAMETER_NAME = "toId";
 
 	private Constants() {
 	}

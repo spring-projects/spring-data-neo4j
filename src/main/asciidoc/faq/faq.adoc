@@ -288,6 +288,9 @@ public final class Person {
 @RelationshipProperties
 public final class Actor {
 
+	@Id @GeneratedValue
+	private final Long id;
+
 	@TargetNode
 	private final Person person;
 

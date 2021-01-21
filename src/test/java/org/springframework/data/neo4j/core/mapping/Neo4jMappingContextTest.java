@@ -30,7 +30,9 @@ import java.util.Map;
 import java.util.Set;
 
 import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.neo4j.driver.Value;
@@ -57,11 +59,39 @@ import org.springframework.data.neo4j.core.schema.IdGenerator;
 import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Property;
 import org.springframework.data.neo4j.core.schema.Relationship;
+import org.springframework.data.neo4j.core.schema.RelationshipProperties;
+import org.springframework.data.neo4j.core.schema.TargetNode;
+import org.springframework.data.neo4j.integration.shared.common.FriendshipRelationship;
+import org.springframework.data.neo4j.test.LogbackCapture;
+import org.springframework.data.neo4j.test.LogbackCapturingExtension;
 
 /**
  * @author Michael J. Simons
  */
 class Neo4jMappingContextTest {
+
+	@ExtendWith(LogbackCapturingExtension.class)
+	@Nested
+	class InvalidRelationshipProperties {
+		@Test // GH-2118
+		void aWarningShouldBeLogged(LogbackCapture logbackCapture) {
+
+			Neo4jMappingContext schema = new Neo4jMappingContext();
+			schema.setInitialEntitySet(new HashSet<>(Arrays.asList(IrrelevantSourceContainer.class, InvalidRelationshipPropertyContainer.class, IrrelevantTargetContainer.class)));
+			schema.initialize();
+			assertThat(logbackCapture.getFormattedMessages())
+					.contains("The target class `org.springframework.data.neo4j.core.mapping.Neo4jMappingContextTest$InvalidRelationshipPropertyContainer` for the properties of the relationship `RELATIONSHIP_PROPERTY_CONTAINER` is missing a property for the generated, internal ID (`@Id @GeneratedValue Long id`). It is needed for safely updating properties and will be required from SDN 6.1 upwards.");
+		}
+
+		@Test // GH-2118
+		void noWarningShouldBeLogged(LogbackCapture logbackCapture) {
+
+			Neo4jMappingContext schema = new Neo4jMappingContext();
+			schema.setInitialEntitySet(new HashSet<>(Arrays.asList(IrrelevantSourceContainer2.class, FriendshipRelationship.class, IrrelevantTargetContainer2.class)));
+			schema.initialize();
+			assertThat(logbackCapture.getFormattedMessages()).isEmpty();
+		}
+	}
 
 	@Test
 	void initializationOfSchemaShouldWork() {
@@ -528,6 +558,51 @@ class Neo4jMappingContextTest {
 
 		@CompositeProperty(converter = MissingIdToMapConverter.class)
 		MissingId worksWithExplictConverter;
+	}
+
+	@Node
+	static class IrrelevantSourceContainer {
+		@Id @GeneratedValue
+		private Long id;
+
+		@Relationship(type = "RELATIONSHIP_PROPERTY_CONTAINER")
+		InvalidRelationshipPropertyContainer relationshipPropertyContainer;
+	}
+
+	@RelationshipProperties
+	static class InvalidRelationshipPropertyContainer {
+		@TargetNode
+		private IrrelevantTargetContainer irrelevantTargetContainer;
+	}
+
+	@Node
+	static class IrrelevantTargetContainer {
+		@Id @GeneratedValue
+		private Long id;
+	}
+
+	@Node
+	static class IrrelevantSourceContainer2 {
+		@Id @GeneratedValue
+		private Long id;
+
+		@Relationship(type = "RELATIONSHIP_PROPERTY_CONTAINER")
+		List<RelationshipPropertyContainer> relationshipPropertyContainer;
+	}
+
+	@RelationshipProperties
+	static class RelationshipPropertyContainer {
+		@Id @GeneratedValue
+		private Long id;
+
+		@TargetNode
+		private IrrelevantTargetContainer irrelevantTargetContainer;
+	}
+
+	@Node
+	static class IrrelevantTargetContainer2 {
+		@Id @GeneratedValue
+		private Long id;
 	}
 
 	static class MissingIdToMapConverter implements Neo4jPersistentPropertyToMapConverter<String, MissingId> {

@@ -27,6 +27,7 @@ import org.apiguardian.api.API;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.types.Type;
 import org.springframework.lang.Nullable;
+import org.springframework.data.mapping.PersistentPropertyAccessor;
 
 /**
  * @author Michael J. Simons
@@ -56,8 +57,6 @@ public final class MappingSupport {
 			} else {
 				unifiedValue = ((Map<?, Object>) rawValue).entrySet();
 			}
-		} else if (property.isRelationshipWithProperties()) {
-			unifiedValue = (Collection<Object>) rawValue;
 		} else if (property.isCollectionLike()) {
 			unifiedValue = (Collection<Object>) rawValue;
 		} else {
@@ -96,12 +95,21 @@ public final class MappingSupport {
 	 */
 	@API(status = API.Status.INTERNAL)
 	public final static class RelationshipPropertiesWithEntityHolder {
+		private final PersistentPropertyAccessor<?> relationshipPropertiesPropertyAccessor;
 		private final Object relationshipProperties;
 		private final Object relatedEntity;
 
-		RelationshipPropertiesWithEntityHolder(Object relationshipProperties, Object relatedEntity) {
+		RelationshipPropertiesWithEntityHolder(
+				Neo4jPersistentEntity<?> relationshipPropertiesEntity,
+				Object relationshipProperties, Object relatedEntity
+		) {
+			this.relationshipPropertiesPropertyAccessor = relationshipPropertiesEntity.getPropertyAccessor(relationshipProperties);
 			this.relationshipProperties = relationshipProperties;
 			this.relatedEntity = relatedEntity;
+		}
+
+		public PersistentPropertyAccessor<?> getRelationshipPropertiesPropertyAccessor() {
+			return relationshipPropertiesPropertyAccessor;
 		}
 
 		public Object getRelationshipProperties() {

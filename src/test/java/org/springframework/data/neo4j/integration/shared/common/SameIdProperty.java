@@ -20,6 +20,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.With;
+
+import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Relationship;
@@ -87,6 +89,10 @@ public class SameIdProperty {
 	@NoArgsConstructor
 	@AllArgsConstructor(access = AccessLevel.PRIVATE)
 	public static class RouteProperties {
+
+		@Id @GeneratedValue
+		private Long id;
+
 		private Double truck;
 		private String truckCurrency;
 
