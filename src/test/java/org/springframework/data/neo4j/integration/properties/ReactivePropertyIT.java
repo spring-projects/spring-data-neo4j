@@ -253,6 +253,22 @@ class ReactivePropertyIT {
 		}
 	}
 
+	@Test // GH-2124
+	void shouldNotFailWithEmptyOrNullRelationshipProperties() {
+
+		List<Long> recorded = new ArrayList<>();
+		template.save(new DomainClasses.LonelySourceContainer())
+				.map(DomainClasses.LonelySourceContainer::getId)
+				.as(StepVerifier::create)
+				.recordWith(() -> recorded)
+				.expectNextCount(1L)
+				.verifyComplete();
+		try (Session session = driver.session()) {
+			long cnt = session.run("MATCH (m) WHERE id(m) = $id RETURN count(m)", Collections.singletonMap("id", recorded.get(0))).single().get(0).asLong();
+			assertThat(cnt).isEqualTo(1L);
+		}
+	}
+
 	@Configuration
 	@EnableTransactionManagement
 	static class Config extends AbstractReactiveNeo4jConfig {

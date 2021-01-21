@@ -46,7 +46,12 @@ public final class MappingSupport {
 	 * @return A unified collection (Either a collection of Map.Entry for dynamic and relationships with properties or a
 	 *         list of related values)
 	 */
-	public static @Nullable Collection<?> unifyRelationshipValue(Neo4jPersistentProperty property, Object rawValue) {
+	public static Collection<?> unifyRelationshipValue(Neo4jPersistentProperty property, @Nullable Object rawValue) {
+
+		if (rawValue == null) {
+			return Collections.emptyList();
+		}
+
 		Collection<?> unifiedValue;
 		if (property.isDynamicAssociation()) {
 			if (property.isDynamicOneToManyAssociation()) {
