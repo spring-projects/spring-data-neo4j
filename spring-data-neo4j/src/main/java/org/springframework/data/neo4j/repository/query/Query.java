@@ -37,19 +37,25 @@ import org.springframework.util.Assert;
  */
 public class Query {
 
-	private static final String SKIP = "sdnSkip";
-	private static final String LIMIT = "sdnLimit";
-	private static final String SKIP_LIMIT = " SKIP $" + SKIP + " LIMIT $" + LIMIT;
+	private static final String SKIP_PARAM = "sdnSkip";
+	private static final String LIMIT_PARAM = "sdnLimit";
+	private static final String SKIP_LIMIT = " SKIP $" + SKIP_PARAM + " LIMIT $" + LIMIT_PARAM;
+	private static final String LIMIT = "LIMIT $" + LIMIT_PARAM;
 	private static final String ORDER_BY_CLAUSE = " ORDER BY %s";
 
 	private Filters filters;
 	private String cypherQuery;
 	private Map<String, Object> parameters;
 	private @Nullable String countQuery;
+	private @Nullable Integer optionalLimit;
+	private @Nullable Sort optionalSort;
 
-	public Query(Filters filters) {
+	public Query(Filters filters, @Nullable Integer optionalLimit, Sort optionalSort) {
+
 		Assert.notNull(filters, "Filters must not be null.");
 		this.filters = filters;
+		this.optionalLimit = optionalLimit;
+		this.optionalSort = optionalSort;
 	}
 
 	public Query(String cypherQuery, @Nullable String countQuery, Map<String, Object> parameters) {
@@ -107,11 +113,11 @@ public class Query {
 		// Custom queries in the OGM do not support pageable
 		cypherQuery = formatBaseQuery(cypherQuery);
 		cypherQuery = cypherQuery + SKIP_LIMIT;
-		parameters.put(SKIP, pageable.getOffset());
+		parameters.put(SKIP_PARAM, pageable.getOffset());
 		if (forSlicing) {
-			parameters.put(LIMIT, pageable.getPageSize() + 1);
+			parameters.put(LIMIT_PARAM, pageable.getPageSize() + 1);
 		} else {
-			parameters.put(LIMIT, pageable.getPageSize());
+			parameters.put(LIMIT_PARAM, pageable.getPageSize());
 		}
 		return cypherQuery;
 	}
@@ -153,14 +159,25 @@ public class Query {
 		return cypherQuery;
 	}
 
-	public Pagination getPagination(Pageable pageable, boolean forSlicing) {
-		Pagination pagination = new Pagination(pageable.getPageNumber(), pageable.getPageSize() + ((forSlicing) ? 1 : 0));
-		pagination.setOffset(pageable.getPageNumber() * pageable.getPageSize());
+	@Nullable Pagination getOptionalPagination(@Nullable Pageable pageable, boolean forSlicing) {
+
+		if(pageable != null) {
+			Pagination pagination = new Pagination(pageable.getPageNumber(),pageable.getPageSize() + ((forSlicing) ? 1 : 0));
+			pagination.setOffset(pageable.getPageNumber() * pageable.getPageSize());
+			return pagination;
+		}
+
+		if(this.optionalLimit == null) {
+			return null;
+		}
+
+		Pagination pagination = new Pagination(0, optionalLimit);
+		pagination.setOffset(0);
 		return pagination;
 	}
 
-	public SortOrder getSort(Pageable pageable) {
-		return PagingAndSortingUtils.convert(pageable.getSort());
+	@Nullable Sort getOptionalSort() {
+		return optionalSort;
 	}
 
 	private String sanitize(String cypherQuery) {

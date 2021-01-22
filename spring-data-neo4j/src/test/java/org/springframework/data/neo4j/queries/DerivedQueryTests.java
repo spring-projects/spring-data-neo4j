@@ -15,7 +15,8 @@
  */
 package org.springframework.data.neo4j.queries;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -38,6 +39,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.examples.movies.domain.Cinema;
 import org.springframework.data.neo4j.examples.movies.domain.Director;
 import org.springframework.data.neo4j.examples.movies.domain.TempMovie;
@@ -756,6 +758,30 @@ public class DerivedQueryTests {
 		User foundUser = userRepository.findByNameContainingIgnoreCase("bc").iterator().next();
 		assertThat(foundUser).isNotNull();
 		assertThat(foundUser.getName()).isEqualTo(userName);
+	}
+
+	@Test // GH-1807
+	public void limitingQueriesShouldWork() {
+
+		transactionTemplate.executeWithoutResult(tx -> {
+
+			userRepository.deleteAll();
+			for(int i=0; i<7; ++i) {
+				User user = new User("U" + i);
+				userRepository.save(user);
+			}
+		});
+
+		// Limiting via find
+		assertThat(userRepository.findFirstByOrderByNameDesc()).extracting(User::getName).containsExactly("U6");
+
+		// Limiting via topN
+		assertThat(userRepository.findTop5ByOrderByNameDesc()).extracting(User::getName)
+				.containsExactly("U6", "U5", "U4", "U3", "U2");
+
+		// Mixing limiting and page request should make the slice win
+		assertThat(userRepository.findTop5ByOrderByNameDesc(PageRequest.of(0, 1, Sort.by("name").ascending()))).extracting(User::getName)
+				.containsExactly("U0");
 	}
 
 	class DerivedQueryRunner implements Runnable {
