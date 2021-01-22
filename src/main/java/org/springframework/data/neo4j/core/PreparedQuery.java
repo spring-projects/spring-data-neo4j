@@ -164,11 +164,7 @@ public final class PreparedQuery<T> {
 		private Collection<?> aggregateList(TypeSystem t, Value value) {
 
 			if (MappingSupport.isListContainingOnly(t.LIST(), t.PATH()).test(value)) {
-				Set<Object> result = new LinkedHashSet<>();
-//				for (Value path : value.values()) {
-					result.addAll(aggregatePath(t, value, Collections.emptyList()));
-//				}
-				return result;
+				return new LinkedHashSet<Object>(aggregatePath(t, value, Collections.emptyList()));
 			}
 			return value.asList(v -> target.apply(t, v));
 		}
@@ -180,27 +176,24 @@ public final class PreparedQuery<T> {
 			Set<Object> result = new LinkedHashSet<>();
 			Set<Value> nodes = new LinkedHashSet<>();
 			Set<Value> relationships = new LinkedHashSet<>();
-			Node lastNode = null;
 
-			if (MappingSupport.isListContainingOnly(t.LIST(), t.PATH()).test(value)) {
-				List<Path> paths = value.asList(Value::asPath);
-				for (Path path : paths) {
-					for (Path.Segment segment : path) {
-						nodes.add(Values.value(segment.start()));
-						lastNode = segment.end();
-						relationships.add(Values.value(segment.relationship()));
-					}
-					nodes.add(Values.value(lastNode));
-				}
-			} else {
-				Path path = value.asPath();
+			List<Path> paths = value.hasType(t.PATH())
+					? Collections.singletonList(value.asPath())
+					: value.asList(Value::asPath);
 
+			for (Path path : paths) {
+				Node lastNode = null;
 				for (Path.Segment segment : path) {
-					nodes.add(Values.value(segment.start()));
+					Node start = segment.start();
+					if (start != null) {
+						nodes.add(Values.value(start));
+					}
 					lastNode = segment.end();
 					relationships.add(Values.value(segment.relationship()));
 				}
-				nodes.add(Values.value(lastNode));
+				if (lastNode != null) {
+					nodes.add(Values.value(lastNode));
+				}
 			}
 
 			// This loop synthesizes a node, it's relationship and all related nodes for all nodes in a path.
