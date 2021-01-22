@@ -55,6 +55,12 @@ public interface UserRepository extends PersonRepository<User, Long> {
 
 	List<User> findByRatingsStarsIgnoreCase(int stars);
 
+	List<User> findFirstByOrderByNameDesc();
+
+	List<User> findTop5ByOrderByNameDesc();
+
+	Slice<User> findTop5ByOrderByNameDesc(Pageable pageable);
+
 	@Query("MATCH (c:User) SET c.surname = 'Helge' RETURN c")
 	List<User> bulkUpdateReturningNode();
 

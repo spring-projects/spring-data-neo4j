@@ -20,7 +20,9 @@ import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.annotation.Depth;
+import org.springframework.data.neo4j.util.PagingAndSortingUtils;
 import org.springframework.data.repository.query.ParametersParameterAccessor;
+import org.springframework.lang.Nullable;
 
 /**
  * Custom {@link ParametersParameterAccessor} to allow access to the {@link Depth} parameter.
@@ -67,17 +69,7 @@ public class GraphParametersParameterAccessor extends ParametersParameterAccesso
 
 	@Override
 	public SortOrder getOgmSort() {
-		SortOrder sortOrder = new SortOrder();
 
-		if (getSort() != null) {
-			for (Sort.Order order : getSort()) {
-				if (order.isAscending()) {
-					sortOrder.add(order.getProperty());
-				} else {
-					sortOrder.add(SortOrder.Direction.DESC, order.getProperty());
-				}
-			}
-		}
-		return sortOrder;
+		return PagingAndSortingUtils.convert(getSort());
 	}
 }

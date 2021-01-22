@@ -17,14 +17,18 @@ package org.springframework.data.neo4j.util;
 
 import org.neo4j.ogm.cypher.query.SortOrder;
 import org.springframework.data.domain.Sort;
+import org.springframework.lang.Nullable;
 
+/**
+ * @author Nicolas Mervaillie
+ * @author Michael J. Simons
+ */
 public class PagingAndSortingUtils {
 
-	public static SortOrder convert(Sort sort) {
-
+	public static SortOrder convert(@Nullable Sort sort) {
 		SortOrder sortOrder = new SortOrder();
 
-		if (sort != Sort.unsorted()) {
+		if (sort != null && sort != Sort.unsorted()) {
 			for (Sort.Order order : sort) {
 				if (order.isAscending()) {
 					sortOrder.add(order.getProperty());

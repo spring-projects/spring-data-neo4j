@@ -52,13 +52,12 @@ public class PartTreeNeo4jQuery extends AbstractGraphRepositoryQuery {
 		Class<?> domainType = graphQueryMethod.getEntityInformation().getJavaType();
 		this.graphQueryMethod = graphQueryMethod;
 		this.tree = new PartTree(graphQueryMethod.getName(), domainType);
-
 		this.queryTemplate = new TemplatedQueryCreator(this.tree,
 				(Neo4jMappingContext) this.graphQueryMethod.getMappingContext(), domainType).createQuery();
 	}
 
 	@Override
-	protected Object doExecute(Query params, Object[] parameters) {
+	protected Object doExecute(Query query, Object[] parameters) {
 
 		if (LOG.isDebugEnabled()) {
 			LOG.debug("Executing query for method {}", graphQueryMethod.getName());
@@ -72,7 +71,7 @@ public class PartTreeNeo4jQuery extends AbstractGraphRepositoryQuery {
 		}
 
 		ResultProcessor processor = graphQueryMethod.getResultProcessor().withDynamicProjection(accessor);
-		Object results = getExecution(accessor).execute(params, processor.getReturnedType().getDomainType());
+		Object results = getExecution(accessor).execute(query, processor.getReturnedType().getDomainType());
 
 		return processor.processResult(results);
 	}
@@ -81,7 +80,7 @@ public class PartTreeNeo4jQuery extends AbstractGraphRepositoryQuery {
 	protected Query getQuery(Object[] parameters) {
 
 		Map<Integer, Object> resolvedParameters = resolveParameters(parameters);
-		return this.queryTemplate.createExecutableQuery(resolvedParameters);
+		return this.queryTemplate.createExecutableQuery(resolvedParameters, this.tree.isLimiting() ? this.tree.getMaxResults() : null, tree.getSort());
 	}
 
 	@Override

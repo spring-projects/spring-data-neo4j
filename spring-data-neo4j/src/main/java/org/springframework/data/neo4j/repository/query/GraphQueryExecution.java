@@ -18,14 +18,18 @@ package org.springframework.data.neo4j.repository.query;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.function.LongSupplier;
+import java.util.Optional;
 
+import org.neo4j.ogm.cypher.query.Pagination;
+import org.neo4j.ogm.cypher.query.SortOrder;
 import org.neo4j.ogm.model.Result;
 import org.neo4j.ogm.session.Session;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.SliceImpl;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.annotation.QueryResult;
+import org.springframework.data.neo4j.util.PagingAndSortingUtils;
 import org.springframework.data.repository.support.PageableExecutionUtils;
 import org.springframework.util.Assert;
 
@@ -89,7 +93,10 @@ public interface GraphQueryExecution {
 		@Override
 		public Object execute(Query query, Class<?> type) {
 			if (query.isFilterQuery()) {
-				return session.loadAll(type, query.getFilters(), accessor.getOgmSort(), accessor.getDepth());
+				Pagination pagination = query.getOptionalPagination(null, false);
+				SortOrder ogmSort = PagingAndSortingUtils.convert(Optional.ofNullable(accessor.getSort()).filter(Sort::isSorted).orElseGet(query::getOptionalSort));
+				return pagination == null ? session.loadAll(type, query.getFilters(), ogmSort, accessor.getDepth()) : session.loadAll(type, query.getFilters(),
+						ogmSort, pagination, accessor.getDepth());
 			} else {
 				if (type.getAnnotation(QueryResult.class) != null || Map.class.isAssignableFrom(type)) {
 					return session.query(query.getCypherQuery(accessor.getSort()), query.getParameters()).queryResults();
@@ -135,7 +142,7 @@ public interface GraphQueryExecution {
 			long count;
 			if (query.isFilterQuery()) {
 				result = (List<?>) session.loadAll(type, query.getFilters(), accessor.getOgmSort(),
-						query.getPagination(pageable, false), accessor.getDepth());
+						query.getOptionalPagination(pageable, false), accessor.getDepth());
 				count = session.count(type, query.getFilters());
 			} else {
 				if (type.getAnnotation(QueryResult.class) != null) {
@@ -146,7 +153,7 @@ public interface GraphQueryExecution {
 				count = (result.size() > 0) ? countTotalNumberOfElements(query) : 0;
 			}
 
-			return PageableExecutionUtils.getPage(result, pageable, (LongSupplier) () -> count);
+			return PageableExecutionUtils.getPage(result, pageable, () -> count);
 		}
 
 		private Integer countTotalNumberOfElements(Query query) {
@@ -176,7 +183,7 @@ public interface GraphQueryExecution {
 			if (query.isFilterQuery()) {
 				// For a slice, need one extra result to determine if there is a next page
 				result = (List<?>) session.loadAll(type, query.getFilters(), accessor.getOgmSort(),
-						query.getPagination(pageable, true), accessor.getDepth());
+						query.getOptionalPagination(pageable, true), accessor.getDepth());
 			} else {
 				String cypherQuery = query.getCypherQuery(pageable, true);
 				if (type.getAnnotation(QueryResult.class) != null) {

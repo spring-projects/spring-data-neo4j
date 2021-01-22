@@ -23,7 +23,9 @@ import java.util.Stack;
 
 import org.neo4j.ogm.cypher.Filter;
 import org.neo4j.ogm.cypher.Filters;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.repository.query.filter.FilterBuilder;
+import org.springframework.lang.Nullable;
 
 /**
  * A template query based on filters. {@link #createExecutableQuery(Map)} is used to create an executable query from
@@ -47,7 +49,8 @@ class TemplatedQuery {
 		this.filterBuilders = filterBuilders;
 	}
 
-	Query createExecutableQuery(Map<Integer, Object> resolvedParameters) {
+	Query createExecutableQuery(Map<Integer, Object> resolvedParameters, @Nullable Integer optionalLimit, @Nullable
+			Sort optionalSort) {
 
 		// building a stack of parameter values, so that the builders can pull them
 		// according to their needs (zero, one or more parameters)
@@ -65,6 +68,6 @@ class TemplatedQuery {
 			filters.addAll(filterBuilder.build(parametersStack));
 		}
 
-		return new Query(new Filters(filters));
+		return new Query(new Filters(filters), optionalLimit, optionalSort);
 	}
 }
