@@ -23,6 +23,7 @@ import org.neo4j.ogm.metadata.AnnotationsInfo;
 import org.neo4j.ogm.session.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.neo4j.mapping.gh1568.EntityWithSpringTransientProperties;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
@@ -44,9 +45,21 @@ public class AnnotationScanningTests {
 				.isEqualTo("foobar");
 	}
 
+	@Test // GH-1568
+	public void shouldNotStoreOrTouchTransientProperties() {
+
+		EntityWithSpringTransientProperties t = new EntityWithSpringTransientProperties("Hallo");
+		t.setShouldNotBeThere("foobar");
+		sessionFactory.openSession().save(t);
+
+		t = sessionFactory.openSession().load(EntityWithSpringTransientProperties.class, t.getId());
+
+		assertThat(t.getShouldNotBeThere()).isNull();
+	}
+
 	@Configuration
 	@Neo4jIntegrationTest(
-			domainPackages = { "org.springframework.data.neo4j.mapping.datagraph1303" },
+			domainPackages = { "org.springframework.data.neo4j.mapping.datagraph1303", "org.springframework.data.neo4j.mapping.gh1568" },
 			repositoryPackages = { "org.springframework.data.neo4j.mapping.datagraph1303" }
 	)
 	static class Config {
