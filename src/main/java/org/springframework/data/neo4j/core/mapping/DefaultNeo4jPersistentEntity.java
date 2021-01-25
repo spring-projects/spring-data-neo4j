@@ -266,15 +266,13 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 				RelationshipDescription relationship = (RelationshipDescription) association;
 				if (relationship.hasRelationshipProperties()) {
 					NodeDescription<?> relationshipPropertiesEntity = relationship.getRelationshipPropertiesEntity();
-					if (relationshipPropertiesEntity.getIdDescription() == null || !relationshipPropertiesEntity.getIdDescription().isInternallyGeneratedId()) {
-						Supplier<CharSequence> messageSupplier = () -> String.format(
-								"The target class `%s` for the properties of the relationship `%s` "
-								+ "is missing a property for the generated, internal ID (`@Id @GeneratedValue Long id`). "
-								+ "It is needed for safely updating properties and will be required from SDN 6.1 upwards.",
-								relationshipPropertiesEntity.getUnderlyingClass().getName(),
-								relationship.getType());
-						log.warn(messageSupplier);
-					}
+					Supplier<String> messageSupplier = () -> String.format(
+							"The target class `%s` for the properties of the relationship `%s` "
+							+ "is missing a property for the generated, internal ID (`@Id @GeneratedValue Long id`) "
+							+ "which is needed for safely updating properties.",
+							relationshipPropertiesEntity.getUnderlyingClass().getName(),
+							relationship.getType());
+					Assert.state(relationshipPropertiesEntity.getIdDescription() != null && relationshipPropertiesEntity.getIdDescription().isInternallyGeneratedId(), messageSupplier);
 				}
 			}
 		});

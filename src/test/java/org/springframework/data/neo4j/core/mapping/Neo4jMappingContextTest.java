@@ -73,14 +73,17 @@ class Neo4jMappingContextTest {
 	@ExtendWith(LogbackCapturingExtension.class)
 	@Nested
 	class InvalidRelationshipProperties {
+
 		@Test // GH-2118
-		void aWarningShouldBeLogged(LogbackCapture logbackCapture) {
+		void startupShouldFail() {
 
 			Neo4jMappingContext schema = new Neo4jMappingContext();
-			schema.setInitialEntitySet(new HashSet<>(Arrays.asList(IrrelevantSourceContainer.class, InvalidRelationshipPropertyContainer.class, IrrelevantTargetContainer.class)));
-			schema.initialize();
-			assertThat(logbackCapture.getFormattedMessages())
-					.contains("The target class `org.springframework.data.neo4j.core.mapping.Neo4jMappingContextTest$InvalidRelationshipPropertyContainer` for the properties of the relationship `RELATIONSHIP_PROPERTY_CONTAINER` is missing a property for the generated, internal ID (`@Id @GeneratedValue Long id`). It is needed for safely updating properties and will be required from SDN 6.1 upwards.");
+			assertThatIllegalStateException().isThrownBy(() -> {
+						schema.setInitialEntitySet(new HashSet<>(
+								Arrays.asList(IrrelevantSourceContainer.class, InvalidRelationshipPropertyContainer.class,
+										IrrelevantTargetContainer.class)));
+						schema.initialize();
+					}).withMessage("The target class `org.springframework.data.neo4j.core.mapping.Neo4jMappingContextTest$InvalidRelationshipPropertyContainer` for the properties of the relationship `RELATIONSHIP_PROPERTY_CONTAINER` is missing a property for the generated, internal ID (`@Id @GeneratedValue Long id`) which is needed for safely updating properties.");
 		}
 
 		@Test // GH-2118

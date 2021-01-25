@@ -23,7 +23,6 @@ import org.neo4j.driver.Value;
 import org.springframework.data.mapping.PersistentProperty;
 import org.springframework.data.neo4j.core.schema.CompositeProperty;
 import org.springframework.data.neo4j.core.schema.DynamicLabels;
-import org.springframework.data.neo4j.core.schema.RelationshipProperties;
 
 /**
  * A {@link org.springframework.data.mapping.PersistentProperty} interface with additional methods for metadata related
@@ -68,25 +67,9 @@ public interface Neo4jPersistentProperty extends PersistentProperty<Neo4jPersist
 		return this.isAnnotationPresent(DynamicLabels.class) && this.isCollectionLike();
 	}
 
-	/**
-	 * @deprecated since 6.0.4, no replacement, not needed
-	 */
-	@Deprecated
-	default boolean isRelationshipWithProperties() {
-		return isAssociation() && isCollectionLike() && getActualType().isAnnotationPresent(RelationshipProperties.class);
-	}
-
 	Function<Object, Value> getOptionalWritingConverter();
 
 	Function<Value, Object> getOptionalReadingConverter();
-
-	/**
-	 * @deprecated since 6.0.4, see #isEntityWithRelationshipProperties()
-	 */
-	@Deprecated
-	default boolean isEntityInRelationshipWithProperties() {
-		return isEntityWithRelationshipProperties();
-	}
 
 	/**
 	 * @return True if this property targets an entity which is a container for relationship properties.

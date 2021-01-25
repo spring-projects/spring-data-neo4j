@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
+import lombok.With;
 
 import java.net.URI;
 import java.util.ArrayList;
@@ -592,7 +593,11 @@ class Neo4jNestedMapEntityWriterTest {
 
 	@RelationshipProperties
 	@RequiredArgsConstructor
+	@AllArgsConstructor
 	static class P1 {
+
+		@Id @GeneratedValue @With
+		private Long id;
 
 		private final String prop1;
 
