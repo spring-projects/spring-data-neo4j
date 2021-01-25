@@ -27,6 +27,7 @@ import org.apiguardian.api.API;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.types.Type;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
+import org.springframework.lang.Nullable;
 
 /**
  * @author Michael J. Simons
@@ -45,7 +46,7 @@ public final class MappingSupport {
 	 * @return A unified collection (Either a collection of Map.Entry for dynamic and relationships with properties or a
 	 *         list of related values)
 	 */
-	public static Collection<?> unifyRelationshipValue(Neo4jPersistentProperty property, Object rawValue) {
+	public static Collection<?> unifyRelationshipValue(Neo4jPersistentProperty property, @Nullable Object rawValue) {
 
 		if (rawValue == null) {
 			return Collections.emptyList();
@@ -111,7 +112,7 @@ public final class MappingSupport {
 			this.relatedEntity = relatedEntity;
 		}
 
-		public PersistentPropertyAccessor<?> getRelationshipPropertiesPropertyAccessor() {
+		PersistentPropertyAccessor<?> getRelationshipPropertiesPropertyAccessor() {
 			return relationshipPropertiesPropertyAccessor;
 		}
 
