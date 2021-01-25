@@ -19,10 +19,13 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.reactive.awaitSingleOrNull
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.neo4j.cypherdsl.core.Statement
+import org.springframework.data.neo4j.integration.shared.common.KotlinPerson
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
@@ -31,47 +34,170 @@ import reactor.core.publisher.Mono
  */
 class ReactiveNeo4jOperationsExtensionsTest {
 
-    @Nested
-    inner class CoroutinesVariantsOfExecutableQuery {
+	private val template = mockk<ReactiveNeo4jOperations>()
+	private val statement = mockk<Statement>()
 
-        private val executableQuery = mockk<ReactiveNeo4jOperations.ExecutableQuery<String>>()
+	@Test
+	fun `count extension should call its Java counterpart`() {
 
-        @Test
-        fun `fetchAllResults should return a flow of thing`() {
+		every { template.count(KotlinPerson::class.java) } returns Mono.just(1L)
 
-            every { executableQuery.results } returns Flux.just("foo", "bar")
+		runBlocking {
+			assertThat(template.count<KotlinPerson>()).isEqualTo(1L)
+		}
 
-            runBlocking {
-                assertThat(executableQuery.fetchAllResults().toList()).contains("foo", "bar")
-            }
+		verify { template.count(KotlinPerson::class.java) }
+	}
 
-            verify {
-                executableQuery.results
-            }
-        }
+	@Test
+	fun `findAll extension should call its Java counterpart (1)`() {
 
-        @Test
-        fun `awaitSingleResultOrNull should return value`() {
-            every { executableQuery.singleResult } returns Mono.just("baz")
+		every { template.findAll(KotlinPerson::class.java) } returns Flux.empty()
 
-            runBlocking {
-                assertThat(executableQuery.awaitSingleResultOrNull()).isEqualTo("baz")
-            }
-            verify {
-                executableQuery.singleResult
-            }
-        }
+		runBlocking {
+			assertThat(template.findAll<KotlinPerson>().toList()).isEmpty()
+		}
 
-        @Test
-        fun `awaitFirstOrNull should return null`() {
-            every { executableQuery.singleResult } returns Mono.empty()
+		verify { template.findAll(KotlinPerson::class.java) }
+	}
 
-            runBlocking {
-                assertThat(executableQuery.awaitSingleResultOrNull()).isNull()
-            }
-            verify {
-                executableQuery.singleResult
-            }
-        }
-    }
+	@Test
+	fun `findAll extension should call its Java counterpart (2)`() {
+
+		every { template.findAll(statement, KotlinPerson::class.java) } returns Flux.empty()
+
+		runBlocking {
+			assertThat(template.findAll<KotlinPerson>(statement).toList()).isEmpty()
+		}
+
+		verify { template.findAll(statement, KotlinPerson::class.java) }
+	}
+
+	@Test
+	fun `findAll extension should call its Java counterpart (3)`() {
+
+		every { template.findAll(statement, mapOf(), KotlinPerson::class.java) } returns Flux.empty()
+
+		runBlocking {
+			assertThat(template.findAll<KotlinPerson>(statement, mapOf()).toList()).isEmpty()
+		}
+
+		verify { template.findAll(statement, mapOf(), KotlinPerson::class.java) }
+	}
+
+	@Test
+	fun `findOne extension should call its Java counterpart`() {
+
+		every { template.findOne(statement, mapOf(), KotlinPerson::class.java) } returns Mono.empty()
+
+		runBlocking {
+			assertThat(template.findOne<KotlinPerson>(statement, mapOf())).isNull()
+		}
+
+		verify { template.findOne(statement, mapOf(), KotlinPerson::class.java) }
+	}
+
+	@Test
+	fun `findById extension should call its Java counterpart`() {
+
+		every { template.findById(1L, KotlinPerson::class.java) } returns Mono.empty()
+
+		runBlocking {
+			assertThat(template.findById<KotlinPerson>(1L)).isNull()
+		}
+
+		verify { template.findById(1L, KotlinPerson::class.java) }
+	}
+
+	@Test
+	fun `findAllById extension should call its Java counterpart`() {
+
+		every { template.findAllById(listOf(1L, 2L), KotlinPerson::class.java) } returns Flux.empty()
+
+		runBlocking {
+			assertThat(template.findAllById<KotlinPerson>(listOf(1L, 2L)).toList()).isEmpty()
+		}
+
+		verify { template.findAllById(listOf(1L, 2L), KotlinPerson::class.java) }
+	}
+
+	@Test
+	fun `deleteById extension should call its Java counterpart`() {
+
+		every { template.deleteById(1L, KotlinPerson::class.java) } returns Mono.empty()
+
+		runBlocking {
+			assertThat(template.deleteById<KotlinPerson>(1L).awaitSingleOrNull()).isNull()
+		}
+
+		verify { template.deleteById(1L, KotlinPerson::class.java) }
+	}
+
+	@Test
+	fun `deleteAllById extension should call its Java counterpart`() {
+
+		every { template.deleteAllById(listOf(1L, 2L), KotlinPerson::class.java) } returns Mono.empty()
+
+		runBlocking {
+			assertThat(template.deleteAllById<KotlinPerson>(listOf(1L, 2L)).awaitSingleOrNull()).isNull()
+		}
+
+		verify { template.deleteAllById(listOf(1L, 2L), KotlinPerson::class.java) }
+	}
+
+	@Test
+	fun `deleteAll extension should call its Java counterpart`() {
+
+		every { template.deleteAll(KotlinPerson::class.java) } returns Mono.empty()
+
+		runBlocking {
+			template.deleteAll<KotlinPerson>()
+		}
+
+		verify { template.deleteAll(KotlinPerson::class.java) }
+	}
+
+	@Nested
+	inner class CoroutinesVariantsOfExecutableQuery {
+
+		private val executableQuery = mockk<ReactiveNeo4jOperations.ExecutableQuery<String>>()
+
+		@Test
+		fun `fetchAllResults should return a flow of thing`() {
+
+			every { executableQuery.results } returns Flux.just("foo", "bar")
+
+			runBlocking {
+				assertThat(executableQuery.fetchAllResults().toList()).contains("foo", "bar")
+			}
+
+			verify {
+				executableQuery.results
+			}
+		}
+
+		@Test
+		fun `awaitSingleResultOrNull should return value`() {
+			every { executableQuery.singleResult } returns Mono.just("baz")
+
+			runBlocking {
+				assertThat(executableQuery.awaitSingleResultOrNull()).isEqualTo("baz")
+			}
+			verify {
+				executableQuery.singleResult
+			}
+		}
+
+		@Test
+		fun `awaitFirstOrNull should return null`() {
+			every { executableQuery.singleResult } returns Mono.empty()
+
+			runBlocking {
+				assertThat(executableQuery.awaitSingleResultOrNull()).isNull()
+			}
+			verify {
+				executableQuery.singleResult
+			}
+		}
+	}
 }

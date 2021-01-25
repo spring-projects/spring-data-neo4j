@@ -23,10 +23,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.data.neo4j.config.AbstractNeo4jConfig
-import org.springframework.data.neo4j.core.schema.GeneratedValue
-import org.springframework.data.neo4j.core.schema.Id
-import org.springframework.data.neo4j.core.schema.Node
-import org.springframework.data.neo4j.core.schema.Relationship
 import org.springframework.data.neo4j.integration.shared.common.DeviceEntity
 import org.springframework.data.neo4j.integration.shared.common.ImmutableKotlinPerson
 import org.springframework.data.neo4j.repository.Neo4jRepository
