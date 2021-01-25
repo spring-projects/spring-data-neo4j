@@ -29,6 +29,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.springframework.data.annotation.Transient;
 import org.springframework.data.mapping.MappingException;
 import org.springframework.data.neo4j.core.schema.DynamicLabels;
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
@@ -68,6 +69,24 @@ class DefaultNeo4jPersistentEntityTest {
 					.isThrownBy(() -> new Neo4jMappingContext().getPersistentEntity(EntityWithMultipleDuplicatedProperties.class))
 					.withMessage("Duplicate definition of properties [foo, name] in entity class "
 							+ "org.springframework.data.neo4j.core.mapping.DefaultNeo4jPersistentEntityTest$EntityWithMultipleDuplicatedProperties.");
+		}
+
+		@Test // GH-1903
+		void failsOnMultipleInheritedDuplicatedProperties() {
+			assertThatIllegalStateException()
+					.isThrownBy(() -> new Neo4jMappingContext().getPersistentEntity(
+							EntityWithInheritedMultipleDuplicatedProperties.class))
+					.withMessage("Duplicate definition of property [name] in entity class "
+								 + "org.springframework.data.neo4j.core.mapping.DefaultNeo4jPersistentEntityTest$EntityWithInheritedMultipleDuplicatedProperties.");
+		}
+
+		@Test // GH-1903
+		void doesNotFailOnTransientInheritedDuplicatedProperties() {
+			Neo4jPersistentEntity<?> persistentEntity = new Neo4jMappingContext().getPersistentEntity(
+					EntityWithNotInheritedTransientProperties.class);
+
+			assertThat(persistentEntity).isNotNull();
+			assertThat(persistentEntity.getPersistentProperty("name")).isNotNull();
 		}
 	}
 
@@ -354,6 +373,34 @@ class DefaultNeo4jPersistentEntityTest {
 		@Property("foo") private String somethingElse;
 
 		@Property("foo") private String thisToo;
+	}
+
+	private abstract static class BaseClassWithPrivatePropertyUnsafe {
+
+		@Id @GeneratedValue
+		private Long id;
+
+		private String name;
+	}
+
+	@Node
+	private static class EntityWithInheritedMultipleDuplicatedProperties extends BaseClassWithPrivatePropertyUnsafe {
+
+		private String name;
+	}
+
+	private abstract static class BaseClassWithPrivatePropertySafe {
+
+		@Id @GeneratedValue
+		private Long id;
+
+		private @Transient String name;
+	}
+
+	@Node
+	private static class EntityWithNotInheritedTransientProperties extends BaseClassWithPrivatePropertySafe {
+
+		private String name;
 	}
 
 	@Node("a")
