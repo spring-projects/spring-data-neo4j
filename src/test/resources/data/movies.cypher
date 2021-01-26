@@ -506,3 +506,27 @@ CREATE
 
 WITH TomH as a
 MATCH (a)-[:ACTED_IN]->(m)<-[:DIRECTED]-(d) RETURN a,m,d LIMIT 10;
+
+MATCH (l1:Person {name: 'Lilly Wachowski'})
+MATCH (l2:Person {name: 'Lana Wachowski'})
+CREATE (l1) - [s:IS_SIBLING_OF] -> (l2)
+RETURN *;
+
+MATCH (m1:Movie {title: 'The Matrix'})
+MATCH (m2:Movie {title: 'The Matrix Reloaded'})
+MATCH (m3:Movie {title: 'The Matrix Revolutions'})
+CREATE (m2) - [:IS_SEQUEL_OF] -> (m1)
+CREATE (m3) - [:IS_SEQUEL_OF] -> (m2)
+RETURN *;
+
+MATCH (m1:Movie {title: 'The Matrix'})
+MATCH (m2:Movie {title: 'The Matrix Reloaded'})
+CREATE (p:Person {name: 'Gloria Foster'})
+CREATE (p) -[:ACTED_IN {roles: ['The Oracle']}] -> (m1)
+CREATE (p) -[:ACTED_IN {roles: ['The Oracle']}] -> (m2)
+RETURN *;
+
+MATCH (m3:Movie {title: 'The Matrix Revolutions'})
+CREATE (p:Person {name: 'Mary Alice'})
+CREATE (p) -[:ACTED_IN {roles: ['The Oracle']}] -> (m3)
+RETURN *;

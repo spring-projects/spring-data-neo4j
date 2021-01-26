@@ -17,13 +17,12 @@ package org.springframework.data.neo4j.integration.movies.imperative;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -37,7 +36,10 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.neo4j.config.AbstractNeo4jConfig;
 import org.springframework.data.neo4j.core.Neo4jTemplate;
 import org.springframework.data.neo4j.integration.movies.shared.Actor;
+import org.springframework.data.neo4j.integration.movies.shared.CypherUtils;
 import org.springframework.data.neo4j.integration.movies.shared.Movie;
+import org.springframework.data.neo4j.integration.movies.shared.Organisation;
+import org.springframework.data.neo4j.integration.movies.shared.Partner;
 import org.springframework.data.neo4j.integration.movies.shared.Person;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
@@ -61,37 +63,16 @@ class AdvancedMappingIT {
 	@BeforeAll
 	static void setupData(@Autowired Driver driver) throws IOException {
 
-		try (BufferedReader moviesReader = new BufferedReader(
-				new InputStreamReader(AdvancedMappingIT.class.getResourceAsStream("/data/movies.cypher")));
-				Session session = driver.session()) {
+		try (Session session = driver.session()) {
 			session.run("MATCH (n) DETACH DELETE n").consume();
-			String moviesCypher = moviesReader.lines().collect(Collectors.joining(" "));
-			session.run(moviesCypher).consume();
-			session.run("MATCH (l1:Person {name: 'Lilly Wachowski'})\n"
-						+ "MATCH (l2:Person {name: 'Lana Wachowski'})\n"
-						+ "CREATE (l1) - [s:IS_SIBLING_OF] -> (l2)\n"
-						+ "RETURN *").consume();
-			session.run("MATCH (m1:Movie {title: 'The Matrix'})\n"
-						+ "MATCH (m2:Movie {title: 'The Matrix Reloaded'})\n"
-						+ "MATCH (m3:Movie {title: 'The Matrix Revolutions'})\n"
-						+ "CREATE (m2) - [:IS_SEQUEL_OF] -> (m1)\n"
-						+ "CREATE (m3) - [:IS_SEQUEL_OF] -> (m2)\n"
-						+ "RETURN *").consume();
-			session.run("MATCH (m1:Movie {title: 'The Matrix'})\n"
-						+ "MATCH (m2:Movie {title: 'The Matrix Reloaded'})\n"
-						+ "CREATE (p:Person {name: 'Gloria Foster'})\n"
-						+ "CREATE (p) -[:ACTED_IN {roles: ['The Oracle']}] -> (m1)\n"
-						+ "CREATE (p) -[:ACTED_IN {roles: ['The Oracle']}] -> (m2)\n"
-						+ "RETURN *").consume();
-			session.run("MATCH (m3:Movie {title: 'The Matrix Revolutions'})\n"
-						+ "CREATE (p:Person {name: 'Mary Alice'})\n"
-						+ "CREATE (p) -[:ACTED_IN {roles: ['The Oracle']}] -> (m3)\n"
-						+ "RETURN *").consume();
+			CypherUtils.loadCypherFromResource("/data/movies.cypher", session);
+			CypherUtils.loadCypherFromResource("/data/orgstructure.cypher", session);
 		}
 	}
 
 	interface MovieProjectionWithActorProjection {
 		String getTitle();
+
 		List<ActorProjection> getActors();
 
 		interface ActorProjection {
@@ -141,6 +122,38 @@ class AdvancedMappingIT {
 		List<Movie> customPathQueryMoviesFind(@Param("title") String title);
 	}
 
+	@Test // GH-1906
+	void nestedSelfRelationshipsFromCustomQueryShouldWork(@Autowired Neo4jTemplate template) {
+
+		Optional<Partner> optionalPartner = template.findOne(
+				"MATCH p=(partner:Partner {code: $partnerCode})-[:CHILD_ORGANISATIONS*0..4]->(org:Organisation) \n"
+				+ "UNWIND nodes(p) as node UNWIND relationships(p) as rel\n"
+				+ "RETURN partner, collect(distinct node), collect(distinct rel)",
+				Collections.singletonMap("partnerCode", "partner-one"), Partner.class);
+
+		assertThat(optionalPartner).hasValueSatisfying(p -> {
+			assertThat(p.getName()).isEqualTo("partner one");
+
+			assertThat(p.getOrganisations()).hasSize(1);
+			Organisation org1 = p.getOrganisations().get(0);
+
+			assertThat(org1.getCode()).isEqualTo("org-1");
+			Map<String, Organisation> org1Childs = org1.getOrganisations().stream()
+					.collect(Collectors.toMap(Organisation::getCode, Function.identity()));
+			assertThat(org1Childs).hasSize(2);
+
+			assertThat(org1Childs).hasEntrySatisfying("org-2", o -> assertThat(o.getOrganisations()).hasSize(1));
+			assertThat(org1Childs).hasEntrySatisfying("org-6", o -> assertThat(o.getOrganisations()).isEmpty());
+
+			Organisation org3 = org1Childs.get("org-2").getOrganisations().get(0);
+			assertThat(org3.getCode()).isEqualTo("org-3");
+
+			Map<String, Organisation> org3Childs = org3.getOrganisations().stream()
+					.collect(Collectors.toMap(Organisation::getCode, Function.identity()));
+			assertThat(org3Childs).containsKeys("org-4", "org-5");
+		});
+	}
+
 	@Test // GH-2117
 	void bothCyclicAndNonCyclicRelationshipsAreExcludedFromProjections(@Autowired MovieRepository movieRepository) {
 
@@ -164,12 +177,14 @@ class AdvancedMappingIT {
 	}
 
 	@Test // GH-2117
-	void bothCyclicAndNonCyclicRelationshipsAreExcludedFromProjectionsWithProjections(@Autowired MovieRepository movieRepository) {
+	void bothCyclicAndNonCyclicRelationshipsAreExcludedFromProjectionsWithProjections(
+			@Autowired MovieRepository movieRepository) {
 
 		// The movie domain is a good fit for this test
 		// as the cyclic dependencies is pretty slow to retrieve from Neo4j
 		// this does OOM in most setups.
-		MovieProjectionWithActorProjection projection = movieRepository.findProjectionWithProjectionByTitle("The Matrix");
+		MovieProjectionWithActorProjection projection = movieRepository
+				.findProjectionWithProjectionByTitle("The Matrix");
 		assertThat(projection.getTitle()).isNotNull();
 		assertThat(projection.getActors()).isNotEmpty();
 	}
@@ -192,7 +207,8 @@ class AdvancedMappingIT {
 	@Test // GH-2114
 	void directionAndTypeLessPathMappingShouldWork(@Autowired Neo4jTemplate template) {
 
-		List<Person> people = template.findAll("MATCH p=(:Person)-[]-(:Person) RETURN p", Collections.emptyMap(), Person.class);
+		List<Person> people = template
+				.findAll("MATCH p=(:Person)-[]-(:Person) RETURN p", Collections.emptyMap(), Person.class);
 		assertThat(people).hasSize(6);
 	}
 
@@ -200,7 +216,9 @@ class AdvancedMappingIT {
 	void mappingOfAPathWithOddNumberOfElementsShouldWorkFromStartToEnd(@Autowired Neo4jTemplate template) {
 
 		Map<String, Movie> movies = template
-				.findAll("MATCH p=shortestPath((:Person {name: 'Mary Alice'})-[*]-(:Person {name: 'Emil Eifrem'})) RETURN p", Collections.emptyMap(), Movie.class)
+				.findAll(
+						"MATCH p=shortestPath((:Person {name: 'Mary Alice'})-[*]-(:Person {name: 'Emil Eifrem'})) RETURN p",
+						Collections.emptyMap(), Movie.class)
 				.stream().collect(Collectors.toMap(Movie::getTitle, Function.identity()));
 		assertThat(movies).hasSize(3);
 
@@ -217,7 +235,9 @@ class AdvancedMappingIT {
 	void mappingOfAPathWithEventNumberOfElementsShouldWorkFromStartToEnd(@Autowired Neo4jTemplate template) {
 
 		Map<String, Movie> movies = template
-				.findAll("MATCH p=shortestPath((:Movie {title: 'The Matrix Revolutions'})-[*]-(:Person {name: 'Emil Eifrem'})) RETURN p", Collections.emptyMap(), Movie.class)
+				.findAll(
+						"MATCH p=shortestPath((:Movie {title: 'The Matrix Revolutions'})-[*]-(:Person {name: 'Emil Eifrem'})) RETURN p",
+						Collections.emptyMap(), Movie.class)
 				.stream().collect(Collectors.toMap(Movie::getTitle, Function.identity()));
 		assertThat(movies).hasSize(3);
 

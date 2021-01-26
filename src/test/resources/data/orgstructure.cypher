@@ -1,0 +1,15 @@
+CREATE (p:Partner {code:'partner-one', name: 'partner one'});
+CREATE (o1:Organisation {partnerCode: 'partner-one', code:'org-1', name: 'organisation one'});
+CREATE (o2:Organisation {partnerCode: 'partner-one', code:'org-2', name: 'organisation two'});
+CREATE (o3:Organisation {partnerCode: 'partner-one', code:'org-3', name: 'organisation three'});
+CREATE (o4:Organisation {partnerCode: 'partner-one', code:'org-4', name: 'organisation four'});
+CREATE (o5:Organisation {partnerCode: 'partner-one', code:'org-5', name: 'organisation five'});
+CREATE (o6:Organisation {partnerCode: 'partner-one', code:'org-6', name: 'organisation six'});
+CREATE (o7:Organisation {partnerCode: 'partner-one', code:'org-7', name: 'organisation seven'});
+MATCH (p:Partner {code: 'partner-one'}) OPTIONAL MATCH (o1:Organisation {code: 'org-1'}) CREATE (p)-[:CHILD_ORGANISATIONS]->(o1);
+MATCH (o1:Organisation {code: 'org-1'}) OPTIONAL MATCH (o2:Organisation {code: 'org-2'}) CREATE (o1)-[:CHILD_ORGANISATIONS]->(o2);
+MATCH (o1:Organisation {code: 'org-1'}) OPTIONAL MATCH (o2:Organisation {code: 'org-6'}) CREATE (o1)-[:CHILD_ORGANISATIONS]->(o2);
+MATCH (o1:Organisation {code: 'org-2'}) OPTIONAL MATCH (o2:Organisation {code: 'org-3'}) CREATE (o1)-[:CHILD_ORGANISATIONS]->(o2);
+MATCH (o1:Organisation {code: 'org-3'}) OPTIONAL MATCH (o2:Organisation {code: 'org-4'}) CREATE (o1)-[:CHILD_ORGANISATIONS]->(o2);
+MATCH (o1:Organisation {code: 'org-3'}) OPTIONAL MATCH (o2:Organisation {code: 'org-5'}) CREATE (o1)-[:CHILD_ORGANISATIONS]->(o2);
+MATCH (o1:Organisation {code: 'org-5'}) OPTIONAL MATCH (o2:Organisation {code: 'org-7'}) CREATE (o1)-[:CHILD_ORGANISATIONS]->(o2);

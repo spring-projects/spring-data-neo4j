@@ -15,6 +15,21 @@
  */
 package org.springframework.data.neo4j.integration.movies.reactive;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -26,6 +41,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.neo4j.config.AbstractReactiveNeo4jConfig;
 import org.springframework.data.neo4j.core.ReactiveNeo4jTemplate;
 import org.springframework.data.neo4j.integration.movies.shared.Actor;
+import org.springframework.data.neo4j.integration.movies.shared.CypherUtils;
 import org.springframework.data.neo4j.integration.movies.shared.Movie;
 import org.springframework.data.neo4j.integration.movies.shared.Person;
 import org.springframework.data.neo4j.repository.ReactiveNeo4jRepository;
@@ -35,25 +51,10 @@ import org.springframework.data.neo4j.test.Neo4jExtension;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
-import reactor.test.StepVerifier;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Gerrit Meier
+ * @author Michael J. Simons
  */
 @Tag(Neo4jExtension.NEEDS_REACTIVE_SUPPORT)
 @Neo4jIntegrationTest
@@ -64,32 +65,9 @@ class ReactiveAdvancedMappingIT {
 	@BeforeAll
 	static void setupData(@Autowired Driver driver) throws IOException {
 
-		try (BufferedReader moviesReader = new BufferedReader(
-				new InputStreamReader(ReactiveAdvancedMappingIT.class.getResourceAsStream("/data/movies.cypher")));
-             Session session = driver.session()) {
+		try (Session session = driver.session()) {
 			session.run("MATCH (n) DETACH DELETE n").consume();
-			String moviesCypher = moviesReader.lines().collect(Collectors.joining(" "));
-			session.run(moviesCypher).consume();
-			session.run("MATCH (l1:Person {name: 'Lilly Wachowski'})\n"
-						+ "MATCH (l2:Person {name: 'Lana Wachowski'})\n"
-						+ "CREATE (l1) - [s:IS_SIBLING_OF] -> (l2)\n"
-						+ "RETURN *").consume();
-			session.run("MATCH (m1:Movie {title: 'The Matrix'})\n"
-						+ "MATCH (m2:Movie {title: 'The Matrix Reloaded'})\n"
-						+ "MATCH (m3:Movie {title: 'The Matrix Revolutions'})\n"
-						+ "CREATE (m2) - [:IS_SEQUEL_OF] -> (m1)\n"
-						+ "CREATE (m3) - [:IS_SEQUEL_OF] -> (m2)\n"
-						+ "RETURN *").consume();
-			session.run("MATCH (m1:Movie {title: 'The Matrix'})\n"
-						+ "MATCH (m2:Movie {title: 'The Matrix Reloaded'})\n"
-						+ "CREATE (p:Person {name: 'Gloria Foster'})\n"
-						+ "CREATE (p) -[:ACTED_IN {roles: ['The Oracle']}] -> (m1)\n"
-						+ "CREATE (p) -[:ACTED_IN {roles: ['The Oracle']}] -> (m2)\n"
-						+ "RETURN *").consume();
-			session.run("MATCH (m3:Movie {title: 'The Matrix Revolutions'})\n"
-						+ "CREATE (p:Person {name: 'Mary Alice'})\n"
-						+ "CREATE (p) -[:ACTED_IN {roles: ['The Oracle']}] -> (m3)\n"
-						+ "RETURN *").consume();
+			CypherUtils.loadCypherFromResource("/data/movies.cypher", session);
 		}
 	}
 
