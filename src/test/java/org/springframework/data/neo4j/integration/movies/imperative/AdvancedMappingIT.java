@@ -168,6 +168,12 @@ class AdvancedMappingIT {
 		assertThat(movies).hasSize(3);
 	}
 
+	@Test
+	void killThemAll3(@Autowired MovieRepository repository) {
+		List<Movie> movies = repository.findAll();
+		assertThat(movies).hasSize(38);
+	}
+
 	@Test // GH-2117
 	void bothCyclicAndNonCyclicRelationshipsAreExcludedFromProjections(@Autowired MovieRepository movieRepository) {
 

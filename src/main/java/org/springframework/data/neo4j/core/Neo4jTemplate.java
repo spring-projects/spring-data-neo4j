@@ -18,6 +18,7 @@ package org.springframework.data.neo4j.core;
 import org.apache.commons.logging.LogFactory;
 import org.apiguardian.api.API;
 import org.neo4j.cypherdsl.core.Condition;
+import org.neo4j.cypherdsl.core.Conditions;
 import org.neo4j.cypherdsl.core.Cypher;
 import org.neo4j.cypherdsl.core.Functions;
 import org.neo4j.cypherdsl.core.Node;
@@ -162,6 +163,13 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 	public <T> List<T> findAll(Class<T> domainType) {
 
 		Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getPersistentEntity(domainType);
+		if (entityMetaData.containsPossibleCircles(Collections.emptyList())) {
+			FinalQueryAndParameters finalQueryAndParameters = bimsUndBums(entityMetaData, Conditions.noCondition(), Collections.emptyMap());
+			if (finalQueryAndParameters == null) {
+				return Collections.emptyList();
+			}
+			return createExecutableQuery(domainType, finalQueryAndParameters.statement, finalQueryAndParameters.parameters).getResults();
+		}
 		Statement statement = cypherGenerator.prepareMatchOf(entityMetaData)
 				.returning(cypherGenerator.createReturnStatementForMatch(entityMetaData)).build();
 		return createExecutableQuery(domainType, statement).getResults();
