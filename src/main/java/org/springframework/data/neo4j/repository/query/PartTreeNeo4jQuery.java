@@ -66,9 +66,9 @@ final class PartTreeNeo4jQuery extends AbstractNeo4jQuery {
 				Optional.ofNullable(queryType).orElseGet(() -> Neo4jQueryType.fromPartTree(tree)), tree, parameterAccessor,
 				includedProperties, this::convertParameter, limitModifier);
 
-		QueryAndParameters queryAndParameters = queryCreator.createQuery();
+		QueryFragmentsAndParameters queryAndParameters = queryCreator.createQuery();
 
-		return PreparedQuery.queryFor(returnedType).withCypherQuery(queryAndParameters.getQuery())
-				.withParameters(queryAndParameters.getParameters()).usingMappingFunction(mappingFunction).build();
+		return PreparedQuery.queryFor(returnedType).withQueryFragmentsAndParameters(queryAndParameters)
+				.usingMappingFunction(mappingFunction).build();
 	}
 }

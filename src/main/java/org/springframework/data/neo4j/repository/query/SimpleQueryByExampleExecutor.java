@@ -15,26 +15,24 @@
  */
 package org.springframework.data.neo4j.repository.query;
 
-import static org.neo4j.cypherdsl.core.Cypher.asterisk;
-
-import java.util.List;
-import java.util.Optional;
-import java.util.function.LongSupplier;
-
 import org.apiguardian.api.API;
 import org.neo4j.cypherdsl.core.Functions;
 import org.neo4j.cypherdsl.core.Statement;
-import org.neo4j.cypherdsl.core.StatementBuilder;
-import org.neo4j.cypherdsl.core.StatementBuilder.BuildableStatement;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.core.Neo4jOperations;
-import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.mapping.CypherGenerator;
+import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.repository.query.QueryByExampleExecutor;
 import org.springframework.data.repository.support.PageableExecutionUtils;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.function.LongSupplier;
+
+import static org.neo4j.cypherdsl.core.Cypher.asterisk;
 
 /**
  * A fragment for repositories providing "Query by example" functionality.
@@ -62,35 +60,30 @@ public final class SimpleQueryByExampleExecutor<T> implements QueryByExampleExec
 
 	@Override
 	public <S extends T> Optional<S> findOne(Example<S> example) {
-
-		Predicate predicate = Predicate.create(mappingContext, example);
-		Statement statement = predicate.useWithReadingFragment(cypherGenerator::prepareMatchOf)
-				.returning(cypherGenerator.createReturnStatementForMatch(predicate.getNeo4jPersistentEntity()))
-				.build();
-
-		return this.neo4jOperations.findOne(statement, predicate.getParameters(), example.getProbeType());
+		return this.neo4jOperations.toExecutableQuery(example.getProbeType(),
+				QueryFragmentsAndParameters.forExample(mappingContext, example)).getSingleResult();
 	}
 
 	@Override
 	public <S extends T> List<S> findAll(Example<S> example) {
-
-		Predicate predicate = Predicate.create(mappingContext, example);
-		Statement statement = predicate.useWithReadingFragment(cypherGenerator::prepareMatchOf)
-				.returning(cypherGenerator.createReturnStatementForMatch(predicate.getNeo4jPersistentEntity()))
-				.build();
-
-		return this.neo4jOperations.findAll(statement, predicate.getParameters(), example.getProbeType());
+		return this.neo4jOperations.toExecutableQuery(example.getProbeType(),
+				QueryFragmentsAndParameters.forExample(mappingContext, example)).getResults();
 	}
 
 	@Override
 	public <S extends T> List<S> findAll(Example<S> example, Sort sort) {
+		return this.neo4jOperations.toExecutableQuery(example.getProbeType(),
+				QueryFragmentsAndParameters.forExample(mappingContext, example, sort)).getResults();
+	}
 
-		Predicate predicate = Predicate.create(mappingContext, example);
-		Statement statement = predicate.useWithReadingFragment(cypherGenerator::prepareMatchOf)
-				.returning(cypherGenerator.createReturnStatementForMatch(predicate.getNeo4jPersistentEntity()))
-				.orderBy(CypherAdapterUtils.toSortItems(predicate.getNeo4jPersistentEntity(), sort)).build();
+	@Override
+	public <S extends T> Page<S> findAll(Example<S> example, Pageable pageable) {
 
-		return this.neo4jOperations.findAll(statement, predicate.getParameters(), example.getProbeType());
+		List<S> page = this.neo4jOperations.toExecutableQuery(example.getProbeType(),
+				QueryFragmentsAndParameters.forExample(mappingContext, example, pageable)).getResults();
+
+		LongSupplier totalCountSupplier = () -> this.count(example);
+		return PageableExecutionUtils.getPage(page, pageable, totalCountSupplier);
 	}
 
 	@Override
@@ -108,21 +101,4 @@ public final class SimpleQueryByExampleExecutor<T> implements QueryByExampleExec
 		return findAll(example).iterator().hasNext();
 	}
 
-	@Override
-	public <S extends T> Page<S> findAll(Example<S> example, Pageable pageable) {
-
-		Predicate predicate = Predicate.create(mappingContext, example);
-		StatementBuilder.OngoingReadingAndReturn returning = predicate
-				.useWithReadingFragment(cypherGenerator::prepareMatchOf)
-				.returning(cypherGenerator.createReturnStatementForMatch(predicate.getNeo4jPersistentEntity()));
-
-		BuildableStatement returningWithPaging = CypherAdapterUtils.addPagingParameter(predicate.getNeo4jPersistentEntity(),
-				pageable, returning);
-
-		Statement statement = returningWithPaging.build();
-
-		List<S> page = this.neo4jOperations.findAll(statement, predicate.getParameters(), example.getProbeType());
-		LongSupplier totalCountSupplier = () -> this.count(example);
-		return PageableExecutionUtils.getPage(page, pageable, totalCountSupplier);
-	}
 }

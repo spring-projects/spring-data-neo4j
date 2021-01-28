@@ -15,21 +15,6 @@
  */
 package org.springframework.data.neo4j.integration.movies.reactive;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
-import reactor.test.StepVerifier;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -51,6 +36,21 @@ import org.springframework.data.neo4j.test.Neo4jExtension;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Gerrit Meier
@@ -120,6 +120,31 @@ class ReactiveAdvancedMappingIT {
 
 		@Query("MATCH p=(movie:Movie)<-[r:ACTED_IN]-(n:Person) WHERE movie.title=$title RETURN collect(p)")
 		Flux<Movie> customPathQueryMoviesFind(@Param("title") String title);
+	}
+
+	@Test
+	void cyclicMappingShouldReturnResultForFindById(@Autowired MovieRepository repository) {
+		StepVerifier.create(repository.findById("The Matrix"))
+				.assertNext(movie -> {
+					assertThat(movie).isNotNull();
+					assertThat(movie.getTitle()).isEqualTo("The Matrix");
+					assertThat(movie.getActors()).hasSize(6);
+				})
+		.verifyComplete();
+	}
+
+	@Test
+	void cyclicMappingShouldReturnResultForFindAllById(@Autowired MovieRepository repository) {
+		StepVerifier.create(repository.findAllById(Arrays.asList("The Matrix", "The Matrix Revolutions", "The Matrix Reloaded")))
+				.expectNextCount(3)
+				.verifyComplete();
+	}
+
+	@Test
+	void cyclicMappingShouldReturnResultForFindAll(@Autowired MovieRepository repository) {
+		StepVerifier.create(repository.findAll())
+				.expectNextCount(38)
+				.verifyComplete();
 	}
 
 	@Test // GH-2117

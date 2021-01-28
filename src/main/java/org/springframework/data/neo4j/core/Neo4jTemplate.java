@@ -15,25 +15,12 @@
  */
 package org.springframework.data.neo4j.core;
 
-import static org.neo4j.cypherdsl.core.Cypher.asterisk;
-import static org.neo4j.cypherdsl.core.Cypher.parameter;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
 import org.apache.commons.logging.LogFactory;
 import org.apiguardian.api.API;
 import org.neo4j.cypherdsl.core.Condition;
 import org.neo4j.cypherdsl.core.Cypher;
 import org.neo4j.cypherdsl.core.Functions;
+import org.neo4j.cypherdsl.core.Node;
 import org.neo4j.cypherdsl.core.Statement;
 import org.neo4j.cypherdsl.core.renderer.Renderer;
 import org.neo4j.driver.exceptions.NoSuchRecordException;
@@ -62,10 +49,30 @@ import org.springframework.data.neo4j.core.mapping.NodeDescription;
 import org.springframework.data.neo4j.core.mapping.RelationshipDescription;
 import org.springframework.data.neo4j.core.mapping.callback.EventSupport;
 import org.springframework.data.neo4j.repository.NoResultException;
+import org.springframework.data.neo4j.repository.query.QueryFragmentsAndParameters;
 import org.springframework.data.util.ClassTypeInformation;
+import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+import static org.neo4j.cypherdsl.core.Cypher.anyNode;
+import static org.neo4j.cypherdsl.core.Cypher.asterisk;
+import static org.neo4j.cypherdsl.core.Cypher.parameter;
 
 /**
  * @author Michael J. Simons
@@ -121,7 +128,7 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 	@Override
 	public long count(Class<?> domainType) {
 
-		Neo4jPersistentEntity entityMetaData = neo4jMappingContext.getPersistentEntity(domainType);
+		Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getPersistentEntity(domainType);
 		Statement statement = cypherGenerator.prepareMatchOf(entityMetaData).returning(Functions.count(asterisk()))
 				.build();
 
@@ -153,16 +160,14 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 
 	@Override
 	public <T> List<T> findAll(Class<T> domainType) {
-
-		Neo4jPersistentEntity entityMetaData = neo4jMappingContext.getPersistentEntity(domainType);
-		Statement statement = cypherGenerator.prepareMatchOf(entityMetaData)
-				.returning(cypherGenerator.createReturnStatementForMatch(entityMetaData)).build();
-		return createExecutableQuery(domainType, statement).getResults();
+		Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getPersistentEntity(domainType);
+		return createExecutableQuery(domainType, QueryFragmentsAndParameters.forFindAll(entityMetaData))
+				.getResults();
 	}
 
 	@Override
 	public <T> List<T> findAll(Statement statement, Class<T> domainType) {
-		return createExecutableQuery(domainType, statement).getResults();
+		return createExecutableQuery(domainType, renderer.render(statement)).getResults();
 	}
 
 	@Override
@@ -193,24 +198,20 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 	@Override
 	public <T> Optional<T> findById(Object id, Class<T> domainType) {
 		Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getPersistentEntity(domainType);
-		Statement statement = cypherGenerator
-				.prepareMatchOf(entityMetaData,
-						entityMetaData.getIdExpression().isEqualTo(parameter(Constants.NAME_OF_ID)))
-				.returning(cypherGenerator.createReturnStatementForMatch(entityMetaData)).build();
-		return createExecutableQuery(domainType, statement, Collections
-				.singletonMap(Constants.NAME_OF_ID, convertIdValues(entityMetaData.getRequiredIdProperty(), id)))
+
+		return createExecutableQuery(domainType,
+				QueryFragmentsAndParameters.forFindById(entityMetaData,
+						convertIdValues(entityMetaData.getRequiredIdProperty(), id)))
 				.getSingleResult();
 	}
 
 	@Override
 	public <T> List<T> findAllById(Iterable<?> ids, Class<T> domainType) {
 		Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getPersistentEntity(domainType);
-		Statement statement = cypherGenerator
-				.prepareMatchOf(entityMetaData, entityMetaData.getIdExpression().in((parameter(Constants.NAME_OF_IDS))))
-				.returning(cypherGenerator.createReturnStatementForMatch(entityMetaData)).build();
 
-		return createExecutableQuery(domainType, statement, Collections
-				.singletonMap(Constants.NAME_OF_IDS, convertIdValues(entityMetaData.getRequiredIdProperty(), ids)))
+		return createExecutableQuery(domainType,
+				QueryFragmentsAndParameters.forFindByAllId(
+						entityMetaData, convertIdValues(entityMetaData.getRequiredIdProperty(), ids)))
 				.getResults();
 	}
 
@@ -413,10 +414,6 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 				summary.counters().relationshipsDeleted()));
 	}
 
-	private <T> ExecutableQuery<T> createExecutableQuery(Class<T> domainType, Statement statement) {
-		return createExecutableQuery(domainType, statement, Collections.emptyMap());
-	}
-
 	private <T> ExecutableQuery<T> createExecutableQuery(Class<T> domainType, String cypherStatement) {
 		return createExecutableQuery(domainType, cypherStatement, Collections.emptyMap());
 	}
@@ -431,10 +428,12 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 			Map<String, Object> parameters) {
 
 		Assert.notNull(neo4jMappingContext.getPersistentEntity(domainType), "Cannot get or create persistent entity.");
-		PreparedQuery<T> preparedQuery = PreparedQuery.queryFor(domainType).withCypherQuery(cypherStatement)
+		PreparedQuery<T> preparedQuery = PreparedQuery.queryFor(domainType)
+				.withCypherQuery(cypherStatement)
 				.withParameters(parameters)
 				.usingMappingFunction(neo4jMappingContext.getRequiredMappingFunctionFor(domainType))
 				.build();
+
 		return toExecutableQuery(preparedQuery);
 	}
 
@@ -583,30 +582,39 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 	}
 
 	@Override
+	public <T> ExecutableQuery<T> toExecutableQuery(Class<T> domainType,
+													QueryFragmentsAndParameters queryFragmentsAndParameters) {
+
+		return createExecutableQuery(domainType, queryFragmentsAndParameters);
+	}
+
+	private <T> ExecutableQuery<T> createExecutableQuery(Class<T> domainType,
+														 QueryFragmentsAndParameters queryFragmentsAndParameters) {
+
+		PreparedQuery<T> preparedQuery = PreparedQuery.queryFor(domainType)
+				.withQueryFragmentsAndParameters(queryFragmentsAndParameters)
+				.usingMappingFunction(neo4jMappingContext.getRequiredMappingFunctionFor(domainType))
+				.build();
+		return toExecutableQuery(preparedQuery);
+	}
+
+	@Override
 	public <T> ExecutableQuery<T> toExecutableQuery(PreparedQuery<T> preparedQuery) {
 
-		Neo4jClient.MappingSpec<T> mappingSpec = this.neo4jClient.query(preparedQuery.getCypherQuery())
-				.in(getDatabaseName()).bindAll(preparedQuery.getParameters()).fetchAs(preparedQuery.getResultType());
-		Neo4jClient.RecordFetchSpec<T> fetchSpec = preparedQuery.getOptionalMappingFunction()
-				.map(f -> mappingSpec.mappedBy(f)).orElse(mappingSpec);
-
-		return new DefaultExecutableQuery<>(preparedQuery, fetchSpec);
+		return new DefaultExecutableQuery<>(preparedQuery);
 	}
 
 	final class DefaultExecutableQuery<T> implements ExecutableQuery<T> {
 
 		private final PreparedQuery<T> preparedQuery;
-		private final Neo4jClient.RecordFetchSpec<T> fetchSpec;
 
-		DefaultExecutableQuery(PreparedQuery<T> preparedQuery, Neo4jClient.RecordFetchSpec<T> fetchSpec) {
+		DefaultExecutableQuery(PreparedQuery<T> preparedQuery) {
 			this.preparedQuery = preparedQuery;
-			this.fetchSpec = fetchSpec;
 		}
 
 		@SuppressWarnings("unchecked")
 		public List<T> getResults() {
-
-			Collection<T> all = fetchSpec.all();
+			Collection<T> all = createFetchSpec().map(Neo4jClient.RecordFetchSpec::all).orElse(Collections.emptyList());
 			if (preparedQuery.resultsHaveBeenAggregated()) {
 				return all.stream().flatMap(nested -> ((Collection<T>) nested).stream()).distinct().collect(Collectors.toList());
 			}
@@ -615,7 +623,7 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 
 		public Optional<T> getSingleResult() {
 			try {
-				Optional<T> one = fetchSpec.one();
+				Optional<T> one = createFetchSpec().flatMap(Neo4jClient.RecordFetchSpec::one);
 				if (preparedQuery.resultsHaveBeenAggregated()) {
 					return one.map(aggregatedResults -> (T) ((LinkedHashSet<?>) aggregatedResults).iterator().next());
 				}
@@ -628,11 +636,139 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 		}
 
 		public T getRequiredSingleResult() {
-			Optional<T> one = fetchSpec.one();
+			Optional<T> one = createFetchSpec().flatMap(Neo4jClient.RecordFetchSpec::one);
 			if (preparedQuery.resultsHaveBeenAggregated()) {
 				one = one.map(aggregatedResults -> (T) ((LinkedHashSet<?>) aggregatedResults).iterator().next());
 			}
-			return one.orElseThrow(() -> new NoResultException(1, preparedQuery.getCypherQuery()));
+			return one.orElseThrow(() -> new NoResultException(1, preparedQuery.getQueryFragmentsAndParameters().getCypherQuery()));
+		}
+
+		private Optional<Neo4jClient.RecordFetchSpec<T>> createFetchSpec() {
+			QueryFragmentsAndParameters queryFragmentsAndParameters = preparedQuery.getQueryFragmentsAndParameters();
+			String cypherQuery = queryFragmentsAndParameters.getCypherQuery();
+			Map<String, Object> finalParameters = preparedQuery.getQueryFragmentsAndParameters().getParameters();
+
+			QueryFragmentsAndParameters.QueryFragments queryFragments = queryFragmentsAndParameters.getQueryFragments();
+			Neo4jPersistentEntity<?> entityMetaData = (Neo4jPersistentEntity<?>) queryFragmentsAndParameters.getNodeDescription();
+
+			QueryFragmentsAndParameters.QueryFragments.ReturnTuple returnTuple = queryFragments.getReturnTuple();
+			boolean containsPossibleCircles = entityMetaData != null && entityMetaData.containsPossibleCircles(
+					returnTuple != null
+							? returnTuple.getIncludedProperties()
+							: Collections.emptyList());
+			if (cypherQuery == null || containsPossibleCircles) {
+
+				Map<String, Object> parameters = queryFragmentsAndParameters.getParameters();
+
+				if (containsPossibleCircles) {
+					GenericQueryAndParameters genericQueryAndParameters =
+							createQueryAndParameters(entityMetaData, queryFragments, parameters);
+
+					if (genericQueryAndParameters.isEmpty()) {
+						return Optional.empty();
+					}
+					cypherQuery = renderer.render(GenericQueryAndParameters.STATEMENT);
+					finalParameters = genericQueryAndParameters.getParameters();
+				} else {
+					cypherQuery = renderer.render(queryFragments.toStatement());
+				}
+
+			}
+
+			Neo4jClient.MappingSpec<T> newMappingSpec = neo4jClient.query(cypherQuery)
+					.in(getDatabaseName()).bindAll(finalParameters).fetchAs(preparedQuery.getResultType());
+			return Optional.of(preparedQuery.getOptionalMappingFunction()
+					.map(f -> newMappingSpec.mappedBy(f)).orElse(newMappingSpec));
+		}
+
+		private GenericQueryAndParameters createQueryAndParameters(Neo4jPersistentEntity<?> entityMetaData,
+						   QueryFragmentsAndParameters.QueryFragments queryFragments, Map<String, Object> parameters) {
+
+			// first check if the root node(s) exist(s) at all
+			Statement rootNodesStatement = cypherGenerator
+					.prepareMatchOf(entityMetaData, queryFragments.getMatchOn(), queryFragments.getCondition())
+					.returning(Constants.NAME_OF_SYNTHESIZED_ROOT_NODE).build();
+
+			final Collection<Long> rootNodeIds = new HashSet<>((Collection<Long>) neo4jClient
+					.query(renderer.render(rootNodesStatement)).in(getDatabaseName())
+					.bindAll(parameters)
+					.fetch()
+					.one()
+					.map(values -> values.get(Constants.NAME_OF_SYNTHESIZED_ROOT_NODE))
+					.get());
+
+			if (rootNodeIds.isEmpty()) {
+				// fast return if no matching root node(s) are found
+				return GenericQueryAndParameters.EMPTY;
+			}
+			// load first level relationships
+			final Set<Long> relationshipIds = new HashSet<>();
+			final Set<Long> relatedNodeIds = new HashSet<>();
+
+			for (RelationshipDescription relationshipDescription : entityMetaData.getRelationships()) {
+				if (queryFragments.getReturnTuple() != null
+						&& !queryFragments.getReturnTuple().getIncludedProperties().isEmpty()
+						&& queryFragments.getReturnTuple().getIncludedProperties().contains(relationshipDescription.getFieldName())) {
+					continue;
+				}
+
+				Statement statement = cypherGenerator
+						.prepareMatchOf(entityMetaData, relationshipDescription, queryFragments.getMatchOn(), queryFragments.getCondition())
+						.returning(cypherGenerator.createReturnStatementForMatch(entityMetaData)).build();
+
+				neo4jClient.query(renderer.render(statement)).in(getDatabaseName())
+						.bindAll(parameters)
+						.fetch()
+						.one()
+						.ifPresent(iterateAndMapNextLevel(relationshipIds, relatedNodeIds, relationshipDescription));
+			}
+
+			return new GenericQueryAndParameters(rootNodeIds, relationshipIds, relatedNodeIds);
+		}
+
+		private void iterateNextLevel(Collection<Long> nodeIds, Neo4jPersistentEntity<?> target, Set<Long> relationshipIds,
+									  Set<Long> relatedNodeIds) {
+
+			Collection<RelationshipDescription> relationships = target.getRelationships();
+			for (RelationshipDescription relationshipDescription : relationships) {
+
+				Node node = anyNode(Constants.NAME_OF_ROOT_NODE);
+
+				Statement statement = cypherGenerator
+						.prepareMatchOf(target, relationshipDescription, null,
+								Functions.id(node).in(Cypher.parameter(Constants.NAME_OF_IDS)))
+						.returning(cypherGenerator.createGenericReturnStatement()).build();
+
+				neo4jClient.query(renderer.render(statement)).in(getDatabaseName())
+						.bindAll(Collections.singletonMap(Constants.NAME_OF_IDS, nodeIds))
+						.fetch()
+						.one()
+						.ifPresent(iterateAndMapNextLevel(relationshipIds, relatedNodeIds, relationshipDescription));
+			}
+		}
+
+		@NonNull
+		private Consumer<Map<String, Object>> iterateAndMapNextLevel(Set<Long> relationshipIds,
+																	 Set<Long> relatedNodeIds, RelationshipDescription relationshipDescription) {
+
+			return record -> {
+				List<Long> newRelationshipIds = (List<Long>) record.get(Constants.NAME_OF_SYNTHESIZED_RELATIONS);
+				relationshipIds.addAll(newRelationshipIds);
+
+				List<Long> newRelatedNodeIds = (List<Long>) record.get(Constants.NAME_OF_SYNTHESIZED_RELATED_NODES);
+
+				Set<Long> relatedIds = new HashSet<>(newRelatedNodeIds);
+				// use this list to get down the road
+				// 1. remove already visited ones;
+				relatedIds.removeAll(relatedNodeIds);
+				relatedNodeIds.addAll(relatedIds);
+				// 2. for the rest start the exploration
+				if (!relatedIds.isEmpty()) {
+					iterateNextLevel(relatedIds, (Neo4jPersistentEntity<?>) relationshipDescription.getTarget(),
+							relationshipIds, relatedNodeIds);
+				}
+			};
 		}
 	}
+
 }

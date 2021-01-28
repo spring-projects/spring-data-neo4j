@@ -15,20 +15,19 @@
  */
 package org.springframework.data.neo4j.repository.query;
 
-import static org.neo4j.cypherdsl.core.Cypher.asterisk;
-
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
-
 import org.apiguardian.api.API;
 import org.neo4j.cypherdsl.core.Functions;
 import org.neo4j.cypherdsl.core.Statement;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.core.ReactiveNeo4jOperations;
-import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.mapping.CypherGenerator;
+import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.repository.query.ReactiveQueryByExampleExecutor;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+
+import static org.neo4j.cypherdsl.core.Cypher.asterisk;
 
 /**
  * A fragment for repositories providing "Query by example" functionality in a reactive way.
@@ -56,35 +55,23 @@ public final class SimpleReactiveQueryByExampleExecutor<T> implements ReactiveQu
 
 	@Override
 	public <S extends T> Mono<S> findOne(Example<S> example) {
-
-		Predicate predicate = Predicate.create(mappingContext, example);
-		Statement statement = predicate.useWithReadingFragment(cypherGenerator::prepareMatchOf)
-				.returning(cypherGenerator.createReturnStatementForMatch(predicate.getNeo4jPersistentEntity()))
-				.build();
-
-		return this.neo4jOperations.findOne(statement, predicate.getParameters(), example.getProbeType());
+		return this.neo4jOperations
+				.toExecutableQuery(example.getProbeType(), QueryFragmentsAndParameters.forExample(mappingContext, example))
+				.flatMap(ReactiveNeo4jOperations.ExecutableQuery::getSingleResult);
 	}
 
 	@Override
 	public <S extends T> Flux<S> findAll(Example<S> example) {
-
-		Predicate predicate = Predicate.create(mappingContext, example);
-		Statement statement = predicate.useWithReadingFragment(cypherGenerator::prepareMatchOf)
-				.returning(cypherGenerator.createReturnStatementForMatch(predicate.getNeo4jPersistentEntity()))
-				.build();
-
-		return this.neo4jOperations.findAll(statement, predicate.getParameters(), example.getProbeType());
+		return this.neo4jOperations
+				.toExecutableQuery(example.getProbeType(), QueryFragmentsAndParameters.forExample(mappingContext, example))
+				.flatMapMany(ReactiveNeo4jOperations.ExecutableQuery::getResults);
 	}
 
 	@Override
 	public <S extends T> Flux<S> findAll(Example<S> example, Sort sort) {
-
-		Predicate predicate = Predicate.create(mappingContext, example);
-		Statement statement = predicate.useWithReadingFragment(cypherGenerator::prepareMatchOf)
-				.returning(cypherGenerator.createReturnStatementForMatch(predicate.getNeo4jPersistentEntity()))
-				.orderBy(CypherAdapterUtils.toSortItems(predicate.getNeo4jPersistentEntity(), sort)).build();
-
-		return this.neo4jOperations.findAll(statement, predicate.getParameters(), example.getProbeType());
+		return this.neo4jOperations
+				.toExecutableQuery(example.getProbeType(), QueryFragmentsAndParameters.forExample(mappingContext, example, sort))
+				.flatMapMany(ReactiveNeo4jOperations.ExecutableQuery::getResults);
 	}
 
 	@Override
