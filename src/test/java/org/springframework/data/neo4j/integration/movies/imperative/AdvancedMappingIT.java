@@ -154,6 +154,14 @@ class AdvancedMappingIT {
 		});
 	}
 
+	@Test
+	void killThemAll(@Autowired MovieRepository repository) {
+		Movie movie = repository.findById("The Matrix").get();
+		assertThat(movie).isNotNull();
+		assertThat(movie.getTitle()).isEqualTo("The Matrix");
+		assertThat(movie.getActors()).hasSize(5);
+	}
+
 	@Test // GH-2117
 	void bothCyclicAndNonCyclicRelationshipsAreExcludedFromProjections(@Autowired MovieRepository movieRepository) {
 

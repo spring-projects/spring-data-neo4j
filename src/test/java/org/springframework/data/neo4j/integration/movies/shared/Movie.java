@@ -42,13 +42,13 @@ public final class Movie {
 	private Integer released;
 
 	@Relationship(value = "ACTED_IN", direction = Direction.INCOMING)
-	private final List<Actor> actors;
+	private List<Actor> actors;
 
 	@Relationship(value = "DIRECTED", direction = Direction.INCOMING)
-	private final List<Person> directors;
+	private List<Person> directors;
 
 	@Relationship(value = "IS_SEQUEL_OF", direction = Direction.INCOMING)
-	private final Movie sequel;
+	private Movie sequel;
 
 	public Movie(String title, String description) {
 		this.title = title;
@@ -58,14 +58,14 @@ public final class Movie {
 		this.sequel = null;
 	}
 
-	@PersistenceConstructor
-	public Movie(String title, String description, List<Actor> actors, List<Person> directors, Movie sequel) {
-		this.title = title;
-		this.description = description;
-		this.actors = actors == null ? Collections.emptyList() : new ArrayList<>(actors);
-		this.directors = directors == null ? Collections.emptyList() : new ArrayList<>(directors);
-		this.sequel = sequel;
-	}
+//	@PersistenceConstructor
+//	public Movie(String title, String description, List<Actor> actors, List<Person> directors, Movie sequel) {
+//		this.title = title;
+//		this.description = description;
+//		this.actors = actors == null ? Collections.emptyList() : new ArrayList<>(actors);
+//		this.directors = directors == null ? Collections.emptyList() : new ArrayList<>(directors);
+//		this.sequel = sequel;
+//	}
 
 	public String getTitle() {
 		return title;

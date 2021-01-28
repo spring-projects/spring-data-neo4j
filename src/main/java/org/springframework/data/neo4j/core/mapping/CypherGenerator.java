@@ -21,6 +21,7 @@ import static org.neo4j.cypherdsl.core.Cypher.match;
 import static org.neo4j.cypherdsl.core.Cypher.node;
 import static org.neo4j.cypherdsl.core.Cypher.optionalMatch;
 import static org.neo4j.cypherdsl.core.Cypher.parameter;
+import static org.springframework.data.neo4j.core.schema.Relationship.Direction.OUTGOING;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -107,6 +108,40 @@ public enum CypherGenerator {
 			  @Nullable Condition condition) {
 
 		return prepareMatchOf(nodeDescription, condition, Collections.emptyList());
+	}
+
+	public StatementBuilder.OngoingReading prepareMatchOf(NodeDescription<?> nodeDescription,
+			  RelationshipDescription relationshipDescription, @Nullable Condition condition) {
+
+		String primaryLabel = nodeDescription.getPrimaryLabel();
+		List<String> additionalLabels = nodeDescription.getAdditionalLabels();
+
+		Node rootNode = node(primaryLabel, additionalLabels).named(Constants.NAME_OF_ROOT_NODE);
+		Node targetNode = node(relationshipDescription.getTarget().getPrimaryLabel(), relationshipDescription.getTarget().getAdditionalLabels()).named(Constants.NAME_OF_SYNTHESIZED_RELATED_NODES + "_tmp");
+
+		Relationship relationship = null;
+		switch (relationshipDescription.getDirection()) {
+			case OUTGOING:
+				relationship = rootNode.relationshipTo(targetNode, relationshipDescription.getType());
+				break;
+			case INCOMING:
+				relationship = rootNode.relationshipFrom(targetNode, relationshipDescription.getType());
+				break;
+			default:
+				relationship = rootNode.relationshipBetween(targetNode, relationshipDescription.getType());
+				break;
+		}
+
+		relationship = relationship.named(Constants.NAME_OF_SYNTHESIZED_RELATIONS + "_tmp");
+		List<Expression> expressions = new ArrayList<>();
+		expressions.add(Functions.collect(Functions.id(rootNode)).as(Constants.NAME_OF_SYNTHESIZED_ROOT_NODE));
+		expressions.add(Functions.collect(Functions.id(targetNode)).as(Constants.NAME_OF_SYNTHESIZED_RELATED_NODES));
+		expressions.add(Functions.collect(Functions.id(relationship)).as(Constants.NAME_OF_SYNTHESIZED_RELATIONS));
+
+		return match(rootNode)
+				.where(conditionOrNoCondition(condition))
+				.optionalMatch(relationship)
+				.with(expressions.toArray(new Expression[]{}));
 	}
 
 	public StatementBuilder.OrderableOngoingReadingAndWith prepareMatchOf(NodeDescription<?> nodeDescription,
@@ -484,8 +519,9 @@ public enum CypherGenerator {
 		List<RelationshipDescription> processedRelationships = new ArrayList<>();
 		if (nodeDescription.containsPossibleCircles(includedProperties)) {
 			List<Expression> returnExpressions = new ArrayList<>();
-			Node rootNode = anyNode(Constants.NAME_OF_ROOT_NODE);
-			returnExpressions.add(rootNode.as(Constants.NAME_OF_SYNTHESIZED_ROOT_NODE));
+//			Node rootNode = anyNode(Constants.NAME_OF_ROOT_NODE);
+//			returnExpressions.add(rootNode.as(Constants.NAME_OF_SYNTHESIZED_ROOT_NODE));
+			returnExpressions.add(Cypher.name(Constants.NAME_OF_SYNTHESIZED_ROOT_NODE));
 			returnExpressions.add(Cypher.name(Constants.NAME_OF_SYNTHESIZED_RELATED_NODES));
 			returnExpressions.add(Cypher.name(Constants.NAME_OF_SYNTHESIZED_RELATIONS));
 			return returnExpressions.toArray(new Expression[]{});
@@ -542,7 +578,7 @@ public enum CypherGenerator {
 		RelationshipPattern relationship;
 
 		Direction determinedDirection = determineDirection(relationshipDescriptions);
-		if (Direction.OUTGOING.equals(determinedDirection)) {
+		if (OUTGOING.equals(determinedDirection)) {
 			relationship = node.relationshipTo(anyNode(), collectFirstLevelRelationshipTypes(relationshipDescriptions))
 					.min(0).max(1);
 		} else if (Direction.INCOMING.equals(determinedDirection)) {
@@ -603,7 +639,7 @@ public enum CypherGenerator {
 			}
 		} else {
 			Direction determinedDirection = determineDirection(relationshipDescriptions);
-			if (Direction.OUTGOING.equals(determinedDirection)) {
+			if (OUTGOING.equals(determinedDirection)) {
 				relationship = existingRelationship.relationshipTo(anyNode(), relationshipTypes).unbounded().min(0);
 			} else if (Direction.INCOMING.equals(determinedDirection)) {
 				relationship = existingRelationship.relationshipFrom(anyNode(), relationshipTypes).unbounded().min(0);
