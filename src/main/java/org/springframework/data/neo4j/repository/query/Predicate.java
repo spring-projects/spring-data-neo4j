@@ -156,6 +156,10 @@ final class Predicate {
 		this.neo4jPersistentEntity = neo4jPersistentEntity;
 	}
 
+	public Condition getCondition() {
+		return condition;
+	}
+
 	StatementBuilder.OrderableOngoingReadingAndWith useWithReadingFragment(
 			BiFunction<NodeDescription<?>, Condition, StatementBuilder.OrderableOngoingReadingAndWith> readingFragmentSupplier) {
 		return readingFragmentSupplier.apply(this.neo4jPersistentEntity, this.condition);

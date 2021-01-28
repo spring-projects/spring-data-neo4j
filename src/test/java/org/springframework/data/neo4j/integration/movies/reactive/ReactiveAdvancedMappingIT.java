@@ -43,6 +43,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -54,6 +55,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Gerrit Meier
+ * @author Michael J. Simons
  */
 @Tag(Neo4jExtension.NEEDS_REACTIVE_SUPPORT)
 @Neo4jIntegrationTest
@@ -142,6 +144,31 @@ class ReactiveAdvancedMappingIT {
 
 		@Query("MATCH p=(movie:Movie)<-[r:ACTED_IN]-(n:Person) WHERE movie.title=$title RETURN collect(p)")
 		Flux<Movie> customPathQueryMoviesFind(@Param("title") String title);
+	}
+
+	@Test
+	void cyclicMappingShouldReturnResultForFindById(@Autowired MovieRepository repository) {
+		StepVerifier.create(repository.findById("The Matrix"))
+				.assertNext(movie -> {
+					assertThat(movie).isNotNull();
+					assertThat(movie.getTitle()).isEqualTo("The Matrix");
+					assertThat(movie.getActors()).hasSize(6);
+				})
+		.verifyComplete();
+	}
+
+	@Test
+	void cyclicMappingShouldReturnResultForFindAllById(@Autowired MovieRepository repository) {
+		StepVerifier.create(repository.findAllById(Arrays.asList("The Matrix", "The Matrix Revolutions", "The Matrix Reloaded")))
+				.expectNextCount(3)
+				.verifyComplete();
+	}
+
+	@Test
+	void cyclicMappingShouldReturnResultForFindAll(@Autowired MovieRepository repository) {
+		StepVerifier.create(repository.findAll())
+				.expectNextCount(38)
+				.verifyComplete();
 	}
 
 	@Test // GH-2117

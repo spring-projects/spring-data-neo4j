@@ -15,17 +15,6 @@
  */
 package org.springframework.data.neo4j.core.mapping;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.when;
-
-import java.util.Collections;
-import java.util.Map;
-import java.util.Optional;
-import java.util.regex.Pattern;
-import java.util.stream.Stream;
-
 import org.junit.Assert;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -38,6 +27,17 @@ import org.neo4j.cypherdsl.core.renderer.Renderer;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
+
+import java.util.Collection;
+import java.util.Map;
+import java.util.Optional;
+import java.util.regex.Pattern;
+import java.util.stream.Stream;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Davide Fantuzzi
@@ -142,44 +142,6 @@ class CypherGeneratorTest {
 		Assert.assertEquals(expectedQuery, Renderer.getDefaultRenderer().render(statement));
 	}
 
-	@Test
-	void shouldCreateDynamicRelationshipPathQueryForEnumsWithoutWildcardRelationships() {
-		Neo4jPersistentEntity<?> persistentEntity = new Neo4jMappingContext()
-				.getPersistentEntity(CyclicEntityWithEnumeratedDynamicRelationship1.class);
-
-		org.neo4j.cypherdsl.core.Node rootNode = Cypher.anyNode(Constants.NAME_OF_ROOT_NODE);
-		Statement statement = CypherGenerator.INSTANCE.createPathMatchWithCondition(null, persistentEntity,
-				Collections.emptyList(), null, rootNode).returning(rootNode).build();
-
-		// we want to ensure that the pattern occurs three times but do not care about the order
-		// of the relationship types
-		Pattern pattern = Pattern.compile(
-				"\\[:(`CORNERED`\\|`ROUND`|`ROUND`\\|`CORNERED`)\\*.*" +
-				"\\[:(`CORNERED`\\|`ROUND`|`ROUND`\\|`CORNERED`)\\*.*" +
-				"\\[:(`CORNERED`\\|`ROUND`|`ROUND`\\|`CORNERED`)\\*");
-
-		String renderedStatement = Renderer.getDefaultRenderer().render(statement);
-		assertThat(renderedStatement).containsPattern(pattern);
-	}
-
-	@Test
-	void shouldCreateDynamicRelationshipPathQueryForStringsWithWildcardRelationships() {
-		Neo4jPersistentEntity<?> persistentEntity = new Neo4jMappingContext()
-				.getPersistentEntity(CyclicEntityWithStringDynamicRelationship1.class);
-
-		org.neo4j.cypherdsl.core.Node rootNode = Cypher.anyNode(Constants.NAME_OF_ROOT_NODE);
-		Statement statement = CypherGenerator.INSTANCE.createPathMatchWithCondition(null, persistentEntity,
-				Collections.emptyList(), null, rootNode).returning(rootNode).build();
-
-		Pattern pattern = Pattern.compile(
-				"\\[\\*0\\.\\.1].*" +
-				"\\[\\*0\\.\\.1].*" +
-				"\\[\\*0\\.\\.].*");
-
-		String renderedStatement = Renderer.getDefaultRenderer().render(statement);
-		assertThat(renderedStatement).containsPattern(pattern);
-	}
-
 	private static Stream<Arguments> pageables() {
 		return Stream.of(
 				Arguments.of(Sort.by("a", "b").and(
@@ -218,6 +180,46 @@ class CypherGeneratorTest {
 
 		assertThatIllegalArgumentException().isThrownBy(() -> CypherGenerator.INSTANCE.createOrderByFragment(Sort.by("n()")))
 				.withMessage("Name must be a valid identifier.");
+	}
+
+	@Test
+	void shouldCreateDynamicRelationshipPathQueryForEnumsWithoutWildcardRelationships() {
+		Neo4jPersistentEntity<?> persistentEntity = new Neo4jMappingContext()
+				.getPersistentEntity(CyclicEntityWithEnumeratedDynamicRelationship1.class);
+
+		org.neo4j.cypherdsl.core.Node rootNode = Cypher.anyNode(Constants.NAME_OF_ROOT_NODE);
+		Collection<RelationshipDescription> relationships = persistentEntity.getRelationships();
+		Statement statement = CypherGenerator.INSTANCE.prepareMatchOf(
+				persistentEntity, relationships.iterator().next(), null, null).returning(rootNode).build();
+
+		// we want to ensure that the pattern occurs three times but do not care about the order
+		// of the relationship types
+		Pattern relationshipTypesPattern =
+				Pattern.compile("\\[__sr__:(`CORNERED`\\|`ROUND`|`ROUND`\\|`CORNERED`)]");
+
+		Pattern untypedRelationshipsPattern = Pattern.compile("\\[__sr__]");
+
+		String renderedStatement = Renderer.getDefaultRenderer().render(statement);
+		assertThat(renderedStatement).containsPattern(relationshipTypesPattern);
+		assertThat(renderedStatement).doesNotContainPattern(untypedRelationshipsPattern);
+	}
+
+	@Test
+	void shouldCreateDynamicRelationshipPathQueryForStringsWithWildcardRelationships() {
+		Neo4jPersistentEntity<?> persistentEntity = new Neo4jMappingContext()
+				.getPersistentEntity(CyclicEntityWithStringDynamicRelationship1.class);
+
+		org.neo4j.cypherdsl.core.Node rootNode = Cypher.anyNode(Constants.NAME_OF_ROOT_NODE);
+		Collection<RelationshipDescription> relationships = persistentEntity.getRelationships();
+		Statement statement = CypherGenerator.INSTANCE.prepareMatchOf(
+				persistentEntity, relationships.iterator().next(), null, null).returning(rootNode).build();
+
+		Pattern untypedRelationshipsPattern = Pattern.compile("\\[__sr__]");
+		Pattern typedRelationshipsPattern =	Pattern.compile("\\[__sr__:(`.*`)]");
+
+		String renderedStatement = Renderer.getDefaultRenderer().render(statement);
+		assertThat(renderedStatement).containsPattern(untypedRelationshipsPattern);
+		assertThat(renderedStatement).doesNotContainPattern(typedRelationshipsPattern);
 	}
 
 	@Node

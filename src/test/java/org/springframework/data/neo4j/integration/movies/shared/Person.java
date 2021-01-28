@@ -41,6 +41,9 @@ public final class Person {
 	@Relationship("REVIEWED")
 	private List<Movie> reviewed = new ArrayList<>();
 
+	@Relationship("ACTED_IN")
+	private List<Movie> actedId = new ArrayList<>();
+
 	@PersistenceConstructor
 	private Person(Long id, String name, Integer born) {
 		this.id = id;

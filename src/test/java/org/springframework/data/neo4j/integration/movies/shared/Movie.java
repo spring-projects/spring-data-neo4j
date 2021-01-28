@@ -15,16 +15,15 @@
  */
 package org.springframework.data.neo4j.integration.movies.shared;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
-import org.springframework.data.annotation.PersistenceConstructor;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Property;
 import org.springframework.data.neo4j.core.schema.Relationship;
 import org.springframework.data.neo4j.core.schema.Relationship.Direction;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * @author Michael J. Simons
@@ -42,13 +41,13 @@ public final class Movie {
 	private Integer released;
 
 	@Relationship(value = "ACTED_IN", direction = Direction.INCOMING)
-	private final List<Actor> actors;
+	private List<Actor> actors;
 
 	@Relationship(value = "DIRECTED", direction = Direction.INCOMING)
-	private final List<Person> directors;
+	private List<Person> directors;
 
 	@Relationship(value = "IS_SEQUEL_OF", direction = Direction.INCOMING)
-	private final Movie sequel;
+	private Movie sequel;
 
 	public Movie(String title, String description) {
 		this.title = title;
@@ -56,15 +55,6 @@ public final class Movie {
 		this.actors = new ArrayList<>();
 		this.directors = new ArrayList<>();
 		this.sequel = null;
-	}
-
-	@PersistenceConstructor
-	public Movie(String title, String description, List<Actor> actors, List<Person> directors, Movie sequel) {
-		this.title = title;
-		this.description = description;
-		this.actors = actors == null ? Collections.emptyList() : new ArrayList<>(actors);
-		this.directors = directors == null ? Collections.emptyList() : new ArrayList<>(directors);
-		this.sequel = sequel;
 	}
 
 	public String getTitle() {

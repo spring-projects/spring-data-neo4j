@@ -15,18 +15,6 @@
  */
 package org.springframework.data.neo4j.integration.movies.imperative;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.neo4j.driver.Driver;
@@ -47,6 +35,19 @@ import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
 /**
  * @author Michael J. Simons
  * @soundtrack Body Count - Manslaughter
@@ -55,8 +56,6 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 class AdvancedMappingIT {
 
 	protected static Neo4jExtension.Neo4jConnectionSupport neo4jConnectionSupport;
-
-	protected static long theMatrixId;
 
 	@BeforeAll
 	static void setupData(@Autowired Driver driver) throws IOException {
@@ -139,6 +138,26 @@ class AdvancedMappingIT {
 
 		@Query("MATCH p=(movie:Movie)<-[r:ACTED_IN]-(n:Person) WHERE movie.title=$title RETURN collect(p)")
 		List<Movie> customPathQueryMoviesFind(@Param("title") String title);
+	}
+
+	@Test
+	void cyclicMappingShouldReturnResultForFindById(@Autowired MovieRepository repository) {
+		Movie movie = repository.findById("The Matrix").get();
+		assertThat(movie).isNotNull();
+		assertThat(movie.getTitle()).isEqualTo("The Matrix");
+		assertThat(movie.getActors()).hasSize(6);
+	}
+
+	@Test
+	void cyclicMappingShouldReturnResultForFindAllById(@Autowired MovieRepository repository) {
+		List<Movie> movies = repository.findAllById(Arrays.asList("The Matrix", "The Matrix Revolutions", "The Matrix Reloaded"));
+		assertThat(movies).hasSize(3);
+	}
+
+	@Test
+	void cyclicMappingShouldReturnResultForFindAll(@Autowired MovieRepository repository) {
+		List<Movie> movies = repository.findAll();
+		assertThat(movies).hasSize(38);
 	}
 
 	@Test // GH-2117
