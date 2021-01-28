@@ -162,6 +162,12 @@ class AdvancedMappingIT {
 		assertThat(movie.getActors()).hasSize(5);
 	}
 
+	@Test
+	void killThemAll2(@Autowired MovieRepository repository) {
+		List<Movie> movies = repository.findAllById(Arrays.asList("The Matrix", "The Matrix Revolutions", "The Matrix Reloaded"));
+		assertThat(movies).hasSize(3);
+	}
+
 	@Test // GH-2117
 	void bothCyclicAndNonCyclicRelationshipsAreExcludedFromProjections(@Autowired MovieRepository movieRepository) {
 

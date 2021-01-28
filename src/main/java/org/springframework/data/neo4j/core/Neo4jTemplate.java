@@ -15,23 +15,6 @@
  */
 package org.springframework.data.neo4j.core;
 
-import static org.neo4j.cypherdsl.core.Cypher.anyNode;
-import static org.neo4j.cypherdsl.core.Cypher.asterisk;
-import static org.neo4j.cypherdsl.core.Cypher.parameter;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
 import org.apache.commons.logging.LogFactory;
 import org.apiguardian.api.API;
 import org.neo4j.cypherdsl.core.Condition;
@@ -73,6 +56,23 @@ import org.springframework.data.util.ClassTypeInformation;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+import static org.neo4j.cypherdsl.core.Cypher.anyNode;
+import static org.neo4j.cypherdsl.core.Cypher.asterisk;
+import static org.neo4j.cypherdsl.core.Cypher.parameter;
 
 /**
  * @author Michael J. Simons
@@ -161,7 +161,7 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 	@Override
 	public <T> List<T> findAll(Class<T> domainType) {
 
-		Neo4jPersistentEntity entityMetaData = neo4jMappingContext.getPersistentEntity(domainType);
+		Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getPersistentEntity(domainType);
 		Statement statement = cypherGenerator.prepareMatchOf(entityMetaData)
 				.returning(cypherGenerator.createReturnStatementForMatch(entityMetaData)).build();
 		return createExecutableQuery(domainType, statement).getResults();
@@ -202,74 +202,14 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 		Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getPersistentEntity(domainType);
 
 		if (entityMetaData.containsPossibleCircles(Collections.emptyList())) {
-			// load first level relationships
-			final Long[] rootNodeId = {null};
-			Set<Long> relationshipIds = new HashSet<>();
-			Set<Long> relatedNodeIds = new HashSet<>();
-			for (RelationshipDescription relationship : entityMetaData.getRelationships()) {
-				Statement statement = cypherGenerator
-						.prepareMatchOf(entityMetaData, relationship,
-								entityMetaData.getIdExpression().isEqualTo(parameter(Constants.NAME_OF_ID)))
-						.returning(cypherGenerator.createReturnStatementForMatch(entityMetaData)).build();
-
-				Optional<IntermediateQueryResult> one = neo4jClient.query(renderer.render(statement)).in(getDatabaseName())
-						.bindAll(Collections
-								.singletonMap(Constants.NAME_OF_ID, convertIdValues(entityMetaData.getRequiredIdProperty(), id)))
-						.fetchAs(IntermediateQueryResult.class)
-						.mappedBy((typeSystem, record) -> {
-							Long value2 = record.get(Constants.NAME_OF_SYNTHESIZED_ROOT_NODE).asList(Value::asLong).get(0);
-							IntermediateQueryResult intermediateQueryResult = new IntermediateQueryResult(value2);
-							Value value1 = record.get(Constants.NAME_OF_SYNTHESIZED_RELATIONS);
-							if (!Values.NULL.equals(value1)) {
-								relationshipIds.addAll(value1.asList(Value::asLong));
-							}
-							Value value = record.get(Constants.NAME_OF_SYNTHESIZED_RELATED_NODES);
-							if (!Values.NULL.equals(value)) {
-								Set<Long> relatedIds = new HashSet<>(value.asList(Value::asLong));
-								intermediateQueryResult.relatedNodeIds.addAll(relatedIds);
-								// use this list to get down the road
-								// 1. remove already visited ones;
-								relatedIds.removeAll(relatedNodeIds);
-								relatedNodeIds.addAll(relatedIds);
-								// 2. for the rest start the exploration
-								if (!relatedIds.isEmpty()) {
-									ding(relatedIds, (Neo4jPersistentEntity<?>) relationship.getTarget(), relationshipIds, relatedNodeIds);
-								}
-							}
-
-							return intermediateQueryResult;
-						})
-						.one();
-
-				one.ifPresent(v -> {
-					if (rootNodeId[0] == null) {
-						rootNodeId[0] = v.rootNodeId;
-					}
-				});
+			Condition condition = entityMetaData.getIdExpression().isEqualTo(parameter(Constants.NAME_OF_ID));
+			Map<String, Object> parameters = Collections
+					.singletonMap(Constants.NAME_OF_ID, convertIdValues(entityMetaData.getRequiredIdProperty(), id));
+			FinalQueryAndParameters finalQueryAndParameters = bimsUndBums(entityMetaData, condition, parameters);
+			if (finalQueryAndParameters == null) {
+				return Optional.empty();
 			}
-
-			Node chef = Cypher.anyNode("chef");
-			Node rest = Cypher.anyNode("rest");
-			Relationship relationship = Cypher.anyNode().relationshipBetween(Cypher.anyNode()).named("anyRel");
-			String chefId = "chefId";
-			String relIds = "relIds";
-			String restIds = "restIds";
-			Statement statement = Cypher.match(chef)
-					.where(Functions.id(chef).isEqualTo(Cypher.parameter(chefId)))
-					.optionalMatch(relationship).where(Functions.id(relationship).in(Cypher.parameter(relIds)))
-					.optionalMatch(rest).where(Functions.id(rest).in(Cypher.parameter(restIds)))
-					.returning(
-							chef.as(Constants.NAME_OF_SYNTHESIZED_ROOT_NODE),
-							Functions.collectDistinct(relationship).as(Constants.NAME_OF_SYNTHESIZED_RELATIONS),
-							Functions.collectDistinct(rest).as(Constants.NAME_OF_SYNTHESIZED_RELATED_NODES)
-					).build();
-
-			Map<String, Object> bindableParameters = new HashMap<>();
-			bindableParameters.put(chefId, rootNodeId[0]);
-			bindableParameters.put(relIds, relationshipIds);
-			bindableParameters.put(restIds, relatedNodeIds);
-
-			return createExecutableQuery(domainType, statement, bindableParameters).getSingleResult();
+			return createExecutableQuery(domainType, finalQueryAndParameters.statement, finalQueryAndParameters.parameters).getSingleResult();
 		}
 
 		Statement statement = cypherGenerator
@@ -279,6 +219,82 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 		return createExecutableQuery(domainType, statement, Collections
 				.singletonMap(Constants.NAME_OF_ID, convertIdValues(entityMetaData.getRequiredIdProperty(), id)))
 				.getSingleResult();
+	}
+
+	private FinalQueryAndParameters bimsUndBums(Neo4jPersistentEntity<?> entityMetaData, Condition condition, Map<String, Object> parameters) {
+		// load first level relationships
+		final Collection<Long> rootNodeIds = new HashSet<>();
+		Set<Long> relationshipIds = new HashSet<>();
+		Set<Long> relatedNodeIds = new HashSet<>();
+		for (RelationshipDescription relationship : entityMetaData.getRelationships()) {
+
+			Statement statement = cypherGenerator.prepareMatchOf(entityMetaData, relationship, condition)
+					.returning(cypherGenerator.createReturnStatementForMatch(entityMetaData)).build();
+
+			Optional<IntermediateQueryResult> one = neo4jClient.query(renderer.render(statement)).in(getDatabaseName())
+					.bindAll(parameters)
+					.fetchAs(IntermediateQueryResult.class)
+					.mappedBy((typeSystem, record) -> {
+						List<Long> rootIds = record.get(Constants.NAME_OF_SYNTHESIZED_ROOT_NODE).asList(Value::asLong);
+						if (rootIds.isEmpty()) {
+							return new IntermediateQueryResult(null);
+						}
+						IntermediateQueryResult intermediateQueryResult = new IntermediateQueryResult(rootIds);
+						Value value1 = record.get(Constants.NAME_OF_SYNTHESIZED_RELATIONS);
+						if (!Values.NULL.equals(value1)) {
+							relationshipIds.addAll(value1.asList(Value::asLong));
+						}
+						Value value = record.get(Constants.NAME_OF_SYNTHESIZED_RELATED_NODES);
+						if (!Values.NULL.equals(value)) {
+							Set<Long> relatedIds = new HashSet<>(value.asList(Value::asLong));
+							intermediateQueryResult.relatedNodeIds.addAll(relatedIds);
+							// use this list to get down the road
+							// 1. remove already visited ones;
+							relatedIds.removeAll(relatedNodeIds);
+							relatedNodeIds.addAll(relatedIds);
+							// 2. for the rest start the exploration
+							if (!relatedIds.isEmpty()) {
+								ding(relatedIds, (Neo4jPersistentEntity<?>) relationship.getTarget(), relationshipIds, relatedNodeIds);
+							}
+						}
+
+						return intermediateQueryResult;
+					})
+					.one();
+
+			IntermediateQueryResult v = one.get();
+			if (v.rootNodeIds.isEmpty()) {
+				return null;
+			}
+
+			if (rootNodeIds.isEmpty()) {
+				rootNodeIds.addAll(v.rootNodeIds);
+			}
+
+		}
+
+		Node chef = Cypher.anyNode("chef");
+		Node rest = Cypher.anyNode("rest");
+		Relationship relationship = Cypher.anyNode().relationshipBetween(Cypher.anyNode()).named("anyRel");
+		String chefIds = "chefIds";
+		String relIds = "relIds";
+		String restIds = "restIds";
+		Statement statement = Cypher.match(chef)
+				.where(Functions.id(chef).in(Cypher.parameter(chefIds)))
+				.optionalMatch(relationship).where(Functions.id(relationship).in(Cypher.parameter(relIds)))
+				.optionalMatch(rest).where(Functions.id(rest).in(Cypher.parameter(restIds)))
+				.returning(
+						chef.as(Constants.NAME_OF_SYNTHESIZED_ROOT_NODE),
+						Functions.collectDistinct(relationship).as(Constants.NAME_OF_SYNTHESIZED_RELATIONS),
+						Functions.collectDistinct(rest).as(Constants.NAME_OF_SYNTHESIZED_RELATED_NODES)
+				).build();
+
+		Map<String, Object> bindableParameters = new HashMap<>();
+		bindableParameters.put(chefIds, rootNodeIds);
+		bindableParameters.put(relIds, relationshipIds);
+		bindableParameters.put(restIds, relatedNodeIds);
+
+		return new FinalQueryAndParameters(statement, bindableParameters);
 	}
 
 	private void ding(Collection<Long> nodeIds, Neo4jPersistentEntity<?> target, Set<Long> relationshipIds, Set<Long> relatedNodeIds) {
@@ -298,8 +314,7 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 					.fetchAs(IntermediateQueryResult.class)
 					.mappedBy((typeSystem, record) -> {
 						List<Long> longs = record.get(Constants.NAME_OF_SYNTHESIZED_ROOT_NODE).asList(Value::asLong);
-						Long value2 = longs.get(0);
-						IntermediateQueryResult intermediateQueryResult = new IntermediateQueryResult(value2);
+						IntermediateQueryResult intermediateQueryResult = new IntermediateQueryResult(longs);
 						Value value1 = record.get(Constants.NAME_OF_SYNTHESIZED_RELATIONS);
 						if (!Values.NULL.equals(value1)) {
 							relationshipIds.addAll(value1.asList(Value::asLong));
@@ -323,25 +338,35 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 
 			one.ifPresent(v -> {
 				relationshipIds.addAll(v.relationshipIds);
-//				relatedNodeIds.addAll(v.relatedNodeIds);
 			});
 		}
 
 	}
 
-	private static class IntermediateQueryResult {
-		private final Long rootNodeId;
-		Set<Long> relationshipIds = new HashSet<>();
-		Set<Long> relatedNodeIds = new HashSet<>();
+	public static class FinalQueryAndParameters {
 
-		private IntermediateQueryResult(Long rootNodeId) {
-			this.rootNodeId = rootNodeId;
+		private final Statement statement;
+		private final Map<String, Object> parameters;
+
+		public FinalQueryAndParameters(Statement statement, Map<String, Object> parameters) {
+			this.statement = statement;
+			this.parameters = parameters;
+		}
+	}
+
+	private static class IntermediateQueryResult {
+		private final Set<Long> rootNodeIds = new HashSet<>();
+		private final Set<Long> relationshipIds = new HashSet<>();
+		private final Set<Long> relatedNodeIds = new HashSet<>();
+
+		private IntermediateQueryResult(Collection<Long> rootNodeIds) {
+			this.rootNodeIds.addAll(rootNodeIds);
 		}
 
 		@Override
 		public String toString() {
 			return "IntermediateQueryResult{" +
-					"rootNodeId=" + rootNodeId +
+					"rootNodeId=" + rootNodeIds +
 					", relationshipIds=" + relationshipIds +
 					", relatedNodeIds=" + relatedNodeIds +
 					'}';
@@ -351,6 +376,18 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 	@Override
 	public <T> List<T> findAllById(Iterable<?> ids, Class<T> domainType) {
 		Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getPersistentEntity(domainType);
+
+		if (entityMetaData.containsPossibleCircles(Collections.emptyList())) {
+			Condition condition = entityMetaData.getIdExpression().in((parameter(Constants.NAME_OF_IDS)));
+			Map<String, Object> parameters = Collections
+					.singletonMap(Constants.NAME_OF_IDS, convertIdValues(entityMetaData.getRequiredIdProperty(), ids));
+			FinalQueryAndParameters finalQueryAndParameters = bimsUndBums(entityMetaData, condition, parameters);
+			if (finalQueryAndParameters == null) {
+				return Collections.emptyList();
+			}
+			return createExecutableQuery(domainType, finalQueryAndParameters.statement, finalQueryAndParameters.parameters).getResults();
+		}
+
 		Statement statement = cypherGenerator
 				.prepareMatchOf(entityMetaData, entityMetaData.getIdExpression().in((parameter(Constants.NAME_OF_IDS))))
 				.returning(cypherGenerator.createReturnStatementForMatch(entityMetaData)).build();
