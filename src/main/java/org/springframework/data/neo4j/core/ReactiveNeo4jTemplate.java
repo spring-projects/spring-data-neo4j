@@ -600,8 +600,8 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 
 		return getDatabaseName().map(databaseName -> {
 			Class<T> resultType = preparedQuery.getResultType();
-			ReactiveNeo4jClient.MappingSpec<T> mappingSpec = this.neo4jClient.query(preparedQuery.getCypherQuery())
-					.in(databaseName.getValue()).bindAll(preparedQuery.getParameters()).fetchAs(resultType);
+			ReactiveNeo4jClient.MappingSpec<T> mappingSpec = this.neo4jClient.query(preparedQuery.getQueryFragmentsAndParameters().getCypherQuery())
+					.in(databaseName.getValue()).bindAll(preparedQuery.getQueryFragmentsAndParameters().getParameters()).fetchAs(resultType);
 
 			ReactiveNeo4jClient.RecordFetchSpec<T> fetchSpec = preparedQuery.getOptionalMappingFunction()
 					.map(mappingFunction -> mappingSpec.mappedBy(mappingFunction)).orElse(mappingSpec);

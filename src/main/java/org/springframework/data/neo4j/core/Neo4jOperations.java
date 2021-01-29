@@ -24,6 +24,7 @@ import org.neo4j.cypherdsl.core.Statement;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.repository.NoResultException;
+import org.springframework.data.neo4j.repository.query.QueryFragmentsAndParameters;
 
 /**
  * Specifies operations one can perform on a database, based on an <em>Domain Type</em>.
@@ -224,6 +225,8 @@ public interface Neo4jOperations {
 	 * @return An executable query
 	 */
 	<T> ExecutableQuery<T> toExecutableQuery(PreparedQuery<T> preparedQuery);
+
+	<T> ExecutableQuery<T> findByExample(Class<T> domainType, QueryFragmentsAndParameters f);
 
 	/**
 	 * An interface for controlling query execution.

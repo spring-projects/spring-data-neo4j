@@ -159,7 +159,7 @@ class AdvancedMappingIT {
 		Movie movie = repository.findById("The Matrix").get();
 		assertThat(movie).isNotNull();
 		assertThat(movie.getTitle()).isEqualTo("The Matrix");
-		assertThat(movie.getActors()).hasSize(5);
+		assertThat(movie.getActors()).hasSize(6);
 	}
 
 	@Test

@@ -33,7 +33,7 @@ import org.springframework.data.neo4j.core.ReactiveNeo4jOperations;
 @FunctionalInterface
 interface Neo4jQueryExecution {
 
-	Object execute(PreparedQuery description, boolean asCollectionQuery);
+	Object execute(PreparedQuery<?> description, boolean asCollectionQuery);
 
 	class DefaultQueryExecution implements Neo4jQueryExecution {
 
@@ -44,9 +44,9 @@ interface Neo4jQueryExecution {
 		}
 
 		@Override
-		public Object execute(PreparedQuery preparedQuery, boolean asCollectionQuery) {
+		public Object execute(PreparedQuery<?> preparedQuery, boolean asCollectionQuery) {
 
-			Neo4jOperations.ExecutableQuery executableQuery = neo4jOperations.toExecutableQuery(preparedQuery);
+			Neo4jOperations.ExecutableQuery<?> executableQuery = neo4jOperations.toExecutableQuery(preparedQuery);
 			if (asCollectionQuery) {
 				return executableQuery.getResults();
 			} else {
@@ -64,9 +64,11 @@ interface Neo4jQueryExecution {
 		}
 
 		@Override
-		public Object execute(PreparedQuery preparedQuery, boolean asCollectionQuery) {
+		public Object execute(PreparedQuery<?> preparedQuery, boolean asCollectionQuery) {
 
-			Mono<ReactiveNeo4jOperations.ExecutableQuery> executableQuery = neo4jOperations.toExecutableQuery(preparedQuery);
+			Mono<? extends ReactiveNeo4jOperations.ExecutableQuery<?>> executableQuery =
+					neo4jOperations.toExecutableQuery(preparedQuery);
+
 			if (asCollectionQuery) {
 				return executableQuery.flatMapMany(q -> q.getResults());
 			} else {

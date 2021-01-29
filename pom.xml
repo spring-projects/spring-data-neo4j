@@ -24,7 +24,7 @@
 
 	<groupId>org.springframework.data</groupId>
 	<artifactId>spring-data-neo4j</artifactId>
-	<version>6.1.0-SNAPSHOT</version>
+	<version>6.1.0-PATH_TO_CASCADE_SNAPSHOT</version>
 
 	<name>Spring Data Neo4j</name>
 	<description>Next generation Object-Graph-Mapping for Spring Data.</description>

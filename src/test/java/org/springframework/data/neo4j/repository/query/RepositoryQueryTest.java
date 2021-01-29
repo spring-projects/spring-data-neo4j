@@ -394,7 +394,7 @@ final class RepositoryQueryTest {
 					(typeSystem, mapAccessor) -> new TestEntity(),
 					UnaryOperator.identity()
 			);
-			assertThat(pq.getCypherQuery())
+			assertThat(pq.getQueryFragmentsAndParameters().getCypherQuery())
 					.isEqualTo("MATCH (n:Test) RETURN n ORDER BY name ASC SKIP $skip LIMIT $limit");
 			assertThat(logbackCapture.getFormattedMessages())
 					.noneMatch(s -> s.matches(
@@ -427,7 +427,7 @@ final class RepositoryQueryTest {
 					(typeSystem, mapAccessor) -> new TestEntity(),
 					UnaryOperator.identity()
 			);
-			assertThat(pq.getCypherQuery())
+			assertThat(pq.getQueryFragmentsAndParameters().getCypherQuery())
 					.isEqualTo("MATCH (n:`A valid dynamic Label`) SET n.`dyn prop` = 'static value' RETURN n ORDER BY name ASC SKIP $skip LIMIT $limit");
 		}
 

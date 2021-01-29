@@ -15,7 +15,42 @@
  */
 package org.springframework.data.neo4j.repository.query;
 
-import static org.neo4j.cypherdsl.core.Functions.point;
+import org.neo4j.cypherdsl.core.Condition;
+import org.neo4j.cypherdsl.core.Conditions;
+import org.neo4j.cypherdsl.core.Cypher;
+import org.neo4j.cypherdsl.core.ExposesRelationships;
+import org.neo4j.cypherdsl.core.Expression;
+import org.neo4j.cypherdsl.core.Functions;
+import org.neo4j.cypherdsl.core.Node;
+import org.neo4j.cypherdsl.core.PatternElement;
+import org.neo4j.cypherdsl.core.Predicates;
+import org.neo4j.cypherdsl.core.Property;
+import org.neo4j.cypherdsl.core.RelationshipPattern;
+import org.neo4j.cypherdsl.core.SortItem;
+import org.neo4j.cypherdsl.core.StatementBuilder;
+import org.neo4j.driver.Value;
+import org.neo4j.driver.types.Point;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Range;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.geo.Box;
+import org.springframework.data.geo.Circle;
+import org.springframework.data.geo.Distance;
+import org.springframework.data.geo.Polygon;
+import org.springframework.data.mapping.PersistentProperty;
+import org.springframework.data.mapping.PersistentPropertyPath;
+import org.springframework.data.neo4j.core.mapping.Constants;
+import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
+import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
+import org.springframework.data.neo4j.core.mapping.Neo4jPersistentProperty;
+import org.springframework.data.neo4j.core.mapping.NodeDescription;
+import org.springframework.data.neo4j.core.mapping.RelationshipDescription;
+import org.springframework.data.neo4j.core.schema.TargetNode;
+import org.springframework.data.repository.query.parser.AbstractQueryCreator;
+import org.springframework.data.repository.query.parser.Part;
+import org.springframework.data.repository.query.parser.PartTree;
+import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -32,46 +67,7 @@ import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.neo4j.cypherdsl.core.Condition;
-import org.neo4j.cypherdsl.core.Conditions;
-import org.neo4j.cypherdsl.core.Cypher;
-import org.neo4j.cypherdsl.core.ExposesRelationships;
-import org.neo4j.cypherdsl.core.ExposesReturning;
-import org.neo4j.cypherdsl.core.Expression;
-import org.neo4j.cypherdsl.core.Functions;
-import org.neo4j.cypherdsl.core.Node;
-import org.neo4j.cypherdsl.core.Predicates;
-import org.neo4j.cypherdsl.core.Property;
-import org.neo4j.cypherdsl.core.RelationshipPattern;
-import org.neo4j.cypherdsl.core.SortItem;
-import org.neo4j.cypherdsl.core.Statement;
-import org.neo4j.cypherdsl.core.StatementBuilder;
-import org.neo4j.cypherdsl.core.StatementBuilder.OngoingMatchAndReturnWithOrder;
-import org.neo4j.cypherdsl.core.renderer.Renderer;
-import org.neo4j.driver.Value;
-import org.neo4j.driver.types.Point;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Range;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.geo.Box;
-import org.springframework.data.geo.Circle;
-import org.springframework.data.geo.Distance;
-import org.springframework.data.geo.Polygon;
-import org.springframework.data.mapping.PersistentProperty;
-import org.springframework.data.mapping.PersistentPropertyPath;
-import org.springframework.data.neo4j.core.mapping.Constants;
-import org.springframework.data.neo4j.core.mapping.CypherGenerator;
-import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
-import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
-import org.springframework.data.neo4j.core.mapping.Neo4jPersistentProperty;
-import org.springframework.data.neo4j.core.mapping.NodeDescription;
-import org.springframework.data.neo4j.core.mapping.RelationshipDescription;
-import org.springframework.data.neo4j.core.schema.TargetNode;
-import org.springframework.data.repository.query.parser.AbstractQueryCreator;
-import org.springframework.data.repository.query.parser.Part;
-import org.springframework.data.repository.query.parser.PartTree;
-import org.springframework.lang.NonNull;
-import org.springframework.lang.Nullable;
+import static org.neo4j.cypherdsl.core.Functions.point;
 
 /**
  * A Cypher-DSL based implementation of the {@link AbstractQueryCreator} that eventually creates Cypher queries as
@@ -82,7 +78,7 @@ import org.springframework.lang.Nullable;
  * @author Michael J. Simons
  * @since 6.0
  */
-final class CypherQueryCreator extends AbstractQueryCreator<QueryAndParameters, Condition> {
+final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndParameters, Condition> {
 
 	private final Neo4jMappingContext mappingContext;
 
@@ -124,6 +120,7 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryAndParameters, 
 			Neo4jParameterAccessor actualParameters, List<String> includedProperties,
 			BiFunction<Object, Function<Object, Value>, Object> parameterConversion,
 			UnaryOperator<Integer> limitModifier) {
+
 		super(tree, actualParameters);
 		this.mappingContext = mappingContext;
 
@@ -256,73 +253,65 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryAndParameters, 
 	}
 
 	@Override
-	protected QueryAndParameters complete(@Nullable Condition condition, Sort sort) {
+	protected QueryFragmentsAndParameters complete(@Nullable Condition condition, Sort sort) {
 
-		Statement statement = createStatement(condition, sort);
+		QueryFragments blubb = createStatement(condition, sort);
 
 		Map<String, Object> convertedParameters = this.boundedParameters.stream()
 				.collect(Collectors.toMap(p -> p.nameOrIndex, p -> parameterConversion.apply(p.value, p.conversionOverride)));
-
-		return new QueryAndParameters(Renderer.getDefaultRenderer().render(statement), convertedParameters);
+		return new QueryFragmentsAndParameters(nodeDescription, blubb, convertedParameters);
 	}
 
 	@NonNull
-	private Statement createStatement(@Nullable Condition condition, Sort sort) {
-		CypherGenerator cypherGenerator = CypherGenerator.INSTANCE;
+	private QueryFragments createStatement(@Nullable Condition condition, Sort sort) {
+		QueryFragments queryFragments = new QueryFragments();
 
 		// all the ways we could query for
 		Node startNode = Cypher.node(nodeDescription.getPrimaryLabel(), nodeDescription.getAdditionalLabels())
 				.named(Constants.NAME_OF_ROOT_NODE);
 
-		ExposesReturning matchAndCondition = Cypher.match(startNode)
-				.where(Optional.ofNullable(condition).orElseGet(Conditions::noCondition));
-		StatementBuilder.OngoingReadingWithoutWhere matches = null;
+		PatternElement initialMatchOn = startNode;
+		Condition initialCondition = Optional.ofNullable(condition).orElseGet(Conditions::noCondition);
+		List<PatternElement> relationshipChain = new ArrayList<>();
 
-		Iterator<PropertyPathWrapper> wrapperIterator = propertyPathWrappers.iterator();
-		while (wrapperIterator.hasNext()) {
-			PropertyPathWrapper possiblePathWithRelationship = wrapperIterator.next();
+		for (PropertyPathWrapper possiblePathWithRelationship : propertyPathWrappers) {
 			if (possiblePathWithRelationship.hasRelationships()) {
-				// first loop should create the starting relationship
-				if (matches == null) {
-					matches = Cypher.match((RelationshipPattern) possiblePathWithRelationship.createRelationshipChain(startNode));
-				} else { // the next ones adds another relationship chain as separated match
-					matches.match(((RelationshipPattern) possiblePathWithRelationship.createRelationshipChain(startNode)));
-				}
+				relationshipChain.add((RelationshipPattern) possiblePathWithRelationship.createRelationshipChain(startNode));
 			}
 		}
 
 		// closing action: add the condition and path match
-		if (nodeDescription.containsPossibleCircles(includedProperties)) {
-			matchAndCondition = cypherGenerator.createPathMatchWithCondition(matches, nodeDescription, includedProperties, condition, startNode);
-		} else if (matches != null) {
-			matchAndCondition = matches.where(condition);
+//		if (nodeDescription.containsPossibleCircles(includedProperties)) {
+//			matchAndCondition = cypherGenerator.createPathMatchWithCondition(matches, nodeDescription, includedProperties, condition, startNode);
+		if (!relationshipChain.isEmpty()) {
+			queryFragments.setMatchOn(relationshipChain);
+			queryFragments.setCondition(condition);
+		} else {
+			queryFragments.setMatchOn(initialMatchOn);
+			queryFragments.setCondition(initialCondition);
 		}
-
-		Statement statement;
+		/// end of initial filter query creation
 
 		if (queryType == Neo4jQueryType.COUNT) {
-			statement = matchAndCondition.returning(Functions.count(Cypher.asterisk())).build();
+			queryFragments.addReturnExpression(Functions.count(Cypher.asterisk()));
 		} else if (queryType == Neo4jQueryType.EXISTS) {
-			statement = matchAndCondition.returning(
-					Functions.count(Constants.NAME_OF_ROOT_NODE).gt(Cypher.literalOf(0))
-			).build();
+			queryFragments.addReturnExpression(Functions.count(Constants.NAME_OF_ROOT_NODE).gt(Cypher.literalOf(0)));
 		} else {
-			OngoingMatchAndReturnWithOrder ongoingMatchAndReturnWithOrder = matchAndCondition
-					.returning(cypherGenerator.createReturnStatementForMatch(nodeDescription, includedProperties))
-					.orderBy(Stream
-							.concat(sortItems.stream(),
-									pagingParameter.getSort().and(sort).stream().map(CypherAdapterUtils.sortAdapterFor(nodeDescription)))
-							.toArray(SortItem[]::new));
-
+			queryFragments.setReturnBasedOn(nodeDescription, includedProperties);
+			queryFragments.setOrderBy(Stream
+					.concat(sortItems.stream(),
+							pagingParameter.getSort().and(sort).stream().map(CypherAdapterUtils.sortAdapterFor(nodeDescription)))
+					.toArray(SortItem[]::new));
 			if (pagingParameter.isUnpaged()) {
-				statement = ongoingMatchAndReturnWithOrder.limit(maxResults).build();
+				queryFragments.setLimit(maxResults);
 			} else {
 				long skip = pagingParameter.getOffset();
 				int pageSize = pagingParameter.getPageSize();
-				statement = ongoingMatchAndReturnWithOrder.skip(skip).limit(limitModifier.apply(pageSize)).build();
+				queryFragments.setSkip(skip);
+				queryFragments.setLimit(limitModifier.apply(pageSize));
 			}
 		}
-		return statement;
+		return queryFragments;
 	}
 
 	private Condition createImpl(Part part, Iterator<Object> actualParameters) {

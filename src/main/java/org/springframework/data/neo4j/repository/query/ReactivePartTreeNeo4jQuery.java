@@ -66,9 +66,10 @@ final class ReactivePartTreeNeo4jQuery extends AbstractReactiveNeo4jQuery {
 				Optional.ofNullable(queryType).orElseGet(() -> Neo4jQueryType.fromPartTree(tree)), tree, parameterAccessor,
 				includedProperties, this::convertParameter, UnaryOperator.identity());
 
-		QueryAndParameters queryAndParameters = queryCreator.createQuery();
-
-		return PreparedQuery.queryFor(returnedType).withCypherQuery(queryAndParameters.getQuery())
-				.withParameters(queryAndParameters.getParameters()).usingMappingFunction(mappingFunction).build();
+//		QueryAndParameters queryAndParameters = queryCreator.createQuery();
+//
+//		return PreparedQuery.queryFor(returnedType).withCypherQuery(queryAndParameters.getQuery())
+//				.withParameters(queryAndParameters.getParameters()).usingMappingFunction(mappingFunction).build();
+		return null;
 	}
 }

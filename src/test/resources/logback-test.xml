@@ -26,7 +26,7 @@
     <logger name="org.neo4j.driver" level="info"/>
     <logger name="GraphDatabase" level="info"/>
     <logger name="Driver" level="info"/>
-    <logger name="OutboundMessageHandler" level="info"/>
+    <logger name="OutboundMessageHandler" level="debug"/>
     <logger name="InboundMessageDispatcher" level="info"/>
 
     <logger name="org.springframework.data.neo4j.cypher" level="info"/>

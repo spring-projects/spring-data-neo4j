@@ -35,6 +35,7 @@ import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
 import org.apiguardian.api.API;
+import org.jetbrains.annotations.NotNull;
 import org.neo4j.cypherdsl.core.Condition;
 import org.neo4j.cypherdsl.core.Conditions;
 import org.neo4j.cypherdsl.core.Cypher;
@@ -46,6 +47,7 @@ import org.neo4j.cypherdsl.core.MapProjection;
 import org.neo4j.cypherdsl.core.NamedPath;
 import org.neo4j.cypherdsl.core.Node;
 import org.neo4j.cypherdsl.core.Parameter;
+import org.neo4j.cypherdsl.core.PatternElement;
 import org.neo4j.cypherdsl.core.Relationship;
 import org.neo4j.cypherdsl.core.RelationshipPattern;
 import org.neo4j.cypherdsl.core.SortItem;
@@ -58,6 +60,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.mapping.MappingException;
 import org.springframework.data.mapping.PersistentProperty;
 import org.springframework.data.neo4j.core.schema.Relationship.Direction;
+import org.springframework.data.neo4j.repository.query.QueryFragments;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
@@ -105,18 +108,40 @@ public enum CypherGenerator {
 	 * @return An ongoing match
 	 */
 	public StatementBuilder.OrderableOngoingReadingAndWith prepareMatchOf(NodeDescription<?> nodeDescription,
-			  @Nullable Condition condition) {
+																		  @Nullable Condition condition) {
 
-		return prepareMatchOf(nodeDescription, condition, Collections.emptyList());
+		Node rootNode = createRootNode(nodeDescription);
+
+		List<Expression> expressions = new ArrayList<>();
+		expressions.add(Constants.NAME_OF_ROOT_NODE);
+		expressions.add(Functions.id(rootNode).as(Constants.NAME_OF_INTERNAL_ID));
+
+
+		return match(rootNode).where(conditionOrNoCondition(condition)).with(expressions.toArray(new Expression[] {}));
 	}
 
 	public StatementBuilder.OngoingReading prepareMatchOf(NodeDescription<?> nodeDescription,
-			  RelationshipDescription relationshipDescription, @Nullable Condition condition) {
+			  RelationshipDescription relationshipDescription, @Nullable List<PatternElement> initialMatchOn,
+														  @Nullable Condition condition) {
 
 		String primaryLabel = nodeDescription.getPrimaryLabel();
 		List<String> additionalLabels = nodeDescription.getAdditionalLabels();
 
 		Node rootNode = node(primaryLabel, additionalLabels).named(Constants.NAME_OF_ROOT_NODE);
+
+		StatementBuilder.OngoingReadingWithoutWhere match = null;
+		if (initialMatchOn == null || initialMatchOn.isEmpty()) {
+			match = Cypher.match(rootNode);
+		} else {
+			for (PatternElement patternElement : initialMatchOn) {
+				if (match == null) {
+					match = Cypher.match(patternElement);
+				} else {
+					match.match(patternElement);
+				}
+			}
+		}
+
 		Node targetNode = node(relationshipDescription.getTarget().getPrimaryLabel(), relationshipDescription.getTarget().getAdditionalLabels()).named(Constants.NAME_OF_SYNTHESIZED_RELATED_NODES + "_tmp");
 
 		Relationship relationship = null;
@@ -138,117 +163,18 @@ public enum CypherGenerator {
 		expressions.add(Functions.collect(Functions.id(targetNode)).as(Constants.NAME_OF_SYNTHESIZED_RELATED_NODES));
 		expressions.add(Functions.collect(Functions.id(relationship)).as(Constants.NAME_OF_SYNTHESIZED_RELATIONS));
 
-		return match(rootNode)
+		return match
 				.where(conditionOrNoCondition(condition))
 				.optionalMatch(relationship)
 				.with(expressions.toArray(new Expression[]{}));
 	}
 
-	public StatementBuilder.OrderableOngoingReadingAndWith prepareMatchOf(NodeDescription<?> nodeDescription,
-			@Nullable Condition condition, List<String> includedProperties) {
-
+	@NotNull
+	public Node createRootNode(NodeDescription<?> nodeDescription) {
 		String primaryLabel = nodeDescription.getPrimaryLabel();
 		List<String> additionalLabels = nodeDescription.getAdditionalLabels();
 
-		Node rootNode = node(primaryLabel, additionalLabels).named(Constants.NAME_OF_ROOT_NODE);
-
-		List<Expression> expressions = new ArrayList<>();
-		expressions.add(Constants.NAME_OF_ROOT_NODE);
-		expressions.add(Functions.id(rootNode).as(Constants.NAME_OF_INTERNAL_ID));
-
-		if (nodeDescription.containsPossibleCircles(includedProperties)) {
-			return createPathMatchWithCondition(nodeDescription, includedProperties, condition, rootNode);
-		} else {
-			return match(rootNode).where(conditionOrNoCondition(condition)).with(expressions.toArray(new Expression[] {}));
-		}
-	}
-
-	private StatementBuilder.OrderableOngoingReadingAndWithWithoutWhere createPathMatchWithCondition(
-			NodeDescription<?> nodeDescription, List<String> includedProperties, @Nullable Condition condition, Node rootNode) {
-
-		return createPathMatchWithCondition(null, nodeDescription, includedProperties, condition, rootNode);
-	}
-
-	public StatementBuilder.OrderableOngoingReadingAndWithWithoutWhere createPathMatchWithCondition(
-			@Nullable StatementBuilder.OngoingReadingWithoutWhere previousMatches,
-			NodeDescription<?> nodeDescription, List<String> includedProperties, @Nullable Condition condition, Node rootNode) {
-
-		List<Expression> expressions1 = new ArrayList<>();
-		List<Expression> expressions2 = new ArrayList<>();
-
-		String aliasedPathName = "pathPattern";
-		Predicate<String> includeField = s -> includedProperties.isEmpty() || includedProperties.contains(s);
-		Collection<RelationshipDescription> relationships = getRelationshipDescriptionsUpAndDown(nodeDescription, includeField);
-		RelationshipPattern patternPath = createRelationships(rootNode, relationships);
-		NamedPath path = Cypher.path("p").definedBy(patternPath);
-
-		// nested nodes flatMap: reduce(...reduce(...))
-		SymbolicName outerNodesAccumulator = Cypher.name("a");
-		SymbolicName outerNodesVariable = Cypher.name("b");
-		SymbolicName innerNodesAccumulator = Cypher.name("c");
-		SymbolicName innerNodesVariable = Cypher.name("d");
-		SymbolicName innerNodesListIterator = Cypher.name("e");
-		ListComprehension innerNodesListComprehension = Cypher.listWith(innerNodesListIterator)
-				.in(Cypher.name(aliasedPathName)).returning(Functions.nodes(innerNodesListIterator));
-
-		FunctionInvocation innerNodesReduce = createInnerReduce(innerNodesAccumulator, innerNodesVariable,
-				innerNodesListComprehension);
-
-		FunctionInvocation outerNodesReduce = createOuterReduce(outerNodesAccumulator, outerNodesVariable,
-				innerNodesReduce);
-
-		// nested relationships flatMap: reduce(...reduce(...))
-		SymbolicName outerRelationshipsAccumulator = Cypher.name("f");
-		SymbolicName outerRelationshipsVariable = Cypher.name("g");
-		SymbolicName innerRelationshipsAccumulator = Cypher.name("h");
-		SymbolicName innerRelationshipsVariable = Cypher.name("i");
-		SymbolicName innerRelationshipsListIterator = Cypher.name("j");
-		ListComprehension innerRelationshipsListComprehension = Cypher.listWith(innerRelationshipsListIterator)
-				.in(Cypher.name(aliasedPathName)).returning(Functions.relationships(innerRelationshipsListIterator));
-
-		FunctionInvocation innerRelationshipReduce = createInnerReduce(innerRelationshipsAccumulator,
-				innerRelationshipsVariable, innerRelationshipsListComprehension);
-
-		FunctionInvocation outerRelationshipsReduce = createOuterReduce(outerRelationshipsAccumulator,
-				outerRelationshipsVariable, innerRelationshipReduce);
-
-		// WITH n, collect(p) as pathPattern
-		expressions1.add(Constants.NAME_OF_ROOT_NODE);
-		expressions1.add(Functions.collect(path).as(aliasedPathName));
-		// WITH n, reduce(nodes) as __sm__, reduce(relationships) as __sr__
-		expressions2.add(Constants.NAME_OF_ROOT_NODE);
-		expressions2.add(outerNodesReduce.as(Constants.NAME_OF_SYNTHESIZED_RELATED_NODES));
-		expressions2.add(outerRelationshipsReduce.as(Constants.NAME_OF_SYNTHESIZED_RELATIONS));
-
-		StatementBuilder.OngoingReadingWithoutWhere match = match(path);
-
-		if (previousMatches != null) {
-			match = previousMatches.match(path);
-		}
-
-		return match
-				.where(conditionOrNoCondition(condition))
-				.with(expressions1.toArray(new Expression[]{}))
-				.with(expressions2.toArray(new Expression[]{}));
-	}
-
-	private FunctionInvocation createOuterReduce(SymbolicName outerNodesAccumulator, SymbolicName outerNodesVariable, FunctionInvocation innerNodesReduce) {
-		return Functions.reduce(outerNodesVariable)
-				.in(innerNodesReduce)
-				.map(Cypher.caseExpression()
-						.when(outerNodesVariable.in(outerNodesAccumulator))
-						.then(outerNodesAccumulator)
-						.elseDefault(outerNodesAccumulator.add(outerNodesVariable)))
-				.accumulateOn(outerNodesAccumulator)
-				.withInitialValueOf(Cypher.listOf());
-	}
-
-	private FunctionInvocation createInnerReduce(SymbolicName innerNodesAccumulator, SymbolicName innerNodesVariable, ListComprehension innerNodesListComprehension) {
-		return Functions.reduce(innerNodesVariable)
-				.in(innerNodesListComprehension)
-				.map(innerNodesAccumulator.add(innerNodesVariable))
-				.accumulateOn(innerNodesAccumulator)
-				.withInitialValueOf(Cypher.listOf());
+		return node(primaryLabel, additionalLabels).named(Constants.NAME_OF_ROOT_NODE);
 	}
 
 	/**
@@ -518,17 +444,19 @@ public enum CypherGenerator {
 
 		List<RelationshipDescription> processedRelationships = new ArrayList<>();
 		if (nodeDescription.containsPossibleCircles(includedProperties)) {
-			List<Expression> returnExpressions = new ArrayList<>();
-//			Node rootNode = anyNode(Constants.NAME_OF_ROOT_NODE);
-//			returnExpressions.add(rootNode.as(Constants.NAME_OF_SYNTHESIZED_ROOT_NODE));
-			returnExpressions.add(Cypher.name(Constants.NAME_OF_SYNTHESIZED_ROOT_NODE));
-			returnExpressions.add(Cypher.name(Constants.NAME_OF_SYNTHESIZED_RELATED_NODES));
-			returnExpressions.add(Cypher.name(Constants.NAME_OF_SYNTHESIZED_RELATIONS));
-			return returnExpressions.toArray(new Expression[]{});
+			return createGenericReturnStatement();
 		} else {
 			Predicate<String> includeField = s -> includedProperties.isEmpty() || includedProperties.contains(s);
 			return new Expression[]{projectPropertiesAndRelationships(nodeDescription, Constants.NAME_OF_ROOT_NODE, includeField, processedRelationships)};
 		}
+	}
+
+	public Expression[] createGenericReturnStatement() {
+		List<Expression> returnExpressions = new ArrayList<>();
+		returnExpressions.add(Cypher.name(Constants.NAME_OF_SYNTHESIZED_ROOT_NODE));
+		returnExpressions.add(Cypher.name(Constants.NAME_OF_SYNTHESIZED_RELATED_NODES));
+		returnExpressions.add(Cypher.name(Constants.NAME_OF_SYNTHESIZED_RELATIONS));
+		return returnExpressions.toArray(new Expression[]{});
 	}
 
 	// recursive entry point for relationships in return statement
@@ -843,6 +771,31 @@ public enum CypherGenerator {
 
 	private static Condition conditionOrNoCondition(@Nullable Condition condition) {
 		return condition == null ? Conditions.noCondition() : condition;
+	}
+
+	public Statement generateQuery(QueryFragments queryFragments) {
+
+		PatternElement[] matchOn = queryFragments.getMatchOn().toArray(new PatternElement[]{});
+		Condition condition = queryFragments.getCondition();
+		Expression[] aReturn = queryFragments.getReturn().length > 0 ? queryFragments.getReturn()
+				: createReturnStatementForMatch(queryFragments.getReturnTuple().getNodeDescription(), queryFragments.getReturnTuple().getIncludedProperties())
+				;
+		SortItem[] orderBy = queryFragments.getOrderBy();
+		Long skip = queryFragments.getSkip();
+		Number limit = queryFragments.getLimit();
+
+		StatementBuilder.OngoingReadingWithoutWhere match = match(matchOn[0]);
+		for (PatternElement patternElement : matchOn) {
+			match = match.match(patternElement);
+		}
+
+		return match
+				.where(condition)
+				.returning(aReturn)
+				.orderBy(orderBy)
+				.skip(skip)
+				.limit(limit).build();
+
 	}
 
 	private static class RelationshipProcessState {

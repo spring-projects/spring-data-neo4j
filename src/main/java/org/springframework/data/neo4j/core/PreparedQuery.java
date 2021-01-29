@@ -15,6 +15,20 @@
  */
 package org.springframework.data.neo4j.core;
 
+import org.apiguardian.api.API;
+import org.neo4j.driver.Record;
+import org.neo4j.driver.Value;
+import org.neo4j.driver.Values;
+import org.neo4j.driver.types.MapAccessor;
+import org.neo4j.driver.types.Node;
+import org.neo4j.driver.types.Path;
+import org.neo4j.driver.types.TypeSystem;
+import org.springframework.data.neo4j.core.mapping.Constants;
+import org.springframework.data.neo4j.core.mapping.MappingSupport;
+import org.springframework.data.neo4j.core.mapping.NoRootNodeMappingException;
+import org.springframework.data.neo4j.repository.query.QueryFragmentsAndParameters;
+import org.springframework.lang.Nullable;
+
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -27,19 +41,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
-import org.apiguardian.api.API;
-import org.neo4j.driver.Record;
-import org.neo4j.driver.Value;
-import org.neo4j.driver.Values;
-import org.neo4j.driver.types.MapAccessor;
-import org.neo4j.driver.types.Node;
-import org.neo4j.driver.types.Path;
-import org.neo4j.driver.types.TypeSystem;
-import org.springframework.data.neo4j.core.mapping.Constants;
-import org.springframework.data.neo4j.core.mapping.MappingSupport;
-import org.springframework.data.neo4j.core.mapping.NoRootNodeMappingException;
-import org.springframework.lang.Nullable;
 
 /**
  * Typed preparation of a query that is used to create either an executable query. Executable queries come in two
@@ -62,8 +63,7 @@ public final class PreparedQuery<T> {
 	}
 
 	private final Class<T> resultType;
-	private final String cypherQuery;
-	private final Map<String, Object> parameters;
+	private final QueryFragmentsAndParameters queryFragmentsAndParameters;
 	private final @Nullable BiFunction<TypeSystem, Record, T> mappingFunction;
 
 	private PreparedQuery(OptionalBuildSteps<T> optionalBuildSteps) {
@@ -74,8 +74,7 @@ public final class PreparedQuery<T> {
 			this.mappingFunction = (BiFunction<TypeSystem, Record, T>) new AggregatingMappingFunction(
 					optionalBuildSteps.mappingFunction);
 		}
-		this.cypherQuery = optionalBuildSteps.cypherQuery;
-		this.parameters = optionalBuildSteps.parameters;
+		this.queryFragmentsAndParameters = optionalBuildSteps.queryFragmentsAndParameters;
 	}
 
 	public Class<T> getResultType() {
@@ -90,12 +89,8 @@ public final class PreparedQuery<T> {
 		return this.mappingFunction != null && ((AggregatingMappingFunction) this.mappingFunction).hasAggregated();
 	}
 
-	public String getCypherQuery() {
-		return this.cypherQuery;
-	}
-
-	public Map<String, Object> getParameters() {
-		return this.parameters;
+	public QueryFragmentsAndParameters getQueryFragmentsAndParameters() {
+		return this.queryFragmentsAndParameters;
 	}
 
 	/**
@@ -108,9 +103,13 @@ public final class PreparedQuery<T> {
 		private RequiredBuildStep(Class<CT> resultType) {
 			this.resultType = resultType;
 		}
-
+//
 		public OptionalBuildSteps<CT> withCypherQuery(String cypherQuery) {
-			return new OptionalBuildSteps<>(resultType, cypherQuery);
+			return new OptionalBuildSteps<>(resultType, new QueryFragmentsAndParameters(cypherQuery));
+		}
+
+		public OptionalBuildSteps<CT> withQueryFragmentsAndParameters(QueryFragmentsAndParameters queryFragmentsAndParameters) {
+			return new OptionalBuildSteps<>(resultType, queryFragmentsAndParameters);
 		}
 	}
 
@@ -121,13 +120,12 @@ public final class PreparedQuery<T> {
 	public static class OptionalBuildSteps<CT> {
 
 		final Class<CT> resultType;
-		final String cypherQuery;
-		Map<String, Object> parameters = Collections.emptyMap();
+		final QueryFragmentsAndParameters queryFragmentsAndParameters;
 		@Nullable BiFunction<TypeSystem, MapAccessor, ?> mappingFunction;
 
-		OptionalBuildSteps(Class<CT> resultType, String cypherQuery) {
+		OptionalBuildSteps(Class<CT> resultType, QueryFragmentsAndParameters queryFragmentsAndParameters) {
 			this.resultType = resultType;
-			this.cypherQuery = cypherQuery;
+			this.queryFragmentsAndParameters = queryFragmentsAndParameters;
 		}
 
 		/**
@@ -137,7 +135,7 @@ public final class PreparedQuery<T> {
 		 * @return This builder.
 		 */
 		public OptionalBuildSteps<CT> withParameters(Map<String, Object> newParameters) {
-			this.parameters = new HashMap<>(newParameters);
+			this.queryFragmentsAndParameters.setParameters(newParameters);
 			return this;
 		}
 

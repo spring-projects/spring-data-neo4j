@@ -178,7 +178,7 @@ final class ReactiveRepositoryQueryTest {
 					Neo4jQueryType.DEFAULT,
 					(typeSystem, mapAccessor) -> new TestEntity()
 			);
-			assertThat(pq.getCypherQuery())
+			assertThat(pq.getQueryFragmentsAndParameters().getCypherQuery())
 					.isEqualTo("MATCH (n:Test) RETURN n ORDER BY name ASC SKIP $skip LIMIT $limit");
 			assertThat(logbackCapture.getFormattedMessages())
 					.noneMatch(s -> s.matches(
@@ -214,7 +214,7 @@ final class ReactiveRepositoryQueryTest {
 						Neo4jQueryType.DEFAULT,
 						(typeSystem, mapAccessor) -> new TestEntity()
 				);
-				return pq.getCypherQuery();
+				return pq.getQueryFragmentsAndParameters().getCypherQuery();
 			}).block();
 			assertThat(s)
 					.isEqualTo(
