@@ -143,17 +143,27 @@ public enum CypherGenerator {
 		}
 
 		Node targetNode = node(relationshipDescription.getTarget().getPrimaryLabel(), relationshipDescription.getTarget().getAdditionalLabels()).named(Constants.NAME_OF_SYNTHESIZED_RELATED_NODES + "_tmp");
+		boolean dynamicRelationship = relationshipDescription.isDynamic();
+		Class<?> componentType = ((DefaultRelationshipDescription) relationshipDescription).getInverse().getComponentType();
+		List<String> relationshipTypes = new ArrayList<>();
+		if (dynamicRelationship && componentType != null && componentType.isEnum()) {
+			Arrays.stream(componentType.getEnumConstants())
+					.forEach(constantName -> relationshipTypes.add(constantName.toString()));
+		} else if (!dynamicRelationship) {
+			relationshipTypes.add(relationshipDescription.getType());
+		}
+		String[] types = relationshipTypes.toArray(new String[]{});
 
 		Relationship relationship = null;
 		switch (relationshipDescription.getDirection()) {
 			case OUTGOING:
-				relationship = rootNode.relationshipTo(targetNode, relationshipDescription.getType());
+				relationship = rootNode.relationshipTo(targetNode, types);
 				break;
 			case INCOMING:
-				relationship = rootNode.relationshipFrom(targetNode, relationshipDescription.getType());
+				relationship = rootNode.relationshipFrom(targetNode, types);
 				break;
 			default:
-				relationship = rootNode.relationshipBetween(targetNode, relationshipDescription.getType());
+				relationship = rootNode.relationshipBetween(targetNode, types);
 				break;
 		}
 
