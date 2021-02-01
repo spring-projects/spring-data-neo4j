@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
@@ -180,6 +181,46 @@ class CypherGeneratorTest {
 
 		assertThatIllegalArgumentException().isThrownBy(() -> CypherGenerator.INSTANCE.createOrderByFragment(Sort.by("n()")))
 				.withMessage("Name must be a valid identifier.");
+	}
+
+	@Test
+	void shouldCreateDynamicRelationshipPathQueryForEnumsWithoutWildcardRelationships() {
+		Neo4jPersistentEntity<?> persistentEntity = new Neo4jMappingContext()
+				.getPersistentEntity(CyclicEntityWithEnumeratedDynamicRelationship1.class);
+
+		org.neo4j.cypherdsl.core.Node rootNode = Cypher.anyNode(Constants.NAME_OF_ROOT_NODE);
+		Collection<RelationshipDescription> relationships = persistentEntity.getRelationships();
+		Statement statement = CypherGenerator.INSTANCE.prepareMatchOf(
+				persistentEntity, relationships.iterator().next(), null, null).returning(rootNode).build();
+
+		// we want to ensure that the pattern occurs three times but do not care about the order
+		// of the relationship types
+		Pattern relationshipTypesPattern =
+				Pattern.compile("\\[__sr___tmp:(`CORNERED`\\|`ROUND`|`ROUND`\\|`CORNERED`)]");
+		Pattern untypedRelationshipsPattern =
+				Pattern.compile("\\[__sr___tmp]");
+
+		String renderedStatement = Renderer.getDefaultRenderer().render(statement);
+		assertThat(renderedStatement).containsPattern(relationshipTypesPattern);
+		assertThat(renderedStatement).doesNotContainPattern(untypedRelationshipsPattern);
+	}
+
+	@Test
+	void shouldCreateDynamicRelationshipPathQueryForStringsWithWildcardRelationships() {
+		Neo4jPersistentEntity<?> persistentEntity = new Neo4jMappingContext()
+				.getPersistentEntity(CyclicEntityWithStringDynamicRelationship1.class);
+
+		org.neo4j.cypherdsl.core.Node rootNode = Cypher.anyNode(Constants.NAME_OF_ROOT_NODE);
+		Collection<RelationshipDescription> relationships = persistentEntity.getRelationships();
+		Statement statement = CypherGenerator.INSTANCE.prepareMatchOf(
+				persistentEntity, relationships.iterator().next(), null, null).returning(rootNode).build();
+
+		Pattern untypedRelationshipsPattern = Pattern.compile("\\[__sr___tmp]");
+		Pattern typedRelationshipsPattern =	Pattern.compile("\\[__sr___tmp:(`.*`)]");
+
+		String renderedStatement = Renderer.getDefaultRenderer().render(statement);
+		assertThat(renderedStatement).containsPattern(untypedRelationshipsPattern);
+		assertThat(renderedStatement).doesNotContainPattern(typedRelationshipsPattern);
 	}
 
 	@Node
