@@ -197,8 +197,8 @@ class CypherGeneratorTest {
 		// of the relationship types
 		Pattern relationshipTypesPattern =
 				Pattern.compile("\\[__sr___tmp:(`CORNERED`\\|`ROUND`|`ROUND`\\|`CORNERED`)]");
-		Pattern untypedRelationshipsPattern =
-				Pattern.compile("\\[__sr___tmp]");
+
+		Pattern untypedRelationshipsPattern = Pattern.compile("\\[__sr___tmp]");
 
 		String renderedStatement = Renderer.getDefaultRenderer().render(statement);
 		assertThat(renderedStatement).containsPattern(relationshipTypesPattern);
