@@ -23,6 +23,7 @@ import java.lang.annotation.Target;
 
 import org.apiguardian.api.API;
 import org.springframework.core.annotation.AliasFor;
+import org.springframework.data.annotation.Persistent;
 
 /**
  * The annotation to configure the mapping from a node with a given set of labels to a class and vice versa.
@@ -33,7 +34,7 @@ import org.springframework.core.annotation.AliasFor;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 @Documented
-@org.springframework.data.annotation.Persistent
+@Persistent
 @API(status = API.Status.STABLE, since = "6.0")
 public @interface Node {
 
