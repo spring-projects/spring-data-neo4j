@@ -15,9 +15,20 @@
  */
 package org.springframework.data.neo4j.core;
 
+import static org.neo4j.cypherdsl.core.Cypher.anyNode;
 import static org.neo4j.cypherdsl.core.Cypher.asterisk;
 import static org.neo4j.cypherdsl.core.Cypher.parameter;
 
+import org.jetbrains.annotations.NotNull;
+import org.neo4j.cypherdsl.core.Expression;
+import org.neo4j.cypherdsl.core.Node;
+import org.neo4j.cypherdsl.core.Relationship;
+import org.neo4j.driver.Record;
+import org.neo4j.driver.Value;
+import org.neo4j.driver.Values;
+import org.neo4j.driver.types.TypeSystem;
+import org.springframework.data.neo4j.repository.query.QueryFragments;
+import org.springframework.data.neo4j.repository.query.QueryFragmentsAndParameters;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.util.function.Tuple2;
@@ -27,10 +38,16 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import org.apache.commons.logging.LogFactory;
@@ -185,13 +202,19 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 	public <T> Mono<T> findById(Object id, Class<T> domainType) {
 
 		Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getPersistentEntity(domainType);
-		Statement statement = cypherGenerator
-				.prepareMatchOf(entityMetaData, entityMetaData.getIdExpression().isEqualTo(parameter(Constants.NAME_OF_ID)))
-				.returning(cypherGenerator.createReturnStatementForMatch(entityMetaData)).build();
 
-		return createExecutableQuery(domainType, statement, Collections
-				.singletonMap(Constants.NAME_OF_ID, convertIdValues(entityMetaData.getRequiredIdProperty(), id)))
-				.flatMap(ExecutableQuery::getSingleResult);
+		Map<String, Object> parameters = Collections
+				.singletonMap(Constants.NAME_OF_ID, convertIdValues(entityMetaData.getRequiredIdProperty(), id));
+
+		Condition condition = entityMetaData.getIdExpression().isEqualTo(parameter(Constants.NAME_OF_ID));
+		Expression[] returnStatement = cypherGenerator.createReturnStatementForMatch(entityMetaData);
+		QueryFragments queryFragments = new QueryFragments();
+		queryFragments.setMatchOn(cypherGenerator.createRootNode(entityMetaData));
+		queryFragments.setCondition(condition);
+		queryFragments.setReturnExpression(returnStatement);
+		QueryFragmentsAndParameters f = new QueryFragmentsAndParameters(entityMetaData, queryFragments, parameters);
+
+		return createExecutableQuery(domainType, f).flatMap(ExecutableQuery::getSingleResult);
 	}
 
 	@Override
@@ -431,6 +454,260 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 				.withParameters(parameters)
 				.usingMappingFunction(this.neo4jMappingContext.getRequiredMappingFunctionFor(domainType)).build();
 		return this.toExecutableQuery(preparedQuery);
+	}
+
+	private <T> Mono<ExecutableQuery<T>> createExecutableQuery(Class<T> domainType,
+		   QueryFragmentsAndParameters queryFragmentsAndParameters) {
+
+		Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getPersistentEntity(domainType);
+		QueryFragments queryFragments = queryFragmentsAndParameters.getQueryFragments();
+		Map<String, Object> parameters = queryFragmentsAndParameters.getParameters();
+
+		if (entityMetaData.containsPossibleCircles(Collections.emptyList())) {
+			return bimsUndBums(entityMetaData, queryFragments, parameters)
+					.flatMap(bUb -> createExecutableQuery(domainType, renderer.render(bUb.statement), bUb.parameters));
+		}
+
+		Statement statement = cypherGenerator.generateQuery(queryFragments);
+
+		return createExecutableQuery(domainType, renderer.render(statement), parameters);
+	}
+
+	private Mono<FinalQueryAndParameters> bimsUndBums(Neo4jPersistentEntity<?> entityMetaData, QueryFragments queryFragments, Map<String, Object> parameters) {
+
+		Predicate<RelationshipDescription> relationshipFilter = relationshipDescription ->  {
+			System.out.println("Filtering " + relationshipDescription.getType());
+			return queryFragments.getReturnTuple() == null
+				|| !queryFragments.getReturnTuple().getIncludedProperties().isEmpty()
+				|| queryFragments.getReturnTuple().getIncludedProperties().contains(relationshipDescription.getFieldName());
+		};
+
+		Function<List<IntermediateQueryResult>, FinalParameters> createFinalParametersFunction = queryResults -> {
+			System.out.println("creating final Parameters with " + queryResults);
+			Set<Long> rootNodeIds = new HashSet<>();
+			Set<Long> relationshipIds = new HashSet<>();
+			Set<Long> relatedNodeIds = new HashSet<>();
+			for (IntermediateQueryResult queryResult : queryResults) {
+				if (rootNodeIds.isEmpty()) {
+					rootNodeIds.addAll(queryResult.processedIds);
+				}
+				relationshipIds.addAll(queryResult.relationshipIds);
+				relatedNodeIds.addAll(queryResult.relatedNodeIds);
+			}
+
+			return new FinalParameters(rootNodeIds, relationshipIds, relatedNodeIds);
+		};
+		Set<Long> processedNodes = ConcurrentHashMap.newKeySet();
+		Set<Long> processedRelationships = ConcurrentHashMap.newKeySet();
+
+		Function<Tuple2<DatabaseSelection, RelationshipDescription>, Mono<FinalParameters>> toFinalParameters = relationshipAndDatabase -> {
+			Statement statement = cypherGenerator.prepareMatchOf(entityMetaData, relationshipAndDatabase.getT2(),
+					queryFragments.getMatchOn(), queryFragments.getCondition())
+					.returning(cypherGenerator.createReturnStatementForMatch(entityMetaData)).build();
+
+			return neo4jClient.query(renderer.render(statement)).in(relationshipAndDatabase.getT1().getValue())
+					.bindAll(parameters)
+					.fetchAs(IntermediateQueryResult.class)
+					.mappedBy(mapToIntermediateQueryResult(relationshipAndDatabase.getT2()))
+					.one()
+					.expand(queryResult -> {
+						Set<Long> tmpProcessedRels = ConcurrentHashMap.newKeySet(queryResult.relationshipIds.size());
+						tmpProcessedRels.addAll(queryResult.relationshipIds);
+						tmpProcessedRels.addAll(queryResult.relationshipIds);
+						tmpProcessedRels.removeAll(processedRelationships);
+						processedRelationships.addAll(queryResult.relationshipIds);
+						Set<Long> tmpProcessedNodes = ConcurrentHashMap.newKeySet(queryResult.processedIds.size());
+						tmpProcessedNodes.addAll(queryResult.processedIds);
+						tmpProcessedNodes.removeAll(processedNodes);
+						processedNodes.addAll(queryResult.processedIds);
+						if (tmpProcessedNodes.isEmpty() && tmpProcessedRels.isEmpty()) {
+							return Mono.empty();
+						}
+						return firstLevelDing(queryResult, relationshipAndDatabase.getT1().getValue(), processedNodes, processedRelationships);
+					})
+					.collectList()
+					.map(createFinalParametersFunction);
+		};
+
+		return getDatabaseName().flatMap(databaseName -> Flux.fromIterable(entityMetaData.getRelationships())
+				.filter(relationshipFilter)
+				.flatMap(relationshipDescriptions -> toFinalParameters.apply(Tuples.of(databaseName, relationshipDescriptions)))
+				.collectList()
+				.flatMap(monos -> Mono.just(new FinalQueryAndParameters(createTheOneAndOnlyQuery(), monos))));
+
+	}
+
+	private static Statement createTheOneAndOnlyQuery() {
+		String chefIds = "chefIds";
+		String relIds = "relIds";
+		String restIds = "restIds";
+		Node chef = anyNode("chef");
+		Node rest = anyNode("rest");
+		Relationship cRelationship = anyNode().relationshipBetween(anyNode()).named("anyRel");
+
+		return Cypher.match(chef)
+				.where(Functions.id(chef).in(parameter(chefIds)))
+				.optionalMatch(cRelationship).where(Functions.id(cRelationship).in(parameter(relIds)))
+				.optionalMatch(rest).where(Functions.id(rest).in(parameter(restIds)))
+				.returning(
+						chef.as(Constants.NAME_OF_SYNTHESIZED_ROOT_NODE),
+						Functions.collectDistinct(cRelationship).as(Constants.NAME_OF_SYNTHESIZED_RELATIONS),
+						Functions.collectDistinct(rest).as(Constants.NAME_OF_SYNTHESIZED_RELATED_NODES)
+				).build();
+	}
+
+	private Flux<IntermediateQueryResult> firstLevelDing(IntermediateQueryResult queryResult, String databaseName, Set<Long> processedNodes, Set<Long> processedRelationships) {
+		System.out.println("expanding mit " + queryResult.processedIds);
+		NodeDescription<?> target = queryResult.relationshipDescription.getTarget();
+
+		return Flux.fromIterable(target.getRelationships())
+				.flatMap(relationshipDescription -> {
+					Node node = anyNode(Constants.NAME_OF_ROOT_NODE);
+
+					Statement statement = cypherGenerator
+					.prepareMatchOf(target, relationshipDescription, null,
+							Functions.id(node).in(Cypher.parameter(Constants.NAME_OF_ID)))
+					.returning(cypherGenerator.createGenericReturnStatement()).build();
+
+					return neo4jClient.query(renderer.render(statement)).in(databaseName)
+							.bindAll(Collections.singletonMap(Constants.NAME_OF_ID, queryResult.relatedNodeIds))
+							.fetchAs(IntermediateQueryResult.class)
+							.mappedBy(mapToIntermediateQueryResult(relationshipDescription))
+							.one()
+							.expand(innerQueryResult -> {
+								System.out.println("processing " + innerQueryResult);
+								Set<Long> tmpProcessedRels = ConcurrentHashMap.newKeySet(innerQueryResult.relationshipIds.size());
+								tmpProcessedRels.addAll(innerQueryResult.relationshipIds);
+								tmpProcessedRels.addAll(innerQueryResult.relationshipIds);
+								tmpProcessedRels.removeAll(processedRelationships);
+								processedRelationships.addAll(innerQueryResult.relationshipIds);
+
+								Set<Long> tmpProcessedNodes = ConcurrentHashMap.newKeySet(innerQueryResult.processedIds.size());
+								tmpProcessedNodes.addAll(innerQueryResult.processedIds);
+								tmpProcessedNodes.addAll(innerQueryResult.processedIds);
+								tmpProcessedNodes.removeAll(processedNodes);
+								processedNodes.addAll(innerQueryResult.processedIds);
+								if (tmpProcessedNodes.isEmpty() && tmpProcessedRels.isEmpty()) {
+									return Mono.empty();
+								}
+								return firstLevelDing(innerQueryResult, databaseName, processedNodes, processedRelationships);
+							});
+				});
+
+	}
+
+	@NotNull
+	private BiFunction<TypeSystem, Record, IntermediateQueryResult> mapToIntermediateQueryResult(RelationshipDescription relationshipDescription) {
+		return (typeSystem, record) -> {
+			System.out.print("mapping " + record);
+			Set<Long> rootIds = new HashSet<>(record.get(Constants.NAME_OF_SYNTHESIZED_ROOT_NODE).asList(Value::asLong));
+			IntermediateQueryResult queryResult = new IntermediateQueryResult(rootIds, relationshipDescription);
+			Value relationshipIdValues = record.get(Constants.NAME_OF_SYNTHESIZED_RELATIONS);
+			if (!Values.NULL.equals(relationshipIdValues)) {
+				queryResult.relationshipIds.addAll(relationshipIdValues.asList(Value::asLong));
+			}
+			Value relatedNodesIdValue = record.get(Constants.NAME_OF_SYNTHESIZED_RELATED_NODES);
+			if (!Values.NULL.equals(relatedNodesIdValue)) {
+				Set<Long> relatedIds = new HashSet<>(relatedNodesIdValue.asList(Value::asLong));
+				queryResult.relatedNodeIds.addAll(relatedIds);
+			}
+			System.out.println(" to " + queryResult);
+
+			return queryResult;
+		};
+	}
+
+	private static class FinalQueryAndParameters {
+
+		private final Statement statement;
+		private final Map<String, Object> parameters;
+
+		public FinalQueryAndParameters(Statement statement, Collection<FinalParameters> finalParameters) {
+			this.statement = statement;
+			String chefIds = "chefIds";
+			String relIds = "relIds";
+			String restIds = "restIds";
+			Set<Long> rootNodeIds = new HashSet<>();
+			Set<Long> relationshipIds = new HashSet<>();
+			Set<Long> relatedNodeIds = new HashSet<>();
+			for (FinalParameters parameters : finalParameters) {
+				rootNodeIds.addAll(parameters.rootNodeIds);
+				relationshipIds.addAll(parameters.relationshipIds);
+				relatedNodeIds.addAll(parameters.relatedNodeIds);
+			}
+			Map<String, Object> bindableParameters = new HashMap<>();
+			bindableParameters.put(chefIds, rootNodeIds);
+			bindableParameters.put(relIds, relationshipIds);
+			bindableParameters.put(restIds, relatedNodeIds);
+			this.parameters = bindableParameters;
+		}
+	}
+
+	private static class FinalParameters {
+		private final Set<Long> rootNodeIds;
+		private final Set<Long> relationshipIds;
+		private final Set<Long> relatedNodeIds;
+
+		private FinalParameters(Set<Long> rootNodeIds, Set<Long> relationshipIds, Set<Long> relatedNodeIds) {
+			this.rootNodeIds = rootNodeIds;
+			this.relationshipIds = relationshipIds;
+			this.relatedNodeIds = relatedNodeIds;
+		}
+
+
+		@Override
+		public boolean equals(Object o) {
+			if (this == o) {
+				return true;
+			}
+			if (o == null || getClass() != o.getClass()) {
+				return false;
+			}
+			FinalParameters that = (FinalParameters) o;
+			return rootNodeIds.equals(that.rootNodeIds) && relationshipIds.equals(that.relationshipIds)
+					&& relatedNodeIds.equals(that.relatedNodeIds);
+		}
+	}
+
+	private static class IntermediateQueryResult {
+		private final Set<Long> processedIds;
+		private final Set<Long> relationshipIds = new HashSet<>();
+		private final Set<Long> relatedNodeIds = new HashSet<>();
+		private final RelationshipDescription relationshipDescription;
+
+		static final IntermediateQueryResult NO_RESULT = new IntermediateQueryResult(Collections.emptySet(), null);
+
+		private IntermediateQueryResult(Set<Long> processedIds, RelationshipDescription relationshipDescription) {
+			this.processedIds = processedIds;
+			this.relationshipDescription = relationshipDescription;
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (this == o) {
+				return true;
+			}
+			if (o == null || getClass() != o.getClass()) {
+				return false;
+			}
+			IntermediateQueryResult that = (IntermediateQueryResult) o;
+			return relationshipIds.equals(that.relationshipIds)	&& relatedNodeIds.equals(that.relatedNodeIds);
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(relationshipIds, relatedNodeIds);
+		}
+
+		@Override
+		public String toString() {
+			return "IntermediateQueryResult{" +
+					"processedIds=" + processedIds +
+					", relationshipIds=" + relationshipIds +
+					", relatedNodeIds=" + relatedNodeIds +
+					", relationshipDescription=" + relationshipDescription +
+					'}';
+		}
 	}
 
 	private Mono<Void> processRelations(Neo4jPersistentEntity<?> neo4jPersistentEntity, Object parentObject,

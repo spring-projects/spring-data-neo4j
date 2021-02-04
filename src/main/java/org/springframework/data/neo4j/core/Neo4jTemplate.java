@@ -330,7 +330,7 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 		};
 	}
 
-	public static class FinalQueryAndParameters {
+	private static class FinalQueryAndParameters {
 
 		private final Statement statement;
 		private final Map<String, Object> parameters;

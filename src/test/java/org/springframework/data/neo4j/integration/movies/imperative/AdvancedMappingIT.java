@@ -58,8 +58,6 @@ class AdvancedMappingIT {
 
 	protected static Neo4jExtension.Neo4jConnectionSupport neo4jConnectionSupport;
 
-	protected static long theMatrixId;
-
 	@BeforeAll
 	static void setupData(@Autowired Driver driver) throws IOException {
 
