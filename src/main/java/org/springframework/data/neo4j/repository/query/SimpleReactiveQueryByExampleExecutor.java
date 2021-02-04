@@ -17,6 +17,9 @@ package org.springframework.data.neo4j.repository.query;
 
 import static org.neo4j.cypherdsl.core.Cypher.asterisk;
 
+import org.neo4j.cypherdsl.core.Condition;
+import org.neo4j.cypherdsl.core.Expression;
+import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -29,6 +32,8 @@ import org.springframework.data.neo4j.core.ReactiveNeo4jOperations;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.mapping.CypherGenerator;
 import org.springframework.data.repository.query.ReactiveQueryByExampleExecutor;
+
+import java.util.Map;
 
 /**
  * A fragment for repositories providing "Query by example" functionality in a reactive way.
@@ -58,33 +63,57 @@ public final class SimpleReactiveQueryByExampleExecutor<T> implements ReactiveQu
 	public <S extends T> Mono<S> findOne(Example<S> example) {
 
 		Predicate predicate = Predicate.create(mappingContext, example);
-		Statement statement = predicate.useWithReadingFragment(cypherGenerator::prepareMatchOf)
-				.returning(cypherGenerator.createReturnStatementForMatch(predicate.getNeo4jPersistentEntity()))
-				.build();
+		Map<String, Object> parameters = predicate.getParameters();
 
-		return this.neo4jOperations.findOne(statement, predicate.getParameters(), example.getProbeType());
+		Condition condition = predicate.getCondition();
+
+		Neo4jPersistentEntity<?> entityMetaData = mappingContext.getPersistentEntity(example.getProbeType());
+
+		Expression[] returnStatement = cypherGenerator.createReturnStatementForMatch(entityMetaData);
+		QueryFragments queryFragments = new QueryFragments();
+		queryFragments.setMatchOn(cypherGenerator.createRootNode(entityMetaData));
+		queryFragments.setCondition(condition);
+		queryFragments.setReturnExpression(returnStatement);
+		QueryFragmentsAndParameters f = new QueryFragmentsAndParameters(entityMetaData, queryFragments, parameters);
+
+		return this.neo4jOperations.findByExample(example.getProbeType(), f).flatMap(ReactiveNeo4jOperations.ExecutableQuery::getSingleResult);
 	}
 
 	@Override
 	public <S extends T> Flux<S> findAll(Example<S> example) {
 
 		Predicate predicate = Predicate.create(mappingContext, example);
-		Statement statement = predicate.useWithReadingFragment(cypherGenerator::prepareMatchOf)
-				.returning(cypherGenerator.createReturnStatementForMatch(predicate.getNeo4jPersistentEntity()))
-				.build();
+		Map<String, Object> parameters = predicate.getParameters();
 
-		return this.neo4jOperations.findAll(statement, predicate.getParameters(), example.getProbeType());
+		Condition condition = predicate.getCondition();
+
+		Neo4jPersistentEntity<?> entityMetaData = mappingContext.getPersistentEntity(example.getProbeType());
+
+		Expression[] returnStatement = cypherGenerator.createReturnStatementForMatch(entityMetaData);
+		QueryFragments queryFragments = new QueryFragments();
+		queryFragments.setMatchOn(cypherGenerator.createRootNode(entityMetaData));
+		queryFragments.setCondition(condition);
+		queryFragments.setReturnExpression(returnStatement);
+		QueryFragmentsAndParameters f = new QueryFragmentsAndParameters(entityMetaData, queryFragments, parameters);
+		return this.neo4jOperations.findByExample(example.getProbeType(), f).flatMapMany(ReactiveNeo4jOperations.ExecutableQuery::getResults);
 	}
 
 	@Override
 	public <S extends T> Flux<S> findAll(Example<S> example, Sort sort) {
 
 		Predicate predicate = Predicate.create(mappingContext, example);
-		Statement statement = predicate.useWithReadingFragment(cypherGenerator::prepareMatchOf)
-				.returning(cypherGenerator.createReturnStatementForMatch(predicate.getNeo4jPersistentEntity()))
-				.orderBy(CypherAdapterUtils.toSortItems(predicate.getNeo4jPersistentEntity(), sort)).build();
+		Map<String, Object> parameters = predicate.getParameters();
+		Condition condition = predicate.getCondition();
+		Neo4jPersistentEntity<?> entityMetaData = mappingContext.getPersistentEntity(example.getProbeType());
 
-		return this.neo4jOperations.findAll(statement, predicate.getParameters(), example.getProbeType());
+		Expression[] returnStatement = cypherGenerator.createReturnStatementForMatch(entityMetaData);
+		QueryFragments queryFragments = new QueryFragments();
+		queryFragments.setMatchOn(cypherGenerator.createRootNode(entityMetaData));
+		queryFragments.setCondition(condition);
+		queryFragments.setReturnExpression(returnStatement);
+		queryFragments.setOrderBy(CypherAdapterUtils.toSortItems(predicate.getNeo4jPersistentEntity(), sort));
+		QueryFragmentsAndParameters f = new QueryFragmentsAndParameters(entityMetaData, queryFragments, parameters);
+		return this.neo4jOperations.findByExample(example.getProbeType(), f).flatMapMany(ReactiveNeo4jOperations.ExecutableQuery::getResults);
 	}
 
 	@Override

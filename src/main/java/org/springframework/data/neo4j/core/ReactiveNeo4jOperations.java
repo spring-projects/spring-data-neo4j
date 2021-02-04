@@ -16,6 +16,7 @@
 package org.springframework.data.neo4j.core;
 
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentProperty;
+import org.springframework.data.neo4j.repository.query.QueryFragmentsAndParameters;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -224,6 +225,8 @@ public interface ReactiveNeo4jOperations {
 	 * @return An executable query
 	 */
 	<T> Mono<ExecutableQuery<T>> toExecutableQuery(PreparedQuery<T> preparedQuery);
+
+	<T> Mono<ExecutableQuery<T>> findByExample(Class<T> domainType, QueryFragmentsAndParameters f);
 
 	/**
 	 * An interface for controlling query execution in a reactive fashion.

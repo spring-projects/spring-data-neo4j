@@ -228,7 +228,9 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 		Set<Long> relatedNodeIds = new HashSet<>();
 
 		for (RelationshipDescription relationship : entityMetaData.getRelationships()) {
-			if (queryFragments.getReturnTuple() != null && !queryFragments.getReturnTuple().getIncludedProperties().isEmpty() && queryFragments.getReturnTuple().getIncludedProperties().contains(relationship.getFieldName())) {
+			if (queryFragments.getReturnTuple() != null
+					&& !queryFragments.getReturnTuple().getIncludedProperties().isEmpty()
+					&& queryFragments.getReturnTuple().getIncludedProperties().contains(relationship.getFieldName())) {
 				continue;
 			}
 
