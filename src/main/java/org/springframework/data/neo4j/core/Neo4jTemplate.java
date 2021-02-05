@@ -17,7 +17,6 @@ package org.springframework.data.neo4j.core;
 
 import org.apache.commons.logging.LogFactory;
 import org.apiguardian.api.API;
-import org.jetbrains.annotations.NotNull;
 import org.neo4j.cypherdsl.core.Condition;
 import org.neo4j.cypherdsl.core.Conditions;
 import org.neo4j.cypherdsl.core.Cypher;
@@ -26,7 +25,6 @@ import org.neo4j.cypherdsl.core.Functions;
 import org.neo4j.cypherdsl.core.Node;
 import org.neo4j.cypherdsl.core.Relationship;
 import org.neo4j.cypherdsl.core.Statement;
-import org.neo4j.cypherdsl.core.StatementBuilder;
 import org.neo4j.cypherdsl.core.renderer.Renderer;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Value;
@@ -61,6 +59,7 @@ import org.springframework.data.neo4j.repository.NoResultException;
 import org.springframework.data.neo4j.repository.query.QueryFragments;
 import org.springframework.data.neo4j.repository.query.QueryFragmentsAndParameters;
 import org.springframework.data.util.ClassTypeInformation;
+import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
@@ -302,7 +301,7 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 
 	}
 
-	@NotNull
+	@NonNull
 	private BiFunction<TypeSystem, Record, IntermediateQueryResult> mapToIntermediateResult(Set<Long> relationshipIds, Set<Long> relatedNodeIds, RelationshipDescription relationshipDescription) {
 		return (typeSystem, record) -> {
 			List<Long> rootIds = record.get(Constants.NAME_OF_SYNTHESIZED_ROOT_NODE).asList(Value::asLong);

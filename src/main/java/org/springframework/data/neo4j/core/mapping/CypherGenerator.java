@@ -15,36 +15,13 @@
  */
 package org.springframework.data.neo4j.core.mapping;
 
-import static org.neo4j.cypherdsl.core.Cypher.anyNode;
-import static org.neo4j.cypherdsl.core.Cypher.listBasedOn;
-import static org.neo4j.cypherdsl.core.Cypher.match;
-import static org.neo4j.cypherdsl.core.Cypher.node;
-import static org.neo4j.cypherdsl.core.Cypher.optionalMatch;
-import static org.neo4j.cypherdsl.core.Cypher.parameter;
-import static org.springframework.data.neo4j.core.schema.Relationship.Direction.OUTGOING;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.function.Predicate;
-import java.util.function.UnaryOperator;
-import java.util.stream.Collectors;
-
 import org.apiguardian.api.API;
-import org.jetbrains.annotations.NotNull;
 import org.neo4j.cypherdsl.core.Condition;
 import org.neo4j.cypherdsl.core.Conditions;
 import org.neo4j.cypherdsl.core.Cypher;
 import org.neo4j.cypherdsl.core.Expression;
-import org.neo4j.cypherdsl.core.FunctionInvocation;
 import org.neo4j.cypherdsl.core.Functions;
-import org.neo4j.cypherdsl.core.ListComprehension;
 import org.neo4j.cypherdsl.core.MapProjection;
-import org.neo4j.cypherdsl.core.NamedPath;
 import org.neo4j.cypherdsl.core.Node;
 import org.neo4j.cypherdsl.core.Parameter;
 import org.neo4j.cypherdsl.core.PatternElement;
@@ -64,6 +41,25 @@ import org.springframework.data.neo4j.repository.query.QueryFragments;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.function.Predicate;
+import java.util.function.UnaryOperator;
+import java.util.stream.Collectors;
+
+import static org.neo4j.cypherdsl.core.Cypher.anyNode;
+import static org.neo4j.cypherdsl.core.Cypher.listBasedOn;
+import static org.neo4j.cypherdsl.core.Cypher.match;
+import static org.neo4j.cypherdsl.core.Cypher.node;
+import static org.neo4j.cypherdsl.core.Cypher.optionalMatch;
+import static org.neo4j.cypherdsl.core.Cypher.parameter;
+import static org.springframework.data.neo4j.core.schema.Relationship.Direction.OUTGOING;
 
 /**
  * A generator based on the schema defined by node and relationship descriptions. Most methods return renderable Cypher
@@ -179,7 +175,7 @@ public enum CypherGenerator {
 				.with(expressions.toArray(new Expression[]{}));
 	}
 
-	@NotNull
+	@NonNull
 	public Node createRootNode(NodeDescription<?> nodeDescription) {
 		String primaryLabel = nodeDescription.getPrimaryLabel();
 		List<String> additionalLabels = nodeDescription.getAdditionalLabels();
