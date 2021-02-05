@@ -207,7 +207,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 		Condition condition = entityMetaData.getIdExpression().isEqualTo(parameter(Constants.NAME_OF_ID));
 		Expression[] returnStatement = cypherGenerator.createReturnStatementForMatch(entityMetaData);
 		QueryFragments queryFragments = new QueryFragments();
-		queryFragments.setMatchOn(cypherGenerator.createRootNode(entityMetaData));
+		queryFragments.addMatchOn(cypherGenerator.createRootNode(entityMetaData));
 		queryFragments.setCondition(condition);
 		queryFragments.setReturnExpression(returnStatement);
 		QueryFragmentsAndParameters f = new QueryFragmentsAndParameters(entityMetaData, queryFragments, parameters);
@@ -469,7 +469,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 		Neo4jPersistentEntity entityMetaData = neo4jMappingContext.getPersistentEntity(domainType);
 
 		QueryFragments queryFragments = new QueryFragments();
-		queryFragments.setMatchOn(cypherGenerator.createRootNode(entityMetaData));
+		queryFragments.addMatchOn(cypherGenerator.createRootNode(entityMetaData));
 		queryFragments.setCondition(Conditions.noCondition());
 		queryFragments.setReturnExpression(returnStatement);
 		QueryFragmentsAndParameters f = new QueryFragmentsAndParameters(entityMetaData, queryFragments, parameters);
@@ -488,7 +488,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 					.flatMap(bUb -> createExecutableQuery(domainType, renderer.render(bUb.statement), bUb.parameters));
 		}
 
-		Statement statement = cypherGenerator.generateQuery(queryFragments);
+		Statement statement = queryFragments.toStatement();
 
 		return createExecutableQuery(domainType, renderer.render(statement), parameters);
 	}
@@ -635,7 +635,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 		private final Statement statement;
 		private final Map<String, Object> parameters;
 
-		public FinalQueryAndParameters(Statement statement, Collection<FinalParameters> finalParameters) {
+		private FinalQueryAndParameters(Statement statement, Collection<FinalParameters> finalParameters) {
 			this.statement = statement;
 			String chefIds = "chefIds";
 			String relIds = "relIds";
@@ -643,10 +643,10 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 			Set<Long> rootNodeIds = new HashSet<>();
 			Set<Long> relationshipIds = new HashSet<>();
 			Set<Long> relatedNodeIds = new HashSet<>();
-			for (FinalParameters parameters : finalParameters) {
-				rootNodeIds.addAll(parameters.rootNodeIds);
-				relationshipIds.addAll(parameters.relationshipIds);
-				relatedNodeIds.addAll(parameters.relatedNodeIds);
+			for (FinalParameters finalParameter : finalParameters) {
+				rootNodeIds.addAll(finalParameter.rootNodeIds);
+				relationshipIds.addAll(finalParameter.relationshipIds);
+				relatedNodeIds.addAll(finalParameter.relatedNodeIds);
 			}
 			Map<String, Object> bindableParameters = new HashMap<>();
 			bindableParameters.put(chefIds, rootNodeIds);
@@ -680,6 +680,11 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 			return rootNodeIds.equals(that.rootNodeIds) && relationshipIds.equals(that.relationshipIds)
 					&& relatedNodeIds.equals(that.relatedNodeIds);
 		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(rootNodeIds, relationshipIds, relatedNodeIds);
+		}
 	}
 
 	private static class IntermediateQueryResult {
@@ -687,8 +692,6 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 		private final Set<Long> relationshipIds = new HashSet<>();
 		private final Set<Long> relatedNodeIds = new HashSet<>();
 		private final RelationshipDescription relationshipDescription;
-
-		static final IntermediateQueryResult NO_RESULT = new IntermediateQueryResult(Collections.emptySet(), null);
 
 		private IntermediateQueryResult(Set<Long> processedIds, RelationshipDescription relationshipDescription) {
 			this.processedIds = processedIds;
@@ -712,15 +715,6 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 			return Objects.hash(relationshipIds, relatedNodeIds);
 		}
 
-		@Override
-		public String toString() {
-			return "IntermediateQueryResult{" +
-					"processedIds=" + processedIds +
-					", relationshipIds=" + relationshipIds +
-					", relatedNodeIds=" + relatedNodeIds +
-					", relationshipDescription=" + relationshipDescription +
-					'}';
-		}
 	}
 
 	private Mono<Void> processRelations(Neo4jPersistentEntity<?> neo4jPersistentEntity, Object parentObject,
@@ -911,7 +905,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 					cypherQuery = renderer.render(f.statement);
 					finalParameters = f.parameters;
 				} else {
-					cypherQuery = renderer.render(cypherGenerator.generateQuery(queryFragments));
+					cypherQuery = renderer.render(queryFragments.toStatement());
 				}
 
 			}

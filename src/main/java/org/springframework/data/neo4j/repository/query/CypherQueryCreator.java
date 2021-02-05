@@ -27,7 +27,6 @@ import org.neo4j.cypherdsl.core.Predicates;
 import org.neo4j.cypherdsl.core.Property;
 import org.neo4j.cypherdsl.core.RelationshipPattern;
 import org.neo4j.cypherdsl.core.SortItem;
-import org.neo4j.cypherdsl.core.StatementBuilder;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.types.Point;
 import org.springframework.data.domain.Pageable;
@@ -287,7 +286,7 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndPar
 			queryFragments.setMatchOn(relationshipChain);
 			queryFragments.setCondition(condition);
 		} else {
-			queryFragments.setMatchOn(initialMatchOn);
+			queryFragments.addMatchOn(initialMatchOn);
 			queryFragments.setCondition(initialCondition);
 		}
 		/// end of initial filter query creation

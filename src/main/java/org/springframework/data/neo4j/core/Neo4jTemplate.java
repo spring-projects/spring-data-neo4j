@@ -213,7 +213,7 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 		Condition condition = entityMetaData.getIdExpression().isEqualTo(parameter(Constants.NAME_OF_ID));
 		Expression[] returnStatement = cypherGenerator.createReturnStatementForMatch(entityMetaData);
 		QueryFragments queryFragments = new QueryFragments();
-		queryFragments.setMatchOn(cypherGenerator.createRootNode(entityMetaData));
+		queryFragments.addMatchOn(cypherGenerator.createRootNode(entityMetaData));
 		queryFragments.setCondition(condition);
 		queryFragments.setReturnExpression(returnStatement);
 		QueryFragmentsAndParameters f = new QueryFragmentsAndParameters(entityMetaData, queryFragments, parameters);
@@ -338,7 +338,7 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 
 		final static FinalQueryAndParameters NO_RESULT = new FinalQueryAndParameters(null, null);
 
-		public FinalQueryAndParameters(Statement statement, Map<String, Object> parameters) {
+		private FinalQueryAndParameters(Statement statement, Map<String, Object> parameters) {
 			this.statement = statement;
 			this.parameters = parameters;
 		}
@@ -385,7 +385,7 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 
 		Expression[] returnStatement = cypherGenerator.createReturnStatementForMatch(entityMetaData);
 		QueryFragments queryFragments = new QueryFragments();
-		queryFragments.setMatchOn(cypherGenerator.createRootNode(entityMetaData));
+		queryFragments.addMatchOn(cypherGenerator.createRootNode(entityMetaData));
 		queryFragments.setCondition(entityMetaData.getIdExpression().in((parameter(Constants.NAME_OF_IDS))));
 		queryFragments.setReturnExpression(returnStatement);
 		QueryFragmentsAndParameters f = new QueryFragmentsAndParameters(entityMetaData, queryFragments, parameters);
@@ -610,7 +610,7 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 		Neo4jPersistentEntity entityMetaData = neo4jMappingContext.getPersistentEntity(domainType);
 
 		QueryFragments queryFragments = new QueryFragments();
-		queryFragments.setMatchOn(cypherGenerator.createRootNode(entityMetaData));
+		queryFragments.addMatchOn(cypherGenerator.createRootNode(entityMetaData));
 		queryFragments.setCondition(Conditions.noCondition());
 		queryFragments.setReturnExpression(returnStatement);
 		QueryFragmentsAndParameters f = new QueryFragmentsAndParameters(entityMetaData, queryFragments, parameters);
@@ -632,7 +632,7 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 			return createExecutableQuery(domainType, renderer.render(f.statement), f.parameters);
 		}
 
-		Statement statement = cypherGenerator.generateQuery(queryFragments);
+		Statement statement = queryFragments.toStatement();
 
 		return createExecutableQuery(domainType, renderer.render(statement), parameters);
 	}
@@ -838,7 +838,7 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 				cypherQuery = renderer.render(f.statement);
 				finalParameters = f.parameters;
 			} else {
-				cypherQuery = renderer.render(cypherGenerator.generateQuery(queryFragments));
+				cypherQuery = renderer.render(queryFragments.toStatement());
 			}
 
 		}

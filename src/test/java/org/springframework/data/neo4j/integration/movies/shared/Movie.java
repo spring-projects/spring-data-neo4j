@@ -15,16 +15,15 @@
  */
 package org.springframework.data.neo4j.integration.movies.shared;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
-import org.springframework.data.annotation.PersistenceConstructor;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Property;
 import org.springframework.data.neo4j.core.schema.Relationship;
 import org.springframework.data.neo4j.core.schema.Relationship.Direction;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * @author Michael J. Simons

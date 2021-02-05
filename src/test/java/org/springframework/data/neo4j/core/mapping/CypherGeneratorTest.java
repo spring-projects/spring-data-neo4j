@@ -15,18 +15,6 @@
  */
 package org.springframework.data.neo4j.core.mapping;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.when;
-
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Map;
-import java.util.Optional;
-import java.util.regex.Pattern;
-import java.util.stream.Stream;
-
 import org.junit.Assert;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -39,6 +27,17 @@ import org.neo4j.cypherdsl.core.renderer.Renderer;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
+
+import java.util.Collection;
+import java.util.Map;
+import java.util.Optional;
+import java.util.regex.Pattern;
+import java.util.stream.Stream;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Davide Fantuzzi

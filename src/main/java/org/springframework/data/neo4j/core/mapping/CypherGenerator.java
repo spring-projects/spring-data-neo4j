@@ -37,7 +37,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.mapping.MappingException;
 import org.springframework.data.mapping.PersistentProperty;
 import org.springframework.data.neo4j.core.schema.Relationship.Direction;
-import org.springframework.data.neo4j.repository.query.QueryFragments;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
@@ -59,7 +58,6 @@ import static org.neo4j.cypherdsl.core.Cypher.match;
 import static org.neo4j.cypherdsl.core.Cypher.node;
 import static org.neo4j.cypherdsl.core.Cypher.optionalMatch;
 import static org.neo4j.cypherdsl.core.Cypher.parameter;
-import static org.springframework.data.neo4j.core.schema.Relationship.Direction.OUTGOING;
 
 /**
  * A generator based on the schema defined by node and relationship descriptions. Most methods return renderable Cypher
@@ -512,7 +510,7 @@ public enum CypherGenerator {
 		RelationshipPattern relationship;
 
 		Direction determinedDirection = determineDirection(relationshipDescriptions);
-		if (OUTGOING.equals(determinedDirection)) {
+		if (Direction.OUTGOING.equals(determinedDirection)) {
 			relationship = node.relationshipTo(anyNode(), collectFirstLevelRelationshipTypes(relationshipDescriptions))
 					.min(0).max(1);
 		} else if (Direction.INCOMING.equals(determinedDirection)) {
@@ -573,7 +571,7 @@ public enum CypherGenerator {
 			}
 		} else {
 			Direction determinedDirection = determineDirection(relationshipDescriptions);
-			if (OUTGOING.equals(determinedDirection)) {
+			if (Direction.OUTGOING.equals(determinedDirection)) {
 				relationship = existingRelationship.relationshipTo(anyNode(), relationshipTypes).unbounded().min(0);
 			} else if (Direction.INCOMING.equals(determinedDirection)) {
 				relationship = existingRelationship.relationshipFrom(anyNode(), relationshipTypes).unbounded().min(0);
@@ -777,31 +775,6 @@ public enum CypherGenerator {
 
 	private static Condition conditionOrNoCondition(@Nullable Condition condition) {
 		return condition == null ? Conditions.noCondition() : condition;
-	}
-
-	public Statement generateQuery(QueryFragments queryFragments) {
-
-		PatternElement[] matchOn = queryFragments.getMatchOn().toArray(new PatternElement[]{});
-		Condition condition = queryFragments.getCondition();
-		Expression[] aReturn = queryFragments.getReturn().length > 0 ? queryFragments.getReturn()
-				: createReturnStatementForMatch(queryFragments.getReturnTuple().getNodeDescription(), queryFragments.getReturnTuple().getIncludedProperties())
-				;
-		SortItem[] orderBy = queryFragments.getOrderBy();
-		Long skip = queryFragments.getSkip();
-		Number limit = queryFragments.getLimit();
-
-		StatementBuilder.OngoingReadingWithoutWhere match = match(matchOn[0]);
-		for (PatternElement patternElement : matchOn) {
-			match = match.match(patternElement);
-		}
-
-		return match
-				.where(condition)
-				.returning(aReturn)
-				.orderBy(orderBy)
-				.skip(skip)
-				.limit(limit).build();
-
 	}
 
 	private static class RelationshipProcessState {
