@@ -6,6 +6,9 @@ Those come in handy if you cannot express the finder logic via derived query fun
 
 Because Spring Data Neo4j works heavily record-oriented under the hood, it is important to keep this in mind and not build up a result set with multiple records for the same "root node".
 
+TIP: Please have a look in the FAQ as well to learn about alternative forms of using custom queries from repositories, especially
+how to use custom queries with custom mappings: <<faq.custom-queries-and-custom-mappings>>.
+
 [[custom-queries.for-relationships]]
 == Queries with relationships
 
