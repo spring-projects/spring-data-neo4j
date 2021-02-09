@@ -377,7 +377,7 @@ In this example we forbide the use of the `findAll` method.
 You could add methods taking in a fetch depth and run custom queries based on that depth.
 One way to do this is shown in <<domain-results>>.
 
-To enable this base repository for all declared repesotiries enable Neo4j repositories with: `@EnableNeo4jRepositories(repositoryBaseClass = MyRepositoryImpl.class)`.
+To use this base repository for all declared repositories enable Neo4j repositories with: `@EnableNeo4jRepositories(repositoryBaseClass = MyRepositoryImpl.class)`.
 
 [[faq.spel.custom-query]]
 == How do I use Spring Expression Language in custom queries?
