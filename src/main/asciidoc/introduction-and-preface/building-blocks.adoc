@@ -64,7 +64,7 @@ The reactive infrastructure requires a Neo4j 4.0+ database.
                                        v
                          +-------------+--------------+                        +---------------------------------------+
                          |                            |        Provides        |                                       |
-                         |      Neo4j Java Driver     |      <-----------------+ neo4j-java-driver-spring-boot-starter |
+                         |      Neo4j Java Driver     |      <-----------------+     spring-boot-starter               |
                          |                            |                        |                                       |
                          +----------------------------+                        +---------------------------------------+
 ----

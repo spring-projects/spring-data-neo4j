@@ -57,15 +57,26 @@ public class CustomBaseRepositoryIT {
 
 	interface MyPersonRepository extends Neo4jRepository<PersonWithAllConstructor, Long> {}
 
-	static class MyRepositoryImpl<T, ID> extends SimpleNeo4jRepository<T, ID> {
+	/**
+	 * Used in the FAQ as well
+	 * @param <T> Type of the entity
+	 * @param <ID> Type of the id
+	 */
+	static
+	// tag::custom-base-repository[]
+	public class MyRepositoryImpl<T, ID> extends SimpleNeo4jRepository<T, ID> {
 
-		MyRepositoryImpl(Neo4jOperations neo4jOperations, Neo4jEntityInformation<T, ID> entityInformation) {
-			super(neo4jOperations, entityInformation);
-
+		MyRepositoryImpl(
+				Neo4jOperations neo4jOperations,
+				Neo4jEntityInformation<T, ID> entityInformation
+		) {
+			super(neo4jOperations, entityInformation); // <.>
+			// end::custom-base-repository[]
 			assertThat(neo4jOperations).isNotNull();
 			assertThat(entityInformation).isNotNull();
 			Assertions.assertThat(entityInformation.getEntityMetaData().getUnderlyingClass())
 					.isEqualTo(PersonWithAllConstructor.class);
+			// tag::custom-base-repository[]
 		}
 
 		@Override
@@ -73,6 +84,7 @@ public class CustomBaseRepositoryIT {
 			throw new UnsupportedOperationException("This implementation does not support `findAll`.");
 		}
 	}
+	// end::custom-base-repository[]
 
 	@Configuration
 	@EnableNeo4jRepositories(repositoryBaseClass = MyRepositoryImpl.class, considerNestedRepositories = true,

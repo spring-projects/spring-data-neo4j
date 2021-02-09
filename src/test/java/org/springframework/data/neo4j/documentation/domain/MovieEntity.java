@@ -32,6 +32,7 @@ import org.springframework.data.neo4j.core.schema.Relationship.Direction;
  * @author Michael J. Simons
  */
 // tag::mapping.annotations[]
+// tag::faq.custom-query[]
 @Node("Movie") // <.>
 public class MovieEntity {
 
@@ -52,6 +53,7 @@ public class MovieEntity {
 		this.title = title;
 		this.description = description;
 	}
+	// end::faq.custom-query[]
 
 	// Getters omitted for brevity
 	// end::mapping.annotations[]
@@ -72,5 +74,7 @@ public class MovieEntity {
 		return directors;
 	}
 	// tag::mapping.annotations[]
+	// tag::faq.custom-query[]
 }
 // end::mapping.annotations[]
+// end::faq.custom-query[]

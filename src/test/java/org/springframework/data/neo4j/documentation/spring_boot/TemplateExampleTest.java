@@ -15,30 +15,32 @@
  */
 package org.springframework.data.neo4j.documentation.spring_boot;
 
-// tag::faq.template-imperative[]
+// tag::faq.template-imperative-pt1[]
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Collections;
 import java.util.Optional;
 
+// end::faq.template-imperative-pt1[]
+import org.junit.jupiter.api.Disabled;
+// tag::faq.template-imperative-pt1[]
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.core.Neo4jTemplate;
-import org.springframework.data.neo4j.documentation.Test;
 import org.springframework.data.neo4j.documentation.domain.MovieEntity;
 import org.springframework.data.neo4j.documentation.domain.PersonEntity;
 import org.springframework.data.neo4j.documentation.domain.Roles;
 
-// end::faq.template-imperative[]
+// end::faq.template-imperative-pt1[]
 
 /**
  * @author Michael J. Simons
  */
-// tag::faq.template-imperative[]
-// tag::testing.dataneo4jtest[]
-@DataNeo4jTest
+@Disabled
+// tag::faq.template-imperative-pt2[]
 public class TemplateExampleTest {
-	// end::testing.dataneo4jtest[]
+
 	@Test
 	void shouldSaveAndReadEntities(@Autowired Neo4jTemplate neo4jTemplate) {
 
@@ -58,7 +60,5 @@ public class TemplateExampleTest {
 
 		assertThat(neo4jTemplate.count(PersonEntity.class)).isEqualTo(2L);
 	}
-	// tag::testing.dataneo4jtest[]
 }
-// end::faq.template-imperative[]
-// end::testing.dataneo4jtest[]
+// end::faq.template-imperative-pt2[]
