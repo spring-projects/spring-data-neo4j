@@ -49,7 +49,8 @@ With this result as a single record it is possible for Spring Data Neo4j to add 
 [[custom-queries.parameters]]
 == Parameters in custom queries
 
-You do this exactly the same way as in a standard Cypher query issued in the Neo4j Browser or the Cypher-Shell, with the `$` syntax (from Neo4j 4.0 on upwards, the old `{foo}` syntax for Cypher parameters has been removed from the database);
+You do this exactly the same way as in a standard Cypher query issued in the Neo4j Browser or the Cypher-Shell,
+with the `$` syntax (from Neo4j 4.0 on upwards, the old `{foo}` syntax for Cypher parameters has been removed from the database).
 
 [source,java,indent=0]
 .ARepository.java
@@ -73,7 +74,7 @@ This is the standard Spring Data way of defining a block of text inside a query 
 The following example basically defines the same query as above, but uses a `WHERE` clause to avoid even more curly braces:
 
 [source,java,indent=0]
-[[custom-queries-with-spel]]
+[[custom-queries-with-spel-parameter-example]]
 .ARepository.java
 ----
 include::../../../../src/test/java/org/springframework/data/neo4j/documentation/repositories/domain_events/ARepository.java[tags=spel]

@@ -15,15 +15,18 @@
  */
 package org.springframework.data.neo4j.documentation.spring_boot;
 
-// tag::faq.template-reactive[]
+// tag::faq.template-reactive-pt1[]
 
 import reactor.test.StepVerifier;
 
 import java.util.Collections;
 
+// end::faq.template-reactive-pt1[]
+import org.junit.jupiter.api.Disabled;
+// tag::faq.template-reactive-pt1[]
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.core.ReactiveNeo4jTemplate;
-import org.springframework.data.neo4j.documentation.Test;
 import org.springframework.data.neo4j.documentation.domain.MovieEntity;
 import org.springframework.data.neo4j.documentation.domain.PersonEntity;
 import org.springframework.data.neo4j.documentation.domain.Roles;
@@ -33,14 +36,16 @@ import org.testcontainers.containers.Neo4jContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-// end::faq.template-reactive[]
+// end::faq.template-reactive-pt1[]
 
 /**
  * @author Michael J. Simons
  */
-// tag::faq.template-reactive[]
+@Disabled
+// tag::faq.template-reactive-pt1[]
 @Testcontainers
-@DataNeo4jTest
+// end::faq.template-reactive-pt1[]
+// tag::faq.template-reactive-pt2[]
 class ReactiveTemplateExampleTest {
 
 	@Container private static Neo4jContainer<?> neo4jContainer = new Neo4jContainer<>("neo4j:4.0");
@@ -72,4 +77,4 @@ class ReactiveTemplateExampleTest {
 		StepVerifier.create(neo4jTemplate.count(PersonEntity.class)).expectNext(2L).verifyComplete();
 	}
 }
-// end::faq.template-reactive[]
+// end::faq.template-reactive-pt2[]

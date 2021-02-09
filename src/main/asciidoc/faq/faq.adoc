@@ -140,7 +140,9 @@ This is our canonical movie example with the imperative template:
 [[imperative-template-example]]
 .TemplateExampleTest.java
 ----
-include::../../../../src/test/java/org/springframework/data/neo4j/documentation/spring_boot/TemplateExampleTest.java[tags=faq.template-imperative]
+include::../../../../src/test/java/org/springframework/data/neo4j/documentation/spring_boot/TemplateExampleTest.java[tags=faq.template-imperative-pt1]
+@DataNeo4jTest
+include::../../../../src/test/java/org/springframework/data/neo4j/documentation/spring_boot/TemplateExampleTest.java[tags=faq.template-imperative-pt2]
 ----
 
 And here is the reactive version, omitting the setup for brevity:
@@ -149,8 +151,12 @@ And here is the reactive version, omitting the setup for brevity:
 [[reactive-template-example]]
 .ReactiveTemplateExampleTest.java
 ----
-include::../../../../src/test/java/org/springframework/data/neo4j/documentation/spring_boot/ReactiveTemplateExampleTest.java[tags=faq.template-reactive]
+include::../../../../src/test/java/org/springframework/data/neo4j/documentation/spring_boot/ReactiveTemplateExampleTest.java[tags=faq.template-reactive-pt1]
+@DataNeo4jTest
+include::../../../../src/test/java/org/springframework/data/neo4j/documentation/spring_boot/ReactiveTemplateExampleTest.java[tags=faq.template-reactive-pt2]
 ----
+
+Please note that both examples use `@DataNeo4jTest` from Spring Boot.
 
 [[faq.custom-queries-with-page-and-slice]]
 == How do I use custom queries with repository methods returning `Page<T>` or `Slice<T>`?
@@ -200,6 +206,178 @@ public interface MyPersonRepository extends Neo4jRepository<Person, Long> {
 <.> This method returns a page. A page knows about the exact number of total pages.
     Therefore you must specify an additional count query.
     All other restrictions from the second method apply.
+
+[[faq.custom-queries-and-custom-mappings]]
+== Is `@Query` the only way to use custom queries?
+
+No, `@Query` is *not* the only way to run custom queries.
+The annotation is comfortable in situations in which your custom query fills your domain completely.
+Please remember that SDN 6 assumes your mapped domain model to be the truth.
+That means if you use a custom query via `@Query` that only fills a model partially, you are in danger of using the same
+object to write the data back which will eventually erase or overwrite data you didn't consider in your query.
+
+So, please use repositories and declarative methods with `@Query` in all cases where the result is shaped like your domain
+model or you are sure you don't use a partially mapped model for write commands.
+
+What are the alternatives? First, please read up on two things: <<repositories.custom-implementations,custom repository fragments>>
+the <<sdn-building-blocks,levels of abstractions>> we offer in SDN 6.
+
+Why speaking about custom repository fragments?
+
+* You might want to use the Cypher-DSL for building type-safe queries
+* You might have more complex situation in which a dynamic query is required, but the query still belongs
+  conceptually in a repository and not in the service layer
+* Your custom query returns a graph shaped result that fits not quite to your domain model
+  and therefore the custom query should be accomponied by a custom mapping as well
+* You have the need for interacting with the driver, i.e. for bulk loads that should not go through object mapping.
+
+Assume the following repository _declaration_ that basically aggregates one base repository plus 3 fragments:
+
+[source,java,indent=0,tabsize=4]
+[[aggregating-repository]]
+.A repository composed from several fragments
+----
+include::../../../../src/test/java/org/springframework/data/neo4j/documentation/repositories/custom_queries/MovieRepository.java[tags=aggregating-interface]
+----
+
+The repository contains <<movie-entity, Movies>> as shown in <<example-node-spring-boot-project,the getting started section>>.
+
+The additional interface from which the repository extends (`DomainResults`, `NonDomainResults` and `LowlevelInteractions`)
+are the fragments that addresses all the concerncs above.
+
+=== Using complex, dynamic custom queries and but still returning domain types
+
+The fragment `DomainResults` declares one additional method `findMoviesAlongShortestPath`:
+
+[source,java,indent=0,tabsize=4]
+[[domain-results]]
+.DomainResults fragment
+----
+include::../../../../src/test/java/org/springframework/data/neo4j/documentation/repositories/custom_queries/MovieRepository.java[tags=domain-results]
+----
+
+This method is annotated with `@Transactional(readOnly = true)` to indicate that readers can answer it.
+It cannot be derived by SDN but would need a custom query.
+This custom query is provided by the one implementation of that interface.
+The implementation has the same name with the suffix `Impl`:
+
+[source,java,indent=0,tabsize=4]
+[[domain-results-impl]]
+.A fragment implementation using the Neo4jTemplate
+----
+include::../../../../src/test/java/org/springframework/data/neo4j/documentation/repositories/custom_queries/MovieRepository.java[tags=domain-results-impl]
+----
+<.> The `Neo4jTemplate` is injected by the runtime through the constructor of `DomainResultsImpl`. No need for `@Autowired`.
+<.> The Cypher-DSL is used to build a complex statement (pretty much the same as shown in <<faq.path-mapping,path mapping>>.)
+    The statement can be passed directly to the template.
+
+The template has overloads for String-based queries as well, so you could write down the query as String as well.
+The important takeaway here is:
+
+* The template "knows" your domain objects and maps them accordingly
+* `@Query` is not the only option to define custom queries
+* The can be generated in various ways
+* The `@Transactional` annotation is respected
+
+=== Using custom queries and custom mappings
+
+Often times a custom query indicates custom results.
+Should all of those results be mapepd as `@Node`? Of course not! Many times those objects represents read commands
+and are not meant to be used as write commands.
+It is also not unlikely that SDN 6 cannot or want not map everything that is possible with Cypher.
+It does however offer several hooks to run your own mapping: On the `Neo4jClient`.
+The benefit of using the SDN 6 `Neo4jClient` over the driver:
+
+* The `Neo4jClient` is integrated with Springs transaction management
+* It has a fluent API for binding parameters
+* It has a fluent API exposing both the records and the Neo4j typesystem so that you can access
+  everything in your result to execute the mapping
+
+Declaring the fragment is exactly the same as before:
+
+[source,java,indent=0,tabsize=4]
+[[non-domain-results]]
+.A fragment declaring non-domain-type results
+----
+include::../../../../src/test/java/org/springframework/data/neo4j/documentation/repositories/custom_queries/MovieRepository.java[tags=non-domain-results]
+----
+<.> This is a made up non-domain result. A real world query result would probably look more complex.
+<.> The method this fragment adds. Again, the method is annotated with Spring's `@Transactional`
+
+Without an implementation for that fragment, startup would fail, so here it is:
+
+[source,java,indent=0,tabsize=4]
+[[non-domain-results-impl]]
+.A fragment implementation using the Neo4jClient
+----
+include::../../../../src/test/java/org/springframework/data/neo4j/documentation/repositories/custom_queries/MovieRepository.java[tags=non-domain-results-impl]
+----
+<.> Here we use the `Neo4jClient`, as provided by the infrastructure.
+<.> The client takes only in Strings, but the Cypher-DSL can still be used when rendering into a String
+<.> Bind one single value to a named parameter. There's also an overload to bind a whole map of parameters
+<.> This is the type of the result you want
+<.> And finally, the `mappedBy` method, exposing one `Record` for each entry in the result plus the drivers typesystem if needed.
+    This is the API in which you hook in for your custom mappings
+
+The whole query runs in the context of a Spring transaction, in this case, a read-only one.
+
+==== Low level interactions
+
+Sometimes you might want to do bulk loadings from a repository or delete whole subgraphs or interact in very specific ways
+with the Neo4j Java-Driver. This is possible as well. The following example shows how:
+
+[source,java,indent=0,tabsize=4]
+[[low-level-interactions]]
+.Fragments using the plain driver
+----
+include::../../../../src/test/java/org/springframework/data/neo4j/documentation/repositories/custom_queries/MovieRepository.java[tags=lowlevel-interactions]
+----
+<.> Work with the driver directly. As with all the examples: There is no need for `@Autowired` magic. All the fragments
+    are actually testable on their own.
+<.> The usecase is made up. Here we use a driver managed transaction deleting the whole graph and return the number of
+    deleted nodes and relationships
+
+This interaction does of course not run in a Spring transaction, as the driver does not know about Spring.
+
+Putting it all together, this test succeeds:
+
+[source,java,indent=0,tabsize=4]
+[[custom-queries-test]]
+.Testing the composed repository
+----
+include::../../../../src/test/java/org/springframework/data/neo4j/documentation/repositories/custom_queries/CustomQueriesIT.java[tags=custom-queries-test]
+----
+
+As a final word: All three interfaces and implementations are picked up by Spring Data Neo4j automatically.
+There is no need for further configuration.
+Also, the same overall repository could have been created with only one additional fragment (the interface defining all three methods)
+and one implementation. The implementation would than have had all three abstractions injected (template, client and driver).
+
+All of this applies of course to reactive repositories as well.
+They would work with the `ReactiveNeo4jTemplate` and `ReactiveNeo4jClient` and the reactive session provided by the driver.
+
+If you have recuring methods for all repositories, you could swap out the default repository implementation.
+
+[[faq.custom-base-repositories]]
+== How do I use custom Spring Data Neo4j base repositories?
+
+Basically the same ways as the shared Spring Data Commons documentation shows for Spring Data JPA in <<repositories.customize-base-repository>>.
+Only that in our case you would extend from
+
+[source,java,indent=0,tabsize=4]
+[[custom-base-repository]]
+.Custom base repository
+----
+include::../../../../src/test/java/org/springframework/data/neo4j/integration/imperative/CustomBaseRepositoryIT.java[tags=custom-base-repository]
+----
+<.> This signature is required by the base class. Take the `Neo4jOperations` (the actual specification of the `Neo4jTemplate`)
+    and the entity information and store them on an attribute if needed.
+
+In this example we forbide the use of the `findAll` method.
+You could add methods taking in a fetch depth and run custom queries based on that depth.
+One way to do this is shown in <<domain-results>>.
+
+To enable this base repository for all declared repesotiries enable Neo4j repositories with: `@EnableNeo4jRepositories(repositoryBaseClass = MyRepositoryImpl.class)`.
 
 [[faq.spel.custom-query]]
 == How do I use Spring Expression Language in custom queries?
