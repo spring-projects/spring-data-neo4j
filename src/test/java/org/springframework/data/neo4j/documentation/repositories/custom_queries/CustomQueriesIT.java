@@ -23,7 +23,6 @@ import java.io.InputStreamReader;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -35,6 +34,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.neo4j.config.AbstractNeo4jConfig;
 import org.springframework.data.neo4j.documentation.domain.MovieEntity;
 import org.springframework.data.neo4j.documentation.domain.PersonEntity;
+import org.springframework.data.neo4j.integration.movies.shared.CypherUtils;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.data.neo4j.test.Neo4jExtension;
@@ -80,8 +80,8 @@ class CustomQueriesIT {
 				new InputStreamReader(CustomQueriesIT.class.getResourceAsStream("/data/movies.cypher")));
 				Session session = driver.session()) {
 			session.run("MATCH (n) DETACH DELETE n").consume();
-			String moviesCypher = moviesReader.lines().collect(Collectors.joining(" "));
-			session.run(moviesCypher).consume();
+			session.run("MATCH (n) DETACH DELETE n").consume();
+			CypherUtils.loadCypherFromResource("/data/movies.cypher", session);
 		}
 	}
 
