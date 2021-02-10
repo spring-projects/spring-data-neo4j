@@ -32,6 +32,7 @@ import org.neo4j.driver.Values;
 import org.neo4j.driver.exceptions.NoSuchRecordException;
 import org.neo4j.driver.summary.SummaryCounters;
 import org.neo4j.driver.types.TypeSystem;
+import org.reactivestreams.Publisher;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
@@ -484,8 +485,10 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 		Map<String, Object> parameters = queryFragmentsAndParameters.getParameters();
 
 		if (entityMetaData.containsPossibleCircles(Collections.emptyList())) {
-			return bimsUndBums(entityMetaData, queryFragments, parameters)
-					.flatMap(bUb -> createExecutableQuery(domainType, renderer.render(bUb.statement), bUb.parameters));
+			return createQueryAndParameters(entityMetaData, queryFragments, parameters)
+					.flatMap(finalQueryAndParameters ->
+							createExecutableQuery(domainType, renderer.render(finalQueryAndParameters.statement),
+									finalQueryAndParameters.parameters));
 		}
 
 		Statement statement = queryFragments.toStatement();
@@ -493,7 +496,11 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 		return createExecutableQuery(domainType, renderer.render(statement), parameters);
 	}
 
-	private Mono<FinalQueryAndParameters> bimsUndBums(Neo4jPersistentEntity<?> entityMetaData, QueryFragments queryFragments, Map<String, Object> parameters) {
+	private Mono<FinalQueryAndParameters> createQueryAndParameters(Neo4jPersistentEntity<?> entityMetaData,
+		   	QueryFragments queryFragments, Map<String, Object> parameters) {
+
+		Set<Long> processedNodes = ConcurrentHashMap.newKeySet();
+		Set<Long> processedRelationships = ConcurrentHashMap.newKeySet();
 
 		Predicate<RelationshipDescription> relationshipFilter = relationshipDescription ->
 				queryFragments.getReturnTuple() == null
@@ -514,43 +521,29 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 
 			return new FinalParameters(rootNodeIds, relationshipIds, relatedNodeIds);
 		};
-		Set<Long> processedNodes = ConcurrentHashMap.newKeySet();
-		Set<Long> processedRelationships = ConcurrentHashMap.newKeySet();
 
-		Function<Tuple2<DatabaseSelection, RelationshipDescription>, Mono<FinalParameters>> toFinalParameters = relationshipAndDatabase -> {
-			Statement statement = cypherGenerator.prepareMatchOf(entityMetaData, relationshipAndDatabase.getT2(),
-					queryFragments.getMatchOn(), queryFragments.getCondition())
-					.returning(cypherGenerator.createReturnStatementForMatch(entityMetaData)).build();
+		Function<Tuple2<DatabaseSelection, RelationshipDescription>, Mono<FinalParameters>> toFinalParameters =
+				relationshipAndDatabase -> {
+					Statement statement = cypherGenerator.prepareMatchOf(entityMetaData, relationshipAndDatabase.getT2(),
+							queryFragments.getMatchOn(), queryFragments.getCondition())
+							.returning(cypherGenerator.createReturnStatementForMatch(entityMetaData)).build();
 
-			return neo4jClient.query(renderer.render(statement)).in(relationshipAndDatabase.getT1().getValue())
-					.bindAll(parameters)
-					.fetchAs(IntermediateQueryResult.class)
-					.mappedBy(mapToIntermediateQueryResult(relationshipAndDatabase.getT2()))
-					.one()
-					.expand(queryResult -> {
-						Set<Long> tmpProcessedRels = ConcurrentHashMap.newKeySet(queryResult.relationshipIds.size());
-						tmpProcessedRels.addAll(queryResult.relationshipIds);
-						tmpProcessedRels.addAll(queryResult.relationshipIds);
-						tmpProcessedRels.removeAll(processedRelationships);
-						processedRelationships.addAll(queryResult.relationshipIds);
-						Set<Long> tmpProcessedNodes = ConcurrentHashMap.newKeySet(queryResult.processedIds.size());
-						tmpProcessedNodes.addAll(queryResult.processedIds);
-						tmpProcessedNodes.removeAll(processedNodes);
-						processedNodes.addAll(queryResult.processedIds);
-						if (tmpProcessedNodes.isEmpty() && tmpProcessedRels.isEmpty()) {
-							return Mono.empty();
-						}
-						return firstLevelDing(queryResult, relationshipAndDatabase.getT1().getValue(), processedNodes, processedRelationships);
-					})
-					.collectList()
-					.map(createFinalParametersFunction);
-		};
+					String databaseName = relationshipAndDatabase.getT1().getValue();
+					return neo4jClient.query(renderer.render(statement)).in(databaseName)
+							.bindAll(parameters)
+							.fetchAs(IntermediateQueryResult.class)
+							.mappedBy(mapToIntermediateQueryResult(relationshipAndDatabase.getT2()))
+							.one()
+							.expand(iterateAndMapNextLevel(databaseName, processedNodes, processedRelationships))
+							.collectList()
+							.map(createFinalParametersFunction);
+				};
 
 		return getDatabaseName().flatMap(databaseName -> Flux.fromIterable(entityMetaData.getRelationships())
 				.filter(relationshipFilter)
 				.flatMap(relationshipDescriptions -> toFinalParameters.apply(Tuples.of(databaseName, relationshipDescriptions)))
 				.collectList()
-				.flatMap(monos -> Mono.just(new FinalQueryAndParameters(createTheOneAndOnlyQuery(), monos))));
+				.flatMap(finalParameters -> Mono.just(new FinalQueryAndParameters(createTheOneAndOnlyQuery(), finalParameters))));
 
 	}
 
@@ -573,7 +566,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 				).build();
 	}
 
-	private Flux<IntermediateQueryResult> firstLevelDing(IntermediateQueryResult queryResult, String databaseName, Set<Long> processedNodes, Set<Long> processedRelationships) {
+	private Flux<IntermediateQueryResult> iterateNextLevel(IntermediateQueryResult queryResult, String databaseName, Set<Long> processedNodes, Set<Long> processedRelationships) {
 		NodeDescription<?> target = queryResult.relationshipDescription.getTarget();
 
 		return Flux.fromIterable(target.getRelationships())
@@ -590,25 +583,29 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 							.fetchAs(IntermediateQueryResult.class)
 							.mappedBy(mapToIntermediateQueryResult(relationshipDescription))
 							.one()
-							.expand(innerQueryResult -> {
-								Set<Long> tmpProcessedRels = ConcurrentHashMap.newKeySet(innerQueryResult.relationshipIds.size());
-								tmpProcessedRels.addAll(innerQueryResult.relationshipIds);
-								tmpProcessedRels.addAll(innerQueryResult.relationshipIds);
-								tmpProcessedRels.removeAll(processedRelationships);
-								processedRelationships.addAll(innerQueryResult.relationshipIds);
-
-								Set<Long> tmpProcessedNodes = ConcurrentHashMap.newKeySet(innerQueryResult.processedIds.size());
-								tmpProcessedNodes.addAll(innerQueryResult.processedIds);
-								tmpProcessedNodes.addAll(innerQueryResult.processedIds);
-								tmpProcessedNodes.removeAll(processedNodes);
-								processedNodes.addAll(innerQueryResult.processedIds);
-								if (tmpProcessedNodes.isEmpty() && tmpProcessedRels.isEmpty()) {
-									return Mono.empty();
-								}
-								return firstLevelDing(innerQueryResult, databaseName, processedNodes, processedRelationships);
-							});
+							.expand(iterateAndMapNextLevel(databaseName, processedNodes, processedRelationships));
 				});
+	}
 
+	@NonNull
+	private Function<IntermediateQueryResult, Publisher<? extends IntermediateQueryResult>> iterateAndMapNextLevel(String databaseName, Set<Long> processedNodes, Set<Long> processedRelationships) {
+		return innerQueryResult -> {
+			Set<Long> tmpProcessedRels = ConcurrentHashMap.newKeySet(innerQueryResult.relationshipIds.size());
+			tmpProcessedRels.addAll(innerQueryResult.relationshipIds);
+			tmpProcessedRels.addAll(innerQueryResult.relationshipIds);
+			tmpProcessedRels.removeAll(processedRelationships);
+			processedRelationships.addAll(innerQueryResult.relationshipIds);
+
+			Set<Long> tmpProcessedNodes = ConcurrentHashMap.newKeySet(innerQueryResult.processedIds.size());
+			tmpProcessedNodes.addAll(innerQueryResult.processedIds);
+			tmpProcessedNodes.addAll(innerQueryResult.processedIds);
+			tmpProcessedNodes.removeAll(processedNodes);
+			processedNodes.addAll(innerQueryResult.processedIds);
+			if (tmpProcessedNodes.isEmpty() && tmpProcessedRels.isEmpty()) {
+				return Mono.empty();
+			}
+			return iterateNextLevel(innerQueryResult, databaseName, processedNodes, processedRelationships);
+		};
 	}
 
 	@NonNull
@@ -901,7 +898,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 				Map<String, Object> parameters = queryFragmentsAndParameters.getParameters();
 
 				if (containsPossibleCircles) {
-					FinalQueryAndParameters f = bimsUndBums(entityMetaData, queryFragments, parameters).block();
+					FinalQueryAndParameters f = createQueryAndParameters(entityMetaData, queryFragments, parameters).block();
 					cypherQuery = renderer.render(f.statement);
 					finalParameters = f.parameters;
 				} else {
