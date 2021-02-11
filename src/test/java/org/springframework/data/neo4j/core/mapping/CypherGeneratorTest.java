@@ -195,9 +195,9 @@ class CypherGeneratorTest {
 		// we want to ensure that the pattern occurs three times but do not care about the order
 		// of the relationship types
 		Pattern relationshipTypesPattern =
-				Pattern.compile("\\[__sr___tmp:(`CORNERED`\\|`ROUND`|`ROUND`\\|`CORNERED`)]");
+				Pattern.compile("\\[__sr__:(`CORNERED`\\|`ROUND`|`ROUND`\\|`CORNERED`)]");
 
-		Pattern untypedRelationshipsPattern = Pattern.compile("\\[__sr___tmp]");
+		Pattern untypedRelationshipsPattern = Pattern.compile("\\[__sr__]");
 
 		String renderedStatement = Renderer.getDefaultRenderer().render(statement);
 		assertThat(renderedStatement).containsPattern(relationshipTypesPattern);
@@ -214,8 +214,8 @@ class CypherGeneratorTest {
 		Statement statement = CypherGenerator.INSTANCE.prepareMatchOf(
 				persistentEntity, relationships.iterator().next(), null, null).returning(rootNode).build();
 
-		Pattern untypedRelationshipsPattern = Pattern.compile("\\[__sr___tmp]");
-		Pattern typedRelationshipsPattern =	Pattern.compile("\\[__sr___tmp:(`.*`)]");
+		Pattern untypedRelationshipsPattern = Pattern.compile("\\[__sr__]");
+		Pattern typedRelationshipsPattern =	Pattern.compile("\\[__sr__:(`.*`)]");
 
 		String renderedStatement = Renderer.getDefaultRenderer().render(statement);
 		assertThat(renderedStatement).containsPattern(untypedRelationshipsPattern);

@@ -254,23 +254,22 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndPar
 	@Override
 	protected QueryFragmentsAndParameters complete(@Nullable Condition condition, Sort sort) {
 
-		QueryFragmentsAndParameters.QueryFragments blubb = createStatement(condition, sort);
+		QueryFragmentsAndParameters.QueryFragments queryFragments = createQueryFragments(condition, sort);
 
 		Map<String, Object> convertedParameters = this.boundedParameters.stream()
 				.collect(Collectors.toMap(p -> p.nameOrIndex, p -> parameterConversion.apply(p.value, p.conversionOverride)));
-		return new QueryFragmentsAndParameters(nodeDescription, blubb, convertedParameters);
+		return new QueryFragmentsAndParameters(nodeDescription, queryFragments, convertedParameters);
 	}
 
 	@NonNull
-	private QueryFragmentsAndParameters.QueryFragments createStatement(@Nullable Condition condition, Sort sort) {
+	private QueryFragmentsAndParameters.QueryFragments createQueryFragments(@Nullable Condition condition, Sort sort) {
 		QueryFragmentsAndParameters.QueryFragments queryFragments = new QueryFragmentsAndParameters.QueryFragments();
 
 		// all the ways we could query for
 		Node startNode = Cypher.node(nodeDescription.getPrimaryLabel(), nodeDescription.getAdditionalLabels())
 				.named(Constants.NAME_OF_ROOT_NODE);
 
-		PatternElement initialMatchOn = startNode;
-		Condition initialCondition = Optional.ofNullable(condition).orElseGet(Conditions::noCondition);
+		Condition conditionFragment = Optional.ofNullable(condition).orElseGet(Conditions::noCondition);
 		List<PatternElement> relationshipChain = new ArrayList<>();
 
 		for (PropertyPathWrapper possiblePathWithRelationship : propertyPathWrappers) {
@@ -280,14 +279,12 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndPar
 		}
 
 		// closing action: add the condition and path match
-//		if (nodeDescription.containsPossibleCircles(includedProperties)) {
-//			matchAndCondition = cypherGenerator.createPathMatchWithCondition(matches, nodeDescription, includedProperties, condition, startNode);
+		queryFragments.setCondition(conditionFragment);
+
 		if (!relationshipChain.isEmpty()) {
 			queryFragments.setMatchOn(relationshipChain);
-			queryFragments.setCondition(condition);
 		} else {
-			queryFragments.addMatchOn(initialMatchOn);
-			queryFragments.setCondition(initialCondition);
+			queryFragments.addMatchOn(startNode);
 		}
 		/// end of initial filter query creation
 

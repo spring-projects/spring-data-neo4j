@@ -582,8 +582,8 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 	}
 
 	@Override
-	public <T> ExecutableQuery<T> toExecutableFindByExampleQuery(Class<T> domainType,
-			QueryFragmentsAndParameters queryFragmentsAndParameters) {
+	public <T> ExecutableQuery<T> toExecutableQuery(Class<T> domainType,
+													QueryFragmentsAndParameters queryFragmentsAndParameters) {
 
 		return createExecutableQuery(domainType, queryFragmentsAndParameters);
 	}
@@ -684,7 +684,7 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 		private GenericQueryAndParameters fetchAllRelatedIds(Neo4jPersistentEntity<?> entityMetaData,
 															 QueryFragmentsAndParameters.QueryFragments queryFragments, Map<String, Object> parameters) {
 
-			// first check if the root node(s) exist at all
+			// first check if the root node(s) exist(s) at all
 			Statement rootNodesStatement = cypherGenerator
 					.prepareMatchOf(entityMetaData, queryFragments.getMatchOn(), queryFragments.getCondition())
 					.returning(Constants.NAME_OF_SYNTHESIZED_ROOT_NODE).build();

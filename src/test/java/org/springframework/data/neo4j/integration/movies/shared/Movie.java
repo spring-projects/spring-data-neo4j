@@ -57,15 +57,6 @@ public final class Movie {
 		this.sequel = null;
 	}
 
-//	@PersistenceConstructor
-//	public Movie(String title, String description, List<Actor> actors, List<Person> directors, Movie sequel) {
-//		this.title = title;
-//		this.description = description;
-//		this.actors = actors == null ? Collections.emptyList() : new ArrayList<>(actors);
-//		this.directors = directors == null ? Collections.emptyList() : new ArrayList<>(directors);
-//		this.sequel = sequel;
-//	}
-
 	public String getTitle() {
 		return title;
 	}

@@ -56,21 +56,21 @@ public final class SimpleReactiveQueryByExampleExecutor<T> implements ReactiveQu
 	@Override
 	public <S extends T> Mono<S> findOne(Example<S> example) {
 		return this.neo4jOperations
-				.toExecutableFindByExampleQuery(example.getProbeType(), QueryFragmentsAndParameters.forExample(mappingContext, example))
+				.toExecutableQuery(example.getProbeType(), QueryFragmentsAndParameters.forExample(mappingContext, example))
 				.flatMap(ReactiveNeo4jOperations.ExecutableQuery::getSingleResult);
 	}
 
 	@Override
 	public <S extends T> Flux<S> findAll(Example<S> example) {
 		return this.neo4jOperations
-				.toExecutableFindByExampleQuery(example.getProbeType(), QueryFragmentsAndParameters.forExample(mappingContext, example))
+				.toExecutableQuery(example.getProbeType(), QueryFragmentsAndParameters.forExample(mappingContext, example))
 				.flatMapMany(ReactiveNeo4jOperations.ExecutableQuery::getResults);
 	}
 
 	@Override
 	public <S extends T> Flux<S> findAll(Example<S> example, Sort sort) {
 		return this.neo4jOperations
-				.toExecutableFindByExampleQuery(example.getProbeType(), QueryFragmentsAndParameters.forExample(mappingContext, example, sort))
+				.toExecutableQuery(example.getProbeType(), QueryFragmentsAndParameters.forExample(mappingContext, example, sort))
 				.flatMapMany(ReactiveNeo4jOperations.ExecutableQuery::getResults);
 	}
 

@@ -217,7 +217,9 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 	}
 
 	@Override
-	public <T> Mono<ExecutableQuery<T>> toExecutableFindByExampleQuery(Class<T> domainType, QueryFragmentsAndParameters queryFragmentsAndParameters) {
+	public <T> Mono<ExecutableQuery<T>> toExecutableQuery(Class<T> domainType,
+														  QueryFragmentsAndParameters queryFragmentsAndParameters) {
+
 		return createExecutableQuery(domainType, queryFragmentsAndParameters);
 	}
 

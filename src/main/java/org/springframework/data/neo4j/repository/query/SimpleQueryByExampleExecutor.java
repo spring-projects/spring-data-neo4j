@@ -60,26 +60,26 @@ public final class SimpleQueryByExampleExecutor<T> implements QueryByExampleExec
 
 	@Override
 	public <S extends T> Optional<S> findOne(Example<S> example) {
-		return this.neo4jOperations.toExecutableFindByExampleQuery(example.getProbeType(),
+		return this.neo4jOperations.toExecutableQuery(example.getProbeType(),
 				QueryFragmentsAndParameters.forExample(mappingContext, example)).getSingleResult();
 	}
 
 	@Override
 	public <S extends T> List<S> findAll(Example<S> example) {
-		return this.neo4jOperations.toExecutableFindByExampleQuery(example.getProbeType(),
+		return this.neo4jOperations.toExecutableQuery(example.getProbeType(),
 				QueryFragmentsAndParameters.forExample(mappingContext, example)).getResults();
 	}
 
 	@Override
 	public <S extends T> List<S> findAll(Example<S> example, Sort sort) {
-		return this.neo4jOperations.toExecutableFindByExampleQuery(example.getProbeType(),
+		return this.neo4jOperations.toExecutableQuery(example.getProbeType(),
 				QueryFragmentsAndParameters.forExample(mappingContext, example, sort)).getResults();
 	}
 
 	@Override
 	public <S extends T> Page<S> findAll(Example<S> example, Pageable pageable) {
 
-		List<S> page = this.neo4jOperations.toExecutableFindByExampleQuery(example.getProbeType(),
+		List<S> page = this.neo4jOperations.toExecutableQuery(example.getProbeType(),
 				QueryFragmentsAndParameters.forExample(mappingContext, example, pageable)).getResults();
 
 		LongSupplier totalCountSupplier = () -> this.count(example);

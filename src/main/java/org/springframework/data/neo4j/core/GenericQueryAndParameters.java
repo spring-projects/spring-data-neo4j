@@ -68,9 +68,9 @@ final class GenericQueryAndParameters {
 	}
 
 	private static Statement createStatement() {
-		Node rootNodes = Cypher.anyNode("rootNodes");
-		Node relatedNodes = Cypher.anyNode("relatedNodes");
-		Relationship relationships = Cypher.anyNode().relationshipBetween(Cypher.anyNode()).named("relationships");
+		Node rootNodes = Cypher.anyNode(ROOT_NODE_IDS);
+		Node relatedNodes = Cypher.anyNode(RELATED_NODE_IDS);
+		Relationship relationships = Cypher.anyNode().relationshipBetween(Cypher.anyNode()).named(RELATIONSHIP_IDS);
 
 		return Cypher.match(rootNodes)
 				.where(Functions.id(rootNodes).in(Cypher.parameter(ROOT_NODE_IDS)))

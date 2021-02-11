@@ -163,7 +163,10 @@ public enum CypherGenerator {
 			}
 		}
 
-		Node targetNode = node(relationshipDescription.getTarget().getPrimaryLabel(), relationshipDescription.getTarget().getAdditionalLabels()).named(Constants.NAME_OF_SYNTHESIZED_RELATED_NODES + "_tmp");
+		Node targetNode = node(relationshipDescription.getTarget().getPrimaryLabel(),
+				relationshipDescription.getTarget().getAdditionalLabels())
+				.named(Constants.NAME_OF_SYNTHESIZED_RELATED_NODES);
+
 		boolean dynamicRelationship = relationshipDescription.isDynamic();
 		Class<?> componentType = ((DefaultRelationshipDescription) relationshipDescription).getInverse().getComponentType();
 		List<String> relationshipTypes = new ArrayList<>();
@@ -188,7 +191,7 @@ public enum CypherGenerator {
 				break;
 		}
 
-		relationship = relationship.named(Constants.NAME_OF_SYNTHESIZED_RELATIONS + "_tmp");
+		relationship = relationship.named(Constants.NAME_OF_SYNTHESIZED_RELATIONS);
 		List<Expression> expressions = new ArrayList<>();
 		expressions.add(Functions.collect(Functions.id(rootNode)).as(Constants.NAME_OF_SYNTHESIZED_ROOT_NODE));
 		expressions.add(Functions.collect(Functions.id(targetNode)).as(Constants.NAME_OF_SYNTHESIZED_RELATED_NODES));
