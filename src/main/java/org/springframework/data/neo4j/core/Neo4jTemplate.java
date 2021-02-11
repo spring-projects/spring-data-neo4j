@@ -17,7 +17,6 @@ package org.springframework.data.neo4j.core;
 
 import org.apache.commons.logging.LogFactory;
 import org.apiguardian.api.API;
-import org.jetbrains.annotations.NotNull;
 import org.neo4j.cypherdsl.core.Condition;
 import org.neo4j.cypherdsl.core.Cypher;
 import org.neo4j.cypherdsl.core.Functions;
@@ -52,6 +51,7 @@ import org.springframework.data.neo4j.core.mapping.callback.EventSupport;
 import org.springframework.data.neo4j.repository.NoResultException;
 import org.springframework.data.neo4j.repository.query.QueryFragmentsAndParameters;
 import org.springframework.data.util.ClassTypeInformation;
+import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
@@ -661,12 +661,14 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 				Map<String, Object> parameters = queryFragmentsAndParameters.getParameters();
 
 				if (containsPossibleCircles) {
-					GenericQueryAndParameters f = fetchAllRelatedIds(entityMetaData, queryFragments, parameters);
-					if (f.isEmpty()) {
+					GenericQueryAndParameters genericQueryAndParameters =
+							fetchAllRelatedIds(entityMetaData, queryFragments, parameters);
+
+					if (genericQueryAndParameters.isEmpty()) {
 						return Optional.empty();
 					}
 					cypherQuery = renderer.render(GenericQueryAndParameters.STATEMENT);
-					finalParameters = f.getParameters();
+					finalParameters = genericQueryAndParameters.getParameters();
 				} else {
 					cypherQuery = renderer.render(queryFragments.toStatement());
 				}
@@ -745,7 +747,7 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 			}
 		}
 
-		@NotNull
+		@NonNull
 		private Consumer<Map<String, Object>> extractRelationshipsAndRelatedNodes(Set<Long> relationshipIds,
 			  	Set<Long> relatedNodeIds, RelationshipDescription relationshipDescription) {
 

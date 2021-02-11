@@ -1,3 +1,18 @@
+/*
+ * Copyright 2011-2021 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.springframework.data.neo4j.core;
 
 import org.neo4j.cypherdsl.core.Cypher;
@@ -12,7 +27,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 final class GenericQueryAndParameters {
 
@@ -54,20 +68,20 @@ final class GenericQueryAndParameters {
 	}
 
 	private static Statement createStatement() {
-		Node chef = Cypher.anyNode("rootNodes");
-		Node rest = Cypher.anyNode("relatedNodes");
-		Relationship relationship = Cypher.anyNode().relationshipBetween(Cypher.anyNode()).named("relationships");
+		Node rootNodes = Cypher.anyNode("rootNodes");
+		Node relatedNodes = Cypher.anyNode("relatedNodes");
+		Relationship relationships = Cypher.anyNode().relationshipBetween(Cypher.anyNode()).named("relationships");
 
-		return Cypher.match(chef)
-				.where(Functions.id(chef).in(Cypher.parameter(ROOT_NODE_IDS)))
-				.optionalMatch(relationship)
-					.where(Functions.id(relationship).in(Cypher.parameter(RELATIONSHIP_IDS)))
-				.optionalMatch(rest)
-					.where(Functions.id(rest).in(Cypher.parameter(RELATED_NODE_IDS)))
+		return Cypher.match(rootNodes)
+				.where(Functions.id(rootNodes).in(Cypher.parameter(ROOT_NODE_IDS)))
+				.optionalMatch(relationships)
+					.where(Functions.id(relationships).in(Cypher.parameter(RELATIONSHIP_IDS)))
+				.optionalMatch(relatedNodes)
+					.where(Functions.id(relatedNodes).in(Cypher.parameter(RELATED_NODE_IDS)))
 				.returning(
-						chef.as(Constants.NAME_OF_SYNTHESIZED_ROOT_NODE),
-						Functions.collectDistinct(relationship).as(Constants.NAME_OF_SYNTHESIZED_RELATIONS),
-						Functions.collectDistinct(rest).as(Constants.NAME_OF_SYNTHESIZED_RELATED_NODES)
+						rootNodes.as(Constants.NAME_OF_SYNTHESIZED_ROOT_NODE),
+						Functions.collectDistinct(relationships).as(Constants.NAME_OF_SYNTHESIZED_RELATIONS),
+						Functions.collectDistinct(relatedNodes).as(Constants.NAME_OF_SYNTHESIZED_RELATED_NODES)
 				).build();
 	}
 }

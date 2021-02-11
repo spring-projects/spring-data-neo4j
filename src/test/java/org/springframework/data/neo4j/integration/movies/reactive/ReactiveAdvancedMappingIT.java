@@ -122,6 +122,31 @@ class ReactiveAdvancedMappingIT {
 		Flux<Movie> customPathQueryMoviesFind(@Param("title") String title);
 	}
 
+	@Test
+	void cyclicMappingShouldReturnResultForFindById(@Autowired MovieRepository repository) {
+		StepVerifier.create(repository.findById("The Matrix"))
+				.assertNext(movie -> {
+					assertThat(movie).isNotNull();
+					assertThat(movie.getTitle()).isEqualTo("The Matrix");
+					assertThat(movie.getActors()).hasSize(6);
+				})
+		.verifyComplete();
+	}
+
+	@Test
+	void cyclicMappingShouldReturnResultForFindAllById(@Autowired MovieRepository repository) {
+		StepVerifier.create(repository.findAllById(Arrays.asList("The Matrix", "The Matrix Revolutions", "The Matrix Reloaded")))
+				.expectNextCount(3)
+				.verifyComplete();
+	}
+
+	@Test
+	void cyclicMappingShouldReturnResultForFindAll(@Autowired MovieRepository repository) {
+		StepVerifier.create(repository.findAll())
+				.expectNextCount(38)
+				.verifyComplete();
+	}
+
 	@Test // GH-2117
 	void bothCyclicAndNonCyclicRelationshipsAreExcludedFromProjections(@Autowired MovieRepository movieRepository) {
 

@@ -209,19 +209,16 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 	public <T> Flux<T> findAllById(Iterable<?> ids, Class<T> domainType) {
 
 		Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getPersistentEntity(domainType);
-		Statement statement = cypherGenerator
-				.prepareMatchOf(entityMetaData, entityMetaData.getIdExpression().in((parameter(Constants.NAME_OF_IDS))))
-				.returning(cypherGenerator.createReturnStatementForMatch(entityMetaData)).build();
 
-		return createExecutableQuery(domainType, statement, Collections
-				.singletonMap(Constants.NAME_OF_IDS,
+		return createExecutableQuery(domainType,
+						QueryFragmentsAndParameters.forFindByAllId(entityMetaData,
 						convertIdValues(entityMetaData.getRequiredIdProperty(), ids)))
 				.flatMapMany(ExecutableQuery::getResults);
 	}
 
 	@Override
-	public <T> Mono<ExecutableQuery<T>> toExecutableFindByExampleQuery(Class<T> domainType, QueryFragmentsAndParameters f) {
-		return createExecutableQuery(domainType, f);
+	public <T> Mono<ExecutableQuery<T>> toExecutableFindByExampleQuery(Class<T> domainType, QueryFragmentsAndParameters queryFragmentsAndParameters) {
+		return createExecutableQuery(domainType, queryFragmentsAndParameters);
 	}
 
 
@@ -795,9 +792,11 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 				Map<String, Object> parameters = queryFragmentsAndParameters.getParameters();
 
 				if (containsPossibleCircles) {
-					GenericQueryAndParameters f = createQueryAndParameters(entityMetaData, queryFragments, parameters).block();
+					GenericQueryAndParameters genericQueryAndParameters =
+							createQueryAndParameters(entityMetaData, queryFragments, parameters).block();
+
 					cypherQuery = renderer.render(GenericQueryAndParameters.STATEMENT);
-					finalParameters = f.getParameters();
+					finalParameters = genericQueryAndParameters.getParameters();
 				} else {
 					cypherQuery = renderer.render(queryFragments.toStatement());
 				}

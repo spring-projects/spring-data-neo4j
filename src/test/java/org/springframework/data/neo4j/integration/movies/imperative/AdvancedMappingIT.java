@@ -153,7 +153,7 @@ class AdvancedMappingIT {
 	}
 
 	@Test
-	void killThemAll(@Autowired MovieRepository repository) {
+	void cyclicMappingShouldReturnResultForFindById(@Autowired MovieRepository repository) {
 		Movie movie = repository.findById("The Matrix").get();
 		assertThat(movie).isNotNull();
 		assertThat(movie.getTitle()).isEqualTo("The Matrix");
@@ -161,13 +161,13 @@ class AdvancedMappingIT {
 	}
 
 	@Test
-	void killThemAll2(@Autowired MovieRepository repository) {
+	void cyclicMappingShouldReturnResultForFindAllById(@Autowired MovieRepository repository) {
 		List<Movie> movies = repository.findAllById(Arrays.asList("The Matrix", "The Matrix Revolutions", "The Matrix Reloaded"));
 		assertThat(movies).hasSize(3);
 	}
 
 	@Test
-	void killThemAll3(@Autowired MovieRepository repository) {
+	void cyclicMappingShouldReturnResultForFindAll(@Autowired MovieRepository repository) {
 		List<Movie> movies = repository.findAll();
 		assertThat(movies).hasSize(38);
 	}

@@ -226,7 +226,8 @@ public interface ReactiveNeo4jOperations {
 	 */
 	<T> Mono<ExecutableQuery<T>> toExecutableQuery(PreparedQuery<T> preparedQuery);
 
-	<T> Mono<ExecutableQuery<T>> toExecutableFindByExampleQuery(Class<T> domainType, QueryFragmentsAndParameters f);
+	<T> Mono<ExecutableQuery<T>> toExecutableFindByExampleQuery(Class<T> domainType,
+																QueryFragmentsAndParameters queryFragmentsAndParameters);
 
 	/**
 	 * An interface for controlling query execution in a reactive fashion.
