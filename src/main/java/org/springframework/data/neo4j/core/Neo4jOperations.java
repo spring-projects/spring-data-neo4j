@@ -226,7 +226,8 @@ public interface Neo4jOperations {
 	 */
 	<T> ExecutableQuery<T> toExecutableQuery(PreparedQuery<T> preparedQuery);
 
-	<T> ExecutableQuery<T> findByExample(Class<T> domainType, QueryFragmentsAndParameters f);
+	<T> ExecutableQuery<T> toExecutableFindByExampleQuery(Class<T> domainType,
+														  QueryFragmentsAndParameters queryFragmentsAndParameters);
 
 	/**
 	 * An interface for controlling query execution.

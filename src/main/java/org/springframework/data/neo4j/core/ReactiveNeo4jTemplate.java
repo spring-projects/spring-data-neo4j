@@ -18,12 +18,9 @@ package org.springframework.data.neo4j.core;
 import org.apache.commons.logging.LogFactory;
 import org.apiguardian.api.API;
 import org.neo4j.cypherdsl.core.Condition;
-import org.neo4j.cypherdsl.core.Conditions;
 import org.neo4j.cypherdsl.core.Cypher;
-import org.neo4j.cypherdsl.core.Expression;
 import org.neo4j.cypherdsl.core.Functions;
 import org.neo4j.cypherdsl.core.Node;
-import org.neo4j.cypherdsl.core.Relationship;
 import org.neo4j.cypherdsl.core.Statement;
 import org.neo4j.cypherdsl.core.renderer.Renderer;
 import org.neo4j.driver.Record;
@@ -55,7 +52,6 @@ import org.springframework.data.neo4j.core.mapping.NestedRelationshipProcessingS
 import org.springframework.data.neo4j.core.mapping.NodeDescription;
 import org.springframework.data.neo4j.core.mapping.RelationshipDescription;
 import org.springframework.data.neo4j.core.mapping.callback.ReactiveEventSupport;
-import org.springframework.data.neo4j.repository.query.QueryFragments;
 import org.springframework.data.neo4j.repository.query.QueryFragmentsAndParameters;
 import org.springframework.data.util.ClassTypeInformation;
 import org.springframework.lang.NonNull;
@@ -129,7 +125,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 	@Override
 	public Mono<Long> count(Class<?> domainType) {
 
-		Neo4jPersistentEntity entityMetaData = neo4jMappingContext.getPersistentEntity(domainType);
+		Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getPersistentEntity(domainType);
 		Statement statement = cypherGenerator.prepareMatchOf(entityMetaData).returning(Functions.count(asterisk())).build();
 
 		return count(statement);
@@ -160,8 +156,9 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 	@Override
 	public <T> Flux<T> findAll(Class<T> domainType) {
 
-		Neo4jPersistentEntity entityMetaData = neo4jMappingContext.getPersistentEntity(domainType);
-		return createExecutableQuery(domainType, cypherGenerator.createReturnStatementForMatch(entityMetaData)).flatMapMany(ExecutableQuery::getResults);
+		Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getPersistentEntity(domainType);
+		return createExecutableQuery(domainType, QueryFragmentsAndParameters.forFindAll(entityMetaData))
+				.flatMapMany(ExecutableQuery::getResults);
 	}
 
 	@Override
@@ -203,7 +200,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 		Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getPersistentEntity(domainType);
 
 		return createExecutableQuery(domainType,
-				QueryFragmentsAndParameters.findById(entityMetaData,
+				QueryFragmentsAndParameters.forFindById(entityMetaData,
 						convertIdValues(entityMetaData.getRequiredIdProperty(), id)))
 				.flatMap(ExecutableQuery::getSingleResult);
 	}
@@ -223,7 +220,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 	}
 
 	@Override
-	public <T> Mono<ExecutableQuery<T>> findByExample(Class<T> domainType, QueryFragmentsAndParameters f) {
+	public <T> Mono<ExecutableQuery<T>> toExecutableFindByExampleQuery(Class<T> domainType, QueryFragmentsAndParameters f) {
 		return createExecutableQuery(domainType, f);
 	}
 
@@ -430,7 +427,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 	}
 
 	private <T> Mono<ExecutableQuery<T>> createExecutableQuery(Class<T> domainType, Statement statement) {
-		return createExecutableQuery(domainType, statement, Collections.emptyMap());
+		return createExecutableQuery(domainType, renderer.render(statement), Collections.emptyMap());
 	}
 
 	private <T> Mono<ExecutableQuery<T>> createExecutableQuery(Class<T> domainType, String cypherQuery) {
@@ -453,34 +450,18 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 		return this.toExecutableQuery(preparedQuery);
 	}
 
-	private <T> Mono<ExecutableQuery<T>> createExecutableQuery(Class<T> domainType, Expression[] returnStatement) {
-		return createExecutableQuery(domainType, returnStatement, Collections.emptyMap());
-	}
-
-	private <T> Mono<ExecutableQuery<T>> createExecutableQuery(Class<T> domainType, Expression[] returnStatement,
-														 Map<String, Object> parameters) {
-		Neo4jPersistentEntity entityMetaData = neo4jMappingContext.getPersistentEntity(domainType);
-
-		QueryFragments queryFragments = new QueryFragments();
-		queryFragments.addMatchOn(cypherGenerator.createRootNode(entityMetaData));
-		queryFragments.setCondition(Conditions.noCondition());
-		queryFragments.setReturnExpression(returnStatement);
-		QueryFragmentsAndParameters f = new QueryFragmentsAndParameters(entityMetaData, queryFragments, parameters);
-		return createExecutableQuery(domainType, f);
-	}
-
 	private <T> Mono<ExecutableQuery<T>> createExecutableQuery(Class<T> domainType,
 		   QueryFragmentsAndParameters queryFragmentsAndParameters) {
 
 		Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getPersistentEntity(domainType);
-		QueryFragments queryFragments = queryFragmentsAndParameters.getQueryFragments();
+		QueryFragmentsAndParameters.QueryFragments queryFragments = queryFragmentsAndParameters.getQueryFragments();
 		Map<String, Object> parameters = queryFragmentsAndParameters.getParameters();
 
 		if (entityMetaData.containsPossibleCircles(Collections.emptyList())) {
 			return createQueryAndParameters(entityMetaData, queryFragments, parameters)
 					.flatMap(finalQueryAndParameters ->
-							createExecutableQuery(domainType, renderer.render(finalQueryAndParameters.statement),
-									finalQueryAndParameters.parameters));
+							createExecutableQuery(domainType, renderer.render(GenericQueryAndParameters.STATEMENT),
+									finalQueryAndParameters.getParameters()));
 		}
 
 		Statement statement = queryFragments.toStatement();
@@ -488,8 +469,8 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 		return createExecutableQuery(domainType, renderer.render(statement), parameters);
 	}
 
-	private Mono<FinalQueryAndParameters> createQueryAndParameters(Neo4jPersistentEntity<?> entityMetaData,
-		   	QueryFragments queryFragments, Map<String, Object> parameters) {
+	private Mono<GenericQueryAndParameters> createQueryAndParameters(Neo4jPersistentEntity<?> entityMetaData,
+		 	QueryFragmentsAndParameters.QueryFragments queryFragments, Map<String, Object> parameters) {
 
 		Set<Long> processedNodes = ConcurrentHashMap.newKeySet();
 		Set<Long> processedRelationships = ConcurrentHashMap.newKeySet();
@@ -499,7 +480,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 				|| queryFragments.getReturnTuple().getIncludedProperties().isEmpty()
 				|| queryFragments.getReturnTuple().getIncludedProperties().contains(relationshipDescription.getFieldName());
 
-		Function<List<IntermediateQueryResult>, FinalParameters> createFinalParametersFunction = queryResults -> {
+		Function<List<IntermediateQueryResult>, GenericQueryAndParameters> createFinalParametersFunction = queryResults -> {
 			Set<Long> rootNodeIds = new HashSet<>();
 			Set<Long> relationshipIds = new HashSet<>();
 			Set<Long> relatedNodeIds = new HashSet<>();
@@ -511,10 +492,10 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 				relatedNodeIds.addAll(queryResult.relatedNodeIds);
 			}
 
-			return new FinalParameters(rootNodeIds, relationshipIds, relatedNodeIds);
+			return new GenericQueryAndParameters(rootNodeIds, relationshipIds, relatedNodeIds);
 		};
 
-		Function<Tuple2<DatabaseSelection, RelationshipDescription>, Mono<FinalParameters>> toFinalParameters =
+		Function<Tuple2<DatabaseSelection, RelationshipDescription>, Mono<GenericQueryAndParameters>> toFinalParameters =
 				relationshipAndDatabase -> {
 					Statement statement = cypherGenerator.prepareMatchOf(entityMetaData, relationshipAndDatabase.getT2(),
 							queryFragments.getMatchOn(), queryFragments.getCondition())
@@ -535,27 +516,8 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 				.filter(relationshipFilter)
 				.flatMap(relationshipDescriptions -> toFinalParameters.apply(Tuples.of(databaseName, relationshipDescriptions)))
 				.collectList()
-				.flatMap(finalParameters -> Mono.just(new FinalQueryAndParameters(createTheOneAndOnlyQuery(), finalParameters))));
+				.flatMap(finalParameters -> Mono.just(new GenericQueryAndParameters(finalParameters))));
 
-	}
-
-	private static Statement createTheOneAndOnlyQuery() {
-		String chefIds = "chefIds";
-		String relIds = "relIds";
-		String restIds = "restIds";
-		Node chef = anyNode("chef");
-		Node rest = anyNode("rest");
-		Relationship cRelationship = anyNode().relationshipBetween(anyNode()).named("anyRel");
-
-		return Cypher.match(chef)
-				.where(Functions.id(chef).in(parameter(chefIds)))
-				.optionalMatch(cRelationship).where(Functions.id(cRelationship).in(parameter(relIds)))
-				.optionalMatch(rest).where(Functions.id(rest).in(parameter(restIds)))
-				.returning(
-						chef.as(Constants.NAME_OF_SYNTHESIZED_ROOT_NODE),
-						Functions.collectDistinct(cRelationship).as(Constants.NAME_OF_SYNTHESIZED_RELATIONS),
-						Functions.collectDistinct(rest).as(Constants.NAME_OF_SYNTHESIZED_RELATED_NODES)
-				).build();
 	}
 
 	private Flux<IntermediateQueryResult> iterateNextLevel(IntermediateQueryResult queryResult, String databaseName, Set<Long> processedNodes, Set<Long> processedRelationships) {
@@ -617,63 +579,6 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 
 			return queryResult;
 		};
-	}
-
-	private static class FinalQueryAndParameters {
-
-		private final Statement statement;
-		private final Map<String, Object> parameters;
-
-		private FinalQueryAndParameters(Statement statement, Collection<FinalParameters> finalParameters) {
-			this.statement = statement;
-			String chefIds = "chefIds";
-			String relIds = "relIds";
-			String restIds = "restIds";
-			Set<Long> rootNodeIds = new HashSet<>();
-			Set<Long> relationshipIds = new HashSet<>();
-			Set<Long> relatedNodeIds = new HashSet<>();
-			for (FinalParameters finalParameter : finalParameters) {
-				rootNodeIds.addAll(finalParameter.rootNodeIds);
-				relationshipIds.addAll(finalParameter.relationshipIds);
-				relatedNodeIds.addAll(finalParameter.relatedNodeIds);
-			}
-			Map<String, Object> bindableParameters = new HashMap<>();
-			bindableParameters.put(chefIds, rootNodeIds);
-			bindableParameters.put(relIds, relationshipIds);
-			bindableParameters.put(restIds, relatedNodeIds);
-			this.parameters = bindableParameters;
-		}
-	}
-
-	private static class FinalParameters {
-		private final Set<Long> rootNodeIds;
-		private final Set<Long> relationshipIds;
-		private final Set<Long> relatedNodeIds;
-
-		private FinalParameters(Set<Long> rootNodeIds, Set<Long> relationshipIds, Set<Long> relatedNodeIds) {
-			this.rootNodeIds = rootNodeIds;
-			this.relationshipIds = relationshipIds;
-			this.relatedNodeIds = relatedNodeIds;
-		}
-
-
-		@Override
-		public boolean equals(Object o) {
-			if (this == o) {
-				return true;
-			}
-			if (o == null || getClass() != o.getClass()) {
-				return false;
-			}
-			FinalParameters that = (FinalParameters) o;
-			return rootNodeIds.equals(that.rootNodeIds) && relationshipIds.equals(that.relationshipIds)
-					&& relatedNodeIds.equals(that.relatedNodeIds);
-		}
-
-		@Override
-		public int hashCode() {
-			return Objects.hash(rootNodeIds, relationshipIds, relatedNodeIds);
-		}
 	}
 
 	private static class IntermediateQueryResult {
@@ -877,10 +782,10 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 			String cypherQuery = queryFragmentsAndParameters.getCypherQuery();
 			Map<String, Object> finalParameters = preparedQuery.getQueryFragmentsAndParameters().getParameters();
 
-			QueryFragments queryFragments = queryFragmentsAndParameters.getQueryFragments();
+			QueryFragmentsAndParameters.QueryFragments queryFragments = queryFragmentsAndParameters.getQueryFragments();
 			Neo4jPersistentEntity<?> entityMetaData = (Neo4jPersistentEntity<?>) queryFragmentsAndParameters.getNodeDescription();
 
-			QueryFragments.ReturnTuple returnTuple = queryFragments.getReturnTuple();
+			QueryFragmentsAndParameters.QueryFragments.ReturnTuple returnTuple = queryFragments.getReturnTuple();
 			boolean containsPossibleCircles = entityMetaData != null && entityMetaData.containsPossibleCircles(
 					returnTuple != null
 							? returnTuple.getIncludedProperties()
@@ -890,9 +795,9 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 				Map<String, Object> parameters = queryFragmentsAndParameters.getParameters();
 
 				if (containsPossibleCircles) {
-					FinalQueryAndParameters f = createQueryAndParameters(entityMetaData, queryFragments, parameters).block();
-					cypherQuery = renderer.render(f.statement);
-					finalParameters = f.parameters;
+					GenericQueryAndParameters f = createQueryAndParameters(entityMetaData, queryFragments, parameters).block();
+					cypherQuery = renderer.render(GenericQueryAndParameters.STATEMENT);
+					finalParameters = f.getParameters();
 				} else {
 					cypherQuery = renderer.render(queryFragments.toStatement());
 				}

@@ -254,7 +254,7 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndPar
 	@Override
 	protected QueryFragmentsAndParameters complete(@Nullable Condition condition, Sort sort) {
 
-		QueryFragments blubb = createStatement(condition, sort);
+		QueryFragmentsAndParameters.QueryFragments blubb = createStatement(condition, sort);
 
 		Map<String, Object> convertedParameters = this.boundedParameters.stream()
 				.collect(Collectors.toMap(p -> p.nameOrIndex, p -> parameterConversion.apply(p.value, p.conversionOverride)));
@@ -262,8 +262,8 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndPar
 	}
 
 	@NonNull
-	private QueryFragments createStatement(@Nullable Condition condition, Sort sort) {
-		QueryFragments queryFragments = new QueryFragments();
+	private QueryFragmentsAndParameters.QueryFragments createStatement(@Nullable Condition condition, Sort sort) {
+		QueryFragmentsAndParameters.QueryFragments queryFragments = new QueryFragmentsAndParameters.QueryFragments();
 
 		// all the ways we could query for
 		Node startNode = Cypher.node(nodeDescription.getPrimaryLabel(), nodeDescription.getAdditionalLabels())

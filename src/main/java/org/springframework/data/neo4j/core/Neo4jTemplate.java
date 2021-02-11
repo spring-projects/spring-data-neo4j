@@ -19,9 +19,7 @@ import org.apache.commons.logging.LogFactory;
 import org.apiguardian.api.API;
 import org.jetbrains.annotations.NotNull;
 import org.neo4j.cypherdsl.core.Condition;
-import org.neo4j.cypherdsl.core.Conditions;
 import org.neo4j.cypherdsl.core.Cypher;
-import org.neo4j.cypherdsl.core.Expression;
 import org.neo4j.cypherdsl.core.Functions;
 import org.neo4j.cypherdsl.core.Node;
 import org.neo4j.cypherdsl.core.Statement;
@@ -52,7 +50,6 @@ import org.springframework.data.neo4j.core.mapping.NodeDescription;
 import org.springframework.data.neo4j.core.mapping.RelationshipDescription;
 import org.springframework.data.neo4j.core.mapping.callback.EventSupport;
 import org.springframework.data.neo4j.repository.NoResultException;
-import org.springframework.data.neo4j.repository.query.QueryFragments;
 import org.springframework.data.neo4j.repository.query.QueryFragmentsAndParameters;
 import org.springframework.data.util.ClassTypeInformation;
 import org.springframework.lang.Nullable;
@@ -164,12 +161,13 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 	@Override
 	public <T> List<T> findAll(Class<T> domainType) {
 		Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getPersistentEntity(domainType);
-		return createExecutableQuery(domainType, cypherGenerator.createReturnStatementForMatch(entityMetaData)).getResults();
+		return createExecutableQuery(domainType, QueryFragmentsAndParameters.forFindAll(entityMetaData))
+				.getResults();
 	}
 
 	@Override
 	public <T> List<T> findAll(Statement statement, Class<T> domainType) {
-		return createExecutableQuery(domainType, statement).getResults();
+		return createExecutableQuery(domainType, renderer.render(statement)).getResults();
 	}
 
 	@Override
@@ -202,7 +200,7 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 		Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getPersistentEntity(domainType);
 
 		return createExecutableQuery(domainType,
-				QueryFragmentsAndParameters.findById(entityMetaData,
+				QueryFragmentsAndParameters.forFindById(entityMetaData,
 						convertIdValues(entityMetaData.getRequiredIdProperty(), id)))
 				.getSingleResult();
 	}
@@ -212,7 +210,7 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 		Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getPersistentEntity(domainType);
 
 		return createExecutableQuery(domainType,
-				QueryFragmentsAndParameters.findByAllId(
+				QueryFragmentsAndParameters.forFindByAllId(
 						entityMetaData, convertIdValues(entityMetaData.getRequiredIdProperty(), ids)))
 				.getResults();
 	}
@@ -371,16 +369,14 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 						.isEqualTo(parameter(Constants.NAME_OF_VERSION_PARAM))
 						.or(Cypher.property(Constants.NAME_OF_ROOT_NODE, versionProperty.getPropertyName()).isNull()));
 
+		Statement statement = cypherGenerator.prepareMatchOf(entityMetaData, condition)
+				.returning(Constants.NAME_OF_ROOT_NODE).build();
+
 		Map<String, Object> parameters = new HashMap<>();
 		parameters.put(nameOfParameter, convertIdValues(entityMetaData.getRequiredIdProperty(), id));
 		parameters.put(Constants.NAME_OF_VERSION_PARAM, versionValue);
 
-		QueryFragments queryFragments = new QueryFragments();
-		queryFragments.setCondition(condition);
-		queryFragments.setReturnExpression(new Expression[]{Constants.NAME_OF_ROOT_NODE});
-
-		QueryFragmentsAndParameters f = new QueryFragmentsAndParameters(entityMetaData, queryFragments, parameters);
-		createExecutableQuery(domainType, f).getSingleResult().orElseThrow(
+		createExecutableQuery(domainType, statement, parameters).getSingleResult().orElseThrow(
 				() -> new OptimisticLockingFailureException(OPTIMISTIC_LOCKING_ERROR_MESSAGE)
 		);
 
@@ -418,30 +414,9 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 				summary.counters().relationshipsDeleted()));
 	}
 
-	private <T> ExecutableQuery<T> createExecutableQuery(Class<T> domainType, Expression[] returnStatement) {
-		return createExecutableQuery(domainType, returnStatement, Collections.emptyMap());
-	}
-
-	private <T> ExecutableQuery<T> createExecutableQuery(Class<T> domainType, Statement statement) {
-		return createExecutableQuery(domainType, statement, Collections.emptyMap());
-	}
-
 	private <T> ExecutableQuery<T> createExecutableQuery(Class<T> domainType, String cypherStatement) {
 		return createExecutableQuery(domainType, cypherStatement, Collections.emptyMap());
 	}
-
-	private <T> ExecutableQuery<T> createExecutableQuery(Class<T> domainType, Expression[] returnStatement,
-														 Map<String, Object> parameters) {
-		Neo4jPersistentEntity entityMetaData = neo4jMappingContext.getPersistentEntity(domainType);
-
-		QueryFragments queryFragments = new QueryFragments();
-		queryFragments.addMatchOn(cypherGenerator.createRootNode(entityMetaData));
-		queryFragments.setCondition(Conditions.noCondition());
-		queryFragments.setReturnExpression(returnStatement);
-		QueryFragmentsAndParameters f = new QueryFragmentsAndParameters(entityMetaData, queryFragments, parameters);
-		return createExecutableQuery(domainType, f);
-	}
-
 
 	private <T> ExecutableQuery<T> createExecutableQuery(Class<T> domainType, Statement statement,
 			Map<String, Object> parameters) {
@@ -607,8 +582,8 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 	}
 
 	@Override
-	public <T> ExecutableQuery<T> findByExample(Class<T> domainType,
-												QueryFragmentsAndParameters queryFragmentsAndParameters) {
+	public <T> ExecutableQuery<T> toExecutableFindByExampleQuery(Class<T> domainType,
+			QueryFragmentsAndParameters queryFragmentsAndParameters) {
 
 		return createExecutableQuery(domainType, queryFragmentsAndParameters);
 	}
@@ -673,10 +648,10 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 			String cypherQuery = queryFragmentsAndParameters.getCypherQuery();
 			Map<String, Object> finalParameters = preparedQuery.getQueryFragmentsAndParameters().getParameters();
 
-			QueryFragments queryFragments = queryFragmentsAndParameters.getQueryFragments();
+			QueryFragmentsAndParameters.QueryFragments queryFragments = queryFragmentsAndParameters.getQueryFragments();
 			Neo4jPersistentEntity<?> entityMetaData = (Neo4jPersistentEntity<?>) queryFragmentsAndParameters.getNodeDescription();
 
-			QueryFragments.ReturnTuple returnTuple = queryFragments.getReturnTuple();
+			QueryFragmentsAndParameters.QueryFragments.ReturnTuple returnTuple = queryFragments.getReturnTuple();
 			boolean containsPossibleCircles = entityMetaData != null && entityMetaData.containsPossibleCircles(
 					returnTuple != null
 							? returnTuple.getIncludedProperties()
@@ -705,7 +680,7 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 		}
 
 		private GenericQueryAndParameters fetchAllRelatedIds(Neo4jPersistentEntity<?> entityMetaData,
-															 QueryFragments queryFragments, Map<String, Object> parameters) {
+															 QueryFragmentsAndParameters.QueryFragments queryFragments, Map<String, Object> parameters) {
 
 			// first check if the root node(s) exist at all
 			Statement rootNodesStatement = cypherGenerator

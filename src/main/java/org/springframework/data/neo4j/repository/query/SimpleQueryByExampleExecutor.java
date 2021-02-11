@@ -60,27 +60,27 @@ public final class SimpleQueryByExampleExecutor<T> implements QueryByExampleExec
 
 	@Override
 	public <S extends T> Optional<S> findOne(Example<S> example) {
-		return this.neo4jOperations.findByExample(example.getProbeType(),
-				QueryFragmentsAndParameters.of(mappingContext, example)).getSingleResult();
+		return this.neo4jOperations.toExecutableFindByExampleQuery(example.getProbeType(),
+				QueryFragmentsAndParameters.forExample(mappingContext, example)).getSingleResult();
 	}
 
 	@Override
 	public <S extends T> List<S> findAll(Example<S> example) {
-		return this.neo4jOperations.findByExample(example.getProbeType(),
-				QueryFragmentsAndParameters.of(mappingContext, example)).getResults();
+		return this.neo4jOperations.toExecutableFindByExampleQuery(example.getProbeType(),
+				QueryFragmentsAndParameters.forExample(mappingContext, example)).getResults();
 	}
 
 	@Override
 	public <S extends T> List<S> findAll(Example<S> example, Sort sort) {
-		return this.neo4jOperations.findByExample(example.getProbeType(),
-				QueryFragmentsAndParameters.of(mappingContext, example, sort)).getResults();
+		return this.neo4jOperations.toExecutableFindByExampleQuery(example.getProbeType(),
+				QueryFragmentsAndParameters.forExample(mappingContext, example, sort)).getResults();
 	}
 
 	@Override
 	public <S extends T> Page<S> findAll(Example<S> example, Pageable pageable) {
 
-		List<S> page = this.neo4jOperations.findByExample(example.getProbeType(),
-				QueryFragmentsAndParameters.of(mappingContext, example, pageable)).getResults();
+		List<S> page = this.neo4jOperations.toExecutableFindByExampleQuery(example.getProbeType(),
+				QueryFragmentsAndParameters.forExample(mappingContext, example, pageable)).getResults();
 
 		LongSupplier totalCountSupplier = () -> this.count(example);
 		return PageableExecutionUtils.getPage(page, pageable, totalCountSupplier);

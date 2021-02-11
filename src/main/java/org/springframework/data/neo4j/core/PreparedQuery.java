@@ -103,7 +103,7 @@ public final class PreparedQuery<T> {
 		private RequiredBuildStep(Class<CT> resultType) {
 			this.resultType = resultType;
 		}
-//
+
 		public OptionalBuildSteps<CT> withCypherQuery(String cypherQuery) {
 			return new OptionalBuildSteps<>(resultType, new QueryFragmentsAndParameters(cypherQuery));
 		}
