@@ -110,8 +110,35 @@ public enum CypherGenerator {
 		expressions.add(Constants.NAME_OF_ROOT_NODE);
 		expressions.add(Functions.id(rootNode).as(Constants.NAME_OF_INTERNAL_ID));
 
-
 		return match(rootNode).where(conditionOrNoCondition(condition)).with(expressions.toArray(new Expression[] {}));
+	}
+
+	public StatementBuilder.OngoingReading prepareMatchOf(NodeDescription<?> nodeDescription,
+														  @Nullable List<PatternElement> initialMatchOn,
+														  @Nullable Condition condition) {
+		String primaryLabel = nodeDescription.getPrimaryLabel();
+		List<String> additionalLabels = nodeDescription.getAdditionalLabels();
+
+		Node rootNode = node(primaryLabel, additionalLabels).named(Constants.NAME_OF_ROOT_NODE);
+
+		StatementBuilder.OngoingReadingWithoutWhere match = null;
+		if (initialMatchOn == null || initialMatchOn.isEmpty()) {
+			match = Cypher.match(rootNode);
+		} else {
+			for (PatternElement patternElement : initialMatchOn) {
+				if (match == null) {
+					match = Cypher.match(patternElement);
+				} else {
+					match.match(patternElement);
+				}
+			}
+		}
+		List<Expression> expressions = new ArrayList<>();
+		expressions.add(Functions.collect(Functions.id(rootNode)).as(Constants.NAME_OF_SYNTHESIZED_ROOT_NODE));
+
+		return match
+				.where(conditionOrNoCondition(condition))
+				.with(expressions.toArray(new Expression[]{}));
 	}
 
 	public StatementBuilder.OngoingReading prepareMatchOf(NodeDescription<?> nodeDescription,

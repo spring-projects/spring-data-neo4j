@@ -202,18 +202,10 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 
 		Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getPersistentEntity(domainType);
 
-		Map<String, Object> parameters = Collections
-				.singletonMap(Constants.NAME_OF_ID, convertIdValues(entityMetaData.getRequiredIdProperty(), id));
-
-		Condition condition = entityMetaData.getIdExpression().isEqualTo(parameter(Constants.NAME_OF_ID));
-		Expression[] returnStatement = cypherGenerator.createReturnStatementForMatch(entityMetaData);
-		QueryFragments queryFragments = new QueryFragments();
-		queryFragments.addMatchOn(cypherGenerator.createRootNode(entityMetaData));
-		queryFragments.setCondition(condition);
-		queryFragments.setReturnExpression(returnStatement);
-		QueryFragmentsAndParameters f = new QueryFragmentsAndParameters(entityMetaData, queryFragments, parameters);
-
-		return createExecutableQuery(domainType, f).flatMap(ExecutableQuery::getSingleResult);
+		return createExecutableQuery(domainType,
+				QueryFragmentsAndParameters.findById(entityMetaData,
+						convertIdValues(entityMetaData.getRequiredIdProperty(), id)))
+				.flatMap(ExecutableQuery::getSingleResult);
 	}
 
 	@Override
