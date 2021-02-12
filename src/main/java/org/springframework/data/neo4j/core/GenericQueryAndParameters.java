@@ -46,7 +46,7 @@ final class GenericQueryAndParameters {
 		parameters.put(RELATED_NODE_IDS, relatedNodeIds);
 	}
 
-	public GenericQueryAndParameters() {
+	GenericQueryAndParameters() {
 		this(new HashSet<>(), new HashSet<>(), new HashSet<>());
 	}
 

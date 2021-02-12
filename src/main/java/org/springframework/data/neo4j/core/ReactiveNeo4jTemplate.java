@@ -545,7 +545,10 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 	}
 
 	@NonNull
-	private Function<Tuple2<Collection<Long>,Collection<Long>>, Publisher<Tuple2<Collection<Long>, Collection<Long>>>> iterateAndMapNextLevel(RelationshipDescription relationshipDescription, String databaseName) {
+	private Function<Tuple2<Collection<Long>, Collection<Long>>,
+			Publisher<Tuple2<Collection<Long>, Collection<Long>>>> iterateAndMapNextLevel(
+					RelationshipDescription relationshipDescription, String databaseName) {
+
 		return newRelationshipAndRelatedNodeIds -> {
 			return Flux.deferContextual(ctx -> {
 				Set<Long> relationshipIds = ctx.get("processedRelationships");
