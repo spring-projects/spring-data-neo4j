@@ -662,7 +662,7 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 
 				if (containsPossibleCircles) {
 					GenericQueryAndParameters genericQueryAndParameters =
-							fetchAllRelatedIds(entityMetaData, queryFragments, parameters);
+							createQueryAndParameters(entityMetaData, queryFragments, parameters);
 
 					if (genericQueryAndParameters.isEmpty()) {
 						return Optional.empty();
@@ -681,8 +681,8 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 					.map(f -> newMappingSpec.mappedBy(f)).orElse(newMappingSpec));
 		}
 
-		private GenericQueryAndParameters fetchAllRelatedIds(Neo4jPersistentEntity<?> entityMetaData,
-															 QueryFragmentsAndParameters.QueryFragments queryFragments, Map<String, Object> parameters) {
+		private GenericQueryAndParameters createQueryAndParameters(Neo4jPersistentEntity<?> entityMetaData,
+						   QueryFragmentsAndParameters.QueryFragments queryFragments, Map<String, Object> parameters) {
 
 			// first check if the root node(s) exist(s) at all
 			Statement rootNodesStatement = cypherGenerator
@@ -720,14 +720,14 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 						.bindAll(parameters)
 						.fetch()
 						.one()
-						.ifPresent(extractRelationshipsAndRelatedNodes(relationshipIds, relatedNodeIds, relationshipDescription));
+						.ifPresent(iterateAndMapNextLevel(relationshipIds, relatedNodeIds, relationshipDescription));
 			}
 
 			return new GenericQueryAndParameters(rootNodeIds, relationshipIds, relatedNodeIds);
 		}
 
-		private void recursiveFind(Collection<Long> nodeIds, Neo4jPersistentEntity<?> target, Set<Long> relationshipIds,
-								   Set<Long> relatedNodeIds) {
+		private void iterateNextLevel(Collection<Long> nodeIds, Neo4jPersistentEntity<?> target, Set<Long> relationshipIds,
+									  Set<Long> relatedNodeIds) {
 
 			Collection<RelationshipDescription> relationships = target.getRelationships();
 			for (RelationshipDescription relationshipDescription : relationships) {
@@ -743,28 +743,28 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 						.bindAll(Collections.singletonMap(Constants.NAME_OF_IDS, nodeIds))
 						.fetch()
 						.one()
-						.ifPresent(extractRelationshipsAndRelatedNodes(relationshipIds, relatedNodeIds, relationshipDescription));
+						.ifPresent(iterateAndMapNextLevel(relationshipIds, relatedNodeIds, relationshipDescription));
 			}
 		}
 
 		@NonNull
-		private Consumer<Map<String, Object>> extractRelationshipsAndRelatedNodes(Set<Long> relationshipIds,
-			  	Set<Long> relatedNodeIds, RelationshipDescription relationshipDescription) {
+		private Consumer<Map<String, Object>> iterateAndMapNextLevel(Set<Long> relationshipIds,
+																	 Set<Long> relatedNodeIds, RelationshipDescription relationshipDescription) {
 
 			return record -> {
-				List<Long> value = (List<Long>) record.get(Constants.NAME_OF_SYNTHESIZED_RELATED_NODES);
-				List<Long> value1 = (List<Long>) record.get(Constants.NAME_OF_SYNTHESIZED_RELATIONS);
+				List<Long> newRelationshipIds = (List<Long>) record.get(Constants.NAME_OF_SYNTHESIZED_RELATIONS);
+				relationshipIds.addAll(newRelationshipIds);
 
-				relationshipIds.addAll(value1);
+				List<Long> newRelatedNodeIds = (List<Long>) record.get(Constants.NAME_OF_SYNTHESIZED_RELATED_NODES);
 
-				Set<Long> relatedIds = new HashSet<>(value);
+				Set<Long> relatedIds = new HashSet<>(newRelatedNodeIds);
 				// use this list to get down the road
 				// 1. remove already visited ones;
 				relatedIds.removeAll(relatedNodeIds);
 				relatedNodeIds.addAll(relatedIds);
 				// 2. for the rest start the exploration
 				if (!relatedIds.isEmpty()) {
-					recursiveFind(relatedIds, (Neo4jPersistentEntity<?>) relationshipDescription.getTarget(),
+					iterateNextLevel(relatedIds, (Neo4jPersistentEntity<?>) relationshipDescription.getTarget(),
 							relationshipIds, relatedNodeIds);
 				}
 			};
