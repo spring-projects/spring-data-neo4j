@@ -479,21 +479,6 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 				|| queryFragments.getReturnTuple().getIncludedProperties().isEmpty()
 				|| queryFragments.getReturnTuple().getIncludedProperties().contains(relationshipDescription.getFieldName());
 
-		Function<List<IntermediateQueryResult>, GenericQueryAndParameters> createFinalParametersFunction = queryResults -> {
-			Set<Long> rootNodeIds = new HashSet<>();
-			Set<Long> relationshipIds = new HashSet<>();
-			Set<Long> relatedNodeIds = new HashSet<>();
-			for (IntermediateQueryResult queryResult : queryResults) {
-				if (rootNodeIds.isEmpty()) {
-					rootNodeIds.addAll(queryResult.processedIds);
-				}
-				relationshipIds.addAll(queryResult.relationshipIds);
-				relatedNodeIds.addAll(queryResult.relatedNodeIds);
-			}
-
-			return new GenericQueryAndParameters(rootNodeIds, relationshipIds, relatedNodeIds);
-		};
-
 		Function<Tuple2<DatabaseSelection, RelationshipDescription>, Mono<GenericQueryAndParameters>> toFinalParameters =
 				relationshipAndDatabase -> {
 					Statement statement = cypherGenerator.prepareMatchOf(entityMetaData, relationshipAndDatabase.getT2(),
@@ -507,37 +492,45 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 							.mappedBy(mapToIntermediateQueryResult(relationshipAndDatabase.getT2()))
 							.one()
 							.expand(iterateAndMapNextLevel(databaseName, processedNodes, processedRelationships))
-							.collectList()
-							.map(createFinalParametersFunction);
+							.collect(GenericQueryAndParameters::new, (container, queryResult) -> container
+									.addRootIds(queryResult.processedIds)
+									.addRelationIds(queryResult.relationshipIds)
+									.addRelatedIds(queryResult.relatedNodeIds)
+							)
+							.contextWrite(ctx -> ctx.put("foo", new ArrayList<String>()));
 				};
 
 		return getDatabaseName().flatMap(databaseName -> Flux.fromIterable(entityMetaData.getRelationships())
 				.filter(relationshipFilter)
 				.flatMap(relationshipDescriptions -> toFinalParameters.apply(Tuples.of(databaseName, relationshipDescriptions)))
-				.collectList()
-				.flatMap(finalParameters -> Mono.just(new GenericQueryAndParameters(finalParameters))));
-
+				.collect(GenericQueryAndParameters::new, GenericQueryAndParameters::add));
 	}
 
 	private Flux<IntermediateQueryResult> iterateNextLevel(IntermediateQueryResult queryResult, String databaseName, Set<Long> processedNodes, Set<Long> processedRelationships) {
 		NodeDescription<?> target = queryResult.relationshipDescription.getTarget();
 
-		return Flux.fromIterable(target.getRelationships())
-				.flatMap(relationshipDescription -> {
-					Node node = anyNode(Constants.NAME_OF_ROOT_NODE);
 
-					Statement statement = cypherGenerator
-					.prepareMatchOf(target, relationshipDescription, null,
-							Functions.id(node).in(Cypher.parameter(Constants.NAME_OF_ID)))
-					.returning(cypherGenerator.createGenericReturnStatement()).build();
+		return Flux.deferContextual(ctx -> {
+			ArrayList<String> foo = ctx.get("foo");
+			System.out.println(foo);
+			foo.add("x");
+			return Flux.fromIterable(target.getRelationships())
+					.flatMap(relationshipDescription -> {
+						Node node = anyNode(Constants.NAME_OF_ROOT_NODE);
 
-					return neo4jClient.query(renderer.render(statement)).in(databaseName)
-							.bindAll(Collections.singletonMap(Constants.NAME_OF_ID, queryResult.relatedNodeIds))
-							.fetchAs(IntermediateQueryResult.class)
-							.mappedBy(mapToIntermediateQueryResult(relationshipDescription))
-							.one()
-							.expand(iterateAndMapNextLevel(databaseName, processedNodes, processedRelationships));
-				});
+						Statement statement = cypherGenerator
+								.prepareMatchOf(target, relationshipDescription, null,
+										Functions.id(node).in(Cypher.parameter(Constants.NAME_OF_ID)))
+								.returning(cypherGenerator.createGenericReturnStatement()).build();
+
+						return neo4jClient.query(renderer.render(statement)).in(databaseName)
+								.bindAll(Collections.singletonMap(Constants.NAME_OF_ID, queryResult.relatedNodeIds))
+								.fetchAs(IntermediateQueryResult.class)
+								.mappedBy(mapToIntermediateQueryResult(relationshipDescription))
+								.one()
+								.expand(iterateAndMapNextLevel(databaseName, processedNodes, processedRelationships));
+					});
+		});
 	}
 
 	@NonNull
