@@ -17,16 +17,24 @@ package org.springframework.data.neo4j.integration.imperative;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.AbstractMap;
 import java.util.Collection;
+import java.util.Map;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.Transaction;
+import org.neo4j.driver.Values;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.config.AbstractNeo4jConfig;
 import org.springframework.data.neo4j.integration.shared.common.NamesOnly;
 import org.springframework.data.neo4j.integration.shared.common.NamesOnlyDto;
@@ -40,11 +48,13 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 /**
  * @author Gerrit Meier
+ * @author Michael J. Simons
  */
 @Neo4jIntegrationTest
 class ProjectionIT {
 
 	private static final String FIRST_NAME = "Hans";
+	private static final String FIRST_NAME2 = "Lieschen";
 	private static final String LAST_NAME = "Mueller";
 	private static final String CITY = "Braunschweig";
 
@@ -64,8 +74,15 @@ class ProjectionIT {
 
 		transaction.run("MATCH (n) detach delete n");
 
-		transaction.run("CREATE (:Person{firstName:'" + FIRST_NAME + "', lastName:'" + LAST_NAME + "'})" + "-[:LIVES_AT]->"
-				+ "(:Address{city:'" + CITY + "'})");
+		for (Map.Entry<String, String> person : new Map.Entry[] {
+				new AbstractMap.SimpleEntry(FIRST_NAME, LAST_NAME),
+				new AbstractMap.SimpleEntry(FIRST_NAME2, LAST_NAME),
+		}) {
+			transaction.run(" MERGE (address:Address{city: $city})"
+							+ "CREATE (:Person{firstName: $firstName, lastName: $lastName})"
+							+ "-[:LIVES_AT]-> (address)",
+					Values.parameters("firstName", person.getKey(), "lastName", person.getValue(), "city", CITY));
+		}
 
 		transaction.commit();
 		transaction.close();
@@ -74,16 +91,14 @@ class ProjectionIT {
 
 	@Test
 	void loadNamesOnlyProjection(@Autowired ProjectionPersonRepository repository) {
+
 		Collection<NamesOnly> people = repository.findByLastName(LAST_NAME);
-		assertThat(people).hasSize(1);
+		assertThat(people).hasSize(2);
 
-		NamesOnly person = people.iterator().next();
-		assertThat(person.getFirstName()).isEqualTo(FIRST_NAME);
-		assertThat(person.getLastName()).isEqualTo(LAST_NAME);
+		assertThat(people).extracting(NamesOnly::getFirstName).containsExactlyInAnyOrder(FIRST_NAME, FIRST_NAME2);
+		assertThat(people).extracting(NamesOnly::getLastName).containsOnly(LAST_NAME);
 
-		String expectedFullName = FIRST_NAME + " " + LAST_NAME;
-		assertThat(person.getFullName()).isEqualTo(expectedFullName);
-
+		assertThat(people).extracting(NamesOnly::getFullName).containsExactlyInAnyOrder(FIRST_NAME + " " + LAST_NAME, FIRST_NAME2 + " " + LAST_NAME);
 	}
 
 	@Test
@@ -153,9 +168,33 @@ class ProjectionIT {
 
 	}
 
+	@Test // GH-2139
+	void projectionsShouldBePaginatable(@Autowired ProjectionPersonRepository repository) {
+
+		Page<NamesOnly> people = repository.findAllProjectedBy(PageRequest.of(1, 1, Sort.by("firstName").descending()));
+		assertThat(people.hasPrevious()).isTrue();
+		assertThat(people.hasNext()).isFalse();
+		assertThat(people).hasSize(1);
+		assertThat(people).extracting(NamesOnly::getFullName).containsExactly(FIRST_NAME + " " + LAST_NAME);
+	}
+
+	@Test // GH-2139
+	void projectionsShouldBeSliceable(@Autowired ProjectionPersonRepository repository) {
+
+		Slice<NamesOnly> people = repository.findSliceProjectedBy(PageRequest.of(1, 1, Sort.by("firstName").descending()));
+		assertThat(people.hasPrevious()).isTrue();
+		assertThat(people.hasNext()).isFalse();
+		assertThat(people).hasSize(1);
+		assertThat(people).extracting(NamesOnly::getFullName).containsExactly(FIRST_NAME + " " + LAST_NAME);
+	}
+
 	interface ProjectionPersonRepository extends Neo4jRepository<Person, Long> {
 
 		Collection<NamesOnly> findByLastName(String lastName);
+
+		Page<NamesOnly> findAllProjectedBy(Pageable pageable);
+
+		Slice<NamesOnly> findSliceProjectedBy(Pageable pageable);
 
 		Collection<PersonSummary> findByFirstName(String firstName);
 
@@ -175,5 +214,4 @@ class ProjectionIT {
 		}
 
 	}
-
 }

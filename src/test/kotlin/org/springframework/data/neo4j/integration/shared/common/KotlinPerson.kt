@@ -28,8 +28,10 @@ import org.springframework.data.neo4j.core.schema.TargetNode
  * @author Michael J. Simons
  */
 @Node
-data class KotlinPerson(@Id @GeneratedValue val id: Long, val name: String,
-                        @Relationship("WORKS_IN") val clubs:List<KotlinClubRelationship>)
+data class KotlinPerson(@Id @GeneratedValue val id: Long?, val name: String,
+						@Relationship("WORKS_IN") val clubs: List<KotlinClubRelationship>) {
+	constructor(name: String, clubs: List<KotlinClubRelationship>) : this(null, name, clubs)
+}
 
 @RelationshipProperties
 data class KotlinClubRelationship(@Id @GeneratedValue val id: Long, val since: Int, @TargetNode val club: KotlinClub)
