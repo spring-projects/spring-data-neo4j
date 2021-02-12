@@ -23,12 +23,8 @@ import org.neo4j.cypherdsl.core.Functions;
 import org.neo4j.cypherdsl.core.Node;
 import org.neo4j.cypherdsl.core.Statement;
 import org.neo4j.cypherdsl.core.renderer.Renderer;
-import org.neo4j.driver.Record;
-import org.neo4j.driver.Value;
-import org.neo4j.driver.Values;
 import org.neo4j.driver.exceptions.NoSuchRecordException;
 import org.neo4j.driver.summary.SummaryCounters;
-import org.neo4j.driver.types.TypeSystem;
 import org.reactivestreams.Publisher;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
@@ -67,14 +63,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -456,7 +449,12 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 		QueryFragmentsAndParameters.QueryFragments queryFragments = queryFragmentsAndParameters.getQueryFragments();
 		Map<String, Object> parameters = queryFragmentsAndParameters.getParameters();
 
-		if (entityMetaData.containsPossibleCircles(Collections.emptyList())) {
+		QueryFragmentsAndParameters.QueryFragments.ReturnTuple returnTuple = queryFragments.getReturnTuple();
+		boolean containsPossibleCircles = entityMetaData != null && entityMetaData.containsPossibleCircles(
+				returnTuple != null
+						? returnTuple.getIncludedProperties()
+						: Collections.emptyList());
+		if (containsPossibleCircles) {
 			return createQueryAndParameters(entityMetaData, queryFragments, parameters)
 					.flatMap(finalQueryAndParameters ->
 							createExecutableQuery(domainType, renderer.render(GenericQueryAndParameters.STATEMENT),
@@ -480,137 +478,98 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 				|| queryFragments.getReturnTuple().getIncludedProperties().isEmpty()
 				|| queryFragments.getReturnTuple().getIncludedProperties().contains(relationshipDescription.getFieldName());
 
-		Function<Tuple2<DatabaseSelection, RelationshipDescription>, Mono<GenericQueryAndParameters>> toFinalParameters =
-				relationshipAndDatabase -> {
-					Statement statement = cypherGenerator.prepareMatchOf(entityMetaData, relationshipAndDatabase.getT2(),
-							queryFragments.getMatchOn(), queryFragments.getCondition())
-							.returning(cypherGenerator.createReturnStatementForMatch(entityMetaData)).build();
-
-					String databaseName = relationshipAndDatabase.getT1().getValue();
-					return neo4jClient.query(renderer.render(statement)).in(databaseName)
-							.bindAll(parameters)
-							.fetchAs(IntermediateQueryResult.class)
-							.mappedBy(mapToIntermediateQueryResult(relationshipAndDatabase.getT2()))
-							.one()
-							.expand(iterateAndMapNextLevel(databaseName))
-							.collect(GenericQueryAndParameters::new, (container, queryResult) -> container
-									.addRootIds(queryResult.processedIds)
-									.addRelationIds(queryResult.relationshipIds)
-									.addRelatedIds(queryResult.relatedNodeIds)
-							);
-				};
-
 		return getDatabaseName().flatMap(databaseName -> {
 
 			return Flux.fromIterable(entityMetaData.getRelationships())
 					.filter(relationshipFilter)
-					.flatMap(relationshipDescriptions -> toFinalParameters.apply(Tuples.of(databaseName, relationshipDescriptions)))
-					.collect(GenericQueryAndParameters::new, GenericQueryAndParameters::add);
+					.flatMap(relationshipDescription -> {
+
+						Statement statement = cypherGenerator.prepareMatchOf(entityMetaData, relationshipDescription,
+								queryFragments.getMatchOn(), queryFragments.getCondition())
+								.returning(cypherGenerator.createReturnStatementForMatch(entityMetaData)).build();
+
+						return neo4jClient.query(renderer.render(statement)).in(databaseName.getValue())
+								.bindAll(parameters)
+								.fetch()
+								.one()
+								.map(record -> {
+									Collection<Long> rootIds = (List<Long>) record.get(Constants.NAME_OF_SYNTHESIZED_ROOT_NODE);
+									Collection<Long> newRelationshipIds = (List<Long>) record.get(Constants.NAME_OF_SYNTHESIZED_RELATIONS);
+									Collection<Long> newRelatedNodeIds = (List<Long>) record.get(Constants.NAME_OF_SYNTHESIZED_RELATED_NODES);
+									rootNodes.addAll(rootIds);
+
+									return Tuples.of(newRelationshipIds, newRelatedNodeIds);
+								})
+								.expand(iterateAndMapNextLevel(relationshipDescription, databaseName.getValue()));
+					})
+					.collect(GenericQueryAndParameters::new, (genericQueryAndParameters, _not_used2) ->
+							genericQueryAndParameters.with(rootNodes, processedRelationships, processedNodes)
+					);
 			})
-				.contextWrite(ctx -> {
-					return ctx
-							.put("rootNodes", rootNodes)
-							.put("processedNodes", processedNodes)
-							.put("processedRelationships", processedRelationships);
-				});
+			.contextWrite(ctx -> {
+				return ctx
+						.put("processedNodes", processedNodes)
+						.put("processedRelationships", processedRelationships);
+			});
 
 	}
 
-	private Flux<IntermediateQueryResult> iterateNextLevel(IntermediateQueryResult queryResult, String databaseName) {
-		NodeDescription<?> target = queryResult.relationshipDescription.getTarget();
+	private Flux<Tuple2<Collection<Long>, Collection<Long>>> iterateNextLevel(Collection<Long> relatedNodeIds,
+				  						RelationshipDescription relationshipDescription, String databaseName) {
 
+		NodeDescription<?> target = relationshipDescription.getTarget();
 
 		return Flux.fromIterable(target.getRelationships())
-				.flatMap(relationshipDescription -> {
-					Node node = anyNode(Constants.NAME_OF_ROOT_NODE);
+			.flatMap(relDe -> {
+				Node node = anyNode(Constants.NAME_OF_ROOT_NODE);
 
-					Statement statement = cypherGenerator
-							.prepareMatchOf(target, relationshipDescription, null,
-									Functions.id(node).in(Cypher.parameter(Constants.NAME_OF_ID)))
-							.returning(cypherGenerator.createGenericReturnStatement()).build();
+				Statement statement = cypherGenerator
+						.prepareMatchOf(target, relDe, null,
+								Functions.id(node).in(Cypher.parameter(Constants.NAME_OF_ID)))
+						.returning(cypherGenerator.createGenericReturnStatement()).build();
 
-					return neo4jClient.query(renderer.render(statement)).in(databaseName)
-							.bindAll(Collections.singletonMap(Constants.NAME_OF_ID, queryResult.relatedNodeIds))
-							.fetchAs(IntermediateQueryResult.class)
-							.mappedBy(mapToIntermediateQueryResult(relationshipDescription))
-							.one()
-							.expand(iterateAndMapNextLevel(databaseName));
-				});
+				return neo4jClient.query(renderer.render(statement)).in(databaseName)
+						.bindAll(Collections.singletonMap(Constants.NAME_OF_ID, relatedNodeIds))
+
+						.fetch()
+						.one()
+						.map(record -> {
+							Collection<Long> newRelationshipIds = (List<Long>) record.get(Constants.NAME_OF_SYNTHESIZED_RELATIONS);
+							Collection<Long> newRelatedNodeIds = (List<Long>) record.get(Constants.NAME_OF_SYNTHESIZED_RELATED_NODES);
+
+							return Tuples.of(newRelationshipIds, newRelatedNodeIds);
+						})
+						.expand(object -> iterateAndMapNextLevel(relDe, databaseName).apply(object));
+			});
 
 	}
 
 	@NonNull
-	private Function<IntermediateQueryResult, Publisher<? extends IntermediateQueryResult>> iterateAndMapNextLevel(String databaseName) {
-		return innerQueryResult -> {
+	private Function<Tuple2<Collection<Long>,Collection<Long>>, Publisher<Tuple2<Collection<Long>, Collection<Long>>>> iterateAndMapNextLevel(RelationshipDescription relationshipDescription, String databaseName) {
+		return newRelationshipAndRelatedNodeIds -> {
 			return Flux.deferContextual(ctx -> {
-				Set<Long> rootNodeIds = ctx.get("rootNodes");
-				Set<Long> processedNodeIds = ctx.get("processedNodes");
 				Set<Long> relationshipIds = ctx.get("processedRelationships");
+				Set<Long> processedNodeIds = ctx.get("processedNodes");
 
-				Set<Long> tmpProcessedRels = ConcurrentHashMap.newKeySet(innerQueryResult.relationshipIds.size());
-				tmpProcessedRels.addAll(innerQueryResult.relationshipIds);
+				Collection<Long> newRelationshipIds = newRelationshipAndRelatedNodeIds.getT1();
+				Set<Long> tmpProcessedRels = ConcurrentHashMap.newKeySet(newRelationshipIds.size());
+				tmpProcessedRels.addAll(newRelationshipIds);
 				tmpProcessedRels.removeAll(relationshipIds);
-				relationshipIds.addAll(innerQueryResult.relationshipIds);
+				relationshipIds.addAll(newRelationshipIds);
 
-				Set<Long> tmpProcessedNodes = ConcurrentHashMap.newKeySet(innerQueryResult.processedIds.size());
-				tmpProcessedNodes.addAll(innerQueryResult.processedIds);
+				Collection<Long> newRelatedNodeIds = newRelationshipAndRelatedNodeIds.getT2();
+				Set<Long> tmpProcessedNodes = ConcurrentHashMap.newKeySet(newRelatedNodeIds.size());
+				tmpProcessedNodes.addAll(newRelatedNodeIds);
 				tmpProcessedNodes.removeAll(processedNodeIds);
-				processedNodeIds.addAll(innerQueryResult.processedIds);
-				if (tmpProcessedNodes.isEmpty() && tmpProcessedRels.isEmpty()) {
+				processedNodeIds.addAll(newRelatedNodeIds);
+
+				if (tmpProcessedRels.isEmpty() && tmpProcessedNodes.isEmpty()) {
 					return Mono.empty();
 				}
-				return iterateNextLevel(innerQueryResult, databaseName);
+
+				return iterateNextLevel(newRelatedNodeIds, relationshipDescription, databaseName);
 			});
 		};
-	}
-
-	@NonNull
-	private BiFunction<TypeSystem, Record, IntermediateQueryResult> mapToIntermediateQueryResult(RelationshipDescription relationshipDescription) {
-		return (typeSystem, record) -> {
-			Set<Long> rootIds = new HashSet<>(record.get(Constants.NAME_OF_SYNTHESIZED_ROOT_NODE).asList(Value::asLong));
-			IntermediateQueryResult queryResult = new IntermediateQueryResult(rootIds, relationshipDescription);
-			Value relationshipIdValues = record.get(Constants.NAME_OF_SYNTHESIZED_RELATIONS);
-			if (!Values.NULL.equals(relationshipIdValues)) {
-				queryResult.relationshipIds.addAll(relationshipIdValues.asList(Value::asLong));
-			}
-			Value relatedNodesIdValue = record.get(Constants.NAME_OF_SYNTHESIZED_RELATED_NODES);
-			if (!Values.NULL.equals(relatedNodesIdValue)) {
-				Set<Long> relatedIds = new HashSet<>(relatedNodesIdValue.asList(Value::asLong));
-				queryResult.relatedNodeIds.addAll(relatedIds);
-			}
-
-			return queryResult;
-		};
-	}
-
-	private static class IntermediateQueryResult {
-		private final Set<Long> processedIds;
-		private final Set<Long> relationshipIds = new HashSet<>();
-		private final Set<Long> relatedNodeIds = new HashSet<>();
-		private final RelationshipDescription relationshipDescription;
-
-		private IntermediateQueryResult(Set<Long> processedIds, RelationshipDescription relationshipDescription) {
-			this.processedIds = processedIds;
-			this.relationshipDescription = relationshipDescription;
-		}
-
-		@Override
-		public boolean equals(Object o) {
-			if (this == o) {
-				return true;
-			}
-			if (o == null || getClass() != o.getClass()) {
-				return false;
-			}
-			IntermediateQueryResult that = (IntermediateQueryResult) o;
-			return relationshipIds.equals(that.relationshipIds)	&& relatedNodeIds.equals(that.relatedNodeIds);
-		}
-
-		@Override
-		public int hashCode() {
-			return Objects.hash(relationshipIds, relatedNodeIds);
-		}
-
 	}
 
 	private Mono<Void> processRelations(Neo4jPersistentEntity<?> neo4jPersistentEntity, Object parentObject,

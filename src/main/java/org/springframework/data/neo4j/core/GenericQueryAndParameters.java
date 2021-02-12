@@ -15,18 +15,18 @@
  */
 package org.springframework.data.neo4j.core;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-
 import org.neo4j.cypherdsl.core.Cypher;
 import org.neo4j.cypherdsl.core.Functions;
 import org.neo4j.cypherdsl.core.Node;
 import org.neo4j.cypherdsl.core.Relationship;
 import org.neo4j.cypherdsl.core.Statement;
 import org.springframework.data.neo4j.core.mapping.Constants;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
 
 final class GenericQueryAndParameters {
 
@@ -50,31 +50,10 @@ final class GenericQueryAndParameters {
 		this(new HashSet<>(), new HashSet<>(), new HashSet<>());
 	}
 
-	public GenericQueryAndParameters addRootIds(Collection<Long> rootNodeIds) {
-
-		// TODO add some comment
-		if(this.parameters.get(ROOT_NODE_IDS).isEmpty()) {
-			this.parameters.get(ROOT_NODE_IDS).addAll(rootNodeIds);
-		}
-		return this;
-	}
-
-	public GenericQueryAndParameters addRelationIds(Collection<Long> relationshipsIds) {
-		this.parameters.get(RELATIONSHIP_IDS).addAll(relationshipsIds);
-		return this;
-	}
-
-	public GenericQueryAndParameters addRelatedIds(Collection<Long> relatedNodeIds) {
-		this.parameters.get(RELATED_NODE_IDS).addAll(relatedNodeIds);
-		return this;
-	}
-
-	public GenericQueryAndParameters add(GenericQueryAndParameters other) {
-
-		parameters.get(ROOT_NODE_IDS).addAll((Collection<Long>) other.getParameters().get(ROOT_NODE_IDS));
-		parameters.get(RELATIONSHIP_IDS).addAll((Collection<Long>) other.getParameters().get(RELATIONSHIP_IDS));
-		parameters.get(RELATED_NODE_IDS).addAll((Collection<Long>) other.getParameters().get(RELATED_NODE_IDS));
-		return this;
+	void with(Collection<Long> rootNodeIds, Collection<Long> relationshipsIds, Collection<Long> relatedNodeIds) {
+		parameters.put(ROOT_NODE_IDS, rootNodeIds);
+		parameters.put(RELATIONSHIP_IDS, relationshipsIds);
+		parameters.put(RELATED_NODE_IDS, relatedNodeIds);
 	}
 
 	Map<String, Object> getParameters() {
