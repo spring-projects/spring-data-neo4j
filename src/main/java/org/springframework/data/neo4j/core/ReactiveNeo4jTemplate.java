@@ -469,47 +469,48 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 	private Mono<GenericQueryAndParameters> createQueryAndParameters(Neo4jPersistentEntity<?> entityMetaData,
 		 	QueryFragmentsAndParameters.QueryFragments queryFragments, Map<String, Object> parameters) {
 
-		Set<Long> rootNodes = ConcurrentHashMap.newKeySet();
-		Set<Long> processedNodes = ConcurrentHashMap.newKeySet();
-		Set<Long> processedRelationships = ConcurrentHashMap.newKeySet();
-
 		Predicate<RelationshipDescription> relationshipFilter = relationshipDescription ->
 				queryFragments.getReturnTuple() == null
 				|| queryFragments.getReturnTuple().getIncludedProperties().isEmpty()
 				|| queryFragments.getReturnTuple().getIncludedProperties().contains(relationshipDescription.getFieldName());
 
 		return getDatabaseName().flatMap(databaseName -> {
+			return Mono.deferContextual(ctx -> {
+				Set<Long> rootNodeIds = ctx.get("rootNodes");
+				Set<Long> processedRelationshipIds = ctx.get("processedRelationships");
+				Set<Long> processedNodeIds = ctx.get("processedNodes");
+				return Flux.fromIterable(entityMetaData.getRelationships())
+						.filter(relationshipFilter)
+						.flatMap(relationshipDescription -> {
 
-			return Flux.fromIterable(entityMetaData.getRelationships())
-					.filter(relationshipFilter)
-					.flatMap(relationshipDescription -> {
+							Statement statement = cypherGenerator.prepareMatchOf(entityMetaData, relationshipDescription,
+									queryFragments.getMatchOn(), queryFragments.getCondition())
+									.returning(cypherGenerator.createReturnStatementForMatch(entityMetaData)).build();
 
-						Statement statement = cypherGenerator.prepareMatchOf(entityMetaData, relationshipDescription,
-								queryFragments.getMatchOn(), queryFragments.getCondition())
-								.returning(cypherGenerator.createReturnStatementForMatch(entityMetaData)).build();
+							return neo4jClient.query(renderer.render(statement)).in(databaseName.getValue())
+									.bindAll(parameters)
+									.fetch()
+									.one()
+									.map(record -> {
+										Collection<Long> rootIds = (List<Long>) record.get(Constants.NAME_OF_SYNTHESIZED_ROOT_NODE);
+										Collection<Long> newRelationshipIds = (List<Long>) record.get(Constants.NAME_OF_SYNTHESIZED_RELATIONS);
+										Collection<Long> newRelatedNodeIds = (List<Long>) record.get(Constants.NAME_OF_SYNTHESIZED_RELATED_NODES);
+										rootNodeIds.addAll(rootIds);
 
-						return neo4jClient.query(renderer.render(statement)).in(databaseName.getValue())
-								.bindAll(parameters)
-								.fetch()
-								.one()
-								.map(record -> {
-									Collection<Long> rootIds = (List<Long>) record.get(Constants.NAME_OF_SYNTHESIZED_ROOT_NODE);
-									Collection<Long> newRelationshipIds = (List<Long>) record.get(Constants.NAME_OF_SYNTHESIZED_RELATIONS);
-									Collection<Long> newRelatedNodeIds = (List<Long>) record.get(Constants.NAME_OF_SYNTHESIZED_RELATED_NODES);
-									rootNodes.addAll(rootIds);
-
-									return Tuples.of(newRelationshipIds, newRelatedNodeIds);
-								})
-								.expand(iterateAndMapNextLevel(relationshipDescription, databaseName.getValue()));
-					})
-					.collect(GenericQueryAndParameters::new, (genericQueryAndParameters, _not_used2) ->
-							genericQueryAndParameters.with(rootNodes, processedRelationships, processedNodes)
-					);
+										return Tuples.of(newRelationshipIds, newRelatedNodeIds);
+									})
+									.expand(iterateAndMapNextLevel(relationshipDescription, databaseName.getValue()));
+						})
+						.collect(GenericQueryAndParameters::new, (genericQueryAndParameters, _not_used2) ->
+								genericQueryAndParameters.with(rootNodeIds, processedRelationshipIds, processedNodeIds)
+						);
+			});
 			})
 			.contextWrite(ctx -> {
 				return ctx
-						.put("processedNodes", processedNodes)
-						.put("processedRelationships", processedRelationships);
+						.put("rootNodes", ConcurrentHashMap.newKeySet())
+						.put("processedNodes", ConcurrentHashMap.newKeySet())
+						.put("processedRelationships", ConcurrentHashMap.newKeySet());
 			});
 
 	}
