@@ -471,6 +471,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 	private Mono<GenericQueryAndParameters> createQueryAndParameters(Neo4jPersistentEntity<?> entityMetaData,
 		 	QueryFragmentsAndParameters.QueryFragments queryFragments, Map<String, Object> parameters) {
 
+		Set<Long> rootNodes = ConcurrentHashMap.newKeySet();
 		Set<Long> processedNodes = ConcurrentHashMap.newKeySet();
 		Set<Long> processedRelationships = ConcurrentHashMap.newKeySet();
 
@@ -491,7 +492,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 							.fetchAs(IntermediateQueryResult.class)
 							.mappedBy(mapToIntermediateQueryResult(relationshipAndDatabase.getT2()))
 							.one()
-							.expand(iterateAndMapNextLevel(databaseName, processedNodes, processedRelationships))
+							.expand(iterateAndMapNextLevel(databaseName))
 							.collect(GenericQueryAndParameters::new, (container, queryResult) -> container
 									.addRootIds(queryResult.processedIds)
 									.addRelationIds(queryResult.relationshipIds)
@@ -499,58 +500,67 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 							);
 				};
 
-		return getDatabaseName().flatMap(databaseName -> Flux.fromIterable(entityMetaData.getRelationships())
-				.filter(relationshipFilter)
-				.flatMap(relationshipDescriptions -> toFinalParameters.apply(Tuples.of(databaseName, relationshipDescriptions)))
-				.collect(GenericQueryAndParameters::new, GenericQueryAndParameters::add))
-				.contextWrite(ctx -> ctx.put("foo", new ArrayList<String>()));
+		return getDatabaseName().flatMap(databaseName -> {
+
+			return Flux.fromIterable(entityMetaData.getRelationships())
+					.filter(relationshipFilter)
+					.flatMap(relationshipDescriptions -> toFinalParameters.apply(Tuples.of(databaseName, relationshipDescriptions)))
+					.collect(GenericQueryAndParameters::new, GenericQueryAndParameters::add);
+			})
+				.contextWrite(ctx -> {
+					return ctx
+							.put("rootNodes", rootNodes)
+							.put("processedNodes", processedNodes)
+							.put("processedRelationships", processedRelationships);
+				});
+
 	}
 
-	private Flux<IntermediateQueryResult> iterateNextLevel(IntermediateQueryResult queryResult, String databaseName, Set<Long> processedNodes, Set<Long> processedRelationships) {
+	private Flux<IntermediateQueryResult> iterateNextLevel(IntermediateQueryResult queryResult, String databaseName) {
 		NodeDescription<?> target = queryResult.relationshipDescription.getTarget();
 
 
-		return Flux.deferContextual(ctx -> {
-			ArrayList<String> foo = ctx.get("foo");
-			System.out.println(foo);
-			foo.add("x");
-			return Flux.fromIterable(target.getRelationships())
-					.flatMap(relationshipDescription -> {
-						Node node = anyNode(Constants.NAME_OF_ROOT_NODE);
+		return Flux.fromIterable(target.getRelationships())
+				.flatMap(relationshipDescription -> {
+					Node node = anyNode(Constants.NAME_OF_ROOT_NODE);
 
-						Statement statement = cypherGenerator
-								.prepareMatchOf(target, relationshipDescription, null,
-										Functions.id(node).in(Cypher.parameter(Constants.NAME_OF_ID)))
-								.returning(cypherGenerator.createGenericReturnStatement()).build();
+					Statement statement = cypherGenerator
+							.prepareMatchOf(target, relationshipDescription, null,
+									Functions.id(node).in(Cypher.parameter(Constants.NAME_OF_ID)))
+							.returning(cypherGenerator.createGenericReturnStatement()).build();
 
-						return neo4jClient.query(renderer.render(statement)).in(databaseName)
-								.bindAll(Collections.singletonMap(Constants.NAME_OF_ID, queryResult.relatedNodeIds))
-								.fetchAs(IntermediateQueryResult.class)
-								.mappedBy(mapToIntermediateQueryResult(relationshipDescription))
-								.one()
-								.expand(iterateAndMapNextLevel(databaseName, processedNodes, processedRelationships));
-					});
-		});
+					return neo4jClient.query(renderer.render(statement)).in(databaseName)
+							.bindAll(Collections.singletonMap(Constants.NAME_OF_ID, queryResult.relatedNodeIds))
+							.fetchAs(IntermediateQueryResult.class)
+							.mappedBy(mapToIntermediateQueryResult(relationshipDescription))
+							.one()
+							.expand(iterateAndMapNextLevel(databaseName));
+				});
+
 	}
 
 	@NonNull
-	private Function<IntermediateQueryResult, Publisher<? extends IntermediateQueryResult>> iterateAndMapNextLevel(String databaseName, Set<Long> processedNodes, Set<Long> processedRelationships) {
+	private Function<IntermediateQueryResult, Publisher<? extends IntermediateQueryResult>> iterateAndMapNextLevel(String databaseName) {
 		return innerQueryResult -> {
-			Set<Long> tmpProcessedRels = ConcurrentHashMap.newKeySet(innerQueryResult.relationshipIds.size());
-			tmpProcessedRels.addAll(innerQueryResult.relationshipIds);
-			tmpProcessedRels.addAll(innerQueryResult.relationshipIds);
-			tmpProcessedRels.removeAll(processedRelationships);
-			processedRelationships.addAll(innerQueryResult.relationshipIds);
+			return Flux.deferContextual(ctx -> {
+				Set<Long> rootNodeIds = ctx.get("rootNodes");
+				Set<Long> processedNodeIds = ctx.get("processedNodes");
+				Set<Long> relationshipIds = ctx.get("processedRelationships");
 
-			Set<Long> tmpProcessedNodes = ConcurrentHashMap.newKeySet(innerQueryResult.processedIds.size());
-			tmpProcessedNodes.addAll(innerQueryResult.processedIds);
-			tmpProcessedNodes.addAll(innerQueryResult.processedIds);
-			tmpProcessedNodes.removeAll(processedNodes);
-			processedNodes.addAll(innerQueryResult.processedIds);
-			if (tmpProcessedNodes.isEmpty() && tmpProcessedRels.isEmpty()) {
-				return Mono.empty();
-			}
-			return iterateNextLevel(innerQueryResult, databaseName, processedNodes, processedRelationships);
+				Set<Long> tmpProcessedRels = ConcurrentHashMap.newKeySet(innerQueryResult.relationshipIds.size());
+				tmpProcessedRels.addAll(innerQueryResult.relationshipIds);
+				tmpProcessedRels.removeAll(relationshipIds);
+				relationshipIds.addAll(innerQueryResult.relationshipIds);
+
+				Set<Long> tmpProcessedNodes = ConcurrentHashMap.newKeySet(innerQueryResult.processedIds.size());
+				tmpProcessedNodes.addAll(innerQueryResult.processedIds);
+				tmpProcessedNodes.removeAll(processedNodeIds);
+				processedNodeIds.addAll(innerQueryResult.processedIds);
+				if (tmpProcessedNodes.isEmpty() && tmpProcessedRels.isEmpty()) {
+					return Mono.empty();
+				}
+				return iterateNextLevel(innerQueryResult, databaseName);
+			});
 		};
 	}
 
