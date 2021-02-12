@@ -496,14 +496,14 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 									.addRootIds(queryResult.processedIds)
 									.addRelationIds(queryResult.relationshipIds)
 									.addRelatedIds(queryResult.relatedNodeIds)
-							)
-							.contextWrite(ctx -> ctx.put("foo", new ArrayList<String>()));
+							);
 				};
 
 		return getDatabaseName().flatMap(databaseName -> Flux.fromIterable(entityMetaData.getRelationships())
 				.filter(relationshipFilter)
 				.flatMap(relationshipDescriptions -> toFinalParameters.apply(Tuples.of(databaseName, relationshipDescriptions)))
-				.collect(GenericQueryAndParameters::new, GenericQueryAndParameters::add));
+				.collect(GenericQueryAndParameters::new, GenericQueryAndParameters::add))
+				.contextWrite(ctx -> ctx.put("foo", new ArrayList<String>()));
 	}
 
 	private Flux<IntermediateQueryResult> iterateNextLevel(IntermediateQueryResult queryResult, String databaseName, Set<Long> processedNodes, Set<Long> processedRelationships) {
