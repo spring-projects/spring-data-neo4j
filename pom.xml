@@ -69,13 +69,13 @@
 
 	<properties>
 		<apiguardian.version>1.1.0</apiguardian.version>
-		<asciidoctor-maven-plugin.version>1.6.0</asciidoctor-maven-plugin.version>
-		<asciidoctorj-diagram.version>2.0.5</asciidoctorj-diagram.version>
+		<asciidoctor-maven-plugin.version>2.1.0</asciidoctor-maven-plugin.version>
+		<asciidoctorj-diagram.version>2.1.0</asciidoctorj-diagram.version>
 
 		<byte-buddy.version>1.10.9</byte-buddy.version>
-		<cdi>2.0</cdi>
+		<cdi>2.0.SP1</cdi>
 		<changelist>-SNAPSHOT</changelist>
-		<checkstyle.version>8.29</checkstyle.version>
+		<checkstyle.version>8.40</checkstyle.version>
 		<cypher-dsl.version>2021.0.0</cypher-dsl.version>
 		<dist.id>spring-data-neo4j</dist.id>
 		<dist.key>SDNEO4J</dist.key>
@@ -84,11 +84,12 @@
 		<java-module-name>spring.data.neo4j</java-module-name>
 		<java.version>1.8</java.version>
 		<jaxb.version>2.3.1</jaxb.version>
-		<jqassistant-dashboard-plugin.version>1.8.0</jqassistant-dashboard-plugin.version>
-		<jqassistant.plugin.version>1.8.0</jqassistant.plugin.version>
-		<jqassistant.version>1.8.0</jqassistant.version>
+		<jqassistant-dashboard-plugin.version>1.9.0</jqassistant-dashboard-plugin.version>
+		<jqassistant.plugin.git.version>1.8.0</jqassistant.plugin.git.version>
+		<jqassistant.plugin.version>1.9.0</jqassistant.plugin.version>
+		<jqassistant.version>1.9.0</jqassistant.version>
 		<junit-cc-testcontainer>2020.0.7</junit-cc-testcontainer>
-		<maven-checkstyle-plugin.version>3.1.1</maven-checkstyle-plugin.version>
+		<maven-checkstyle-plugin.version>3.1.2</maven-checkstyle-plugin.version>
 		<maven-deploy-plugin.version>3.0.0-M1</maven-deploy-plugin.version>
 		<maven-enforcer-plugin.version>3.0.0-M3</maven-enforcer-plugin.version>
 		<maven-failsafe-plugin.version>3.0.0-M5</maven-failsafe-plugin.version>
@@ -101,7 +102,7 @@
 		<maven.compiler.source>${java.version}</maven.compiler.source>
 		<maven.compiler.target>${java.version}</maven.compiler.target>
 		<mockito>${mockito.version}</mockito>
-		<mockito.version>3.2.4</mockito.version>
+		<mockito.version>3.7.7</mockito.version>
 		<neo4j-java-driver.version>4.2.1</neo4j-java-driver.version>
 		<neo4j.version>4.2.3</neo4j.version>
 		<objenesis.version>3.0.1</objenesis.version>
@@ -417,7 +418,7 @@
 						<dependency>
 							<groupId>de.kontext-e.jqassistant.plugin</groupId>
 							<artifactId>jqassistant.plugin.git</artifactId>
-							<version>${jqassistant.version}</version>
+							<version>${jqassistant.plugin.git.version}</version>
 						</dependency>
 						<dependency>
 							<groupId>org.jqassistant.contrib.plugin</groupId>
@@ -487,6 +488,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-checkstyle-plugin</artifactId>
+				<version>${maven-checkstyle-plugin.version}</version>
 				<executions>
 					<execution>
 						<id>verify</id>

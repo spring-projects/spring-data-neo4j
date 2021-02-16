@@ -75,7 +75,7 @@ For that we use the following algorithm:
 [[mapping.fundamentals.property-population.details]]
 .Property population internals
 ****
-Similarly to our <<mapping.object-creation.details,optimizations in object construction>> we also use Spring Data runtime generated accessor classes to interact with the entity instance.
+Similarly to our <<mapping.fundamentals.object-creation.details,optimizations in object construction>> we also use Spring Data runtime generated accessor classes to interact with the entity instance.
 
 [source,java]
 ----

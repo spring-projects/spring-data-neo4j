@@ -17,9 +17,7 @@ package org.springframework.data.neo4j.documentation.repositories.custom_queries
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -76,9 +74,7 @@ class CustomQueriesIT {
 	@BeforeAll
 	static void setupData(@Autowired Driver driver) throws IOException {
 
-		try (BufferedReader moviesReader = new BufferedReader(
-				new InputStreamReader(CustomQueriesIT.class.getResourceAsStream("/data/movies.cypher")));
-				Session session = driver.session()) {
+		try (Session session = driver.session()) {
 			session.run("MATCH (n) DETACH DELETE n").consume();
 			session.run("MATCH (n) DETACH DELETE n").consume();
 			CypherUtils.loadCypherFromResource("/data/movies.cypher", session);
