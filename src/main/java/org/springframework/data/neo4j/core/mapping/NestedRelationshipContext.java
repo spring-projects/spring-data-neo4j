@@ -119,10 +119,10 @@ public final class NestedRelationshipContext {
 
 		Neo4jPersistentProperty inverse = handler.getInverse();
 
-		boolean inverseValueIsEmpty = propertyAccessor.getProperty(inverse) == null;
 		// value can be a collection or scalar of related notes, point to a relationship property (scalar or collection)
 		// or is a dynamic relationship (map)
 		Object value = propertyAccessor.getProperty(inverse);
+		boolean inverseValueIsEmpty = value == null;
 
 		RelationshipDescription relationship = neo4jPersistentEntity.getRelationships().stream()
 				.filter(r -> r.getFieldName().equals(inverse.getName())).findFirst().get();
