@@ -668,9 +668,9 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 										targetEntity, inDatabase).flatMap(relatedInternalId -> {
 
 											// if an internal id is used this must get set to link this entity in the next iteration
+											PersistentPropertyAccessor<?> targetPropertyAccessor = targetEntity
+													.getPropertyAccessor(relatedNode);
 											if (targetEntity.isUsingInternalIds()) {
-												PersistentPropertyAccessor<?> targetPropertyAccessor = targetEntity
-														.getPropertyAccessor(relatedNode);
 												targetPropertyAccessor.setProperty(targetEntity.getRequiredIdProperty(),
 														relatedInternalId);
 											}
@@ -697,7 +697,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 
 											if (processState != ProcessState.PROCESSED_ALL_VALUES) {
 												return relationshipCreationMonoNested.checkpoint().then(
-														processNestedRelations(targetEntity, relatedNode,
+														processNestedRelations(targetEntity, targetPropertyAccessor.getBean(),
 																isNew, inDatabase, stateMachine));
 											} else {
 												return relationshipCreationMonoNested.checkpoint().then();

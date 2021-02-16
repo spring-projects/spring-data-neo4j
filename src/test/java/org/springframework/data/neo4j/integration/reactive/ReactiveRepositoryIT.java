@@ -21,6 +21,7 @@ import static org.assertj.core.api.Assertions.tuple;
 
 import org.springframework.data.neo4j.integration.shared.common.DtoPersonProjection;
 import org.springframework.data.neo4j.integration.shared.common.EntitiesWithDynamicLabels;
+import org.springframework.data.neo4j.integration.shared.common.ImmutablePersonWithGeneratedId;
 import org.springframework.data.neo4j.integration.shared.common.SimplePerson;
 import org.springframework.data.neo4j.integration.shared.common.ThingWithFixedGeneratedId;
 import reactor.core.publisher.Flux;
@@ -1738,6 +1739,23 @@ class ReactiveRepositoryIT {
 				assertThat(node.get("e").get("identifyingEnum").asString()).isEqualTo("A");
 			}
 		}
+
+		@Test
+		void saveWithGeneratedIdsReturnsObjectWithIdSet(
+				@Autowired ImmutablePersonWithGeneratedIdRepository repository) {
+
+			ImmutablePersonWithGeneratedId fallback1 = new ImmutablePersonWithGeneratedId();
+			ImmutablePersonWithGeneratedId fallback2 = new ImmutablePersonWithGeneratedId(fallback1);
+			ImmutablePersonWithGeneratedId person = new ImmutablePersonWithGeneratedId(fallback2);
+
+			StepVerifier.create(repository.save(person))
+					.assertNext(savedPerson -> {
+						assertThat(savedPerson.getId()).isNotNull();
+						assertThat(savedPerson.getFallback()).isNotNull();
+						assertThat(savedPerson.getFallback().getFallback()).isNotNull();
+					})
+					.verifyComplete();
+		}
 	}
 
 	@Nested
@@ -2419,6 +2437,9 @@ class ReactiveRepositoryIT {
 	interface BidirectionalEndRepository extends ReactiveNeo4jRepository<BidirectionalEnd, Long> {}
 
 	interface ImmutablePersonRepository extends ReactiveNeo4jRepository<ImmutablePerson, String> {}
+
+	interface ImmutablePersonWithGeneratedIdRepository
+			extends ReactiveNeo4jRepository<ImmutablePersonWithGeneratedId, Long> {}
 
 	interface ReactiveLoopingRelationshipRepository
 			extends ReactiveNeo4jRepository<DeepRelationships.LoopingType1, Long> {}
