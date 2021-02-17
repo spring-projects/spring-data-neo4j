@@ -1,6 +1,24 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 6.0.4 (2021-02-17)
+-------------------------------------
+* #2145 - Upgrade to JUnit Causal Cluster Testcontainer extension 2020.0.7.
+* #2142 - Upgrade to Cypher-DSL 2021.0.0.
+* #2141 - NullPointerException when persisting Kotlin data class.
+* #2139 - Fix classcast exception for paginated projections.
+* #2137 - 'findByProperty' not finishing. It tries to load whole graph.
+* #2135 - Add documentation for custom Graph repository fragments.
+* #2133 - Remove `o.s.d.annotation.Persistent` from the set of identifying annotations.
+* #2124 - Fix failing save for uninitialized maps of dynamic properties.
+* #2123 - Select correct conversion for assigned ids of related nodes.
+* #2121 - Optimize path querying and mapping.
+* #2118 - Don't overwrite unknown properties of known nodes and relationships.
+* #2117 - Exclude relationships from projections when not projected.
+* #2114 - Include all nodes of a path during mapping.
+* #2032 - Document manual query creation. [DATAGRAPH-1471].
+
+
 Changes in version 5.3.7.RELEASE (2021-02-17)
 ---------------------------------------------
 * #2149 - Include Bintray plugin repository.
@@ -2057,6 +2075,7 @@ General
 * Support for building traversal descriptions
 * Support for cross-store persistence including basic transaction support
 * Abstract configuration class
+
 
 
 
