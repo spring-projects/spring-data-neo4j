@@ -28,7 +28,7 @@
 	<parent>
 		<groupId>org.springframework.data.build</groupId>
 		<artifactId>spring-data-parent</artifactId>
-		<version>2.2.13.BUILD-SNAPSHOT</version>
+		<version>2.2.13.RELEASE</version>
 	</parent>
 
 	<modules>
@@ -42,7 +42,7 @@
 		<project.type>multi</project.type>
 
 		<neo4j.ogm.version>3.2.20</neo4j.ogm.version>
-		<springdata.commons>2.2.13.BUILD-SNAPSHOT</springdata.commons>
+		<springdata.commons>2.2.13.RELEASE</springdata.commons>
 	</properties>
 
 	<developers>
@@ -197,8 +197,8 @@
 
 	<repositories>
 		<repository>
-			<id>spring-libs-snapshot</id>
-			<url>https://repo.spring.io/libs-snapshot</url>
+			<id>spring-libs-release</id>
+			<url>https://repo.spring.io/libs-release</url>
 		</repository>
 	</repositories>
 
