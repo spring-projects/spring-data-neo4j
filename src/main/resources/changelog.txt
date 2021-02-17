@@ -1,6 +1,21 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 5.2.13.RELEASE (2021-02-17)
+----------------------------------------------
+* #2149 - Include Bintray plugin repository.
+* #2099 - Declare the dependency between shared session creator and entity instantiator.
+* #1862 - Support combining startingWith and endingWith with IgnoreCase in derived queries.
+* #1807 - Add support for limiting, derived queries (findFirst and findTop).
+* #1792 - Ensure that internal database ids are accessed via id(n) in nested, derived query methods. [DATAGRAPH-1231].
+* #1763 - Ensure final fields of immutable entities are persisted correctly.
+* #1712 - Constructor based instantiation of entities fails due to missing converters. [DATAGRAPH-1182].
+* #1691 - Fail early if bookmark setup is enabled without a bookmark manager. [DATAGRAPH-1128].
+* #1578 - Relations are not saved correctly [DATAGRAPH-1017].
+* #1568 - Recognize org.springframework.data.annotation.Transient from Neo4j-OGM.
+* #899 - Update repository after GitHub issues migration.
+
+
 Changes in version 6.1.0-M2 (2021-01-13)
 ----------------------------------------
 * DATAGRAPH-1469 - Bidirectional RelationshipProperties persist ends up in StackOverflow.
@@ -2027,6 +2042,7 @@ General
 * Support for building traversal descriptions
 * Support for cross-store persistence including basic transaction support
 * Abstract configuration class
+
 
 
 
