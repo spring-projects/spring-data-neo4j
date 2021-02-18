@@ -33,6 +33,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.neo4j.config.AbstractNeo4jConfig;
+import org.springframework.data.neo4j.core.Neo4jTemplate;
+import org.springframework.data.neo4j.integration.shared.common.ImmutableVersionedThing;
 import org.springframework.data.neo4j.integration.shared.common.VersionedThing;
 import org.springframework.data.neo4j.integration.shared.common.VersionedThingWithAssignedId;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
@@ -268,6 +270,18 @@ class OptimisticLockingIT {
 		VersionedThingWithAssignedId thing = repository.findById(1L).get();
 		thing.setMyVersion(3L);
 		assertThatExceptionOfType(OptimisticLockingFailureException.class).isThrownBy(() -> repository.delete(thing));
+	}
+
+	@Test // GH-2154
+	void immutablesShouldWork(@Autowired Neo4jTemplate neo4jTemplate) {
+
+		ImmutableVersionedThing immutableVersionedThing = new ImmutableVersionedThing(23L, "Hello");
+
+		immutableVersionedThing = neo4jTemplate.save(immutableVersionedThing);
+		assertThat(immutableVersionedThing.getMyVersion()).isNotNull();
+
+		ImmutableVersionedThing copy = immutableVersionedThing.withMyVersion(4711L).withName("World");
+		assertThatExceptionOfType(OptimisticLockingFailureException.class).isThrownBy(() -> neo4jTemplate.save(copy));
 	}
 
 	interface VersionedThingRepository extends Neo4jRepository<VersionedThing, Long> {}
