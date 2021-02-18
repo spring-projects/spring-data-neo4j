@@ -3019,6 +3019,11 @@ class RepositoryIT {
 			assertThat(repository.count()).isEqualTo(2);
 		}
 
+		@Test
+		void countByProperty(@Autowired PetRepository repository) {
+			assertThat(repository.countByName("Luna")).isEqualTo(1L);
+		}
+
 		@Test // GH-112
 		void countBySimplePropertiesOred(@Autowired PersonRepository repository) {
 
@@ -3856,6 +3861,8 @@ class RepositoryIT {
 		Pet findByFriendsName(String friendName);
 
 		Pet findByFriendsFriendsName(String friendName);
+
+		long countByName(String name);
 
 	}
 
