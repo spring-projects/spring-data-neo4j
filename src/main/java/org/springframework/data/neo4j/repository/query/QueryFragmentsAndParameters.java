@@ -100,7 +100,7 @@ public final class QueryFragmentsAndParameters {
 		QueryFragments queryFragments = new QueryFragments();
 		queryFragments.addMatchOn(cypherGenerator.createRootNode(entityMetaData));
 		queryFragments.setCondition(condition);
-		queryFragments.setReturnExpression(returnStatement);
+		queryFragments.setReturnExpressions(returnStatement);
 		return new QueryFragmentsAndParameters(entityMetaData, queryFragments, parameters);
 	}
 
@@ -112,7 +112,7 @@ public final class QueryFragmentsAndParameters {
 		QueryFragments queryFragments = new QueryFragments();
 		queryFragments.addMatchOn(cypherGenerator.createRootNode(entityMetaData));
 		queryFragments.setCondition(condition);
-		queryFragments.setReturnExpression(returnStatement);
+		queryFragments.setReturnExpressions(returnStatement);
 		return new QueryFragmentsAndParameters(entityMetaData, queryFragments, parameters);
 	}
 
@@ -120,7 +120,7 @@ public final class QueryFragmentsAndParameters {
 		QueryFragments queryFragments = new QueryFragments();
 		queryFragments.addMatchOn(cypherGenerator.createRootNode(entityMetaData));
 		queryFragments.setCondition(Conditions.noCondition());
-		queryFragments.setReturnExpression(cypherGenerator.createReturnStatementForMatch(entityMetaData));
+		queryFragments.setReturnExpressions(cypherGenerator.createReturnStatementForMatch(entityMetaData));
 		return new QueryFragmentsAndParameters(entityMetaData, queryFragments, Collections.emptyMap());
 	}
 
@@ -155,7 +155,7 @@ public final class QueryFragmentsAndParameters {
 		QueryFragments queryFragments = new QueryFragments();
 		queryFragments.addMatchOn(cypherGenerator.createRootNode(entityMetaData));
 		queryFragments.setCondition(condition);
-		queryFragments.setReturnExpression(returnStatement);
+		queryFragments.setReturnExpressions(returnStatement);
 
 		if (pageable != null) {
 			Sort pageableSort = pageable.getSort();
@@ -187,6 +187,7 @@ public final class QueryFragmentsAndParameters {
 		private Number limit;
 		private Long skip;
 		private ReturnTuple returnTuple;
+		private boolean scalarValueReturn = false;
 
 		public void addMatchOn(PatternElement match) {
 			this.matchOn.add(match);
@@ -208,12 +209,13 @@ public final class QueryFragmentsAndParameters {
 			return condition;
 		}
 
-		public void setReturnExpression(Expression[] expression) {
+		public void setReturnExpressions(Expression[] expression) {
 			this.returnExpressions = Arrays.asList(expression);
 		}
 
-		public void addReturnExpression(Expression returnExpression) {
-			this.returnExpressions.add(returnExpression);
+		public void setReturnExpression(Expression returnExpression, boolean isScalarValue) {
+			this.returnExpressions = Collections.singletonList(returnExpression);
+			this.scalarValueReturn = isScalarValue;
 		}
 
 		public void setOrderBy(SortItem[] orderBy) {
@@ -234,6 +236,10 @@ public final class QueryFragmentsAndParameters {
 
 		public ReturnTuple getReturnTuple() {
 			return returnTuple;
+		}
+
+		public boolean isScalarValueReturn() {
+			return scalarValueReturn;
 		}
 
 		private Expression[] getReturnExpressions() {

@@ -289,9 +289,9 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndPar
 		/// end of initial filter query creation
 
 		if (queryType == Neo4jQueryType.COUNT) {
-			queryFragments.addReturnExpression(Functions.count(Cypher.asterisk()));
+			queryFragments.setReturnExpression(Functions.count(Cypher.asterisk()), true);
 		} else if (queryType == Neo4jQueryType.EXISTS) {
-			queryFragments.addReturnExpression(Functions.count(Constants.NAME_OF_ROOT_NODE).gt(Cypher.literalOf(0)));
+			queryFragments.setReturnExpression(Functions.count(Constants.NAME_OF_ROOT_NODE).gt(Cypher.literalOf(0)), true);
 		} else {
 			queryFragments.setReturnBasedOn(nodeDescription, includedProperties);
 			queryFragments.setOrderBy(Stream
