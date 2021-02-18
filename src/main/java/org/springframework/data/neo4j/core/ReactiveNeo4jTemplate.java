@@ -454,7 +454,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 				returnTuple != null
 						? returnTuple.getIncludedProperties()
 						: Collections.emptyList());
-		if (containsPossibleCircles) {
+		if (containsPossibleCircles && !queryFragments.isScalarValueReturn()) {
 			return createQueryAndParameters(entityMetaData, queryFragments, parameters)
 					.flatMap(finalQueryAndParameters ->
 							createExecutableQuery(domainType, renderer.render(GenericQueryAndParameters.STATEMENT),
@@ -759,7 +759,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 
 				Map<String, Object> parameters = queryFragmentsAndParameters.getParameters();
 
-				if (containsPossibleCircles) {
+				if (containsPossibleCircles && !queryFragments.isScalarValueReturn()) {
 					GenericQueryAndParameters genericQueryAndParameters =
 							createQueryAndParameters(entityMetaData, queryFragments, parameters).block();
 
@@ -768,7 +768,6 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 				} else {
 					cypherQuery = renderer.render(queryFragments.toStatement());
 				}
-
 			}
 
 			ReactiveNeo4jClient.MappingSpec<T> mappingSpec = this.neo4jClient.query(cypherQuery)

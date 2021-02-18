@@ -980,6 +980,12 @@ class RepositoryIT {
 		}
 
 		@Test // GH-2157
+		void countByCustomQueryShouldWork(@Autowired PetRepository repository) {
+			createFriendlyPets();
+			assertThat(repository.countAllByName("Luna")).isEqualTo(4L);
+		}
+
+		@Test // GH-2157
 		void existsByPropertyWithPossibleCircles(@Autowired PetRepository repository) {
 			createFriendlyPets();
 			assertThat(repository.existsByName("Luna")).isTrue();
@@ -3874,8 +3880,10 @@ class RepositoryIT {
 
 		long countByName(String name);
 
-		boolean existsByName(String name);
+		@Query(value = "RETURN size($0)", count = true)
+		long countAllByName(String name);
 
+		boolean existsByName(String name);
 	}
 
 	interface RelationshipRepository extends Neo4jRepository<PersonWithRelationship, Long> {
