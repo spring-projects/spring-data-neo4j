@@ -39,23 +39,24 @@ final class OptimisticLockingSupport {
 		Neo4jPersistentEntity<?> neo4jPersistentEntity = (Neo4jPersistentEntity<?>) mappingContext
 				.getRequiredNodeDescription(entity.getClass());
 
-		if (neo4jPersistentEntity.hasVersionProperty()) {
-			PersistentPropertyAccessor<Object> propertyAccessor = neo4jPersistentEntity.getPropertyAccessor(entity);
-			Neo4jPersistentProperty versionProperty = neo4jPersistentEntity.getRequiredVersionProperty();
-
-			if (!Long.class.isAssignableFrom(versionProperty.getType())) {
-				return entity;
-			}
-
-			Long versionPropertyValue = (Long) propertyAccessor.getProperty(versionProperty);
-
-			long newVersionValue = 0;
-			if (versionPropertyValue != null) {
-				newVersionValue = versionPropertyValue + 1;
-			}
-
-			propertyAccessor.setProperty(versionProperty, newVersionValue);
+		if (!neo4jPersistentEntity.hasVersionProperty()) {
+			return entity;
 		}
-		return entity;
+
+		PersistentPropertyAccessor<Object> propertyAccessor = neo4jPersistentEntity.getPropertyAccessor(entity);
+		Neo4jPersistentProperty versionProperty = neo4jPersistentEntity.getRequiredVersionProperty();
+
+		if (!Long.class.isAssignableFrom(versionProperty.getType())) {
+			return entity;
+		}
+
+		Long versionPropertyValue = (Long) propertyAccessor.getProperty(versionProperty);
+
+		long newVersionValue = 0;
+		if (versionPropertyValue != null) {
+			newVersionValue = versionPropertyValue + 1;
+		}
+		propertyAccessor.setProperty(versionProperty, newVersionValue);
+		return propertyAccessor.getBean();
 	}
 }
