@@ -15,26 +15,6 @@
  */
 package org.springframework.data.neo4j.core;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyMap;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
-
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
-import reactor.test.StepVerifier;
-
-import java.time.LocalDate;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -53,6 +33,25 @@ import org.neo4j.driver.reactive.RxSession;
 import org.neo4j.driver.reactive.RxTransaction;
 import org.neo4j.driver.summary.ResultSummary;
 import org.neo4j.driver.types.TypeSystem;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
+
+import java.time.LocalDate;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyMap;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Michael J. Simons
@@ -188,6 +187,40 @@ class ReactiveNeo4jClientTest {
 		}
 
 		verify(driver).defaultTypeSystem();
+	}
+
+	@Test // GH-2159
+	void databaseSelectionBeanShouldGetRespectedIfExisting() {
+
+		prepareMocks();
+
+		when(transaction.run(anyString(), anyMap())).thenReturn(result);
+		when(transaction.commit()).thenReturn(Mono.empty());
+		when(result.records()).thenReturn(Flux.just(record1, record2));
+		when(result.consume()).thenReturn(Mono.just(resultSummary));
+
+		String databaseName = "customDatabaseSelection";
+		String cypher = "RETURN 1";
+		ReactiveDatabaseSelectionProvider databaseSelection = ReactiveDatabaseSelectionProvider
+				.createStaticDatabaseSelectionProvider(databaseName);
+
+
+		ReactiveNeo4jClient client = ReactiveNeo4jClient.create(driver, databaseSelection);
+
+		StepVerifier.create(client.query(cypher).fetch().first())
+				.expectNextCount(1L)
+				.verifyComplete();
+
+		verifyDatabaseSelection(databaseName);
+
+		verify(transaction).run(eq(cypher), anyMap());
+		verify(result).records();
+		verify(result).consume();
+		verify(resultSummary).notifications();
+		verify(record1).asMap();
+		verify(transaction).commit();
+		verify(transaction).rollback();
+		verify(session).close();
 	}
 
 	@Nested

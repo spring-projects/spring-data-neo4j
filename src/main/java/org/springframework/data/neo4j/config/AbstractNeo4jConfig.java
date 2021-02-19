@@ -54,15 +54,14 @@ public abstract class AbstractNeo4jConfig extends Neo4jConfigurationSupport {
 	 * @return A imperative Neo4j client.
 	 */
 	@Bean(Neo4jRepositoryConfigurationExtension.DEFAULT_NEO4J_CLIENT_BEAN_NAME)
-	public Neo4jClient neo4jClient(Driver driver) {
-		return Neo4jClient.create(driver);
+	public Neo4jClient neo4jClient(Driver driver, DatabaseSelectionProvider databaseSelectionProvider) {
+		return Neo4jClient.create(driver, databaseSelectionProvider);
 	}
 
 	@Bean(Neo4jRepositoryConfigurationExtension.DEFAULT_NEO4J_TEMPLATE_BEAN_NAME)
-	public Neo4jOperations neo4jTemplate(final Neo4jClient neo4jClient, final Neo4jMappingContext mappingContext,
-			DatabaseSelectionProvider databaseNameProvider) {
+	public Neo4jOperations neo4jTemplate(final Neo4jClient neo4jClient, final Neo4jMappingContext mappingContext) {
 
-		return new Neo4jTemplate(neo4jClient, mappingContext, databaseNameProvider);
+		return new Neo4jTemplate(neo4jClient, mappingContext);
 	}
 
 	/**

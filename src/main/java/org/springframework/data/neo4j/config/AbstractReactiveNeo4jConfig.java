@@ -60,9 +60,9 @@ public abstract class AbstractReactiveNeo4jConfig extends Neo4jConfigurationSupp
 
 	@Bean(ReactiveNeo4jRepositoryConfigurationExtension.DEFAULT_NEO4J_TEMPLATE_BEAN_NAME)
 	public ReactiveNeo4jTemplate neo4jTemplate(final ReactiveNeo4jClient neo4jClient,
-			final Neo4jMappingContext mappingContext, final ReactiveDatabaseSelectionProvider databaseNameProvider) {
+			final Neo4jMappingContext mappingContext) {
 
-		return new ReactiveNeo4jTemplate(neo4jClient, mappingContext, databaseNameProvider);
+		return new ReactiveNeo4jTemplate(neo4jClient, mappingContext);
 	}
 
 	/**

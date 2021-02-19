@@ -63,10 +63,9 @@ public class Domain1Config {
 	@Primary @Bean
 	public Neo4jOperations domain1Template(
 			@Qualifier("domain1Client") Neo4jClient domain1Client,
-			@Qualifier("domain1Context") Neo4jMappingContext domain1Context,
-			@Qualifier("domain1Selection") DatabaseSelectionProvider domain1Selection
+			@Qualifier("domain1Context") Neo4jMappingContext domain1Context
 	) {
-		return new Neo4jTemplate(domain1Client, domain1Context, domain1Selection);
+		return new Neo4jTemplate(domain1Client, domain1Context);
 	}
 
 	@Primary @Bean

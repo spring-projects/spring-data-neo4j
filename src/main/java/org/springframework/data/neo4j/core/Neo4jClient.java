@@ -48,7 +48,12 @@ public interface Neo4jClient {
 
 	static Neo4jClient create(Driver driver) {
 
-		return new DefaultNeo4jClient(driver);
+		return new DefaultNeo4jClient(driver, null);
+	}
+
+	static Neo4jClient create(Driver driver, DatabaseSelectionProvider databaseSelectionProvider) {
+
+		return new DefaultNeo4jClient(driver, databaseSelectionProvider);
 	}
 
 	/**
