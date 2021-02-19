@@ -185,22 +185,24 @@ class Neo4jClientTest {
 		verify(driver).defaultTypeSystem();
 	}
 
-	@Test
+	@Test // GH-2159
 	void databaseSelectionBeanShouldGetRespectedIfExisting() {
 		prepareMocks();
 		when(session.run(anyString(), anyMap())).thenReturn(result);
 		when(result.stream()).thenReturn(Stream.of(record1, record2));
 		when(result.consume()).thenReturn(resultSummary);
 
+		String databaseName = "customDatabaseSelection";
 		DatabaseSelectionProvider databaseSelection = DatabaseSelectionProvider
-				.createStaticDatabaseSelectionProvider("databaseSelection");
+				.createStaticDatabaseSelectionProvider(databaseName);
 
 		Neo4jClient client = Neo4jClient.create(driver, databaseSelection);
 
-		client.query("RETURN 1").fetch().first();
-		verifyDatabaseSelection("databaseSelection");
+		String query = "RETURN 1";
+		client.query(query).fetch().first();
+		verifyDatabaseSelection(databaseName);
 
-		verify(session).run(eq("RETURN 1"), anyMap());
+		verify(session).run(eq(query), anyMap());
 		verify(result).stream();
 		verify(result).consume();
 		verify(resultSummary).notifications();

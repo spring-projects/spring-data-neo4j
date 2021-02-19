@@ -54,13 +54,15 @@ class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 
 	private final Driver driver;
 	private final TypeSystem typeSystem;
+	private final DatabaseSelectionProvider databaseSelectionProvider;
 	private final ConversionService conversionService;
 	private final Neo4jPersistenceExceptionTranslator persistenceExceptionTranslator = new Neo4jPersistenceExceptionTranslator();
 
-	DefaultReactiveNeo4jClient(Driver driver) {
+	DefaultReactiveNeo4jClient(Driver driver, @Nullable DatabaseSelectionProvider databaseSelectionProvider) {
 
 		this.driver = driver;
 		this.typeSystem = driver.defaultTypeSystem();
+		this.databaseSelectionProvider = databaseSelectionProvider;
 		this.conversionService = new DefaultConversionService();
 		new Neo4jConversions().registerConvertersIn((ConverterRegistry) conversionService);
 	}
@@ -194,7 +196,12 @@ class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 
 		DefaultRecordFetchSpec(String targetDatabase, Supplier<String> cypherSupplier, NamedParameters parameters,
 				@Nullable BiFunction<TypeSystem, Record, T> mappingFunction) {
-			this.targetDatabase = targetDatabase;
+
+			this.targetDatabase = targetDatabase != null
+					? targetDatabase
+					: databaseSelectionProvider != null
+					? databaseSelectionProvider.getDatabaseSelection().getValue()
+					: null;
 			this.cypherSupplier = cypherSupplier;
 			this.parameters = parameters;
 			this.mappingFunction = mappingFunction;

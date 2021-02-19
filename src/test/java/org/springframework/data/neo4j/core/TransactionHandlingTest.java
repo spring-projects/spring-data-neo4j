@@ -154,7 +154,7 @@ class TransactionHandlingTest {
 
 		@Test
 		void shouldNotOpenTransactionsWithoutSubscription() {
-			DefaultReactiveNeo4jClient neo4jClient = new DefaultReactiveNeo4jClient(driver);
+			DefaultReactiveNeo4jClient neo4jClient = new DefaultReactiveNeo4jClient(driver, null);
 			neo4jClient.query("RETURN 1").in("aDatabase").fetch().one();
 
 			verify(driver, never()).rxSession(any(SessionConfig.class));
@@ -169,7 +169,7 @@ class TransactionHandlingTest {
 			when(transaction.commit()).thenReturn(Mono.empty());
 			when(session.close()).thenReturn(Mono.empty());
 
-			DefaultReactiveNeo4jClient neo4jClient = new DefaultReactiveNeo4jClient(driver);
+			DefaultReactiveNeo4jClient neo4jClient = new DefaultReactiveNeo4jClient(driver, null);
 
 			Mono<String> sequence = neo4jClient.doInQueryRunnerForMono("aDatabase", tx -> Mono.just("1"));
 
@@ -191,7 +191,7 @@ class TransactionHandlingTest {
 			when(transaction.rollback()).thenReturn(Mono.empty());
 			when(session.close()).thenReturn(Mono.empty());
 
-			DefaultReactiveNeo4jClient neo4jClient = new DefaultReactiveNeo4jClient(driver);
+			DefaultReactiveNeo4jClient neo4jClient = new DefaultReactiveNeo4jClient(driver, null);
 
 			Mono<String> sequence = neo4jClient.doInQueryRunnerForMono("aDatabase", tx -> Mono.error(new SomeException()));
 
