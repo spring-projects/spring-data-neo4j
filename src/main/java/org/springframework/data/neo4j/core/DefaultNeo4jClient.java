@@ -56,13 +56,15 @@ class DefaultNeo4jClient implements Neo4jClient {
 
 	private final Driver driver;
 	private final TypeSystem typeSystem;
+	private final DatabaseSelectionProvider databaseSelectionProvider;
 	private final ConversionService conversionService;
 	private final Neo4jPersistenceExceptionTranslator persistenceExceptionTranslator = new Neo4jPersistenceExceptionTranslator();
 
-	DefaultNeo4jClient(Driver driver) {
+	DefaultNeo4jClient(Driver driver, DatabaseSelectionProvider databaseSelectionProvider) {
 
 		this.driver = driver;
 		this.typeSystem = driver.defaultTypeSystem();
+		this.databaseSelectionProvider = databaseSelectionProvider;
 
 		this.conversionService = new DefaultConversionService();
 		new Neo4jConversions().registerConvertersIn((ConverterRegistry) conversionService);
@@ -262,7 +264,11 @@ class DefaultNeo4jClient implements Neo4jClient {
 
 		DefaultRecordFetchSpec(String targetDatabase, RunnableStatement runnableStatement,
 				BiFunction<TypeSystem, Record, T> mappingFunction) {
-			this.targetDatabase = targetDatabase;
+			this.targetDatabase = targetDatabase != null
+					? targetDatabase
+					: databaseSelectionProvider != null
+						? databaseSelectionProvider.getDatabaseSelection().getValue()
+						: null;
 			this.runnableStatement = runnableStatement;
 			this.mappingFunction = mappingFunction;
 		}

@@ -185,6 +185,30 @@ class Neo4jClientTest {
 		verify(driver).defaultTypeSystem();
 	}
 
+	@Test
+	void databaseSelectionBeanShouldGetRespectedIfExisting() {
+		prepareMocks();
+		when(session.run(anyString(), anyMap())).thenReturn(result);
+		when(result.stream()).thenReturn(Stream.of(record1, record2));
+		when(result.consume()).thenReturn(resultSummary);
+
+		DatabaseSelectionProvider databaseSelection = DatabaseSelectionProvider
+				.createStaticDatabaseSelectionProvider("databaseSelection");
+
+		Neo4jClient client = Neo4jClient.create(driver, databaseSelection);
+
+		client.query("RETURN 1").fetch().first();
+		verifyDatabaseSelection("databaseSelection");
+
+		verify(session).run(eq("RETURN 1"), anyMap());
+		verify(result).stream();
+		verify(result).consume();
+		verify(resultSummary).notifications();
+		verify(record1).asMap();
+		verify(session).close();
+
+	}
+
 	@Nested
 	@DisplayName("Callback handling should feel good")
 	class CallbackHandlingShouldFeelGood {
