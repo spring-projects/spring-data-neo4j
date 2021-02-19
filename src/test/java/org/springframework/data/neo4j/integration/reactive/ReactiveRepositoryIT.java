@@ -1002,7 +1002,7 @@ class ReactiveRepositoryIT {
 
 			StepVerifier.create(repository.findById(petId)).assertNext(loadedPet -> {
 				assertThat(loadedPet.getFriends().get(0).getName()).isEqualTo("Daphne");
-				assertThat(loadedPet.getFriends().get(0).getFriends().get(0).getName()).isEqualTo("Luna");
+				assertThat(loadedPet.getFriends().get(0).getFriends().get(0).getName()).isEqualTo("Tom");
 			}).verifyComplete();
 		}
 
@@ -1010,6 +1010,14 @@ class ReactiveRepositoryIT {
 		void countByPropertyWithPossibleCircles(@Autowired ReactivePetRepository repository) {
 			createFriendlyPets();
 			StepVerifier.create(repository.countByName("Luna")).expectNext(1L).verifyComplete();
+		}
+
+		@Test // GH-2157
+		void countByPatternPathProperties(@Autowired ReactivePetRepository repository) {
+			createFriendlyPets();
+			StepVerifier.create(repository.countByFriendsNameAndFriendsFriendsName("Daphne", "Tom"))
+					.expectNextCount(1L)
+					.verifyComplete();
 		}
 
 		@Test // GH-2157
@@ -1021,7 +1029,7 @@ class ReactiveRepositoryIT {
 		private long createFriendlyPets() {
 			try (Session session = createSession()) {
 				return session.run("CREATE (luna:Pet{name:'Luna'})-[:Has]->(daphne:Pet{name:'Daphne'})"
-								   + "-[:Has]->(luna)" + "RETURN id(luna) as id").single().get("id").asLong();
+								   + "-[:Has]->(:Pet{name:'Tom'})" + "RETURN id(luna) as id").single().get("id").asLong();
 			}
 		}
 	}
@@ -2488,6 +2496,8 @@ class ReactiveRepositoryIT {
 		Mono<Long> countByName(String name);
 
 		Mono<Boolean> existsByName(String name);
+
+		Mono<Long> countByFriendsNameAndFriendsFriendsName(String friendName, String friendFriendName);
 	}
 
 	interface ReactiveRelationshipRepository extends ReactiveNeo4jRepository<PersonWithRelationship, Long> {
