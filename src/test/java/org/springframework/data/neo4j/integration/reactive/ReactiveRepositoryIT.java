@@ -998,17 +998,39 @@ class ReactiveRepositoryIT {
 		@Test
 		void findEntityWithSelfReferencesInBothDirections(@Autowired ReactivePetRepository repository) {
 
-			long petId;
-
-			try (Session session = createSession()) {
-				petId = session.run("CREATE (luna:Pet{name:'Luna'})-[:Has]->(daphne:Pet{name:'Daphne'})"
-						+ "-[:Has]->(luna2:Pet{name:'Luna'})" + "RETURN id(luna) as id").single().get("id").asLong();
-			}
+			long petId = createFriendlyPets();
 
 			StepVerifier.create(repository.findById(petId)).assertNext(loadedPet -> {
 				assertThat(loadedPet.getFriends().get(0).getName()).isEqualTo("Daphne");
-				assertThat(loadedPet.getFriends().get(0).getFriends().get(0).getName()).isEqualTo("Luna");
+				assertThat(loadedPet.getFriends().get(0).getFriends().get(0).getName()).isEqualTo("Tom");
 			}).verifyComplete();
+		}
+
+		@Test // GH-2157
+		void countByPropertyWithPossibleCircles(@Autowired ReactivePetRepository repository) {
+			createFriendlyPets();
+			StepVerifier.create(repository.countByName("Luna")).expectNext(1L).verifyComplete();
+		}
+
+		@Test // GH-2157
+		void countByPatternPathProperties(@Autowired ReactivePetRepository repository) {
+			createFriendlyPets();
+			StepVerifier.create(repository.countByFriendsNameAndFriendsFriendsName("Daphne", "Tom"))
+					.expectNextCount(1L)
+					.verifyComplete();
+		}
+
+		@Test // GH-2157
+		void existsByPropertyWithPossibleCircles(@Autowired ReactivePetRepository repository) {
+			createFriendlyPets();
+			StepVerifier.create(repository.existsByName("Luna")).expectNext(true).verifyComplete();
+		}
+
+		private long createFriendlyPets() {
+			try (Session session = createSession()) {
+				return session.run("CREATE (luna:Pet{name:'Luna'})-[:Has]->(daphne:Pet{name:'Daphne'})"
+								   + "-[:Has]->(:Pet{name:'Tom'})" + "RETURN id(luna) as id").single().get("id").asLong();
+			}
 		}
 	}
 
@@ -2477,7 +2499,13 @@ class ReactiveRepositoryIT {
 		Flux<AltHobby> loadFromCustomQuery(@Param("personId") Long personId);
 	}
 
-	interface ReactivePetRepository extends ReactiveNeo4jRepository<Pet, Long> {}
+	interface ReactivePetRepository extends ReactiveNeo4jRepository<Pet, Long> {
+		Mono<Long> countByName(String name);
+
+		Mono<Boolean> existsByName(String name);
+
+		Mono<Long> countByFriendsNameAndFriendsFriendsName(String friendName, String friendFriendName);
+	}
 
 	interface ReactiveRelationshipRepository extends ReactiveNeo4jRepository<PersonWithRelationship, Long> {
 

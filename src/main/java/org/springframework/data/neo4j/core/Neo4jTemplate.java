@@ -660,7 +660,7 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 
 				Map<String, Object> parameters = queryFragmentsAndParameters.getParameters();
 
-				if (containsPossibleCircles) {
+				if (containsPossibleCircles && !queryFragments.isScalarValueReturn()) {
 					GenericQueryAndParameters genericQueryAndParameters =
 							createQueryAndParameters(entityMetaData, queryFragments, parameters);
 
