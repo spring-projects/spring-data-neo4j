@@ -51,7 +51,7 @@ public interface ReactiveNeo4jClient {
 		return new DefaultReactiveNeo4jClient(driver, null);
 	}
 
-	static ReactiveNeo4jClient create(Driver driver, DatabaseSelectionProvider databaseSelectionProvider) {
+	static ReactiveNeo4jClient create(Driver driver, ReactiveDatabaseSelectionProvider databaseSelectionProvider) {
 
 		return new DefaultReactiveNeo4jClient(driver, databaseSelectionProvider);
 	}

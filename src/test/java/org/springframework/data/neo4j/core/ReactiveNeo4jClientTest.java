@@ -201,7 +201,7 @@ class ReactiveNeo4jClientTest {
 
 		String databaseName = "customDatabaseSelection";
 		String cypher = "RETURN 1";
-		DatabaseSelectionProvider databaseSelection = DatabaseSelectionProvider
+		ReactiveDatabaseSelectionProvider databaseSelection = ReactiveDatabaseSelectionProvider
 				.createStaticDatabaseSelectionProvider(databaseName);
 
 

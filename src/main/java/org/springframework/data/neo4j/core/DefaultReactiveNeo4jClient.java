@@ -15,15 +15,6 @@
  */
 package org.springframework.data.neo4j.core;
 
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
-import reactor.util.function.Tuple2;
-
-import java.util.Map;
-import java.util.function.BiFunction;
-import java.util.function.Function;
-import java.util.function.Supplier;
-
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.reactive.RxQueryRunner;
@@ -41,6 +32,14 @@ import org.springframework.data.neo4j.core.transaction.Neo4jTransactionUtils;
 import org.springframework.data.neo4j.core.transaction.ReactiveNeo4jTransactionManager;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.util.function.Tuple2;
+
+import java.util.Map;
+import java.util.function.BiFunction;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * Reactive variant of the {@link Neo4jClient}.
@@ -54,11 +53,11 @@ class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 
 	private final Driver driver;
 	private final TypeSystem typeSystem;
-	private final DatabaseSelectionProvider databaseSelectionProvider;
+	private final ReactiveDatabaseSelectionProvider databaseSelectionProvider;
 	private final ConversionService conversionService;
 	private final Neo4jPersistenceExceptionTranslator persistenceExceptionTranslator = new Neo4jPersistenceExceptionTranslator();
 
-	DefaultReactiveNeo4jClient(Driver driver, @Nullable DatabaseSelectionProvider databaseSelectionProvider) {
+	DefaultReactiveNeo4jClient(Driver driver, @Nullable ReactiveDatabaseSelectionProvider databaseSelectionProvider) {
 
 		this.driver = driver;
 		this.typeSystem = driver.defaultTypeSystem();
@@ -182,7 +181,7 @@ class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 
 	class DefaultRecordFetchSpec<T> implements RecordFetchSpec<T>, MappingSpec<T> {
 
-		private final String targetDatabase;
+		private final Mono<DatabaseSelection> targetDatabase;
 
 		private final Supplier<String> cypherSupplier;
 
@@ -194,14 +193,18 @@ class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 			this(targetDatabase, cypherSupplier, parameters, null);
 		}
 
-		DefaultRecordFetchSpec(String targetDatabase, Supplier<String> cypherSupplier, NamedParameters parameters,
+		DefaultRecordFetchSpec(@Nullable String targetDatabase, Supplier<String> cypherSupplier, NamedParameters parameters,
 				@Nullable BiFunction<TypeSystem, Record, T> mappingFunction) {
 
-			this.targetDatabase = targetDatabase != null
-					? targetDatabase
-					: databaseSelectionProvider != null
-					? databaseSelectionProvider.getDatabaseSelection().getValue()
-					: null;
+			this.targetDatabase = Mono.defer(() -> {
+				if (targetDatabase != null) {
+					return ReactiveDatabaseSelectionProvider.createStaticDatabaseSelectionProvider(targetDatabase)
+							.getDatabaseSelection();
+				} else if (databaseSelectionProvider != null) {
+					return databaseSelectionProvider.getDatabaseSelection();
+				}
+				return Mono.just(DatabaseSelection.undecided());
+			});
 			this.cypherSupplier = cypherSupplier;
 			this.parameters = parameters;
 			this.mappingFunction = mappingFunction;
@@ -236,33 +239,36 @@ class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 		@Override
 		public Mono<T> one() {
 
-			return doInQueryRunnerForMono(targetDatabase,
-					(runner) -> prepareStatement().flatMapMany(t -> executeWith(t, runner)).singleOrEmpty())
+			return targetDatabase.flatMap(databaseSelection -> doInQueryRunnerForMono(databaseSelection.getValue(),
+					(runner) -> prepareStatement().flatMapMany(t -> executeWith(t, runner)).singleOrEmpty()))
 							.onErrorMap(RuntimeException.class, DefaultReactiveNeo4jClient.this::potentiallyConvertRuntimeException);
 		}
 
 		@Override
 		public Mono<T> first() {
 
-			return doInQueryRunnerForMono(targetDatabase,
-					runner -> prepareStatement().flatMapMany(t -> executeWith(t, runner)).next())
+			return targetDatabase.flatMap(databaseSelection -> doInQueryRunnerForMono(databaseSelection.getValue(),
+					runner -> prepareStatement().flatMapMany(t -> executeWith(t, runner)).next()))
 							.onErrorMap(RuntimeException.class, DefaultReactiveNeo4jClient.this::potentiallyConvertRuntimeException);
 		}
 
 		@Override
 		public Flux<T> all() {
 
-			return doInStatementRunnerForFlux(targetDatabase,
-					runner -> prepareStatement().flatMapMany(t -> executeWith(t, runner))).onErrorMap(RuntimeException.class,
-							DefaultReactiveNeo4jClient.this::potentiallyConvertRuntimeException);
+			return targetDatabase.flatMapMany(databaseSelection ->
+					doInStatementRunnerForFlux(databaseSelection.getValue(),
+						runner -> prepareStatement().flatMapMany(t -> executeWith(t, runner)))
+					)
+					.onErrorMap(RuntimeException.class,	DefaultReactiveNeo4jClient.this::potentiallyConvertRuntimeException);
 		}
 
 		Mono<ResultSummary> run() {
 
-			return doInQueryRunnerForMono(targetDatabase, runner -> prepareStatement().flatMap(t -> {
-				RxResult rxResult = runner.run(t.getT1(), t.getT2());
-				return Flux.from(rxResult.records()).then(Mono.from(rxResult.consume()).map(ResultSummaries::process));
-			})).onErrorMap(RuntimeException.class, DefaultReactiveNeo4jClient.this::potentiallyConvertRuntimeException);
+			return targetDatabase.flatMap(databaseSelection ->
+					doInQueryRunnerForMono(databaseSelection.getValue(), runner -> prepareStatement().flatMap(t -> {
+						RxResult rxResult = runner.run(t.getT1(), t.getT2());
+						return Flux.from(rxResult.records()).then(Mono.from(rxResult.consume()).map(ResultSummaries::process));
+			}))).onErrorMap(RuntimeException.class, DefaultReactiveNeo4jClient.this::potentiallyConvertRuntimeException);
 		}
 	}
 

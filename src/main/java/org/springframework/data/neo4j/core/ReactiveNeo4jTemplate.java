@@ -99,20 +99,15 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 
 	private ReactiveEventSupport eventSupport;
 
-	private final ReactiveDatabaseSelectionProvider databaseSelectionProvider;
-
-	public ReactiveNeo4jTemplate(ReactiveNeo4jClient neo4jClient, Neo4jMappingContext neo4jMappingContext,
-			ReactiveDatabaseSelectionProvider databaseSelectionProvider) {
+	public ReactiveNeo4jTemplate(ReactiveNeo4jClient neo4jClient, Neo4jMappingContext neo4jMappingContext) {
 
 		Assert.notNull(neo4jClient, "The Neo4jClient is required");
 		Assert.notNull(neo4jMappingContext, "The Neo4jMappingContext is required");
-		Assert.notNull(databaseSelectionProvider, "The database selection provider is required");
 
 		this.neo4jClient = neo4jClient;
 		this.neo4jMappingContext = neo4jMappingContext;
 		this.cypherGenerator = CypherGenerator.INSTANCE;
 		this.eventSupport = ReactiveEventSupport.useExistingCallbacks(neo4jMappingContext, ReactiveEntityCallbacks.create());
-		this.databaseSelectionProvider = databaseSelectionProvider;
 	}
 
 	@Override
@@ -226,21 +221,21 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 	@Override
 	public <T> Mono<T> save(T instance) {
 
-		return getDatabaseName().flatMap(databaseName -> saveImpl(instance, databaseName.getValue()));
+		return saveImpl(instance);
 	}
 
-	private <T> Mono<T> saveImpl(T instance, @Nullable String inDatabase) {
+	private <T> Mono<T> saveImpl(T instance) {
 
 		Neo4jPersistentEntity entityMetaData = neo4jMappingContext.getPersistentEntity(instance.getClass());
 		return Mono.just(entityMetaData.isNew(instance))
 				.flatMap(isNewEntity -> Mono.just(instance).flatMap(eventSupport::maybeCallBeforeBind)
-				.flatMap(entity -> determineDynamicLabels(entity, entityMetaData, inDatabase)).flatMap(t -> {
+				.flatMap(entity -> determineDynamicLabels(entity, entityMetaData)).flatMap(t -> {
 					T entity = t.getT1();
 					DynamicLabels dynamicLabels = t.getT2();
 
 					Statement saveStatement = cypherGenerator.prepareSaveOf(entityMetaData, dynamicLabels);
 
-					Mono<Long> idMono = this.neo4jClient.query(() -> renderer.render(saveStatement)).in(inDatabase)
+					Mono<Long> idMono = this.neo4jClient.query(() -> renderer.render(saveStatement))
 							.bind(entity).with(neo4jMappingContext.getRequiredBinderFunctionFor((Class<T>) entity.getClass()))
 							.fetchAs(Long.class).one().switchIfEmpty(Mono.defer(() -> {
 								if (entityMetaData.hasVersionProperty()) {
@@ -250,7 +245,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 							}));
 
 					if (!entityMetaData.isUsingInternalIds()) {
-						return idMono.then(processRelations(entityMetaData, entity, isNewEntity, inDatabase))
+						return idMono.then(processRelations(entityMetaData, entity, isNewEntity))
 								.thenReturn(entity);
 					} else {
 						return idMono.map(internalId -> {
@@ -259,20 +254,20 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 
 							return propertyAccessor.getBean();
 						}).flatMap(
-								savedEntity -> processRelations(entityMetaData, savedEntity, isNewEntity, inDatabase)
+								savedEntity -> processRelations(entityMetaData, savedEntity, isNewEntity)
 										.thenReturn(savedEntity));
 					}
 				}));
 	}
 
 	private <T> Mono<Tuple2<T, DynamicLabels>> determineDynamicLabels(T entityToBeSaved,
-			Neo4jPersistentEntity<?> entityMetaData, @Nullable String inDatabase) {
+			Neo4jPersistentEntity<?> entityMetaData) {
 		return entityMetaData.getDynamicLabelsProperty().map(p -> {
 
 			PersistentPropertyAccessor propertyAccessor = entityMetaData.getPropertyAccessor(entityToBeSaved);
 			ReactiveNeo4jClient.RunnableSpecTightToDatabase runnableQuery = neo4jClient
 					.query(() -> renderer.render(cypherGenerator.createStatementReturningDynamicLabels(entityMetaData)))
-					.in(inDatabase).bind(propertyAccessor.getProperty(entityMetaData.getRequiredIdProperty()))
+					.bind(propertyAccessor.getProperty(entityMetaData.getRequiredIdProperty()))
 					.to(Constants.NAME_OF_ID).bind(entityMetaData.getStaticLabels()).to(Constants.NAME_OF_STATIC_LABELS_PARAM);
 
 			if (entityMetaData.hasVersionProperty()) {
@@ -310,20 +305,19 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 				|| entityMetaData.getDynamicLabelsProperty().isPresent()) {
 			log.debug("Saving entities using single statements.");
 
-			return getDatabaseName().flatMapMany(
-					databaseName -> Flux.fromIterable(entities).flatMap(e -> this.saveImpl(e, databaseName.getValue())));
+			return Flux.fromIterable(entities).flatMap(e -> this.saveImpl(e));
 		}
 
 		Function<T, Map<String, Object>> binderFunction = neo4jMappingContext.getRequiredBinderFunctionFor(domainClass);
 		String isNewIndicatorKey = "isNewIndicator";
-		return getDatabaseName().flatMapMany(databaseName -> Flux.fromIterable(entities)
+		return Flux.fromIterable(entities)
 				.flatMap(eventSupport::maybeCallBeforeBind).collectList().flatMapMany(entitiesToBeSaved -> Mono.defer(() -> {
 					// Defer the actual save statement until the previous flux completes
 					List<Map<String, Object>> boundedEntityList = entitiesToBeSaved.stream().map(binderFunction)
 							.collect(Collectors.toList());
 					return neo4jClient
 							.query(() -> renderer.render(cypherGenerator.prepareSaveOfMultipleInstancesOf(entityMetaData)))
-							.in(databaseName.getValue()).bind(boundedEntityList).to(Constants.NAME_OF_ENTITY_LIST_PARAM).run();
+							.bind(boundedEntityList).to(Constants.NAME_OF_ENTITY_LIST_PARAM).run();
 				}).doOnNext(resultSummary -> {
 					SummaryCounters counters = resultSummary.counters();
 					log.debug(() -> String.format(
@@ -338,13 +332,12 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 									.flatMap(t -> {
 												T entityToBeSaved = t.getT2();
 												boolean isNew = isNewIndicator.get(Math.toIntExact(t.getT1()));
-												return processRelations(entityMetaData, entityToBeSaved, isNew,
-														databaseName.getValue())
+												return processRelations(entityMetaData, entityToBeSaved, isNew)
 														.then(Mono.just(entityToBeSaved));
 											}
 									);
 						})
-				)))
+				))
 				.contextWrite(ctx -> ctx.put(isNewIndicatorKey, entities.stream()
 						.map(entity -> entityMetaData.isNew(entity)).collect(Collectors.toList())));
 	}
@@ -357,8 +350,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 		Condition condition = entityMetaData.getIdExpression().in(parameter(nameOfParameter));
 
 		Statement statement = cypherGenerator.prepareDeleteOf(entityMetaData, condition);
-		return getDatabaseName().flatMap(databaseName -> this.neo4jClient.query(() -> renderer.render(statement))
-				.in(databaseName.getValue())
+		return Mono.defer(() -> this.neo4jClient.query(() -> renderer.render(statement))
 				.bind(convertIdValues(entityMetaData.getRequiredIdProperty(), ids))
 				.to(nameOfParameter).run().then());
 	}
@@ -373,8 +365,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 		Condition condition = entityMetaData.getIdExpression().isEqualTo(parameter(nameOfParameter));
 
 		Statement statement = cypherGenerator.prepareDeleteOf(entityMetaData, condition);
-		return getDatabaseName().flatMap(databaseName -> this.neo4jClient.query(() -> renderer.render(statement))
-				.in(databaseName.getValue())
+		return Mono.defer(() -> this.neo4jClient.query(() -> renderer.render(statement))
 				.bind(convertIdValues(entityMetaData.getRequiredIdProperty(), id))
 				.to(nameOfParameter).run().then());
 	}
@@ -397,8 +388,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 		parameters.put(nameOfParameter, convertIdValues(entityMetaData.getRequiredIdProperty(), id));
 		parameters.put(Constants.NAME_OF_VERSION_PARAM, versionValue);
 
-		return getDatabaseName().flatMap(databaseName -> this.neo4jClient.query(() -> renderer.render(statement))
-				.in(databaseName.getValue())
+		return Mono.defer(() -> this.neo4jClient.query(() -> renderer.render(statement))
 				.bindAll(parameters)
 				.fetch().one().switchIfEmpty(Mono.defer(() -> {
 					if (entityMetaData.hasVersionProperty()) {
@@ -414,8 +404,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 
 		Neo4jPersistentEntity entityMetaData = neo4jMappingContext.getPersistentEntity(domainType);
 		Statement statement = cypherGenerator.prepareDeleteOf(entityMetaData);
-		return getDatabaseName().flatMap(databaseName -> this.neo4jClient.query(() -> renderer.render(statement))
-				.in(databaseName.getValue()).run().then());
+		return Mono.defer(() -> this.neo4jClient.query(() -> renderer.render(statement)).run().then());
 	}
 
 	private <T> Mono<ExecutableQuery<T>> createExecutableQuery(Class<T> domainType, Statement statement) {
@@ -474,7 +463,6 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 				|| queryFragments.getReturnTuple().getIncludedProperties().isEmpty()
 				|| queryFragments.getReturnTuple().getIncludedProperties().contains(relationshipDescription.getFieldName());
 
-		return getDatabaseName().flatMap(databaseName -> {
 			return Mono.deferContextual(ctx -> {
 				Set<Long> rootNodeIds = ctx.get("rootNodes");
 				Set<Long> processedRelationshipIds = ctx.get("processedRelationships");
@@ -487,7 +475,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 									queryFragments.getMatchOn(), queryFragments.getCondition())
 									.returning(cypherGenerator.createReturnStatementForMatch(entityMetaData)).build();
 
-							return neo4jClient.query(renderer.render(statement)).in(databaseName.getValue())
+							return neo4jClient.query(renderer.render(statement))
 									.bindAll(parameters)
 									.fetch()
 									.one()
@@ -499,12 +487,11 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 
 										return Tuples.of(newRelationshipIds, newRelatedNodeIds);
 									})
-									.expand(iterateAndMapNextLevel(relationshipDescription, databaseName.getValue()));
+									.expand(iterateAndMapNextLevel(relationshipDescription));
 						})
 						.collect(GenericQueryAndParameters::new, (genericQueryAndParameters, _not_used2) ->
 								genericQueryAndParameters.with(rootNodeIds, processedRelationshipIds, processedNodeIds)
 						);
-			});
 			})
 			.contextWrite(ctx -> {
 				return ctx
@@ -516,7 +503,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 	}
 
 	private Flux<Tuple2<Collection<Long>, Collection<Long>>> iterateNextLevel(Collection<Long> relatedNodeIds,
-				  						RelationshipDescription relationshipDescription, String databaseName) {
+				  						RelationshipDescription relationshipDescription) {
 
 		NodeDescription<?> target = relationshipDescription.getTarget();
 
@@ -529,7 +516,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 								Functions.id(node).in(Cypher.parameter(Constants.NAME_OF_ID)))
 						.returning(cypherGenerator.createGenericReturnStatement()).build();
 
-				return neo4jClient.query(renderer.render(statement)).in(databaseName)
+				return neo4jClient.query(renderer.render(statement))
 						.bindAll(Collections.singletonMap(Constants.NAME_OF_ID, relatedNodeIds))
 
 						.fetch()
@@ -540,7 +527,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 
 							return Tuples.of(newRelationshipIds, newRelatedNodeIds);
 						})
-						.expand(object -> iterateAndMapNextLevel(relDe, databaseName).apply(object));
+						.expand(object -> iterateAndMapNextLevel(relDe).apply(object));
 			});
 
 	}
@@ -548,7 +535,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 	@NonNull
 	private Function<Tuple2<Collection<Long>, Collection<Long>>,
 			Publisher<Tuple2<Collection<Long>, Collection<Long>>>> iterateAndMapNextLevel(
-					RelationshipDescription relationshipDescription, String databaseName) {
+					RelationshipDescription relationshipDescription) {
 
 		return newRelationshipAndRelatedNodeIds -> {
 			return Flux.deferContextual(ctx -> {
@@ -571,20 +558,20 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 					return Mono.empty();
 				}
 
-				return iterateNextLevel(newRelatedNodeIds, relationshipDescription, databaseName);
+				return iterateNextLevel(newRelatedNodeIds, relationshipDescription);
 			});
 		};
 	}
 
 	private Mono<Void> processRelations(Neo4jPersistentEntity<?> neo4jPersistentEntity, Object parentObject,
-			boolean isParentObjectNew, @Nullable String inDatabase) {
+			boolean isParentObjectNew) {
 
-		return processNestedRelations(neo4jPersistentEntity, parentObject, isParentObjectNew, inDatabase,
+		return processNestedRelations(neo4jPersistentEntity, parentObject, isParentObjectNew,
 				new NestedRelationshipProcessingStateMachine());
 	}
 
 	private Mono<Void> processNestedRelations(Neo4jPersistentEntity<?> sourceEntity, Object parentObject,
-		  boolean isParentObjectNew, @Nullable String inDatabase, NestedRelationshipProcessingStateMachine stateMachine) {
+		  boolean isParentObjectNew, NestedRelationshipProcessingStateMachine stateMachine) {
 
 		return Mono.defer(() -> {
 			PersistentPropertyAccessor<?> propertyAccessor = sourceEntity.getPropertyAccessor(parentObject);
@@ -640,7 +627,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 					Statement relationshipRemoveQuery = cypherGenerator.prepareDeleteOf(sourceEntity, relationshipDescription);
 
 					relationshipCreationMonos.add(
-							neo4jClient.query(renderer.render(relationshipRemoveQuery)).in(inDatabase)
+							neo4jClient.query(renderer.render(relationshipRemoveQuery))
 									.bind(convertIdValues(sourceEntity.getIdProperty(), fromId)) //
 										.to(Constants.FROM_ID_PARAMETER_NAME) //
 									.bind(knownRelationshipsIds) //
@@ -665,7 +652,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 										.getPersistentEntity(relatedNodePreEvt.getClass());
 								return Mono.just(targetEntity.isNew(relatedNode)).flatMap(isNew ->
 										saveRelatedNode(relatedNode, relationshipContext.getAssociationTargetType(),
-										targetEntity, inDatabase).flatMap(relatedInternalId -> {
+										targetEntity).flatMap(relatedInternalId -> {
 
 											// if an internal id is used this must get set to link this entity in the next iteration
 											PersistentPropertyAccessor<?> targetPropertyAccessor = targetEntity
@@ -680,7 +667,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 
 											// in case of no properties the bind will just return an empty map
 											Mono<Long> relationshipCreationMonoNested = neo4jClient
-													.query(renderer.render(statementHolder.getStatement())).in(inDatabase)
+													.query(renderer.render(statementHolder.getStatement()))
 													.bind(convertIdValues(sourceEntity.getRequiredIdProperty(), fromId)) //
 														.to(Constants.FROM_ID_PARAMETER_NAME) //
 													.bind(relatedInternalId) //
@@ -698,7 +685,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 											if (processState != ProcessState.PROCESSED_ALL_VALUES) {
 												return relationshipCreationMonoNested.checkpoint().then(
 														processNestedRelations(targetEntity, targetPropertyAccessor.getBean(),
-																isNew, inDatabase, stateMachine));
+																isNew, stateMachine));
 											} else {
 												return relationshipCreationMonoNested.checkpoint().then();
 											}
@@ -712,17 +699,17 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 		});
 	}
 
-	private <Y> Mono<Long> saveRelatedNode(Object relatedNode, Class<Y> entityType, NodeDescription targetNodeDescription,
-			@Nullable String inDatabase) {
+	private <Y> Mono<Long> saveRelatedNode(Object relatedNode, Class<Y> entityType,
+										   NodeDescription targetNodeDescription) {
 
-		return determineDynamicLabels((Y) relatedNode, (Neo4jPersistentEntity<?>) targetNodeDescription, inDatabase)
+		return determineDynamicLabels((Y) relatedNode, (Neo4jPersistentEntity<?>) targetNodeDescription)
 				.flatMap(t -> {
 					Y entity = t.getT1();
 					DynamicLabels dynamicLabels = t.getT2();
 
 					return neo4jClient
 							.query(() -> renderer.render(cypherGenerator.prepareSaveOf(targetNodeDescription, dynamicLabels)))
-							.in(inDatabase).bind((Y) entity).with(neo4jMappingContext.getRequiredBinderFunctionFor(entityType))
+							.bind((Y) entity).with(neo4jMappingContext.getRequiredBinderFunctionFor(entityType))
 							.fetchAs(Long.class).one();
 				}).switchIfEmpty(Mono.defer(() -> {
 					if (((Neo4jPersistentEntity) targetNodeDescription).hasVersionProperty()) {
@@ -732,16 +719,10 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 				}));
 	}
 
-	private Mono<DatabaseSelection> getDatabaseName() {
-
-		return this.databaseSelectionProvider.getDatabaseSelection()
-				.switchIfEmpty(Mono.just(DatabaseSelection.undecided()));
-	}
-
 	@Override
 	public <T> Mono<ExecutableQuery<T>> toExecutableQuery(PreparedQuery<T> preparedQuery) {
 
-		return getDatabaseName().map(databaseName -> {
+		return Mono.defer(() -> {
 			Class<T> resultType = preparedQuery.getResultType();
 			QueryFragmentsAndParameters queryFragmentsAndParameters = preparedQuery.getQueryFragmentsAndParameters();
 			String cypherQuery = queryFragmentsAndParameters.getCypherQuery();
@@ -772,12 +753,12 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 			}
 
 			ReactiveNeo4jClient.MappingSpec<T> mappingSpec = this.neo4jClient.query(cypherQuery)
-					.in(databaseName.getValue()).bindAll(finalParameters).fetchAs(resultType);
+					.bindAll(finalParameters).fetchAs(resultType);
 
 			ReactiveNeo4jClient.RecordFetchSpec<T> fetchSpec = preparedQuery.getOptionalMappingFunction()
 					.map(mappingFunction -> mappingSpec.mappedBy(mappingFunction)).orElse(mappingSpec);
 
-			return new DefaultReactiveExecutableQuery<>(preparedQuery, fetchSpec);
+			return Mono.just(new DefaultReactiveExecutableQuery<>(preparedQuery, fetchSpec));
 		});
 	}
 
