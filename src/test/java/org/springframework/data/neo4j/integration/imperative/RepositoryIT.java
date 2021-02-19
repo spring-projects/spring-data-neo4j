@@ -969,7 +969,7 @@ class RepositoryIT {
 			Pet loadedPet = repository.findById(petId).get();
 
 			assertThat(loadedPet.getFriends().get(0).getName()).isEqualTo("Daphne");
-			assertThat(loadedPet.getFriends().get(0).getFriends().get(0).getName()).isEqualTo("Luna");
+			assertThat(loadedPet.getFriends().get(0).getFriends().get(0).getName()).isEqualTo("Tom");
 
 		}
 
@@ -977,6 +977,12 @@ class RepositoryIT {
 		void countByPropertyWithPossibleCircles(@Autowired PetRepository repository) {
 			createFriendlyPets();
 			assertThat(repository.countByName("Luna")).isEqualTo(1L);
+		}
+
+		@Test // GH-2157
+		void countByPatternPathProperties(@Autowired PetRepository repository) {
+			createFriendlyPets();
+			assertThat(repository.countByFriendsNameAndFriendsFriendsName("Daphne", "Tom")).isEqualTo(1L);
 		}
 
 		@Test // GH-2157
@@ -994,7 +1000,7 @@ class RepositoryIT {
 		private long createFriendlyPets() {
 			try (Session session = createSession()) {
 				return session.run("CREATE (luna:Pet{name:'Luna'})-[:Has]->(daphne:Pet{name:'Daphne'})"
-						+ "-[:Has]->(luna)" + "RETURN id(luna) as id").single().get("id").asLong();
+						+ "-[:Has]->(:Pet{name:'Tom'})" + "RETURN id(luna) as id").single().get("id").asLong();
 			}
 		}
 
@@ -3882,6 +3888,8 @@ class RepositoryIT {
 
 		@Query(value = "RETURN size($0)", count = true)
 		long countAllByName(String name);
+
+		long countByFriendsNameAndFriendsFriendsName(String friendName, String friendFriendName);
 
 		boolean existsByName(String name);
 	}
