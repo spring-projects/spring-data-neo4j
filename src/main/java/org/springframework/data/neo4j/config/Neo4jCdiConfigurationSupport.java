@@ -15,12 +15,6 @@
  */
 package org.springframework.data.neo4j.config;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.inject.Any;
-import javax.enterprise.inject.Instance;
-import javax.enterprise.inject.Produces;
-import javax.inject.Singleton;
-
 import org.apiguardian.api.API;
 import org.neo4j.driver.Driver;
 import org.springframework.data.neo4j.core.DatabaseSelectionProvider;
@@ -31,6 +25,12 @@ import org.springframework.data.neo4j.core.convert.Neo4jConversions;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
+
+import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.inject.Any;
+import javax.enterprise.inject.Instance;
+import javax.enterprise.inject.Produces;
+import javax.inject.Singleton;
 
 /**
  * Support class that can be used as is for all necessary CDI beans or as a blueprint for custom producers.
@@ -66,10 +66,9 @@ class Neo4jCdiConfigurationSupport {
 	@Produces @Builtin @Singleton
 	public Neo4jOperations neo4jOperations(
 			@Any Instance<Neo4jClient> neo4jClient,
-			@Any Instance<Neo4jMappingContext> mappingContext,
-			@Any Instance<DatabaseSelectionProvider> databaseNameProvider
+			@Any Instance<Neo4jMappingContext> mappingContext
 	) {
-		return new Neo4jTemplate(resolve(neo4jClient), resolve(mappingContext), resolve(databaseNameProvider));
+		return new Neo4jTemplate(resolve(neo4jClient), resolve(mappingContext));
 	}
 
 	@Produces @Singleton

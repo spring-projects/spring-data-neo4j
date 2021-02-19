@@ -98,31 +98,25 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 
 	private EventSupport eventSupport;
 
-	private final DatabaseSelectionProvider databaseSelectionProvider;
-
 	public Neo4jTemplate(Neo4jClient neo4jClient) {
-		this(neo4jClient, new Neo4jMappingContext(), DatabaseSelectionProvider.getDefaultSelectionProvider());
+		this(neo4jClient, new Neo4jMappingContext());
+	}
+
+	public Neo4jTemplate(Neo4jClient neo4jClient, Neo4jMappingContext neo4jMappingContext) {
+
+		this(neo4jClient, neo4jMappingContext, EntityCallbacks.create());
 	}
 
 	public Neo4jTemplate(Neo4jClient neo4jClient, Neo4jMappingContext neo4jMappingContext,
-			DatabaseSelectionProvider databaseSelectionProvider) {
-
-		this(neo4jClient, neo4jMappingContext, databaseSelectionProvider, EntityCallbacks.create());
-	}
-
-	public Neo4jTemplate(Neo4jClient neo4jClient, Neo4jMappingContext neo4jMappingContext,
-			DatabaseSelectionProvider databaseSelectionProvider, EntityCallbacks entityCallbacks) {
+						 EntityCallbacks entityCallbacks) {
 
 		Assert.notNull(neo4jClient, "The Neo4jClient is required");
 		Assert.notNull(neo4jMappingContext, "The Neo4jMappingContext is required");
-		Assert.notNull(databaseSelectionProvider, "The database name provider is required");
 
 		this.neo4jClient = neo4jClient;
 		this.neo4jMappingContext = neo4jMappingContext;
 		this.cypherGenerator = CypherGenerator.INSTANCE;
 		this.eventSupport = EventSupport.useExistingCallbacks(neo4jMappingContext, entityCallbacks);
-
-		this.databaseSelectionProvider = databaseSelectionProvider;
 	}
 
 	@Override
@@ -225,21 +219,20 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 	@Override
 	public <T> T save(T instance) {
 
-		return saveImpl(instance, getDatabaseName());
+		return saveImpl(instance);
 	}
 
-	private <T> T saveImpl(T instance, @Nullable String inDatabase) {
+	private <T> T saveImpl(T instance) {
 
 		Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getPersistentEntity(instance.getClass());
 		boolean isEntityNew = entityMetaData.isNew(instance);
 
 		T entityToBeSaved = eventSupport.maybeCallBeforeBind(instance);
 
-		DynamicLabels dynamicLabels = determineDynamicLabels(entityToBeSaved, entityMetaData, inDatabase);
+		DynamicLabels dynamicLabels = determineDynamicLabels(entityToBeSaved, entityMetaData);
 
 		Optional<Long> optionalInternalId = neo4jClient
 				.query(() -> renderer.render(cypherGenerator.prepareSaveOf(entityMetaData, dynamicLabels)))
-				.in(inDatabase)
 				.bind(entityToBeSaved)
 				.with(neo4jMappingContext.getRequiredBinderFunctionFor((Class<T>) entityToBeSaved.getClass()))
 				.fetchAs(Long.class).one();
@@ -253,17 +246,16 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 			propertyAccessor.setProperty(entityMetaData.getRequiredIdProperty(), optionalInternalId.get());
 			entityToBeSaved = propertyAccessor.getBean();
 		}
-		return processRelations(entityMetaData, entityToBeSaved, isEntityNew, inDatabase);
+		return processRelations(entityMetaData, entityToBeSaved, isEntityNew);
 	}
 
-	private <T> DynamicLabels determineDynamicLabels(T entityToBeSaved, Neo4jPersistentEntity<?> entityMetaData,
-			@Nullable String inDatabase) {
+	private <T> DynamicLabels determineDynamicLabels(T entityToBeSaved, Neo4jPersistentEntity<?> entityMetaData) {
 		return entityMetaData.getDynamicLabelsProperty().map(p -> {
 
 			PersistentPropertyAccessor propertyAccessor = entityMetaData.getPropertyAccessor(entityToBeSaved);
 			Neo4jClient.RunnableSpecTightToDatabase runnableQuery = neo4jClient
 					.query(() -> renderer.render(cypherGenerator.createStatementReturningDynamicLabels(entityMetaData)))
-					.in(inDatabase).bind(propertyAccessor.getProperty(entityMetaData.getRequiredIdProperty()))
+					.bind(propertyAccessor.getProperty(entityMetaData.getRequiredIdProperty()))
 					.to(Constants.NAME_OF_ID).bind(entityMetaData.getStaticLabels())
 					.to(Constants.NAME_OF_STATIC_LABELS_PARAM);
 
@@ -281,8 +273,6 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 
 	@Override
 	public <T> List<T> saveAll(Iterable<T> instances) {
-
-		String databaseName = getDatabaseName();
 
 		Collection<T> entities;
 		if (instances instanceof Collection) {
@@ -302,7 +292,7 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 				|| entityMetaData.getDynamicLabelsProperty().isPresent()) {
 			log.debug("Saving entities using single statements.");
 
-			return entities.stream().map(e -> saveImpl(e, databaseName)).collect(Collectors.toList());
+			return entities.stream().map(e -> saveImpl(e)).collect(Collectors.toList());
 		}
 
 		// we need to determine the `isNew` state of the entities before calling the id generator
@@ -319,12 +309,11 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 				.collect(Collectors.toList());
 		ResultSummary resultSummary = neo4jClient
 				.query(() -> renderer.render(cypherGenerator.prepareSaveOfMultipleInstancesOf(entityMetaData)))
-				.in(databaseName)
 				.bind(entityList).to(Constants.NAME_OF_ENTITY_LIST_PARAM).run();
 
 		// Save related
 		entitiesToBeSaved.forEach(entityToBeSaved -> processRelations(entityMetaData, entityToBeSaved,
-				isNewIndicator.get(entitiesToBeSaved.indexOf(entityToBeSaved)), databaseName));
+				isNewIndicator.get(entitiesToBeSaved.indexOf(entityToBeSaved))));
 
 		SummaryCounters counters = resultSummary.counters();
 		log.debug(() -> String.format(
@@ -345,7 +334,7 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 		log.debug(() -> String.format("Deleting entity with id %s ", id));
 
 		Statement statement = cypherGenerator.prepareDeleteOf(entityMetaData, condition);
-		ResultSummary summary = this.neo4jClient.query(renderer.render(statement)).in(getDatabaseName())
+		ResultSummary summary = this.neo4jClient.query(renderer.render(statement))
 				.bind(convertIdValues(entityMetaData.getRequiredIdProperty(), id))
 				.to(nameOfParameter).run();
 
@@ -389,8 +378,8 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 		log.debug(() -> String.format("Deleting all entities with the following ids: %s ", ids));
 
 		Statement statement = cypherGenerator.prepareDeleteOf(entityMetaData, condition);
-		ResultSummary summary = this.neo4jClient.query(renderer.render(statement)).in(getDatabaseName()).bind(
-				convertIdValues(entityMetaData.getRequiredIdProperty(), ids))
+		ResultSummary summary = this.neo4jClient.query(renderer.render(statement))
+				.bind(convertIdValues(entityMetaData.getRequiredIdProperty(), ids))
 				.to(nameOfParameter).run();
 
 		log.debug(() -> String.format("Deleted %d nodes and %d relationships.", summary.counters().nodesDeleted(),
@@ -404,7 +393,7 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 		log.debug(() -> String.format("Deleting all nodes with primary label %s", entityMetaData.getPrimaryLabel()));
 
 		Statement statement = cypherGenerator.prepareDeleteOf(entityMetaData);
-		ResultSummary summary = this.neo4jClient.query(renderer.render(statement)).in(getDatabaseName()).run();
+		ResultSummary summary = this.neo4jClient.query(renderer.render(statement)).run();
 
 		log.debug(() -> String.format("Deleted %d nodes and %d relationships.", summary.counters().nodesDeleted(),
 				summary.counters().relationshipsDeleted()));
@@ -434,14 +423,14 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 	}
 
 	private <T> T processRelations(Neo4jPersistentEntity<?> neo4jPersistentEntity, Object parentObject,
-			boolean isParentObjectNew, @Nullable String inDatabase) {
+			boolean isParentObjectNew) {
 
-		return processNestedRelations(neo4jPersistentEntity, parentObject, isParentObjectNew, inDatabase,
+		return processNestedRelations(neo4jPersistentEntity, parentObject, isParentObjectNew,
 				new NestedRelationshipProcessingStateMachine());
 	}
 
 	private <T> T processNestedRelations(Neo4jPersistentEntity<?> sourceEntity, Object parentObject,
-			boolean isParentObjectNew, @Nullable String inDatabase, NestedRelationshipProcessingStateMachine stateMachine) {
+			boolean isParentObjectNew, NestedRelationshipProcessingStateMachine stateMachine) {
 
 		PersistentPropertyAccessor<?> propertyAccessor = sourceEntity.getPropertyAccessor(parentObject);
 		Object fromId = propertyAccessor.getProperty(sourceEntity.getRequiredIdProperty());
@@ -492,7 +481,7 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 
 				Statement relationshipRemoveQuery = cypherGenerator.prepareDeleteOf(sourceEntity, relationshipDescription);
 
-				neo4jClient.query(renderer.render(relationshipRemoveQuery)).in(inDatabase)
+				neo4jClient.query(renderer.render(relationshipRemoveQuery))
 						.bind(convertIdValues(sourceEntity.getIdProperty(), fromId)) //
 							.to(Constants.FROM_ID_PARAMETER_NAME) //
 						.bind(knownRelationshipsIds) //
@@ -518,12 +507,12 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 				relatedNode = eventSupport.maybeCallBeforeBind(relatedNode);
 
 				Long relatedInternalId = saveRelatedNode(relatedNode, relationshipContext.getAssociationTargetType(),
-						targetEntity, inDatabase);
+						targetEntity);
 
 				CreateRelationshipStatementHolder statementHolder = neo4jMappingContext.createStatement(
 						sourceEntity, relationshipContext, relatedValueToStore);
 
-				Optional<Long> relationshipInternalId = neo4jClient.query(renderer.render(statementHolder.getStatement())).in(inDatabase)
+				Optional<Long> relationshipInternalId = neo4jClient.query(renderer.render(statementHolder.getStatement()))
 						.bind(convertIdValues(sourceEntity.getRequiredIdProperty(), fromId)) //
 							.to(Constants.FROM_ID_PARAMETER_NAME)
 						.bind(relatedInternalId) //
@@ -543,7 +532,7 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 					targetPropertyAccessor.setProperty(targetEntity.getRequiredIdProperty(), relatedInternalId);
 				}
 				if (processState != ProcessState.PROCESSED_ALL_VALUES) {
-					processNestedRelations(targetEntity, targetPropertyAccessor.getBean(), isEntityNew, inDatabase, stateMachine);
+					processNestedRelations(targetEntity, targetPropertyAccessor.getBean(), isEntityNew, stateMachine);
 				}
 			}
 
@@ -553,14 +542,12 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 		return (T) propertyAccessor.getBean();
 	}
 
-	private <Y> Long saveRelatedNode(Object entity, Class<Y> entityType, NodeDescription targetNodeDescription,
-			@Nullable String inDatabase) {
+	private <Y> Long saveRelatedNode(Object entity, Class<Y> entityType, NodeDescription targetNodeDescription) {
 
-		DynamicLabels dynamicLabels = determineDynamicLabels(entity, (Neo4jPersistentEntity) targetNodeDescription,
-				inDatabase);
+		DynamicLabels dynamicLabels = determineDynamicLabels(entity, (Neo4jPersistentEntity) targetNodeDescription);
 		Optional<Long> optionalSavedNodeId = neo4jClient
 				.query(() -> renderer.render(cypherGenerator.prepareSaveOf(targetNodeDescription, dynamicLabels)))
-				.in(inDatabase).bind((Y) entity).with(neo4jMappingContext.getRequiredBinderFunctionFor(entityType))
+				.bind((Y) entity).with(neo4jMappingContext.getRequiredBinderFunctionFor(entityType))
 				.fetchAs(Long.class).one();
 
 		if (((Neo4jPersistentEntity) targetNodeDescription).hasVersionProperty() && !optionalSavedNodeId.isPresent()) {
@@ -568,11 +555,6 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 		}
 
 		return optionalSavedNodeId.get();
-	}
-
-	private String getDatabaseName() {
-
-		return this.databaseSelectionProvider.getDatabaseSelection().getValue();
 	}
 
 	@Override
@@ -676,7 +658,7 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 			}
 
 			Neo4jClient.MappingSpec<T> newMappingSpec = neo4jClient.query(cypherQuery)
-					.in(getDatabaseName()).bindAll(finalParameters).fetchAs(preparedQuery.getResultType());
+					.bindAll(finalParameters).fetchAs(preparedQuery.getResultType());
 			return Optional.of(preparedQuery.getOptionalMappingFunction()
 					.map(f -> newMappingSpec.mappedBy(f)).orElse(newMappingSpec));
 		}
@@ -690,7 +672,7 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 					.returning(Constants.NAME_OF_SYNTHESIZED_ROOT_NODE).build();
 
 			final Collection<Long> rootNodeIds = new HashSet<>((Collection<Long>) neo4jClient
-					.query(renderer.render(rootNodesStatement)).in(getDatabaseName())
+					.query(renderer.render(rootNodesStatement))
 					.bindAll(parameters)
 					.fetch()
 					.one()
@@ -716,7 +698,7 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 						.prepareMatchOf(entityMetaData, relationshipDescription, queryFragments.getMatchOn(), queryFragments.getCondition())
 						.returning(cypherGenerator.createReturnStatementForMatch(entityMetaData)).build();
 
-				neo4jClient.query(renderer.render(statement)).in(getDatabaseName())
+				neo4jClient.query(renderer.render(statement))
 						.bindAll(parameters)
 						.fetch()
 						.one()
@@ -739,7 +721,7 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 								Functions.id(node).in(Cypher.parameter(Constants.NAME_OF_IDS)))
 						.returning(cypherGenerator.createGenericReturnStatement()).build();
 
-				neo4jClient.query(renderer.render(statement)).in(getDatabaseName())
+				neo4jClient.query(renderer.render(statement))
 						.bindAll(Collections.singletonMap(Constants.NAME_OF_IDS, nodeIds))
 						.fetch()
 						.one()
