@@ -22,4 +22,14 @@ import org.springframework.data.neo4j.core.schema.Node;
  */
 @Node
 public class ProjectionTestLevel2 extends ProjectionTestBase {
+
+	private ProjectionTestRoot backToRoot;
+
+	public ProjectionTestRoot getBackToRoot() {
+		return backToRoot;
+	}
+
+	public void setBackToRoot(ProjectionTestRoot backToRoot) {
+		this.backToRoot = backToRoot;
+	}
 }

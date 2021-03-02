@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Predicate;
 
 import org.apiguardian.api.API;
 import org.neo4j.cypherdsl.core.Expression;
@@ -134,8 +135,9 @@ public interface NodeDescription<T> {
 	}
 
 	/**
-	 * @return Information if the domain would contain schema circles.
+	 * @param includeField A predicate used to determine the properties that need to be looked at while detecting possible circles.
+	 * @return True if the domain would contain schema circles.
 	 */
-	boolean containsPossibleCircles(List<String> includeProperties);
+	boolean containsPossibleCircles(Predicate<String> includeField);
 
 }

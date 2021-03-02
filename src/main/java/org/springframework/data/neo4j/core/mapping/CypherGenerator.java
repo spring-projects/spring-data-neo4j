@@ -44,7 +44,6 @@ import org.springframework.util.Assert;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -430,7 +429,7 @@ public enum CypherGenerator {
 	}
 
 	public Expression[] createReturnStatementForMatch(NodeDescription<?> nodeDescription) {
-		return createReturnStatementForMatch(nodeDescription, Collections.emptyList());
+		return createReturnStatementForMatch(nodeDescription, fieldName -> true);
 	}
 
 	/**
@@ -469,18 +468,17 @@ public enum CypherGenerator {
 
 	/**
 	 * @param nodeDescription Description of the root node
-	 * @param includedProperties A list of Java properties of the domain to be included. Those properties are compared with
-	 *          the field names of graph properties respectively relationships.
+	 * @param includeField A predicate derived from the set of included properties. This is only relevant in various forms
+	 *                     of projections which allow to exclude one or more fields.
 	 * @return An expresion to be returned by a Cypher statement
 	 */
 	public Expression[] createReturnStatementForMatch(NodeDescription<?> nodeDescription,
-			List<String> includedProperties) {
+			Predicate<String> includeField) {
 
 		List<RelationshipDescription> processedRelationships = new ArrayList<>();
-		if (nodeDescription.containsPossibleCircles(includedProperties)) {
+		if (nodeDescription.containsPossibleCircles(includeField)) {
 			return createGenericReturnStatement();
 		} else {
-			Predicate<String> includeField = s -> includedProperties.isEmpty() || includedProperties.contains(s);
 			return new Expression[]{projectPropertiesAndRelationships(nodeDescription, Constants.NAME_OF_ROOT_NODE, includeField, processedRelationships)};
 		}
 	}
