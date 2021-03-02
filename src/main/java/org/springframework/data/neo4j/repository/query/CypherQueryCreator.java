@@ -15,6 +15,23 @@
  */
 package org.springframework.data.neo4j.repository.query;
 
+import static org.neo4j.cypherdsl.core.Functions.point;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Queue;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BiFunction;
+import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.function.UnaryOperator;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import org.neo4j.cypherdsl.core.Condition;
 import org.neo4j.cypherdsl.core.Conditions;
 import org.neo4j.cypherdsl.core.Cypher;
@@ -50,23 +67,6 @@ import org.springframework.data.repository.query.parser.Part;
 import org.springframework.data.repository.query.parser.PartTree;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
-
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Queue;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.BiFunction;
-import java.util.function.Function;
-import java.util.function.Supplier;
-import java.util.function.UnaryOperator;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import static org.neo4j.cypherdsl.core.Functions.point;
 
 /**
  * A Cypher-DSL based implementation of the {@link AbstractQueryCreator} that eventually creates Cypher queries as
@@ -534,7 +534,9 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndPar
 		Expression expression;
 
 		if (owner.equals(this.nodeDescription) && path.getLength() == 1) {
-			expression = Cypher.property(Constants.NAME_OF_ROOT_NODE, leafProperty.getPropertyName());
+			expression = leafProperty.isInternalIdProperty() ?
+					Cypher.call("id").withArgs(Constants.NAME_OF_ROOT_NODE).asFunction() :
+					Cypher.property(Constants.NAME_OF_ROOT_NODE, leafProperty.getPropertyName());
 		} else {
 			PropertyPathWrapper propertyPathWrapper = propertyPathWrappers.stream()
 					.filter(rp -> rp.getPropertyPath().equals(path)).findFirst().get();
@@ -545,7 +547,11 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndPar
 			} else {
 				cypherElementName = propertyPathWrapper.getNodeName();
 			}
-			expression = Cypher.property(cypherElementName, leafProperty.getPropertyName());
+			if (leafProperty.isInternalIdProperty()) {
+				expression = Cypher.call("id").withArgs(Cypher.name(cypherElementName)).asFunction();
+			} else {
+				expression = Cypher.property(cypherElementName, leafProperty.getPropertyName());
+			}
 		}
 
 		if (addToLower) {

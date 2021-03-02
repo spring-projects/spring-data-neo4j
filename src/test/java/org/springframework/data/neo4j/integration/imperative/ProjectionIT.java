@@ -20,10 +20,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.AbstractMap;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.neo4j.driver.Driver;
+import org.neo4j.driver.Record;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.Transaction;
 import org.neo4j.driver.Values;
@@ -40,6 +42,7 @@ import org.springframework.data.neo4j.integration.shared.common.NamesOnly;
 import org.springframework.data.neo4j.integration.shared.common.NamesOnlyDto;
 import org.springframework.data.neo4j.integration.shared.common.Person;
 import org.springframework.data.neo4j.integration.shared.common.PersonSummary;
+import org.springframework.data.neo4j.integration.shared.common.ProjectionTestRoot;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.data.neo4j.test.Neo4jExtension;
@@ -61,6 +64,8 @@ class ProjectionIT {
 	private static Neo4jExtension.Neo4jConnectionSupport neo4jConnectionSupport;
 
 	private final Driver driver;
+	private Long projectionTestRootId;
+	private Long projectionTestLevel1Id;
 
 	@Autowired
 	ProjectionIT(Driver driver) {
@@ -69,24 +74,39 @@ class ProjectionIT {
 
 	@BeforeEach
 	void setup() {
-		Session session = driver.session();
-		Transaction transaction = session.beginTransaction();
 
-		transaction.run("MATCH (n) detach delete n");
+		try (Session session = driver.session();
+		Transaction transaction = session.beginTransaction();) {
 
-		for (Map.Entry<String, String> person : new Map.Entry[] {
-				new AbstractMap.SimpleEntry(FIRST_NAME, LAST_NAME),
-				new AbstractMap.SimpleEntry(FIRST_NAME2, LAST_NAME),
-		}) {
-			transaction.run(" MERGE (address:Address{city: $city})"
-							+ "CREATE (:Person{firstName: $firstName, lastName: $lastName})"
-							+ "-[:LIVES_AT]-> (address)",
-					Values.parameters("firstName", person.getKey(), "lastName", person.getValue(), "city", CITY));
+			transaction.run("MATCH (n) detach delete n");
+
+			for (Map.Entry<String, String> person : new Map.Entry[] {
+					new AbstractMap.SimpleEntry(FIRST_NAME, LAST_NAME),
+					new AbstractMap.SimpleEntry(FIRST_NAME2, LAST_NAME),
+			}) {
+				transaction.run(" MERGE (address:Address{city: $city})"
+								+ "CREATE (:Person{firstName: $firstName, lastName: $lastName})"
+								+ "-[:LIVES_AT]-> (address)",
+						Values.parameters("firstName", person.getKey(), "lastName", person.getValue(), "city", CITY));
+			}
+
+			Record result = transaction.run("create (r:ProjectionTestRoot {name: 'root'}) \n"
+									 + "create (l11:ProjectionTestLevel1 {name: 'level11'})\n"
+									 + "create (l12:ProjectionTestLevel1 {name: 'level12'})\n"
+									 + "create (l21:ProjectionTestLevel2 {name: 'level21'})\n"
+									 + "create (l22:ProjectionTestLevel2 {name: 'level22'})\n"
+									 + "create (l23:ProjectionTestLevel2 {name: 'level23'})\n"
+									 + "create (r) - [:LEVEL_1] -> (l11)\n"
+									 + "create (r) - [:LEVEL_1] -> (l12)\n"
+									 + "create (l11) - [:LEVEL_2] -> (l21)\n"
+									 + "create (l11) - [:LEVEL_2] -> (l22)\n"
+									 + "create (l12) - [:LEVEL_2] -> (l23)\n"
+									 + "return id(r), id(l11)").single();
+
+			projectionTestRootId = result.get(0).asLong();
+			projectionTestLevel1Id = result.get(1).asLong();
+			transaction.commit();
 		}
-
-		transaction.commit();
-		transaction.close();
-		session.close();
 	}
 
 	@Test
@@ -188,6 +208,29 @@ class ProjectionIT {
 		assertThat(people).extracting(NamesOnly::getFullName).containsExactly(FIRST_NAME + " " + LAST_NAME);
 	}
 
+	@Test // GH-2164
+	void findByIdWithProjectionShouldWork(@Autowired TreestructureRepository repository) {
+
+		Optional<SimpleProjection> optionalProjection = repository
+				.findById(projectionTestRootId, SimpleProjection.class);
+		assertThat(optionalProjection).map(SimpleProjection::getName).hasValue("root");
+	}
+
+	@Test // GH-2164
+	void findByIdInDerivedFinderMethodInRelatedObjectShouldWork(@Autowired TreestructureRepository repository) {
+
+		Optional<ProjectionTestRoot> optionalProjection = repository.findOneByLevel1Id(projectionTestLevel1Id);
+		assertThat(optionalProjection).map(ProjectionTestRoot::getName).hasValue("root");
+	}
+
+	@Test // GH-2164
+	void findByIdInDerivedFinderMethodInRelatedObjectWithProjectionShouldWork(
+			@Autowired TreestructureRepository repository) {
+
+		Optional<SimpleProjection> optionalProjection = repository.findOneByLevel1Id(projectionTestLevel1Id, SimpleProjection.class);
+		assertThat(optionalProjection).map(SimpleProjection::getName).hasValue("root");
+	}
+
 	interface ProjectionPersonRepository extends Neo4jRepository<Person, Long> {
 
 		Collection<NamesOnly> findByLastName(String lastName);
@@ -201,6 +244,20 @@ class ProjectionIT {
 		Collection<NamesOnlyDto> findByFirstNameAndLastName(String firstName, String lastName);
 
 		<T> Collection<T> findByLastNameAndFirstName(String lastName, String firstName, Class<T> projectionClass);
+	}
+
+	interface TreestructureRepository extends Neo4jRepository<ProjectionTestRoot, Long> {
+
+		<T> Optional<T> findById(Long id, Class<T> typeOfProjection);
+
+		Optional<ProjectionTestRoot> findOneByLevel1Id(Long idOfLevel1);
+
+		<T> Optional<T> findOneByLevel1Id(Long idOfLevel1, Class<T> typeOfProjection);
+	}
+
+	interface SimpleProjection {
+
+		String getName();
 	}
 
 	@Configuration
