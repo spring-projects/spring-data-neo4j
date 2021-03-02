@@ -30,21 +30,20 @@ import java.util.Set;
  * @author Gerrit Meier
  */
 @Node
-public class ImmutablePersonWithGeneratedId {
-
+public class ImmutableSecondPersonWithGeneratedId {
 	@Id @GeneratedValue
 	public final Long id;
 
 	@Relationship("ONBOARDED_BY")
-	public final List<ImmutablePersonWithGeneratedId> wasOnboardedBy;
+	public final List<ImmutableSecondPersonWithGeneratedId> wasOnboardedBy;
 	@Relationship("KNOWN_BY")
-	public final Set<ImmutablePersonWithGeneratedId> knownBy;
+	public final Set<ImmutableSecondPersonWithGeneratedId> knownBy;
 
 	public final Map<String, ImmutablePersonWithGeneratedId> ratedBy;
 	public final Map<String, List<ImmutableSecondPersonWithGeneratedId>> ratedByCollection;
 
 	@Relationship("FALLBACK")
-	public final ImmutablePersonWithGeneratedId fallback;
+	public final ImmutableSecondPersonWithGeneratedId fallback;
 
 	@Relationship("PROPERTIES")
 	public final ImmutablePersonWithGeneratedIdRelationshipProperties relationshipProperties;
@@ -56,13 +55,13 @@ public class ImmutablePersonWithGeneratedId {
 	public final Map<String, List<ImmutableSecondPersonWithGeneratedIdRelationshipProperties>> relationshipPropertiesDynamicCollection;
 
 	@PersistenceConstructor
-	public ImmutablePersonWithGeneratedId(
+	public ImmutableSecondPersonWithGeneratedId(
 		Long id,
-		List<ImmutablePersonWithGeneratedId> wasOnboardedBy,
-		Set<ImmutablePersonWithGeneratedId> knownBy,
+		List<ImmutableSecondPersonWithGeneratedId> wasOnboardedBy,
+		Set<ImmutableSecondPersonWithGeneratedId> knownBy,
 		Map<String, ImmutablePersonWithGeneratedId> ratedBy,
 		Map<String, List<ImmutableSecondPersonWithGeneratedId>> ratedByCollection,
-		ImmutablePersonWithGeneratedId fallback,
+		ImmutableSecondPersonWithGeneratedId fallback,
 		ImmutablePersonWithGeneratedIdRelationshipProperties relationshipProperties,
 		List<ImmutablePersonWithGeneratedIdRelationshipProperties> relationshipPropertiesCollection,
 		Map<String, ImmutablePersonWithGeneratedIdRelationshipProperties> relationshipPropertiesDynamic,
@@ -80,7 +79,7 @@ public class ImmutablePersonWithGeneratedId {
 		this.relationshipPropertiesDynamicCollection = relationshipPropertiesDynamicCollection;
 	}
 
-	public ImmutablePersonWithGeneratedId() {
+	public ImmutableSecondPersonWithGeneratedId() {
 		this(null,
 				Collections.emptyList(),
 				Collections.emptySet(),
@@ -94,8 +93,8 @@ public class ImmutablePersonWithGeneratedId {
 		);
 	}
 
-	public static ImmutablePersonWithGeneratedId wasOnboardedBy(List<ImmutablePersonWithGeneratedId> wasOnboardedBy) {
-		return new ImmutablePersonWithGeneratedId(null,
+	public static ImmutableSecondPersonWithGeneratedId wasOnboardedBy(List<ImmutableSecondPersonWithGeneratedId> wasOnboardedBy) {
+		return new ImmutableSecondPersonWithGeneratedId(null,
 				wasOnboardedBy,
 				Collections.emptySet(),
 				Collections.emptyMap(),
@@ -108,8 +107,8 @@ public class ImmutablePersonWithGeneratedId {
 		);
 	}
 
-	public static ImmutablePersonWithGeneratedId knownBy(Set<ImmutablePersonWithGeneratedId> knownBy) {
-		return new ImmutablePersonWithGeneratedId(null,
+	public static ImmutableSecondPersonWithGeneratedId knownBy(Set<ImmutableSecondPersonWithGeneratedId> knownBy) {
+		return new ImmutableSecondPersonWithGeneratedId(null,
 				Collections.emptyList(),
 				knownBy,
 				Collections.emptyMap(),
@@ -122,8 +121,8 @@ public class ImmutablePersonWithGeneratedId {
 		);
 	}
 
-	public static ImmutablePersonWithGeneratedId ratedBy(Map<String, ImmutablePersonWithGeneratedId> ratedBy) {
-		return new ImmutablePersonWithGeneratedId(null,
+	public static ImmutableSecondPersonWithGeneratedId ratedBy(Map<String, ImmutablePersonWithGeneratedId> ratedBy) {
+		return new ImmutableSecondPersonWithGeneratedId(null,
 				Collections.emptyList(),
 				Collections.emptySet(),
 				ratedBy,
@@ -136,8 +135,8 @@ public class ImmutablePersonWithGeneratedId {
 		);
 	}
 
-	public static ImmutablePersonWithGeneratedId ratedByCollection(Map<String, List<ImmutableSecondPersonWithGeneratedId>> ratedByCollection) {
-		return new ImmutablePersonWithGeneratedId(null,
+	public static ImmutableSecondPersonWithGeneratedId ratedByCollection(Map<String, List<ImmutableSecondPersonWithGeneratedId>> ratedByCollection) {
+		return new ImmutableSecondPersonWithGeneratedId(null,
 				Collections.emptyList(),
 				Collections.emptySet(),
 				Collections.emptyMap(),
@@ -150,8 +149,8 @@ public class ImmutablePersonWithGeneratedId {
 		);
 	}
 
-	public static ImmutablePersonWithGeneratedId fallback(ImmutablePersonWithGeneratedId fallback) {
-		return new ImmutablePersonWithGeneratedId(null,
+	public static ImmutableSecondPersonWithGeneratedId fallback(ImmutableSecondPersonWithGeneratedId fallback) {
+		return new ImmutableSecondPersonWithGeneratedId(null,
 				Collections.emptyList(),
 				Collections.emptySet(),
 				Collections.emptyMap(),
@@ -164,8 +163,8 @@ public class ImmutablePersonWithGeneratedId {
 		);
 	}
 
-	public static ImmutablePersonWithGeneratedId relationshipProperties(ImmutablePersonWithGeneratedIdRelationshipProperties relationshipProperties) {
-		return new ImmutablePersonWithGeneratedId(null,
+	public static ImmutableSecondPersonWithGeneratedId relationshipProperties(ImmutablePersonWithGeneratedIdRelationshipProperties relationshipProperties) {
+		return new ImmutableSecondPersonWithGeneratedId(null,
 				Collections.emptyList(),
 				Collections.emptySet(),
 				Collections.emptyMap(),
@@ -178,8 +177,8 @@ public class ImmutablePersonWithGeneratedId {
 		);
 	}
 
-	public static ImmutablePersonWithGeneratedId relationshipPropertiesCollection(List<ImmutablePersonWithGeneratedIdRelationshipProperties> relationshipPropertiesCollection) {
-		return new ImmutablePersonWithGeneratedId(null,
+	public static ImmutableSecondPersonWithGeneratedId relationshipPropertiesCollection(List<ImmutablePersonWithGeneratedIdRelationshipProperties> relationshipPropertiesCollection) {
+		return new ImmutableSecondPersonWithGeneratedId(null,
 				Collections.emptyList(),
 				Collections.emptySet(),
 				Collections.emptyMap(),
@@ -192,8 +191,8 @@ public class ImmutablePersonWithGeneratedId {
 		);
 	}
 
-	public static ImmutablePersonWithGeneratedId relationshipPropertiesDynamic(Map<String, ImmutablePersonWithGeneratedIdRelationshipProperties> relationshipPropertiesDynamic) {
-		return new ImmutablePersonWithGeneratedId(null,
+	public static ImmutableSecondPersonWithGeneratedId relationshipPropertiesDynamic(Map<String, ImmutablePersonWithGeneratedIdRelationshipProperties> relationshipPropertiesDynamic) {
+		return new ImmutableSecondPersonWithGeneratedId(null,
 				Collections.emptyList(),
 				Collections.emptySet(),
 				Collections.emptyMap(),
@@ -206,8 +205,8 @@ public class ImmutablePersonWithGeneratedId {
 		);
 	}
 
-	public static ImmutablePersonWithGeneratedId relationshipPropertiesDynamicCollection(Map<String, List<ImmutableSecondPersonWithGeneratedIdRelationshipProperties>> relationshipPropertiesDynamicCollection) {
-		return new ImmutablePersonWithGeneratedId(null,
+	public static ImmutableSecondPersonWithGeneratedId relationshipPropertiesDynamicCollection(Map<String, List<ImmutableSecondPersonWithGeneratedIdRelationshipProperties>> relationshipPropertiesDynamicCollection) {
+		return new ImmutableSecondPersonWithGeneratedId(null,
 				Collections.emptyList(),
 				Collections.emptySet(),
 				Collections.emptyMap(),
@@ -219,5 +218,4 @@ public class ImmutablePersonWithGeneratedId {
 				relationshipPropertiesDynamicCollection
 				);
 	}
-
 }
