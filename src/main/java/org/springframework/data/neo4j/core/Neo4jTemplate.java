@@ -15,6 +15,25 @@
  */
 package org.springframework.data.neo4j.core;
 
+import static org.neo4j.cypherdsl.core.Cypher.anyNode;
+import static org.neo4j.cypherdsl.core.Cypher.asterisk;
+import static org.neo4j.cypherdsl.core.Cypher.parameter;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+
 import org.apache.commons.logging.LogFactory;
 import org.apiguardian.api.API;
 import org.neo4j.cypherdsl.core.Condition;
@@ -55,24 +74,6 @@ import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
-import static org.neo4j.cypherdsl.core.Cypher.anyNode;
-import static org.neo4j.cypherdsl.core.Cypher.asterisk;
-import static org.neo4j.cypherdsl.core.Cypher.parameter;
 
 /**
  * @author Michael J. Simons
@@ -651,11 +652,7 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 			QueryFragmentsAndParameters.QueryFragments queryFragments = queryFragmentsAndParameters.getQueryFragments();
 			Neo4jPersistentEntity<?> entityMetaData = (Neo4jPersistentEntity<?>) queryFragmentsAndParameters.getNodeDescription();
 
-			QueryFragmentsAndParameters.QueryFragments.ReturnTuple returnTuple = queryFragments.getReturnTuple();
-			boolean containsPossibleCircles = entityMetaData != null && entityMetaData.containsPossibleCircles(
-					returnTuple != null
-							? returnTuple.getIncludedProperties()
-							: Collections.emptyList());
+			boolean containsPossibleCircles = entityMetaData != null && entityMetaData.containsPossibleCircles(queryFragments::includeField);
 			if (cypherQuery == null || containsPossibleCircles) {
 
 				Map<String, Object> parameters = queryFragmentsAndParameters.getParameters();
@@ -705,10 +702,11 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 			final Set<Long> relationshipIds = new HashSet<>();
 			final Set<Long> relatedNodeIds = new HashSet<>();
 
+			Predicate<RelationshipDescription> relationshipFilter = ((Predicate<RelationshipDescription>) relationshipDescription ->
+					queryFragments.includeField(relationshipDescription.getFieldName())).negate();
+
 			for (RelationshipDescription relationshipDescription : entityMetaData.getRelationships()) {
-				if (queryFragments.getReturnTuple() != null
-						&& !queryFragments.getReturnTuple().getIncludedProperties().isEmpty()
-						&& queryFragments.getReturnTuple().getIncludedProperties().contains(relationshipDescription.getFieldName())) {
+				if (relationshipFilter.test(relationshipDescription)) {
 					continue;
 				}
 

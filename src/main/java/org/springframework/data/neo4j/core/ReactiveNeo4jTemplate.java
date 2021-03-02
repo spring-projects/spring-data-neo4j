@@ -449,11 +449,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 		QueryFragmentsAndParameters.QueryFragments queryFragments = queryFragmentsAndParameters.getQueryFragments();
 		Map<String, Object> parameters = queryFragmentsAndParameters.getParameters();
 
-		QueryFragmentsAndParameters.QueryFragments.ReturnTuple returnTuple = queryFragments.getReturnTuple();
-		boolean containsPossibleCircles = entityMetaData != null && entityMetaData.containsPossibleCircles(
-				returnTuple != null
-						? returnTuple.getIncludedProperties()
-						: Collections.emptyList());
+		boolean containsPossibleCircles = entityMetaData != null && entityMetaData.containsPossibleCircles(queryFragments::includeField);
 		if (containsPossibleCircles && !queryFragments.isScalarValueReturn()) {
 			return createQueryAndParameters(entityMetaData, queryFragments, parameters)
 					.flatMap(finalQueryAndParameters ->
@@ -470,9 +466,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 		 	QueryFragmentsAndParameters.QueryFragments queryFragments, Map<String, Object> parameters) {
 
 		Predicate<RelationshipDescription> relationshipFilter = relationshipDescription ->
-				queryFragments.getReturnTuple() == null
-				|| queryFragments.getReturnTuple().getIncludedProperties().isEmpty()
-				|| queryFragments.getReturnTuple().getIncludedProperties().contains(relationshipDescription.getFieldName());
+				queryFragments.includeField(relationshipDescription.getFieldName());
 
 		return getDatabaseName().flatMap(databaseName -> {
 			return Mono.deferContextual(ctx -> {
@@ -750,11 +744,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 			QueryFragmentsAndParameters.QueryFragments queryFragments = queryFragmentsAndParameters.getQueryFragments();
 			Neo4jPersistentEntity<?> entityMetaData = (Neo4jPersistentEntity<?>) queryFragmentsAndParameters.getNodeDescription();
 
-			QueryFragmentsAndParameters.QueryFragments.ReturnTuple returnTuple = queryFragments.getReturnTuple();
-			boolean containsPossibleCircles = entityMetaData != null && entityMetaData.containsPossibleCircles(
-					returnTuple != null
-							? returnTuple.getIncludedProperties()
-							: Collections.emptyList());
+			boolean containsPossibleCircles = entityMetaData != null && entityMetaData.containsPossibleCircles(queryFragments::includeField);
 			if (cypherQuery == null || containsPossibleCircles) {
 
 				Map<String, Object> parameters = queryFragmentsAndParameters.getParameters();

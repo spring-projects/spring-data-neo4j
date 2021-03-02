@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.AbstractMap;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -30,6 +31,7 @@ import org.neo4j.driver.Session;
 import org.neo4j.driver.Transaction;
 import org.neo4j.driver.Values;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.domain.Page;
@@ -42,6 +44,8 @@ import org.springframework.data.neo4j.integration.shared.common.NamesOnly;
 import org.springframework.data.neo4j.integration.shared.common.NamesOnlyDto;
 import org.springframework.data.neo4j.integration.shared.common.Person;
 import org.springframework.data.neo4j.integration.shared.common.PersonSummary;
+import org.springframework.data.neo4j.integration.shared.common.ProjectionTest1O1;
+import org.springframework.data.neo4j.integration.shared.common.ProjectionTestLevel1;
 import org.springframework.data.neo4j.integration.shared.common.ProjectionTestRoot;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
@@ -65,6 +69,7 @@ class ProjectionIT {
 
 	private final Driver driver;
 	private Long projectionTestRootId;
+	private Long projectionTest1O1Id;
 	private Long projectionTestLevel1Id;
 
 	@Autowired
@@ -91,20 +96,23 @@ class ProjectionIT {
 			}
 
 			Record result = transaction.run("create (r:ProjectionTestRoot {name: 'root'}) \n"
+									 + "create (o:ProjectionTest1O1 {name: '1o1'}) "
 									 + "create (l11:ProjectionTestLevel1 {name: 'level11'})\n"
 									 + "create (l12:ProjectionTestLevel1 {name: 'level12'})\n"
 									 + "create (l21:ProjectionTestLevel2 {name: 'level21'})\n"
 									 + "create (l22:ProjectionTestLevel2 {name: 'level22'})\n"
 									 + "create (l23:ProjectionTestLevel2 {name: 'level23'})\n"
+									 + "create (r) - [:ONE_OONE] -> (o)\n"
 									 + "create (r) - [:LEVEL_1] -> (l11)\n"
 									 + "create (r) - [:LEVEL_1] -> (l12)\n"
 									 + "create (l11) - [:LEVEL_2] -> (l21)\n"
 									 + "create (l11) - [:LEVEL_2] -> (l22)\n"
 									 + "create (l12) - [:LEVEL_2] -> (l23)\n"
-									 + "return id(r), id(l11)").single();
+									 + "return id(r), id(l11), id(o)").single();
 
 			projectionTestRootId = result.get(0).asLong();
 			projectionTestLevel1Id = result.get(1).asLong();
+			projectionTest1O1Id = result.get(2).asLong();
 			transaction.commit();
 		}
 	}
@@ -216,6 +224,46 @@ class ProjectionIT {
 		assertThat(optionalProjection).map(SimpleProjection::getName).hasValue("root");
 	}
 
+	@Test // GH-2165
+	void relationshipsShouldBeIncludedInProjections(@Autowired TreestructureRepository repository) {
+
+		Optional<SimpleProjectionWithLevelAndLower> optionalProjection = repository
+				.findById(projectionTestRootId, SimpleProjectionWithLevelAndLower.class);
+		assertThat(optionalProjection).hasValueSatisfying(p -> {
+
+			assertThat(p.getName()).isEqualTo("root");
+			assertThat(p.getOneOone()).extracting(ProjectionTest1O1::getName).isEqualTo("1o1");
+			assertThat(p.getLevel1()).hasSize(2);
+			assertThat(p.getLevel1().stream()).anyMatch(e -> e.getId().equals(projectionTestLevel1Id) && e.getLevel2().size() == 2);
+		});
+	}
+
+	@Test // GH-2165
+	void nested1to1ProjectionsShouldWork(@Autowired TreestructureRepository repository) {
+
+		Optional<ProjectedOneToOne> optionalProjection = repository
+				.findById(projectionTestRootId, ProjectedOneToOne.class);
+		assertThat(optionalProjection).hasValueSatisfying(p -> {
+
+			assertThat(p.getName()).isEqualTo("root");
+			assertThat(p.getOneOone()).extracting(ProjectedOneToOne.Subprojection::getFullName)
+					.isEqualTo(projectionTest1O1Id + " 1o1");
+		});
+	}
+
+	@Test // GH-2165
+	void nested1toManyProjectionsShouldWork(@Autowired TreestructureRepository repository) {
+
+		//repository.findById(projectionTestRootId).get();
+		Optional<ProjectedOneToMany> optionalProjection = repository
+				.findById(projectionTestRootId, ProjectedOneToMany.class);
+		assertThat(optionalProjection).hasValueSatisfying(p -> {
+
+			assertThat(p.getName()).isEqualTo("root");
+			assertThat(p.getLevel1()).hasSize(2);
+		});
+	}
+
 	@Test // GH-2164
 	void findByIdInDerivedFinderMethodInRelatedObjectShouldWork(@Autowired TreestructureRepository repository) {
 
@@ -258,6 +306,47 @@ class ProjectionIT {
 	interface SimpleProjection {
 
 		String getName();
+	}
+
+	interface SimpleProjectionWithLevelAndLower {
+
+		String getName();
+
+		ProjectionTest1O1 getOneOone();
+
+		List<ProjectionTestLevel1> getLevel1();
+	}
+
+	interface ProjectedOneToOne {
+
+		String getName();
+
+		Subprojection getOneOone();
+
+		interface Subprojection {
+
+			/**
+			 * @return Some arbitrary computed projection result to make sure that machinery works as well
+			 */
+			@Value("#{target.id + ' ' + target.name}")
+			String getFullName();
+		}
+	}
+
+	interface ProjectedOneToMany {
+
+		String getName();
+
+		List<Subprojection> getLevel1();
+
+		interface Subprojection {
+
+			/**
+			 * @return Some arbitrary computed projection result to make sure that machinery works as well
+			 */
+			@Value("#{target.id + ' ' + target.name}")
+			String getFullName();
+		}
 	}
 
 	@Configuration

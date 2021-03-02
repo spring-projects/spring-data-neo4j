@@ -15,30 +15,11 @@
  */
 package org.springframework.data.neo4j.integration.shared.common;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.springframework.data.neo4j.core.schema.Node;
 
 /**
  * @author Michael J. Simons
  */
 @Node
-public class ProjectionTestRoot extends ProjectionTestBase {
-
-	private ProjectionTest1O1 oneOone;
-
-	private List<ProjectionTestLevel1> level1 = new ArrayList<>();
-
-	public List<ProjectionTestLevel1> getLevel1() {
-		return level1;
-	}
-
-	public ProjectionTest1O1 getOneOone() {
-		return oneOone;
-	}
-
-	public void setOneOone(ProjectionTest1O1 oneOone) {
-		this.oneOone = oneOone;
-	}
+public class ProjectionTest1O1 extends ProjectionTestBase {
 }

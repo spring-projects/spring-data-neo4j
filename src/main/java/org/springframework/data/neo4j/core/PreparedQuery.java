@@ -52,6 +52,7 @@ import java.util.stream.Collectors;
  *
  * @param <T> The type of the objects returned by this query.
  * @author Michael J. Simons
+ * @author Gerrit Meier
  * @soundtrack Deichkind - Arbeit nervt
  * @since 6.0
  */

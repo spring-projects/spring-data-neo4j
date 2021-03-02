@@ -36,9 +36,12 @@ import org.springframework.lang.Nullable;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static org.neo4j.cypherdsl.core.Cypher.parameter;
 
@@ -218,6 +221,10 @@ public final class QueryFragmentsAndParameters {
 			this.scalarValueReturn = isScalarValue;
 		}
 
+		public boolean includeField(String fieldName) {
+			return this.returnTuple == null || this.returnTuple.includedProperties.isEmpty() || this.returnTuple.includedProperties.contains(fieldName);
+		}
+
 		public void setOrderBy(SortItem[] orderBy) {
 			this.orderBy = orderBy;
 		}
@@ -246,7 +253,7 @@ public final class QueryFragmentsAndParameters {
 			return returnExpressions.size() > 0
 					? returnExpressions.toArray(new Expression[]{})
 					: CypherGenerator.INSTANCE.createReturnStatementForMatch(getReturnTuple().getNodeDescription(),
-					getReturnTuple().getIncludedProperties());
+					this::includeField);
 		}
 
 		private SortItem[] getOrderBy() {
@@ -279,18 +286,18 @@ public final class QueryFragmentsAndParameters {
 		@API(status = API.Status.INTERNAL, since = "6.0.4")
 		public final static class ReturnTuple {
 			private final NodeDescription<?> nodeDescription;
-			private final List<String> includedProperties;
+			private final Set<String> includedProperties;
 
 			private ReturnTuple(NodeDescription<?> nodeDescription, List<String> includedProperties) {
 				this.nodeDescription = nodeDescription;
-				this.includedProperties = includedProperties;
+				this.includedProperties = includedProperties == null ? Collections.emptySet() : new HashSet<>(includedProperties);
 			}
 
 			public NodeDescription<?> getNodeDescription() {
 				return nodeDescription;
 			}
 
-			public List<String> getIncludedProperties() {
+			public Collection<String> getIncludedProperties() {
 				return includedProperties;
 			}
 		}

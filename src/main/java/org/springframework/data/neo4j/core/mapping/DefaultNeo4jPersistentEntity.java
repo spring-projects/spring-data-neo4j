@@ -26,6 +26,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -470,16 +471,16 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 	}
 
 	@Override
-	public boolean containsPossibleCircles(List<String> includedProperties) {
-		return calculatePossibleCircles(includedProperties);
+	public boolean containsPossibleCircles(Predicate<String> includeField) {
+		return calculatePossibleCircles(includeField);
 	}
 
-	private boolean calculatePossibleCircles(List<String> includedProperties) {
+	private boolean calculatePossibleCircles(Predicate<String> includeField) {
 		Collection<RelationshipDescription> relationships = getRelationships();
 
 		Set<RelationshipDescription> processedRelationships = new HashSet<>();
 		for (RelationshipDescription relationship : relationships) {
-			if (!includedProperties.isEmpty() && !includedProperties.contains(relationship.getFieldName())) {
+			if (!includeField.test(relationship.getFieldName())) {
 				continue;
 			}
 			if (processedRelationships.contains(relationship)) {
