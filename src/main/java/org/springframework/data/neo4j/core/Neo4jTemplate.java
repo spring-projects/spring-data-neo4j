@@ -525,21 +525,21 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 			stateMachine.markAsProcessed(relationshipDescription, relatedValuesToStore);
 
 			Neo4jPersistentProperty relationshipProperty = association.getInverse();
+
 			Object newRelationshipObject = null;
 			Collection<Object> newRelationshipObjectCollection = new ArrayList<>();
-			Map<Object, Object> newRelationshipObjectCollectionMap = null;
+			Map<Object, Object> newRelationshipObjectCollectionMap = new HashMap<>();
 
 			if (relationshipProperty.isCollectionLike()) {
 				newRelationshipObjectCollection = CollectionFactory.createApproximateCollection(rawValue, ((Collection<?>) rawValue).size());
 			} else if (relationshipProperty.isDynamicAssociation()) {
 				newRelationshipObjectCollectionMap = CollectionFactory.createApproximateMap(rawValue, ((Map<?, ?>) rawValue).size());
-			}
-
-			for (Object relatedValueToStore : relatedValuesToStore) {
-
 				if (relationshipProperty.isDynamicOneToManyAssociation()) {
 					newRelationshipObjectCollection = CollectionFactory.createCollection(relationshipProperty.getTypeInformation().getRequiredActualType().getType(), 1); // todo fine tuning size
 				}
+			}
+
+			for (Object relatedValueToStore : relatedValuesToStore) {
 
 				// here a map entry is not always anymore a dynamic association
 				Object relatedNode = relationshipContext.identifyAndExtractRelationshipTargetNode(relatedValueToStore);
@@ -588,11 +588,11 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 				}
 
 				if (relationshipDescription.hasRelationshipProperties()) {
-					Object lalelu = relationshipProperty.isDynamicAssociation()
+					Object relationshipPropertiesObject = relationshipProperty.isDynamicAssociation()
 							? ((MappingSupport.RelationshipPropertiesWithEntityHolder) ((Map.Entry<Object, Object>) relatedValueToStore).getValue()).getRelationshipProperties()
 							: ((MappingSupport.RelationshipPropertiesWithEntityHolder) relatedValueToStore).getRelationshipProperties();
-					Neo4jPersistentEntity<?> persistentEntity = neo4jMappingContext.getPersistentEntity(lalelu.getClass());
-					PersistentPropertyAccessor<Object> relationshipPropertiesAccessor = persistentEntity.getPropertyAccessor(lalelu);
+					Neo4jPersistentEntity<?> persistentEntity = neo4jMappingContext.getPersistentEntity(relationshipPropertiesObject.getClass());
+					PersistentPropertyAccessor<Object> relationshipPropertiesAccessor = persistentEntity.getPropertyAccessor(relationshipPropertiesObject);
 					relationshipPropertiesAccessor.setProperty(persistentEntity.getPersistentProperty(TargetNode.class), newRelationshipObject);
 					newRelationshipObject = relationshipPropertiesAccessor.getBean();
 				}
