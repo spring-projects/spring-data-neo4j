@@ -766,7 +766,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 						parentPropertyAccessor.setProperty(objects.relationshipProperty, objects.objectCollection);
 					} else if (objects.relationshipProperty.isDynamicAssociation()) {
 						parentPropertyAccessor.setProperty(objects.relationshipProperty, objects.objectMap);
-					} else if (!objects.objectCollection.isEmpty()){
+					} else if (!objects.objectCollection.isEmpty()) {
 						parentPropertyAccessor.setProperty(objects.relationshipProperty, objects.objectCollection.iterator().next());
 					}
 				})

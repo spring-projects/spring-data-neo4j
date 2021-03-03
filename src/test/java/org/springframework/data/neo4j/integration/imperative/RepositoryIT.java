@@ -106,7 +106,6 @@ import org.springframework.data.neo4j.integration.shared.common.Friend;
 import org.springframework.data.neo4j.integration.shared.common.FriendshipRelationship;
 import org.springframework.data.neo4j.integration.shared.common.Hobby;
 import org.springframework.data.neo4j.integration.shared.common.ImmutablePerson;
-import org.springframework.data.neo4j.integration.shared.common.ImmutablePersonWithGeneratedId;
 import org.springframework.data.neo4j.integration.shared.common.Inheritance;
 import org.springframework.data.neo4j.integration.shared.common.KotlinPerson;
 import org.springframework.data.neo4j.integration.shared.common.LikesHobbyRelationship;
