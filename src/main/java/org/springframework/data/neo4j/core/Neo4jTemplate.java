@@ -270,7 +270,9 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 		if (entityMetaData.isUsingInternalIds()) {
 			propertyAccessor.setProperty(entityMetaData.getRequiredIdProperty(), optionalInternalId.get());
 		}
-		return processRelations(entityMetaData, propertyAccessor, isEntityNew);
+		processRelations(entityMetaData, propertyAccessor, isEntityNew);
+
+		return propertyAccessor.getBean();
 	}
 
 	private <T> DynamicLabels determineDynamicLabels(T entityToBeSaved, Neo4jPersistentEntity<?> entityMetaData) {
@@ -448,14 +450,14 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 		return toExecutableQuery(preparedQuery);
 	}
 
-	private <T> T processRelations(Neo4jPersistentEntity<?> neo4jPersistentEntity, PersistentPropertyAccessor<?> parentPropertyAccessor,
+	private void processRelations(Neo4jPersistentEntity<?> neo4jPersistentEntity, PersistentPropertyAccessor<?> parentPropertyAccessor,
 			boolean isParentObjectNew) {
 
-		return processNestedRelations(neo4jPersistentEntity, parentPropertyAccessor, isParentObjectNew,
+		processNestedRelations(neo4jPersistentEntity, parentPropertyAccessor, isParentObjectNew,
 				new NestedRelationshipProcessingStateMachine());
 	}
 
-	private <T> T processNestedRelations(Neo4jPersistentEntity<?> sourceEntity, PersistentPropertyAccessor<?> parentPropertyAccessor,
+	private void processNestedRelations(Neo4jPersistentEntity<?> sourceEntity, PersistentPropertyAccessor<?> parentPropertyAccessor,
 			boolean isParentObjectNew, NestedRelationshipProcessingStateMachine stateMachine) {
 
 		Object fromId = parentPropertyAccessor.getProperty(sourceEntity.getRequiredIdProperty());
@@ -581,7 +583,8 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 
 				newRelationshipObject = targetPropertyAccessor.getBean();
 				if (processState != ProcessState.PROCESSED_ALL_VALUES) {
-					newRelationshipObject = processNestedRelations(targetEntity, targetPropertyAccessor, isEntityNew, inDatabase, stateMachine);
+					processNestedRelations(targetEntity, targetPropertyAccessor, isEntityNew, inDatabase, stateMachine);
+					newRelationshipObject = targetPropertyAccessor.getBean();
 				}
 
 				if (relationshipDescription.hasRelationshipProperties()) {
@@ -598,7 +601,7 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 
 				if (relationshipProperty.isDynamicAssociation()) {
 					Object key = ((Map.Entry<Object, Object>) relatedValueToStore).getKey();
-					Object value = null;
+					Object value;
 					if (relationshipProperty.isDynamicOneToManyAssociation()) {
 						value = newRelationshipObjectCollection;
 					} else {
@@ -630,7 +633,6 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 			}
 		});
 
-		return (T) parentPropertyAccessor.getBean();
 	}
 
 	private <Y> Long queryRelatedNode(Object entity, Neo4jPersistentEntity<?> targetNodeDescription) {
