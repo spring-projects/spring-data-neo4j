@@ -21,7 +21,6 @@ import static org.assertj.core.api.Assertions.tuple;
 
 import org.springframework.data.neo4j.integration.shared.common.DtoPersonProjection;
 import org.springframework.data.neo4j.integration.shared.common.EntitiesWithDynamicLabels;
-import org.springframework.data.neo4j.integration.shared.common.ImmutablePersonWithGeneratedId;
 import org.springframework.data.neo4j.integration.shared.common.SimplePerson;
 import org.springframework.data.neo4j.integration.shared.common.ThingWithFixedGeneratedId;
 import reactor.core.publisher.Flux;
