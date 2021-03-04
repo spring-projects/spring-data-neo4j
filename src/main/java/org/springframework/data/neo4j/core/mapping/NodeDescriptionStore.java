@@ -81,6 +81,7 @@ final class NodeDescriptionStore {
 		if (labels == null || labels.isEmpty()) {
 			return new NodeDescriptionAndLabels(entityDescription, Collections.emptyList());
 		}
+		NodeDescriptionAndLabels nodeDescriptionAndLabels = null;
 		for (NodeDescription<?> childNodeDescription : entityDescription.getChildNodeDescriptionsInHierarchy()) {
 			String primaryLabel = childNodeDescription.getPrimaryLabel();
 			List<String> additionalLabels = new ArrayList<>(childNodeDescription.getAdditionalLabels());
@@ -89,8 +90,19 @@ final class NodeDescriptionStore {
 				Set<String> surplusLabels = new HashSet<>(labels);
 				surplusLabels.remove(primaryLabel);
 				surplusLabels.removeAll(additionalLabels);
-				return new NodeDescriptionAndLabels(childNodeDescription, surplusLabels);
+				// if we find more than one, we have to distinguish between the options in the mapping logic later.
+				if (nodeDescriptionAndLabels == null) {
+					nodeDescriptionAndLabels = new NodeDescriptionAndLabels(childNodeDescription, surplusLabels);
+				} else {
+					surplusLabels = new HashSet<>(labels);
+					surplusLabels.remove(entityDescription.getPrimaryLabel());
+					surplusLabels.removeAll(entityDescription.getAdditionalLabels());
+					return new NodeDescriptionAndLabels(entityDescription, surplusLabels);
+				}
 			}
+		}
+		if (nodeDescriptionAndLabels != null) {
+			return nodeDescriptionAndLabels;
 		}
 
 		Set<String> surplusLabels = new HashSet<>(labels);

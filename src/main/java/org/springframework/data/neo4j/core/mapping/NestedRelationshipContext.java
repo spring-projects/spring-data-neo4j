@@ -124,7 +124,7 @@ public final class NestedRelationshipContext {
 		Object value = propertyAccessor.getProperty(inverse);
 		boolean inverseValueIsEmpty = value == null;
 
-		RelationshipDescription relationship = neo4jPersistentEntity.getRelationships().stream()
+		RelationshipDescription relationship = neo4jPersistentEntity.getRelationshipsUpAndDown(s -> true).stream()
 				.filter(r -> r.getFieldName().equals(inverse.getName())).findFirst().get();
 
 		// if we have a relationship with properties, the targetNodeType is the map key

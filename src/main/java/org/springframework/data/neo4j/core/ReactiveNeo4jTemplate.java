@@ -69,7 +69,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static org.neo4j.cypherdsl.core.Cypher.anyNode;
@@ -465,16 +464,12 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 	private Mono<GenericQueryAndParameters> createQueryAndParameters(Neo4jPersistentEntity<?> entityMetaData,
 		 	QueryFragmentsAndParameters.QueryFragments queryFragments, Map<String, Object> parameters) {
 
-		Predicate<RelationshipDescription> relationshipFilter = relationshipDescription ->
-				queryFragments.includeField(relationshipDescription.getFieldName());
-
 		return getDatabaseName().flatMap(databaseName -> {
 			return Mono.deferContextual(ctx -> {
 				Set<Long> rootNodeIds = ctx.get("rootNodes");
 				Set<Long> processedRelationshipIds = ctx.get("processedRelationships");
 				Set<Long> processedNodeIds = ctx.get("processedNodes");
-				return Flux.fromIterable(entityMetaData.getRelationships())
-						.filter(relationshipFilter)
+				return Flux.fromIterable(entityMetaData.getRelationshipsUpAndDown(fieldName -> queryFragments.includeField(fieldName)))
 						.flatMap(relationshipDescription -> {
 
 							Statement statement = cypherGenerator.prepareMatchOf(entityMetaData, relationshipDescription,
@@ -514,7 +509,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 
 		NodeDescription<?> target = relationshipDescription.getTarget();
 
-		return Flux.fromIterable(target.getRelationships())
+		return Flux.fromIterable(target.getRelationshipsUpAndDown(s -> true))
 			.flatMap(relDe -> {
 				Node node = anyNode(Constants.NAME_OF_ROOT_NODE);
 

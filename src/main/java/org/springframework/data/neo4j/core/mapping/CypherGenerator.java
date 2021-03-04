@@ -36,7 +36,6 @@ import org.neo4j.cypherdsl.core.renderer.Renderer;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mapping.MappingException;
 import org.springframework.data.mapping.PersistentProperty;
-import org.springframework.data.neo4j.core.schema.Relationship.Direction;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
@@ -44,12 +43,9 @@ import org.springframework.util.Assert;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
-import java.util.stream.Collectors;
 
 import static org.neo4j.cypherdsl.core.Cypher.anyNode;
 import static org.neo4j.cypherdsl.core.Cypher.listBasedOn;
@@ -506,181 +502,11 @@ public enum CypherGenerator {
 		List<Object> propertiesProjection = projectNodeProperties(nodeDescription, nodeName, includedProperties);
 		List<Object> contentOfProjection = new ArrayList<>(propertiesProjection);
 
-		Collection<RelationshipDescription> relationships = getRelationshipDescriptionsUpAndDown(nodeDescription, includedProperties);
+		Collection<RelationshipDescription> relationships = nodeDescription.getRelationshipsUpAndDown(includedProperties);
 		relationships.removeIf(r -> !includedProperties.test(r.getFieldName()));
 
 		contentOfProjection.addAll(generateListsFor(relationships, nodeName, processedRelationships));
 		return Cypher.anyNode(nodeName).project(contentOfProjection);
-	}
-
-	@NonNull
-	static Collection<RelationshipDescription> getRelationshipDescriptionsUpAndDown(NodeDescription<?> nodeDescription,
-			Predicate<String> includedProperties) {
-
-		Collection<RelationshipDescription> relationships = new HashSet<>(nodeDescription.getRelationships());
-		for (NodeDescription<?> childDescription : nodeDescription.getChildNodeDescriptionsInHierarchy()) {
-			childDescription.getRelationships().forEach(concreteRelationship -> {
-
-				String fieldName = concreteRelationship.getFieldName();
-
-				if (relationships.stream().noneMatch(relationship -> relationship.getFieldName().equals(fieldName))) {
-					relationships.add(concreteRelationship);
-				}
-			});
-		}
-
-		return relationships.stream().filter(relationshipDescription ->
-				includedProperties.test(relationshipDescription.getFieldName()))
-				.collect(Collectors.toSet());
-	}
-
-	private RelationshipPattern createRelationships(Node node, Collection<RelationshipDescription> relationshipDescriptions) {
-		RelationshipPattern relationship;
-
-		Direction determinedDirection = determineDirection(relationshipDescriptions);
-		if (Direction.OUTGOING.equals(determinedDirection)) {
-			relationship = node.relationshipTo(anyNode(), collectFirstLevelRelationshipTypes(relationshipDescriptions))
-					.min(0).max(1);
-		} else if (Direction.INCOMING.equals(determinedDirection)) {
-			relationship = node.relationshipFrom(anyNode(), collectFirstLevelRelationshipTypes(relationshipDescriptions))
-					.min(0).max(1);
-		} else {
-			relationship = node.relationshipBetween(anyNode(), collectFirstLevelRelationshipTypes(relationshipDescriptions))
-					.min(0).max(1);
-		}
-
-		Set<RelationshipDescription> processedRelationshipDescriptions = new HashSet<>(relationshipDescriptions);
-		for (RelationshipDescription relationshipDescription : relationshipDescriptions) {
-			Collection<RelationshipDescription> relationships = relationshipDescription.getTarget().getRelationships();
-			if (relationships.size() > 0) {
-				relationship = createRelationships(relationship, relationships, processedRelationshipDescriptions)
-						.relationship;
-			}
-		}
-
-		return relationship;
-	}
-
-	private RelationshipProcessState createRelationships(RelationshipPattern existingRelationship,
-				Collection<RelationshipDescription> relationshipDescriptions,
-				Set<RelationshipDescription> processedRelationshipDescriptions) {
-
-		RelationshipPattern relationship = existingRelationship;
-		String[] relationshipTypes = collectAllRelationshipTypes(relationshipDescriptions);
-		if (processedRelationshipDescriptions.containsAll(relationshipDescriptions)) {
-			return new RelationshipProcessState(
-					relationship.relationshipBetween(anyNode(),
-							relationshipTypes).unbounded().min(0), true);
-		}
-		processedRelationshipDescriptions.addAll(relationshipDescriptions);
-
-		// we can process through the path
-		if (relationshipDescriptions.size() == 1) {
-			RelationshipDescription relationshipDescription = relationshipDescriptions.iterator().next();
-			switch (relationshipDescription.getDirection()) {
-				case OUTGOING:
-					relationship = existingRelationship.relationshipTo(anyNode(),
-							collectFirstLevelRelationshipTypes(relationshipDescriptions)).unbounded().min(0).max(1);
-					break;
-				case INCOMING:
-					relationship = existingRelationship.relationshipFrom(anyNode(),
-							collectFirstLevelRelationshipTypes(relationshipDescriptions)).unbounded().min(0).max(1);
-					break;
-				default:
-					relationship = existingRelationship.relationshipBetween(anyNode(),
-							collectFirstLevelRelationshipTypes(relationshipDescriptions)).unbounded().min(0).max(1);
-			}
-
-			RelationshipProcessState relationships = createRelationships(relationship,
-					relationshipDescription.getTarget().getRelationships(), processedRelationshipDescriptions);
-
-			if (!relationships.done) {
-				relationship = relationships.relationship;
-			}
-		} else {
-			Direction determinedDirection = determineDirection(relationshipDescriptions);
-			if (Direction.OUTGOING.equals(determinedDirection)) {
-				relationship = existingRelationship.relationshipTo(anyNode(), relationshipTypes).unbounded().min(0);
-			} else if (Direction.INCOMING.equals(determinedDirection)) {
-				relationship = existingRelationship.relationshipFrom(anyNode(), relationshipTypes).unbounded().min(0);
-			} else {
-				relationship = existingRelationship.relationshipBetween(anyNode(), relationshipTypes).unbounded().min(0);
-			}
-			return new RelationshipProcessState(relationship, true);
-		}
-		return new RelationshipProcessState(relationship, false);
-	}
-
-	@Nullable
-	Direction determineDirection(Collection<RelationshipDescription> relationshipDescriptions) {
-
-		Direction direction = null;
-		for (RelationshipDescription relationshipDescription : relationshipDescriptions) {
-			if (direction == null) {
-				direction = relationshipDescription.getDirection();
-			}
-			if (!direction.equals(relationshipDescription.getDirection())) {
-				return null;
-			}
-		}
-		return direction;
-	}
-
-	private String[] collectFirstLevelRelationshipTypes(Collection<RelationshipDescription> relationshipDescriptions) {
-		Set<String> relationshipTypes = new HashSet<>();
-
-		for (RelationshipDescription relationshipDescription : relationshipDescriptions) {
-			String relationshipType = relationshipDescription.getType();
-			if (relationshipTypes.contains(relationshipType)) {
-				continue;
-			}
-			if (relationshipDescription.isDynamic()) {
-				handleDynamicRelationship(relationshipTypes, (DefaultRelationshipDescription) relationshipDescription);
-				continue;
-			}
-			relationshipTypes.add(relationshipType);
-		}
-		return relationshipTypes.toArray(new String[0]);
-	}
-
-	private String[] collectAllRelationshipTypes(Collection<RelationshipDescription> relationshipDescriptions) {
-		Set<String> relationshipTypes = new HashSet<>();
-
-		for (RelationshipDescription relationshipDescription : relationshipDescriptions) {
-			String relationshipType = relationshipDescription.getType();
-			if (relationshipDescription.isDynamic()) {
-				handleDynamicRelationship(relationshipTypes, (DefaultRelationshipDescription) relationshipDescription);
-				continue;
-			}
-			relationshipTypes.add(relationshipType);
-			collectAllRelationshipTypes(relationshipDescription.getTarget(), relationshipTypes, new HashSet<>(relationshipDescriptions));
-		}
-		return relationshipTypes.toArray(new String[0]);
-	}
-
-	private void handleDynamicRelationship(Set<String> relationshipTypes, DefaultRelationshipDescription relationshipDescription) {
-		Class<?> componentType = relationshipDescription.getInverse().getComponentType();
-		if (componentType != null && componentType.isEnum()) {
-			Arrays.stream(componentType.getEnumConstants())
-					.forEach(constantName -> relationshipTypes.add(constantName.toString()));
-		} else {
-			relationshipTypes.clear();
-		}
-	}
-
-	private void collectAllRelationshipTypes(NodeDescription<?> nodeDescription, Set<String> relationshipTypes,
-											 Collection<RelationshipDescription> processedRelationshipDescriptions) {
-
-		for (RelationshipDescription relationshipDescription : nodeDescription.getRelationships()) {
-			String relationshipType = relationshipDescription.getType();
-			if (processedRelationshipDescriptions.contains(relationshipDescription)) {
-				continue;
-			}
-			relationshipTypes.add(relationshipType);
-			processedRelationshipDescriptions.add(relationshipDescription);
-			collectAllRelationshipTypes(relationshipDescription.getTarget(), relationshipTypes,
-					processedRelationshipDescriptions);
-		}
 	}
 
 	/**

@@ -421,6 +421,26 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 		return Collections.unmodifiableCollection(relationships);
 	}
 
+	@NonNull
+	public Collection<RelationshipDescription> getRelationshipsUpAndDown(Predicate<String> propertyFilter) {
+
+		Collection<RelationshipDescription> relationships = new HashSet<>(getRelationships());
+		for (NodeDescription<?> childDescription : getChildNodeDescriptionsInHierarchy()) {
+			childDescription.getRelationships().forEach(concreteRelationship -> {
+
+				String fieldName = concreteRelationship.getFieldName();
+
+				if (relationships.stream().noneMatch(relationship -> relationship.getFieldName().equals(fieldName))) {
+					relationships.add(concreteRelationship);
+				}
+			});
+		}
+
+		return relationships.stream().filter(relationshipDescription ->
+				propertyFilter.test(relationshipDescription.getFieldName()))
+				.collect(Collectors.toSet());
+	}
+
 	private Collection<GraphPropertyDescription> computeGraphProperties() {
 
 		final List<GraphPropertyDescription> computedGraphProperties = new ArrayList<>();
@@ -476,7 +496,7 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 	}
 
 	private boolean calculatePossibleCircles(Predicate<String> includeField) {
-		Collection<RelationshipDescription> relationships = getRelationships();
+		Collection<RelationshipDescription> relationships = new HashSet<>(getRelationshipsUpAndDown(includeField));
 
 		Set<RelationshipDescription> processedRelationships = new HashSet<>();
 		for (RelationshipDescription relationship : relationships) {
@@ -495,7 +515,7 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 	}
 
 	private boolean calculatePossibleCircles(NodeDescription<?> nodeDescription, Set<RelationshipDescription> processedRelationships) {
-		Collection<RelationshipDescription> relationships = nodeDescription.getRelationships();
+		Collection<RelationshipDescription> relationships = nodeDescription.getRelationshipsUpAndDown(s -> true);
 
 		for (RelationshipDescription relationship : relationships) {
 			if (processedRelationships.contains(relationship)) {

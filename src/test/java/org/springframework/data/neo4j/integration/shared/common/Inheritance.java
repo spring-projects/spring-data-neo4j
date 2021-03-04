@@ -15,8 +15,10 @@
  */
 package org.springframework.data.neo4j.integration.shared.common;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
@@ -428,5 +430,155 @@ public class Inheritance {
 		}
 	}
 
+	/**
+	 * Base entity for GH-2138 generic relationships tests
+	 */
+	@Node("Entity")
+	public static abstract class Entity {
+		@org.springframework.data.annotation.Id
+		@GeneratedValue
+		public Long id;
+		public String name;
 
+		@Relationship(type = "IS_CHILD")
+		public Entity parent;
+	}
+
+	/**
+	 * company
+	 */
+	@Node("Company")
+	public static class Company extends Entity {}
+
+	/**
+	 * site
+	 */
+	@Node("Site")
+	public static class Site extends Entity {}
+
+	/**
+	 * building
+	 */
+	@Node("Building")
+	public static class Building extends Entity {}
+
+	/**
+	 * Base entity for GH-2138 generic relationship in child class tests
+	 */
+	@Node
+	public static abstract class BaseEntity {
+		@Id
+		@GeneratedValue
+		public Long id;
+		public String name;
+	}
+
+	/**
+	 * BaseTerritory
+	 */
+	@Node
+	public static abstract class BaseTerritory extends BaseEntity {
+		public String nameEs;
+		public final String nameEn;
+
+		public BaseTerritory(String nameEn) {
+			this.nameEn = nameEn;
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (this == o) {
+				return true;
+			}
+			if (o == null || getClass() != o.getClass()) {
+				return false;
+			}
+			BaseTerritory that = (BaseTerritory) o;
+			return nameEn.equals(that.nameEn);
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(nameEn);
+		}
+	}
+
+	/**
+	 * GenericTerritory
+	 */
+	@Node
+	public static class GenericTerritory extends BaseTerritory {
+		public GenericTerritory(String nameEn) {
+			super(nameEn);
+		}
+	}
+
+	/**
+	 * Country
+	 */
+	@Node
+	public static class Country extends BaseTerritory {
+		public final String countryProperty;
+
+		@Relationship(type = "LINK", direction = Relationship.Direction.OUTGOING)
+		public Set<BaseTerritory> relationshipList = new HashSet<>();
+
+		public Country(String nameEn, String countryProperty) {
+			super(nameEn);
+			this.countryProperty = countryProperty;
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (this == o) {
+				return true;
+			}
+			if (o == null || getClass() != o.getClass()) {
+				return false;
+			}
+			if (!super.equals(o)) {
+				return false;
+			}
+			Country country = (Country) o;
+			return countryProperty.equals(country.countryProperty);
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(super.hashCode(), countryProperty);
+		}
+	}
+
+	/**
+	 * Continent
+	 */
+	@Node
+	public static class Continent extends BaseTerritory {
+		public final String continentProperty;
+
+		public Continent(String nameEn, String continentProperty) {
+			super(nameEn);
+			this.continentProperty = continentProperty;
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (this == o) {
+				return true;
+			}
+			if (o == null || getClass() != o.getClass()) {
+				return false;
+			}
+			if (!super.equals(o)) {
+				return false;
+			}
+			Continent continent = (Continent) o;
+			return continentProperty.equals(continent.continentProperty);
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(super.hashCode(), continentProperty);
+		}
+	}
 }

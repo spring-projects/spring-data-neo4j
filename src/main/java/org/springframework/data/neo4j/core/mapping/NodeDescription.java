@@ -103,6 +103,8 @@ public interface NodeDescription<T> {
 	 */
 	Collection<RelationshipDescription> getRelationships();
 
+	Collection<RelationshipDescription> getRelationshipsUpAndDown(Predicate<String> propertyPredicate);
+
 	/**
 	 * Register a direct child node description for this entity.
 	 *
