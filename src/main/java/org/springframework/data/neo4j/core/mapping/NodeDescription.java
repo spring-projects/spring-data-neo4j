@@ -104,6 +104,14 @@ public interface NodeDescription<T> {
 	Collection<RelationshipDescription> getRelationships();
 
 	/**
+	 * This returns the relationships this node, its parent and child has to other nodes.
+	 *
+	 * @param propertyPredicate - Predicate to filter the fields on this node description to
+	 * @return The relationships defined by instances of this node.
+	 */
+	Collection<RelationshipDescription> getRelationshipsInHierarchy(Predicate<String> propertyPredicate);
+
+	/**
 	 * Register a direct child node description for this entity.
 	 *
 	 * @param child - {@link NodeDescription} that defines an extending class.
