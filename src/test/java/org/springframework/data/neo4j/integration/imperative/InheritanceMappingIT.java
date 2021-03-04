@@ -33,6 +33,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -98,6 +99,31 @@ public class InheritanceMappingIT {
 
 		assertThat(((Inheritance.Country) territory).relationshipList).containsExactlyInAnyOrder(
 				country,
+				continent,
+				genericTerritory
+		);
+	}
+
+	@Test // GH-2138
+	void resultCollectionShouldHaveCorrectTypes(@Autowired TerritoryRepository repository) {
+
+		try (Session session = driver.session()) {
+			session.run("CREATE (c:Country:BaseTerritory:BaseEntity{nameEn:'country', countryProperty:'baseCountry'}) " +
+					"CREATE (c)-[:LINK]->(:Country:BaseTerritory:BaseEntity{nameEn:'anotherCountry', countryProperty:'large'}) " +
+					"CREATE (c)-[:LINK]->(:Continent:BaseTerritory:BaseEntity{nameEn:'continent', continentProperty:'small'}) " +
+					"CREATE (c)-[:LINK]->(:GenericTerritory:BaseTerritory:BaseEntity{nameEn:'generic'})").consume();
+		}
+
+		List<Inheritance.BaseTerritory> territories = repository.findAll();
+
+		Inheritance.Country country1 = new Inheritance.Country("country", "baseCountry");
+		Inheritance.Country country2 = new Inheritance.Country("anotherCountry", "large");
+		Inheritance.Continent continent = new Inheritance.Continent("continent", "small");
+		Inheritance.GenericTerritory genericTerritory = new Inheritance.GenericTerritory("generic");
+
+		assertThat(territories).containsExactlyInAnyOrder(
+				country1,
+				country2,
 				continent,
 				genericTerritory
 		);
