@@ -422,7 +422,7 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 	}
 
 	@NonNull
-	public Collection<RelationshipDescription> getRelationshipsUpAndDown(Predicate<String> propertyFilter) {
+	public Collection<RelationshipDescription> getRelationshipsInHierarchy(Predicate<String> propertyFilter) {
 
 		Collection<RelationshipDescription> relationships = new HashSet<>(getRelationships());
 		for (NodeDescription<?> childDescription : getChildNodeDescriptionsInHierarchy()) {
@@ -496,7 +496,7 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 	}
 
 	private boolean calculatePossibleCircles(Predicate<String> includeField) {
-		Collection<RelationshipDescription> relationships = new HashSet<>(getRelationshipsUpAndDown(includeField));
+		Collection<RelationshipDescription> relationships = new HashSet<>(getRelationshipsInHierarchy(includeField));
 
 		Set<RelationshipDescription> processedRelationships = new HashSet<>();
 		for (RelationshipDescription relationship : relationships) {
@@ -515,7 +515,7 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 	}
 
 	private boolean calculatePossibleCircles(NodeDescription<?> nodeDescription, Set<RelationshipDescription> processedRelationships) {
-		Collection<RelationshipDescription> relationships = nodeDescription.getRelationshipsUpAndDown(s -> true);
+		Collection<RelationshipDescription> relationships = nodeDescription.getRelationshipsInHierarchy(s -> true);
 
 		for (RelationshipDescription relationship : relationships) {
 			if (processedRelationships.contains(relationship)) {

@@ -78,10 +78,11 @@ final class NodeDescriptionStore {
 
 	public static NodeDescriptionAndLabels deriveConcreteNodeDescription(Neo4jPersistentEntity<?> entityDescription,
 			List<String> labels) {
+
 		if (labels == null || labels.isEmpty()) {
 			return new NodeDescriptionAndLabels(entityDescription, Collections.emptyList());
 		}
-		NodeDescriptionAndLabels nodeDescriptionAndLabels = null;
+
 		for (NodeDescription<?> childNodeDescription : entityDescription.getChildNodeDescriptionsInHierarchy()) {
 			String primaryLabel = childNodeDescription.getPrimaryLabel();
 			List<String> additionalLabels = new ArrayList<>(childNodeDescription.getAdditionalLabels());
@@ -90,19 +91,9 @@ final class NodeDescriptionStore {
 				Set<String> surplusLabels = new HashSet<>(labels);
 				surplusLabels.remove(primaryLabel);
 				surplusLabels.removeAll(additionalLabels);
-				// if we find more than one, we have to distinguish between the options in the mapping logic later.
-				if (nodeDescriptionAndLabels == null) {
-					nodeDescriptionAndLabels = new NodeDescriptionAndLabels(childNodeDescription, surplusLabels);
-				} else {
-					surplusLabels = new HashSet<>(labels);
-					surplusLabels.remove(entityDescription.getPrimaryLabel());
-					surplusLabels.removeAll(entityDescription.getAdditionalLabels());
-					return new NodeDescriptionAndLabels(entityDescription, surplusLabels);
-				}
+
+				return new NodeDescriptionAndLabels(childNodeDescription, surplusLabels);
 			}
-		}
-		if (nodeDescriptionAndLabels != null) {
-			return nodeDescriptionAndLabels;
 		}
 
 		Set<String> surplusLabels = new HashSet<>(labels);

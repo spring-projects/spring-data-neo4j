@@ -469,7 +469,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 				Set<Long> rootNodeIds = ctx.get("rootNodes");
 				Set<Long> processedRelationshipIds = ctx.get("processedRelationships");
 				Set<Long> processedNodeIds = ctx.get("processedNodes");
-				return Flux.fromIterable(entityMetaData.getRelationshipsUpAndDown(fieldName -> queryFragments.includeField(fieldName)))
+				return Flux.fromIterable(entityMetaData.getRelationshipsInHierarchy(fieldName -> queryFragments.includeField(fieldName)))
 						.flatMap(relationshipDescription -> {
 
 							Statement statement = cypherGenerator.prepareMatchOf(entityMetaData, relationshipDescription,
@@ -509,7 +509,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 
 		NodeDescription<?> target = relationshipDescription.getTarget();
 
-		return Flux.fromIterable(target.getRelationshipsUpAndDown(s -> true))
+		return Flux.fromIterable(target.getRelationshipsInHierarchy(s -> true))
 			.flatMap(relDe -> {
 				Node node = anyNode(Constants.NAME_OF_ROOT_NODE);
 

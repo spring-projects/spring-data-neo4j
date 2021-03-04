@@ -701,7 +701,7 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 			final Set<Long> relationshipIds = new HashSet<>();
 			final Set<Long> relatedNodeIds = new HashSet<>();
 
-			for (RelationshipDescription relationshipDescription : entityMetaData.getRelationshipsUpAndDown(fieldName -> queryFragments.includeField(fieldName))) {
+			for (RelationshipDescription relationshipDescription : entityMetaData.getRelationshipsInHierarchy(fieldName -> queryFragments.includeField(fieldName))) {
 
 				Statement statement = cypherGenerator
 						.prepareMatchOf(entityMetaData, relationshipDescription, queryFragments.getMatchOn(), queryFragments.getCondition())
@@ -720,7 +720,7 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 		private void iterateNextLevel(Collection<Long> nodeIds, Neo4jPersistentEntity<?> target, Set<Long> relationshipIds,
 									  Set<Long> relatedNodeIds) {
 
-			Collection<RelationshipDescription> relationships = target.getRelationshipsUpAndDown(s -> true);
+			Collection<RelationshipDescription> relationships = target.getRelationshipsInHierarchy(s -> true);
 			for (RelationshipDescription relationshipDescription : relationships) {
 
 				Node node = anyNode(Constants.NAME_OF_ROOT_NODE);

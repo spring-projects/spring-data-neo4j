@@ -502,7 +502,7 @@ public enum CypherGenerator {
 		List<Object> propertiesProjection = projectNodeProperties(nodeDescription, nodeName, includedProperties);
 		List<Object> contentOfProjection = new ArrayList<>(propertiesProjection);
 
-		Collection<RelationshipDescription> relationships = nodeDescription.getRelationshipsUpAndDown(includedProperties);
+		Collection<RelationshipDescription> relationships = nodeDescription.getRelationshipsInHierarchy(includedProperties);
 		relationships.removeIf(r -> !includedProperties.test(r.getFieldName()));
 
 		contentOfProjection.addAll(generateListsFor(relationships, nodeName, processedRelationships));
