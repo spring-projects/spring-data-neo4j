@@ -31,7 +31,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import org.apache.commons.logging.LogFactory;
@@ -702,13 +701,7 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 			final Set<Long> relationshipIds = new HashSet<>();
 			final Set<Long> relatedNodeIds = new HashSet<>();
 
-			Predicate<RelationshipDescription> relationshipFilter = ((Predicate<RelationshipDescription>) relationshipDescription ->
-					queryFragments.includeField(relationshipDescription.getFieldName())).negate();
-
-			for (RelationshipDescription relationshipDescription : entityMetaData.getRelationships()) {
-				if (relationshipFilter.test(relationshipDescription)) {
-					continue;
-				}
+			for (RelationshipDescription relationshipDescription : entityMetaData.getRelationshipsInHierarchy(fieldName -> queryFragments.includeField(fieldName))) {
 
 				Statement statement = cypherGenerator
 						.prepareMatchOf(entityMetaData, relationshipDescription, queryFragments.getMatchOn(), queryFragments.getCondition())
@@ -727,7 +720,7 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 		private void iterateNextLevel(Collection<Long> nodeIds, Neo4jPersistentEntity<?> target, Set<Long> relationshipIds,
 									  Set<Long> relatedNodeIds) {
 
-			Collection<RelationshipDescription> relationships = target.getRelationships();
+			Collection<RelationshipDescription> relationships = target.getRelationshipsInHierarchy(s -> true);
 			for (RelationshipDescription relationshipDescription : relationships) {
 
 				Node node = anyNode(Constants.NAME_OF_ROOT_NODE);

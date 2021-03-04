@@ -78,9 +78,11 @@ final class NodeDescriptionStore {
 
 	public static NodeDescriptionAndLabels deriveConcreteNodeDescription(Neo4jPersistentEntity<?> entityDescription,
 			List<String> labels) {
+
 		if (labels == null || labels.isEmpty()) {
 			return new NodeDescriptionAndLabels(entityDescription, Collections.emptyList());
 		}
+
 		for (NodeDescription<?> childNodeDescription : entityDescription.getChildNodeDescriptionsInHierarchy()) {
 			String primaryLabel = childNodeDescription.getPrimaryLabel();
 			List<String> additionalLabels = new ArrayList<>(childNodeDescription.getAdditionalLabels());
@@ -89,6 +91,7 @@ final class NodeDescriptionStore {
 				Set<String> surplusLabels = new HashSet<>(labels);
 				surplusLabels.remove(primaryLabel);
 				surplusLabels.removeAll(additionalLabels);
+
 				return new NodeDescriptionAndLabels(childNodeDescription, surplusLabels);
 			}
 		}
