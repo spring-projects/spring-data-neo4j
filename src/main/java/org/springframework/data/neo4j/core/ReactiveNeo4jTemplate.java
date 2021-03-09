@@ -726,14 +726,19 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 				Map<String, Object> parameters = queryFragmentsAndParameters.getParameters();
 
 				if (containsPossibleCircles && !queryFragments.isScalarValueReturn()) {
-					GenericQueryAndParameters genericQueryAndParameters =
-							createQueryAndParameters(entityMetaData, queryFragments, parameters).block();
+					return createQueryAndParameters(entityMetaData, queryFragments, parameters)
+							.map(genericQueryAndParameters -> {
+								ReactiveNeo4jClient.MappingSpec<T> mappingSpec = this.neo4jClient.query(renderer.render(GenericQueryAndParameters.STATEMENT))
+										.bindAll(genericQueryAndParameters.getParameters()).fetchAs(resultType);
 
-					cypherQuery = renderer.render(GenericQueryAndParameters.STATEMENT);
-					finalParameters = genericQueryAndParameters.getParameters();
-				} else {
-					cypherQuery = renderer.render(queryFragments.toStatement());
+								ReactiveNeo4jClient.RecordFetchSpec<T> fetchSpec = preparedQuery.getOptionalMappingFunction()
+										.map(mappingFunction -> mappingSpec.mappedBy(mappingFunction)).orElse(mappingSpec);
+
+								return new DefaultReactiveExecutableQuery<>(preparedQuery, fetchSpec);
+							});
 				}
+
+				cypherQuery = renderer.render(queryFragments.toStatement());
 			}
 
 			ReactiveNeo4jClient.MappingSpec<T> mappingSpec = this.neo4jClient.query(cypherQuery)
