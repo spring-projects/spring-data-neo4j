@@ -105,6 +105,11 @@ class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 		return new DefaultRunnableDelegation<>(callback);
 	}
 
+	@Override
+	public ReactiveDatabaseSelectionProvider getDatabaseSelectionProvider() {
+		return databaseSelectionProvider;
+	}
+
 	class DefaultRunnableSpec implements RunnableSpec {
 
 		private final Supplier<String> cypherSupplier;
@@ -193,18 +198,16 @@ class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 			this(targetDatabase, cypherSupplier, parameters, null);
 		}
 
-		DefaultRecordFetchSpec(@Nullable String targetDatabase, Supplier<String> cypherSupplier, NamedParameters parameters,
+		DefaultRecordFetchSpec(@Nullable String parameterTargetDatabase, Supplier<String> cypherSupplier, NamedParameters parameters,
 				@Nullable BiFunction<TypeSystem, Record, T> mappingFunction) {
 
-			this.targetDatabase = Mono.defer(() -> {
-				if (targetDatabase != null) {
-					return ReactiveDatabaseSelectionProvider.createStaticDatabaseSelectionProvider(targetDatabase)
-							.getDatabaseSelection();
-				} else if (databaseSelectionProvider != null) {
-					return databaseSelectionProvider.getDatabaseSelection();
-				}
-				return Mono.just(DatabaseSelection.undecided());
-			});
+			this.targetDatabase = Mono.defer(() -> Mono
+					.justOrEmpty(parameterTargetDatabase)
+					.flatMap(db -> ReactiveDatabaseSelectionProvider.createStaticDatabaseSelectionProvider(db).getDatabaseSelection())
+					.switchIfEmpty(databaseSelectionProvider == null
+							? Mono.empty()
+							: databaseSelectionProvider.getDatabaseSelection())
+					.switchIfEmpty(Mono.just(DatabaseSelection.undecided())));
 			this.cypherSupplier = cypherSupplier;
 			this.parameters = parameters;
 			this.mappingFunction = mappingFunction;

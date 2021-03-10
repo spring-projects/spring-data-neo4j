@@ -54,8 +54,8 @@ public abstract class AbstractReactiveNeo4jConfig extends Neo4jConfigurationSupp
 	 * @return A reactive Neo4j client.
 	 */
 	@Bean(ReactiveNeo4jRepositoryConfigurationExtension.DEFAULT_NEO4J_CLIENT_BEAN_NAME)
-	public ReactiveNeo4jClient neo4jClient(Driver driver) {
-		return ReactiveNeo4jClient.create(driver);
+	public ReactiveNeo4jClient neo4jClient(Driver driver, ReactiveDatabaseSelectionProvider databaseNameProvider) {
+		return ReactiveNeo4jClient.create(driver, databaseNameProvider);
 	}
 
 	@Bean(ReactiveNeo4jRepositoryConfigurationExtension.DEFAULT_NEO4J_TEMPLATE_BEAN_NAME)

@@ -86,6 +86,12 @@ public interface ReactiveNeo4jClient {
 	<T> OngoingDelegation<T> delegateTo(Function<RxQueryRunner, Mono<T>> callback);
 
 	/**
+	 * Returns the assigned database selection provider.
+	 *
+	 * @return The database selection provider - can be null
+	 */
+	ReactiveDatabaseSelectionProvider getDatabaseSelectionProvider();
+	/**
 	 * @param <T> The resulting type of this mapping
 	 * @since 6.0
 	 */
