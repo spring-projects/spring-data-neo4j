@@ -48,7 +48,7 @@ public interface Neo4jClient {
 
 	static Neo4jClient create(Driver driver) {
 
-		return new DefaultNeo4jClient(driver, null);
+		return new DefaultNeo4jClient(driver, DatabaseSelectionProvider.getDefaultSelectionProvider());
 	}
 
 	static Neo4jClient create(Driver driver, DatabaseSelectionProvider databaseSelectionProvider) {
@@ -84,6 +84,13 @@ public interface Neo4jClient {
 	 * @return A single result object or an empty optional if the callback didn't produce a result
 	 */
 	<T> OngoingDelegation<T> delegateTo(Function<QueryRunner, Optional<T>> callback);
+
+	/**
+	 * Returns the assigned database selection provider.
+	 *
+	 * @return The database selection provider - can be null
+	 */
+	DatabaseSelectionProvider getDatabaseSelectionProvider();
 
 	/**
 	 * Contract for a runnable query that can be either run returning it's result, run without results or be

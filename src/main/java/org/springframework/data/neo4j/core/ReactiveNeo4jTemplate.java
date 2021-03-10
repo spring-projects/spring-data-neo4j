@@ -98,6 +98,16 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 
 	private ReactiveEventSupport eventSupport;
 
+	@Deprecated
+	public ReactiveNeo4jTemplate(ReactiveNeo4jClient neo4jClient, Neo4jMappingContext neo4jMappingContext,
+								 ReactiveDatabaseSelectionProvider databaseSelectionProvider) {
+
+		this(neo4jClient, neo4jMappingContext);
+		if (databaseSelectionProvider != neo4jClient.getDatabaseSelectionProvider()) {
+			throw new IllegalStateException("The provided database selection provider differs from the ReactiveNeo4jClient's one.");
+		}
+	}
+
 	public ReactiveNeo4jTemplate(ReactiveNeo4jClient neo4jClient, Neo4jMappingContext neo4jMappingContext) {
 
 		Assert.notNull(neo4jClient, "The Neo4jClient is required");

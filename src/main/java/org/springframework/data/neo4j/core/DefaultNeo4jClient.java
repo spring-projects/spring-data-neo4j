@@ -129,6 +129,11 @@ class DefaultNeo4jClient implements Neo4jClient {
 		return new DefaultRunnableDelegation<>(callback);
 	}
 
+	@Override
+	public DatabaseSelectionProvider getDatabaseSelectionProvider() {
+		return databaseSelectionProvider;
+	}
+
 	/**
 	 * Basically a holder of a cypher template supplier and a set of named parameters. It's main purpose is to orchestrate
 	 * the running of things with a bit of logging.
@@ -262,15 +267,25 @@ class DefaultNeo4jClient implements Neo4jClient {
 
 		private BiFunction<TypeSystem, Record, T> mappingFunction;
 
-		DefaultRecordFetchSpec(String targetDatabase, RunnableStatement runnableStatement,
+		DefaultRecordFetchSpec(String parameterTargetDatabase, RunnableStatement runnableStatement,
 				BiFunction<TypeSystem, Record, T> mappingFunction) {
-			this.targetDatabase = targetDatabase != null
-					? targetDatabase
-					: databaseSelectionProvider != null
-						? databaseSelectionProvider.getDatabaseSelection().getValue()
-						: null;
+
+			this.targetDatabase = resolveTargetDatabaseName(parameterTargetDatabase);
 			this.runnableStatement = runnableStatement;
 			this.mappingFunction = mappingFunction;
+		}
+
+		private String resolveTargetDatabaseName(@Nullable String parameterTargetDatabase) {
+			if (parameterTargetDatabase != null) {
+				return parameterTargetDatabase;
+			}
+			if (databaseSelectionProvider != null) {
+				String databaseSelectionProviderValue = databaseSelectionProvider.getDatabaseSelection().getValue();
+				if (databaseSelectionProviderValue != null) {
+					return databaseSelectionProviderValue;
+				}
+			}
+			return DatabaseSelectionProvider.getDefaultSelectionProvider().getDatabaseSelection().getValue();
 		}
 
 		@Override
