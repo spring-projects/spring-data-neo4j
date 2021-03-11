@@ -41,6 +41,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -147,9 +148,35 @@ public final class QueryFragmentsAndParameters {
 		return QueryFragmentsAndParameters.forExample(mappingContext, example, pageable, null);
 	}
 
+	static QueryFragmentsAndParameters forCondition(Neo4jPersistentEntity<?> entityMetaData,
+			Condition condition,
+			@Nullable Pageable pageable,
+			@Nullable SortItem[] sortItems
+	) {
+
+		Expression[] returnStatement = cypherGenerator.createReturnStatementForMatch(entityMetaData);
+
+		QueryFragments queryFragments = new QueryFragments();
+		queryFragments.addMatchOn(cypherGenerator.createRootNode(entityMetaData));
+		queryFragments.setCondition(condition);
+		queryFragments.setReturnExpressions(returnStatement);
+
+		if (pageable != null) {
+			Sort pageableSort = pageable.getSort();
+			long skip = pageable.getOffset();
+			int pageSize = pageable.getPageSize();
+			queryFragments.setSkip(skip);
+			queryFragments.setLimit(pageSize);
+			queryFragments.setOrderBy(CypherAdapterUtils.toSortItems(entityMetaData, pageableSort));
+		} else if (sortItems != null) {
+			queryFragments.setOrderBy(sortItems);
+		}
+
+		return new QueryFragmentsAndParameters(entityMetaData, queryFragments, new HashMap<>());
+	}
+
 	static QueryFragmentsAndParameters forExample(Neo4jMappingContext mappingContext, Example<?> example,
 												  @Nullable Pageable pageable, @Nullable Sort sort) {
-
 
 		Predicate predicate = Predicate.create(mappingContext, example);
 		Map<String, Object> parameters = predicate.getParameters();
