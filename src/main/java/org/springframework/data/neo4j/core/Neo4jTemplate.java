@@ -583,7 +583,7 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 
 				newRelationshipObject = targetPropertyAccessor.getBean();
 				if (processState != ProcessState.PROCESSED_ALL_VALUES) {
-					processNestedRelations(targetEntity, targetPropertyAccessor, isEntityNew, inDatabase, stateMachine);
+					processNestedRelations(targetEntity, targetPropertyAccessor, isEntityNew, stateMachine);
 					newRelationshipObject = targetPropertyAccessor.getBean();
 				}
 
@@ -608,16 +608,16 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 						value = newRelationshipObject;
 					}
 
-					newRelationshipObjectCollectionMap.merge(key, value, (o, o2) -> {
+					newRelationshipObjectCollectionMap.merge(key, value, (existingElement, additionalElement) -> {
 
-						if (o instanceof Collection) {
-							((Collection<Object>) o).addAll((Collection<Object>) o2);
-							return o;
+						if (existingElement instanceof Collection) {
+							((Collection<Object>) existingElement).addAll((Collection<Object>) additionalElement);
+							return existingElement;
 						}
 
 						ArrayList<Object> objects = new ArrayList<>();
-						objects.add(o);
-						objects.add(o2);
+						objects.add(existingElement);
+						objects.add(additionalElement);
 						return objects;
 					});
 				}

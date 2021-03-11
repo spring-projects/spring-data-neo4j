@@ -91,6 +91,8 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 	private static final String OPTIMISTIC_LOCKING_ERROR_MESSAGE = "An entity with the required version does not exist.";
 
 	private static final Renderer renderer = Renderer.getDefaultRenderer();
+	public static final String CONTEXT_COLLECTION_MAP = "newRelationshipMap";
+	public static final String CONTEXT_COLLECTION = "newRelationshipCollection";
 
 	private final ReactiveNeo4jClient neo4jClient;
 
@@ -579,7 +581,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 
 		Object fromId = parentPropertyAccessor.getProperty(sourceEntity.getRequiredIdProperty());
 		List<Mono<Void>> relationshipDeleteMonos = new ArrayList<>();
-		List<Flux<RelationshipPropertyValues>> relationshipCreationMonos = new ArrayList<>();
+		List<Flux<RelationshipPropertyValues>> relationshipCreationCreations = new ArrayList<>();
 
 		sourceEntity.doWithAssociations((AssociationHandler<Neo4jPersistentProperty>) association -> {
 
@@ -646,14 +648,14 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 			Neo4jPersistentProperty relationshipProperty = association.getInverse();
 
 			stateMachine.markAsProcessed(relationshipDescription, relatedValuesToStore);
-			Flux<RelationshipPropertyValues> asdf = Flux.fromIterable(relatedValuesToStore).flatMap(relatedValueToStore -> {
+			Flux<RelationshipPropertyValues> relationshipCreation = Flux.fromIterable(relatedValuesToStore).flatMap(relatedValueToStore -> {
 
 				Object relatedNodePreEvt = relationshipContext.identifyAndExtractRelationshipTargetNode(relatedValueToStore);
 				return Mono.deferContextual(ctx -> eventSupport.maybeCallBeforeBind(relatedNodePreEvt)
 						.flatMap(relatedNode -> Mono.just(neo4jMappingContext.getPersistentEntity(relatedNodePreEvt.getClass()))
 								.flatMap(targetEntity -> Mono.just(targetEntity.isNew(relatedNode))
 										.flatMap(isNew -> saveRelatedNode(relatedNode, relationshipContext.getAssociationTargetType(),
-												targetEntity, inDatabase)
+												targetEntity)
 												.flatMap(relatedInternalId -> {
 													// if an internal id is used this must get set to link this entity in the next iteration
 													PersistentPropertyAccessor<?> targetPropertyAccessor = targetEntity
@@ -668,7 +670,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 
 													// in case of no properties the bind will just return an empty map
 													return neo4jClient
-															.query(renderer.render(statementHolder.getStatement())).in(inDatabase)
+															.query(renderer.render(statementHolder.getStatement()))
 															.bind(convertIdValues(sourceEntity.getRequiredIdProperty(), fromId)) //
 															.to(Constants.FROM_ID_PARAMETER_NAME) //
 															.bind(relatedInternalId) //
@@ -685,7 +687,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 																Mono<Object> something = null;
 																if (processState != ProcessState.PROCESSED_ALL_VALUES) {
 																	something = processNestedRelations(targetEntity, targetPropertyAccessor,
-																			isNew, inDatabase, stateMachine);
+																			isNew, stateMachine);
 																} else {
 																	something = Mono.just((T) targetPropertyAccessor.getBean());
 																}
@@ -708,8 +710,8 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 
 												}).checkpoint())))
 						.doOnNext(newRelationshipObject -> {
-							Collection<Object> newRelationshipObjectCollection = ctx.get("a");
-							Map<Object, Object> newRelationshipObjectCollectionMap = ctx.get("b");
+							Collection<Object> newRelationshipObjectCollection = ctx.get(CONTEXT_COLLECTION);
+							Map<Object, Object> newRelationshipObjectCollectionMap = ctx.get(CONTEXT_COLLECTION_MAP);
 							newRelationshipObjectCollection.add(newRelationshipObject);
 
 							if (relationshipProperty.isDynamicAssociation()) {
@@ -721,23 +723,23 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 									value = newRelationshipObject;
 								}
 
-								newRelationshipObjectCollectionMap.merge(key, value, (o, o2) -> {
+								newRelationshipObjectCollectionMap.merge(key, value, (existingElement, additionalElement) -> {
 
-									if (o instanceof Collection) {
-										((Collection<Object>) o).addAll((Collection<Object>) o2);
-										return o;
+									if (existingElement instanceof Collection) {
+										((Collection<Object>) existingElement).addAll((Collection<Object>) additionalElement);
+										return existingElement;
 									}
 
 									ArrayList<Object> objects = new ArrayList<>();
-									objects.add(o);
-									objects.add(o2);
+									objects.add(existingElement);
+									objects.add(additionalElement);
 									return objects;
 								});
 							}
 						})
 						.then(Mono.defer(() -> {
-							Collection<Object> newRelationshipObjectCollection = ctx.get("a");
-							Map<Object, Object> newRelationshipObjectCollectionMap = ctx.get("b");
+							Collection<Object> newRelationshipObjectCollection = ctx.get(CONTEXT_COLLECTION);
+							Map<Object, Object> newRelationshipObjectCollectionMap = ctx.get(CONTEXT_COLLECTION_MAP);
 							return Mono.just(new RelationshipPropertyValues(relationshipProperty, newRelationshipObjectCollection, newRelationshipObjectCollectionMap));
 						})));
 
@@ -753,14 +755,14 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 					newRelationshipObjectCollection = CollectionFactory.createApproximateCollection(rawValue, ((Collection<?>) rawValue).size());
 				}
 				return ctx
-						.put("a", newRelationshipObjectCollection)
-						.put("b", newRelationshipObjectCollectionMap);
+						.put(CONTEXT_COLLECTION, newRelationshipObjectCollection)
+						.put(CONTEXT_COLLECTION_MAP, newRelationshipObjectCollectionMap);
 			});
-			relationshipCreationMonos.add(asdf);
+			relationshipCreationCreations.add(relationshipCreation);
 		});
 
 		return Flux.concat(relationshipDeleteMonos)
-				.thenMany(Flux.concat(relationshipCreationMonos))
+				.thenMany(Flux.concat(relationshipCreationCreations))
 				.doOnNext(objects -> {
 					if (objects.relationshipProperty.isCollectionLike()) {
 						parentPropertyAccessor.setProperty(objects.relationshipProperty, objects.objectCollection);
