@@ -271,11 +271,13 @@ public enum CypherGenerator {
 						.where(possibleExistingNode.isNull()).create(rootNode)
 						.set(rootNode, parameter(Constants.NAME_OF_PROPERTIES_PARAM))).returning(rootNode.internalId()).build();
 
+				// needs a dedicated variable for the union function in the CypherDSL.
+				Node nodeToUpdate = node(primaryLabel, additionalLabels).named(Constants.NAME_OF_ROOT_NODE);
 				Statement updateIfExists = updateDecorator
-						.apply(match(rootNode).where(rootNode.property(nameOfIdProperty).isEqualTo(idParameter))
-								.and(rootNode.property(versionProperty.getName()).isEqualTo(parameter(Constants.NAME_OF_VERSION_PARAM)))
-								.mutate(rootNode, parameter(Constants.NAME_OF_PROPERTIES_PARAM)))
-						.returning(rootNode.internalId()).build();
+						.apply(match(nodeToUpdate).where(nodeToUpdate.property(nameOfIdProperty).isEqualTo(idParameter))
+								.and(nodeToUpdate.property(versionProperty.getName()).isEqualTo(parameter(Constants.NAME_OF_VERSION_PARAM)))
+								.mutate(nodeToUpdate, parameter(Constants.NAME_OF_PROPERTIES_PARAM)))
+						.returning(nodeToUpdate.internalId()).build();
 				return Cypher.union(createIfNew, updateIfExists);
 
 			} else {
@@ -289,6 +291,9 @@ public enum CypherGenerator {
 			Statement createIfNew;
 			Statement updateIfExists;
 
+			// needs a dedicated variable for the union function in the CypherDSL.
+			Node nodeToUpdate = node(primaryLabel, additionalLabels).named(Constants.NAME_OF_ROOT_NODE);
+
 			if (((Neo4jPersistentEntity) nodeDescription).hasVersionProperty()) {
 
 				PersistentProperty versionProperty = ((Neo4jPersistentEntity) nodeDescription).getRequiredVersionProperty();
@@ -299,9 +304,9 @@ public enum CypherGenerator {
 								.set(rootNode, parameter(Constants.NAME_OF_PROPERTIES_PARAM)))
 						.returning(rootNode.internalId()).build();
 
-				updateIfExists = updateDecorator.apply(match(rootNode).where(rootNode.internalId().isEqualTo(idParameter))
-						.and(rootNode.property(versionProperty.getName()).isEqualTo(parameter(Constants.NAME_OF_VERSION_PARAM)))
-						.mutate(rootNode, parameter(Constants.NAME_OF_PROPERTIES_PARAM))).returning(rootNode.internalId()).build();
+				updateIfExists = updateDecorator.apply(match(nodeToUpdate).where(nodeToUpdate.internalId().isEqualTo(idParameter))
+						.and(nodeToUpdate.property(versionProperty.getName()).isEqualTo(parameter(Constants.NAME_OF_VERSION_PARAM)))
+						.mutate(nodeToUpdate, parameter(Constants.NAME_OF_PROPERTIES_PARAM))).returning(nodeToUpdate.internalId()).build();
 			} else {
 				createIfNew = updateDecorator
 						.apply(optionalMatch(possibleExistingNode).where(possibleExistingNode.internalId().isEqualTo(idParameter))
@@ -309,8 +314,8 @@ public enum CypherGenerator {
 								.set(rootNode, parameter(Constants.NAME_OF_PROPERTIES_PARAM)))
 						.returning(rootNode.internalId()).build();
 
-				updateIfExists = updateDecorator.apply(match(rootNode).where(rootNode.internalId().isEqualTo(idParameter))
-						.mutate(rootNode, parameter(Constants.NAME_OF_PROPERTIES_PARAM))).returning(rootNode.internalId()).build();
+				updateIfExists = updateDecorator.apply(match(nodeToUpdate).where(nodeToUpdate.internalId().isEqualTo(idParameter))
+						.mutate(nodeToUpdate, parameter(Constants.NAME_OF_PROPERTIES_PARAM))).returning(nodeToUpdate.internalId()).build();
 			}
 
 			return Cypher.union(createIfNew, updateIfExists);
