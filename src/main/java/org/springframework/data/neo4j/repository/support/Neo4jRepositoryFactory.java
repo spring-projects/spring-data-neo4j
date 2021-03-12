@@ -22,6 +22,7 @@ import org.springframework.data.neo4j.core.Neo4jOperations;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
+import org.springframework.data.neo4j.repository.query.CypherdslConditionExecutorImpl;
 import org.springframework.data.neo4j.repository.query.Neo4jQueryLookupStrategy;
 import org.springframework.data.neo4j.repository.query.QuerydslNeo4jPredicateExecutor;
 import org.springframework.data.neo4j.repository.query.SimpleQueryByExampleExecutor;
@@ -87,22 +88,28 @@ final class Neo4jRepositoryFactory extends RepositoryFactorySupport {
 
 		if (isQueryDslRepository) {
 
-			if (metadata.isReactiveRepository()) {
-				throw new InvalidDataAccessApiUsageException(
-						"Cannot combine Querydsl and reactive repository support in a single interface");
-			}
-
-			Neo4jEntityInformation<?, Object> entityInformation = getEntityInformation(metadata.getDomainType());
-			Object querydslFragment = getTargetRepositoryViaReflection(QuerydslNeo4jPredicateExecutor.class,
-					entityInformation,
-					neo4jOperations
-			);
-
-			fragments = fragments.append(RepositoryFragment.implemented(querydslFragment));
+			fragments = fragments.append(createDSLExecutorFragment(metadata, QuerydslNeo4jPredicateExecutor.class));
 		}
 
+		if (CypherdslConditionExecutor.class.isAssignableFrom(metadata.getRepositoryInterface())) {
+
+			fragments = fragments.append(createDSLExecutorFragment(metadata, CypherdslConditionExecutorImpl.class));
+		}
 
 		return fragments;
+	}
+
+	private RepositoryFragment<Object> createDSLExecutorFragment(RepositoryMetadata metadata, Class<?> implementor) {
+
+		if (metadata.isReactiveRepository()) {
+			throw new InvalidDataAccessApiUsageException(
+					"Cannot combine DSL executor and reactive repository support in a single interface");
+		}
+
+		Neo4jEntityInformation<?, Object> entityInformation = getEntityInformation(metadata.getDomainType());
+		Object querydslFragment = getTargetRepositoryViaReflection(implementor, entityInformation, neo4jOperations);
+
+		return RepositoryFragment.implemented(querydslFragment);
 	}
 
 	@Override

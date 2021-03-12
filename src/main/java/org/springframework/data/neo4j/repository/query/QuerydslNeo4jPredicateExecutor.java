@@ -15,30 +15,20 @@
  */
 package org.springframework.data.neo4j.repository.query;
 
-import static org.neo4j.cypherdsl.core.Cypher.asterisk;
-
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 import java.util.Optional;
-import java.util.function.LongSupplier;
 
 import org.apiguardian.api.API;
-import org.neo4j.cypherdsl.core.Conditions;
 import org.neo4j.cypherdsl.core.Cypher;
-import org.neo4j.cypherdsl.core.Functions;
 import org.neo4j.cypherdsl.core.SortItem;
-import org.neo4j.cypherdsl.core.Statement;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.core.Neo4jOperations;
-import org.springframework.data.neo4j.core.mapping.CypherGenerator;
-import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
+import org.springframework.data.neo4j.repository.support.CypherdslConditionExecutor;
 import org.springframework.data.neo4j.repository.support.Neo4jEntityInformation;
 import org.springframework.data.neo4j.repository.support.SimpleNeo4jRepository;
 import org.springframework.data.querydsl.QuerydslPredicateExecutor;
-import org.springframework.data.support.PageableExecutionUtils;
 
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Predicate;
@@ -57,86 +47,54 @@ import com.querydsl.core.types.Predicate;
 @API(status = API.Status.INTERNAL, since = "6.1")
 public final class QuerydslNeo4jPredicateExecutor<T> implements QuerydslPredicateExecutor<T> {
 
-	private final Neo4jEntityInformation<T, Object> entityInformation;
-
-	private final Neo4jOperations neo4jOperations;
-
-	private final Neo4jPersistentEntity<T> metaData;
+	private final CypherdslConditionExecutor<T> delegate;
 
 	public QuerydslNeo4jPredicateExecutor(Neo4jEntityInformation<T, Object> entityInformation,
 			Neo4jOperations neo4jOperations) {
 
-		this.entityInformation = entityInformation;
-		this.neo4jOperations = neo4jOperations;
-		this.metaData = this.entityInformation.getEntityMetaData();
+		this.delegate = new CypherdslConditionExecutorImpl<>(entityInformation, neo4jOperations);
 	}
 
 	@Override
 	public Optional<T> findOne(Predicate predicate) {
 
-		return this.neo4jOperations.toExecutableQuery(
-				this.metaData.getType(),
-				QueryFragmentsAndParameters.forCondition(this.metaData, Cypher.adapt(predicate).asCondition(), null, null)
-		).getSingleResult();
+		return this.delegate.findOne(Cypher.adapt(predicate).asCondition());
 	}
 
 	@Override
 	public Iterable<T> findAll(Predicate predicate) {
 
-		return this.neo4jOperations.toExecutableQuery(
-				this.metaData.getType(),
-				QueryFragmentsAndParameters.forCondition(this.metaData, Cypher.adapt(predicate).asCondition(), null, null)
-		).getResults();
+		return this.delegate.findAll(Cypher.adapt(predicate).asCondition());
 	}
 
 	@Override
 	public Iterable<T> findAll(Predicate predicate, Sort sort) {
 
-		return this.neo4jOperations.toExecutableQuery(
-				metaData.getType(),
-				QueryFragmentsAndParameters.forCondition(
-						this.metaData, Cypher.adapt(predicate).asCondition(), null, CypherAdapterUtils.toSortItems(this.metaData, sort)
-				)
-		).getResults();
+		return this.delegate.findAll(Cypher.adapt(predicate).asCondition(), sort);
 	}
 
 	@Override
 	public Iterable<T> findAll(Predicate predicate, OrderSpecifier<?>... orderSpecifiers) {
 
-		return this.neo4jOperations.toExecutableQuery(
-				this.metaData.getType(),
-				QueryFragmentsAndParameters.forCondition(
-						this.metaData, Cypher.adapt(predicate).asCondition(), null, toSortItems(orderSpecifiers)
-				)
-		).getResults();
+		return this.delegate.findAll(Cypher.adapt(predicate).asCondition(), toSortItems(orderSpecifiers));
 	}
 
 	@Override
 	public Iterable<T> findAll(OrderSpecifier<?>... orderSpecifiers) {
 
-		return this.neo4jOperations.toExecutableQuery(
-				this.metaData.getType(),
-				QueryFragmentsAndParameters.forCondition(this.metaData, Conditions.noCondition(), null, toSortItems(orderSpecifiers))
-		).getResults();
+		return this.delegate.findAll(toSortItems(orderSpecifiers));
 	}
 
 	@Override
 	public Page<T> findAll(Predicate predicate, Pageable pageable) {
 
-		List<T> page = this.neo4jOperations.toExecutableQuery(
-				this.metaData.getType(),
-				QueryFragmentsAndParameters.forCondition(this.metaData, Conditions.noCondition(), pageable, null)
-		).getResults();
-		LongSupplier totalCountSupplier = () -> this.count(predicate);
-		return PageableExecutionUtils.getPage(page, pageable, totalCountSupplier);
+		return this.delegate.findAll(Cypher.adapt(predicate).asCondition(), pageable);
 	}
 
 	@Override
 	public long count(Predicate predicate) {
 
-		Statement statement = CypherGenerator.INSTANCE.prepareMatchOf(this.metaData, Cypher.adapt(predicate).asCondition())
-				.returning(Functions.count(asterisk())).build();
-		return this.neo4jOperations.count(statement, statement.getParameters());
+		return this.delegate.count(Cypher.adapt(predicate).asCondition());
 	}
 
 	private SortItem[] toSortItems(OrderSpecifier<?>... orderSpecifiers) {
