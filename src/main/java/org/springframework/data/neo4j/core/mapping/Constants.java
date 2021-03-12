@@ -28,7 +28,7 @@ import org.neo4j.cypherdsl.core.SymbolicName;
  * @soundtrack Milky Chance - Sadnecessary
  * @since 6.0
  */
-@API(status = Status.INTERNAL, since = "6.0")
+@API(status = Status.EXPERIMENTAL, since = "6.0")
 public final class Constants {
 
 	public static final SymbolicName NAME_OF_ROOT_NODE = Cypher.name("n");

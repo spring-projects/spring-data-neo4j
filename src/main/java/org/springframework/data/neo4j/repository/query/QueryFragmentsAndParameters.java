@@ -159,6 +159,7 @@ public final class QueryFragmentsAndParameters {
 		queryFragments.addMatchOn(cypherGenerator.createRootNode(entityMetaData));
 		queryFragments.setCondition(condition);
 		queryFragments.setReturnExpressions(returnStatement);
+		queryFragments.setRenderConstantsAsParameters(true);
 
 		if (pageable != null) {
 			adaptPageable(entityMetaData, pageable, queryFragments);
@@ -233,6 +234,7 @@ public final class QueryFragmentsAndParameters {
 		private Long skip;
 		private ReturnTuple returnTuple;
 		private boolean scalarValueReturn = false;
+		private boolean renderConstantsAsParameters = false;
 
 		public void addMatchOn(PatternElement match) {
 			this.matchOn.add(match);
@@ -291,6 +293,14 @@ public final class QueryFragmentsAndParameters {
 			return scalarValueReturn;
 		}
 
+		public boolean isRenderConstantsAsParameters() {
+			return renderConstantsAsParameters;
+		}
+
+		public void setRenderConstantsAsParameters(boolean renderConstantsAsParameters) {
+			this.renderConstantsAsParameters = renderConstantsAsParameters;
+		}
+
 		private Expression[] getReturnExpressions() {
 			return returnExpressions.size() > 0
 					? returnExpressions.toArray(new Expression[]{})
@@ -341,12 +351,14 @@ public final class QueryFragmentsAndParameters {
 				}
 			}
 
-			return match
-					.where(condition)
-					.returning(getReturnExpressions())
-					.orderBy(getOrderBy())
-					.skip(skip)
-					.limit(limit).build();
+			Statement statement = match
+				.where(condition)
+				.returning(getReturnExpressions())
+				.orderBy(getOrderBy())
+				.skip(skip)
+				.limit(limit).build();
+			statement.setRenderConstantsAsParameters(renderConstantsAsParameters);
+			return statement;
 		}
 
 		/**
