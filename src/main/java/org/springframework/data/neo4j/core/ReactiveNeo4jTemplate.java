@@ -452,7 +452,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 		if (containsPossibleCircles && !queryFragments.isScalarValueReturn()) {
 			return createQueryAndParameters(entityMetaData, queryFragments, parameters)
 					.flatMap(finalQueryAndParameters ->
-							createExecutableQuery(domainType, renderer.render(GenericQueryAndParameters.STATEMENT),
+							createExecutableQuery(domainType, renderer.render(queryFragments.toGenericStatement()),
 									finalQueryAndParameters.getParameters()));
 		}
 
@@ -747,7 +747,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 				if (containsPossibleCircles && !queryFragments.isScalarValueReturn()) {
 					return createQueryAndParameters(entityMetaData, queryFragments, parameters)
 							.map(genericQueryAndParameters -> {
-								ReactiveNeo4jClient.MappingSpec<T> mappingSpec = this.neo4jClient.query(renderer.render(GenericQueryAndParameters.STATEMENT))
+								ReactiveNeo4jClient.MappingSpec<T> mappingSpec = this.neo4jClient.query(renderer.render(queryFragments.toGenericStatement()))
 										.in(databaseName.getValue()).bindAll(genericQueryAndParameters.getParameters()).fetchAs(resultType);
 
 								ReactiveNeo4jClient.RecordFetchSpec<T> fetchSpec = preparedQuery.getOptionalMappingFunction()

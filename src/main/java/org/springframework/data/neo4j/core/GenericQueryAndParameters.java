@@ -15,13 +15,6 @@
  */
 package org.springframework.data.neo4j.core;
 
-import org.neo4j.cypherdsl.core.Cypher;
-import org.neo4j.cypherdsl.core.Functions;
-import org.neo4j.cypherdsl.core.Node;
-import org.neo4j.cypherdsl.core.Relationship;
-import org.neo4j.cypherdsl.core.Statement;
-import org.springframework.data.neo4j.core.mapping.Constants;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -34,7 +27,6 @@ final class GenericQueryAndParameters {
 	private final static String RELATIONSHIP_IDS = "relationshipIds";
 	private final static String RELATED_NODE_IDS = "relatedNodeIds";
 
-	final static Statement STATEMENT = createStatement();
 	final static GenericQueryAndParameters EMPTY =
 			new GenericQueryAndParameters(Collections.emptySet(), Collections.emptySet(), Collections.emptySet());
 
@@ -64,21 +56,4 @@ final class GenericQueryAndParameters {
 		return parameters.get(ROOT_NODE_IDS).isEmpty();
 	}
 
-	private static Statement createStatement() {
-		Node rootNodes = Cypher.anyNode(ROOT_NODE_IDS);
-		Node relatedNodes = Cypher.anyNode(RELATED_NODE_IDS);
-		Relationship relationships = Cypher.anyNode().relationshipBetween(Cypher.anyNode()).named(RELATIONSHIP_IDS);
-
-		return Cypher.match(rootNodes)
-				.where(Functions.id(rootNodes).in(Cypher.parameter(ROOT_NODE_IDS)))
-				.optionalMatch(relationships)
-					.where(Functions.id(relationships).in(Cypher.parameter(RELATIONSHIP_IDS)))
-				.optionalMatch(relatedNodes)
-					.where(Functions.id(relatedNodes).in(Cypher.parameter(RELATED_NODE_IDS)))
-				.returning(
-						rootNodes.as(Constants.NAME_OF_SYNTHESIZED_ROOT_NODE),
-						Functions.collectDistinct(relationships).as(Constants.NAME_OF_SYNTHESIZED_RELATIONS),
-						Functions.collectDistinct(relatedNodes).as(Constants.NAME_OF_SYNTHESIZED_RELATED_NODES)
-				).build();
-	}
 }

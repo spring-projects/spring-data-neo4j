@@ -1142,6 +1142,62 @@ class RepositoryIT {
 			assertThat(entityA.getBs().get(0).getCs()).hasSize(1);
 		}
 
+		@Test // GH-2175
+		void findCyclicWithPageable(@Autowired RelationshipRepository repository) {
+			try (Session session = createSession()) {
+				session.run("CREATE (n:PersonWithRelationship{name:'Freddie'})-[:Has]->(h1:Hobby{name:'Music'}), "
+								+ "(n)-[:Has]->(p1:Pet{name: 'Jerry'}), (n)-[:Has]->(p2:Pet{name: 'Tom'}), "
+								+ "(n)<-[:Has]-(c:Club{name:'ClownsClub'}), " + "(p1)-[:Has]->(h2:Hobby{name:'sleeping'}), "
+								+ "(p1)-[:Has]->(p2)")
+						.consume();
+			}
+
+			Page<PersonWithRelationship> peoplePage = repository.findAll(PageRequest.of(0, 1));
+			assertThat(peoplePage.getTotalElements()).isEqualTo(1);
+		}
+
+		@Test // GH-2175
+		void findCyclicWithSort(@Autowired RelationshipRepository repository) {
+			try (Session session = createSession()) {
+				session.run("CREATE (n:PersonWithRelationship{name:'Freddie'})-[:Has]->(h1:Hobby{name:'Music'}), "
+								+ "(n)-[:Has]->(p1:Pet{name: 'Jerry'}), (n)-[:Has]->(p2:Pet{name: 'Tom'}), "
+								+ "(n)<-[:Has]-(c:Club{name:'ClownsClub'}), " + "(p1)-[:Has]->(h2:Hobby{name:'sleeping'}), "
+								+ "(p1)-[:Has]->(p2)")
+						.consume();
+			}
+
+			List<PersonWithRelationship> people = repository.findAll(Sort.by("name"));
+			assertThat(people).hasSize(1);
+		}
+
+		@Test // GH-2175
+		void cyclicDerivedFinderWithPageable(@Autowired RelationshipRepository repository) {
+			try (Session session = createSession()) {
+				session.run("CREATE (n:PersonWithRelationship{name:'Freddie'})-[:Has]->(h1:Hobby{name:'Music'}), "
+								+ "(n)-[:Has]->(p1:Pet{name: 'Jerry'}), (n)-[:Has]->(p2:Pet{name: 'Tom'}), "
+								+ "(n)<-[:Has]-(c:Club{name:'ClownsClub'}), " + "(p1)-[:Has]->(h2:Hobby{name:'sleeping'}), "
+								+ "(p1)-[:Has]->(p2)")
+						.consume();
+			}
+
+			Page<PersonWithRelationship> peoplePage = repository.findByName("Freddie", PageRequest.of(0, 1));
+			assertThat(peoplePage.getTotalElements()).isEqualTo(1);
+		}
+
+		@Test // GH-2175
+		void cyclicDerivedFinderWithSort(@Autowired RelationshipRepository repository) {
+			try (Session session = createSession()) {
+				session.run("CREATE (n:PersonWithRelationship{name:'Freddie'})-[:Has]->(h1:Hobby{name:'Music'}), "
+								+ "(n)-[:Has]->(p1:Pet{name: 'Jerry'}), (n)-[:Has]->(p2:Pet{name: 'Tom'}), "
+								+ "(n)<-[:Has]-(c:Club{name:'ClownsClub'}), " + "(p1)-[:Has]->(h2:Hobby{name:'sleeping'}), "
+								+ "(p1)-[:Has]->(p2)")
+						.consume();
+			}
+
+			List<PersonWithRelationship> people = repository.findByName("Freddie", Sort.by("name"));
+			assertThat(people).hasSize(1);
+		}
+
 	}
 
 	@Nested
@@ -3905,6 +3961,10 @@ class RepositoryIT {
 		PersonWithRelationship findByPetsName(String petName);
 
 		PersonWithRelationship findByName(String name);
+
+		Page<PersonWithRelationship> findByName(String name, Pageable pageable);
+
+		List<PersonWithRelationship> findByName(String name, Sort sort);
 
 		PersonWithRelationship findByHobbiesNameOrPetsName(String hobbyName, String petName);
 
