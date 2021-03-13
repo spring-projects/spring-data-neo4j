@@ -1032,6 +1032,36 @@ class ReactiveRepositoryIT {
 								   + "-[:Has]->(:Pet{name:'Tom'})" + "RETURN id(luna) as id").single().get("id").asLong();
 			}
 		}
+
+		@Test // GH-2175
+		void findCyclicWithSort(@Autowired ReactiveRelationshipRepository repository) {
+			try (Session session = createSession()) {
+				session.run("CREATE (n:PersonWithRelationship{name:'Freddie'})-[:Has]->(h1:Hobby{name:'Music'}), "
+						+ "(n)-[:Has]->(p1:Pet{name: 'Jerry'}), (n)-[:Has]->(p2:Pet{name: 'Tom'}), "
+						+ "(n)<-[:Has]-(c:Club{name:'ClownsClub'}), " + "(p1)-[:Has]->(h2:Hobby{name:'sleeping'}), "
+						+ "(p1)-[:Has]->(p2)")
+						.consume();
+			}
+
+			StepVerifier.create(repository.findAll(Sort.by("name")))
+					.expectNextCount(1)
+					.verifyComplete();
+		}
+
+		@Test // GH-2175
+		void cyclicDerivedFinderWithSort(@Autowired ReactiveRelationshipRepository repository) {
+			try (Session session = createSession()) {
+				session.run("CREATE (n:PersonWithRelationship{name:'Freddie'})-[:Has]->(h1:Hobby{name:'Music'}), "
+						+ "(n)-[:Has]->(p1:Pet{name: 'Jerry'}), (n)-[:Has]->(p2:Pet{name: 'Tom'}), "
+						+ "(n)<-[:Has]-(c:Club{name:'ClownsClub'}), " + "(p1)-[:Has]->(h2:Hobby{name:'sleeping'}), "
+						+ "(p1)-[:Has]->(p2)")
+						.consume();
+			}
+
+			StepVerifier.create(repository.findByName("Freddie", Sort.by("name")))
+					.expectNextCount(1)
+					.verifyComplete();
+		}
 	}
 
 	@Nested
@@ -2517,6 +2547,8 @@ class ReactiveRepositoryIT {
 		Mono<PersonWithRelationship> findByPetsHobbiesName(String hobbyName);
 
 		Mono<PersonWithRelationship> findByPetsFriendsName(String petName);
+
+		Flux<PersonWithRelationship> findByName(String name, Sort sort);
 	}
 
 	interface ReactiveSimilarThingRepository extends ReactiveCrudRepository<SimilarThing, Long> {}
