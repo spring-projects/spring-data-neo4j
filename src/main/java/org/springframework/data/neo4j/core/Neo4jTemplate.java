@@ -565,9 +565,6 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 		Neo4jPersistentProperty requiredIdProperty = targetNodeDescription.getRequiredIdProperty();
 		PersistentPropertyAccessor<Object> ding = targetNodeDescription.getPropertyAccessor(entity);
 		Object idValue = ding.getProperty(requiredIdProperty);
-		if (idValue == null) {
-			System.out.println("nein");
-		}
 
 		return neo4jClient.query(() ->
 				renderer.render(cypherGenerator.prepareMatchOf(targetNodeDescription,

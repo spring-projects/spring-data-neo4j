@@ -64,8 +64,12 @@ public class VersionedThing {
 
 	@Override
 	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (o == null || getClass() != o.getClass()) return false;
+		if (this == o) {
+			return true;
+		}
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
 		VersionedThing that = (VersionedThing) o;
 		return Objects.equals(id, that.id) && name.equals(that.name);
 	}

@@ -698,7 +698,8 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 											} else {
 												return relationshipCreationMonoNested.checkpoint().then();
 											}
-										}).checkpoint();});
+										}).checkpoint();
+								});
 							});
 					relationshipCreationMonos.add(createRelationship);
 				}
