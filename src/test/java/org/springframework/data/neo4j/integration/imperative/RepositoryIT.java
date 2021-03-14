@@ -3650,7 +3650,7 @@ class RepositoryIT {
 				@Autowired SuperBaseClassWithRelationshipRepository repository) {
 
 			Inheritance.ConcreteClassA ccA = new Inheritance.ConcreteClassA("cc1", "test");
-			Inheritance.ConcreteClassB ccB1 = new Inheritance.ConcreteClassB("cc2a", 42);
+			Inheritance.ConcreteClassB ccB1 = new Inheritance.ConcreteClassB("cc2a", 41);
 			Inheritance.ConcreteClassB ccB2 = new Inheritance.ConcreteClassB("cc2b", 42);
 
 			List<Inheritance.SuperBaseClass> things = new ArrayList<>();
