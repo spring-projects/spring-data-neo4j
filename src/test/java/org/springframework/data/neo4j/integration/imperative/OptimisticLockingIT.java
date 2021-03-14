@@ -25,6 +25,7 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.neo4j.driver.Driver;
+import org.neo4j.driver.Record;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.SessionConfig;
 import org.neo4j.driver.Transaction;
@@ -282,6 +283,28 @@ class OptimisticLockingIT {
 
 		ImmutableVersionedThing copy = immutableVersionedThing.withMyVersion(4711L).withName("World");
 		assertThatExceptionOfType(OptimisticLockingFailureException.class).isThrownBy(() -> neo4jTemplate.save(copy));
+	}
+
+	@Test
+	void shouldDoThings(@Autowired VersionedThingRepository repository) {
+		VersionedThing thing1 = new VersionedThing("Thing1");
+		VersionedThing thing2 = new VersionedThing("Thing2");
+
+		thing1.setOtherVersionedThings(Collections.singletonList(thing2));
+		repository.save(thing1);
+
+		thing1 = repository.findById(thing1.getId()).get();
+		thing2 = repository.findById(thing2.getId()).get();
+
+		thing2.setOtherVersionedThings(Collections.singletonList(thing1));
+		repository.save(thing2);
+
+		try (Session session = driver.session()) {
+			List<Record> result = session
+					.run("MATCH (t:VersionedThing{name:'Thing1'})-[:HAS]->(:VersionedThing{name:'Thing2'}) return t")
+					.list();
+			assertThat(result).hasSize(1);
+		}
 	}
 
 	interface VersionedThingRepository extends Neo4jRepository<VersionedThing, Long> {}

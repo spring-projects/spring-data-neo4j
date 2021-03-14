@@ -55,6 +55,10 @@ public final class NestedRelationshipProcessingStateMachine {
 	 */
 	private final Set<Object> processedObjects = new HashSet<>();
 
+	public NestedRelationshipProcessingStateMachine(Object initialObject) {
+		processedObjects.add(initialObject);
+	}
+
 	/**
 	 * @param relationshipDescription Check whether this relationship description has been processed
 	 * @param valuesToStore Check whether all the values in the collection have been processed

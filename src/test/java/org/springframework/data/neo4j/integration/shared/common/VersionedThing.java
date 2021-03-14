@@ -16,6 +16,7 @@
 package org.springframework.data.neo4j.integration.shared.common;
 
 import java.util.List;
+import java.util.Objects;
 
 import org.springframework.data.annotation.Version;
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
@@ -41,6 +42,10 @@ public class VersionedThing {
 		this.name = name;
 	}
 
+	public Long getId() {
+		return id;
+	}
+
 	public Long getMyVersion() {
 		return myVersion;
 	}
@@ -55,5 +60,18 @@ public class VersionedThing {
 
 	public void setOtherVersionedThings(List<VersionedThing> otherVersionedThings) {
 		this.otherVersionedThings = otherVersionedThings;
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+		VersionedThing that = (VersionedThing) o;
+		return Objects.equals(id, that.id) && name.equals(that.name);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(id, name);
 	}
 }
