@@ -26,6 +26,7 @@ import java.util.stream.Collectors;
 import org.apiguardian.api.API;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.types.Type;
+import org.springframework.data.neo4j.core.schema.TargetNode;
 import org.springframework.lang.Nullable;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
 
@@ -91,6 +92,32 @@ public final class MappingSupport {
 
 		Predicate<Value> isList = entry -> entry.hasType(collectionType);
 		return isList.and(containsOnlyRequiredType);
+	}
+
+	public static Object getRelationshipOrRelationshipPropertiesObject(Neo4jMappingContext neo4jMappingContext,
+																	   boolean hasRelationshipProperties,
+																	   boolean isDynamicAssociation,
+																	   Object valueToStore,
+																	   PersistentPropertyAccessor<?> propertyAccessor) {
+
+		Object newRelationshipObject = propertyAccessor.getBean();
+		if (hasRelationshipProperties) {
+			MappingSupport.RelationshipPropertiesWithEntityHolder entityHolder =
+					(RelationshipPropertiesWithEntityHolder)
+							(isDynamicAssociation
+								? ((Map.Entry<Object, Object>) valueToStore).getValue()
+								: valueToStore);
+
+			Object relationshipPropertiesValue = entityHolder.getRelationshipProperties();
+
+			Neo4jPersistentEntity<?> persistentEntity =
+					neo4jMappingContext.getPersistentEntity(relationshipPropertiesValue.getClass());
+
+			PersistentPropertyAccessor<Object> relationshipPropertiesAccessor = persistentEntity.getPropertyAccessor(relationshipPropertiesValue);
+			relationshipPropertiesAccessor.setProperty(persistentEntity.getPersistentProperty(TargetNode.class), newRelationshipObject);
+			newRelationshipObject = relationshipPropertiesAccessor.getBean();
+		}
+		return newRelationshipObject;
 	}
 
 	private MappingSupport() {}
