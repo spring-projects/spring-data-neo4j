@@ -22,17 +22,13 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import org.apiguardian.api.API;
-import org.neo4j.cypherdsl.core.Statement;
-import org.neo4j.cypherdsl.core.StatementBuilder;
-import org.neo4j.cypherdsl.core.StatementBuilder.OngoingReadingAndReturn;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.core.Neo4jOperations;
-import org.springframework.data.neo4j.core.mapping.CypherGenerator;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentProperty;
-import org.springframework.data.neo4j.repository.query.CypherAdapterUtils;
+import org.springframework.data.neo4j.repository.query.QueryFragmentsAndParameters;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.stereotype.Repository;
@@ -60,14 +56,11 @@ public class SimpleNeo4jRepository<T, ID> implements PagingAndSortingRepository<
 
 	private final Neo4jPersistentEntity<T> entityMetaData;
 
-	private final CypherGenerator cypherGenerator;
-
 	protected SimpleNeo4jRepository(Neo4jOperations neo4jOperations, Neo4jEntityInformation<T, ID> entityInformation) {
 
 		this.neo4jOperations = neo4jOperations;
 		this.entityInformation = entityInformation;
 		this.entityMetaData = this.entityInformation.getEntityMetaData();
-		this.cypherGenerator = CypherGenerator.INSTANCE;
 	}
 
 	@Override
@@ -91,25 +84,17 @@ public class SimpleNeo4jRepository<T, ID> implements PagingAndSortingRepository<
 	@Override
 	public List<T> findAll(Sort sort) {
 
-		Statement statement = cypherGenerator.prepareMatchOf(entityMetaData)
-				.returning(cypherGenerator.createReturnStatementForMatch(entityMetaData))
-				.orderBy(CypherAdapterUtils.toSortItems(entityMetaData, sort)).build();
-
-		return this.neo4jOperations.findAll(statement, entityInformation.getJavaType());
+		return this.neo4jOperations.toExecutableQuery(entityInformation.getJavaType(),
+				QueryFragmentsAndParameters.forPageableAndSort(entityMetaData, null, sort))
+				.getResults();
 	}
 
 	@Override
 	public Page<T> findAll(Pageable pageable) {
+		List<T> allResult = this.neo4jOperations.toExecutableQuery(entityInformation.getJavaType(),
+				QueryFragmentsAndParameters.forPageableAndSort(entityMetaData, pageable, null))
+				.getResults();
 
-		OngoingReadingAndReturn returning = cypherGenerator.prepareMatchOf(entityMetaData)
-				.returning(cypherGenerator.createReturnStatementForMatch(entityMetaData));
-
-		StatementBuilder.BuildableStatement returningWithPaging = CypherAdapterUtils.addPagingParameter(entityMetaData,
-				pageable, returning);
-
-		Statement statement = returningWithPaging.build();
-
-		List<T> allResult = this.neo4jOperations.findAll(statement, entityInformation.getJavaType());
 		LongSupplier totalCountSupplier = this::count;
 		return PageableExecutionUtils.getPage(allResult, pageable, totalCountSupplier);
 	}

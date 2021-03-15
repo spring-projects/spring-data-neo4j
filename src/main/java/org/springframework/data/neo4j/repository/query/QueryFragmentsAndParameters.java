@@ -20,7 +20,10 @@ import org.neo4j.cypherdsl.core.Condition;
 import org.neo4j.cypherdsl.core.Conditions;
 import org.neo4j.cypherdsl.core.Cypher;
 import org.neo4j.cypherdsl.core.Expression;
+import org.neo4j.cypherdsl.core.Functions;
+import org.neo4j.cypherdsl.core.Node;
 import org.neo4j.cypherdsl.core.PatternElement;
+import org.neo4j.cypherdsl.core.Relationship;
 import org.neo4j.cypherdsl.core.SortItem;
 import org.neo4j.cypherdsl.core.Statement;
 import org.neo4j.cypherdsl.core.StatementBuilder;
@@ -41,6 +44,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import static org.neo4j.cypherdsl.core.Cypher.parameter;
@@ -59,7 +63,8 @@ public final class QueryFragmentsAndParameters {
 	private final QueryFragments queryFragments;
 	private final String cypherQuery;
 
-	public QueryFragmentsAndParameters(NodeDescription<?> nodeDescription, QueryFragments queryFragments, Map<String, Object> parameters) {
+	public QueryFragmentsAndParameters(NodeDescription<?> nodeDescription, QueryFragments queryFragments,
+									   @Nullable Map<String, Object> parameters) {
 		this.nodeDescription = nodeDescription;
 		this.queryFragments = queryFragments;
 		this.parameters = parameters;
@@ -150,8 +155,19 @@ public final class QueryFragmentsAndParameters {
 		Map<String, Object> parameters = predicate.getParameters();
 		Condition condition = predicate.getCondition();
 
-		Neo4jPersistentEntity<?> entityMetaData = mappingContext.getPersistentEntity(example.getProbeType());
+		return getQueryFragmentsAndParameters(mappingContext.getPersistentEntity(example.getProbeType()), pageable,
+				sort, parameters, condition);
+	}
 
+	public static QueryFragmentsAndParameters forPageableAndSort(Neo4jPersistentEntity<?> neo4jPersistentEntity,
+																 @Nullable Pageable pageable, @Nullable Sort sort) {
+
+		return getQueryFragmentsAndParameters(neo4jPersistentEntity, pageable, sort, Collections.emptyMap(), null);
+	}
+
+	private static QueryFragmentsAndParameters getQueryFragmentsAndParameters(
+			Neo4jPersistentEntity<?> entityMetaData, @Nullable Pageable pageable, @Nullable Sort sort,
+			@Nullable Map<String, Object> parameters, @Nullable Condition condition) {
 
 		Expression[] returnStatement = cypherGenerator.createReturnStatementForMatch(entityMetaData);
 
@@ -172,7 +188,6 @@ public final class QueryFragmentsAndParameters {
 		}
 
 		return new QueryFragmentsAndParameters(entityMetaData, queryFragments, parameters);
-
 	}
 
 	/**
@@ -204,8 +219,8 @@ public final class QueryFragmentsAndParameters {
 			return matchOn;
 		}
 
-		public void setCondition(Condition condition) {
-			this.condition = condition;
+		public void setCondition(@Nullable Condition condition) {
+			this.condition = Optional.ofNullable(condition).orElse(Conditions.noCondition());
 		}
 
 		public Condition getCondition() {
@@ -258,6 +273,33 @@ public final class QueryFragmentsAndParameters {
 
 		private SortItem[] getOrderBy() {
 			return orderBy != null ? orderBy : new SortItem[]{};
+		}
+
+		public Statement generateGenericStatement() {
+			String rootNodeIds = "rootNodeIds";
+			String relationshipIds = "relationshipIds";
+			String relatedNodeIds = "relatedNodeIds";
+			Node rootNodes = Cypher.anyNode(rootNodeIds);
+			Node relatedNodes = Cypher.anyNode(relatedNodeIds);
+			Relationship relationships = Cypher.anyNode().relationshipBetween(Cypher.anyNode()).named(relationshipIds);
+			return Cypher.match(rootNodes)
+					.where(Functions.id(rootNodes).in(Cypher.parameter(rootNodeIds)))
+					.optionalMatch(relationships)
+					.where(Functions.id(relationships).in(Cypher.parameter(relationshipIds)))
+					.optionalMatch(relatedNodes)
+					.where(Functions.id(relatedNodes).in(Cypher.parameter(relatedNodeIds)))
+					.with(
+							rootNodes.as(Constants.NAME_OF_ROOT_NODE.getValue()),
+							Functions.collectDistinct(relationships).as(Constants.NAME_OF_SYNTHESIZED_RELATIONS),
+							Functions.collectDistinct(relatedNodes).as(Constants.NAME_OF_SYNTHESIZED_RELATED_NODES))
+					.orderBy(getOrderBy())
+					.returning(
+							Constants.NAME_OF_ROOT_NODE.as(Constants.NAME_OF_SYNTHESIZED_ROOT_NODE),
+							Cypher.name(Constants.NAME_OF_SYNTHESIZED_RELATIONS),
+							Cypher.name(Constants.NAME_OF_SYNTHESIZED_RELATED_NODES)
+					)
+					.skip(skip)
+					.limit(limit).build();
 		}
 
 		public Statement toStatement() {

@@ -668,7 +668,7 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 					if (genericQueryAndParameters.isEmpty()) {
 						return Optional.empty();
 					}
-					cypherQuery = renderer.render(GenericQueryAndParameters.STATEMENT);
+					cypherQuery = renderer.render(queryFragments.generateGenericStatement());
 					finalParameters = genericQueryAndParameters.getParameters();
 				} else {
 					cypherQuery = renderer.render(queryFragments.toStatement());

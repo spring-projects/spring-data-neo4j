@@ -23,7 +23,6 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import org.apiguardian.api.API;
-import org.neo4j.cypherdsl.core.Statement;
 import org.reactivestreams.Publisher;
 
 import org.springframework.data.domain.Sort;
@@ -31,7 +30,7 @@ import org.springframework.data.neo4j.core.ReactiveNeo4jOperations;
 import org.springframework.data.neo4j.core.mapping.CypherGenerator;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentProperty;
-import org.springframework.data.neo4j.repository.query.CypherAdapterUtils;
+import org.springframework.data.neo4j.repository.query.QueryFragmentsAndParameters;
 import org.springframework.data.repository.reactive.ReactiveSortingRepository;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -99,11 +98,9 @@ public class SimpleReactiveNeo4jRepository<T, ID> implements ReactiveSortingRepo
 
 	@Override
 	public Flux<T> findAll(Sort sort) {
-		Statement statement = cypherGenerator.prepareMatchOf(entityMetaData)
-				.returning(cypherGenerator.createReturnStatementForMatch(entityMetaData))
-				.orderBy(CypherAdapterUtils.toSortItems(entityMetaData, sort)).build();
-
-		return neo4jOperations.findAll(statement, this.entityInformation.getJavaType());
+		return this.neo4jOperations.toExecutableQuery(entityInformation.getJavaType(),
+				QueryFragmentsAndParameters.forPageableAndSort(entityMetaData, null, sort))
+				.flatMapMany(ReactiveNeo4jOperations.ExecutableQuery::getResults);
 	}
 
 	@Override
