@@ -707,30 +707,13 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 												}).checkpoint())))
 						.doOnNext(newRelationshipObject -> {
 							Collection<Object> newRelationshipObjectCollection = ctx.get(CONTEXT_COLLECTION);
-							Map<Object, Object> newRelationshipObjectCollectionMap = ctx.get(CONTEXT_COLLECTION_MAP);
 							newRelationshipObjectCollection.add(newRelationshipObject);
 
 							if (relationshipProperty.isDynamicAssociation()) {
-								Object key = ((Map.Entry<Object, Object>) relatedValueToStore).getKey();
-								Object value = null;
-								if (relationshipProperty.isDynamicOneToManyAssociation()) {
-									value = newRelationshipObjectCollection;
-								} else {
-									value = newRelationshipObject;
-								}
-
-								newRelationshipObjectCollectionMap.merge(key, value, (existingElement, additionalElement) -> {
-
-									if (existingElement instanceof Collection) {
-										((Collection<Object>) existingElement).addAll((Collection<Object>) additionalElement);
-										return existingElement;
-									}
-
-									ArrayList<Object> objects = new ArrayList<>();
-									objects.add(existingElement);
-									objects.add(additionalElement);
-									return objects;
-								});
+								Map<Object, Object> newRelationshipObjectCollectionMap = ctx.get(CONTEXT_COLLECTION_MAP);
+								MappingSupport.addToDynamicAssociationCollection(relationshipProperty,
+										(Map.Entry<Object, Object>) relatedValueToStore, newRelationshipObject,
+										newRelationshipObjectCollection, newRelationshipObjectCollectionMap);
 							}
 						})
 						.then(Mono.defer(() -> {
