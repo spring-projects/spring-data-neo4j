@@ -713,8 +713,8 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 									  @Nullable String inDatabase) {
 
 		Neo4jPersistentProperty requiredIdProperty = targetNodeDescription.getRequiredIdProperty();
-		PersistentPropertyAccessor<Object> ding = targetNodeDescription.getPropertyAccessor(entity);
-		Object idValue = ding.getProperty(requiredIdProperty);
+		PersistentPropertyAccessor<Object> targetPropertyAccessor = targetNodeDescription.getPropertyAccessor(entity);
+		Object idValue = targetPropertyAccessor.getProperty(requiredIdProperty);
 
 		return neo4jClient.query(() ->
 				renderer.render(cypherGenerator.prepareMatchOf(targetNodeDescription,

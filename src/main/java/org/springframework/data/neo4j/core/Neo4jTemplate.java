@@ -323,8 +323,11 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 				.bind(entityList).to(Constants.NAME_OF_ENTITY_LIST_PARAM).run();
 
 		// Save related
-		entitiesToBeSaved.forEach(entityToBeSaved -> processRelations(entityMetaData, entityToBeSaved,
-				isNewIndicator.get(entitiesToBeSaved.indexOf(entityToBeSaved)), databaseName, entities.get(entitiesToBeSaved.indexOf(entityToBeSaved))));
+		entitiesToBeSaved.forEach(entityToBeSaved -> {
+			int positionInList = entitiesToBeSaved.indexOf(entityToBeSaved);
+			processRelations(entityMetaData, entityToBeSaved, isNewIndicator.get(positionInList), databaseName,
+					entities.get(positionInList));
+		});
 
 		SummaryCounters counters = resultSummary.counters();
 		log.debug(() -> String.format(
@@ -563,8 +566,8 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 									  @Nullable String inDatabase) {
 
 		Neo4jPersistentProperty requiredIdProperty = targetNodeDescription.getRequiredIdProperty();
-		PersistentPropertyAccessor<Object> ding = targetNodeDescription.getPropertyAccessor(entity);
-		Object idValue = ding.getProperty(requiredIdProperty);
+		PersistentPropertyAccessor<Object> targetPropertyAccessor = targetNodeDescription.getPropertyAccessor(entity);
+		Object idValue = targetPropertyAccessor.getProperty(requiredIdProperty);
 
 		return neo4jClient.query(() ->
 				renderer.render(cypherGenerator.prepareMatchOf(targetNodeDescription,
