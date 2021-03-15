@@ -33,7 +33,7 @@ import org.springframework.data.domain.Sort;
  * @since 6.1
  */
 @API(status = API.Status.STABLE, since = "6.1")
-public interface CypherDSLConditionExecutor<T> {
+public interface CypherdslConditionExecutor<T> {
 
 	Optional<T> findOne(Condition condition);
 

@@ -33,7 +33,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.core.Neo4jOperations;
 import org.springframework.data.neo4j.core.mapping.CypherGenerator;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
-import org.springframework.data.neo4j.repository.support.CypherDSLConditionExecutor;
+import org.springframework.data.neo4j.repository.support.CypherdslConditionExecutor;
 import org.springframework.data.neo4j.repository.support.Neo4jEntityInformation;
 import org.springframework.data.support.PageableExecutionUtils;
 
@@ -43,7 +43,7 @@ import org.springframework.data.support.PageableExecutionUtils;
  * @since 6.1
  */
 @API(status = API.Status.INTERNAL, since = "6.1")
-public final class CypherDSLConditionExecutorImpl<T> implements CypherDSLConditionExecutor<T> {
+public final class CypherdslConditionExecutorImpl<T> implements CypherdslConditionExecutor<T> {
 
 	private final Neo4jEntityInformation<T, Object> entityInformation;
 
@@ -51,7 +51,7 @@ public final class CypherDSLConditionExecutorImpl<T> implements CypherDSLConditi
 
 	private final Neo4jPersistentEntity<T> metaData;
 
-	public CypherDSLConditionExecutorImpl(Neo4jEntityInformation<T, Object> entityInformation,
+	public CypherdslConditionExecutorImpl(Neo4jEntityInformation<T, Object> entityInformation,
 			Neo4jOperations neo4jOperations) {
 
 		this.entityInformation = entityInformation;

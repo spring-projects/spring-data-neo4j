@@ -25,7 +25,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.core.Neo4jOperations;
-import org.springframework.data.neo4j.repository.support.CypherDSLConditionExecutor;
+import org.springframework.data.neo4j.repository.support.CypherdslConditionExecutor;
 import org.springframework.data.neo4j.repository.support.Neo4jEntityInformation;
 import org.springframework.data.neo4j.repository.support.SimpleNeo4jRepository;
 import org.springframework.data.querydsl.QuerydslPredicateExecutor;
@@ -47,12 +47,12 @@ import com.querydsl.core.types.Predicate;
 @API(status = API.Status.INTERNAL, since = "6.1")
 public final class QuerydslNeo4jPredicateExecutor<T> implements QuerydslPredicateExecutor<T> {
 
-	private final CypherDSLConditionExecutor<T> delegate;
+	private final CypherdslConditionExecutor<T> delegate;
 
 	public QuerydslNeo4jPredicateExecutor(Neo4jEntityInformation<T, Object> entityInformation,
 			Neo4jOperations neo4jOperations) {
 
-		this.delegate = new CypherDSLConditionExecutorImpl<>(entityInformation, neo4jOperations);
+		this.delegate = new CypherdslConditionExecutorImpl<>(entityInformation, neo4jOperations);
 	}
 
 	@Override

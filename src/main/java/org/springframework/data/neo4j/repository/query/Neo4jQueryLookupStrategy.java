@@ -63,6 +63,8 @@ public final class Neo4jQueryLookupStrategy implements QueryLookupStrategy {
 					namedQueries.getQuery(namedQueryName));
 		} else if (queryMethod.hasQueryAnnotation()) {
 			return StringBasedNeo4jQuery.create(neo4jOperations, mappingContext, evaluationContextProvider, queryMethod);
+		} else if (queryMethod.isCypherBasedProjection()) {
+			return CypherdslBasedQuery.create(neo4jOperations, mappingContext, queryMethod);
 		} else {
 			return PartTreeNeo4jQuery.create(neo4jOperations, mappingContext, queryMethod);
 		}

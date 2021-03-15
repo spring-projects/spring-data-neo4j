@@ -18,7 +18,6 @@ package org.springframework.data.neo4j.integration.imperative;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.neo4j.cypherdsl.core.Cypher;
 import org.neo4j.cypherdsl.core.Node;
@@ -35,7 +34,7 @@ import org.springframework.data.neo4j.core.mapping.Constants;
 import org.springframework.data.neo4j.integration.shared.common.Person;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
-import org.springframework.data.neo4j.repository.support.CypherDSLConditionExecutor;
+import org.springframework.data.neo4j.repository.support.CypherdslConditionExecutor;
 import org.springframework.data.neo4j.test.Neo4jExtension;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
@@ -44,7 +43,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
  * @author Michael J. Simons
  */
 @Neo4jIntegrationTest
-class CypherDSLIT {
+class CypherdslConditionExecutorIT {
 
 	protected static Neo4jExtension.Neo4jConnectionSupport neo4jConnectionSupport;
 
@@ -53,7 +52,7 @@ class CypherDSLIT {
 	private final Property firstName;
 	private final Property lastName;
 
-	CypherDSLIT(@Autowired Driver driver) {
+	CypherdslConditionExecutorIT(@Autowired Driver driver) {
 
 		this.driver = driver;
 
@@ -68,21 +67,22 @@ class CypherDSLIT {
 			transaction.run("MATCH (n) detach delete n");
 			transaction.run("CREATE (p:Person{firstName: 'A', lastName: 'LA'})");
 			transaction.run("CREATE (p:Person{firstName: 'B', lastName: 'LB'})");
-			transaction.run("CREATE (p:Person{firstName: 'Helge', lastName: 'Schneider'}) -[:LIVES_AT]-> (a:Address {city: 'Mülheim an der Ruhr'})");
+			transaction
+					.run("CREATE (p:Person{firstName: 'Helge', lastName: 'Schneider'}) -[:LIVES_AT]-> (a:Address {city: 'Mülheim an der Ruhr'})");
 			transaction.run("CREATE (p:Person{firstName: 'Bela', lastName: 'B.'})");
 			transaction.commit();
 		}
 	}
 
 	@Test
-	void findOneShouldWork(@Autowired CypherDSLPersonRepository repository) {
+	void findOneShouldWork(@Autowired PersonRepository repository) {
 
 		assertThat(repository.findOne(firstName.eq(Cypher.literalOf("Helge"))))
 				.hasValueSatisfying(p -> assertThat(p).extracting(Person::getLastName).isEqualTo("Schneider"));
 	}
 
 	@Test
-	void findAllShouldWork(@Autowired CypherDSLPersonRepository repository) {
+	void findAllShouldWork(@Autowired PersonRepository repository) {
 
 		assertThat(repository.findAll(firstName.eq(Cypher.literalOf("Helge")).or(lastName.eq(Cypher.literalOf("B.")))))
 				.extracting(Person::getFirstName)
@@ -90,7 +90,7 @@ class CypherDSLIT {
 	}
 
 	@Test
-	void sortedFindAllShouldWork(@Autowired CypherDSLPersonRepository repository) {
+	void sortedFindAllShouldWork(@Autowired PersonRepository repository) {
 
 		assertThat(
 				repository.findAll(firstName.eq(Cypher.literalOf("Helge")).or(lastName.eq(Cypher.literalOf("B."))),
@@ -101,10 +101,11 @@ class CypherDSLIT {
 	}
 
 	@Test
-	void sortedFindAllShouldWorkWithParameter(@Autowired CypherDSLPersonRepository repository) {
+	void sortedFindAllShouldWorkWithParameter(@Autowired PersonRepository repository) {
 
 		assertThat(
-				repository.findAll(firstName.eq(Cypher.anonParameter("Helge")).or(lastName.eq(Cypher.parameter("someName", "B."))),
+				repository.findAll(
+						firstName.eq(Cypher.anonParameter("Helge")).or(lastName.eq(Cypher.parameter("someName", "B."))),
 						Sort.by("lastName").descending()
 				))
 				.extracting(Person::getFirstName)
@@ -112,7 +113,7 @@ class CypherDSLIT {
 	}
 
 	@Test
-	void orderedFindAllShouldWork(@Autowired CypherDSLPersonRepository repository) {
+	void orderedFindAllShouldWork(@Autowired PersonRepository repository) {
 
 		assertThat(
 				repository.findAll(firstName.eq(Cypher.literalOf("Helge")).or(lastName.eq(Cypher.literalOf("B."))),
@@ -123,7 +124,7 @@ class CypherDSLIT {
 	}
 
 	@Test
-	void orderedFindAllWithoutPredicateShouldWork(@Autowired CypherDSLPersonRepository repository) {
+	void orderedFindAllWithoutPredicateShouldWork(@Autowired PersonRepository repository) {
 
 		assertThat(repository.findAll(lastName.descending()))
 				.extracting(Person::getFirstName)
@@ -131,7 +132,7 @@ class CypherDSLIT {
 	}
 
 	@Test
-	void pagedFindAllShouldWork(@Autowired CypherDSLPersonRepository repository) {
+	void pagedFindAllShouldWork(@Autowired PersonRepository repository) {
 
 		assertThat(
 				repository.findAll(firstName.eq(Cypher.literalOf("Helge")).or(lastName.eq(Cypher.literalOf("B."))),
@@ -142,18 +143,19 @@ class CypherDSLIT {
 	}
 
 	@Test
-	void countShouldWork(@Autowired CypherDSLPersonRepository repository) {
+	void countShouldWork(@Autowired PersonRepository repository) {
 
-		assertThat(repository.count(firstName.eq(Cypher.literalOf("Helge")).or(lastName.eq(Cypher.literalOf("B."))))).isEqualTo(2L);
+		assertThat(repository.count(firstName.eq(Cypher.literalOf("Helge")).or(lastName.eq(Cypher.literalOf("B.")))))
+				.isEqualTo(2L);
 	}
 
 	@Test
-	void existsShouldWork(@Autowired CypherDSLPersonRepository repository) {
+	void existsShouldWork(@Autowired PersonRepository repository) {
 
 		assertThat(repository.exists(firstName.eq(Cypher.literalOf("A")))).isTrue();
 	}
 
-	interface CypherDSLPersonRepository extends Neo4jRepository<Person, Long>, CypherDSLConditionExecutor<Person> {
+	interface PersonRepository extends Neo4jRepository<Person, Long>, CypherdslConditionExecutor<Person> {
 	}
 
 	@Configuration

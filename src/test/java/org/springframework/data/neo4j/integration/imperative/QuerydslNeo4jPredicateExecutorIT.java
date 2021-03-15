@@ -18,7 +18,6 @@ package org.springframework.data.neo4j.integration.imperative;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Transaction;
@@ -46,18 +45,15 @@ import com.querydsl.core.types.dsl.Expressions;
  * @author Michael J. Simons
  */
 @Neo4jIntegrationTest
-class QuerydslIT {
+class QuerydslNeo4jPredicateExecutorIT {
 
 	protected static Neo4jExtension.Neo4jConnectionSupport neo4jConnectionSupport;
 
-	private final Driver driver;
 	private final Path<Person> person;
 	private final Path<String> firstName;
 	private final Path<String> lastName;
 
-	QuerydslIT(@Autowired Driver driver) {
-
-		this.driver = driver;
+	QuerydslNeo4jPredicateExecutorIT() {
 
 		this.person = Expressions.path(Person.class, "n");
 		this.firstName = Expressions.path(String.class, person, "firstName");
