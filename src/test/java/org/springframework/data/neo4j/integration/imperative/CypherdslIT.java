@@ -17,6 +17,7 @@ package org.springframework.data.neo4j.integration.imperative;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.neo4j.cypherdsl.core.Cypher;
@@ -34,7 +35,7 @@ import org.springframework.data.neo4j.core.mapping.Constants;
 import org.springframework.data.neo4j.integration.shared.common.Person;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
-import org.springframework.data.neo4j.repository.support.CypherdslConditionExecutor;
+import org.springframework.data.neo4j.repository.support.CypherDSLConditionExecutor;
 import org.springframework.data.neo4j.test.Neo4jExtension;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
@@ -43,7 +44,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
  * @author Michael J. Simons
  */
 @Neo4jIntegrationTest
-class CypherdslIT {
+class CypherDSLIT {
 
 	protected static Neo4jExtension.Neo4jConnectionSupport neo4jConnectionSupport;
 
@@ -52,7 +53,7 @@ class CypherdslIT {
 	private final Property firstName;
 	private final Property lastName;
 
-	CypherdslIT(@Autowired Driver driver) {
+	CypherDSLIT(@Autowired Driver driver) {
 
 		this.driver = driver;
 
@@ -61,13 +62,13 @@ class CypherdslIT {
 		this.lastName = this.person.property("lastName");
 	}
 
-	@BeforeEach
-	protected void setupData() {
-		try (Transaction transaction = driver.session().beginTransaction()) {
+	@BeforeAll
+	protected static void setupData() {
+		try (Transaction transaction = neo4jConnectionSupport.getDriver().session().beginTransaction()) {
 			transaction.run("MATCH (n) detach delete n");
 			transaction.run("CREATE (p:Person{firstName: 'A', lastName: 'LA'})");
 			transaction.run("CREATE (p:Person{firstName: 'B', lastName: 'LB'})");
-			transaction.run("CREATE (p:Person{firstName: 'Helge', lastName: 'Schneider'})");
+			transaction.run("CREATE (p:Person{firstName: 'Helge', lastName: 'Schneider'}) -[:LIVES_AT]-> (a:Address {city: 'Mülheim an der Ruhr'})");
 			transaction.run("CREATE (p:Person{firstName: 'Bela', lastName: 'B.'})");
 			transaction.commit();
 		}
@@ -152,7 +153,7 @@ class CypherdslIT {
 		assertThat(repository.exists(firstName.eq(Cypher.literalOf("A")))).isTrue();
 	}
 
-	interface CypherDSLPersonRepository extends Neo4jRepository<Person, Long>, CypherdslConditionExecutor<Person> {
+	interface CypherDSLPersonRepository extends Neo4jRepository<Person, Long>, CypherDSLConditionExecutor<Person> {
 	}
 
 	@Configuration

@@ -17,6 +17,7 @@ package org.springframework.data.neo4j.integration.imperative;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.neo4j.driver.Driver;
@@ -63,13 +64,13 @@ class QuerydslIT {
 		this.lastName = Expressions.path(String.class, person, "lastName");
 	}
 
-	@BeforeEach
-	protected void setupData() {
-		try (Transaction transaction = driver.session().beginTransaction()) {
+	@BeforeAll
+	protected static void setupData() {
+		try (Transaction transaction = neo4jConnectionSupport.getDriver().session().beginTransaction()) {
 			transaction.run("MATCH (n) detach delete n");
 			transaction.run("CREATE (p:Person{firstName: 'A', lastName: 'LA'})");
 			transaction.run("CREATE (p:Person{firstName: 'B', lastName: 'LB'})");
-			transaction.run("CREATE (p:Person{firstName: 'Helge', lastName: 'Schneider'})");
+			transaction.run("CREATE (p:Person{firstName: 'Helge', lastName: 'Schneider'}) -[:LIVES_AT]-> (a:Address {city: 'Mülheim an der Ruhr'})");
 			transaction.run("CREATE (p:Person{firstName: 'Bela', lastName: 'B.'})");
 			transaction.commit();
 		}

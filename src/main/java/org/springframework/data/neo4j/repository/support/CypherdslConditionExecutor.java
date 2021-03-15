@@ -33,13 +33,13 @@ import org.springframework.data.domain.Sort;
  * @since 6.1
  */
 @API(status = API.Status.STABLE, since = "6.1")
-public interface CypherdslConditionExecutor<T> {
+public interface CypherDSLConditionExecutor<T> {
 
 	Optional<T> findOne(Condition condition);
 
 	Iterable<T> findAll(Condition condition);
 
-	Iterable<T> findAll(Condition condition, Sort var2);
+	Iterable<T> findAll(Condition condition, Sort sort);
 
 	Iterable<T> findAll(Condition condition, SortItem... sortItems);
 
