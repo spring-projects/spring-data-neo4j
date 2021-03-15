@@ -16,6 +16,7 @@
 package org.springframework.data.neo4j.core.mapping;
 
 import java.util.AbstractMap.SimpleEntry;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
@@ -94,6 +95,18 @@ public final class MappingSupport {
 		return isList.and(containsOnlyRequiredType);
 	}
 
+	/**
+	 * Extract the relationship properties or just the related object if there are no relationship properties
+	 * attached.
+	 *
+	 * @param neo4jMappingContext - current mapping context
+	 * @param hasRelationshipProperties - does this relationship has properties
+	 * @param isDynamicAssociation - is the defined relationship a dynamic association
+	 * @param valueToStore - either a plain object or {@link RelationshipPropertiesWithEntityHolder}
+	 * @param propertyAccessor - PropertyAccessor for the value
+	 *
+	 * @return extracted related object or relationship properties
+	 */
 	public static Object getRelationshipOrRelationshipPropertiesObject(Neo4jMappingContext neo4jMappingContext,
 																	   boolean hasRelationshipProperties,
 																	   boolean isDynamicAssociation,
@@ -118,6 +131,39 @@ public final class MappingSupport {
 			newRelationshipObject = relationshipPropertiesAccessor.getBean();
 		}
 		return newRelationshipObject;
+	}
+
+	/**
+	 * Adds previously created objects of related entities to a map.
+	 * The main purpose of this method is to provide a merge function that can collect multiple value for the same
+	 * key but in different calls under the same key.
+	 */
+	public static void addToDynamicAssociationCollection(Neo4jPersistentProperty relationshipProperty,
+														 Map.Entry<Object, Object> relatedValueToStore,
+														 Object newRelationshipObject,
+														 Collection<Object> newRelationshipObjectCollection,
+												  		 Map<Object, Object> newRelationshipObjectCollectionMap) {
+
+		Object key = relatedValueToStore.getKey();
+		Object value;
+		if (relationshipProperty.isDynamicOneToManyAssociation()) {
+			value = newRelationshipObjectCollection;
+		} else {
+			value = newRelationshipObject;
+		}
+
+		newRelationshipObjectCollectionMap.merge(key, value, (existingElement, additionalElement) -> {
+
+			if (existingElement instanceof Collection) {
+				((Collection<Object>) existingElement).addAll((Collection<Object>) additionalElement);
+				return existingElement;
+			}
+
+			ArrayList<Object> objects = new ArrayList<>();
+			objects.add(existingElement);
+			objects.add(additionalElement);
+			return objects;
+		});
 	}
 
 	private MappingSupport() {}
