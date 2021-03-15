@@ -24,7 +24,7 @@ If you do not use this annotation, your application takes a slight performance h
 * `@Id`: Applied at the field level to mark the field used for identity purpose.
 * `@GeneratedValue`: Applied at the field level together with `@Id` to specify how unique identifiers should be generated.
 * `@Property`: Applied at the field level to modify the mapping from attributes to properties.
-* `@CompositeProperty`: Applied at the field level on attributes of type Map that shall be read back as a composite. See <<composite-properties>>.
+* `@CompositeProperty`: Applied at the field level on attributes of type Map that shall be read back as a composite. See <<custom.conversions.composite-properties>>.
 * `@Relationship`: Applied at the field level to specify the details of a relationship.
 * `@DynamicLabels`: Applied at the field level to specify the source of dynamic labels.
 * `@RelationshipProperties`: Applied at the class level to indicate this class as the target for properties of a relationship.
