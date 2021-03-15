@@ -67,7 +67,6 @@ import org.springframework.data.neo4j.core.mapping.NestedRelationshipProcessingS
 import org.springframework.data.neo4j.core.mapping.NodeDescription;
 import org.springframework.data.neo4j.core.mapping.RelationshipDescription;
 import org.springframework.data.neo4j.core.mapping.callback.EventSupport;
-import org.springframework.data.neo4j.core.schema.TargetNode;
 import org.springframework.data.neo4j.repository.NoResultException;
 import org.springframework.data.neo4j.repository.query.QueryFragmentsAndParameters;
 import org.springframework.data.util.ClassTypeInformation;
@@ -581,21 +580,15 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 					targetPropertyAccessor.setProperty(targetEntity.getRequiredIdProperty(), relatedInternalId);
 				}
 
-				newRelationshipObject = targetPropertyAccessor.getBean();
 				if (processState != ProcessState.PROCESSED_ALL_VALUES) {
 					processNestedRelations(targetEntity, targetPropertyAccessor, isEntityNew, stateMachine);
-					newRelationshipObject = targetPropertyAccessor.getBean();
 				}
 
-				if (relationshipDescription.hasRelationshipProperties()) {
-					Object relationshipPropertiesObject = relationshipProperty.isDynamicAssociation()
-							? ((MappingSupport.RelationshipPropertiesWithEntityHolder) ((Map.Entry<Object, Object>) relatedValueToStore).getValue()).getRelationshipProperties()
-							: ((MappingSupport.RelationshipPropertiesWithEntityHolder) relatedValueToStore).getRelationshipProperties();
-					Neo4jPersistentEntity<?> persistentEntity = neo4jMappingContext.getPersistentEntity(relationshipPropertiesObject.getClass());
-					PersistentPropertyAccessor<Object> relationshipPropertiesAccessor = persistentEntity.getPropertyAccessor(relationshipPropertiesObject);
-					relationshipPropertiesAccessor.setProperty(persistentEntity.getPersistentProperty(TargetNode.class), newRelationshipObject);
-					newRelationshipObject = relationshipPropertiesAccessor.getBean();
-				}
+				newRelationshipObject =	MappingSupport.getRelationshipOrRelationshipPropertiesObject(neo4jMappingContext,
+								relationshipDescription.hasRelationshipProperties(),
+								relationshipProperty.isDynamicAssociation(),
+								relatedValueToStore,
+								targetPropertyAccessor);
 
 				newRelationshipObjectCollection.add(newRelationshipObject);
 

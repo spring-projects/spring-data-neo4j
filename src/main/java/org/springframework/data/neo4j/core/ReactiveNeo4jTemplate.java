@@ -49,7 +49,6 @@ import org.springframework.data.neo4j.core.mapping.NestedRelationshipProcessingS
 import org.springframework.data.neo4j.core.mapping.NodeDescription;
 import org.springframework.data.neo4j.core.mapping.RelationshipDescription;
 import org.springframework.data.neo4j.core.mapping.callback.ReactiveEventSupport;
-import org.springframework.data.neo4j.core.schema.TargetNode;
 import org.springframework.data.neo4j.repository.query.QueryFragmentsAndParameters;
 import org.springframework.data.util.ClassTypeInformation;
 import org.springframework.lang.NonNull;
@@ -657,7 +656,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 										.flatMap(isNew -> saveRelatedNode(relatedNode, relationshipContext.getAssociationTargetType(),
 												targetEntity)
 												.flatMap(relatedInternalId -> {
-													// if an internal id is used this must get set to link this entity in the next iteration
+													// if an internal id is used this must be set to link this entity in the next iteration
 													PersistentPropertyAccessor<?> targetPropertyAccessor = targetEntity
 															.getPropertyAccessor(relatedNode);
 													if (targetEntity.isUsingInternalIds()) {
@@ -693,17 +692,14 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 																}
 
 																return something.flatMap(currentValue -> {
-																	Object newRelationshipObject = targetPropertyAccessor.getBean();
-																	if (relationshipDescription.hasRelationshipProperties()) {
-																		Object lalelu = relationshipProperty.isDynamicAssociation()
-																				? ((MappingSupport.RelationshipPropertiesWithEntityHolder) ((Map.Entry<Object, Object>) relatedValueToStore).getValue()).getRelationshipProperties()
-																				: ((MappingSupport.RelationshipPropertiesWithEntityHolder) relatedValueToStore).getRelationshipProperties();
-																		Neo4jPersistentEntity<?> persistentEntity = neo4jMappingContext.getPersistentEntity(lalelu.getClass());
-																		PersistentPropertyAccessor<Object> relationshipPropertiesAccessor = persistentEntity.getPropertyAccessor(lalelu);
-																		relationshipPropertiesAccessor.setProperty(persistentEntity.getPersistentProperty(TargetNode.class), newRelationshipObject);
-																		newRelationshipObject = relationshipPropertiesAccessor.getBean();
-																	}
-																	return Mono.just((T) newRelationshipObject);
+																	Object relationshipOrPropertiesObject =
+																			MappingSupport.getRelationshipOrRelationshipPropertiesObject(neo4jMappingContext,
+																					relationshipDescription.hasRelationshipProperties(),
+																					relationshipProperty.isDynamicAssociation(),
+																					relatedValueToStore,
+																					targetPropertyAccessor);
+
+																	return Mono.just((T) relationshipOrPropertiesObject);
 																});
 															});
 
