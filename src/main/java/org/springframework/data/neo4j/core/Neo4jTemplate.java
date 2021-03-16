@@ -676,7 +676,7 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 		private Optional<Neo4jClient.RecordFetchSpec<T>> createFetchSpec() {
 			QueryFragmentsAndParameters queryFragmentsAndParameters = preparedQuery.getQueryFragmentsAndParameters();
 			String cypherQuery = queryFragmentsAndParameters.getCypherQuery();
-			Map<String, Object> finalParameters = preparedQuery.getQueryFragmentsAndParameters().getParameters();
+			Map<String, Object> finalParameters = queryFragmentsAndParameters.getParameters();
 
 			QueryFragmentsAndParameters.QueryFragments queryFragments = queryFragmentsAndParameters.getQueryFragments();
 			Neo4jPersistentEntity<?> entityMetaData = (Neo4jPersistentEntity<?>) queryFragmentsAndParameters.getNodeDescription();
@@ -684,11 +684,9 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 			boolean containsPossibleCircles = entityMetaData != null && entityMetaData.containsPossibleCircles(queryFragments::includeField);
 			if (cypherQuery == null || containsPossibleCircles) {
 
-				Map<String, Object> parameters = queryFragmentsAndParameters.getParameters();
-
 				if (containsPossibleCircles && !queryFragments.isScalarValueReturn()) {
 					GenericQueryAndParameters genericQueryAndParameters =
-							createQueryAndParameters(entityMetaData, queryFragments, parameters);
+							createQueryAndParameters(entityMetaData, queryFragments, queryFragmentsAndParameters.getParameters());
 
 					if (genericQueryAndParameters.isEmpty()) {
 						return Optional.empty();
@@ -696,9 +694,11 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 					cypherQuery = renderer.render(queryFragments.generateGenericStatement());
 					finalParameters = genericQueryAndParameters.getParameters();
 				} else {
-					cypherQuery = renderer.render(queryFragments.toStatement());
+					Statement statement = queryFragments.toStatement();
+					cypherQuery = renderer.render(statement);
+					finalParameters = new HashMap<>(finalParameters);
+					finalParameters.putAll(statement.getParameters());
 				}
-
 			}
 
 			Neo4jClient.MappingSpec<T> newMappingSpec = neo4jClient.query(cypherQuery)
@@ -715,9 +715,11 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 					.prepareMatchOf(entityMetaData, queryFragments.getMatchOn(), queryFragments.getCondition())
 					.returning(Constants.NAME_OF_SYNTHESIZED_ROOT_NODE).build();
 
+			Map<String, Object> usedParameters = new HashMap<>(parameters);
+			usedParameters.putAll(rootNodesStatement.getParameters());
 			final Collection<Long> rootNodeIds = new HashSet<>((Collection<Long>) neo4jClient
 					.query(renderer.render(rootNodesStatement))
-					.bindAll(parameters)
+					.bindAll(usedParameters)
 					.fetch()
 					.one()
 					.map(values -> values.get(Constants.NAME_OF_SYNTHESIZED_ROOT_NODE))
@@ -737,6 +739,8 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 						.prepareMatchOf(entityMetaData, relationshipDescription, queryFragments.getMatchOn(), queryFragments.getCondition())
 						.returning(cypherGenerator.createReturnStatementForMatch(entityMetaData)).build();
 
+				usedParameters = new HashMap<>(parameters);
+				usedParameters.putAll(statement.getParameters());
 				neo4jClient.query(renderer.render(statement))
 						.bindAll(parameters)
 						.fetch()
@@ -791,5 +795,4 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 			};
 		}
 	}
-
 }

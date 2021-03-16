@@ -15,6 +15,18 @@
  */
 package org.springframework.data.neo4j.repository.query;
 
+import static org.neo4j.cypherdsl.core.Cypher.parameter;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+
 import org.apiguardian.api.API;
 import org.neo4j.cypherdsl.core.Condition;
 import org.neo4j.cypherdsl.core.Conditions;
@@ -36,19 +48,6 @@ import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.core.mapping.NodeDescription;
 import org.springframework.lang.Nullable;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-
-import static org.neo4j.cypherdsl.core.Cypher.parameter;
 
 /**
  * Combines the QueryFragments with parameters.
@@ -162,17 +161,23 @@ public final class QueryFragmentsAndParameters {
 		queryFragments.setReturnExpressions(returnStatement);
 
 		if (pageable != null) {
-			Sort pageableSort = pageable.getSort();
-			long skip = pageable.getOffset();
-			int pageSize = pageable.getPageSize();
-			queryFragments.setSkip(skip);
-			queryFragments.setLimit(pageSize);
-			queryFragments.setOrderBy(CypherAdapterUtils.toSortItems(entityMetaData, pageableSort));
+			adaptPageable(entityMetaData, pageable, queryFragments);
 		} else if (sortItems != null) {
 			queryFragments.setOrderBy(sortItems);
 		}
 
-		return new QueryFragmentsAndParameters(entityMetaData, queryFragments, new HashMap<>());
+		return new QueryFragmentsAndParameters(entityMetaData, queryFragments, Collections.emptyMap());
+	}
+
+	private static void adaptPageable(
+			Neo4jPersistentEntity<?> entityMetaData,
+			Pageable pageable,
+			QueryFragments queryFragments
+	) {
+		Sort pageableSort = pageable.getSort();
+		queryFragments.setSkip(pageable.getOffset());
+		queryFragments.setLimit(pageable.getPageSize());
+		queryFragments.setOrderBy(CypherAdapterUtils.toSortItems(entityMetaData, pageableSort));
 	}
 
 	static QueryFragmentsAndParameters forExample(Neo4jMappingContext mappingContext, Example<?> example,
@@ -204,12 +209,7 @@ public final class QueryFragmentsAndParameters {
 		queryFragments.setReturnExpressions(returnStatement);
 
 		if (pageable != null) {
-			Sort pageableSort = pageable.getSort();
-			long skip = pageable.getOffset();
-			int pageSize = pageable.getPageSize();
-			queryFragments.setSkip(skip);
-			queryFragments.setLimit(pageSize);
-			queryFragments.setOrderBy(CypherAdapterUtils.toSortItems(entityMetaData, pageableSort));
+			adaptPageable(entityMetaData, pageable, queryFragments);
 		} else if (sort != null) {
 			queryFragments.setOrderBy(CypherAdapterUtils.toSortItems(entityMetaData, sort));
 		}

@@ -76,7 +76,7 @@ public final class QuerydslNeo4jPredicateExecutor<T> implements QuerydslPredicat
 
 		return this.neo4jOperations.toExecutableQuery(
 				this.metaData.getType(),
-				QueryFragmentsAndParameters.forCondition(this.metaData, Cypher.adapt().asCondition(predicate), null, null)
+				QueryFragmentsAndParameters.forCondition(this.metaData, Cypher.adapt(predicate).asCondition(), null, null)
 		).getSingleResult();
 	}
 
@@ -85,7 +85,7 @@ public final class QuerydslNeo4jPredicateExecutor<T> implements QuerydslPredicat
 
 		return this.neo4jOperations.toExecutableQuery(
 				this.metaData.getType(),
-				QueryFragmentsAndParameters.forCondition(this.metaData, Cypher.adapt().asCondition(predicate), null, null)
+				QueryFragmentsAndParameters.forCondition(this.metaData, Cypher.adapt(predicate).asCondition(), null, null)
 		).getResults();
 	}
 
@@ -95,7 +95,7 @@ public final class QuerydslNeo4jPredicateExecutor<T> implements QuerydslPredicat
 		return this.neo4jOperations.toExecutableQuery(
 				metaData.getType(),
 				QueryFragmentsAndParameters.forCondition(
-						this.metaData, Cypher.adapt().asCondition(predicate), null, CypherAdapterUtils.toSortItems(this.metaData, sort)
+						this.metaData, Cypher.adapt(predicate).asCondition(), null, CypherAdapterUtils.toSortItems(this.metaData, sort)
 				)
 		).getResults();
 	}
@@ -106,7 +106,7 @@ public final class QuerydslNeo4jPredicateExecutor<T> implements QuerydslPredicat
 		return this.neo4jOperations.toExecutableQuery(
 				this.metaData.getType(),
 				QueryFragmentsAndParameters.forCondition(
-						this.metaData, Cypher.adapt().asCondition(predicate), null, toSortItems(orderSpecifiers)
+						this.metaData, Cypher.adapt(predicate).asCondition(), null, toSortItems(orderSpecifiers)
 				)
 		).getResults();
 	}
@@ -134,15 +134,15 @@ public final class QuerydslNeo4jPredicateExecutor<T> implements QuerydslPredicat
 	@Override
 	public long count(Predicate predicate) {
 
-		Statement statement = CypherGenerator.INSTANCE.prepareMatchOf(this.metaData, Cypher.adapt().asCondition(predicate))
+		Statement statement = CypherGenerator.INSTANCE.prepareMatchOf(this.metaData, Cypher.adapt(predicate).asCondition())
 				.returning(Functions.count(asterisk())).build();
-		return this.neo4jOperations.count(statement, Collections.emptyMap());
+		return this.neo4jOperations.count(statement, statement.getParameters());
 	}
 
 	private SortItem[] toSortItems(OrderSpecifier<?>... orderSpecifiers) {
 
 		return Arrays.stream(orderSpecifiers)
-				.map(os -> Cypher.sort(Cypher.adapt().asExpression(os.getTarget()),
+				.map(os -> Cypher.sort(Cypher.adapt(os.getTarget()).asExpression(),
 						os.isAscending() ? SortItem.Direction.ASC : SortItem.Direction.DESC)).toArray(SortItem[]::new);
 
 	}

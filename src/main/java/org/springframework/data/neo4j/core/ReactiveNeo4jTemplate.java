@@ -446,17 +446,18 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 
 		Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getPersistentEntity(domainType);
 		QueryFragmentsAndParameters.QueryFragments queryFragments = queryFragmentsAndParameters.getQueryFragments();
-		Map<String, Object> parameters = queryFragmentsAndParameters.getParameters();
 
 		boolean containsPossibleCircles = entityMetaData != null && entityMetaData.containsPossibleCircles(queryFragments::includeField);
 		if (containsPossibleCircles && !queryFragments.isScalarValueReturn()) {
-			return createQueryAndParameters(entityMetaData, queryFragments, parameters)
+			return createQueryAndParameters(entityMetaData, queryFragments, queryFragmentsAndParameters.getParameters())
 					.flatMap(finalQueryAndParameters ->
 							createExecutableQuery(domainType, renderer.render(queryFragments.generateGenericStatement()),
 									finalQueryAndParameters.getParameters()));
 		}
 
 		Statement statement = queryFragments.toStatement();
+		Map<String, Object> parameters = new HashMap<>(queryFragmentsAndParameters.getParameters());
+		parameters.putAll(statement.getParameters());
 
 		return createExecutableQuery(domainType, renderer.render(statement), parameters);
 	}
@@ -475,8 +476,10 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 									queryFragments.getMatchOn(), queryFragments.getCondition())
 									.returning(cypherGenerator.createReturnStatementForMatch(entityMetaData)).build();
 
+							Map<String, Object> usedParameters = new HashMap<>(parameters);
+							usedParameters.putAll(statement.getParameters());
 							return neo4jClient.query(renderer.render(statement))
-									.bindAll(parameters)
+									.bindAll(usedParameters)
 									.fetch()
 									.one()
 									.map(record -> {
@@ -749,7 +752,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 			Class<T> resultType = preparedQuery.getResultType();
 			QueryFragmentsAndParameters queryFragmentsAndParameters = preparedQuery.getQueryFragmentsAndParameters();
 			String cypherQuery = queryFragmentsAndParameters.getCypherQuery();
-			Map<String, Object> finalParameters = preparedQuery.getQueryFragmentsAndParameters().getParameters();
+			Map<String, Object> finalParameters = queryFragmentsAndParameters.getParameters();
 
 			QueryFragmentsAndParameters.QueryFragments queryFragments = queryFragmentsAndParameters.getQueryFragments();
 			Neo4jPersistentEntity<?> entityMetaData = (Neo4jPersistentEntity<?>) queryFragmentsAndParameters.getNodeDescription();
@@ -757,10 +760,8 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 			boolean containsPossibleCircles = entityMetaData != null && entityMetaData.containsPossibleCircles(queryFragments::includeField);
 			if (cypherQuery == null || containsPossibleCircles) {
 
-				Map<String, Object> parameters = queryFragmentsAndParameters.getParameters();
-
 				if (containsPossibleCircles && !queryFragments.isScalarValueReturn()) {
-					return createQueryAndParameters(entityMetaData, queryFragments, parameters)
+					return createQueryAndParameters(entityMetaData, queryFragments, finalParameters)
 							.map(genericQueryAndParameters -> {
 								ReactiveNeo4jClient.MappingSpec<T> mappingSpec = this.neo4jClient.query(renderer.render(queryFragments.generateGenericStatement()))
 										.bindAll(genericQueryAndParameters.getParameters()).fetchAs(resultType);
@@ -772,7 +773,10 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 							});
 				}
 
-				cypherQuery = renderer.render(queryFragments.toStatement());
+				Statement statement = queryFragments.toStatement();
+				cypherQuery = renderer.render(statement);
+				finalParameters = new HashMap<>(finalParameters);
+				finalParameters.putAll(statement.getParameters());
 			}
 
 			ReactiveNeo4jClient.MappingSpec<T> mappingSpec = this.neo4jClient.query(cypherQuery)
