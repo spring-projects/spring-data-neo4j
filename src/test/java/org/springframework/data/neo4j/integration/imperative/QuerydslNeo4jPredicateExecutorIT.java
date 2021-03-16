@@ -28,11 +28,16 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.config.AbstractNeo4jConfig;
 import org.springframework.data.neo4j.integration.shared.common.Person;
+// tag::sdn-mixins.dynamic-conditions.add-mixin[]
 import org.springframework.data.neo4j.repository.Neo4jRepository;
+// end::sdn-mixins.dynamic-conditions.add-mixin[]
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.data.neo4j.test.Neo4jExtension;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
+// tag::sdn-mixins.dynamic-conditions.add-mixin[]
 import org.springframework.data.querydsl.QuerydslPredicateExecutor;
+
+// end::sdn-mixins.dynamic-conditions.add-mixin[]
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import com.querydsl.core.types.Ops;
@@ -54,7 +59,6 @@ class QuerydslNeo4jPredicateExecutorIT {
 	private final Path<String> lastName;
 
 	QuerydslNeo4jPredicateExecutorIT() {
-
 		this.person = Expressions.path(Person.class, "n");
 		this.firstName = Expressions.path(String.class, person, "firstName");
 		this.lastName = Expressions.path(String.class, person, "lastName");
@@ -94,7 +98,7 @@ class QuerydslNeo4jPredicateExecutorIT {
 		assertThat(
 				repository.findAll(Expressions.predicate(Ops.EQ, firstName, Expressions.asString("Helge"))
 								.or(Expressions.predicate(Ops.EQ, lastName, Expressions.asString("B."))),
-						Sort.by("lastName").descending()
+						new OrderSpecifier(Order.DESC, lastName)
 				))
 				.extracting(Person::getFirstName)
 				.containsExactly("Helge", "Bela");
@@ -106,7 +110,7 @@ class QuerydslNeo4jPredicateExecutorIT {
 		assertThat(
 				repository.findAll(Expressions.predicate(Ops.EQ, firstName, Expressions.asString("Helge"))
 								.or(Expressions.predicate(Ops.EQ, lastName, Expressions.asString("B."))),
-						new OrderSpecifier(Order.DESC, lastName)
+						Sort.by("lastName").descending()
 				))
 				.extracting(Person::getFirstName)
 				.containsExactly("Helge", "Bela");
@@ -149,8 +153,13 @@ class QuerydslNeo4jPredicateExecutorIT {
 				.isTrue();
 	}
 
-	interface QueryDSLPersonRepository extends Neo4jRepository<Person, Long>, QuerydslPredicateExecutor<Person> {
+	// tag::sdn-mixins.dynamic-conditions.add-mixin[]
+	interface QueryDSLPersonRepository extends
+			Neo4jRepository<Person, Long>, // <.>
+			QuerydslPredicateExecutor<Person> { // <.>
 	}
+	// end::sdn-mixins.dynamic-conditions.add-mixin[]
+
 
 	@Configuration
 	@EnableTransactionManagement

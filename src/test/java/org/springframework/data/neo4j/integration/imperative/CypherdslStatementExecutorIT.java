@@ -19,7 +19,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Optional;
 
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.neo4j.cypherdsl.core.Cypher;
@@ -73,12 +72,13 @@ class CypherdslStatementExecutorIT {
 				.build();
 	}
 
-	static Statement whoHasFirstNameWithAddress(String name) {
-		Node p = Cypher.node("Person").named("p");
+	// tag::sdn-mixins.using-cypher-dsl-statements.using[]
+	static Statement whoHasFirstNameWithAddress(String name) { // <.>
+		Node p = Cypher.node("Person").named("p"); // <.>
 		Node a = Cypher.anyNode("a");
 		Relationship r = p.relationshipTo(a, "LIVES_AT");
 		return Cypher.match(r)
-				.where(p.property("firstName").isEqualTo(Cypher.anonParameter(name)))
+				.where(p.property("firstName").isEqualTo(Cypher.anonParameter(name))) // <.>
 				.returning(
 						p.getRequiredSymbolicName(),
 						Functions.collect(r),
@@ -86,6 +86,7 @@ class CypherdslStatementExecutorIT {
 				)
 				.build();
 	}
+	// end::sdn-mixins.using-cypher-dsl-statements.using[]
 
 	static Statement byCustomQuery() {
 		Node p = Cypher.node("Person").named("p");
@@ -120,17 +121,22 @@ class CypherdslStatementExecutorIT {
 		assertThat(result).isEmpty();
 	}
 
+	// tag::sdn-mixins.using-cypher-dsl-statements.using[]
+
 	@Test
 	void fineOneShouldWork(@Autowired PersonRepository repository) {
 
-		Optional<Person> result = repository.findOne(whoHasFirstNameWithAddress("Helge"));
+		Optional<Person> result = repository.findOne(whoHasFirstNameWithAddress("Helge"));  // <.>
 
-		Assertions.assertThat(result).hasValueSatisfying(namesOnly -> {
+		assertThat(result).hasValueSatisfying(namesOnly -> {
 			assertThat(namesOnly.getFirstName()).isEqualTo("Helge");
 			assertThat(namesOnly.getLastName()).isEqualTo("Schneider");
-			assertThat(namesOnly.getAddress()).extracting(Person.Address::getCity).isEqualTo("Mülheim an der Ruhr");
+			assertThat(namesOnly.getAddress()).extracting(Person.Address::getCity)
+					.isEqualTo("Mülheim an der Ruhr");
 		});
 	}
+
+	// end::sdn-mixins.using-cypher-dsl-statements.using[]
 
 	@Test
 	void fineOneProjectedNoResultShouldWork(@Autowired PersonRepository repository) {
@@ -139,17 +145,22 @@ class CypherdslStatementExecutorIT {
 		assertThat(result).isEmpty();
 	}
 
+	// tag::sdn-mixins.using-cypher-dsl-statements.using[]
 	@Test
 	void fineOneProjectedShouldWork(@Autowired PersonRepository repository) {
 
-		Optional<NamesOnly> result = repository.findOne(whoHasFirstName("Helge"), NamesOnly.class);
+		Optional<NamesOnly> result = repository.findOne(
+				whoHasFirstNameWithAddress("Helge"),
+				NamesOnly.class  // <.>
+		);
 
-		Assertions.assertThat(result).hasValueSatisfying(namesOnly -> {
+		assertThat(result).hasValueSatisfying(namesOnly -> {
 			assertThat(namesOnly.getFirstName()).isEqualTo("Helge");
 			assertThat(namesOnly.getLastName()).isEqualTo("Schneider");
 			assertThat(namesOnly.getFullName()).isEqualTo("Helge Schneider");
 		});
 	}
+	// end::sdn-mixins.using-cypher-dsl-statements.using[]
 
 	@Test
 	void findAllShouldWork(@Autowired PersonRepository repository) {
@@ -205,8 +216,12 @@ class CypherdslStatementExecutorIT {
 				.containsExactly("Bela B.", "Helge Schneider");
 	}
 
-	interface PersonRepository extends Neo4jRepository<Person, Long>, CypherdslStatementExecutor<Person> {
+	// tag::sdn-mixins.using-cypher-dsl-statements.add-mixin[]
+	interface PersonRepository extends
+			Neo4jRepository<Person, Long>,
+			CypherdslStatementExecutor<Person> {
 	}
+	// end::sdn-mixins.using-cypher-dsl-statements.add-mixin[]
 
 	@Configuration
 	@EnableTransactionManagement

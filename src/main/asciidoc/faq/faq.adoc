@@ -204,7 +204,7 @@ public interface MyPersonRepository extends Neo4jRepository<Person, Long> {
     Also, the `Pageable` should be unsorted and you should provide a stable order.
     We won't use the sorting information from the pageable.
 <.> This method returns a page. A page knows about the exact number of total pages.
-    Therefore you must specify an additional count query.
+    Therefore, you must specify an additional count query.
     All other restrictions from the second method apply.
 
 [[faq.custom-queries-and-custom-mappings]]
@@ -219,15 +219,31 @@ object to write the data back which will eventually erase or overwrite data you 
 So, please use repositories and declarative methods with `@Query` in all cases where the result is shaped like your domain
 model or you are sure you don't use a partially mapped model for write commands.
 
-What are the alternatives? First, please read up on two things: <<repositories.custom-implementations,custom repository fragments>>
+What are the alternatives?
+
+* <<projections.sdn.general-remarks,Projections>> might be already enough to shape your *view* on the graph: They can be used to define
+  the depth of fetching properties and related entities in an explicit way: By modelling them.
+* If your goal is to make only the conditions of your queries *dynamic*, then have a look at the <<core.extensions.querydsl, `QuerydslPredicateExecutor`>>
+  but especially our own variant of it, the `CypherdslConditionExecutor`. Both <<sdn-mixins,mixins>> allow to add conditions to
+  the full queries we create for you. Thus, you will have the domain fully populated together with custom conditions.
+  Of course, your conditions must work with what we generate. Find the names of the root node, the related nodes and more
+  <<custom-queries,here>>.
+* Use the http://neo4j-contrib.github.io/cypher-dsl/current/[Cypher-DSL] via the `CypherdslStatementExecutor` or the `ReactiveCypherdslStatementExecutor`.
+  The Cypher-DSL is predestined to create dynamic queries. In the end, it's what SDN uses under the hood anyway. The corresponding
+  mixins work both with the domain type of a repository itself as well as with projections (something that the mixins for adding
+  conditions don't).
+
+If you think that you can solve your problem with a partially dynamic query or a full dynamic query together with a projection,
+please jump back now to the chapter <<sdn-mixins, about Spring Data Neo4j Mixins>>.
+
+Otherwise, please read up on two things: <<repositories.custom-implementations,custom repository fragments>>
 the <<sdn-building-blocks,levels of abstractions>> we offer in SDN 6.
 
-Why speaking about custom repository fragments?
+Why speaking about custom repository fragments now?
 
-* You might want to use the Cypher-DSL for building type-safe queries
-* You might have more complex situation in which a dynamic query is required, but the query still belongs
+* You might have more complex situation in which more than one dynamic query is required, but the queries still belong
   conceptually in a repository and not in the service layer
-* Your custom query returns a graph shaped result that fits not quite to your domain model
+* Your custom queries return a graph shaped result that fits not quite to your domain model
   and therefore the custom query should be accomponied by a custom mapping as well
 * You have the need for interacting with the driver, i.e. for bulk loads that should not go through object mapping.
 

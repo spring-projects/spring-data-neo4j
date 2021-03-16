@@ -32,9 +32,14 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.config.AbstractNeo4jConfig;
 import org.springframework.data.neo4j.core.mapping.Constants;
 import org.springframework.data.neo4j.integration.shared.common.Person;
+// tag::sdn-mixins.dynamic-conditions.add-mixin[]
 import org.springframework.data.neo4j.repository.Neo4jRepository;
+// end::sdn-mixins.dynamic-conditions.add-mixin[]
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
+// tag::sdn-mixins.dynamic-conditions.add-mixin[]
 import org.springframework.data.neo4j.repository.support.CypherdslConditionExecutor;
+
+// end::sdn-mixins.dynamic-conditions.add-mixin[]
 import org.springframework.data.neo4j.test.Neo4jExtension;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
@@ -56,9 +61,17 @@ class CypherdslConditionExecutorIT {
 
 		this.driver = driver;
 
-		this.person = Cypher.node("Person").named(Constants.NAME_OF_ROOT_NODE);
-		this.firstName = this.person.property("firstName");
-		this.lastName = this.person.property("lastName");
+		//CHECKSTYLE:OFF
+		// tag::sdn-mixins.dynamic-conditions.usage[]
+		Node person = Cypher.node("Person").named(Constants.NAME_OF_ROOT_NODE); // <.>
+		Property firstName = person.property("firstName"); // <.>
+		Property lastName = person.property("lastName");
+		// end::sdn-mixins.dynamic-conditions.usage[]
+		//CHECKSTYLE:ON
+
+		this.person = person;
+		this.firstName = firstName;
+		this.lastName = lastName;
 	}
 
 	@BeforeAll
@@ -103,13 +116,17 @@ class CypherdslConditionExecutorIT {
 	@Test
 	void sortedFindAllShouldWorkWithParameter(@Autowired PersonRepository repository) {
 
+		// tag::sdn-mixins.dynamic-conditions.usage[]
+
 		assertThat(
 				repository.findAll(
-						firstName.eq(Cypher.anonParameter("Helge")).or(lastName.eq(Cypher.parameter("someName", "B."))),
-						Sort.by("lastName").descending()
+						firstName.eq(Cypher.anonParameter("Helge"))
+								.or(lastName.eq(Cypher.parameter("someName", "B."))), // <.>
+						lastName.descending() // <.>
 				))
 				.extracting(Person::getFirstName)
 				.containsExactly("Helge", "Bela");
+		// end::sdn-mixins.dynamic-conditions.usage[]
 	}
 
 	@Test
@@ -117,7 +134,7 @@ class CypherdslConditionExecutorIT {
 
 		assertThat(
 				repository.findAll(firstName.eq(Cypher.literalOf("Helge")).or(lastName.eq(Cypher.literalOf("B."))),
-						lastName.descending()
+						Sort.by("lastName").descending()
 				))
 				.extracting(Person::getFirstName)
 				.containsExactly("Helge", "Bela");
@@ -155,8 +172,12 @@ class CypherdslConditionExecutorIT {
 		assertThat(repository.exists(firstName.eq(Cypher.literalOf("A")))).isTrue();
 	}
 
-	interface PersonRepository extends Neo4jRepository<Person, Long>, CypherdslConditionExecutor<Person> {
+	// tag::sdn-mixins.dynamic-conditions.add-mixin[]
+	interface PersonRepository extends
+			Neo4jRepository<Person, Long>, // <.>
+			CypherdslConditionExecutor<Person> { // <.>
 	}
+	// end::sdn-mixins.dynamic-conditions.add-mixin[]
 
 	@Configuration
 	@EnableTransactionManagement

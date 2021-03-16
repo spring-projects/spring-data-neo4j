@@ -133,7 +133,7 @@ Our domain layer should accomplish two things:
 === Example Node-Entity
 
 SDN fully supports unmodifiable entities, for both Java and `data` classes in Kotlin.
-Therefore we will focus on immutable entities here, <<movie-entity>> shows a such an entity.
+Therefore, we will focus on immutable entities here, <<movie-entity>> shows a such an entity.
 
 NOTE: SDN supports all data types the Neo4j Java Driver supports, see https://neo4j.com/docs/driver-manual/current/cypher-workflow/#driver-type-mapping[Map Neo4j types to native language types] inside the chapter "The Cypher type system".
 Future versions will support additional converters.
@@ -229,7 +229,7 @@ Most of the time it's harder to take something away, than to add stuff afterward
 Furthermore, using store specifics leaks your store into your domain.
 From a performance point of view, there is no penalty.
 
-A repository fitting to any of the movie entities above looks like this:
+A reactive repository fitting to any of the movie entities above looks like this:
 
 [source,java]
 [[movie-repository]]
