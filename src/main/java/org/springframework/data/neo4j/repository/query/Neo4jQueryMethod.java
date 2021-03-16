@@ -21,6 +21,8 @@ import java.util.Optional;
 
 import org.springframework.core.MethodParameter;
 import org.springframework.core.annotation.AnnotatedElementUtils;
+import org.springframework.data.neo4j.repository.support.CypherdslStatementExecutor;
+import org.springframework.data.neo4j.repository.support.ReactiveCypherdslStatementExecutor;
 import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.query.Parameter;
@@ -47,6 +49,8 @@ class Neo4jQueryMethod extends QueryMethod {
 
 	private final String repositoryName;
 
+	private final boolean cypherBasedProjection;
+
 	/**
 	 * Creates a new {@link Neo4jQueryMethod} from the given parameters. Looks up the correct query to use for following
 	 * invocations of the method given.
@@ -58,7 +62,9 @@ class Neo4jQueryMethod extends QueryMethod {
 	Neo4jQueryMethod(Method method, RepositoryMetadata metadata, ProjectionFactory factory) {
 		super(method, metadata, factory);
 
-		this.repositoryName = method.getDeclaringClass().getName();
+		Class<?> declaringClass = method.getDeclaringClass();
+		this.repositoryName = declaringClass.getName();
+		this.cypherBasedProjection = CypherdslStatementExecutor.class.isAssignableFrom(declaringClass) || ReactiveCypherdslStatementExecutor.class.isAssignableFrom(declaringClass);
 		this.queryAnnotation = AnnotatedElementUtils.findMergedAnnotation(method, Query.class);
 	}
 
@@ -68,6 +74,10 @@ class Neo4jQueryMethod extends QueryMethod {
 
 	boolean isCollectionLikeQuery() {
 		return isCollectionQuery() || isStreamQuery();
+	}
+
+	boolean isCypherBasedProjection() {
+		return cypherBasedProjection;
 	}
 
 	/**

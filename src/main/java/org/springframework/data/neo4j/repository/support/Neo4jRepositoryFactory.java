@@ -17,12 +17,17 @@ package org.springframework.data.neo4j.repository.support;
 
 import java.util.Optional;
 
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.neo4j.core.Neo4jOperations;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
+import org.springframework.data.neo4j.repository.query.CypherdslConditionExecutorImpl;
 import org.springframework.data.neo4j.repository.query.Neo4jQueryLookupStrategy;
+import org.springframework.data.neo4j.repository.query.QuerydslNeo4jPredicateExecutor;
 import org.springframework.data.neo4j.repository.query.SimpleQueryByExampleExecutor;
+import org.springframework.data.querydsl.QuerydslPredicateExecutor;
+import org.springframework.data.querydsl.QuerydslUtils;
 import org.springframework.data.repository.core.RepositoryInformation;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.core.support.RepositoryComposition.RepositoryFragments;
@@ -78,7 +83,33 @@ final class Neo4jRepositoryFactory extends RepositoryFactorySupport {
 
 		fragments = fragments.append(RepositoryFragment.implemented(byExampleExecutor));
 
+		boolean isQueryDslRepository = QuerydslUtils.QUERY_DSL_PRESENT
+									   && QuerydslPredicateExecutor.class.isAssignableFrom(metadata.getRepositoryInterface());
+
+		if (isQueryDslRepository) {
+
+			fragments = fragments.append(createDSLExecutorFragment(metadata, QuerydslNeo4jPredicateExecutor.class));
+		}
+
+		if (CypherdslConditionExecutor.class.isAssignableFrom(metadata.getRepositoryInterface())) {
+
+			fragments = fragments.append(createDSLExecutorFragment(metadata, CypherdslConditionExecutorImpl.class));
+		}
+
 		return fragments;
+	}
+
+	private RepositoryFragment<Object> createDSLExecutorFragment(RepositoryMetadata metadata, Class<?> implementor) {
+
+		if (metadata.isReactiveRepository()) {
+			throw new InvalidDataAccessApiUsageException(
+					"Cannot combine DSL executor and reactive repository support in a single interface");
+		}
+
+		Neo4jEntityInformation<?, Object> entityInformation = getEntityInformation(metadata.getDomainType());
+		Object querydslFragment = getTargetRepositoryViaReflection(implementor, entityInformation, neo4jOperations);
+
+		return RepositoryFragment.implemented(querydslFragment);
 	}
 
 	@Override

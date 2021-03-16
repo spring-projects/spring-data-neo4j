@@ -32,12 +32,31 @@ public class Person {
 
 	@Relationship("LIVES_AT") private Address address;
 
+	/**
+	 * Address of a person.
+	 */
 	@Node
-	static class Address {
+	public static class Address {
 		@Id @GeneratedValue private Long id;
 		private String zipCode;
 		private String city;
 		private String street;
+
+		public Long getId() {
+			return id;
+		}
+
+		public String getZipCode() {
+			return zipCode;
+		}
+
+		public String getCity() {
+			return city;
+		}
+
+		public String getStreet() {
+			return street;
+		}
 	}
 
 	// The getters are needed for Spring Expression Language in `NamesOnly`
@@ -47,6 +66,18 @@ public class Person {
 
 	public String getLastName() {
 		return lastName;
+	}
+
+	public Address getAddress() {
+		return address;
+	}
+
+	public void setFirstName(String firstName) {
+		this.firstName = firstName;
+	}
+
+	public void setLastName(String lastName) {
+		this.lastName = lastName;
 	}
 
 	@Override
