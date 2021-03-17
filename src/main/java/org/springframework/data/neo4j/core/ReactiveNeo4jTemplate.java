@@ -33,7 +33,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -51,7 +50,6 @@ import org.reactivestreams.Publisher;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
-import org.springframework.core.CollectionFactory;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.dao.OptimisticLockingFailureException;
@@ -92,7 +90,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 	private static final String OPTIMISTIC_LOCKING_ERROR_MESSAGE = "An entity with the required version does not exist.";
 
 	private static final Renderer renderer = Renderer.getDefaultRenderer();
-	private static final String CONTEXT_CARDINALITY = "c";
+	private static final String CONTEXT_RELATIONSHIP_HANDLER = "RELATIONSHIP_HANDLER";
 
 	private final ReactiveNeo4jClient neo4jClient;
 
@@ -581,7 +579,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 
 		Object fromId = parentPropertyAccessor.getProperty(sourceEntity.getRequiredIdProperty());
 		List<Mono<Void>> relationshipDeleteMonos = new ArrayList<>();
-		List<Flux<RelationshipCardinality.Dingens>> relationshipCreationCreations = new ArrayList<>();
+		List<Flux<RelationshipHandler>> relationshipCreationCreations = new ArrayList<>();
 
 		sourceEntity.doWithAssociations((AssociationHandler<Neo4jPersistentProperty>) association -> {
 
@@ -648,14 +646,14 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 			Neo4jPersistentProperty relationshipProperty = association.getInverse();
 
 			stateMachine.markAsProcessed(relationshipDescription, relatedValuesToStore);
-			Flux<RelationshipCardinality.Dingens> relationshipCreation = Flux.fromIterable(relatedValuesToStore).flatMap(relatedValueToStore -> {
+			Flux<RelationshipHandler> relationshipCreation = Flux.fromIterable(relatedValuesToStore).flatMap(relatedValueToStore -> {
 
 				Object relatedNodePreEvt = relationshipContext.identifyAndExtractRelationshipTargetNode(relatedValueToStore);
 				return Mono.deferContextual(ctx -> eventSupport
 						.maybeCallBeforeBind(relatedNodePreEvt)
 						.flatMap(newRelatedObject -> {
 							Neo4jPersistentEntity<?> targetEntity = neo4jMappingContext.getPersistentEntity(relatedNodePreEvt.getClass());
-							return saveRelatedNode(newRelatedObject, relationshipContext.getAssociationTargetType(),targetEntity)
+							return saveRelatedNode(newRelatedObject, relationshipContext.getAssociationTargetType(), targetEntity)
 								.flatMap(relatedInternalId -> {
 									// if an internal id is used this must be set to link this entity in the next iteration
 									PersistentPropertyAccessor<?> targetPropertyAccessor = targetEntity.getPropertyAccessor(newRelatedObject);
@@ -697,29 +695,24 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 														nestedRelationshipsSignal.then(getRelationshipOrRelationshipPropertiesObject);
 											});
 								})
-								.doOnNext(potentiallyModifiedNewRelatedObject -> {
-									RelationshipCardinality.Dingens cardinality = ctx.get(CONTEXT_CARDINALITY);
-									cardinality.handle(relatedValueToStore, newRelatedObject, potentiallyModifiedNewRelatedObject);
+								.doOnNext(potentiallyRecreatedRelatedObject -> {
+									RelationshipHandler handler = ctx.get(CONTEXT_RELATIONSHIP_HANDLER);
+									handler.handle(relatedValueToStore, newRelatedObject, potentiallyRecreatedRelatedObject);
 								});
 						})
-						.then(Mono.fromSupplier(() -> {
-							RelationshipCardinality.Dingens cardinality = ctx.get(CONTEXT_CARDINALITY);
-							return cardinality;
-						})));
+						.then(Mono.fromSupplier(() -> ctx.<RelationshipHandler>get(CONTEXT_RELATIONSHIP_HANDLER))));
 
 			})
 			.contextWrite(ctx -> {
-				RelationshipCardinality.Dingens dingens = RelationshipCardinality.Dingens.forProperty(relationshipProperty, rawValue);
-				return ctx.put(CONTEXT_CARDINALITY, dingens);
+				RelationshipHandler relationshipHandler = RelationshipHandler.forProperty(relationshipProperty, rawValue);
+				return ctx.put(CONTEXT_RELATIONSHIP_HANDLER, relationshipHandler);
 			});
 			relationshipCreationCreations.add(relationshipCreation);
 		});
 
 		return (Mono<T>) Flux.concat(relationshipDeleteMonos)
 				.thenMany(Flux.concat(relationshipCreationCreations))
-				.doOnNext(objects -> {
-					objects.applyFinalResultToOwner(parentPropertyAccessor);
-				})
+				.doOnNext(objects -> objects.applyFinalResultToOwner(parentPropertyAccessor))
 				.checkpoint()
 				.then(Mono.fromSupplier(parentPropertyAccessor::getBean));
 

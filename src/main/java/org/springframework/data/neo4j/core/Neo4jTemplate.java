@@ -47,7 +47,6 @@ import org.neo4j.driver.summary.SummaryCounters;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
-import org.springframework.core.CollectionFactory;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.dao.OptimisticLockingFailureException;
@@ -525,7 +524,7 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 
 			Neo4jPersistentProperty relationshipProperty = association.getInverse();
 
-			RelationshipCardinality.Dingens dingens = RelationshipCardinality.Dingens.forProperty(relationshipProperty, rawValue);
+			RelationshipHandler relationshipHandler = RelationshipHandler.forProperty(relationshipProperty, rawValue);
 
 			for (Object relatedValueToStore : relatedValuesToStore) {
 
@@ -567,16 +566,16 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 					processNestedRelations(targetEntity, targetPropertyAccessor, isEntityNew, stateMachine);
 				}
 
-				Object potentiallyModifiedNewRelatedObject = MappingSupport.getRelationshipOrRelationshipPropertiesObject(neo4jMappingContext,
+				Object potentiallyRecreatedNewRelatedObject = MappingSupport.getRelationshipOrRelationshipPropertiesObject(neo4jMappingContext,
 								relationshipDescription.hasRelationshipProperties(),
 								relationshipProperty.isDynamicAssociation(),
 								relatedValueToStore,
 								targetPropertyAccessor);
 
-				dingens.handle(relatedValueToStore, newRelatedObject, potentiallyModifiedNewRelatedObject);
+				relationshipHandler.handle(relatedValueToStore, newRelatedObject, potentiallyRecreatedNewRelatedObject);
 			}
 
-			dingens.applyFinalResultToOwner(parentPropertyAccessor);
+			relationshipHandler.applyFinalResultToOwner(parentPropertyAccessor);
 		});
 
 	}
