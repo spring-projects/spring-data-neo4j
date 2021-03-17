@@ -526,16 +526,23 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 			Neo4jPersistentProperty relationshipProperty = association.getInverse();
 
 			Object newRelationshipObject = null;
-			Collection<Object> newRelationshipObjectCollection = new ArrayList<>();
-			Map<Object, Object> newRelationshipObjectCollectionMap = new HashMap<>();
+			Collection<Object> newRelationshipObjectCollection = null;
+			Map<Object, Object> newRelationshipObjectCollectionMap = null;
 
+			RelationshipCardinality cardinality;
+
+			// Order is important here, all map based associations are dynamic, but not all dynamic associations are one to many
 			if (relationshipProperty.isCollectionLike()) {
 				newRelationshipObjectCollection = CollectionFactory.createApproximateCollection(rawValue, ((Collection<?>) rawValue).size());
-			} else if (relationshipProperty.isDynamicAssociation()) {
+				cardinality = RelationshipCardinality.ONE_TO_MANY;
+			} else if (relationshipProperty.isDynamicOneToManyAssociation()) {
+				cardinality = RelationshipCardinality.DYNAMIC_ONE_TO_MANY;
 				newRelationshipObjectCollectionMap = CollectionFactory.createApproximateMap(rawValue, ((Map<?, ?>) rawValue).size());
-				if (relationshipProperty.isDynamicOneToManyAssociation()) {
-					newRelationshipObjectCollection = CollectionFactory.createCollection(relationshipProperty.getTypeInformation().getRequiredActualType().getType(), 1); // todo fine tuning size
-				}
+			} else if(relationshipProperty.isDynamicAssociation()) {
+				cardinality = RelationshipCardinality.DYNAMIC_ONE_TO_ONE;
+				newRelationshipObjectCollectionMap = CollectionFactory.createApproximateMap(rawValue, ((Map<?, ?>) rawValue).size());
+			} else {
+				cardinality = RelationshipCardinality.ONE_TO_ONE;
 			}
 
 			for (Object relatedValueToStore : relatedValuesToStore) {
@@ -575,7 +582,7 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 				}
 
 				PersistentPropertyAccessor<?> targetPropertyAccessor = targetEntity.getPropertyAccessor(relatedNode);
-				// if an internal id is used this must get set to link this entity in the next iteration
+				// if an internal id is used this must be set to link this entity in the next iteration
 				if (targetEntity.isUsingInternalIds()) {
 					targetPropertyAccessor.setProperty(targetEntity.getRequiredIdProperty(), relatedInternalId);
 				}
@@ -590,22 +597,44 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 								relatedValueToStore,
 								targetPropertyAccessor);
 
-				newRelationshipObjectCollection.add(newRelationshipObject);
-
-				if (relationshipProperty.isDynamicAssociation()) {
-					MappingSupport.addToDynamicAssociationCollection(relationshipProperty,
-							(Map.Entry<Object, Object>) relatedValueToStore, newRelationshipObject,
-							newRelationshipObjectCollection, newRelationshipObjectCollectionMap);
+				if (newRelationshipObject == relatedNode) {
+					newRelationshipObject = null;
+				} else if (cardinality != RelationshipCardinality.ONE_TO_ONE) {
+					if (cardinality == RelationshipCardinality.ONE_TO_MANY) {
+						newRelationshipObjectCollection.add(newRelationshipObject);
+					} else {
+						Object key = ((Map.Entry<Object, Object>) relatedValueToStore).getKey();
+						if (cardinality == RelationshipCardinality.DYNAMIC_ONE_TO_ONE) {
+							newRelationshipObjectCollectionMap.put(key, newRelationshipObject);
+						} else {
+							Collection<Object> newCollection = (Collection<Object>) newRelationshipObjectCollectionMap
+									.computeIfAbsent(key, k -> CollectionFactory.createCollection(relationshipProperty.getTypeInformation().getRequiredActualType().getType(), ((Collection)((Map)rawValue).get(key)).size()));
+							newCollection.add(newRelationshipObject);
+						}
+					}
 				}
 			}
 
-			if (rawValue instanceof Collection) {
-				parentPropertyAccessor.setProperty(relationshipProperty, newRelationshipObjectCollection);
-			} else if (rawValue instanceof Map) {
-				parentPropertyAccessor.setProperty(relationshipProperty, newRelationshipObjectCollectionMap);
-			} else {
-				parentPropertyAccessor.setProperty(relationshipProperty, newRelationshipObject);
+			Object updatedOrRecreatedRelationship = null;
+			switch (cardinality) {
+				case ONE_TO_ONE:
+					updatedOrRecreatedRelationship = newRelationshipObject;
+					break;
+				case ONE_TO_MANY:
+					if (!newRelationshipObjectCollection.isEmpty()) {
+						updatedOrRecreatedRelationship = newRelationshipObjectCollection;
+					}
+					break;
+				case DYNAMIC_ONE_TO_ONE:
+				case DYNAMIC_ONE_TO_MANY:
+					if(!newRelationshipObjectCollectionMap.isEmpty()) {
+						updatedOrRecreatedRelationship = newRelationshipObjectCollectionMap;
+					}
+					break;
+			}
 
+			if (updatedOrRecreatedRelationship != null) {
+				parentPropertyAccessor.setProperty(relationshipProperty, updatedOrRecreatedRelationship);
 			}
 		});
 
