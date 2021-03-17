@@ -15,6 +15,16 @@
  */
 package org.springframework.data.neo4j.integration.reactive;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import reactor.test.StepVerifier;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.neo4j.driver.Driver;
@@ -22,23 +32,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.neo4j.config.AbstractReactiveNeo4jConfig;
+import org.springframework.data.neo4j.core.ReactiveNeo4jTemplate;
 import org.springframework.data.neo4j.integration.shared.common.ImmutablePersonWithGeneratedId;
 import org.springframework.data.neo4j.integration.shared.common.ImmutablePersonWithGeneratedIdRelationshipProperties;
 import org.springframework.data.neo4j.integration.shared.common.ImmutableSecondPersonWithGeneratedId;
 import org.springframework.data.neo4j.integration.shared.common.ImmutableSecondPersonWithGeneratedIdRelationshipProperties;
+import org.springframework.data.neo4j.integration.shared.common.MutableChild;
+import org.springframework.data.neo4j.integration.shared.common.MutableParent;
 import org.springframework.data.neo4j.repository.ReactiveNeo4jRepository;
 import org.springframework.data.neo4j.repository.config.EnableReactiveNeo4jRepositories;
 import org.springframework.data.neo4j.test.Neo4jExtension;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
-import reactor.test.StepVerifier;
-
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Gerrit Meier
@@ -277,6 +282,24 @@ public class ReactiveImmutableGeneratedIdsIT {
 	}
 
 	interface ReactiveImmutablePersonWithGeneratedIdRepository extends ReactiveNeo4jRepository<ImmutablePersonWithGeneratedId, Long> {
+	}
+
+	@Test // GH-2148
+	void childrenShouldNotBeRecreatedForNoReasons(@Autowired ReactiveNeo4jTemplate template) {
+
+		MutableParent parent = new MutableParent();
+		List<MutableChild> children = Arrays.asList(new MutableChild(), new MutableChild());
+		parent.setChildren(children);
+
+		template.save(parent).as(StepVerifier::create)
+				.consumeNextWith(saved -> {
+					assertThat(saved).isSameAs(parent);
+					assertThat(saved.getId()).isNotNull();
+					assertThat(saved.getChildren()).isSameAs(children);
+					assertThat(saved.getChildren()).allMatch(c -> c.getId() != null && children.contains(c));
+
+				})
+				.verifyComplete();
 	}
 
 	@Configuration

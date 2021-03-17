@@ -21,12 +21,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.neo4j.config.AbstractNeo4jConfig;
+import org.springframework.data.neo4j.core.Neo4jTemplate;
 import org.springframework.data.neo4j.core.convert.Neo4jConversions;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.integration.shared.common.ImmutablePersonWithGeneratedId;
 import org.springframework.data.neo4j.integration.shared.common.ImmutablePersonWithGeneratedIdRelationshipProperties;
 import org.springframework.data.neo4j.integration.shared.common.ImmutableSecondPersonWithGeneratedId;
 import org.springframework.data.neo4j.integration.shared.common.ImmutableSecondPersonWithGeneratedIdRelationshipProperties;
+import org.springframework.data.neo4j.integration.shared.common.MutableChild;
+import org.springframework.data.neo4j.integration.shared.common.MutableParent;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.data.neo4j.test.Neo4jExtension;
@@ -277,6 +280,20 @@ public class ImmutableGeneratedIdsIT {
 	}
 
 	interface ImmutablePersonWithGeneratedIdRepository extends Neo4jRepository<ImmutablePersonWithGeneratedId, Long> {}
+
+	@Test // GH-2148
+	void childrenShouldNotBeRecreatedForNoReasons(@Autowired Neo4jTemplate template) {
+
+		MutableParent parent = new MutableParent();
+		List<MutableChild> children = Arrays.asList(new MutableChild(), new MutableChild());
+		parent.setChildren(children);
+
+		MutableParent saved = template.save(parent);
+		assertThat(saved).isSameAs(parent);
+		assertThat(saved.getId()).isNotNull();
+		assertThat(saved.getChildren()).isSameAs(children);
+		assertThat(saved.getChildren()).allMatch(c -> c.getId() != null && children.contains(c));
+	}
 
 	@Configuration
 	@EnableNeo4jRepositories(considerNestedRepositories = true)
