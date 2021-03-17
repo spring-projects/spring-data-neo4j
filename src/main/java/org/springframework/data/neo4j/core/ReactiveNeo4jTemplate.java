@@ -15,6 +15,27 @@
  */
 package org.springframework.data.neo4j.core;
 
+import static org.neo4j.cypherdsl.core.Cypher.anyNode;
+import static org.neo4j.cypherdsl.core.Cypher.asterisk;
+import static org.neo4j.cypherdsl.core.Cypher.parameter;
+
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.util.function.Tuple2;
+import reactor.util.function.Tuples;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
 import org.apache.commons.logging.LogFactory;
 import org.apiguardian.api.API;
 import org.neo4j.cypherdsl.core.Condition;
@@ -55,26 +76,6 @@ import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
-import reactor.util.function.Tuple2;
-import reactor.util.function.Tuples;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
-import static org.neo4j.cypherdsl.core.Cypher.anyNode;
-import static org.neo4j.cypherdsl.core.Cypher.asterisk;
-import static org.neo4j.cypherdsl.core.Cypher.parameter;
 
 /**
  * @author Michael J. Simons
@@ -680,23 +681,19 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 															.setProperty(idProperty, relationshipInternalId);
 												}
 
-												Mono<Object> something = null;
+												Mono<Object> nestedRelationshipsSignal = null;
 												if (processState != ProcessState.PROCESSED_ALL_VALUES) {
-													something = processNestedRelations(targetEntity, targetPropertyAccessor, targetEntity.isNew(relatedNode), stateMachine);
-												} else {
-													something = Mono.just((T) targetPropertyAccessor.getBean());
+													nestedRelationshipsSignal = processNestedRelations(targetEntity, targetPropertyAccessor, targetEntity.isNew(relatedNode), stateMachine);
 												}
 
-												return something.flatMap(currentValue -> {
-													Object relationshipOrPropertiesObject =
-															MappingSupport.getRelationshipOrRelationshipPropertiesObject(neo4jMappingContext,
-																	relationshipDescription.hasRelationshipProperties(),
-																	relationshipProperty.isDynamicAssociation(),
-																	relatedValueToStore,
-																	targetPropertyAccessor);
-
-													return Mono.just((T) relationshipOrPropertiesObject);
-												});
+												Mono<Object> getRelationshipOrRelationshipPropertiesObject = Mono.fromSupplier(() -> MappingSupport.getRelationshipOrRelationshipPropertiesObject(
+																neo4jMappingContext,
+																relationshipDescription.hasRelationshipProperties(),
+																relationshipProperty.isDynamicAssociation(),
+																relatedValueToStore,
+																targetPropertyAccessor));
+												return nestedRelationshipsSignal == null ? getRelationshipOrRelationshipPropertiesObject :
+														nestedRelationshipsSignal.then(getRelationshipOrRelationshipPropertiesObject);
 											});
 								}).checkpoint();
 						})
@@ -735,7 +732,8 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 			relationshipCreationCreations.add(relationshipCreation);
 		});
 
-		return Flux.concat(relationshipDeleteMonos)
+
+		return (Mono<T>) Flux.concat(relationshipDeleteMonos)
 				.thenMany(Flux.concat(relationshipCreationCreations))
 				.doOnNext(objects -> {
 					if (objects.relationshipProperty.isCollectionLike()) {
@@ -747,7 +745,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 					}
 				})
 				.checkpoint()
-				.then(Mono.defer(() -> Mono.just((T) parentPropertyAccessor.getBean())));
+				.then(Mono.fromSupplier(parentPropertyAccessor::getBean));
 
 	}
 
