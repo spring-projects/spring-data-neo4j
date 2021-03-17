@@ -533,8 +533,8 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 
 			// Order is important here, all map based associations are dynamic, but not all dynamic associations are one to many
 			if (relationshipProperty.isCollectionLike()) {
-				newRelationshipObjectCollection = CollectionFactory.createApproximateCollection(rawValue, ((Collection<?>) rawValue).size());
 				cardinality = RelationshipCardinality.ONE_TO_MANY;
+				newRelationshipObjectCollection = CollectionFactory.createApproximateCollection(rawValue, ((Collection<?>) rawValue).size());
 			} else if (relationshipProperty.isDynamicOneToManyAssociation()) {
 				cardinality = RelationshipCardinality.DYNAMIC_ONE_TO_MANY;
 				newRelationshipObjectCollectionMap = CollectionFactory.createApproximateMap(rawValue, ((Map<?, ?>) rawValue).size());

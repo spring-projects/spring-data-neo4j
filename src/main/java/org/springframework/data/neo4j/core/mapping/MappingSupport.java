@@ -16,7 +16,6 @@
 package org.springframework.data.neo4j.core.mapping;
 
 import java.util.AbstractMap.SimpleEntry;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
@@ -34,6 +33,7 @@ import org.springframework.data.mapping.PersistentPropertyAccessor;
 /**
  * @author Michael J. Simons
  * @author Philipp Tölle
+ * @author Gerrit Meier
  * @since 6.0
  */
 @API(status = API.Status.INTERNAL, since = "6.0")
@@ -131,39 +131,6 @@ public final class MappingSupport {
 			newRelationshipObject = relationshipPropertiesAccessor.getBean();
 		}
 		return newRelationshipObject;
-	}
-
-	/**
-	 * Adds previously created objects of related entities to a map.
-	 * The main purpose of this method is to provide a merge function that can collect multiple value for the same
-	 * key but in different calls under the same key.
-	 */
-	public static void addToDynamicAssociationCollection(Neo4jPersistentProperty relationshipProperty,
-														 Map.Entry<Object, Object> relatedValueToStore,
-														 Object newRelationshipObject,
-														 Collection<Object> newRelationshipObjectCollection,
-												  		 Map<Object, Object> newRelationshipObjectCollectionMap) {
-
-		Object key = relatedValueToStore.getKey();
-		Object value;
-		if (relationshipProperty.isDynamicOneToManyAssociation()) {
-			value = newRelationshipObjectCollection;
-		} else {
-			value = newRelationshipObject;
-		}
-
-		newRelationshipObjectCollectionMap.merge(key, value, (existingElement, additionalElement) -> {
-
-			if (existingElement instanceof Collection) {
-				((Collection<Object>) existingElement).addAll((Collection<Object>) additionalElement);
-				return existingElement;
-			}
-
-			ArrayList<Object> objects = new ArrayList<>();
-			objects.add(existingElement);
-			objects.add(additionalElement);
-			return objects;
-		});
 	}
 
 	private MappingSupport() {}

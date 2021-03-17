@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -91,8 +92,10 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 	private static final String OPTIMISTIC_LOCKING_ERROR_MESSAGE = "An entity with the required version does not exist.";
 
 	private static final Renderer renderer = Renderer.getDefaultRenderer();
-	public static final String CONTEXT_COLLECTION_MAP = "newRelationshipMap";
-	public static final String CONTEXT_COLLECTION = "newRelationshipCollection";
+	private static final String CONTEXT_SINGLE = "newRelationship";
+	private static final String CONTEXT_COLLECTION = "newRelationshipCollection";
+	private static final String CONTEXT_COLLECTION_MAP = "newRelationshipMap";
+	private static final String CONTEXT_CARDINALITY = "c";
 
 	private final ReactiveNeo4jClient neo4jClient;
 
@@ -581,7 +584,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 
 		Object fromId = parentPropertyAccessor.getProperty(sourceEntity.getRequiredIdProperty());
 		List<Mono<Void>> relationshipDeleteMonos = new ArrayList<>();
-		List<Flux<RelationshipPropertyValues>> relationshipCreationCreations = new ArrayList<>();
+		List<Flux<RelationshipAndValue>> relationshipCreationCreations = new ArrayList<>();
 
 		sourceEntity.doWithAssociations((AssociationHandler<Neo4jPersistentProperty>) association -> {
 
@@ -648,10 +651,11 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 			Neo4jPersistentProperty relationshipProperty = association.getInverse();
 
 			stateMachine.markAsProcessed(relationshipDescription, relatedValuesToStore);
-			Flux<RelationshipPropertyValues> relationshipCreation = Flux.fromIterable(relatedValuesToStore).flatMap(relatedValueToStore -> {
+			Flux<RelationshipAndValue> relationshipCreation = Flux.fromIterable(relatedValuesToStore).flatMap(relatedValueToStore -> {
 
 				Object relatedNodePreEvt = relationshipContext.identifyAndExtractRelationshipTargetNode(relatedValueToStore);
-				return Mono.deferContextual(ctx -> eventSupport.maybeCallBeforeBind(relatedNodePreEvt)
+				return Mono.deferContextual(ctx -> eventSupport
+						.maybeCallBeforeBind(relatedNodePreEvt)
 						.flatMap(relatedNode -> {
 							Neo4jPersistentEntity<?> targetEntity = neo4jMappingContext.getPersistentEntity(relatedNodePreEvt.getClass());
 							return saveRelatedNode(relatedNode, relationshipContext.getAssociationTargetType(),targetEntity)
@@ -695,69 +699,95 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 												return nestedRelationshipsSignal == null ? getRelationshipOrRelationshipPropertiesObject :
 														nestedRelationshipsSignal.then(getRelationshipOrRelationshipPropertiesObject);
 											});
-								}).checkpoint();
+								})
+								.doOnNext(newRelationshipObject -> {
+									RelationshipCardinality cardinality = ctx.get(CONTEXT_CARDINALITY);
+									if(newRelationshipObject == relatedNode) {
+										return;
+									} else if (cardinality == RelationshipCardinality.ONE_TO_ONE) {
+										ctx.<AtomicReference>get(CONTEXT_SINGLE).set(newRelationshipObject);
+									} else if (cardinality == RelationshipCardinality.ONE_TO_MANY) {
+										Collection<Object> newRelationshipObjectCollection = ctx.get(CONTEXT_COLLECTION);
+										newRelationshipObjectCollection.add(newRelationshipObject);
+									} else {
+										Map<Object, Object> newRelationshipObjectCollectionMap = ctx.get(CONTEXT_COLLECTION_MAP);
+										Object key = ((Map.Entry<Object, Object>) relatedValueToStore).getKey();
+										if (cardinality == RelationshipCardinality.DYNAMIC_ONE_TO_ONE) {
+											newRelationshipObjectCollectionMap.put(key, newRelationshipObject);
+										} else {
+											Collection<Object> newCollection = (Collection<Object>) newRelationshipObjectCollectionMap
+													.computeIfAbsent(key, k -> CollectionFactory.createCollection(relationshipProperty.getTypeInformation().getRequiredActualType().getType(), ((Collection)((Map)rawValue).get(key)).size()));
+											newCollection.add(newRelationshipObject);
+										}
+									}
+								});
 						})
-						.doOnNext(newRelationshipObject -> {
-							Collection<Object> newRelationshipObjectCollection = ctx.get(CONTEXT_COLLECTION);
-							newRelationshipObjectCollection.add(newRelationshipObject);
-
-							if (relationshipProperty.isDynamicAssociation()) {
-								Map<Object, Object> newRelationshipObjectCollectionMap = ctx.get(CONTEXT_COLLECTION_MAP);
-								MappingSupport.addToDynamicAssociationCollection(relationshipProperty,
-										(Map.Entry<Object, Object>) relatedValueToStore, newRelationshipObject,
-										newRelationshipObjectCollection, newRelationshipObjectCollectionMap);
+						.then(Mono.fromSupplier(() -> {
+							RelationshipCardinality cardinality = ctx.get(CONTEXT_CARDINALITY);
+							Object updatedOrRecreatedRelationship = null;
+							switch (cardinality) {
+								case ONE_TO_ONE:
+									updatedOrRecreatedRelationship = ctx.<AtomicReference>get(CONTEXT_SINGLE).get();
+									break;
+								case ONE_TO_MANY:
+									Collection<Object> newRelationshipObjectCollection = ctx.get(CONTEXT_COLLECTION);
+									if (!newRelationshipObjectCollection.isEmpty()) {
+										updatedOrRecreatedRelationship = newRelationshipObjectCollection;
+									}
+									break;
+								case DYNAMIC_ONE_TO_ONE:
+								case DYNAMIC_ONE_TO_MANY:
+									Map<Object, Object> newRelationshipObjectCollectionMap = ctx.get(CONTEXT_COLLECTION_MAP);
+									if(!newRelationshipObjectCollectionMap.isEmpty()) {
+										updatedOrRecreatedRelationship = newRelationshipObjectCollectionMap;
+									}
+									break;
 							}
-						})
-						.then(Mono.defer(() -> {
-							Collection<Object> newRelationshipObjectCollection = ctx.get(CONTEXT_COLLECTION);
-							Map<Object, Object> newRelationshipObjectCollectionMap = ctx.get(CONTEXT_COLLECTION_MAP);
-							return Mono.just(new RelationshipPropertyValues(relationshipProperty, newRelationshipObjectCollection, newRelationshipObjectCollectionMap));
+							return new RelationshipAndValue(relationshipProperty, updatedOrRecreatedRelationship);
 						})));
 
 			})
 			.contextWrite(ctx -> {
-				Collection<Object> newRelationshipObjectCollection = new ArrayList<>();
-				Map<Object, Object> newRelationshipObjectCollectionMap = new HashMap<>(0);
-				if (relationshipProperty.isDynamicAssociation()) {
-					newRelationshipObjectCollectionMap = CollectionFactory.createApproximateMap(rawValue, ((Map<?, ?>) rawValue).size());
-				}
-
+				RelationshipCardinality cardinality;
+				// Order is important here, all map based associations are dynamic, but not all dynamic associations are one to many
 				if (relationshipProperty.isCollectionLike()) {
-					newRelationshipObjectCollection = CollectionFactory.createApproximateCollection(rawValue, ((Collection<?>) rawValue).size());
+					cardinality = RelationshipCardinality.ONE_TO_MANY;
+					ctx = ctx.put(CONTEXT_COLLECTION, CollectionFactory.createApproximateCollection(rawValue, ((Collection<?>) rawValue).size()));
+				} else if (relationshipProperty.isDynamicOneToManyAssociation()) {
+					cardinality = RelationshipCardinality.DYNAMIC_ONE_TO_MANY;
+					ctx = ctx.put(CONTEXT_COLLECTION_MAP, CollectionFactory.createApproximateMap(rawValue, ((Map<?, ?>) rawValue).size()));
+				} else if(relationshipProperty.isDynamicAssociation()) {
+					cardinality = RelationshipCardinality.DYNAMIC_ONE_TO_ONE;
+					ctx = ctx.put(CONTEXT_COLLECTION_MAP, CollectionFactory.createApproximateMap(rawValue, ((Map<?, ?>) rawValue).size()));
+				} else {
+					cardinality = RelationshipCardinality.ONE_TO_ONE;
+					ctx = ctx.put(CONTEXT_SINGLE, new AtomicReference<>());
 				}
-				return ctx
-						.put(CONTEXT_COLLECTION, newRelationshipObjectCollection)
-						.put(CONTEXT_COLLECTION_MAP, newRelationshipObjectCollectionMap);
+				return ctx.put(CONTEXT_CARDINALITY, cardinality);
 			});
 			relationshipCreationCreations.add(relationshipCreation);
 		});
 
-
 		return (Mono<T>) Flux.concat(relationshipDeleteMonos)
 				.thenMany(Flux.concat(relationshipCreationCreations))
 				.doOnNext(objects -> {
-					if (objects.relationshipProperty.isCollectionLike()) {
-						parentPropertyAccessor.setProperty(objects.relationshipProperty, objects.objectCollection);
-					} else if (objects.relationshipProperty.isDynamicAssociation()) {
-						parentPropertyAccessor.setProperty(objects.relationshipProperty, objects.objectMap);
-					} else if (!objects.objectCollection.isEmpty()) {
-						parentPropertyAccessor.setProperty(objects.relationshipProperty, objects.objectCollection.iterator().next());
+					if(objects.updatedOrRecreatedRelationship == null) {
+						return;
 					}
+					parentPropertyAccessor.setProperty(objects.relationshipProperty, objects.updatedOrRecreatedRelationship);
 				})
 				.checkpoint()
 				.then(Mono.fromSupplier(parentPropertyAccessor::getBean));
 
 	}
 
-	class RelationshipPropertyValues {
+	class RelationshipAndValue {
 		final Neo4jPersistentProperty relationshipProperty;
-		final Collection<Object> objectCollection;
-		final Map<Object, Object> objectMap;
+		@Nullable final Object updatedOrRecreatedRelationship;
 
-		RelationshipPropertyValues(Neo4jPersistentProperty relationshipProperty, Collection<Object> objectCollection, Map<Object, Object> objectMap) {
+		 RelationshipAndValue(Neo4jPersistentProperty relationshipProperty, @Nullable Object updatedOrRecreatedRelationship) {
 			this.relationshipProperty = relationshipProperty;
-			this.objectCollection = objectCollection;
-			this.objectMap = objectMap;
+			this.updatedOrRecreatedRelationship = updatedOrRecreatedRelationship;
 		}
 	}
 
