@@ -652,9 +652,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 				Object relatedNodePreEvt = relationshipContext.identifyAndExtractRelationshipTargetNode(relatedValueToStore);
 				return Mono.deferContextual(ctx -> eventSupport.maybeCallBeforeBind(relatedNodePreEvt)
 						.flatMap(relatedNode -> Mono.just(neo4jMappingContext.getPersistentEntity(relatedNodePreEvt.getClass()))
-								.flatMap(targetEntity -> Mono.just(targetEntity.isNew(relatedNode))
-										.flatMap(isNew -> saveRelatedNode(relatedNode, relationshipContext.getAssociationTargetType(),
-												targetEntity)
+								.flatMap(targetEntity -> saveRelatedNode(relatedNode, relationshipContext.getAssociationTargetType(),targetEntity)
 												.flatMap(relatedInternalId -> {
 													// if an internal id is used this must be set to link this entity in the next iteration
 													PersistentPropertyAccessor<?> targetPropertyAccessor = targetEntity
@@ -685,8 +683,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 
 																Mono<Object> something = null;
 																if (processState != ProcessState.PROCESSED_ALL_VALUES) {
-																	something = processNestedRelations(targetEntity, targetPropertyAccessor,
-																			isNew, stateMachine);
+																	something = processNestedRelations(targetEntity, targetPropertyAccessor, targetEntity.isNew(relatedNode), stateMachine);
 																} else {
 																	something = Mono.just((T) targetPropertyAccessor.getBean());
 																}
@@ -704,7 +701,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 															});
 
 
-												}).checkpoint())))
+												}).checkpoint()))
 						.doOnNext(newRelationshipObject -> {
 							Collection<Object> newRelationshipObjectCollection = ctx.get(CONTEXT_COLLECTION);
 							newRelationshipObjectCollection.add(newRelationshipObject);
