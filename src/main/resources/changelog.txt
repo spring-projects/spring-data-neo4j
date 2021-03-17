@@ -1,6 +1,10 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 5.3.8.RELEASE (2021-03-17)
+---------------------------------------------
+
+
 Changes in version 6.1.0-M4 (2021-02-18)
 ----------------------------------------
 * #2154 - Return new instance after incrementing version property on immutables.
@@ -2102,6 +2106,7 @@ General
 * Support for building traversal descriptions
 * Support for cross-store persistence including basic transaction support
 * Abstract configuration class
+
 
 
 
