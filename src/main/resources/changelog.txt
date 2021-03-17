@@ -1,6 +1,23 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 6.0.6 (2021-03-17)
+-------------------------------------
+* #2183 - Wrong link for composite properties.
+* #2178 - Create correct union statements.
+* #2177 - Problem with two-way relationship.
+* #2175 - InvalidDataAccessResourceUsageException: Variable `__sn__` not defined.
+* #2172 - Documentation has wrong section structure.
+* #2170 - Update to Cypher-DSL 2021.1.1.
+* #2169 - Remove block() call from ReactiveNeo4jTemplate.
+* #2165 - Support nested projections with cascaded queries.
+* #2164 - Treat id properties correctly in derived finder methods.
+* #2162 - Remove usage of deprecated Spring Data Commons API.
+* #2160 - Fix headlines in documentation.
+* #2157 - Don't resolve circular possible circular relationships for queries returning count or exists projections.
+* #2138 - Object mapping does not work correctly with abstract superclass and recursion.
+
+
 Changes in version 5.3.8.RELEASE (2021-03-17)
 ---------------------------------------------
 
@@ -2112,6 +2129,7 @@ General
 * Support for building traversal descriptions
 * Support for cross-store persistence including basic transaction support
 * Abstract configuration class
+
 
 
 
