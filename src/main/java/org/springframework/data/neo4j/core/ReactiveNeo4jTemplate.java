@@ -705,7 +705,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 								})
 								.doOnNext(potentiallyRecreatedRelatedObject -> {
 									RelationshipHandler handler = ctx.get(CONTEXT_RELATIONSHIP_HANDLER);
-									handler.handle(relatedValueToStore, newRelatedObject, potentiallyRecreatedRelatedObject);
+									handler.handle(relatedValueToStore, relatedNodePreEvt, potentiallyRecreatedRelatedObject);
 								});
 						})
 						.then(Mono.fromSupplier(() -> ctx.<RelationshipHandler>get(CONTEXT_RELATIONSHIP_HANDLER))));
