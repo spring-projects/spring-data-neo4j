@@ -252,18 +252,17 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 								}
 								return Mono.empty();
 							}));
-
+					PersistentPropertyAccessor<T> propertyAccessor = entityMetaData.getPropertyAccessor(entity);
 					if (!entityMetaData.isUsingInternalIds()) {
-						return idMono.then(processRelations(entityMetaData, entity, isNewEntity, instance))
+						return idMono.then(processRelations(entityMetaData, propertyAccessor, isNewEntity))
 								.thenReturn(entity);
 					} else {
 						return idMono.map(internalId -> {
-							PersistentPropertyAccessor<T> propertyAccessor = entityMetaData.getPropertyAccessor(entity);
 							propertyAccessor.setProperty(entityMetaData.getRequiredIdProperty(), internalId);
 
 							return propertyAccessor.getBean();
 						}).flatMap(
-								savedEntity -> processRelations(entityMetaData, savedEntity, isNewEntity, instance)
+								savedEntity -> processRelations(entityMetaData, propertyAccessor, isNewEntity)
 										.thenReturn(savedEntity));
 					}
 				}));
@@ -341,8 +340,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 									.flatMap(t -> {
 												T entityToBeSaved = t.getT2();
 												boolean isNew = isNewIndicator.get(Math.toIntExact(t.getT1()));
-												return processRelations(entityMetaData, entityToBeSaved, isNew,
-														entities.get(Math.toIntExact(t.getT1())))
+												return processRelations(entityMetaData, entityMetaData.getPropertyAccessor(entityToBeSaved), isNew)
 														.then(Mono.just(entityToBeSaved));
 											}
 									);
@@ -566,25 +564,25 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 		};
 	}
 
-	private Mono<Void> processRelations(Neo4jPersistentEntity<?> neo4jPersistentEntity, Object parentObject,
-			boolean isParentObjectNew, Object parentEntity) {
+	private Mono<Void> processRelations(Neo4jPersistentEntity<?> neo4jPersistentEntity, PersistentPropertyAccessor<?> parentPropertyAccessor,
+			boolean isParentObjectNew) {
 
-		return processNestedRelations(neo4jPersistentEntity, parentObject, isParentObjectNew,
-				new NestedRelationshipProcessingStateMachine(parentEntity));
+		return processNestedRelations(neo4jPersistentEntity, parentPropertyAccessor, isParentObjectNew,
+				new NestedRelationshipProcessingStateMachine());
 	}
 
-	private Mono<Void> processNestedRelations(Neo4jPersistentEntity<?> sourceEntity, Object parentObject,
+	private Mono<Void> processNestedRelations(Neo4jPersistentEntity<?> sourceEntity, PersistentPropertyAccessor<?> parentPropertyAccessor,
 		  boolean isParentObjectNew, NestedRelationshipProcessingStateMachine stateMachine) {
 
 		return Mono.defer(() -> {
-			PersistentPropertyAccessor<?> propertyAccessor = sourceEntity.getPropertyAccessor(parentObject);
-			Object fromId = propertyAccessor.getProperty(sourceEntity.getRequiredIdProperty());
+
+			Object fromId = parentPropertyAccessor.getProperty(sourceEntity.getRequiredIdProperty());
 			List<Mono<Void>> relationshipCreationMonos = new ArrayList<>();
 
 			sourceEntity.doWithAssociations((AssociationHandler<Neo4jPersistentProperty>) association -> {
 
 				// create context to bundle parameters
-				NestedRelationshipContext relationshipContext = NestedRelationshipContext.of(association, propertyAccessor,
+				NestedRelationshipContext relationshipContext = NestedRelationshipContext.of(association, parentPropertyAccessor,
 						sourceEntity);
 
 				Collection<?> relatedValuesToStore = MappingSupport.unifyRelationshipValue(relationshipContext.getInverse(),
@@ -694,7 +692,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 
 											if (processState != ProcessState.PROCESSED_ALL_VALUES) {
 												return relationshipCreationMonoNested.checkpoint().then(
-														processNestedRelations(targetEntity, targetPropertyAccessor.getBean(),
+														processNestedRelations(targetEntity, targetPropertyAccessor,
 																isNew, stateMachine));
 											} else {
 												return relationshipCreationMonoNested.checkpoint().then();
