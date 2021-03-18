@@ -545,12 +545,12 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 			for (Object relatedValueToStore : relatedValuesToStore) {
 
 				// here a map entry is not always anymore a dynamic association
-				Object newRelatedObject = relationshipContext.identifyAndExtractRelationshipTargetNode(relatedValueToStore);
-				Neo4jPersistentEntity<?> targetEntity = neo4jMappingContext.getPersistentEntity(newRelatedObject.getClass());
+				Object relatedObjectBeforeCallbacks = relationshipContext.identifyAndExtractRelationshipTargetNode(relatedValueToStore);
+				Neo4jPersistentEntity<?> targetEntity = neo4jMappingContext.getPersistentEntity(relatedObjectBeforeCallbacks.getClass());
 
-				boolean isEntityNew = targetEntity.isNew(newRelatedObject);
+				boolean isEntityNew = targetEntity.isNew(relatedObjectBeforeCallbacks);
 
-				newRelatedObject = eventSupport.maybeCallBeforeBind(newRelatedObject);
+				Object newRelatedObject = eventSupport.maybeCallBeforeBind(relatedObjectBeforeCallbacks);
 
 				Long relatedInternalId;
 				// No need to save values if processed
@@ -594,7 +594,7 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 								relatedValueToStore,
 								targetPropertyAccessor);
 
-				relationshipHandler.handle(relatedValueToStore, newRelatedObject, potentiallyRecreatedNewRelatedObject);
+				relationshipHandler.handle(relatedValueToStore, relatedObjectBeforeCallbacks, potentiallyRecreatedNewRelatedObject);
 			}
 
 			relationshipHandler.applyFinalResultToOwner(propertyAccessor);
