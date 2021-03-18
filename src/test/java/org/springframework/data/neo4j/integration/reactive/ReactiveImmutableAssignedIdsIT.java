@@ -24,7 +24,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.neo4j.config.AbstractReactiveNeo4jConfig;
 import org.springframework.data.neo4j.core.convert.Neo4jConversions;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
-import org.springframework.data.neo4j.core.mapping.callback.BeforeBindCallback;
 import org.springframework.data.neo4j.core.mapping.callback.ReactiveBeforeBindCallback;
 import org.springframework.data.neo4j.integration.shared.common.ImmutablePersonWithAssignedId;
 import org.springframework.data.neo4j.integration.shared.common.ImmutablePersonWithAssignedIdRelationshipProperties;
@@ -59,7 +58,7 @@ public class ReactiveImmutableAssignedIdsIT {
 
 	@Test
 		// GH-2141
-	void saveWithGeneratedIdsReturnsObjectWithIdSet(
+	void saveWithAssignedIdsReturnsObjectWithIdSet(
 			@Autowired ReactiveImmutablePersonWithAssignedIdRepository repository) {
 
 		ImmutablePersonWithAssignedId fallback1 = new ImmutablePersonWithAssignedId();
@@ -80,7 +79,7 @@ public class ReactiveImmutableAssignedIdsIT {
 
 	@Test
 		// GH-2141
-	void saveAllWithGeneratedIdsReturnsObjectWithIdSet(
+	void saveAllWithAssignedIdsReturnsObjectWithIdSet(
 			@Autowired ReactiveImmutablePersonWithAssignedIdRepository repository) {
 
 		ImmutablePersonWithAssignedId fallback1 = new ImmutablePersonWithAssignedId();
@@ -101,7 +100,7 @@ public class ReactiveImmutableAssignedIdsIT {
 
 	@Test
 		// GH-2148
-	void saveRelationshipWithGeneratedIdsContainsObjectWithIdSetForList(
+	void saveRelationshipWithAssignedIdsContainsObjectWithIdSetForList(
 			@Autowired ReactiveImmutablePersonWithAssignedIdRepository repository) {
 
 		ImmutablePersonWithAssignedId onboarder = new ImmutablePersonWithAssignedId();
@@ -109,7 +108,6 @@ public class ReactiveImmutableAssignedIdsIT {
 
 		StepVerifier.create(repository.saveAll(Collections.singleton(person)))
 				.assertNext(savedPerson -> {
-
 					assertThat(savedPerson.wasOnboardedBy.get(0).id).isNotNull();
 					assertThat(savedPerson.wasOnboardedBy.get(0).someValue).isEqualTo(SOME_VALUE_VALUE);
 				})
@@ -118,7 +116,7 @@ public class ReactiveImmutableAssignedIdsIT {
 
 	@Test
 		// GH-2148
-	void saveRelationshipWithGeneratedIdsContainsObjectWithIdSetForSet(
+	void saveRelationshipWithAssignedIdsContainsObjectWithIdSetForSet(
 			@Autowired ReactiveImmutablePersonWithAssignedIdRepository repository) {
 
 		ImmutablePersonWithAssignedId knowingPerson = new ImmutablePersonWithAssignedId();
@@ -126,7 +124,6 @@ public class ReactiveImmutableAssignedIdsIT {
 
 		StepVerifier.create(repository.saveAll(Collections.singleton(person)))
 				.assertNext(savedPerson -> {
-
 					assertThat(savedPerson.knownBy.iterator().next().id).isNotNull();
 					assertThat(savedPerson.knownBy.iterator().next().someValue).isEqualTo(SOME_VALUE_VALUE);
 				})
@@ -135,7 +132,7 @@ public class ReactiveImmutableAssignedIdsIT {
 
 	@Test
 		// GH-2148
-	void saveRelationshipWithGeneratedIdsContainsObjectWithIdSetForMap(
+	void saveRelationshipWithAssignedIdsContainsObjectWithIdSetForMap(
 			@Autowired ReactiveImmutablePersonWithAssignedIdRepository repository) {
 
 		ImmutablePersonWithAssignedId rater = new ImmutablePersonWithAssignedId();
@@ -143,7 +140,6 @@ public class ReactiveImmutableAssignedIdsIT {
 
 		StepVerifier.create(repository.saveAll(Collections.singleton(person)))
 				.assertNext(savedPerson -> {
-
 					assertThat(savedPerson.ratedBy.keySet().iterator().next()).isEqualTo("Good");
 					assertThat(savedPerson.ratedBy.values().iterator().next().id).isNotNull();
 					assertThat(savedPerson.ratedBy.values().iterator().next().someValue).isEqualTo(SOME_VALUE_VALUE);
@@ -153,7 +149,7 @@ public class ReactiveImmutableAssignedIdsIT {
 
 	@Test
 		// GH-2148
-	void saveRelationshipWithGeneratedIdsContainsObjectWithIdSetForMapWithMultipleKeys(
+	void saveRelationshipWithAssignedIdsContainsObjectWithIdSetForMapWithMultipleKeys(
 			@Autowired ReactiveImmutablePersonWithAssignedIdRepository repository) {
 
 		ImmutablePersonWithAssignedId rater1 = new ImmutablePersonWithAssignedId();
@@ -165,20 +161,18 @@ public class ReactiveImmutableAssignedIdsIT {
 
 		StepVerifier.create(repository.saveAll(Collections.singleton(person)))
 				.assertNext(savedPerson -> {
-
 					assertThat(savedPerson.ratedBy.keySet()).containsExactlyInAnyOrder("Good", "Bad");
 					assertThat(savedPerson.ratedBy.get("Good").id).isNotNull();
 					assertThat(savedPerson.ratedBy.get("Good").someValue).isEqualTo(SOME_VALUE_VALUE);
 					assertThat(savedPerson.ratedBy.get("Bad").id).isNotNull();
 					assertThat(savedPerson.ratedBy.get("Bad").someValue).isEqualTo(SOME_VALUE_VALUE);
-
 				})
 				.verifyComplete();
 	}
 
 	@Test
 		// GH-2148
-	void saveRelationshipWithGeneratedIdsContainsObjectWithIdSetForMapCollection(
+	void saveRelationshipWithAssignedIdsContainsObjectWithIdSetForMapCollection(
 			@Autowired ReactiveImmutablePersonWithAssignedIdRepository repository) {
 
 		ImmutableSecondPersonWithAssignedId rater = new ImmutableSecondPersonWithAssignedId();
@@ -186,7 +180,6 @@ public class ReactiveImmutableAssignedIdsIT {
 
 		StepVerifier.create(repository.saveAll(Collections.singleton(person)))
 				.assertNext(savedPerson -> {
-
 					assertThat(savedPerson.ratedByCollection.values().iterator().next().get(0).id).isNotNull();
 				})
 				.verifyComplete();
@@ -194,7 +187,7 @@ public class ReactiveImmutableAssignedIdsIT {
 
 	@Test
 		// GH-2148
-	void saveRelationshipWithGeneratedIdsContainsObjectWithIdSetForRelationshipProperties(
+	void saveRelationshipWithAssignedIdsContainsObjectWithIdSetForRelationshipProperties(
 			@Autowired ReactiveImmutablePersonWithAssignedIdRepository repository) {
 
 		ImmutablePersonWithAssignedId somebody = new ImmutablePersonWithAssignedId();
@@ -203,18 +196,16 @@ public class ReactiveImmutableAssignedIdsIT {
 
 		StepVerifier.create(repository.saveAll(Collections.singleton(person)))
 				.assertNext(savedPerson -> {
-
 					assertThat(savedPerson.relationshipProperties.name).isNotNull();
 					assertThat(savedPerson.relationshipProperties.target.id).isNotNull();
 					assertThat(savedPerson.relationshipProperties.target.someValue).isEqualTo(SOME_VALUE_VALUE);
-
 				})
 				.verifyComplete();
 	}
 
 	@Test
 		// GH-2148
-	void saveRelationshipWithGeneratedIdsContainsObjectWithIdSetForRelationshipPropertiesCollection(
+	void saveRelationshipWithAssignedIdsContainsObjectWithIdSetForRelationshipPropertiesCollection(
 			@Autowired ReactiveImmutablePersonWithAssignedIdRepository repository) {
 
 		ImmutablePersonWithAssignedId somebody = new ImmutablePersonWithAssignedId();
@@ -223,7 +214,6 @@ public class ReactiveImmutableAssignedIdsIT {
 
 		StepVerifier.create(repository.saveAll(Collections.singleton(person)))
 				.assertNext(savedPerson -> {
-
 					assertThat(savedPerson.relationshipPropertiesCollection.get(0).name).isNotNull();
 					assertThat(savedPerson.relationshipPropertiesCollection.get(0).target.id).isNotNull();
 					assertThat(savedPerson.relationshipPropertiesCollection.get(0).target.someValue).isEqualTo(SOME_VALUE_VALUE);
@@ -233,7 +223,7 @@ public class ReactiveImmutableAssignedIdsIT {
 
 	@Test
 		// GH-2148
-	void saveRelationshipWithGeneratedIdsContainsObjectWithIdSetForRelationshipPropertiesDynamic(
+	void saveRelationshipWithAssignedIdsContainsObjectWithIdSetForRelationshipPropertiesDynamic(
 			@Autowired ReactiveImmutablePersonWithAssignedIdRepository repository) {
 
 		ImmutablePersonWithAssignedId somebody = new ImmutablePersonWithAssignedId();
@@ -253,7 +243,7 @@ public class ReactiveImmutableAssignedIdsIT {
 
 	@Test
 		// GH-2148
-	void saveRelationshipWithGeneratedIdsContainsObjectWithIdSetForRelationshipPropertiesDynamicCollection(
+	void saveRelationshipWithAssignedIdsContainsObjectWithIdSetForRelationshipPropertiesDynamicCollection(
 			@Autowired ReactiveImmutablePersonWithAssignedIdRepository repository) {
 
 		ImmutableSecondPersonWithAssignedId somebody = new ImmutableSecondPersonWithAssignedId();
@@ -262,18 +252,16 @@ public class ReactiveImmutableAssignedIdsIT {
 
 		StepVerifier.create(repository.saveAll(Collections.singleton(person)))
 				.assertNext(savedPerson -> {
-
 					assertThat(savedPerson.relationshipPropertiesDynamicCollection.keySet().iterator().next()).isEqualTo("Good");
 					assertThat(savedPerson.relationshipPropertiesDynamicCollection.values().iterator().next().get(0).name).isNotNull();
 					assertThat(savedPerson.relationshipPropertiesDynamicCollection.values().iterator().next().get(0).target.id).isNotNull();
-
 				})
 				.verifyComplete();
 	}
 
 	@Test
 		// GH-2148
-	void saveRelationshipWithGeneratedIdsContainsAllRelationshipTypes(
+	void saveRelationshipWithAssignedIdsContainsAllRelationshipTypes(
 			@Autowired ReactiveImmutablePersonWithAssignedIdRepository repository) {
 
 		ImmutablePersonWithAssignedId fallback =

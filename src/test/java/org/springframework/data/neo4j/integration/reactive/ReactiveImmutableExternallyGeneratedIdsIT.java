@@ -54,7 +54,7 @@ public class ReactiveImmutableExternallyGeneratedIdsIT {
 
 	@Test
 		// GH-2141
-	void saveWithGeneratedIdsReturnsObjectWithIdSet(
+	void saveWithExternallyGeneratedIdsReturnsObjectWithIdSet(
 			@Autowired ReactiveImmutablePersonWithExternalIdRepository repository) {
 
 		ImmutablePersonWithExternallyGeneratedId fallback1 = new ImmutablePersonWithExternallyGeneratedId();
@@ -63,18 +63,16 @@ public class ReactiveImmutableExternallyGeneratedIdsIT {
 
 		StepVerifier.create(repository.save(person))
 				.assertNext(savedPerson -> {
-
 					assertThat(savedPerson.id).isNotNull();
 					assertThat(savedPerson.fallback).isNotNull();
 					assertThat(savedPerson.fallback.fallback).isNotNull();
-
 				})
 				.verifyComplete();
 	}
 
 	@Test
 		// GH-2141
-	void saveAllWithGeneratedIdsReturnsObjectWithIdSet(
+	void saveAllWithExternallyGeneratedIdsReturnsObjectWithIdSet(
 			@Autowired ReactiveImmutablePersonWithExternalIdRepository repository) {
 
 		ImmutablePersonWithExternallyGeneratedId fallback1 = new ImmutablePersonWithExternallyGeneratedId();
@@ -83,7 +81,6 @@ public class ReactiveImmutableExternallyGeneratedIdsIT {
 
 		StepVerifier.create(repository.saveAll(Collections.singleton(person)))
 				.assertNext(savedPerson -> {
-
 					assertThat(savedPerson.id).isNotNull();
 					assertThat(savedPerson.fallback).isNotNull();
 					assertThat(savedPerson.fallback.fallback).isNotNull();
@@ -93,7 +90,7 @@ public class ReactiveImmutableExternallyGeneratedIdsIT {
 
 	@Test
 		// GH-2148
-	void saveRelationshipWithGeneratedIdsContainsObjectWithIdSetForList(
+	void saveRelationshipWithExternallyGeneratedIdsContainsObjectWithIdSetForList(
 			@Autowired ReactiveImmutablePersonWithExternalIdRepository repository) {
 
 		ImmutablePersonWithExternallyGeneratedId onboarder = new ImmutablePersonWithExternallyGeneratedId();
@@ -101,7 +98,6 @@ public class ReactiveImmutableExternallyGeneratedIdsIT {
 
 		StepVerifier.create(repository.saveAll(Collections.singleton(person)))
 				.assertNext(savedPerson -> {
-
 					assertThat(savedPerson.wasOnboardedBy.get(0).id).isNotNull();
 				})
 				.verifyComplete();
@@ -109,7 +105,7 @@ public class ReactiveImmutableExternallyGeneratedIdsIT {
 
 	@Test
 		// GH-2148
-	void saveRelationshipWithGeneratedIdsContainsObjectWithIdSetForSet(
+	void saveRelationshipWithExternallyGeneratedIdsContainsObjectWithIdSetForSet(
 			@Autowired ReactiveImmutablePersonWithExternalIdRepository repository) {
 
 		ImmutablePersonWithExternallyGeneratedId knowingPerson = new ImmutablePersonWithExternallyGeneratedId();
@@ -117,7 +113,6 @@ public class ReactiveImmutableExternallyGeneratedIdsIT {
 
 		StepVerifier.create(repository.saveAll(Collections.singleton(person)))
 				.assertNext(savedPerson -> {
-
 					assertThat(savedPerson.knownBy.iterator().next().id).isNotNull();
 				})
 				.verifyComplete();
@@ -125,7 +120,7 @@ public class ReactiveImmutableExternallyGeneratedIdsIT {
 
 	@Test
 		// GH-2148
-	void saveRelationshipWithGeneratedIdsContainsObjectWithIdSetForMap(
+	void saveRelationshipWithExternallyGeneratedIdsContainsObjectWithIdSetForMap(
 			@Autowired ReactiveImmutablePersonWithExternalIdRepository repository) {
 
 		ImmutablePersonWithExternallyGeneratedId rater = new ImmutablePersonWithExternallyGeneratedId();
@@ -133,7 +128,6 @@ public class ReactiveImmutableExternallyGeneratedIdsIT {
 
 		StepVerifier.create(repository.saveAll(Collections.singleton(person)))
 				.assertNext(savedPerson -> {
-
 					assertThat(savedPerson.ratedBy.keySet().iterator().next()).isEqualTo("Good");
 					assertThat(savedPerson.ratedBy.values().iterator().next().id).isNotNull();
 				})
@@ -142,7 +136,7 @@ public class ReactiveImmutableExternallyGeneratedIdsIT {
 
 	@Test
 		// GH-2148
-	void saveRelationshipWithGeneratedIdsContainsObjectWithIdSetForMapWithMultipleKeys(
+	void saveRelationshipWithExternallyGeneratedIdsContainsObjectWithIdSetForMapWithMultipleKeys(
 			@Autowired ReactiveImmutablePersonWithExternalIdRepository repository) {
 
 		ImmutablePersonWithExternallyGeneratedId rater1 = new ImmutablePersonWithExternallyGeneratedId();
@@ -154,7 +148,6 @@ public class ReactiveImmutableExternallyGeneratedIdsIT {
 
 		StepVerifier.create(repository.saveAll(Collections.singleton(person)))
 				.assertNext(savedPerson -> {
-
 					assertThat(savedPerson.ratedBy.keySet()).containsExactlyInAnyOrder("Good", "Bad");
 					assertThat(savedPerson.ratedBy.get("Good").id).isNotNull();
 					assertThat(savedPerson.ratedBy.get("Bad").id).isNotNull();
@@ -164,7 +157,7 @@ public class ReactiveImmutableExternallyGeneratedIdsIT {
 
 	@Test
 		// GH-2148
-	void saveRelationshipWithGeneratedIdsContainsObjectWithIdSetForMapCollection(
+	void saveRelationshipWithExternallyGeneratedIdsContainsObjectWithIdSetForMapCollection(
 			@Autowired ReactiveImmutablePersonWithExternalIdRepository repository) {
 
 		ImmutableSecondPersonWithExternallyGeneratedId rater = new ImmutableSecondPersonWithExternallyGeneratedId();
@@ -172,7 +165,6 @@ public class ReactiveImmutableExternallyGeneratedIdsIT {
 
 		StepVerifier.create(repository.saveAll(Collections.singleton(person)))
 				.assertNext(savedPerson -> {
-
 					assertThat(savedPerson.ratedByCollection.values().iterator().next().get(0).id).isNotNull();
 				})
 				.verifyComplete();
@@ -180,7 +172,7 @@ public class ReactiveImmutableExternallyGeneratedIdsIT {
 
 	@Test
 		// GH-2148
-	void saveRelationshipWithGeneratedIdsContainsObjectWithIdSetForRelationshipProperties(
+	void saveRelationshipWithExternallyGeneratedIdsContainsObjectWithIdSetForRelationshipProperties(
 			@Autowired ReactiveImmutablePersonWithExternalIdRepository repository) {
 
 		ImmutablePersonWithExternallyGeneratedId somebody = new ImmutablePersonWithExternallyGeneratedId();
@@ -189,7 +181,6 @@ public class ReactiveImmutableExternallyGeneratedIdsIT {
 
 		StepVerifier.create(repository.saveAll(Collections.singleton(person)))
 				.assertNext(savedPerson -> {
-
 					assertThat(savedPerson.relationshipProperties.name).isNotNull();
 					assertThat(savedPerson.relationshipProperties.target.id).isNotNull();
 				})
@@ -198,7 +189,7 @@ public class ReactiveImmutableExternallyGeneratedIdsIT {
 
 	@Test
 		// GH-2148
-	void saveRelationshipWithGeneratedIdsContainsObjectWithIdSetForRelationshipPropertiesCollection(
+	void saveRelationshipWithExternallyGeneratedIdsContainsObjectWithIdSetForRelationshipPropertiesCollection(
 			@Autowired ReactiveImmutablePersonWithExternalIdRepository repository) {
 
 		ImmutablePersonWithExternallyGeneratedId somebody = new ImmutablePersonWithExternallyGeneratedId();
@@ -207,7 +198,6 @@ public class ReactiveImmutableExternallyGeneratedIdsIT {
 
 		StepVerifier.create(repository.saveAll(Collections.singleton(person)))
 				.assertNext(savedPerson -> {
-
 					assertThat(savedPerson.relationshipPropertiesCollection.get(0).name).isNotNull();
 					assertThat(savedPerson.relationshipPropertiesCollection.get(0).target.id).isNotNull();
 				})
@@ -216,7 +206,7 @@ public class ReactiveImmutableExternallyGeneratedIdsIT {
 
 	@Test
 		// GH-2148
-	void saveRelationshipWithGeneratedIdsContainsObjectWithIdSetForRelationshipPropertiesDynamic(
+	void saveRelationshipWithExternallyGeneratedIdsContainsObjectWithIdSetForRelationshipPropertiesDynamic(
 			@Autowired ReactiveImmutablePersonWithExternalIdRepository repository) {
 
 		ImmutablePersonWithExternallyGeneratedId somebody = new ImmutablePersonWithExternallyGeneratedId();
@@ -225,7 +215,6 @@ public class ReactiveImmutableExternallyGeneratedIdsIT {
 
 		StepVerifier.create(repository.saveAll(Collections.singleton(person)))
 				.assertNext(savedPerson -> {
-
 					assertThat(savedPerson.relationshipPropertiesDynamic.keySet().iterator().next()).isEqualTo("Good");
 					assertThat(savedPerson.relationshipPropertiesDynamic.values().iterator().next().name).isNotNull();
 					assertThat(savedPerson.relationshipPropertiesDynamic.values().iterator().next().target.id).isNotNull();
@@ -236,7 +225,7 @@ public class ReactiveImmutableExternallyGeneratedIdsIT {
 
 	@Test
 		// GH-2148
-	void saveRelationshipWithGeneratedIdsContainsObjectWithIdSetForRelationshipPropertiesDynamicCollection(
+	void saveRelationshipWithExternallyGeneratedIdsContainsObjectWithIdSetForRelationshipPropertiesDynamicCollection(
 			@Autowired ReactiveImmutablePersonWithExternalIdRepository repository) {
 
 		ImmutableSecondPersonWithExternallyGeneratedId somebody = new ImmutableSecondPersonWithExternallyGeneratedId();
@@ -245,7 +234,6 @@ public class ReactiveImmutableExternallyGeneratedIdsIT {
 
 		StepVerifier.create(repository.saveAll(Collections.singleton(person)))
 				.assertNext(savedPerson -> {
-
 					assertThat(savedPerson.relationshipPropertiesDynamicCollection.keySet().iterator().next()).isEqualTo("Good");
 					assertThat(savedPerson.relationshipPropertiesDynamicCollection.values().iterator().next().get(0).name).isNotNull();
 					assertThat(savedPerson.relationshipPropertiesDynamicCollection.values().iterator().next().get(0).target.id).isNotNull();
@@ -255,7 +243,7 @@ public class ReactiveImmutableExternallyGeneratedIdsIT {
 
 	@Test
 		// GH-2148
-	void saveRelationshipWithGeneratedIdsContainsAllRelationshipTypes(
+	void saveRelationshipWithExternallyGeneratedIdsContainsAllRelationshipTypes(
 			@Autowired ReactiveImmutablePersonWithExternalIdRepository repository) {
 
 		ImmutablePersonWithExternallyGeneratedId fallback =

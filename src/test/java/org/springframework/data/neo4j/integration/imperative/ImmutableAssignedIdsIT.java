@@ -54,7 +54,7 @@ public class ImmutableAssignedIdsIT {
 	protected static Neo4jExtension.Neo4jConnectionSupport neo4jConnectionSupport;
 
 	@Test // GH-2141
-	void saveWithGeneratedIdsReturnsObjectWithIdSet(
+	void saveWithAssignedIdsReturnsObjectWithIdSet(
 			@Autowired ImmutablePersonWithAssignedIdRepository repository) {
 
 		ImmutablePersonWithAssignedId fallback1 = new ImmutablePersonWithAssignedId();
@@ -72,7 +72,7 @@ public class ImmutableAssignedIdsIT {
 	}
 
 	@Test // GH-2141
-	void saveAllWithGeneratedIdsReturnsObjectWithIdSet(
+	void saveAllWithAssignedIdsReturnsObjectWithIdSet(
 			@Autowired ImmutablePersonWithAssignedIdRepository repository) {
 
 		ImmutablePersonWithAssignedId fallback1 = new ImmutablePersonWithAssignedId();
@@ -90,7 +90,7 @@ public class ImmutableAssignedIdsIT {
 	}
 
 	@Test // GH-2148
-	void saveRelationshipWithGeneratedIdsContainsObjectWithIdSetForList(
+	void saveRelationshipWithAssignedIdsContainsObjectWithIdSetForList(
 			@Autowired ImmutablePersonWithAssignedIdRepository repository) {
 
 		ImmutablePersonWithAssignedId onboarder = new ImmutablePersonWithAssignedId();
@@ -103,7 +103,7 @@ public class ImmutableAssignedIdsIT {
 	}
 
 	@Test // GH-2148
-	void saveRelationshipWithGeneratedIdsContainsObjectWithIdSetForSet(
+	void saveRelationshipWithAssignedIdsContainsObjectWithIdSetForSet(
 			@Autowired ImmutablePersonWithAssignedIdRepository repository) {
 
 		ImmutablePersonWithAssignedId knowingPerson = new ImmutablePersonWithAssignedId();
@@ -116,7 +116,7 @@ public class ImmutableAssignedIdsIT {
 	}
 
 	@Test // GH-2148
-	void saveRelationshipWithGeneratedIdsContainsObjectWithIdSetForMap(
+	void saveRelationshipWithAssignedIdsContainsObjectWithIdSetForMap(
 			@Autowired ImmutablePersonWithAssignedIdRepository repository) {
 
 		ImmutablePersonWithAssignedId rater = new ImmutablePersonWithAssignedId();
@@ -130,7 +130,7 @@ public class ImmutableAssignedIdsIT {
 	}
 
 	@Test // GH-2148
-	void saveRelationshipWithGeneratedIdsContainsObjectWithIdSetForMapWithMultipleKeys(
+	void saveRelationshipWithAssignedIdsContainsObjectWithIdSetForMapWithMultipleKeys(
 			@Autowired ImmutablePersonWithAssignedIdRepository repository) {
 
 		ImmutablePersonWithAssignedId rater1 = new ImmutablePersonWithAssignedId();
@@ -150,7 +150,7 @@ public class ImmutableAssignedIdsIT {
 	}
 
 	@Test // GH-2148
-	void saveRelationshipWithGeneratedIdsContainsObjectWithIdSetForMapCollection(
+	void saveRelationshipWithAssignedIdsContainsObjectWithIdSetForMapCollection(
 			@Autowired ImmutablePersonWithAssignedIdRepository repository) {
 
 		ImmutableSecondPersonWithAssignedId rater = new ImmutableSecondPersonWithAssignedId();
@@ -162,7 +162,7 @@ public class ImmutableAssignedIdsIT {
 	}
 
 	@Test // GH-2148
-	void saveRelationshipWithGeneratedIdsContainsObjectWithIdSetForRelationshipProperties(
+	void saveRelationshipWithAssignedIdsContainsObjectWithIdSetForRelationshipProperties(
 			@Autowired ImmutablePersonWithAssignedIdRepository repository) {
 
 		ImmutablePersonWithAssignedId somebody = new ImmutablePersonWithAssignedId();
@@ -177,7 +177,7 @@ public class ImmutableAssignedIdsIT {
 	}
 
 	@Test // GH-2148
-	void saveRelationshipWithGeneratedIdsContainsObjectWithIdSetForRelationshipPropertiesCollection(
+	void saveRelationshipWithAssignedIdsContainsObjectWithIdSetForRelationshipPropertiesCollection(
 			@Autowired ImmutablePersonWithAssignedIdRepository repository) {
 
 		ImmutablePersonWithAssignedId somebody = new ImmutablePersonWithAssignedId();
@@ -192,7 +192,7 @@ public class ImmutableAssignedIdsIT {
 	}
 
 	@Test // GH-2148
-	void saveRelationshipWithGeneratedIdsContainsObjectWithIdSetForRelationshipPropertiesDynamic(
+	void saveRelationshipWithAssignedIdsContainsObjectWithIdSetForRelationshipPropertiesDynamic(
 			@Autowired ImmutablePersonWithAssignedIdRepository repository) {
 
 		ImmutablePersonWithAssignedId somebody = new ImmutablePersonWithAssignedId();
@@ -209,7 +209,7 @@ public class ImmutableAssignedIdsIT {
 
 
 	@Test // GH-2148
-	void saveRelationshipWithGeneratedIdsContainsObjectWithIdSetForRelationshipPropertiesDynamicCollection(
+	void saveRelationshipWithAssignedIdsContainsObjectWithIdSetForRelationshipPropertiesDynamicCollection(
 			@Autowired ImmutablePersonWithAssignedIdRepository repository) {
 
 		ImmutableSecondPersonWithAssignedId somebody = new ImmutableSecondPersonWithAssignedId();
@@ -224,7 +224,7 @@ public class ImmutableAssignedIdsIT {
 	}
 
 	@Test // GH-2148
-	void saveRelationshipWithGeneratedIdsContainsAllRelationshipTypes(
+	void saveRelationshipWithAssignedIdsContainsAllRelationshipTypes(
 			@Autowired ImmutablePersonWithAssignedIdRepository repository) {
 
 		ImmutablePersonWithAssignedId fallback =

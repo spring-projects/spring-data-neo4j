@@ -54,7 +54,7 @@ public class ImmutableExternallyGeneratedIdsIT {
 	protected static Neo4jExtension.Neo4jConnectionSupport neo4jConnectionSupport;
 
 	@Test // GH-2141
-	void saveWithGeneratedIdsReturnsObjectWithIdSet(
+	void saveWithExternallyGeneratedIdsReturnsObjectWithIdSet(
 			@Autowired ImmutablePersonWithExternalIdRepository repository) {
 
 		ImmutablePersonWithExternallyGeneratedId fallback1 = new ImmutablePersonWithExternallyGeneratedId();
@@ -69,7 +69,7 @@ public class ImmutableExternallyGeneratedIdsIT {
 	}
 
 	@Test // GH-2141
-	void saveAllWithGeneratedIdsReturnsObjectWithIdSet(
+	void saveAllWithExternallyGeneratedIdsReturnsObjectWithIdSet(
 			@Autowired ImmutablePersonWithExternalIdRepository repository) {
 
 		ImmutablePersonWithExternallyGeneratedId fallback1 = new ImmutablePersonWithExternallyGeneratedId();
@@ -84,7 +84,7 @@ public class ImmutableExternallyGeneratedIdsIT {
 	}
 
 	@Test // GH-2148
-	void saveRelationshipWithGeneratedIdsContainsObjectWithIdSetForList(
+	void saveRelationshipWithExternallyGeneratedIdsContainsObjectWithIdSetForList(
 			@Autowired ImmutablePersonWithExternalIdRepository repository) {
 
 		ImmutablePersonWithExternallyGeneratedId onboarder = new ImmutablePersonWithExternallyGeneratedId();
@@ -96,7 +96,7 @@ public class ImmutableExternallyGeneratedIdsIT {
 	}
 
 	@Test // GH-2148
-	void saveRelationshipWithGeneratedIdsContainsObjectWithIdSetForSet(
+	void saveRelationshipWithExternallyGeneratedIdsContainsObjectWithIdSetForSet(
 			@Autowired ImmutablePersonWithExternalIdRepository repository) {
 
 		ImmutablePersonWithExternallyGeneratedId knowingPerson = new ImmutablePersonWithExternallyGeneratedId();
@@ -108,7 +108,7 @@ public class ImmutableExternallyGeneratedIdsIT {
 	}
 
 	@Test // GH-2148
-	void saveRelationshipWithGeneratedIdsContainsObjectWithIdSetForMap(
+	void saveRelationshipWithExternallyGeneratedIdsContainsObjectWithIdSetForMap(
 			@Autowired ImmutablePersonWithExternalIdRepository repository) {
 
 		ImmutablePersonWithExternallyGeneratedId rater = new ImmutablePersonWithExternallyGeneratedId();
@@ -121,7 +121,7 @@ public class ImmutableExternallyGeneratedIdsIT {
 	}
 
 	@Test // GH-2148
-	void saveRelationshipWithGeneratedIdsContainsObjectWithIdSetForMapWithMultipleKeys(
+	void saveRelationshipWithExternallyGeneratedIdsContainsObjectWithIdSetForMapWithMultipleKeys(
 			@Autowired ImmutablePersonWithExternalIdRepository repository) {
 
 		ImmutablePersonWithExternallyGeneratedId rater1 = new ImmutablePersonWithExternallyGeneratedId();
@@ -139,7 +139,7 @@ public class ImmutableExternallyGeneratedIdsIT {
 	}
 
 	@Test // GH-2148
-	void saveRelationshipWithGeneratedIdsContainsObjectWithIdSetForMapCollection(
+	void saveRelationshipWithExternallyGeneratedIdsContainsObjectWithIdSetForMapCollection(
 			@Autowired ImmutablePersonWithExternalIdRepository repository) {
 
 		ImmutableSecondPersonWithExternallyGeneratedId rater = new ImmutableSecondPersonWithExternallyGeneratedId();
@@ -151,7 +151,7 @@ public class ImmutableExternallyGeneratedIdsIT {
 	}
 
 	@Test // GH-2148
-	void saveRelationshipWithGeneratedIdsContainsObjectWithIdSetForRelationshipProperties(
+	void saveRelationshipWithExternallyGeneratedIdsContainsObjectWithIdSetForRelationshipProperties(
 			@Autowired ImmutablePersonWithExternalIdRepository repository) {
 
 		ImmutablePersonWithExternallyGeneratedId somebody = new ImmutablePersonWithExternallyGeneratedId();
@@ -165,7 +165,7 @@ public class ImmutableExternallyGeneratedIdsIT {
 	}
 
 	@Test // GH-2148
-	void saveRelationshipWithGeneratedIdsContainsObjectWithIdSetForRelationshipPropertiesCollection(
+	void saveRelationshipWithExternallyGeneratedIdsContainsObjectWithIdSetForRelationshipPropertiesCollection(
 			@Autowired ImmutablePersonWithExternalIdRepository repository) {
 
 		ImmutablePersonWithExternallyGeneratedId somebody = new ImmutablePersonWithExternallyGeneratedId();
@@ -179,7 +179,7 @@ public class ImmutableExternallyGeneratedIdsIT {
 	}
 
 	@Test // GH-2148
-	void saveRelationshipWithGeneratedIdsContainsObjectWithIdSetForRelationshipPropertiesDynamic(
+	void saveRelationshipWithExternallyGeneratedIdsContainsObjectWithIdSetForRelationshipPropertiesDynamic(
 			@Autowired ImmutablePersonWithExternalIdRepository repository) {
 
 		ImmutablePersonWithExternallyGeneratedId somebody = new ImmutablePersonWithExternallyGeneratedId();
@@ -195,7 +195,7 @@ public class ImmutableExternallyGeneratedIdsIT {
 
 
 	@Test // GH-2148
-	void saveRelationshipWithGeneratedIdsContainsObjectWithIdSetForRelationshipPropertiesDynamicCollection(
+	void saveRelationshipWithExternallyGeneratedIdsContainsObjectWithIdSetForRelationshipPropertiesDynamicCollection(
 			@Autowired ImmutablePersonWithExternalIdRepository repository) {
 
 		ImmutableSecondPersonWithExternallyGeneratedId somebody = new ImmutableSecondPersonWithExternallyGeneratedId();
@@ -210,7 +210,7 @@ public class ImmutableExternallyGeneratedIdsIT {
 	}
 
 	@Test // GH-2148
-	void saveRelationshipWithGeneratedIdsContainsAllRelationshipTypes(
+	void saveRelationshipWithExternallyGeneratedIdsContainsAllRelationshipTypes(
 			@Autowired ImmutablePersonWithExternalIdRepository repository) {
 
 		ImmutablePersonWithExternallyGeneratedId fallback =
