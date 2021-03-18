@@ -47,6 +47,7 @@ import org.neo4j.driver.summary.SummaryCounters;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.core.CollectionFactory;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.dao.OptimisticLockingFailureException;
@@ -66,6 +67,7 @@ import org.springframework.data.neo4j.core.mapping.NestedRelationshipProcessingS
 import org.springframework.data.neo4j.core.mapping.NodeDescription;
 import org.springframework.data.neo4j.core.mapping.RelationshipDescription;
 import org.springframework.data.neo4j.core.mapping.callback.EventSupport;
+import org.springframework.data.neo4j.core.schema.TargetNode;
 import org.springframework.data.neo4j.repository.NoResultException;
 import org.springframework.data.neo4j.repository.query.QueryFragmentsAndParameters;
 import org.springframework.data.util.ClassTypeInformation;
@@ -267,9 +269,8 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 		PersistentPropertyAccessor<T> propertyAccessor = entityMetaData.getPropertyAccessor(entityToBeSaved);
 		if (entityMetaData.isUsingInternalIds()) {
 			propertyAccessor.setProperty(entityMetaData.getRequiredIdProperty(), optionalInternalId.get());
-			entityToBeSaved = propertyAccessor.getBean();
 		}
-		return processRelations(entityMetaData, entityToBeSaved, isEntityNew, instance);
+		return processRelations(entityMetaData, propertyAccessor, isEntityNew);
 	}
 
 	private <T> DynamicLabels determineDynamicLabels(T entityToBeSaved, Neo4jPersistentEntity<?> entityMetaData) {
@@ -336,9 +337,8 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 
 		// Save related
 		entitiesToBeSaved.forEach(entityToBeSaved -> {
-			int positionInList = entitiesToBeSaved.indexOf(entityToBeSaved);
-			processRelations(entityMetaData, entityToBeSaved, isNewIndicator.get(positionInList),
-					entities.get(positionInList));
+			PersistentPropertyAccessor<T> propertyAccessor = entityMetaData.getPropertyAccessor(entityToBeSaved);
+			processRelations(entityMetaData, propertyAccessor, isNewIndicator.get(entitiesToBeSaved.indexOf(entityToBeSaved)));
 		});
 
 		SummaryCounters counters = resultSummary.counters();
@@ -448,27 +448,27 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 		return toExecutableQuery(preparedQuery);
 	}
 
-	private <T> T processRelations(Neo4jPersistentEntity<?> neo4jPersistentEntity, Object parentObject,
-			boolean isParentObjectNew, Object parentEntity) {
+	private <T> T processRelations(Neo4jPersistentEntity<?> neo4jPersistentEntity, PersistentPropertyAccessor<?> parentPropertyAccessor,
+			boolean isParentObjectNew) {
 
-		return processNestedRelations(neo4jPersistentEntity, parentObject, isParentObjectNew,
-				new NestedRelationshipProcessingStateMachine(parentEntity));
+		return processNestedRelations(neo4jPersistentEntity, parentPropertyAccessor, isParentObjectNew,
+				new NestedRelationshipProcessingStateMachine());
 	}
 
-	private <T> T processNestedRelations(Neo4jPersistentEntity<?> sourceEntity, Object parentObject,
+	private <T> T processNestedRelations(Neo4jPersistentEntity<?> sourceEntity, PersistentPropertyAccessor<?> parentPropertyAccessor,
 			boolean isParentObjectNew, NestedRelationshipProcessingStateMachine stateMachine) {
 
-		PersistentPropertyAccessor<?> propertyAccessor = sourceEntity.getPropertyAccessor(parentObject);
-		Object fromId = propertyAccessor.getProperty(sourceEntity.getRequiredIdProperty());
+		Object fromId = parentPropertyAccessor.getProperty(sourceEntity.getRequiredIdProperty());
 
 		sourceEntity.doWithAssociations((AssociationHandler<Neo4jPersistentProperty>) association -> {
 
 			// create context to bundle parameters
-			NestedRelationshipContext relationshipContext = NestedRelationshipContext.of(association, propertyAccessor,
+			NestedRelationshipContext relationshipContext = NestedRelationshipContext.of(association, parentPropertyAccessor,
 					sourceEntity);
 
+			Object rawValue = relationshipContext.getValue();
 			Collection<?> relatedValuesToStore = MappingSupport.unifyRelationshipValue(relationshipContext.getInverse(),
-					relationshipContext.getValue());
+					rawValue);
 
 			RelationshipDescription relationshipDescription = relationshipContext.getRelationship();
 			RelationshipDescription relationshipDescriptionObverse = relationshipDescription.getRelationshipObverse();
@@ -522,7 +522,22 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 
 			stateMachine.markAsProcessed(relationshipDescription, relatedValuesToStore);
 
+			Neo4jPersistentProperty relationshipProperty = association.getInverse();
+			Object newRelationshipObject = null;
+			Collection<Object> newRelationshipObjectCollection = new ArrayList<>();
+			Map<Object, Object> newRelationshipObjectCollectionMap = null;
+
+			if (relationshipProperty.isCollectionLike()) {
+				newRelationshipObjectCollection = CollectionFactory.createApproximateCollection(rawValue, ((Collection<?>) rawValue).size());
+			} else if (relationshipProperty.isDynamicAssociation()) {
+				newRelationshipObjectCollectionMap = CollectionFactory.createApproximateMap(rawValue, ((Map<?, ?>) rawValue).size());
+			}
+
 			for (Object relatedValueToStore : relatedValuesToStore) {
+
+				if (relationshipProperty.isDynamicOneToManyAssociation()) {
+					newRelationshipObjectCollection = CollectionFactory.createCollection(relationshipProperty.getTypeInformation().getRequiredActualType().getType(), 1); // todo fine tuning size
+				}
 
 				// here a map entry is not always anymore a dynamic association
 				Object relatedNode = relationshipContext.identifyAndExtractRelationshipTargetNode(relatedValueToStore);
@@ -563,15 +578,59 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 				if (targetEntity.isUsingInternalIds()) {
 					targetPropertyAccessor.setProperty(targetEntity.getRequiredIdProperty(), relatedInternalId);
 				}
+
+				newRelationshipObject = targetPropertyAccessor.getBean();
 				if (processState != ProcessState.PROCESSED_ALL_VALUES) {
-					processNestedRelations(targetEntity, targetPropertyAccessor.getBean(), isEntityNew, stateMachine);
+					newRelationshipObject = processNestedRelations(targetEntity, targetPropertyAccessor, isEntityNew, inDatabase, stateMachine);
+				}
+
+				if (relationshipDescription.hasRelationshipProperties()) {
+					Object lalelu = relationshipProperty.isDynamicAssociation()
+							? ((MappingSupport.RelationshipPropertiesWithEntityHolder) ((Map.Entry<Object, Object>) relatedValueToStore).getValue()).getRelationshipProperties()
+							: ((MappingSupport.RelationshipPropertiesWithEntityHolder) relatedValueToStore).getRelationshipProperties();
+					Neo4jPersistentEntity<?> persistentEntity = neo4jMappingContext.getPersistentEntity(lalelu.getClass());
+					PersistentPropertyAccessor<Object> relationshipPropertiesAccessor = persistentEntity.getPropertyAccessor(lalelu);
+					relationshipPropertiesAccessor.setProperty(persistentEntity.getPersistentProperty(TargetNode.class), newRelationshipObject);
+					newRelationshipObject = relationshipPropertiesAccessor.getBean();
+				}
+
+				newRelationshipObjectCollection.add(newRelationshipObject);
+
+				if (relationshipProperty.isDynamicAssociation()) {
+					Object key = ((Map.Entry<Object, Object>) relatedValueToStore).getKey();
+					Object value = null;
+					if (relationshipProperty.isDynamicOneToManyAssociation()) {
+						value = newRelationshipObjectCollection;
+					} else {
+						value = newRelationshipObject;
+					}
+
+					newRelationshipObjectCollectionMap.merge(key, value, (o, o2) -> {
+
+						if (o instanceof Collection) {
+							((Collection<Object>) o).addAll((Collection<Object>) o2);
+							return o;
+						}
+
+						ArrayList<Object> objects = new ArrayList<>();
+						objects.add(o);
+						objects.add(o2);
+						return objects;
+					});
 				}
 			}
 
+			if (rawValue instanceof Collection) {
+				parentPropertyAccessor.setProperty(relationshipProperty, newRelationshipObjectCollection);
+			} else if (rawValue instanceof Map) {
+				parentPropertyAccessor.setProperty(relationshipProperty, newRelationshipObjectCollectionMap);
+			} else {
+				parentPropertyAccessor.setProperty(relationshipProperty, newRelationshipObject);
 
+			}
 		});
 
-		return (T) propertyAccessor.getBean();
+		return (T) parentPropertyAccessor.getBean();
 	}
 
 	private <Y> Long queryRelatedNode(Object entity, Neo4jPersistentEntity<?> targetNodeDescription) {
