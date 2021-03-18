@@ -26,12 +26,14 @@ import java.util.stream.Collectors;
 import org.apiguardian.api.API;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.types.Type;
+import org.springframework.data.neo4j.core.schema.TargetNode;
 import org.springframework.lang.Nullable;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
 
 /**
  * @author Michael J. Simons
  * @author Philipp Tölle
+ * @author Gerrit Meier
  * @since 6.0
  */
 @API(status = API.Status.INTERNAL, since = "6.0")
@@ -91,6 +93,44 @@ public final class MappingSupport {
 
 		Predicate<Value> isList = entry -> entry.hasType(collectionType);
 		return isList.and(containsOnlyRequiredType);
+	}
+
+	/**
+	 * Extract the relationship properties or just the related object if there are no relationship properties
+	 * attached.
+	 *
+	 * @param neo4jMappingContext - current mapping context
+	 * @param hasRelationshipProperties - does this relationship has properties
+	 * @param isDynamicAssociation - is the defined relationship a dynamic association
+	 * @param valueToStore - either a plain object or {@link RelationshipPropertiesWithEntityHolder}
+	 * @param propertyAccessor - PropertyAccessor for the value
+	 *
+	 * @return extracted related object or relationship properties
+	 */
+	public static Object getRelationshipOrRelationshipPropertiesObject(Neo4jMappingContext neo4jMappingContext,
+																	   boolean hasRelationshipProperties,
+																	   boolean isDynamicAssociation,
+																	   Object valueToStore,
+																	   PersistentPropertyAccessor<?> propertyAccessor) {
+
+		Object newRelationshipObject = propertyAccessor.getBean();
+		if (hasRelationshipProperties) {
+			MappingSupport.RelationshipPropertiesWithEntityHolder entityHolder =
+					(RelationshipPropertiesWithEntityHolder)
+							(isDynamicAssociation
+								? ((Map.Entry<Object, Object>) valueToStore).getValue()
+								: valueToStore);
+
+			Object relationshipPropertiesValue = entityHolder.getRelationshipProperties();
+
+			Neo4jPersistentEntity<?> persistentEntity =
+					neo4jMappingContext.getPersistentEntity(relationshipPropertiesValue.getClass());
+
+			PersistentPropertyAccessor<Object> relationshipPropertiesAccessor = persistentEntity.getPropertyAccessor(relationshipPropertiesValue);
+			relationshipPropertiesAccessor.setProperty(persistentEntity.getPersistentProperty(TargetNode.class), newRelationshipObject);
+			newRelationshipObject = relationshipPropertiesAccessor.getBean();
+		}
+		return newRelationshipObject;
 	}
 
 	private MappingSupport() {}
