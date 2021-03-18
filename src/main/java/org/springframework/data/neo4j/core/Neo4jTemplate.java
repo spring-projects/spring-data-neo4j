@@ -525,44 +525,20 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 
 			Neo4jPersistentProperty relationshipProperty = association.getInverse();
 
-			Object newRelationshipObject = null;
-			Collection<Object> newRelationshipObjectCollection = null;
-			Map<Object, Object> newRelationshipObjectCollectionMap = null;
-
-			RelationshipCardinality cardinality;
-
-			// Order is important here, all map based associations are dynamic, but not all dynamic associations are one to many
-			if (relationshipProperty.isCollectionLike()) {
-				cardinality = RelationshipCardinality.ONE_TO_MANY;
-				newRelationshipObjectCollection = CollectionFactory.createApproximateCollection(rawValue, ((Collection<?>) rawValue).size());
-			} else if (relationshipProperty.isDynamicOneToManyAssociation()) {
-				cardinality = RelationshipCardinality.DYNAMIC_ONE_TO_MANY;
-				newRelationshipObjectCollectionMap = CollectionFactory.createApproximateMap(rawValue, ((Map<?, ?>) rawValue).size());
-			} else if(relationshipProperty.isDynamicAssociation()) {
-				cardinality = RelationshipCardinality.DYNAMIC_ONE_TO_ONE;
-				newRelationshipObjectCollectionMap = CollectionFactory.createApproximateMap(rawValue, ((Map<?, ?>) rawValue).size());
-			} else {
-				cardinality = RelationshipCardinality.ONE_TO_ONE;
-			}
+			RelationshipCardinality.Dingens dingens = RelationshipCardinality.Dingens.forProperty(relationshipProperty, rawValue);
 
 			for (Object relatedValueToStore : relatedValuesToStore) {
 
 				// here a map entry is not always anymore a dynamic association
-				Object relatedNode = relationshipContext.identifyAndExtractRelationshipTargetNode(relatedValueToStore);
-				Neo4jPersistentEntity<?> targetEntity = neo4jMappingContext.getPersistentEntity(relatedNode.getClass());
+				Object newRelatedObject = relationshipContext.identifyAndExtractRelationshipTargetNode(relatedValueToStore);
+				Neo4jPersistentEntity<?> targetEntity = neo4jMappingContext.getPersistentEntity(newRelatedObject.getClass());
 
-				boolean isEntityNew = targetEntity.isNew(relatedNode);
+				boolean isEntityNew = targetEntity.isNew(newRelatedObject);
 
-				relatedNode = eventSupport.maybeCallBeforeBind(relatedNode);
+				newRelatedObject = eventSupport.maybeCallBeforeBind(newRelatedObject);
 
-				Long relatedInternalId;
-				// No need to save values if processed
-				if (processState == ProcessState.PROCESSED_ALL_VALUES) {
-					relatedInternalId = queryRelatedNode(relatedNode, targetEntity);
-				} else {
-					relatedInternalId = saveRelatedNode(relatedNode, relationshipContext.getAssociationTargetType(),
-							targetEntity);
-				}
+				Long relatedInternalId = saveRelatedNode(newRelatedObject, relationshipContext.getAssociationTargetType(),
+						targetEntity);
 
 				CreateRelationshipStatementHolder statementHolder = neo4jMappingContext.createStatement(
 						sourceEntity, relationshipContext, relatedValueToStore);
@@ -581,7 +557,7 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 							.setProperty(idProperty, relationshipInternalId.get());
 				}
 
-				PersistentPropertyAccessor<?> targetPropertyAccessor = targetEntity.getPropertyAccessor(relatedNode);
+				PersistentPropertyAccessor<?> targetPropertyAccessor = targetEntity.getPropertyAccessor(newRelatedObject);
 				// if an internal id is used this must be set to link this entity in the next iteration
 				if (targetEntity.isUsingInternalIds()) {
 					targetPropertyAccessor.setProperty(targetEntity.getRequiredIdProperty(), relatedInternalId);
@@ -591,51 +567,16 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 					processNestedRelations(targetEntity, targetPropertyAccessor, isEntityNew, stateMachine);
 				}
 
-				newRelationshipObject =	MappingSupport.getRelationshipOrRelationshipPropertiesObject(neo4jMappingContext,
+				Object potentiallyModifiedNewRelatedObject = MappingSupport.getRelationshipOrRelationshipPropertiesObject(neo4jMappingContext,
 								relationshipDescription.hasRelationshipProperties(),
 								relationshipProperty.isDynamicAssociation(),
 								relatedValueToStore,
 								targetPropertyAccessor);
 
-				if (newRelationshipObject == relatedNode) {
-					newRelationshipObject = null;
-				} else if (cardinality != RelationshipCardinality.ONE_TO_ONE) {
-					if (cardinality == RelationshipCardinality.ONE_TO_MANY) {
-						newRelationshipObjectCollection.add(newRelationshipObject);
-					} else {
-						Object key = ((Map.Entry<Object, Object>) relatedValueToStore).getKey();
-						if (cardinality == RelationshipCardinality.DYNAMIC_ONE_TO_ONE) {
-							newRelationshipObjectCollectionMap.put(key, newRelationshipObject);
-						} else {
-							Collection<Object> newCollection = (Collection<Object>) newRelationshipObjectCollectionMap
-									.computeIfAbsent(key, k -> CollectionFactory.createCollection(relationshipProperty.getTypeInformation().getRequiredActualType().getType(), ((Collection)((Map)rawValue).get(key)).size()));
-							newCollection.add(newRelationshipObject);
-						}
-					}
-				}
+				dingens.handle(relatedValueToStore, newRelatedObject, potentiallyModifiedNewRelatedObject);
 			}
 
-			Object updatedOrRecreatedRelationship = null;
-			switch (cardinality) {
-				case ONE_TO_ONE:
-					updatedOrRecreatedRelationship = newRelationshipObject;
-					break;
-				case ONE_TO_MANY:
-					if (!newRelationshipObjectCollection.isEmpty()) {
-						updatedOrRecreatedRelationship = newRelationshipObjectCollection;
-					}
-					break;
-				case DYNAMIC_ONE_TO_ONE:
-				case DYNAMIC_ONE_TO_MANY:
-					if(!newRelationshipObjectCollectionMap.isEmpty()) {
-						updatedOrRecreatedRelationship = newRelationshipObjectCollectionMap;
-					}
-					break;
-			}
-
-			if (updatedOrRecreatedRelationship != null) {
-				parentPropertyAccessor.setProperty(relationshipProperty, updatedOrRecreatedRelationship);
-			}
+			dingens.applyFinalResultToOwner(parentPropertyAccessor);
 		});
 
 	}
