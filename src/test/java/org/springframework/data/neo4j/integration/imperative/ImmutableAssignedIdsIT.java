@@ -21,18 +21,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.neo4j.config.AbstractNeo4jConfig;
-import org.springframework.data.neo4j.core.Neo4jTemplate;
 import org.springframework.data.neo4j.core.convert.Neo4jConversions;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.mapping.callback.BeforeBindCallback;
-import org.springframework.data.neo4j.integration.shared.common.ImmutablePersonWithExternalId;
-import org.springframework.data.neo4j.integration.shared.common.ImmutablePersonWithExternalId;
-import org.springframework.data.neo4j.integration.shared.common.ImmutablePersonWithExternalIdRelationshipProperties;
-import org.springframework.data.neo4j.integration.shared.common.ImmutableSecondPersonWithExternalId;
-import org.springframework.data.neo4j.integration.shared.common.ImmutableSecondPersonWithExternalIdRelationshipProperties;
-import org.springframework.data.neo4j.integration.shared.common.MutableChild;
-import org.springframework.data.neo4j.integration.shared.common.MutableParent;
-import org.springframework.data.neo4j.integration.shared.common.ThingWithAssignedId;
+import org.springframework.data.neo4j.integration.shared.common.ImmutablePersonWithAssignedlId;
+import org.springframework.data.neo4j.integration.shared.common.ImmutablePersonWithAssignedIdRelationshipProperties;
+import org.springframework.data.neo4j.integration.shared.common.ImmutableSecondPersonWithAssignedId;
+import org.springframework.data.neo4j.integration.shared.common.ImmutableSecondPersonWithAssignedIdRelationshipProperties;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.data.neo4j.test.Neo4jExtension;
@@ -53,7 +48,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Gerrit Meier
  */
 @Neo4jIntegrationTest
-public class ImmutableExternalIdsIT {
+public class ImmutableAssignedIdsIT {
 
 	public static final String SOME_VALUE_VALUE = "testValue";
 	protected static Neo4jExtension.Neo4jConnectionSupport neo4jConnectionSupport;
@@ -62,11 +57,11 @@ public class ImmutableExternalIdsIT {
 	void saveWithGeneratedIdsReturnsObjectWithIdSet(
 			@Autowired ImmutablePersonWithExternalIdRepository repository) {
 
-		ImmutablePersonWithExternalId fallback1 = new ImmutablePersonWithExternalId();
-		ImmutablePersonWithExternalId fallback2 = ImmutablePersonWithExternalId.fallback(fallback1);
-		ImmutablePersonWithExternalId person = ImmutablePersonWithExternalId.fallback(fallback2);
+		ImmutablePersonWithAssignedlId fallback1 = new ImmutablePersonWithAssignedlId();
+		ImmutablePersonWithAssignedlId fallback2 = ImmutablePersonWithAssignedlId.fallback(fallback1);
+		ImmutablePersonWithAssignedlId person = ImmutablePersonWithAssignedlId.fallback(fallback2);
 
-		ImmutablePersonWithExternalId savedPerson = repository.save(person);
+		ImmutablePersonWithAssignedlId savedPerson = repository.save(person);
 
 		assertThat(savedPerson.id).isNotNull();
 		assertThat(savedPerson.fallback).isNotNull();
@@ -80,11 +75,11 @@ public class ImmutableExternalIdsIT {
 	void saveAllWithGeneratedIdsReturnsObjectWithIdSet(
 			@Autowired ImmutablePersonWithExternalIdRepository repository) {
 
-		ImmutablePersonWithExternalId fallback1 = new ImmutablePersonWithExternalId();
-		ImmutablePersonWithExternalId fallback2 = ImmutablePersonWithExternalId.fallback(fallback1);
-		ImmutablePersonWithExternalId person = ImmutablePersonWithExternalId.fallback(fallback2);
+		ImmutablePersonWithAssignedlId fallback1 = new ImmutablePersonWithAssignedlId();
+		ImmutablePersonWithAssignedlId fallback2 = ImmutablePersonWithAssignedlId.fallback(fallback1);
+		ImmutablePersonWithAssignedlId person = ImmutablePersonWithAssignedlId.fallback(fallback2);
 
-		ImmutablePersonWithExternalId savedPerson = repository.saveAll(Collections.singleton(person)).get(0);
+		ImmutablePersonWithAssignedlId savedPerson = repository.saveAll(Collections.singleton(person)).get(0);
 
 		assertThat(savedPerson.id).isNotNull();
 		assertThat(savedPerson.fallback).isNotNull();
@@ -98,10 +93,10 @@ public class ImmutableExternalIdsIT {
 	void saveRelationshipWithGeneratedIdsContainsObjectWithIdSetForList(
 			@Autowired ImmutablePersonWithExternalIdRepository repository) {
 
-		ImmutablePersonWithExternalId onboarder = new ImmutablePersonWithExternalId();
-		ImmutablePersonWithExternalId person = ImmutablePersonWithExternalId.wasOnboardedBy(Collections.singletonList(onboarder));
+		ImmutablePersonWithAssignedlId onboarder = new ImmutablePersonWithAssignedlId();
+		ImmutablePersonWithAssignedlId person = ImmutablePersonWithAssignedlId.wasOnboardedBy(Collections.singletonList(onboarder));
 
-		ImmutablePersonWithExternalId savedPerson = repository.saveAll(Collections.singleton(person)).get(0);
+		ImmutablePersonWithAssignedlId savedPerson = repository.saveAll(Collections.singleton(person)).get(0);
 
 		assertThat(savedPerson.wasOnboardedBy.get(0).id).isNotNull();
 		assertThat(savedPerson.wasOnboardedBy.get(0).someValue).isEqualTo(SOME_VALUE_VALUE);
@@ -111,10 +106,10 @@ public class ImmutableExternalIdsIT {
 	void saveRelationshipWithGeneratedIdsContainsObjectWithIdSetForSet(
 			@Autowired ImmutablePersonWithExternalIdRepository repository) {
 
-		ImmutablePersonWithExternalId knowingPerson = new ImmutablePersonWithExternalId();
-		ImmutablePersonWithExternalId person = ImmutablePersonWithExternalId.knownBy(Collections.singleton(knowingPerson));
+		ImmutablePersonWithAssignedlId knowingPerson = new ImmutablePersonWithAssignedlId();
+		ImmutablePersonWithAssignedlId person = ImmutablePersonWithAssignedlId.knownBy(Collections.singleton(knowingPerson));
 
-		ImmutablePersonWithExternalId savedPerson = repository.saveAll(Collections.singleton(person)).get(0);
+		ImmutablePersonWithAssignedlId savedPerson = repository.saveAll(Collections.singleton(person)).get(0);
 
 		assertThat(savedPerson.knownBy.iterator().next().id).isNotNull();
 		assertThat(savedPerson.knownBy.iterator().next().someValue).isEqualTo(SOME_VALUE_VALUE);
@@ -124,10 +119,10 @@ public class ImmutableExternalIdsIT {
 	void saveRelationshipWithGeneratedIdsContainsObjectWithIdSetForMap(
 			@Autowired ImmutablePersonWithExternalIdRepository repository) {
 
-		ImmutablePersonWithExternalId rater = new ImmutablePersonWithExternalId();
-		ImmutablePersonWithExternalId person = ImmutablePersonWithExternalId.ratedBy(Collections.singletonMap("Good", rater));
+		ImmutablePersonWithAssignedlId rater = new ImmutablePersonWithAssignedlId();
+		ImmutablePersonWithAssignedlId person = ImmutablePersonWithAssignedlId.ratedBy(Collections.singletonMap("Good", rater));
 
-		ImmutablePersonWithExternalId savedPerson = repository.saveAll(Collections.singleton(person)).get(0);
+		ImmutablePersonWithAssignedlId savedPerson = repository.saveAll(Collections.singleton(person)).get(0);
 
 		assertThat(savedPerson.ratedBy.keySet().iterator().next()).isEqualTo("Good");
 		assertThat(savedPerson.ratedBy.values().iterator().next().id).isNotNull();
@@ -138,14 +133,14 @@ public class ImmutableExternalIdsIT {
 	void saveRelationshipWithGeneratedIdsContainsObjectWithIdSetForMapWithMultipleKeys(
 			@Autowired ImmutablePersonWithExternalIdRepository repository) {
 
-		ImmutablePersonWithExternalId rater1 = new ImmutablePersonWithExternalId();
-		ImmutablePersonWithExternalId rater2 = new ImmutablePersonWithExternalId();
-		Map<String, ImmutablePersonWithExternalId> raterMap = new HashMap<>();
+		ImmutablePersonWithAssignedlId rater1 = new ImmutablePersonWithAssignedlId();
+		ImmutablePersonWithAssignedlId rater2 = new ImmutablePersonWithAssignedlId();
+		Map<String, ImmutablePersonWithAssignedlId> raterMap = new HashMap<>();
 		raterMap.put("Good", rater1);
 		raterMap.put("Bad", rater2);
-		ImmutablePersonWithExternalId person = ImmutablePersonWithExternalId.ratedBy(raterMap);
+		ImmutablePersonWithAssignedlId person = ImmutablePersonWithAssignedlId.ratedBy(raterMap);
 
-		ImmutablePersonWithExternalId savedPerson = repository.saveAll(Collections.singleton(person)).get(0);
+		ImmutablePersonWithAssignedlId savedPerson = repository.saveAll(Collections.singleton(person)).get(0);
 
 		assertThat(savedPerson.ratedBy.keySet()).containsExactlyInAnyOrder("Good", "Bad");
 		assertThat(savedPerson.ratedBy.get("Good").id).isNotNull();
@@ -158,10 +153,10 @@ public class ImmutableExternalIdsIT {
 	void saveRelationshipWithGeneratedIdsContainsObjectWithIdSetForMapCollection(
 			@Autowired ImmutablePersonWithExternalIdRepository repository) {
 
-		ImmutableSecondPersonWithExternalId rater = new ImmutableSecondPersonWithExternalId();
-		ImmutablePersonWithExternalId person = ImmutablePersonWithExternalId.ratedByCollection(Collections.singletonMap("Good", Collections.singletonList(rater)));
+		ImmutableSecondPersonWithAssignedId rater = new ImmutableSecondPersonWithAssignedId();
+		ImmutablePersonWithAssignedlId person = ImmutablePersonWithAssignedlId.ratedByCollection(Collections.singletonMap("Good", Collections.singletonList(rater)));
 
-		ImmutablePersonWithExternalId savedPerson = repository.saveAll(Collections.singleton(person)).get(0);
+		ImmutablePersonWithAssignedlId savedPerson = repository.saveAll(Collections.singleton(person)).get(0);
 
 		assertThat(savedPerson.ratedByCollection.values().iterator().next().get(0).id).isNotNull();
 	}
@@ -170,11 +165,11 @@ public class ImmutableExternalIdsIT {
 	void saveRelationshipWithGeneratedIdsContainsObjectWithIdSetForRelationshipProperties(
 			@Autowired ImmutablePersonWithExternalIdRepository repository) {
 
-		ImmutablePersonWithExternalId somebody = new ImmutablePersonWithExternalId();
-		ImmutablePersonWithExternalIdRelationshipProperties properties = new ImmutablePersonWithExternalIdRelationshipProperties(null, "blubb", somebody);
-		ImmutablePersonWithExternalId person = ImmutablePersonWithExternalId.relationshipProperties(properties);
+		ImmutablePersonWithAssignedlId somebody = new ImmutablePersonWithAssignedlId();
+		ImmutablePersonWithAssignedIdRelationshipProperties properties = new ImmutablePersonWithAssignedIdRelationshipProperties(null, "blubb", somebody);
+		ImmutablePersonWithAssignedlId person = ImmutablePersonWithAssignedlId.relationshipProperties(properties);
 
-		ImmutablePersonWithExternalId savedPerson = repository.saveAll(Collections.singleton(person)).get(0);
+		ImmutablePersonWithAssignedlId savedPerson = repository.saveAll(Collections.singleton(person)).get(0);
 
 		assertThat(savedPerson.relationshipProperties.name).isNotNull();
 		assertThat(savedPerson.relationshipProperties.target.id).isNotNull();
@@ -185,11 +180,11 @@ public class ImmutableExternalIdsIT {
 	void saveRelationshipWithGeneratedIdsContainsObjectWithIdSetForRelationshipPropertiesCollection(
 			@Autowired ImmutablePersonWithExternalIdRepository repository) {
 
-		ImmutablePersonWithExternalId somebody = new ImmutablePersonWithExternalId();
-		ImmutablePersonWithExternalIdRelationshipProperties properties = new ImmutablePersonWithExternalIdRelationshipProperties(null, "blubb", somebody);
-		ImmutablePersonWithExternalId person = ImmutablePersonWithExternalId.relationshipPropertiesCollection(Collections.singletonList(properties));
+		ImmutablePersonWithAssignedlId somebody = new ImmutablePersonWithAssignedlId();
+		ImmutablePersonWithAssignedIdRelationshipProperties properties = new ImmutablePersonWithAssignedIdRelationshipProperties(null, "blubb", somebody);
+		ImmutablePersonWithAssignedlId person = ImmutablePersonWithAssignedlId.relationshipPropertiesCollection(Collections.singletonList(properties));
 
-		ImmutablePersonWithExternalId savedPerson = repository.saveAll(Collections.singleton(person)).get(0);
+		ImmutablePersonWithAssignedlId savedPerson = repository.saveAll(Collections.singleton(person)).get(0);
 
 		assertThat(savedPerson.relationshipPropertiesCollection.get(0).name).isNotNull();
 		assertThat(savedPerson.relationshipPropertiesCollection.get(0).target.id).isNotNull();
@@ -200,11 +195,11 @@ public class ImmutableExternalIdsIT {
 	void saveRelationshipWithGeneratedIdsContainsObjectWithIdSetForRelationshipPropertiesDynamic(
 			@Autowired ImmutablePersonWithExternalIdRepository repository) {
 
-		ImmutablePersonWithExternalId somebody = new ImmutablePersonWithExternalId();
-		ImmutablePersonWithExternalIdRelationshipProperties properties = new ImmutablePersonWithExternalIdRelationshipProperties(null, "blubb", somebody);
-		ImmutablePersonWithExternalId person = ImmutablePersonWithExternalId.relationshipPropertiesDynamic(Collections.singletonMap("Good", properties));
+		ImmutablePersonWithAssignedlId somebody = new ImmutablePersonWithAssignedlId();
+		ImmutablePersonWithAssignedIdRelationshipProperties properties = new ImmutablePersonWithAssignedIdRelationshipProperties(null, "blubb", somebody);
+		ImmutablePersonWithAssignedlId person = ImmutablePersonWithAssignedlId.relationshipPropertiesDynamic(Collections.singletonMap("Good", properties));
 
-		ImmutablePersonWithExternalId savedPerson = repository.saveAll(Collections.singleton(person)).get(0);
+		ImmutablePersonWithAssignedlId savedPerson = repository.saveAll(Collections.singleton(person)).get(0);
 
 		assertThat(savedPerson.relationshipPropertiesDynamic.keySet().iterator().next()).isEqualTo("Good");
 		assertThat(savedPerson.relationshipPropertiesDynamic.values().iterator().next().name).isNotNull();
@@ -217,11 +212,11 @@ public class ImmutableExternalIdsIT {
 	void saveRelationshipWithGeneratedIdsContainsObjectWithIdSetForRelationshipPropertiesDynamicCollection(
 			@Autowired ImmutablePersonWithExternalIdRepository repository) {
 
-		ImmutableSecondPersonWithExternalId somebody = new ImmutableSecondPersonWithExternalId();
-		ImmutableSecondPersonWithExternalIdRelationshipProperties properties = new ImmutableSecondPersonWithExternalIdRelationshipProperties(null, "blubb", somebody);
-		ImmutablePersonWithExternalId person = ImmutablePersonWithExternalId.relationshipPropertiesDynamicCollection(Collections.singletonMap("Good", Collections.singletonList(properties)));
+		ImmutableSecondPersonWithAssignedId somebody = new ImmutableSecondPersonWithAssignedId();
+		ImmutableSecondPersonWithAssignedIdRelationshipProperties properties = new ImmutableSecondPersonWithAssignedIdRelationshipProperties(null, "blubb", somebody);
+		ImmutablePersonWithAssignedlId person = ImmutablePersonWithAssignedlId.relationshipPropertiesDynamicCollection(Collections.singletonMap("Good", Collections.singletonList(properties)));
 
-		ImmutablePersonWithExternalId savedPerson = repository.saveAll(Collections.singleton(person)).get(0);
+		ImmutablePersonWithAssignedlId savedPerson = repository.saveAll(Collections.singleton(person)).get(0);
 
 		assertThat(savedPerson.relationshipPropertiesDynamicCollection.keySet().iterator().next()).isEqualTo("Good");
 		assertThat(savedPerson.relationshipPropertiesDynamicCollection.values().iterator().next().get(0).name).isNotNull();
@@ -232,37 +227,37 @@ public class ImmutableExternalIdsIT {
 	void saveRelationshipWithGeneratedIdsContainsAllRelationshipTypes(
 			@Autowired ImmutablePersonWithExternalIdRepository repository) {
 
-		ImmutablePersonWithExternalId fallback =
-				new ImmutablePersonWithExternalId();
+		ImmutablePersonWithAssignedlId fallback =
+				new ImmutablePersonWithAssignedlId();
 
-		List<ImmutablePersonWithExternalId> wasOnboardedBy =
-				Collections.singletonList(new ImmutablePersonWithExternalId());
+		List<ImmutablePersonWithAssignedlId> wasOnboardedBy =
+				Collections.singletonList(new ImmutablePersonWithAssignedlId());
 
-		Set<ImmutablePersonWithExternalId> knownBy =
-				Collections.singleton(new ImmutablePersonWithExternalId());
+		Set<ImmutablePersonWithAssignedlId> knownBy =
+				Collections.singleton(new ImmutablePersonWithAssignedlId());
 
-		Map<String, ImmutablePersonWithExternalId> ratedBy =
-				Collections.singletonMap("Good", new ImmutablePersonWithExternalId());
+		Map<String, ImmutablePersonWithAssignedlId> ratedBy =
+				Collections.singletonMap("Good", new ImmutablePersonWithAssignedlId());
 
-		Map<String, List<ImmutableSecondPersonWithExternalId>> ratedByCollection =
-				Collections.singletonMap("Na", Collections.singletonList(new ImmutableSecondPersonWithExternalId()));
+		Map<String, List<ImmutableSecondPersonWithAssignedId>> ratedByCollection =
+				Collections.singletonMap("Na", Collections.singletonList(new ImmutableSecondPersonWithAssignedId()));
 
-		ImmutablePersonWithExternalIdRelationshipProperties relationshipProperties =
-				new ImmutablePersonWithExternalIdRelationshipProperties(null, "rel1", new ImmutablePersonWithExternalId());
+		ImmutablePersonWithAssignedIdRelationshipProperties relationshipProperties =
+				new ImmutablePersonWithAssignedIdRelationshipProperties(null, "rel1", new ImmutablePersonWithAssignedlId());
 
-		List<ImmutablePersonWithExternalIdRelationshipProperties> relationshipPropertiesCollection =
-				Collections.singletonList(new ImmutablePersonWithExternalIdRelationshipProperties(null, "rel2", new ImmutablePersonWithExternalId()));
+		List<ImmutablePersonWithAssignedIdRelationshipProperties> relationshipPropertiesCollection =
+				Collections.singletonList(new ImmutablePersonWithAssignedIdRelationshipProperties(null, "rel2", new ImmutablePersonWithAssignedlId()));
 
-		Map<String, ImmutablePersonWithExternalIdRelationshipProperties> relationshipPropertiesDynamic =
-				Collections.singletonMap("Ok", new ImmutablePersonWithExternalIdRelationshipProperties(null, "rel3", new ImmutablePersonWithExternalId()));
+		Map<String, ImmutablePersonWithAssignedIdRelationshipProperties> relationshipPropertiesDynamic =
+				Collections.singletonMap("Ok", new ImmutablePersonWithAssignedIdRelationshipProperties(null, "rel3", new ImmutablePersonWithAssignedlId()));
 
-		Map<String, List<ImmutableSecondPersonWithExternalIdRelationshipProperties>> relationshipPropertiesDynamicCollection =
+		Map<String, List<ImmutableSecondPersonWithAssignedIdRelationshipProperties>> relationshipPropertiesDynamicCollection =
 				Collections.singletonMap("Nope",
-						Collections.singletonList(new ImmutableSecondPersonWithExternalIdRelationshipProperties(
-								null, "rel4", new ImmutableSecondPersonWithExternalId()))
+						Collections.singletonList(new ImmutableSecondPersonWithAssignedIdRelationshipProperties(
+								null, "rel4", new ImmutableSecondPersonWithAssignedId()))
 				);
 
-		ImmutablePersonWithExternalId person = new ImmutablePersonWithExternalId(null,
+		ImmutablePersonWithAssignedlId person = new ImmutablePersonWithAssignedlId(null,
 				wasOnboardedBy,
 				knownBy,
 				ratedBy,
@@ -274,7 +269,7 @@ public class ImmutableExternalIdsIT {
 				relationshipPropertiesDynamicCollection
 				);
 
-		ImmutablePersonWithExternalId savedPerson = repository.saveAll(Collections.singleton(person)).get(0);
+		ImmutablePersonWithAssignedlId savedPerson = repository.saveAll(Collections.singleton(person)).get(0);
 
 		assertThat(savedPerson.wasOnboardedBy.get(0).id).isNotNull();
 		assertThat(savedPerson.knownBy.iterator().next().id).isNotNull();
@@ -305,7 +300,7 @@ public class ImmutableExternalIdsIT {
 		assertThat(savedPerson.relationshipPropertiesDynamicCollection.values().iterator().next().get(0).target.id).isNotNull();
 	}
 
-	interface ImmutablePersonWithExternalIdRepository extends Neo4jRepository<ImmutablePersonWithExternalId, Long> {}
+	interface ImmutablePersonWithExternalIdRepository extends Neo4jRepository<ImmutablePersonWithAssignedlId, Long> {}
 
 	@Configuration
 	@EnableNeo4jRepositories(considerNestedRepositories = true)
@@ -319,11 +314,11 @@ public class ImmutableExternalIdsIT {
 
 		@Override
 		protected Collection<String> getMappingBasePackages() {
-			return Arrays.asList(ImmutablePersonWithExternalId.class.getPackage().getName());
+			return Arrays.asList(ImmutablePersonWithAssignedlId.class.getPackage().getName());
 		}
 
 		@Bean
-		BeforeBindCallback<ImmutablePersonWithExternalId> valueChange() {
+		BeforeBindCallback<ImmutablePersonWithAssignedlId> valueChange() {
 			return entity -> {
 				entity.someValue = SOME_VALUE_VALUE;
 				return entity;

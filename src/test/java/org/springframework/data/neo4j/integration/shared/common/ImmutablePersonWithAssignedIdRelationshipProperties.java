@@ -24,7 +24,7 @@ import org.springframework.data.neo4j.core.schema.TargetNode;
  * @author Gerrit Meier
  */
 @RelationshipProperties
-public class ImmutableSecondPersonWithExternalIdRelationshipProperties {
+public class ImmutablePersonWithAssignedIdRelationshipProperties {
 
 	@Id
 	@GeneratedValue
@@ -33,9 +33,9 @@ public class ImmutableSecondPersonWithExternalIdRelationshipProperties {
 	public final String name;
 
 	@TargetNode
-	public final ImmutableSecondPersonWithExternalId target;
+	public final ImmutablePersonWithAssignedlId target;
 
-	public ImmutableSecondPersonWithExternalIdRelationshipProperties(Long id, String name, ImmutableSecondPersonWithExternalId target) {
+	public ImmutablePersonWithAssignedIdRelationshipProperties(Long id, String name, ImmutablePersonWithAssignedlId target) {
 		this.id = id;
 		this.name = name;
 		this.target = target;

@@ -30,43 +30,43 @@ import java.util.Set;
  * @author Gerrit Meier
  */
 @Node
-public class ImmutableSecondPersonWithExternalId {
+public class ImmutableSecondPersonWithAssignedId {
 
 	@Id
 	public final Long id;
 
 	@Relationship("ONBOARDED_BY")
-	public final List<ImmutableSecondPersonWithExternalId> wasOnboardedBy;
+	public final List<ImmutableSecondPersonWithAssignedId> wasOnboardedBy;
 	@Relationship("KNOWN_BY")
-	public final Set<ImmutableSecondPersonWithExternalId> knownBy;
+	public final Set<ImmutableSecondPersonWithAssignedId> knownBy;
 
-	public final Map<String, ImmutablePersonWithExternalId> ratedBy;
-	public final Map<String, List<ImmutableSecondPersonWithExternalId>> ratedByCollection;
+	public final Map<String, ImmutablePersonWithAssignedlId> ratedBy;
+	public final Map<String, List<ImmutableSecondPersonWithAssignedId>> ratedByCollection;
 
 	@Relationship("FALLBACK")
-	public final ImmutableSecondPersonWithExternalId fallback;
+	public final ImmutableSecondPersonWithAssignedId fallback;
 
 	@Relationship("PROPERTIES")
-	public final ImmutablePersonWithExternalIdRelationshipProperties relationshipProperties;
+	public final ImmutablePersonWithAssignedIdRelationshipProperties relationshipProperties;
 
 	@Relationship("PROPERTIES_COLLECTION")
-	public final List<ImmutablePersonWithExternalIdRelationshipProperties> relationshipPropertiesCollection;
+	public final List<ImmutablePersonWithAssignedIdRelationshipProperties> relationshipPropertiesCollection;
 
-	public final Map<String, ImmutablePersonWithExternalIdRelationshipProperties> relationshipPropertiesDynamic;
-	public final Map<String, List<ImmutableSecondPersonWithExternalIdRelationshipProperties>> relationshipPropertiesDynamicCollection;
+	public final Map<String, ImmutablePersonWithAssignedIdRelationshipProperties> relationshipPropertiesDynamic;
+	public final Map<String, List<ImmutableSecondPersonWithAssignedIdRelationshipProperties>> relationshipPropertiesDynamicCollection;
 
 	@PersistenceConstructor
-	public ImmutableSecondPersonWithExternalId(
+	public ImmutableSecondPersonWithAssignedId(
 			Long id,
-			List<ImmutableSecondPersonWithExternalId> wasOnboardedBy,
-			Set<ImmutableSecondPersonWithExternalId> knownBy,
-			Map<String, ImmutablePersonWithExternalId> ratedBy,
-			Map<String, List<ImmutableSecondPersonWithExternalId>> ratedByCollection,
-			ImmutableSecondPersonWithExternalId fallback,
-			ImmutablePersonWithExternalIdRelationshipProperties relationshipProperties,
-			List<ImmutablePersonWithExternalIdRelationshipProperties> relationshipPropertiesCollection,
-			Map<String, ImmutablePersonWithExternalIdRelationshipProperties> relationshipPropertiesDynamic,
-			Map<String, List<ImmutableSecondPersonWithExternalIdRelationshipProperties>> relationshipPropertiesDynamicCollection) {
+			List<ImmutableSecondPersonWithAssignedId> wasOnboardedBy,
+			Set<ImmutableSecondPersonWithAssignedId> knownBy,
+			Map<String, ImmutablePersonWithAssignedlId> ratedBy,
+			Map<String, List<ImmutableSecondPersonWithAssignedId>> ratedByCollection,
+			ImmutableSecondPersonWithAssignedId fallback,
+			ImmutablePersonWithAssignedIdRelationshipProperties relationshipProperties,
+			List<ImmutablePersonWithAssignedIdRelationshipProperties> relationshipPropertiesCollection,
+			Map<String, ImmutablePersonWithAssignedIdRelationshipProperties> relationshipPropertiesDynamic,
+			Map<String, List<ImmutableSecondPersonWithAssignedIdRelationshipProperties>> relationshipPropertiesDynamicCollection) {
 
 		this.id = new Random().nextLong();
 		this.wasOnboardedBy = wasOnboardedBy;
@@ -80,7 +80,7 @@ public class ImmutableSecondPersonWithExternalId {
 		this.relationshipPropertiesDynamicCollection = relationshipPropertiesDynamicCollection;
 	}
 
-	public ImmutableSecondPersonWithExternalId() {
+	public ImmutableSecondPersonWithAssignedId() {
 		this(null,
 				Collections.emptyList(),
 				Collections.emptySet(),
@@ -94,8 +94,8 @@ public class ImmutableSecondPersonWithExternalId {
 		);
 	}
 
-	public static ImmutableSecondPersonWithExternalId wasOnboardedBy(List<ImmutableSecondPersonWithExternalId> wasOnboardedBy) {
-		return new ImmutableSecondPersonWithExternalId(null,
+	public static ImmutableSecondPersonWithAssignedId wasOnboardedBy(List<ImmutableSecondPersonWithAssignedId> wasOnboardedBy) {
+		return new ImmutableSecondPersonWithAssignedId(null,
 				wasOnboardedBy,
 				Collections.emptySet(),
 				Collections.emptyMap(),
@@ -108,8 +108,8 @@ public class ImmutableSecondPersonWithExternalId {
 		);
 	}
 
-	public static ImmutableSecondPersonWithExternalId knownBy(Set<ImmutableSecondPersonWithExternalId> knownBy) {
-		return new ImmutableSecondPersonWithExternalId(null,
+	public static ImmutableSecondPersonWithAssignedId knownBy(Set<ImmutableSecondPersonWithAssignedId> knownBy) {
+		return new ImmutableSecondPersonWithAssignedId(null,
 				Collections.emptyList(),
 				knownBy,
 				Collections.emptyMap(),
@@ -122,8 +122,8 @@ public class ImmutableSecondPersonWithExternalId {
 		);
 	}
 
-	public static ImmutableSecondPersonWithExternalId ratedBy(Map<String, ImmutablePersonWithExternalId> ratedBy) {
-		return new ImmutableSecondPersonWithExternalId(null,
+	public static ImmutableSecondPersonWithAssignedId ratedBy(Map<String, ImmutablePersonWithAssignedlId> ratedBy) {
+		return new ImmutableSecondPersonWithAssignedId(null,
 				Collections.emptyList(),
 				Collections.emptySet(),
 				ratedBy,
@@ -136,8 +136,8 @@ public class ImmutableSecondPersonWithExternalId {
 		);
 	}
 
-	public static ImmutableSecondPersonWithExternalId ratedByCollection(Map<String, List<ImmutableSecondPersonWithExternalId>> ratedByCollection) {
-		return new ImmutableSecondPersonWithExternalId(null,
+	public static ImmutableSecondPersonWithAssignedId ratedByCollection(Map<String, List<ImmutableSecondPersonWithAssignedId>> ratedByCollection) {
+		return new ImmutableSecondPersonWithAssignedId(null,
 				Collections.emptyList(),
 				Collections.emptySet(),
 				Collections.emptyMap(),
@@ -150,8 +150,8 @@ public class ImmutableSecondPersonWithExternalId {
 		);
 	}
 
-	public static ImmutableSecondPersonWithExternalId fallback(ImmutableSecondPersonWithExternalId fallback) {
-		return new ImmutableSecondPersonWithExternalId(null,
+	public static ImmutableSecondPersonWithAssignedId fallback(ImmutableSecondPersonWithAssignedId fallback) {
+		return new ImmutableSecondPersonWithAssignedId(null,
 				Collections.emptyList(),
 				Collections.emptySet(),
 				Collections.emptyMap(),
@@ -164,8 +164,8 @@ public class ImmutableSecondPersonWithExternalId {
 		);
 	}
 
-	public static ImmutableSecondPersonWithExternalId relationshipProperties(ImmutablePersonWithExternalIdRelationshipProperties relationshipProperties) {
-		return new ImmutableSecondPersonWithExternalId(null,
+	public static ImmutableSecondPersonWithAssignedId relationshipProperties(ImmutablePersonWithAssignedIdRelationshipProperties relationshipProperties) {
+		return new ImmutableSecondPersonWithAssignedId(null,
 				Collections.emptyList(),
 				Collections.emptySet(),
 				Collections.emptyMap(),
@@ -178,8 +178,8 @@ public class ImmutableSecondPersonWithExternalId {
 		);
 	}
 
-	public static ImmutableSecondPersonWithExternalId relationshipPropertiesCollection(List<ImmutablePersonWithExternalIdRelationshipProperties> relationshipPropertiesCollection) {
-		return new ImmutableSecondPersonWithExternalId(null,
+	public static ImmutableSecondPersonWithAssignedId relationshipPropertiesCollection(List<ImmutablePersonWithAssignedIdRelationshipProperties> relationshipPropertiesCollection) {
+		return new ImmutableSecondPersonWithAssignedId(null,
 				Collections.emptyList(),
 				Collections.emptySet(),
 				Collections.emptyMap(),
@@ -192,8 +192,8 @@ public class ImmutableSecondPersonWithExternalId {
 		);
 	}
 
-	public static ImmutableSecondPersonWithExternalId relationshipPropertiesDynamic(Map<String, ImmutablePersonWithExternalIdRelationshipProperties> relationshipPropertiesDynamic) {
-		return new ImmutableSecondPersonWithExternalId(null,
+	public static ImmutableSecondPersonWithAssignedId relationshipPropertiesDynamic(Map<String, ImmutablePersonWithAssignedIdRelationshipProperties> relationshipPropertiesDynamic) {
+		return new ImmutableSecondPersonWithAssignedId(null,
 				Collections.emptyList(),
 				Collections.emptySet(),
 				Collections.emptyMap(),
@@ -206,8 +206,8 @@ public class ImmutableSecondPersonWithExternalId {
 		);
 	}
 
-	public static ImmutableSecondPersonWithExternalId relationshipPropertiesDynamicCollection(Map<String, List<ImmutableSecondPersonWithExternalIdRelationshipProperties>> relationshipPropertiesDynamicCollection) {
-		return new ImmutableSecondPersonWithExternalId(null,
+	public static ImmutableSecondPersonWithAssignedId relationshipPropertiesDynamicCollection(Map<String, List<ImmutableSecondPersonWithAssignedIdRelationshipProperties>> relationshipPropertiesDynamicCollection) {
+		return new ImmutableSecondPersonWithAssignedId(null,
 				Collections.emptyList(),
 				Collections.emptySet(),
 				Collections.emptyMap(),
