@@ -575,7 +575,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 		  boolean isParentObjectNew, NestedRelationshipProcessingStateMachine stateMachine) {
 
 		return Mono.defer(() -> {
-
+			System.out.println("creating defer " + sourceEntity.getPrimaryLabel());
 			Object fromId = parentPropertyAccessor.getProperty(sourceEntity.getRequiredIdProperty());
 			List<Mono<Void>> relationshipCreationMonos = new ArrayList<>();
 
@@ -642,26 +642,18 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 				}
 
 				stateMachine.markAsProcessed(relationshipDescription, relatedValuesToStore);
-
+				Neo4jPersistentProperty relationshipProperty = association.getInverse();
 				for (Object relatedValueToStore : relatedValuesToStore) {
 
 					Object relatedNodePreEvt = relationshipContext.identifyAndExtractRelationshipTargetNode(relatedValueToStore);
-
+					System.out.println("bereite speichern für rel vor " + relatedValueToStore);
 					Mono<Void> createRelationship = eventSupport.maybeCallBeforeBind(relatedNodePreEvt)
-							.flatMap(relatedNode -> {
-								Neo4jPersistentEntity<?> targetEntity = neo4jMappingContext
-										.getPersistentEntity(relatedNodePreEvt.getClass());
-								return Mono.just(targetEntity.isNew(relatedNode)).flatMap(isNew -> {
-									Mono<Long> relatedIdMono;
-
-									if (processState == ProcessState.PROCESSED_ALL_VALUES) {
-										relatedIdMono = queryRelatedNode(relatedNode, targetEntity);
-									} else {
-										relatedIdMono = saveRelatedNode(relatedNode, relationshipContext.getAssociationTargetType(),
-												targetEntity);
-									}
-									return relatedIdMono.flatMap(relatedInternalId -> {
-
+							.flatMap(relatedNode ->	Mono.just(neo4jMappingContext.getPersistentEntity(relatedNodePreEvt.getClass()))
+								.flatMap(targetEntity -> Mono.just(targetEntity.isNew(relatedNode))
+									.flatMap(isNew -> saveRelatedNode(relatedNode, relationshipContext.getAssociationTargetType(),
+											targetEntity)
+										.flatMap(relatedInternalId -> {
+											System.out.println("preparing save of " + relatedInternalId);
 											// if an internal id is used this must get set to link this entity in the next iteration
 											PersistentPropertyAccessor<?> targetPropertyAccessor = targetEntity
 													.getPropertyAccessor(relatedNode);
@@ -674,7 +666,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 													sourceEntity, relationshipContext, relatedValueToStore);
 
 											// in case of no properties the bind will just return an empty map
-											Mono<Long> relationshipCreationMonoNested = neo4jClient
+											return neo4jClient
 													.query(renderer.render(statementHolder.getStatement()))
 													.bind(convertIdValues(sourceEntity.getRequiredIdProperty(), fromId)) //
 														.to(Constants.FROM_ID_PARAMETER_NAME) //
@@ -682,24 +674,25 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 														.to(Constants.TO_ID_PARAMETER_NAME) //
 													.bindAll(statementHolder.getProperties())
 													.fetchAs(Long.class).one()
-													.doOnNext(relationshipInternalId -> {
+													.flatMap(relationshipInternalId -> {
+														System.out.println("und der client kommt an");
 														if (idProperty != null) {
 															relationshipContext
 																	.getRelationshipPropertiesPropertyAccessor(relatedValueToStore)
 																	.setProperty(idProperty, relationshipInternalId);
 														}
+
+														if (processState != ProcessState.PROCESSED_ALL_VALUES) {
+															System.out.println("process more");
+															return processNestedRelations(targetEntity, targetPropertyAccessor,
+																	isNew, stateMachine).then();
+														} else {
+															System.out.println("na, fertig");
+															return Mono.just(targetPropertyAccessor.getBean()).then();
+														}
 													});
 
-											if (processState != ProcessState.PROCESSED_ALL_VALUES) {
-												return relationshipCreationMonoNested.checkpoint().then(
-														processNestedRelations(targetEntity, targetPropertyAccessor,
-																isNew, stateMachine));
-											} else {
-												return relationshipCreationMonoNested.checkpoint().then();
-											}
-										}).checkpoint();
-								});
-							});
+										}).checkpoint())));
 					relationshipCreationMonos.add(createRelationship);
 				}
 			});
