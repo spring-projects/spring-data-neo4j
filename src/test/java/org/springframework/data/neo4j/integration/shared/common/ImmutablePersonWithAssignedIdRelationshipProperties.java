@@ -33,9 +33,9 @@ public class ImmutablePersonWithAssignedIdRelationshipProperties {
 	public final String name;
 
 	@TargetNode
-	public final ImmutablePersonWithAssignedlId target;
+	public final ImmutablePersonWithAssignedId target;
 
-	public ImmutablePersonWithAssignedIdRelationshipProperties(Long id, String name, ImmutablePersonWithAssignedlId target) {
+	public ImmutablePersonWithAssignedIdRelationshipProperties(Long id, String name, ImmutablePersonWithAssignedId target) {
 		this.id = id;
 		this.name = name;
 		this.target = target;

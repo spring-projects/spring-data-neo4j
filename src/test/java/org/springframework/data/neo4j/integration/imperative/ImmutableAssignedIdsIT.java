@@ -24,7 +24,7 @@ import org.springframework.data.neo4j.config.AbstractNeo4jConfig;
 import org.springframework.data.neo4j.core.convert.Neo4jConversions;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.mapping.callback.BeforeBindCallback;
-import org.springframework.data.neo4j.integration.shared.common.ImmutablePersonWithAssignedlId;
+import org.springframework.data.neo4j.integration.shared.common.ImmutablePersonWithAssignedId;
 import org.springframework.data.neo4j.integration.shared.common.ImmutablePersonWithAssignedIdRelationshipProperties;
 import org.springframework.data.neo4j.integration.shared.common.ImmutableSecondPersonWithAssignedId;
 import org.springframework.data.neo4j.integration.shared.common.ImmutableSecondPersonWithAssignedIdRelationshipProperties;
@@ -55,13 +55,13 @@ public class ImmutableAssignedIdsIT {
 
 	@Test // GH-2141
 	void saveWithGeneratedIdsReturnsObjectWithIdSet(
-			@Autowired ImmutablePersonWithExternalIdRepository repository) {
+			@Autowired ImmutablePersonWithAssignedIdRepository repository) {
 
-		ImmutablePersonWithAssignedlId fallback1 = new ImmutablePersonWithAssignedlId();
-		ImmutablePersonWithAssignedlId fallback2 = ImmutablePersonWithAssignedlId.fallback(fallback1);
-		ImmutablePersonWithAssignedlId person = ImmutablePersonWithAssignedlId.fallback(fallback2);
+		ImmutablePersonWithAssignedId fallback1 = new ImmutablePersonWithAssignedId();
+		ImmutablePersonWithAssignedId fallback2 = ImmutablePersonWithAssignedId.fallback(fallback1);
+		ImmutablePersonWithAssignedId person = ImmutablePersonWithAssignedId.fallback(fallback2);
 
-		ImmutablePersonWithAssignedlId savedPerson = repository.save(person);
+		ImmutablePersonWithAssignedId savedPerson = repository.save(person);
 
 		assertThat(savedPerson.id).isNotNull();
 		assertThat(savedPerson.fallback).isNotNull();
@@ -73,13 +73,13 @@ public class ImmutableAssignedIdsIT {
 
 	@Test // GH-2141
 	void saveAllWithGeneratedIdsReturnsObjectWithIdSet(
-			@Autowired ImmutablePersonWithExternalIdRepository repository) {
+			@Autowired ImmutablePersonWithAssignedIdRepository repository) {
 
-		ImmutablePersonWithAssignedlId fallback1 = new ImmutablePersonWithAssignedlId();
-		ImmutablePersonWithAssignedlId fallback2 = ImmutablePersonWithAssignedlId.fallback(fallback1);
-		ImmutablePersonWithAssignedlId person = ImmutablePersonWithAssignedlId.fallback(fallback2);
+		ImmutablePersonWithAssignedId fallback1 = new ImmutablePersonWithAssignedId();
+		ImmutablePersonWithAssignedId fallback2 = ImmutablePersonWithAssignedId.fallback(fallback1);
+		ImmutablePersonWithAssignedId person = ImmutablePersonWithAssignedId.fallback(fallback2);
 
-		ImmutablePersonWithAssignedlId savedPerson = repository.saveAll(Collections.singleton(person)).get(0);
+		ImmutablePersonWithAssignedId savedPerson = repository.saveAll(Collections.singleton(person)).get(0);
 
 		assertThat(savedPerson.id).isNotNull();
 		assertThat(savedPerson.fallback).isNotNull();
@@ -91,12 +91,12 @@ public class ImmutableAssignedIdsIT {
 
 	@Test // GH-2148
 	void saveRelationshipWithGeneratedIdsContainsObjectWithIdSetForList(
-			@Autowired ImmutablePersonWithExternalIdRepository repository) {
+			@Autowired ImmutablePersonWithAssignedIdRepository repository) {
 
-		ImmutablePersonWithAssignedlId onboarder = new ImmutablePersonWithAssignedlId();
-		ImmutablePersonWithAssignedlId person = ImmutablePersonWithAssignedlId.wasOnboardedBy(Collections.singletonList(onboarder));
+		ImmutablePersonWithAssignedId onboarder = new ImmutablePersonWithAssignedId();
+		ImmutablePersonWithAssignedId person = ImmutablePersonWithAssignedId.wasOnboardedBy(Collections.singletonList(onboarder));
 
-		ImmutablePersonWithAssignedlId savedPerson = repository.saveAll(Collections.singleton(person)).get(0);
+		ImmutablePersonWithAssignedId savedPerson = repository.saveAll(Collections.singleton(person)).get(0);
 
 		assertThat(savedPerson.wasOnboardedBy.get(0).id).isNotNull();
 		assertThat(savedPerson.wasOnboardedBy.get(0).someValue).isEqualTo(SOME_VALUE_VALUE);
@@ -104,12 +104,12 @@ public class ImmutableAssignedIdsIT {
 
 	@Test // GH-2148
 	void saveRelationshipWithGeneratedIdsContainsObjectWithIdSetForSet(
-			@Autowired ImmutablePersonWithExternalIdRepository repository) {
+			@Autowired ImmutablePersonWithAssignedIdRepository repository) {
 
-		ImmutablePersonWithAssignedlId knowingPerson = new ImmutablePersonWithAssignedlId();
-		ImmutablePersonWithAssignedlId person = ImmutablePersonWithAssignedlId.knownBy(Collections.singleton(knowingPerson));
+		ImmutablePersonWithAssignedId knowingPerson = new ImmutablePersonWithAssignedId();
+		ImmutablePersonWithAssignedId person = ImmutablePersonWithAssignedId.knownBy(Collections.singleton(knowingPerson));
 
-		ImmutablePersonWithAssignedlId savedPerson = repository.saveAll(Collections.singleton(person)).get(0);
+		ImmutablePersonWithAssignedId savedPerson = repository.saveAll(Collections.singleton(person)).get(0);
 
 		assertThat(savedPerson.knownBy.iterator().next().id).isNotNull();
 		assertThat(savedPerson.knownBy.iterator().next().someValue).isEqualTo(SOME_VALUE_VALUE);
@@ -117,12 +117,12 @@ public class ImmutableAssignedIdsIT {
 
 	@Test // GH-2148
 	void saveRelationshipWithGeneratedIdsContainsObjectWithIdSetForMap(
-			@Autowired ImmutablePersonWithExternalIdRepository repository) {
+			@Autowired ImmutablePersonWithAssignedIdRepository repository) {
 
-		ImmutablePersonWithAssignedlId rater = new ImmutablePersonWithAssignedlId();
-		ImmutablePersonWithAssignedlId person = ImmutablePersonWithAssignedlId.ratedBy(Collections.singletonMap("Good", rater));
+		ImmutablePersonWithAssignedId rater = new ImmutablePersonWithAssignedId();
+		ImmutablePersonWithAssignedId person = ImmutablePersonWithAssignedId.ratedBy(Collections.singletonMap("Good", rater));
 
-		ImmutablePersonWithAssignedlId savedPerson = repository.saveAll(Collections.singleton(person)).get(0);
+		ImmutablePersonWithAssignedId savedPerson = repository.saveAll(Collections.singleton(person)).get(0);
 
 		assertThat(savedPerson.ratedBy.keySet().iterator().next()).isEqualTo("Good");
 		assertThat(savedPerson.ratedBy.values().iterator().next().id).isNotNull();
@@ -131,16 +131,16 @@ public class ImmutableAssignedIdsIT {
 
 	@Test // GH-2148
 	void saveRelationshipWithGeneratedIdsContainsObjectWithIdSetForMapWithMultipleKeys(
-			@Autowired ImmutablePersonWithExternalIdRepository repository) {
+			@Autowired ImmutablePersonWithAssignedIdRepository repository) {
 
-		ImmutablePersonWithAssignedlId rater1 = new ImmutablePersonWithAssignedlId();
-		ImmutablePersonWithAssignedlId rater2 = new ImmutablePersonWithAssignedlId();
-		Map<String, ImmutablePersonWithAssignedlId> raterMap = new HashMap<>();
+		ImmutablePersonWithAssignedId rater1 = new ImmutablePersonWithAssignedId();
+		ImmutablePersonWithAssignedId rater2 = new ImmutablePersonWithAssignedId();
+		Map<String, ImmutablePersonWithAssignedId> raterMap = new HashMap<>();
 		raterMap.put("Good", rater1);
 		raterMap.put("Bad", rater2);
-		ImmutablePersonWithAssignedlId person = ImmutablePersonWithAssignedlId.ratedBy(raterMap);
+		ImmutablePersonWithAssignedId person = ImmutablePersonWithAssignedId.ratedBy(raterMap);
 
-		ImmutablePersonWithAssignedlId savedPerson = repository.saveAll(Collections.singleton(person)).get(0);
+		ImmutablePersonWithAssignedId savedPerson = repository.saveAll(Collections.singleton(person)).get(0);
 
 		assertThat(savedPerson.ratedBy.keySet()).containsExactlyInAnyOrder("Good", "Bad");
 		assertThat(savedPerson.ratedBy.get("Good").id).isNotNull();
@@ -151,25 +151,25 @@ public class ImmutableAssignedIdsIT {
 
 	@Test // GH-2148
 	void saveRelationshipWithGeneratedIdsContainsObjectWithIdSetForMapCollection(
-			@Autowired ImmutablePersonWithExternalIdRepository repository) {
+			@Autowired ImmutablePersonWithAssignedIdRepository repository) {
 
 		ImmutableSecondPersonWithAssignedId rater = new ImmutableSecondPersonWithAssignedId();
-		ImmutablePersonWithAssignedlId person = ImmutablePersonWithAssignedlId.ratedByCollection(Collections.singletonMap("Good", Collections.singletonList(rater)));
+		ImmutablePersonWithAssignedId person = ImmutablePersonWithAssignedId.ratedByCollection(Collections.singletonMap("Good", Collections.singletonList(rater)));
 
-		ImmutablePersonWithAssignedlId savedPerson = repository.saveAll(Collections.singleton(person)).get(0);
+		ImmutablePersonWithAssignedId savedPerson = repository.saveAll(Collections.singleton(person)).get(0);
 
 		assertThat(savedPerson.ratedByCollection.values().iterator().next().get(0).id).isNotNull();
 	}
 
 	@Test // GH-2148
 	void saveRelationshipWithGeneratedIdsContainsObjectWithIdSetForRelationshipProperties(
-			@Autowired ImmutablePersonWithExternalIdRepository repository) {
+			@Autowired ImmutablePersonWithAssignedIdRepository repository) {
 
-		ImmutablePersonWithAssignedlId somebody = new ImmutablePersonWithAssignedlId();
+		ImmutablePersonWithAssignedId somebody = new ImmutablePersonWithAssignedId();
 		ImmutablePersonWithAssignedIdRelationshipProperties properties = new ImmutablePersonWithAssignedIdRelationshipProperties(null, "blubb", somebody);
-		ImmutablePersonWithAssignedlId person = ImmutablePersonWithAssignedlId.relationshipProperties(properties);
+		ImmutablePersonWithAssignedId person = ImmutablePersonWithAssignedId.relationshipProperties(properties);
 
-		ImmutablePersonWithAssignedlId savedPerson = repository.saveAll(Collections.singleton(person)).get(0);
+		ImmutablePersonWithAssignedId savedPerson = repository.saveAll(Collections.singleton(person)).get(0);
 
 		assertThat(savedPerson.relationshipProperties.name).isNotNull();
 		assertThat(savedPerson.relationshipProperties.target.id).isNotNull();
@@ -178,13 +178,13 @@ public class ImmutableAssignedIdsIT {
 
 	@Test // GH-2148
 	void saveRelationshipWithGeneratedIdsContainsObjectWithIdSetForRelationshipPropertiesCollection(
-			@Autowired ImmutablePersonWithExternalIdRepository repository) {
+			@Autowired ImmutablePersonWithAssignedIdRepository repository) {
 
-		ImmutablePersonWithAssignedlId somebody = new ImmutablePersonWithAssignedlId();
+		ImmutablePersonWithAssignedId somebody = new ImmutablePersonWithAssignedId();
 		ImmutablePersonWithAssignedIdRelationshipProperties properties = new ImmutablePersonWithAssignedIdRelationshipProperties(null, "blubb", somebody);
-		ImmutablePersonWithAssignedlId person = ImmutablePersonWithAssignedlId.relationshipPropertiesCollection(Collections.singletonList(properties));
+		ImmutablePersonWithAssignedId person = ImmutablePersonWithAssignedId.relationshipPropertiesCollection(Collections.singletonList(properties));
 
-		ImmutablePersonWithAssignedlId savedPerson = repository.saveAll(Collections.singleton(person)).get(0);
+		ImmutablePersonWithAssignedId savedPerson = repository.saveAll(Collections.singleton(person)).get(0);
 
 		assertThat(savedPerson.relationshipPropertiesCollection.get(0).name).isNotNull();
 		assertThat(savedPerson.relationshipPropertiesCollection.get(0).target.id).isNotNull();
@@ -193,13 +193,13 @@ public class ImmutableAssignedIdsIT {
 
 	@Test // GH-2148
 	void saveRelationshipWithGeneratedIdsContainsObjectWithIdSetForRelationshipPropertiesDynamic(
-			@Autowired ImmutablePersonWithExternalIdRepository repository) {
+			@Autowired ImmutablePersonWithAssignedIdRepository repository) {
 
-		ImmutablePersonWithAssignedlId somebody = new ImmutablePersonWithAssignedlId();
+		ImmutablePersonWithAssignedId somebody = new ImmutablePersonWithAssignedId();
 		ImmutablePersonWithAssignedIdRelationshipProperties properties = new ImmutablePersonWithAssignedIdRelationshipProperties(null, "blubb", somebody);
-		ImmutablePersonWithAssignedlId person = ImmutablePersonWithAssignedlId.relationshipPropertiesDynamic(Collections.singletonMap("Good", properties));
+		ImmutablePersonWithAssignedId person = ImmutablePersonWithAssignedId.relationshipPropertiesDynamic(Collections.singletonMap("Good", properties));
 
-		ImmutablePersonWithAssignedlId savedPerson = repository.saveAll(Collections.singleton(person)).get(0);
+		ImmutablePersonWithAssignedId savedPerson = repository.saveAll(Collections.singleton(person)).get(0);
 
 		assertThat(savedPerson.relationshipPropertiesDynamic.keySet().iterator().next()).isEqualTo("Good");
 		assertThat(savedPerson.relationshipPropertiesDynamic.values().iterator().next().name).isNotNull();
@@ -210,13 +210,13 @@ public class ImmutableAssignedIdsIT {
 
 	@Test // GH-2148
 	void saveRelationshipWithGeneratedIdsContainsObjectWithIdSetForRelationshipPropertiesDynamicCollection(
-			@Autowired ImmutablePersonWithExternalIdRepository repository) {
+			@Autowired ImmutablePersonWithAssignedIdRepository repository) {
 
 		ImmutableSecondPersonWithAssignedId somebody = new ImmutableSecondPersonWithAssignedId();
 		ImmutableSecondPersonWithAssignedIdRelationshipProperties properties = new ImmutableSecondPersonWithAssignedIdRelationshipProperties(null, "blubb", somebody);
-		ImmutablePersonWithAssignedlId person = ImmutablePersonWithAssignedlId.relationshipPropertiesDynamicCollection(Collections.singletonMap("Good", Collections.singletonList(properties)));
+		ImmutablePersonWithAssignedId person = ImmutablePersonWithAssignedId.relationshipPropertiesDynamicCollection(Collections.singletonMap("Good", Collections.singletonList(properties)));
 
-		ImmutablePersonWithAssignedlId savedPerson = repository.saveAll(Collections.singleton(person)).get(0);
+		ImmutablePersonWithAssignedId savedPerson = repository.saveAll(Collections.singleton(person)).get(0);
 
 		assertThat(savedPerson.relationshipPropertiesDynamicCollection.keySet().iterator().next()).isEqualTo("Good");
 		assertThat(savedPerson.relationshipPropertiesDynamicCollection.values().iterator().next().get(0).name).isNotNull();
@@ -225,31 +225,31 @@ public class ImmutableAssignedIdsIT {
 
 	@Test // GH-2148
 	void saveRelationshipWithGeneratedIdsContainsAllRelationshipTypes(
-			@Autowired ImmutablePersonWithExternalIdRepository repository) {
+			@Autowired ImmutablePersonWithAssignedIdRepository repository) {
 
-		ImmutablePersonWithAssignedlId fallback =
-				new ImmutablePersonWithAssignedlId();
+		ImmutablePersonWithAssignedId fallback =
+				new ImmutablePersonWithAssignedId();
 
-		List<ImmutablePersonWithAssignedlId> wasOnboardedBy =
-				Collections.singletonList(new ImmutablePersonWithAssignedlId());
+		List<ImmutablePersonWithAssignedId> wasOnboardedBy =
+				Collections.singletonList(new ImmutablePersonWithAssignedId());
 
-		Set<ImmutablePersonWithAssignedlId> knownBy =
-				Collections.singleton(new ImmutablePersonWithAssignedlId());
+		Set<ImmutablePersonWithAssignedId> knownBy =
+				Collections.singleton(new ImmutablePersonWithAssignedId());
 
-		Map<String, ImmutablePersonWithAssignedlId> ratedBy =
-				Collections.singletonMap("Good", new ImmutablePersonWithAssignedlId());
+		Map<String, ImmutablePersonWithAssignedId> ratedBy =
+				Collections.singletonMap("Good", new ImmutablePersonWithAssignedId());
 
 		Map<String, List<ImmutableSecondPersonWithAssignedId>> ratedByCollection =
 				Collections.singletonMap("Na", Collections.singletonList(new ImmutableSecondPersonWithAssignedId()));
 
 		ImmutablePersonWithAssignedIdRelationshipProperties relationshipProperties =
-				new ImmutablePersonWithAssignedIdRelationshipProperties(null, "rel1", new ImmutablePersonWithAssignedlId());
+				new ImmutablePersonWithAssignedIdRelationshipProperties(null, "rel1", new ImmutablePersonWithAssignedId());
 
 		List<ImmutablePersonWithAssignedIdRelationshipProperties> relationshipPropertiesCollection =
-				Collections.singletonList(new ImmutablePersonWithAssignedIdRelationshipProperties(null, "rel2", new ImmutablePersonWithAssignedlId()));
+				Collections.singletonList(new ImmutablePersonWithAssignedIdRelationshipProperties(null, "rel2", new ImmutablePersonWithAssignedId()));
 
 		Map<String, ImmutablePersonWithAssignedIdRelationshipProperties> relationshipPropertiesDynamic =
-				Collections.singletonMap("Ok", new ImmutablePersonWithAssignedIdRelationshipProperties(null, "rel3", new ImmutablePersonWithAssignedlId()));
+				Collections.singletonMap("Ok", new ImmutablePersonWithAssignedIdRelationshipProperties(null, "rel3", new ImmutablePersonWithAssignedId()));
 
 		Map<String, List<ImmutableSecondPersonWithAssignedIdRelationshipProperties>> relationshipPropertiesDynamicCollection =
 				Collections.singletonMap("Nope",
@@ -257,7 +257,7 @@ public class ImmutableAssignedIdsIT {
 								null, "rel4", new ImmutableSecondPersonWithAssignedId()))
 				);
 
-		ImmutablePersonWithAssignedlId person = new ImmutablePersonWithAssignedlId(null,
+		ImmutablePersonWithAssignedId person = new ImmutablePersonWithAssignedId(null,
 				wasOnboardedBy,
 				knownBy,
 				ratedBy,
@@ -269,7 +269,7 @@ public class ImmutableAssignedIdsIT {
 				relationshipPropertiesDynamicCollection
 				);
 
-		ImmutablePersonWithAssignedlId savedPerson = repository.saveAll(Collections.singleton(person)).get(0);
+		ImmutablePersonWithAssignedId savedPerson = repository.saveAll(Collections.singleton(person)).get(0);
 
 		assertThat(savedPerson.wasOnboardedBy.get(0).id).isNotNull();
 		assertThat(savedPerson.knownBy.iterator().next().id).isNotNull();
@@ -300,7 +300,7 @@ public class ImmutableAssignedIdsIT {
 		assertThat(savedPerson.relationshipPropertiesDynamicCollection.values().iterator().next().get(0).target.id).isNotNull();
 	}
 
-	interface ImmutablePersonWithExternalIdRepository extends Neo4jRepository<ImmutablePersonWithAssignedlId, Long> {}
+	interface ImmutablePersonWithAssignedIdRepository extends Neo4jRepository<ImmutablePersonWithAssignedId, Long> {}
 
 	@Configuration
 	@EnableNeo4jRepositories(considerNestedRepositories = true)
@@ -314,11 +314,11 @@ public class ImmutableAssignedIdsIT {
 
 		@Override
 		protected Collection<String> getMappingBasePackages() {
-			return Arrays.asList(ImmutablePersonWithAssignedlId.class.getPackage().getName());
+			return Arrays.asList(ImmutablePersonWithAssignedId.class.getPackage().getName());
 		}
 
 		@Bean
-		BeforeBindCallback<ImmutablePersonWithAssignedlId> valueChange() {
+		BeforeBindCallback<ImmutablePersonWithAssignedId> valueChange() {
 			return entity -> {
 				entity.someValue = SOME_VALUE_VALUE;
 				return entity;

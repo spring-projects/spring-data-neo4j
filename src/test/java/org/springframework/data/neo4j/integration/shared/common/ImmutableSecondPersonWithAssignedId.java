@@ -40,7 +40,7 @@ public class ImmutableSecondPersonWithAssignedId {
 	@Relationship("KNOWN_BY")
 	public final Set<ImmutableSecondPersonWithAssignedId> knownBy;
 
-	public final Map<String, ImmutablePersonWithAssignedlId> ratedBy;
+	public final Map<String, ImmutablePersonWithAssignedId> ratedBy;
 	public final Map<String, List<ImmutableSecondPersonWithAssignedId>> ratedByCollection;
 
 	@Relationship("FALLBACK")
@@ -60,7 +60,7 @@ public class ImmutableSecondPersonWithAssignedId {
 			Long id,
 			List<ImmutableSecondPersonWithAssignedId> wasOnboardedBy,
 			Set<ImmutableSecondPersonWithAssignedId> knownBy,
-			Map<String, ImmutablePersonWithAssignedlId> ratedBy,
+			Map<String, ImmutablePersonWithAssignedId> ratedBy,
 			Map<String, List<ImmutableSecondPersonWithAssignedId>> ratedByCollection,
 			ImmutableSecondPersonWithAssignedId fallback,
 			ImmutablePersonWithAssignedIdRelationshipProperties relationshipProperties,
@@ -122,7 +122,7 @@ public class ImmutableSecondPersonWithAssignedId {
 		);
 	}
 
-	public static ImmutableSecondPersonWithAssignedId ratedBy(Map<String, ImmutablePersonWithAssignedlId> ratedBy) {
+	public static ImmutableSecondPersonWithAssignedId ratedBy(Map<String, ImmutablePersonWithAssignedId> ratedBy) {
 		return new ImmutableSecondPersonWithAssignedId(null,
 				Collections.emptyList(),
 				Collections.emptySet(),
