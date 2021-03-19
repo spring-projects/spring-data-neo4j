@@ -18,6 +18,7 @@ package org.springframework.data.neo4j.integration.imperative;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -304,6 +305,39 @@ class OptimisticLockingIT {
 					.run("MATCH (t:VersionedThing{name:'Thing1'})-[:HAS]->(:VersionedThing{name:'Thing2'}) return t")
 					.list();
 			assertThat(result).hasSize(1);
+		}
+	}
+
+	@Test // GH-2191
+	void shouldNotTraverseToBidiRelatedThingsWithOldVersion(@Autowired VersionedThingRepository repository) {
+		VersionedThing thing1 = new VersionedThing("Thing1");
+		VersionedThing thing2 = new VersionedThing("Thing2");
+		VersionedThing thing3 = new VersionedThing("Thing3");
+		VersionedThing thing4 = new VersionedThing("Thing4");
+
+		List<VersionedThing> thing1Relationships = new ArrayList<>();
+		thing1Relationships.add(thing2);
+		thing1Relationships.add(thing3);
+		thing1Relationships.add(thing4);
+		thing1.setOtherVersionedThings(thing1Relationships);
+		repository.save(thing1);
+		// Initially creates:
+		// Thing1-[:HAS]->Thing2
+		// Thing1-[:HAS]->Thing3
+		// Thing1-[:HAS]->Thing4
+
+		thing1 = repository.findById(thing1.getId()).get();
+		thing3 = repository.findById(thing3.getId()).get();
+		thing3.setOtherVersionedThings(Collections.singletonList(thing1));
+		repository.save(thing3);
+		// adds
+		// Thing3-[:HAS]->Thing1
+
+		try (Session session = driver.session()) {
+			Long relationshipCount = session
+					.run("MATCH (:VersionedThing)-[r:HAS]->(:VersionedThing) return count(r) as relationshipCount")
+					.single().get("relationshipCount").asLong();
+			assertThat(relationshipCount).isEqualTo(4);
 		}
 	}
 
