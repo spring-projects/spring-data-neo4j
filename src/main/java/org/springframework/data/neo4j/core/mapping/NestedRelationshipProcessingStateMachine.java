@@ -17,6 +17,7 @@ package org.springframework.data.neo4j.core.mapping;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -48,7 +49,7 @@ public final class NestedRelationshipProcessingStateMachine {
 	/**
 	 * The set of already processed relationships.
 	 */
-	private final Set<RelationshipDescription> processedRelationshipDescriptions = new HashSet<>();
+	private final Set<RelationshipDescriptionWithSourceId> processedRelationshipDescriptions = new HashSet<>();
 
 	/**
 	 * The set of already processed related objects.
@@ -64,11 +65,11 @@ public final class NestedRelationshipProcessingStateMachine {
 	 * @param valuesToStore Check whether all the values in the collection have been processed
 	 * @return The state of things processed
 	 */
-	public ProcessState getStateOf(RelationshipDescription relationshipDescription, @Nullable Collection<?> valuesToStore) {
+	public ProcessState getStateOf(Object fromId, RelationshipDescription relationshipDescription, @Nullable Collection<?> valuesToStore) {
 
 		try {
 			read.lock();
-			boolean hasProcessedRelationship = hasProcessed(relationshipDescription);
+			boolean hasProcessedRelationship = hasProcessedRelationship(fromId, relationshipDescription);
 			boolean hasProcessedAllValues = hasProcessedAllOf(valuesToStore);
 			if (hasProcessedRelationship && hasProcessedAllValues) {
 				return ProcessState.PROCESSED_BOTH;
@@ -86,22 +87,88 @@ public final class NestedRelationshipProcessingStateMachine {
 	}
 
 	/**
+	 * Combination of relationship description and fromId to differentiate between `equals`-wise equal relationship
+	 * descriptions by their source identifier. This is needed because sometimes the very same relationship definition
+	 * can get processed for different objects of the same entity.
+	 * One could say that this is a Tuple but it has a nicer name.
+	 */
+	private static class RelationshipDescriptionWithSourceId {
+		private final Object id;
+		private final RelationshipDescription relationshipDescription;
+
+		RelationshipDescriptionWithSourceId(Object id, RelationshipDescription relationshipDescription) {
+			this.id = id;
+			this.relationshipDescription = relationshipDescription;
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (this == o) {
+				return true;
+			}
+			if (o == null || getClass() != o.getClass()) {
+				return false;
+			}
+			RelationshipDescriptionWithSourceId that = (RelationshipDescriptionWithSourceId) o;
+			return id.equals(that.id) && relationshipDescription.equals(that.relationshipDescription);
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(id, relationshipDescription);
+		}
+	}
+
+	/**
 	 * Marks the passed objects as processed
 	 *
 	 * @param relationshipDescription To be marked as processed
-	 * @param valuesToStore If not {@literal null}, all non-null values will be marked as processed
 	 */
-	public void markAsProcessed(RelationshipDescription relationshipDescription, @Nullable Collection<?> valuesToStore) {
+	public void markRelationshipAsProcessed(Object fromId, RelationshipDescription relationshipDescription) {
 
 		try {
 			write.lock();
-			this.processedRelationshipDescriptions.add(relationshipDescription);
-			if (valuesToStore != null) {
-				valuesToStore.stream().filter(v -> v != null).forEach(processedObjects::add);
-			}
+			this.processedRelationshipDescriptions.add(new RelationshipDescriptionWithSourceId(fromId, relationshipDescription));
 		} finally {
 			write.unlock();
 		}
+	}
+	/**
+	 * Marks the passed objects as processed
+	 *
+	 * @param valueToStore If not {@literal null}, all non-null values will be marked as processed
+	 */
+	public void markValueAsProcessed(Object valueToStore) {
+
+		try {
+			write.lock();
+			this.processedObjects.add(valueToStore);
+		} finally {
+			write.unlock();
+		}
+	}
+
+	/**
+	 * Checks if the value has already been processed.
+	 *
+	 * @param value the object that should be looked for in the registry.
+ 	 * @return processed yes (true) / no (false)
+	 */
+	public boolean hasProcessedValue(Object value) {
+		return processedObjects.contains(value);
+	}
+
+	/**
+	 * Checks if the relationship has already been processed.
+	 *
+	 * @param relationshipDescription the relationship that should be looked for in the registry.
+	 * @return processed yes (true) / no (false)
+	 */
+	public boolean hasProcessedRelationship(Object fromId, @Nullable RelationshipDescription relationshipDescription) {
+		if (relationshipDescription != null) {
+			return processedRelationshipDescriptions.contains(new RelationshipDescriptionWithSourceId(fromId, relationshipDescription));
+		}
+		return false;
 	}
 
 	private boolean hasProcessedAllOf(@Nullable Collection<?> valuesToStore) {
@@ -112,11 +179,4 @@ public final class NestedRelationshipProcessingStateMachine {
 		return processedObjects.containsAll(valuesToStore);
 	}
 
-	private boolean hasProcessed(RelationshipDescription relationshipDescription) {
-
-		if (relationshipDescription != null) {
-			return processedRelationshipDescriptions.contains(relationshipDescription);
-		}
-		return false;
-	}
 }

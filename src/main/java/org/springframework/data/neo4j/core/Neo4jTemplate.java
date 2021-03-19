@@ -470,14 +470,15 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 			}
 
 			// break recursive procession and deletion of previously created relationships
-			ProcessState processState = stateMachine.getStateOf(relationshipDescriptionObverse, relatedValuesToStore);
+			ProcessState processState = stateMachine.getStateOf(fromId, relationshipDescriptionObverse, relatedValuesToStore);
 			if (processState == ProcessState.PROCESSED_ALL_RELATIONSHIPS || processState == ProcessState.PROCESSED_BOTH) {
 				return;
 			}
 
-			// remove all relationships before creating all new if the entity is not new
-			// this avoids the usage of cache but might have significant impact on overall performance
-			if (!isParentObjectNew) {
+			// Remove all relationships before creating all new if the entity is not new and the relationship
+			// has not been processed before.
+			// This avoids the usage of cache but might have significant impact on overall performance
+			if (!isParentObjectNew && !stateMachine.hasProcessedRelationship(fromId, relationshipDescription)) {
 
 				List<Long> knownRelationshipsIds = new ArrayList<>();
 				if (idProperty != null) {
@@ -508,7 +509,7 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 				return;
 			}
 
-			stateMachine.markAsProcessed(relationshipDescription, relatedValuesToStore);
+			stateMachine.markRelationshipAsProcessed(fromId, relationshipDescription);
 
 			for (Object relatedValueToStore : relatedValuesToStore) {
 
@@ -522,12 +523,13 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 
 				Long relatedInternalId;
 				// No need to save values if processed
-				if (processState == ProcessState.PROCESSED_ALL_VALUES) {
+				if (stateMachine.hasProcessedValue(relatedValueToStore)) {
 					relatedInternalId = queryRelatedNode(relatedNode, targetEntity, inDatabase);
 				} else {
 					relatedInternalId = saveRelatedNode(relatedNode, relationshipContext.getAssociationTargetType(),
 							targetEntity, inDatabase);
 				}
+				stateMachine.markValueAsProcessed(relatedValueToStore);
 
 				CreateRelationshipStatementHolder statementHolder = neo4jMappingContext.createStatement(
 						sourceEntity, relationshipContext, relatedValueToStore);
@@ -555,7 +557,6 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 					processNestedRelations(targetEntity, targetPropertyAccessor.getBean(), isEntityNew, inDatabase, stateMachine);
 				}
 			}
-
 
 		});
 
