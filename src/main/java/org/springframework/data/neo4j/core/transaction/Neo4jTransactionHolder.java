@@ -93,19 +93,6 @@ final class Neo4jTransactionHolder extends ResourceHolderSupport {
 		session.close();
 	}
 
-	@Override
-	public void setRollbackOnly() {
-
-		super.setRollbackOnly();
-		transaction.rollback();
-	}
-
-	@Override
-	public void resetRollbackOnly() {
-
-		throw new UnsupportedOperationException();
-	}
-
 	boolean hasActiveSession() {
 
 		return session.isOpen();

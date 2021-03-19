@@ -69,18 +69,6 @@ final class ReactiveNeo4jTransactionHolder extends ResourceHolderSupport {
 		return Mono.from(session.close());
 	}
 
-	@Override
-	public void setRollbackOnly() {
-
-		super.setRollbackOnly();
-	}
-
-	@Override
-	public void resetRollbackOnly() {
-
-		throw new UnsupportedOperationException();
-	}
-
 	String getDatabaseName() {
 		return context.getDatabaseName();
 	}
