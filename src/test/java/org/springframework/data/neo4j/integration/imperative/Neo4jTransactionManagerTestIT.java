@@ -65,7 +65,7 @@ class Neo4jTransactionManagerTestIT {
 				transactionTemplate.executeWithoutResult(tx -> {
 					client.query("CREATE (n:ShouldNotBeThere)").run();
 					someRepository.broken();
-				})).withMessageStartingWith("Invalid input 'K'");
+				})).withMessageStartingWith("Invalid input");
 
 		try (Session session = neo4jConnectionSupport.getDriver().session()) {
 			long cnt = session
