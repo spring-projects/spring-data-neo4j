@@ -113,7 +113,7 @@ public final class CypherdslConditionExecutorImpl<T> implements CypherdslConditi
 
 		List<T> page = this.neo4jOperations.toExecutableQuery(
 				this.metaData.getType(),
-				QueryFragmentsAndParameters.forCondition(this.metaData, Conditions.noCondition(), pageable, null)
+				QueryFragmentsAndParameters.forCondition(this.metaData, condition, pageable, null)
 		).getResults();
 		LongSupplier totalCountSupplier = () -> this.count(condition);
 		return PageableExecutionUtils.getPage(page, pageable, totalCountSupplier);

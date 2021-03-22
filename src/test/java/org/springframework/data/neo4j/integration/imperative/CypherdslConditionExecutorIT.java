@@ -27,6 +27,7 @@ import org.neo4j.driver.Transaction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.config.AbstractNeo4jConfig;
@@ -151,12 +152,31 @@ class CypherdslConditionExecutorIT {
 	@Test
 	void pagedFindAllShouldWork(@Autowired PersonRepository repository) {
 
-		assertThat(
-				repository.findAll(firstName.eq(Cypher.literalOf("Helge")).or(lastName.eq(Cypher.literalOf("B."))),
+		Page<Person> people = repository.findAll(firstName.eq(Cypher.literalOf("Helge")).or(lastName.eq(Cypher.literalOf("B."))),
 						PageRequest.of(1, 1, Sort.by("lastName").descending())
-				))
+				);
+
+		assertThat(people.hasPrevious()).isTrue();
+		assertThat(people.hasNext()).isFalse();
+		assertThat(people.getTotalElements()).isEqualTo(2);
+		assertThat(people)
 				.extracting(Person::getFirstName)
-				.containsExactly("B");
+				.containsExactly("Bela");
+	}
+
+	@Test // GH-2194
+	void pagedFindAllShouldWork2(@Autowired PersonRepository repository) {
+
+		Page<Person> people = repository.findAll(firstName.eq(Cypher.literalOf("Helge")).or(lastName.eq(Cypher.literalOf("B."))),
+				PageRequest.of(0, 20, Sort.by("lastName").descending())
+		);
+
+		assertThat(people.hasPrevious()).isFalse();
+		assertThat(people.hasNext()).isFalse();
+		assertThat(people.getTotalElements()).isEqualTo(2);
+		assertThat(people)
+				.extracting(Person::getFirstName)
+				.containsExactly("Helge", "Bela");
 	}
 
 	@Test

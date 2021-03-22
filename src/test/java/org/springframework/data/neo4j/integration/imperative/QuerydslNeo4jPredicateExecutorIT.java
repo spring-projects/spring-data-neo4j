@@ -24,20 +24,16 @@ import org.neo4j.driver.Transaction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.config.AbstractNeo4jConfig;
 import org.springframework.data.neo4j.integration.shared.common.Person;
-// tag::sdn-mixins.dynamic-conditions.add-mixin[]
 import org.springframework.data.neo4j.repository.Neo4jRepository;
-// end::sdn-mixins.dynamic-conditions.add-mixin[]
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.data.neo4j.test.Neo4jExtension;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
-// tag::sdn-mixins.dynamic-conditions.add-mixin[]
 import org.springframework.data.querydsl.QuerydslPredicateExecutor;
-
-// end::sdn-mixins.dynamic-conditions.add-mixin[]
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import com.querydsl.core.types.Ops;
@@ -70,7 +66,8 @@ class QuerydslNeo4jPredicateExecutorIT {
 			transaction.run("MATCH (n) detach delete n");
 			transaction.run("CREATE (p:Person{firstName: 'A', lastName: 'LA'})");
 			transaction.run("CREATE (p:Person{firstName: 'B', lastName: 'LB'})");
-			transaction.run("CREATE (p:Person{firstName: 'Helge', lastName: 'Schneider'}) -[:LIVES_AT]-> (a:Address {city: 'Mülheim an der Ruhr'})");
+			transaction
+					.run("CREATE (p:Person{firstName: 'Helge', lastName: 'Schneider'}) -[:LIVES_AT]-> (a:Address {city: 'Mülheim an der Ruhr'})");
 			transaction.run("CREATE (p:Person{firstName: 'Bela', lastName: 'B.'})");
 			transaction.commit();
 		}
@@ -127,13 +124,33 @@ class QuerydslNeo4jPredicateExecutorIT {
 	@Test
 	void pagedFindAllShouldWork(@Autowired QueryDSLPersonRepository repository) {
 
-		assertThat(
-				repository.findAll(Expressions.predicate(Ops.EQ, firstName, Expressions.asString("Helge"))
-								.or(Expressions.predicate(Ops.EQ, lastName, Expressions.asString("B."))),
-						PageRequest.of(1, 1, Sort.by("lastName").descending())
-				))
+		Page<Person> people = repository.findAll(Expressions.predicate(Ops.EQ, firstName, Expressions.asString("Helge"))
+						.or(Expressions.predicate(Ops.EQ, lastName, Expressions.asString("B."))),
+				PageRequest.of(1, 1, Sort.by("lastName").descending())
+		);
+
+		assertThat(people.hasPrevious()).isTrue();
+		assertThat(people.hasNext()).isFalse();
+		assertThat(people.getTotalElements()).isEqualTo(2);
+		assertThat(people)
 				.extracting(Person::getFirstName)
-				.containsExactly("B");
+				.containsExactly("Bela");
+	}
+
+	@Test // GH-2194
+	void pagedFindAllShouldWork2(@Autowired QueryDSLPersonRepository repository) {
+
+		Page<Person> people = repository.findAll(Expressions.predicate(Ops.EQ, firstName, Expressions.asString("Helge"))
+						.or(Expressions.predicate(Ops.EQ, lastName, Expressions.asString("B."))),
+				PageRequest.of(0, 20, Sort.by("lastName").descending())
+		);
+
+		assertThat(people.hasPrevious()).isFalse();
+		assertThat(people.hasNext()).isFalse();
+		assertThat(people.getTotalElements()).isEqualTo(2);
+		assertThat(people)
+				.extracting(Person::getFirstName)
+				.containsExactly("Helge", "Bela");
 	}
 
 	@Test
@@ -159,7 +176,6 @@ class QuerydslNeo4jPredicateExecutorIT {
 			QuerydslPredicateExecutor<Person> { // <.>
 	}
 	// end::sdn-mixins.dynamic-conditions.add-mixin[]
-
 
 	@Configuration
 	@EnableTransactionManagement
