@@ -470,7 +470,7 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 			}
 
 			// break recursive procession and deletion of previously created relationships
-			ProcessState processState = stateMachine.getStateOf(relationshipDescriptionObverse, relatedValuesToStore);
+			ProcessState processState = stateMachine.getStateOf(fromId, relationshipDescriptionObverse, relatedValuesToStore);
 			if (processState == ProcessState.PROCESSED_ALL_RELATIONSHIPS || processState == ProcessState.PROCESSED_BOTH) {
 				return;
 			}
@@ -478,7 +478,7 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 			// Remove all relationships before creating all new if the entity is not new and the relationship
 			// has not been processed before.
 			// This avoids the usage of cache but might have significant impact on overall performance
-			if (!isParentObjectNew && !stateMachine.hasProcessedRelationship(relationshipDescription)) {
+			if (!isParentObjectNew && !stateMachine.hasProcessedRelationship(fromId, relationshipDescription)) {
 
 				List<Long> knownRelationshipsIds = new ArrayList<>();
 				if (idProperty != null) {
@@ -509,7 +509,7 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 				return;
 			}
 
-			stateMachine.markRelationshipAsProcessed(relationshipDescription);
+			stateMachine.markRelationshipAsProcessed(fromId, relationshipDescription);
 
 			for (Object relatedValueToStore : relatedValuesToStore) {
 
