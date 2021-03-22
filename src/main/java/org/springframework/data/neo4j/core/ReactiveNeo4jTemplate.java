@@ -606,9 +606,10 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 					return;
 				}
 
-				// remove all relationships before creating all new if the entity is not new
-				// this avoids the usage of cache but might have significant impact on overall performance
-				if (!isParentObjectNew) {
+				// Remove all relationships before creating all new if the entity is not new and the relationship
+				// has not been processed before.
+				// This avoids the usage of cache but might have significant impact on overall performance
+				if (!isParentObjectNew && !stateMachine.hasProcessedRelationship(relationshipDescription)) {
 
 					List<Long> knownRelationshipsIds = new ArrayList<>();
 					if (idProperty != null) {
@@ -642,7 +643,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 					return;
 				}
 
-				stateMachine.markAsProcessed(relationshipDescription, relatedValuesToStore);
+				stateMachine.markRelationshipAsProcessed(relationshipDescription);
 
 				for (Object relatedValueToStore : relatedValuesToStore) {
 
@@ -661,6 +662,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 										relatedIdMono = saveRelatedNode(relatedNode, relationshipContext.getAssociationTargetType(),
 												targetEntity, inDatabase);
 									}
+									stateMachine.markValueAsProcessed(relatedValueToStore);
 									return relatedIdMono.flatMap(relatedInternalId -> {
 
 											// if an internal id is used this must get set to link this entity in the next iteration

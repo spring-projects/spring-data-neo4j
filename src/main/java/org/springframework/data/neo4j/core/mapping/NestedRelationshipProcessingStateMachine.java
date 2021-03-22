@@ -68,7 +68,7 @@ public final class NestedRelationshipProcessingStateMachine {
 
 		try {
 			read.lock();
-			boolean hasProcessedRelationship = hasProcessed(relationshipDescription);
+			boolean hasProcessedRelationship = hasProcessedRelationship(relationshipDescription);
 			boolean hasProcessedAllValues = hasProcessedAllOf(valuesToStore);
 			if (hasProcessedRelationship && hasProcessedAllValues) {
 				return ProcessState.PROCESSED_BOTH;
@@ -89,19 +89,52 @@ public final class NestedRelationshipProcessingStateMachine {
 	 * Marks the passed objects as processed
 	 *
 	 * @param relationshipDescription To be marked as processed
-	 * @param valuesToStore If not {@literal null}, all non-null values will be marked as processed
 	 */
-	public void markAsProcessed(RelationshipDescription relationshipDescription, @Nullable Collection<?> valuesToStore) {
+	public void markRelationshipAsProcessed(RelationshipDescription relationshipDescription) {
 
 		try {
 			write.lock();
 			this.processedRelationshipDescriptions.add(relationshipDescription);
-			if (valuesToStore != null) {
-				valuesToStore.stream().filter(v -> v != null).forEach(processedObjects::add);
-			}
 		} finally {
 			write.unlock();
 		}
+	}
+	/**
+	 * Marks the passed objects as processed
+	 *
+	 * @param valueToStore If not {@literal null}, all non-null values will be marked as processed
+	 */
+	public void markValueAsProcessed(Object valueToStore) {
+
+		try {
+			write.lock();
+			this.processedObjects.add(valueToStore);
+		} finally {
+			write.unlock();
+		}
+	}
+
+	/**
+	 * Checks if the value has already been processed.
+	 *
+	 * @param value the object that should be looked for in the registry.
+ 	 * @return processed yes (true) / no (false)
+	 */
+	public boolean hasProcessedValue(Object value) {
+		return processedObjects.contains(value);
+	}
+
+	/**
+	 * Checks if the relationship has already been processed.
+	 *
+	 * @param relationshipDescription the relationship that should be looked for in the registry.
+	 * @return processed yes (true) / no (false)
+	 */
+	public boolean hasProcessedRelationship(@Nullable RelationshipDescription relationshipDescription) {
+		if (relationshipDescription != null) {
+			return processedRelationshipDescriptions.contains(relationshipDescription);
+		}
+		return false;
 	}
 
 	private boolean hasProcessedAllOf(@Nullable Collection<?> valuesToStore) {
@@ -112,11 +145,4 @@ public final class NestedRelationshipProcessingStateMachine {
 		return processedObjects.containsAll(valuesToStore);
 	}
 
-	private boolean hasProcessed(RelationshipDescription relationshipDescription) {
-
-		if (relationshipDescription != null) {
-			return processedRelationshipDescriptions.contains(relationshipDescription);
-		}
-		return false;
-	}
 }
