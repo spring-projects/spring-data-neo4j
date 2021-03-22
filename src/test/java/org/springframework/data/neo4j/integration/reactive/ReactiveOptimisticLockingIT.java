@@ -17,6 +17,7 @@ package org.springframework.data.neo4j.integration.reactive;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 
 import java.util.ArrayList;
@@ -265,6 +266,39 @@ class ReactiveOptimisticLockingIT {
 					return repository.delete(thing);
 		})).verifyError(OptimisticLockingFailureException.class);
 
+	}
+
+	@Test // GH-2191
+	void shouldNotTraverseToBidiRelatedThingsWithOldVersion(@Autowired VersionedThingRepository repository) {
+		VersionedThing thing1 = new VersionedThing("Thing1");
+		VersionedThing thing2 = new VersionedThing("Thing2");
+		VersionedThing thing3 = new VersionedThing("Thing3");
+		VersionedThing thing4 = new VersionedThing("Thing4");
+
+		List<VersionedThing> thing1Relationships = new ArrayList<>();
+		thing1Relationships.add(thing2);
+		thing1Relationships.add(thing3);
+		thing1Relationships.add(thing4);
+		thing1.setOtherVersionedThings(thing1Relationships);
+		StepVerifier.create(repository.save(thing1))
+				.expectNextCount(1)
+				.verifyComplete();
+
+		Flux.zip(repository.findById(thing1.getId()), repository.findById(thing3.getId()))
+				.flatMap(tuple -> {
+				tuple.getT2().setOtherVersionedThings(Collections.singletonList(tuple.getT1()));
+				return repository.save(tuple.getT2());
+				})
+				.as(StepVerifier::create)
+				.expectNextCount(1)
+				.verifyComplete();
+
+		try (Session session = driver.session()) {
+			Long relationshipCount = session
+					.run("MATCH (:VersionedThing)-[r:HAS]->(:VersionedThing) return count(r) as relationshipCount")
+					.single().get("relationshipCount").asLong();
+			assertThat(relationshipCount).isEqualTo(4);
+		}
 	}
 
 	interface VersionedThingRepository extends ReactiveNeo4jRepository<VersionedThing, Long> {}
