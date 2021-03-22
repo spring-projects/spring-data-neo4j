@@ -17,6 +17,7 @@ package org.springframework.data.neo4j.repository.query;
 
 import static org.neo4j.cypherdsl.core.Cypher.asterisk;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.LongSupplier;
@@ -69,7 +70,7 @@ public final class CypherdslConditionExecutorImpl<T> implements CypherdslConditi
 	}
 
 	@Override
-	public Iterable<T> findAll(Condition condition) {
+	public Collection<T> findAll(Condition condition) {
 
 		return this.neo4jOperations.toExecutableQuery(
 				this.metaData.getType(),
@@ -78,7 +79,7 @@ public final class CypherdslConditionExecutorImpl<T> implements CypherdslConditi
 	}
 
 	@Override
-	public Iterable<T> findAll(Condition condition, Sort sort) {
+	public Collection<T> findAll(Condition condition, Sort sort) {
 
 		return this.neo4jOperations.toExecutableQuery(
 				metaData.getType(),
@@ -89,7 +90,7 @@ public final class CypherdslConditionExecutorImpl<T> implements CypherdslConditi
 	}
 
 	@Override
-	public Iterable<T> findAll(Condition condition, SortItem... sortItems) {
+	public Collection<T> findAll(Condition condition, SortItem... sortItems) {
 
 		return this.neo4jOperations.toExecutableQuery(
 				this.metaData.getType(),
@@ -100,7 +101,7 @@ public final class CypherdslConditionExecutorImpl<T> implements CypherdslConditi
 	}
 
 	@Override
-	public Iterable<T> findAll(SortItem... sortItems) {
+	public Collection<T> findAll(SortItem... sortItems) {
 
 		return this.neo4jOperations.toExecutableQuery(
 				this.metaData.getType(),

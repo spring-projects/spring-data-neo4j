@@ -15,6 +15,7 @@
  */
 package org.springframework.data.neo4j.repository.support;
 
+import java.util.Collection;
 import java.util.Optional;
 
 import org.apiguardian.api.API;
@@ -37,13 +38,13 @@ public interface CypherdslConditionExecutor<T> {
 
 	Optional<T> findOne(Condition condition);
 
-	Iterable<T> findAll(Condition condition);
+	Collection<T> findAll(Condition condition);
 
-	Iterable<T> findAll(Condition condition, Sort sort);
+	Collection<T> findAll(Condition condition, Sort sort);
 
-	Iterable<T> findAll(Condition condition, SortItem... sortItems);
+	Collection<T> findAll(Condition condition, SortItem... sortItems);
 
-	Iterable<T> findAll(SortItem... sortItems);
+	Collection<T> findAll(SortItem... sortItems);
 
 	Page<T> findAll(Condition condition, Pageable pageable);
 
