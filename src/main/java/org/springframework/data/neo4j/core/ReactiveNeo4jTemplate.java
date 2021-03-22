@@ -656,7 +656,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 								return Mono.just(targetEntity.isNew(relatedNode)).flatMap(isNew -> {
 									Mono<Long> relatedIdMono;
 
-									if (processState == ProcessState.PROCESSED_ALL_VALUES) {
+									if (stateMachine.hasProcessedValue(relatedValueToStore)) {
 										relatedIdMono = queryRelatedNode(relatedNode, targetEntity, inDatabase);
 									} else {
 										relatedIdMono = saveRelatedNode(relatedNode, relationshipContext.getAssociationTargetType(),
