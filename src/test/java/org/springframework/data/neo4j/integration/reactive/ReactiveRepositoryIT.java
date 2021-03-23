@@ -2085,6 +2085,37 @@ class ReactiveRepositoryIT {
 				assertThat(records).hasSize(1);
 			}
 		}
+
+		@Test // GH-2196
+		void saveSameNodeWithDoubleRelationship(@Autowired ReactiveHobbyWithRelationshipWithPropertiesRepository repository) {
+			AltHobby hobby = new AltHobby();
+			hobby.setName("Music");
+
+			AltPerson altPerson = new AltPerson("Freddie");
+
+			AltLikedByPersonRelationship rel1 = new AltLikedByPersonRelationship();
+			rel1.setRating(5);
+			rel1.setAltPerson(altPerson);
+
+			AltLikedByPersonRelationship rel2 = new AltLikedByPersonRelationship();
+			rel2.setRating(1);
+			rel2.setAltPerson(altPerson);
+
+			hobby.getLikedBy().add(rel1);
+			hobby.getLikedBy().add(rel2);
+			StepVerifier.create(repository.save(hobby))
+					.expectNextCount(1)
+					.verifyComplete();
+
+			StepVerifier.create(repository.loadFromCustomQuery(altPerson.getId()))
+					.assertNext(loadedHobby -> {
+						assertThat(loadedHobby.getName()).isEqualTo("Music");
+						List<AltLikedByPersonRelationship> likedBy = loadedHobby.getLikedBy();
+						assertThat(likedBy).hasSize(2);
+						assertThat(likedBy).containsExactlyInAnyOrder(rel1, rel2);
+					})
+					.verifyComplete();
+		}
 	}
 
 	@Nested

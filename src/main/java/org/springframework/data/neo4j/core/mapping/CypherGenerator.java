@@ -364,7 +364,9 @@ public enum CypherGenerator {
 
 	@NonNull
 	public Statement prepareSaveOfRelationshipWithProperties(Neo4jPersistentEntity<?> neo4jPersistentEntity,
-			RelationshipDescription relationship, @Nullable String dynamicRelationshipType) {
+				 RelationshipDescription relationship,
+				 boolean isNew,
+				 @Nullable String dynamicRelationshipType) {
 
 		Assert.isTrue(relationship.hasRelationshipProperties(),
 				"Properties required to create a relationship with properties");
@@ -383,11 +385,16 @@ public enum CypherGenerator {
 						startNode.relationshipFrom(endNode, type))
 				.named(RELATIONSHIP_NAME);
 
-		return match(startNode)
+		StatementBuilder.OngoingReadingWithWhere startAndEndNodeMatch = match(startNode)
 				.where(neo4jPersistentEntity.isUsingInternalIds() ? startNode.internalId().isEqualTo(idParameter)
 						: startNode.property(idPropertyName).isEqualTo(idParameter))
-				.match(endNode).where(endNode.internalId().isEqualTo(parameter(Constants.TO_ID_PARAMETER_NAME)))
-				.merge(relationshipFragment)
+				.match(endNode).where(endNode.internalId().isEqualTo(parameter(Constants.TO_ID_PARAMETER_NAME)));
+
+		StatementBuilder.ExposesSet merge = isNew
+				? startAndEndNodeMatch.create(relationshipFragment)
+				: startAndEndNodeMatch.match(relationshipFragment)
+					.where(Functions.id(relationshipFragment).isEqualTo(Cypher.parameter(Constants.NAME_OF_KNOWN_RELATIONSHIP_PARAM)));
+		return merge
 				.mutate(RELATIONSHIP_NAME, relationshipProperties)
 				.returning(Functions.id(relationshipFragment))
 				.build();
