@@ -674,8 +674,14 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 														relatedInternalId);
 											}
 
+											Object idValue = idProperty != null
+													? relationshipContext
+													.getRelationshipPropertiesPropertyAccessor(relatedValueToStore).getProperty(idProperty)
+													: null;
+
+											boolean isNewRelationship = idValue == null;
 											CreateRelationshipStatementHolder statementHolder = neo4jMappingContext.createStatement(
-													sourceEntity, relationshipContext, relatedValueToStore);
+													sourceEntity, relationshipContext, relatedValueToStore, isNewRelationship);
 
 											// in case of no properties the bind will just return an empty map
 											Mono<Long> relationshipCreationMonoNested = neo4jClient
@@ -684,10 +690,12 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 														.to(Constants.FROM_ID_PARAMETER_NAME) //
 													.bind(relatedInternalId) //
 														.to(Constants.TO_ID_PARAMETER_NAME) //
+													.bind(idValue) //
+														.to(Constants.NAME_OF_KNOWN_RELATIONSHIP_PARAM) //
 													.bindAll(statementHolder.getProperties())
 													.fetchAs(Long.class).one()
 													.doOnNext(relationshipInternalId -> {
-														if (idProperty != null) {
+														if (idProperty != null && isNewRelationship) {
 															relationshipContext
 																	.getRelationshipPropertiesPropertyAccessor(relatedValueToStore)
 																	.setProperty(idProperty, relationshipInternalId);

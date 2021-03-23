@@ -2367,6 +2367,33 @@ class RepositoryIT {
 				assertThat(list).hasSize(0);
 			}
 		}
+
+		@Test // GH-2196
+		void saveSameNodeWithDoubleRelationship(@Autowired HobbyWithRelationshipWithPropertiesRepository repository) {
+			AltHobby hobby = new AltHobby();
+			hobby.setName("Music");
+
+			AltPerson altPerson = new AltPerson("Freddie");
+
+			AltLikedByPersonRelationship rel1 = new AltLikedByPersonRelationship();
+			rel1.setRating(5);
+			rel1.setAltPerson(altPerson);
+
+			AltLikedByPersonRelationship rel2 = new AltLikedByPersonRelationship();
+			rel2.setRating(1);
+			rel2.setAltPerson(altPerson);
+
+			hobby.getLikedBy().add(rel1);
+			hobby.getLikedBy().add(rel2);
+			repository.save(hobby);
+
+			hobby = repository.loadFromCustomQuery(altPerson.getId());
+			assertThat(hobby.getName()).isEqualTo("Music");
+			List<AltLikedByPersonRelationship> likedBy = hobby.getLikedBy();
+			assertThat(likedBy).hasSize(2);
+
+			assertThat(likedBy).containsExactlyInAnyOrder(rel1, rel2);
+		}
 	}
 
 	@Nested
