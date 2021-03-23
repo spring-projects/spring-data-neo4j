@@ -531,18 +531,27 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 				}
 				stateMachine.markValueAsProcessed(relatedValueToStore);
 
+				Object idValue = idProperty != null
+						? relationshipContext
+							.getRelationshipPropertiesPropertyAccessor(relatedValueToStore).getProperty(idProperty)
+						: null;
+
+				boolean isNewRelationship = idValue == null;
+
 				CreateRelationshipStatementHolder statementHolder = neo4jMappingContext.createStatement(
-						sourceEntity, relationshipContext, relatedValueToStore);
+						sourceEntity, relationshipContext, relatedValueToStore, isNewRelationship);
 
 				Optional<Long> relationshipInternalId = neo4jClient.query(renderer.render(statementHolder.getStatement())).in(inDatabase)
 						.bind(convertIdValues(sourceEntity.getRequiredIdProperty(), fromId)) //
-							.to(Constants.FROM_ID_PARAMETER_NAME)
+							.to(Constants.FROM_ID_PARAMETER_NAME) //
 						.bind(relatedInternalId) //
 							.to(Constants.TO_ID_PARAMETER_NAME) //
+						.bind(idValue) //
+							.to(Constants.NAME_OF_KNOWN_RELATIONSHIP_PARAM) //
 						.bindAll(statementHolder.getProperties())
 						.fetchAs(Long.class).one();
 
-				if (idProperty != null) {
+				if (idProperty != null && isNewRelationship) {
 					relationshipContext
 							.getRelationshipPropertiesPropertyAccessor(relatedValueToStore)
 							.setProperty(idProperty, relationshipInternalId.get());
