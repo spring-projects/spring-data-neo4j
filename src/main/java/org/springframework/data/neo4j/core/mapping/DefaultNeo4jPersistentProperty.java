@@ -27,6 +27,7 @@ import org.springframework.data.mapping.PersistentProperty;
 import org.springframework.data.mapping.model.AnnotationBasedPersistentProperty;
 import org.springframework.data.mapping.model.Property;
 import org.springframework.data.mapping.model.SimpleTypeHolder;
+import org.springframework.data.neo4j.core.convert.ConvertWith;
 import org.springframework.data.neo4j.core.convert.Neo4jPersistentPropertyConverter;
 import org.springframework.data.neo4j.core.schema.CompositeProperty;
 import org.springframework.data.neo4j.core.schema.Relationship;
@@ -71,7 +72,7 @@ final class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProp
 
 			Class<?> targetType = getActualType();
 			return !(simpleTypeHolder.isSimpleType(targetType) || this.mappingContext.hasCustomWriteTarget(targetType)
-					|| isAnnotationPresent(TargetNode.class) || isComposite());
+					|| isAnnotationPresent(TargetNode.class) || isComposite() || isAnnotationPresent(ConvertWith.class));
 		});
 
 		this.customConversion = Lazy.of(() -> {
