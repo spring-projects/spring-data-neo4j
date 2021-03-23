@@ -64,6 +64,8 @@ import org.springframework.util.Assert;
 @API(status = API.Status.STABLE, since = "6.0")
 public @interface CompositeProperty {
 
+	String UNSET = new String("");
+
 	/**
 	 * @return A converter that allows to store arbitrary objects as decomposed maps on nodes and relationships. The
 	 * default converter allows only maps as composite properties.
