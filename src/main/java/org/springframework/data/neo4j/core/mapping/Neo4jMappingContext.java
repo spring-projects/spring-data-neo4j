@@ -48,7 +48,6 @@ import org.springframework.data.neo4j.core.convert.Neo4jPersistentPropertyConver
 import org.springframework.data.neo4j.core.convert.Neo4jPersistentPropertyConverterFactory;
 import org.springframework.data.neo4j.core.convert.Neo4jSimpleTypes;
 import org.springframework.data.neo4j.core.schema.IdGenerator;
-import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.util.ReflectionUtils;
 import org.springframework.data.util.TypeInformation;
 import org.springframework.lang.Nullable;
@@ -208,10 +207,7 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 			return false;
 		}
 
-		boolean isExplicitNode = parentClass.isAnnotationPresent(Node.class);
-		boolean isAbstractClass = Modifier.isAbstract(parentClass.getModifiers());
-
-		return isExplicitNode && isAbstractClass;
+		return Modifier.isAbstract(parentClass.getModifiers());
 	}
 
 	/*

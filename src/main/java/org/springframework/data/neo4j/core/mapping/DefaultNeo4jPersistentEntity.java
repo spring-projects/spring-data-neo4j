@@ -66,12 +66,6 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 	private static final LogAccessor log = new LogAccessor(LogFactory.getLog(DefaultNeo4jPersistentProperty.class));
 
 	/**
-	 * If an entity is annotated with {@link Node}, we consider this as an explicit entity that should get validated more
-	 * strictly.
-	 */
-	private final Boolean isExplicitEntity;
-
-	/**
 	 * The label that describes the label most concrete.
 	 */
 	private final String primaryLabel;
@@ -96,7 +90,6 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 	DefaultNeo4jPersistentEntity(TypeInformation<T> information) {
 		super(information);
 
-		this.isExplicitEntity = this.isAnnotationPresent(Node.class) || this.isAnnotationPresent(Persistent.class);
 		this.primaryLabel = computePrimaryLabel();
 		this.additionalLabels = Lazy.of(this::computeAdditionalLabels);
 		this.graphProperties = Lazy.of(this::computeGraphProperties);
@@ -213,7 +206,9 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 
 	private void verifyIdDescription() {
 
-		if (this.getIdDescription() == null && isExplicitEntity) {
+		if (this.getIdDescription() == null
+			&& (this.isAnnotationPresent(Node.class) || this.isAnnotationPresent(Persistent.class))) {
+
 			throw new IllegalStateException("Missing id property on " + this.getUnderlyingClass() + ".");
 		}
 	}
@@ -352,12 +347,16 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 	@NonNull
 	private List<String> computeParentLabels() {
 		List<String> parentLabels = new ArrayList<>();
-		NodeDescription<?> parentNodeDescriptionCalculated = parentNodeDescription;
+		Neo4jPersistentEntity<?> parentNodeDescriptionCalculated = (Neo4jPersistentEntity<?>) parentNodeDescription;
 
 		while (parentNodeDescriptionCalculated != null) {
-			parentLabels.add(parentNodeDescriptionCalculated.getPrimaryLabel());
-			parentLabels.addAll(parentNodeDescriptionCalculated.getAdditionalLabels());
-			parentNodeDescriptionCalculated = parentNodeDescriptionCalculated.getParentNodeDescription();
+			if (parentNodeDescriptionCalculated.isAnnotationPresent(Node.class)
+					|| parentNodeDescriptionCalculated.isAnnotationPresent(Persistent.class)) {
+
+				parentLabels.add(parentNodeDescriptionCalculated.getPrimaryLabel());
+				parentLabels.addAll(parentNodeDescriptionCalculated.getAdditionalLabels());
+			}
+			parentNodeDescriptionCalculated = (Neo4jPersistentEntity<?>) parentNodeDescriptionCalculated.getParentNodeDescription();
 		}
 		return parentLabels;
 	}
