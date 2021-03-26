@@ -23,7 +23,7 @@ import org.springframework.data.neo4j.core.schema.Id;
 /**
  * @author Gerrit Meier
  */
-public abstract class AbstractNode {
+public abstract class AbstractPet {
 
 	@Id
 	@GeneratedValue

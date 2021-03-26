@@ -49,10 +49,4 @@ public interface Neo4jPersistentEntity<T>
 	 */
 	boolean isRelationshipPropertiesEntity();
 
-	/**
-	 * Determines if this entity is annotated with {@link org.springframework.data.neo4j.core.schema.Node}.
-	 *
-	 * @return true if this is an intentional entity, otherwise false.
-	 */
-	boolean isExplicitEntity();
 }

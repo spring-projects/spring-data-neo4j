@@ -21,6 +21,6 @@ import org.springframework.data.neo4j.core.schema.Node;
  * @author Gerrit Meier
  */
 @Node(labels = "Dog")
-public class Dog extends AbstractNode {
+public class Dog extends AbstractPet {
 
 }

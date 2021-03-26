@@ -24,7 +24,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.neo4j.config.AbstractNeo4jConfig;
-import org.springframework.data.neo4j.integration.shared.common.AbstractNode;
+import org.springframework.data.neo4j.integration.shared.common.AbstractPet;
+import org.springframework.data.neo4j.integration.shared.common.Cat;
+import org.springframework.data.neo4j.integration.shared.common.Dog;
 import org.springframework.data.neo4j.integration.shared.common.Inheritance;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
@@ -144,14 +146,17 @@ public class InheritanceMappingIT {
 			transaction.commit();
 		}
 
-		List<AbstractNode> pets = petsRepository.findPets("a");
-		assertThat(pets).hasSize(4);
+		List<AbstractPet> pets = petsRepository.findPets("a");
+		assertThat(pets)
+				.hasOnlyElementsOfType(AbstractPet.class)
+				.hasAtLeastOneElementOfType(Dog.class)
+				.hasAtLeastOneElementOfType(Cat.class);
 	}
 
-	interface PetsRepository extends Neo4jRepository<AbstractNode, Long> {
+	interface PetsRepository extends Neo4jRepository<AbstractPet, Long> {
 
 		@Query("MATCH (n {name: $name}) RETURN n")
-		List<AbstractNode> findPets(@Param("name") String name);
+		List<AbstractPet> findPets(@Param("name") String name);
 
 	}
 
