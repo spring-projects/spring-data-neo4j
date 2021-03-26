@@ -133,7 +133,8 @@ class DtoInstantiatingConverter implements Converter<EntityInstanceWithSource, O
 		} else if (targetProperty.isMap()) {
 			Neo4jQuerySupport.REPOSITORY_QUERY_LOG.warn(() -> String.format(""
 					+ "%s is an additional property to be projected. "
-					+ "However, map properties cannot be projected and the property will always be null."));
+					+ "However, map properties cannot be projected and the property will always be null.",
+					targetPropertyName));
 		} else {
 			// We don't support associations on the top level of DTO projects which is somewhat inline with the restrictions
 			// regarding DTO projections as described in https://docs.spring.io/spring-data/jpa/docs/2.4.0-RC1/reference/html/#projections.dtos
@@ -143,8 +144,8 @@ class DtoInstantiatingConverter implements Converter<EntityInstanceWithSource, O
 			Value property = sourceRecord.get(targetPropertyName);
 			if (targetProperty.isCollectionLike() && !typeSystem.LIST().isTypeOf(property)) {
 				Neo4jQuerySupport.REPOSITORY_QUERY_LOG.warn(() -> String.format(""
-						+ "%s is a list property but the selected value is not a list and the property will always be null."
-				));
+						+ "%s is a list property but the selected value is not a list and the property will always be null.",
+						targetPropertyName));
 			} else {
 				Class<?> actualType = targetProperty.getActualType();
 
