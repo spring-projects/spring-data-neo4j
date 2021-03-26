@@ -190,6 +190,11 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 		return this.isRelationshipPropertiesEntity.get();
 	}
 
+	@Override
+	public boolean isExplicitEntity() {
+		return isExplicitEntity;
+	}
+
 	/*
 	 * (non-Javadoc)
 	 * @see BasicPersistentEntity#getFallbackIsNewStrategy()
@@ -352,12 +357,14 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 	@NonNull
 	private List<String> computeParentLabels() {
 		List<String> parentLabels = new ArrayList<>();
-		NodeDescription<?> parentNodeDescriptionCalculated = parentNodeDescription;
+		Neo4jPersistentEntity<?> parentNodeDescriptionCalculated = (Neo4jPersistentEntity<?>) parentNodeDescription;
 
 		while (parentNodeDescriptionCalculated != null) {
-			parentLabels.add(parentNodeDescriptionCalculated.getPrimaryLabel());
-			parentLabels.addAll(parentNodeDescriptionCalculated.getAdditionalLabels());
-			parentNodeDescriptionCalculated = parentNodeDescriptionCalculated.getParentNodeDescription();
+			if (parentNodeDescriptionCalculated.isExplicitEntity()) {
+				parentLabels.add(parentNodeDescriptionCalculated.getPrimaryLabel());
+				parentLabels.addAll(parentNodeDescriptionCalculated.getAdditionalLabels());
+			}
+			parentNodeDescriptionCalculated = (Neo4jPersistentEntity<?>) parentNodeDescriptionCalculated.getParentNodeDescription();
 		}
 		return parentLabels;
 	}

@@ -42,5 +42,17 @@ public interface Neo4jPersistentEntity<T>
 	 */
 	Optional<Neo4jPersistentProperty> getDynamicLabelsProperty();
 
+	/**
+	 * Determines if the entity is annotated with {@link org.springframework.data.neo4j.core.schema.RelationshipProperties}
+	 *
+	 * @return true if this is a relationship properties class, otherwise false.
+	 */
 	boolean isRelationshipPropertiesEntity();
+
+	/**
+	 * Determines if this entity is annotated with {@link org.springframework.data.neo4j.core.schema.Node}.
+	 *
+	 * @return true if this is an intentional entity, otherwise false.
+	 */
+	boolean isExplicitEntity();
 }
