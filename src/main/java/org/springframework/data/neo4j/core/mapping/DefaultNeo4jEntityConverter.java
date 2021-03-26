@@ -111,7 +111,9 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 
 	private <R> MapAccessor determineQueryRoot(MapAccessor mapAccessor, Neo4jPersistentEntity<R> rootNodeDescription) {
 
-		String primaryLabel = rootNodeDescription.getPrimaryLabel();
+		List<String> primaryLabels = new ArrayList<>();
+		primaryLabels.add(rootNodeDescription.getPrimaryLabel());
+		rootNodeDescription.getChildNodeDescriptionsInHierarchy().forEach(nodeDescription -> primaryLabels.add(nodeDescription.getPrimaryLabel()));
 
 		// Massage the initial mapAccessor into something we can deal with
 		Iterable<Value> recordValues = mapAccessor instanceof Value && ((Value) mapAccessor).hasType(nodeType) ?
@@ -123,7 +125,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 		for (Value value : recordValues) {
 			if (value.hasType(nodeType)) { // It is a node
 				Node node = value.asNode();
-				if (node.hasLabel(primaryLabel)) { // it has a matching label
+				if (primaryLabels.stream().anyMatch(node::hasLabel)) { // it has a matching label
 					// We haven't seen this node yet, so we take it
 					if (knownObjects.getObject(node.id()) == null) {
 						matchingNodes.add(node);
