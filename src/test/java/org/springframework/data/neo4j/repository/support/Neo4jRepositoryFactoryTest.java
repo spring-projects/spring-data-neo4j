@@ -15,7 +15,7 @@
  */
 package org.springframework.data.neo4j.repository.support;
 
-import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -42,6 +42,7 @@ import org.springframework.data.neo4j.integration.shared.common.ThingWithAllCyph
 import org.springframework.data.neo4j.integration.shared.conversion.ThingWithCompositeProperties;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.repository.core.RepositoryInformation;
+import org.springframework.data.repository.query.QueryCreationException;
 
 /**
  * @author Gerrit Meier
@@ -114,36 +115,36 @@ class Neo4jRepositoryFactoryTest {
 		void validateIgnoreCaseShouldWork() {
 
 
-			assertThatIllegalArgumentException().isThrownBy(() -> repositoryFactory.getRepository(InvalidIgnoreCase.class))
-					.withMessageMatching("Can not derive query for '.*': Only the case of String based properties can be ignored within the following keywords: \\[IsNotLike, NotLike, IsLike, Like, IsStartingWith, StartingWith, StartsWith, IsEndingWith, EndingWith, EndsWith, IsNotContaining, NotContaining, NotContains, IsContaining, Containing, Contains, IsNot, Not, Is, Equals\\].");
+			assertThatExceptionOfType(QueryCreationException.class).isThrownBy(() -> repositoryFactory.getRepository(InvalidIgnoreCase.class))
+					.withMessageMatching("Could not create query for .*: Only the case of String based properties can be ignored within the following keywords: \\[IsNotLike, NotLike, IsLike, Like, IsStartingWith, StartingWith, StartsWith, IsEndingWith, EndingWith, EndsWith, IsNotContaining, NotContaining, NotContains, IsContaining, Containing, Contains, IsNot, Not, Is, Equals\\].");
 		}
 
 		@Test
 		void validateTemporalShouldWork() {
 
-			assertThatIllegalArgumentException().isThrownBy(() -> repositoryFactory.getRepository(InvalidTemporal.class))
-					.withMessageMatching("Can not derive query for '.*': The keywords \\[IsAfter, After\\] work only with properties with one of the following types: \\[class java.time.Instant, class java.time.LocalDate, class java.time.LocalDateTime, class java.time.OffsetTime, class java.time.ZonedDateTime\\].");
+			assertThatExceptionOfType(QueryCreationException.class).isThrownBy(() -> repositoryFactory.getRepository(InvalidTemporal.class))
+					.withMessageMatching("Could not create query for .*: The keywords \\[IsAfter, After] work only with properties with one of the following types: \\[class java.time.Instant, class java.time.LocalDate, class java.time.LocalDateTime, class java.time.OffsetTime, class java.time.ZonedDateTime\\].");
 		}
 
 		@Test
 		void validateCollectionShouldWork() {
 
-			assertThatIllegalArgumentException().isThrownBy(() -> repositoryFactory.getRepository(InvalidCollection.class))
-					.withMessageMatching("Can not derive query for '.*': The keywords \\[IsEmpty, Empty\\] work only with collection properties.");
+			assertThatExceptionOfType(QueryCreationException.class).isThrownBy(() -> repositoryFactory.getRepository(InvalidCollection.class))
+					.withMessageMatching("Could not create query for .*: The keywords \\[IsEmpty, Empty] work only with collection properties.");
 		}
 
 		@Test
 		void validateSpatialShouldWork() {
 
-			assertThatIllegalArgumentException().isThrownBy(() -> repositoryFactory.getRepository(InvalidSpatial.class))
-					.withMessageMatching("Can not derive query for '.*': NEAR \\(1\\): \\[IsNear, Near\\] works only with spatial properties.");
+			assertThatExceptionOfType(QueryCreationException.class).isThrownBy(() -> repositoryFactory.getRepository(InvalidSpatial.class))
+					.withMessageMatching("Could not create query for .* \\[IsNear, Near] works only with spatial properties.");
 		}
 
 		@Test
 		void validateNotACompositePropertyShouldWork() {
 
-			assertThatIllegalArgumentException().isThrownBy(() -> repositoryFactory.getRepository(DerivedWithComposite.class))
-					.withMessageMatching("Can not derive query for '.*': Derived queries are not supported for composite properties.");
+			assertThatExceptionOfType(QueryCreationException.class).isThrownBy(() -> repositoryFactory.getRepository(DerivedWithComposite.class))
+					.withMessageMatching("Could not create query for .*: Derived queries are not supported for composite properties.");
 		}
 	}
 
