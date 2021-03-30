@@ -16,15 +16,20 @@
 package org.springframework.data.neo4j.core.mapping;
 
 import java.util.AbstractMap.SimpleEntry;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import org.apiguardian.api.API;
 import org.neo4j.driver.Value;
+import org.neo4j.driver.types.Node;
+import org.neo4j.driver.types.Relationship;
 import org.neo4j.driver.types.Type;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
 import org.springframework.lang.Nullable;
@@ -80,8 +85,17 @@ public final class MappingSupport {
 	public static Predicate<Value> isListContainingOnly(Type collectionType, Type requiredType) {
 
 		Predicate<Value> containsOnlyRequiredType = entry -> {
+			// either this is a list containing other list of possible the same required type
+			// or the type exists directly in the list
 			for (Value listEntry : entry.values()) {
-				if (!listEntry.hasType(requiredType)) {
+				if (listEntry.hasType(collectionType)) {
+					boolean listInListCorrectType = true;
+					for (Value listInListEntry : entry.asList(Function.identity())) {
+						listInListCorrectType = listInListCorrectType && isListContainingOnly(collectionType, requiredType)
+								.test(listInListEntry);
+					}
+					return listInListCorrectType;
+				} else if (!listEntry.hasType(requiredType)) {
 					return false;
 				}
 			}
@@ -90,6 +104,40 @@ public final class MappingSupport {
 
 		Predicate<Value> isList = entry -> entry.hasType(collectionType);
 		return isList.and(containsOnlyRequiredType);
+	}
+
+	static Collection<Relationship> extractRelationships(Type collectionType, Value entry) {
+
+		Collection<Relationship> relationships = new HashSet<>();
+
+		for (Value listEntry : entry.values()) {
+			if (listEntry.hasType(collectionType)) {
+				for (Value listInListEntry : entry.asList(Function.identity())) {
+					relationships.addAll(extractRelationships(collectionType, listInListEntry));
+				}
+			} else {
+				relationships.add(listEntry.asRelationship());
+			}
+		}
+		return relationships;
+	}
+
+	static Collection<Node> extractNodes(Type collectionType, Value entry) {
+
+		// There can be multiple relationships leading to the same node.
+		// Thus we need a collection implementation that supports duplicates.
+		Collection<Node> nodes = new ArrayList<>();
+
+		for (Value listEntry : entry.values()) {
+			if (listEntry.hasType(collectionType)) {
+				for (Value listInListEntry : entry.asList(Function.identity())) {
+					nodes.addAll(extractNodes(collectionType, listInListEntry));
+				}
+			} else {
+				nodes.add(listEntry.asNode());
+			}
+		}
+		return nodes;
 	}
 
 	private MappingSupport() {}
