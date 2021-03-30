@@ -99,7 +99,7 @@ reduce(d=[], relationship in reduce(e=[], f in [dd in paths | relationships(dd)]
 RETURN m, relationships, nodes;
 ----
 
-It looks a little complicated at first sight, but the `reduce` function allows us to flatten the nodes and relationships from various paths.
+The `reduce` function allows us to flatten the nodes and relationships from various paths.
 As a result we will get a tuple similar to <<custom-queries.for-relationships.one.record>> but with a mixture of relationship types or nodes in the collections.
 
 [[custom-queries.for-relationships.long-paths.client]]
