@@ -20,10 +20,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -108,9 +106,9 @@ public final class MappingSupport {
 		return isList.and(containsOnlyRequiredType);
 	}
 
-	static Set<Relationship> extractRelationships(Type collectionType, Value entry) {
+	static Collection<Relationship> extractRelationships(Type collectionType, Value entry) {
 
-		Set<Relationship> relationships = new HashSet<>();
+		Collection<Relationship> relationships = new HashSet<>();
 
 		for (Value listEntry : entry.values()) {
 			if (listEntry.hasType(collectionType)) {
@@ -124,9 +122,11 @@ public final class MappingSupport {
 		return relationships;
 	}
 
-	static Set<Node> extractNodes(Type collectionType, Value entry) {
+	static Collection<Node> extractNodes(Type collectionType, Value entry) {
 
-		Set<Node> nodes = new HashSet<>();
+		// There can be multiple relationships leading to the same node.
+		// Thus we need a collection implementation that supports duplicates.
+		Collection<Node> nodes = new ArrayList<>();
 
 		for (Value listEntry : entry.values()) {
 			if (listEntry.hasType(collectionType)) {
