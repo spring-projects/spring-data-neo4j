@@ -19,7 +19,6 @@ import static org.neo4j.cypherdsl.core.Cypher.parameter;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -304,7 +303,7 @@ public final class QueryFragmentsAndParameters {
 		private Expression[] getReturnExpressions() {
 			return returnExpressions.size() > 0
 					? returnExpressions.toArray(new Expression[]{})
-					: CypherGenerator.INSTANCE.createReturnStatementForMatch(getReturnTuple().getNodeDescription(),
+					: CypherGenerator.INSTANCE.createReturnStatementForMatch(getReturnTuple().nodeDescription,
 					this::includeField);
 		}
 
@@ -364,22 +363,13 @@ public final class QueryFragmentsAndParameters {
 		/**
 		 * Describes which fields of an entity needs to get returned.
 		 */
-		@API(status = API.Status.INTERNAL, since = "6.0.4")
-		public final static class ReturnTuple {
-			private final NodeDescription<?> nodeDescription;
-			private final Set<String> includedProperties;
+		final static class ReturnTuple {
+			final NodeDescription<?> nodeDescription;
+			final Set<String> includedProperties;
 
 			private ReturnTuple(NodeDescription<?> nodeDescription, List<String> includedProperties) {
 				this.nodeDescription = nodeDescription;
 				this.includedProperties = includedProperties == null ? Collections.emptySet() : new HashSet<>(includedProperties);
-			}
-
-			public NodeDescription<?> getNodeDescription() {
-				return nodeDescription;
-			}
-
-			public Collection<String> getIncludedProperties() {
-				return includedProperties;
 			}
 		}
 	}

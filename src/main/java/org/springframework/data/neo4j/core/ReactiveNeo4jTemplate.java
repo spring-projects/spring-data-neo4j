@@ -24,6 +24,7 @@ import reactor.core.publisher.Mono;
 import reactor.util.function.Tuple2;
 import reactor.util.function.Tuples;
 
+import java.beans.PropertyDescriptor;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -34,6 +35,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import org.apache.commons.logging.LogFactory;
@@ -44,10 +46,10 @@ import org.neo4j.cypherdsl.core.Functions;
 import org.neo4j.cypherdsl.core.Node;
 import org.neo4j.cypherdsl.core.Statement;
 import org.neo4j.cypherdsl.core.renderer.Renderer;
-import org.neo4j.driver.exceptions.NoSuchRecordException;
 import org.neo4j.driver.summary.SummaryCounters;
 import org.reactivestreams.Publisher;
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.core.log.LogAccessor;
@@ -70,6 +72,9 @@ import org.springframework.data.neo4j.core.mapping.NodeDescription;
 import org.springframework.data.neo4j.core.mapping.RelationshipDescription;
 import org.springframework.data.neo4j.core.mapping.callback.ReactiveEventSupport;
 import org.springframework.data.neo4j.repository.query.QueryFragmentsAndParameters;
+import org.springframework.data.projection.ProjectionFactory;
+import org.springframework.data.projection.ProjectionInformation;
+import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
 import org.springframework.data.util.ClassTypeInformation;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
@@ -83,7 +88,7 @@ import org.springframework.util.CollectionUtils;
  * @since 6.0
  */
 @API(status = API.Status.STABLE, since = "6.0")
-public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, BeanFactoryAware {
+public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, ReactiveFluentNeo4jOperations, BeanClassLoaderAware, BeanFactoryAware {
 
 	private static final LogAccessor log = new LogAccessor(LogFactory.getLog(ReactiveNeo4jTemplate.class));
 
@@ -98,7 +103,11 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 
 	private final CypherGenerator cypherGenerator;
 
+	private ClassLoader beanClassLoader;
+
 	private ReactiveEventSupport eventSupport;
+
+	private ProjectionFactory projectionFactory;
 
 	@Deprecated
 	public ReactiveNeo4jTemplate(ReactiveNeo4jClient neo4jClient, Neo4jMappingContext neo4jMappingContext,
@@ -194,6 +203,37 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 	}
 
 	@Override
+	public <T> ExecutableFind<T> find(Class<T> domainType) {
+		return new ReactiveFluentFindOperationSupport(this).find(domainType);
+	}
+
+	<T, R> Flux<R> doFind(String cypherQuery, Map<String, Object> parameters, Class<T> domainType, Class<R> resultType, TemplateSupport.FetchType fetchType) {
+
+		Flux<T> intermediaResults = Flux.empty();
+		if (cypherQuery == null && fetchType == TemplateSupport.FetchType.ALL) {
+			intermediaResults = findAll(domainType);
+		} else {
+			Mono<ExecutableQuery<T>> executableQuery = createExecutableQuery(domainType, cypherQuery,
+					parameters == null ? Collections.emptyMap() : parameters);
+
+			switch (fetchType) {
+				case ALL:
+					intermediaResults = executableQuery.flatMapMany(ExecutableQuery::getResults);
+					break;
+				case ONE:
+					intermediaResults = executableQuery.flatMap(ExecutableQuery::getSingleResult).flux();
+					break;
+			}
+		}
+
+		if (resultType.isAssignableFrom(domainType)) {
+			return (Flux<R>) intermediaResults;
+		}
+
+		return intermediaResults.map(instance -> projectionFactory.createProjection(resultType, instance));
+	}
+
+	@Override
 	public <T> Mono<T> findById(Object id, Class<T> domainType) {
 
 		Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getPersistentEntity(domainType);
@@ -232,22 +272,66 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 	@Override
 	public <T> Mono<T> save(T instance) {
 
-		return saveImpl(instance);
+		return saveImpl(instance, null);
 	}
 
-	private <T> Mono<T> saveImpl(T instance) {
+	@Override
+	public <T, R> Mono<R> saveAs(T instance, Class<R> resultType) {
+
+		Assert.notNull(resultType, "ResultType must not be null!");
+
+		if (instance == null) {
+			return null;
+		}
+
+		if (resultType.isInstance(instance)) {
+			return (Mono<R>) save(instance);
+		}
+
+		ProjectionInformation pi = projectionFactory.getProjectionInformation(resultType);
+		Mono<T> savingPublisher = saveImpl(instance, pi.getInputProperties());
+		if (pi.isClosed()) {
+			return savingPublisher.map(savedInstance -> projectionFactory.createProjection(resultType, savedInstance));
+		}
+
+		return savingPublisher.flatMap(savedInstance -> {
+
+			Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getPersistentEntity(savedInstance.getClass());
+			Neo4jPersistentProperty idProperty = entityMetaData.getIdProperty();
+			PersistentPropertyAccessor<T> propertyAccessor = entityMetaData.getPropertyAccessor(savedInstance);
+			return this.findById(propertyAccessor.getProperty(idProperty), savedInstance.getClass())
+					.map(loadedValue -> projectionFactory.createProjection(resultType, loadedValue));
+		});
+	}
+
+	private <T> Mono<T> saveImpl(T instance, @Nullable List<PropertyDescriptor> includedProperties) {
 
 		Neo4jPersistentEntity entityMetaData = neo4jMappingContext.getPersistentEntity(instance.getClass());
 		boolean isNewEntity = entityMetaData.isNew(instance);
 		return Mono.just(instance).flatMap(eventSupport::maybeCallBeforeBind)
 				.flatMap(entityToBeSaved -> determineDynamicLabels(entityToBeSaved, entityMetaData)).flatMap(t -> {
 					T entityToBeSaved = t.getT1();
+
 					DynamicLabels dynamicLabels = t.getT2();
 
-					Statement saveStatement = cypherGenerator.prepareSaveOf(entityMetaData, dynamicLabels);
+					Function<T, Map<String, Object>> requiredBinderFunctionFor = neo4jMappingContext
+							.getRequiredBinderFunctionFor((Class<T>) entityToBeSaved.getClass());
 
-					Mono<Long> idMono = this.neo4jClient.query(() -> renderer.render(saveStatement))
-							.bind(entityToBeSaved).with(neo4jMappingContext.getRequiredBinderFunctionFor((Class<T>) entityToBeSaved.getClass()))
+					Predicate<String> includeProperty;
+					if (includedProperties == null) {
+						includeProperty  = p -> true;
+					} else {
+						Set<String> includedPropertyNames = includedProperties.stream().map(PropertyDescriptor::getName).collect(Collectors.toSet());
+						includeProperty = includedPropertyNames::contains;
+						requiredBinderFunctionFor = requiredBinderFunctionFor.andThen(tree -> {
+							Map<String, Object> properties = (Map<String, Object>) tree.get(Constants.NAME_OF_PROPERTIES_PARAM);
+							properties.entrySet().removeIf(e -> !includeProperty.test(e.getKey()));
+							return tree;
+						});
+					}
+
+					Mono<Long> idMono = this.neo4jClient.query(() -> renderer.render(cypherGenerator.prepareSaveOf(entityMetaData, dynamicLabels)))
+							.bind(entityToBeSaved).with(requiredBinderFunctionFor)
 							.fetchAs(Long.class).one()
 							.switchIfEmpty(Mono.defer(() -> {
 								if (entityMetaData.hasVersionProperty()) {
@@ -261,7 +345,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 						if (entityMetaData.isUsingInternalIds()) {
 							propertyAccessor.setProperty(entityMetaData.getRequiredIdProperty(), internalId);
 						}
-					}).then(Mono.defer(() -> processRelations(entityMetaData, instance, propertyAccessor, isNewEntity)));
+					}).then(Mono.defer(() -> processRelations(entityMetaData, instance, propertyAccessor, isNewEntity, includeProperty)));
 				});
 	}
 
@@ -290,6 +374,36 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 
 	@Override
 	public <T> Flux<T> saveAll(Iterable<T> instances) {
+		return saveAllImpl(instances, null);
+	}
+
+	@Override
+	public <T, R> Flux<R> saveAllAs(Iterable<T> instances, Class<R> resultType) {
+
+		Assert.notNull(resultType, "ResultType must not be null!");
+
+		Class<?> commonElementType = TemplateSupport.findCommonElementType(instances);
+
+		if (resultType.isAssignableFrom(commonElementType)) {
+			return (Flux<R>) saveAll(instances);
+		}
+
+		ProjectionInformation pi = projectionFactory.getProjectionInformation(resultType);
+		Flux<T> savedInstances = saveAllImpl(instances, pi.getInputProperties());
+		if (pi.isClosed()) {
+			return savedInstances.map(instance -> projectionFactory.createProjection(resultType, instance));
+		}
+
+		Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getPersistentEntity(commonElementType);
+		Neo4jPersistentProperty idProperty = entityMetaData.getIdProperty();
+
+		return savedInstances.flatMap(savedInstance -> {
+			PersistentPropertyAccessor<T> propertyAccessor = entityMetaData.getPropertyAccessor(savedInstance);
+			return findById(propertyAccessor.getProperty(idProperty), commonElementType);
+		}).map(instance -> projectionFactory.createProjection(resultType, instance));
+	}
+
+	private <T> Flux<T> saveAllImpl(Iterable<T> instances, @Nullable List<PropertyDescriptor> includedProperties) {
 
 		List<T> entities;
 		if (instances instanceof Collection) {
@@ -310,7 +424,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 				|| entityMetaData.getDynamicLabelsProperty().isPresent()) {
 			log.debug("Saving entities using single statements.");
 
-			return Flux.fromIterable(entities).flatMap(e -> this.saveImpl(e));
+			return Flux.fromIterable(entities).flatMap(e -> this.saveImpl(e, includedProperties));
 		}
 
 		Function<T, Map<String, Object>> binderFunction = neo4jMappingContext.getRequiredBinderFunctionFor(domainClass);
@@ -337,7 +451,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 							counters.nodesCreated(), counters.nodesDeleted(), counters.relationshipsCreated(),
 							counters.relationshipsDeleted(), counters.propertiesSet()));
 				}).thenMany(Flux.fromIterable(entitiesToBeSaved)
-						.flatMap(t -> processRelations(entityMetaData, t.getT1(), entityMetaData.getPropertyAccessor(t.getT3()), t.getT2()))
+						.flatMap(t -> processRelations(entityMetaData, t.getT1(), entityMetaData.getPropertyAccessor(t.getT3()), t.getT2(), TemplateSupport.computeIncludePropertyPredicate(includedProperties)))
 				));
 	}
 
@@ -564,19 +678,20 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 	 *                               so that we can reliable stop traversing relationships.
 	 * @param parentPropertyAccessor The property accessor of the parent, to modify the relationships
 	 * @param isParentObjectNew      A flag if the parent was new
+	 * @param includeProperty        A predicate telling to include a relationship property or not
 	 * @param <T>                    The type of the entity to save
 	 * @return A mono representing the whole stream of save operations.
 	 */
 	private <T> Mono<T> processRelations(Neo4jPersistentEntity<?> neo4jPersistentEntity, T originalInstance,
 			PersistentPropertyAccessor<?> parentPropertyAccessor,
-			boolean isParentObjectNew) {
+			boolean isParentObjectNew, Predicate<String> includeProperty) {
 
 		return processNestedRelations(neo4jPersistentEntity, parentPropertyAccessor, isParentObjectNew,
-				new NestedRelationshipProcessingStateMachine(originalInstance));
+				new NestedRelationshipProcessingStateMachine(originalInstance), includeProperty);
 	}
 
 	private <T> Mono<T> processNestedRelations(Neo4jPersistentEntity<?> sourceEntity, PersistentPropertyAccessor<?> parentPropertyAccessor,
-		  boolean isParentObjectNew, NestedRelationshipProcessingStateMachine stateMachine) {
+		  boolean isParentObjectNew, NestedRelationshipProcessingStateMachine stateMachine, Predicate<String> includeProperty) {
 
 		Object fromId = parentPropertyAccessor.getProperty(sourceEntity.getRequiredIdProperty());
 		List<Mono<Void>> relationshipDeleteMonos = new ArrayList<>();
@@ -595,6 +710,9 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 			RelationshipDescription relationshipDescription = relationshipContext.getRelationship();
 			RelationshipDescription relationshipDescriptionObverse = relationshipDescription.getRelationshipObverse();
 
+			if (!includeProperty.test(relationshipDescription.getFieldName())) {
+				return;
+			}
 			Neo4jPersistentProperty idProperty;
 			if (!relationshipDescription.hasInternalIdProperty()) {
 				idProperty = null;
@@ -699,7 +817,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 
 												Mono<Object> nestedRelationshipsSignal = null;
 												if (processState != ProcessState.PROCESSED_ALL_VALUES) {
-													nestedRelationshipsSignal = processNestedRelations(targetEntity, targetPropertyAccessor, targetEntity.isNew(newRelatedObject), stateMachine);
+													nestedRelationshipsSignal = processNestedRelations(targetEntity, targetPropertyAccessor, targetEntity.isNew(newRelatedObject), stateMachine, s -> true);
 												}
 
 												Mono<Object> getRelationshipOrRelationshipPropertiesObject = Mono.fromSupplier(() -> MappingSupport.getRelationshipOrRelationshipPropertiesObject(
@@ -819,6 +937,16 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
 
 		this.eventSupport = ReactiveEventSupport.discoverCallbacks(neo4jMappingContext, beanFactory);
+
+		SpelAwareProxyProjectionFactory spelAwareProxyProjectionFactory = new SpelAwareProxyProjectionFactory();
+		spelAwareProxyProjectionFactory.setBeanClassLoader(beanClassLoader);
+		spelAwareProxyProjectionFactory.setBeanFactory(beanFactory);
+		this.projectionFactory = spelAwareProxyProjectionFactory;
+	}
+
+	@Override
+	public void setBeanClassLoader(ClassLoader classLoader) {
+		this.beanClassLoader = beanClassLoader == null ? org.springframework.util.ClassUtils.getDefaultClassLoader() : beanClassLoader;
 	}
 
 	final class DefaultReactiveExecutableQuery<T> implements ExecutableQuery<T> {
@@ -850,18 +978,12 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 		 * @throws IncorrectResultSizeDataAccessException if there is no or more than one result
 		 */
 		public Mono<T> getSingleResult() {
-			try {
-				return fetchSpec.one().map(t -> {
-					if (t instanceof LinkedHashSet) {
-						return (T) ((LinkedHashSet<?>) t).iterator().next();
-					}
-					return t;
-				});
-			} catch (NoSuchRecordException e) {
-				// This exception is thrown by the driver in both cases when there are 0 or 1+n records
-				// So there has been an incorrect result size, but not to few results but to many.
-				throw new IncorrectResultSizeDataAccessException(e.getMessage(), 1);
-			}
+			return fetchSpec.one().map(t -> {
+				if (t instanceof LinkedHashSet) {
+					return (T) ((LinkedHashSet<?>) t).iterator().next();
+				}
+				return t;
+			}).onErrorMap(IndexOutOfBoundsException.class, e -> new IncorrectResultSizeDataAccessException(e.getMessage(), 1));
 		}
 	}
 }

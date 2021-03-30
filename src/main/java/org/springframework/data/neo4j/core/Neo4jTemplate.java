@@ -19,6 +19,7 @@ import static org.neo4j.cypherdsl.core.Cypher.anyNode;
 import static org.neo4j.cypherdsl.core.Cypher.asterisk;
 import static org.neo4j.cypherdsl.core.Cypher.parameter;
 
+import java.beans.PropertyDescriptor;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -31,6 +32,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import org.apache.commons.logging.LogFactory;
@@ -45,6 +47,7 @@ import org.neo4j.driver.exceptions.NoSuchRecordException;
 import org.neo4j.driver.summary.ResultSummary;
 import org.neo4j.driver.summary.SummaryCounters;
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.core.log.LogAccessor;
@@ -68,6 +71,9 @@ import org.springframework.data.neo4j.core.mapping.RelationshipDescription;
 import org.springframework.data.neo4j.core.mapping.callback.EventSupport;
 import org.springframework.data.neo4j.repository.NoResultException;
 import org.springframework.data.neo4j.repository.query.QueryFragmentsAndParameters;
+import org.springframework.data.projection.ProjectionFactory;
+import org.springframework.data.projection.ProjectionInformation;
+import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
 import org.springframework.data.util.ClassTypeInformation;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
@@ -82,7 +88,7 @@ import org.springframework.util.CollectionUtils;
  * @since 6.0
  */
 @API(status = API.Status.STABLE, since = "6.0")
-public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
+public final class Neo4jTemplate implements Neo4jOperations, FluentNeo4jOperations, BeanClassLoaderAware, BeanFactoryAware {
 
 	private static final LogAccessor log = new LogAccessor(LogFactory.getLog(Neo4jTemplate.class));
 
@@ -96,7 +102,11 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 
 	private final CypherGenerator cypherGenerator;
 
+	private ClassLoader beanClassLoader;
+
 	private EventSupport eventSupport;
+
+	private ProjectionFactory projectionFactory;
 
 	@Deprecated
 	public Neo4jTemplate(Neo4jClient neo4jClient, Neo4jMappingContext neo4jMappingContext,
@@ -213,6 +223,39 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 	}
 
 	@Override
+	public <T> ExecutableFind<T> find(Class<T> domainType) {
+		return new FluentFindOperationSupport(this).find(domainType);
+	}
+
+	<T, R> List<R> doFind(String cypherQuery, Map<String, Object> parameters, Class<T> domainType, Class<R> resultType, TemplateSupport.FetchType fetchType) {
+
+		List<T> intermediaResults = Collections.emptyList();
+		if (cypherQuery == null && fetchType == TemplateSupport.FetchType.ALL) {
+			intermediaResults = findAll(domainType);
+		} else {
+			ExecutableQuery<T> executableQuery = createExecutableQuery(domainType, cypherQuery,
+					parameters == null ? Collections.emptyMap() : parameters);
+			switch (fetchType) {
+				case ALL:
+					intermediaResults = executableQuery.getResults();
+					break;
+				case ONE:
+					intermediaResults = executableQuery.getSingleResult().map(Collections::singletonList)
+							.orElseGet(Collections::emptyList);
+					break;
+			}
+		}
+
+		if (resultType.isAssignableFrom(domainType)) {
+			return (List<R>) intermediaResults;
+		}
+
+		return intermediaResults.stream()
+				.map(instance -> projectionFactory.createProjection(resultType, instance))
+				.collect(Collectors.toList());
+	}
+
+	@Override
 	public <T> Optional<T> findById(Object id, Class<T> domainType) {
 		Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getPersistentEntity(domainType);
 
@@ -242,10 +285,36 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 	@Override
 	public <T> T save(T instance) {
 
-		return saveImpl(instance);
+		return saveImpl(instance, null);
 	}
 
-	private <T> T saveImpl(T instance) {
+	@Override
+	public <T, R> R saveAs(T instance, Class<R> resultType) {
+
+		Assert.notNull(resultType, "ResultType must not be null!");
+
+		if (instance == null) {
+			return null;
+		}
+
+		if (resultType.isInstance(instance)) {
+			return (R) save(instance);
+		}
+
+		ProjectionInformation pi = projectionFactory.getProjectionInformation(resultType);
+		T savedInstance = saveImpl(instance, pi.getInputProperties());
+		if (pi.isClosed()) {
+			return projectionFactory.createProjection(resultType, savedInstance);
+		}
+
+		Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getPersistentEntity(savedInstance.getClass());
+		Neo4jPersistentProperty idProperty = entityMetaData.getIdProperty();
+		PersistentPropertyAccessor<T> propertyAccessor = entityMetaData.getPropertyAccessor(savedInstance);
+		return projectionFactory.createProjection(resultType,
+				this.findById(propertyAccessor.getProperty(idProperty), savedInstance.getClass()).get());
+	}
+
+	private <T> T saveImpl(T instance, @Nullable List<PropertyDescriptor> includedProperties) {
 
 		Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getPersistentEntity(instance.getClass());
 		boolean isEntityNew = entityMetaData.isNew(instance);
@@ -254,10 +323,21 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 
 		DynamicLabels dynamicLabels = determineDynamicLabels(entityToBeSaved, entityMetaData);
 
+		Function<T, Map<String, Object>> requiredBinderFunctionFor = neo4jMappingContext
+				.getRequiredBinderFunctionFor((Class<T>) entityToBeSaved.getClass());
+
+		Predicate<String> includeProperty = TemplateSupport.computeIncludePropertyPredicate(includedProperties);
+		if (includedProperties != null) {
+			requiredBinderFunctionFor = requiredBinderFunctionFor.andThen(tree -> {
+				Map<String, Object> properties = (Map<String, Object>) tree.get(Constants.NAME_OF_PROPERTIES_PARAM);
+				properties.entrySet().removeIf(e -> !includeProperty.test(e.getKey()));
+				return tree;
+			});
+		}
 		Optional<Long> optionalInternalId = neo4jClient
 				.query(() -> renderer.render(cypherGenerator.prepareSaveOf(entityMetaData, dynamicLabels)))
 				.bind(entityToBeSaved)
-				.with(neo4jMappingContext.getRequiredBinderFunctionFor((Class<T>) entityToBeSaved.getClass()))
+				.with(requiredBinderFunctionFor)
 				.fetchAs(Long.class).one();
 
 		if (entityMetaData.hasVersionProperty() && !optionalInternalId.isPresent()) {
@@ -268,7 +348,7 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 		if (entityMetaData.isUsingInternalIds()) {
 			propertyAccessor.setProperty(entityMetaData.getRequiredIdProperty(), optionalInternalId.get());
 		}
-		processRelations(entityMetaData, instance, propertyAccessor, isEntityNew);
+		processRelations(entityMetaData, instance, propertyAccessor, isEntityNew, includeProperty);
 
 		return propertyAccessor.getBean();
 	}
@@ -297,6 +377,10 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 
 	@Override
 	public <T> List<T> saveAll(Iterable<T> instances) {
+		return saveAllImpl(instances, null);
+	}
+
+	private <T> List<T> saveAllImpl(Iterable<T> instances, @Nullable List<PropertyDescriptor> includedProperties) {
 
 		List<T> entities;
 		if (instances instanceof Collection) {
@@ -316,7 +400,7 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 				|| entityMetaData.getDynamicLabelsProperty().isPresent()) {
 			log.debug("Saving entities using single statements.");
 
-			return entities.stream().map(e -> saveImpl(e)).collect(Collectors.toList());
+			return entities.stream().map(e -> saveImpl(e, includedProperties)).collect(Collectors.toList());
 		}
 
 		class Tuple3<T> {
@@ -352,8 +436,40 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 		// Save related
 		return entitiesToBeSaved.stream().map(t -> {
 			PersistentPropertyAccessor<T> propertyAccessor = entityMetaData.getPropertyAccessor(t.t3);
-			return processRelations(entityMetaData, t.t1, propertyAccessor, t.t2);
+			return processRelations(entityMetaData, t.t1, propertyAccessor, t.t2, TemplateSupport.computeIncludePropertyPredicate(includedProperties));
 		}).collect(Collectors.toList());
+	}
+
+	@Override
+	public <T, R> List<R> saveAllAs(Iterable<T> instances, Class<R> resultType) {
+
+		Assert.notNull(resultType, "ResultType must not be null!");
+
+		Class<?> commonElementType = TemplateSupport.findCommonElementType(instances);
+
+		if (resultType.isAssignableFrom(commonElementType)) {
+			return (List<R>) saveAll(instances);
+		}
+
+		ProjectionInformation pi = projectionFactory.getProjectionInformation(resultType);
+		List<T> savedInstances = saveAllImpl(instances, pi.getInputProperties());
+
+		if (pi.isClosed()) {
+			return savedInstances.stream().map(instance -> projectionFactory.createProjection(resultType, instance))
+					.collect(Collectors.toList());
+		}
+
+		Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getPersistentEntity(commonElementType);
+		Neo4jPersistentProperty idProperty = entityMetaData.getIdProperty();
+
+		List<Object> ids = savedInstances.stream().map(savedInstance -> {
+			PersistentPropertyAccessor<T> propertyAccessor = entityMetaData.getPropertyAccessor(savedInstance);
+			return propertyAccessor.getProperty(idProperty);
+		}).collect(Collectors.toList());
+
+		return findAllById(ids, commonElementType)
+				.stream().map(instance -> projectionFactory.createProjection(resultType, instance))
+				.collect(Collectors.toList());
 	}
 
 	@Override
@@ -463,17 +579,18 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 	 *                               so that we can reliable stop traversing relationships.
 	 * @param parentPropertyAccessor The property accessor of the parent, to modify the relationships
 	 * @param isParentObjectNew      A flag if the parent was new
+	 * @param includeProperty        A predicate telling to include a relationship property or not
 	 */
 	private <T> T processRelations(Neo4jPersistentEntity<?> neo4jPersistentEntity, T originalInstance,
 			PersistentPropertyAccessor<?> parentPropertyAccessor,
-			boolean isParentObjectNew) {
+			boolean isParentObjectNew, Predicate<String> includeProperty) {
 
 		return processNestedRelations(neo4jPersistentEntity, parentPropertyAccessor, isParentObjectNew,
-				new NestedRelationshipProcessingStateMachine(originalInstance));
+				new NestedRelationshipProcessingStateMachine(originalInstance), includeProperty);
 	}
 
 	private <T> T processNestedRelations(Neo4jPersistentEntity<?> sourceEntity, PersistentPropertyAccessor<?> propertyAccessor,
-			boolean isParentObjectNew, NestedRelationshipProcessingStateMachine stateMachine) {
+			boolean isParentObjectNew, NestedRelationshipProcessingStateMachine stateMachine, Predicate<String> includeProperty) {
 
 		Object fromId = propertyAccessor.getProperty(sourceEntity.getRequiredIdProperty());
 
@@ -489,6 +606,9 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 			RelationshipDescription relationshipDescription = relationshipContext.getRelationship();
 			RelationshipDescription relationshipDescriptionObverse = relationshipDescription.getRelationshipObverse();
 
+			if (!includeProperty.test(relationshipDescription.getFieldName())) {
+				return;
+			}
 			Neo4jPersistentProperty idProperty;
 			if (!relationshipDescription.hasInternalIdProperty()) {
 				idProperty = null;
@@ -596,7 +716,7 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 				}
 
 				if (processState != ProcessState.PROCESSED_ALL_VALUES) {
-					processNestedRelations(targetEntity, targetPropertyAccessor, isEntityNew, stateMachine);
+					processNestedRelations(targetEntity, targetPropertyAccessor, isEntityNew, stateMachine, s -> true);
 				}
 
 				Object potentiallyRecreatedNewRelatedObject = MappingSupport.getRelationshipOrRelationshipPropertiesObject(neo4jMappingContext,
@@ -646,9 +766,19 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 	}
 
 	@Override
+	public void setBeanClassLoader(ClassLoader beanClassLoader) {
+		this.beanClassLoader = beanClassLoader == null ? org.springframework.util.ClassUtils.getDefaultClassLoader() : beanClassLoader;
+	}
+
+	@Override
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
 
 		this.eventSupport = EventSupport.discoverCallbacks(neo4jMappingContext, beanFactory);
+
+		SpelAwareProxyProjectionFactory spelAwareProxyProjectionFactory = new SpelAwareProxyProjectionFactory();
+		spelAwareProxyProjectionFactory.setBeanClassLoader(beanClassLoader);
+		spelAwareProxyProjectionFactory.setBeanFactory(beanFactory);
+		this.projectionFactory = spelAwareProxyProjectionFactory;
 	}
 
 	@Override
