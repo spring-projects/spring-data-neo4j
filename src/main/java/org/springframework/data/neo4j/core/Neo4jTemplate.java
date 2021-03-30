@@ -301,9 +301,9 @@ public final class Neo4jTemplate implements Neo4jOperations, FluentNeo4jOperatio
 			return (R) save(instance);
 		}
 
-		ProjectionInformation pi = projectionFactory.getProjectionInformation(resultType);
-		T savedInstance = saveImpl(instance, pi.getInputProperties());
-		if (pi.isClosed()) {
+		ProjectionInformation projectionInformation = projectionFactory.getProjectionInformation(resultType);
+		T savedInstance = saveImpl(instance, projectionInformation.getInputProperties());
+		if (projectionInformation.isClosed()) {
 			return projectionFactory.createProjection(resultType, savedInstance);
 		}
 
@@ -323,12 +323,12 @@ public final class Neo4jTemplate implements Neo4jOperations, FluentNeo4jOperatio
 
 		DynamicLabels dynamicLabels = determineDynamicLabels(entityToBeSaved, entityMetaData);
 
-		Function<T, Map<String, Object>> requiredBinderFunctionFor = neo4jMappingContext
+		Function<T, Map<String, Object>> binderFunction = neo4jMappingContext
 				.getRequiredBinderFunctionFor((Class<T>) entityToBeSaved.getClass());
 
 		Predicate<String> includeProperty = TemplateSupport.computeIncludePropertyPredicate(includedProperties);
 		if (includedProperties != null) {
-			requiredBinderFunctionFor = requiredBinderFunctionFor.andThen(tree -> {
+			binderFunction = binderFunction.andThen(tree -> {
 				Map<String, Object> properties = (Map<String, Object>) tree.get(Constants.NAME_OF_PROPERTIES_PARAM);
 				properties.entrySet().removeIf(e -> !includeProperty.test(e.getKey()));
 				return tree;
@@ -337,7 +337,7 @@ public final class Neo4jTemplate implements Neo4jOperations, FluentNeo4jOperatio
 		Optional<Long> optionalInternalId = neo4jClient
 				.query(() -> renderer.render(cypherGenerator.prepareSaveOf(entityMetaData, dynamicLabels)))
 				.bind(entityToBeSaved)
-				.with(requiredBinderFunctionFor)
+				.with(binderFunction)
 				.fetchAs(Long.class).one();
 
 		if (entityMetaData.hasVersionProperty() && !optionalInternalId.isPresent()) {
@@ -451,10 +451,10 @@ public final class Neo4jTemplate implements Neo4jOperations, FluentNeo4jOperatio
 			return (List<R>) saveAll(instances);
 		}
 
-		ProjectionInformation pi = projectionFactory.getProjectionInformation(resultType);
-		List<T> savedInstances = saveAllImpl(instances, pi.getInputProperties());
+		ProjectionInformation projectionInformation = projectionFactory.getProjectionInformation(resultType);
+		List<T> savedInstances = saveAllImpl(instances, projectionInformation.getInputProperties());
 
-		if (pi.isClosed()) {
+		if (projectionInformation.isClosed()) {
 			return savedInstances.stream().map(instance -> projectionFactory.createProjection(resultType, instance))
 					.collect(Collectors.toList());
 		}

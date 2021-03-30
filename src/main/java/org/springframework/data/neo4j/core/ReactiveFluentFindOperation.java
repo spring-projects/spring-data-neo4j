@@ -24,6 +24,7 @@ import java.util.Map;
 
 import org.apiguardian.api.API;
 import org.neo4j.cypherdsl.core.Statement;
+import org.springframework.lang.Nullable;
 
 /**
  * {@link ReactiveFluentFindOperation} allows creation and execution of Neo4j find operations in a fluent API style.
@@ -90,10 +91,11 @@ public interface ReactiveFluentFindOperation {
 		 * Set the filter query to be used.
 		 *
 		 * @param query must not be {@literal null}.
+		 * @param parameter Optional parameter map
 		 * @return new instance of {@link TerminatingFind}.
 		 * @throws IllegalArgumentException if query is {@literal null}.
 		 */
-		TerminatingFind<T> matching(String query, Map<String, Object> parameter);
+		TerminatingFind<T> matching(String query, @Nullable Map<String, Object> parameter);
 
 		/**
 		 * Set the filter query to be used.
@@ -114,10 +116,12 @@ public interface ReactiveFluentFindOperation {
 		 * @return new instance of {@link TerminatingFind}.
 		 * @throws IllegalArgumentException if statement is {@literal null}.
 		 */
-		default TerminatingFind<T> matching(Statement statement, Map<String, Object> parameter) {
+		default TerminatingFind<T> matching(Statement statement, @Nullable Map<String, Object> parameter) {
 			Map<String, Object> mergedParameters = new HashMap<>();
 			mergedParameters.putAll(statement.getParameters());
-			mergedParameters.putAll(parameter);
+			if (parameter != null) {
+				mergedParameters.putAll(parameter);
+			}
 			return matching(statement.getCypher(), mergedParameters);
 		}
 

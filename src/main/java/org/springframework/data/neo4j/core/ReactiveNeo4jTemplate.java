@@ -288,9 +288,9 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Rea
 			return (Mono<R>) save(instance);
 		}
 
-		ProjectionInformation pi = projectionFactory.getProjectionInformation(resultType);
-		Mono<T> savingPublisher = saveImpl(instance, pi.getInputProperties());
-		if (pi.isClosed()) {
+		ProjectionInformation projectionInformation = projectionFactory.getProjectionInformation(resultType);
+		Mono<T> savingPublisher = saveImpl(instance, projectionInformation.getInputProperties());
+		if (projectionInformation.isClosed()) {
 			return savingPublisher.map(savedInstance -> projectionFactory.createProjection(resultType, savedInstance));
 		}
 
@@ -314,7 +314,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Rea
 
 					DynamicLabels dynamicLabels = t.getT2();
 
-					Function<T, Map<String, Object>> requiredBinderFunctionFor = neo4jMappingContext
+					Function<T, Map<String, Object>> binderFunction = neo4jMappingContext
 							.getRequiredBinderFunctionFor((Class<T>) entityToBeSaved.getClass());
 
 					Predicate<String> includeProperty;
@@ -323,7 +323,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Rea
 					} else {
 						Set<String> includedPropertyNames = includedProperties.stream().map(PropertyDescriptor::getName).collect(Collectors.toSet());
 						includeProperty = includedPropertyNames::contains;
-						requiredBinderFunctionFor = requiredBinderFunctionFor.andThen(tree -> {
+						binderFunction = binderFunction.andThen(tree -> {
 							Map<String, Object> properties = (Map<String, Object>) tree.get(Constants.NAME_OF_PROPERTIES_PARAM);
 							properties.entrySet().removeIf(e -> !includeProperty.test(e.getKey()));
 							return tree;
@@ -331,7 +331,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Rea
 					}
 
 					Mono<Long> idMono = this.neo4jClient.query(() -> renderer.render(cypherGenerator.prepareSaveOf(entityMetaData, dynamicLabels)))
-							.bind(entityToBeSaved).with(requiredBinderFunctionFor)
+							.bind(entityToBeSaved).with(binderFunction)
 							.fetchAs(Long.class).one()
 							.switchIfEmpty(Mono.defer(() -> {
 								if (entityMetaData.hasVersionProperty()) {
@@ -388,9 +388,9 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Rea
 			return (Flux<R>) saveAll(instances);
 		}
 
-		ProjectionInformation pi = projectionFactory.getProjectionInformation(resultType);
-		Flux<T> savedInstances = saveAllImpl(instances, pi.getInputProperties());
-		if (pi.isClosed()) {
+		ProjectionInformation projectionInformation = projectionFactory.getProjectionInformation(resultType);
+		Flux<T> savedInstances = saveAllImpl(instances, projectionInformation.getInputProperties());
+		if (projectionInformation.isClosed()) {
 			return savedInstances.map(instance -> projectionFactory.createProjection(resultType, instance));
 		}
 
