@@ -443,16 +443,17 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 			Collection<Relationship> allMatchingTypeRelationshipsInResult = new ArrayList<>();
 			Collection<Node> allNodesWithMatchingLabelInResult = new ArrayList<>();
 
-			// Grab everything else
+			// Retrieve all relationships from the result's list(s)
 			StreamSupport.stream(allValues.values().spliterator(), false)
 					.filter(MappingSupport.isListContainingOnly(listType, this.relationshipType))
-					.flatMap(entry -> entry.asList(Value::asRelationship).stream())
+					.flatMap(entry -> MappingSupport.extractRelationships(listType, entry).stream())
 					.filter(r -> r.type().equals(typeOfRelationship) || relationshipDescription.isDynamic())
 					.forEach(allMatchingTypeRelationshipsInResult::add);
 
+			// Retrieve all nodes from the result's list(s)
 			StreamSupport.stream(allValues.values().spliterator(), false)
 					.filter(MappingSupport.isListContainingOnly(listType, this.nodeType))
-					.flatMap(entry -> entry.asList(Value::asNode).stream())
+					.flatMap(entry -> MappingSupport.extractNodes(listType, entry).stream())
 					.filter(n -> n.hasLabel(targetLabel)).collect(Collectors.toList())
 					.forEach(allNodesWithMatchingLabelInResult::add);
 
