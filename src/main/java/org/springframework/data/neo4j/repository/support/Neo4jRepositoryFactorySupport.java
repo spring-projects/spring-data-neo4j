@@ -48,4 +48,7 @@ final class Neo4jRepositoryFactorySupport {
 		return repositoryIdType.equals(Integer.class) && entityIdType.equals(int.class)
 				|| repositoryIdType.equals(int.class) && entityIdType.equals(Integer.class);
 	}
+
+	private Neo4jRepositoryFactorySupport() {
+	}
 }

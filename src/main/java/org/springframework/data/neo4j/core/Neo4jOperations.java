@@ -181,6 +181,19 @@ public interface Neo4jOperations {
 	<T> T save(T instance);
 
 	/**
+	 * Saves an instance of an entity, including the properties and relationship defined by the projected {@code resultType}.
+	 *
+	 * @param instance the entity to be saved. Must not be {@code null}.
+	 * @param <T> the type of the entity.
+	 * @param <R> the type of the projection to be used during save.
+	 * @return the saved, projected instance.
+	 * @since 6.1
+	 */
+	default <T, R> R saveAs(T instance, Class<R> resultType) {
+		throw new UnsupportedOperationException();
+	}
+
+	/**
 	 * Saves several instances of an entity, including all the related entities of the entity.
 	 *
 	 * @param instances the instances to be saved. Must not be {@code null}.
@@ -188,6 +201,19 @@ public interface Neo4jOperations {
 	 * @return the saved instances.
 	 */
 	<T> List<T> saveAll(Iterable<T> instances);
+
+	/**
+	 * Saves an instance of an entity, including the properties and relationship defined by the project {@code resultType}.
+	 *
+	 * @param instances the instances to be saved. Must not be {@code null}.
+	 * @param <T> the type of the entity.
+	 * @param <R> the type of the projection to be used during save.
+	 * @return the saved, projected instance.
+	 * @since 6.1
+	 */
+	default <T, R> List<R> saveAllAs(Iterable<T> instances, Class<R> resultType) {
+		throw new UnsupportedOperationException();
+	}
 
 	/**
 	 * Deletes a single entity including all entities related to that entity.

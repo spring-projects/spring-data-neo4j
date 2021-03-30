@@ -59,6 +59,10 @@ public class Person {
 		}
 	}
 
+	public Long getId() {
+		return id;
+	}
+
 	// The getters are needed for Spring Expression Language in `NamesOnly`
 	public String getFirstName() {
 		return firstName;
