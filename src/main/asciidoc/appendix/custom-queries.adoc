@@ -53,7 +53,7 @@ With this result as a single record it is possible for Spring Data Neo4j to add 
 === Reaching deeper into the graph
 
 The example above assumes that you are only trying to fetch the first level of related nodes.
-In real-life this is sometimes not enough and there are nodes deeper in the graph that needs to get added to the resulting instance.
+This is sometimes not enough and there are maybe nodes deeper in the graph that should also be part of the mapped instance.
 There are two ways to achieve this: Database-side or client-side reduction.
 
 For this the example from above should also contain `Movies` on the `Persons` that get returned with the initial `Movie`.
