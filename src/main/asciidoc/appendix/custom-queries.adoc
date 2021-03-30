@@ -49,6 +49,82 @@ To get the right object(s) back, it is required to _collect_ the relationships a
 
 With this result as a single record it is possible for Spring Data Neo4j to add all related nodes correctly to the root node.
 
+[[custom-queries.for-relationships.long-paths]]
+=== Reaching deeper into the graph
+
+The example above assumes that you are only trying to fetch the first level of related nodes.
+This is sometimes not enough and there are maybe nodes deeper in the graph that should also be part of the mapped instance.
+There are two ways to achieve this: Database-side or client-side reduction.
+
+For this the example from above should also contain `Movies` on the `Persons` that get returned with the initial `Movie`.
+
+.Example for 'The Matrix' and 'Keanu Reeves'
+image::movie-graph-deep.png[]
+
+[[custom-queries.for-relationships.long-paths.database]]
+==== Database-side reduction
+
+Keeping in mind that Spring Data Neo4j can only properly process record based, the result for one entity instance needs to be in one record.
+Using https://neo4j.com/docs/cypher-manual/current/syntax/patterns/#cypher-pattern-path-variables[Cypher's path] capabilities is a valid option to fetch all branches in the graph.
+
+[source,cypher]
+.Naive path-based approach
+----
+MATCH p=(m:Movie{title: 'The Matrix'})<-[:ACTED_IN]-(:Person)-[:ACTED_IN*..0]->(:Movie)
+RETURN p;
+----
+
+This will result in multiple paths that are not merged within one record.
+It is possible to call `collect(p)` but Spring Data Neo4j does not understand the concept of paths in the mapping process.
+Thus, nodes and relationships needs to get extracted for the result.
+
+[source,cypher]
+.Extracting nodes and relationships
+----
+MATCH p=(m:Movie{title: 'The Matrix'})<-[:ACTED_IN]-(:Person)-[:ACTED_IN*..0]->(:Movie)
+RETURN m, nodes(p), relationships(p);
+----
+
+Because there are multiple paths that lead from 'The Matrix' to another movie, the result still won't be a single record.
+This is where https://neo4j.com/docs/cypher-manual/current/functions/list/#functions-reduce[Cypher's reduce function] comes into play.
+
+[source,cypher]
+.Reducing nodes and relationships
+----
+MATCH p=(m:Movie{title: 'The Matrix'})<-[:ACTED_IN]-(:Person)-[:ACTED_IN*..0]->(:Movie)
+WITH collect(p) as paths, m
+WITH m,
+reduce(a=[], node in reduce(b=[], c in [aa in paths | nodes(aa)] | b + c) | case when node in a then a else a + node end) as nodes,
+reduce(d=[], relationship in reduce(e=[], f in [dd in paths | relationships(dd)] | e + f) | case when relationship in d then d else d + relationship end) as relationships
+RETURN m, relationships, nodes;
+----
+
+The `reduce` function allows us to flatten the nodes and relationships from various paths.
+As a result we will get a tuple similar to <<custom-queries.for-relationships.one.record>> but with a mixture of relationship types or nodes in the collections.
+
+[[custom-queries.for-relationships.long-paths.client]]
+==== Client-side reduction
+
+If the reduction should happen on the client-side, Spring Data Neo4j enables you to map also lists of lists of relationships or nodes.
+Still, the requirement applies that the returned record should contain all information to hydrate the resulting entity instance correctly.
+
+[source,cypher]
+.Collect nodes and relationships from path
+----
+MATCH p=(m:Movie{title: 'The Matrix'})<-[:ACTED_IN]-(:Person)-[:ACTED_IN*..0]->(:Movie)
+RETURN m, collect(nodes(p)), collect(relationships(p));
+----
+
+The additional `collect` statement creates lists in the format:
+----
+[[rel1, rel2], [rel3, rel4]]
+----
+Those lists will now get converted during the mapping process into a flat list.
+
+NOTE: Deciding if you want to go with client-side or database-side reduction depends on the amount of data that will get generated.
+All the paths needs to get created in the database's memory first when the `reduce` function is used.
+On the other hand a large amount of data that needs to get merged on the client-side results in a higher memory usage there.
+
 [[custom-queries.parameters]]
 == Parameters in custom queries
 
