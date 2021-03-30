@@ -88,9 +88,8 @@ The above return part will then look like:
 The map projection and pattern comprehension used by SDN ensures that only the properties and relationships you have defined are getting queried.
 
 In cases where you have self-referencing nodes or creating schemas that potentially lead to cycles in the data that gets returned,
-SDN falls back to a path-based query creation that does a wildcard mapping on all available relationship types reachable from
-the initial domain entity.
-
-The return pattern looks similar to this:
-
-`RETURN n{..., __paths__: [p = (n)-[:HAS|KNOWS*]-() | p]}`
+SDN falls back to a cascading / data-driven query creation.
+Starting with an initial query that looks for the specific node and considering the conditions,
+it steps through the resulting nodes and, if their relationships are also mapped, would create further queries on the fly.
+This query creation and execution loop will continue until no query finds new relationships or nodes.
+The way of the creation can be seen analogue to the save/update process.
