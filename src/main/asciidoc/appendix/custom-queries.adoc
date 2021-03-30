@@ -85,7 +85,7 @@ MATCH p=(m:Movie{title: 'The Matrix'})<-[:ACTED_IN]-(:Person)-[:ACTED_IN*..0]->(
 RETURN m, nodes(p), relationships(p);
 ----
 
-Because there are multiple paths that lead from 'The Matrix' to another movie, the result will be still not a single record.
+Because there are multiple paths that lead from 'The Matrix' to another movie, the result still won't be a single record.
 This is where https://neo4j.com/docs/cypher-manual/current/functions/list/#functions-reduce[Cypher's reduce function] comes into play.
 
 [source,cypher]
