@@ -48,6 +48,13 @@ final class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProp
 		implements Neo4jPersistentProperty {
 
 	private final Lazy<String> graphPropertyName;
+	/**
+	 * A flag whether this is a writeable property: Something that ends up on a Neo4j node or relationship.
+	 */
+	private final Lazy<Boolean> isWritableProperty;
+	/**
+	 * A flag whether this domain property manifests itself as a relationship in Neo4j.
+	 */
 	private final Lazy<Boolean> isAssociation;
 
 	private final Neo4jMappingContext mappingContext;
@@ -68,15 +75,22 @@ final class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProp
 		this.mappingContext = mappingContext;
 
 		this.graphPropertyName = Lazy.of(this::computeGraphPropertyName);
+
+		this.isWritableProperty = Lazy.of(() -> {
+			Class<?> targetType = getActualType();
+			return simpleTypeHolder.isSimpleType(targetType) // The driver can do this
+				   || this.mappingContext.hasCustomWriteTarget(targetType) // Some converter in the context can do this
+				   || isAnnotationPresent(ConvertWith.class) // An explicit converter can do this
+				   || isComposite(); // Our composite converter can do this
+		});
+
 		this.isAssociation = Lazy.of(() -> {
 
 			// Bail out early, this is pretty much explicit
 			if (isAnnotationPresent(Relationship.class)) {
 				return true;
 			}
-			Class<?> targetType = getActualType();
-			return !(simpleTypeHolder.isSimpleType(targetType) || this.mappingContext.hasCustomWriteTarget(targetType)
-					|| isAnnotationPresent(TargetNode.class) || isComposite() || isAnnotationPresent(ConvertWith.class));
+			return !(isWritableProperty.get() || isAnnotationPresent(TargetNode.class));
 		});
 
 		this.customConversion = Lazy.of(() -> {
@@ -186,7 +200,12 @@ final class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProp
 
 	@Override
 	public boolean isEntity() {
-		return super.isEntity() && isAssociation() || (isEntityWithRelationshipProperties() && !isComposite());
+		return super.isEntity() && !isWritableProperty.get();
+	}
+
+	@Override
+	public boolean isEntityWithRelationshipProperties() {
+		return isEntity() && ((Neo4jPersistentEntity<?>) getOwner()).isRelationshipPropertiesEntity();
 	}
 
 	private static Function<Object, Value> nullSafeWrite(Function<Object, Value> delegate) {
@@ -205,11 +224,6 @@ final class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProp
 	@Override
 	public Function<Value, Object> getOptionalReadingConverter() {
 		return customConversion.getOptional().map(c -> nullSafeRead(c::read)).orElse(null);
-	}
-
-	@Override
-	public boolean isEntityWithRelationshipProperties() {
-		return super.isEntity() && ((Neo4jPersistentEntity<?>) getOwner()).isRelationshipPropertiesEntity();
 	}
 
 	/**
