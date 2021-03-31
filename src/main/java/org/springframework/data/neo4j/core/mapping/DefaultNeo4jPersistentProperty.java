@@ -70,6 +70,10 @@ final class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProp
 		this.graphPropertyName = Lazy.of(this::computeGraphPropertyName);
 		this.isAssociation = Lazy.of(() -> {
 
+			// Bail out early, this is pretty much explicit
+			if (isAnnotationPresent(Relationship.class)) {
+				return true;
+			}
 			Class<?> targetType = getActualType();
 			return !(simpleTypeHolder.isSimpleType(targetType) || this.mappingContext.hasCustomWriteTarget(targetType)
 					|| isAnnotationPresent(TargetNode.class) || isComposite() || isAnnotationPresent(ConvertWith.class));
@@ -166,14 +170,11 @@ final class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProp
 	@Override
 	public Class<?> getAssociationTargetType() {
 
-		Class<?> associationTargetType = super.getAssociationTargetType();
-		if (associationTargetType != null) {
-			return associationTargetType;
-		} else if (isDynamicOneToManyAssociation()) {
+		if (isDynamicOneToManyAssociation()) {
 			TypeInformation<?> actualType = getTypeInformation().getRequiredActualType();
 			return actualType.getRequiredComponentType().getType();
 		} else {
-			return null;
+			return getActualType();
 		}
 	}
 
