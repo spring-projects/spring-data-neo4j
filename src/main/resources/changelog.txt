@@ -1,6 +1,16 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 6.0.7 (2021-03-31)
+-------------------------------------
+* #2203 - Enable mapping of list of lists of nodes or relationships.
+* #2199 - Polymorphic query do no longer work in 6.0.6.
+* #2196 - Same node with double Relationship not saved correctly.
+* #2193 - Don't roll back the transaction through setRollbackOnly.
+* #2191 - Problem with multiple bidirectional relationships and nodes.
+* #2168 - Treat no attributes annotated with `@ConvertedWith` as association.
+
+
 Changes in version 6.1.0-RC1 (2021-03-31)
 -----------------------------------------
 * #2207 - Improve the pair of isEntity and isAssociation.
@@ -2157,6 +2167,7 @@ General
 * Support for building traversal descriptions
 * Support for cross-store persistence including basic transaction support
 * Abstract configuration class
+
 
 
 
