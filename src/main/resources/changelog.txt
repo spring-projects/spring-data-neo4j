@@ -1,6 +1,21 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 6.1.0-RC1 (2021-03-31)
+-----------------------------------------
+* #2207 - Improve the pair of isEntity and isAssociation.
+* #2203 - Enable mapping of list of lists of nodes or relationships.
+* #2199 - Polymorphic query do no longer work in 6.0.6.
+* #2196 - Same node with double Relationship not saved correctly.
+* #2194 - Condition not rendered in Page request via CypherdslConditionExecutor.
+* #2193 - Don't roll back the transaction through setRollbackOnly.
+* #2191 - Problem with multiple bidirectional relationships and nodes.
+* #2182 - Add support for projections inside the Neo4j templates.
+* #2168 - Treat no attributes annotated with `@ConvertedWith` as association.
+* #2148 - Return related objects with ids set after save.
+* #1911 - Provide a way for defining dynamic queries in a type safe way.
+
+
 Changes in version 6.1.0-M5 (2021-03-17)
 ----------------------------------------
 * #2185 - Upgrade to Neo4j-Java-Driver 4.2.3.
@@ -2142,6 +2157,7 @@ General
 * Support for building traversal descriptions
 * Support for cross-store persistence including basic transaction support
 * Abstract configuration class
+
 
 
 
