@@ -164,6 +164,9 @@ You should define a property for the generated, internal ID so that SDN can dete
 can be safely overwritten without losing properties.
 A generated id property is optional in SDN 6.0.4 and upwards and will be required in SDN 6.1 for `@RelationshipProperties`.
 
+NOTE: The only supported generated ID field on classes annotated with `@RelationshipProperties` is `@GeneratedValue` with
+      using the default ID generator `InternalIdGenerator` as shown above. Other generators will be ignored.
+
 .Defining relationship properties for an entity
 [source,java,indent=0]
 ----
