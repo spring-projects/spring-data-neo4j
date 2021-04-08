@@ -21,6 +21,8 @@ import org.junit.Test;
 import org.springframework.data.neo4j.conversion.support.ConvertedClass;
 import org.springframework.data.neo4j.conversion.support.Converters;
 
+import java.util.List;
+
 /**
  * @author Michael J. Simons
  * @soundtrack Murray Gold - Doctor Who Season 9
@@ -30,7 +32,7 @@ public class MetaDataDrivenConversionServiceTests {
 	@Test
 	public void shouldDetermineConvertersForClasses() {
 		MetaDataDrivenConversionService.EntityToGraphTypeMapping entityToGraphTypeMapping = MetaDataDrivenConversionService
-				.getEntityToGraphTypeMapping(new Converters.DoubleToStringConverter());
+				.getEntityToGraphTypeMapping(Double.class, new Converters.DoubleToStringConverter());
 
 		assertThat(entityToGraphTypeMapping.entityType).isEqualTo(Double.class);
 		assertThat(entityToGraphTypeMapping.graphType).isEqualTo(String.class);
@@ -39,7 +41,7 @@ public class MetaDataDrivenConversionServiceTests {
 	@Test
 	public void shouldDetermineConvertersForTypedClasses() {
 		MetaDataDrivenConversionService.EntityToGraphTypeMapping entityToGraphTypeMapping = MetaDataDrivenConversionService
-				.getEntityToGraphTypeMapping(new Converters.ListToStringConverter());
+				.getEntityToGraphTypeMapping(List.class, new Converters.ListToStringConverter());
 
 		assertThat(entityToGraphTypeMapping.entityType).isEqualTo(Double.class);
 		assertThat(entityToGraphTypeMapping.graphType).isEqualTo(String.class);
@@ -48,7 +50,7 @@ public class MetaDataDrivenConversionServiceTests {
 	@Test // DATAGRAPH-1131
 	public void shouldWorkWithConvertersInvolvingAbstractBaseClasses() {
 		MetaDataDrivenConversionService.EntityToGraphTypeMapping entityToGraphTypeMapping = MetaDataDrivenConversionService
-				.getEntityToGraphTypeMapping(new Converters.ConvertedClassToStringConverter());
+				.getEntityToGraphTypeMapping(ConvertedClass.class, new Converters.ConvertedClassToStringConverter());
 
 		assertThat(entityToGraphTypeMapping.entityType).isEqualTo(ConvertedClass.class);
 		assertThat(entityToGraphTypeMapping.graphType).isEqualTo(String.class);

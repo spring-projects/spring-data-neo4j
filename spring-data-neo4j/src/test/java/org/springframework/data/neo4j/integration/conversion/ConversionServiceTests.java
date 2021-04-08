@@ -21,6 +21,7 @@ import java.lang.annotation.ElementType;
 import java.math.BigInteger;
 import java.math.RoundingMode;
 import java.util.Arrays;
+import java.util.Optional;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -31,12 +32,16 @@ import org.neo4j.ogm.session.Session;
 import org.neo4j.ogm.session.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.ConverterNotFoundException;
 import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.data.neo4j.conversion.MetaDataDrivenConversionService;
+import org.springframework.data.neo4j.conversion.gh2213.DescribeType;
+import org.springframework.data.neo4j.conversion.gh2213.Describes;
+import org.springframework.data.neo4j.conversion.gh2213.NodeB;
+import org.springframework.data.neo4j.conversion.gh2213.RepositoryUnderTest;
+import org.springframework.data.neo4j.conversion.gh2213.NodeA;
 import org.springframework.data.neo4j.integration.conversion.domain.JavaElement;
 import org.springframework.data.neo4j.integration.conversion.domain.MonetaryAmount;
 import org.springframework.data.neo4j.integration.conversion.domain.PensionPlan;
@@ -65,6 +70,8 @@ public class ConversionServiceTests {
 	@Autowired private PensionRepository pensionRepository;
 	@Autowired private JavaElementRepository javaElementRepository;
 	@Autowired private SiteMemberRepository siteMemberRepository;
+	@Autowired private RepositoryUnderTest repositoryUnderTest;
+
 	// TODO See below, for the time being at least be explicit on which type of conversion service we're working on here
 	// The only thing that is under test, is the instance of MetaDataDrivenConversionService which get's even
 	// modified heavily be this test. This needs to be fixed in the near future.
@@ -235,9 +242,28 @@ public class ConversionServiceTests {
 		assertTrue(siteMember.getRoundingModes().contains(RoundingMode.FLOOR));
 	}
 
+	@Test // GH-2213
+	public void enumConvertersOnConstructorsShouldWork() {
+
+		long id = transactionTemplate.execute(tx -> {
+					NodeA s = new NodeA(DescribeType.A);
+					Describes d = new Describes(DescribeType.B, s, new NodeB());
+
+					s.setDescribes(Arrays.asList(d));
+					return repositoryUnderTest.save(s).getId();
+				});
+		Optional<NodeA> optionalResult = repositoryUnderTest.findById(id);
+		assertTrue(optionalResult.isPresent());
+		NodeA nl = optionalResult.get();
+		assertEquals(DescribeType.A, nl.getDescribeType());
+		assertEquals(1, nl.getDescribes().size());
+		Describes dl = nl.getDescribes().get(0);
+		assertEquals(DescribeType.B, dl.getSomething());
+	}
+
 	@Configuration
-	@Neo4jIntegrationTest(domainPackages = "org.springframework.data.neo4j.integration.conversion.domain",
-			repositoryPackages = "org.springframework.data.neo4j.integration.conversion")
+	@Neo4jIntegrationTest(domainPackages = {"org.springframework.data.neo4j.integration.conversion.domain", "org.springframework.data.neo4j.conversion.gh2213"},
+			repositoryPackages = {"org.springframework.data.neo4j.integration.conversion", "org.springframework.data.neo4j.conversion.gh2213"})
 	static class ConversionServicePersistenceContext {
 
 		@Bean
