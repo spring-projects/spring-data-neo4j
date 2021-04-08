@@ -20,7 +20,9 @@ import java.util.Optional;
 import org.neo4j.ogm.metadata.ClassInfo;
 import org.neo4j.ogm.metadata.FieldInfo;
 import org.neo4j.ogm.metadata.MetaData;
+import org.neo4j.ogm.support.ClassUtils;
 import org.neo4j.ogm.typeconversion.AttributeConverter;
+import org.neo4j.ogm.typeconversion.EnumStringConverter;
 import org.neo4j.ogm.typeconversion.ProxyAttributeConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,20 +54,20 @@ public class MetaDataDrivenConversionService extends GenericConversionService {
 		for (ClassInfo classInfo : metaData.persistentEntities()) {
 			for (FieldInfo fieldInfo : classInfo.propertyFields()) {
 				if (fieldInfo.hasPropertyConverter()) {
-					addWrappedConverter(fieldInfo.getPropertyConverter());
+					addWrappedConverter(fieldInfo.getField().getType(), fieldInfo.getPropertyConverter());
 				}
 			}
 		}
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	private void addWrappedConverter(final AttributeConverter attributeConverter) {
+	private void addWrappedConverter(Class<?> type, final AttributeConverter attributeConverter) {
 
 		if (attributeConverter instanceof ProxyAttributeConverter) {
 			return;
 		}
 
-		EntityToGraphTypeMapping entityToGraphTypeMapping = getEntityToGraphTypeMapping(attributeConverter);
+		EntityToGraphTypeMapping entityToGraphTypeMapping = getEntityToGraphTypeMapping(type, attributeConverter);
 
 		if (canConvert(entityToGraphTypeMapping.entityType, entityToGraphTypeMapping.graphType)
 				&& canConvert(entityToGraphTypeMapping.graphType, entityToGraphTypeMapping.entityType)) {
@@ -92,7 +94,7 @@ public class MetaDataDrivenConversionService extends GenericConversionService {
 		}
 	}
 
-	static EntityToGraphTypeMapping getEntityToGraphTypeMapping(AttributeConverter attributeConverter) {
+	static EntityToGraphTypeMapping getEntityToGraphTypeMapping(Class<?> type, AttributeConverter attributeConverter) {
 
 		ResolvableType resolvableType = ResolvableType.forClass(AttributeConverter.class,
 				attributeConverter.getClass());
@@ -103,7 +105,7 @@ public class MetaDataDrivenConversionService extends GenericConversionService {
 							+ attributeConverter.getClass());
 		}
 
-		Class<?> sourceType = nestedTypeOrType(resolvableType.getGeneric(0));
+		Class<?> sourceType = ClassUtils.isEnum(type) ? type : nestedTypeOrType(resolvableType.getGeneric(0));
 		Class<?> targetType = nestedTypeOrType(resolvableType.getGeneric(1));
 
 		return new EntityToGraphTypeMapping(sourceType, targetType);
