@@ -28,6 +28,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Nested;
@@ -75,7 +76,7 @@ class Neo4jMappingContextTest {
 	class InvalidRelationshipProperties {
 
 		@Test // GH-2118
-		void startupShouldFail() {
+		void startupWithoutInternallyGeneratedIDShouldFail() {
 
 			Neo4jMappingContext schema = new Neo4jMappingContext();
 			assertThatIllegalStateException().isThrownBy(() -> {
@@ -84,6 +85,18 @@ class Neo4jMappingContextTest {
 										IrrelevantTargetContainer.class)));
 						schema.initialize();
 					}).withMessage("The target class `org.springframework.data.neo4j.core.mapping.Neo4jMappingContextTest$InvalidRelationshipPropertyContainer` for the properties of the relationship `RELATIONSHIP_PROPERTY_CONTAINER` is missing a property for the generated, internal ID (`@Id @GeneratedValue Long id`) which is needed for safely updating properties.");
+		}
+
+		@Test // GH-2214
+		void startupWithWrongKindOfGeneratedIDShouldFail() {
+
+			Neo4jMappingContext schema = new Neo4jMappingContext();
+			assertThatIllegalStateException().isThrownBy(() -> {
+				schema.setInitialEntitySet(new HashSet<>(
+						Arrays.asList(IrrelevantSourceContainer3.class, InvalidRelationshipPropertyContainer2.class,
+								IrrelevantTargetContainer.class)));
+				schema.initialize();
+			}).withMessage("The target class `org.springframework.data.neo4j.core.mapping.Neo4jMappingContextTest$InvalidRelationshipPropertyContainer2` for the properties of the relationship `RELATIONSHIP_PROPERTY_CONTAINER` is missing a property for the generated, internal ID (`@Id @GeneratedValue Long id`) which is needed for safely updating properties.");
 		}
 
 		@Test // GH-2118
@@ -574,6 +587,25 @@ class Neo4jMappingContextTest {
 
 	@RelationshipProperties
 	static class InvalidRelationshipPropertyContainer {
+		@TargetNode
+		private IrrelevantTargetContainer irrelevantTargetContainer;
+	}
+
+	@Node
+	static class IrrelevantSourceContainer3 {
+		@Id @GeneratedValue
+		private Long id;
+
+		@Relationship(type = "RELATIONSHIP_PROPERTY_CONTAINER")
+		InvalidRelationshipPropertyContainer2 relationshipPropertyContainer;
+	}
+
+	@RelationshipProperties
+	static class InvalidRelationshipPropertyContainer2 {
+
+		@Id @GeneratedValue(GeneratedValue.UUIDGenerator.class)
+		private UUID id;
+
 		@TargetNode
 		private IrrelevantTargetContainer irrelevantTargetContainer;
 	}
