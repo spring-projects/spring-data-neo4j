@@ -113,7 +113,7 @@ class Neo4jMappingContextTest {
 			assertThat(description.getGraphProperties()).extracting(GraphPropertyDescription::getPropertyName)
 					.containsExactlyInAnyOrder("id", "name", "firstName");
 
-			Collection<String> expectedRelationships = Arrays.asList("[:OWNS] -> (:BikeNode)");
+			Collection<String> expectedRelationships = Arrays.asList("[:OWNS] -> (:BikeNode)", "[:THE_SUPER_BIKE] -> (:BikeNode)");
 			Collection<RelationshipDescription> relationships = description.getRelationships();
 			assertThat(relationships.stream().filter(r -> !r.isDynamic())).allMatch(d -> expectedRelationships
 					.contains(String.format("[:%s] -> (:%s)", d.getType(), d.getTarget().getPrimaryLabel())));
@@ -247,7 +247,7 @@ class Neo4jMappingContextTest {
 			associations.add(a.getInverse().getFieldName());
 		});
 
-		assertThat(associations).containsOnly("bikes");
+		assertThat(associations).containsOnly("bikes", "theSuperBike");
 	}
 
 	@Test

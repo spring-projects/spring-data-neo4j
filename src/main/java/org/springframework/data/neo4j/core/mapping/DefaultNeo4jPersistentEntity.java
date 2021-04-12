@@ -328,6 +328,8 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 	private List<String> computeAdditionalLabels() {
 
 		return Stream.concat(computeOwnAdditionalLabels().stream(), computeParentLabels().stream())
+				.distinct() // In case the interfaces added a duplicate of the primary label.
+				.filter(v -> !getPrimaryLabel().equals(v))
 				.collect(Collectors.toList());
 	}
 
