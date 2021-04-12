@@ -32,6 +32,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.commons.logging.LogFactory;
+import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.data.annotation.Persistent;
 import org.springframework.data.mapping.Association;
@@ -90,7 +91,7 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 	DefaultNeo4jPersistentEntity(TypeInformation<T> information) {
 		super(information);
 
-		this.primaryLabel = computePrimaryLabel();
+		this.primaryLabel = computePrimaryLabel(this.getType());
 		this.additionalLabels = Lazy.of(this::computeAdditionalLabels);
 		this.graphProperties = Lazy.of(this::computeGraphProperties);
 		this.dynamicLabelsProperty = Lazy.of(() -> getGraphProperties().stream().map(Neo4jPersistentProperty.class::cast)
@@ -206,6 +207,10 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 
 	private void verifyIdDescription() {
 
+		if (this.describesInterface()) {
+			return;
+		}
+
 		if (this.getIdDescription() == null
 			&& (this.isAnnotationPresent(Node.class) || this.isAnnotationPresent(Persistent.class))) {
 
@@ -300,13 +305,14 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 	 * 3. If only {@link Node#labels()} property is set, use the first one as the primary label 4. If the
 	 * {@link Node#primaryLabel()} property is set, use this as the primary label
 	 *
+	 * @param type the type of the underlying class
 	 * @return computed primary label
 	 */
-	private String computePrimaryLabel() {
+	static @Nullable String computePrimaryLabel(Class<?> type) {
 
-		Node nodeAnnotation = this.findAnnotation(Node.class);
-		if (nodeAnnotation == null || hasEmptyLabelInformation(nodeAnnotation)) {
-			return this.getType().getSimpleName();
+		Node nodeAnnotation = AnnotatedElementUtils.findMergedAnnotation(type, Node.class);
+		if ((nodeAnnotation == null || hasEmptyLabelInformation(nodeAnnotation))) {
+			return type.getSimpleName();
 		} else if (StringUtils.hasText(nodeAnnotation.primaryLabel())) {
 			return nodeAnnotation.primaryLabel();
 		} else {
@@ -329,21 +335,43 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 	 * The additional labels will get computed and returned by following rules:<br>
 	 * 1. If there is no {@link Node} annotation, empty {@code String} array.<br>
 	 * 2. If there is an annotation but it has no properties set, empty {@code String} array.<br>
-	 * 3. If only {@link Node#labels()} property is set, use the all but the first one as the additional labels.<br>
-	 * 3. If the {@link Node#primaryLabel()} property is set, use the all but the first one as the additional labels.<br>
+	 * 3a. If only {@link Node#labels()} property is set, use the all but the first one as the additional labels.<br>
+	 * 3b. If the {@link Node#primaryLabel()} property is set, use the all but the first one as the additional labels.<br>
+	 * 4. If the class has any interfaces that are explicitly annotated with {@link Node}, we take all values from them.
 	 *
 	 * @return computed additional labels of the concrete class
 	 */
 	@NonNull
 	private List<String> computeOwnAdditionalLabels() {
+		List<String> result = new ArrayList<>();
+
 		Node nodeAnnotation = this.findAnnotation(Node.class);
-		if (nodeAnnotation == null || hasEmptyLabelInformation(nodeAnnotation)) {
-			return Collections.emptyList();
-		} else if (StringUtils.hasText(nodeAnnotation.primaryLabel())) {
-			return Arrays.asList(nodeAnnotation.labels());
-		} else {
-			return Arrays.asList(Arrays.copyOfRange(nodeAnnotation.labels(), 1, nodeAnnotation.labels().length));
+		if (!(nodeAnnotation == null || hasEmptyLabelInformation(nodeAnnotation))) {
+			if (StringUtils.hasText(nodeAnnotation.primaryLabel())) {
+				result.addAll(Arrays.asList(nodeAnnotation.labels()));
+			} else {
+				result.addAll(Arrays.asList(Arrays.copyOfRange(nodeAnnotation.labels(), 1, nodeAnnotation.labels().length)));
+			}
 		}
+
+		// Add everything we find on _direct_ interfaces
+		// We don't traverse interfaces of interfaces
+		for (Class<?> anInterface : this.getType().getInterfaces()) {
+			nodeAnnotation = AnnotatedElementUtils.findMergedAnnotation(anInterface, Node.class);
+			if (nodeAnnotation == null) {
+				continue;
+			}
+			if (hasEmptyLabelInformation(nodeAnnotation)) {
+				result.add(anInterface.getSimpleName());
+			} else {
+				if (StringUtils.hasText(nodeAnnotation.primaryLabel())) {
+					result.add(nodeAnnotation.primaryLabel());
+				}
+				result.addAll(Arrays.asList(nodeAnnotation.labels()));
+			}
+		}
+
+		return Collections.unmodifiableList(result);
 	}
 
 	@NonNull
@@ -352,8 +380,7 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 		Neo4jPersistentEntity<?> parentNodeDescriptionCalculated = (Neo4jPersistentEntity<?>) parentNodeDescription;
 
 		while (parentNodeDescriptionCalculated != null) {
-			if (parentNodeDescriptionCalculated.isAnnotationPresent(Node.class)
-					|| parentNodeDescriptionCalculated.isAnnotationPresent(Persistent.class)) {
+			if (isExplicitlyAnnotatedAsEntity(parentNodeDescriptionCalculated)) {
 
 				parentLabels.add(parentNodeDescriptionCalculated.getPrimaryLabel());
 				parentLabels.addAll(parentNodeDescriptionCalculated.getAdditionalLabels());
@@ -361,6 +388,20 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 			parentNodeDescriptionCalculated = (Neo4jPersistentEntity<?>) parentNodeDescriptionCalculated.getParentNodeDescription();
 		}
 		return parentLabels;
+	}
+
+	/**
+	 * @param entity The entity to check for annotation
+	 * @return True if the type is explicitly annotated as entity and as such eligible to contribute to the list of labels
+	 * and required to be part of the label lookup.
+	 */
+	private static boolean isExplicitlyAnnotatedAsEntity(Neo4jPersistentEntity<?> entity) {
+		return entity.isAnnotationPresent(Node.class) || entity.isAnnotationPresent(Persistent.class);
+	}
+
+	@Override
+	public boolean describesInterface() {
+		return this.getTypeInformation().getRawTypeInformation().getType().isInterface();
 	}
 
 	private static boolean hasEmptyLabelInformation(Node nodeAnnotation) {

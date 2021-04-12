@@ -526,8 +526,7 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 				if (stateMachine.hasProcessedValue(relatedValueToStore)) {
 					relatedInternalId = queryRelatedNode(relatedNode, targetEntity, inDatabase);
 				} else {
-					relatedInternalId = saveRelatedNode(relatedNode, relationshipContext.getAssociationTargetType(),
-							targetEntity, inDatabase);
+					relatedInternalId = saveRelatedNode(relatedNode, targetEntity, inDatabase);
 				}
 				stateMachine.markValueAsProcessed(relatedValueToStore);
 
@@ -589,14 +588,14 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 				.fetchAs(Long.class).one().get();
 	}
 
-	private <Y> Long saveRelatedNode(Object entity, Class<Y> entityType, NodeDescription targetNodeDescription,
-			@Nullable String inDatabase) {
+	private <Y> Long saveRelatedNode(Object entity, NodeDescription targetNodeDescription, @Nullable String inDatabase) {
 
 		DynamicLabels dynamicLabels = determineDynamicLabels(entity, (Neo4jPersistentEntity) targetNodeDescription,
 				inDatabase);
+		Class<Y> typeToSafe = (Class<Y>) ((Neo4jPersistentEntity<?>) targetNodeDescription).getType();
 		Optional<Long> optionalSavedNodeId = neo4jClient
 				.query(() -> renderer.render(cypherGenerator.prepareSaveOf(targetNodeDescription, dynamicLabels)))
-				.in(inDatabase).bind((Y) entity).with(neo4jMappingContext.getRequiredBinderFunctionFor(entityType))
+				.in(inDatabase).bind((Y) entity).with(neo4jMappingContext.getRequiredBinderFunctionFor(typeToSafe))
 				.fetchAs(Long.class).one();
 
 		if (((Neo4jPersistentEntity) targetNodeDescription).hasVersionProperty() && !optionalSavedNodeId.isPresent()) {

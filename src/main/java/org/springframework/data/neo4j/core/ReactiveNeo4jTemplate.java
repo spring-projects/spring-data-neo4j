@@ -659,8 +659,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 									if (stateMachine.hasProcessedValue(relatedValueToStore)) {
 										relatedIdMono = queryRelatedNode(relatedNode, targetEntity, inDatabase);
 									} else {
-										relatedIdMono = saveRelatedNode(relatedNode, relationshipContext.getAssociationTargetType(),
-												targetEntity, inDatabase);
+										relatedIdMono = saveRelatedNode(relatedNode, targetEntity, inDatabase);
 									}
 									stateMachine.markValueAsProcessed(relatedValueToStore);
 									return relatedIdMono.flatMap(relatedInternalId -> {
@@ -736,17 +735,18 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 				.fetchAs(Long.class).one();
 	}
 
-	private <Y> Mono<Long> saveRelatedNode(Object relatedNode, Class<Y> entityType, NodeDescription targetNodeDescription,
+	private <Y> Mono<Long> saveRelatedNode(Object relatedNode, NodeDescription targetNodeDescription,
 			@Nullable String inDatabase) {
 
 		return determineDynamicLabels((Y) relatedNode, (Neo4jPersistentEntity<?>) targetNodeDescription, inDatabase)
 				.flatMap(t -> {
 					Y entity = t.getT1();
+					Class<Y> typeToSafe = (Class<Y>) ((Neo4jPersistentEntity<?>) targetNodeDescription).getType();
 					DynamicLabels dynamicLabels = t.getT2();
 
 					return neo4jClient
 							.query(() -> renderer.render(cypherGenerator.prepareSaveOf(targetNodeDescription, dynamicLabels)))
-							.in(inDatabase).bind((Y) entity).with(neo4jMappingContext.getRequiredBinderFunctionFor(entityType))
+							.in(inDatabase).bind((Y) entity).with(neo4jMappingContext.getRequiredBinderFunctionFor(typeToSafe))
 							.fetchAs(Long.class).one();
 				}).switchIfEmpty(Mono.defer(() -> {
 					if (((Neo4jPersistentEntity) targetNodeDescription).hasVersionProperty()) {

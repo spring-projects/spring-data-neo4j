@@ -15,7 +15,6 @@
  */
 package org.springframework.data.neo4j.core.mapping;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -23,6 +22,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.BiFunction;
 
 import org.springframework.data.mapping.context.AbstractMappingContext;
 import org.springframework.lang.Nullable;
@@ -32,6 +32,7 @@ import org.springframework.lang.Nullable;
  * dependency between {@link Neo4jMappingContext} and {@link DefaultNeo4jEntityConverter}.
  *
  * @author Gerrit Meier
+ * @author Michael J. Simons
  */
 final class NodeDescriptionStore {
 
@@ -76,22 +77,27 @@ final class NodeDescriptionStore {
 		return null;
 	}
 
-	public static NodeDescriptionAndLabels deriveConcreteNodeDescription(Neo4jPersistentEntity<?> entityDescription,
-			List<String> labels) {
+	public NodeDescriptionAndLabels deriveConcreteNodeDescription(Neo4jPersistentEntity<?> entityDescription, List<String> labels) {
 
 		if (labels == null || labels.isEmpty()) {
 			return new NodeDescriptionAndLabels(entityDescription, Collections.emptyList());
 		}
 
-		for (NodeDescription<?> childNodeDescription : entityDescription.getChildNodeDescriptionsInHierarchy()) {
-			String primaryLabel = childNodeDescription.getPrimaryLabel();
-			List<String> additionalLabels = new ArrayList<>(childNodeDescription.getAdditionalLabels());
-			additionalLabels.add(primaryLabel);
-			if (additionalLabels.containsAll(labels) && childNodeDescription.getChildNodeDescriptionsInHierarchy().isEmpty()) {
-				Set<String> surplusLabels = new HashSet<>(labels);
-				surplusLabels.remove(primaryLabel);
-				surplusLabels.removeAll(additionalLabels);
+		Collection<NodeDescription<?>> haystack;
+		BiFunction<List<String>, NodeDescription<?>, Boolean> selector;
+		if (entityDescription.describesInterface()) {
+			haystack = this.values();
+			selector = (staticLabels, other) -> staticLabels.containsAll(labels) && entityDescription.getType().isAssignableFrom(((Neo4jPersistentEntity<?>) other).getType());
+		} else {
+			haystack = entityDescription.getChildNodeDescriptionsInHierarchy();
+			selector = (staticLabels, other) -> staticLabels.containsAll(labels) && other.getChildNodeDescriptionsInHierarchy().isEmpty();
+		}
 
+		for (NodeDescription<?> childNodeDescription : haystack) {
+			List<String> staticLabels = childNodeDescription.getStaticLabels();
+			if (selector.apply(staticLabels, childNodeDescription)) {
+				Set<String> surplusLabels = new HashSet<>(labels);
+				surplusLabels.removeAll(staticLabels);
 				return new NodeDescriptionAndLabels(childNodeDescription, surplusLabels);
 			}
 		}

@@ -376,7 +376,7 @@ class Neo4jMappingContextTest {
 		}).withMessageMatching(".*Only one dynamic relationship between to entities is permitted.");
 	}
 
-	@ParameterizedTest
+	@ParameterizedTest // GH-2201
 	@ValueSource(booleans = {true, false})
 	void useOfInterfaceAndImplementationShouldWork(boolean explicit) {
 
@@ -392,7 +392,7 @@ class Neo4jMappingContextTest {
 
 			Neo4jMappingContext schema = new Neo4jMappingContext();
 
-			if(!initialEntities.isEmpty()) {
+			if (!initialEntities.isEmpty()) {
 				schema.setInitialEntitySet(initialEntities);
 				schema.initialize();
 			}
@@ -406,7 +406,7 @@ class Neo4jMappingContextTest {
 		}
 	}
 
-	@ParameterizedTest
+	@ParameterizedTest // GH-2201
 	@ValueSource(booleans = {true, false})
 	void useOfAnnotatedInterfaceAndImplementationShouldWork(boolean explicit) {
 
@@ -438,7 +438,7 @@ class Neo4jMappingContextTest {
 		}
 	}
 
-	@ParameterizedTest
+	@ParameterizedTest // GH-2201
 	@ValueSource(booleans = {true, false})
 	void differentImplementationsForAnInterfaceShouldWork(boolean explicit) {
 
@@ -458,7 +458,7 @@ class Neo4jMappingContextTest {
 
 			Neo4jMappingContext schema = new Neo4jMappingContext();
 
-			if(!initialEntities.isEmpty()) {
+			if (!initialEntities.isEmpty()) {
 				schema.setInitialEntitySet(initialEntities);
 				schema.initialize();
 			}
@@ -470,6 +470,14 @@ class Neo4jMappingContextTest {
 			});
 			assertThat(entity.getAdditionalLabels()).isEmpty();
 		}
+	}
+
+	@Test // GH-2201
+	void relAnnotationWithoutTypeMustOverwriteDefaultType() {
+
+		Neo4jMappingContext schema = new Neo4jMappingContext();
+		Neo4jPersistentEntity<?> entity = schema.getPersistentEntity(UserNode.class);
+		assertThat(entity.getRelationships()).anyMatch(r -> r.getFieldName().equals("theSuperBike") && r.getType().equals("THE_SUPER_BIKE"));
 	}
 
 	static class DummyIdGenerator implements IdGenerator<Void> {
@@ -488,6 +496,9 @@ class Neo4jMappingContextTest {
 
 		@Relationship(type = "OWNS") @SuppressWarnings("unused")
 		List<BikeNode> bikes;
+
+		@Relationship @SuppressWarnings("unused")
+		BikeNode theSuperBike;
 
 		@SuppressWarnings("unused")
 		String name;

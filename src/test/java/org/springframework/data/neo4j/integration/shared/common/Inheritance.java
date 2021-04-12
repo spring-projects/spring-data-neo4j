@@ -29,8 +29,218 @@ import org.springframework.data.neo4j.core.schema.TargetNode;
 
 /**
  * @author Gerrit Meier
+ * @author Michael J. Simons
  */
 public class Inheritance {
+
+	/**
+	 * An interface as someone would define in an api package
+	 */
+	public interface SomeInterface {
+
+		String getName();
+
+		SomeInterface getRelated();
+	}
+
+	/**
+	 * Implementation of the above, to be found in a Neo4j or Mongo or whatever module.
+	 */
+	@Node("SomeInterface")
+	public static class SomeInterfaceEntity implements SomeInterface {
+
+		@Id @GeneratedValue private Long id;
+
+		private final String name;
+
+		private SomeInterface related;
+
+		public SomeInterfaceEntity(String name) {
+			this.name = name;
+		}
+
+		@Override
+		public String getName() {
+			return name;
+		}
+
+		public Long getId() {
+			return id;
+		}
+
+		public void setRelated(SomeInterface related) {
+			this.related = related;
+		}
+
+		@Override
+		public SomeInterface getRelated() {
+			return related;
+		}
+	}
+
+	/**
+	 * A case where the label was specified on the interface, unsure if this is meaningful
+	 */
+	@Node("PrimaryLabelWN")
+	public interface SomeInterface2 {
+
+		String getName();
+
+		SomeInterface2 getRelated();
+	}
+
+	/**
+	 * Implementation of the above
+	 */
+	public static class SomeInterfaceEntity2 implements SomeInterface2 {
+
+		@Id @GeneratedValue private Long id;
+
+		private final String name;
+
+		private SomeInterface2 related;
+
+		public SomeInterfaceEntity2(String name) {
+			this.name = name;
+		}
+
+		public Long getId() {
+			return id;
+		}
+
+		@Override
+		public String getName() {
+			return name;
+		}
+
+		@Override
+		public SomeInterface2 getRelated() {
+			return related;
+		}
+
+		public void setRelated(SomeInterface2 related) {
+			this.related = related;
+		}
+	}
+
+	/**
+	 * Concrete interface name here, `@Node` is required, label can be omitted in that case
+	 */
+	@Node("SomeInterface3")
+	public interface SomeInterface3 {
+
+		String getName();
+
+		SomeInterface3 getRelated();
+	}
+
+	/**
+	 * One implementation of the above.
+	 */
+	@Node("SomeInterface3a")
+	public static class SomeInterfaceImpl3a implements SomeInterface3 {
+
+		@Id
+		@GeneratedValue
+		private Long id;
+
+		private SomeInterfaceImpl3b related;
+
+		private final String name;
+
+		public SomeInterfaceImpl3a(String name) {
+			this.name = name;
+		}
+
+		@Override
+		public SomeInterface3 getRelated() {
+			return related;
+		}
+
+		@Override
+		public String getName() {
+			return name;
+		}
+	}
+
+	/**
+	 * Another implementation of the above.
+	 */
+	@Node("SomeInterface3b")
+	public static class SomeInterfaceImpl3b implements SomeInterface3 {
+
+		@Id
+		@GeneratedValue
+		private Long id;
+
+		private SomeInterfaceImpl3a related;
+
+		private final String name;
+
+		public SomeInterfaceImpl3b(String name) {
+			this.name = name;
+		}
+
+		@Override
+		public SomeInterface3 getRelated() {
+			return related;
+		}
+
+		@Override
+		public String getName() {
+			return name;
+		}
+	}
+
+
+	/**
+	 * A thing having different relationships with the same type.
+	 */
+	@Node
+	public static class Dulli {
+
+		@Id
+		@GeneratedValue
+		private Long id;
+
+		private final String name;
+
+		private SomeInterface3 related1;
+
+		private SomeInterface3 related2;
+
+		public Dulli(String name) {
+			this.name = name;
+		}
+
+		public Long getId() {
+			return id;
+		}
+
+		public void setId(Long id) {
+			this.id = id;
+		}
+
+		public String getName() {
+			return name;
+		}
+
+		public SomeInterface3 getRelated1() {
+			return related1;
+		}
+
+		public void setRelated1(SomeInterface3 related1) {
+			this.related1 = related1;
+		}
+
+		public SomeInterface3 getRelated2() {
+			return related2;
+		}
+
+		public void setRelated2(SomeInterface3 related2) {
+			this.related2 = related2;
+		}
+	}
 
 	/**
 	 * super base class
