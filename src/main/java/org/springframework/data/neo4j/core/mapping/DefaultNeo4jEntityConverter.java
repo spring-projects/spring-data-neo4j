@@ -245,7 +245,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 		Supplier<Object> mappedObjectSupplier = () -> {
 
 			List<String> allLabels = getLabels(queryResult, nodeDescription);
-			NodeDescriptionAndLabels nodeDescriptionAndLabels = NodeDescriptionStore
+			NodeDescriptionAndLabels nodeDescriptionAndLabels = nodeDescriptionStore
 					.deriveConcreteNodeDescription(nodeDescription, allLabels);
 			Neo4jPersistentEntity<ET> concreteNodeDescription = (Neo4jPersistentEntity<ET>) nodeDescriptionAndLabels
 					.getNodeDescription();
@@ -306,7 +306,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 			Neo4jPersistentEntity<?> genericTargetNodeDescription, MapAccessor possibleValueNode) {
 
 		List<String> allLabels = getLabels(possibleValueNode, null);
-		NodeDescriptionAndLabels nodeDescriptionAndLabels = NodeDescriptionStore
+		NodeDescriptionAndLabels nodeDescriptionAndLabels = nodeDescriptionStore
 				.deriveConcreteNodeDescription(genericTargetNodeDescription, allLabels);
 		return (Neo4jPersistentEntity<?>) nodeDescriptionAndLabels
 				.getNodeDescription();

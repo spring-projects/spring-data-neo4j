@@ -34,6 +34,7 @@ import org.springframework.lang.Nullable;
  *
  * @author Philipp Tölle
  * @author Gerrit Meier
+ * @author Michael J. Simons
  * @since 6.0
  */
 @API(status = API.Status.INTERNAL, since = "6.0")
@@ -41,16 +42,14 @@ public final class NestedRelationshipContext {
 	private final Neo4jPersistentProperty inverse;
 	private final Object value;
 	private final RelationshipDescription relationship;
-	private final Class<?> associationTargetType;
 
 	private final boolean inverseValueIsEmpty;
 
 	private NestedRelationshipContext(Neo4jPersistentProperty inverse, @Nullable Object value,
-			RelationshipDescription relationship, Class<?> associationTargetType, boolean inverseValueIsEmpty) {
+			RelationshipDescription relationship, boolean inverseValueIsEmpty) {
 		this.inverse = inverse;
 		this.value = value;
 		this.relationship = relationship;
-		this.associationTargetType = associationTargetType;
 		this.inverseValueIsEmpty = inverseValueIsEmpty;
 	}
 
@@ -65,10 +64,6 @@ public final class NestedRelationshipContext {
 
 	public RelationshipDescription getRelationship() {
 		return relationship;
-	}
-
-	public Class<?> getAssociationTargetType() {
-		return associationTargetType;
 	}
 
 	public boolean inverseValueIsEmpty() {
@@ -127,9 +122,6 @@ public final class NestedRelationshipContext {
 		RelationshipDescription relationship = neo4jPersistentEntity.getRelationshipsInHierarchy(s -> true).stream()
 				.filter(r -> r.getFieldName().equals(inverse.getName())).findFirst().get();
 
-		// if we have a relationship with properties, the targetNodeType is the map key
-		Class<?> associationTargetType = inverse.getAssociationTargetType();
-
 		if (relationship.hasRelationshipProperties() && value != null) {
 			Neo4jPersistentEntity<?> relationshipPropertiesEntity = (Neo4jPersistentEntity<?>) relationship.getRelationshipPropertiesEntity();
 
@@ -182,7 +174,7 @@ public final class NestedRelationshipContext {
 			}
 		}
 
-		return new NestedRelationshipContext(inverse, value, relationship, associationTargetType, inverseValueIsEmpty);
+		return new NestedRelationshipContext(inverse, value, relationship, inverseValueIsEmpty);
 	}
 
 	private static Object getTargetNode(Neo4jPersistentEntity<?> relationshipPropertiesEntity, Object object) {

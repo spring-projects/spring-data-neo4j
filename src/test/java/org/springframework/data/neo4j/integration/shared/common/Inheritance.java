@@ -29,8 +29,255 @@ import org.springframework.data.neo4j.core.schema.TargetNode;
 
 /**
  * @author Gerrit Meier
+ * @author Michael J. Simons
  */
 public class Inheritance {
+
+	/**
+	 * An interface as someone would define in an api package
+	 */
+	// tag::interface1[]
+	public interface SomeInterface { // <.>
+
+		String getName();
+
+		SomeInterface getRelated();
+	}
+
+	// end::interface1[]
+
+	/**
+	 * Implementation of the above, to be found in a Neo4j or Mongo or whatever module.
+	 */
+	// tag::interface1[]
+	@Node("SomeInterface") // <.>
+	public static class SomeInterfaceEntity implements SomeInterface {
+
+		@Id @GeneratedValue private Long id;
+
+		private final String name;
+
+		private SomeInterface related;
+
+		public SomeInterfaceEntity(String name) {
+			this.name = name;
+		}
+
+		@Override
+		public String getName() {
+			return name;
+		}
+
+		@Override
+		public SomeInterface getRelated() {
+			return related;
+		}
+		// end::interface1[]
+
+		public Long getId() {
+			return id;
+		}
+
+		public void setRelated(SomeInterface related) {
+			this.related = related;
+		}
+
+		// tag::interface1[]
+	}
+	// end::interface1[]
+
+	/**
+	 * A case where the label was specified on the interface, unsure if this is meaningful
+	 */
+	// tag::interface2[]
+	@Node("PrimaryLabelWN") // <.>
+	public interface SomeInterface2 {
+
+		String getName();
+
+		SomeInterface2 getRelated();
+	}
+
+	// end::interface2[]
+
+	/**
+	 * Implementation of the above
+	 */
+	// tag::interface2[]
+	public static class SomeInterfaceEntity2 implements SomeInterface2 {
+
+		// Overrides omitted for brevity
+		// end::interface2[]
+		@Id @GeneratedValue private Long id;
+
+		private final String name;
+
+		private SomeInterface2 related;
+
+		public SomeInterfaceEntity2(String name) {
+			this.name = name;
+		}
+
+		public Long getId() {
+			return id;
+		}
+
+		@Override
+		public String getName() {
+			return name;
+		}
+
+		@Override
+		public SomeInterface2 getRelated() {
+			return related;
+		}
+
+		public void setRelated(SomeInterface2 related) {
+			this.related = related;
+		}
+		// tag::interface2[]
+	}
+	// end::interface2[]
+
+	/**
+	 * Concrete interface name here, `@Node` is required, label can be omitted in that case
+	 */
+	// tag::interface3[]
+	@Node("SomeInterface3") // <.>
+	public interface SomeInterface3 {
+
+		String getName();
+
+		SomeInterface3 getRelated();
+	}
+
+	// end::interface3[]
+
+	/**
+	 * One implementation of the above.
+	 */
+	// tag::interface3[]
+	@Node("SomeInterface3a") // <.>
+	public static class SomeInterfaceImpl3a implements SomeInterface3 {
+
+		// Overrides omitted for brevity
+		// end::interface3[]
+		@Id
+		@GeneratedValue
+		private Long id;
+
+		private SomeInterfaceImpl3b related;
+
+		private final String name;
+
+		public SomeInterfaceImpl3a(String name) {
+			this.name = name;
+		}
+
+		@Override
+		public SomeInterface3 getRelated() {
+			return related;
+		}
+
+		@Override
+		public String getName() {
+			return name;
+		}
+
+		// tag::interface3[]
+	}
+	// end::interface3[]
+
+	/**
+	 * Another implementation of the above.
+	 */
+	// tag::interface3[]
+	@Node("SomeInterface3b") // <.>
+	public static class SomeInterfaceImpl3b implements SomeInterface3 {
+
+		// Overrides omitted for brevity
+		// end::interface3[]
+		@Id
+		@GeneratedValue
+		private Long id;
+
+		private SomeInterfaceImpl3a related;
+
+		private final String name;
+
+		public SomeInterfaceImpl3b(String name) {
+			this.name = name;
+		}
+
+		@Override
+		public SomeInterface3 getRelated() {
+			return related;
+		}
+
+		@Override
+		public String getName() {
+			return name;
+		}
+
+		// tag::interface3[]
+	}
+
+	// end::interface3[]
+
+
+	/**
+	 * A thing having different relationships with the same type.
+	 */
+	// tag::interface3[]
+	@Node
+	public static class ParentModel { // <.>
+
+		@Id
+		@GeneratedValue
+		private Long id;
+
+		private SomeInterface3 related1; // <.>
+
+		private SomeInterface3 related2;
+		// end::interface3[]
+
+		private final String name;
+
+		public ParentModel(String name) {
+			this.name = name;
+		}
+
+		public Long getId() {
+			return id;
+		}
+
+		public void setId(Long id) {
+			this.id = id;
+		}
+
+		public String getName() {
+			return name;
+		}
+
+		public SomeInterface3 getRelated1() {
+			return related1;
+		}
+
+		public void setRelated1(SomeInterface3 related1) {
+			this.related1 = related1;
+		}
+
+		public SomeInterface3 getRelated2() {
+			return related2;
+		}
+
+		public void setRelated2(SomeInterface3 related2) {
+			this.related2 = related2;
+		}
+
+		// tag::interface3[]
+	}
+	// end::interface3[]
 
 	/**
 	 * super base class

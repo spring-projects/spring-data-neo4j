@@ -41,6 +41,7 @@ import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.core.convert.converter.GenericConverter;
 import org.springframework.data.annotation.Transient;
 import org.springframework.data.mapping.Association;
+import org.springframework.data.mapping.SimpleAssociationHandler;
 import org.springframework.data.neo4j.config.Neo4jEntityScanner;
 import org.springframework.data.neo4j.core.convert.Neo4jConversionService;
 import org.springframework.data.neo4j.core.convert.Neo4jConversions;
@@ -112,7 +113,7 @@ class Neo4jMappingContextTest {
 			assertThat(description.getGraphProperties()).extracting(GraphPropertyDescription::getPropertyName)
 					.containsExactlyInAnyOrder("id", "name", "firstName");
 
-			Collection<String> expectedRelationships = Arrays.asList("[:OWNS] -> (:BikeNode)");
+			Collection<String> expectedRelationships = Arrays.asList("[:OWNS] -> (:BikeNode)", "[:THE_SUPER_BIKE] -> (:BikeNode)");
 			Collection<RelationshipDescription> relationships = description.getRelationships();
 			assertThat(relationships.stream().filter(r -> !r.isDynamic())).allMatch(d -> expectedRelationships
 					.contains(String.format("[:%s] -> (:%s)", d.getType(), d.getTarget().getPrimaryLabel())));
@@ -246,7 +247,7 @@ class Neo4jMappingContextTest {
 			associations.add(a.getInverse().getFieldName());
 		});
 
-		assertThat(associations).containsOnly("bikes");
+		assertThat(associations).containsOnly("bikes", "theSuperBike");
 	}
 
 	@Test
@@ -375,6 +376,110 @@ class Neo4jMappingContextTest {
 		}).withMessageMatching(".*Only one dynamic relationship between to entities is permitted.");
 	}
 
+	@ParameterizedTest // GH-2201
+	@ValueSource(booleans = {true, false})
+	void useOfInterfaceAndImplementationShouldWork(boolean explicit) {
+
+		List<Set<? extends Class<?>>> listOfInitialEntities = new ArrayList<>();
+		if (!explicit) {
+			listOfInitialEntities.add(Collections.emptySet());
+		} else {
+			listOfInitialEntities.add(new HashSet<>(Arrays.asList(SomeInterface.class, SomeInterfaceImpl.class)));
+			listOfInitialEntities.add(new HashSet<>(Arrays.asList(SomeInterfaceImpl.class, SomeInterface.class)));
+		}
+
+		for (Set<? extends Class<?>> initialEntities : listOfInitialEntities) {
+
+			Neo4jMappingContext schema = new Neo4jMappingContext();
+
+			if (!initialEntities.isEmpty()) {
+				schema.setInitialEntitySet(initialEntities);
+				schema.initialize();
+			}
+
+			Neo4jPersistentEntity<?> entity = schema.getPersistentEntity(SomeInterfaceImpl.class);
+			entity.doWithAssociations((SimpleAssociationHandler) association -> {
+				RelationshipDescription d = (RelationshipDescription) association;
+				assertThat(d.getTarget().getUnderlyingClass()).isEqualTo(SomeInterfaceImpl.class);
+			});
+			assertThat(entity.getAdditionalLabels()).isEmpty();
+		}
+	}
+
+	@ParameterizedTest // GH-2201
+	@ValueSource(booleans = {true, false})
+	void useOfAnnotatedInterfaceAndImplementationShouldWork(boolean explicit) {
+
+
+		List<Set<? extends Class<?>>> listOfInitialEntities = new ArrayList<>();
+		if (!explicit) {
+			listOfInitialEntities.add(Collections.emptySet());
+		} else {
+			listOfInitialEntities.add(new HashSet<>(Arrays.asList(SomeInterface2.class, SomeInterfaceImpl2.class)));
+			listOfInitialEntities.add(new HashSet<>(Arrays.asList(SomeInterfaceImpl2.class, SomeInterface2.class)));
+		}
+
+		for (Set<? extends Class<?>> initialEntities : listOfInitialEntities) {
+
+			Neo4jMappingContext schema = new Neo4jMappingContext();
+
+			if (!initialEntities.isEmpty()) {
+				schema.setInitialEntitySet(initialEntities);
+				schema.initialize();
+			}
+
+			Neo4jPersistentEntity<?> entity = schema.getPersistentEntity(SomeInterfaceImpl2.class);
+			entity.doWithAssociations((SimpleAssociationHandler) association -> {
+				RelationshipDescription d = (RelationshipDescription) association;
+				assertThat(d.getTarget().getUnderlyingClass()).isEqualTo(SomeInterfaceImpl2.class);
+			});
+			assertThat(entity.getPrimaryLabel()).isEqualTo("A");
+			assertThat(entity.getAdditionalLabels()).isEmpty();
+		}
+	}
+
+	@ParameterizedTest // GH-2201
+	@ValueSource(booleans = {true, false})
+	void differentImplementationsForAnInterfaceShouldWork(boolean explicit) {
+
+		List<Set<? extends Class<?>>> listOfInitialEntities = new ArrayList<>();
+		if (!explicit) {
+			listOfInitialEntities.add(Collections.emptySet());
+		} else {
+			listOfInitialEntities.add(new HashSet<>(Arrays.asList(SomeInterface3.class, SomeInterfaceImpl3a.class, SomeInterfaceImpl3b.class)));
+			listOfInitialEntities.add(new HashSet<>(Arrays.asList(SomeInterface3.class, SomeInterfaceImpl3b.class, SomeInterfaceImpl3a.class)));
+			listOfInitialEntities.add(new HashSet<>(Arrays.asList(SomeInterfaceImpl3a.class, SomeInterface3.class, SomeInterfaceImpl3b.class)));
+			listOfInitialEntities.add(new HashSet<>(Arrays.asList(SomeInterfaceImpl3a.class, SomeInterfaceImpl3b.class, SomeInterface3.class)));
+			listOfInitialEntities.add(new HashSet<>(Arrays.asList(SomeInterfaceImpl3b.class, SomeInterface3.class, SomeInterfaceImpl3a.class)));
+			listOfInitialEntities.add(new HashSet<>(Arrays.asList(SomeInterfaceImpl3b.class, SomeInterfaceImpl3a.class, SomeInterface3.class)));
+		}
+
+		for (Set<? extends Class<?>> initialEntities : listOfInitialEntities) {
+
+			Neo4jMappingContext schema = new Neo4jMappingContext();
+
+			if (!initialEntities.isEmpty()) {
+				schema.setInitialEntitySet(initialEntities);
+				schema.initialize();
+			}
+
+			Neo4jPersistentEntity<?> entity = schema.getPersistentEntity(SomeInterfaceImpl3a.class);
+			entity.doWithAssociations((SimpleAssociationHandler) association -> {
+				RelationshipDescription d = (RelationshipDescription) association;
+				assertThat(d.getTarget().getUnderlyingClass()).isEqualTo(SomeInterface3.class);
+			});
+			assertThat(entity.getAdditionalLabels()).isEmpty();
+		}
+	}
+
+	@Test // GH-2201
+	void relAnnotationWithoutTypeMustOverwriteDefaultType() {
+
+		Neo4jMappingContext schema = new Neo4jMappingContext();
+		Neo4jPersistentEntity<?> entity = schema.getPersistentEntity(UserNode.class);
+		assertThat(entity.getRelationships()).anyMatch(r -> r.getFieldName().equals("theSuperBike") && r.getType().equals("THE_SUPER_BIKE"));
+	}
+
 	static class DummyIdGenerator implements IdGenerator<Void> {
 
 		@Override
@@ -386,17 +491,26 @@ class Neo4jMappingContextTest {
 	@Node("User")
 	static class UserNode {
 
-		@org.springframework.data.annotation.Id @GeneratedValue private long id;
+		@org.springframework.data.annotation.Id @GeneratedValue @SuppressWarnings("unused")
+		private long id;
 
-		@Relationship(type = "OWNS") List<BikeNode> bikes;
+		@Relationship(type = "OWNS") @SuppressWarnings("unused")
+		List<BikeNode> bikes;
 
+		@Relationship @SuppressWarnings("unused")
+		BikeNode theSuperBike;
+
+		@SuppressWarnings("unused")
 		String name;
 
-		@Transient String anAnnotatedTransientProperty;
+		@Transient @SuppressWarnings("unused")
+		String anAnnotatedTransientProperty;
 
-		@Transient List<SomeOtherClass> someOtherTransientThings;
+		@Transient @SuppressWarnings("unused")
+		List<SomeOtherClass> someOtherTransientThings;
 
-		@Property(name = "firstName") String first_name;
+		@Property(name = "firstName") @SuppressWarnings("unused")
+		String first_name;
 	}
 
 	@Node
@@ -415,6 +529,7 @@ class Neo4jMappingContextTest {
 			public void doNothing() {}
 		};
 
+		@SuppressWarnings("unused")
 		public void doNothing() {
 
 		}
@@ -423,34 +538,49 @@ class Neo4jMappingContextTest {
 	@Node
 	static class BikeNode {
 
-		@Id private String id;
+		@Id @SuppressWarnings("unused")
+		private String id;
 
+		@SuppressWarnings("unused")
 		UserNode owner;
 
+		@SuppressWarnings("unused")
 		List<UserNode> renter;
 
+		@SuppressWarnings("unused")
 		Map<String, UserNode> dynamicRelationships;
 
+		@SuppressWarnings("unused")
 		List<String> someValues;
+
+		@SuppressWarnings("unused")
 		String[] someMoreValues;
+
+		@SuppressWarnings("unused")
 		byte[] evenMoreValues;
+
+		@SuppressWarnings("unused")
 		Map<String, Object> funnyDynamicProperties;
 	}
 
 	@Node
 	static class EnumRelNode {
 
-		@Id private String id;
+		@Id @SuppressWarnings("unused")
+		private String id;
 
+		@SuppressWarnings("unused")
 		Map<A, UserNode> relA;
 
+		@SuppressWarnings("unused")
 		Map<ExtendedA, BikeNode> relEA;
 	}
 
 	@Node
 	static class TripNode {
 
-		@Id private String id;
+		@Id @SuppressWarnings("unused")
+		private String id;
 
 		String name;
 	}
@@ -458,52 +588,63 @@ class Neo4jMappingContextTest {
 	@Node
 	static class InvalidMultiDynamics1 {
 
-		@Id private String id;
+		@Id @SuppressWarnings("unused")
+		private String id;
 
+		@SuppressWarnings("unused")
 		String name;
 
+		@SuppressWarnings("unused")
 		Map<ExtendedA, BikeNode> relEA;
 
+		@SuppressWarnings("unused")
 		Map<ExtendedA, BikeNode> relEB;
 	}
 
 	@Node
 	static class InvalidMultiDynamics2 {
 
-		@Id private String id;
+		@Id @SuppressWarnings("unused")
+		private String id;
 
+		@SuppressWarnings("unused")
 		String name;
 
+		@SuppressWarnings("unused")
 		Map<ExtendedA, BikeNode> relEA;
 
-		@Relationship
+		@Relationship @SuppressWarnings("unused")
 		Map<ExtendedA, BikeNode> relEB;
 	}
 
 	@Node
 	static class InvalidMultiDynamics3 {
 
-		@Id private String id;
+		@Id @SuppressWarnings("unused")
+		private String id;
 
 		String name;
 
-		@Relationship
+		@Relationship @SuppressWarnings("unused")
 		Map<ExtendedA, BikeNode> relEA;
 
-		@Relationship
+		@Relationship @SuppressWarnings("unused")
 		Map<ExtendedA, BikeNode> relEB;
 	}
 
 	@Node
 	static class InvalidMultiDynamics4 {
 
-		@Id private String id;
+		@Id @SuppressWarnings("unused")
+		private String id;
 
+		@SuppressWarnings("unused")
 		String name;
 
-		@Relationship
+		@Relationship @SuppressWarnings("unused")
 		Map<ExtendedA, BikeNode> relEA;
 
+		@SuppressWarnings("unused")
 		Map<ExtendedA, BikeNode> relEB;
 	}
 
@@ -511,13 +652,15 @@ class Neo4jMappingContextTest {
 	@Node
 	static class InvalidId {
 
-		@Id @GeneratedValue @Property("getMappingFunctionFor") private String id;
+		@Id @GeneratedValue @Property("getMappingFunctionFor") @SuppressWarnings("unused")
+		private String id;
 	}
 
 	@Node
 	static class InvalidIdType {
 
-		@Id @GeneratedValue private String id;
+		@Id @GeneratedValue @SuppressWarnings("unused")
+		private String id;
 	}
 
 	@Node
@@ -526,7 +669,8 @@ class Neo4jMappingContextTest {
 	@Node
 	static class EntityWithConvertibleProperty {
 
-		@Id @GeneratedValue private Long id;
+		@Id @GeneratedValue @SuppressWarnings("unused")
+		private Long id;
 
 		private ConvertibleType convertibleType;
 	}
@@ -538,71 +682,125 @@ class Neo4jMappingContextTest {
 
 		@Id @GeneratedValue private Long id;
 
-		@CompositeProperty
+		@CompositeProperty @SuppressWarnings("unused")
 		String doesntWorkOnScalar;
 
-		@CompositeProperty
+		@CompositeProperty @SuppressWarnings("unused")
 		Map<Long, Object> doesntWorkOnWrongMapType;
 
-		@CompositeProperty
+		@CompositeProperty @SuppressWarnings("unused")
 		List<String> doesntWorkOnCollection;
 
-		@CompositeProperty(converter = MissingIdToMapConverter.class)
+		@CompositeProperty(converter = MissingIdToMapConverter.class) @SuppressWarnings("unused")
 		String mismatch;
 	}
 
 	@Node
 	static class WithValidCompositeUsage {
 
-		@Id @GeneratedValue private Long id;
+		@Id @GeneratedValue @SuppressWarnings("unused")
+		private Long id;
 
-		@CompositeProperty(converter = MissingIdToMapConverter.class)
+		@CompositeProperty(converter = MissingIdToMapConverter.class) @SuppressWarnings("unused")
 		MissingId worksWithExplictConverter;
 	}
 
 	@Node
 	static class IrrelevantSourceContainer {
-		@Id @GeneratedValue
+		@Id @GeneratedValue @SuppressWarnings("unused")
 		private Long id;
 
-		@Relationship(type = "RELATIONSHIP_PROPERTY_CONTAINER")
+		@Relationship(type = "RELATIONSHIP_PROPERTY_CONTAINER") @SuppressWarnings("unused")
 		InvalidRelationshipPropertyContainer relationshipPropertyContainer;
 	}
 
 	@RelationshipProperties
 	static class InvalidRelationshipPropertyContainer {
-		@TargetNode
+		@TargetNode @SuppressWarnings("unused")
 		private IrrelevantTargetContainer irrelevantTargetContainer;
 	}
 
 	@Node
 	static class IrrelevantTargetContainer {
-		@Id @GeneratedValue
+		@Id @GeneratedValue @SuppressWarnings("unused")
 		private Long id;
 	}
 
 	@Node
 	static class IrrelevantSourceContainer2 {
-		@Id @GeneratedValue
+		@Id @GeneratedValue @SuppressWarnings("unused")
 		private Long id;
 
 		@Relationship(type = "RELATIONSHIP_PROPERTY_CONTAINER")
+		@SuppressWarnings("unused")
 		List<RelationshipPropertyContainer> relationshipPropertyContainer;
 	}
 
 	@RelationshipProperties
 	static class RelationshipPropertyContainer {
-		@Id @GeneratedValue
+		@Id @GeneratedValue @SuppressWarnings("unused")
 		private Long id;
 
 		@TargetNode
+		@SuppressWarnings("unused")
 		private IrrelevantTargetContainer irrelevantTargetContainer;
 	}
 
 	@Node
 	static class IrrelevantTargetContainer2 {
-		@Id @GeneratedValue
+		@Id @GeneratedValue @SuppressWarnings("unused")
 		private Long id;
+	}
+
+	interface SomeInterface {
+	}
+
+	@Node("SomeInterface")
+	static class SomeInterfaceImpl implements SomeInterface {
+		@Id @GeneratedValue @SuppressWarnings("unused")
+		private Long id;
+
+		@SuppressWarnings("unused")
+		SomeInterface related;
+	}
+
+	@Node("A")
+	interface SomeInterface2 {
+	}
+
+	static class SomeInterfaceImpl2 implements SomeInterface2 {
+		@Id @GeneratedValue @SuppressWarnings("unused")
+		private Long id;
+
+		@SuppressWarnings("unused")
+		SomeInterface2 related;
+	}
+
+	interface SomeInterface3 {
+	}
+
+	@Node({"SomeInterface3a"})
+	static class SomeInterfaceImpl3a implements SomeInterface3 {
+
+		@Id
+		@GeneratedValue
+		@SuppressWarnings("unused")
+		private Long id;
+
+		@SuppressWarnings("unused")
+		SomeInterface3 related;
+	}
+
+	@Node({"SomeInterface3b"})
+	static class SomeInterfaceImpl3b implements SomeInterface3 {
+
+		@Id
+		@GeneratedValue
+		@SuppressWarnings("unused")
+		private Long id;
+
+		@SuppressWarnings("unused")
+		SomeInterface3 related;
 	}
 
 	static class MissingIdToMapConverter implements Neo4jPersistentPropertyToMapConverter<String, MissingId> {
