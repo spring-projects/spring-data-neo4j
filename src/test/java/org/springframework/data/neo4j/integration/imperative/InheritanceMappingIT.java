@@ -69,7 +69,7 @@ public class InheritanceMappingIT {
 	@Test // GH-2138
 	void relationshipsShouldHaveCorrectTypes(@Autowired BuildingRepository repository) {
 
-		Long buildingId = null;
+		Long buildingId;
 		try (Session session = driver.session()) {
 			buildingId = session.run("CREATE (b:Building:Entity{name:'b'})-[:IS_CHILD]->(:Site:Entity{name:'s'})-[:IS_CHILD]->(:Company:Entity{name:'c'}) return id(b) as id").single()
 					.get(0).asLong();
@@ -87,7 +87,7 @@ public class InheritanceMappingIT {
 	@Test // GH-2138
 	void collectionsShouldHaveCorrectTypes(@Autowired TerritoryRepository repository) {
 
-		Long territoryId = null;
+		Long territoryId;
 		try (Session session = driver.session()) {
 			territoryId = session.run("CREATE (c:Country:BaseTerritory:BaseEntity{nameEn:'country'}) " +
 					"CREATE (c)-[:LINK]->(:Country:BaseTerritory:BaseEntity{nameEn:'anotherCountry', countryProperty:'large'}) " +
@@ -250,39 +250,56 @@ public class InheritanceMappingIT {
 	@Test // GH-2201
 	void mixedImplementationsRead(@Autowired Neo4jTemplate template) {
 
+		// tag::interface3[]
 		Long id;
 		try (Session session = driver.session()) {
 			Transaction transaction = session.beginTransaction();
 			id = transaction.run("" +
-					"CREATE (s:Dulli{name:'s'}) " +
-					"CREATE (s)-[:RELATED_1]-> (:SomeInterface3:SomeInterface3b {name:'3a'}) " +
-					"CREATE (s)-[:RELATED_2]-> (:SomeInterface3:SomeInterface3a {name:'3b'}) RETURN id(s)")
-					.single().get(0).asLong();
+				"CREATE (s:ParentModel{name:'s'}) " +
+				"CREATE (s)-[:RELATED_1]-> (:SomeInterface3:SomeInterface3b {name:'3b'}) " +
+				"CREATE (s)-[:RELATED_2]-> (:SomeInterface3:SomeInterface3a {name:'3a'}) " +
+				"RETURN id(s)")
+				.single().get(0).asLong();
 			transaction.commit();
 		}
 
-		Optional<Inheritance.Dulli> dulli = template.findById(id, Inheritance.Dulli.class);
-		assertThat(dulli).hasValueSatisfying(v -> {
+		Optional<Inheritance.ParentModel> optionalParentModel =
+				template.findById(id, Inheritance.ParentModel.class);
+
+		assertThat(optionalParentModel).hasValueSatisfying(v -> {
 			assertThat(v.getName()).isEqualTo("s");
-			assertThat(v).extracting(Inheritance.Dulli::getRelated1)
-					.extracting(Inheritance.SomeInterface3::getName).isEqualTo("3a");
+			assertThat(v).extracting(Inheritance.ParentModel::getRelated1)
+					.isInstanceOf(Inheritance.SomeInterfaceImpl3b.class)
+					.extracting(Inheritance.SomeInterface3::getName)
+					.isEqualTo("3b");
+			assertThat(v).extracting(Inheritance.ParentModel::getRelated2)
+					.isInstanceOf(Inheritance.SomeInterfaceImpl3a.class)
+					.extracting(Inheritance.SomeInterface3::getName)
+					.isEqualTo("3a");
 		});
+		// end::interface3[]
 	}
 
 	@Test // GH-2201
 	void mixedImplementationsWrite(@Autowired Neo4jTemplate template) {
 
-		Inheritance.Dulli entity = new Inheritance.Dulli("d");
+		Inheritance.ParentModel entity = new Inheritance.ParentModel("d");
 		entity.setRelated1(new Inheritance.SomeInterfaceImpl3b("r13b"));
 		entity.setRelated2(new Inheritance.SomeInterfaceImpl3a("r13a"));
 
 		entity = template.save(entity);
 
-		Optional<Inheritance.Dulli> optionalDulli = template.findById(entity.getId(), Inheritance.Dulli.class);
-		assertThat(optionalDulli).hasValueSatisfying(v -> {
+		Optional<Inheritance.ParentModel> optionalParentModel = template.findById(entity.getId(), Inheritance.ParentModel.class);
+		assertThat(optionalParentModel).hasValueSatisfying(v -> {
 			assertThat(v.getName()).isEqualTo("d");
-			assertThat(v).extracting(Inheritance.Dulli::getRelated1)
-					.extracting(Inheritance.SomeInterface3::getName).isEqualTo("r13b");
+			assertThat(v).extracting(Inheritance.ParentModel::getRelated1)
+					.isInstanceOf(Inheritance.SomeInterfaceImpl3b.class)
+					.extracting(Inheritance.SomeInterface3::getName)
+					.isEqualTo("r13b");
+			assertThat(v).extracting(Inheritance.ParentModel::getRelated2)
+					.isInstanceOf(Inheritance.SomeInterfaceImpl3a.class)
+					.extracting(Inheritance.SomeInterface3::getName)
+					.isEqualTo("r13a");
 		});
 	}
 

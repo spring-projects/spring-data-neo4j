@@ -592,10 +592,10 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 
 		DynamicLabels dynamicLabels = determineDynamicLabels(entity, (Neo4jPersistentEntity) targetNodeDescription,
 				inDatabase);
-		Class<Y> typeToSafe = (Class<Y>) ((Neo4jPersistentEntity<?>) targetNodeDescription).getType();
+		Class<Y> entityType = (Class<Y>) ((Neo4jPersistentEntity<?>) targetNodeDescription).getType();
 		Optional<Long> optionalSavedNodeId = neo4jClient
 				.query(() -> renderer.render(cypherGenerator.prepareSaveOf(targetNodeDescription, dynamicLabels)))
-				.in(inDatabase).bind((Y) entity).with(neo4jMappingContext.getRequiredBinderFunctionFor(typeToSafe))
+				.in(inDatabase).bind((Y) entity).with(neo4jMappingContext.getRequiredBinderFunctionFor(entityType))
 				.fetchAs(Long.class).one();
 
 		if (((Neo4jPersistentEntity) targetNodeDescription).hasVersionProperty() && !optionalSavedNodeId.isPresent()) {

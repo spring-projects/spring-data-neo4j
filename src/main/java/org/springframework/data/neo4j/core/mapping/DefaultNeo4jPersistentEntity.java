@@ -308,7 +308,8 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 	 * @param type the type of the underlying class
 	 * @return computed primary label
 	 */
-	static @Nullable String computePrimaryLabel(Class<?> type) {
+	@Nullable
+	static String computePrimaryLabel(Class<?> type) {
 
 		Node nodeAnnotation = AnnotatedElementUtils.findMergedAnnotation(type, Node.class);
 		if ((nodeAnnotation == null || hasEmptyLabelInformation(nodeAnnotation))) {

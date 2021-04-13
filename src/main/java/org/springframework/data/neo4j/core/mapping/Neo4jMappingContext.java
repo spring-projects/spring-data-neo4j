@@ -265,7 +265,8 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 	 * @return An optional persistent entity
 	 * @see #doGetPersistentEntity(Class)
 	 */
-	private @Nullable Neo4jPersistentEntity<?> doGetPersistentEntity(TypeInformation<?> typeInformation) {
+	@Nullable
+	private Neo4jPersistentEntity<?> doGetPersistentEntity(TypeInformation<?> typeInformation) {
 		return doGetPersistentEntity(typeInformation.getRawTypeInformation().getType());
 	}
 
@@ -278,8 +279,8 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 	 * @param underlyingClass The underlying class
 	 * @return An optional persistent entity
 	 */
-	private @Nullable
-	Neo4jPersistentEntity<?> doGetPersistentEntity(Class<?> underlyingClass) {
+	@Nullable
+	private Neo4jPersistentEntity<?> doGetPersistentEntity(Class<?> underlyingClass) {
 
 		if (underlyingClass.isInterface()) {
 			String primaryLabel = DefaultNeo4jPersistentEntity.computePrimaryLabel(underlyingClass);

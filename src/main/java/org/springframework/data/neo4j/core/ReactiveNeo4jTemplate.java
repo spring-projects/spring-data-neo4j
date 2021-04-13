@@ -741,12 +741,12 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 		return determineDynamicLabels((Y) relatedNode, (Neo4jPersistentEntity<?>) targetNodeDescription, inDatabase)
 				.flatMap(t -> {
 					Y entity = t.getT1();
-					Class<Y> typeToSafe = (Class<Y>) ((Neo4jPersistentEntity<?>) targetNodeDescription).getType();
+					Class<Y> entityType = (Class<Y>) ((Neo4jPersistentEntity<?>) targetNodeDescription).getType();
 					DynamicLabels dynamicLabels = t.getT2();
 
 					return neo4jClient
 							.query(() -> renderer.render(cypherGenerator.prepareSaveOf(targetNodeDescription, dynamicLabels)))
-							.in(inDatabase).bind((Y) entity).with(neo4jMappingContext.getRequiredBinderFunctionFor(typeToSafe))
+							.in(inDatabase).bind((Y) entity).with(neo4jMappingContext.getRequiredBinderFunctionFor(entityType))
 							.fetchAs(Long.class).one();
 				}).switchIfEmpty(Mono.defer(() -> {
 					if (((Neo4jPersistentEntity) targetNodeDescription).hasVersionProperty()) {

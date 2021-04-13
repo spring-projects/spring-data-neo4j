@@ -36,17 +36,21 @@ public class Inheritance {
 	/**
 	 * An interface as someone would define in an api package
 	 */
-	public interface SomeInterface {
+	// tag::interface1[]
+	public interface SomeInterface { // <.>
 
 		String getName();
 
 		SomeInterface getRelated();
 	}
 
+	// end::interface1[]
+
 	/**
 	 * Implementation of the above, to be found in a Neo4j or Mongo or whatever module.
 	 */
-	@Node("SomeInterface")
+	// tag::interface1[]
+	@Node("SomeInterface") // <.>
 	public static class SomeInterfaceEntity implements SomeInterface {
 
 		@Id @GeneratedValue private Long id;
@@ -64,6 +68,12 @@ public class Inheritance {
 			return name;
 		}
 
+		@Override
+		public SomeInterface getRelated() {
+			return related;
+		}
+		// end::interface1[]
+
 		public Long getId() {
 			return id;
 		}
@@ -72,16 +82,15 @@ public class Inheritance {
 			this.related = related;
 		}
 
-		@Override
-		public SomeInterface getRelated() {
-			return related;
-		}
+		// tag::interface1[]
 	}
+	// end::interface1[]
 
 	/**
 	 * A case where the label was specified on the interface, unsure if this is meaningful
 	 */
-	@Node("PrimaryLabelWN")
+	// tag::interface2[]
+	@Node("PrimaryLabelWN") // <.>
 	public interface SomeInterface2 {
 
 		String getName();
@@ -89,11 +98,16 @@ public class Inheritance {
 		SomeInterface2 getRelated();
 	}
 
+	// end::interface2[]
+
 	/**
 	 * Implementation of the above
 	 */
+	// tag::interface2[]
 	public static class SomeInterfaceEntity2 implements SomeInterface2 {
 
+		// Overrides omitted for brevity
+		// end::interface2[]
 		@Id @GeneratedValue private Long id;
 
 		private final String name;
@@ -121,12 +135,15 @@ public class Inheritance {
 		public void setRelated(SomeInterface2 related) {
 			this.related = related;
 		}
+		// tag::interface2[]
 	}
+	// end::interface2[]
 
 	/**
 	 * Concrete interface name here, `@Node` is required, label can be omitted in that case
 	 */
-	@Node("SomeInterface3")
+	// tag::interface3[]
+	@Node("SomeInterface3") // <.>
 	public interface SomeInterface3 {
 
 		String getName();
@@ -134,12 +151,17 @@ public class Inheritance {
 		SomeInterface3 getRelated();
 	}
 
+	// end::interface3[]
+
 	/**
 	 * One implementation of the above.
 	 */
-	@Node("SomeInterface3a")
+	// tag::interface3[]
+	@Node("SomeInterface3a") // <.>
 	public static class SomeInterfaceImpl3a implements SomeInterface3 {
 
+		// Overrides omitted for brevity
+		// end::interface3[]
 		@Id
 		@GeneratedValue
 		private Long id;
@@ -161,14 +183,20 @@ public class Inheritance {
 		public String getName() {
 			return name;
 		}
+
+		// tag::interface3[]
 	}
+	// end::interface3[]
 
 	/**
 	 * Another implementation of the above.
 	 */
-	@Node("SomeInterface3b")
+	// tag::interface3[]
+	@Node("SomeInterface3b") // <.>
 	public static class SomeInterfaceImpl3b implements SomeInterface3 {
 
+		// Overrides omitted for brevity
+		// end::interface3[]
 		@Id
 		@GeneratedValue
 		private Long id;
@@ -190,26 +218,32 @@ public class Inheritance {
 		public String getName() {
 			return name;
 		}
+
+		// tag::interface3[]
 	}
+
+	// end::interface3[]
 
 
 	/**
 	 * A thing having different relationships with the same type.
 	 */
+	// tag::interface3[]
 	@Node
-	public static class Dulli {
+	public static class ParentModel { // <.>
 
 		@Id
 		@GeneratedValue
 		private Long id;
 
-		private final String name;
-
-		private SomeInterface3 related1;
+		private SomeInterface3 related1; // <.>
 
 		private SomeInterface3 related2;
+		// end::interface3[]
 
-		public Dulli(String name) {
+		private final String name;
+
+		public ParentModel(String name) {
 			this.name = name;
 		}
 
@@ -240,7 +274,10 @@ public class Inheritance {
 		public void setRelated2(SomeInterface3 related2) {
 			this.related2 = related2;
 		}
+
+		// tag::interface3[]
 	}
+	// end::interface3[]
 
 	/**
 	 * super base class
