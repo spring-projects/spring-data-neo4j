@@ -678,8 +678,7 @@ public final class Neo4jTemplate implements Neo4jOperations, FluentNeo4jOperatio
 				if (stateMachine.hasProcessedValue(relatedValueToStore)) {
 					relatedInternalId = queryRelatedNode(newRelatedObject, targetEntity);
 				} else {
-					relatedInternalId = saveRelatedNode(newRelatedObject, relationshipContext.getAssociationTargetType(),
-							targetEntity);
+					relatedInternalId = saveRelatedNode(newRelatedObject, targetEntity);
 				}
 				stateMachine.markValueAsProcessed(relatedValueToStore);
 
@@ -750,9 +749,10 @@ public final class Neo4jTemplate implements Neo4jOperations, FluentNeo4jOperatio
 				.fetchAs(Long.class).one().get();
 	}
 
-	private <Y> Long saveRelatedNode(Object entity, Class<Y> entityType, NodeDescription targetNodeDescription) {
+	private <Y> Long saveRelatedNode(Object entity, NodeDescription targetNodeDescription) {
 
 		DynamicLabels dynamicLabels = determineDynamicLabels(entity, (Neo4jPersistentEntity) targetNodeDescription);
+		Class<Y> entityType = (Class<Y>) ((Neo4jPersistentEntity<?>) targetNodeDescription).getType();
 		Optional<Long> optionalSavedNodeId = neo4jClient
 				.query(() -> renderer.render(cypherGenerator.prepareSaveOf(targetNodeDescription, dynamicLabels)))
 				.bind((Y) entity).with(neo4jMappingContext.getRequiredBinderFunctionFor(entityType))

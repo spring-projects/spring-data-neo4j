@@ -39,6 +39,7 @@ import org.springframework.data.util.TypeInformation;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * @author Michael J. Simons
@@ -145,7 +146,7 @@ final class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProp
 		Relationship outgoingRelationship = this.findAnnotation(Relationship.class);
 
 		String type;
-		if (outgoingRelationship != null && outgoingRelationship.type() != null) {
+		if (outgoingRelationship != null && StringUtils.hasText(outgoingRelationship.type())) {
 			type = outgoingRelationship.type();
 		} else {
 			type = deriveRelationshipType(this.getName());

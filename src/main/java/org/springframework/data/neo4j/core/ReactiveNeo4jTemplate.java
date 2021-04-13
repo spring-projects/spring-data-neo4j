@@ -778,7 +778,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Rea
 							if (stateMachine.hasProcessedValue(relatedValueToStore)) {
 								queryOrSave = queryRelatedNode(newRelatedObject, targetEntity);
 							} else {
-								queryOrSave = saveRelatedNode(newRelatedObject, relationshipContext.getAssociationTargetType(), targetEntity);
+								queryOrSave = saveRelatedNode(newRelatedObject, targetEntity);
 							}
 							stateMachine.markValueAsProcessed(relatedValueToStore);
 							return queryOrSave.flatMap(relatedInternalId -> {
@@ -869,12 +869,12 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Rea
 				.fetchAs(Long.class).one();
 	}
 
-	private <Y> Mono<Long> saveRelatedNode(Object relatedNode, Class<Y> entityType,
-										   Neo4jPersistentEntity<?> targetNodeDescription) {
+	private <Y> Mono<Long> saveRelatedNode(Object relatedNode, Neo4jPersistentEntity<?> targetNodeDescription) {
 
 		return determineDynamicLabels((Y) relatedNode, targetNodeDescription)
 				.flatMap(t -> {
 					Y entity = t.getT1();
+					Class<Y> entityType = (Class<Y>) ((Neo4jPersistentEntity<?>) targetNodeDescription).getType();
 					DynamicLabels dynamicLabels = t.getT2();
 
 					return neo4jClient

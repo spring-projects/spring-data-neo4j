@@ -148,4 +148,9 @@ public interface NodeDescription<T> {
 	 */
 	boolean containsPossibleCircles(Predicate<String> includeField);
 
+	/**
+	 * @return True if this persistent entity has been created for an interface.
+	 * @since 6.0.8
+	 */
+	boolean describesInterface();
 }

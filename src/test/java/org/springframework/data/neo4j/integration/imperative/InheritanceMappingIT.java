@@ -24,6 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.neo4j.config.AbstractNeo4jConfig;
+import org.springframework.data.neo4j.core.Neo4jTemplate;
 import org.springframework.data.neo4j.integration.shared.common.AbstractPet;
 import org.springframework.data.neo4j.integration.shared.common.Cat;
 import org.springframework.data.neo4j.integration.shared.common.Dog;
@@ -39,11 +40,13 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Gerrit Meier
+ * @author Michael J. Simons
  */
 @Neo4jIntegrationTest
 public class InheritanceMappingIT {
@@ -66,7 +69,7 @@ public class InheritanceMappingIT {
 	@Test // GH-2138
 	void relationshipsShouldHaveCorrectTypes(@Autowired BuildingRepository repository) {
 
-		Long buildingId = null;
+		Long buildingId;
 		try (Session session = driver.session()) {
 			buildingId = session.run("CREATE (b:Building:Entity{name:'b'})-[:IS_CHILD]->(:Site:Entity{name:'s'})-[:IS_CHILD]->(:Company:Entity{name:'c'}) return id(b) as id").single()
 					.get(0).asLong();
@@ -84,7 +87,7 @@ public class InheritanceMappingIT {
 	@Test // GH-2138
 	void collectionsShouldHaveCorrectTypes(@Autowired TerritoryRepository repository) {
 
-		Long territoryId = null;
+		Long territoryId;
 		try (Session session = driver.session()) {
 			territoryId = session.run("CREATE (c:Country:BaseTerritory:BaseEntity{nameEn:'country'}) " +
 					"CREATE (c)-[:LINK]->(:Country:BaseTerritory:BaseEntity{nameEn:'anotherCountry', countryProperty:'large'}) " +
@@ -151,6 +154,153 @@ public class InheritanceMappingIT {
 				.hasOnlyElementsOfType(AbstractPet.class)
 				.hasAtLeastOneElementOfType(Dog.class)
 				.hasAtLeastOneElementOfType(Cat.class);
+	}
+
+	@Test // GH-2201
+	void shouldDealWithInterfacesWithoutNodeAnnotationRead(@Autowired Neo4jTemplate template) {
+
+		Long id;
+		try (Session session = driver.session()) {
+			Transaction transaction = session.beginTransaction();
+			id = transaction.run("CREATE (s:SomeInterface{name:'s'}) -[:RELATED]-> (:SomeInterface {name:'e'}) RETURN id(s)").single().get(0).asLong();
+			transaction.commit();
+		}
+
+		Optional<Inheritance.SomeInterfaceEntity> optionalEntity = template.findById(id, Inheritance.SomeInterfaceEntity.class);
+		assertThat(optionalEntity).hasValueSatisfying(v -> {
+			assertThat(v.getName()).isEqualTo("s");
+			assertThat(v).extracting(Inheritance.SomeInterface::getRelated)
+					.extracting(Inheritance.SomeInterface::getName).isEqualTo("e");
+		});
+	}
+
+	@Test // GH-2201
+	void shouldDealWithInterfacesWithoutNodeAnnotationWrite(@Autowired Neo4jTemplate template) {
+
+		Inheritance.SomeInterfaceEntity entity = new Inheritance.SomeInterfaceEntity("s");
+		entity.setRelated(new Inheritance.SomeInterfaceEntity("e"));
+		long id = template.save(entity).getId();
+
+		Optional<Inheritance.SomeInterfaceEntity> optionalEntity = template.findById(id, Inheritance.SomeInterfaceEntity.class);
+		assertThat(optionalEntity).hasValueSatisfying(v -> {
+			assertThat(v.getName()).isEqualTo("s");
+			assertThat(v).extracting(Inheritance.SomeInterface::getRelated)
+					.extracting(Inheritance.SomeInterface::getName).isEqualTo("e");
+		});
+	}
+
+	@Test // GH-2201
+	void shouldDealWithInterfacesWithNodeAnnotationRead(@Autowired Neo4jTemplate template) {
+
+		Long id;
+		try (Session session = driver.session()) {
+			Transaction transaction = session.beginTransaction();
+			id = transaction.run("CREATE (s:PrimaryLabelWN{name:'s'}) -[:RELATED]-> (:PrimaryLabelWN {name:'e'}) RETURN id(s)").single().get(0).asLong();
+			transaction.commit();
+		}
+
+		Optional<Inheritance.SomeInterfaceEntity2> optionalEntity = template.findById(id, Inheritance.SomeInterfaceEntity2.class);
+		assertThat(optionalEntity).hasValueSatisfying(v -> {
+			assertThat(v.getName()).isEqualTo("s");
+			assertThat(v).extracting(Inheritance.SomeInterface2::getRelated)
+					.extracting(Inheritance.SomeInterface2::getName).isEqualTo("e");
+		});
+	}
+
+	@Test // GH-2201
+	void shouldDealWithInterfacesWithNodeAnnotationWrite(@Autowired Neo4jTemplate template) {
+
+		Inheritance.SomeInterfaceEntity2 entity = new Inheritance.SomeInterfaceEntity2("s");
+		entity.setRelated(new Inheritance.SomeInterfaceEntity2("e"));
+		long id = template.save(entity).getId();
+
+		Optional<Inheritance.SomeInterfaceEntity2> optionalEntity = template.findById(id, Inheritance.SomeInterfaceEntity2.class);
+		assertThat(optionalEntity).hasValueSatisfying(v -> {
+			assertThat(v.getName()).isEqualTo("s");
+			assertThat(v).extracting(Inheritance.SomeInterface2::getRelated)
+					.extracting(Inheritance.SomeInterface2::getName).isEqualTo("e");
+		});
+	}
+
+	@Test // GH-2201
+	void complexInterfaceMapping(@Autowired Neo4jTemplate template) {
+
+		Long id;
+		try (Session session = driver.session()) {
+			Transaction transaction = session.beginTransaction();
+			id = transaction.run("" +
+					"CREATE (s:SomeInterface3:SomeInterface3a{name:'s'}) " +
+					"-[:RELATED]-> (:SomeInterface3:SomeInterface3b {name:'m'}) " +
+					"-[:RELATED]-> (:SomeInterface3:SomeInterface3a {name:'e'}) RETURN id(s)")
+					.single().get(0).asLong();
+			transaction.commit();
+		}
+
+		Optional<Inheritance.SomeInterfaceImpl3a> optionalEntity = template.findById(id, Inheritance.SomeInterfaceImpl3a.class);
+		assertThat(optionalEntity).hasValueSatisfying(v -> {
+			assertThat(v.getName()).isEqualTo("s");
+			assertThat(v).extracting(Inheritance.SomeInterface3::getRelated)
+					.extracting(Inheritance.SomeInterface3::getName).isEqualTo("m");
+			assertThat(v).extracting(Inheritance.SomeInterface3::getRelated)
+					.extracting(Inheritance.SomeInterface3::getRelated)
+					.extracting(Inheritance.SomeInterface3::getName).isEqualTo("e");
+		});
+	}
+
+	@Test // GH-2201
+	void mixedImplementationsRead(@Autowired Neo4jTemplate template) {
+
+		// tag::interface3[]
+		Long id;
+		try (Session session = driver.session()) {
+			Transaction transaction = session.beginTransaction();
+			id = transaction.run("" +
+				"CREATE (s:ParentModel{name:'s'}) " +
+				"CREATE (s)-[:RELATED_1]-> (:SomeInterface3:SomeInterface3b {name:'3b'}) " +
+				"CREATE (s)-[:RELATED_2]-> (:SomeInterface3:SomeInterface3a {name:'3a'}) " +
+				"RETURN id(s)")
+				.single().get(0).asLong();
+			transaction.commit();
+		}
+
+		Optional<Inheritance.ParentModel> optionalParentModel =
+				template.findById(id, Inheritance.ParentModel.class);
+
+		assertThat(optionalParentModel).hasValueSatisfying(v -> {
+			assertThat(v.getName()).isEqualTo("s");
+			assertThat(v).extracting(Inheritance.ParentModel::getRelated1)
+					.isInstanceOf(Inheritance.SomeInterfaceImpl3b.class)
+					.extracting(Inheritance.SomeInterface3::getName)
+					.isEqualTo("3b");
+			assertThat(v).extracting(Inheritance.ParentModel::getRelated2)
+					.isInstanceOf(Inheritance.SomeInterfaceImpl3a.class)
+					.extracting(Inheritance.SomeInterface3::getName)
+					.isEqualTo("3a");
+		});
+		// end::interface3[]
+	}
+
+	@Test // GH-2201
+	void mixedImplementationsWrite(@Autowired Neo4jTemplate template) {
+
+		Inheritance.ParentModel entity = new Inheritance.ParentModel("d");
+		entity.setRelated1(new Inheritance.SomeInterfaceImpl3b("r13b"));
+		entity.setRelated2(new Inheritance.SomeInterfaceImpl3a("r13a"));
+
+		entity = template.save(entity);
+
+		Optional<Inheritance.ParentModel> optionalParentModel = template.findById(entity.getId(), Inheritance.ParentModel.class);
+		assertThat(optionalParentModel).hasValueSatisfying(v -> {
+			assertThat(v.getName()).isEqualTo("d");
+			assertThat(v).extracting(Inheritance.ParentModel::getRelated1)
+					.isInstanceOf(Inheritance.SomeInterfaceImpl3b.class)
+					.extracting(Inheritance.SomeInterface3::getName)
+					.isEqualTo("r13b");
+			assertThat(v).extracting(Inheritance.ParentModel::getRelated2)
+					.isInstanceOf(Inheritance.SomeInterfaceImpl3a.class)
+					.extracting(Inheritance.SomeInterface3::getName)
+					.isEqualTo("r13a");
+		});
 	}
 
 	interface PetsRepository extends Neo4jRepository<AbstractPet, Long> {

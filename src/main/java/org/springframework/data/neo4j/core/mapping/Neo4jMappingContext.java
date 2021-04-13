@@ -157,32 +157,38 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 		final DefaultNeo4jPersistentEntity<T> newEntity = new DefaultNeo4jPersistentEntity<>(typeInformation);
 		String primaryLabel = newEntity.getPrimaryLabel();
 
-		if (this.nodeDescriptionStore.containsKey(primaryLabel)) {
+		// We don't store interface in the index.
+		// This is required for a pretty standard scenario: Having the interface spotting the standard name of a domain
+		// as the class name, and different implementations (for example even in different stores) having a store dedicated
+		// annotation repeating the interface name
+		if (!newEntity.describesInterface()) {
+			if (this.nodeDescriptionStore.containsKey(primaryLabel)) {
 
-			Neo4jPersistentEntity existingEntity = (Neo4jPersistentEntity) this.nodeDescriptionStore.get(primaryLabel);
-			if (!existingEntity.getTypeInformation().getRawTypeInformation().equals(typeInformation.getRawTypeInformation())) {
-				String message = String.format(Locale.ENGLISH, "The schema already contains a node description under the primary label %s", primaryLabel);
+				Neo4jPersistentEntity existingEntity = (Neo4jPersistentEntity) this.nodeDescriptionStore.get(primaryLabel);
+				if (!existingEntity.getTypeInformation().getRawTypeInformation().equals(typeInformation.getRawTypeInformation())) {
+					String message = String.format(Locale.ENGLISH, "The schema already contains a node description under the primary label %s", primaryLabel);
+					throw new MappingException(message);
+				}
+			}
+
+			if (this.nodeDescriptionStore.containsValue(newEntity)) {
+				Optional<String> label = this.nodeDescriptionStore.entrySet().stream().filter(e -> e.getValue().equals(newEntity)).map(Map.Entry::getKey).findFirst();
+
+				String message = String.format(Locale.ENGLISH, "The schema already contains description %s under the primary label %s", newEntity, label.orElse("n/a"));
 				throw new MappingException(message);
 			}
-		}
 
-		if (this.nodeDescriptionStore.containsValue(newEntity)) {
-			Optional<String> label = this.nodeDescriptionStore.entrySet().stream().filter(e -> e.getValue().equals(newEntity)).map(Map.Entry::getKey).findFirst();
+			NodeDescription<?> existingDescription = this.getNodeDescription(newEntity.getUnderlyingClass());
+			if (existingDescription != null) {
 
-			String message = String.format(Locale.ENGLISH, "The schema already contains description %s under the primary label %s", newEntity, label.orElse("n/a"));
-			throw new MappingException(message);
-		}
-
-		NodeDescription<?> existingDescription = this.getNodeDescription(newEntity.getUnderlyingClass());
-		if (existingDescription != null) {
-
-			if (!existingDescription.getPrimaryLabel().equals(newEntity.getPrimaryLabel())) {
-				String message = String.format(Locale.ENGLISH, "The schema already contains description with the underlying class %s under the primary label %s", newEntity.getUnderlyingClass().getName(), existingDescription.getPrimaryLabel());
-				throw new MappingException(message);
+				if (!existingDescription.getPrimaryLabel().equals(newEntity.getPrimaryLabel())) {
+					String message = String.format(Locale.ENGLISH, "The schema already contains description with the underlying class %s under the primary label %s", newEntity.getUnderlyingClass().getName(), existingDescription.getPrimaryLabel());
+					throw new MappingException(message);
+				}
 			}
-		}
 
-		this.nodeDescriptionStore.put(primaryLabel, newEntity);
+			this.nodeDescriptionStore.put(primaryLabel, newEntity);
+		}
 
 		// determine super class to create the node hierarchy
 		Class<? super T> superclass = typeInformation.getType().getSuperclass();
@@ -202,7 +208,7 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 		return newEntity;
 	}
 
-	private boolean isValidParentNode(@Nullable Class<?> parentClass) {
+	private static boolean isValidParentNode(@Nullable Class<?> parentClass) {
 		if (parentClass == null) {
 			return false;
 		}
@@ -229,14 +235,14 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 
 	@Override
 	public NodeDescription<?> getNodeDescription(Class<?> underlyingClass) {
-		return this.nodeDescriptionStore.getNodeDescription(underlyingClass);
+		return doGetPersistentEntity(underlyingClass);
 	}
 
 	@Override
 	@Nullable
 	public Neo4jPersistentEntity<?> getPersistentEntity(TypeInformation<?> typeInformation) {
 
-		NodeDescription<?> existingDescription = this.getNodeDescription(typeInformation.getRawTypeInformation().getType());
+		NodeDescription<?> existingDescription = this.doGetPersistentEntity(typeInformation);
 		if (existingDescription != null) {
 			return (Neo4jPersistentEntity<?>) existingDescription;
 		}
@@ -246,11 +252,44 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 	@Override
 	public Optional<Neo4jPersistentEntity<?>> addPersistentEntity(TypeInformation<?> typeInformation) {
 
-		NodeDescription<?> existingDescription = this.getNodeDescription(typeInformation.getRawTypeInformation().getType());
+		NodeDescription<?> existingDescription = this.doGetPersistentEntity(typeInformation);
 		if (existingDescription != null) {
 			return Optional.of((Neo4jPersistentEntity<?>) existingDescription);
 		}
 		return super.addPersistentEntity(typeInformation);
+	}
+
+	/**
+	 * @param typeInformation The type to retrieve an persistent entity for
+	 * @return An optional persistent entity
+	 * @see #doGetPersistentEntity(Class)
+	 */
+	@Nullable
+	private Neo4jPersistentEntity<?> doGetPersistentEntity(TypeInformation<?> typeInformation) {
+		return doGetPersistentEntity(typeInformation.getRawTypeInformation().getType());
+	}
+
+	/**
+	 * This checks whether a type is an interface and if so, tries to figure whether a persistent entity exists
+	 * matching the name that can be derived from the interface. If the interface is assignable by the class by behind
+	 * the retrieved entity, that entity will be used. Otherwise we will look for an entity matching the interface type
+	 * itself.
+	 *
+	 * @param underlyingClass The underlying class
+	 * @return An optional persistent entity
+	 */
+	@Nullable
+	private Neo4jPersistentEntity<?> doGetPersistentEntity(Class<?> underlyingClass) {
+
+		if (underlyingClass.isInterface()) {
+			String primaryLabel = DefaultNeo4jPersistentEntity.computePrimaryLabel(underlyingClass);
+			Neo4jPersistentEntity<?> nodeDescription = (Neo4jPersistentEntity<?>) getNodeDescription(primaryLabel);
+			if (nodeDescription != null && underlyingClass.isAssignableFrom(nodeDescription.getUnderlyingClass())) {
+				return nodeDescription;
+			}
+		}
+
+		return (Neo4jPersistentEntity<?>) this.nodeDescriptionStore.getNodeDescription(underlyingClass);
 	}
 
 	private <T> T createBeanOrInstantiate(Class<T> t) {

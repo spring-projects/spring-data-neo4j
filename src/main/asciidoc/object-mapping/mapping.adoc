@@ -74,11 +74,56 @@ The primary label should always be the most concrete label that reflects your do
 For each instance of an annotated class that is written through a repository or through the Neo4j template, one node in the graph with at least the primary label will be written.
 Vice versa, all nodes with the primary label will be mapped to the instances of the annotated class.
 
+==== A note on class hierarchies
+
 The `@Node` annotation is not inherited from super-types and interfaces.
 You can however annotate your domain classes individually at every inheritance level.
 This allows polymorphic queries: You can pass in base or intermediate classes and retrieve the correct, concrete instance for your nodes.
 This is only supported for abstract bases annotated with `@Node`.
 The labels defined on such a class will be used as additional labels together with the labels of the concrete implementations.
+
+We also support interfaces in domain-class-hierarchies for some scenarios:
+
+.Domain model in a separate module, same primary label like the interface name
+[source,java,indent=0,tabsize=4]
+----
+include::../../../../src/test/java/org/springframework/data/neo4j/integration/shared/common/Inheritance.java[tag=interface1]
+----
+<.> Just the plain interface name, as you would name your domain
+<.> As we need to synchronize the primary labels, we put `@Node` on the implementing class, which
+    is probably in another module. Note that the value is exactly the same as the name of the interface
+    implemented. Renaming is not possible.
+
+Using a different primary label instead of the interface name is possible, too:
+
+.Different primary label
+[source,java,indent=0,tabsize=4]
+----
+include::../../../../src/test/java/org/springframework/data/neo4j/integration/shared/common/Inheritance.java[tag=interface2]
+----
+<.> Put the `@Node` annotation on the interface
+
+It's also possible to use different implementations of an interface and have a polymorph domain model.
+When doing so, at least two labels are required: A label determining the interface and one determining the concrete class:
+
+.Multiple implementations
+[source,java,indent=0,tabsize=4]
+----
+include::../../../../src/test/java/org/springframework/data/neo4j/integration/shared/common/Inheritance.java[tag=interface3]
+----
+<.> Explicitly specifying the label that identifies the interface is required in this scenario
+<.> Which applies for the first…
+<.> and second implementation as well
+<.> This is a client or parent model, using `SomeInterface3` transparently for two relationships
+<.> No concrete type is specified
+
+The data structure needed is shown in the following test. The same would be written by the OGM:
+
+.Data structure needed for using multiple, different interface implementations
+[source,java,indent=0,tabsize=4]
+----
+include::../../../../src/test/java/org/springframework/data/neo4j/integration/imperative/InheritanceMappingIT.java[tag=interface3]
+----
 
 [[mapping.annotations.node.dynamic.labels]]
 ==== Dynamic or "runtime" managed labels
