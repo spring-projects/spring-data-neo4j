@@ -361,6 +361,9 @@ public class Inheritance {
 
 		private final String concreteSomething;
 
+		@Relationship("CONNECTED")
+		public List<BaseClass> others;
+
 		public ConcreteClassA(String name, String concreteSomething) {
 			super(name);
 			this.concreteSomething = concreteSomething;
