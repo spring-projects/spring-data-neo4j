@@ -280,6 +280,50 @@ public class Inheritance {
 	// end::interface3[]
 
 	/**
+	 * Interface to get implemented with the one below.
+	 */
+	@Node("Mix1")
+	public interface MixIt1 {
+		String getName();
+	}
+
+	/**
+	 * Interface to get implemented with one above.
+	 */
+	@Node("Mix2")
+	public interface MixIt2 {
+		String getValue();
+	}
+
+	/**
+	 * Implements two interfaces
+	 */
+	@Node
+	public static class Mix1AndMix2 implements MixIt1, MixIt2 {
+
+		@Id
+		@GeneratedValue
+		private Long id;
+
+		private final String name;
+		private final String value;
+
+		public Mix1AndMix2(String name, String value) {
+			this.name = name;
+			this.value = value;
+		}
+
+		@Override
+		public String getName() {
+			return name;
+		}
+
+		@Override
+		public String getValue() {
+			return value;
+		}
+	}
+	/**
 	 * super base class
 	 */
 	@Node

@@ -18,8 +18,10 @@ package org.springframework.data.neo4j.integration.imperative;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.neo4j.driver.Driver;
+import org.neo4j.driver.Record;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.Transaction;
+import org.neo4j.driver.types.Node;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -301,6 +303,25 @@ public class InheritanceMappingIT {
 					.extracting(Inheritance.SomeInterface3::getName)
 					.isEqualTo("r13a");
 		});
+	}
+
+	@Test // GH-2201
+	void mixedInterfaces(@Autowired Neo4jTemplate template) {
+
+		Inheritance.Mix1AndMix2 mix1AndMix2 = new Inheritance.Mix1AndMix2("a", "b");
+
+		mix1AndMix2 = template.save(mix1AndMix2);
+
+		assertThat(mix1AndMix2.getName()).isEqualTo("a");
+		assertThat(mix1AndMix2.getValue()).isEqualTo("b");
+
+		try (Session session = driver.session()) {
+			List<Record> records = session.run("MATCH (n) RETURN n").list();
+			assertThat(records).hasSize(1);
+			Record record = records.get(0);
+			Node node = record.get("n").asNode();
+			assertThat(node.labels()).containsExactlyInAnyOrder("Mix1", "Mix2", "Mix1AndMix2");
+		}
 	}
 
 	interface PetsRepository extends Neo4jRepository<AbstractPet, Long> {
