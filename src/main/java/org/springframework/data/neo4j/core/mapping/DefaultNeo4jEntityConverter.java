@@ -327,12 +327,26 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 		} else if (queryResult instanceof Node) {
 			Node nodeRepresentation = (Node) queryResult;
 			nodeRepresentation.labels().forEach(labels::add);
+		} else if (containsOnePlainNode(queryResult)) {
+			for (Value value : queryResult.values()) {
+				if (value.hasType(nodeType)) {
+					Node node = value.asNode();
+					for (String label : node.labels()) {
+						labels.add(label);
+					}
+				}
+			}
 		} else if (!queryResult.get(Constants.NAME_OF_SYNTHESIZED_ROOT_NODE).isNull()) {
 			queryResult.get(Constants.NAME_OF_SYNTHESIZED_ROOT_NODE).asNode().labels().forEach(labels::add);
 		} else if (nodeDescription != null) {
 			labels.addAll(nodeDescription.getStaticLabels());
 		}
 		return labels;
+	}
+
+	private boolean containsOnePlainNode(MapAccessor queryResult) {
+		return StreamSupport.stream(queryResult.values().spliterator(), false)
+				.filter(value -> value.hasType(nodeType)).count() == 1L;
 	}
 
 	private <ET> ET instantiate(Neo4jPersistentEntity<ET> nodeDescription, MapAccessor values, MapAccessor allValues,

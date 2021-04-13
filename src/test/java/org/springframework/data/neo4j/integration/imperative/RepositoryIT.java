@@ -3608,6 +3608,28 @@ class RepositoryIT {
 			});
 		}
 
+		@Test // GH-2225
+		void findWithTemplateWithTwoLevelInheritance(@Autowired Neo4jTemplate neo4jTemplate) {
+			String someValue = "test";
+			String concreteClassName = "cc1";
+			Inheritance.ConcreteClassA ccA = new Inheritance.ConcreteClassA(concreteClassName, someValue);
+			ccA.others = Collections.singletonList(new Inheritance.ConcreteClassB("ccB", 41));
+			neo4jTemplate.save(ccA);
+			List<Inheritance.SuperBaseClass> ccAs = neo4jTemplate.findAll("MATCH (a:SuperBaseClass{name: 'cc1'})-[r]->(m) " +
+							"RETURN a, collect(r), collect(m)",
+					Inheritance.SuperBaseClass.class);
+			assertThat(ccAs).hasSize(1);
+			Inheritance.SuperBaseClass loadedCcA = ccAs.get(0);
+			assertThat(loadedCcA).isInstanceOfSatisfying(Inheritance.ConcreteClassA.class, o -> {
+				assertThat(o.getName()).isEqualTo(concreteClassName);
+				assertThat(o.getConcreteSomething()).isEqualTo(someValue);
+				assertThat(o.others).hasSize(1);
+				Inheritance.BaseClass relatedNode = o.others.get(0);
+				assertThat(relatedNode.getName()).isEqualTo("ccB");
+				assertThat(relatedNode).isInstanceOf(Inheritance.ConcreteClassB.class);
+			});
+		}
+
 		@Test
 		void findAllWithTwoLevelInheritance(@Autowired SuperBaseClassRepository superBaseClassRepository) {
 			Inheritance.ConcreteClassA ccA = new Inheritance.ConcreteClassA("cc1", "test");
