@@ -29,6 +29,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.neo4j.driver.Driver;
+import org.neo4j.driver.Record;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.SessionConfig;
 import org.neo4j.driver.Transaction;
@@ -266,6 +267,38 @@ class ReactiveOptimisticLockingIT {
 					return repository.delete(thing);
 		})).verifyError(OptimisticLockingFailureException.class);
 
+	}
+
+	@Test
+	void shouldNotTraverseToBidiRelatedThingWithOldVersion(@Autowired VersionedThingRepository repository) {
+
+		VersionedThing thing1 = new VersionedThing("Thing1");
+		VersionedThing thing2 = new VersionedThing("Thing2");
+
+		thing1.setOtherVersionedThings(Collections.singletonList(thing2));
+		repository.save(thing1)
+				.as(StepVerifier::create)
+				.expectNextCount(1L)
+				.verifyComplete();
+
+		Flux.zip(repository.findById(thing1.getId()), (repository.findById(thing2.getId())))
+				.flatMap(t -> {
+					VersionedThing thing1n = t.getT1();
+					VersionedThing thing2n = t.getT2();
+
+					thing2n.setOtherVersionedThings(Collections.singletonList(thing1n));
+					return repository.save(thing2n);
+				})
+				.as(StepVerifier::create)
+				.expectNextCount(1L)
+				.verifyComplete();
+
+		try (Session session = driver.session()) {
+			List<Record> result = session
+					.run("MATCH (t:VersionedThing{name:'Thing1'})-[:HAS]->(:VersionedThing{name:'Thing2'}) return t")
+					.list();
+			assertThat(result).hasSize(1);
+		}
 	}
 
 	@Test // GH-2191

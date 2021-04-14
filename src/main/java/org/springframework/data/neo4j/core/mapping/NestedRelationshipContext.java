@@ -129,7 +129,7 @@ public final class NestedRelationshipContext {
 			// and the map values as values.
 			// The values themself can be either a scalar or a List.
 			if (relationship.isDynamic()) {
-				Map<Object, List<MappingSupport.RelationshipPropertiesWithEntityHolder>> relationshipProperties = new HashMap<>();
+				Map<Object, Object> relationshipProperties = new HashMap<>();
 				for (Map.Entry<Object, Object> mapEntry : ((Map<Object, Object>) value).entrySet()) {
 					List<MappingSupport.RelationshipPropertiesWithEntityHolder> relationshipValues = new ArrayList<>();
 					// register the relationship type as key
@@ -149,7 +149,7 @@ public final class NestedRelationshipContext {
 								new MappingSupport.RelationshipPropertiesWithEntityHolder(
 										relationshipPropertiesEntity, mapEntryValue,
 										getTargetNode(relationshipPropertiesEntity, mapEntryValue));
-						relationshipValues.add(oneOfThem);
+						relationshipProperties.put(mapEntry.getKey(), oneOfThem);
 					}
 
 				}

@@ -16,7 +16,9 @@
 package org.springframework.data.neo4j.core.mapping;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
@@ -34,6 +36,24 @@ import org.springframework.lang.Nullable;
  */
 @API(status = API.Status.INTERNAL, since = "6.0")
 public final class NestedRelationshipProcessingStateMachine {
+
+	public void markValueAsProcessedAs(Object relatedValueToStore, Object bean) {
+		try {
+			write.lock();
+			processedObjectsAlias.put(relatedValueToStore, bean);
+		} finally {
+			write.unlock();
+		}
+	}
+
+	public Object getProcessedAs(Object entity) {
+		try {
+			read.lock();
+			return processedObjectsAlias.getOrDefault(entity, entity);
+		} finally {
+			read.unlock();
+		}
+	}
 
 	/**
 	 * Valid processing states.
@@ -55,6 +75,7 @@ public final class NestedRelationshipProcessingStateMachine {
 	 * The set of already processed related objects.
 	 */
 	private final Set<Object> processedObjects = new HashSet<>();
+	private final Map<Object, Object> processedObjectsAlias = new HashMap<>();
 
 	public NestedRelationshipProcessingStateMachine(Object initialObject) {
 		processedObjects.add(initialObject);

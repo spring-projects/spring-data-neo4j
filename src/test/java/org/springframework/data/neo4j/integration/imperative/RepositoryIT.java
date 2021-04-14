@@ -103,7 +103,6 @@ import org.springframework.data.neo4j.integration.shared.common.Friend;
 import org.springframework.data.neo4j.integration.shared.common.FriendshipRelationship;
 import org.springframework.data.neo4j.integration.shared.common.Hobby;
 import org.springframework.data.neo4j.integration.shared.common.ImmutablePerson;
-import org.springframework.data.neo4j.integration.shared.common.ImmutablePersonWithGeneratedId;
 import org.springframework.data.neo4j.integration.shared.common.Inheritance;
 import org.springframework.data.neo4j.integration.shared.common.KotlinPerson;
 import org.springframework.data.neo4j.integration.shared.common.LikesHobbyRelationship;
@@ -1883,21 +1882,6 @@ class RepositoryIT {
 				Record node = session.run("MATCH (e:EntityWithConvertedId) return e").next();
 				assertThat(node.get("e").get("identifyingEnum").asString()).isEqualTo("A");
 			}
-		}
-
-		@Test // GH-2141
-		void saveWithGeneratedIdsReturnsObjectWithIdSet(
-				@Autowired ImmutablePersonWithGeneratedIdRepository repository) {
-
-			ImmutablePersonWithGeneratedId fallback1 = new ImmutablePersonWithGeneratedId();
-			ImmutablePersonWithGeneratedId fallback2 = new ImmutablePersonWithGeneratedId(fallback1);
-			ImmutablePersonWithGeneratedId person = new ImmutablePersonWithGeneratedId(fallback2);
-
-			ImmutablePersonWithGeneratedId savedPerson = repository.save(person);
-
-			assertThat(savedPerson.getId()).isNotNull();
-			assertThat(savedPerson.getFallback()).isNotNull();
-			assertThat(savedPerson.getFallback().getFallback()).isNotNull();
 		}
 	}
 
@@ -3987,8 +3971,6 @@ class RepositoryIT {
 	interface LoopingRelationshipRepository extends Neo4jRepository<DeepRelationships.LoopingType1, Long> {}
 
 	interface ImmutablePersonRepository extends Neo4jRepository<ImmutablePerson, String> {}
-
-	interface ImmutablePersonWithGeneratedIdRepository extends Neo4jRepository<ImmutablePersonWithGeneratedId, Long> {}
 
 	interface MultipleLabelRepository extends Neo4jRepository<MultipleLabels.MultipleLabelsEntity, Long> {}
 

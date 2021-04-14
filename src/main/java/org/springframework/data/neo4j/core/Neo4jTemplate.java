@@ -251,9 +251,10 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 		PersistentPropertyAccessor<T> propertyAccessor = entityMetaData.getPropertyAccessor(entityToBeSaved);
 		if (entityMetaData.isUsingInternalIds()) {
 			propertyAccessor.setProperty(entityMetaData.getRequiredIdProperty(), optionalInternalId.get());
-			entityToBeSaved = propertyAccessor.getBean();
 		}
-		return processRelations(entityMetaData, entityToBeSaved, isEntityNew, inDatabase, instance);
+		processRelations(entityMetaData, instance, propertyAccessor, inDatabase, isEntityNew);
+
+		return propertyAccessor.getBean();
 	}
 
 	private <T> DynamicLabels determineDynamicLabels(T entityToBeSaved, Neo4jPersistentEntity<?> entityMetaData,
@@ -305,29 +306,30 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 			return entities.stream().map(e -> saveImpl(e, databaseName)).collect(Collectors.toList());
 		}
 
-		// we need to determine the `isNew` state of the entities before calling the id generator
-		List<Boolean> isNewIndicator = entities.stream().map(entity ->
-			neo4jMappingContext.getPersistentEntity(entity.getClass()).isNew(entity)
-		).collect(Collectors.toList());
+		class Tuple3<T> {
+			T t1;
+			boolean t2;
+			T t3;
 
-		List<T> entitiesToBeSaved = entities.stream().map(eventSupport::maybeCallBeforeBind)
+			Tuple3(T t1, boolean t2, T t3) {
+				this.t1 = t1;
+				this.t2 = t2;
+				this.t3 = t3;
+			}
+		}
+
+		List<Tuple3<T>> entitiesToBeSaved = entities.stream()
+				.map(e -> new Tuple3<>(e, neo4jMappingContext.getPersistentEntity(e.getClass()).isNew(e), eventSupport.maybeCallBeforeBind(e)))
 				.collect(Collectors.toList());
 
 		// Save roots
 		Function<T, Map<String, Object>> binderFunction = neo4jMappingContext.getRequiredBinderFunctionFor(domainClass);
-		List<Map<String, Object>> entityList = entitiesToBeSaved.stream().map(binderFunction)
+		List<Map<String, Object>> entityList = entitiesToBeSaved.stream().map(h -> h.t3).map(binderFunction)
 				.collect(Collectors.toList());
 		ResultSummary resultSummary = neo4jClient
 				.query(() -> renderer.render(cypherGenerator.prepareSaveOfMultipleInstancesOf(entityMetaData)))
 				.in(databaseName)
 				.bind(entityList).to(Constants.NAME_OF_ENTITY_LIST_PARAM).run();
-
-		// Save related
-		entitiesToBeSaved.forEach(entityToBeSaved -> {
-			int positionInList = entitiesToBeSaved.indexOf(entityToBeSaved);
-			processRelations(entityMetaData, entityToBeSaved, isNewIndicator.get(positionInList), databaseName,
-					entities.get(positionInList));
-		});
 
 		SummaryCounters counters = resultSummary.counters();
 		log.debug(() -> String.format(
@@ -335,7 +337,11 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 				counters.nodesCreated(), counters.nodesDeleted(), counters.relationshipsCreated(),
 				counters.relationshipsDeleted(), counters.propertiesSet()));
 
-		return entitiesToBeSaved;
+		// Save related
+		return entitiesToBeSaved.stream().map(t -> {
+			PersistentPropertyAccessor<T> propertyAccessor = entityMetaData.getPropertyAccessor(t.t3);
+			return processRelations(entityMetaData, t.t1, propertyAccessor, databaseName, t.t2);
+		}).collect(Collectors.toList());
 	}
 
 	@Override
@@ -436,27 +442,37 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 		return toExecutableQuery(preparedQuery);
 	}
 
-	private <T> T processRelations(Neo4jPersistentEntity<?> neo4jPersistentEntity, Object parentObject,
-			boolean isParentObjectNew, @Nullable String inDatabase, Object parentEntity) {
+	/**
+	 * Starts of processing of the relationships.
+	 *
+	 * @param neo4jPersistentEntity  The description of the instance to save
+	 * @param originalInstance       The original parent instance. It is paramount to pass in the original instance (prior
+	 *                               to generating the id and prior to eventually create new instances via the property accessor,
+	 *                               so that we can reliable stop traversing relationships.
+	 * @param parentPropertyAccessor The property accessor of the parent, to modify the relationships
+	 * @param isParentObjectNew      A flag if the parent was new
+	 */
+	private <T> T processRelations(Neo4jPersistentEntity<?> neo4jPersistentEntity, T originalInstance,
+			PersistentPropertyAccessor<?> parentPropertyAccessor,
+		    @Nullable String inDatabase, boolean isParentObjectNew) {
 
-		return processNestedRelations(neo4jPersistentEntity, parentObject, isParentObjectNew, inDatabase,
-				new NestedRelationshipProcessingStateMachine(parentEntity));
+		return processNestedRelations(neo4jPersistentEntity, parentPropertyAccessor, isParentObjectNew, inDatabase,
+				new NestedRelationshipProcessingStateMachine(originalInstance));
 	}
 
-	private <T> T processNestedRelations(Neo4jPersistentEntity<?> sourceEntity, Object parentObject,
+	private <T> T processNestedRelations(Neo4jPersistentEntity<?> sourceEntity, PersistentPropertyAccessor<?> propertyAccessor,
 			boolean isParentObjectNew, @Nullable String inDatabase, NestedRelationshipProcessingStateMachine stateMachine) {
 
-		PersistentPropertyAccessor<?> propertyAccessor = sourceEntity.getPropertyAccessor(parentObject);
 		Object fromId = propertyAccessor.getProperty(sourceEntity.getRequiredIdProperty());
 
 		sourceEntity.doWithAssociations((AssociationHandler<Neo4jPersistentProperty>) association -> {
 
 			// create context to bundle parameters
-			NestedRelationshipContext relationshipContext = NestedRelationshipContext.of(association, propertyAccessor,
-					sourceEntity);
+			NestedRelationshipContext relationshipContext = NestedRelationshipContext.of(association, propertyAccessor, sourceEntity);
 
+			Object rawValue = relationshipContext.getValue();
 			Collection<?> relatedValuesToStore = MappingSupport.unifyRelationshipValue(relationshipContext.getInverse(),
-					relationshipContext.getValue());
+					rawValue);
 
 			RelationshipDescription relationshipDescription = relationshipContext.getRelationship();
 			RelationshipDescription relationshipDescriptionObverse = relationshipDescription.getRelationshipObverse();
@@ -511,22 +527,27 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 
 			stateMachine.markRelationshipAsProcessed(fromId, relationshipDescription);
 
+			Neo4jPersistentProperty relationshipProperty = association.getInverse();
+
+			RelationshipHandler relationshipHandler = RelationshipHandler.forProperty(relationshipProperty, rawValue);
+
 			for (Object relatedValueToStore : relatedValuesToStore) {
 
 				// here a map entry is not always anymore a dynamic association
-				Object relatedNode = relationshipContext.identifyAndExtractRelationshipTargetNode(relatedValueToStore);
-				Neo4jPersistentEntity<?> targetEntity = neo4jMappingContext.getPersistentEntity(relatedNode.getClass());
+				Object relatedObjectBeforeCallbacks = relationshipContext.identifyAndExtractRelationshipTargetNode(relatedValueToStore);
+				Neo4jPersistentEntity<?> targetEntity = neo4jMappingContext.getPersistentEntity(relatedObjectBeforeCallbacks.getClass());
 
-				boolean isEntityNew = targetEntity.isNew(relatedNode);
+				boolean isEntityNew = targetEntity.isNew(relatedObjectBeforeCallbacks);
 
-				relatedNode = eventSupport.maybeCallBeforeBind(relatedNode);
+				Object newRelatedObject = eventSupport.maybeCallBeforeBind(relatedObjectBeforeCallbacks);
 
 				Long relatedInternalId;
 				// No need to save values if processed
 				if (stateMachine.hasProcessedValue(relatedValueToStore)) {
-					relatedInternalId = queryRelatedNode(relatedNode, targetEntity, inDatabase);
+					Object newRelatedObjectForQuery = stateMachine.getProcessedAs(newRelatedObject);
+					relatedInternalId = queryRelatedNode(newRelatedObjectForQuery, targetEntity, inDatabase);
 				} else {
-					relatedInternalId = saveRelatedNode(relatedNode, targetEntity, inDatabase);
+					relatedInternalId = saveRelatedNode(newRelatedObject, targetEntity, inDatabase);
 				}
 				stateMachine.markValueAsProcessed(relatedValueToStore);
 
@@ -556,16 +577,27 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 							.setProperty(idProperty, relationshipInternalId.get());
 				}
 
-				PersistentPropertyAccessor<?> targetPropertyAccessor = targetEntity.getPropertyAccessor(relatedNode);
-				// if an internal id is used this must get set to link this entity in the next iteration
+				PersistentPropertyAccessor<?> targetPropertyAccessor = targetEntity.getPropertyAccessor(newRelatedObject);
+				// if an internal id is used this must be set to link this entity in the next iteration
 				if (targetEntity.isUsingInternalIds()) {
 					targetPropertyAccessor.setProperty(targetEntity.getRequiredIdProperty(), relatedInternalId);
+					stateMachine.markValueAsProcessedAs(newRelatedObject, targetPropertyAccessor.getBean());
 				}
+
 				if (processState != ProcessState.PROCESSED_ALL_VALUES) {
-					processNestedRelations(targetEntity, targetPropertyAccessor.getBean(), isEntityNew, inDatabase, stateMachine);
+					processNestedRelations(targetEntity, targetPropertyAccessor, isEntityNew, inDatabase, stateMachine);
 				}
+
+				Object potentiallyRecreatedNewRelatedObject = MappingSupport.getRelationshipOrRelationshipPropertiesObject(neo4jMappingContext,
+								relationshipDescription.hasRelationshipProperties(),
+								relationshipProperty.isDynamicAssociation(),
+								relatedValueToStore,
+								targetPropertyAccessor);
+
+				relationshipHandler.handle(relatedValueToStore, relatedObjectBeforeCallbacks, potentiallyRecreatedNewRelatedObject);
 			}
 
+			relationshipHandler.applyFinalResultToOwner(propertyAccessor);
 		});
 
 		return (T) propertyAccessor.getBean();
@@ -720,9 +752,11 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 					.prepareMatchOf(entityMetaData, queryFragments.getMatchOn(), queryFragments.getCondition())
 					.returning(Constants.NAME_OF_SYNTHESIZED_ROOT_NODE).build();
 
+			Map<String, Object> usedParameters = new HashMap<>(parameters);
+			usedParameters.putAll(rootNodesStatement.getParameters());
 			final Collection<Long> rootNodeIds = new HashSet<>((Collection<Long>) neo4jClient
 					.query(renderer.render(rootNodesStatement)).in(getDatabaseName())
-					.bindAll(parameters)
+					.bindAll(usedParameters)
 					.fetch()
 					.one()
 					.map(values -> values.get(Constants.NAME_OF_SYNTHESIZED_ROOT_NODE))
@@ -742,6 +776,8 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 						.prepareMatchOf(entityMetaData, relationshipDescription, queryFragments.getMatchOn(), queryFragments.getCondition())
 						.returning(cypherGenerator.createReturnStatementForMatch(entityMetaData)).build();
 
+				usedParameters = new HashMap<>(parameters);
+				usedParameters.putAll(statement.getParameters());
 				neo4jClient.query(renderer.render(statement)).in(getDatabaseName())
 						.bindAll(parameters)
 						.fetch()

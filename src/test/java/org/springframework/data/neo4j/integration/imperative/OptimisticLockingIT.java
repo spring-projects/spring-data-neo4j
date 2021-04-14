@@ -287,7 +287,8 @@ class OptimisticLockingIT {
 	}
 
 	@Test
-	void shouldDoThings(@Autowired VersionedThingRepository repository) {
+	void shouldNotTraverseToBidiRelatedThingWithOldVersion(@Autowired VersionedThingRepository repository) {
+
 		VersionedThing thing1 = new VersionedThing("Thing1");
 		VersionedThing thing2 = new VersionedThing("Thing2");
 
