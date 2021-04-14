@@ -3608,15 +3608,14 @@ class RepositoryIT {
 			});
 		}
 
-		@Test
+		@Test // GH-2225
 		void findWithTemplateWithTwoLevelInheritance(@Autowired Neo4jTemplate neo4jTemplate) {
 			String someValue = "test";
 			String concreteClassName = "cc1";
 			Inheritance.ConcreteClassA ccA = new Inheritance.ConcreteClassA(concreteClassName, someValue);
-			ccA.others = Collections.singletonList(new Inheritance.ConcreteClassB("asdf", 41));
+			ccA.others = Collections.singletonList(new Inheritance.ConcreteClassB("ccB", 41));
 			neo4jTemplate.save(ccA);
 			List<Inheritance.SuperBaseClass> ccAs = neo4jTemplate.findAll("MATCH (a:SuperBaseClass{name: 'cc1'})-[r]->(m) " +
-//					"WHERE a.dbId = $dbId " +
 							"RETURN a, collect(r), collect(m)",
 					Inheritance.SuperBaseClass.class);
 			assertThat(ccAs).hasSize(1);
@@ -3625,7 +3624,9 @@ class RepositoryIT {
 				assertThat(o.getName()).isEqualTo(concreteClassName);
 				assertThat(o.getConcreteSomething()).isEqualTo(someValue);
 				assertThat(o.others).hasSize(1);
-				assertThat(o.others.get(0).getName()).isEqualTo("asdf");
+				Inheritance.BaseClass relatedNode = o.others.get(0);
+				assertThat(relatedNode.getName()).isEqualTo("ccB");
+				assertThat(relatedNode).isInstanceOf(Inheritance.ConcreteClassB.class);
 			});
 		}
 
