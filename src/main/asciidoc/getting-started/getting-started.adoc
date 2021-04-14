@@ -121,6 +121,39 @@ This is the bare minimum of what you need to connect to a Neo4j instance.
 NOTE: It is not necessary to add any programmatic configuration of the driver when you use this starter.
 SDN repositories will be automatically enabled by this starter.
 
+[[running-on-the-module-path]]
+== Running on the Module-Path (Java 9+)
+
+Spring Data Neo4j can run on the module path. It's automatic module name is `spring.data.neo4j`.
+It does not provide a module itself due to restrictions in the current Spring Data build setup.
+Hence, it uses an automatic but stable module name. However, it does depend on
+a modularized library (the https://github.com/neo4j-contrib/cypher-dsl[Cypher-DSL]). Without a `module-info.java` due to
+the restriction mentioned above, we cannot express the requirement for that library on your behalf.
+
+Therefore, the minimal required `module-info.java` in your project for running Spring Data Neo4j 6.1+ on the module path
+is the following:
+
+.A `module-info.java` in a project supposed to use Spring Data Neo4j on the module path
+[source,java]
+----
+module your.module {
+
+	requires org.neo4j.cypherdsl.core;
+
+	requires spring.data.commons;
+	requires spring.data.neo4j;
+
+	opens your.domain to spring.core; // <.>
+
+	exports your.domain; // <.>
+}
+----
+<.> Spring Data Neo4j uses Spring Data Commons and it's reflective capabilities, so
+    you would need to open up your domain packages to `spring.core`  at least.
+<.> We assume here that `your.domain` contains also repositories: Those must be exported to be accessible by
+    `spring.beans`, `spring.context` and `spring.data.commons`. If you don't want to export them to the world,
+    you can restrict them to those modules.
+
 [[create-domain-spring-boot-project]]
 == Create your domain
 
