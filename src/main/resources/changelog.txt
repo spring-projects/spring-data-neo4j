@@ -1,6 +1,16 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 6.0.8 (2021-04-14)
+-------------------------------------
+* #2225 - Improve label determination for inherited entities.
+* #2220 - Align Neo4j and Neo4j driver versions.
+* #2219 - Upgrade to Cypher-DSL 2021.1.2.
+* #2214 - SDN not creating UUID when saving.
+* #2201 - Not able to create more than one repository interface.
+* #2146 - Clean up repository declarations.
+
+
 Changes in version 5.3.9.RELEASE (2021-04-14)
 ---------------------------------------------
 * #2221 - Upgrade to Neo4j-OGM 3.2.21.
@@ -2180,6 +2190,7 @@ General
 * Support for building traversal descriptions
 * Support for cross-store persistence including basic transaction support
 * Abstract configuration class
+
 
 
 
