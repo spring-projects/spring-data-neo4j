@@ -169,7 +169,8 @@ public final class Neo4jTemplate implements Neo4jOperations, FluentNeo4jOperatio
 
 	@Override
 	public long count(Statement statement, Map<String, Object> parameters) {
-		return count(renderer.render(statement), parameters);
+
+		return count(renderer.render(statement), TemplateSupport.mergeParameters(statement, parameters));
 	}
 
 	@Override
@@ -194,7 +195,7 @@ public final class Neo4jTemplate implements Neo4jOperations, FluentNeo4jOperatio
 
 	@Override
 	public <T> List<T> findAll(Statement statement, Class<T> domainType) {
-		return createExecutableQuery(domainType, renderer.render(statement)).getResults();
+		return createExecutableQuery(domainType, statement, Collections.emptyMap()).getResults();
 	}
 
 	@Override
@@ -551,10 +552,9 @@ public final class Neo4jTemplate implements Neo4jOperations, FluentNeo4jOperatio
 		return createExecutableQuery(domainType, cypherStatement, Collections.emptyMap());
 	}
 
-	private <T> ExecutableQuery<T> createExecutableQuery(Class<T> domainType, Statement statement,
-			Map<String, Object> parameters) {
+	private <T> ExecutableQuery<T> createExecutableQuery(Class<T> domainType, Statement statement, Map<String, Object> parameters) {
 
-		return createExecutableQuery(domainType, renderer.render(statement), parameters);
+		return createExecutableQuery(domainType, renderer.render(statement), TemplateSupport.mergeParameters(statement, parameters));
 	}
 
 	private <T> ExecutableQuery<T> createExecutableQuery(Class<T> domainType, String cypherStatement,
@@ -866,8 +866,7 @@ public final class Neo4jTemplate implements Neo4jOperations, FluentNeo4jOperatio
 				} else {
 					Statement statement = queryFragments.toStatement();
 					cypherQuery = renderer.render(statement);
-					finalParameters = new HashMap<>(finalParameters);
-					finalParameters.putAll(statement.getParameters());
+					finalParameters = TemplateSupport.mergeParameters(statement, finalParameters);
 				}
 			}
 

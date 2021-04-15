@@ -146,7 +146,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Rea
 
 	@Override
 	public Mono<Long> count(Statement statement, Map<String, Object> parameters) {
-		return count(renderer.render(statement), parameters);
+		return count(renderer.render(statement), TemplateSupport.mergeParameters(statement, parameters));
 	}
 
 	@Override
@@ -521,7 +521,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Rea
 	}
 
 	private <T> Mono<ExecutableQuery<T>> createExecutableQuery(Class<T> domainType, Statement statement) {
-		return createExecutableQuery(domainType, renderer.render(statement), Collections.emptyMap());
+		return createExecutableQuery(domainType, statement, Collections.emptyMap());
 	}
 
 	private <T> Mono<ExecutableQuery<T>> createExecutableQuery(Class<T> domainType, String cypherQuery) {
@@ -531,7 +531,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Rea
 	private <T> Mono<ExecutableQuery<T>> createExecutableQuery(Class<T> domainType, Statement statement,
 			Map<String, Object> parameters) {
 
-		return createExecutableQuery(domainType, renderer.render(statement), parameters);
+		return createExecutableQuery(domainType, renderer.render(statement), TemplateSupport.mergeParameters(statement, parameters));
 	}
 
 	private <T> Mono<ExecutableQuery<T>> createExecutableQuery(Class<T> domainType, String cypherQuery,
@@ -558,11 +558,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Rea
 									finalQueryAndParameters.getParameters()));
 		}
 
-		Statement statement = queryFragments.toStatement();
-		Map<String, Object> parameters = new HashMap<>(queryFragmentsAndParameters.getParameters());
-		parameters.putAll(statement.getParameters());
-
-		return createExecutableQuery(domainType, renderer.render(statement), parameters);
+		return createExecutableQuery(domainType, queryFragments.toStatement(), queryFragmentsAndParameters.getParameters());
 	}
 
 	private Mono<GenericQueryAndParameters> createQueryAndParameters(Neo4jPersistentEntity<?> entityMetaData,
@@ -919,8 +915,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Rea
 
 				Statement statement = queryFragments.toStatement();
 				cypherQuery = renderer.render(statement);
-				finalParameters = new HashMap<>(finalParameters);
-				finalParameters.putAll(statement.getParameters());
+				finalParameters = TemplateSupport.mergeParameters(statement, finalParameters);
 			}
 
 			ReactiveNeo4jClient.MappingSpec<T> mappingSpec = this.neo4jClient.query(cypherQuery)

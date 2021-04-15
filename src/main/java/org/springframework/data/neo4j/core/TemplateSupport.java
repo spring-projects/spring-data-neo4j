@@ -16,12 +16,15 @@
 package org.springframework.data.neo4j.core;
 
 import java.beans.PropertyDescriptor;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import org.apiguardian.api.API;
+import org.neo4j.cypherdsl.core.Statement;
 import org.springframework.lang.Nullable;
 
 /**
@@ -63,6 +66,21 @@ final class TemplateSupport {
 					Collectors.toSet());
 			return includedPropertyNames::contains;
 		}
+	}
+
+	/**
+	 * Merges statement and explicit parameters. Statement parameters have a higher precedence
+	 * @param statement A statement that maybe has some stored parameters
+	 * @param parameters The original parameters
+	 * @return Merged parameters
+	 */
+	static Map<String, Object> mergeParameters(Statement statement, @Nullable Map<String, Object> parameters) {
+
+		Map<String, Object> mergedParameters = new HashMap<>(statement.getParameters());
+		if (parameters != null) {
+			mergedParameters.putAll(parameters);
+		}
+		return mergedParameters;
 	}
 
 	private TemplateSupport() {
