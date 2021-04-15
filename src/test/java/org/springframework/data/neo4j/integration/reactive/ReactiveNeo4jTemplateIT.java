@@ -274,6 +274,18 @@ class ReactiveNeo4jTemplateIT {
 		}
 	}
 
+	@Test // 2230
+	void findAllWithStatementWithoutParameters() {
+		Node node = Cypher.node("PersonWithAllConstructor").named("n");
+		Statement statement = Cypher.match(node).where(node.property("name").isEqualTo(Cypher.parameter("name").withValue(TEST_PERSON1_NAME)))
+				.returning(node).build();
+
+		neo4jTemplate.findAll(statement, PersonWithAllConstructor.class)
+				.as(StepVerifier::create)
+				.expectNextCount(1L)
+				.verifyComplete();
+	}
+
 	@Test
 	void deleteById() {
 		StepVerifier.create(neo4jTemplate.deleteById(person1Id, PersonWithAllConstructor.class)).verifyComplete();

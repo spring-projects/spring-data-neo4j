@@ -189,6 +189,17 @@ class Neo4jTemplateIT {
 		assertThat(person).isPresent();
 	}
 
+	@Test // 2230
+	void findAllWithStatementWithoutParameters() {
+		Node node = Cypher.node("PersonWithAllConstructor").named("n");
+		Statement statement = Cypher.match(node).where(node.property("name").isEqualTo(Cypher.parameter("name").withValue(TEST_PERSON1_NAME)))
+				.returning(node).build();
+
+		List<PersonWithAllConstructor> people = neo4jTemplate.findAll(statement, PersonWithAllConstructor.class);
+
+		assertThat(people).hasSize(1);
+	}
+
 	@Test
 	void findAllWithCypherQuery() {
 		String cypherQuery = "MATCH (p:PersonWithAllConstructor) return p";

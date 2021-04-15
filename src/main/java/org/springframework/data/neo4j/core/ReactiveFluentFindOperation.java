@@ -19,7 +19,6 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 
 import org.apiguardian.api.API;
@@ -117,12 +116,7 @@ public interface ReactiveFluentFindOperation {
 		 * @throws IllegalArgumentException if statement is {@literal null}.
 		 */
 		default TerminatingFind<T> matching(Statement statement, @Nullable Map<String, Object> parameter) {
-			Map<String, Object> mergedParameters = new HashMap<>();
-			mergedParameters.putAll(statement.getParameters());
-			if (parameter != null) {
-				mergedParameters.putAll(parameter);
-			}
-			return matching(statement.getCypher(), mergedParameters);
+			return matching(statement.getCypher(), TemplateSupport.mergeParameters(statement, parameter));
 		}
 
 		/**
