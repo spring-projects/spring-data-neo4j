@@ -1,6 +1,6 @@
 = Continuous Integration
 
-image:https://jenkins.spring.io/buildStatus/icon?job=spring-data-neo4j%2Fmaster&subject=Moore%20(master)[link=https://jenkins.spring.io/view/SpringData/job/spring-data-neo4j/]
+image:https://jenkins.spring.io/buildStatus/icon?job=spring-data-neo4j%2Fmain&subject=Moore%20(main)[link=https://jenkins.spring.io/view/SpringData/job/spring-data-neo4j/]
 image:https://jenkins.spring.io/buildStatus/icon?job=spring-data-neo4j%2F5.1.x&subject=Lovelace%20(5.1.x)[link=https://jenkins.spring.io/view/SpringData/job/spring-data-neo4j/]
 image:https://jenkins.spring.io/buildStatus/icon?job=spring-data-neo4j%2F4.2.x&subject=Ingalls%20(4.2.x)[link=https://jenkins.spring.io/view/SpringData/job/spring-data-neo4j/]
 

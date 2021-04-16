@@ -1,6 +1,6 @@
 image:https://spring.io/badges/spring-data-neo4j/ga.svg[Spring Data Neo4j,link=https://projects.spring.io/spring-data-neo4j#quick-start] image:https://spring.io/badges/spring-data-neo4j/snapshot.svg[Spring Data Neo4j,link=https://projects.spring.io/spring-data-neo4j#quick-start]
 
-= Spring Data Neo4j image:https://jenkins.spring.io/buildStatus/icon?job=spring-data-neo4j%2Fmaster&subject=Build[link=https://jenkins.spring.io/view/SpringData/job/spring-data-neo4j/] https://gitter.im/spring-projects/spring-data[image:https://badges.gitter.im/spring-projects/spring-data.svg[Gitter]]
+= Spring Data Neo4j image:https://jenkins.spring.io/buildStatus/icon?job=spring-data-neo4j%2Fmain&subject=Build[link=https://jenkins.spring.io/view/SpringData/job/spring-data-neo4j/] https://gitter.im/spring-projects/spring-data[image:https://badges.gitter.im/spring-projects/spring-data.svg[Gitter]]
 :sectanchors:
 
 // tag::properties[]
@@ -26,7 +26,7 @@ The SDN project aims to provide a familiar and consistent Spring-based programmi
 
 == Code of Conduct
 
-This project is governed by the link:https://github.com/spring-projects/.github/blob/master/CODE_OF_CONDUCT.md[Spring Code of Conduct].
+This project is governed by the link:https://github.com/spring-projects/.github/blob/main/CODE_OF_CONDUCT.md[Spring Code of Conduct].
 By participating, you are expected to uphold this code of conduct.
 Please report unacceptable behavior to spring-code-of-conduct@pivotal.io.
 
