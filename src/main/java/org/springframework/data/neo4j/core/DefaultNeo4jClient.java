@@ -189,6 +189,7 @@ class DefaultNeo4jClient implements Neo4jClient {
 		private String targetDatabase;
 
 		DefaultRunnableSpec(Supplier<String> cypherSupplier) {
+			this.targetDatabase = Neo4jClient.verifyDatabaseName(resolveTargetDatabaseName(targetDatabase));
 			this.runnableStatement = new RunnableStatement(cypherSupplier);
 		}
 
@@ -257,6 +258,19 @@ class DefaultNeo4jClient implements Neo4jClient {
 				throw potentiallyConvertRuntimeException(e, persistenceExceptionTranslator);
 			}
 		}
+
+		private String resolveTargetDatabaseName(@Nullable String parameterTargetDatabase) {
+			if (parameterTargetDatabase != null) {
+				return parameterTargetDatabase;
+			}
+			if (databaseSelectionProvider != null) {
+				String databaseSelectionProviderValue = databaseSelectionProvider.getDatabaseSelection().getValue();
+				if (databaseSelectionProviderValue != null) {
+					return databaseSelectionProviderValue;
+				}
+			}
+			return DatabaseSelectionProvider.getDefaultSelectionProvider().getDatabaseSelection().getValue();
+		}
 	}
 
 	class DefaultRecordFetchSpec<T> implements RecordFetchSpec<T>, MappingSpec<T> {
@@ -270,22 +284,9 @@ class DefaultNeo4jClient implements Neo4jClient {
 		DefaultRecordFetchSpec(String parameterTargetDatabase, RunnableStatement runnableStatement,
 				BiFunction<TypeSystem, Record, T> mappingFunction) {
 
-			this.targetDatabase = resolveTargetDatabaseName(parameterTargetDatabase);
+			this.targetDatabase = parameterTargetDatabase;
 			this.runnableStatement = runnableStatement;
 			this.mappingFunction = mappingFunction;
-		}
-
-		private String resolveTargetDatabaseName(@Nullable String parameterTargetDatabase) {
-			if (parameterTargetDatabase != null) {
-				return parameterTargetDatabase;
-			}
-			if (databaseSelectionProvider != null) {
-				String databaseSelectionProviderValue = databaseSelectionProvider.getDatabaseSelection().getValue();
-				if (databaseSelectionProviderValue != null) {
-					return databaseSelectionProviderValue;
-				}
-			}
-			return DatabaseSelectionProvider.getDefaultSelectionProvider().getDatabaseSelection().getValue();
 		}
 
 		@Override
@@ -358,7 +359,7 @@ class DefaultNeo4jClient implements Neo4jClient {
 
 		DefaultRunnableDelegation(Function<QueryRunner, Optional<T>> callback, @Nullable String targetDatabase) {
 			this.callback = callback;
-			this.targetDatabase = targetDatabase;
+			this.targetDatabase = Neo4jClient.verifyDatabaseName(targetDatabase);
 		}
 
 		@Override
@@ -375,4 +376,5 @@ class DefaultNeo4jClient implements Neo4jClient {
 			}
 		}
 	}
+
 }

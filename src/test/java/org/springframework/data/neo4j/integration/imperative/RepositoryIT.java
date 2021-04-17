@@ -4285,7 +4285,7 @@ class RepositoryIT {
 		}
 
 		@Bean
-		public DatabaseSelectionProvider databaseNameProvider() {
+		public DatabaseSelectionProvider databaseSelectionProvider() {
 			return () -> databaseSelection;
 		}
 	}
