@@ -15,15 +15,15 @@
  */
 package org.springframework.data.neo4j.core;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-
 import org.apiguardian.api.API;
 import org.springframework.core.CollectionFactory;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentProperty;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * Internal helper class that takes care of tracking whether a related object or a collection of related objects was recreated
@@ -45,19 +45,19 @@ final class RelationshipHandler {
 	static RelationshipHandler forProperty(Neo4jPersistentProperty property, Object rawValue) {
 
 		Cardinality cardinality;
-		Collection<Object> newRelationshipObjectCollection = null;
-		Map<Object, Object> newRelationshipObjectCollectionMap = null;
+		Collection<Object> newRelationshipObjectCollection = Collections.emptyList();
+		Map<Object, Object> newRelationshipObjectCollectionMap = Collections.emptyMap();
 
 		// Order is important here, all map based associations are dynamic, but not all dynamic associations are one to many
 		if (property.isCollectionLike()) {
 			cardinality = Cardinality.ONE_TO_MANY;
-			newRelationshipObjectCollection = CollectionFactory.createApproximateCollection(rawValue, ((Collection<?>) rawValue).size());
+			newRelationshipObjectCollection = CollectionFactory.createCollection(property.getType(), ((Collection<?>) rawValue).size());
 		} else if (property.isDynamicOneToManyAssociation()) {
 			cardinality = Cardinality.DYNAMIC_ONE_TO_MANY;
-			newRelationshipObjectCollectionMap = CollectionFactory.createApproximateMap(rawValue, ((Map<?, ?>) rawValue).size());
+			newRelationshipObjectCollectionMap = CollectionFactory.createMap(property.getType(), ((Map<?, ?>) rawValue).size());
 		} else if (property.isDynamicAssociation()) {
 			cardinality = Cardinality.DYNAMIC_ONE_TO_ONE;
-			newRelationshipObjectCollectionMap = CollectionFactory.createApproximateMap(rawValue, ((Map<?, ?>) rawValue).size());
+			newRelationshipObjectCollectionMap = CollectionFactory.createMap(property.getType(), ((Map<?, ?>) rawValue).size());
 		} else {
 			cardinality = Cardinality.ONE_TO_ONE;
 		}
@@ -76,9 +76,9 @@ final class RelationshipHandler {
 	private final Map<Object, Object> newRelatedObjectsByType;
 
 	RelationshipHandler(Neo4jPersistentProperty property,
-			Object rawValue, Cardinality cardinality,
-			Collection<Object> newRelatedObjects,
-			Map<Object, Object> newRelatedObjectsByType) {
+						Object rawValue, Cardinality cardinality,
+						Collection<Object> newRelatedObjects,
+						Map<Object, Object> newRelatedObjectsByType) {
 		this.property = property;
 		this.rawValue = rawValue;
 		this.cardinality = cardinality;
@@ -87,31 +87,33 @@ final class RelationshipHandler {
 	}
 
 	void handle(Object relatedValueToStore, Object newRelatedObject, Object potentiallyRecreatedRelatedObject) {
-		if (potentiallyRecreatedRelatedObject == newRelatedObject) {
-			return;
-		} else if (cardinality == Cardinality.ONE_TO_ONE) {
-			this.newRelatedObjects = Collections.singletonList(potentiallyRecreatedRelatedObject);
-		} else if (cardinality == Cardinality.ONE_TO_MANY) {
-			newRelatedObjects.add(potentiallyRecreatedRelatedObject);
-		} else {
-			Object key = ((Map.Entry<Object, Object>) relatedValueToStore).getKey();
-			if (cardinality == Cardinality.DYNAMIC_ONE_TO_ONE) {
-				newRelatedObjectsByType.put(key, potentiallyRecreatedRelatedObject);
+
+		if (potentiallyRecreatedRelatedObject != newRelatedObject) {
+			if (cardinality == Cardinality.ONE_TO_ONE) {
+				this.newRelatedObjects = Collections.singletonList(potentiallyRecreatedRelatedObject);
+			} else if (cardinality == Cardinality.ONE_TO_MANY) {
+				newRelatedObjects.add(potentiallyRecreatedRelatedObject);
 			} else {
-				Collection<Object> newCollection = (Collection<Object>) newRelatedObjectsByType
-						.computeIfAbsent(key, k -> CollectionFactory.createCollection(
-								property.getTypeInformation().getRequiredActualType().getType(),
-								((Collection) ((Map) rawValue).get(key)).size()));
-				newCollection.add(potentiallyRecreatedRelatedObject);
+				Object key = ((Map.Entry<Object, Object>) relatedValueToStore).getKey();
+				if (cardinality == Cardinality.DYNAMIC_ONE_TO_ONE) {
+					newRelatedObjectsByType.put(key, potentiallyRecreatedRelatedObject);
+				} else {
+					Collection<Object> newCollection = (Collection<Object>) newRelatedObjectsByType
+							.computeIfAbsent(key, k -> CollectionFactory.createCollection(
+									property.getTypeInformation().getRequiredActualType().getType(),
+									((Collection) ((Map) rawValue).get(key)).size()));
+					newCollection.add(potentiallyRecreatedRelatedObject);
+				}
 			}
 		}
 	}
 
 	void applyFinalResultToOwner(PersistentPropertyAccessor<?> parentPropertyAccessor) {
+
 		Object finalRelation = null;
 		switch (cardinality) {
 			case ONE_TO_ONE:
-				finalRelation = newRelatedObjects == null ? null : ((List) newRelatedObjects).get(0);
+				finalRelation = Optional.ofNullable(newRelatedObjects).flatMap(v -> v.stream().findFirst()).orElse(null);
 				break;
 			case ONE_TO_MANY:
 				if (!newRelatedObjects.isEmpty()) {
