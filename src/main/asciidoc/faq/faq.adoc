@@ -550,6 +550,8 @@ The query returns the path plus all relationships and related nodes collected so
 
 The path mapping works for single paths as well for multiple records of paths (which are returned by the `allShortestPath` function.)
 
+TIP: Named paths can be used efficiently to populate and return more than just a root node, see <<custom-query.paths>>.
+
 [[faq.spring-boot.sdn]]
 == Do I need Spring Boot to use Spring Data Neo4j?
 

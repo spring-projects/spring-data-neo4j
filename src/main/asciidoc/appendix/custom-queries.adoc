@@ -125,6 +125,52 @@ NOTE: Deciding if you want to go with client-side or database-side reduction dep
 All the paths needs to get created in the database's memory first when the `reduce` function is used.
 On the other hand a large amount of data that needs to get merged on the client-side results in a higher memory usage there.
 
+[[custom-query.paths]]
+== Using paths to populate and return a list of entities
+
+Given are a graph that looks like this:
+
+[[custom-query.paths.g]]
+.graph with outgoing relationships
+image::custom-query.paths.png[]
+
+and a domain model as shown in the <<custom-query.paths.dm,mapping>> (Constructors and accessors have been omitted for brevity):
+
+[[custom-query.paths.dm]]
+[source,java,indent=0,tabsize=4]
+.Domain model for a <<custom-query.paths.g>>.
+----
+include::../../../../src/test/java/org/springframework/data/neo4j/integration/issues/gh2210/GH2210IT.java[tag=custom-query.paths.dm]
+----
+
+As you see, the relationships are only outgoing. Generated finder methods (including `findById`) will always try to match
+a root node to be mapped. From there on onwards, all related objects will be mapped. In queries that should return only one object,
+that root object is returned. In queries that return many objects, all matching objects are returned. Out- and incoming relationships
+from those objects returned are of course populated.
+
+Assume the following Cypher query:
+
+[source,cypher]
+----
+MATCH p = (leaf:SomeEntity {number: $a})-[:SOME_RELATION_TO*]-(:SomeEntity)
+RETURN leaf, collect(nodes(p)), collect(relationships(p))
+----
+
+It follows the recommendation from <<custom-queries.for-relationships.one.record>> and it works great for the leaf node
+you want to match here. However: That is only the case in all scenarios that return 0 or 1 mapped objects.
+While that query will populate all relationships like before, it won't return all 4 objects.
+
+This can be changed by returning the whole path:
+
+[source,cypher]
+----
+MATCH p = (leaf:SomeEntity {number: $a})-[:SOME_RELATION_TO*]-(:SomeEntity)
+RETURN p
+----
+
+Here we do want to use the fact that the path `p` actually returns 3 rows with paths to all 4 nodes. All 4 nodes will be
+populated, linked together and returned.
+
 [[custom-queries.parameters]]
 == Parameters in custom queries
 
