@@ -772,7 +772,8 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Rea
 
 							Mono<Long> queryOrSave;
 							if (stateMachine.hasProcessedValue(relatedValueToStore)) {
-								queryOrSave = queryRelatedNode(newRelatedObject, targetEntity);
+								Object newRelatedObjectForQuery = stateMachine.getProcessedAs(newRelatedObject);
+								queryOrSave = queryRelatedNode(newRelatedObjectForQuery, targetEntity);
 							} else {
 								queryOrSave = saveRelatedNode(newRelatedObject, targetEntity);
 							}
@@ -782,6 +783,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Rea
 									PersistentPropertyAccessor<?> targetPropertyAccessor = targetEntity.getPropertyAccessor(newRelatedObject);
 									if (targetEntity.isUsingInternalIds()) {
 										targetPropertyAccessor.setProperty(targetEntity.getRequiredIdProperty(), relatedInternalId);
+										stateMachine.markValueAsProcessedAs(newRelatedObject, targetPropertyAccessor.getBean());
 									}
 
 									Object idValue = idProperty != null

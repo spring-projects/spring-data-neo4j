@@ -15,8 +15,11 @@
  */
 package org.springframework.data.neo4j.integration.imperative;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.neo4j.driver.Driver;
+import org.neo4j.driver.Record;
+import org.neo4j.driver.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -36,6 +39,7 @@ import org.springframework.data.neo4j.test.Neo4jExtension;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -53,6 +57,19 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ImmutableGeneratedIdsIT {
 
 	protected static Neo4jExtension.Neo4jConnectionSupport neo4jConnectionSupport;
+
+	private final Driver driver;
+
+	public ImmutableGeneratedIdsIT(@Autowired Driver driver) {
+		this.driver = driver;
+	}
+
+	@BeforeEach
+	void cleanUp() {
+		try (Session session = driver.session()) {
+			session.run("MATCH (n) DETACH DELETE n").consume();
+		}
+	}
 
 	@Test // GH-2141
 	void saveWithGeneratedIdsReturnsObjectWithIdSet(
@@ -293,6 +310,36 @@ public class ImmutableGeneratedIdsIT {
 		assertThat(saved.getId()).isNotNull();
 		assertThat(saved.getChildren()).isSameAs(children);
 		assertThat(saved.getChildren()).allMatch(c -> c.getId() != null && children.contains(c));
+	}
+
+	@Test // GH-2223
+	void saveWithGeneratedIdsWithMultipleRelationshipsToOneNode(
+			@Autowired ImmutablePersonWithGeneratedIdRepository repository) {
+
+		ImmutablePersonWithGeneratedId person1 = new ImmutablePersonWithGeneratedId();
+		ImmutablePersonWithGeneratedId person2 = ImmutablePersonWithGeneratedId.fallback(person1);
+		List<ImmutablePersonWithGeneratedId> onboardedBy = new ArrayList<>();
+		onboardedBy.add(person1);
+		onboardedBy.add(person2);
+		ImmutablePersonWithGeneratedId person3 = ImmutablePersonWithGeneratedId.wasOnboardedBy(onboardedBy);
+
+		ImmutablePersonWithGeneratedId savedPerson = repository.save(person3);
+		assertThat(savedPerson.id).isNotNull();
+		assertThat(savedPerson.wasOnboardedBy).allMatch(ob -> ob.id != null);
+
+		ImmutablePersonWithGeneratedId savedPerson2 = savedPerson.wasOnboardedBy.stream().filter(p -> p.fallback != null).findFirst().get();
+		assertThat(savedPerson2.fallback.id).isNotNull();
+
+		try (Session session = driver.session()) {
+			List<Record> result = session.run(
+					"MATCH (person3:ImmutablePersonWithGeneratedId) " +
+							"-[:ONBOARDED_BY]->(person2:ImmutablePersonWithGeneratedId) " +
+							"-[:FALLBACK]->(person1:ImmutablePersonWithGeneratedId), " +
+							"(person3)-[:ONBOARDED_BY]->(person1) " +
+							"return person3")
+					.list();
+			assertThat(result).hasSize(1);
+		}
 	}
 
 	@Configuration
