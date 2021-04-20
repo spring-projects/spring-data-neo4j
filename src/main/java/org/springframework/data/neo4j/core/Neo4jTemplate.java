@@ -676,7 +676,8 @@ public final class Neo4jTemplate implements Neo4jOperations, FluentNeo4jOperatio
 				Long relatedInternalId;
 				// No need to save values if processed
 				if (stateMachine.hasProcessedValue(relatedValueToStore)) {
-					relatedInternalId = queryRelatedNode(newRelatedObject, targetEntity);
+					Object newRelatedObjectForQuery = stateMachine.getProcessedAs(newRelatedObject);
+					relatedInternalId = queryRelatedNode(newRelatedObjectForQuery, targetEntity);
 				} else {
 					relatedInternalId = saveRelatedNode(newRelatedObject, targetEntity);
 				}
@@ -712,6 +713,7 @@ public final class Neo4jTemplate implements Neo4jOperations, FluentNeo4jOperatio
 				// if an internal id is used this must be set to link this entity in the next iteration
 				if (targetEntity.isUsingInternalIds()) {
 					targetPropertyAccessor.setProperty(targetEntity.getRequiredIdProperty(), relatedInternalId);
+					stateMachine.markValueAsProcessedAs(newRelatedObject, targetPropertyAccessor.getBean());
 				}
 
 				if (processState != ProcessState.PROCESSED_ALL_VALUES) {
