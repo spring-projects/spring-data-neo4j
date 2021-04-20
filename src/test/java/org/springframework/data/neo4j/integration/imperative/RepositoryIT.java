@@ -86,6 +86,8 @@ import org.springframework.data.neo4j.integration.imperative.repositories.Person
 import org.springframework.data.neo4j.integration.imperative.repositories.PersonWithNoConstructorRepository;
 import org.springframework.data.neo4j.integration.imperative.repositories.PersonWithWitherRepository;
 import org.springframework.data.neo4j.integration.imperative.repositories.ThingRepository;
+import org.springframework.data.neo4j.integration.shared.common.Flight;
+import org.springframework.data.neo4j.integration.imperative.repositories.FlightRepository;
 import org.springframework.data.neo4j.integration.shared.common.AltHobby;
 import org.springframework.data.neo4j.integration.shared.common.AltLikedByPersonRelationship;
 import org.springframework.data.neo4j.integration.shared.common.AltPerson;
@@ -210,6 +212,20 @@ class RepositoryIT {
 					true, 1L, TEST_PERSON1_BORN_ON, "something", Arrays.asList("a", "b"), NEO4J_HQ, createdAt.toInstant());
 			person2 = new PersonWithAllConstructor(id2, TEST_PERSON2_NAME, TEST_PERSON2_FIRST_NAME, TEST_PERSON_SAMEVALUE,
 					false, 2L, TEST_PERSON2_BORN_ON, null, Collections.emptyList(), SFO, null);
+
+			transaction.run("CREATE (lhr:Airport {code: 'LHR', name: 'London Heathrow'})\n" +
+					"CREATE (lax:Airport {code: 'LAX', name: 'Los Angeles'})\n" +
+					"CREATE (cdg:Airport {code: 'CDG', name: 'Paris Charles de Gaulle'})\n" +
+					"CREATE (f1:Flight {name: 'FL 001'})\n" +
+					"CREATE (f2:Flight {name: 'FL 002'})\n" +
+					"CREATE (f3:Flight {name: 'FL 003'})\n" +
+					"CREATE (f1) -[:DEPARTS] ->(lhr)\n" +
+					"CREATE (f1) -[:ARRIVES] ->(lax)\n" +
+					"CREATE (f2) -[:DEPARTS] ->(lhr)\n" +
+					"CREATE (f2) -[:ARRIVES] ->(cdg)\n" +
+					"CREATE (f3) -[:DEPARTS] ->(lax)\n" +
+					"CREATE (f3) -[:ARRIVES] ->(lhr)\n" +
+					"RETURN *");
 		}
 
 		@Test
@@ -733,6 +749,14 @@ class RepositoryIT {
 			assertThat(slice.getSize()).isEqualTo(1);
 			assertThat(slice.get()).hasSize(1).extracting("name").containsExactly(TEST_PERSON1_NAME);
 			assertThat(slice.hasNext()).isFalse();
+		}
+
+		@Test // GH-1985
+		void filtersOnSameEntitiesButDifferentRelationsShouldWork(@Autowired FlightRepository repository) {
+
+			List<Flight> flights = repository.findAllByDepartureCodeAndArrivalCode("LHR", "LAX");
+			assertThat(flights).hasSize(1)
+					.first().extracting(Flight::getName).isEqualTo("FL 001");
 		}
 	}
 
@@ -4271,7 +4295,10 @@ class RepositoryIT {
 
 		@Override
 		protected Collection<String> getMappingBasePackages() {
-			return Arrays.asList(PersonWithAllConstructor.class.getPackage().getName());
+			return Arrays.asList(
+					PersonWithAllConstructor.class.getPackage().getName(),
+					Flight.class.getPackage().getName()
+			);
 		}
 
 		@Bean

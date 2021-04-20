@@ -18,7 +18,6 @@ package org.springframework.data.neo4j.integration.issues.gh2210;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.neo4j.driver.Driver;
-import org.neo4j.driver.Record;
 import org.neo4j.driver.Transaction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -70,14 +69,14 @@ class GH2210IT {
 			params.put("numberB", numberB);
 			params.put("numberC", numberC);
 			params.put("numberD", numberD);
-			Record r = transaction.run("create (a:SomeEntity {number: $numberA, name: \"A\"})\n"
+			transaction.run("create (a:SomeEntity {number: $numberA, name: \"A\"})\n"
 					+ "create (b:SomeEntity {number: $numberB, name: \"B\"})\n"
 					+ "create (c:SomeEntity {number: $numberC, name: \"C\"})\n"
 					+ "create (d:SomeEntity {number: $numberD, name: \"D\"})\n"
 					+ "create (a) -[:SOME_RELATION_TO {someData: \"d1\"}] -> (b)\n"
 					+ "create (b) <-[:SOME_RELATION_TO {someData: \"d2\"}] - (c)\n"
 					+ "create (c) <-[:SOME_RELATION_TO {someData: \"d3\"}] - (d)\n"
-					+ "return * ", params).single();
+					+ "return * ", params);
 			transaction.commit();
 		}
 	}
