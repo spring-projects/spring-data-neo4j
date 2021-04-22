@@ -3,7 +3,7 @@ pipeline {
 
 	triggers {
 		pollSCM 'H/10 * * * *'
-		upstream(upstreamProjects: "spring-data-commons/master", threshold: hudson.model.Result.SUCCESS)
+		upstream(upstreamProjects: "spring-data-commons/2.5.x", threshold: hudson.model.Result.SUCCESS)
 	}
 
 	options {
@@ -15,7 +15,7 @@ pipeline {
 		stage("test: baseline (jdk8)") {
 			when {
 				anyOf {
-					branch 'master'
+					branch '6.1.x'
 					not { triggeredBy 'UpstreamCause' }
 				}
 			}
@@ -26,6 +26,7 @@ pipeline {
 
 			environment {
 				DOCKER_HUB = credentials('hub.docker.com-springbuildmaster')
+				ARTIFACTORY = credentials('02bd1690-b54f-4c9f-819d-a77cb7a9822c')
 			}
 
 			steps {
@@ -44,7 +45,7 @@ pipeline {
 		stage("Test other configurations") {
 			when {
 				allOf {
-					branch 'master'
+					branch '6.1.x'
 					not { triggeredBy 'UpstreamCause' }
 				}
 			}
@@ -57,6 +58,7 @@ pipeline {
 
 					environment {
 						DOCKER_HUB = credentials('hub.docker.com-springbuildmaster')
+						ARTIFACTORY = credentials('02bd1690-b54f-4c9f-819d-a77cb7a9822c')
 					}
 
 					steps {
@@ -80,6 +82,7 @@ pipeline {
 
 					environment {
 						DOCKER_HUB = credentials('hub.docker.com-springbuildmaster')
+						ARTIFACTORY = credentials('02bd1690-b54f-4c9f-819d-a77cb7a9822c')
 					}
 
 					steps {
@@ -100,7 +103,7 @@ pipeline {
 		stage('Release to artifactory') {
 			when {
 				anyOf {
-					branch 'master'
+					branch '6.1.x'
 					not { triggeredBy 'UpstreamCause' }
 				}
 			}
@@ -117,7 +120,7 @@ pipeline {
 				script {
 					docker.withRegistry('', 'hub.docker.com-springbuildmaster') {
 						docker.image('adoptopenjdk/openjdk8:latest').inside('-v $HOME:/tmp/jenkins-home') {
-							sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw -Pci,artifactory -Dmaven.repo.local=/tmp/jenkins-home/.m2/spring-data-neo4j-non-root ' +
+							sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw -s settings.xml -Pci,artifactory -Dmaven.repo.local=/tmp/jenkins-home/.m2/spring-data-neo4j-non-root ' +
 								'-Dartifactory.server=https://repo.spring.io ' +
 								"-Dartifactory.username=${ARTIFACTORY_USR} " +
 								"-Dartifactory.password=${ARTIFACTORY_PSW} " +
@@ -133,7 +136,7 @@ pipeline {
 
 		stage('Publish documentation') {
 			when {
-				branch 'master'
+				branch '6.1.x'
 			}
 			agent {
 				label 'data'
@@ -148,7 +151,7 @@ pipeline {
 				script {
 					docker.withRegistry('', 'hub.docker.com-springbuildmaster') {
 						docker.image('adoptopenjdk/openjdk8:latest').inside('-v $HOME:/tmp/jenkins-home') {
-							sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw -Pci,distribute -Dmaven.repo.local=/tmp/jenkins-home/.m2/spring-data-neo4j-non-root ' +
+							sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw -s settings.xml -Pci,distribute -Dmaven.repo.local=/tmp/jenkins-home/.m2/spring-data-neo4j-non-root ' +
 									'-Dartifactory.server=https://repo.spring.io ' +
 									"-Dartifactory.username=${ARTIFACTORY_USR} " +
 									"-Dartifactory.password=${ARTIFACTORY_PSW} " +
