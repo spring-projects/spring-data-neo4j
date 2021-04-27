@@ -57,7 +57,23 @@ public final class NestedRelationshipProcessingStateMachine {
 	 * The set of already processed related objects.
 	 */
 	private final Set<Object> processedObjects = new HashSet<>();
+
+	/**
+	 * A map of processed objects pointing towards a possible new instance of themself.
+	 * This will happen for immutable entities.
+	 */
 	private final Map<Object, Object> processedObjectsAlias = new HashMap<>();
+
+	/**
+	 * A map pointing from a processed object to the internal id.
+	 * This will be useful during the persistence to avoid another DB network round-trip.
+	 */
+	private final Map<Object, Long> processedObjectsIds = new HashMap<>();
+
+	public NestedRelationshipProcessingStateMachine(Object initialObject, Long internalId) {
+		this(initialObject);
+		processedObjectsIds.put(initialObject, internalId);
+	}
 
 	public NestedRelationshipProcessingStateMachine(Object initialObject) {
 		processedObjects.add(initialObject);
@@ -141,11 +157,12 @@ public final class NestedRelationshipProcessingStateMachine {
 	 *
 	 * @param valueToStore If not {@literal null}, all non-null values will be marked as processed
 	 */
-	public void markValueAsProcessed(Object valueToStore) {
+	public void markValueAsProcessed(Object valueToStore, Long internalId) {
 
 		try {
 			write.lock();
 			this.processedObjects.add(valueToStore);
+			this.processedObjectsIds.put(valueToStore, internalId);
 		} finally {
 			write.unlock();
 		}
@@ -181,6 +198,17 @@ public final class NestedRelationshipProcessingStateMachine {
 		} finally {
 			write.unlock();
 		}
+	}
+
+	public Long getInternalId(Object object) {
+		try {
+			read.lock();
+			Long possibleId = processedObjectsIds.get(object);
+			return possibleId != null ? possibleId : processedObjectsIds.get(processedObjectsAlias.get(object));
+		} finally {
+			read.unlock();
+		}
+
 	}
 
 	public Object getProcessedAs(Object entity) {
