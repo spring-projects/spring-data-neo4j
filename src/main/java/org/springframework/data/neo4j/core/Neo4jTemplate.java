@@ -41,6 +41,7 @@ import org.neo4j.cypherdsl.core.Functions;
 import org.neo4j.cypherdsl.core.Node;
 import org.neo4j.cypherdsl.core.Statement;
 import org.neo4j.cypherdsl.core.renderer.Renderer;
+import org.neo4j.driver.Value;
 import org.neo4j.driver.exceptions.NoSuchRecordException;
 import org.neo4j.driver.summary.ResultSummary;
 import org.neo4j.driver.summary.SummaryCounters;
@@ -534,18 +535,22 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 			for (Object relatedValueToStore : relatedValuesToStore) {
 
 				// here a map entry is not always anymore a dynamic association
-				Object relatedObjectBeforeCallbacks = relationshipContext.identifyAndExtractRelationshipTargetNode(relatedValueToStore);
-				Neo4jPersistentEntity<?> targetEntity = neo4jMappingContext.getPersistentEntity(relatedObjectBeforeCallbacks.getClass());
+				Object relatedObjectBeforeCallbacksApplied = relationshipContext.identifyAndExtractRelationshipTargetNode(relatedValueToStore);
+				Neo4jPersistentEntity<?> targetEntity = neo4jMappingContext.getPersistentEntity(relatedObjectBeforeCallbacksApplied.getClass());
 
-				boolean isEntityNew = targetEntity.isNew(relatedObjectBeforeCallbacks);
+				boolean isEntityNew = targetEntity.isNew(relatedObjectBeforeCallbacksApplied);
+				Object newRelatedObject = stateMachine.hasProcessedValue(relatedObjectBeforeCallbacksApplied)
+						? stateMachine.getProcessedAs(relatedObjectBeforeCallbacksApplied)
+						: eventSupport.maybeCallBeforeBind(relatedObjectBeforeCallbacksApplied);
 
-				Object newRelatedObject = eventSupport.maybeCallBeforeBind(relatedObjectBeforeCallbacks);
+//				Object newRelatedObject = eventSupport.maybeCallBeforeBind(relatedObjectBeforeCallbacks);
 
 				Long relatedInternalId;
 				// No need to save values if processed
 				if (stateMachine.hasProcessedValue(relatedValueToStore)) {
 					Object newRelatedObjectForQuery = stateMachine.getProcessedAs(newRelatedObject);
 					relatedInternalId = queryRelatedNode(newRelatedObjectForQuery, targetEntity, inDatabase);
+//					relatedInternalId = stateMachine.irgendwasMitIdGet(relatedObjectBeforeCallbacksApplied);
 				} else {
 					relatedInternalId = saveRelatedNode(newRelatedObject, targetEntity, inDatabase);
 				}
@@ -581,8 +586,9 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 				// if an internal id is used this must be set to link this entity in the next iteration
 				if (targetEntity.isUsingInternalIds()) {
 					targetPropertyAccessor.setProperty(targetEntity.getRequiredIdProperty(), relatedInternalId);
-					stateMachine.markValueAsProcessedAs(newRelatedObject, targetPropertyAccessor.getBean());
 				}
+				stateMachine.markValueAsProcessedAs(relatedObjectBeforeCallbacksApplied, targetPropertyAccessor.getBean());
+//				stateMachine.irgendwasMitIdSet(targetPropertyAccessor.getBean(), relatedInternalId);
 
 				if (processState != ProcessState.PROCESSED_ALL_VALUES) {
 					processNestedRelations(targetEntity, targetPropertyAccessor, isEntityNew, inDatabase, stateMachine);
@@ -594,7 +600,7 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 								relatedValueToStore,
 								targetPropertyAccessor);
 
-				relationshipHandler.handle(relatedValueToStore, relatedObjectBeforeCallbacks, potentiallyRecreatedNewRelatedObject);
+				relationshipHandler.handle(relatedValueToStore, relatedObjectBeforeCallbacksApplied, potentiallyRecreatedNewRelatedObject);
 			}
 
 			relationshipHandler.applyFinalResultToOwner(propertyAccessor);
@@ -615,8 +621,9 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 						targetNodeDescription.getIdExpression().isEqualTo(parameter(Constants.NAME_OF_ID)))
 						.returning(Constants.NAME_OF_INTERNAL_ID)
 						.build())
-				)
-				.in(inDatabase).bindAll(Collections.singletonMap(Constants.NAME_OF_ID, idValue))
+		)
+				.in(inDatabase).bindAll(Collections.singletonMap(Constants.NAME_OF_ID,
+						neo4jMappingContext.getConversionService().convert(idValue, Value.class)))
 				.fetchAs(Long.class).one().get();
 	}
 
