@@ -598,7 +598,6 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 					targetPropertyAccessor.setProperty(targetEntity.getRequiredIdProperty(), relatedInternalId);
 				}
 				stateMachine.markValueAsProcessedAs(relatedObjectBeforeCallbacksApplied, targetPropertyAccessor.getBean());
-//				stateMachine.irgendwasMitIdSet(targetPropertyAccessor.getBean(), relatedInternalId);
 
 				if (processState != ProcessState.PROCESSED_ALL_VALUES) {
 					processNestedRelations(targetEntity, targetPropertyAccessor, isEntityNew, inDatabase, stateMachine);

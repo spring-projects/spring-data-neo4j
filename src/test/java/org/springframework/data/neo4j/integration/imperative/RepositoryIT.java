@@ -2290,9 +2290,15 @@ class RepositoryIT {
 			BidirectionalExternallyGeneratedId b = new BidirectionalExternallyGeneratedId();
 			BidirectionalExternallyGeneratedId savedA = repository.save(a);
 
-			b.other = savedA;
-			savedA.other = b;
-			repository.save(b);
+			b.otter = savedA;
+			savedA.otter = b;
+			BidirectionalExternallyGeneratedId savedB = repository.save(b);
+
+			assertThat(savedB.uuid).isNotNull();
+			assertThat(savedB.otter).isNotNull();
+			assertThat(savedB.otter.uuid).isNotNull();
+			// this would be b again
+			assertThat(savedB.otter.otter).isNotNull();
 
 		}
 
@@ -2306,9 +2312,15 @@ class RepositoryIT {
 
 			BidirectionalAssignedId savedA = repository.save(a);
 
-			b.other = savedA;
-			savedA.other = b;
-			repository.save(b);
+			b.otter = savedA;
+			savedA.otter = b;
+			BidirectionalAssignedId savedB = repository.save(b);
+
+			assertThat(savedB.uuid).isNotNull();
+			assertThat(savedB.otter).isNotNull();
+			assertThat(savedB.otter.uuid).isNotNull();
+			// this would be b again
+			assertThat(savedB.otter.otter).isNotNull();
 
 		}
 

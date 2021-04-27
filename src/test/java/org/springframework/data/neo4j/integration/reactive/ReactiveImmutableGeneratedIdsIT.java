@@ -17,6 +17,7 @@ package org.springframework.data.neo4j.integration.reactive;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Session;
 import reactor.test.StepVerifier;
@@ -56,6 +57,18 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 public class ReactiveImmutableGeneratedIdsIT {
 
 	protected static Neo4jExtension.Neo4jConnectionSupport neo4jConnectionSupport;
+	private final Driver driver;
+
+	public ReactiveImmutableGeneratedIdsIT(@Autowired Driver driver) {
+		this.driver = driver;
+	}
+
+	@BeforeEach
+	void cleanUp() {
+		try (Session session = driver.session()) {
+			session.run("MATCH (n) DETACH DELETE n").consume();
+		}
+	}
 
 	@Test // GH-2141
 	void saveWithGeneratedIdsReturnsObjectWithIdSet(
@@ -306,7 +319,7 @@ public class ReactiveImmutableGeneratedIdsIT {
 	}
 
 	@Test // GH-2223
-	void saveWithGeneratedIdsWithMultipleRelationshipsToOneNode(@Autowired Driver driver,
+	void saveWithGeneratedIdsWithMultipleRelationshipsToOneNode(
 			@Autowired ImmutablePersonWithGeneratedIdRepository repository) {
 
 		ImmutablePersonWithGeneratedId person1 = new ImmutablePersonWithGeneratedId();

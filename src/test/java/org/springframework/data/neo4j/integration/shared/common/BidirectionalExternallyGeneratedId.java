@@ -33,6 +33,6 @@ public class BidirectionalExternallyGeneratedId {
 	public UUID uuid;
 
 	@Relationship("OTHER")
-	public BidirectionalExternallyGeneratedId other;
+	public BidirectionalExternallyGeneratedId otter;
 
 }

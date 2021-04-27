@@ -31,6 +31,6 @@ public class BidirectionalAssignedId {
 	public UUID uuid;
 
 	@Relationship("OTHER")
-	public BidirectionalAssignedId other;
+	public BidirectionalAssignedId otter;
 
 }
