@@ -15,9 +15,12 @@
  */
 package org.springframework.data.neo4j.integration.reactive;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.neo4j.driver.Driver;
+import org.neo4j.driver.Record;
+import org.neo4j.driver.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -36,6 +39,7 @@ import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -55,9 +59,20 @@ public class ReactiveImmutableAssignedIdsIT {
 
 	public static final String SOME_VALUE_VALUE = "testValue";
 	protected static Neo4jExtension.Neo4jConnectionSupport neo4jConnectionSupport;
+	private final Driver driver;
 
-	@Test
-		// GH-2141
+	public ReactiveImmutableAssignedIdsIT(@Autowired Driver driver) {
+		this.driver = driver;
+	}
+
+	@BeforeEach
+	void cleanUp() {
+		try (Session session = driver.session()) {
+			session.run("MATCH (n) DETACH DELETE n").consume();
+		}
+	}
+
+	@Test // GH-2141
 	void saveWithAssignedIdsReturnsObjectWithIdSet(
 			@Autowired ReactiveImmutablePersonWithAssignedIdRepository repository) {
 
@@ -77,8 +92,7 @@ public class ReactiveImmutableAssignedIdsIT {
 				.verifyComplete();
 	}
 
-	@Test
-		// GH-2141
+	@Test // GH-2141
 	void saveAllWithAssignedIdsReturnsObjectWithIdSet(
 			@Autowired ReactiveImmutablePersonWithAssignedIdRepository repository) {
 
@@ -98,8 +112,7 @@ public class ReactiveImmutableAssignedIdsIT {
 				.verifyComplete();
 	}
 
-	@Test
-		// GH-2148
+	@Test // GH-2148
 	void saveRelationshipWithAssignedIdsContainsObjectWithIdSetForList(
 			@Autowired ReactiveImmutablePersonWithAssignedIdRepository repository) {
 
@@ -114,8 +127,7 @@ public class ReactiveImmutableAssignedIdsIT {
 				.verifyComplete();
 	}
 
-	@Test
-		// GH-2148
+	@Test // GH-2148
 	void saveRelationshipWithAssignedIdsContainsObjectWithIdSetForSet(
 			@Autowired ReactiveImmutablePersonWithAssignedIdRepository repository) {
 
@@ -130,8 +142,7 @@ public class ReactiveImmutableAssignedIdsIT {
 				.verifyComplete();
 	}
 
-	@Test
-		// GH-2148
+	@Test // GH-2148
 	void saveRelationshipWithAssignedIdsContainsObjectWithIdSetForMap(
 			@Autowired ReactiveImmutablePersonWithAssignedIdRepository repository) {
 
@@ -147,8 +158,7 @@ public class ReactiveImmutableAssignedIdsIT {
 				.verifyComplete();
 	}
 
-	@Test
-		// GH-2148
+	@Test // GH-2148
 	void saveRelationshipWithAssignedIdsContainsObjectWithIdSetForMapWithMultipleKeys(
 			@Autowired ReactiveImmutablePersonWithAssignedIdRepository repository) {
 
@@ -170,8 +180,7 @@ public class ReactiveImmutableAssignedIdsIT {
 				.verifyComplete();
 	}
 
-	@Test
-		// GH-2148
+	@Test // GH-2148
 	void saveRelationshipWithAssignedIdsContainsObjectWithIdSetForMapCollection(
 			@Autowired ReactiveImmutablePersonWithAssignedIdRepository repository) {
 
@@ -185,8 +194,7 @@ public class ReactiveImmutableAssignedIdsIT {
 				.verifyComplete();
 	}
 
-	@Test
-		// GH-2148
+	@Test // GH-2148
 	void saveRelationshipWithAssignedIdsContainsObjectWithIdSetForRelationshipProperties(
 			@Autowired ReactiveImmutablePersonWithAssignedIdRepository repository) {
 
@@ -203,8 +211,7 @@ public class ReactiveImmutableAssignedIdsIT {
 				.verifyComplete();
 	}
 
-	@Test
-		// GH-2148
+	@Test // GH-2148
 	void saveRelationshipWithAssignedIdsContainsObjectWithIdSetForRelationshipPropertiesCollection(
 			@Autowired ReactiveImmutablePersonWithAssignedIdRepository repository) {
 
@@ -221,8 +228,7 @@ public class ReactiveImmutableAssignedIdsIT {
 				.verifyComplete();
 	}
 
-	@Test
-		// GH-2148
+	@Test // GH-2148
 	void saveRelationshipWithAssignedIdsContainsObjectWithIdSetForRelationshipPropertiesDynamic(
 			@Autowired ReactiveImmutablePersonWithAssignedIdRepository repository) {
 
@@ -241,8 +247,7 @@ public class ReactiveImmutableAssignedIdsIT {
 	}
 
 
-	@Test
-		// GH-2148
+	@Test // GH-2148
 	void saveRelationshipWithAssignedIdsContainsObjectWithIdSetForRelationshipPropertiesDynamicCollection(
 			@Autowired ReactiveImmutablePersonWithAssignedIdRepository repository) {
 
@@ -259,8 +264,7 @@ public class ReactiveImmutableAssignedIdsIT {
 				.verifyComplete();
 	}
 
-	@Test
-		// GH-2148
+	@Test // GH-2148
 	void saveRelationshipWithAssignedIdsContainsAllRelationshipTypes(
 			@Autowired ReactiveImmutablePersonWithAssignedIdRepository repository) {
 
@@ -338,6 +342,40 @@ public class ReactiveImmutableAssignedIdsIT {
 					assertThat(savedPerson.relationshipPropertiesDynamicCollection.values().iterator().next().get(0).target.id).isNotNull();
 				})
 				.verifyComplete();
+	}
+
+
+	@Test // GH-2235
+	void saveWithGeneratedIdsWithMultipleRelationshipsToOneNode(@Autowired ReactiveImmutablePersonWithAssignedIdRepository repository) {
+		ImmutablePersonWithAssignedId person1 = new ImmutablePersonWithAssignedId();
+		ImmutablePersonWithAssignedId person2 = ImmutablePersonWithAssignedId.fallback(person1);
+		List<ImmutablePersonWithAssignedId> onboardedBy = new ArrayList<>();
+		onboardedBy.add(person1);
+		onboardedBy.add(person2);
+		ImmutablePersonWithAssignedId person3 = ImmutablePersonWithAssignedId.wasOnboardedBy(onboardedBy);
+
+		StepVerifier.create(repository.save(person3))
+				.assertNext(savedPerson -> {
+					assertThat(savedPerson.id).isNotNull();
+					assertThat(savedPerson.wasOnboardedBy).allMatch(ob -> ob.id != null);
+
+					ImmutablePersonWithAssignedId savedPerson2 = savedPerson.wasOnboardedBy.stream().filter(p -> p.fallback != null)
+							.findFirst().get();
+
+					assertThat(savedPerson2.fallback.id).isNotNull();
+				})
+				.verifyComplete();
+
+		try (Session session = driver.session()) {
+			List<Record> result = session.run(
+					"MATCH (person3:ImmutablePersonWithAssignedId) " +
+							"-[:ONBOARDED_BY]->(person2:ImmutablePersonWithAssignedId) " +
+							"-[:FALLBACK]->(person1:ImmutablePersonWithAssignedId), " +
+							"(person3)-[:ONBOARDED_BY]->(person1) " +
+							"return person3")
+					.list();
+			assertThat(result).hasSize(1);
+		}
 	}
 
 	interface ReactiveImmutablePersonWithAssignedIdRepository extends ReactiveNeo4jRepository<ImmutablePersonWithAssignedId, Long> {
