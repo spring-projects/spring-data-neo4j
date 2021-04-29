@@ -37,7 +37,6 @@ import org.springframework.data.repository.query.QueryMethodEvaluationContextPro
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.data.repository.query.SpelEvaluator;
 import org.springframework.data.repository.query.SpelQueryContext;
-import org.springframework.data.repository.query.SpelQueryContext.SpelExtractor;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -80,6 +79,11 @@ final class StringBasedNeo4jQuery extends AbstractNeo4jQuery {
 	 * with the help of the formal parameters during the building of the {@link PreparedQuery}.
 	 */
 	private final SpelEvaluator spelEvaluator;
+
+	/**
+	 * An optional evaluator for a count query if such a query is present.
+	 */
+	private final Optional<SpelEvaluator> spelEvaluatorForCountQuery;
 
 	/**
 	 * Create a {@link StringBasedNeo4jQuery} for a query method that is annotated with {@link Query @Query}. The
@@ -156,8 +160,12 @@ final class StringBasedNeo4jQuery extends AbstractNeo4jQuery {
 
 		super(neo4jOperations, mappingContext, queryMethod, queryType);
 
-		SpelExtractor spelExtractor = SPEL_QUERY_CONTEXT.parse(cypherTemplate);
-		this.spelEvaluator = new SpelEvaluator(evaluationContextProvider, queryMethod.getParameters(), spelExtractor);
+		Parameters<?, ?> methodParameters = queryMethod.getParameters();
+		this.spelEvaluator = new SpelEvaluator(
+				evaluationContextProvider, methodParameters, SPEL_QUERY_CONTEXT.parse(cypherTemplate));
+		this.spelEvaluatorForCountQuery = queryMethod.getQueryAnnotation()
+				.map(Query::countQuery)
+				.map(countQuery -> new SpelEvaluator(evaluationContextProvider, methodParameters, SPEL_QUERY_CONTEXT.parse(countQuery)));
 	}
 
 	@Override
@@ -193,7 +201,6 @@ final class StringBasedNeo4jQuery extends AbstractNeo4jQuery {
 		// Values from the parameter accessor can only get converted after evaluation
 		for (Entry<String, Object> evaluatedParam : spelEvaluator.evaluate(parameterAccessor.getValues()).entrySet()) {
 			Object value;
-
 			if (evaluatedParam.getValue() instanceof LiteralReplacement) {
 				value = evaluatedParam.getValue();
 			} else {
@@ -224,11 +231,22 @@ final class StringBasedNeo4jQuery extends AbstractNeo4jQuery {
 
 	@Override
 	protected Optional<PreparedQuery<Long>> getCountQuery(Neo4jParameterAccessor parameterAccessor) {
+		return spelEvaluatorForCountQuery.map(SpelEvaluator::getQueryString)
+				.map(countQuery -> {
+					Map<String, Object> boundParameters = bindParameters(parameterAccessor, false, UnaryOperator.identity());
+					QueryContext queryContext = new QueryContext(
+							queryMethod.getRepositoryName() + "." + queryMethod.getName(),
+							countQuery,
+							boundParameters
+					);
 
-		return queryMethod.getQueryAnnotation().map(queryAnnotation ->
-				PreparedQuery.queryFor(Long.class)
-						.withCypherQuery(queryAnnotation.countQuery())
-						.withParameters(bindParameters(parameterAccessor, false, UnaryOperator.identity())).build());
+					replaceLiteralsIn(queryContext);
+
+					return PreparedQuery.queryFor(Long.class)
+							.withCypherQuery(queryContext.query)
+							.withParameters(boundParameters)
+							.build();
+				});
 	}
 
 	/**
