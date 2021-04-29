@@ -85,7 +85,7 @@ public class ReactiveImmutableExternallyGeneratedIdsIT {
 				.verifyComplete();
 	}
 
-	@Test // GH-41
+	@Test // GH-2141
 	void saveAllWithExternallyGeneratedIdsReturnsObjectWithIdSet(
 			@Autowired ReactiveImmutablePersonWithExternalIdRepository repository) {
 
