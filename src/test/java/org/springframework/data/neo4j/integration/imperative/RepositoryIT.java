@@ -758,6 +758,24 @@ class RepositoryIT {
 			assertThat(flights).hasSize(1)
 					.first().extracting(Flight::getName).isEqualTo("FL 001");
 		}
+
+		@Test // GH-2239
+		void findPageByCustomQueryWithCountShouldWork(@Autowired PersonRepository repository) {
+
+			Page<PersonWithAllConstructor> slice = repository.findPageByCustomQueryWithCount(TEST_PERSON1_NAME, TEST_PERSON2_NAME, PageRequest.of(0, 1, Sort.by("n.name").descending()));
+			assertThat(slice.getSize()).isEqualTo(1);
+			assertThat(slice.get()).hasSize(1).extracting("name").containsExactly(TEST_PERSON2_NAME);
+			assertThat(slice.hasNext()).isTrue();
+			assertThat(slice.getTotalElements()).isEqualTo(2);
+			assertThat(slice.getTotalPages()).isEqualTo(2);
+
+			slice = repository.findPageByCustomQueryWithCount(TEST_PERSON1_NAME,  TEST_PERSON2_NAME, slice.nextPageable());
+			assertThat(slice.getSize()).isEqualTo(1);
+			assertThat(slice.get()).hasSize(1).extracting("name").containsExactly(TEST_PERSON1_NAME);
+			assertThat(slice.hasNext()).isFalse();
+			assertThat(slice.getTotalElements()).isEqualTo(2);
+			assertThat(slice.getTotalPages()).isEqualTo(2);
+		}
 	}
 
 	@Nested
