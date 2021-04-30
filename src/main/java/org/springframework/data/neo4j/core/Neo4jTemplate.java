@@ -41,7 +41,6 @@ import org.neo4j.cypherdsl.core.Functions;
 import org.neo4j.cypherdsl.core.Node;
 import org.neo4j.cypherdsl.core.Statement;
 import org.neo4j.cypherdsl.core.renderer.Renderer;
-import org.neo4j.driver.Value;
 import org.neo4j.driver.exceptions.NoSuchRecordException;
 import org.neo4j.driver.summary.ResultSummary;
 import org.neo4j.driver.summary.SummaryCounters;
@@ -616,24 +615,6 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 		});
 
 		return (T) propertyAccessor.getBean();
-	}
-
-	private <Y> Long queryRelatedNode(Object entity, Neo4jPersistentEntity<?> targetNodeDescription,
-									  @Nullable String inDatabase) {
-
-		Neo4jPersistentProperty requiredIdProperty = targetNodeDescription.getRequiredIdProperty();
-		PersistentPropertyAccessor<Object> targetPropertyAccessor = targetNodeDescription.getPropertyAccessor(entity);
-		Object idValue = targetPropertyAccessor.getProperty(requiredIdProperty);
-
-		return neo4jClient.query(() ->
-				renderer.render(cypherGenerator.prepareMatchOf(targetNodeDescription,
-						targetNodeDescription.getIdExpression().isEqualTo(parameter(Constants.NAME_OF_ID)))
-						.returning(Constants.NAME_OF_INTERNAL_ID)
-						.build())
-		)
-				.in(inDatabase).bindAll(Collections.singletonMap(Constants.NAME_OF_ID,
-						neo4jMappingContext.getConversionService().convert(idValue, Value.class)))
-				.fetchAs(Long.class).one().get();
 	}
 
 	private <Y> Long saveRelatedNode(Object entity, NodeDescription targetNodeDescription, @Nullable String inDatabase) {
