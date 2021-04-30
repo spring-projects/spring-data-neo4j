@@ -15,8 +15,11 @@
  */
 package org.springframework.data.neo4j.integration.imperative;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.neo4j.driver.Driver;
+import org.neo4j.driver.Record;
+import org.neo4j.driver.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -34,6 +37,7 @@ import org.springframework.data.neo4j.test.Neo4jExtension;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -52,6 +56,19 @@ public class ImmutableAssignedIdsIT {
 
 	public static final String SOME_VALUE_VALUE = "testValue";
 	protected static Neo4jExtension.Neo4jConnectionSupport neo4jConnectionSupport;
+
+	private final Driver driver;
+
+	public ImmutableAssignedIdsIT(@Autowired Driver driver) {
+		this.driver = driver;
+	}
+
+	@BeforeEach
+	void cleanUp() {
+		try (Session session = driver.session()) {
+			session.run("MATCH (n) DETACH DELETE n").consume();
+		}
+	}
 
 	@Test // GH-2141
 	void saveWithAssignedIdsReturnsObjectWithIdSet(
@@ -298,6 +315,36 @@ public class ImmutableAssignedIdsIT {
 		assertThat(savedPerson.relationshipPropertiesDynamicCollection.keySet().iterator().next()).isEqualTo("Nope");
 		assertThat(savedPerson.relationshipPropertiesDynamicCollection.values().iterator().next().get(0).name).isEqualTo("rel4");
 		assertThat(savedPerson.relationshipPropertiesDynamicCollection.values().iterator().next().get(0).target.id).isNotNull();
+	}
+
+	@Test // GH-2235
+	void saveWithGeneratedIdsWithMultipleRelationshipsToOneNode(@Autowired ImmutablePersonWithAssignedIdRepository repository) {
+		ImmutablePersonWithAssignedId person1 = new ImmutablePersonWithAssignedId();
+		ImmutablePersonWithAssignedId person2 = ImmutablePersonWithAssignedId.fallback(person1);
+		List<ImmutablePersonWithAssignedId> onboardedBy = new ArrayList<>();
+		onboardedBy.add(person1);
+		onboardedBy.add(person2);
+		ImmutablePersonWithAssignedId person3 = ImmutablePersonWithAssignedId.wasOnboardedBy(onboardedBy);
+
+		ImmutablePersonWithAssignedId savedPerson = repository.save(person3);
+		assertThat(savedPerson.id).isNotNull();
+		assertThat(savedPerson.wasOnboardedBy).allMatch(ob -> ob.id != null);
+
+		ImmutablePersonWithAssignedId savedPerson2 = savedPerson.wasOnboardedBy.stream().filter(p -> p.fallback != null)
+				.findFirst().get();
+
+		assertThat(savedPerson2.fallback.id).isNotNull();
+
+		try (Session session = driver.session()) {
+			List<Record> result = session.run(
+					"MATCH (person3:ImmutablePersonWithAssignedId) " +
+							"-[:ONBOARDED_BY]->(person2:ImmutablePersonWithAssignedId) " +
+							"-[:FALLBACK]->(person1:ImmutablePersonWithAssignedId), " +
+							"(person3)-[:ONBOARDED_BY]->(person1) " +
+							"return person3")
+					.list();
+			assertThat(result).hasSize(1);
+		}
 	}
 
 	interface ImmutablePersonWithAssignedIdRepository extends Neo4jRepository<ImmutablePersonWithAssignedId, Long> {}

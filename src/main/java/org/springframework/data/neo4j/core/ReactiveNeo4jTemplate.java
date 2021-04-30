@@ -345,7 +345,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Rea
 						if (entityMetaData.isUsingInternalIds()) {
 							propertyAccessor.setProperty(entityMetaData.getRequiredIdProperty(), internalId);
 						}
-					}).then(Mono.defer(() -> processRelations(entityMetaData, instance, propertyAccessor, isNewEntity, includeProperty)));
+					}).flatMap(internalId -> processRelations(entityMetaData, instance, internalId, propertyAccessor, isNewEntity, includeProperty));
 				});
 	}
 
@@ -679,6 +679,14 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Rea
 	 * @return A mono representing the whole stream of save operations.
 	 */
 	private <T> Mono<T> processRelations(Neo4jPersistentEntity<?> neo4jPersistentEntity, T originalInstance,
+										 Long internalId, PersistentPropertyAccessor<?> parentPropertyAccessor,
+										 boolean isParentObjectNew, Predicate<String> includeProperty) {
+
+		return processNestedRelations(neo4jPersistentEntity, parentPropertyAccessor, isParentObjectNew,
+				new NestedRelationshipProcessingStateMachine(originalInstance, internalId), includeProperty);
+	}
+
+	private <T> Mono<T> processRelations(Neo4jPersistentEntity<?> neo4jPersistentEntity, T originalInstance,
 			PersistentPropertyAccessor<?> parentPropertyAccessor,
 			boolean isParentObjectNew, Predicate<String> includeProperty) {
 
@@ -764,21 +772,20 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Rea
 			stateMachine.markRelationshipAsProcessed(fromId, relationshipDescription);
 			Flux<RelationshipHandler> relationshipCreation = Flux.fromIterable(relatedValuesToStore).concatMap(relatedValueToStore -> {
 
-				Object relatedNodePreEvt = relationshipContext.identifyAndExtractRelationshipTargetNode(relatedValueToStore);
+				Object relatedObjectBeforeCallbacksApplied = relationshipContext.identifyAndExtractRelationshipTargetNode(relatedValueToStore);
 				return Mono.deferContextual(ctx -> eventSupport
-						.maybeCallBeforeBind(relatedNodePreEvt)
+						.maybeCallBeforeBind(relatedObjectBeforeCallbacksApplied)
 						.flatMap(newRelatedObject -> {
-							Neo4jPersistentEntity<?> targetEntity = neo4jMappingContext.getPersistentEntity(relatedNodePreEvt.getClass());
+							Neo4jPersistentEntity<?> targetEntity = neo4jMappingContext.getPersistentEntity(relatedObjectBeforeCallbacksApplied.getClass());
 
 							Mono<Long> queryOrSave;
 							if (stateMachine.hasProcessedValue(relatedValueToStore)) {
-								Object newRelatedObjectForQuery = stateMachine.getProcessedAs(newRelatedObject);
-								queryOrSave = queryRelatedNode(newRelatedObjectForQuery, targetEntity);
+								queryOrSave = Mono.just(stateMachine.getInternalId(relatedObjectBeforeCallbacksApplied));
 							} else {
 								queryOrSave = saveRelatedNode(newRelatedObject, targetEntity);
 							}
-							stateMachine.markValueAsProcessed(relatedValueToStore);
 							return queryOrSave.flatMap(relatedInternalId -> {
+									stateMachine.markValueAsProcessed(relatedValueToStore, relatedInternalId);
 									// if an internal id is used this must be set to link this entity in the next iteration
 									PersistentPropertyAccessor<?> targetPropertyAccessor = targetEntity.getPropertyAccessor(newRelatedObject);
 									if (targetEntity.isUsingInternalIds()) {
@@ -830,7 +837,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Rea
 								})
 								.doOnNext(potentiallyRecreatedRelatedObject -> {
 									RelationshipHandler handler = ctx.get(CONTEXT_RELATIONSHIP_HANDLER);
-									handler.handle(relatedValueToStore, relatedNodePreEvt, potentiallyRecreatedRelatedObject);
+									handler.handle(relatedValueToStore, relatedObjectBeforeCallbacksApplied, potentiallyRecreatedRelatedObject);
 								});
 						})
 						.then(Mono.fromSupplier(() -> ctx.<RelationshipHandler>get(CONTEXT_RELATIONSHIP_HANDLER))));
@@ -849,22 +856,6 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Rea
 				.checkpoint()
 				.then(Mono.fromSupplier(parentPropertyAccessor::getBean));
 
-	}
-
-	private <Y> Mono<Long> queryRelatedNode(Object entity, Neo4jPersistentEntity<?> targetNodeDescription) {
-
-		Neo4jPersistentProperty requiredIdProperty = targetNodeDescription.getRequiredIdProperty();
-		PersistentPropertyAccessor<Object> targetPropertyAccessor = targetNodeDescription.getPropertyAccessor(entity);
-		Object idValue = targetPropertyAccessor.getProperty(requiredIdProperty);
-
-		return neo4jClient.query(() ->
-				renderer.render(cypherGenerator.prepareMatchOf(targetNodeDescription,
-						targetNodeDescription.getIdExpression().isEqualTo(parameter(Constants.NAME_OF_ID)))
-						.returning(Constants.NAME_OF_INTERNAL_ID)
-						.build())
-		)
-				.bindAll(Collections.singletonMap(Constants.NAME_OF_ID, idValue))
-				.fetchAs(Long.class).one();
 	}
 
 	private <Y> Mono<Long> saveRelatedNode(Object relatedNode, Neo4jPersistentEntity<?> targetNodeDescription) {
