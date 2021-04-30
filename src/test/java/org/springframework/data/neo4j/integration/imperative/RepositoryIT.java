@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.StreamSupport;
@@ -92,7 +93,9 @@ import org.springframework.data.neo4j.integration.shared.common.AltHobby;
 import org.springframework.data.neo4j.integration.shared.common.AltLikedByPersonRelationship;
 import org.springframework.data.neo4j.integration.shared.common.AltPerson;
 import org.springframework.data.neo4j.integration.shared.common.AnotherThingWithAssignedId;
+import org.springframework.data.neo4j.integration.shared.common.BidirectionalAssignedId;
 import org.springframework.data.neo4j.integration.shared.common.BidirectionalEnd;
+import org.springframework.data.neo4j.integration.shared.common.BidirectionalExternallyGeneratedId;
 import org.springframework.data.neo4j.integration.shared.common.BidirectionalSameEntity;
 import org.springframework.data.neo4j.integration.shared.common.BidirectionalStart;
 import org.springframework.data.neo4j.integration.shared.common.Club;
@@ -2361,6 +2364,47 @@ class RepositoryIT {
 			}
 		}
 
+		@Test // GH-2240
+		void saveBidirectionalRelationshipsWithExternallyGeneratedId(@Autowired BidirectionalExternallyGeneratedIdRepository repository) {
+
+			BidirectionalExternallyGeneratedId a = new BidirectionalExternallyGeneratedId();
+			BidirectionalExternallyGeneratedId b = new BidirectionalExternallyGeneratedId();
+			BidirectionalExternallyGeneratedId savedA = repository.save(a);
+
+			b.otter = savedA;
+			savedA.otter = b;
+			BidirectionalExternallyGeneratedId savedB = repository.save(b);
+
+			assertThat(savedB.uuid).isNotNull();
+			assertThat(savedB.otter).isNotNull();
+			assertThat(savedB.otter.uuid).isNotNull();
+			// this would be b again
+			assertThat(savedB.otter.otter).isNotNull();
+
+		}
+
+		@Test // GH-2240
+		void saveBidirectionalRelationshipsWithAssignedId(@Autowired BidirectionalAssignedIdRepository repository) {
+
+			BidirectionalAssignedId a = new BidirectionalAssignedId();
+			a.uuid = UUID.randomUUID();
+			BidirectionalAssignedId b = new BidirectionalAssignedId();
+			b.uuid = UUID.randomUUID();
+
+			BidirectionalAssignedId savedA = repository.save(a);
+
+			b.otter = savedA;
+			savedA.otter = b;
+			BidirectionalAssignedId savedB = repository.save(b);
+
+			assertThat(savedB.uuid).isNotNull();
+			assertThat(savedB.otter).isNotNull();
+			assertThat(savedB.otter.uuid).isNotNull();
+			// this would be b again
+			assertThat(savedB.otter.otter).isNotNull();
+
+		}
+
 		@Test // GH-2108
 		void saveRelatedEntitesWithSameCustomIdsAndRelationshipProperties(
 				@Autowired SameIdEntitiesWithRelationshipPropertiesRepository repository) {
@@ -4058,6 +4102,12 @@ class RepositoryIT {
 			});
 		}
 	}
+
+	interface BidirectionalExternallyGeneratedIdRepository
+			extends Neo4jRepository<BidirectionalExternallyGeneratedId, UUID> {}
+
+	interface BidirectionalAssignedIdRepository
+			extends Neo4jRepository<BidirectionalAssignedId, UUID> {}
 
 	interface BidirectionalStartRepository extends Neo4jRepository<BidirectionalStart, Long> {}
 

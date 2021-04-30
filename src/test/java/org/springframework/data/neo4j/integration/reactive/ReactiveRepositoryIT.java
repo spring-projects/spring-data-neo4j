@@ -19,6 +19,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.tuple;
 
+import org.springframework.data.neo4j.integration.shared.common.BidirectionalAssignedId;
+import org.springframework.data.neo4j.integration.shared.common.BidirectionalExternallyGeneratedId;
 import org.springframework.data.neo4j.integration.shared.common.DtoPersonProjection;
 import org.springframework.data.neo4j.integration.shared.common.EntitiesWithDynamicLabels;
 import org.springframework.data.neo4j.integration.shared.common.SimplePerson;
@@ -38,6 +40,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -2099,6 +2102,55 @@ class ReactiveRepositoryIT {
 					})
 					.verifyComplete();
 		}
+
+		@Test // GH-2240
+		void saveBidirectionalRelationshipsWithExternallyGeneratedId(@Autowired BidirectionalExternallyGeneratedIdRepository repository) {
+
+			BidirectionalExternallyGeneratedId a = new BidirectionalExternallyGeneratedId();
+			StepVerifier.create(
+					repository.save(a).flatMap(savedA -> {
+						BidirectionalExternallyGeneratedId b = new BidirectionalExternallyGeneratedId();
+						b.otter = savedA;
+						savedA.otter = b;
+						return repository.save(b);
+					})
+			)
+			.assertNext(savedB -> {
+				assertThat(savedB.uuid).isNotNull();
+				assertThat(savedB.otter).isNotNull();
+				assertThat(savedB.otter.uuid).isNotNull();
+				// this would be b again
+				assertThat(savedB.otter.otter).isNotNull();
+			})
+			.verifyComplete();
+
+		}
+
+		@Test // GH-2240
+		void saveBidirectionalRelationshipsWithAssignedId(@Autowired BidirectionalAssignedIdRepository repository) {
+
+			BidirectionalAssignedId a = new BidirectionalAssignedId();
+			a.uuid = UUID.randomUUID();
+
+			StepVerifier.create(
+					repository.save(a).flatMap(savedA -> {
+						BidirectionalAssignedId b = new BidirectionalAssignedId();
+						b.uuid = UUID.randomUUID();
+						b.otter = savedA;
+						savedA.otter = b;
+						return repository.save(b);
+					})
+			)
+					.assertNext(savedB -> {
+						assertThat(savedB.uuid).isNotNull();
+						assertThat(savedB.otter).isNotNull();
+						assertThat(savedB.otter.uuid).isNotNull();
+						// this would be b again
+						assertThat(savedB.otter.otter).isNotNull();
+					})
+					.verifyComplete();
+
+		}
 	}
 
 	@Nested
@@ -2504,6 +2556,12 @@ class ReactiveRepositoryIT {
 			}
 		}
 	}
+
+	interface BidirectionalExternallyGeneratedIdRepository
+			extends ReactiveNeo4jRepository<BidirectionalExternallyGeneratedId, UUID> {}
+
+	interface BidirectionalAssignedIdRepository
+			extends ReactiveNeo4jRepository<BidirectionalAssignedId, UUID> {}
 
 	interface BidirectionalStartRepository extends ReactiveNeo4jRepository<BidirectionalStart, Long> {}
 

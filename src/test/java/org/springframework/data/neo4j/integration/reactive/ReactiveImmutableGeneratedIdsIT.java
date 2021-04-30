@@ -57,7 +57,6 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 public class ReactiveImmutableGeneratedIdsIT {
 
 	protected static Neo4jExtension.Neo4jConnectionSupport neo4jConnectionSupport;
-
 	private final Driver driver;
 
 	public ReactiveImmutableGeneratedIdsIT(@Autowired Driver driver) {
