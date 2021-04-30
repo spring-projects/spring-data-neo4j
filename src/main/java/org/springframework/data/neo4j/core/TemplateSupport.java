@@ -16,12 +16,15 @@
 package org.springframework.data.neo4j.core;
 
 import java.beans.PropertyDescriptor;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import org.apiguardian.api.API;
 import org.neo4j.cypherdsl.core.Statement;
@@ -29,11 +32,12 @@ import org.springframework.lang.Nullable;
 
 /**
  * Utilities for templates.
+ *
  * @author Michael J. Simons
  * @soundtrack Metallica - Ride The Lightning
- * @since 6.1
+ * @since 6.0.9
  */
-@API(status = API.Status.INTERNAL, since = "6.1")
+@API(status = API.Status.INTERNAL, since = "6.0.9")
 final class TemplateSupport {
 
 	enum FetchType {
@@ -44,16 +48,47 @@ final class TemplateSupport {
 
 	@Nullable
 	static Class<?> findCommonElementType(Iterable<?> collection) {
+
+		List<Class<?>> allClasses = StreamSupport.stream(collection.spliterator(), true)
+				.filter(o -> o != null)
+				.map(Object::getClass).collect(Collectors.toList());
+
 		Class<?> candidate = null;
-		for (Object val : collection) {
-			if (val != null) {
-				if (candidate == null) {
-					candidate = val.getClass();
-				} else if (candidate != val.getClass()) {
-					return null;
-				}
+		for (Class<?> type : allClasses) {
+			if (candidate == null) {
+				candidate = type;
+			} else if (candidate != type) {
+				candidate = null;
+				break;
 			}
 		}
+
+		if (candidate != null) {
+			return candidate;
+		} else {
+			Predicate<Class<?>> moveUp = c -> c != null && c != Object.class;
+			Set<Class<?>> mostAbstractClasses = new HashSet<>();
+			for (Class<?> type : allClasses) {
+				while (moveUp.test(type.getSuperclass())) {
+					type = type.getSuperclass();
+				}
+				mostAbstractClasses.add(type);
+			}
+			candidate = mostAbstractClasses.size() == 1 ? mostAbstractClasses.iterator().next() : null;
+		}
+
+		if (candidate != null) {
+			return candidate;
+		} else {
+			List<Set<Class<?>>> interfacesPerClass = allClasses.stream()
+					.map(c -> Arrays.stream(c.getInterfaces()).collect(Collectors.toSet()))
+					.collect(Collectors.toList());
+			Set<Class<?>> allInterfaces = interfacesPerClass.stream().flatMap(Set::stream).collect(Collectors.toSet());
+			interfacesPerClass
+					.forEach(setOfInterfaces -> allInterfaces.removeIf(iface -> !setOfInterfaces.contains(iface)));
+			candidate = allInterfaces.size() == 1 ? allInterfaces.iterator().next() : null;
+		}
+
 		return candidate;
 	}
 
@@ -70,7 +105,8 @@ final class TemplateSupport {
 
 	/**
 	 * Merges statement and explicit parameters. Statement parameters have a higher precedence
-	 * @param statement A statement that maybe has some stored parameters
+	 *
+	 * @param statement  A statement that maybe has some stored parameters
 	 * @param parameters The original parameters
 	 * @return Merged parameters
 	 */
