@@ -74,7 +74,6 @@ import org.springframework.data.util.ClassTypeInformation;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
-import org.springframework.util.CollectionUtils;
 
 /**
  * @author Michael J. Simons
@@ -298,7 +297,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 			return Flux.empty();
 		}
 
-		Class<T> domainClass = (Class<T>) CollectionUtils.findCommonElementType(entities);
+		Class<T> domainClass = (Class<T>) TemplateSupport.findCommonElementType(entities);
 		Neo4jPersistentEntity entityMetaData = neo4jMappingContext.getPersistentEntity(domainClass);
 
 		if (entityMetaData.isUsingInternalIds() || entityMetaData.hasVersionProperty()
