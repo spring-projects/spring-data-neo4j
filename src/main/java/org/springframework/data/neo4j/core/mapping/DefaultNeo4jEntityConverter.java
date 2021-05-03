@@ -474,10 +474,6 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 					.filter(n -> n.hasLabel(targetLabel)).collect(Collectors.toList())
 					.forEach(allNodesWithMatchingLabelInResult::add);
 
-			if (allNodesWithMatchingLabelInResult.isEmpty() || allMatchingTypeRelationshipsInResult.isEmpty()) {
-				return Optional.empty();
-			}
-
 			Function<Relationship, Long> targetIdSelector = relationshipDescription.isIncoming() ? Relationship::startNodeId : Relationship::endNodeId;
 			Function<Relationship, Long> sourceIdSelector = relationshipDescription.isIncoming() ? Relationship::endNodeId : Relationship::startNodeId;
 			Long sourceNodeId = getInternalId(values);
