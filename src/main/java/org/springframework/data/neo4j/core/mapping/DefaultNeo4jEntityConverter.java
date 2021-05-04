@@ -23,6 +23,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.BiConsumer;
@@ -482,7 +483,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 			Long sourceNodeId = getInternalId(values);
 			for (Node possibleValueNode : allNodesWithMatchingLabelInResult) {
 				long targetNodeId = possibleValueNode.id();
-
+				Set<Relationship> relationshipsProcessed = new HashSet<>();
 				for (Relationship possibleRelationship : allMatchingTypeRelationshipsInResult) {
 					if (targetIdSelector.apply(possibleRelationship) == targetNodeId && sourceIdSelector.apply(possibleRelationship).equals(sourceNodeId)) {
 
@@ -500,10 +501,10 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 						} else {
 							mappedObjectHandler.accept(possibleRelationship.type(), mappedObject);
 						}
-						allMatchingTypeRelationshipsInResult.remove(possibleRelationship);
-						break;
+						relationshipsProcessed.add(possibleRelationship);
 					}
 				}
+				allMatchingTypeRelationshipsInResult.removeAll(relationshipsProcessed);
 			}
 		} else {
 			for (Value relatedEntity : list.asList(Function.identity())) {

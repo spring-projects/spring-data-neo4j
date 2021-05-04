@@ -1581,6 +1581,14 @@ class RepositoryIT {
 			rel2.setAltPerson(altPerson);
 
 			assertThat(likedBy).containsExactlyInAnyOrder(rel1, rel2);
+
+			Optional<AltHobby> optHobby = repository.findById(hobby.getId());
+			assertThat(optHobby.isPresent()).isTrue();
+			hobby = optHobby.get();
+			assertThat(hobby.getName()).isEqualTo("Music");
+			likedBy = hobby.getLikedBy();
+			assertThat(likedBy).hasSize(2);
+			assertThat(likedBy).containsExactlyInAnyOrder(rel1, rel2);
 		}
 
 		@Test // DATAGRAPH-1434
