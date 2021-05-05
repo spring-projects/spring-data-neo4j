@@ -70,6 +70,52 @@ public final class DtoInstantiatingConverter implements Converter<EntityInstance
 		this.context = context;
 	}
 
+	public Object convertDirectly(Object entityInstance) {
+		PersistentEntity<?, ?> sourceEntity = context.getRequiredPersistentEntity(entityInstance.getClass());
+		PersistentPropertyAccessor<Object> sourceAccessor = sourceEntity.getPropertyAccessor(entityInstance);
+
+		PersistentEntity<?, ?> targetEntity = context.addPersistentEntity(ClassTypeInformation.from(targetType)).get();
+		PreferredConstructor<?, ? extends PersistentProperty<?>> constructor = targetEntity
+				.getPersistenceConstructor();
+
+		Object dto = context.getInstantiatorFor(targetEntity)
+				.createInstance(targetEntity, new ParameterValueProvider() {
+					@Override
+					public Object getParameterValue(Parameter parameter) {
+						PersistentProperty<?> targetProperty = targetEntity.getPersistentProperty(parameter.getName());
+						if (targetProperty == null) {
+							throw new MappingException("Cannot map constructor parameter " + parameter.getName()
+									+ " to a property of class " + targetType);
+						}
+						return getPropertyValueDirectlyFor(targetProperty, sourceEntity, sourceAccessor, entityInstance);
+					}
+				});
+
+		PersistentPropertyAccessor<Object> dtoAccessor = targetEntity.getPropertyAccessor(dto);
+		targetEntity.doWithProperties((SimplePropertyHandler) property -> {
+
+			if (constructor.isConstructorParameter(property)) {
+				return;
+			}
+
+			Object propertyValue = getPropertyValueDirectlyFor(property, sourceEntity, sourceAccessor, entityInstance);
+			dtoAccessor.setProperty(property, propertyValue);
+		});
+
+		return dto;
+	}
+
+
+	@Nullable
+	Object getPropertyValueDirectlyFor(PersistentProperty<?> targetProperty, PersistentEntity<?, ?> sourceEntity,
+							   PersistentPropertyAccessor sourceAccessor, Object entityInstance) {
+
+		String targetPropertyName = targetProperty.getName();
+		PersistentProperty<?> sourceProperty = sourceEntity.getPersistentProperty(targetPropertyName);
+
+		return sourceAccessor.getProperty(sourceProperty);
+	}
+
 	@Override
 	public Object convert(EntityInstanceWithSource entityInstanceAndSource) {
 

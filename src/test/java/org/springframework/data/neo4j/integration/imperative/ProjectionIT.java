@@ -25,6 +25,9 @@ import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.neo4j.cypherdsl.core.Cypher;
+import org.neo4j.cypherdsl.core.Node;
+import org.neo4j.cypherdsl.core.Statement;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Session;
@@ -52,9 +55,12 @@ import org.springframework.data.neo4j.integration.shared.common.ProjectionTestLe
 import org.springframework.data.neo4j.integration.shared.common.ProjectionTestRoot;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
+import org.springframework.data.neo4j.repository.query.Query;
+import org.springframework.data.neo4j.repository.support.CypherdslStatementExecutor;
 import org.springframework.data.neo4j.test.BookmarkCapture;
 import org.springframework.data.neo4j.test.Neo4jExtension;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
+import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
@@ -259,10 +265,23 @@ class ProjectionIT {
 		});
 	}
 
+	@Test
+	void nested1to1ProjectionsWithNestedProjectionShouldWork(@Autowired TreestructureRepository repository) {
+
+		Optional<ProjectionWithNestedProjection> optionalProjection = repository
+				.findById(projectionTestRootId, ProjectionWithNestedProjection.class);
+		assertThat(optionalProjection).hasValueSatisfying(p -> {
+
+			assertThat(p.getName()).isEqualTo("root");
+			assertThat(p.getLevel1()).extracting("name").containsExactlyInAnyOrder("level11", "level12");
+			assertThat(p.getLevel1()).flatExtracting("level2").extracting("name")
+					.containsExactlyInAnyOrder("level21", "level22", "level23");
+		});
+	}
+
 	@Test // GH-2165
 	void nested1toManyProjectionsShouldWork(@Autowired TreestructureRepository repository) {
 
-		//repository.findById(projectionTestRootId).get();
 		Optional<ProjectedOneToMany> optionalProjection = repository
 				.findById(projectionTestRootId, ProjectedOneToMany.class);
 		assertThat(optionalProjection).hasValueSatisfying(p -> {
@@ -287,7 +306,35 @@ class ProjectionIT {
 		assertThat(optionalProjection).map(SimpleProjection::getName).hasValue("root");
 	}
 
-	interface ProjectionPersonRepository extends Neo4jRepository<Person, Long> {
+	@Test
+	void findStringBasedClosedProjection(@Autowired ProjectionPersonRepository repository) {
+
+		PersonSummary personSummary = repository.customQueryByFirstName(FIRST_NAME);
+		assertThat(personSummary).isNotNull();
+		assertThat(personSummary.getFirstName()).isEqualTo(FIRST_NAME);
+		assertThat(personSummary.getLastName()).isEqualTo(LAST_NAME);
+	}
+
+	@Test
+	void findCypherDSLClosedProjection(@Autowired ProjectionPersonRepository repository) {
+
+		Optional<PersonSummary> personSummary = repository.findOne(whoHasFirstName(FIRST_NAME), PersonSummary.class);
+		assertThat(personSummary).isPresent();
+		assertThat(personSummary.get().getFirstName()).isEqualTo(FIRST_NAME);
+		assertThat(personSummary.get().getLastName()).isEqualTo(LAST_NAME);
+	}
+
+	private static Statement whoHasFirstName(String firstName) {
+		Node p = Cypher.node("Person").named("p");
+		return Cypher.match(p)
+				.where(p.property("firstName").isEqualTo(Cypher.anonParameter(firstName)))
+				.returning(
+						p.getRequiredSymbolicName()
+				)
+				.build();
+	}
+
+	interface ProjectionPersonRepository extends Neo4jRepository<Person, Long>, CypherdslStatementExecutor<Person>  {
 
 		Collection<NamesOnly> findByLastName(String lastName);
 
@@ -296,6 +343,9 @@ class ProjectionIT {
 		Slice<NamesOnly> findSliceProjectedBy(Pageable pageable);
 
 		Collection<PersonSummary> findByFirstName(String firstName);
+
+		@Query("MATCH (n:Person) where n.firstName = $firstName return n")
+		PersonSummary customQueryByFirstName(@Param("firstName") String firstName);
 
 		Collection<NamesOnlyDto> findByFirstNameAndLastName(String firstName, String lastName);
 
@@ -354,6 +404,22 @@ class ProjectionIT {
 			 */
 			@Value("#{target.id + ' ' + target.name}")
 			String getFullName();
+		}
+	}
+
+	interface ProjectionWithNestedProjection {
+
+		String getName();
+
+		List<Subprojection1> getLevel1();
+
+		interface Subprojection1 {
+			String getName();
+			List<Subprojection2> getLevel2();
+		}
+
+		interface Subprojection2 {
+			String getName();
 		}
 	}
 

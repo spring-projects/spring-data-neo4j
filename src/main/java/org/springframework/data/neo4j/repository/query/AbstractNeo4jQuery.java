@@ -31,11 +31,14 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
+import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.neo4j.core.Neo4jOperations;
 import org.springframework.data.neo4j.core.PreparedQuery;
+import org.springframework.data.neo4j.core.PropertyFilterSupport;
 import org.springframework.data.neo4j.core.mapping.DtoInstantiatingConverter;
 import org.springframework.data.neo4j.core.mapping.EntityInstanceWithSource;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
+import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.data.repository.query.ResultProcessor;
@@ -55,12 +58,14 @@ import org.springframework.util.StringUtils;
 abstract class AbstractNeo4jQuery extends Neo4jQuerySupport implements RepositoryQuery {
 
 	protected final Neo4jOperations neo4jOperations;
+	private final ProjectionFactory factory;
 
 	AbstractNeo4jQuery(Neo4jOperations neo4jOperations, Neo4jMappingContext mappingContext,
 			Neo4jQueryMethod queryMethod,
-			Neo4jQueryType queryType) {
+			Neo4jQueryType queryType, ProjectionFactory factory) {
 
 		super(mappingContext, queryMethod, queryType);
+		this.factory = factory;
 
 		Assert.notNull(neo4jOperations, "The Neo4j operations are required.");
 		this.neo4jOperations = neo4jOperations;
@@ -82,7 +87,8 @@ abstract class AbstractNeo4jQuery extends Neo4jQuerySupport implements Repositor
 		ResultProcessor resultProcessor = queryMethod.getResultProcessor().withDynamicProjection(parameterAccessor);
 		ReturnedType returnedType = resultProcessor.getReturnedType();
 		PreparedQuery<?> preparedQuery = prepareQuery(returnedType.getReturnedType(),
-				getInputProperties(resultProcessor), parameterAccessor, null, getMappingFunction(resultProcessor), incrementLimit ? l -> l + 1 : UnaryOperator.identity());
+				PropertyFilterSupport.getInputProperties(resultProcessor, factory, mappingContext), parameterAccessor,
+				null, getMappingFunction(resultProcessor), incrementLimit ? l -> l + 1 : UnaryOperator.identity());
 
 		Object rawResult = new Neo4jQueryExecution.DefaultQueryExecution(neo4jOperations).execute(preparedQuery,
 				queryMethod.isCollectionLikeQuery() || queryMethod.isPageQuery() || queryMethod.isSliceQuery());
@@ -141,7 +147,7 @@ abstract class AbstractNeo4jQuery extends Neo4jQuerySupport implements Repositor
 	}
 
 	protected abstract <T extends Object> PreparedQuery<T> prepareQuery(Class<T> returnedType,
-			List<String> includedProperties, Neo4jParameterAccessor parameterAccessor,
+			List<PropertyPath> includedProperties, Neo4jParameterAccessor parameterAccessor,
 			@Nullable Neo4jQueryType queryType,
 			@Nullable BiFunction<TypeSystem, MapAccessor, ?> mappingFunction,
 			@Nullable UnaryOperator<Integer> limitModifier);
