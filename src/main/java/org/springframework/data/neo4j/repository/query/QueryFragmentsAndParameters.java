@@ -15,11 +15,6 @@
  */
 package org.springframework.data.neo4j.repository.query;
 
-import static org.neo4j.cypherdsl.core.Cypher.parameter;
-
-import java.util.Collections;
-import java.util.Map;
-
 import org.apiguardian.api.API;
 import org.neo4j.cypherdsl.core.Condition;
 import org.neo4j.cypherdsl.core.Conditions;
@@ -34,6 +29,11 @@ import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.core.mapping.NodeDescription;
 import org.springframework.lang.Nullable;
+
+import java.util.Collections;
+import java.util.Map;
+
+import static org.neo4j.cypherdsl.core.Cypher.parameter;
 
 /**
  * Combines the QueryFragments with parameters.
@@ -138,9 +138,9 @@ public final class QueryFragmentsAndParameters {
 	}
 
 	static QueryFragmentsAndParameters forCondition(Neo4jPersistentEntity<?> entityMetaData,
-			Condition condition,
-			@Nullable Pageable pageable,
-			@Nullable SortItem[] sortItems
+													Condition condition,
+													@Nullable Pageable pageable,
+													@Nullable SortItem[] sortItems
 	) {
 
 		Expression[] returnStatement = cypherGenerator.createReturnStatementForMatch(entityMetaData);
@@ -207,4 +207,5 @@ public final class QueryFragmentsAndParameters {
 
 		return new QueryFragmentsAndParameters(entityMetaData, queryFragments, parameters);
 	}
+
 }

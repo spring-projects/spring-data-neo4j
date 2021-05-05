@@ -43,6 +43,7 @@ import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Property;
 import org.springframework.data.neo4j.core.schema.Relationship;
 import org.springframework.data.neo4j.core.schema.RelationshipProperties;
+import org.springframework.data.neo4j.core.schema.TargetNode;
 import org.springframework.data.support.IsNewStrategy;
 import org.springframework.data.util.Lazy;
 import org.springframework.data.util.TypeInformation;
@@ -459,7 +460,13 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 	}
 
 	@NonNull
-	public Collection<RelationshipDescription> getRelationshipsInHierarchy(Predicate<String> propertyFilter) {
+	public Collection<RelationshipDescription> getRelationshipsInHierarchy(Predicate<PropertyFilter.RelaxedPropertyPath> propertyFilter) {
+
+		return getRelationshipsInHierarchy(propertyFilter, PropertyFilter.RelaxedPropertyPath.from("", this.getUnderlyingClass()));
+	}
+
+	@NonNull
+	public Collection<RelationshipDescription> getRelationshipsInHierarchy(Predicate<PropertyFilter.RelaxedPropertyPath> propertyFilter, PropertyFilter.RelaxedPropertyPath path) {
 
 		Collection<RelationshipDescription> relationships = new HashSet<>(getRelationships());
 		for (NodeDescription<?> childDescription : getChildNodeDescriptionsInHierarchy()) {
@@ -474,8 +481,13 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 		}
 
 		return relationships.stream().filter(relationshipDescription ->
-				propertyFilter.test(relationshipDescription.getFieldName()))
+				filterProperties(propertyFilter, relationshipDescription, path))
 				.collect(Collectors.toSet());
+	}
+
+	private boolean filterProperties(Predicate<PropertyFilter.RelaxedPropertyPath> propertyFilter, RelationshipDescription relationshipDescription, PropertyFilter.RelaxedPropertyPath path) {
+		PropertyFilter.RelaxedPropertyPath from = path.append(relationshipDescription.getFieldName());
+		return propertyFilter.test(from);
 	}
 
 	private Collection<GraphPropertyDescription> computeGraphProperties() {
@@ -528,38 +540,41 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 	}
 
 	@Override
-	public boolean containsPossibleCircles(Predicate<String> includeField) {
+	public boolean containsPossibleCircles(Predicate<PropertyFilter.RelaxedPropertyPath> includeField) {
 		return calculatePossibleCircles(includeField);
 	}
 
-	private boolean calculatePossibleCircles(Predicate<String> includeField) {
+	private boolean calculatePossibleCircles(Predicate<PropertyFilter.RelaxedPropertyPath> includeField) {
 		Collection<RelationshipDescription> relationships = new HashSet<>(getRelationshipsInHierarchy(includeField));
 
 		Set<RelationshipDescription> processedRelationships = new HashSet<>();
 		for (RelationshipDescription relationship : relationships) {
-			if (!includeField.test(relationship.getFieldName())) {
+			PropertyFilter.RelaxedPropertyPath relaxedPropertyPath = PropertyFilter.RelaxedPropertyPath.from("", this.getUnderlyingClass());
+			if (!filterProperties(includeField, relationship, relaxedPropertyPath)) {
 				continue;
 			}
 			if (processedRelationships.contains(relationship)) {
 				return true;
 			}
 			processedRelationships.add(relationship);
-			if (calculatePossibleCircles(relationship.getTarget(), processedRelationships)) {
+			String relationshipPropertiesPrefix = relationship.hasRelationshipProperties() ? "." + ((Neo4jPersistentEntity<?>) relationship.getRelationshipPropertiesEntity())
+					.getPersistentProperty(TargetNode.class).getFieldName() : "";
+			if (calculatePossibleCircles(relationship.getTarget(), processedRelationships, includeField, relaxedPropertyPath.append(relationship.getFieldName() + relationshipPropertiesPrefix))) {
 				return true;
 			}
 		}
 		return false;
 	}
 
-	private boolean calculatePossibleCircles(NodeDescription<?> nodeDescription, Set<RelationshipDescription> processedRelationships) {
-		Collection<RelationshipDescription> relationships = nodeDescription.getRelationshipsInHierarchy(s -> true);
+	private boolean calculatePossibleCircles(NodeDescription<?> nodeDescription, Set<RelationshipDescription> processedRelationships, Predicate<PropertyFilter.RelaxedPropertyPath> includeField, PropertyFilter.RelaxedPropertyPath path) {
+		Collection<RelationshipDescription> relationships = ((DefaultNeo4jPersistentEntity<?>) nodeDescription).getRelationshipsInHierarchy(includeField, path);
 
 		for (RelationshipDescription relationship : relationships) {
 			if (processedRelationships.contains(relationship)) {
 				return true;
 			}
 			processedRelationships.add(relationship);
-			if (calculatePossibleCircles(relationship.getTarget(), processedRelationships)) {
+			if (calculatePossibleCircles(relationship.getTarget(), processedRelationships, includeField, path.append(relationship.getFieldName()))) {
 				return true;
 			}
 		}

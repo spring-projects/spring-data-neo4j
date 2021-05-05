@@ -42,6 +42,8 @@ public class Person {
 		private String city;
 		private String street;
 
+		@Relationship("BASED_IN") private Country country;
+
 		public Long getId() {
 			return id;
 		}
@@ -54,8 +56,50 @@ public class Person {
 			return city;
 		}
 
+		public void setCity(String city) {
+			this.city = city;
+		}
+
 		public String getStreet() {
 			return street;
+		}
+
+		public void setStreet(String street) {
+			this.street = street;
+		}
+
+		public Country getCountry() {
+			return country;
+		}
+
+		public void setCountry(Country country) {
+			this.country = country;
+		}
+
+		/**
+		 * Just another country to persist
+		 */
+		@Node("YetAnotherCountryEntity")
+		public static class Country {
+			@Id @GeneratedValue private Long id;
+			private String name;
+			private String countryCode;
+
+			public String getCountryCode() {
+				return countryCode;
+			}
+
+			public void setCountryCode(String countryCode) {
+				this.countryCode = countryCode;
+			}
+
+			public String getName() {
+				return name;
+			}
+
+			public void setName(String name) {
+				this.name = name;
+			}
 		}
 	}
 

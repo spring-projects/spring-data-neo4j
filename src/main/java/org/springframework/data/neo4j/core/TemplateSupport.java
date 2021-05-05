@@ -15,7 +15,6 @@
  */
 package org.springframework.data.neo4j.core;
 
-import java.beans.PropertyDescriptor;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -43,7 +42,10 @@ import org.springframework.data.neo4j.core.mapping.Constants;
 import org.springframework.data.neo4j.core.mapping.EntityInstanceWithSource;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
+import org.springframework.data.neo4j.core.mapping.NodeDescription;
+import org.springframework.data.neo4j.core.mapping.PropertyFilter;
 import org.springframework.data.neo4j.repository.query.QueryFragments;
+import org.springframework.data.mapping.PropertyPath;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
@@ -113,15 +115,10 @@ public final class TemplateSupport {
 		return candidate;
 	}
 
-	static Predicate<String> computeIncludePropertyPredicate(List<PropertyDescriptor> includedProperties) {
+	static PropertyFilter computeIncludePropertyPredicate(Collection<PropertyPath> includedProperties,
+														  NodeDescription<?> nodeDescription) {
 
-		if (includedProperties == null) {
-			return p -> true;
-		} else {
-			Set<String> includedPropertyNames = includedProperties.stream().map(PropertyDescriptor::getName).collect(
-					Collectors.toSet());
-			return includedPropertyNames::contains;
-		}
+		return PropertyFilter.from(includedProperties, nodeDescription);
 	}
 
 	static void updateVersionPropertyIfPossible(

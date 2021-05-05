@@ -102,7 +102,10 @@ class Neo4jTemplateIT {
 
 			transaction.run("CREATE (p:Person{firstName: 'A', lastName: 'LA'})");
 			transaction
-					.run("CREATE (p:Person{firstName: 'Michael', lastName: 'Siemons'}) -[:LIVES_AT]-> (a:Address {city: 'Aachen'}) RETURN id(p)");
+					.run("CREATE (p:Person{firstName: 'Michael', lastName: 'Siemons'})" +
+							" -[:LIVES_AT]-> (a:Address {city: 'Aachen'})" +
+							" -[:BASED_IN]->(c:YetAnotherCountryEntity{name: 'Gemany', countryCode: 'DE'})" +
+							" RETURN id(p)");
 			transaction
 					.run("CREATE (p:Person{firstName: 'Helge', lastName: 'Schnitzel'}) -[:LIVES_AT]-> (a:Address {city: 'Mülheim an der Ruhr'}) RETURN id(p)");
 			transaction.run("CREATE (p:Person{firstName: 'Bela', lastName: 'B.'})");
@@ -315,6 +318,24 @@ class Neo4jTemplateIT {
 		String getLastName();
 	}
 
+	interface ClosedProjectionWithEmbeddedProjection {
+
+		String getLastName();
+
+		AddressProjection getAddress();
+
+		interface AddressProjection {
+
+			String getStreet();
+
+			CountryProjection getCountry();
+
+			interface CountryProjection {
+				String getName();
+			}
+		}
+	}
+
 	@Data
 	static class DtoPersonProjection {
 
@@ -323,6 +344,65 @@ class Neo4jTemplateIT {
 
 		private String lastName;
 		private String firstName;
+	}
+
+	@Test // GH-2215
+	void saveProjectionShouldWork() {
+
+		// Using a query on purpose so that the address is null
+		DtoPersonProjection dtoPersonProjection = neo4jTemplate
+				.find(Person.class)
+				.as(DtoPersonProjection.class)
+				.matching("MATCH (p:Person {lastName: $lastName}) RETURN p", Collections.singletonMap("lastName", "Siemons"))
+				.one()
+				.get();
+
+		dtoPersonProjection.setFirstName("Micha");
+		dtoPersonProjection.setLastName("Simons");
+
+		DtoPersonProjection savedProjection = neo4jTemplate
+				.save(Person.class)
+				.one(dtoPersonProjection);
+
+		// Assert that we saved and returned the correct data
+		assertThat(savedProjection.getFirstName()).isEqualTo("Micha");
+		assertThat(savedProjection.getLastName()).isEqualTo("Simons");
+
+		// Assert the result inside the database.
+		Person person = neo4jTemplate.findById(savedProjection.getId(), Person.class).get();
+		assertThat(person.getFirstName()).isEqualTo("Micha");
+		assertThat(person.getLastName()).isEqualTo("Simons");
+		assertThat(person.getAddress()).isNotNull();
+	}
+
+	@Test // GH-2215
+	void saveAllProjectionShouldWork() {
+
+		// Using a query on purpose so that the address is null
+		DtoPersonProjection dtoPersonProjection = neo4jTemplate
+				.find(Person.class)
+				.as(DtoPersonProjection.class)
+				.matching("MATCH (p:Person {lastName: $lastName}) RETURN p", Collections.singletonMap("lastName", "Siemons"))
+				.one()
+				.get();
+
+		dtoPersonProjection.setFirstName("Micha");
+		dtoPersonProjection.setLastName("Simons");
+
+		Iterable<DtoPersonProjection> savedProjections = neo4jTemplate
+				.save(Person.class)
+				.all(Collections.singleton(dtoPersonProjection));
+
+		DtoPersonProjection savedProjection = savedProjections.iterator().next();
+		// Assert that we saved and returned the correct data
+		assertThat(savedProjection.getFirstName()).isEqualTo("Micha");
+		assertThat(savedProjection.getLastName()).isEqualTo("Simons");
+
+		// Assert the result inside the database.
+		Person person = neo4jTemplate.findById(savedProjection.getId(), Person.class).get();
+		assertThat(person.getFirstName()).isEqualTo("Micha");
+		assertThat(person.getLastName()).isEqualTo("Simons");
+		assertThat(person.getAddress()).isNotNull();
 	}
 
 	@Test
@@ -431,6 +511,41 @@ class Neo4jTemplateIT {
 		assertThat(p.getFirstName()).isEqualTo("Michael");
 		assertThat(p.getLastName()).isEqualTo("Simons");
 		assertThat(p.getAddress()).isNotNull();
+	}
+
+	@Test
+	void saveAsWithClosedProjectionOnSecondLevelShouldWork() {
+
+		Person p = neo4jTemplate.findOne("MATCH (p:Person {lastName: $lastName})-[r:LIVES_AT]-(a:Address) RETURN p, collect(r), collect(a)",
+				Collections.singletonMap("lastName", "Siemons"), Person.class).get();
+
+		p.getAddress().setCity("Braunschweig");
+		p.getAddress().setStreet("Single Trail");
+		ClosedProjectionWithEmbeddedProjection projection = neo4jTemplate.saveAs(p, ClosedProjectionWithEmbeddedProjection.class);
+
+		assertThat(projection.getAddress().getStreet()).isEqualTo("Single Trail");
+		p = neo4jTemplate.findById(p.getId(), Person.class).get();
+		assertThat(p.getAddress().getCity()).isEqualTo("Aachen");
+		assertThat(p.getAddress().getStreet()).isEqualTo("Single Trail");
+	}
+
+	@Test
+	void saveAsWithClosedProjectionOnThreeLevelShouldWork() {
+
+		Person p = neo4jTemplate.findOne("MATCH (p:Person {lastName: $lastName})-[r:LIVES_AT]-(a:Address)-[r2:BASED_IN]->(c:YetAnotherCountryEntity) RETURN p, collect(r), collect(r2), collect(a), collect(c)",
+				Collections.singletonMap("lastName", "Siemons"), Person.class).get();
+
+		Person.Address.Country country = p.getAddress().getCountry();
+		country.setName("Germany");
+		country.setCountryCode("AT");
+
+		ClosedProjectionWithEmbeddedProjection projection = neo4jTemplate.saveAs(p, ClosedProjectionWithEmbeddedProjection.class);
+		assertThat(projection.getAddress().getCountry().getName()).isEqualTo("Germany");
+
+		p = neo4jTemplate.findById(p.getId(), Person.class).get();
+		Person.Address.Country savedCountry = p.getAddress().getCountry();
+		assertThat(savedCountry.getCountryCode()).isEqualTo("DE");
+		assertThat(savedCountry.getName()).isEqualTo("Germany");
 	}
 
 	@Test

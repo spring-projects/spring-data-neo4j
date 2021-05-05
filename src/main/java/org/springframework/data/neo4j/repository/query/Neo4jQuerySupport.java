@@ -23,7 +23,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.BiFunction;
@@ -125,12 +124,6 @@ abstract class Neo4jQuerySupport {
 		return mappingFunction;
 	}
 
-	protected final List<String> getInputProperties(final ResultProcessor resultProcessor) {
-
-		ReturnedType returnedType = resultProcessor.getReturnedType();
-		return returnedType.isProjecting() ? returnedType.getInputProperties() : Collections.emptyList();
-	}
-
 	private static boolean hasValidReturnTypeForDelete(Neo4jQueryMethod queryMethod) {
 		return VALID_RETURN_TYPES_FOR_DELETE.contains(queryMethod.getResultProcessor().getReturnedType().getReturnedType());
 	}
@@ -144,7 +137,7 @@ abstract class Neo4jQuerySupport {
 		Supplier<CharSequence> messageSupplier = () -> {
 			String pointer = name == null || name.trim().isEmpty() ? "An unknown parameter" : "$" + name;
 			return String.format("%s points to a literal `null` value during a comparison. " +
-						  "The comparisons will always resolve to false and probably lead to an empty result.",
+							"The comparisons will always resolve to false and probably lead to an empty result.",
 					pointer);
 		};
 		REPOSITORY_QUERY_LOG.debug(messageSupplier);

@@ -42,7 +42,7 @@ public final class Person {
 	private List<Movie> reviewed = new ArrayList<>();
 
 	@Relationship("ACTED_IN")
-	private List<Movie> actedId = new ArrayList<>();
+	private List<Movie> actedIn = new ArrayList<>();
 
 	@PersistenceConstructor
 	private Person(Long id, String name, Integer born) {

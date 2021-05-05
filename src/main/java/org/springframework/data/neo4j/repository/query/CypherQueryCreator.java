@@ -56,6 +56,7 @@ import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.Polygon;
 import org.springframework.data.mapping.PersistentProperty;
 import org.springframework.data.mapping.PersistentPropertyPath;
+import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.neo4j.core.mapping.Constants;
 import org.springframework.data.neo4j.core.mapping.CypherGenerator;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
@@ -109,7 +110,7 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndPar
 	 */
 	private final List<SortItem> sortItems = new ArrayList<>();
 
-	private final List<String> includedProperties;
+	private final List<PropertyPath> includedProperties;
 
 	private final List<PropertyPathWrapper> propertyPathWrappers;
 
@@ -119,7 +120,7 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndPar
 	private final UnaryOperator<Integer> limitModifier;
 
 	CypherQueryCreator(Neo4jMappingContext mappingContext, Class<?> domainType, Neo4jQueryType queryType, PartTree tree,
-			Neo4jParameterAccessor actualParameters, List<String> includedProperties,
+			Neo4jParameterAccessor actualParameters, List<PropertyPath> includedProperties,
 			BiFunction<Object, Function<Object, Value>, Object> parameterConversion,
 			UnaryOperator<Integer> limitModifier) {
 

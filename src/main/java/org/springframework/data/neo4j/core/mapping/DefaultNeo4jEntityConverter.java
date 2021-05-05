@@ -258,10 +258,8 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 			Neo4jPersistentEntity<ET> concreteNodeDescription = (Neo4jPersistentEntity<ET>) nodeDescriptionAndLabels
 					.getNodeDescription();
 
-			Predicate<String> includeAllFields = (field) -> true;
-
 			Collection<RelationshipDescription> relationships = nodeDescription
-					.getRelationshipsInHierarchy(includeAllFields);
+					.getRelationshipsInHierarchy((pp -> true));
 
 			ET instance = instantiate(concreteNodeDescription, queryResult, allValues, relationships,
 					nodeDescriptionAndLabels.getDynamicLabels(), lastMappedEntity);
