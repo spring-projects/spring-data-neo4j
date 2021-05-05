@@ -35,6 +35,8 @@ import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.data.annotation.Persistent;
 import org.springframework.data.mapping.Association;
 import org.springframework.data.mapping.PropertyHandler;
+import org.springframework.data.mapping.PropertyPath;
+import org.springframework.data.mapping.PropertyReferenceException;
 import org.springframework.data.mapping.model.BasicPersistentEntity;
 import org.springframework.data.neo4j.core.schema.DynamicLabels;
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
@@ -459,7 +461,7 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 	}
 
 	@NonNull
-	public Collection<RelationshipDescription> getRelationshipsInHierarchy(Predicate<String> propertyFilter) {
+	public Collection<RelationshipDescription> getRelationshipsInHierarchy(Predicate<PropertyPath> propertyFilter) {
 
 		Collection<RelationshipDescription> relationships = new HashSet<>(getRelationships());
 		for (NodeDescription<?> childDescription : getChildNodeDescriptionsInHierarchy()) {
@@ -474,8 +476,17 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 		}
 
 		return relationships.stream().filter(relationshipDescription ->
-				propertyFilter.test(relationshipDescription.getFieldName()))
+				bla(propertyFilter, relationshipDescription))
 				.collect(Collectors.toSet());
+	}
+
+	private boolean bla(Predicate<PropertyPath> propertyFilter, RelationshipDescription relationshipDescription) {
+		try {
+			return propertyFilter.test(null) || propertyFilter.test(PropertyPath.from(relationshipDescription.getFieldName(), this.getTypeInformation()));
+		} catch (PropertyReferenceException e) {
+			return false;
+		}
+
 	}
 
 	private Collection<GraphPropertyDescription> computeGraphProperties() {
@@ -528,16 +539,16 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 	}
 
 	@Override
-	public boolean containsPossibleCircles(Predicate<String> includeField) {
+	public boolean containsPossibleCircles(Predicate<PropertyPath> includeField) {
 		return calculatePossibleCircles(includeField);
 	}
 
-	private boolean calculatePossibleCircles(Predicate<String> includeField) {
+	private boolean calculatePossibleCircles(Predicate<PropertyPath> includeField) {
 		Collection<RelationshipDescription> relationships = new HashSet<>(getRelationshipsInHierarchy(includeField));
 
 		Set<RelationshipDescription> processedRelationships = new HashSet<>();
 		for (RelationshipDescription relationship : relationships) {
-			if (!includeField.test(relationship.getFieldName())) {
+			if (!bla(includeField, relationship)) {
 				continue;
 			}
 			if (processedRelationships.contains(relationship)) {

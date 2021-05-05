@@ -255,8 +255,10 @@ public final class QueryFragmentsAndParameters {
 			this.scalarValueReturn = isScalarValue;
 		}
 
-		public boolean includeField(String fieldName) {
-			return this.returnTuple == null || this.returnTuple.includedProperties.isEmpty() || this.returnTuple.includedProperties.contains(fieldName);
+		public boolean includeField(PropertyPath fieldName) {
+			return this.returnTuple == null
+					|| this.returnTuple.includedProperties.isEmpty()
+					|| this.returnTuple.includedProperties.contains(fieldName);
 		}
 
 		public void setOrderBy(SortItem[] orderBy) {

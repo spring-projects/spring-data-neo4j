@@ -18,6 +18,7 @@ package org.springframework.data.neo4j.repository.query;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -28,7 +29,6 @@ import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 import org.apache.commons.logging.LogFactory;
 import org.neo4j.driver.Value;
@@ -42,6 +42,7 @@ import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.Metrics;
 import org.springframework.data.mapping.PropertyPath;
+import org.springframework.data.mapping.PropertyReferenceException;
 import org.springframework.data.neo4j.core.convert.Neo4jSimpleTypes;
 import org.springframework.data.neo4j.core.mapping.CypherGenerator;
 import org.springframework.data.neo4j.core.mapping.EntityInstanceWithSource;
@@ -126,8 +127,15 @@ abstract class Neo4jQuerySupport {
 	protected final List<PropertyPath> getInputProperties(final ResultProcessor resultProcessor) {
 
 		ReturnedType returnedType = resultProcessor.getReturnedType();
-		List<PropertyPath> ding = returnedType.getInputProperties().stream().map(propertyName ->
-				PropertyPath.from(propertyName, resultProcessor.getReturnedType().getReturnedType())).collect(Collectors.toList());
+		List<PropertyPath> ding = new ArrayList<>();
+
+		for (String inputProperty : returnedType.getInputProperties()) {
+			try {
+				ding.add(PropertyPath.from(inputProperty, returnedType.getDomainType()));
+			} catch (PropertyReferenceException e) {
+				ding.add(PropertyPath.from(inputProperty, returnedType.getReturnedType()));
+			}
+		}
 		return returnedType.isProjecting() ? ding : Collections.emptyList();
 	}
 
