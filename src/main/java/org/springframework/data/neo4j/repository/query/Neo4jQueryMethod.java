@@ -15,10 +15,6 @@
  */
 package org.springframework.data.neo4j.repository.query;
 
-import java.lang.reflect.Method;
-import java.util.List;
-import java.util.Optional;
-
 import org.springframework.core.MethodParameter;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.data.neo4j.repository.support.CypherdslStatementExecutor;
@@ -29,6 +25,10 @@ import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.lang.Nullable;
 import org.springframework.util.ClassUtils;
+
+import java.lang.reflect.Method;
+import java.util.List;
+import java.util.Optional;
 
 /**
  * Neo4j specific implementation of {@link QueryMethod}. It contains a custom implementation of {@link Parameter} which

@@ -29,7 +29,66 @@ can add additional properties.
 The rules are as follows: first, the properties of the domain type are used to populate the DTO. In case the DTO declares
 additional properties - via accessors or fields - Spring Data Neo4j looks in the resulting record for matching properties.
 Properties must match exactly by name and can be of simple types (as defined in `org.springframework.data.neo4j.core.convert.Neo4jSimpleTypes`)
-or of known persistent entites. Collections of those are supported, but maps are not.
+or of known persistent entities. Collections of those are supported, but maps are not.
+
+[[projections.sdn.multi-level]]
+== Multi-level projections
+
+Spring Data Neo4j also supports multi-level projections.
+
+[source,java]
+.Example of multi-level projection
+----
+interface ProjectionWithNestedProjection {
+
+    String getName();
+
+    List<Subprojection1> getLevel1();
+
+    interface Subprojection1 {
+        String getName();
+        List<Subprojection2> getLevel2();
+    }
+
+    interface Subprojection2 {
+        String getName();
+    }
+}
+----
+
+Even though it is possible to model cyclic projections or point towards entities that will create a cycle,
+the projection logic will not follow those cycles but only create cycle-free queries.
+
+Multi-level projections are bounded to the entities they should project.
+`RelationshipProperties` fall into the category of entities in this case and needs to get respected if projections get applied.
+
+[[projections.sdn.persistence]]
+== Persistence of projections
+
+Analogue to the retrieval of data via projections, they can also be used as a blueprint for persistence.
+The `Neo4jTemplate` offers a fluent API to apply those projections to a save operation.
+
+You could either save a projection for a given domain class
+
+[source,java]
+.Save projection for a given domain class
+----
+Projection projection = neo4jTemplate.save(DomainClass.class).one(projectionValue);
+----
+
+or you could save a domain object but only respect the fields defined in the projection.
+
+[source,java]
+.Save domain object with a given projection blueprint
+----
+Projection projection = neo4jTemplate.saveAs(domainObject, Projection.class);
+----
+
+In both cases, that also are available for collection based operations, only the fields and relationships
+defined in the projection will get updated.
+
+NOTE: To prevent deletion of data (e.g. removal of relationships),
+you should always load at least all the data that should get persisted later.
 
 [[projections.sdn.full-example]]
 == A full example

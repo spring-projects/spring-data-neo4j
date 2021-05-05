@@ -24,9 +24,11 @@ import java.util.function.BiFunction;
 import org.neo4j.driver.types.MapAccessor;
 import org.neo4j.driver.types.TypeSystem;
 import org.springframework.data.mapping.MappingException;
+import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.neo4j.core.PreparedQuery;
 import org.springframework.data.neo4j.core.ReactiveNeo4jOperations;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
+import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.QueryMethodEvaluationContextProvider;
@@ -79,7 +81,7 @@ final class ReactiveStringBasedNeo4jQuery extends AbstractReactiveNeo4jQuery {
 	 */
 	static ReactiveStringBasedNeo4jQuery create(ReactiveNeo4jOperations neo4jOperations,
 			Neo4jMappingContext mappingContext, QueryMethodEvaluationContextProvider evaluationContextProvider,
-			Neo4jQueryMethod queryMethod) {
+			Neo4jQueryMethod queryMethod, ProjectionFactory factory) {
 
 		Query queryAnnotation = queryMethod.getQueryAnnotation()
 				.orElseThrow(() -> new MappingException("Expected @Query annotation on the query method!"));
@@ -88,7 +90,7 @@ final class ReactiveStringBasedNeo4jQuery extends AbstractReactiveNeo4jQuery {
 				.orElseThrow(() -> new MappingException("Expected @Query annotation to have a value, but it did not."));
 
 		return new ReactiveStringBasedNeo4jQuery(neo4jOperations, mappingContext, evaluationContextProvider, queryMethod,
-				cypherTemplate, Neo4jQueryType.fromDefinition(queryAnnotation));
+				cypherTemplate, Neo4jQueryType.fromDefinition(queryAnnotation), factory);
 	}
 
 	/**
@@ -103,19 +105,19 @@ final class ReactiveStringBasedNeo4jQuery extends AbstractReactiveNeo4jQuery {
 	 */
 	static ReactiveStringBasedNeo4jQuery create(ReactiveNeo4jOperations neo4jOperations,
 			Neo4jMappingContext mappingContext, QueryMethodEvaluationContextProvider evaluationContextProvider,
-			Neo4jQueryMethod queryMethod, String cypherTemplate) {
+			Neo4jQueryMethod queryMethod, String cypherTemplate, ProjectionFactory factory) {
 
 		Assert.hasText(cypherTemplate, "Cannot create String based Neo4j query without a cypher template.");
 
 		return new ReactiveStringBasedNeo4jQuery(neo4jOperations, mappingContext, evaluationContextProvider, queryMethod,
-				cypherTemplate, Neo4jQueryType.DEFAULT);
+				cypherTemplate, Neo4jQueryType.DEFAULT, factory);
 	}
 
 	private ReactiveStringBasedNeo4jQuery(ReactiveNeo4jOperations neo4jOperations, Neo4jMappingContext mappingContext,
 			QueryMethodEvaluationContextProvider evaluationContextProvider, Neo4jQueryMethod queryMethod,
-			String cypherTemplate, Neo4jQueryType queryType) {
+			String cypherTemplate, Neo4jQueryType queryType, ProjectionFactory factory) {
 
-		super(neo4jOperations, mappingContext, queryMethod, queryType);
+		super(neo4jOperations, mappingContext, queryMethod, queryType, factory);
 
 		cypherTemplate = Neo4jSpelSupport.renderQueryIfExpressionOrReturnQuery(cypherTemplate, mappingContext, queryMethod.getEntityInformation(), SPEL_EXPRESSION_PARSER);
 		SpelExtractor spelExtractor = SPEL_QUERY_CONTEXT.parse(cypherTemplate);
@@ -123,7 +125,7 @@ final class ReactiveStringBasedNeo4jQuery extends AbstractReactiveNeo4jQuery {
 	}
 
 	@Override
-	protected <T extends Object> PreparedQuery<T> prepareQuery(Class<T> returnedType, List<String> includedProperties,
+	protected <T extends Object> PreparedQuery<T> prepareQuery(Class<T> returnedType, List<PropertyPath> includedProperties,
 			Neo4jParameterAccessor parameterAccessor, @Nullable Neo4jQueryType queryType,
 			@Nullable BiFunction<TypeSystem, MapAccessor, ?> mappingFunction) {
 

@@ -15,26 +15,23 @@
  */
 package org.springframework.data.neo4j.core;
 
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
-
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.util.Assert;
 
 /**
- * Implementation of {@link ReactiveFluentFindOperation}.
+ * Implementation of {@link FluentFindOperation}.
  *
  * @author Michael J. Simons
- * @soundtrack Ozzy Osbourne - Ordinary Man
  * @since 6.1
  */
-final class ReactiveFluentFindOperationSupport implements ReactiveFluentFindOperation {
+final class FluentOperationSupport implements FluentFindOperation, FluentSaveOperation {
 
-	private final ReactiveNeo4jTemplate template;
+	private final Neo4jTemplate template;
 
-	ReactiveFluentFindOperationSupport(ReactiveNeo4jTemplate template) {
+	FluentOperationSupport(Neo4jTemplate template) {
 		this.template = template;
 	}
 
@@ -49,13 +46,13 @@ final class ReactiveFluentFindOperationSupport implements ReactiveFluentFindOper
 	private static class ExecutableFindSupport<T>
 			implements ExecutableFind<T>, FindWithProjection<T>, FindWithQuery<T>, TerminatingFind<T> {
 
-		private final ReactiveNeo4jTemplate template;
+		private final Neo4jTemplate template;
 		private final Class<?> domainType;
 		private final Class<T> returnType;
 		private final String query;
 		private final Map<String, Object> parameters;
 
-		ExecutableFindSupport(ReactiveNeo4jTemplate template, Class<?> domainType, Class<T> returnType, String query,
+		ExecutableFindSupport(Neo4jTemplate template, Class<?> domainType, Class<T> returnType, String query,
 				Map<String, Object> parameters) {
 			this.template = template;
 			this.domainType = domainType;
@@ -83,17 +80,61 @@ final class ReactiveFluentFindOperationSupport implements ReactiveFluentFindOper
 		}
 
 		@Override
-		public Mono<T> one() {
-			return doFind(TemplateSupport.FetchType.ONE).single();
+		public T oneValue() {
+
+			List<T> result = doFind(TemplateSupport.FetchType.ONE);
+			if (result.isEmpty()) {
+				return null;
+			}
+			return result.iterator().next();
 		}
 
 		@Override
-		public Flux<T> all() {
+		public List<T> all() {
 			return doFind(TemplateSupport.FetchType.ALL);
 		}
 
-		private Flux<T> doFind(TemplateSupport.FetchType fetchType) {
+		private List<T> doFind(TemplateSupport.FetchType fetchType) {
 			return template.doFind(query, parameters, domainType, returnType, fetchType);
+		}
+	}
+
+	@Override
+	public <T> ExecutableSave<T> save(Class<T> domainType) {
+
+		Assert.notNull(domainType, "DomainType must not be null!");
+
+		return new ExecutableSaveSupport<>(this.template, domainType);
+	}
+
+	private static class ExecutableSaveSupport<DT> implements ExecutableSave<DT> {
+
+		private final Neo4jTemplate template;
+		private final Class<DT> domainType;
+
+		ExecutableSaveSupport(Neo4jTemplate template, Class<DT> domainType) {
+			this.template = template;
+			this.domainType = domainType;
+		}
+
+		@Override
+		public <T> T one(T instance) {
+
+			List<T> result = doSave(Collections.singleton(instance));
+			if (result.isEmpty()) {
+				return null;
+			}
+			return result.get(0);
+		}
+
+		@Override
+		public <T> List<T> all(Iterable<T> instances) {
+
+			return doSave(instances);
+		}
+
+		private <T> List<T> doSave(Iterable<T> instances) {
+			return template.doSave(instances, domainType);
 		}
 	}
 }

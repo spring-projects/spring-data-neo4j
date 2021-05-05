@@ -84,6 +84,9 @@ final class ReactiveRepositoryQueryTest {
 	@Mock
 	private ReactiveNeo4jOperations neo4jOperations;
 
+	@Mock
+	private ProjectionFactory projectionFactory;
+
 	@Nested
 	@ExtendWith(LogbackCapturingExtension.class)
 	class ReactiveStringBasedNeo4jQueryTest {
@@ -120,7 +123,7 @@ final class ReactiveRepositoryQueryTest {
 			Neo4jQueryMethod method = reactiveNeo4jQueryMethod("annotatedQueryWithoutTemplate");
 			assertThatExceptionOfType(MappingException.class)
 					.isThrownBy(() -> ReactiveStringBasedNeo4jQuery
-							.create(neo4jOperations, neo4jMappingContext, ReactiveQueryMethodEvaluationContextProvider.DEFAULT, method))
+							.create(neo4jOperations, neo4jMappingContext, ReactiveQueryMethodEvaluationContextProvider.DEFAULT, method, projectionFactory))
 					.withMessage("Expected @Query annotation to have a value, but it did not.");
 		}
 
@@ -131,7 +134,7 @@ final class ReactiveRepositoryQueryTest {
 			ReactiveStringBasedNeo4jQuery query =
 					ReactiveStringBasedNeo4jQuery
 							.create(neo4jOperations, neo4jMappingContext,
-									ReactiveQueryMethodEvaluationContextProvider.DEFAULT, method);
+									ReactiveQueryMethodEvaluationContextProvider.DEFAULT, method, projectionFactory);
 
 			Neo4jParameterAccessor parameterAccessor = new Neo4jParameterAccessor(
 					(Neo4jQueryMethod.Neo4jParameters) method.getParameters(),
@@ -166,7 +169,7 @@ final class ReactiveRepositoryQueryTest {
 					ReactiveStringBasedNeo4jQuery
 							.create(neo4jOperations, neo4jMappingContext,
 									new ReactiveExtensionAwareQueryMethodEvaluationContextProvider(
-											context.getBeanFactory()), method);
+											context.getBeanFactory()), method, projectionFactory);
 
 			Neo4jParameterAccessor parameterAccessor = new Neo4jParameterAccessor(
 					(Neo4jQueryMethod.Neo4jParameters) method.getParameters(),
@@ -200,7 +203,7 @@ final class ReactiveRepositoryQueryTest {
 			ReactiveStringBasedNeo4jQuery query =
 					ReactiveStringBasedNeo4jQuery.create(neo4jOperations, neo4jMappingContext,
 							new ReactiveExtensionAwareQueryMethodEvaluationContextProvider(context.getBeanFactory()),
-							method);
+							method, projectionFactory);
 
 			String s = Mono.fromSupplier(() -> {
 				Neo4jParameterAccessor parameterAccessor = new Neo4jParameterAccessor(
@@ -230,7 +233,7 @@ final class ReactiveRepositoryQueryTest {
 			ReactiveStringBasedNeo4jQuery repositoryQuery = spy(
 					ReactiveStringBasedNeo4jQuery.create(neo4jOperations,
 							neo4jMappingContext, ReactiveQueryMethodEvaluationContextProvider.DEFAULT,
-							method));
+							method, projectionFactory));
 
 			// skip conversion
 			doAnswer(invocation -> invocation.getArgument(0)).when(repositoryQuery).convertParameter(any());
@@ -252,7 +255,7 @@ final class ReactiveRepositoryQueryTest {
 			ReactiveStringBasedNeo4jQuery repositoryQuery = spy(
 					ReactiveStringBasedNeo4jQuery.create(neo4jOperations,
 							neo4jMappingContext, ReactiveQueryMethodEvaluationContextProvider.DEFAULT,
-							method));
+							method, projectionFactory));
 
 			// skip conversion
 			doAnswer(invocation -> invocation.getArgument(0)).when(repositoryQuery).convertParameter(any());

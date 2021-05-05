@@ -52,22 +52,22 @@ public final class ReactiveNeo4jQueryLookupStrategy implements QueryLookupStrate
 	 * @see org.springframework.data.repository.query.QueryLookupStrategy#resolveQuery(java.lang.reflect.Method, org.springframework.data.repository.core.RepositoryMetadata, org.springframework.data.projection.ProjectionFactory, org.springframework.data.repository.core.NamedQueries)
 	 */
 	@Override
-	public RepositoryQuery resolveQuery(Method method, RepositoryMetadata metadata, ProjectionFactory factory,
+	public RepositoryQuery resolveQuery(Method method, RepositoryMetadata metadata, ProjectionFactory projectionFactory,
 			NamedQueries namedQueries) {
 
-		Neo4jQueryMethod queryMethod = new ReactiveNeo4jQueryMethod(method, metadata, factory);
+		Neo4jQueryMethod queryMethod = new ReactiveNeo4jQueryMethod(method, metadata, projectionFactory);
 		String namedQueryName = queryMethod.getNamedQueryName();
 
 		if (namedQueries.hasQuery(namedQueryName)) {
 			return ReactiveStringBasedNeo4jQuery.create(neo4jOperations, mappingContext, evaluationContextProvider,
-					queryMethod, namedQueries.getQuery(namedQueryName));
+					queryMethod, namedQueries.getQuery(namedQueryName), projectionFactory);
 		} else if (queryMethod.hasQueryAnnotation()) {
 			return ReactiveStringBasedNeo4jQuery.create(neo4jOperations, mappingContext, evaluationContextProvider,
-					queryMethod);
+					queryMethod, projectionFactory);
 		} else if (queryMethod.isCypherBasedProjection()) {
-			return ReactiveCypherdslBasedQuery.create(neo4jOperations, mappingContext, queryMethod);
+			return ReactiveCypherdslBasedQuery.create(neo4jOperations, mappingContext, queryMethod, projectionFactory);
 		} else {
-			return ReactivePartTreeNeo4jQuery.create(neo4jOperations, mappingContext, queryMethod);
+			return ReactivePartTreeNeo4jQuery.create(neo4jOperations, mappingContext, queryMethod, projectionFactory);
 		}
 	}
 }

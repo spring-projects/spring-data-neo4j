@@ -201,4 +201,5 @@ public final class QueryFragmentsAndParameters {
 
 		return new QueryFragmentsAndParameters(entityMetaData, queryFragments, parameters);
 	}
+
 }
