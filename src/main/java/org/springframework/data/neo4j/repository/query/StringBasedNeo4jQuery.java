@@ -28,6 +28,7 @@ import org.neo4j.driver.types.MapAccessor;
 import org.neo4j.driver.types.TypeSystem;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mapping.MappingException;
+import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.neo4j.core.Neo4jOperations;
 import org.springframework.data.neo4j.core.PreparedQuery;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
@@ -171,7 +172,7 @@ final class StringBasedNeo4jQuery extends AbstractNeo4jQuery {
 	}
 
 	@Override
-	protected <T extends Object> PreparedQuery<T> prepareQuery(Class<T> returnedType, List<String> includedProperties,
+	protected <T extends Object> PreparedQuery<T> prepareQuery(Class<T> returnedType, List<PropertyPath> includedProperties,
 			Neo4jParameterAccessor parameterAccessor, @Nullable Neo4jQueryType queryType,
 			@Nullable BiFunction<TypeSystem, MapAccessor, ?> mappingFunction,
 			UnaryOperator<Integer> limitModifier

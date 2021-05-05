@@ -31,6 +31,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
+import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.neo4j.core.Neo4jOperations;
 import org.springframework.data.neo4j.core.PreparedQuery;
 import org.springframework.data.neo4j.core.mapping.DtoInstantiatingConverter;
@@ -141,7 +142,7 @@ abstract class AbstractNeo4jQuery extends Neo4jQuerySupport implements Repositor
 	}
 
 	protected abstract <T extends Object> PreparedQuery<T> prepareQuery(Class<T> returnedType,
-			List<String> includedProperties, Neo4jParameterAccessor parameterAccessor,
+			List<PropertyPath> includedProperties, Neo4jParameterAccessor parameterAccessor,
 			@Nullable Neo4jQueryType queryType,
 			@Nullable BiFunction<TypeSystem, MapAccessor, ?> mappingFunction,
 			@Nullable UnaryOperator<Integer> limitModifier);

@@ -28,6 +28,7 @@ import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import org.apache.commons.logging.LogFactory;
 import org.neo4j.driver.Value;
@@ -40,6 +41,7 @@ import org.springframework.data.geo.Box;
 import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.Metrics;
+import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.neo4j.core.convert.Neo4jSimpleTypes;
 import org.springframework.data.neo4j.core.mapping.CypherGenerator;
 import org.springframework.data.neo4j.core.mapping.EntityInstanceWithSource;
@@ -121,10 +123,12 @@ abstract class Neo4jQuerySupport {
 		return mappingFunction;
 	}
 
-	protected final List<String> getInputProperties(final ResultProcessor resultProcessor) {
+	protected final List<PropertyPath> getInputProperties(final ResultProcessor resultProcessor) {
 
 		ReturnedType returnedType = resultProcessor.getReturnedType();
-		return returnedType.isProjecting() ? returnedType.getInputProperties() : Collections.emptyList();
+		List<PropertyPath> ding = returnedType.getInputProperties().stream().map(propertyName ->
+				PropertyPath.from(propertyName, resultProcessor.getReturnedType().getReturnedType())).collect(Collectors.toList());
+		return returnedType.isProjecting() ? ding : Collections.emptyList();
 	}
 
 	private static boolean hasValidReturnTypeForDelete(Neo4jQueryMethod queryMethod) {

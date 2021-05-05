@@ -26,6 +26,7 @@ import org.neo4j.cypherdsl.core.StatementBuilder.OngoingReadingAndReturn;
 import org.neo4j.driver.types.MapAccessor;
 import org.neo4j.driver.types.TypeSystem;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.neo4j.core.Neo4jOperations;
 import org.springframework.data.neo4j.core.PreparedQuery;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
@@ -54,7 +55,7 @@ final class CypherdslBasedQuery extends AbstractNeo4jQuery {
 
 	@Override
 	protected <T> PreparedQuery<T> prepareQuery(Class<T> returnedType,
-			List<String> includedProperties,
+			List<PropertyPath> includedProperties,
 			Neo4jParameterAccessor parameterAccessor, Neo4jQueryType queryType,
 			BiFunction<TypeSystem, MapAccessor, ?> mappingFunction,
 			UnaryOperator<Integer> limitModifier) {
