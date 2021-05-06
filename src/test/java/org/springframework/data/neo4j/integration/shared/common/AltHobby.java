@@ -35,6 +35,12 @@ public class AltHobby {
 	@Relationship(type = "LIKES", direction = Relationship.Direction.INCOMING)
 	private List<AltLikedByPersonRelationship> likedBy = new ArrayList<>();
 
+	@Relationship(type = "CHILD", direction = Relationship.Direction.INCOMING)
+	private List<AltHobby> memberOf = new ArrayList<>();
+
+	public List<AltHobby> getMemberOf() {
+		return memberOf;
+	}
 	public Long getId() {
 		return id;
 	}
