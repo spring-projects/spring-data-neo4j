@@ -220,6 +220,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 		Map<String, Object> mergedAttributes = new HashMap<>(node.size() + record.size() + 1);
 
 		mergedAttributes.put(Constants.NAME_OF_INTERNAL_ID, node.id());
+		mergedAttributes.put(Constants.NAME_OF_LABELS, node.labels());
 		mergedAttributes.putAll(node.asMap(Function.identity()));
 		mergedAttributes.putAll(record.asMap(Function.identity()));
 
