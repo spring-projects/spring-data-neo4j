@@ -23,6 +23,9 @@ import org.neo4j.driver.Driver;
 import org.neo4j.driver.TransactionConfig;
 import org.neo4j.driver.reactive.RxSession;
 import org.neo4j.driver.reactive.RxTransaction;
+import org.springframework.beans.BeansException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.data.neo4j.core.DatabaseSelection;
 import org.springframework.data.neo4j.core.ReactiveDatabaseSelectionProvider;
 import org.springframework.lang.Nullable;
@@ -42,7 +45,7 @@ import org.springframework.util.Assert;
  * @since 6.0
  */
 @API(status = API.Status.STABLE, since = "6.0")
-public class ReactiveNeo4jTransactionManager extends AbstractReactiveTransactionManager {
+public final class ReactiveNeo4jTransactionManager extends AbstractReactiveTransactionManager implements ApplicationContextAware {
 
 	/**
 	 * The underlying driver, which is also the synchronisation object.
@@ -56,15 +59,45 @@ public class ReactiveNeo4jTransactionManager extends AbstractReactiveTransaction
 
 	private final Neo4jBookmarkManager bookmarkManager;
 
+	/**
+	 * This will create a transaction manager for the default database.
+	 *
+	 * @param driver A driver instance
+	 */
 	public ReactiveNeo4jTransactionManager(Driver driver) {
 		this(driver, ReactiveDatabaseSelectionProvider.getDefaultSelectionProvider());
 	}
 
+	/**
+	 * This will create a transaction manager targeting whatever the database selection provider determines.
+	 *
+	 * @param driver A driver instance
+	 * @param databaseSelectionProvider The database selection provider to determine the database in which the transactions should happen
+	 */
 	public ReactiveNeo4jTransactionManager(Driver driver, ReactiveDatabaseSelectionProvider databaseSelectionProvider) {
+
+		this(driver, databaseSelectionProvider, Neo4jBookmarkManager.create());
+	}
+
+	/**
+	 * This constructor can be used to configure the bookmark manager being used. It is useful when you need to seed
+	 * the bookmark manager or if you want to capture new bookmarks.
+	 *
+	 * @param driver A driver instance
+	 * @param databaseSelectionProvider The database selection provider to determine the database in which the transactions should happen
+	 * @param bookmarkManager A bookmark manager
+	 */
+	public ReactiveNeo4jTransactionManager(Driver driver, ReactiveDatabaseSelectionProvider databaseSelectionProvider, Neo4jBookmarkManager bookmarkManager) {
 
 		this.driver = driver;
 		this.databaseSelectionProvider = databaseSelectionProvider;
-		this.bookmarkManager = new Neo4jBookmarkManager();
+		this.bookmarkManager = bookmarkManager;
+	}
+
+	@Override
+	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+
+		this.bookmarkManager.setApplicationEventPublisher(applicationContext);
 	}
 
 	public static Mono<RxTransaction> retrieveReactiveTransaction(final Driver driver, final String targetDatabase) {

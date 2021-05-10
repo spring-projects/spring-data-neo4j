@@ -58,6 +58,76 @@ No, you don't.
 SDN uses Neo4j Causal Cluster bookmarks internally without any configuration on your side required.
 Transactions in the same thread or the same reactive stream following each other will be able to read their previously changed values as you would expect.
 
+[[faq.bookmarks]]
+== Can I retrieve the latest Bookmarks or seed the transaction manager?
+
+As mentioned briefly in <<migrating.bookmarks>>, there is no need to configure anything with regard to bookmarks.
+It may however be useful to retrieve the latest bookmark the SDN transaction system received from a database.
+You can add a `@Bean` like `BookmarkCapture` to do this:
+
+[source,java,indent=0,tabsize=4]
+.BookmarkCapture.java
+----
+import java.util.Set;
+
+import org.neo4j.driver.Bookmark;
+import org.springframework.context.ApplicationListener;
+
+public final class BookmarkCapture
+	implements ApplicationListener<Neo4jBookmarksUpdatedEvent> {
+
+	@Override
+	public void onApplicationEvent(Neo4jBookmarksUpdatedEvent event) {
+		// We make sure that this event is called only once,
+		// the thread safe application of those bookmarks is up to your system.
+		Set<Bookmark> latestBookmarks = event.getBookmarks();
+	}
+}
+----
+
+For seeding the transaction system, a customized transactionmanager like the the following is required:
+
+[source,java,indent=0,tabsize=4]
+.BookmarkSeedingConfig.java
+----
+import java.util.Set;
+import java.util.function.Supplier;
+
+import org.neo4j.driver.Bookmark;
+import org.neo4j.driver.Driver;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.data.neo4j.core.DatabaseSelectionProvider;
+import org.springframework.transaction.PlatformTransactionManager;
+
+@Configuration
+public class BookmarkSeedingConfig {
+
+	@Bean
+	public PlatformTransactionManager transactionManager(
+			Driver driver, DatabaseSelectionProvider databaseNameProvider) { // <.>
+
+		Supplier<Set<Bookmark>> bookmarkSupplier = () -> { // <.>
+			Bookmark a = null;
+			Bookmark b = null;
+			return Set.of(a, b);
+		};
+
+		Neo4jBookmarkManager bookmarkManager =
+			Neo4jBookmarkManager.create(bookmarkSupplier); // <.>
+		return new Neo4jTransactionManager(
+			driver, databaseNameProvider, bookmarkManager); // <.>
+	}
+}
+----
+<.> Let Spring inject those
+<.> This supplier can be anything that holds the latest bookmarks you want to bring into the system
+<.> Create the bookmark manager with it
+<.> Pass it on to the customized transaction manager
+
+WARNING: There is *no* need to do any of these things above, unless your application has the need to access or provide
+         this data. If in doubt, don't do neither.
+
 [[faq.annotations.specific]]
 == Do I need to use Neo4j specific annotations?
 

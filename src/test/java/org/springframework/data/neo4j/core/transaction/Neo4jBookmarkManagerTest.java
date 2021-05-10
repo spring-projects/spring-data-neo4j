@@ -22,19 +22,59 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.jupiter.api.Test;
 import org.neo4j.driver.Bookmark;
 
 /**
  * @author Gerrit Meier
+ * @author Michael J. Simons
  */
 class Neo4jBookmarkManagerTest {
 
-	private final Neo4jBookmarkManager bookmarkManager = new Neo4jBookmarkManager();
+	@Test // GH-2245
+	void publishesNewBookmarks() {
+
+		BookmarkForTesting bookmark = new BookmarkForTesting(Collections.singleton("a"));
+		AtomicBoolean asserted = new AtomicBoolean(false);
+
+		final Neo4jBookmarkManager bookmarkManager = Neo4jBookmarkManager.create();
+		bookmarkManager.setApplicationEventPublisher(event -> {
+			assertThat(((Neo4jBookmarksUpdatedEvent) event).getBookmarks()).containsExactly(bookmark);
+			asserted.set(true);
+		});
+
+		bookmarkManager.updateBookmarks(new HashSet<>(), bookmark);
+		assertThat(asserted).isTrue();
+	}
+
+	@Test // GH-2245
+	void shouldUseSupplier() {
+
+		AtomicBoolean asserted = new AtomicBoolean(false);
+
+		BookmarkForTesting a = new BookmarkForTesting(Collections.singleton("a"));
+		BookmarkForTesting b = new BookmarkForTesting(Collections.singleton("b"));
+
+		final Neo4jBookmarkManager bookmarkManager = Neo4jBookmarkManager.create(() -> Collections.singleton(a));
+		bookmarkManager.setApplicationEventPublisher(event -> {
+			assertThat(((Neo4jBookmarksUpdatedEvent) event).getBookmarks()).containsExactly(b);
+			asserted.set(true);
+		});
+
+		Collection<Bookmark> bookmarks = bookmarkManager.getBookmarks();
+		assertThat(bookmarks).containsExactlyInAnyOrder(a);
+
+		bookmarkManager.updateBookmarks(bookmarks, b);
+		assertThat(asserted).isTrue();
+	}
 
 	@Test
 	void updatesPreviouslyEmptyBookmarks() {
+
+		final Neo4jBookmarkManager bookmarkManager = Neo4jBookmarkManager.create();
+
 		BookmarkForTesting bookmark = new BookmarkForTesting(Collections.singleton("a"));
 		bookmarkManager.updateBookmarks(new HashSet<>(), bookmark);
 
@@ -43,6 +83,9 @@ class Neo4jBookmarkManagerTest {
 
 	@Test
 	void returnsUnmodifiableCopyOfBookmarks() {
+
+		final Neo4jBookmarkManager bookmarkManager = Neo4jBookmarkManager.create();
+
 		BookmarkForTesting bookmark = new BookmarkForTesting(Collections.singleton("a"));
 		bookmarkManager.updateBookmarks(new HashSet<>(), bookmark);
 
@@ -52,6 +95,9 @@ class Neo4jBookmarkManagerTest {
 
 	@Test
 	void updatesPreviouslySetBookmarks() {
+
+		final Neo4jBookmarkManager bookmarkManager = Neo4jBookmarkManager.create();
+
 		BookmarkForTesting oldBookmark = new BookmarkForTesting(Collections.singleton("a"));
 		bookmarkManager.updateBookmarks(new HashSet<>(), oldBookmark);
 
@@ -63,6 +109,9 @@ class Neo4jBookmarkManagerTest {
 
 	@Test
 	void updatesPreviouslyUnknownBookmarks() {
+
+		final Neo4jBookmarkManager bookmarkManager = Neo4jBookmarkManager.create();
+
 		BookmarkForTesting oldBookmark = new BookmarkForTesting(Collections.singleton("a"));
 		BookmarkForTesting newBookmark = new BookmarkForTesting(Collections.singleton("b"));
 		bookmarkManager.updateBookmarks(Collections.singleton(oldBookmark), newBookmark);
