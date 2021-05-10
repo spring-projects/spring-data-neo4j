@@ -28,6 +28,7 @@ import org.springframework.data.neo4j.test.Neo4jExtension;
  */
 @Tag(Neo4jExtension.COMMERCIAL_EDITION_ONLY)
 @Tag(Neo4jExtension.REQUIRES + "4.0.0")
+@Tag(Neo4jExtension.INCOMPATIBLE_WITH_CLUSTERS)
 class RepositoryWithADifferentDatabaseIT extends RepositoryIT {
 
 	private static final String TEST_DATABASE_NAME = "aTestDatabase";

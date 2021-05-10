@@ -29,6 +29,7 @@ import org.neo4j.driver.Transaction;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
 import org.neo4j.driver.types.Node;
+import org.springframework.data.neo4j.test.BookmarkCapture;
 import org.springframework.data.neo4j.test.Neo4jExtension;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 
@@ -41,11 +42,13 @@ import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 public abstract class CallbacksITBase {
 
 	protected static Neo4jExtension.Neo4jConnectionSupport neo4jConnectionSupport;
+	private final BookmarkCapture bookmarkCapture;
 
 	private final Driver driver;
 
-	protected CallbacksITBase(Driver driver) {
+	protected CallbacksITBase(Driver driver, BookmarkCapture bookmarkCapture) {
 		this.driver = driver;
+		this.bookmarkCapture = bookmarkCapture;
 	}
 
 	@BeforeEach
@@ -63,7 +66,7 @@ public abstract class CallbacksITBase {
 				.collect(Collectors.toList());
 		List<String> names = StreamSupport.stream(expectedValues.spliterator(), false).map(ThingWithAssignedId::getName)
 				.collect(Collectors.toList());
-		try (Session session = driver.session()) {
+		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
 			Record record = session
 					.run("MATCH (n:Thing) WHERE n.theId in $ids RETURN COLLECT(n) as things", Values.parameters("ids", ids))
 					.single();
@@ -71,6 +74,7 @@ public abstract class CallbacksITBase {
 			List<Node> nodes = record.get("things").asList(Value::asNode);
 			assertThat(nodes).extracting(n -> n.get("theId").asString()).containsAll(ids);
 			assertThat(nodes).extracting(n -> n.get("name").asString()).containsAll(names);
+			bookmarkCapture.seedWith(session.lastBookmark());
 		}
 	}
 }

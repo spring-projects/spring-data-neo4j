@@ -37,7 +37,6 @@ import org.neo4j.driver.Driver;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Result;
 import org.neo4j.driver.Session;
-import org.neo4j.driver.SessionConfig;
 import org.neo4j.driver.Transaction;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
@@ -46,12 +45,17 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.data.neo4j.config.AbstractNeo4jConfig;
+import org.springframework.data.neo4j.core.DatabaseSelectionProvider;
 import org.springframework.data.neo4j.core.Neo4jTemplate;
+import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
+import org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager;
 import org.springframework.data.neo4j.integration.shared.common.Person;
 import org.springframework.data.neo4j.integration.shared.common.PersonWithAllConstructor;
 import org.springframework.data.neo4j.integration.shared.common.ThingWithGeneratedId;
+import org.springframework.data.neo4j.test.BookmarkCapture;
 import org.springframework.data.neo4j.test.Neo4jExtension.Neo4jConnectionSupport;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 /**
@@ -68,31 +72,23 @@ class Neo4jTemplateIT {
 
 	private final Driver driver;
 	private final Neo4jTemplate neo4jTemplate;
+	private final BookmarkCapture bookmarkCapture;
 
 	private Long person1Id;
 	private Long person2Id;
 
 	@Autowired
-	Neo4jTemplateIT(Driver driver, Neo4jTemplate neo4jTemplate) {
+	Neo4jTemplateIT(Driver driver, Neo4jTemplate neo4jTemplate, BookmarkCapture bookmarkCapture) {
 		this.driver = driver;
 		this.neo4jTemplate = neo4jTemplate;
-	}
-
-	/**
-	 * Shall be configured by test making use of database selection, so that the verification queries run in the correct
-	 * database.
-	 *
-	 * @return The session config used for verification methods.
-	 */
-	SessionConfig getSessionConfig() {
-		return SessionConfig.defaultConfig();
+		this.bookmarkCapture = bookmarkCapture;
 	}
 
 	@BeforeEach
 	void setupData() {
 
 		try (
-				Session session = driver.session(getSessionConfig());
+				Session session = driver.session(bookmarkCapture.createSessionConfig());
 				Transaction transaction = session.beginTransaction();
 		) {
 			transaction.run("MATCH (n) detach delete n");
@@ -110,6 +106,7 @@ class Neo4jTemplateIT {
 			transaction.run("CREATE (p:Person{firstName: 'Bela', lastName: 'B.'})");
 
 			transaction.commit();
+			bookmarkCapture.seedWith(session.lastBookmark());
 		}
 	}
 
@@ -249,7 +246,7 @@ class Neo4jTemplateIT {
 
 		assertThat(testThing.getTheId()).isNotNull();
 
-		try (Session session = driver.session(getSessionConfig())) {
+		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
 			Result result = session.run("MATCH (t:ThingWithGeneratedId{name: 'testThing'}) return t");
 			Value resultValue = result.single().get("t");
 			assertThat(resultValue).isNotNull();
@@ -267,7 +264,7 @@ class Neo4jTemplateIT {
 
 		assertThat(savedThings).hasSize(2);
 
-		try (Session session = driver.session(getSessionConfig())) {
+		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
 			Map<String, Object> paramMap = new HashMap<>();
 			paramMap.put("name1", thing1Name);
 			paramMap.put("name2", thing2Name);
@@ -287,7 +284,7 @@ class Neo4jTemplateIT {
 	void deleteById() {
 		neo4jTemplate.deleteById(person1Id, PersonWithAllConstructor.class);
 
-		try (Session session = driver.session(getSessionConfig())) {
+		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
 			Result result = session.run("MATCH (p:PersonWithAllConstructor) return count(p) as count");
 			assertThat(result.single().get("count").asLong()).isEqualTo(1);
 		}
@@ -297,7 +294,7 @@ class Neo4jTemplateIT {
 	void deleteAllById() {
 		neo4jTemplate.deleteAllById(Arrays.asList(person1Id, person2Id), PersonWithAllConstructor.class);
 
-		try (Session session = driver.session(getSessionConfig())) {
+		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
 			Result result = session.run("MATCH (p:PersonWithAllConstructor) return count(p) as count");
 			assertThat(result.single().get("count").asLong()).isEqualTo(0);
 		}
@@ -549,6 +546,18 @@ class Neo4jTemplateIT {
 		@Override // needed here because there is no implicit registration of entities upfront some methods under test
 		protected Collection<String> getMappingBasePackages() {
 			return Collections.singletonList(PersonWithAllConstructor.class.getPackage().getName());
+		}
+
+		@Bean
+		public BookmarkCapture bookmarkCapture() {
+			return new BookmarkCapture();
+		}
+
+		@Override
+		public PlatformTransactionManager transactionManager(Driver driver, DatabaseSelectionProvider databaseNameProvider) {
+
+			BookmarkCapture bookmarkCapture = bookmarkCapture();
+			return new Neo4jTransactionManager(driver, databaseNameProvider, Neo4jBookmarkManager.create(bookmarkCapture));
 		}
 	}
 }

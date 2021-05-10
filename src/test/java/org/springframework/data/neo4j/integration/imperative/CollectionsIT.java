@@ -22,6 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.neo4j.config.AbstractNeo4jConfig;
+import org.springframework.data.neo4j.core.DatabaseSelectionProvider;
 import org.springframework.data.neo4j.core.Neo4jTemplate;
 import org.springframework.data.neo4j.core.convert.Neo4jConversions;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
@@ -30,8 +31,12 @@ import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.RelationshipProperties;
 import org.springframework.data.neo4j.core.schema.TargetNode;
+import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
+import org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager;
+import org.springframework.data.neo4j.test.BookmarkCapture;
 import org.springframework.data.neo4j.test.Neo4jExtension;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import java.util.Arrays;
@@ -52,19 +57,23 @@ public class CollectionsIT {
 
 	private final Driver driver;
 
+	private final BookmarkCapture bookmarkCapture;
+
 	@Autowired
-	CollectionsIT(Driver driver) {
+	CollectionsIT(Driver driver, BookmarkCapture bookmarkCapture) {
 		this.driver = driver;
+		this.bookmarkCapture = bookmarkCapture;
 	}
 
 	@Test // GH-2236
 	void loadingOfRelPropertiesInSetsShouldWork(@Autowired Neo4jTemplate repository) {
 
 		Long id;
-		try (Session session = driver.session()) {
+		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
 			id = session.run(
 					"CREATE (c:CollectionChildNodeA {name: 'The Child'}) <- [:CHILDREN_WITH_PROPERTIES {prop: 'The Property'}] - (p:CollectionParentNode {name: 'The Parent'}) RETURN id(p)"
 			).single().get(0).asLong();
+			bookmarkCapture.seedWith(session.lastBookmark());
 		}
 
 		Optional<CollectionParentNode> optionalParent = repository.findById(id, CollectionParentNode.class);
@@ -97,12 +106,13 @@ public class CollectionsIT {
 		});
 
 
-		try (Session session = driver.session()) {
+		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
 			long cnt = session.run(
 					"MATCH (c:CollectionChildNodeA) <- [:CHILDREN_WITH_PROPERTIES] - (p:CollectionParentNode) WHERE id(p) = $id RETURN count(c) ",
 					Collections.singletonMap("id", parent.id)
 			).single().get(0).asLong();
 			assertThat(cnt).isEqualTo(1L);
+			bookmarkCapture.seedWith(session.lastBookmark());
 		}
 	}
 
@@ -172,6 +182,18 @@ public class CollectionsIT {
 			Neo4jMappingContext ctx = new Neo4jMappingContext(neo4JConversions);
 			ctx.setInitialEntitySet(new HashSet<>(Arrays.asList(CollectionParentNode.class, CollectionChildNodeA.class, RelProperties.class)));
 			return ctx;
+		}
+
+		@Bean
+		public BookmarkCapture bookmarkCapture() {
+			return new BookmarkCapture();
+		}
+
+		@Override
+		public PlatformTransactionManager transactionManager(Driver driver, DatabaseSelectionProvider databaseNameProvider) {
+
+			BookmarkCapture bookmarkCapture = bookmarkCapture();
+			return new Neo4jTransactionManager(driver, databaseNameProvider, Neo4jBookmarkManager.create(bookmarkCapture));
 		}
 	}
 }

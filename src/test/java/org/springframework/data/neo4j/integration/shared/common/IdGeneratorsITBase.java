@@ -23,6 +23,7 @@ import org.neo4j.driver.Session;
 import org.neo4j.driver.Transaction;
 import org.neo4j.driver.Values;
 import org.neo4j.driver.types.Node;
+import org.springframework.data.neo4j.test.BookmarkCapture;
 import org.springframework.data.neo4j.test.Neo4jExtension;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 
@@ -40,23 +41,29 @@ public abstract class IdGeneratorsITBase {
 
 	private final Driver driver;
 
-	protected IdGeneratorsITBase(Driver driver) {
+	private final BookmarkCapture bookmarkCapture;
+
+	protected IdGeneratorsITBase(Driver driver, BookmarkCapture bookmarkCapture) {
 		this.driver = driver;
+		this.bookmarkCapture = bookmarkCapture;
 	}
 
 	@BeforeEach
 	protected void setupData() {
-		try (Transaction transaction = driver.session().beginTransaction()) {
+
+		try (Session session = driver.session(bookmarkCapture.createSessionConfig());
+				Transaction transaction = session.beginTransaction()) {
 			transaction.run("MATCH (n) detach delete n");
 			transaction.run("CREATE (t:ThingWithGeneratedId {name: $name, theId: $theId}) RETURN id(t) as id",
 					Values.parameters("name", EXISTING_THING_NAME, "theId", ID_OF_EXISTING_THING));
 			transaction.commit();
+			bookmarkCapture.seedWith(session.lastBookmark());
 		}
 	}
 
 	protected void verifyDatabase(String id, String name) {
 
-		try (Session session = driver.session()) {
+		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
 			Node node = session.run("MATCH (t) WHERE t.theId = $theId RETURN t", Values.parameters("theId", id)).single()
 					.get("t").asNode();
 

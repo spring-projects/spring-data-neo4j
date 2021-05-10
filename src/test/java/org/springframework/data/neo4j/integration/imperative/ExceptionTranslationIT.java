@@ -23,6 +23,7 @@ import java.util.Optional;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Session;
@@ -49,6 +50,9 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
  * @author Michael J. Simons
  */
 @Neo4jIntegrationTest
+// Not actually incompatible, but not worth the effort adding additional complexity for handling bookmarks
+// between fixture and test
+@Tag(Neo4jExtension.INCOMPATIBLE_WITH_CLUSTERS)
 class ExceptionTranslationIT {
 
 	protected static Neo4jExtension.Neo4jConnectionSupport neo4jConnectionSupport;

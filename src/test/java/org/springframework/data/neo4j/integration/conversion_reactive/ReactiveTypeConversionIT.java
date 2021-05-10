@@ -51,13 +51,6 @@ class ReactiveTypeConversionIT {
 
 	protected static Neo4jExtension.Neo4jConnectionSupport neo4jConnectionSupport;
 
-	private final Driver driver;
-
-	@Autowired
-	ReactiveTypeConversionIT(Driver driver) {
-		this.driver = driver;
-	}
-
 	@Test
 	void idsShouldBeConverted(@Autowired ConvertedIDsRepository repository) {
 

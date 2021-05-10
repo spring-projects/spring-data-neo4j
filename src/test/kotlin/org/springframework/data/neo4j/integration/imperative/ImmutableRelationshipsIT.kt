@@ -23,13 +23,19 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.data.neo4j.config.AbstractNeo4jConfig
+import org.springframework.data.neo4j.core.DatabaseSelectionProvider
+import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager
+import org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager
 import org.springframework.data.neo4j.integration.shared.common.DeviceEntity
 import org.springframework.data.neo4j.integration.shared.common.ImmutableKotlinPerson
 import org.springframework.data.neo4j.repository.Neo4jRepository
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories
+import org.springframework.data.neo4j.test.BookmarkCapture
 import org.springframework.data.neo4j.test.Neo4jExtension
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest
+import org.springframework.transaction.PlatformTransactionManager
 import org.springframework.transaction.annotation.EnableTransactionManagement
+import org.springframework.transaction.annotation.Transactional
 
 /**
  * This test originate from https://github.com/neo4j/SDN/issues/102.
@@ -43,7 +49,8 @@ import org.springframework.transaction.annotation.EnableTransactionManagement
 class ImmutableRelationshipsIT @Autowired constructor(
         private val repository: DeviceRepository,
         private val personRepository: ImmutableKotlinPersonRepository,
-        private val driver: Driver
+        private val driver: Driver,
+        private val bookmarkCapture: BookmarkCapture
 ) {
 
     companion object {
@@ -54,10 +61,12 @@ class ImmutableRelationshipsIT @Autowired constructor(
     @Test
     fun createRelationshipsBeforeRootObject() {
 
-        driver.session().use { session ->
-            session.run("MATCH (n) DETACH DELETE n")
-            session.run("CREATE (n:DeviceEntity {deviceId:'123', phoneNumber:'some number'})-[:LATEST_LOCATION]->(l1: LocationEntity{latitude: 20.0, longitude: 20.0})")
+        driver.session(bookmarkCapture.createSessionConfig()).use { session ->
+            session.run("MATCH (n) DETACH DELETE n").consume()
+            session.run("CREATE (n:DeviceEntity {deviceId:'123', phoneNumber:'some number'})-[:LATEST_LOCATION]->(l1: LocationEntity{latitude: 20.0, longitude: 20.0})").consume()
+            bookmarkCapture.seedWith(session.lastBookmark())
         }
+
         val device = repository.findById("123").get()
         assertThat(device.deviceId).isEqualTo("123")
         assertThat(device.phoneNumber).isEqualTo("some number")
@@ -69,13 +78,14 @@ class ImmutableRelationshipsIT @Autowired constructor(
     @Test
     fun createDeepSameClassRelationshipsBeforeRootObject() {
 
-        driver.session().use { session ->
-            session.run("MATCH (n) DETACH DELETE n")
+        driver.session(bookmarkCapture.createSessionConfig()).use { session ->
+            session.run("MATCH (n) DETACH DELETE n").consume()
             session.run("CREATE (n:DeviceEntity {deviceId:'123', phoneNumber:'some number'})" +
                     "-[:LATEST_LOCATION]->" +
                     "(l1: LocationEntity{latitude: 10.0, longitude: 20.0})" +
                     "-[:PREVIOUS_LOCATION]->" +
-                    "(l2: LocationEntity{latitude: 30.0, longitude: 40.0})")
+                    "(l2: LocationEntity{latitude: 30.0, longitude: 40.0})").consume()
+            bookmarkCapture.seedWith(session.lastBookmark())
         }
         val device = repository.findById("123").get()
         assertThat(device.deviceId).isEqualTo("123")
@@ -90,8 +100,9 @@ class ImmutableRelationshipsIT @Autowired constructor(
     @Test
     fun createComplexSameClassRelationshipsBeforeRootObject() {
 
-        driver.session().use { session ->
-            session.run("MATCH (n) DETACH DELETE n")
+        driver.session(bookmarkCapture.createSessionConfig()).use { session ->
+            session.run("MATCH (n) DETACH DELETE n").consume()
+            bookmarkCapture.seedWith(session.lastBookmark())
         }
 
         val p1 = ImmutableKotlinPerson("Person1", emptyList())
@@ -114,6 +125,16 @@ class ImmutableRelationshipsIT @Autowired constructor(
             return neo4jConnectionSupport.driver
         }
 
+        @Bean
+        open fun bookmarkCapture(): BookmarkCapture {
+            return BookmarkCapture()
+        }
+
+        @Bean
+        override fun transactionManager(driver: Driver, databaseNameProvider: DatabaseSelectionProvider): PlatformTransactionManager {
+            val bookmarkCapture = bookmarkCapture()
+            return Neo4jTransactionManager(driver, databaseNameProvider, Neo4jBookmarkManager.create(bookmarkCapture))
+        }
     }
 
 }

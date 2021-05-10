@@ -23,6 +23,7 @@ import org.neo4j.cypherdsl.core.Cypher;
 import org.neo4j.cypherdsl.core.Node;
 import org.neo4j.cypherdsl.core.Property;
 import org.neo4j.driver.Driver;
+import org.neo4j.driver.Session;
 import org.neo4j.driver.Transaction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -31,7 +32,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.config.AbstractNeo4jConfig;
+import org.springframework.data.neo4j.core.DatabaseSelectionProvider;
 import org.springframework.data.neo4j.core.mapping.Constants;
+import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
+import org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager;
 import org.springframework.data.neo4j.integration.shared.common.Person;
 // tag::sdn-mixins.dynamic-conditions.add-mixin[]
 import org.springframework.data.neo4j.repository.Neo4jRepository;
@@ -41,8 +45,10 @@ import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.data.neo4j.repository.support.CypherdslConditionExecutor;
 
 // end::sdn-mixins.dynamic-conditions.add-mixin[]
+import org.springframework.data.neo4j.test.BookmarkCapture;
 import org.springframework.data.neo4j.test.Neo4jExtension;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 /**
@@ -54,13 +60,16 @@ class CypherdslConditionExecutorIT {
 	protected static Neo4jExtension.Neo4jConnectionSupport neo4jConnectionSupport;
 
 	private final Driver driver;
+	private final BookmarkCapture bookmarkCapture;
 	private final Node person;
 	private final Property firstName;
 	private final Property lastName;
 
-	CypherdslConditionExecutorIT(@Autowired Driver driver) {
+	@Autowired
+	CypherdslConditionExecutorIT(Driver driver, BookmarkCapture bookmarkCapture) {
 
 		this.driver = driver;
+		this.bookmarkCapture = bookmarkCapture;
 
 		//CHECKSTYLE:OFF
 		// tag::sdn-mixins.dynamic-conditions.usage[]
@@ -76,8 +85,9 @@ class CypherdslConditionExecutorIT {
 	}
 
 	@BeforeAll
-	protected static void setupData() {
-		try (Transaction transaction = neo4jConnectionSupport.getDriver().session().beginTransaction()) {
+	protected static void setupData(@Autowired BookmarkCapture bookmarkCapture) {
+		try (Session session = neo4jConnectionSupport.getDriver().session(bookmarkCapture.createSessionConfig());
+			 Transaction transaction = session.beginTransaction()) {
 			transaction.run("MATCH (n) detach delete n");
 			transaction.run("CREATE (p:Person{firstName: 'A', lastName: 'LA'})");
 			transaction.run("CREATE (p:Person{firstName: 'B', lastName: 'LB'})");
@@ -85,6 +95,7 @@ class CypherdslConditionExecutorIT {
 					.run("CREATE (p:Person{firstName: 'Helge', lastName: 'Schneider'}) -[:LIVES_AT]-> (a:Address {city: 'Mülheim an der Ruhr'})");
 			transaction.run("CREATE (p:Person{firstName: 'Bela', lastName: 'B.'})");
 			transaction.commit();
+			bookmarkCapture.seedWith(session.lastBookmark());
 		}
 	}
 
@@ -208,6 +219,18 @@ class CypherdslConditionExecutorIT {
 		public Driver driver() {
 
 			return neo4jConnectionSupport.getDriver();
+		}
+
+		@Bean
+		public BookmarkCapture bookmarkCapture() {
+			return new BookmarkCapture();
+		}
+
+		@Override
+		public PlatformTransactionManager transactionManager(Driver driver, DatabaseSelectionProvider databaseNameProvider) {
+
+			BookmarkCapture bookmarkCapture = bookmarkCapture();
+			return new Neo4jTransactionManager(driver, databaseNameProvider, Neo4jBookmarkManager.create(bookmarkCapture));
 		}
 	}
 }

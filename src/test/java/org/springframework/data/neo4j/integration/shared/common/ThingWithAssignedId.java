@@ -33,8 +33,9 @@ public class ThingWithAssignedId extends AbstractNamedThing {
 
 	@Relationship("Has") private List<AnotherThingWithAssignedId> things;
 
-	public ThingWithAssignedId(String theId) {
+	public ThingWithAssignedId(String theId, String name) {
 		this.theId = theId;
+		super.setName(name);
 	}
 
 	public String getTheId() {

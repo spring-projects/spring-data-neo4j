@@ -18,6 +18,11 @@ package org.springframework.data.neo4j.integration.reactive;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.neo4j.cypherdsl.core.Cypher.parameter;
 
+import org.springframework.data.neo4j.core.ReactiveDatabaseSelectionProvider;
+import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
+import org.springframework.data.neo4j.core.transaction.ReactiveNeo4jTransactionManager;
+import org.springframework.data.neo4j.test.BookmarkCapture;
+import org.springframework.transaction.ReactiveTransactionManager;
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 
@@ -40,7 +45,6 @@ import org.neo4j.driver.Driver;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Result;
 import org.neo4j.driver.Session;
-import org.neo4j.driver.SessionConfig;
 import org.neo4j.driver.Transaction;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
@@ -83,22 +87,11 @@ class ReactiveNeo4jTemplateIT {
 		this.neo4jTemplate = neo4jTemplate;
 	}
 
-	/**
-	 * Shall be configured by test making use of database selection, so that the verification queries run in the correct
-	 * database.
-	 *
-	 * @return The session config used for verification methods.
-	 */
-	SessionConfig getSessionConfig() {
-
-		return SessionConfig.defaultConfig();
-	}
-
 	@BeforeEach
-	void setupData() {
+	void setupData(@Autowired BookmarkCapture bookmarkCapture) {
 
 		try (
-				Session session = driver.session(getSessionConfig());
+				Session session = driver.session(bookmarkCapture.createSessionConfig());
 				Transaction transaction = session.beginTransaction();
 		) {
 			transaction.run("MATCH (n) detach delete n");
@@ -118,6 +111,8 @@ class ReactiveNeo4jTemplateIT {
 			transaction.run("CREATE (p:Person{firstName: 'Bela', lastName: 'B.'})");
 
 			transaction.commit();
+
+			bookmarkCapture.seedWith(session.lastBookmark());
 		}
 	}
 
@@ -237,11 +232,11 @@ class ReactiveNeo4jTemplateIT {
 	}
 
 	@Test
-	void save() {
+	void save(@Autowired BookmarkCapture bookmarkCapture) {
 		StepVerifier.create(neo4jTemplate.save(new ThingWithGeneratedId("testThing"))).expectNextCount(1)
 				.verifyComplete();
 
-		try (Session session = driver.session(getSessionConfig())) {
+		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
 			Result result = session.run("MATCH (t:ThingWithGeneratedId{name: 'testThing'}) return t");
 			Value resultValue = result.single().get("t");
 			assertThat(resultValue).isNotNull();
@@ -250,7 +245,7 @@ class ReactiveNeo4jTemplateIT {
 	}
 
 	@Test
-	void saveAll() {
+	void saveAll(@Autowired BookmarkCapture bookmarkCapture) {
 		String thing1Name = "testThing1";
 		String thing2Name = "testThing2";
 		ThingWithGeneratedId thing1 = new ThingWithGeneratedId(thing1Name);
@@ -258,7 +253,7 @@ class ReactiveNeo4jTemplateIT {
 
 		StepVerifier.create(neo4jTemplate.saveAll(Arrays.asList(thing1, thing2))).expectNextCount(2).verifyComplete();
 
-		try (Session session = driver.session(getSessionConfig())) {
+		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
 			Map<String, Object> paramMap = new HashMap<>();
 			paramMap.put("name1", thing1Name);
 			paramMap.put("name2", thing2Name);
@@ -287,24 +282,24 @@ class ReactiveNeo4jTemplateIT {
 	}
 
 	@Test
-	void deleteById() {
+	void deleteById(@Autowired BookmarkCapture bookmarkCapture) {
 		StepVerifier.create(neo4jTemplate.deleteById(person1Id, PersonWithAllConstructor.class)).verifyComplete();
 
-		try (Session session = driver.session(getSessionConfig())) {
+		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
 			Result result = session.run("MATCH (p:PersonWithAllConstructor) return count(p) as count");
 			assertThat(result.single().get("count").asLong()).isEqualTo(1);
 		}
 	}
 
 	@Test
-	void deleteAllById() {
+	void deleteAllById(@Autowired BookmarkCapture bookmarkCapture) {
 
 		StepVerifier
 				.create(neo4jTemplate
 						.deleteAllById(Arrays.asList(person1Id, person2Id), PersonWithAllConstructor.class))
 				.verifyComplete();
 
-		try (Session session = driver.session(getSessionConfig())) {
+		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
 			Result result = session.run("MATCH (p:PersonWithAllConstructor) return count(p) as count");
 			assertThat(result.single().get("count").asLong()).isEqualTo(0);
 		}
@@ -618,6 +613,18 @@ class ReactiveNeo4jTemplateIT {
 		@Override // needed here because there is no implicit registration of entities upfront some methods under test
 		protected Collection<String> getMappingBasePackages() {
 			return Collections.singletonList(PersonWithAllConstructor.class.getPackage().getName());
+		}
+
+		@Bean
+		public BookmarkCapture bookmarkCapture() {
+			return new BookmarkCapture();
+		}
+
+		@Override
+		public ReactiveTransactionManager reactiveTransactionManager(Driver driver, ReactiveDatabaseSelectionProvider databaseNameProvider) {
+
+			BookmarkCapture bookmarkCapture = bookmarkCapture();
+			return new ReactiveNeo4jTransactionManager(driver, databaseNameProvider, Neo4jBookmarkManager.create(bookmarkCapture));
 		}
 	}
 }

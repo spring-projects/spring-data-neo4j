@@ -30,6 +30,7 @@ import java.util.stream.IntStream;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.RepeatedTest;
+import org.junit.jupiter.api.Tag;
 import org.neo4j.driver.AuthTokens;
 import org.neo4j.driver.Config;
 import org.neo4j.driver.Driver;
@@ -45,6 +46,7 @@ import org.springframework.data.neo4j.integration.shared.common.ThingWithSequenc
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.data.neo4j.test.CausalClusterIntegrationTest;
+import org.springframework.data.neo4j.test.Neo4jExtension;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -55,6 +57,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Michael J. Simons
  */
 @CausalClusterIntegrationTest
+@Tag(Neo4jExtension.INCOMPATIBLE_WITH_CLUSTERS)
 class CausalClusterLoadTestIT {
 
 	@CausalCluster private static URI neo4jUri;

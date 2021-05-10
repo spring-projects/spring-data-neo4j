@@ -53,8 +53,11 @@ import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.data.mapping.MappingException;
 import org.springframework.data.neo4j.config.AbstractNeo4jConfig;
+import org.springframework.data.neo4j.core.DatabaseSelectionProvider;
 import org.springframework.data.neo4j.core.convert.ConvertWith;
 import org.springframework.data.neo4j.core.convert.Neo4jConversions;
+import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
+import org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager;
 import org.springframework.data.neo4j.integration.shared.conversion.Neo4jConversionsITBase;
 import org.springframework.data.neo4j.integration.shared.conversion.ThingWithAllAdditionalTypes;
 import org.springframework.data.neo4j.integration.shared.common.ThingWithAllCypherTypes;
@@ -65,8 +68,10 @@ import org.springframework.data.neo4j.integration.shared.common.ThingWithNonExis
 import org.springframework.data.neo4j.integration.shared.common.ThingWithUUIDID;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
+import org.springframework.data.neo4j.test.BookmarkCapture;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.util.ReflectionUtils;
 
@@ -87,18 +92,20 @@ class TypeConversionIT extends Neo4jConversionsITBase {
 	private final SpatialTypesRepository spatialTypesRepository;
 
 	private final CustomTypesRepository customTypesRepository;
+	private final BookmarkCapture bookmarkCapture;
 
 	private final DefaultConversionService defaultConversionService;
 
 	@Autowired TypeConversionIT(Driver driver, CypherTypesRepository cypherTypesRepository,
 			AdditionalTypesRepository additionalTypesRepository, SpatialTypesRepository spatialTypesRepository,
 			CustomTypesRepository customTypesRepository,
-			Neo4jConversions neo4jConversions) {
+			Neo4jConversions neo4jConversions, BookmarkCapture bookmarkCapture) {
 		this.driver = driver;
 		this.cypherTypesRepository = cypherTypesRepository;
 		this.additionalTypesRepository = additionalTypesRepository;
 		this.spatialTypesRepository = spatialTypesRepository;
 		this.customTypesRepository = customTypesRepository;
+		this.bookmarkCapture = bookmarkCapture;
 		this.defaultConversionService = new DefaultConversionService();
 		neo4jConversions.registerConvertersIn(defaultConversionService);
 	}
@@ -193,7 +200,7 @@ class TypeConversionIT extends Neo4jConversionsITBase {
 			driverValue = conversion.apply(domainValue);
 		}
 
-		try (Session session = neo4jConnectionSupport.getDriver().session()) {
+		try (Session session = neo4jConnectionSupport.getDriver().session(bookmarkCapture.createSessionConfig())) {
 			Map<String, Object> parameters = new HashMap<>();
 			parameters.put("id", id);
 			parameters.put("attribute", fieldName);
@@ -274,6 +281,18 @@ class TypeConversionIT extends Neo4jConversionsITBase {
 		@Override
 		public Neo4jConversions neo4jConversions() {
 			return new Neo4jConversions(Collections.singleton(new ThingWithCustomTypes.CustomTypeConverter()));
+		}
+
+		@Bean
+		public BookmarkCapture bookmarkCapture() {
+			return new BookmarkCapture();
+		}
+
+		@Override
+		public PlatformTransactionManager transactionManager(Driver driver, DatabaseSelectionProvider databaseNameProvider) {
+
+			BookmarkCapture bookmarkCapture = bookmarkCapture();
+			return new Neo4jTransactionManager(driver, databaseNameProvider, Neo4jBookmarkManager.create(bookmarkCapture));
 		}
 	}
 }

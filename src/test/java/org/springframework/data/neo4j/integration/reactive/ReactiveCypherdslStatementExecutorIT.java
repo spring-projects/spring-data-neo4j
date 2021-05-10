@@ -15,6 +15,12 @@
  */
 package org.springframework.data.neo4j.integration.reactive;
 
+import org.neo4j.driver.Session;
+import org.springframework.data.neo4j.core.ReactiveDatabaseSelectionProvider;
+import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
+import org.springframework.data.neo4j.core.transaction.ReactiveNeo4jTransactionManager;
+import org.springframework.data.neo4j.test.BookmarkCapture;
+import org.springframework.transaction.ReactiveTransactionManager;
 import reactor.test.StepVerifier;
 
 import org.junit.jupiter.api.BeforeAll;
@@ -67,8 +73,11 @@ class ReactiveCypherdslStatementExecutorIT {
 	}
 
 	@BeforeAll
-	protected static void setupData() {
-		try (Transaction transaction = neo4jConnectionSupport.getDriver().session().beginTransaction()) {
+	protected static void setupData(@Autowired BookmarkCapture bookmarkCapture) {
+
+		try (Session session = neo4jConnectionSupport.getDriver().session(bookmarkCapture.createSessionConfig());
+			Transaction transaction = session.beginTransaction()
+		) {
 			transaction.run("MATCH (n) detach delete n");
 			transaction.run("CREATE (p:Person{firstName: 'A', lastName: 'LA'})");
 			transaction.run("CREATE (p:Person{firstName: 'B', lastName: 'LB'})");
@@ -192,6 +201,18 @@ class ReactiveCypherdslStatementExecutorIT {
 		public Driver driver() {
 
 			return neo4jConnectionSupport.getDriver();
+		}
+
+		@Bean
+		public BookmarkCapture bookmarkCapture() {
+			return new BookmarkCapture();
+		}
+
+		@Override
+		public ReactiveTransactionManager reactiveTransactionManager(Driver driver, ReactiveDatabaseSelectionProvider databaseNameProvider) {
+
+			BookmarkCapture bookmarkCapture = bookmarkCapture();
+			return new ReactiveNeo4jTransactionManager(driver, databaseNameProvider, Neo4jBookmarkManager.create(bookmarkCapture));
 		}
 	}
 }

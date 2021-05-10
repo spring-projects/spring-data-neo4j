@@ -31,11 +31,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.neo4j.config.AbstractNeo4jConfig;
+import org.springframework.data.neo4j.core.DatabaseSelectionProvider;
+import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
+import org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager;
 import org.springframework.data.neo4j.integration.shared.common.Multiple1O1Relationships;
 import org.springframework.data.neo4j.integration.shared.common.MultipleRelationshipsThing;
 import org.springframework.data.neo4j.integration.shared.common.RelationshipsITBase;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
+import org.springframework.data.neo4j.test.BookmarkCapture;
 import org.springframework.data.repository.CrudRepository;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 /**
@@ -46,8 +51,8 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 class RelationshipsIT extends RelationshipsITBase {
 
 	@Autowired
-	RelationshipsIT(Driver driver) {
-		super(driver);
+	RelationshipsIT(Driver driver, BookmarkCapture bookmarkCapture) {
+		super(driver, bookmarkCapture);
 	}
 
 	@Test
@@ -94,7 +99,8 @@ class RelationshipsIT extends RelationshipsITBase {
 	 * @param repository The repository to use.
 	 */
 	@Test
-	void shouldSaveMultipleRelationshipsOfSameObjectType(@Autowired MultipleRelationshipsThingRepository repository) {
+	void shouldSaveMultipleRelationshipsOfSameObjectType(@Autowired MultipleRelationshipsThingRepository repository,
+														 @Autowired BookmarkCapture bookmarkCapture) {
 
 		MultipleRelationshipsThing p = new MultipleRelationshipsThing("p");
 		p.setTypeA(new MultipleRelationshipsThing("c1"));
@@ -116,7 +122,7 @@ class RelationshipsIT extends RelationshipsITBase {
 			assertThat(typeC).extracting(MultipleRelationshipsThing::getName).containsExactly("c3");
 		});
 
-		try (Session session = driver.session()) {
+		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
 
 			List<String> names = session
 					.run("MATCH (n:MultipleRelationshipsThing {name: 'p'}) - [r:TYPE_A|TYPE_B|TYPE_C] -> (o) RETURN r, o")
@@ -135,7 +141,8 @@ class RelationshipsIT extends RelationshipsITBase {
 	 * @param repository The repository to use.
 	 */
 	@Test
-	void shouldSaveMultipleRelationshipsOfSameInstance(@Autowired MultipleRelationshipsThingRepository repository) {
+	void shouldSaveMultipleRelationshipsOfSameInstance(@Autowired MultipleRelationshipsThingRepository repository,
+													   @Autowired BookmarkCapture bookmarkCapture) {
 
 		MultipleRelationshipsThing p = new MultipleRelationshipsThing("p");
 		MultipleRelationshipsThing c = new MultipleRelationshipsThing("c1");
@@ -158,7 +165,7 @@ class RelationshipsIT extends RelationshipsITBase {
 			assertThat(typeC).extracting(MultipleRelationshipsThing::getName).containsExactly("c1");
 		});
 
-		try (Session session = driver.session()) {
+		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
 
 			List<String> names = session
 					.run("MATCH (n:MultipleRelationshipsThing {name: 'p'}) - [r:TYPE_A|TYPE_B|TYPE_C] -> (o) RETURN r, o")
@@ -178,7 +185,8 @@ class RelationshipsIT extends RelationshipsITBase {
 	 */
 	@Test
 	void shouldSaveMultipleRelationshipsOfSameInstanceWithBackReference(
-			@Autowired MultipleRelationshipsThingRepository repository) {
+			@Autowired MultipleRelationshipsThingRepository repository,
+			@Autowired BookmarkCapture bookmarkCapture) {
 
 		MultipleRelationshipsThing p = new MultipleRelationshipsThing("p");
 		MultipleRelationshipsThing c = new MultipleRelationshipsThing("c1");
@@ -203,7 +211,7 @@ class RelationshipsIT extends RelationshipsITBase {
 			assertThat(typeC).extracting(MultipleRelationshipsThing::getName).containsExactly("c1");
 		});
 
-		try (Session session = driver.session()) {
+		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
 
 			Function<Record, String> withMapper = record -> {
 				String type = record.get("r").asRelationship().type();
@@ -221,9 +229,10 @@ class RelationshipsIT extends RelationshipsITBase {
 	}
 
 	@Test // DATAGRAPH-1424
-	void shouldMatchOnTheCorrectRelationship(@Autowired Multiple1O1RelationshipsRepository repository) {
+	void shouldMatchOnTheCorrectRelationship(@Autowired Multiple1O1RelationshipsRepository repository,
+											 @Autowired BookmarkCapture bookmarkCapture) {
 
-		try (Session session = driver.session();
+		try (Session session = driver.session(bookmarkCapture.createSessionConfig());
 				Transaction tx = session.beginTransaction()) {
 			tx.run(""
 				   + "CREATE (p1:AltPerson {name: 'val1'})\n"
@@ -236,6 +245,7 @@ class RelationshipsIT extends RelationshipsITBase {
 				   + "CREATE (m2) - [:REL_1] -> (p1)\n"
 				   + "CREATE (m2) - [:REL_2] -> (p3)");
 			tx.commit();
+			bookmarkCapture.seedWith(session.lastBookmark());
 		}
 
 		List<Multiple1O1Relationships> objects = repository.findAllByPerson1NameAndPerson2Name("val1", "val2");
@@ -263,6 +273,18 @@ class RelationshipsIT extends RelationshipsITBase {
 		@Bean
 		public Driver driver() {
 			return neo4jConnectionSupport.getDriver();
+		}
+
+		@Bean
+		public BookmarkCapture bookmarkCapture() {
+			return new BookmarkCapture();
+		}
+
+		@Override
+		public PlatformTransactionManager transactionManager(Driver driver, DatabaseSelectionProvider databaseNameProvider) {
+
+			BookmarkCapture bookmarkCapture = bookmarkCapture();
+			return new Neo4jTransactionManager(driver, databaseNameProvider, Neo4jBookmarkManager.create(bookmarkCapture));
 		}
 	}
 }

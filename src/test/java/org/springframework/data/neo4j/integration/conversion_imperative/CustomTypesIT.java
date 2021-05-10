@@ -31,7 +31,6 @@ import org.junit.jupiter.api.Test;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Result;
 import org.neo4j.driver.Session;
-import org.neo4j.driver.SessionConfig;
 import org.neo4j.driver.TransactionWork;
 import org.neo4j.driver.Values;
 import org.neo4j.driver.summary.ResultSummary;
@@ -40,16 +39,21 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.convert.converter.GenericConverter;
 import org.springframework.data.neo4j.config.AbstractNeo4jConfig;
+import org.springframework.data.neo4j.core.DatabaseSelectionProvider;
 import org.springframework.data.neo4j.core.Neo4jOperations;
 import org.springframework.data.neo4j.core.convert.Neo4jConversions;
+import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
+import org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager;
 import org.springframework.data.neo4j.integration.shared.conversion.PersonWithCustomId;
 import org.springframework.data.neo4j.integration.shared.conversion.ThingWithCustomTypes;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.data.neo4j.repository.query.Query;
+import org.springframework.data.neo4j.test.BookmarkCapture;
 import org.springframework.data.neo4j.test.Neo4jExtension.Neo4jConnectionSupport;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 import org.springframework.data.repository.query.Param;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 /**
@@ -66,14 +70,13 @@ public class CustomTypesIT {
 
 	private final Neo4jOperations neo4jOperations;
 
+	private final BookmarkCapture bookmarkCapture;
+
 	@Autowired
-	public CustomTypesIT(Driver driver, Neo4jOperations neo4jOperations) {
+	public CustomTypesIT(Driver driver, Neo4jOperations neo4jOperations, BookmarkCapture bookmarkCapture) {
 		this.driver = driver;
 		this.neo4jOperations = neo4jOperations;
-	}
-
-	SessionConfig getSessionConfig() {
-		return SessionConfig.defaultConfig();
+		this.bookmarkCapture = bookmarkCapture;
 	}
 
 	TransactionWork<ResultSummary> createPersonWithCustomId(PersonWithCustomId.PersonId assignedId) {
@@ -84,12 +87,13 @@ public class CustomTypesIT {
 
 	@BeforeEach
 	void setupData() {
-		try (Session session = driver.session()) {
+		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
 			session.writeTransaction(transaction -> {
 				transaction.run("MATCH (n) detach delete n").consume();
 				transaction.run("CREATE (:CustomTypes{customType:'XYZ'})").consume();
 				return null;
 			});
+			bookmarkCapture.seedWith(session.lastBookmark());
 		}
 	}
 
@@ -97,16 +101,18 @@ public class CustomTypesIT {
 	void deleteByCustomId() {
 
 		PersonWithCustomId.PersonId id = new PersonWithCustomId.PersonId(customIdValueGenerator.incrementAndGet());
-		try (Session session = driver.session(getSessionConfig())) {
+		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
 			session.writeTransaction(createPersonWithCustomId(id));
+			bookmarkCapture.seedWith(session.lastBookmark());
 		}
 
 		assertThat(neo4jOperations.count(PersonWithCustomId.class)).isEqualTo(1L);
 		neo4jOperations.deleteById(id, PersonWithCustomId.class);
 
-		try (Session session = driver.session(getSessionConfig())) {
+		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
 			Result result = session.run("MATCH (p:PersonWithCustomId) return count(p) as count");
 			assertThat(result.single().get("count").asLong()).isEqualTo(0);
+			bookmarkCapture.seedWith(session.lastBookmark());
 		}
 	}
 
@@ -118,17 +124,19 @@ public class CustomTypesIT {
 				.limit(2)
 				.collect(Collectors.toList());
 		try (
-				Session session = driver.session(getSessionConfig());
+				Session session = driver.session(bookmarkCapture.createSessionConfig());
 		) {
 			ids.forEach(id -> session.writeTransaction(createPersonWithCustomId(id)));
+			bookmarkCapture.seedWith(session.lastBookmark());
 		}
 
 		assertThat(neo4jOperations.count(PersonWithCustomId.class)).isEqualTo(2L);
 		neo4jOperations.deleteAllById(ids, PersonWithCustomId.class);
 
-		try (Session session = driver.session(getSessionConfig())) {
+		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
 			Result result = session.run("MATCH (p:PersonWithCustomId) return count(p) as count");
 			assertThat(result.single().get("count").asLong()).isEqualTo(0);
+			bookmarkCapture.seedWith(session.lastBookmark());
 		}
 	}
 
@@ -209,6 +217,18 @@ public class CustomTypesIT {
 		@Override // needed here because there is no implicit registration of entities upfront some methods under test
 		protected Collection<String> getMappingBasePackages() {
 			return Collections.singletonList(ThingWithCustomTypes.class.getPackage().getName());
+		}
+
+		@Bean
+		public BookmarkCapture bookmarkCapture() {
+			return new BookmarkCapture();
+		}
+
+		@Override
+		public PlatformTransactionManager transactionManager(Driver driver, DatabaseSelectionProvider databaseNameProvider) {
+
+			BookmarkCapture bookmarkCapture = bookmarkCapture();
+			return new Neo4jTransactionManager(driver, databaseNameProvider, Neo4jBookmarkManager.create(bookmarkCapture));
 		}
 	}
 }

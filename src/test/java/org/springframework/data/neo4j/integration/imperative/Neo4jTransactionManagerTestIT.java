@@ -27,11 +27,15 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.data.neo4j.config.AbstractNeo4jConfig;
+import org.springframework.data.neo4j.core.DatabaseSelectionProvider;
 import org.springframework.data.neo4j.core.Neo4jClient;
+import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
+import org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager;
 import org.springframework.data.neo4j.integration.shared.common.Person;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.data.neo4j.repository.query.Query;
+import org.springframework.data.neo4j.test.BookmarkCapture;
 import org.springframework.data.neo4j.test.Neo4jExtension;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -48,9 +52,10 @@ class Neo4jTransactionManagerTestIT {
 	protected static Neo4jExtension.Neo4jConnectionSupport neo4jConnectionSupport;
 
 	@BeforeAll
-	static void clearDatabase() {
-		try (Session session = neo4jConnectionSupport.getDriver().session()) {
+	static void clearDatabase(@Autowired BookmarkCapture bookmarkCapture) {
+		try (Session session = neo4jConnectionSupport.getDriver().session(bookmarkCapture.createSessionConfig())) {
 			session.writeTransaction(tx -> tx.run("MATCH (n) DETACH DELETE n").consume());
+			bookmarkCapture.seedWith(session.lastBookmark());
 		}
 	}
 
@@ -58,6 +63,7 @@ class Neo4jTransactionManagerTestIT {
 	void exceptionShouldNotBeShadowed(
 			@Autowired TransactionTemplate transactionTemplate,
 			@Autowired Neo4jClient client,
+			@Autowired BookmarkCapture bookmarkCapture,
 			@Autowired SomeRepository someRepository) {
 
 		assertThatExceptionOfType(InvalidDataAccessResourceUsageException.class).isThrownBy(() ->
@@ -67,7 +73,7 @@ class Neo4jTransactionManagerTestIT {
 					someRepository.broken();
 				})).withMessageStartingWith("Invalid input");
 
-		try (Session session = neo4jConnectionSupport.getDriver().session()) {
+		try (Session session = neo4jConnectionSupport.getDriver().session(bookmarkCapture.createSessionConfig())) {
 			long cnt = session
 					.readTransaction(tx -> tx.run("MATCH (n:ShouldNotBeThere) RETURN count(n)").single().get(0))
 					.asLong();
@@ -96,6 +102,18 @@ class Neo4jTransactionManagerTestIT {
 		@Bean
 		public TransactionTemplate transactionTemplate(PlatformTransactionManager transactionManager) {
 			return new TransactionTemplate(transactionManager);
+		}
+
+		@Bean
+		public BookmarkCapture bookmarkCapture() {
+			return new BookmarkCapture();
+		}
+
+		@Override
+		public PlatformTransactionManager transactionManager(Driver driver, DatabaseSelectionProvider databaseNameProvider) {
+
+			BookmarkCapture bookmarkCapture = bookmarkCapture();
+			return new Neo4jTransactionManager(driver, databaseNameProvider, Neo4jBookmarkManager.create(bookmarkCapture));
 		}
 	}
 }

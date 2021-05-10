@@ -34,11 +34,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.neo4j.config.AbstractReactiveNeo4jConfig;
+import org.springframework.data.neo4j.core.ReactiveDatabaseSelectionProvider;
 import org.springframework.data.neo4j.core.schema.IdGenerator;
+import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
+import org.springframework.data.neo4j.core.transaction.ReactiveNeo4jTransactionManager;
 import org.springframework.data.neo4j.integration.shared.common.IdGeneratorsITBase;
 import org.springframework.data.neo4j.integration.shared.common.ThingWithGeneratedId;
 import org.springframework.data.neo4j.integration.shared.common.ThingWithIdGeneratedByBean;
 import org.springframework.data.neo4j.repository.config.EnableReactiveNeo4jRepositories;
+import org.springframework.data.neo4j.test.BookmarkCapture;
 import org.springframework.data.neo4j.test.Neo4jExtension;
 import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 import org.springframework.transaction.ReactiveTransactionManager;
@@ -54,9 +58,9 @@ class ReactiveIdGeneratorsIT extends IdGeneratorsITBase {
 	private final ReactiveTransactionManager transactionManager;
 
 	@Autowired
-	ReactiveIdGeneratorsIT(Driver driver, ReactiveTransactionManager transactionManager) {
+	ReactiveIdGeneratorsIT(Driver driver, BookmarkCapture bookmarkCapture, ReactiveTransactionManager transactionManager) {
 
-		super(driver);
+		super(driver, bookmarkCapture);
 		this.transactionManager = transactionManager;
 	}
 
@@ -144,6 +148,18 @@ class ReactiveIdGeneratorsIT extends IdGeneratorsITBase {
 		@Bean
 		public IdGenerator<String> aFancyIdGenerator() {
 			return (label, entity) -> "ReactiveID.";
+		}
+
+		@Bean
+		public BookmarkCapture bookmarkCapture() {
+			return new BookmarkCapture();
+		}
+
+		@Override
+		public ReactiveTransactionManager reactiveTransactionManager(Driver driver, ReactiveDatabaseSelectionProvider databaseNameProvider) {
+
+			BookmarkCapture bookmarkCapture = bookmarkCapture();
+			return new ReactiveNeo4jTransactionManager(driver, databaseNameProvider, Neo4jBookmarkManager.create(bookmarkCapture));
 		}
 	}
 }

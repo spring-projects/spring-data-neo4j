@@ -153,7 +153,7 @@ class Neo4jConversionsIT extends Neo4jConversionsITBase {
 	}
 
 	static void assertRead(String label, String attribute, Object t) {
-		try (Session session = neo4jConnectionSupport.getDriver().session()) {
+		try (Session session = neo4jConnectionSupport.getDriver().session(bookmarkCapture.createSessionConfig())) {
 			Value v = session.run("MATCH (n) WHERE labels(n) = [$label] RETURN n[$attribute] as r",
 					Values.parameters("label", label, "attribute", attribute)).single().get("r");
 
@@ -167,6 +167,7 @@ class Neo4jConversionsIT extends Neo4jConversionsITBase {
 				Object converted = DEFAULT_CONVERSION_SERVICE.convert(v, typeDescriptor.getType());
 				assertThat(converted).isEqualTo(t);
 			}
+			bookmarkCapture.seedWith(session.lastBookmark());
 		}
 	}
 
@@ -182,7 +183,7 @@ class Neo4jConversionsIT extends Neo4jConversionsITBase {
 			driverValue = DEFAULT_CONVERSION_SERVICE.convert(t, Value.class);
 		}
 
-		try (Session session = neo4jConnectionSupport.getDriver().session()) {
+		try (Session session = neo4jConnectionSupport.getDriver().session(bookmarkCapture.createSessionConfig())) {
 			Map<String, Object> parameters = new HashMap<>();
 			parameters.put("label", label);
 			parameters.put("attribute", attribute);
@@ -192,6 +193,7 @@ class Neo4jConversionsIT extends Neo4jConversionsITBase {
 					.run("MATCH (n) WHERE labels(n) = [$label]  AND n[$attribute] = $v RETURN COUNT(n) AS cnt", parameters)
 					.single().get("cnt").asLong();
 			assertThat(cnt).isEqualTo(1L);
+			bookmarkCapture.seedWith(session.lastBookmark());
 		}
 	}
 }
