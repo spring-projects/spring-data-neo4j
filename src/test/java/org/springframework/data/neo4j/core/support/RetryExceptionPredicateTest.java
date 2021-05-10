@@ -24,6 +24,7 @@ import org.junit.platform.commons.util.ReflectionUtils;
 import org.neo4j.driver.exceptions.ServiceUnavailableException;
 import org.neo4j.driver.exceptions.SessionExpiredException;
 import org.springframework.dao.TransientDataAccessResourceException;
+import org.springframework.data.neo4j.core.Neo4jPersistenceExceptionTranslator;
 
 /**
  * @author Michael J. Simons
@@ -45,6 +46,15 @@ class RetryExceptionPredicateTest {
 
 		RetryExceptionPredicate predicate = new RetryExceptionPredicate();
 		assertThat(predicate.test(new IllegalStateException())).isFalse();
+	}
+
+	@Test
+	void shouldPlayWellWithExceptionTranslator() {
+
+		Neo4jPersistenceExceptionTranslator translator = new Neo4jPersistenceExceptionTranslator();
+		Exception e = translator.translateExceptionIfPossible(new SessionExpiredException("Schade"));
+		RetryExceptionPredicate predicate = new RetryExceptionPredicate();
+		assertThat(predicate.test(e)).isTrue();
 	}
 
 	@ParameterizedTest

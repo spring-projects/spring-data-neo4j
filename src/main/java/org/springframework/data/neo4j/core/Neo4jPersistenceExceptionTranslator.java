@@ -102,7 +102,7 @@ public final class Neo4jPersistenceExceptionTranslator implements PersistenceExc
 		String msg = String.format("%s; Error code '%s'", e.getMessage(), optionalErrorCode.orElse("n/a"));
 
 		return optionalErrorCode.flatMap(code -> ERROR_CODE_MAPPINGS.getOrDefault(code, Optional.empty()))
-				.orElse(defaultTranslationProvider).apply(msg, e.getCause());
+				.orElse(defaultTranslationProvider).apply(msg, e);
 	}
 
 	static {
