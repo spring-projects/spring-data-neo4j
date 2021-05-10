@@ -36,7 +36,7 @@ class Neo4jPersistenceExceptionTranslatorTest {
 		DataAccessException dataAccessException = translator.translateExceptionIfPossible(new LossyCoercion("Long", "Int"));
 		assertThat(dataAccessException).isNotNull().isInstanceOf(InvalidDataAccessApiUsageException.class);
 		assertThat(dataAccessException.getMessage())
-				.isEqualTo("Cannot coerce Long to Int without losing precision; Error code 'N/A'");
+				.startsWith("Cannot coerce Long to Int without losing precision; Error code 'N/A'");
 	}
 
 	@Test
@@ -47,6 +47,6 @@ class Neo4jPersistenceExceptionTranslatorTest {
 				new ClientException("Neo.ClientError.Statement.EntityNotFound", "Something went wrong."));
 		assertThat(dataAccessException).isNotNull().isInstanceOf(InvalidDataAccessResourceUsageException.class);
 		assertThat(dataAccessException.getMessage())
-				.isEqualTo("Something went wrong.; Error code 'Neo.ClientError.Statement.EntityNotFound'");
+				.startsWith("Something went wrong.; Error code 'Neo.ClientError.Statement.EntityNotFound'");
 	}
 }
