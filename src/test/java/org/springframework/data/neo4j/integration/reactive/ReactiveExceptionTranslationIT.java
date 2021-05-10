@@ -58,7 +58,7 @@ class ReactiveExceptionTranslationIT {
 	// @formatter:off
 	private final Predicate<Throwable> aTranslatedException = ex -> ex instanceof DataIntegrityViolationException && //
 			ex.getMessage().matches(
-					"Node\\(\\d+\\) already exists with label `SimplePerson` and property `name` = '[\\w\\s]+'; Error code 'Neo.ClientError.Schema.ConstraintValidationFailed'");
+					"Node\\(\\d+\\) already exists with label `SimplePerson` and property `name` = '[\\w\\s]+'; Error code 'Neo.ClientError.Schema.ConstraintValidationFailed';.*");
 	// @formatter:on
 
 	@BeforeAll
