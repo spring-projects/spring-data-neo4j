@@ -20,6 +20,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.BeforeEach;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Session;
+import org.springframework.data.neo4j.core.ReactiveDatabaseSelectionProvider;
+import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
+import org.springframework.data.neo4j.core.transaction.ReactiveNeo4jTransactionManager;
+import org.springframework.data.neo4j.test.BookmarkCapture;
+import org.springframework.transaction.ReactiveTransactionManager;
 import reactor.test.StepVerifier;
 
 import java.util.ArrayList;
@@ -64,9 +69,10 @@ public class ReactiveImmutableGeneratedIdsIT {
 	}
 
 	@BeforeEach
-	void cleanUp() {
-		try (Session session = driver.session()) {
+	void cleanUp(@Autowired BookmarkCapture bookmarkCapture) {
+		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
 			session.run("MATCH (n) DETACH DELETE n").consume();
+			bookmarkCapture.seedWith(session.lastBookmark());
 		}
 	}
 
@@ -320,7 +326,8 @@ public class ReactiveImmutableGeneratedIdsIT {
 
 	@Test // GH-2223
 	void saveWithGeneratedIdsWithMultipleRelationshipsToOneNode(
-			@Autowired ReactiveImmutablePersonWithGeneratedIdRepository repository) {
+			@Autowired ReactiveImmutablePersonWithGeneratedIdRepository repository,
+			@Autowired BookmarkCapture bookmarkCapture) {
 
 		ImmutablePersonWithGeneratedId person1 = new ImmutablePersonWithGeneratedId();
 		ImmutablePersonWithGeneratedId person2 = ImmutablePersonWithGeneratedId.fallback(person1);
@@ -339,7 +346,7 @@ public class ReactiveImmutableGeneratedIdsIT {
 				})
 				.verifyComplete();
 
-		try (Session session = driver.session()) {
+		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
 			List<Record> result = session.run(
 					"MATCH (person3:ImmutablePersonWithGeneratedId) " +
 							"-[:ONBOARDED_BY]->(person2:ImmutablePersonWithGeneratedId) " +
@@ -359,6 +366,18 @@ public class ReactiveImmutableGeneratedIdsIT {
 		@Bean
 		public Driver driver() {
 			return neo4jConnectionSupport.getDriver();
+		}
+
+		@Bean
+		public BookmarkCapture bookmarkCapture() {
+			return new BookmarkCapture();
+		}
+
+		@Override
+		public ReactiveTransactionManager reactiveTransactionManager(Driver driver, ReactiveDatabaseSelectionProvider databaseNameProvider) {
+
+			BookmarkCapture bookmarkCapture = bookmarkCapture();
+			return new ReactiveNeo4jTransactionManager(driver, databaseNameProvider, Neo4jBookmarkManager.create(bookmarkCapture));
 		}
 	}
 }

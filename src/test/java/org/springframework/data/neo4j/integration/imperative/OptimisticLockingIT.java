@@ -28,21 +28,25 @@ import org.junit.jupiter.api.Test;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Session;
-import org.neo4j.driver.SessionConfig;
 import org.neo4j.driver.Transaction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.neo4j.config.AbstractNeo4jConfig;
+import org.springframework.data.neo4j.core.DatabaseSelectionProvider;
 import org.springframework.data.neo4j.core.Neo4jTemplate;
+import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
+import org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager;
 import org.springframework.data.neo4j.integration.shared.common.ImmutableVersionedThing;
 import org.springframework.data.neo4j.integration.shared.common.VersionedThing;
 import org.springframework.data.neo4j.integration.shared.common.VersionedThingWithAssignedId;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
+import org.springframework.data.neo4j.test.BookmarkCapture;
 import org.springframework.data.neo4j.test.Neo4jExtension;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 /**
@@ -55,18 +59,23 @@ class OptimisticLockingIT {
 
 	private final Driver driver;
 
+	private final BookmarkCapture bookmarkCapture;
+
 	@Autowired
-	OptimisticLockingIT(Driver driver) {
+	OptimisticLockingIT(Driver driver, BookmarkCapture bookmarkCapture) {
 		this.driver = driver;
+		this.bookmarkCapture = bookmarkCapture;
 	}
 
 	@BeforeEach
 	void setup() {
-		Session session = driver.session(SessionConfig.defaultConfig());
-		Transaction transaction = session.beginTransaction();
-		transaction.run("MATCH (n) detach delete n");
-		transaction.commit();
-		session.close();
+
+		try (Session session = driver.session(bookmarkCapture.createSessionConfig());
+				Transaction tx = session.beginTransaction()) {
+			tx.run("MATCH (n) detach delete n");
+			tx.commit();
+			bookmarkCapture.seedWith(session.lastBookmark());
+		}
 	}
 
 	@Test
@@ -211,16 +220,16 @@ class OptimisticLockingIT {
 
 	@Test
 	void shouldNotFailOnDeleteByIdWithNullVersion(@Autowired VersionedThingWithAssignedIdRepository repository) {
-		try (Session session = driver.session()) {
-			session.writeTransaction(tx -> tx.run("CREATE (v:VersionedThingWithAssignedId {id:1})").consume());
+		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
+			session.run("CREATE (v:VersionedThingWithAssignedId {id:1})").consume();
+			bookmarkCapture.seedWith(session.lastBookmark());
 		}
 
 		repository.deleteById(1L);
 
-		try (Session session = driver.session()) {
-			long count = session.readTransaction(tx ->
-					tx.run("MATCH (v:VersionedThingWithAssignedId) return count(v) as vCount").next()
-							.get("vCount").asLong());
+		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
+			long count = session.run("MATCH (v:VersionedThingWithAssignedId) return count(v) as vCount").single()
+							.get("vCount").asLong();
 
 			assertThat(count).isEqualTo(0);
 		}
@@ -228,17 +237,17 @@ class OptimisticLockingIT {
 
 	@Test
 	void shouldNotFailOnDeleteByEntityWithNullVersion(@Autowired VersionedThingWithAssignedIdRepository repository) {
-		try (Session session = driver.session()) {
-			session.writeTransaction(tx -> tx.run("CREATE (v:VersionedThingWithAssignedId {id:1})").consume());
+		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
+			session.run("CREATE (v:VersionedThingWithAssignedId {id:1})").consume();
+			bookmarkCapture.seedWith(session.lastBookmark());
 		}
 
 		VersionedThingWithAssignedId thing = repository.findById(1L).get();
 		repository.delete(thing);
 
-		try (Session session = driver.session()) {
-			long count = session.readTransaction(tx ->
-					tx.run("MATCH (v:VersionedThingWithAssignedId) return count(v) as vCount").next()
-							.get("vCount").asLong());
+		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
+			long count = session.run("MATCH (v:VersionedThingWithAssignedId) return count(v) as vCount").single()
+							.get("vCount").asLong();
 
 			assertThat(count).isEqualTo(0);
 		}
@@ -246,17 +255,16 @@ class OptimisticLockingIT {
 
 	@Test
 	void shouldNotFailOnDeleteByIdWithAnyVersion(@Autowired VersionedThingWithAssignedIdRepository repository) {
-		try (Session session = driver.session()) {
-			session.writeTransaction(tx ->
-					tx.run("CREATE (v:VersionedThingWithAssignedId {id:1, myVersion:3})").consume());
+		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
+			session.run("CREATE (v:VersionedThingWithAssignedId {id:1, myVersion:3})").consume();
+			bookmarkCapture.seedWith(session.lastBookmark());
 		}
 
 		repository.deleteById(1L);
 
-		try (Session session = driver.session()) {
-			long count = session.readTransaction(tx ->
-					tx.run("MATCH (v:VersionedThingWithAssignedId) return count(v) as vCount").next()
-							.get("vCount").asLong());
+		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
+			long count = session.run("MATCH (v:VersionedThingWithAssignedId) return count(v) as vCount").single()
+							.get("vCount").asLong();
 
 			assertThat(count).isEqualTo(0);
 		}
@@ -264,9 +272,9 @@ class OptimisticLockingIT {
 
 	@Test
 	void shouldFailOnDeleteByEntityWithWrongVersion(@Autowired VersionedThingWithAssignedIdRepository repository) {
-		try (Session session = driver.session()) {
-			session.writeTransaction(tx ->
-					tx.run("CREATE (v:VersionedThingWithAssignedId {id:1, myVersion:2})").consume());
+		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
+			session.run("CREATE (v:VersionedThingWithAssignedId {id:1, myVersion:2})").consume();
+			bookmarkCapture.seedWith(session.lastBookmark());
 		}
 
 		VersionedThingWithAssignedId thing = repository.findById(1L).get();
@@ -301,7 +309,7 @@ class OptimisticLockingIT {
 		thing2.setOtherVersionedThings(Collections.singletonList(thing1));
 		repository.save(thing2);
 
-		try (Session session = driver.session()) {
+		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
 			List<Record> result = session
 					.run("MATCH (t:VersionedThing{name:'Thing1'})-[:HAS]->(:VersionedThing{name:'Thing2'}) return t")
 					.list();
@@ -334,7 +342,7 @@ class OptimisticLockingIT {
 		// adds
 		// Thing3-[:HAS]->Thing1
 
-		try (Session session = driver.session()) {
+		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
 			Long relationshipCount = session
 					.run("MATCH (:VersionedThing)-[r:HAS]->(:VersionedThing) return count(r) as relationshipCount")
 					.single().get("relationshipCount").asLong();
@@ -356,5 +364,16 @@ class OptimisticLockingIT {
 			return neo4jConnectionSupport.getDriver();
 		}
 
+		@Bean
+		public BookmarkCapture bookmarkCapture() {
+			return new BookmarkCapture();
+		}
+
+		@Override
+		public PlatformTransactionManager transactionManager(Driver driver, DatabaseSelectionProvider databaseNameProvider) {
+
+			BookmarkCapture bookmarkCapture = bookmarkCapture();
+			return new Neo4jTransactionManager(driver, databaseNameProvider, Neo4jBookmarkManager.create(bookmarkCapture));
+		}
 	}
 }

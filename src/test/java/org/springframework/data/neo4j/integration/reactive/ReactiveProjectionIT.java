@@ -17,6 +17,11 @@ package org.springframework.data.neo4j.integration.reactive;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import org.springframework.data.neo4j.core.ReactiveDatabaseSelectionProvider;
+import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
+import org.springframework.data.neo4j.core.transaction.ReactiveNeo4jTransactionManager;
+import org.springframework.data.neo4j.test.BookmarkCapture;
+import org.springframework.transaction.ReactiveTransactionManager;
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 
@@ -61,8 +66,8 @@ class ReactiveProjectionIT {
 	}
 
 	@BeforeEach
-	void setup() {
-		Session session = driver.session();
+	void setup(@Autowired BookmarkCapture bookmarkCapture) {
+		Session session = driver.session(bookmarkCapture.createSessionConfig());
 		Transaction transaction = session.beginTransaction();
 
 		transaction.run("MATCH (n) detach delete n");
@@ -72,6 +77,7 @@ class ReactiveProjectionIT {
 
 		transaction.commit();
 		transaction.close();
+		bookmarkCapture.seedWith(session.lastBookmark());
 		session.close();
 	}
 
@@ -165,6 +171,18 @@ class ReactiveProjectionIT {
 		@Bean
 		public Driver driver() {
 			return neo4jConnectionSupport.getDriver();
+		}
+
+		@Bean
+		public BookmarkCapture bookmarkCapture() {
+			return new BookmarkCapture();
+		}
+
+		@Override
+		public ReactiveTransactionManager reactiveTransactionManager(Driver driver, ReactiveDatabaseSelectionProvider databaseNameProvider) {
+
+			BookmarkCapture bookmarkCapture = bookmarkCapture();
+			return new ReactiveNeo4jTransactionManager(driver, databaseNameProvider, Neo4jBookmarkManager.create(bookmarkCapture));
 		}
 
 	}

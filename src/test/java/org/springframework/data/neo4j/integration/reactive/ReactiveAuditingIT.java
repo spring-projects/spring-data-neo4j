@@ -34,11 +34,15 @@ import org.springframework.data.auditing.DateTimeProvider;
 import org.springframework.data.domain.ReactiveAuditorAware;
 import org.springframework.data.neo4j.config.AbstractReactiveNeo4jConfig;
 import org.springframework.data.neo4j.config.EnableReactiveNeo4jAuditing;
+import org.springframework.data.neo4j.core.ReactiveDatabaseSelectionProvider;
+import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
+import org.springframework.data.neo4j.core.transaction.ReactiveNeo4jTransactionManager;
 import org.springframework.data.neo4j.integration.shared.common.AuditingITBase;
 import org.springframework.data.neo4j.integration.shared.common.ImmutableAuditableThing;
 import org.springframework.data.neo4j.integration.shared.common.ImmutableAuditableThingWithGeneratedId;
 import org.springframework.data.neo4j.repository.ReactiveNeo4jRepository;
 import org.springframework.data.neo4j.repository.config.EnableReactiveNeo4jRepositories;
+import org.springframework.data.neo4j.test.BookmarkCapture;
 import org.springframework.data.neo4j.test.Neo4jExtension;
 import org.springframework.transaction.ReactiveTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
@@ -53,9 +57,9 @@ class ReactiveAuditingIT extends AuditingITBase {
 	private final ReactiveTransactionManager transactionManager;
 
 	@Autowired
-	ReactiveAuditingIT(Driver driver, ReactiveTransactionManager transactionManager) {
+	ReactiveAuditingIT(Driver driver, BookmarkCapture bookmarkCapture, ReactiveTransactionManager transactionManager) {
 
-		super(driver);
+		super(driver, bookmarkCapture);
 		this.transactionManager = transactionManager;
 	}
 
@@ -169,6 +173,18 @@ class ReactiveAuditingIT extends AuditingITBase {
 		@Bean
 		public DateTimeProvider fixedDateTimeProvider() {
 			return () -> Optional.of(DEFAULT_CREATION_AND_MODIFICATION_DATE);
+		}
+
+		@Bean
+		public BookmarkCapture bookmarkCapture() {
+			return new BookmarkCapture();
+		}
+
+		@Override
+		public ReactiveTransactionManager reactiveTransactionManager(Driver driver, ReactiveDatabaseSelectionProvider databaseNameProvider) {
+
+			BookmarkCapture bookmarkCapture = bookmarkCapture();
+			return new ReactiveNeo4jTransactionManager(driver, databaseNameProvider, Neo4jBookmarkManager.create(bookmarkCapture));
 		}
 	}
 }

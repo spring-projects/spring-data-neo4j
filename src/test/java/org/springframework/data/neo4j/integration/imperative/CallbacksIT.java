@@ -26,11 +26,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.neo4j.config.AbstractNeo4jConfig;
+import org.springframework.data.neo4j.core.DatabaseSelectionProvider;
 import org.springframework.data.neo4j.core.mapping.callback.BeforeBindCallback;
+import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
+import org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager;
 import org.springframework.data.neo4j.integration.imperative.repositories.ThingRepository;
 import org.springframework.data.neo4j.integration.shared.common.CallbacksITBase;
 import org.springframework.data.neo4j.integration.shared.common.ThingWithAssignedId;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
+import org.springframework.data.neo4j.test.BookmarkCapture;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 /**
@@ -39,15 +44,14 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 class CallbacksIT extends CallbacksITBase {
 
 	@Autowired
-	CallbacksIT(Driver driver) {
-		super(driver);
+	CallbacksIT(Driver driver, BookmarkCapture bookmarkCapture) {
+		super(driver, bookmarkCapture);
 	}
 
 	@Test
 	void onBeforeBindShouldBeCalledForSingleEntity(@Autowired ThingRepository repository) {
 
-		ThingWithAssignedId thing = new ThingWithAssignedId("aaBB");
-		thing.setName("A name");
+		ThingWithAssignedId thing = new ThingWithAssignedId("aaBB", "A name");
 		thing = repository.save(thing);
 
 		assertThat(thing.getName()).isEqualTo("A name (Edited)");
@@ -58,10 +62,8 @@ class CallbacksIT extends CallbacksITBase {
 	@Test
 	void onBeforeBindShouldBeCalledForAllEntities(@Autowired ThingRepository repository) {
 
-		ThingWithAssignedId thing1 = new ThingWithAssignedId("id1");
-		thing1.setName("A name");
-		ThingWithAssignedId thing2 = new ThingWithAssignedId("id2");
-		thing2.setName("Another name");
+		ThingWithAssignedId thing1 = new ThingWithAssignedId("id1", "A name");
+		ThingWithAssignedId thing2 = new ThingWithAssignedId("id2", "Another name");
 		Iterable<ThingWithAssignedId> savedThings = repository.saveAll(Arrays.asList(thing1, thing2));
 
 		assertThat(savedThings).extracting(ThingWithAssignedId::getName).containsExactlyInAnyOrder("A name (Edited)",
@@ -78,8 +80,7 @@ class CallbacksIT extends CallbacksITBase {
 		@Bean
 		BeforeBindCallback<ThingWithAssignedId> nameChanger() {
 			return entity -> {
-				ThingWithAssignedId updatedThing = new ThingWithAssignedId(entity.getTheId());
-				updatedThing.setName(entity.getName() + " (Edited)");
+				ThingWithAssignedId updatedThing = new ThingWithAssignedId(entity.getTheId(), entity.getName() + " (Edited)");
 				return updatedThing;
 			};
 		}
@@ -87,6 +88,18 @@ class CallbacksIT extends CallbacksITBase {
 		@Bean
 		public Driver driver() {
 			return neo4jConnectionSupport.getDriver();
+		}
+
+		@Bean
+		public BookmarkCapture bookmarkCapture() {
+			return new BookmarkCapture();
+		}
+
+		@Override
+		public PlatformTransactionManager transactionManager(Driver driver, DatabaseSelectionProvider databaseNameProvider) {
+
+			BookmarkCapture bookmarkCapture = bookmarkCapture();
+			return new Neo4jTransactionManager(driver, databaseNameProvider, Neo4jBookmarkManager.create(bookmarkCapture));
 		}
 
 	}

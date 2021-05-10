@@ -61,9 +61,15 @@ import org.testcontainers.utility.TestcontainersConfiguration;
 @CommonsLog
 public class Neo4jExtension implements BeforeAllCallback, BeforeEachCallback {
 
-	public final static String NEEDS_REACTIVE_SUPPORT = "reactiveTest";
-	public final static String COMMUNITY_EDITION_ONLY = "communityEdition";
-	public final static String COMMERCIAL_EDITION_ONLY = "commercialEdition";
+	public final static String NEEDS_REACTIVE_SUPPORT = "reactive-test";
+	public final static String COMMUNITY_EDITION_ONLY = "community-edition";
+	public final static String COMMERCIAL_EDITION_ONLY = "commercial-edition";
+	/**
+	 * Indicator that a given _test_ is not compatible in all cases with a cluster setup, especially in terms of
+	 * synchronizing bookmarks between fixture / assertions and tests. Or it may indicate a dedicated cluster test, running
+	 * against a dedicated extension.
+	 */
+	public final static String INCOMPATIBLE_WITH_CLUSTERS = "incompatible-with-clusters";
 	public final static String REQUIRES = "Neo4j/";
 
 	private static final ExtensionContext.Namespace NAMESPACE = ExtensionContext.Namespace.create(Neo4jExtension.class);
@@ -99,10 +105,10 @@ public class Neo4jExtension implements BeforeAllCallback, BeforeEachCallback {
 
 		if (neo4jConnectionSupport == null) {
 			if (!(neo4jUrl.isEmpty() || neo4jPassword.isEmpty())) {
-				log.warn(LogMessage.format("Using Neo4j instance at %s.", neo4jUrl));
+				log.info(LogMessage.format("Using Neo4j instance at %s.", neo4jUrl));
 				neo4jConnectionSupport = new Neo4jConnectionSupport(neo4jUrl, AuthTokens.basic("neo4j", neo4jPassword));
 			} else {
-				log.warn("Using Neo4j test container.");
+				log.info("Using Neo4j test container.");
 				ContainerAdapter adapter = contextStore.getOrComputeIfAbsent(KEY_NEO4J_INSTANCE,
 						key -> new Neo4jExtension.ContainerAdapter(), ContainerAdapter.class);
 				adapter.start();
@@ -152,7 +158,7 @@ public class Neo4jExtension implements BeforeAllCallback, BeforeEachCallback {
 	 *
 	 * @since 6.0
 	 */
-	public static class Neo4jConnectionSupport implements ExtensionContext.Store.CloseableResource {
+	public static final class Neo4jConnectionSupport implements ExtensionContext.Store.CloseableResource {
 
 		public final String url;
 
@@ -160,7 +166,7 @@ public class Neo4jExtension implements BeforeAllCallback, BeforeEachCallback {
 
 		public final Config config;
 
-		public volatile ServerVersion cachedServerVersion;
+		private volatile ServerVersion cachedServerVersion;
 
 		/**
 		 * Shared instance of the standard (non-routing) driver.
@@ -170,7 +176,9 @@ public class Neo4jExtension implements BeforeAllCallback, BeforeEachCallback {
 		public Neo4jConnectionSupport(String url, AuthToken authToken) {
 			this.url = url;
 			this.authToken = authToken;
-			this.config = Config.builder().withLogging(Logging.slf4j()).build();
+			this.config = Config.builder().withLogging(Logging.slf4j())
+					.withMaxConnectionPoolSize(Runtime.getRuntime().availableProcessors())
+					.build();
 		}
 
 		/**
@@ -236,7 +244,7 @@ public class Neo4jExtension implements BeforeAllCallback, BeforeEachCallback {
 		}
 
 		String getEdition() {
-			String edition = "n/a";
+			String edition;
 			SessionConfig sessionConfig = SessionConfig.builder().withDefaultAccessMode(AccessMode.READ).build();
 			try (Session session = getDriver().session(sessionConfig)) {
 				edition = session.run("call dbms.components() yield edition").single().get("edition").asString();

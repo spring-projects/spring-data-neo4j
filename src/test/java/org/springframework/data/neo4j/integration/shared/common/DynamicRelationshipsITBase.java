@@ -22,6 +22,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.Transaction;
+import org.springframework.data.neo4j.test.BookmarkCapture;
 import org.springframework.data.neo4j.test.Neo4jExtension;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 
@@ -38,13 +39,16 @@ public abstract class DynamicRelationshipsITBase<T> {
 	protected static Neo4jExtension.Neo4jConnectionSupport neo4jConnectionSupport;
 
 	protected final Driver driver;
+	protected final BookmarkCapture bookmarkCapture;
 
 	protected long idOfExistingPerson;
 
 	protected final String labelOfTestSubject;
 
-	protected DynamicRelationshipsITBase(Driver driver) {
+	protected DynamicRelationshipsITBase(Driver driver, BookmarkCapture bookmarkCapture) {
 		this.driver = driver;
+		this.bookmarkCapture = bookmarkCapture;
+
 		Type type = getClass().getGenericSuperclass();
 		String typeName = ((ParameterizedType) type).getActualTypeArguments()[0].getTypeName();
 		this.labelOfTestSubject = typeName.substring(typeName.lastIndexOf(".") + 1);
@@ -65,6 +69,7 @@ public abstract class DynamicRelationshipsITBase<T> {
 							+ "CREATE (t) - [:DOGS] -> (w:Pet {name: dog}) " + "RETURN DISTINCT id(t) as id")
 					.single().get("id").asLong();
 			transaction.commit();
+			bookmarkCapture.seedWith(session.lastBookmark());
 		}
 	}
 }

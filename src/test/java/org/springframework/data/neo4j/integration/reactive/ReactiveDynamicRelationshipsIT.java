@@ -18,6 +18,9 @@ package org.springframework.data.neo4j.integration.reactive;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assumptions.assumeThat;
 
+import org.springframework.data.neo4j.core.ReactiveDatabaseSelectionProvider;
+import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
+import org.springframework.data.neo4j.core.transaction.ReactiveNeo4jTransactionManager;
 import org.springframework.data.neo4j.integration.shared.common.Club;
 import org.springframework.data.neo4j.integration.shared.common.ClubRelationship;
 import org.springframework.data.neo4j.integration.shared.common.Hobby;
@@ -48,8 +51,10 @@ import org.springframework.data.neo4j.integration.shared.common.PersonWithRelati
 import org.springframework.data.neo4j.integration.shared.common.Pet;
 import org.springframework.data.neo4j.repository.ReactiveNeo4jRepository;
 import org.springframework.data.neo4j.repository.config.EnableReactiveNeo4jRepositories;
+import org.springframework.data.neo4j.test.BookmarkCapture;
 import org.springframework.data.neo4j.test.Neo4jExtension;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.transaction.ReactiveTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 /**
@@ -59,8 +64,8 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 class ReactiveDynamicRelationshipsIT extends DynamicRelationshipsITBase<PersonWithRelatives> {
 
 	@Autowired
-	ReactiveDynamicRelationshipsIT(Driver driver) {
-		super(driver);
+	ReactiveDynamicRelationshipsIT(Driver driver, BookmarkCapture bookmarkCapture) {
+		super(driver, bookmarkCapture);
 	}
 
 	@Test
@@ -293,5 +298,16 @@ class ReactiveDynamicRelationshipsIT extends DynamicRelationshipsITBase<PersonWi
 			return neo4jConnectionSupport.getDriver();
 		}
 
+		@Bean
+		public BookmarkCapture bookmarkCapture() {
+			return new BookmarkCapture();
+		}
+
+		@Override
+		public ReactiveTransactionManager reactiveTransactionManager(Driver driver, ReactiveDatabaseSelectionProvider databaseNameProvider) {
+
+			BookmarkCapture bookmarkCapture = bookmarkCapture();
+			return new ReactiveNeo4jTransactionManager(driver, databaseNameProvider, Neo4jBookmarkManager.create(bookmarkCapture));
+		}
 	}
 }

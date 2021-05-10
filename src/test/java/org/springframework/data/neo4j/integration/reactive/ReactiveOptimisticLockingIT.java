@@ -31,19 +31,23 @@ import org.junit.jupiter.api.Test;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Session;
-import org.neo4j.driver.SessionConfig;
 import org.neo4j.driver.Transaction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.neo4j.config.AbstractReactiveNeo4jConfig;
+import org.springframework.data.neo4j.core.ReactiveDatabaseSelectionProvider;
+import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
+import org.springframework.data.neo4j.core.transaction.ReactiveNeo4jTransactionManager;
 import org.springframework.data.neo4j.integration.shared.common.VersionedThing;
 import org.springframework.data.neo4j.integration.shared.common.VersionedThingWithAssignedId;
 import org.springframework.data.neo4j.repository.ReactiveNeo4jRepository;
 import org.springframework.data.neo4j.repository.config.EnableReactiveNeo4jRepositories;
+import org.springframework.data.neo4j.test.BookmarkCapture;
 import org.springframework.data.neo4j.test.Neo4jExtension;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
+import org.springframework.transaction.ReactiveTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 /**
@@ -57,19 +61,23 @@ class ReactiveOptimisticLockingIT {
 
 	private final Driver driver;
 
+	private final BookmarkCapture bookmarkCapture;
+
 	@Autowired
-	ReactiveOptimisticLockingIT(Driver driver) {
+	ReactiveOptimisticLockingIT(Driver driver, BookmarkCapture bookmarkCapture) {
 		this.driver = driver;
+		this.bookmarkCapture = bookmarkCapture;
 	}
 
 	@BeforeEach
 	void setup() {
 
-		Session session = driver.session(SessionConfig.defaultConfig());
-		Transaction transaction = session.beginTransaction();
-		transaction.run("MATCH (n) detach delete n");
-		transaction.commit();
-		session.close();
+		try (Session session = driver.session(bookmarkCapture.createSessionConfig());
+				Transaction transaction = session.beginTransaction()) {
+			transaction.run("MATCH (n) detach delete n");
+			transaction.commit();
+			bookmarkCapture.seedWith(session.lastBookmark());
+		}
 	}
 
 	@Test
@@ -208,17 +216,17 @@ class ReactiveOptimisticLockingIT {
 
 	@Test
 	void shouldNotFailOnDeleteByIdWithNullVersion(@Autowired VersionedThingWithAssignedIdRepository repository) {
-		try (Session session = driver.session()) {
-			session.writeTransaction(tx -> tx.run("CREATE (v:VersionedThingWithAssignedId {id:1})").consume());
+		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
+			session.run("CREATE (v:VersionedThingWithAssignedId {id:1})").consume();
+			bookmarkCapture.seedWith(session.lastBookmark());
 		}
 
 		StepVerifier.create(repository.deleteById(1L))
 				.verifyComplete();
 
-		try (Session session = driver.session()) {
-			long count = session.readTransaction(tx ->
-					tx.run("MATCH (v:VersionedThingWithAssignedId) return count(v) as vCount").next()
-							.get("vCount").asLong());
+		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
+			long count = session.run("MATCH (v:VersionedThingWithAssignedId) return count(v) as vCount").single()
+							.get("vCount").asLong();
 
 			assertThat(count).isEqualTo(0);
 		}
@@ -226,8 +234,9 @@ class ReactiveOptimisticLockingIT {
 
 	@Test
 	void shouldNotFailOnDeleteByEntityWithNullVersion(@Autowired VersionedThingWithAssignedIdRepository repository) {
-		try (Session session = driver.session()) {
-			session.writeTransaction(tx -> tx.run("CREATE (v:VersionedThingWithAssignedId {id:1})").consume());
+		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
+			session.run("CREATE (v:VersionedThingWithAssignedId {id:1})").consume();
+			bookmarkCapture.seedWith(session.lastBookmark());
 		}
 
 		StepVerifier.create(repository.findById(1L).map(thing -> repository.deleteById(1L)))
@@ -238,18 +247,17 @@ class ReactiveOptimisticLockingIT {
 
 	@Test
 	void shouldNotFailOnDeleteByIdWithAnyVersion(@Autowired VersionedThingWithAssignedIdRepository repository) {
-		try (Session session = driver.session()) {
-			session.writeTransaction(tx ->
-					tx.run("CREATE (v:VersionedThingWithAssignedId {id:1, myVersion:3})").consume());
+		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
+			session.run("CREATE (v:VersionedThingWithAssignedId {id:1, myVersion:3})").consume();
+			bookmarkCapture.seedWith(session.lastBookmark());
 		}
 
 		StepVerifier.create(repository.deleteById(1L))
 				.verifyComplete();
 
-		try (Session session = driver.session()) {
-			long count = session.readTransaction(tx ->
-					tx.run("MATCH (v:VersionedThingWithAssignedId) return count(v) as vCount").next()
-							.get("vCount").asLong());
+		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
+			long count = session.run("MATCH (v:VersionedThingWithAssignedId) return count(v) as vCount").single()
+							.get("vCount").asLong();
 
 			assertThat(count).isEqualTo(0);
 		}
@@ -257,8 +265,9 @@ class ReactiveOptimisticLockingIT {
 
 	@Test
 	void shouldFailOnDeleteByEntityWithWrongVersion(@Autowired VersionedThingWithAssignedIdRepository repository) {
-		try (Session session = driver.session()) {
-			session.writeTransaction(tx -> tx.run("CREATE (v:VersionedThingWithAssignedId {id:1, myVersion:2})").consume());
+		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
+			session.run("CREATE (v:VersionedThingWithAssignedId {id:1, myVersion:2})").consume();
+			bookmarkCapture.seedWith(session.lastBookmark());
 		}
 
 		StepVerifier.create(repository.findById(1L)
@@ -293,7 +302,7 @@ class ReactiveOptimisticLockingIT {
 				.expectNextCount(1L)
 				.verifyComplete();
 
-		try (Session session = driver.session()) {
+		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
 			List<Record> result = session
 					.run("MATCH (t:VersionedThing{name:'Thing1'})-[:HAS]->(:VersionedThing{name:'Thing2'}) return t")
 					.list();
@@ -303,6 +312,7 @@ class ReactiveOptimisticLockingIT {
 
 	@Test // GH-2191
 	void shouldNotTraverseToBidiRelatedThingsWithOldVersion(@Autowired VersionedThingRepository repository) {
+
 		VersionedThing thing1 = new VersionedThing("Thing1");
 		VersionedThing thing2 = new VersionedThing("Thing2");
 		VersionedThing thing3 = new VersionedThing("Thing3");
@@ -326,7 +336,7 @@ class ReactiveOptimisticLockingIT {
 				.expectNextCount(1)
 				.verifyComplete();
 
-		try (Session session = driver.session()) {
+		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
 			Long relationshipCount = session
 					.run("MATCH (:VersionedThing)-[r:HAS]->(:VersionedThing) return count(r) as relationshipCount")
 					.single().get("relationshipCount").asLong();
@@ -349,5 +359,16 @@ class ReactiveOptimisticLockingIT {
 			return neo4jConnectionSupport.getDriver();
 		}
 
+		@Bean
+		public BookmarkCapture bookmarkCapture() {
+			return new BookmarkCapture();
+		}
+
+		@Override
+		public ReactiveTransactionManager reactiveTransactionManager(Driver driver, ReactiveDatabaseSelectionProvider databaseNameProvider) {
+
+			BookmarkCapture bookmarkCapture = bookmarkCapture();
+			return new ReactiveNeo4jTransactionManager(driver, databaseNameProvider, Neo4jBookmarkManager.create(bookmarkCapture));
+		}
 	}
 }

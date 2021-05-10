@@ -30,10 +30,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.neo4j.config.AbstractNeo4jConfig;
+import org.springframework.data.neo4j.core.DatabaseSelectionProvider;
+import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
+import org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
+import org.springframework.data.neo4j.test.BookmarkCapture;
 import org.springframework.data.neo4j.test.Neo4jExtension;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 /**
@@ -45,11 +50,14 @@ public class Gh2168IT {
 	protected static Neo4jExtension.Neo4jConnectionSupport neo4jConnectionSupport;
 
 	@BeforeAll
-	protected static void setupData() {
-		try (Transaction transaction = neo4jConnectionSupport.getDriver().session().beginTransaction()) {
+	protected static void setupData(@Autowired BookmarkCapture bookmarkCapture) {
+		try (Session session = neo4jConnectionSupport.getDriver().session(bookmarkCapture.createSessionConfig());
+			 Transaction transaction = session.beginTransaction();
+		) {
 			transaction.run("MATCH (n) detach delete n");
 			transaction.run("CREATE (:DomainObject{id: 'A'})");
 			transaction.commit();
+			bookmarkCapture.seedWith(session.lastBookmark());
 		}
 	}
 
@@ -65,14 +73,15 @@ public class Gh2168IT {
 	@Test // GH-2168
 	void compositePropertyCustomConverterDefaultPrefixShouldWork(
 			@Autowired DomainObjectRepository repository,
-			@Autowired Driver driver
+			@Autowired Driver driver,
+			@Autowired BookmarkCapture bookmarkCapture
 	) {
 
 		DomainObject domainObject = new DomainObject();
 		domainObject.setStoredAsMultipleProperties(new UnrelatedObject(true, 4711L));
 		domainObject = repository.save(domainObject);
 
-		try (Session session = driver.session()) {
+		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
 			Node node = session
 					.run("MATCH (n:DomainObject {id: $id}) RETURN n", Collections.singletonMap("id", domainObject.getId()))
 					.single().get(0).asNode();
@@ -95,14 +104,15 @@ public class Gh2168IT {
 	@Test // GH-2168
 	void propertyCustomConverterDefaultPrefixShouldWork(
 			@Autowired DomainObjectRepository repository,
-			@Autowired Driver driver
+			@Autowired Driver driver,
+			@Autowired BookmarkCapture bookmarkCapture
 	) {
 
 		DomainObject domainObject = new DomainObject();
 		domainObject.setStoredAsSingleProperty(new UnrelatedObject(true, 4711L));
 		domainObject = repository.save(domainObject);
 
-		try (Session session = driver.session()) {
+		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
 			Node node = session
 					.run("MATCH (n:DomainObject {id: $id}) RETURN n", Collections.singletonMap("id", domainObject.getId()))
 					.single().get(0).asNode();
@@ -129,6 +139,18 @@ public class Gh2168IT {
 		public Driver driver() {
 
 			return neo4jConnectionSupport.getDriver();
+		}
+
+		@Bean
+		public BookmarkCapture bookmarkCapture() {
+			return new BookmarkCapture();
+		}
+
+		@Override
+		public PlatformTransactionManager transactionManager(Driver driver, DatabaseSelectionProvider databaseNameProvider) {
+
+			BookmarkCapture bookmarkCapture = bookmarkCapture();
+			return new Neo4jTransactionManager(driver, databaseNameProvider, Neo4jBookmarkManager.create(bookmarkCapture));
 		}
 	}
 }

@@ -18,11 +18,13 @@ package org.springframework.data.neo4j.integration.issues.gh2210;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.neo4j.driver.Driver;
+import org.neo4j.driver.Session;
 import org.neo4j.driver.Transaction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.neo4j.config.AbstractNeo4jConfig;
+import org.springframework.data.neo4j.core.DatabaseSelectionProvider;
 import org.springframework.data.neo4j.core.Neo4jTemplate;
 import org.springframework.data.neo4j.core.convert.Neo4jConversions;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
@@ -32,8 +34,12 @@ import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Relationship;
 import org.springframework.data.neo4j.core.schema.RelationshipProperties;
 import org.springframework.data.neo4j.core.schema.TargetNode;
+import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
+import org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager;
+import org.springframework.data.neo4j.test.BookmarkCapture;
 import org.springframework.data.neo4j.test.Neo4jExtension;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import java.util.Arrays;
@@ -61,8 +67,10 @@ class GH2210IT {
 	static final Long numberD = 4L;
 
 	@BeforeAll
-	protected static void setupData() {
-		try (Transaction transaction = neo4jConnectionSupport.getDriver().session().beginTransaction()) {
+	protected static void setupData(@Autowired BookmarkCapture bookmarkCapture) {
+		try (Session session = neo4jConnectionSupport.getDriver().session(bookmarkCapture.createSessionConfig());
+			 Transaction transaction = session.beginTransaction();
+		 ) {
 			transaction.run("MATCH (n) detach delete n");
 			Map<String, Object> params = new HashMap<>();
 			params.put("numberA", numberA);
@@ -249,6 +257,18 @@ class GH2210IT {
 			Neo4jMappingContext ctx = new Neo4jMappingContext(neo4JConversions);
 			ctx.setInitialEntitySet(new HashSet<>(Arrays.asList(SomeEntity.class, SomeRelation.class)));
 			return ctx;
+		}
+
+		@Bean
+		public BookmarkCapture bookmarkCapture() {
+			return new BookmarkCapture();
+		}
+
+		@Override
+		public PlatformTransactionManager transactionManager(Driver driver, DatabaseSelectionProvider databaseNameProvider) {
+
+			BookmarkCapture bookmarkCapture = bookmarkCapture();
+			return new Neo4jTransactionManager(driver, databaseNameProvider, Neo4jBookmarkManager.create(bookmarkCapture));
 		}
 	}
 }

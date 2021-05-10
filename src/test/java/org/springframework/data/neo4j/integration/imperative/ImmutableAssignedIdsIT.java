@@ -24,17 +24,22 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.neo4j.config.AbstractNeo4jConfig;
+import org.springframework.data.neo4j.core.DatabaseSelectionProvider;
 import org.springframework.data.neo4j.core.convert.Neo4jConversions;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.mapping.callback.BeforeBindCallback;
+import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
+import org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager;
 import org.springframework.data.neo4j.integration.shared.common.ImmutablePersonWithAssignedId;
 import org.springframework.data.neo4j.integration.shared.common.ImmutablePersonWithAssignedIdRelationshipProperties;
 import org.springframework.data.neo4j.integration.shared.common.ImmutableSecondPersonWithAssignedId;
 import org.springframework.data.neo4j.integration.shared.common.ImmutableSecondPersonWithAssignedIdRelationshipProperties;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
+import org.springframework.data.neo4j.test.BookmarkCapture;
 import org.springframework.data.neo4j.test.Neo4jExtension;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import java.util.ArrayList;
@@ -64,9 +69,10 @@ public class ImmutableAssignedIdsIT {
 	}
 
 	@BeforeEach
-	void cleanUp() {
-		try (Session session = driver.session()) {
+	void cleanUp(@Autowired BookmarkCapture bookmarkCapture) {
+		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
 			session.run("MATCH (n) DETACH DELETE n").consume();
+			bookmarkCapture.seedWith(session.lastBookmark());
 		}
 	}
 
@@ -318,7 +324,8 @@ public class ImmutableAssignedIdsIT {
 	}
 
 	@Test // GH-2235
-	void saveWithGeneratedIdsWithMultipleRelationshipsToOneNode(@Autowired ImmutablePersonWithAssignedIdRepository repository) {
+	void saveWithGeneratedIdsWithMultipleRelationshipsToOneNode(@Autowired ImmutablePersonWithAssignedIdRepository repository,
+																@Autowired BookmarkCapture bookmarkCapture) {
 		ImmutablePersonWithAssignedId person1 = new ImmutablePersonWithAssignedId();
 		ImmutablePersonWithAssignedId person2 = ImmutablePersonWithAssignedId.fallback(person1);
 		List<ImmutablePersonWithAssignedId> onboardedBy = new ArrayList<>();
@@ -335,7 +342,7 @@ public class ImmutableAssignedIdsIT {
 
 		assertThat(savedPerson2.fallback.id).isNotNull();
 
-		try (Session session = driver.session()) {
+		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
 			List<Record> result = session.run(
 					"MATCH (person3:ImmutablePersonWithAssignedId) " +
 							"-[:ONBOARDED_BY]->(person2:ImmutablePersonWithAssignedId) " +
@@ -380,6 +387,18 @@ public class ImmutableAssignedIdsIT {
 			mappingContext.setStrict(true);
 
 			return mappingContext;
+		}
+
+		@Bean
+		public BookmarkCapture bookmarkCapture() {
+			return new BookmarkCapture();
+		}
+
+		@Override
+		public PlatformTransactionManager transactionManager(Driver driver, DatabaseSelectionProvider databaseNameProvider) {
+
+			BookmarkCapture bookmarkCapture = bookmarkCapture();
+			return new Neo4jTransactionManager(driver, databaseNameProvider, Neo4jBookmarkManager.create(bookmarkCapture));
 		}
 	}
 }

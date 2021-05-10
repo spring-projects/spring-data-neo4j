@@ -29,6 +29,7 @@ import org.neo4j.driver.Session;
 import org.neo4j.driver.types.Node;
 import org.neo4j.driver.types.Relationship;
 import org.springframework.data.neo4j.integration.shared.common.Club;
+import org.springframework.data.neo4j.test.BookmarkCapture;
 import org.springframework.data.neo4j.test.Neo4jExtension;
 
 /**
@@ -44,13 +45,16 @@ public abstract class CompositePropertiesITBase {
 
 	protected final Driver driver;
 
+	private final BookmarkCapture bookmarkCapture;
+
 	protected final Map<String, Object> nodeProperties;
 
 	protected final Map<String, Object> relationshipProperties;
 
-	protected CompositePropertiesITBase(Driver driver) {
+	protected CompositePropertiesITBase(Driver driver, BookmarkCapture bookmarkCapture) {
 
 		this.driver = driver;
+		this.bookmarkCapture = bookmarkCapture;
 
 		Map<String, Object> properties = new HashMap<>();
 		Map<String, LocalDate> someDates = new HashMap<>();
@@ -87,21 +91,25 @@ public abstract class CompositePropertiesITBase {
 	}
 
 	protected long createNodeWithCompositeProperties() {
-		try (Session session = driver.session()) {
-			return session.writeTransaction(
+		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
+			long id = session.writeTransaction(
 					tx -> tx.run("CREATE (t:CompositeProperties) SET t = $properties RETURN id(t)",
 							Collections.singletonMap("properties", nodeProperties)).single().get(0)
 							.asLong());
+			bookmarkCapture.seedWith(session.lastBookmark());
+			return id;
 		}
 	}
 
 	protected long createRelationshipWithCompositeProperties() {
-		try (Session session = driver.session()) {
-			return session.writeTransaction(
+		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
+			long id = session.writeTransaction(
 					tx -> tx.run(
 							"CREATE (t:CompositeProperties) -[r:IRRELEVANT_TYPE] -> (:Club) SET r = $properties RETURN id(t)",
 							Collections.singletonMap("properties", relationshipProperties)).single().get(0)
 							.asLong());
+			bookmarkCapture.seedWith(session.lastBookmark());
+			return id;
 		}
 	}
 
@@ -192,11 +200,12 @@ public abstract class CompositePropertiesITBase {
 
 	protected void assertNodePropertiesInGraph(long id) {
 
-		try (Session session = driver.session()) {
+		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
 			Record r = session.readTransaction(tx -> tx.run("MATCH (t:CompositeProperties) WHERE id(t) = $id RETURN t",
 					Collections.singletonMap("id", id)).single());
 			Node n = r.get("t").asNode();
 			assertThat(n.asMap()).containsExactlyInAnyOrderEntriesOf(nodeProperties);
+			bookmarkCapture.seedWith(session.lastBookmark());
 		}
 	}
 
@@ -217,12 +226,13 @@ public abstract class CompositePropertiesITBase {
 
 	protected void assertRelationshipPropertiesInGraph(long id) {
 
-		try (Session session = driver.session()) {
+		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
 			Record r = session.readTransaction(
 					tx -> tx.run("MATCH (t:CompositeProperties) - [r:IRRELEVANT_TYPE] -> () WHERE id(t) = $id RETURN r",
 							Collections.singletonMap("id", id)).single());
 			Relationship rel = r.get("r").asRelationship();
 			assertThat(rel.asMap()).containsExactlyInAnyOrderEntriesOf(relationshipProperties);
+			bookmarkCapture.seedWith(session.lastBookmark());
 		}
 	}
 }

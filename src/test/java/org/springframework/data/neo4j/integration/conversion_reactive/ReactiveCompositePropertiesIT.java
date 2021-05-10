@@ -17,7 +17,10 @@ package org.springframework.data.neo4j.integration.conversion_reactive;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import org.springframework.data.neo4j.core.ReactiveDatabaseSelectionProvider;
 import org.springframework.data.neo4j.core.convert.Neo4jConversions;
+import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
+import org.springframework.data.neo4j.core.transaction.ReactiveNeo4jTransactionManager;
 import org.springframework.data.neo4j.integration.shared.conversion.ThingWithCustomTypes;
 import reactor.test.StepVerifier;
 
@@ -36,8 +39,10 @@ import org.springframework.data.neo4j.integration.shared.conversion.CompositePro
 import org.springframework.data.neo4j.integration.shared.conversion.ThingWithCompositeProperties;
 import org.springframework.data.neo4j.repository.ReactiveNeo4jRepository;
 import org.springframework.data.neo4j.repository.config.EnableReactiveNeo4jRepositories;
+import org.springframework.data.neo4j.test.BookmarkCapture;
 import org.springframework.data.neo4j.test.Neo4jExtension;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
+import org.springframework.transaction.ReactiveTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 /**
@@ -51,8 +56,8 @@ class ReactiveCompositePropertiesIT extends CompositePropertiesITBase {
 	protected static Neo4jExtension.Neo4jConnectionSupport neo4jConnectionSupport;
 
 	@Autowired
-	ReactiveCompositePropertiesIT(Driver driver) {
-		super(driver);
+	ReactiveCompositePropertiesIT(Driver driver, BookmarkCapture bookmarkCapture) {
+		super(driver, bookmarkCapture);
 	}
 
 	@Test
@@ -119,5 +124,16 @@ class ReactiveCompositePropertiesIT extends CompositePropertiesITBase {
 			return new Neo4jConversions(Collections.singleton(new ThingWithCustomTypes.CustomTypeConverter()));
 		}
 
+		@Bean
+		public BookmarkCapture bookmarkCapture() {
+			return new BookmarkCapture();
+		}
+
+		@Override
+		public ReactiveTransactionManager reactiveTransactionManager(Driver driver, ReactiveDatabaseSelectionProvider databaseNameProvider) {
+
+			BookmarkCapture bookmarkCapture = bookmarkCapture();
+			return new ReactiveNeo4jTransactionManager(driver, databaseNameProvider, Neo4jBookmarkManager.create(bookmarkCapture));
+		}
 	}
 }

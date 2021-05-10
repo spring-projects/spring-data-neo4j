@@ -26,6 +26,7 @@ import org.neo4j.driver.Transaction;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
 import org.neo4j.driver.types.Node;
+import org.springframework.data.neo4j.test.BookmarkCapture;
 import org.springframework.data.neo4j.test.Neo4jExtension;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 
@@ -45,16 +46,20 @@ public abstract class AuditingITBase {
 
 	private final Driver driver;
 
+	private final BookmarkCapture bookmarkCapture;
+
 	protected Long idOfExistingThing;
 	protected String idOfExistingThingWithGeneratedId = "somethingUnique";
 
-	protected AuditingITBase(Driver driver) {
+	protected AuditingITBase(Driver driver, BookmarkCapture bookmarkCapture) {
 		this.driver = driver;
+		this.bookmarkCapture = bookmarkCapture;
 	}
 
 	@BeforeEach
 	protected void setupData() {
-		try (Transaction transaction = driver.session().beginTransaction()) {
+		try (Session session = driver.session(bookmarkCapture.createSessionConfig());
+				Transaction transaction = session.beginTransaction()) {
 			transaction.run("MATCH (n) detach delete n");
 
 			idOfExistingThing = transaction.run(
@@ -69,12 +74,13 @@ public abstract class AuditingITBase {
 							EXISTING_THING_CREATED_AT, "id", idOfExistingThingWithGeneratedId));
 
 			transaction.commit();
+			bookmarkCapture.seedWith(session.lastBookmark());
 		}
 	}
 
 	protected void verifyDatabase(long id, ImmutableAuditableThing expectedValues) {
 
-		try (Session session = driver.session()) {
+		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
 			Node node = session
 					.run("MATCH (t:ImmutableAuditableThing) WHERE id(t) = $id RETURN t", Values.parameters("id", id)).single()
 					.get("t").asNode();
@@ -85,7 +91,7 @@ public abstract class AuditingITBase {
 
 	protected void verifyDatabase(String id, ImmutableAuditableThingWithGeneratedId expectedValues) {
 
-		try (Session session = driver.session()) {
+		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
 			Node node = session.run("MATCH (t:ImmutableAuditableThingWithGeneratedId) WHERE t.id = $id RETURN t",
 					Values.parameters("id", id)).single().get("t").asNode();
 

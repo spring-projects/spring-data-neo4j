@@ -45,7 +45,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.neo4j.config.AbstractReactiveNeo4jConfig;
+import org.springframework.data.neo4j.core.ReactiveDatabaseSelectionProvider;
 import org.springframework.data.neo4j.core.ReactiveNeo4jTemplate;
+import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
+import org.springframework.data.neo4j.core.transaction.ReactiveNeo4jTransactionManager;
 import org.springframework.data.neo4j.integration.shared.common.EntitiesWithDynamicLabels.DynamicLabelsWithMultipleNodeLabels;
 import org.springframework.data.neo4j.integration.shared.common.EntitiesWithDynamicLabels.DynamicLabelsWithNodeLabel;
 import org.springframework.data.neo4j.integration.shared.common.EntitiesWithDynamicLabels.ExtendedBaseClass1;
@@ -56,10 +59,14 @@ import org.springframework.data.neo4j.integration.shared.common.EntitiesWithDyna
 import org.springframework.data.neo4j.integration.shared.common.EntitiesWithDynamicLabels.SimpleDynamicLabelsWithBusinessIdAndVersion;
 import org.springframework.data.neo4j.integration.shared.common.EntitiesWithDynamicLabels.SimpleDynamicLabelsWithVersion;
 import org.springframework.data.neo4j.integration.shared.common.EntitiesWithDynamicLabels.SuperNode;
+import org.springframework.data.neo4j.test.BookmarkCapture;
 import org.springframework.data.neo4j.test.Neo4jExtension;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.transaction.ReactiveTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.springframework.transaction.reactive.TransactionalOperator;
 
 /**
  * @author Michael J. Simons
@@ -97,7 +104,8 @@ public class ReactiveDynamicLabelsIT {
 				entity.moreLabels.remove("Foo");
 				entity.moreLabels.add("Fizz");
 				return template.save(entity);
-			}).thenMany(getLabels(existingEntityId)).sort().as(StepVerifier::create)
+			}).as(transactionalOperator::transactional)
+					.thenMany(getLabels(existingEntityId)).sort().as(StepVerifier::create)
 					.expectNext("Bar", "Baz", "Fizz", "Foobar", "SimpleDynamicLabels").verifyComplete();
 		}
 
@@ -110,7 +118,9 @@ public class ReactiveDynamicLabelsIT {
 			entity.moreLabels.add("B");
 			entity.moreLabels.add("C");
 
-			template.save(entity).map(SimpleDynamicLabels::getId).flatMapMany(this::getLabels).sort().as(StepVerifier::create)
+			template.save(entity).map(SimpleDynamicLabels::getId)
+					.as(transactionalOperator::transactional)
+					.flatMapMany(this::getLabels).sort().as(StepVerifier::create)
 					.expectNext("A", "B", "C", "SimpleDynamicLabels").verifyComplete();
 		}
 
@@ -125,7 +135,9 @@ public class ReactiveDynamicLabelsIT {
 			SuperNode superNode = new SuperNode();
 			superNode.relatedTo = entity;
 
-			template.save(superNode).map(SuperNode::getRelatedTo).map(SimpleDynamicLabels::getId).flatMapMany(this::getLabels)
+			template.save(superNode).map(SuperNode::getRelatedTo).map(SimpleDynamicLabels::getId)
+					.as(transactionalOperator::transactional)
+					.flatMapMany(this::getLabels)
 					.sort().as(StepVerifier::create).expectNext("A", "B", "C", "SimpleDynamicLabels").verifyComplete();
 		}
 	}
@@ -158,7 +170,8 @@ public class ReactiveDynamicLabelsIT {
 				entity.moreLabels.remove("Foo");
 				entity.moreLabels.add("Fizz");
 				return template.save(entity);
-			}).thenMany(getLabels(existingEntityId)).sort().as(StepVerifier::create)
+			}).as(transactionalOperator::transactional)
+					.thenMany(getLabels(existingEntityId)).sort().as(StepVerifier::create)
 					.expectNext("Bar", "Baz", "Fizz", "Foobar", "InheritedSimpleDynamicLabels").verifyComplete();
 		}
 
@@ -171,7 +184,9 @@ public class ReactiveDynamicLabelsIT {
 			entity.moreLabels.add("B");
 			entity.moreLabels.add("C");
 
-			template.save(entity).map(SimpleDynamicLabels::getId).flatMapMany(this::getLabels).sort().as(StepVerifier::create)
+			template.save(entity).map(SimpleDynamicLabels::getId)
+					.as(transactionalOperator::transactional)
+					.flatMapMany(this::getLabels).sort().as(StepVerifier::create)
 					.expectNext("A", "B", "C", "InheritedSimpleDynamicLabels").verifyComplete();
 		}
 	}
@@ -195,7 +210,8 @@ public class ReactiveDynamicLabelsIT {
 				entity.moreLabels.remove("Foo");
 				entity.moreLabels.add("Fizz");
 				return template.save(entity);
-			}).thenMany(getLabels(existingEntityId)).sort().as(StepVerifier::create)
+			}).as(transactionalOperator::transactional)
+					.thenMany(getLabels(existingEntityId)).sort().as(StepVerifier::create)
 					.expectNext("Bar", "Baz", "Fizz", "Foobar", "SimpleDynamicLabelsWithBusinessId").verifyComplete();
 		}
 
@@ -210,6 +226,7 @@ public class ReactiveDynamicLabelsIT {
 			entity.moreLabels.add("C");
 
 			template.save(entity).map(SimpleDynamicLabelsWithBusinessId::getId)
+					.as(transactionalOperator::transactional)
 					.flatMapMany(id -> getLabels(Cypher.anyNode("n").property("id").isEqualTo(Cypher.parameter("id")), id)).sort()
 					.as(StepVerifier::create).expectNext("A", "B", "C", "SimpleDynamicLabelsWithBusinessId").verifyComplete();
 		}
@@ -234,7 +251,9 @@ public class ReactiveDynamicLabelsIT {
 				entity.moreLabels.remove("Foo");
 				entity.moreLabels.add("Fizz");
 				return template.save(entity);
-			}).doOnNext(e -> assertThat(e.myVersion).isNotNull().isEqualTo(1)).thenMany(getLabels(existingEntityId)).sort()
+			}).doOnNext(e -> assertThat(e.myVersion).isNotNull().isEqualTo(1))
+					.as(transactionalOperator::transactional)
+					.thenMany(getLabels(existingEntityId)).sort()
 					.as(StepVerifier::create).expectNext("Bar", "Baz", "Fizz", "Foobar", "SimpleDynamicLabelsWithVersion")
 					.verifyComplete();
 		}
@@ -249,7 +268,9 @@ public class ReactiveDynamicLabelsIT {
 			entity.moreLabels.add("C");
 
 			template.save(entity).doOnNext(e -> assertThat(e.myVersion).isNotNull().isEqualTo(0))
-					.map(SimpleDynamicLabelsWithVersion::getId).flatMapMany(this::getLabels).sort().as(StepVerifier::create)
+					.map(SimpleDynamicLabelsWithVersion::getId)
+					.as(transactionalOperator::transactional)
+					.flatMapMany(this::getLabels).sort().as(StepVerifier::create)
 					.expectNext("A", "B", "C", "SimpleDynamicLabelsWithVersion").verifyComplete();
 		}
 	}
@@ -277,6 +298,7 @@ public class ReactiveDynamicLabelsIT {
 				return template.save(entity);
 			}).doOnNext(e -> assertThat(e.myVersion).isNotNull().isEqualTo(1))
 					.map(SimpleDynamicLabelsWithBusinessIdAndVersion::getId)
+					.as(transactionalOperator::transactional)
 					.flatMapMany(id -> getLabels(Cypher.anyNode("n").property("id").isEqualTo(Cypher.parameter("id")), id)).sort()
 					.as(StepVerifier::create)
 					.expectNext("Bar", "Baz", "Fizz", "Foobar", "SimpleDynamicLabelsWithBusinessIdAndVersion").verifyComplete();
@@ -294,6 +316,7 @@ public class ReactiveDynamicLabelsIT {
 
 			template.save(entity).doOnNext(e -> assertThat(e.myVersion).isNotNull().isEqualTo(0))
 					.map(SimpleDynamicLabelsWithBusinessIdAndVersion::getId)
+					.as(transactionalOperator::transactional)
 					.flatMapMany(id -> getLabels(Cypher.anyNode("n").property("id").isEqualTo(Cypher.parameter("id")), id)).sort()
 					.as(StepVerifier::create).expectNext("A", "B", "C", "SimpleDynamicLabelsWithBusinessIdAndVersion")
 					.verifyComplete();
@@ -375,9 +398,14 @@ public class ReactiveDynamicLabelsIT {
 
 	@ExtendWith(SpringExtension.class)
 	@ContextConfiguration(classes = SpringTestBase.Config.class)
+	@DirtiesContext
 	abstract static class SpringTestBase {
 
 		@Autowired protected Driver driver;
+
+		@Autowired protected TransactionalOperator transactionalOperator;
+
+		@Autowired protected BookmarkCapture bookmarkCapture;
 
 		protected Long existingEntityId;
 
@@ -388,6 +416,7 @@ public class ReactiveDynamicLabelsIT {
 			try (Session session = driver.session();) {
 				session.writeTransaction(tx -> tx.run("MATCH (n) DETACH DELETE n").consume());
 				existingEntityId = session.writeTransaction(this::createTestEntity);
+				bookmarkCapture.seedWith(session.lastBookmark());
 			}
 		}
 
@@ -400,9 +429,8 @@ public class ReactiveDynamicLabelsIT {
 			Node n = Cypher.anyNode("n");
 			String cypher = Renderer.getDefaultRenderer().render(Cypher.match(n).where(idCondition)
 					.and(not(exists(n.property("moreLabels")))).unwind(n.labels()).as("label").returning("label").build());
-
 			return Flux
-					.usingWhen(Mono.fromSupplier(() -> driver.rxSession()),
+					.usingWhen(Mono.fromSupplier(() -> driver.rxSession(bookmarkCapture.createSessionConfig())),
 							s -> s.run(cypher, Collections.singletonMap("id", id)).records(), RxSession::close)
 					.map(r -> r.get("label").asString());
 		}
@@ -416,6 +444,22 @@ public class ReactiveDynamicLabelsIT {
 				return neo4jConnectionSupport.getDriver();
 			}
 
+			@Bean
+			public BookmarkCapture bookmarkCapture() {
+				return new BookmarkCapture();
+			}
+
+			@Override
+			public ReactiveTransactionManager reactiveTransactionManager(Driver driver, ReactiveDatabaseSelectionProvider databaseNameProvider) {
+
+				BookmarkCapture bookmarkCapture = bookmarkCapture();
+				return new ReactiveNeo4jTransactionManager(driver, databaseNameProvider, Neo4jBookmarkManager.create(bookmarkCapture));
+			}
+
+			@Bean
+			public TransactionalOperator transactionalOperator(ReactiveTransactionManager transactionManager) {
+				return TransactionalOperator.create(transactionManager);
+			}
 		}
 	}
 

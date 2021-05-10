@@ -49,6 +49,7 @@ import org.neo4j.driver.Session;
 import org.neo4j.driver.Values;
 import org.springframework.data.geo.Point;
 import org.springframework.data.neo4j.integration.shared.conversion.ThingWithAllAdditionalTypes.SomeEnum;
+import org.springframework.data.neo4j.test.BookmarkCapture;
 import org.springframework.data.neo4j.test.Neo4jExtension;
 import org.springframework.data.neo4j.types.CartesianPoint2d;
 import org.springframework.data.neo4j.types.CartesianPoint3d;
@@ -63,6 +64,8 @@ import org.springframework.data.neo4j.types.GeographicPoint3d;
 public abstract class Neo4jConversionsITBase {
 
 	protected static Neo4jExtension.Neo4jConnectionSupport neo4jConnectionSupport;
+
+	protected static final BookmarkCapture bookmarkCapture = new BookmarkCapture();
 
 	protected static final Map<String, Object> CYPHER_TYPES;
 	static {
@@ -191,7 +194,7 @@ public abstract class Neo4jConversionsITBase {
 	@BeforeAll
 	static void prepareData() {
 
-		try (Session session = neo4jConnectionSupport.getDriver().session()) {
+		try (Session session = neo4jConnectionSupport.getDriver().session(bookmarkCapture.createSessionConfig())) {
 			session.writeTransaction(w -> {
 				Map<String, Object> parameters;
 
@@ -256,6 +259,7 @@ public abstract class Neo4jConversionsITBase {
 				w.commit();
 				return null;
 			});
+			bookmarkCapture.seedWith(session.lastBookmark());
 		}
 	}
 }

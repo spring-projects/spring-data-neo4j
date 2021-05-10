@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.neo4j.driver.Driver;
+import org.neo4j.driver.Session;
 import org.neo4j.driver.Transaction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -28,12 +29,17 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.config.AbstractNeo4jConfig;
+import org.springframework.data.neo4j.core.DatabaseSelectionProvider;
+import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
+import org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager;
 import org.springframework.data.neo4j.integration.shared.common.Person;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
+import org.springframework.data.neo4j.test.BookmarkCapture;
 import org.springframework.data.neo4j.test.Neo4jExtension;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 import org.springframework.data.querydsl.QuerydslPredicateExecutor;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import com.querydsl.core.types.Ops;
@@ -61,8 +67,11 @@ class QuerydslNeo4jPredicateExecutorIT {
 	}
 
 	@BeforeAll
-	protected static void setupData() {
-		try (Transaction transaction = neo4jConnectionSupport.getDriver().session().beginTransaction()) {
+	protected static void setupData(@Autowired BookmarkCapture bookmarkCapture) {
+
+		try (Session session = neo4jConnectionSupport.getDriver().session(bookmarkCapture.createSessionConfig());
+			 Transaction transaction = session.beginTransaction()
+		) {
 			transaction.run("MATCH (n) detach delete n");
 			transaction.run("CREATE (p:Person{firstName: 'A', lastName: 'LA'})");
 			transaction.run("CREATE (p:Person{firstName: 'B', lastName: 'LB'})");
@@ -70,6 +79,7 @@ class QuerydslNeo4jPredicateExecutorIT {
 					.run("CREATE (p:Person{firstName: 'Helge', lastName: 'Schneider'}) -[:LIVES_AT]-> (a:Address {city: 'Mülheim an der Ruhr'})");
 			transaction.run("CREATE (p:Person{firstName: 'Bela', lastName: 'B.'})");
 			transaction.commit();
+			bookmarkCapture.seedWith(session.lastBookmark());
 		}
 	}
 
@@ -186,6 +196,18 @@ class QuerydslNeo4jPredicateExecutorIT {
 		public Driver driver() {
 
 			return neo4jConnectionSupport.getDriver();
+		}
+
+		@Bean
+		public BookmarkCapture bookmarkCapture() {
+			return new BookmarkCapture();
+		}
+
+		@Override
+		public PlatformTransactionManager transactionManager(Driver driver, DatabaseSelectionProvider databaseNameProvider) {
+
+			BookmarkCapture bookmarkCapture = bookmarkCapture();
+			return new Neo4jTransactionManager(driver, databaseNameProvider, Neo4jBookmarkManager.create(bookmarkCapture));
 		}
 	}
 }

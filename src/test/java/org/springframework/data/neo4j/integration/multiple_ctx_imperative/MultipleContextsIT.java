@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Collections;
 
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.neo4j.driver.AuthTokens;
 import org.neo4j.driver.Config;
@@ -33,6 +34,7 @@ import org.springframework.data.neo4j.integration.multiple_ctx_imperative.domain
 import org.springframework.data.neo4j.integration.multiple_ctx_imperative.domain2.Domain2Config;
 import org.springframework.data.neo4j.integration.multiple_ctx_imperative.domain2.Domain2Entity;
 import org.springframework.data.neo4j.integration.multiple_ctx_imperative.domain2.Domain2Repository;
+import org.springframework.data.neo4j.test.Neo4jExtension;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
@@ -47,6 +49,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
  */
 @SpringJUnitConfig(classes = { SharedConfig.class, Domain1Config.class, Domain2Config.class })
 @Testcontainers(disabledWithoutDocker = true)
+@Tag(Neo4jExtension.INCOMPATIBLE_WITH_CLUSTERS)
 public class MultipleContextsIT {
 
 	@Container

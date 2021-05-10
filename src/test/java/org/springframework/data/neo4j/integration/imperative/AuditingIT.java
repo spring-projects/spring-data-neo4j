@@ -30,11 +30,16 @@ import org.springframework.data.auditing.DateTimeProvider;
 import org.springframework.data.domain.AuditorAware;
 import org.springframework.data.neo4j.config.AbstractNeo4jConfig;
 import org.springframework.data.neo4j.config.EnableNeo4jAuditing;
+import org.springframework.data.neo4j.core.DatabaseSelectionProvider;
+import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
+import org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager;
 import org.springframework.data.neo4j.integration.shared.common.AuditingITBase;
 import org.springframework.data.neo4j.integration.shared.common.ImmutableAuditableThing;
 import org.springframework.data.neo4j.integration.shared.common.ImmutableAuditableThingWithGeneratedId;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
+import org.springframework.data.neo4j.test.BookmarkCapture;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 /**
@@ -43,8 +48,8 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 class AuditingIT extends AuditingITBase {
 
 	@Autowired
-	AuditingIT(Driver driver) {
-		super(driver);
+	AuditingIT(Driver driver, BookmarkCapture bookmarkCapture) {
+		super(driver, bookmarkCapture);
 	}
 
 	@Test
@@ -146,6 +151,18 @@ class AuditingIT extends AuditingITBase {
 		@Bean
 		public DateTimeProvider fixedDateTimeProvider() {
 			return () -> Optional.of(DEFAULT_CREATION_AND_MODIFICATION_DATE);
+		}
+
+		@Bean
+		public BookmarkCapture bookmarkCapture() {
+			return new BookmarkCapture();
+		}
+
+		@Override
+		public PlatformTransactionManager transactionManager(Driver driver, DatabaseSelectionProvider databaseNameProvider) {
+
+			BookmarkCapture bookmarkCapture = bookmarkCapture();
+			return new Neo4jTransactionManager(driver, databaseNameProvider, Neo4jBookmarkManager.create(bookmarkCapture));
 		}
 	}
 }

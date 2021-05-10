@@ -30,13 +30,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.neo4j.config.AbstractNeo4jConfig;
+import org.springframework.data.neo4j.core.DatabaseSelectionProvider;
+import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
+import org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager;
 import org.springframework.data.neo4j.documentation.domain.MovieEntity;
 import org.springframework.data.neo4j.documentation.domain.PersonEntity;
 import org.springframework.data.neo4j.integration.movies.shared.CypherUtils;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
+import org.springframework.data.neo4j.test.BookmarkCapture;
 import org.springframework.data.neo4j.test.Neo4jExtension;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 /**
@@ -72,12 +77,13 @@ class CustomQueriesIT {
 	// end::custom-queries-test[]
 
 	@BeforeAll
-	static void setupData(@Autowired Driver driver) throws IOException {
+	static void setupData(@Autowired Driver driver, @Autowired BookmarkCapture bookmarkCapture) throws IOException {
 
-		try (Session session = driver.session()) {
+		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
 			session.run("MATCH (n) DETACH DELETE n").consume();
 			session.run("MATCH (n) DETACH DELETE n").consume();
 			CypherUtils.loadCypherFromResource("/data/movies.cypher", session);
+			bookmarkCapture.seedWith(session.lastBookmark());
 		}
 	}
 
@@ -98,6 +104,18 @@ class CustomQueriesIT {
 		@Override
 		protected Collection<String> getMappingBasePackages() {
 			return Collections.singletonList(MovieEntity.class.getPackage().getName());
+		}
+
+		@Bean
+		public BookmarkCapture bookmarkCapture() {
+			return new BookmarkCapture();
+		}
+
+		@Override
+		public PlatformTransactionManager transactionManager(Driver driver, DatabaseSelectionProvider databaseNameProvider) {
+
+			BookmarkCapture bookmarkCapture = bookmarkCapture();
+			return new Neo4jTransactionManager(driver, databaseNameProvider, Neo4jBookmarkManager.create(bookmarkCapture));
 		}
 	}
 }

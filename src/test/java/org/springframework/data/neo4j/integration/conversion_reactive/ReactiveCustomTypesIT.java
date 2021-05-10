@@ -17,6 +17,11 @@ package org.springframework.data.neo4j.integration.conversion_reactive;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import org.springframework.data.neo4j.core.ReactiveDatabaseSelectionProvider;
+import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
+import org.springframework.data.neo4j.core.transaction.ReactiveNeo4jTransactionManager;
+import org.springframework.data.neo4j.test.BookmarkCapture;
+import org.springframework.transaction.ReactiveTransactionManager;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
@@ -35,7 +40,6 @@ import org.junit.jupiter.api.Test;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Result;
 import org.neo4j.driver.Session;
-import org.neo4j.driver.SessionConfig;
 import org.neo4j.driver.TransactionWork;
 import org.neo4j.driver.Values;
 import org.neo4j.driver.summary.ResultSummary;
@@ -71,26 +75,25 @@ public class ReactiveCustomTypesIT {
 	private final Driver driver;
 
 	private final ReactiveNeo4jOperations neo4jOperations;
+	private final BookmarkCapture bookmarkCapture;
 
 	@Autowired
-	public ReactiveCustomTypesIT(Driver driver, ReactiveNeo4jOperations neo4jOperations) {
+	public ReactiveCustomTypesIT(Driver driver, ReactiveNeo4jOperations neo4jOperations, BookmarkCapture bookmarkCapture) {
 		this.driver = driver;
 		this.neo4jOperations = neo4jOperations;
+		this.bookmarkCapture = bookmarkCapture;
 	}
 
 	@BeforeEach
 	void setup() {
-		try (Session session = driver.session()) {
+		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
 			session.writeTransaction(transaction -> {
 				transaction.run("MATCH (n) detach delete n");
 				transaction.run("CREATE (:CustomTypes{customType:'XYZ'})");
 				return null;
 			});
+			bookmarkCapture.seedWith(session.lastBookmark());
 		}
-	}
-
-	SessionConfig getSessionConfig() {
-		return SessionConfig.defaultConfig();
 	}
 
 	@Test
@@ -130,17 +133,19 @@ public class ReactiveCustomTypesIT {
 	void deleteByCustomId() {
 
 		PersonWithCustomId.PersonId id = new PersonWithCustomId.PersonId(customIdValueGenerator.incrementAndGet());
-		try (Session session = driver.session(getSessionConfig())) {
+		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
 			session.writeTransaction(createPersonWithCustomId(id));
+			bookmarkCapture.seedWith(session.lastBookmark());
 		}
 
 		StepVerifier.create(neo4jOperations.count(PersonWithCustomId.class)).expectNext(1L).verifyComplete();
 
 		StepVerifier.create(neo4jOperations.deleteById(id, PersonWithCustomId.class)).verifyComplete();
 
-		try (Session session = driver.session(getSessionConfig())) {
+		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
 			Result result = session.run("MATCH (p:PersonWithCustomId) return count(p) as count");
 			assertThat(result.single().get("count").asLong()).isEqualTo(0);
+			bookmarkCapture.seedWith(session.lastBookmark());
 		}
 	}
 
@@ -149,17 +154,19 @@ public class ReactiveCustomTypesIT {
 
 		List<PersonWithCustomId.PersonId> ids = Stream.generate(customIdValueGenerator::incrementAndGet)
 				.map(PersonWithCustomId.PersonId::new).limit(2).collect(Collectors.toList());
-		try (Session session = driver.session(getSessionConfig());) {
+		try (Session session = driver.session(bookmarkCapture.createSessionConfig());) {
 			ids.forEach(id -> session.writeTransaction(createPersonWithCustomId(id)));
+			bookmarkCapture.seedWith(session.lastBookmark());
 		}
 
 		StepVerifier.create(neo4jOperations.count(PersonWithCustomId.class)).expectNext(2L).verifyComplete();
 
 		StepVerifier.create(neo4jOperations.deleteAllById(ids, PersonWithCustomId.class)).verifyComplete();
 
-		try (Session session = driver.session(getSessionConfig())) {
+		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
 			Result result = session.run("MATCH (p:PersonWithCustomId) return count(p) as count");
 			assertThat(result.single().get("count").asLong()).isEqualTo(0);
+			bookmarkCapture.seedWith(session.lastBookmark());
 		}
 	}
 
@@ -203,6 +210,18 @@ public class ReactiveCustomTypesIT {
 			additionalConverters.add(new PersonWithCustomId.CustomPersonIdConverter());
 
 			return new Neo4jConversions(additionalConverters);
+		}
+
+		@Bean
+		public BookmarkCapture bookmarkCapture() {
+			return new BookmarkCapture();
+		}
+
+		@Override
+		public ReactiveTransactionManager reactiveTransactionManager(Driver driver, ReactiveDatabaseSelectionProvider databaseNameProvider) {
+
+			BookmarkCapture bookmarkCapture = bookmarkCapture();
+			return new ReactiveNeo4jTransactionManager(driver, databaseNameProvider, Neo4jBookmarkManager.create(bookmarkCapture));
 		}
 
 	}

@@ -40,6 +40,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.config.AbstractNeo4jConfig;
+import org.springframework.data.neo4j.core.DatabaseSelectionProvider;
+import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
+import org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager;
 import org.springframework.data.neo4j.integration.shared.common.NamesOnly;
 import org.springframework.data.neo4j.integration.shared.common.NamesOnlyDto;
 import org.springframework.data.neo4j.integration.shared.common.Person;
@@ -49,8 +52,10 @@ import org.springframework.data.neo4j.integration.shared.common.ProjectionTestLe
 import org.springframework.data.neo4j.integration.shared.common.ProjectionTestRoot;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
+import org.springframework.data.neo4j.test.BookmarkCapture;
 import org.springframework.data.neo4j.test.Neo4jExtension;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 /**
@@ -68,19 +73,21 @@ class ProjectionIT {
 	private static Neo4jExtension.Neo4jConnectionSupport neo4jConnectionSupport;
 
 	private final Driver driver;
+	private final BookmarkCapture bookmarkCapture;
 	private Long projectionTestRootId;
 	private Long projectionTest1O1Id;
 	private Long projectionTestLevel1Id;
 
 	@Autowired
-	ProjectionIT(Driver driver) {
+	ProjectionIT(Driver driver, BookmarkCapture bookmarkCapture) {
 		this.driver = driver;
+		this.bookmarkCapture = bookmarkCapture;
 	}
 
 	@BeforeEach
 	void setup() {
 
-		try (Session session = driver.session();
+		try (Session session = driver.session(bookmarkCapture.createSessionConfig());
 		Transaction transaction = session.beginTransaction();) {
 
 			transaction.run("MATCH (n) detach delete n");
@@ -114,6 +121,7 @@ class ProjectionIT {
 			projectionTestLevel1Id = result.get(1).asLong();
 			projectionTest1O1Id = result.get(2).asLong();
 			transaction.commit();
+			bookmarkCapture.seedWith(session.lastBookmark());
 		}
 	}
 
@@ -359,5 +367,16 @@ class ProjectionIT {
 			return neo4jConnectionSupport.getDriver();
 		}
 
+		@Bean
+		public BookmarkCapture bookmarkCapture() {
+			return new BookmarkCapture();
+		}
+
+		@Override
+		public PlatformTransactionManager transactionManager(Driver driver, DatabaseSelectionProvider databaseNameProvider) {
+
+			BookmarkCapture bookmarkCapture = bookmarkCapture();
+			return new Neo4jTransactionManager(driver, databaseNameProvider, Neo4jBookmarkManager.create(bookmarkCapture));
+		}
 	}
 }
