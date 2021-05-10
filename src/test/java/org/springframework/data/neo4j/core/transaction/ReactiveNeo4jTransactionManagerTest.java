@@ -140,7 +140,7 @@ class ReactiveNeo4jTransactionManagerTest {
 			ReactiveNeo4jTransactionManager txManager = new ReactiveNeo4jTransactionManager(driver,
 					ReactiveDatabaseSelectionProvider.createStaticDatabaseSelectionProvider(databaseName));
 
-			Neo4jBookmarkManager bookmarkManager = spy(new Neo4jBookmarkManager());
+			Neo4jBookmarkManager bookmarkManager = spy(Neo4jBookmarkManager.create());
 			injectBookmarkManager(txManager, bookmarkManager);
 
 			Bookmark bookmark = new Bookmark() {

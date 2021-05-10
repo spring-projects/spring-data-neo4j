@@ -21,6 +21,9 @@ import org.neo4j.driver.Driver;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.Transaction;
 import org.neo4j.driver.TransactionConfig;
+import org.springframework.beans.BeansException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.data.neo4j.core.DatabaseSelectionProvider;
 import org.springframework.data.neo4j.core.Neo4jClient;
 import org.springframework.lang.Nullable;
@@ -42,7 +45,7 @@ import org.springframework.util.Assert;
  * @since 6.0
  */
 @API(status = API.Status.STABLE, since = "6.0")
-public class Neo4jTransactionManager extends AbstractPlatformTransactionManager {
+public final class Neo4jTransactionManager extends AbstractPlatformTransactionManager implements ApplicationContextAware {
 
 	/**
 	 * The underlying driver, which is also the synchronisation object.
@@ -56,16 +59,46 @@ public class Neo4jTransactionManager extends AbstractPlatformTransactionManager 
 
 	private final Neo4jBookmarkManager bookmarkManager;
 
+	/**
+	 * This will create a transaction manager for the default database.
+	 *
+	 * @param driver A driver instance
+	 */
 	public Neo4jTransactionManager(Driver driver) {
 
 		this(driver, DatabaseSelectionProvider.getDefaultSelectionProvider());
 	}
 
+	/**
+	 * This will create a transaction manager targeting whatever the database selection provider determines.
+	 *
+	 * @param driver A driver instance
+	 * @param databaseSelectionProvider The database selection provider to determine the database in which the transactions should happen
+	 */
 	public Neo4jTransactionManager(Driver driver, DatabaseSelectionProvider databaseSelectionProvider) {
+
+		this(driver, databaseSelectionProvider, Neo4jBookmarkManager.create());
+	}
+
+	/**
+	 * This constructor can be used to configure the bookmark manager being used. It is useful when you need to seed
+	 * the bookmark manager or if you want to capture new bookmarks.
+	 *
+	 * @param driver A driver instance
+	 * @param databaseSelectionProvider The database selection provider to determine the database in which the transactions should happen
+	 * @param bookmarkManager A bookmark manager
+	 */
+	public Neo4jTransactionManager(Driver driver, DatabaseSelectionProvider databaseSelectionProvider, Neo4jBookmarkManager bookmarkManager) {
 
 		this.driver = driver;
 		this.databaseSelectionProvider = databaseSelectionProvider;
-		this.bookmarkManager = new Neo4jBookmarkManager();
+		this.bookmarkManager = bookmarkManager;
+	}
+
+	@Override
+	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+
+		this.bookmarkManager.setApplicationEventPublisher(applicationContext);
 	}
 
 	/**
