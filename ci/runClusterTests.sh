@@ -20,18 +20,18 @@ CLUSTER_TEST_DIR=$BASEDIR/target/cluster-tests
 
 (
   cd $BASEDIR
-  SDN_VERSION=$(./mvnw help:evaluate -Dexpression=project.version -q -DforceStdout)
+  SDN_VERSION=$(./mvnw --no-transfer-progress help:evaluate -Dexpression=project.version -q -DforceStdout)
 
   mkdir -p $CLUSTER_TEST_DIR
 
   # Create the distribution and deploy it into the target folder itself
-  ./mvnw -Pgenerate-test-jar -DskipTests clean deploy -DaltDeploymentRepository=snapshot-repo::default::file:///$CLUSTER_TEST_DIR/snapshot-repo
+  ./mvnw --no-transfer-progress -Pgenerate-test-jar -DskipTests clean deploy -DaltDeploymentRepository=snapshot-repo::default::file:///$CLUSTER_TEST_DIR/snapshot-repo
 
   # Massage the directory name into something sed is happy with
   SNAPSHOT_REPO=$(printf '%s\n' "$CLUSTER_TEST_DIR/snapshot-repo" | sed -e 's/[\/&]/\\&/g')
 
   # Create a plain list of dependencies
-  ./mvnw dependency:list -DexcludeTransitive  | sed -n -e 's/^\[INFO\]    //p' > $CLUSTER_TEST_DIR/dependencies.txt
+  ./mvnw --no-transfer-progress dependency:list -DexcludeTransitive  | sed -n -e 's/^\[INFO\]    //p' > $CLUSTER_TEST_DIR/dependencies.txt
 
   # Update repository path, version and dependencies in template
   sed -e s/\$SDN_VERSION/$SDN_VERSION/ -e s/\$SNAPSHOT_REPO/$SNAPSHOT_REPO/ $CI_BASEDIR/runClusterTests.template.java |\
