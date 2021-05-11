@@ -85,6 +85,7 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndPar
 	private final NodeDescription<?> nodeDescription;
 
 	private final Neo4jQueryType queryType;
+	private final boolean isDistinct;
 
 	private final Iterator<Neo4jQueryMethod.Neo4jParameter> formalParameters;
 	private final Queue<Parameter> lastParameter = new LinkedList<>();
@@ -127,6 +128,7 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndPar
 		this.nodeDescription = this.mappingContext.getRequiredNodeDescription(this.domainType);
 
 		this.queryType = queryType;
+		this.isDistinct = tree.isDistinct();
 
 		this.formalParameters = actualParameters.getParameters().iterator();
 		this.maxResults = tree.isLimiting() ? tree.getMaxResults() : null;
@@ -293,7 +295,7 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndPar
 		} else if (queryType == Neo4jQueryType.EXISTS) {
 			queryFragments.setReturnExpression(Functions.count(Constants.NAME_OF_ROOT_NODE).gt(Cypher.literalOf(0)), true);
 		} else {
-			queryFragments.setReturnBasedOn(nodeDescription, includedProperties);
+			queryFragments.setReturnBasedOn(nodeDescription, includedProperties, isDistinct);
 			queryFragments.setOrderBy(Stream
 					.concat(sortItems.stream(),
 							pagingParameter.getSort().and(sort).stream().map(CypherAdapterUtils.sortAdapterFor(nodeDescription)))

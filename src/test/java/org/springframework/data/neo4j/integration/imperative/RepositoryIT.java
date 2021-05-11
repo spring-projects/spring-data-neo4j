@@ -3952,6 +3952,17 @@ class RepositoryIT {
 			assertThat(repository.findByPetsFriendsName("Jerry")).isNull();
 		}
 
+		@Test // GH-2243
+		void findDistinctByRelatedEntity(@Autowired RelationshipRepository repository) {
+			try (Session session = createSession()) {
+				session.run("CREATE (n:PersonWithRelationship{name:'Freddie'})-[:Has]->(:Hobby{name: 'Music'})"
+						+ "CREATE (n)-[:Has]->(:Hobby{name: 'Music'})");
+			}
+
+			assertThat(repository.findDistinctByHobbiesName("Music")).isNotNull();
+
+		}
+
 		@Test
 		void findByPropertyOnRelationshipWithProperties(
 				@Autowired PersonWithRelationshipWithPropertiesRepository repository) {
@@ -4124,6 +4135,8 @@ class RepositoryIT {
 		PersonWithRelationship findByPetsHobbiesName(String hobbyName);
 
 		PersonWithRelationship findByPetsFriendsName(String petName);
+
+		PersonWithRelationship.PersonWithHobby findDistinctByHobbiesName(String hobbyName);
 	}
 
 	interface SimilarThingRepository extends Neo4jRepository<SimilarThing, Long> {}

@@ -252,8 +252,8 @@ public final class QueryFragmentsAndParameters {
 			this.skip = skip;
 		}
 
-		public void setReturnBasedOn(NodeDescription<?> nodeDescription, List<String> includedProperties) {
-			this.returnTuple = new ReturnTuple(nodeDescription, includedProperties);
+		public void setReturnBasedOn(NodeDescription<?> nodeDescription, List<String> includedProperties, boolean isDistinct) {
+			this.returnTuple = new ReturnTuple(nodeDescription, includedProperties, isDistinct);
 		}
 
 		public ReturnTuple getReturnTuple() {
@@ -262,17 +262,6 @@ public final class QueryFragmentsAndParameters {
 
 		public boolean isScalarValueReturn() {
 			return scalarValueReturn;
-		}
-
-		private Expression[] getReturnExpressions() {
-			return returnExpressions.size() > 0
-					? returnExpressions.toArray(new Expression[]{})
-					: CypherGenerator.INSTANCE.createReturnStatementForMatch(getReturnTuple().getNodeDescription(),
-					this::includeField);
-		}
-
-		private SortItem[] getOrderBy() {
-			return orderBy != null ? orderBy : new SortItem[]{};
 		}
 
 		public Statement generateGenericStatement() {
@@ -314,25 +303,46 @@ public final class QueryFragmentsAndParameters {
 				}
 			}
 
-			return match
-					.where(condition)
-					.returning(getReturnExpressions())
+			StatementBuilder.OngoingReadingWithWhere matchWithWhere = match.where(condition);
+
+			StatementBuilder.OngoingReadingAndReturn returnPart = isDistinctReturn()
+					? matchWithWhere.returningDistinct(getReturnExpressions())
+					: matchWithWhere.returning(getReturnExpressions());
+
+			return returnPart
 					.orderBy(getOrderBy())
 					.skip(skip)
 					.limit(limit).build();
+		}
+
+		private Expression[] getReturnExpressions() {
+			return returnExpressions.size() > 0
+					? returnExpressions.toArray(new Expression[]{})
+					: CypherGenerator.INSTANCE.createReturnStatementForMatch(getReturnTuple().getNodeDescription(),
+					this::includeField);
+		}
+
+		private boolean isDistinctReturn() {
+			return returnExpressions.isEmpty() && getReturnTuple().isDistinct();
+		}
+
+		private SortItem[] getOrderBy() {
+			return orderBy != null ? orderBy : new SortItem[]{};
 		}
 
 		/**
 		 * Describes which fields of an entity needs to get returned.
 		 */
 		@API(status = API.Status.INTERNAL, since = "6.0.4")
-		public final static class ReturnTuple {
+		private final static class ReturnTuple {
 			private final NodeDescription<?> nodeDescription;
 			private final Set<String> includedProperties;
+			private final boolean isDistinct;
 
-			private ReturnTuple(NodeDescription<?> nodeDescription, List<String> includedProperties) {
+			private ReturnTuple(NodeDescription<?> nodeDescription, List<String> includedProperties, boolean isDistinct) {
 				this.nodeDescription = nodeDescription;
 				this.includedProperties = includedProperties == null ? Collections.emptySet() : new HashSet<>(includedProperties);
+				this.isDistinct = isDistinct;
 			}
 
 			public NodeDescription<?> getNodeDescription() {
@@ -341,6 +351,10 @@ public final class QueryFragmentsAndParameters {
 
 			public Collection<String> getIncludedProperties() {
 				return includedProperties;
+			}
+
+			public boolean isDistinct() {
+				return isDistinct;
 			}
 		}
 	}
