@@ -77,4 +77,12 @@ public class PersonWithRelationship {
 	public void setPets(List<Pet> pets) {
 		this.pets = pets;
 	}
+
+	/**
+	 * Simple person with hobbies relationship to enforce non-cyclic querying.
+	 */
+	public interface PersonWithHobby {
+		String getName();
+		Hobby getHobbies();
+	}
 }
