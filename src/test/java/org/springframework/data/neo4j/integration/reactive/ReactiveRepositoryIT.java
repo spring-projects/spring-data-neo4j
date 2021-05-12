@@ -1303,6 +1303,17 @@ class ReactiveRepositoryIT {
 			StepVerifier.create(repository.findByPetsFriendsName("Jerry")).verifyComplete();
 		}
 
+		@Test // GH-2243
+		void findDistinctByRelatedEntity(@Autowired ReactiveRelationshipRepository repository) {
+			doWithSession(session ->
+				session.run("CREATE (n:PersonWithRelationship{name:'Freddie'})-[:Has]->(:Hobby{name: 'Music'})"
+						+ "CREATE (n)-[:Has]->(:Hobby{name: 'Music'})").consume());
+
+			StepVerifier.create(repository.findDistinctByHobbiesName("Music"))
+					.assertNext(person -> assertThat(person).isNotNull())
+					.verifyComplete();
+		}
+
 		@Test
 		void findByPropertyOnRelationshipWithProperties(
 				@Autowired ReactivePersonWithRelationshipWithPropertiesRepository repository) {
@@ -2513,6 +2524,8 @@ class ReactiveRepositoryIT {
 		Mono<PersonWithRelationship> findByPetsFriendsName(String petName);
 
 		Flux<PersonWithRelationship> findByName(String name, Sort sort);
+
+		Mono<PersonWithRelationship.PersonWithHobby> findDistinctByHobbiesName(String hobbyName);
 	}
 
 	interface ReactiveSimilarThingRepository extends ReactiveCrudRepository<SimilarThing, Long> {}
