@@ -280,8 +280,8 @@ public final class QueryFragmentsAndParameters {
 			this.skip = skip;
 		}
 
-		public void setReturnBasedOn(NodeDescription<?> nodeDescription, List<String> includedProperties) {
-			this.returnTuple = new ReturnTuple(nodeDescription, includedProperties);
+		public void setReturnBasedOn(NodeDescription<?> nodeDescription, List<String> includedProperties, boolean isDistinct) {
+			this.returnTuple = new ReturnTuple(nodeDescription, includedProperties, isDistinct);
 		}
 
 		public ReturnTuple getReturnTuple() {
@@ -298,17 +298,6 @@ public final class QueryFragmentsAndParameters {
 
 		public void setRenderConstantsAsParameters(boolean renderConstantsAsParameters) {
 			this.renderConstantsAsParameters = renderConstantsAsParameters;
-		}
-
-		private Expression[] getReturnExpressions() {
-			return returnExpressions.size() > 0
-					? returnExpressions.toArray(new Expression[]{})
-					: CypherGenerator.INSTANCE.createReturnStatementForMatch(getReturnTuple().nodeDescription,
-					this::includeField);
-		}
-
-		private SortItem[] getOrderBy() {
-			return orderBy != null ? orderBy : new SortItem[]{};
 		}
 
 		public Statement generateGenericStatement() {
@@ -350,14 +339,34 @@ public final class QueryFragmentsAndParameters {
 				}
 			}
 
-			Statement statement = match
-				.where(condition)
-				.returning(getReturnExpressions())
-				.orderBy(getOrderBy())
-				.skip(skip)
-				.limit(limit).build();
+			StatementBuilder.OngoingReadingWithWhere matchWithWhere = match.where(condition);
+
+			StatementBuilder.OngoingReadingAndReturn returnPart = isDistinctReturn()
+					? matchWithWhere.returningDistinct(getReturnExpressions())
+					: matchWithWhere.returning(getReturnExpressions());
+
+			Statement statement = returnPart
+					.orderBy(getOrderBy())
+					.skip(skip)
+					.limit(limit).build();
+
 			statement.setRenderConstantsAsParameters(renderConstantsAsParameters);
 			return statement;
+		}
+
+		private Expression[] getReturnExpressions() {
+			return returnExpressions.size() > 0
+					? returnExpressions.toArray(new Expression[]{})
+					: CypherGenerator.INSTANCE.createReturnStatementForMatch(getReturnTuple().nodeDescription,
+					this::includeField);
+		}
+
+		private boolean isDistinctReturn() {
+			return returnExpressions.isEmpty() && getReturnTuple().isDistinct;
+		}
+
+		private SortItem[] getOrderBy() {
+			return orderBy != null ? orderBy : new SortItem[]{};
 		}
 
 		/**
@@ -366,10 +375,12 @@ public final class QueryFragmentsAndParameters {
 		final static class ReturnTuple {
 			final NodeDescription<?> nodeDescription;
 			final Set<String> includedProperties;
+			final boolean isDistinct;
 
-			private ReturnTuple(NodeDescription<?> nodeDescription, List<String> includedProperties) {
+			private ReturnTuple(NodeDescription<?> nodeDescription, List<String> includedProperties, boolean isDistinct) {
 				this.nodeDescription = nodeDescription;
 				this.includedProperties = includedProperties == null ? Collections.emptySet() : new HashSet<>(includedProperties);
+				this.isDistinct = isDistinct;
 			}
 		}
 	}
