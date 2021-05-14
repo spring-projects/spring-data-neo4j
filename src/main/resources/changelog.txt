@@ -1,6 +1,28 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 6.1.1 (2021-05-14)
+-------------------------------------
+* #2252 - Allow seeding and retrieval of Neo4j bookmarks from the transaction managers.
+* #2251 - Upgrade to Neo4j-Java-Driver 4.2.5..
+* #2249 - Upgrade to Cypher-DSL 2021.2.1.
+* #2248 - Don't swallow or delete cause of translated exceptions.
+* #2246 - Deterministic mapping of records with mixed results.
+* #2245 - Provide additional scripts to run tests with retries against clusters.
+* #2244 - Fix detection of common element types in collections of persistent entities.
+* #2243 - Add support for missing DISTINCT keyword.
+* #2241 - Create empty collections instead of null.
+* #2240 - Unable to convert java.util.UUID to Neo4j Value.
+* #2239 - Resolve or remove literal replacements in custom count queries.
+* #2236 - Create correct collection type for RelationshipProperties.
+* #2234 - DatabaseSelection is not allways used.
+* #2230 - Use Cypher-DSL statement parameters in all template methods.
+* #2228 - Support multiple relationships properties to same node.
+* #2223 - Generated objects onSave are not considered as already processed.
+* #2210 - Improve documentation for hydrating collections based on queries returning paths.
+* #1985 - Make sure derived queries on the same property of the same entity but different relationships use multiple matches.
+
+
 Changes in version 6.0.9 (2021-05-14)
 -------------------------------------
 * #2250 - Upgrade to Neo4j-Java-Driver 4.1.2..
@@ -2218,6 +2240,7 @@ General
 * Support for building traversal descriptions
 * Support for cross-store persistence including basic transaction support
 * Abstract configuration class
+
 
 
 
