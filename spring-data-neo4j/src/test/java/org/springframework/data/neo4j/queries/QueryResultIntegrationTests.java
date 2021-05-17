@@ -15,7 +15,7 @@
  */
 package org.springframework.data.neo4j.queries;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 
@@ -26,13 +26,20 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Transaction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.neo4j.queries.gh1849.Cat;
+import org.springframework.data.neo4j.queries.gh1849.Kennel;
+import org.springframework.data.neo4j.queries.gh1849.KennelRepository;
+import org.springframework.data.neo4j.queries.gh1849.Person;
+import org.springframework.data.neo4j.queries.gh1849.Pet;
 import org.springframework.data.neo4j.queries.ogmgh551.AnotherThing;
 import org.springframework.data.neo4j.queries.ogmgh551.ThingRepository;
 import org.springframework.data.neo4j.queries.ogmgh551.ThingResult;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * Those tests might have also fitted in {@link QueryReturnTypesTests} and {@link QueryIntegrationTests}, but those use
@@ -42,7 +49,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @ContextConfiguration(classes = { QueryResultIntegrationTests.ContextConfig.class })
 @RunWith(SpringRunner.class)
-@Transactional
+
 public class QueryResultIntegrationTests {
 
 	@Autowired
@@ -51,17 +58,26 @@ public class QueryResultIntegrationTests {
 	@Autowired
 	private ThingRepository thingRepository;
 
+	@Autowired
+	private KennelRepository kennelRepository;
+
+	@Autowired
+	private TransactionTemplate transactionTemplate;
+
 	@Before
 	public void prepareTestDa() {
 
 		try (Transaction tx = graphDatabaseService.beginTx()) {
-			graphDatabaseService
-					.execute("unwind range(1,10) as x with x create (n:ThingEntity {name: 'Thing ' + x}) return n");
+			graphDatabaseService.execute("MATCH (n) DETACH DELETE n");
+			graphDatabaseService.execute("unwind range(1,10) as x with x create (n:ThingEntity {name: 'Thing ' + x}) return n");
+			graphDatabaseService.execute("MERGE (p:Person {name:'Billy'})<-[:OWNED_BY]-(d:Dog {name: 'Ralph', breed: 'Muppet'})<-[:HOUSES]-(k:Kennel)");
+			graphDatabaseService.execute("MERGE (p:Person {name:'Sally'})<-[:LIVES_WITH]-(c:Cat {name: 'Mittens', food: 'Birds'})<-[:HOUSES]-(k:Kennel)");
 			tx.success();
 		}
 	}
 
 	@Test
+	@Transactional
 	public void queryResultsShouldWorkWithNestedObjectsFromMap() {
 
 		List<ThingResult> thingResults = this.thingRepository.findResults();
@@ -75,8 +91,31 @@ public class QueryResultIntegrationTests {
 				.allSatisfy(s -> s.startsWith("Thing"));
 	}
 
+	@Test // GH-1849
+	public void polymorphicQueryShouldIncludeAllRelTypes() {
+
+
+		for (int depth : new int[] { -1, 10 }) {
+			Iterable<Kennel> kennels = kennelRepository.findAll(depth);
+			assertThat(kennels).hasSize(2);
+			assertThat(kennels).allSatisfy(kennel -> {
+				Pet pet = kennel.getPet();
+				String expectedName = pet instanceof Cat ? "Mittens" : "Ralph";
+				String expectedPerson = pet instanceof Cat ? "Sally" : "Billy";
+				assertThat(pet).extracting(Pet::getName).isEqualTo(expectedName);
+				assertThat(pet.getPerson()).isNotNull().extracting(Person::getName).isEqualTo(expectedPerson);
+				System.out.println("what?");
+			});
+		}
+	}
+
 	@Configuration
-	@Neo4jIntegrationTest(repositoryPackages = "org.springframework.data.neo4j.queries.ogmgh551", domainPackages = "org.springframework.data.neo4j.queries.ogmgh551")
+	@Neo4jIntegrationTest(
+			repositoryPackages = { "org.springframework.data.neo4j.queries.ogmgh551",
+					"org.springframework.data.neo4j.queries.gh1849" },
+			domainPackages = { "org.springframework.data.neo4j.queries.ogmgh551",
+					"org.springframework.data.neo4j.queries.gh1849" }
+	)
 	static class ContextConfig {
 	}
 }
