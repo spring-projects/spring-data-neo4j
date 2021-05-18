@@ -563,7 +563,7 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 	}
 
 	private boolean calculatePossibleCircles(NodeDescription<?> nodeDescription, Set<RelationshipDescription> processedRelationships) {
-		Collection<RelationshipDescription> relationships = nodeDescription.getRelationshipsInHierarchy(s -> true);
+		Collection<RelationshipDescription> relationships = nodeDescription.getRelationshipsInHierarchy(MappingSupport.ALL_PROPERTIES_PREDICATE);
 
 		for (RelationshipDescription relationship : relationships) {
 			if (processedRelationships.contains(relationship)) {

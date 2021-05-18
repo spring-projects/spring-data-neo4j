@@ -59,6 +59,7 @@ import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.mapping.AssociationHandler;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
+import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.mapping.callback.EntityCallbacks;
 import org.springframework.data.neo4j.core.TemplateSupport.NodesAndRelationshipsByIdStatementProvider;
 import org.springframework.data.neo4j.core.mapping.Constants;
@@ -349,11 +350,11 @@ public final class Neo4jTemplate implements Neo4jOperations, FluentNeo4jOperatio
 		Function<T, Map<String, Object>> binderFunction = neo4jMappingContext
 				.getRequiredBinderFunctionFor((Class<T>) entityToBeSaved.getClass());
 
-		Predicate<String> includeProperty = TemplateSupport.computeIncludePropertyPredicate(includedProperties);
+		Predicate<PropertyPath> includeProperty = TemplateSupport.computeIncludePropertyPredicate(includedProperties, entityMetaData.getTypeInformation());
 		if (includedProperties != null) {
 			binderFunction = binderFunction.andThen(tree -> {
 				Map<String, Object> properties = (Map<String, Object>) tree.get(Constants.NAME_OF_PROPERTIES_PARAM);
-				properties.entrySet().removeIf(e -> !includeProperty.test(e.getKey()));
+				properties.entrySet().removeIf(e -> !includeProperty.test(PropertyPath.from(e.getKey(), entityMetaData.getTypeInformation())));
 				return tree;
 			});
 		}
@@ -467,7 +468,7 @@ public final class Neo4jTemplate implements Neo4jOperations, FluentNeo4jOperatio
 		// Save related
 		return entitiesToBeSaved.stream().map(t -> {
 			PersistentPropertyAccessor<T> propertyAccessor = entityMetaData.getPropertyAccessor(t.modifiedInstance);
-			return processRelations(entityMetaData, t.originalInstance, propertyAccessor, t.wasNew, TemplateSupport.computeIncludePropertyPredicate(includedProperties));
+			return processRelations(entityMetaData, t.originalInstance, propertyAccessor, t.wasNew, TemplateSupport.computeIncludePropertyPredicate(includedProperties, entityMetaData.getTypeInformation()));
 		}).collect(Collectors.toList());
 	}
 
@@ -618,7 +619,7 @@ public final class Neo4jTemplate implements Neo4jOperations, FluentNeo4jOperatio
 	 */
 	private <T> T processRelations(Neo4jPersistentEntity<?> neo4jPersistentEntity, T originalInstance, Long internalId,
 								   PersistentPropertyAccessor<?> parentPropertyAccessor,
-								   boolean isParentObjectNew, Predicate<String> includeProperty) {
+								   boolean isParentObjectNew, Predicate<PropertyPath> includeProperty) {
 
 		return processNestedRelations(neo4jPersistentEntity, parentPropertyAccessor, isParentObjectNew,
 				new NestedRelationshipProcessingStateMachine(originalInstance, internalId), includeProperty);
@@ -626,14 +627,14 @@ public final class Neo4jTemplate implements Neo4jOperations, FluentNeo4jOperatio
 
 	private <T> T processRelations(Neo4jPersistentEntity<?> neo4jPersistentEntity, T originalInstance,
 			PersistentPropertyAccessor<?> parentPropertyAccessor,
-			boolean isParentObjectNew, Predicate<String> includeProperty) {
+			boolean isParentObjectNew, Predicate<PropertyPath> includeProperty) {
 
 		return processNestedRelations(neo4jPersistentEntity, parentPropertyAccessor, isParentObjectNew,
 				new NestedRelationshipProcessingStateMachine(originalInstance), includeProperty);
 	}
 
 	private <T> T processNestedRelations(Neo4jPersistentEntity<?> sourceEntity, PersistentPropertyAccessor<?> propertyAccessor,
-			boolean isParentObjectNew, NestedRelationshipProcessingStateMachine stateMachine, Predicate<String> includeProperty) {
+			boolean isParentObjectNew, NestedRelationshipProcessingStateMachine stateMachine, Predicate<PropertyPath> includeProperty) {
 
 		Object fromId = propertyAccessor.getProperty(sourceEntity.getRequiredIdProperty());
 
@@ -649,7 +650,7 @@ public final class Neo4jTemplate implements Neo4jOperations, FluentNeo4jOperatio
 			RelationshipDescription relationshipDescription = relationshipContext.getRelationship();
 			RelationshipDescription relationshipDescriptionObverse = relationshipDescription.getRelationshipObverse();
 
-			if (!includeProperty.test(relationshipDescription.getFieldName())) {
+			if (!includeProperty.test(PropertyPath.from(relationshipDescription.getFieldName(), sourceEntity.getTypeInformation()))) {
 				return;
 			}
 			Neo4jPersistentProperty idProperty;
@@ -766,7 +767,7 @@ public final class Neo4jTemplate implements Neo4jOperations, FluentNeo4jOperatio
 				stateMachine.markValueAsProcessedAs(relatedObjectBeforeCallbacksApplied, targetPropertyAccessor.getBean());
 
 				if (processState != ProcessState.PROCESSED_ALL_VALUES) {
-					processNestedRelations(targetEntity, targetPropertyAccessor, isEntityNew, stateMachine, s -> true);
+					processNestedRelations(targetEntity, targetPropertyAccessor, isEntityNew, stateMachine, MappingSupport.ALL_PROPERTIES_PREDICATE);
 				}
 
 				Object potentiallyRecreatedNewRelatedObject = MappingSupport.getRelationshipOrRelationshipPropertiesObject(neo4jMappingContext,
@@ -962,7 +963,7 @@ public final class Neo4jTemplate implements Neo4jOperations, FluentNeo4jOperatio
 		private void iterateNextLevel(Collection<Long> nodeIds, Neo4jPersistentEntity<?> target, Set<Long> relationshipIds,
 									  Set<Long> relatedNodeIds) {
 
-			Collection<RelationshipDescription> relationships = target.getRelationshipsInHierarchy(s -> true);
+			Collection<RelationshipDescription> relationships = target.getRelationshipsInHierarchy(MappingSupport.ALL_PROPERTIES_PREDICATE);
 			for (RelationshipDescription relationshipDescription : relationships) {
 
 				Node node = anyNode(Constants.NAME_OF_ROOT_NODE);

@@ -119,7 +119,7 @@ public final class NestedRelationshipContext {
 		Object value = propertyAccessor.getProperty(inverse);
 		boolean inverseValueIsEmpty = value == null;
 
-		RelationshipDescription relationship = neo4jPersistentEntity.getRelationshipsInHierarchy(s -> true).stream()
+		RelationshipDescription relationship = neo4jPersistentEntity.getRelationshipsInHierarchy(MappingSupport.ALL_PROPERTIES_PREDICATE).stream()
 				.filter(r -> r.getFieldName().equals(inverse.getName())).findFirst().get();
 
 		if (relationship.hasRelationshipProperties() && value != null) {

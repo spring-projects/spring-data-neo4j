@@ -466,7 +466,7 @@ public enum CypherGenerator {
 	}
 
 	public Expression[] createReturnStatementForMatch(Neo4jPersistentEntity<?> nodeDescription) {
-		return createReturnStatementForMatch(nodeDescription, fieldName -> true);
+		return createReturnStatementForMatch(nodeDescription, MappingSupport.ALL_PROPERTIES_PREDICATE);
 	}
 
 	/**
@@ -536,9 +536,8 @@ public enum CypherGenerator {
 	private MapProjection projectAllPropertiesAndRelationships(Neo4jPersistentEntity<?> nodeDescription, SymbolicName nodeName,
 			List<RelationshipDescription> processedRelationships) {
 
-		Predicate<PropertyPath> includeAllFields = (field) -> true;
 		// Because we are getting called recursive, there cannot be any circle
-		return projectPropertiesAndRelationships(nodeDescription, nodeName, includeAllFields, processedRelationships);
+		return projectPropertiesAndRelationships(nodeDescription, nodeName, MappingSupport.ALL_PROPERTIES_PREDICATE, processedRelationships);
 	}
 
 	private MapProjection projectPropertiesAndRelationships(Neo4jPersistentEntity<?> nodeDescription, SymbolicName nodeName,

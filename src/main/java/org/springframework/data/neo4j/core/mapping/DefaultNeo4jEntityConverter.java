@@ -47,7 +47,6 @@ import org.springframework.data.mapping.MappingException;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
 import org.springframework.data.mapping.PreferredConstructor;
 import org.springframework.data.mapping.PropertyHandler;
-import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.mapping.model.EntityInstantiators;
 import org.springframework.data.mapping.model.ParameterValueProvider;
 import org.springframework.data.neo4j.core.convert.Neo4jConversionService;
@@ -258,10 +257,8 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 			Neo4jPersistentEntity<ET> concreteNodeDescription = (Neo4jPersistentEntity<ET>) nodeDescriptionAndLabels
 					.getNodeDescription();
 
-			Predicate<PropertyPath> includeAllFields = (field) -> true;
-
 			Collection<RelationshipDescription> relationships = nodeDescription
-					.getRelationshipsInHierarchy(includeAllFields);
+					.getRelationshipsInHierarchy(MappingSupport.ALL_PROPERTIES_PREDICATE);
 
 			ET instance = instantiate(concreteNodeDescription, queryResult, allValues, relationships,
 					nodeDescriptionAndLabels.getDynamicLabels(), lastMappedEntity);

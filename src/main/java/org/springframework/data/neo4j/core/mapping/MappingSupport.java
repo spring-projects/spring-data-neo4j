@@ -31,6 +31,7 @@ import org.neo4j.driver.Value;
 import org.neo4j.driver.types.Node;
 import org.neo4j.driver.types.Relationship;
 import org.neo4j.driver.types.Type;
+import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.neo4j.core.schema.TargetNode;
 import org.springframework.lang.Nullable;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
@@ -43,6 +44,8 @@ import org.springframework.data.mapping.PersistentPropertyAccessor;
  */
 @API(status = API.Status.INTERNAL, since = "6.0")
 public final class MappingSupport {
+
+	public static final Predicate<PropertyPath> ALL_PROPERTIES_PREDICATE = s -> true;
 
 	/**
 	 * The value for a relationship can be a scalar object (1:1), a collection (1:n), a map (1:n, but with dynamic
