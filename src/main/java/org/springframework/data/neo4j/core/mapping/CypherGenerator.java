@@ -569,15 +569,13 @@ public enum CypherGenerator {
 			Neo4jPersistentProperty property = (Neo4jPersistentProperty) graphProperty;
 			hasCompositeProperties = hasCompositeProperties || property.isComposite();
 
-			try {
-				PropertyPath from = PropertyPath.from(property.getFieldName(), nodeDescription.getTypeInformation());
-				if (!includeField.test(from) || property.isDynamicLabels() || property.isComposite()) {
-					continue;
-				}
-			} catch (PropertyReferenceException e) {
-				if (property.isDynamicLabels() || property.isComposite()) {
-					continue;
-				}
+			if (property.isDynamicLabels() || property.isComposite()) {
+				continue;
+			}
+
+			PropertyPath from = PropertyPath.from(property.getFieldName(), property.getOwner().getTypeInformation());
+			if (!includeField.test(from)) {
+				continue;
 			}
 
 			nodePropertiesProjection.add(graphProperty.getPropertyName());

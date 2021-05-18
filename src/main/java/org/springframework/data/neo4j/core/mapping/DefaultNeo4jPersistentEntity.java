@@ -36,7 +36,6 @@ import org.springframework.data.annotation.Persistent;
 import org.springframework.data.mapping.Association;
 import org.springframework.data.mapping.PropertyHandler;
 import org.springframework.data.mapping.PropertyPath;
-import org.springframework.data.mapping.PropertyReferenceException;
 import org.springframework.data.mapping.model.BasicPersistentEntity;
 import org.springframework.data.neo4j.core.schema.DynamicLabels;
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
@@ -476,17 +475,13 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 		}
 
 		return relationships.stream().filter(relationshipDescription ->
-				bla(propertyFilter, relationshipDescription))
+				filterProperties(propertyFilter, relationshipDescription))
 				.collect(Collectors.toSet());
 	}
 
-	private boolean bla(Predicate<PropertyPath> propertyFilter, RelationshipDescription relationshipDescription) {
-		try {
-			return propertyFilter.test(null) || propertyFilter.test(PropertyPath.from(relationshipDescription.getFieldName(), this.getTypeInformation()));
-		} catch (PropertyReferenceException e) {
-			return false;
-		}
-
+	private boolean filterProperties(Predicate<PropertyPath> propertyFilter, RelationshipDescription relationshipDescription) {
+		PropertyPath from = PropertyPath.from(relationshipDescription.getFieldName(), relationshipDescription.getSource().getUnderlyingClass());
+		return propertyFilter.test(from);
 	}
 
 	private Collection<GraphPropertyDescription> computeGraphProperties() {
@@ -548,7 +543,7 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 
 		Set<RelationshipDescription> processedRelationships = new HashSet<>();
 		for (RelationshipDescription relationship : relationships) {
-			if (!bla(includeField, relationship)) {
+			if (!filterProperties(includeField, relationship)) {
 				continue;
 			}
 			if (processedRelationships.contains(relationship)) {
