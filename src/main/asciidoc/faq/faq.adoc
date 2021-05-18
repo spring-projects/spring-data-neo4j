@@ -51,6 +51,282 @@ NOTE: Be careful that you don't mix up entities retrieved from one database with
 The database name is requested for each new transaction, so you might end up with less or more entities than expected when changing the database name in between calls.
 Or worse, you could inevitably store the wrong entities in the wrong database.
 
+[[faq.multidatabase.health]]
+=== The Spring Boot Neo4j health indicator targets the default database, how can I change that?
+
+Spring Boot comes with both imperative and reactive Neo4j https://docs.spring.io/spring-boot/docs/current/reference/html/production-ready-features.html#production-ready-health[health indicators.]
+Both variants are able to detect multiple beans of `org.neo4j.driver.Driver` inside the application context and provide
+a contribution to the overall health for each instance.
+The Neo4j driver however does connect to a server and not to a specific database inside that server.
+Spring Boot is able to configure the driver without Spring Data Neo4j and as the information which database is to be used
+is tied to Spring Data Neo4j, this information is not available to the built-in health indicator.
+
+This is most likely not a problem in many deployment scenarios.
+However, if configured database user does not have at least access rights to the default database, the health checks will fail.
+
+This can be mitigated by custom Neo4j health contributors that are aware of the database selection.
+
+==== Imperative variant
+
+[[faq.multidatabase.health.imperative]]
+[source,java,indent=0,tabsize=4]
+----
+import java.util.Optional;
+
+import org.neo4j.driver.Driver;
+import org.neo4j.driver.Result;
+import org.neo4j.driver.SessionConfig;
+import org.neo4j.driver.summary.DatabaseInfo;
+import org.neo4j.driver.summary.ResultSummary;
+import org.neo4j.driver.summary.ServerInfo;
+import org.springframework.boot.actuate.health.AbstractHealthIndicator;
+import org.springframework.boot.actuate.health.Health;
+import org.springframework.data.neo4j.core.DatabaseSelection;
+import org.springframework.data.neo4j.core.DatabaseSelectionProvider;
+import org.springframework.util.StringUtils;
+
+public class DatabaseSelectionAwareNeo4jHealthIndicator extends AbstractHealthIndicator {
+
+	private final Driver driver;
+
+	private final DatabaseSelectionProvider databaseSelectionProvider;
+
+	public DatabaseSelectionAwareNeo4jHealthIndicator(
+		Driver driver, DatabaseSelectionProvider databaseSelectionProvider
+    ) {
+		this.driver = driver;
+		this.databaseSelectionProvider = databaseSelectionProvider;
+	}
+
+	@Override
+	protected void doHealthCheck(Health.Builder builder) {
+		try {
+			SessionConfig sessionConfig = Optional
+                .ofNullable(databaseSelectionProvider.getDatabaseSelection())
+				.filter(databaseSelection -> databaseSelection != DatabaseSelection.undecided())
+                .map(DatabaseSelection::getValue)
+				.map(v -> SessionConfig.builder().withDatabase(v).build())
+				.orElseGet(SessionConfig::defaultConfig);
+
+			class Tuple {
+				String edition;
+				ResultSummary resultSummary;
+
+				Tuple(String edition, ResultSummary resultSummary) {
+					this.edition = edition;
+					this.resultSummary = resultSummary;
+				}
+			}
+
+			String query =
+                "CALL dbms.components() YIELD name, edition WHERE name = 'Neo4j Kernel' RETURN edition";
+			Tuple health = driver.session(sessionConfig)
+				.writeTransaction(tx -> {
+					Result result = tx.run(query);
+					String edition = result.single().get("edition").asString();
+					return new Tuple(edition, result.consume());
+				});
+
+			addHealthDetails(builder, health.edition, health.resultSummary);
+		} catch (Exception ex) {
+			builder.down().withException(ex);
+		}
+	}
+
+	static void addHealthDetails(Health.Builder builder, String edition, ResultSummary resultSummary) {
+		ServerInfo serverInfo = resultSummary.server();
+		builder.up()
+            .withDetail(
+            	"server", serverInfo.version() + "@" + serverInfo.address())
+            .withDetail("edition", edition);
+		DatabaseInfo databaseInfo = resultSummary.database();
+		if (StringUtils.hasText(databaseInfo.name())) {
+			builder.withDetail("database", databaseInfo.name());
+		}
+	}
+}
+----
+
+This uses the available database selection to run the same query that Boot runs to check wether a connection is healthy or not.
+Use the following configuration to apply it:
+
+[[faq.multidatabase.health.imperative.config]]
+[source,java,indent=0,tabsize=4]
+----
+import java.util.Map;
+
+import org.neo4j.driver.Driver;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.boot.actuate.health.CompositeHealthContributor;
+import org.springframework.boot.actuate.health.HealthContributor;
+import org.springframework.boot.actuate.health.HealthContributorRegistry;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.data.neo4j.core.DatabaseSelectionProvider;
+
+@Configuration(proxyBeanMethods = false)
+public class Neo4jHealthConfig {
+
+	@Bean // <.>
+	DatabaseSelectionAwareNeo4jHealthIndicator databaseSelectionAwareNeo4jHealthIndicator(
+		Driver driver, DatabaseSelectionProvider databaseSelectionProvider
+	) {
+		return new DatabaseSelectionAwareNeo4jHealthIndicator(driver, databaseSelectionProvider);
+	}
+
+	@Bean // <.>
+	HealthContributor neo4jHealthIndicator(
+		Map<String, DatabaseSelectionAwareNeo4jHealthIndicator> customNeo4jHealthIndicators) {
+		return CompositeHealthContributor.fromMap(customNeo4jHealthIndicators);
+	}
+
+	@Bean // <.>
+	InitializingBean healthContributorRegistryCleaner(
+		HealthContributorRegistry healthContributorRegistry,
+		Map<String, DatabaseSelectionAwareNeo4jHealthIndicator> customNeo4jHealthIndicators
+	) {
+		return () -> customNeo4jHealthIndicators.keySet()
+			.stream()
+			.map(HealthContributorNameFactory.INSTANCE)
+			.forEach(healthContributorRegistry::unregisterContributor);
+	}
+}
+----
+<.> If you have multiple drivers and database selection providers, you would need to create one indicator per combination
+<.> This makes sure that all of those indicators are grouped under Neo4j, replacing the default Neo4j health indicator
+<.> This prevents the individual contributors showing up in the health endpoint directly
+
+==== Reactive variant
+
+The reactive variant is basically the same, using reactive types and the corresponding reactive infrastructure classes:
+
+[[faq.multidatabase.health.reactive]]
+[source,java,indent=0,tabsize=4]
+----
+import reactor.core.publisher.Mono;
+import reactor.util.function.Tuple2;
+
+import org.neo4j.driver.Driver;
+import org.neo4j.driver.SessionConfig;
+import org.neo4j.driver.reactive.RxResult;
+import org.neo4j.driver.reactive.RxSession;
+import org.neo4j.driver.summary.DatabaseInfo;
+import org.neo4j.driver.summary.ResultSummary;
+import org.neo4j.driver.summary.ServerInfo;
+import org.reactivestreams.Publisher;
+import org.springframework.boot.actuate.health.AbstractReactiveHealthIndicator;
+import org.springframework.boot.actuate.health.Health;
+import org.springframework.data.neo4j.core.DatabaseSelection;
+import org.springframework.data.neo4j.core.ReactiveDatabaseSelectionProvider;
+import org.springframework.util.StringUtils;
+
+public final class DatabaseSelectionAwareNeo4jReactiveHealthIndicator
+    extends AbstractReactiveHealthIndicator {
+
+	private final Driver driver;
+
+	private final ReactiveDatabaseSelectionProvider databaseSelectionProvider;
+
+	public DatabaseSelectionAwareNeo4jReactiveHealthIndicator(
+		Driver driver,
+        ReactiveDatabaseSelectionProvider databaseSelectionProvider
+    ) {
+		this.driver = driver;
+		this.databaseSelectionProvider = databaseSelectionProvider;
+	}
+
+	@Override
+	protected Mono<Health> doHealthCheck(Health.Builder builder) {
+		String query =
+            "CALL dbms.components() YIELD name, edition WHERE name = 'Neo4j Kernel' RETURN edition";
+		return databaseSelectionProvider.getDatabaseSelection()
+			.map(databaseSelection -> databaseSelection == DatabaseSelection.undecided() ?
+				SessionConfig.defaultConfig() :
+				SessionConfig.builder().withDatabase(databaseSelection.getValue()).build()
+			)
+			.flatMap(sessionConfig ->
+				Mono.usingWhen(
+					Mono.fromSupplier(() -> driver.rxSession(sessionConfig)),
+					s -> {
+						Publisher<Tuple2<String, ResultSummary>> f = s.readTransaction(tx -> {
+							RxResult result = tx.run(query);
+							return Mono.from(result.records())
+                                .map((record) -> record.get("edition").asString())
+								.zipWhen((edition) -> Mono.from(result.consume()));
+						});
+						return Mono.fromDirect(f);
+					},
+					RxSession::close
+				)
+			).map((result) -> {
+				addHealthDetails(builder, result.getT1(), result.getT2());
+				return builder.build();
+			});
+	}
+
+	static void addHealthDetails(Health.Builder builder, String edition, ResultSummary resultSummary) {
+		ServerInfo serverInfo = resultSummary.server();
+		builder.up()
+            .withDetail(
+            	"server", serverInfo.version() + "@" + serverInfo.address())
+            .withDetail("edition", edition);
+		DatabaseInfo databaseInfo = resultSummary.database();
+		if (StringUtils.hasText(databaseInfo.name())) {
+			builder.withDetail("database", databaseInfo.name());
+		}
+	}
+}
+
+----
+
+And of course, the reactive variant of the configuration. It needs two different registry cleaners, as Spring Boot will
+wrap existing reactive indicators to be used with the non-reactive actuator endpoint, too.
+
+[[faq.multidatabase.health.reactive.config]]
+[source,java,indent=0,tabsize=4]
+----
+import java.util.Map;
+
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.boot.actuate.health.CompositeReactiveHealthContributor;
+import org.springframework.boot.actuate.health.HealthContributorNameFactory;
+import org.springframework.boot.actuate.health.HealthContributorRegistry;
+import org.springframework.boot.actuate.health.ReactiveHealthContributor;
+import org.springframework.boot.actuate.health.ReactiveHealthContributorRegistry;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration(proxyBeanMethods = false)
+public class Neo4jHealthConfig {
+
+	@Bean
+	ReactiveHealthContributor neo4jHealthIndicator(
+		Map<String, DatabaseSelectionAwareNeo4jReactiveHealthIndicator> customNeo4jHealthIndicators) {
+		return CompositeReactiveHealthContributor.fromMap(customNeo4jHealthIndicators);
+	}
+
+	@Bean
+	InitializingBean healthContributorRegistryCleaner(HealthContributorRegistry healthContributorRegistry,
+		Map<String, DatabaseSelectionAwareNeo4jReactiveHealthIndicator> customNeo4jHealthIndicators) {
+		return () -> customNeo4jHealthIndicators.keySet()
+			.stream()
+			.map(HealthContributorNameFactory.INSTANCE)
+			.forEach(healthContributorRegistry::unregisterContributor);
+	}
+
+	@Bean
+	InitializingBean reactiveHealthContributorRegistryCleaner(
+		ReactiveHealthContributorRegistry healthContributorRegistry,
+		Map<String, DatabaseSelectionAwareNeo4jReactiveHealthIndicator> customNeo4jHealthIndicators) {
+		return () -> customNeo4jHealthIndicators.keySet()
+			.stream()
+			.map(HealthContributorNameFactory.INSTANCE)
+			.forEach(healthContributorRegistry::unregisterContributor);
+	}
+}
+----
+
+
 [[faq.transactions.cluster]]
 == Do I need specific configuration so that transactions work seamless with a Neo4j Causal Cluster?
 
