@@ -350,8 +350,8 @@ public final class QueryFragmentsAndParameters {
 		private Expression[] getReturnExpressions() {
 			return returnExpressions.size() > 0
 					? returnExpressions.toArray(new Expression[]{})
-					: CypherGenerator.INSTANCE.createReturnStatementForMatch(getReturnTuple().nodeDescription,
-					this::includeField);
+					: CypherGenerator.INSTANCE.createReturnStatementForMatch(
+							(Neo4jPersistentEntity<?>) getReturnTuple().nodeDescription, this::includeField);
 		}
 
 		private boolean isDistinctReturn() {
