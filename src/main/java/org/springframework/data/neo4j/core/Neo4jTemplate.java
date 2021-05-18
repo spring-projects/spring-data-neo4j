@@ -56,6 +56,7 @@ import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.mapping.AssociationHandler;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
 import org.springframework.data.mapping.callback.EntityCallbacks;
+import org.springframework.data.neo4j.core.TemplateSupport.NodesAndRelationshipsByIdStatementProvider;
 import org.springframework.data.neo4j.core.mapping.Constants;
 import org.springframework.data.neo4j.core.mapping.CreateRelationshipStatementHolder;
 import org.springframework.data.neo4j.core.mapping.CypherGenerator;
@@ -70,6 +71,7 @@ import org.springframework.data.neo4j.core.mapping.NodeDescription;
 import org.springframework.data.neo4j.core.mapping.RelationshipDescription;
 import org.springframework.data.neo4j.core.mapping.callback.EventSupport;
 import org.springframework.data.neo4j.repository.NoResultException;
+import org.springframework.data.neo4j.repository.query.QueryFragments;
 import org.springframework.data.neo4j.repository.query.QueryFragmentsAndParameters;
 import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.projection.ProjectionInformation;
@@ -362,7 +364,7 @@ public final class Neo4jTemplate implements Neo4jOperations, FluentNeo4jOperatio
 	private <T> DynamicLabels determineDynamicLabels(T entityToBeSaved, Neo4jPersistentEntity<?> entityMetaData) {
 		return entityMetaData.getDynamicLabelsProperty().map(p -> {
 
-			PersistentPropertyAccessor propertyAccessor = entityMetaData.getPropertyAccessor(entityToBeSaved);
+			PersistentPropertyAccessor<T> propertyAccessor = entityMetaData.getPropertyAccessor(entityToBeSaved);
 			Neo4jClient.RunnableSpecTightToDatabase runnableQuery = neo4jClient
 					.query(() -> renderer.render(cypherGenerator.createStatementReturningDynamicLabels(entityMetaData)))
 					.bind(propertyAccessor.getProperty(entityMetaData.getRequiredIdProperty()))
@@ -410,9 +412,9 @@ public final class Neo4jTemplate implements Neo4jOperations, FluentNeo4jOperatio
 		}
 
 		class Tuple3<T> {
-			T t1;
-			boolean t2;
-			T t3;
+			final T t1;
+			final boolean t2;
+			final T t3;
 
 			Tuple3(T t1, boolean t2, T t3) {
 				this.t1 = t1;
@@ -848,21 +850,21 @@ public final class Neo4jTemplate implements Neo4jOperations, FluentNeo4jOperatio
 			String cypherQuery = queryFragmentsAndParameters.getCypherQuery();
 			Map<String, Object> finalParameters = queryFragmentsAndParameters.getParameters();
 
-			QueryFragmentsAndParameters.QueryFragments queryFragments = queryFragmentsAndParameters.getQueryFragments();
+			QueryFragments queryFragments = queryFragmentsAndParameters.getQueryFragments();
 			Neo4jPersistentEntity<?> entityMetaData = (Neo4jPersistentEntity<?>) queryFragmentsAndParameters.getNodeDescription();
 
 			boolean containsPossibleCircles = entityMetaData != null && entityMetaData.containsPossibleCircles(queryFragments::includeField);
 			if (cypherQuery == null || containsPossibleCircles) {
 
 				if (containsPossibleCircles && !queryFragments.isScalarValueReturn()) {
-					GenericQueryAndParameters genericQueryAndParameters =
-							createQueryAndParameters(entityMetaData, queryFragments, queryFragmentsAndParameters.getParameters());
+					NodesAndRelationshipsByIdStatementProvider nodesAndRelationshipsById =
+							createNodesAndRelationshipsByIdStatementProvider(entityMetaData, queryFragments, queryFragmentsAndParameters.getParameters());
 
-					if (genericQueryAndParameters.isEmpty()) {
+					if (nodesAndRelationshipsById.hasRootNodeIds()) {
 						return Optional.empty();
 					}
-					cypherQuery = renderer.render(queryFragments.generateGenericStatement());
-					finalParameters = genericQueryAndParameters.getParameters();
+					cypherQuery = renderer.render(nodesAndRelationshipsById.toStatement());
+					finalParameters = nodesAndRelationshipsById.getParameters();
 				} else {
 					Statement statement = queryFragments.toStatement();
 					cypherQuery = renderer.render(statement);
@@ -876,8 +878,8 @@ public final class Neo4jTemplate implements Neo4jOperations, FluentNeo4jOperatio
 					.map(f -> newMappingSpec.mappedBy(f)).orElse(newMappingSpec));
 		}
 
-		private GenericQueryAndParameters createQueryAndParameters(Neo4jPersistentEntity<?> entityMetaData,
-						   QueryFragmentsAndParameters.QueryFragments queryFragments, Map<String, Object> parameters) {
+		private NodesAndRelationshipsByIdStatementProvider createNodesAndRelationshipsByIdStatementProvider(Neo4jPersistentEntity<?> entityMetaData,
+						   QueryFragments queryFragments, Map<String, Object> parameters) {
 
 			// first check if the root node(s) exist(s) at all
 			Statement rootNodesStatement = cypherGenerator
@@ -896,7 +898,7 @@ public final class Neo4jTemplate implements Neo4jOperations, FluentNeo4jOperatio
 
 			if (rootNodeIds.isEmpty()) {
 				// fast return if no matching root node(s) are found
-				return GenericQueryAndParameters.EMPTY;
+				return NodesAndRelationshipsByIdStatementProvider.EMPTY;
 			}
 			// load first level relationships
 			final Set<Long> relationshipIds = new HashSet<>();
@@ -917,7 +919,7 @@ public final class Neo4jTemplate implements Neo4jOperations, FluentNeo4jOperatio
 						.ifPresent(iterateAndMapNextLevel(relationshipIds, relatedNodeIds, relationshipDescription));
 			}
 
-			return new GenericQueryAndParameters(rootNodeIds, relationshipIds, relatedNodeIds);
+			return new NodesAndRelationshipsByIdStatementProvider(rootNodeIds, relationshipIds, relatedNodeIds, queryFragments);
 		}
 
 		private void iterateNextLevel(Collection<Long> nodeIds, Neo4jPersistentEntity<?> target, Set<Long> relationshipIds,

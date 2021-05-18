@@ -58,6 +58,7 @@ import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.mapping.AssociationHandler;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
 import org.springframework.data.mapping.callback.ReactiveEntityCallbacks;
+import org.springframework.data.neo4j.core.TemplateSupport.NodesAndRelationshipsByIdStatementProvider;
 import org.springframework.data.neo4j.core.mapping.Constants;
 import org.springframework.data.neo4j.core.mapping.CreateRelationshipStatementHolder;
 import org.springframework.data.neo4j.core.mapping.CypherGenerator;
@@ -71,6 +72,7 @@ import org.springframework.data.neo4j.core.mapping.NestedRelationshipProcessingS
 import org.springframework.data.neo4j.core.mapping.NodeDescription;
 import org.springframework.data.neo4j.core.mapping.RelationshipDescription;
 import org.springframework.data.neo4j.core.mapping.callback.ReactiveEventSupport;
+import org.springframework.data.neo4j.repository.query.QueryFragments;
 import org.springframework.data.neo4j.repository.query.QueryFragmentsAndParameters;
 import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.projection.ProjectionInformation;
@@ -547,21 +549,21 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Rea
 		   QueryFragmentsAndParameters queryFragmentsAndParameters) {
 
 		Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getPersistentEntity(domainType);
-		QueryFragmentsAndParameters.QueryFragments queryFragments = queryFragmentsAndParameters.getQueryFragments();
+		QueryFragments queryFragments = queryFragmentsAndParameters.getQueryFragments();
 
 		boolean containsPossibleCircles = entityMetaData != null && entityMetaData.containsPossibleCircles(queryFragments::includeField);
 		if (containsPossibleCircles && !queryFragments.isScalarValueReturn()) {
-			return createQueryAndParameters(entityMetaData, queryFragments, queryFragmentsAndParameters.getParameters())
+			return createNodesAndRelationshipsByIdStatementProvider(entityMetaData, queryFragments, queryFragmentsAndParameters.getParameters())
 					.flatMap(finalQueryAndParameters ->
-							createExecutableQuery(domainType, renderer.render(queryFragments.generateGenericStatement()),
+							createExecutableQuery(domainType, renderer.render(finalQueryAndParameters.toStatement()),
 									finalQueryAndParameters.getParameters()));
 		}
 
 		return createExecutableQuery(domainType, queryFragments.toStatement(), queryFragmentsAndParameters.getParameters());
 	}
 
-	private Mono<GenericQueryAndParameters> createQueryAndParameters(Neo4jPersistentEntity<?> entityMetaData,
-		 	QueryFragmentsAndParameters.QueryFragments queryFragments, Map<String, Object> parameters) {
+	private Mono<NodesAndRelationshipsByIdStatementProvider> createNodesAndRelationshipsByIdStatementProvider(Neo4jPersistentEntity<?> entityMetaData,
+		 	QueryFragments queryFragments, Map<String, Object> parameters) {
 
 			return Mono.deferContextual(ctx -> {
 				Set<Long> rootNodeIds = ctx.get("rootNodes");
@@ -590,16 +592,12 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Rea
 									})
 									.expand(iterateAndMapNextLevel(relationshipDescription));
 						})
-						.collect(GenericQueryAndParameters::new, (genericQueryAndParameters, _not_used2) ->
-								genericQueryAndParameters.with(rootNodeIds, processedRelationshipIds, processedNodeIds)
-						);
+						.then(Mono.fromSupplier(() -> new NodesAndRelationshipsByIdStatementProvider(rootNodeIds, processedRelationshipIds, processedNodeIds, queryFragments)));
 			})
-			.contextWrite(ctx -> {
-				return ctx
-						.put("rootNodes", ConcurrentHashMap.newKeySet())
-						.put("processedNodes", ConcurrentHashMap.newKeySet())
-						.put("processedRelationships", ConcurrentHashMap.newKeySet());
-			});
+			.contextWrite(ctx -> ctx
+					.put("rootNodes", ConcurrentHashMap.newKeySet())
+					.put("processedNodes", ConcurrentHashMap.newKeySet())
+					.put("processedRelationships", ConcurrentHashMap.newKeySet()));
 
 	}
 
@@ -886,17 +884,18 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Rea
 			String cypherQuery = queryFragmentsAndParameters.getCypherQuery();
 			Map<String, Object> finalParameters = queryFragmentsAndParameters.getParameters();
 
-			QueryFragmentsAndParameters.QueryFragments queryFragments = queryFragmentsAndParameters.getQueryFragments();
+			QueryFragments queryFragments = queryFragmentsAndParameters.getQueryFragments();
 			Neo4jPersistentEntity<?> entityMetaData = (Neo4jPersistentEntity<?>) queryFragmentsAndParameters.getNodeDescription();
 
 			boolean containsPossibleCircles = entityMetaData != null && entityMetaData.containsPossibleCircles(queryFragments::includeField);
 			if (cypherQuery == null || containsPossibleCircles) {
 
 				if (containsPossibleCircles && !queryFragments.isScalarValueReturn()) {
-					return createQueryAndParameters(entityMetaData, queryFragments, finalParameters)
-							.map(genericQueryAndParameters -> {
-								ReactiveNeo4jClient.MappingSpec<T> mappingSpec = this.neo4jClient.query(renderer.render(queryFragments.generateGenericStatement()))
-										.bindAll(genericQueryAndParameters.getParameters()).fetchAs(resultType);
+					return createNodesAndRelationshipsByIdStatementProvider(entityMetaData, queryFragments, finalParameters)
+							.map(nodesAndRelationshipsById -> {
+								ReactiveNeo4jClient.MappingSpec<T> mappingSpec = this.neo4jClient.query(renderer.render(
+										nodesAndRelationshipsById.toStatement()))
+										.bindAll(nodesAndRelationshipsById.getParameters()).fetchAs(resultType);
 
 								ReactiveNeo4jClient.RecordFetchSpec<T> fetchSpec = preparedQuery.getOptionalMappingFunction()
 										.map(mappingFunction -> mappingSpec.mappedBy(mappingFunction)).orElse(mappingSpec);

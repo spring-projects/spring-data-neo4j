@@ -17,27 +17,14 @@ package org.springframework.data.neo4j.repository.query;
 
 import static org.neo4j.cypherdsl.core.Cypher.parameter;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
 
 import org.apiguardian.api.API;
 import org.neo4j.cypherdsl.core.Condition;
 import org.neo4j.cypherdsl.core.Conditions;
-import org.neo4j.cypherdsl.core.Cypher;
 import org.neo4j.cypherdsl.core.Expression;
-import org.neo4j.cypherdsl.core.Functions;
-import org.neo4j.cypherdsl.core.Node;
-import org.neo4j.cypherdsl.core.PatternElement;
-import org.neo4j.cypherdsl.core.Relationship;
 import org.neo4j.cypherdsl.core.SortItem;
-import org.neo4j.cypherdsl.core.Statement;
-import org.neo4j.cypherdsl.core.StatementBuilder;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -215,173 +202,5 @@ public final class QueryFragmentsAndParameters {
 		}
 
 		return new QueryFragmentsAndParameters(entityMetaData, queryFragments, parameters);
-	}
-
-	/**
-	 * Collects the parts of a Cypher query to be handed over to the Cypher generator.
-	 *
-	 * @author Gerrit Meier
-	 * @since 6.0.4
-	 */
-	@API(status = API.Status.INTERNAL, since = "6.0.4")
-	public static final class QueryFragments {
-		private List<PatternElement> matchOn = new ArrayList<>();
-		private Condition condition;
-		private List<Expression> returnExpressions = new ArrayList<>();
-		private SortItem[] orderBy;
-		private Number limit;
-		private Long skip;
-		private ReturnTuple returnTuple;
-		private boolean scalarValueReturn = false;
-		private boolean renderConstantsAsParameters = false;
-
-		public void addMatchOn(PatternElement match) {
-			this.matchOn.add(match);
-		}
-
-		public void setMatchOn(List<PatternElement> match) {
-			this.matchOn = match;
-		}
-
-		public List<PatternElement> getMatchOn() {
-			return matchOn;
-		}
-
-		public void setCondition(@Nullable Condition condition) {
-			this.condition = Optional.ofNullable(condition).orElse(Conditions.noCondition());
-		}
-
-		public Condition getCondition() {
-			return condition;
-		}
-
-		public void setReturnExpressions(Expression[] expression) {
-			this.returnExpressions = Arrays.asList(expression);
-		}
-
-		public void setReturnExpression(Expression returnExpression, boolean isScalarValue) {
-			this.returnExpressions = Collections.singletonList(returnExpression);
-			this.scalarValueReturn = isScalarValue;
-		}
-
-		public boolean includeField(String fieldName) {
-			return this.returnTuple == null || this.returnTuple.includedProperties.isEmpty() || this.returnTuple.includedProperties.contains(fieldName);
-		}
-
-		public void setOrderBy(SortItem[] orderBy) {
-			this.orderBy = orderBy;
-		}
-
-		public void setLimit(Number limit) {
-			this.limit = limit;
-		}
-
-		public void setSkip(Long skip) {
-			this.skip = skip;
-		}
-
-		public void setReturnBasedOn(NodeDescription<?> nodeDescription, List<String> includedProperties, boolean isDistinct) {
-			this.returnTuple = new ReturnTuple(nodeDescription, includedProperties, isDistinct);
-		}
-
-		public ReturnTuple getReturnTuple() {
-			return returnTuple;
-		}
-
-		public boolean isScalarValueReturn() {
-			return scalarValueReturn;
-		}
-
-		public boolean isRenderConstantsAsParameters() {
-			return renderConstantsAsParameters;
-		}
-
-		public void setRenderConstantsAsParameters(boolean renderConstantsAsParameters) {
-			this.renderConstantsAsParameters = renderConstantsAsParameters;
-		}
-
-		public Statement generateGenericStatement() {
-			String rootNodeIds = "rootNodeIds";
-			String relationshipIds = "relationshipIds";
-			String relatedNodeIds = "relatedNodeIds";
-			Node rootNodes = Cypher.anyNode(rootNodeIds);
-			Node relatedNodes = Cypher.anyNode(relatedNodeIds);
-			Relationship relationships = Cypher.anyNode().relationshipBetween(Cypher.anyNode()).named(relationshipIds);
-			return Cypher.match(rootNodes)
-					.where(Functions.id(rootNodes).in(Cypher.parameter(rootNodeIds)))
-					.optionalMatch(relationships)
-					.where(Functions.id(relationships).in(Cypher.parameter(relationshipIds)))
-					.optionalMatch(relatedNodes)
-					.where(Functions.id(relatedNodes).in(Cypher.parameter(relatedNodeIds)))
-					.with(
-							rootNodes.as(Constants.NAME_OF_ROOT_NODE.getValue()),
-							Functions.collectDistinct(relationships).as(Constants.NAME_OF_SYNTHESIZED_RELATIONS),
-							Functions.collectDistinct(relatedNodes).as(Constants.NAME_OF_SYNTHESIZED_RELATED_NODES))
-					.orderBy(getOrderBy())
-					.returning(
-							Constants.NAME_OF_ROOT_NODE.as(Constants.NAME_OF_SYNTHESIZED_ROOT_NODE),
-							Cypher.name(Constants.NAME_OF_SYNTHESIZED_RELATIONS),
-							Cypher.name(Constants.NAME_OF_SYNTHESIZED_RELATED_NODES)
-					)
-					.skip(skip)
-					.limit(limit).build();
-		}
-
-		public Statement toStatement() {
-
-			StatementBuilder.OngoingReadingWithoutWhere match = null;
-
-			for (PatternElement patternElement : matchOn) {
-				if (match == null) {
-					match = Cypher.match(matchOn.get(0));
-				} else {
-					match = match.match(patternElement);
-				}
-			}
-
-			StatementBuilder.OngoingReadingWithWhere matchWithWhere = match.where(condition);
-
-			StatementBuilder.OngoingReadingAndReturn returnPart = isDistinctReturn()
-					? matchWithWhere.returningDistinct(getReturnExpressions())
-					: matchWithWhere.returning(getReturnExpressions());
-
-			Statement statement = returnPart
-					.orderBy(getOrderBy())
-					.skip(skip)
-					.limit(limit).build();
-
-			statement.setRenderConstantsAsParameters(renderConstantsAsParameters);
-			return statement;
-		}
-
-		private Expression[] getReturnExpressions() {
-			return returnExpressions.size() > 0
-					? returnExpressions.toArray(new Expression[]{})
-					: CypherGenerator.INSTANCE.createReturnStatementForMatch(getReturnTuple().nodeDescription,
-					this::includeField);
-		}
-
-		private boolean isDistinctReturn() {
-			return returnExpressions.isEmpty() && getReturnTuple().isDistinct;
-		}
-
-		private SortItem[] getOrderBy() {
-			return orderBy != null ? orderBy : new SortItem[]{};
-		}
-
-		/**
-		 * Describes which fields of an entity needs to get returned.
-		 */
-		final static class ReturnTuple {
-			final NodeDescription<?> nodeDescription;
-			final Set<String> includedProperties;
-			final boolean isDistinct;
-
-			private ReturnTuple(NodeDescription<?> nodeDescription, List<String> includedProperties, boolean isDistinct) {
-				this.nodeDescription = nodeDescription;
-				this.includedProperties = includedProperties == null ? Collections.emptySet() : new HashSet<>(includedProperties);
-				this.isDistinct = isDistinct;
-			}
-		}
 	}
 }

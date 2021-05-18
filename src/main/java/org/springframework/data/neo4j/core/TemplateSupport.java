@@ -17,6 +17,8 @@ package org.springframework.data.neo4j.core;
 
 import java.beans.PropertyDescriptor;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -27,7 +29,13 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import org.apiguardian.api.API;
+import org.neo4j.cypherdsl.core.Cypher;
+import org.neo4j.cypherdsl.core.Functions;
+import org.neo4j.cypherdsl.core.Node;
+import org.neo4j.cypherdsl.core.Relationship;
 import org.neo4j.cypherdsl.core.Statement;
+import org.springframework.data.neo4j.core.mapping.Constants;
+import org.springframework.data.neo4j.repository.query.QueryFragments;
 import org.springframework.lang.Nullable;
 
 /**
@@ -117,6 +125,67 @@ final class TemplateSupport {
 			mergedParameters.putAll(parameters);
 		}
 		return mergedParameters;
+	}
+
+	/**
+	 * Parameter holder class for a query with the return pattern of `rootNodes, relationships, relatedNodes`.
+	 * The parameter values must be internal node or relationship ids.
+	 */
+	static final class NodesAndRelationshipsByIdStatementProvider {
+
+		private final static String ROOT_NODE_IDS = "rootNodeIds";
+		private final static String RELATIONSHIP_IDS = "relationshipIds";
+		private final static String RELATED_NODE_IDS = "relatedNodeIds";
+
+		final static NodesAndRelationshipsByIdStatementProvider EMPTY =
+				new NodesAndRelationshipsByIdStatementProvider(Collections.emptySet(), Collections.emptySet(), Collections.emptySet(), new QueryFragments());
+
+		private final Map<String, Collection<Long>> parameters = new HashMap<>(3);
+		private final QueryFragments queryFragments;
+
+		NodesAndRelationshipsByIdStatementProvider(Collection<Long> rootNodeIds, Collection<Long> relationshipsIds, Collection<Long> relatedNodeIds, QueryFragments queryFragments) {
+
+			this.parameters.put(ROOT_NODE_IDS, rootNodeIds);
+			this.parameters.put(RELATIONSHIP_IDS, relationshipsIds);
+			this.parameters.put(RELATED_NODE_IDS, relatedNodeIds);
+			this.queryFragments = queryFragments;
+		}
+
+		Map<String, Object> getParameters() {
+			return Collections.unmodifiableMap(parameters);
+		}
+
+		boolean hasRootNodeIds() {
+			return parameters.get(ROOT_NODE_IDS).isEmpty();
+		}
+
+		Statement toStatement() {
+
+			String rootNodeIds = "rootNodeIds";
+			String relationshipIds = "relationshipIds";
+			String relatedNodeIds = "relatedNodeIds";
+			Node rootNodes = Cypher.anyNode(rootNodeIds);
+			Node relatedNodes = Cypher.anyNode(relatedNodeIds);
+			Relationship relationships = Cypher.anyNode().relationshipBetween(Cypher.anyNode()).named(relationshipIds);
+			return Cypher.match(rootNodes)
+					.where(Functions.id(rootNodes).in(Cypher.parameter(rootNodeIds)))
+					.optionalMatch(relationships)
+					.where(Functions.id(relationships).in(Cypher.parameter(relationshipIds)))
+					.optionalMatch(relatedNodes)
+					.where(Functions.id(relatedNodes).in(Cypher.parameter(relatedNodeIds)))
+					.with(
+							rootNodes.as(Constants.NAME_OF_ROOT_NODE.getValue()),
+							Functions.collectDistinct(relationships).as(Constants.NAME_OF_SYNTHESIZED_RELATIONS),
+							Functions.collectDistinct(relatedNodes).as(Constants.NAME_OF_SYNTHESIZED_RELATED_NODES))
+					.orderBy(queryFragments.getOrderBy())
+					.returning(
+							Constants.NAME_OF_ROOT_NODE.as(Constants.NAME_OF_SYNTHESIZED_ROOT_NODE),
+							Cypher.name(Constants.NAME_OF_SYNTHESIZED_RELATIONS),
+							Cypher.name(Constants.NAME_OF_SYNTHESIZED_RELATED_NODES)
+					)
+					.skip(queryFragments.getSkip())
+					.limit(queryFragments.getLimit()).build();
+		}
 	}
 
 	private TemplateSupport() {
