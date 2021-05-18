@@ -175,7 +175,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 		Neo4jPersistentEntity<?> nodeDescription = (Neo4jPersistentEntity<?>) nodeDescriptionStore
 				.getNodeDescription(source.getClass());
 
-		PersistentPropertyAccessor propertyAccessor = nodeDescription.getPropertyAccessor(source);
+		PersistentPropertyAccessor<Object> propertyAccessor = nodeDescription.getPropertyAccessor(source);
 		nodeDescription.doWithProperties((Neo4jPersistentProperty p) -> {
 
 			// Skip the internal properties, we don't want them to end up stored as properties
