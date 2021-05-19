@@ -42,7 +42,6 @@ import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.Metrics;
 import org.springframework.data.mapping.PropertyPath;
-import org.springframework.data.mapping.PropertyReferenceException;
 import org.springframework.data.neo4j.core.convert.Neo4jSimpleTypes;
 import org.springframework.data.neo4j.core.mapping.CypherGenerator;
 import org.springframework.data.neo4j.core.mapping.EntityInstanceWithSource;
@@ -130,10 +129,10 @@ abstract class Neo4jQuerySupport {
 		List<PropertyPath> ding = new ArrayList<>();
 
 		for (String inputProperty : returnedType.getInputProperties()) {
-			try {
-				ding.add(PropertyPath.from(inputProperty, returnedType.getDomainType()));
-			} catch (PropertyReferenceException e) {
+			if (returnedType.isProjecting()) {
 				ding.add(PropertyPath.from(inputProperty, returnedType.getReturnedType()));
+			} else {
+				ding.add(PropertyPath.from(inputProperty, returnedType.getDomainType()));
 			}
 		}
 		return returnedType.isProjecting() ? ding : Collections.emptyList();

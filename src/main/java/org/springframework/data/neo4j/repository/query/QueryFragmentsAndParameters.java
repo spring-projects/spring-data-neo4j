@@ -19,6 +19,8 @@ import static org.neo4j.cypherdsl.core.Cypher.parameter;
 
 import java.util.Collections;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
 import org.apiguardian.api.API;
 import org.neo4j.cypherdsl.core.Condition;
@@ -367,12 +369,12 @@ public final class QueryFragmentsAndParameters {
 		 */
 		final static class ReturnTuple {
 			final NodeDescription<?> nodeDescription;
-			final Set<String> includedProperties;
+			final MagicPropertyPathClass includedProperties;
 			final boolean isDistinct;
 
 			private ReturnTuple(NodeDescription<?> nodeDescription, List<String> includedProperties, boolean isDistinct) {
 				this.nodeDescription = nodeDescription;
-				this.includedProperties = includedProperties == null ? Collections.emptySet() : new HashSet<>(includedProperties);
+				this.includedProperties = new MagicPropertyPathClass(includedProperties == null ? Collections.emptySet() : new HashSet<>(includedProperties), nodeDescription);
 				this.isDistinct = isDistinct;
 			}
 		}
