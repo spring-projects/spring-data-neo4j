@@ -72,7 +72,7 @@
 		<asciidoctor-maven-plugin.version>2.1.0</asciidoctor-maven-plugin.version>
 		<asciidoctorj-diagram.version>2.1.0</asciidoctorj-diagram.version>
 
-		<byte-buddy.version>1.10.9</byte-buddy.version>
+		<byte-buddy.version>1.11.0</byte-buddy.version>
 		<cdi>2.0.SP1</cdi>
 		<changelist>-SNAPSHOT</changelist>
 		<checkstyle.version>8.40</checkstyle.version>
@@ -86,8 +86,8 @@
 		<jaxb.version>2.3.1</jaxb.version>
 		<jqassistant-dashboard-plugin.version>1.9.0</jqassistant-dashboard-plugin.version>
 		<jqassistant.plugin.git.version>1.8.0</jqassistant.plugin.git.version>
-		<jqassistant.plugin.version>1.9.0</jqassistant.plugin.version>
-		<jqassistant.version>1.9.0</jqassistant.version>
+		<jqassistant.plugin.version>1.9.1</jqassistant.plugin.version>
+		<jqassistant.version>1.9.1</jqassistant.version>
 		<junit-cc-testcontainer>2020.0.7</junit-cc-testcontainer>
 		<maven-checkstyle-plugin.version>3.1.2</maven-checkstyle-plugin.version>
 		<maven-deploy-plugin.version>3.0.0-M1</maven-deploy-plugin.version>
@@ -102,7 +102,7 @@
 		<maven.compiler.source>${java.version}</maven.compiler.source>
 		<maven.compiler.target>${java.version}</maven.compiler.target>
 		<mockito>${mockito.version}</mockito>
-		<mockito.version>3.7.7</mockito.version>
+		<mockito.version>3.10.0</mockito.version>
 		<neo4j-java-driver.version>4.2.5</neo4j-java-driver.version>
 		<neo4j.version>4.2.4</neo4j.version>
 		<objenesis.version>3.0.1</objenesis.version>
