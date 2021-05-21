@@ -62,7 +62,6 @@ public final class EventSupport {
 	private static void addDefaultEntityCallbacks(Neo4jMappingContext context, EntityCallbacks entityCallbacks) {
 
 		entityCallbacks.addEntityCallback(new IdGeneratingBeforeBindCallback(context));
-		entityCallbacks.addEntityCallback(new OptimisticLockingBeforeBindCallback(context));
 	}
 
 	private final EntityCallbacks entityCallbacks;

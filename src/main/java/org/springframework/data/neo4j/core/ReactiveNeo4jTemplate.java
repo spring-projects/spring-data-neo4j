@@ -46,6 +46,7 @@ import org.neo4j.cypherdsl.core.Statement;
 import org.neo4j.cypherdsl.core.renderer.Renderer;
 import org.neo4j.driver.exceptions.NoSuchRecordException;
 import org.neo4j.driver.summary.SummaryCounters;
+import org.neo4j.driver.types.Entity;
 import org.reactivestreams.Publisher;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
@@ -240,9 +241,9 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 
 					Statement saveStatement = cypherGenerator.prepareSaveOf(entityMetaData, dynamicLabels);
 
-					Mono<Long> idMono = this.neo4jClient.query(() -> renderer.render(saveStatement)).in(inDatabase)
+					Mono<Entity> idMono = this.neo4jClient.query(() -> renderer.render(saveStatement)).in(inDatabase)
 							.bind(entityToBeSaved).with(neo4jMappingContext.getRequiredBinderFunctionFor((Class<T>) entityToBeSaved.getClass()))
-							.fetchAs(Long.class).one()
+							.fetchAs(Entity.class).one()
 							.switchIfEmpty(Mono.defer(() -> {
 								if (entityMetaData.hasVersionProperty()) {
 									return Mono.error(() -> new OptimisticLockingFailureException(OPTIMISTIC_LOCKING_ERROR_MESSAGE));
@@ -251,11 +252,13 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 							}));
 
 					PersistentPropertyAccessor<T> propertyAccessor = entityMetaData.getPropertyAccessor(entityToBeSaved);
-					return idMono.doOnNext(internalId -> {
+					return idMono.doOnNext(newOrUpdatedNode -> {
 						if (entityMetaData.isUsingInternalIds()) {
-							propertyAccessor.setProperty(entityMetaData.getRequiredIdProperty(), internalId);
+							propertyAccessor.setProperty(entityMetaData.getRequiredIdProperty(), newOrUpdatedNode.id());
 						}
-					}).flatMap(internalId -> processRelations(entityMetaData, instance, internalId, propertyAccessor, inDatabase, isNewEntity));
+						TemplateSupport.updateVersionPropertyIfPossible(entityMetaData, propertyAccessor, newOrUpdatedNode);
+					}).map(Entity::id)
+							.flatMap(internalId -> processRelations(entityMetaData, instance, internalId, propertyAccessor, inDatabase, isNewEntity));
 				});
 	}
 
@@ -271,7 +274,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 
 			if (entityMetaData.hasVersionProperty()) {
 				runnableQuery = runnableQuery
-						.bind((Long) propertyAccessor.getProperty(entityMetaData.getRequiredVersionProperty()) - 1)
+						.bind((Long) propertyAccessor.getProperty(entityMetaData.getRequiredVersionProperty()))
 						.to(Constants.NAME_OF_VERSION_PARAM);
 			}
 
@@ -666,20 +669,30 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 						.flatMap(newRelatedObject -> {
 							Neo4jPersistentEntity<?> targetEntity = neo4jMappingContext.getPersistentEntity(relatedObjectBeforeCallbacksApplied.getClass());
 
-							Mono<Long> queryOrSave;
+							Mono<Tuple2<Long, Long>> queryOrSave;
+							long noVersion = Long.MIN_VALUE;
 							if (stateMachine.hasProcessedValue(relatedValueToStore)) {
-								queryOrSave = Mono.just(stateMachine.getInternalId(relatedObjectBeforeCallbacksApplied));
+								queryOrSave = Mono.just(stateMachine.getInternalId(relatedObjectBeforeCallbacksApplied))
+										.map(id -> Tuples.of(id, noVersion));
 							} else {
-								queryOrSave = saveRelatedNode(newRelatedObject, targetEntity, inDatabase);
+								queryOrSave = saveRelatedNode(newRelatedObject, targetEntity, inDatabase)
+										.map(entity -> Tuples.of(entity.id(), targetEntity.hasVersionProperty() ?
+												entity.get(targetEntity.getVersionProperty().getPropertyName())
+														.asLong() :
+												noVersion));
 							}
 
-							return queryOrSave.flatMap(relatedInternalId -> {
+							return queryOrSave.flatMap(idAndVersion -> {
+								long relatedInternalId = idAndVersion.getT1();
 									stateMachine.markValueAsProcessed(relatedValueToStore, relatedInternalId);
 									// if an internal id is used this must be set to link this entity in the next iteration
 									PersistentPropertyAccessor<?> targetPropertyAccessor = targetEntity.getPropertyAccessor(newRelatedObject);
 									if (targetEntity.isUsingInternalIds()) {
 										targetPropertyAccessor.setProperty(targetEntity.getRequiredIdProperty(), relatedInternalId);
 										stateMachine.markValueAsProcessedAs(newRelatedObject, targetPropertyAccessor.getBean());
+									}
+									if (targetEntity.hasVersionProperty() && idAndVersion.getT2() != noVersion) {
+										targetPropertyAccessor.setProperty(targetEntity.getVersionProperty(), idAndVersion.getT2());
 									}
 
 									Object idValue = idProperty != null
@@ -764,19 +777,19 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 				.fetchAs(Long.class).one();
 	}
 
-	private <Y> Mono<Long> saveRelatedNode(Object relatedNode,
+	private <Y> Mono<Entity> saveRelatedNode(Object relatedNode,
 										   Neo4jPersistentEntity<?> targetNodeDescription, @Nullable String inDatabase) {
 
 		return determineDynamicLabels((Y) relatedNode, targetNodeDescription, inDatabase)
 				.flatMap(t -> {
 					Y entity = t.getT1();
-					Class<Y> entityType = (Class<Y>) ((Neo4jPersistentEntity<?>) targetNodeDescription).getType();
+					Class<Y> entityType = (Class<Y>) targetNodeDescription.getType();
 					DynamicLabels dynamicLabels = t.getT2();
 
 					return neo4jClient
 							.query(() -> renderer.render(cypherGenerator.prepareSaveOf(targetNodeDescription, dynamicLabels)))
 							.in(inDatabase).bind((Y) entity).with(neo4jMappingContext.getRequiredBinderFunctionFor(entityType))
-							.fetchAs(Long.class).one();
+							.fetchAs(Entity.class).one();
 				}).switchIfEmpty(Mono.defer(() -> {
 					if (targetNodeDescription.hasVersionProperty()) {
 						return Mono.error(() -> new OptimisticLockingFailureException(OPTIMISTIC_LOCKING_ERROR_MESSAGE));

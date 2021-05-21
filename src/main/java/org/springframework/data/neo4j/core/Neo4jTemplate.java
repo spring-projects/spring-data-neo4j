@@ -44,6 +44,7 @@ import org.neo4j.cypherdsl.core.renderer.Renderer;
 import org.neo4j.driver.exceptions.NoSuchRecordException;
 import org.neo4j.driver.summary.ResultSummary;
 import org.neo4j.driver.summary.SummaryCounters;
+import org.neo4j.driver.types.Entity;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
@@ -236,15 +237,15 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 
 		DynamicLabels dynamicLabels = determineDynamicLabels(entityToBeSaved, entityMetaData, inDatabase);
 
-		Optional<Long> optionalInternalId = neo4jClient
+		Optional<Entity> newOrUpdatedNode = neo4jClient
 				.query(() -> renderer.render(cypherGenerator.prepareSaveOf(entityMetaData, dynamicLabels)))
 				.in(inDatabase)
 				.bind(entityToBeSaved)
 				.with(neo4jMappingContext.getRequiredBinderFunctionFor((Class<T>) entityToBeSaved.getClass()))
-				.fetchAs(Long.class).one();
+				.fetchAs(Entity.class).one();
 
 
-		if (!optionalInternalId.isPresent()) {
+		if (!newOrUpdatedNode.isPresent()) {
 			if (entityMetaData.hasVersionProperty()) {
 				throw new OptimisticLockingFailureException(OPTIMISTIC_LOCKING_ERROR_MESSAGE);
 			}
@@ -252,11 +253,12 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 			throw new IllegalStateException("Could not retrieve an internal id while saving.");
 		}
 
-		Long internalId = optionalInternalId.get();
+		Long internalId = newOrUpdatedNode.get().id();
 		PersistentPropertyAccessor<T> propertyAccessor = entityMetaData.getPropertyAccessor(entityToBeSaved);
 		if (entityMetaData.isUsingInternalIds()) {
 			propertyAccessor.setProperty(entityMetaData.getRequiredIdProperty(), internalId);
 		}
+		TemplateSupport.updateVersionPropertyIfPossible(entityMetaData, propertyAccessor, newOrUpdatedNode.get());
 		processRelations(entityMetaData, instance, internalId, propertyAccessor, inDatabase, isEntityNew);
 
 		return propertyAccessor.getBean();
@@ -275,7 +277,7 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 
 			if (entityMetaData.hasVersionProperty()) {
 				runnableQuery = runnableQuery
-						.bind((Long) propertyAccessor.getProperty(entityMetaData.getRequiredVersionProperty()) - 1)
+						.bind((Long) propertyAccessor.getProperty(entityMetaData.getRequiredVersionProperty()))
 						.to(Constants.NAME_OF_VERSION_PARAM);
 			}
 
@@ -556,11 +558,13 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 						: eventSupport.maybeCallBeforeBind(relatedObjectBeforeCallbacksApplied);
 
 				Long relatedInternalId;
+				Entity savedEntity = null;
 				// No need to save values if processed
 				if (stateMachine.hasProcessedValue(relatedValueToStore)) {
 					relatedInternalId = stateMachine.getInternalId(relatedObjectBeforeCallbacksApplied);
 				} else {
-					relatedInternalId = saveRelatedNode(newRelatedObject, targetEntity, inDatabase);
+					savedEntity = saveRelatedNode(newRelatedObject, targetEntity, inDatabase);
+					relatedInternalId = savedEntity.id();
 				}
 				stateMachine.markValueAsProcessed(relatedValueToStore, relatedInternalId);
 
@@ -595,6 +599,9 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 				if (targetEntity.isUsingInternalIds()) {
 					targetPropertyAccessor.setProperty(targetEntity.getRequiredIdProperty(), relatedInternalId);
 				}
+				if (savedEntity != null) {
+					TemplateSupport.updateVersionPropertyIfPossible(targetEntity, targetPropertyAccessor, savedEntity);
+				}
 				stateMachine.markValueAsProcessedAs(relatedObjectBeforeCallbacksApplied, targetPropertyAccessor.getBean());
 
 				if (processState != ProcessState.PROCESSED_ALL_VALUES) {
@@ -616,21 +623,21 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 		return (T) propertyAccessor.getBean();
 	}
 
-	private <Y> Long saveRelatedNode(Object entity, NodeDescription targetNodeDescription, @Nullable String inDatabase) {
+	private <Y> Entity saveRelatedNode(Object entity, NodeDescription targetNodeDescription, @Nullable String inDatabase) {
 
 		DynamicLabels dynamicLabels = determineDynamicLabels(entity, (Neo4jPersistentEntity) targetNodeDescription,
 				inDatabase);
 		Class<Y> entityType = (Class<Y>) ((Neo4jPersistentEntity<?>) targetNodeDescription).getType();
-		Optional<Long> optionalSavedNodeId = neo4jClient
+		Optional<Entity> optionalSavedNode = neo4jClient
 				.query(() -> renderer.render(cypherGenerator.prepareSaveOf(targetNodeDescription, dynamicLabels)))
 				.in(inDatabase).bind((Y) entity).with(neo4jMappingContext.getRequiredBinderFunctionFor(entityType))
-				.fetchAs(Long.class).one();
+				.fetchAs(Entity.class).one();
 
-		if (((Neo4jPersistentEntity) targetNodeDescription).hasVersionProperty() && !optionalSavedNodeId.isPresent()) {
+		if (((Neo4jPersistentEntity) targetNodeDescription).hasVersionProperty() && !optionalSavedNode.isPresent()) {
 			throw new OptimisticLockingFailureException(OPTIMISTIC_LOCKING_ERROR_MESSAGE);
 		}
 
-		return optionalSavedNodeId.get();
+		return optionalSavedNode.get();
 	}
 
 	private String getDatabaseName() {

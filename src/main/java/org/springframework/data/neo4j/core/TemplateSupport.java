@@ -24,6 +24,9 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import org.apiguardian.api.API;
+import org.neo4j.driver.types.Entity;
+import org.springframework.data.mapping.PersistentPropertyAccessor;
+import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
 import org.springframework.lang.Nullable;
 
 /**
@@ -80,6 +83,17 @@ final class TemplateSupport {
 		}
 
 		return candidate;
+	}
+
+	static void updateVersionPropertyIfPossible(
+			Neo4jPersistentEntity<?> entityMetaData,
+			PersistentPropertyAccessor<?> propertyAccessor,
+			Entity newOrUpdatedNode
+	) {
+		if (entityMetaData.hasVersionProperty()) {
+			propertyAccessor.setProperty(
+					entityMetaData.getVersionProperty(), newOrUpdatedNode.get(entityMetaData.getVersionProperty().getPropertyName()).asLong());
+		}
 	}
 
 	private TemplateSupport() {

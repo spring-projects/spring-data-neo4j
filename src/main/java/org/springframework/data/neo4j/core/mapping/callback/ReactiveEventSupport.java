@@ -66,7 +66,6 @@ public final class ReactiveEventSupport {
 			ReactiveEntityCallbacks entityCallbacks) {
 
 		entityCallbacks.addEntityCallback(new ReactiveIdGeneratingBeforeBindCallback(context));
-		entityCallbacks.addEntityCallback(new ReactiveOptimisticLockingBeforeBindCallback(context));
 	}
 
 	private final ReactiveEntityCallbacks entityCallbacks;
