@@ -179,7 +179,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 		nodeDescription.doWithProperties((Neo4jPersistentProperty p) -> {
 
 			// Skip the internal properties, we don't want them to end up stored as properties
-			if (p.isInternalIdProperty() || p.isDynamicLabels() || p.isEntity()) {
+			if (p.isInternalIdProperty() || p.isDynamicLabels() || p.isEntity() || p.isVersionProperty()) {
 				return;
 			}
 
@@ -204,7 +204,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 			Long versionProperty = (Long) propertyAccessor.getProperty(nodeDescription.getRequiredVersionProperty());
 
 			// we incremented this upfront the persist operation so the matching version would be one "before"
-			parameters.put(Constants.NAME_OF_VERSION_PARAM, versionProperty - 1);
+			parameters.put(Constants.NAME_OF_VERSION_PARAM, versionProperty);
 		}
 	}
 

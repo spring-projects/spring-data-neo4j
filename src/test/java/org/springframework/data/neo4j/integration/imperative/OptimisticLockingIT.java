@@ -22,8 +22,16 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.function.Consumer;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Record;
@@ -48,6 +56,7 @@ import org.springframework.data.neo4j.test.Neo4jExtension;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * @author Gerrit Meier
@@ -350,6 +359,66 @@ class OptimisticLockingIT {
 		}
 	}
 
+	@Test // GH-2259
+	@Tag(Neo4jExtension.INCOMPATIBLE_WITH_CLUSTERS)
+	void shouldLockConcurrentOnAssignedId(@Autowired TransactionTemplate transactionTemplate, @Autowired VersionedThingWithAssignedIdRepository repo)
+			throws Exception {
+
+		assertVersionLock(
+				transactionTemplate,
+				() -> repo.save(new VersionedThingWithAssignedId(1L, "a")),
+				repo::save,
+				"MERGE (n:VersionedThingWithAssignedId {id: 1}) ON MATCH SET n.version = 23  RETURN n"
+		);
+	}
+
+	@Test // GH-2259
+	@Tag(Neo4jExtension.INCOMPATIBLE_WITH_CLUSTERS)
+	void shouldLockConcurrentOnGeneratedId(@Autowired TransactionTemplate transactionTemplate, @Autowired VersionedThingRepository repo)
+			throws Exception {
+
+		assertVersionLock(
+				transactionTemplate,
+				() -> repo.save(new VersionedThing("a")),
+				repo::save,
+				"MERGE (n:VersionedThing {name: 'a'}) ON MATCH SET n.version = 23 RETURN n"
+		);
+	}
+
+	private <T> void assertVersionLock(TransactionTemplate transactionTemplate, Callable<T> createInitialEntity,
+			Consumer<T> updateEntity, String blockedUpdate) throws Exception {
+		ExecutorService executorService = Executors.newFixedThreadPool(2);
+		CountDownLatch latch = new CountDownLatch(1);
+		T entity = createInitialEntity.call();
+		long sleep = 4_000L;
+
+		executorService.execute(() -> {
+			transactionTemplate.executeWithoutResult(tx -> {
+				updateEntity.accept(entity);
+				latch.countDown(); // Trigger the match below but keep tx running
+				try {
+					Thread.sleep(sleep);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			});
+		});
+
+		latch.await(); // Wait until the above thread sleeps
+		assertThatExceptionOfType(OptimisticLockingFailureException.class).isThrownBy(() -> updateEntity.accept(entity));
+		boolean timedOut = false;
+		try {
+			executorService.submit(() -> {
+				try (Session session = driver.session()) {
+					return session.writeTransaction(tx -> tx.run(blockedUpdate).single().get(0).asNode().id());
+				}
+			}).get(sleep / 2, TimeUnit.MILLISECONDS);
+		} catch (TimeoutException e) {
+			timedOut = true;
+		}
+		assertThat(timedOut).isTrue();
+	}
+
 	interface VersionedThingRepository extends Neo4jRepository<VersionedThing, Long> {}
 
 	interface VersionedThingWithAssignedIdRepository extends Neo4jRepository<VersionedThingWithAssignedId, Long> {}
@@ -367,6 +436,11 @@ class OptimisticLockingIT {
 		@Bean
 		public BookmarkCapture bookmarkCapture() {
 			return new BookmarkCapture();
+		}
+
+		@Bean
+		public TransactionTemplate transactionTemplate(PlatformTransactionManager transactionManager) {
+			return new TransactionTemplate(transactionManager);
 		}
 
 		@Override
