@@ -116,7 +116,7 @@ final class ReactiveStringBasedNeo4jQuery extends AbstractReactiveNeo4jQuery {
 			QueryMethodEvaluationContextProvider evaluationContextProvider, Neo4jQueryMethod queryMethod,
 			String cypherTemplate, Neo4jQueryType queryType) {
 
-		super(neo4jOperations, mappingContext, queryMethod, queryType);
+		super(neo4jOperations, mappingContext, queryMethod, queryType, null);
 
 		cypherTemplate = Neo4jSpelSupport.renderQueryIfExpressionOrReturnQuery(cypherTemplate, mappingContext, queryMethod.getEntityInformation(), SPEL_EXPRESSION_PARSER);
 		SpelExtractor spelExtractor = SPEL_QUERY_CONTEXT.parse(cypherTemplate);

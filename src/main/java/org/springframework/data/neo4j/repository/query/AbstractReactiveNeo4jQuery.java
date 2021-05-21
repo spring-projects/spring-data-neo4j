@@ -27,6 +27,7 @@ import org.springframework.data.neo4j.core.ReactiveNeo4jOperations;
 import org.springframework.data.neo4j.core.mapping.DtoInstantiatingConverter;
 import org.springframework.data.neo4j.core.mapping.EntityInstanceWithSource;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
+import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.data.repository.query.ResultProcessor;
@@ -44,14 +45,16 @@ import org.springframework.util.Assert;
 abstract class AbstractReactiveNeo4jQuery extends Neo4jQuerySupport implements RepositoryQuery {
 
 	protected final ReactiveNeo4jOperations neo4jOperations;
+	private ProjectionFactory factory;
 
 	AbstractReactiveNeo4jQuery(ReactiveNeo4jOperations neo4jOperations, Neo4jMappingContext mappingContext,
-			Neo4jQueryMethod queryMethod, Neo4jQueryType queryType) {
+							   Neo4jQueryMethod queryMethod, Neo4jQueryType queryType, ProjectionFactory factory) {
 
 		super(mappingContext, queryMethod, queryType);
 
 		Assert.notNull(neo4jOperations, "The Neo4j operations are required.");
 		this.neo4jOperations = neo4jOperations;
+		this.factory = factory;
 	}
 
 	@Override
@@ -67,7 +70,7 @@ abstract class AbstractReactiveNeo4jQuery extends Neo4jQuerySupport implements R
 
 		ReturnedType returnedType = resultProcessor.getReturnedType();
 		PreparedQuery<?> preparedQuery = prepareQuery(returnedType.getReturnedType(),
-				getInputProperties(resultProcessor, null), parameterAccessor, null, getMappingFunction(resultProcessor));
+				getInputProperties(resultProcessor, factory), parameterAccessor, null, getMappingFunction(resultProcessor));
 
 		Object rawResult = new Neo4jQueryExecution.ReactiveQueryExecution(neo4jOperations).execute(preparedQuery,
 				queryMethod.isCollectionLikeQuery());

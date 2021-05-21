@@ -46,7 +46,7 @@ final class ReactiveCypherdslBasedQuery extends AbstractReactiveNeo4jQuery {
 	private ReactiveCypherdslBasedQuery(ReactiveNeo4jOperations neo4jOperations,
 			Neo4jMappingContext mappingContext,
 			Neo4jQueryMethod queryMethod, Neo4jQueryType queryType) {
-		super(neo4jOperations, mappingContext, queryMethod, queryType);
+		super(neo4jOperations, mappingContext, queryMethod, queryType, null);
 	}
 
 	@Override
