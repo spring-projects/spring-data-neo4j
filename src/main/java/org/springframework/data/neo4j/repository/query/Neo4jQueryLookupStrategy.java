@@ -66,7 +66,7 @@ public final class Neo4jQueryLookupStrategy implements QueryLookupStrategy {
 		} else if (queryMethod.isCypherBasedProjection()) {
 			return CypherdslBasedQuery.create(neo4jOperations, mappingContext, queryMethod);
 		} else {
-			return PartTreeNeo4jQuery.create(neo4jOperations, mappingContext, queryMethod);
+			return PartTreeNeo4jQuery.create(neo4jOperations, mappingContext, queryMethod, factory);
 		}
 	}
 }

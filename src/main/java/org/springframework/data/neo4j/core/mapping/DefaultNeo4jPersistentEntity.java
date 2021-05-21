@@ -550,22 +550,22 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 				return true;
 			}
 			processedRelationships.add(relationship);
-			if (calculatePossibleCircles(relationship.getTarget(), processedRelationships)) {
+			if (calculatePossibleCircles(relationship.getTarget(), processedRelationships, includeField)) {
 				return true;
 			}
 		}
 		return false;
 	}
 
-	private boolean calculatePossibleCircles(NodeDescription<?> nodeDescription, Set<RelationshipDescription> processedRelationships) {
-		Collection<RelationshipDescription> relationships = nodeDescription.getRelationshipsInHierarchy(MappingSupport.ALL_PROPERTIES_PREDICATE);
+	private boolean calculatePossibleCircles(NodeDescription<?> nodeDescription, Set<RelationshipDescription> processedRelationships, Predicate<PropertyPath> includeField) {
+		Collection<RelationshipDescription> relationships = nodeDescription.getRelationshipsInHierarchy(includeField);
 
 		for (RelationshipDescription relationship : relationships) {
 			if (processedRelationships.contains(relationship)) {
 				return true;
 			}
 			processedRelationships.add(relationship);
-			if (calculatePossibleCircles(relationship.getTarget(), processedRelationships)) {
+			if (calculatePossibleCircles(relationship.getTarget(), processedRelationships, includeField)) {
 				return true;
 			}
 		}

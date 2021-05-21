@@ -15,6 +15,7 @@
  */
 package org.springframework.data.neo4j.repository.query;
 
+import java.beans.PropertyDescriptor;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.Arrays;
@@ -42,10 +43,13 @@ import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.Metrics;
 import org.springframework.data.mapping.PropertyPath;
+import org.springframework.data.neo4j.core.convert.ConvertWith;
 import org.springframework.data.neo4j.core.convert.Neo4jSimpleTypes;
 import org.springframework.data.neo4j.core.mapping.CypherGenerator;
 import org.springframework.data.neo4j.core.mapping.EntityInstanceWithSource;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
+import org.springframework.data.projection.ProjectionFactory;
+import org.springframework.data.projection.ProjectionInformation;
 import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.data.repository.query.ResultProcessor;
 import org.springframework.data.repository.query.ReturnedType;
@@ -123,14 +127,30 @@ abstract class Neo4jQuerySupport {
 		return mappingFunction;
 	}
 
-	protected final List<PropertyPath> getInputProperties(final ResultProcessor resultProcessor) {
+	protected final List<PropertyPath> getInputProperties(final ResultProcessor resultProcessor, ProjectionFactory factory) {
 
 		ReturnedType returnedType = resultProcessor.getReturnedType();
 		List<PropertyPath> ding = new ArrayList<>();
 
 		for (String inputProperty : returnedType.getInputProperties()) {
 			if (returnedType.isProjecting()) {
-				ding.add(PropertyPath.from(inputProperty, returnedType.getReturnedType()));
+				PropertyPath pp = PropertyPath.from(inputProperty, returnedType.getReturnedType());
+
+				Class<?> leafType = pp.getLeafType();
+				if (Neo4jSimpleTypes.HOLDER.isSimpleType(leafType)
+						|| mappingContext.hasCustomWriteTarget(leafType)
+						|| mappingContext.hasPersistentEntityFor(leafType)
+				) {
+					ding.add(pp);
+				} else {
+					// welcome to the second level
+					ProjectionInformation projectionInformation = factory.getProjectionInformation(leafType);
+					String s = pp.toDotPath();
+					for (PropertyDescriptor secondInputProperty : projectionInformation.getInputProperties()) {
+						PropertyPath pppp = PropertyPath.from(s + "." + secondInputProperty.getName(), returnedType.getReturnedType());
+						ding.add(pppp);
+					}
+				}
 			} else {
 				ding.add(PropertyPath.from(inputProperty, returnedType.getDomainType()));
 			}

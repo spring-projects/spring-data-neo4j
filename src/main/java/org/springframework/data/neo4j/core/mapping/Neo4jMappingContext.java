@@ -143,7 +143,7 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 		return INSTANTIATORS.getInstantiatorFor(entity);
 	}
 
-	boolean hasCustomWriteTarget(Class<?> targetType) {
+	public boolean hasCustomWriteTarget(Class<?> targetType) {
 		return conversionService.hasCustomWriteTarget(targetType);
 	}
 

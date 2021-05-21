@@ -26,6 +26,7 @@ import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.neo4j.core.Neo4jOperations;
 import org.springframework.data.neo4j.core.PreparedQuery;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
+import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.data.repository.query.parser.PartTree;
 import org.springframework.data.repository.query.parser.PartTree.OrPart;
@@ -43,14 +44,14 @@ final class PartTreeNeo4jQuery extends AbstractNeo4jQuery {
 	private final PartTree tree;
 
 	public static RepositoryQuery create(Neo4jOperations neo4jOperations, Neo4jMappingContext mappingContext,
-			Neo4jQueryMethod queryMethod) {
+										 Neo4jQueryMethod queryMethod, ProjectionFactory factory) {
 		return new PartTreeNeo4jQuery(neo4jOperations, mappingContext, queryMethod,
-				new PartTree(queryMethod.getName(), getDomainType(queryMethod)));
+				new PartTree(queryMethod.getName(), getDomainType(queryMethod)), factory);
 	}
 
 	private PartTreeNeo4jQuery(Neo4jOperations neo4jOperations, Neo4jMappingContext mappingContext,
-			Neo4jQueryMethod queryMethod, PartTree tree) {
-		super(neo4jOperations, mappingContext, queryMethod, Neo4jQueryType.fromPartTree(tree));
+			Neo4jQueryMethod queryMethod, PartTree tree, ProjectionFactory factory) {
+		super(neo4jOperations, mappingContext, queryMethod, Neo4jQueryType.fromPartTree(tree), factory);
 
 		this.tree = tree;
 		// Validate parts. Sort properties will be validated by Spring Data already.

@@ -67,7 +67,7 @@ abstract class AbstractReactiveNeo4jQuery extends Neo4jQuerySupport implements R
 
 		ReturnedType returnedType = resultProcessor.getReturnedType();
 		PreparedQuery<?> preparedQuery = prepareQuery(returnedType.getReturnedType(),
-				getInputProperties(resultProcessor), parameterAccessor, null, getMappingFunction(resultProcessor));
+				getInputProperties(resultProcessor, null), parameterAccessor, null, getMappingFunction(resultProcessor));
 
 		Object rawResult = new Neo4jQueryExecution.ReactiveQueryExecution(neo4jOperations).execute(preparedQuery,
 				queryMethod.isCollectionLikeQuery());
