@@ -34,7 +34,10 @@ import org.neo4j.cypherdsl.core.Functions;
 import org.neo4j.cypherdsl.core.Node;
 import org.neo4j.cypherdsl.core.Relationship;
 import org.neo4j.cypherdsl.core.Statement;
+import org.neo4j.driver.types.Entity;
+import org.springframework.data.mapping.PersistentPropertyAccessor;
 import org.springframework.data.neo4j.core.mapping.Constants;
+import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.repository.query.QueryFragments;
 import org.springframework.lang.Nullable;
 
@@ -108,6 +111,17 @@ final class TemplateSupport {
 			Set<String> includedPropertyNames = includedProperties.stream().map(PropertyDescriptor::getName).collect(
 					Collectors.toSet());
 			return includedPropertyNames::contains;
+		}
+	}
+
+	static void updateVersionPropertyIfPossible(
+			Neo4jPersistentEntity<?> entityMetaData,
+			PersistentPropertyAccessor<?> propertyAccessor,
+			Entity newOrUpdatedNode
+	) {
+		if (entityMetaData.hasVersionProperty()) {
+			propertyAccessor.setProperty(
+					entityMetaData.getVersionProperty(), newOrUpdatedNode.get(entityMetaData.getVersionProperty().getPropertyName()).asLong());
 		}
 	}
 

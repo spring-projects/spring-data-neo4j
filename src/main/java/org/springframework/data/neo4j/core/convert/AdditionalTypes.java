@@ -40,6 +40,9 @@ import java.util.UUID;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
 import org.neo4j.driver.exceptions.value.LossyCoercion;
+import org.neo4j.driver.types.Entity;
+import org.neo4j.driver.types.Node;
+import org.neo4j.driver.types.Relationship;
 import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.core.convert.converter.ConditionalConverter;
 import org.springframework.core.convert.converter.ConverterRegistry;
@@ -98,6 +101,9 @@ final class AdditionalTypes {
 		hlp.add(ConverterBuilder.reading(Value.class, URI.class, AdditionalTypes::asURI).andWriting(AdditionalTypes::value));
 		hlp.add(ConverterBuilder.reading(Value.class, TimeZone.class, AdditionalTypes::asTimeZone).andWriting(AdditionalTypes::value));
 		hlp.add(ConverterBuilder.reading(Value.class, ZoneId.class, AdditionalTypes::asZoneId).andWriting(AdditionalTypes::value));
+		hlp.add(ConverterBuilder.reading(Value.class, Entity.class, Value::asEntity));
+		hlp.add(ConverterBuilder.reading(Value.class, Node.class, Value::asNode));
+		hlp.add(ConverterBuilder.reading(Value.class, Relationship.class, Value::asRelationship));
 
 		CONVERTERS = Collections.unmodifiableList(hlp);
 	}

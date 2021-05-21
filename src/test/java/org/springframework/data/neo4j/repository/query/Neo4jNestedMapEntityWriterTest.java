@@ -132,7 +132,6 @@ class Neo4jNestedMapEntityWriterTest {
 		assertThat(result).hasEntrySatisfying("__properties__", isAMap);
 		Map<String, Object> properties = (Map<String, Object>) result.get("__properties__");
 		assertThat(result).containsEntry("__id__", Values.value("TheId"));
-		assertThat(properties).containsEntry("version", Values.value(123L));
 		assertThat(properties).containsEntry("aLocale", Values.value("fr"));
 		assertThat(properties).containsEntry("aURI", Values.value("https://info.michael-simons.eu"));
 		assertThat(properties).containsEntry("someEnum", Values.value("A"));
