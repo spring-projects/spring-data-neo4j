@@ -104,6 +104,9 @@ final class RepositoryQueryTest {
 	@Mock
 	private Neo4jOperations neo4jOperations;
 
+	@Mock
+	private ProjectionFactory projectionFactory;
+
 	@ParameterizedTest
 	@ValueSource(strings = {
 			"RETURN 1 SKIP $skip LIMIT $limit",
@@ -268,7 +271,7 @@ final class RepositoryQueryTest {
 			assertThatExceptionOfType(MappingException.class)
 					.isThrownBy(() -> StringBasedNeo4jQuery
 							.create(neo4jOperations, neo4jMappingContext,
-									QueryMethodEvaluationContextProvider.DEFAULT, method))
+									QueryMethodEvaluationContextProvider.DEFAULT, method, projectionFactory))
 					.withMessage("Expected @Query annotation to have a value, but it did not.");
 		}
 
@@ -279,7 +282,7 @@ final class RepositoryQueryTest {
 			assertThatExceptionOfType(MappingException.class)
 					.isThrownBy(() -> StringBasedNeo4jQuery
 							.create(neo4jOperations, neo4jMappingContext,
-									QueryMethodEvaluationContextProvider.DEFAULT, method))
+									QueryMethodEvaluationContextProvider.DEFAULT, method, projectionFactory))
 					.withMessage("Expected paging query method to have a count query!");
 		}
 
@@ -288,7 +291,7 @@ final class RepositoryQueryTest {
 
 			Neo4jQueryMethod method = neo4jQueryMethod("missingCountQueryOnSlice", Pageable.class);
 			StringBasedNeo4jQuery.create(neo4jOperations, neo4jMappingContext,
-					QueryMethodEvaluationContextProvider.DEFAULT, method);
+					QueryMethodEvaluationContextProvider.DEFAULT, method, projectionFactory);
 			assertThat(logbackCapture.getFormattedMessages())
 					.anyMatch(s -> s.matches(
 							"(?s)You provided a string based query returning a slice for '.*\\.missingCountQueryOnSlice'\\. You might want to consider adding a count query if more slices than you expect are returned\\."));
@@ -299,7 +302,7 @@ final class RepositoryQueryTest {
 
 			Neo4jQueryMethod method = neo4jQueryMethod("missingPlaceHoldersOnPage", Pageable.class);
 			StringBasedNeo4jQuery.create(neo4jOperations, neo4jMappingContext,
-					QueryMethodEvaluationContextProvider.DEFAULT, method);
+					QueryMethodEvaluationContextProvider.DEFAULT, method, projectionFactory);
 			assertThat(logbackCapture.getFormattedMessages())
 					.anyMatch(s -> s.matches(
 							"(?s)The custom query.*MATCH \\(n:Page\\) return n.*for '.*\\.missingPlaceHoldersOnPage' is supposed to work with a page or slicing query but does not have the required parameter placeholders `\\$skip` and `\\$limit`\\..*"));
@@ -310,7 +313,7 @@ final class RepositoryQueryTest {
 
 			Neo4jQueryMethod method = neo4jQueryMethod("missingPlaceHoldersOnSlice", Pageable.class);
 			StringBasedNeo4jQuery.create(neo4jOperations, neo4jMappingContext,
-					QueryMethodEvaluationContextProvider.DEFAULT, method);
+					QueryMethodEvaluationContextProvider.DEFAULT, method, projectionFactory);
 			assertThat(logbackCapture.getFormattedMessages())
 					.anyMatch(s -> s.matches(
 							"(?s)The custom query.*MATCH \\(n:Slice\\) return n.*is supposed to work with a page or slicing query but does not have the required parameter placeholders `\\$skip` and `\\$limit`\\..*"));
@@ -322,7 +325,7 @@ final class RepositoryQueryTest {
 			Neo4jQueryMethod method = neo4jQueryMethod("findAllExtendedEntitiesWithCustomQuery", Sort.class);
 			AbstractNeo4jQuery query =
 					StringBasedNeo4jQuery.create(neo4jOperations, neo4jMappingContext,
-							QueryMethodEvaluationContextProvider.DEFAULT, method);
+							QueryMethodEvaluationContextProvider.DEFAULT, method, projectionFactory);
 
 			Neo4jParameterAccessor parameterAccessor = new Neo4jParameterAccessor(
 					(Neo4jQueryMethod.Neo4jParameters) method.getParameters(),
@@ -349,7 +352,7 @@ final class RepositoryQueryTest {
 			Neo4jQueryMethod method = neo4jQueryMethod("noWarningsPerSe", Pageable.class);
 			AbstractNeo4jQuery query =
 					StringBasedNeo4jQuery.create(neo4jOperations, neo4jMappingContext,
-							QueryMethodEvaluationContextProvider.DEFAULT, method);
+							QueryMethodEvaluationContextProvider.DEFAULT, method, projectionFactory);
 			Neo4jParameterAccessor parameterAccessor = new Neo4jParameterAccessor(
 					(Neo4jQueryMethod.Neo4jParameters) method.getParameters(),
 					new Object[] { PageRequest.of(1, 1, Sort.by("name").ascending()) });
@@ -381,7 +384,7 @@ final class RepositoryQueryTest {
 
 			Neo4jQueryMethod method = neo4jQueryMethod("orderBySpel", Pageable.class);
 			StringBasedNeo4jQuery query = StringBasedNeo4jQuery.create(neo4jOperations, neo4jMappingContext,
-							new ExtensionAwareQueryMethodEvaluationContextProvider(context.getBeanFactory()), method);
+							new ExtensionAwareQueryMethodEvaluationContextProvider(context.getBeanFactory()), method, projectionFactory);
 
 			Neo4jParameterAccessor parameterAccessor = new Neo4jParameterAccessor(
 					(Neo4jQueryMethod.Neo4jParameters) method.getParameters(),
@@ -413,7 +416,7 @@ final class RepositoryQueryTest {
 
 			Neo4jQueryMethod method = neo4jQueryMethod("makeStaticThingsDynamic", String.class, String.class, String.class, String.class, Sort.class);
 			StringBasedNeo4jQuery query = StringBasedNeo4jQuery.create(neo4jOperations, neo4jMappingContext,
-							new ExtensionAwareQueryMethodEvaluationContextProvider(context.getBeanFactory()), method);
+							new ExtensionAwareQueryMethodEvaluationContextProvider(context.getBeanFactory()), method, projectionFactory);
 
 			Neo4jParameterAccessor parameterAccessor = new Neo4jParameterAccessor(
 					(Neo4jQueryMethod.Neo4jParameters) method.getParameters(),
@@ -438,7 +441,7 @@ final class RepositoryQueryTest {
 					String.class);
 
 			StringBasedNeo4jQuery repositoryQuery = spy(StringBasedNeo4jQuery.create(neo4jOperations,
-					neo4jMappingContext, QueryMethodEvaluationContextProvider.DEFAULT, method));
+					neo4jMappingContext, QueryMethodEvaluationContextProvider.DEFAULT, method, projectionFactory));
 
 			// skip conversion
 			doAnswer(invocation -> invocation.getArgument(0)).when(repositoryQuery).convertParameter(any());
@@ -457,7 +460,7 @@ final class RepositoryQueryTest {
 					org.neo4j.driver.types.Point.class, String.class, String.class);
 
 			StringBasedNeo4jQuery repositoryQuery = spy(StringBasedNeo4jQuery.create(neo4jOperations,
-					neo4jMappingContext, QueryMethodEvaluationContextProvider.DEFAULT, method));
+					neo4jMappingContext, QueryMethodEvaluationContextProvider.DEFAULT, method, projectionFactory));
 
 			// skip conversion
 			doAnswer(invocation -> invocation.getArgument(0)).when(repositoryQuery).convertParameter(any());

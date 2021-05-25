@@ -52,9 +52,11 @@ import org.springframework.data.neo4j.integration.shared.common.ProjectionTestLe
 import org.springframework.data.neo4j.integration.shared.common.ProjectionTestRoot;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
+import org.springframework.data.neo4j.repository.query.Query;
 import org.springframework.data.neo4j.test.BookmarkCapture;
 import org.springframework.data.neo4j.test.Neo4jExtension;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
+import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
@@ -287,6 +289,15 @@ class ProjectionIT {
 		assertThat(optionalProjection).map(SimpleProjection::getName).hasValue("root");
 	}
 
+	@Test
+	void findClosedProjection(@Autowired ProjectionPersonRepository repository) {
+
+		PersonSummary personSummary = repository.customQueryByFirstName(FIRST_NAME);
+		assertThat(personSummary).isNotNull();
+		assertThat(personSummary.getFirstName()).isEqualTo(FIRST_NAME);
+		assertThat(personSummary.getLastName()).isEqualTo(LAST_NAME);
+	}
+
 	interface ProjectionPersonRepository extends Neo4jRepository<Person, Long> {
 
 		Collection<NamesOnly> findByLastName(String lastName);
@@ -296,6 +307,9 @@ class ProjectionIT {
 		Slice<NamesOnly> findSliceProjectedBy(Pageable pageable);
 
 		Collection<PersonSummary> findByFirstName(String firstName);
+
+		@Query("MATCH (n:Person) where n.firstName = $firstName return n")
+		PersonSummary customQueryByFirstName(@Param("firstName") String firstName);
 
 		Collection<NamesOnlyDto> findByFirstNameAndLastName(String firstName, String lastName);
 

@@ -20,9 +20,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.springframework.data.neo4j.core.ReactiveDatabaseSelectionProvider;
 import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
 import org.springframework.data.neo4j.core.transaction.ReactiveNeo4jTransactionManager;
+import org.springframework.data.neo4j.repository.query.Query;
 import org.springframework.data.neo4j.test.BookmarkCapture;
+import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.ReactiveTransactionManager;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -152,6 +155,18 @@ class ReactiveProjectionIT {
 				}).verifyComplete();
 	}
 
+	@Test
+	void findClosedProjection(@Autowired ReactiveProjectionPersonRepository repository) {
+
+		StepVerifier.create(repository.customQueryByFirstName(FIRST_NAME))
+				.assertNext(personSummary -> {
+					assertThat(personSummary).isNotNull();
+					assertThat(personSummary.getFirstName()).isEqualTo(FIRST_NAME);
+					assertThat(personSummary.getLastName()).isEqualTo(LAST_NAME);
+				})
+				.verifyComplete();
+	}
+
 	interface ReactiveProjectionPersonRepository extends ReactiveNeo4jRepository<Person, Long> {
 
 		Flux<NamesOnly> findByLastName(String lastName);
@@ -161,6 +176,9 @@ class ReactiveProjectionIT {
 		Flux<NamesOnlyDto> findByFirstNameAndLastName(String firstName, String lastName);
 
 		<T> Flux<T> findByLastNameAndFirstName(String lastName, String firstName, Class<T> projectionClass);
+
+		@Query("MATCH (n:Person) where n.firstName = $firstName return n")
+		Mono<PersonSummary> customQueryByFirstName(@Param("firstName") String firstName);
 	}
 
 	@Configuration

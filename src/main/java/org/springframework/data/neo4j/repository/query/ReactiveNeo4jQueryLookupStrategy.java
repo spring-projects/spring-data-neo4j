@@ -60,10 +60,10 @@ public final class ReactiveNeo4jQueryLookupStrategy implements QueryLookupStrate
 
 		if (namedQueries.hasQuery(namedQueryName)) {
 			return ReactiveStringBasedNeo4jQuery.create(neo4jOperations, mappingContext, evaluationContextProvider,
-					queryMethod, namedQueries.getQuery(namedQueryName));
+					queryMethod, namedQueries.getQuery(namedQueryName), factory);
 		} else if (queryMethod.hasQueryAnnotation()) {
 			return ReactiveStringBasedNeo4jQuery.create(neo4jOperations, mappingContext, evaluationContextProvider,
-					queryMethod);
+					queryMethod, factory);
 		} else if (queryMethod.isCypherBasedProjection()) {
 			return ReactiveCypherdslBasedQuery.create(neo4jOperations, mappingContext, queryMethod);
 		} else {

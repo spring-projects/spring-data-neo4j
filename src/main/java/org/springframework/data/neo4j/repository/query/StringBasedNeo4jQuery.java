@@ -33,6 +33,7 @@ import org.springframework.data.neo4j.core.Neo4jOperations;
 import org.springframework.data.neo4j.core.PreparedQuery;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.repository.query.Neo4jSpelSupport.LiteralReplacement;
+import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.QueryMethodEvaluationContextProvider;
 import org.springframework.data.repository.query.RepositoryQuery;
@@ -97,7 +98,8 @@ final class StringBasedNeo4jQuery extends AbstractNeo4jQuery {
 	 * @return A new instance of a String based Neo4j query.
 	 */
 	static StringBasedNeo4jQuery create(Neo4jOperations neo4jOperations, Neo4jMappingContext mappingContext,
-			QueryMethodEvaluationContextProvider evaluationContextProvider, Neo4jQueryMethod queryMethod) {
+						QueryMethodEvaluationContextProvider evaluationContextProvider, Neo4jQueryMethod queryMethod,
+						ProjectionFactory factory) {
 
 		Query queryAnnotation = queryMethod.getQueryAnnotation()
 				.orElseThrow(() -> new MappingException("Expected @Query annotation on the query method!"));
@@ -132,7 +134,7 @@ final class StringBasedNeo4jQuery extends AbstractNeo4jQuery {
 		}
 
 		return new StringBasedNeo4jQuery(neo4jOperations, mappingContext, evaluationContextProvider, queryMethod,
-				cypherTemplate, Neo4jQueryType.fromDefinition(queryAnnotation));
+				cypherTemplate, Neo4jQueryType.fromDefinition(queryAnnotation), factory);
 	}
 
 	/**
@@ -147,19 +149,19 @@ final class StringBasedNeo4jQuery extends AbstractNeo4jQuery {
 	 */
 	static StringBasedNeo4jQuery create(Neo4jOperations neo4jOperations, Neo4jMappingContext mappingContext,
 			QueryMethodEvaluationContextProvider evaluationContextProvider, Neo4jQueryMethod queryMethod,
-			String cypherTemplate) {
+			String cypherTemplate, ProjectionFactory factory) {
 
 		Assert.hasText(cypherTemplate, "Cannot create String based Neo4j query without a cypher template.");
 
 		return new StringBasedNeo4jQuery(neo4jOperations, mappingContext, evaluationContextProvider, queryMethod,
-				cypherTemplate, Neo4jQueryType.DEFAULT);
+				cypherTemplate, Neo4jQueryType.DEFAULT, factory);
 	}
 
 	private StringBasedNeo4jQuery(Neo4jOperations neo4jOperations, Neo4jMappingContext mappingContext,
 			QueryMethodEvaluationContextProvider evaluationContextProvider, Neo4jQueryMethod queryMethod,
-			String cypherTemplate, Neo4jQueryType queryType) {
+			String cypherTemplate, Neo4jQueryType queryType, ProjectionFactory factory) {
 
-		super(neo4jOperations, mappingContext, queryMethod, queryType);
+		super(neo4jOperations, mappingContext, queryMethod, queryType, factory);
 
 		Parameters<?, ?> methodParameters = queryMethod.getParameters();
 		cypherTemplate = Neo4jSpelSupport.renderQueryIfExpressionOrReturnQuery(cypherTemplate, mappingContext, queryMethod.getEntityInformation(), SPEL_EXPRESSION_PARSER);
