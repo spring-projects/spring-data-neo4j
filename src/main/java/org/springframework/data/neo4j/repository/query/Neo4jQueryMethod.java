@@ -29,6 +29,7 @@ import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.lang.Nullable;
+import org.springframework.util.ClassUtils;
 
 /**
  * Neo4j specific implementation of {@link QueryMethod}. It contains a custom implementation of {@link Parameter} which
@@ -64,7 +65,8 @@ class Neo4jQueryMethod extends QueryMethod {
 
 		Class<?> declaringClass = method.getDeclaringClass();
 		this.repositoryName = declaringClass.getName();
-		this.cypherBasedProjection = CypherdslStatementExecutor.class.isAssignableFrom(declaringClass) || ReactiveCypherdslStatementExecutor.class.isAssignableFrom(declaringClass);
+		this.cypherBasedProjection = ClassUtils.hasMethod(CypherdslStatementExecutor.class, method) || ClassUtils
+				.hasMethod(ReactiveCypherdslStatementExecutor.class, method);
 		this.queryAnnotation = AnnotatedElementUtils.findMergedAnnotation(method, Query.class);
 	}
 

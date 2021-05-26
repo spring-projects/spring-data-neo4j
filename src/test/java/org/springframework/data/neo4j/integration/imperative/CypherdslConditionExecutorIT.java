@@ -203,12 +203,23 @@ class CypherdslConditionExecutorIT {
 		assertThat(repository.exists(firstName.eq(Cypher.literalOf("A")))).isTrue();
 	}
 
+	@Test // GH-2261
+	void standardDerivedFinderMethodsShouldWork(@Autowired ARepositoryWithDerivedFinderMethods repository) {
+
+		assertThat(repository.findByFirstName("Helge")).isNotNull();
+	}
+
 	// tag::sdn-mixins.dynamic-conditions.add-mixin[]
 	interface PersonRepository extends
 			Neo4jRepository<Person, Long>, // <.>
 			CypherdslConditionExecutor<Person> { // <.>
 	}
 	// end::sdn-mixins.dynamic-conditions.add-mixin[]
+
+	interface ARepositoryWithDerivedFinderMethods extends Neo4jRepository<Person, Long>, CypherdslConditionExecutor<Person> {
+
+		Person findByFirstName(String firstName);
+	}
 
 	@Configuration
 	@EnableTransactionManagement
