@@ -15,14 +15,6 @@
  */
 package org.springframework.data.neo4j.repository.query;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-
 import org.apiguardian.api.API;
 import org.neo4j.cypherdsl.core.Condition;
 import org.neo4j.cypherdsl.core.Conditions;
@@ -32,9 +24,18 @@ import org.neo4j.cypherdsl.core.PatternElement;
 import org.neo4j.cypherdsl.core.SortItem;
 import org.neo4j.cypherdsl.core.Statement;
 import org.neo4j.cypherdsl.core.StatementBuilder;
+import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.neo4j.core.mapping.CypherGenerator;
+import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.core.mapping.NodeDescription;
 import org.springframework.lang.Nullable;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
 
 /**
  * Collects the parts of a Cypher query to be handed over to the Cypher generator.
@@ -83,8 +84,8 @@ public final class QueryFragments {
 		this.scalarValueReturn = isScalarValue;
 	}
 
-	public boolean includeField(String fieldName) {
-		return this.returnTuple == null || this.returnTuple.includedProperties.isEmpty()
+	public boolean includeField(PropertyPath fieldName) {
+		return this.returnTuple == null || this.returnTuple.includedProperties.isNotFiltering()
 			   || this.returnTuple.includedProperties.contains(fieldName);
 	}
 
@@ -100,7 +101,7 @@ public final class QueryFragments {
 		this.skip = skip;
 	}
 
-	public void setReturnBasedOn(NodeDescription<?> nodeDescription, List<String> includedProperties,
+	public void setReturnBasedOn(NodeDescription<?> nodeDescription, List<PropertyPath> includedProperties,
 			boolean isDistinct) {
 		this.returnTuple = new ReturnTuple(nodeDescription, includedProperties, isDistinct);
 	}
@@ -151,7 +152,7 @@ public final class QueryFragments {
 	private Expression[] getReturnExpressions() {
 		return returnExpressions.size() > 0
 				? returnExpressions.toArray(new Expression[] {})
-				: CypherGenerator.INSTANCE.createReturnStatementForMatch(getReturnTuple().nodeDescription,
+				: CypherGenerator.INSTANCE.createReturnStatementForMatch((Neo4jPersistentEntity<?>) getReturnTuple().nodeDescription,
 				this::includeField);
 	}
 
@@ -176,13 +177,13 @@ public final class QueryFragments {
 	 */
 	final static class ReturnTuple {
 		final NodeDescription<?> nodeDescription;
-		final Set<String> includedProperties;
+		final MagicPropertyPathClass includedProperties;
 		final boolean isDistinct;
 
-		private ReturnTuple(NodeDescription<?> nodeDescription, List<String> includedProperties, boolean isDistinct) {
+		private ReturnTuple(NodeDescription<?> nodeDescription, List<PropertyPath> includedProperties, boolean isDistinct) {
 			this.nodeDescription = nodeDescription;
-			this.includedProperties =
-					includedProperties == null ? Collections.emptySet() : new HashSet<>(includedProperties);
+			this.includedProperties = new MagicPropertyPathClass(
+					includedProperties == null ? Collections.emptySet() : new HashSet<>(includedProperties), nodeDescription);
 			this.isDistinct = isDistinct;
 		}
 	}
