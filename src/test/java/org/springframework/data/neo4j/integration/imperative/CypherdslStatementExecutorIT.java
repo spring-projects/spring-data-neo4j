@@ -221,12 +221,24 @@ class CypherdslStatementExecutorIT {
 				.containsExactly("Bela B.", "Helge Schneider");
 	}
 
+	@Test // GH-2261
+	void standardDerivedFinderMethodsShouldWork(@Autowired ARepositoryWithDerivedFinderMethods repository) {
+
+		assertThat(repository.findByFirstName("Helge")).isNotNull();
+	}
+
 	// tag::sdn-mixins.using-cypher-dsl-statements.add-mixin[]
 	interface PersonRepository extends
 			Neo4jRepository<Person, Long>,
 			CypherdslStatementExecutor<Person> {
 	}
 	// end::sdn-mixins.using-cypher-dsl-statements.add-mixin[]
+
+	interface ARepositoryWithDerivedFinderMethods extends Neo4jRepository<Person, Long>,
+			CypherdslStatementExecutor<Person> {
+
+		Person findByFirstName(String firstName);
+	}
 
 	@Configuration
 	@EnableTransactionManagement
