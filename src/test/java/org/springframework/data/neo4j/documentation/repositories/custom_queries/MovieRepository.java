@@ -31,11 +31,11 @@ import java.util.Map;
 
 // tag::domain-results-impl[]
 import org.neo4j.cypherdsl.core.Cypher;
+import org.neo4j.cypherdsl.core.Expression;
 import org.neo4j.cypherdsl.core.Functions;
 import org.neo4j.cypherdsl.core.NamedPath;
 import org.neo4j.cypherdsl.core.Node;
 import org.neo4j.cypherdsl.core.Statement;
-import org.neo4j.cypherdsl.core.SymbolicName;
 
 // end::domain-results-impl[]
 
@@ -90,7 +90,7 @@ class DomainResultsImpl implements DomainResults {
 		NamedPath shortestPath = shortestPath("p").definedBy(
 				p1.relationshipBetween(p2).unbounded()
 		);
-		SymbolicName p = shortestPath.getRequiredSymbolicName();
+		Expression p = shortestPath.getRequiredSymbolicName();
 		Statement statement = Cypher.match(shortestPath)
 				.with(p, listWith(name("n"))
 						.in(Functions.nodes(shortestPath))
