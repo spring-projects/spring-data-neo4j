@@ -17,10 +17,14 @@ package org.springframework.data.neo4j.integration.reactive;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import org.neo4j.cypherdsl.core.Cypher;
+import org.neo4j.cypherdsl.core.Node;
+import org.neo4j.cypherdsl.core.Statement;
 import org.springframework.data.neo4j.core.ReactiveDatabaseSelectionProvider;
 import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
 import org.springframework.data.neo4j.core.transaction.ReactiveNeo4jTransactionManager;
 import org.springframework.data.neo4j.repository.query.Query;
+import org.springframework.data.neo4j.repository.support.ReactiveCypherdslStatementExecutor;
 import org.springframework.data.neo4j.test.BookmarkCapture;
 import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.ReactiveTransactionManager;
@@ -156,7 +160,7 @@ class ReactiveProjectionIT {
 	}
 
 	@Test
-	void findClosedProjection(@Autowired ReactiveProjectionPersonRepository repository) {
+	void findStringBasedClosedProjection(@Autowired ReactiveProjectionPersonRepository repository) {
 
 		StepVerifier.create(repository.customQueryByFirstName(FIRST_NAME))
 				.assertNext(personSummary -> {
@@ -167,7 +171,30 @@ class ReactiveProjectionIT {
 				.verifyComplete();
 	}
 
-	interface ReactiveProjectionPersonRepository extends ReactiveNeo4jRepository<Person, Long> {
+	@Test
+	void findCypherDSLClosedProjection(@Autowired ReactiveProjectionPersonRepository repository) {
+
+		StepVerifier.create(repository.findOne(whoHasFirstName(FIRST_NAME), PersonSummary.class))
+				.assertNext(personSummary -> {
+					assertThat(personSummary).isNotNull();
+					assertThat(personSummary.getFirstName()).isEqualTo(FIRST_NAME);
+					assertThat(personSummary.getLastName()).isEqualTo(LAST_NAME);
+				})
+				.verifyComplete();
+	}
+
+	private static Statement whoHasFirstName(String firstName) {
+		Node p = Cypher.node("Person").named("p");
+		return Cypher.match(p)
+				.where(p.property("firstName").isEqualTo(Cypher.anonParameter(firstName)))
+				.returning(
+						p.getRequiredSymbolicName()
+				)
+				.build();
+	}
+
+	interface ReactiveProjectionPersonRepository extends ReactiveNeo4jRepository<Person, Long>,
+			ReactiveCypherdslStatementExecutor<Person> {
 
 		Flux<NamesOnly> findByLastName(String lastName);
 

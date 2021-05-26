@@ -26,6 +26,7 @@ import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.neo4j.core.PreparedQuery;
 import org.springframework.data.neo4j.core.ReactiveNeo4jOperations;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
+import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.util.Assert;
 
 /**
@@ -38,15 +39,15 @@ import org.springframework.util.Assert;
 final class ReactiveCypherdslBasedQuery extends AbstractReactiveNeo4jQuery {
 
 	static ReactiveCypherdslBasedQuery create(ReactiveNeo4jOperations neo4jOperations, Neo4jMappingContext mappingContext,
-			Neo4jQueryMethod queryMethod) {
+			Neo4jQueryMethod queryMethod, ProjectionFactory projectionFactory) {
 
-		return new ReactiveCypherdslBasedQuery(neo4jOperations, mappingContext, queryMethod, Neo4jQueryType.DEFAULT);
+		return new ReactiveCypherdslBasedQuery(neo4jOperations, mappingContext, queryMethod, Neo4jQueryType.DEFAULT, projectionFactory);
 	}
 
 	private ReactiveCypherdslBasedQuery(ReactiveNeo4jOperations neo4jOperations,
 			Neo4jMappingContext mappingContext,
-			Neo4jQueryMethod queryMethod, Neo4jQueryType queryType) {
-		super(neo4jOperations, mappingContext, queryMethod, queryType, null);
+			Neo4jQueryMethod queryMethod, Neo4jQueryType queryType, ProjectionFactory projectionFactory) {
+		super(neo4jOperations, mappingContext, queryMethod, queryType, projectionFactory);
 	}
 
 	@Override

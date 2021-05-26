@@ -25,6 +25,9 @@ import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.neo4j.cypherdsl.core.Cypher;
+import org.neo4j.cypherdsl.core.Node;
+import org.neo4j.cypherdsl.core.Statement;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Session;
@@ -53,6 +56,7 @@ import org.springframework.data.neo4j.integration.shared.common.ProjectionTestRo
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.data.neo4j.repository.query.Query;
+import org.springframework.data.neo4j.repository.support.CypherdslStatementExecutor;
 import org.springframework.data.neo4j.test.BookmarkCapture;
 import org.springframework.data.neo4j.test.Neo4jExtension;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
@@ -290,7 +294,7 @@ class ProjectionIT {
 	}
 
 	@Test
-	void findClosedProjection(@Autowired ProjectionPersonRepository repository) {
+	void findStringBasedClosedProjection(@Autowired ProjectionPersonRepository repository) {
 
 		PersonSummary personSummary = repository.customQueryByFirstName(FIRST_NAME);
 		assertThat(personSummary).isNotNull();
@@ -298,7 +302,26 @@ class ProjectionIT {
 		assertThat(personSummary.getLastName()).isEqualTo(LAST_NAME);
 	}
 
-	interface ProjectionPersonRepository extends Neo4jRepository<Person, Long> {
+	@Test
+	void findCypherDSLClosedProjection(@Autowired ProjectionPersonRepository repository) {
+
+		Optional<PersonSummary> personSummary = repository.findOne(whoHasFirstName(FIRST_NAME), PersonSummary.class);
+		assertThat(personSummary).isPresent();
+		assertThat(personSummary.get().getFirstName()).isEqualTo(FIRST_NAME);
+		assertThat(personSummary.get().getLastName()).isEqualTo(LAST_NAME);
+	}
+
+	private static Statement whoHasFirstName(String firstName) {
+		Node p = Cypher.node("Person").named("p");
+		return Cypher.match(p)
+				.where(p.property("firstName").isEqualTo(Cypher.anonParameter(firstName)))
+				.returning(
+						p.getRequiredSymbolicName()
+				)
+				.build();
+	}
+
+	interface ProjectionPersonRepository extends Neo4jRepository<Person, Long>, CypherdslStatementExecutor<Person>  {
 
 		Collection<NamesOnly> findByLastName(String lastName);
 
