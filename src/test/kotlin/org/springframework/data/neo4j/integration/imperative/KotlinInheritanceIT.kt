@@ -29,10 +29,9 @@ import org.springframework.data.neo4j.core.Neo4jTemplate
 import org.springframework.data.neo4j.core.findById
 import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager
 import org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager
-import org.springframework.data.neo4j.integration.shared.common.ConcreteDataNodeWithAbstractKotlinBase
-import org.springframework.data.neo4j.integration.shared.common.ConcreteDataNodeWithOpenKotlinBase
-import org.springframework.data.neo4j.integration.shared.common.ConcreteNodeWithAbstractKotlinBase
-import org.springframework.data.neo4j.integration.shared.common.ConcreteNodeWithOpenKotlinBase
+import org.springframework.data.neo4j.integration.shared.common.*
+import org.springframework.data.neo4j.repository.Neo4jRepository
+import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories
 import org.springframework.data.neo4j.test.BookmarkCapture
 import org.springframework.data.neo4j.test.Neo4jExtension
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest
@@ -192,8 +191,32 @@ class KotlinInheritanceIT @Autowired constructor(
 		assertThat(cnt).isEqualTo(1L)
 	}
 
+	@Test // GH-2262
+	fun shouldMatchPolymorphicInterfacesWhenFetchingAll(@Autowired cinemaRepository: KotlinCinemaRepository) {
+
+		driver.session(bookmarkCapture.createSessionConfig()).use { session ->
+			session.writeTransaction { tx ->
+				tx.run("CREATE (:KotlinMovie:KotlinAnimationMovie {id: 'movie001', name: 'movie-001', studio: 'Pixar'})<-[:Plays]-(c:KotlinCinema {id:'cine-01', name: 'GrandRex'}) RETURN id(c) AS id")
+						.single()["id"].asLong()
+			}
+			bookmarkCapture.seedWith(session.lastBookmark())
+		}
+
+		val cinemas = cinemaRepository.findAll()
+		assertThat(cinemas).hasSize(1);
+		assertThat(cinemas).first().satisfies { c ->
+			assertThat(c.plays).hasSize(1);
+			assertThat(c.plays).first().isInstanceOf(KotlinAnimationMovie::class.java)
+					.extracting { m -> (m as KotlinAnimationMovie).studio }
+					.isEqualTo("Pixar")
+		}
+	}
+
+	interface KotlinCinemaRepository: Neo4jRepository<KotlinCinema, String>
+
 	@Configuration
 	@EnableTransactionManagement
+	@EnableNeo4jRepositories(considerNestedRepositories = true)
 	open class MyConfig : AbstractNeo4jConfig() {
 		@Bean
 		override fun driver(): Driver {
@@ -203,6 +226,10 @@ class KotlinInheritanceIT @Autowired constructor(
 		@Bean
 		open fun bookmarkCapture(): BookmarkCapture {
 			return BookmarkCapture()
+		}
+
+		override fun getMappingBasePackages(): Collection<String?>? {
+			return setOf(Inheritance::class.java.getPackage().name)
 		}
 
 		@Bean
