@@ -280,6 +280,31 @@ public class Inheritance {
 	// end::interface3[]
 
 	/**
+	 * A holder for a list of different interface implementations, see GH-2262.
+	 */
+	@Node
+	public static class ParentModel2 {
+
+		@Id
+		@GeneratedValue
+		private Long id;
+
+		private List<SomeInterface3> isRelatedTo;
+
+		public Long getId() {
+			return id;
+		}
+
+		public List<SomeInterface3> getIsRelatedTo() {
+			return isRelatedTo;
+		}
+
+		public void setIsRelatedTo(List<SomeInterface3> isRelatedTo) {
+			this.isRelatedTo = isRelatedTo;
+		}
+	}
+
+	/**
 	 * Interface to get implemented with the one below.
 	 */
 	@Node("Mix1")
@@ -779,6 +804,10 @@ public class Inheritance {
 			this.nameEn = nameEn;
 		}
 
+		public String getNameEn() {
+			return nameEn;
+		}
+
 		@Override
 		public boolean equals(Object o) {
 			if (this == o) {
@@ -875,4 +904,25 @@ public class Inheritance {
 			return Objects.hash(super.hashCode(), continentProperty);
 		}
 	}
+
+	/**
+	 * A parent object for some territories, used to test whether those are loaded correct in a polymorphic way.
+	 */
+	@Node
+	public static class Division extends BaseEntity {
+
+		@Relationship
+		List<BaseTerritory> isActiveIn;
+
+		public List<BaseTerritory> getIsActiveIn() {
+			return isActiveIn;
+		}
+
+		public void setIsActiveIn(
+				List<BaseTerritory> isActiveIn) {
+			this.isActiveIn = isActiveIn;
+		}
+	}
+
+
 }
