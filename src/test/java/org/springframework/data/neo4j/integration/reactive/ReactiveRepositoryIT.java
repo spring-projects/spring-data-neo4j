@@ -1110,7 +1110,10 @@ class ReactiveRepositoryIT {
 			assertThat(shouldBeDifferentPersons).size().isEqualTo(1);
 
 			PersonWithRelationshipWithProperties shouldBeDifferentPerson = shouldBeDifferentPersons.get(0);
-			assertThat(shouldBeDifferentPerson).isNotNull().isEqualToComparingOnlyGivenFields(person, "hobbies");
+			assertThat(shouldBeDifferentPerson).isNotNull()
+					.usingRecursiveComparison()
+					.ignoringFieldsMatchingRegexes("^(?:(?!hobbies).)*$")
+					.isEqualTo(person);
 			assertThat(shouldBeDifferentPerson.getName()).isEqualToIgnoringCase("Freddie clone");
 
 			// check content of db

@@ -1361,7 +1361,10 @@ class RepositoryIT {
 			PersonWithRelationshipWithProperties shouldBeDifferentPerson = repository.save(person);
 
 			// then
-			assertThat(shouldBeDifferentPerson).isNotNull().isEqualToComparingOnlyGivenFields(person, "hobbies");
+			assertThat(shouldBeDifferentPerson).isNotNull()
+					.usingRecursiveComparison()
+					.ignoringFieldsMatchingRegexes("^(?:(?!hobbies).)*$")
+					.isEqualTo(person);
 
 			assertThat(shouldBeDifferentPerson.getName()).isEqualToIgnoringCase("Freddie clone");
 
