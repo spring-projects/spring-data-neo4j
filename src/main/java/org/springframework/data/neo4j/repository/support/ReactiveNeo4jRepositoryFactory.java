@@ -74,7 +74,7 @@ final class ReactiveNeo4jRepositoryFactory extends ReactiveRepositoryFactorySupp
 
 		RepositoryFragments fragments = RepositoryFragments.empty();
 
-		SimpleReactiveQueryByExampleExecutor byExampleExecutor = getTargetRepositoryViaReflection(
+		SimpleReactiveQueryByExampleExecutor byExampleExecutor = instantiateClass(
 				SimpleReactiveQueryByExampleExecutor.class, neo4jOperations, mappingContext);
 
 		fragments = fragments.append(RepositoryFragment.implemented(byExampleExecutor));

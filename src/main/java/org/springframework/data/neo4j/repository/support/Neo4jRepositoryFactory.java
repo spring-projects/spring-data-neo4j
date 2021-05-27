@@ -78,7 +78,7 @@ final class Neo4jRepositoryFactory extends RepositoryFactorySupport {
 
 		RepositoryFragments fragments = RepositoryFragments.empty();
 
-		Object byExampleExecutor = getTargetRepositoryViaReflection(SimpleQueryByExampleExecutor.class, neo4jOperations,
+		Object byExampleExecutor = instantiateClass(SimpleQueryByExampleExecutor.class, neo4jOperations,
 				mappingContext);
 
 		fragments = fragments.append(RepositoryFragment.implemented(byExampleExecutor));
@@ -107,7 +107,7 @@ final class Neo4jRepositoryFactory extends RepositoryFactorySupport {
 		}
 
 		Neo4jEntityInformation<?, Object> entityInformation = getEntityInformation(metadata.getDomainType());
-		Object querydslFragment = getTargetRepositoryViaReflection(implementor, entityInformation, neo4jOperations);
+		Object querydslFragment = instantiateClass(implementor, entityInformation, neo4jOperations);
 
 		return RepositoryFragment.implemented(querydslFragment);
 	}
