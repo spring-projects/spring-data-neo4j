@@ -31,6 +31,8 @@ import org.springframework.data.neo4j.integration.shared.common.AbstractPet;
 import org.springframework.data.neo4j.integration.shared.common.Cat;
 import org.springframework.data.neo4j.integration.shared.common.Dog;
 import org.springframework.data.neo4j.integration.shared.common.Inheritance;
+import org.springframework.data.neo4j.integration.shared.common.KotlinAnimationMovie;
+import org.springframework.data.neo4j.integration.shared.common.KotlinCinema;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.data.neo4j.repository.query.Query;
@@ -366,6 +368,25 @@ public class InheritanceMappingIT {
 		assertThat(divisions).first().satisfies(twoDifferentInterfacesHaveBeenLoaded());
 	}
 
+	@Test // GH-2262
+	void shouldMatchPolymorphicKotlinInterfacesWhenFetchingAll(@Autowired CinemaRepository repository) {
+
+		try (Session session = driver.session(); Transaction transaction = session.beginTransaction()) {
+			transaction.run("CREATE (:KotlinMovie:KotlinAnimationMovie {id: 'movie001', name: 'movie-001', studio: 'Pixar'})<-[:Plays]-(c:KotlinCinema {id:'cine-01', name: 'GrandRex'}) RETURN id(c) AS id")
+					.single().get(0).asLong();
+			transaction.commit();
+		}
+
+		List<KotlinCinema> divisions = repository.findAll();
+		assertThat(divisions).hasSize(1);
+		assertThat(divisions).first().satisfies(c -> {
+			assertThat(c.getPlays()).hasSize(1);
+			assertThat(c.getPlays()).first().isInstanceOf(KotlinAnimationMovie.class)
+					.extracting(m -> ((KotlinAnimationMovie) m).getStudio())
+					.isEqualTo("Pixar");
+		});
+	}
+
 	private Consumer<Inheritance.ParentModel2> twoDifferentInterfacesHaveBeenLoaded() {
 		return d -> {
 			assertThat(d.getIsRelatedTo()).hasSize(2);
@@ -420,6 +441,8 @@ public class InheritanceMappingIT {
 	interface DivisionRepository extends Neo4jRepository<Inheritance.Division, Long> {}
 
 	interface ParentModelRepository extends Neo4jRepository<Inheritance.ParentModel2, Long> {}
+
+	interface CinemaRepository extends Neo4jRepository<KotlinCinema, String> {}
 
 	@Configuration
 	@EnableNeo4jRepositories(considerNestedRepositories = true)
