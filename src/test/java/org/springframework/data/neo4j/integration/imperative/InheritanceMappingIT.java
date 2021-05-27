@@ -42,7 +42,10 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -89,15 +92,7 @@ public class InheritanceMappingIT {
 	@Test // GH-2138
 	void collectionsShouldHaveCorrectTypes(@Autowired TerritoryRepository repository) {
 
-		Long territoryId;
-		try (Session session = driver.session()) {
-			territoryId = session.run("CREATE (c:Country:BaseTerritory:BaseEntity{nameEn:'country'}) " +
-					"CREATE (c)-[:LINK]->(:Country:BaseTerritory:BaseEntity{nameEn:'anotherCountry', countryProperty:'large'}) " +
-					"CREATE (c)-[:LINK]->(:Continent:BaseTerritory:BaseEntity{nameEn:'continent', continentProperty:'small'}) " +
-					"CREATE (c)-[:LINK]->(:GenericTerritory:BaseTerritory:BaseEntity{nameEn:'generic'}) " +
-					"return id(c) as id").single()
-					.get(0).asLong();
-		}
+		Long territoryId = createDivisionAndTerritories().get("territoryId").asLong();
 
 		Inheritance.BaseTerritory territory = repository.findById(territoryId).get();
 
@@ -117,12 +112,7 @@ public class InheritanceMappingIT {
 	@Test // GH-2138
 	void resultCollectionShouldHaveCorrectTypes(@Autowired TerritoryRepository repository) {
 
-		try (Session session = driver.session()) {
-			session.run("CREATE (c:Country:BaseTerritory:BaseEntity{nameEn:'country', countryProperty:'baseCountry'}) " +
-					"CREATE (c)-[:LINK]->(:Country:BaseTerritory:BaseEntity{nameEn:'anotherCountry', countryProperty:'large'}) " +
-					"CREATE (c)-[:LINK]->(:Continent:BaseTerritory:BaseEntity{nameEn:'continent', continentProperty:'small'}) " +
-					"CREATE (c)-[:LINK]->(:GenericTerritory:BaseTerritory:BaseEntity{nameEn:'generic'})").consume();
-		}
+		createDivisionAndTerritories();
 
 		List<Inheritance.BaseTerritory> territories = repository.findAll();
 
@@ -324,6 +314,98 @@ public class InheritanceMappingIT {
 		}
 	}
 
+	@Test // GH-2262
+	void shouldMatchPolymorphicClassesWhenFetchedById(@Autowired DivisionRepository repository) {
+
+		Record divisionAndTerritoryId = createDivisionAndTerritories();
+
+		Optional<Inheritance.Division> optionalDivision = repository.findById(divisionAndTerritoryId.get("divisionId").asLong());
+		assertThat(optionalDivision).isPresent();
+		assertThat(optionalDivision).hasValueSatisfying(twoDifferentClassesHaveBeenLoaded());
+	}
+
+	@Test // GH-2262
+	void shouldMatchPolymorphicClassesWhenFetchingAll(@Autowired DivisionRepository repository) {
+
+		createDivisionAndTerritories();
+
+		List<Inheritance.Division> divisions = repository.findAll();
+		assertThat(divisions).hasSize(1);
+		assertThat(divisions).first().satisfies(twoDifferentClassesHaveBeenLoaded());
+	}
+
+	private Consumer<Inheritance.Division> twoDifferentClassesHaveBeenLoaded() {
+		return d -> {
+			assertThat(d.getIsActiveIn()).hasSize(2);
+			assertThat(d.getIsActiveIn()).extracting(Inheritance.BaseTerritory::getNameEn)
+					.containsExactlyInAnyOrder("anotherCountry", "continent");
+			Map<String, Class> classByName = d.getIsActiveIn().stream()
+					.collect(Collectors.toMap(Inheritance.BaseTerritory::getNameEn, v -> v.getClass()));
+			assertThat(classByName).containsEntry("anotherCountry", Inheritance.Country.class);
+			assertThat(classByName).containsEntry("continent", Inheritance.Continent.class);
+		};
+	}
+
+	@Test // GH-2262
+	void shouldMatchPolymorphicInterfacesWhenFetchedById(@Autowired ParentModelRepository repository) {
+
+		Record record = createRelationsToDifferentImplementations();
+
+		Optional<Inheritance.ParentModel2> optionalDivision = repository.findById(record.get(0).asNode().id());
+		assertThat(optionalDivision).isPresent();
+		assertThat(optionalDivision).hasValueSatisfying(twoDifferentInterfacesHaveBeenLoaded());
+	}
+
+	@Test // GH-2262
+	void shouldMatchPolymorphicInterfacesWhenFetchingAll(@Autowired ParentModelRepository repository) {
+
+		createRelationsToDifferentImplementations();
+
+		List<Inheritance.ParentModel2> divisions = repository.findAll();
+		assertThat(divisions).hasSize(1);
+		assertThat(divisions).first().satisfies(twoDifferentInterfacesHaveBeenLoaded());
+	}
+
+	private Consumer<Inheritance.ParentModel2> twoDifferentInterfacesHaveBeenLoaded() {
+		return d -> {
+			assertThat(d.getIsRelatedTo()).hasSize(2);
+			assertThat(d.getIsRelatedTo()).extracting(Inheritance.SomeInterface3::getName)
+					.containsExactlyInAnyOrder("3a", "3b");
+			Map<String, Class> classByName = d.getIsRelatedTo().stream()
+					.collect(Collectors.toMap(Inheritance.SomeInterface3::getName, v -> v.getClass()));
+			assertThat(classByName).containsEntry("3a", Inheritance.SomeInterfaceImpl3a.class);
+			assertThat(classByName).containsEntry("3b", Inheritance.SomeInterfaceImpl3b.class);
+		};
+	}
+
+	private Record createDivisionAndTerritories() {
+		Record result;
+		try (Session session = driver.session()) {
+
+			result = session.run("CREATE (c:Country:BaseTerritory:BaseEntity{nameEn:'country', countryProperty:'baseCountry'}) " +
+								 "CREATE (c)-[:LINK]->(ca:Country:BaseTerritory:BaseEntity{nameEn:'anotherCountry', countryProperty:'large'}) " +
+								 "CREATE (c)-[:LINK]->(cb:Continent:BaseTerritory:BaseEntity{nameEn:'continent', continentProperty:'small'}) " +
+								 "CREATE (c)-[:LINK]->(:GenericTerritory:BaseTerritory:BaseEntity{nameEn:'generic'}) " +
+								 "CREATE (d:Division:BaseEntity{name:'Division'}) " +
+								 "CREATE (d) -[:IS_ACTIVE_IN] -> (ca)" +
+								 "CREATE (d) -[:IS_ACTIVE_IN] -> (cb)" +
+								 "RETURN id(d) as divisionId, id(c) as territoryId").single();
+		}
+		return result;
+	}
+
+	private Record createRelationsToDifferentImplementations() {
+		Record result;
+		try (Session session = driver.session()) {
+
+			result = session.run("CREATE (p:ParentModel2) " +
+								 "CREATE (p)-[:IS_RELATED_TO]->(:SomeInterface3:SomeInterface3a {name: '3a'}) " +
+								 "CREATE (p)-[:IS_RELATED_TO]->(:SomeInterface3:SomeInterface3b {name: '3b'}) " +
+								 "RETURN p").single();
+		}
+		return result;
+	}
+
 	interface PetsRepository extends Neo4jRepository<AbstractPet, Long> {
 
 		@Query("MATCH (n {name: $name}) RETURN n")
@@ -334,6 +416,10 @@ public class InheritanceMappingIT {
 	interface BuildingRepository extends Neo4jRepository<Inheritance.Building, Long> {}
 
 	interface TerritoryRepository extends Neo4jRepository<Inheritance.BaseTerritory, Long> {}
+
+	interface DivisionRepository extends Neo4jRepository<Inheritance.Division, Long> {}
+
+	interface ParentModelRepository extends Neo4jRepository<Inheritance.ParentModel2, Long> {}
 
 	@Configuration
 	@EnableNeo4jRepositories(considerNestedRepositories = true)
