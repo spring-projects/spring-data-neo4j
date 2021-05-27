@@ -19,6 +19,7 @@ import org.springframework.data.annotation.Transient
 import org.springframework.data.neo4j.core.schema.GeneratedValue
 import org.springframework.data.neo4j.core.schema.Id
 import org.springframework.data.neo4j.core.schema.Node
+import org.springframework.data.neo4j.core.schema.Relationship
 
 /**
  * @author Michael J. Simons
@@ -71,3 +72,19 @@ class ConcreteNodeWithOpenKotlinBase(name: String, val anotherProperty: String) 
 @Node
 data class ConcreteDataNodeWithOpenKotlinBase(override @Transient val name: String, val anotherProperty: String) : OpenKotlinBase(name) {
 }
+
+
+@Node
+interface KotlinMovie {
+	val id: String
+	val name: String
+}
+
+
+@Node
+class KotlinCinema(@Id val id: String, val name: String,
+				   @Relationship("Plays", direction = Relationship.Direction.OUTGOING) val plays: List<KotlinMovie>
+)
+
+@Node
+class KotlinAnimationMovie(@Id override val id: String, override val name: String, val studio: String?) : KotlinMovie
