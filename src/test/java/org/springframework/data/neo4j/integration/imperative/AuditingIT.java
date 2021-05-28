@@ -24,10 +24,14 @@ import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.neo4j.driver.Driver;
 import org.springframework.beans.factory.annotation.Autowired;
+// tag::faq.entities.auditing[]
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.auditing.DateTimeProvider;
 import org.springframework.data.domain.AuditorAware;
+
+// end::faq.entities.auditing[]
 import org.springframework.data.neo4j.config.AbstractNeo4jConfig;
 import org.springframework.data.neo4j.config.EnableNeo4jAuditing;
 import org.springframework.data.neo4j.core.DatabaseSelectionProvider;
@@ -127,10 +131,9 @@ class AuditingIT extends AuditingITBase {
 			extends Neo4jRepository<ImmutableAuditableThingWithGeneratedId, String> {}
 
 	@Configuration
+	@Import(AuditingConfig.class)
 	@EnableTransactionManagement
 	@EnableNeo4jRepositories(considerNestedRepositories = true)
-	@EnableNeo4jAuditing(modifyOnCreate = false, auditorAwareRef = "auditorProvider",
-			dateTimeProviderRef = "fixedDateTimeProvider")
 	static class Config extends AbstractNeo4jConfig {
 
 		@Bean
@@ -138,19 +141,9 @@ class AuditingIT extends AuditingITBase {
 			return neo4jConnectionSupport.getDriver();
 		}
 
-		@Bean
-		public AuditorAware<String> auditorProvider() {
-			return () -> Optional.of("A user");
-		}
-
 		@Override
 		protected Collection<String> getMappingBasePackages() {
 			return Collections.singleton(ImmutableAuditableThing.class.getPackage().getName());
-		}
-
-		@Bean
-		public DateTimeProvider fixedDateTimeProvider() {
-			return () -> Optional.of(DEFAULT_CREATION_AND_MODIFICATION_DATE);
 		}
 
 		@Bean
@@ -166,3 +159,24 @@ class AuditingIT extends AuditingITBase {
 		}
 	}
 }
+
+// tag::faq.entities.auditing[]
+@Configuration
+@EnableNeo4jAuditing(
+		modifyOnCreate = false, // <.>
+		auditorAwareRef = "auditorProvider", // <.>
+		dateTimeProviderRef = "fixedDateTimeProvider" // <.>
+)
+class AuditingConfig {
+
+	@Bean
+	public AuditorAware<String> auditorProvider() {
+		return () -> Optional.of("A user");
+	}
+
+	@Bean
+	public DateTimeProvider fixedDateTimeProvider() {
+		return () -> Optional.of(AuditingITBase.DEFAULT_CREATION_AND_MODIFICATION_DATE);
+	}
+}
+// end::faq.entities.auditing[]
