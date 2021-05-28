@@ -23,11 +23,17 @@ import java.util.Collections;
 import org.junit.jupiter.api.Test;
 import org.neo4j.driver.Driver;
 import org.springframework.beans.factory.annotation.Autowired;
+// tag::faq.entities.auditing.callbacks[]
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+// end::faq.entities.auditing.callbacks[]
+import org.springframework.context.annotation.Import;
 import org.springframework.data.neo4j.config.AbstractNeo4jConfig;
 import org.springframework.data.neo4j.core.DatabaseSelectionProvider;
+// tag::faq.entities.auditing.callbacks[]
 import org.springframework.data.neo4j.core.mapping.callback.BeforeBindCallback;
+
+// end::faq.entities.auditing.callbacks[]
 import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
 import org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager;
 import org.springframework.data.neo4j.integration.imperative.repositories.ThingRepository;
@@ -73,17 +79,10 @@ class CallbacksIT extends CallbacksITBase {
 	}
 
 	@Configuration
+	@Import(CallbacksConfig.class)
 	@EnableNeo4jRepositories
 	@EnableTransactionManagement
 	static class Config extends AbstractNeo4jConfig {
-
-		@Bean
-		BeforeBindCallback<ThingWithAssignedId> nameChanger() {
-			return entity -> {
-				ThingWithAssignedId updatedThing = new ThingWithAssignedId(entity.getTheId(), entity.getName() + " (Edited)");
-				return updatedThing;
-			};
-		}
 
 		@Bean
 		public Driver driver() {
@@ -104,3 +103,18 @@ class CallbacksIT extends CallbacksITBase {
 
 	}
 }
+
+// tag::faq.entities.auditing.callbacks[]
+@Configuration
+class CallbacksConfig {
+
+	@Bean
+	BeforeBindCallback<ThingWithAssignedId> nameChanger() {
+		return entity -> {
+			ThingWithAssignedId updatedThing = new ThingWithAssignedId(
+					entity.getTheId(), entity.getName() + " (Edited)");
+			return updatedThing;
+		};
+	}
+}
+// end::faq.entities.auditing.callbacks[]
