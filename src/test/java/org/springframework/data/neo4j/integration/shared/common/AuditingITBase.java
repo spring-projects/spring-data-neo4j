@@ -41,7 +41,7 @@ public abstract class AuditingITBase {
 	protected static final String EXISTING_THING_NAME = "An old name";
 	protected static final String EXISTING_THING_CREATED_BY = "The creator";
 	protected static final LocalDateTime EXISTING_THING_CREATED_AT = LocalDateTime.of(2013, 5, 6, 8, 0);
-	protected static final LocalDateTime DEFAULT_CREATION_AND_MODIFICATION_DATE = LocalDateTime.of(2018, 7, 1, 8, 0);
+	public static final LocalDateTime DEFAULT_CREATION_AND_MODIFICATION_DATE = LocalDateTime.of(2018, 7, 1, 8, 0);
 
 	private final Driver driver;
 
