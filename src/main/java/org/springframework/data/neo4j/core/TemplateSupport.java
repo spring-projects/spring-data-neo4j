@@ -24,6 +24,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.BiFunction;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -35,11 +36,16 @@ import org.neo4j.cypherdsl.core.Node;
 import org.neo4j.cypherdsl.core.Relationship;
 import org.neo4j.cypherdsl.core.Statement;
 import org.neo4j.driver.types.Entity;
+import org.neo4j.driver.types.MapAccessor;
+import org.neo4j.driver.types.TypeSystem;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
 import org.springframework.data.neo4j.core.mapping.Constants;
+import org.springframework.data.neo4j.core.mapping.EntityInstanceWithSource;
+import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.repository.query.QueryFragments;
 import org.springframework.lang.Nullable;
+import org.springframework.util.Assert;
 
 /**
  * Utilities for templates.
@@ -200,6 +206,30 @@ final class TemplateSupport {
 					.skip(queryFragments.getSkip())
 					.limit(queryFragments.getLimit()).build();
 		}
+	}
+
+	/**
+	 * Checks if the {@code domainType} is a known entity in the {@code mappingContext} and retrieves the mapping function
+	 * for it. If the {@code resultType} is not an interface, a DTO based projection further down the chain is assumed
+	 * and therefor a call to {@link EntityInstanceWithSource#decorateMappingFunction(BiFunction)} is made, so that
+	 * a {@link org.springframework.data.neo4j.core.mapping.DtoInstantiatingConverter} can be used with the query result.
+	 *
+	 * @param mappingContext Needed for retrieving the original mapping function
+	 * @param domainType     The actual domain type (a {@link org.springframework.data.neo4j.core.schema.Node}.
+	 * @param resultType     An optional different result type
+	 * @param <T>            The domain type
+	 * @return A mapping function
+	 */
+	static <T> BiFunction<TypeSystem, MapAccessor, ?> getAndDecorateMappingFunction(
+			Neo4jMappingContext mappingContext, Class<T> domainType, @Nullable Class<?> resultType) {
+
+		Assert.notNull(mappingContext.getPersistentEntity(domainType), "Cannot get or create persistent entity.");
+		BiFunction<TypeSystem, MapAccessor, ?> mappingFunction = mappingContext
+				.getRequiredMappingFunctionFor(domainType);
+		if (resultType != null && domainType != resultType && !resultType.isInterface()) {
+			mappingFunction = EntityInstanceWithSource.decorateMappingFunction(mappingFunction);
+		}
+		return mappingFunction;
 	}
 
 	private TemplateSupport() {

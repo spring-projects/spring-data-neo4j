@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -47,6 +48,8 @@ import org.neo4j.driver.exceptions.NoSuchRecordException;
 import org.neo4j.driver.summary.ResultSummary;
 import org.neo4j.driver.summary.SummaryCounters;
 import org.neo4j.driver.types.Entity;
+import org.neo4j.driver.types.MapAccessor;
+import org.neo4j.driver.types.TypeSystem;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.BeanFactory;
@@ -61,6 +64,8 @@ import org.springframework.data.neo4j.core.TemplateSupport.NodesAndRelationships
 import org.springframework.data.neo4j.core.mapping.Constants;
 import org.springframework.data.neo4j.core.mapping.CreateRelationshipStatementHolder;
 import org.springframework.data.neo4j.core.mapping.CypherGenerator;
+import org.springframework.data.neo4j.core.mapping.DtoInstantiatingConverter;
+import org.springframework.data.neo4j.core.mapping.EntityInstanceWithSource;
 import org.springframework.data.neo4j.core.mapping.MappingSupport;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
@@ -190,24 +195,29 @@ public final class Neo4jTemplate implements Neo4jOperations, FluentNeo4jOperatio
 
 	@Override
 	public <T> List<T> findAll(Class<T> domainType) {
+
+		return doFindAll(domainType, null);
+	}
+
+	private <T> List<T> doFindAll(Class<T> domainType, Class<?> resultType) {
 		Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getPersistentEntity(domainType);
-		return createExecutableQuery(domainType, QueryFragmentsAndParameters.forFindAll(entityMetaData))
+		return createExecutableQuery(domainType, resultType, QueryFragmentsAndParameters.forFindAll(entityMetaData))
 				.getResults();
 	}
 
 	@Override
 	public <T> List<T> findAll(Statement statement, Class<T> domainType) {
-		return createExecutableQuery(domainType, statement, Collections.emptyMap()).getResults();
+		return createExecutableQuery(domainType, statement).getResults();
 	}
 
 	@Override
 	public <T> List<T> findAll(Statement statement, Map<String, Object> parameters, Class<T> domainType) {
-		return createExecutableQuery(domainType, statement, parameters).getResults();
+		return createExecutableQuery(domainType, null, statement, parameters).getResults();
 	}
 
 	@Override
 	public <T> Optional<T> findOne(Statement statement, Map<String, Object> parameters, Class<T> domainType) {
-		return createExecutableQuery(domainType, statement, parameters).getSingleResult();
+		return createExecutableQuery(domainType, null, statement, parameters).getSingleResult();
 	}
 
 	@Override
@@ -217,12 +227,12 @@ public final class Neo4jTemplate implements Neo4jOperations, FluentNeo4jOperatio
 
 	@Override
 	public <T> List<T> findAll(String cypherQuery, Map<String, Object> parameters, Class<T> domainType) {
-		return createExecutableQuery(domainType, cypherQuery, parameters).getResults();
+		return createExecutableQuery(domainType, null, cypherQuery, parameters).getResults();
 	}
 
 	@Override
 	public <T> Optional<T> findOne(String cypherQuery, Map<String, Object> parameters, Class<T> domainType) {
-		return createExecutableQuery(domainType, cypherQuery, parameters).getSingleResult();
+		return createExecutableQuery(domainType, null, cypherQuery, parameters).getSingleResult();
 	}
 
 	@Override
@@ -230,13 +240,14 @@ public final class Neo4jTemplate implements Neo4jOperations, FluentNeo4jOperatio
 		return new FluentFindOperationSupport(this).find(domainType);
 	}
 
-	<T, R> List<R> doFind(String cypherQuery, Map<String, Object> parameters, Class<T> domainType, Class<R> resultType, TemplateSupport.FetchType fetchType) {
+	@SuppressWarnings("unchecked")
+	<T, R> List<R> doFind(@Nullable String cypherQuery, @Nullable Map<String, Object> parameters, Class<T> domainType, Class<R> resultType, TemplateSupport.FetchType fetchType) {
 
 		List<T> intermediaResults = Collections.emptyList();
 		if (cypherQuery == null && fetchType == TemplateSupport.FetchType.ALL) {
-			intermediaResults = findAll(domainType);
+			intermediaResults = doFindAll(domainType, resultType);
 		} else {
-			ExecutableQuery<T> executableQuery = createExecutableQuery(domainType, cypherQuery,
+			ExecutableQuery<T> executableQuery = createExecutableQuery(domainType, resultType, cypherQuery,
 					parameters == null ? Collections.emptyMap() : parameters);
 			switch (fetchType) {
 				case ALL:
@@ -253,8 +264,17 @@ public final class Neo4jTemplate implements Neo4jOperations, FluentNeo4jOperatio
 			return (List<R>) intermediaResults;
 		}
 
+		if (resultType.isInterface()) {
+			return intermediaResults.stream()
+					.map(instance -> projectionFactory.createProjection(resultType, instance))
+					.collect(Collectors.toList());
+		}
+
+		DtoInstantiatingConverter converter = new DtoInstantiatingConverter(resultType, neo4jMappingContext);
 		return intermediaResults.stream()
-				.map(instance -> projectionFactory.createProjection(resultType, instance))
+				.map(EntityInstanceWithSource.class::cast)
+				.map(converter::convert)
+				.map(v -> (R) v)
 				.collect(Collectors.toList());
 	}
 
@@ -262,7 +282,7 @@ public final class Neo4jTemplate implements Neo4jOperations, FluentNeo4jOperatio
 	public <T> Optional<T> findById(Object id, Class<T> domainType) {
 		Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getPersistentEntity(domainType);
 
-		return createExecutableQuery(domainType,
+		return createExecutableQuery(domainType, null,
 				QueryFragmentsAndParameters.forFindById(entityMetaData,
 						convertIdValues(entityMetaData.getRequiredIdProperty(), id)))
 				.getSingleResult();
@@ -272,7 +292,7 @@ public final class Neo4jTemplate implements Neo4jOperations, FluentNeo4jOperatio
 	public <T> List<T> findAllById(Iterable<?> ids, Class<T> domainType) {
 		Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getPersistentEntity(domainType);
 
-		return createExecutableQuery(domainType,
+		return createExecutableQuery(domainType, null,
 				QueryFragmentsAndParameters.forFindByAllId(
 						entityMetaData, convertIdValues(entityMetaData.getRequiredIdProperty(), ids)))
 				.getResults();
@@ -520,7 +540,7 @@ public final class Neo4jTemplate implements Neo4jOperations, FluentNeo4jOperatio
 		parameters.put(nameOfParameter, convertIdValues(entityMetaData.getRequiredIdProperty(), id));
 		parameters.put(Constants.NAME_OF_VERSION_PARAM, versionValue);
 
-		createExecutableQuery(domainType, statement, parameters).getSingleResult().orElseThrow(
+		createExecutableQuery(domainType, null, statement, parameters).getSingleResult().orElseThrow(
 				() -> new OptimisticLockingFailureException(OPTIMISTIC_LOCKING_ERROR_MESSAGE)
 		);
 
@@ -558,23 +578,28 @@ public final class Neo4jTemplate implements Neo4jOperations, FluentNeo4jOperatio
 				summary.counters().relationshipsDeleted()));
 	}
 
-	private <T> ExecutableQuery<T> createExecutableQuery(Class<T> domainType, String cypherStatement) {
-		return createExecutableQuery(domainType, cypherStatement, Collections.emptyMap());
+	private <T> ExecutableQuery<T> createExecutableQuery(Class<T> domainType, Statement statement) {
+		return createExecutableQuery(domainType, null, statement, Collections.emptyMap());
 	}
 
-	private <T> ExecutableQuery<T> createExecutableQuery(Class<T> domainType, Statement statement, Map<String, Object> parameters) {
-
-		return createExecutableQuery(domainType, renderer.render(statement), TemplateSupport.mergeParameters(statement, parameters));
+	private <T> ExecutableQuery<T> createExecutableQuery(Class<T> domainType, String cyperQuery) {
+		return createExecutableQuery(domainType, null, cyperQuery, Collections.emptyMap());
 	}
 
-	private <T> ExecutableQuery<T> createExecutableQuery(Class<T> domainType, String cypherStatement,
+	private <T> ExecutableQuery<T> createExecutableQuery(Class<T> domainType, @Nullable Class<?> resultType, Statement statement, Map<String, Object> parameters) {
+
+		return createExecutableQuery(domainType, resultType, renderer.render(statement), TemplateSupport.mergeParameters(statement, parameters));
+	}
+
+	private <T> ExecutableQuery<T> createExecutableQuery(Class<T> domainType, @Nullable Class<?> resultType,  @Nullable String cypherStatement,
 			Map<String, Object> parameters) {
 
-		Assert.notNull(neo4jMappingContext.getPersistentEntity(domainType), "Cannot get or create persistent entity.");
+		BiFunction<TypeSystem, MapAccessor, ?> mappingFunction = TemplateSupport
+				.getAndDecorateMappingFunction(neo4jMappingContext, domainType, resultType);
 		PreparedQuery<T> preparedQuery = PreparedQuery.queryFor(domainType)
 				.withCypherQuery(cypherStatement)
 				.withParameters(parameters)
-				.usingMappingFunction(neo4jMappingContext.getRequiredMappingFunctionFor(domainType))
+				.usingMappingFunction(mappingFunction)
 				.build();
 
 		return toExecutableQuery(preparedQuery);
@@ -796,15 +821,18 @@ public final class Neo4jTemplate implements Neo4jOperations, FluentNeo4jOperatio
 	public <T> ExecutableQuery<T> toExecutableQuery(Class<T> domainType,
 													QueryFragmentsAndParameters queryFragmentsAndParameters) {
 
-		return createExecutableQuery(domainType, queryFragmentsAndParameters);
+		return createExecutableQuery(domainType, null, queryFragmentsAndParameters);
 	}
 
-	private <T> ExecutableQuery<T> createExecutableQuery(Class<T> domainType,
-														 QueryFragmentsAndParameters queryFragmentsAndParameters) {
 
+	private <T> ExecutableQuery<T> createExecutableQuery(Class<T> domainType, Class<?> resultType,
+ 			QueryFragmentsAndParameters queryFragmentsAndParameters) {
+
+		BiFunction<TypeSystem, MapAccessor, ?> mappingFunction = TemplateSupport
+				.getAndDecorateMappingFunction(neo4jMappingContext, domainType, resultType);
 		PreparedQuery<T> preparedQuery = PreparedQuery.queryFor(domainType)
 				.withQueryFragmentsAndParameters(queryFragmentsAndParameters)
-				.usingMappingFunction(neo4jMappingContext.getRequiredMappingFunctionFor(domainType))
+				.usingMappingFunction(mappingFunction)
 				.build();
 		return toExecutableQuery(preparedQuery);
 	}

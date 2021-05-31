@@ -18,6 +18,8 @@ package org.springframework.data.neo4j.integration.imperative;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
+import lombok.Data;
+
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -313,6 +315,16 @@ class Neo4jTemplateIT {
 		String getLastName();
 	}
 
+	@Data
+	static class DtoPersonProjection {
+
+		/** The ID is required in a project that should be saved. */
+		private final Long id;
+
+		private String lastName;
+		private String firstName;
+	}
+
 	@Test
 	void saveAsWithOpenProjectionShouldWork() {
 
@@ -477,6 +489,23 @@ class Neo4jTemplateIT {
 		List<OpenProjection> people = neo4jTemplate.find(Person.class).as(OpenProjection.class).all();
 		assertThat(people).extracting(OpenProjection::getFullName)
 				.containsExactlyInAnyOrder("Helge Schnitzel", "Michael Siemons", "Bela B.", "A LA");
+	}
+
+	@Test // GH-2270
+	void executableFindShouldWorkAllDomainObjectsProjectedDTOShouldWork() {
+		List<DtoPersonProjection> people = neo4jTemplate.find(Person.class).as(DtoPersonProjection.class).all();
+		assertThat(people).extracting(DtoPersonProjection::getLastName)
+				.containsExactlyInAnyOrder("Schnitzel", "Siemons", "B.", "LA");
+	}
+
+	@Test // GH-2270
+	void executableFindShouldWorkOneDomainObjectsProjectedDTOShouldWork() {
+		Optional<DtoPersonProjection> person = neo4jTemplate
+				.find(Person.class).as(DtoPersonProjection.class)
+				.matching("MATCH (p:Person {lastName: $lastName}) RETURN p", Collections.singletonMap("lastName", "Schnitzel"))
+				.one();
+		assertThat(person).map(DtoPersonProjection::getLastName)
+				.hasValue("Schnitzel");
 	}
 
 	@Test
