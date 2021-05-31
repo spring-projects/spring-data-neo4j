@@ -56,6 +56,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.mapping.MappingException;
 import org.springframework.data.mapping.PersistentProperty;
 import org.springframework.data.mapping.PropertyPath;
+import org.springframework.data.neo4j.core.schema.TargetNode;
 import org.springframework.data.util.TypeInformation;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
@@ -520,7 +521,7 @@ public enum CypherGenerator {
 		if (nodeDescription.containsPossibleCircles(includeField)) {
 			return createGenericReturnStatement();
 		} else {
-			return new Expression[]{projectPropertiesAndRelationships(null, nodeDescription.getTypeInformation(), nodeDescription, Constants.NAME_OF_ROOT_NODE, includeField, processedRelationships)};
+			return new Expression[]{projectPropertiesAndRelationships(null, nodeDescription.getTypeInformation(), nodeDescription, Constants.NAME_OF_ROOT_NODE, includeField, null, processedRelationships)};
 		}
 	}
 
@@ -533,13 +534,13 @@ public enum CypherGenerator {
 	}
 
 	private MapProjection projectPropertiesAndRelationships(PropertyPath parentPath, TypeInformation<?> parentType, Neo4jPersistentEntity<?> nodeDescription, SymbolicName nodeName,
-			Predicate<PropertyPath> includedProperties, List<RelationshipDescription> processedRelationships) {
-
-		List<Object> propertiesProjection = projectNodeProperties(parentPath, parentType, nodeDescription, nodeName, includedProperties);
-		List<Object> contentOfProjection = new ArrayList<>(propertiesProjection);
+			Predicate<PropertyPath> includedProperties, RelationshipDescription relationshipDescription, List<RelationshipDescription> processedRelationships) {
 
 		Collection<RelationshipDescription> relationships = nodeDescription.getRelationshipsInHierarchy(includedProperties);
 		relationships.removeIf(r -> !includedProperties.test(PropertyPath.from(r.getFieldName(), nodeDescription.getTypeInformation())));
+
+		List<Object> propertiesProjection = projectNodeProperties(parentPath, parentType, nodeDescription, nodeName, relationshipDescription, includedProperties);
+		List<Object> contentOfProjection = new ArrayList<>(propertiesProjection);
 
 		contentOfProjection.addAll(generateListsFor(parentPath, parentType, relationships, nodeName, includedProperties, processedRelationships));
 		return Cypher.anyNode(nodeName).project(contentOfProjection);
@@ -551,7 +552,7 @@ public enum CypherGenerator {
 	 * self-reflecting fields. Example with self-reflection and explicit value: {@code n {.id, name: n.name}}.
 	 */
 	private List<Object> projectNodeProperties(PropertyPath parentPath, TypeInformation<?> parentType, NodeDescription<?> nodeDescription, SymbolicName nodeName,
-											   Predicate<PropertyPath> includeField) {
+											   RelationshipDescription relationshipDescription, Predicate<PropertyPath> includeField) {
 
 		List<Object> nodePropertiesProjection = new ArrayList<>();
 		Node node = anyNode(nodeName);
@@ -570,7 +571,16 @@ public enum CypherGenerator {
 				from = PropertyPath.from(property.getFieldName(), ((DefaultNeo4jPersistentProperty) graphProperty).getOwner().getTypeInformation());
 			} else {
 				try {
-					from = PropertyPath.from(parentPath.toDotPath() + "." + property.getFieldName(), parentType);
+					if (relationshipDescription.hasRelationshipProperties()) {
+						String relationshipPropertyTargetNodeFieldName =
+								((Neo4jPersistentEntity<?>) relationshipDescription.getRelationshipPropertiesEntity())
+										.getPersistentProperty(TargetNode.class).getFieldName();
+
+						from = 	PropertyPath.from(parentPath.toDotPath() + "." + relationshipPropertyTargetNodeFieldName + "." + property.getFieldName(), parentType);
+					} else {
+
+						from = PropertyPath.from(parentPath.toDotPath() + "." + property.getFieldName(), parentType);
+					}
 				} catch (Exception e) {
 					continue;
 				}
@@ -645,7 +655,7 @@ public enum CypherGenerator {
 			relationship = relationship.named(relationshipTargetName);
 
 			MapProjection mapProjection = projectPropertiesAndRelationships(parentPath, parentType, endNodeDescription, relationshipFieldName,
-					includedProperties, new ArrayList<>(processedRelationships));
+					includedProperties, relationshipDescription, new ArrayList<>(processedRelationships));
 
 			if (relationshipDescription.hasRelationshipProperties()) {
 				relationship = relationship.named(relationshipSymbolicName);
@@ -663,7 +673,7 @@ public enum CypherGenerator {
 					: startNode.relationshipFrom(endNode, relationshipType);
 
 			MapProjection mapProjection = projectPropertiesAndRelationships(parentPath, parentType, endNodeDescription, relationshipFieldName,
-					includedProperties, new ArrayList<>(processedRelationships));
+					includedProperties, relationshipDescription, new ArrayList<>(processedRelationships));
 
 			if (relationshipDescription.hasRelationshipProperties()) {
 				relationship = relationship.named(relationshipSymbolicName);

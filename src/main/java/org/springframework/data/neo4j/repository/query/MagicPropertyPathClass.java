@@ -70,7 +70,7 @@ public class MagicPropertyPathClass {
 	}
 
 	public boolean contains(PropertyPath fieldName) {
-		boolean ownerMatches = ownerMatchesWithProjection(fieldName.getOwningType());
+		boolean ownerMatches = ownerMatchesWithProjection(fieldName);
 		if (!ownerMatches) {
 			return false;
 		}
@@ -83,8 +83,8 @@ public class MagicPropertyPathClass {
 		return false;
 	}
 
-	private boolean ownerMatchesWithProjection(TypeInformation<?> owningType) {
-		return owningType.getType().equals(originalClass);
+	private boolean ownerMatchesWithProjection(PropertyPath fieldName) {
+		return fieldName.getOwningType().getType().equals(originalClass) || properties.contains(fieldName);
 	}
 
 	private boolean isProjecting() {
