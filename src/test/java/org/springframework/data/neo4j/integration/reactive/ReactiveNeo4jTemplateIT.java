@@ -375,7 +375,7 @@ class ReactiveNeo4jTemplateIT {
 				.as(StepVerifier::create)
 				.expectNextMatches(
 						person -> person.getFirstName().equals("Micha") && person.getLastName().equals("Simons")
-								  && person.getAddress() == null)
+								  && person.getAddress() != null)
 				.verifyComplete();
 	}
 
