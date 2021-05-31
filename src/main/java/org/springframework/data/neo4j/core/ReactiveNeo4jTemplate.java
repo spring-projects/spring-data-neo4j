@@ -96,7 +96,9 @@ import org.springframework.util.Assert;
  * @since 6.0
  */
 @API(status = API.Status.STABLE, since = "6.0")
-public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, ReactiveFluentNeo4jOperations, BeanClassLoaderAware, BeanFactoryAware {
+public final class ReactiveNeo4jTemplate implements
+		ReactiveNeo4jOperations, ReactiveFluentNeo4jOperations, ReactiveFluentSaveOperation,
+		BeanClassLoaderAware, BeanFactoryAware {
 
 	private static final LogAccessor log = new LogAccessor(LogFactory.getLog(ReactiveNeo4jTemplate.class));
 
@@ -970,6 +972,11 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Rea
 	@Override
 	public void setBeanClassLoader(ClassLoader classLoader) {
 		this.beanClassLoader = beanClassLoader == null ? org.springframework.util.ClassUtils.getDefaultClassLoader() : beanClassLoader;
+	}
+
+	@Override
+	public <T> ExecutableSave<T> save(Class<T> domainType) {
+		throw new UnsupportedOperationException("Not implemented.");
 	}
 
 	final class DefaultReactiveExecutableQuery<T> implements ExecutableQuery<T> {

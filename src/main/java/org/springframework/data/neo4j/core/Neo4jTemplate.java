@@ -96,7 +96,9 @@ import org.springframework.util.Assert;
  * @since 6.0
  */
 @API(status = API.Status.STABLE, since = "6.0")
-public final class Neo4jTemplate implements Neo4jOperations, FluentNeo4jOperations, BeanClassLoaderAware, BeanFactoryAware {
+public final class Neo4jTemplate implements
+		Neo4jOperations, FluentNeo4jOperations, FluentSaveOperation,
+		BeanClassLoaderAware, BeanFactoryAware {
 
 	private static final LogAccessor log = new LogAccessor(LogFactory.getLog(Neo4jTemplate.class));
 
@@ -842,6 +844,11 @@ public final class Neo4jTemplate implements Neo4jOperations, FluentNeo4jOperatio
 	public <T> ExecutableQuery<T> toExecutableQuery(PreparedQuery<T> preparedQuery) {
 
 		return new DefaultExecutableQuery<>(preparedQuery);
+	}
+
+	@Override
+	public <T> ExecutableSave<T> save(Class<T> domainType) {
+		throw new UnsupportedOperationException("Not implemented.");
 	}
 
 	final class DefaultExecutableQuery<T> implements ExecutableQuery<T> {

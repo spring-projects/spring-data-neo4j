@@ -18,12 +18,6 @@ package org.springframework.data.neo4j.integration.reactive;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.neo4j.cypherdsl.core.Cypher.parameter;
 
-import org.springframework.data.neo4j.core.ReactiveDatabaseSelectionProvider;
-import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
-import org.springframework.data.neo4j.core.transaction.ReactiveNeo4jTransactionManager;
-import org.springframework.data.neo4j.test.BookmarkCapture;
-import org.springframework.transaction.ReactiveTransactionManager;
-
 import lombok.Data;
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
@@ -55,13 +49,18 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.data.neo4j.config.AbstractReactiveNeo4jConfig;
+import org.springframework.data.neo4j.core.ReactiveDatabaseSelectionProvider;
 import org.springframework.data.neo4j.core.ReactiveNeo4jTemplate;
+import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
+import org.springframework.data.neo4j.core.transaction.ReactiveNeo4jTransactionManager;
 import org.springframework.data.neo4j.integration.shared.common.Person;
 import org.springframework.data.neo4j.integration.shared.common.PersonWithAllConstructor;
 import org.springframework.data.neo4j.integration.shared.common.ThingWithGeneratedId;
+import org.springframework.data.neo4j.test.BookmarkCapture;
 import org.springframework.data.neo4j.test.Neo4jExtension;
 import org.springframework.data.neo4j.test.Neo4jExtension.Neo4jConnectionSupport;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
+import org.springframework.transaction.ReactiveTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 /**
@@ -352,6 +351,31 @@ class ReactiveNeo4jTemplateIT {
 					assertThat(p.getLastName()).isEqualTo("Simons");
 					assertThat(p.getAddress()).isNotNull();
 				})
+				.verifyComplete();
+	}
+
+	@Test // GH-2215
+	void saveProjectionShouldWork(@Autowired ReactiveNeo4jTemplate template) {
+
+		template
+				.find(Person.class)
+				.as(DtoPersonProjection.class)
+				.matching("MATCH (p:Person {lastName: $lastName}) RETURN p", Collections.singletonMap("lastName", "Siemons"))
+				.one()
+				.flatMap(p -> {
+					p.setFirstName("Micha");
+					p.setLastName("Simons");
+					return template.save(Person.class).one(p);
+				})
+				.doOnNext(signal -> {
+					assertThat(signal.getFirstName()).isEqualTo("Micha");
+					assertThat(signal.getLastName()).isEqualTo("Simons");
+				})
+				.flatMap(savedProjection -> template.findById(savedProjection.getId(), Person.class))
+				.as(StepVerifier::create)
+				.expectNextMatches(
+						person -> person.getFirstName().equals("Micha") && person.getLastName().equals("Simons")
+								  && person.getAddress() == null)
 				.verifyComplete();
 	}
 

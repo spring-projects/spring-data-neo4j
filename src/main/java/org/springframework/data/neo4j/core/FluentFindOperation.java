@@ -26,11 +26,11 @@ import org.springframework.lang.Nullable;
 
 /**
  * {@link FluentFindOperation} allows creation and execution of Neo4j find operations in a fluent API style.
- * <br />
+ * <p>
  * The starting {@literal domainType} is used for mapping the query provided via {@code by} into the
  * Neo4j specific representation. By default, the originating {@literal domainType} is also used for mapping back the
  * result. However, it is possible to define an different {@literal returnType} via
- * {@code as} to mapping the result.<br />
+ * {@code as} to mapping the result.
  *
  * @author Michael Simons
  * @since 6.1

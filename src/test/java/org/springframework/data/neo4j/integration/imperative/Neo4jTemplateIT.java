@@ -325,6 +325,35 @@ class Neo4jTemplateIT {
 		private String firstName;
 	}
 
+	@Test // GH-2215
+	void saveProjectionShouldWork() {
+
+		// Using a query on purpose so that the address is null
+		DtoPersonProjection dtoPersonProjection = neo4jTemplate
+				.find(Person.class)
+				.as(DtoPersonProjection.class)
+				.matching("MATCH (p:Person {lastName: $lastName}) RETURN p", Collections.singletonMap("lastName", "Siemons"))
+				.one()
+				.get();
+
+		dtoPersonProjection.setFirstName("Micha");
+		dtoPersonProjection.setLastName("Simons");
+
+		DtoPersonProjection savedProjection = neo4jTemplate
+				.save(Person.class)
+				.one(dtoPersonProjection);
+
+		// Assert that we saved and returned the correct data
+		assertThat(savedProjection.getFirstName()).isEqualTo("Micha");
+		assertThat(savedProjection.getLastName()).isEqualTo("Simons");
+
+		// Assert the result inside the database.
+		Person person = neo4jTemplate.findById(savedProjection.getId(), Person.class).get();
+		assertThat(person.getFirstName()).isEqualTo("Micha");
+		assertThat(person.getLastName()).isEqualTo("Simons");
+		assertThat(person.getAddress()).isNotNull();
+	}
+
 	@Test
 	void saveAsWithOpenProjectionShouldWork() {
 
