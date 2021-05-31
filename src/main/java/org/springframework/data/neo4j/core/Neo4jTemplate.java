@@ -848,7 +848,8 @@ public final class Neo4jTemplate implements
 
 	@Override
 	public <T> ExecutableSave<T> save(Class<T> domainType) {
-		throw new UnsupportedOperationException("Not implemented.");
+
+		return new FluentFindOperationSupport(this).save(domainType);
 	}
 
 	final class DefaultExecutableQuery<T> implements ExecutableQuery<T> {
