@@ -13,8 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.repository.query;
+package org.springframework.data.neo4j.core.mapping;
 
+import java.util.function.BiFunction;
+
+import org.apiguardian.api.API;
 import org.neo4j.driver.types.MapAccessor;
 import org.neo4j.driver.types.TypeSystem;
 
@@ -24,7 +27,8 @@ import org.neo4j.driver.types.TypeSystem;
  * @author Michael J. Simons
  * @soundtrack The Prodigy - Music For The Jilted Generation
  */
-final class EntityInstanceWithSource {
+@API(status = API.Status.INTERNAL, since = "6.1.2")
+public final class EntityInstanceWithSource {
 
 	/**
 	 * An instance of the original {@link org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity source entity}
@@ -41,7 +45,11 @@ final class EntityInstanceWithSource {
 	 */
 	private final MapAccessor sourceRecord;
 
-	EntityInstanceWithSource(Object entityInstance, TypeSystem typeSystem, MapAccessor sourceRecord) {
+	public static BiFunction<TypeSystem, MapAccessor, ?> decorateMappingFunction(BiFunction<TypeSystem, MapAccessor, ?> target) {
+		return (t, r) -> new EntityInstanceWithSource(target.apply(t, r), t, r);
+	}
+
+	private EntityInstanceWithSource(Object entityInstance, TypeSystem typeSystem, MapAccessor sourceRecord) {
 
 		this.entityInstance = entityInstance;
 		this.typeSystem = typeSystem;

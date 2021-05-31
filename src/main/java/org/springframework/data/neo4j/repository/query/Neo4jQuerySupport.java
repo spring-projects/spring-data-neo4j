@@ -38,6 +38,7 @@ import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.Metrics;
 import org.springframework.data.neo4j.core.convert.Neo4jSimpleTypes;
 import org.springframework.data.neo4j.core.mapping.CypherGenerator;
+import org.springframework.data.neo4j.core.mapping.EntityInstanceWithSource;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.data.repository.query.ResultProcessor;
@@ -101,8 +102,7 @@ abstract class Neo4jQuerySupport {
 			// It will thrown an error if the query contains more than one column.
 			mappingFunction = null;
 		} else if (returnedTypeMetadata.isProjecting()) {
-			BiFunction<TypeSystem, MapAccessor, ?> target = this.mappingContext.getRequiredMappingFunctionFor(domainType);
-			mappingFunction = (t, r) -> new EntityInstanceWithSource(target.apply(t, r), t, r);
+			mappingFunction = EntityInstanceWithSource.decorateMappingFunction(this.mappingContext.getRequiredMappingFunctionFor(domainType));
 		} else {
 			mappingFunction = this.mappingContext.getRequiredMappingFunctionFor(domainType);
 		}

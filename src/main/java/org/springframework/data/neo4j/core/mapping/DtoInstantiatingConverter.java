@@ -13,17 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.repository.query;
+package org.springframework.data.neo4j.core.mapping;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
 
+import org.apache.commons.logging.LogFactory;
+import org.apiguardian.api.API;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.types.MapAccessor;
 import org.neo4j.driver.types.TypeSystem;
 import org.springframework.core.CollectionFactory;
 import org.springframework.core.convert.converter.Converter;
+import org.springframework.core.log.LogAccessor;
 import org.springframework.data.mapping.MappingException;
 import org.springframework.data.mapping.PersistentEntity;
 import org.springframework.data.mapping.PersistentProperty;
@@ -32,8 +35,8 @@ import org.springframework.data.mapping.PreferredConstructor;
 import org.springframework.data.mapping.PreferredConstructor.Parameter;
 import org.springframework.data.mapping.SimplePropertyHandler;
 import org.springframework.data.mapping.model.ParameterValueProvider;
-import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.util.ClassTypeInformation;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -44,7 +47,10 @@ import org.springframework.util.Assert;
  * @author Michael J. Simons
  * @soundtrack Gustavo Santaolalla - The Last Of Us
  */
-class DtoInstantiatingConverter implements Converter<EntityInstanceWithSource, Object> {
+@API(status = API.Status.INTERNAL, since = "6.1.2")
+public final class DtoInstantiatingConverter implements Converter<EntityInstanceWithSource, Object> {
+
+	private static final LogAccessor log = new LogAccessor(LogFactory.getLog(DtoInstantiatingConverter.class));
 
 	private final Class<?> targetType;
 	private final Neo4jMappingContext context;
@@ -55,7 +61,7 @@ class DtoInstantiatingConverter implements Converter<EntityInstanceWithSource, O
 	 * @param dtoType must not be {@literal null}.
 	 * @param context must not be {@literal null}.
 	 */
-	DtoInstantiatingConverter(Class<?> dtoType, Neo4jMappingContext context) {
+	public DtoInstantiatingConverter(Class<?> dtoType, Neo4jMappingContext context) {
 
 		Assert.notNull(dtoType, "DTO type must not be null!");
 		Assert.notNull(context, "MappingContext must not be null!");
@@ -77,7 +83,7 @@ class DtoInstantiatingConverter implements Converter<EntityInstanceWithSource, O
 		}
 
 		PersistentEntity<?, ?> sourceEntity = context.getRequiredPersistentEntity(entityInstance.getClass());
-		PersistentPropertyAccessor sourceAccessor = sourceEntity.getPropertyAccessor(entityInstance);
+		PersistentPropertyAccessor<Object> sourceAccessor = sourceEntity.getPropertyAccessor(entityInstance);
 
 		PersistentEntity<?, ?> targetEntity = context.addPersistentEntity(ClassTypeInformation.from(targetType)).get();
 		PreferredConstructor<?, ? extends PersistentProperty<?>> constructor = targetEntity
@@ -98,7 +104,7 @@ class DtoInstantiatingConverter implements Converter<EntityInstanceWithSource, O
 					}
 				});
 
-		PersistentPropertyAccessor dtoAccessor = targetEntity.getPropertyAccessor(dto);
+		PersistentPropertyAccessor<Object> dtoAccessor = targetEntity.getPropertyAccessor(dto);
 		targetEntity.doWithProperties((SimplePropertyHandler) property -> {
 
 			if (constructor.isConstructorParameter(property)) {
@@ -112,6 +118,7 @@ class DtoInstantiatingConverter implements Converter<EntityInstanceWithSource, O
 		return dto;
 	}
 
+	@Nullable
 	Object getPropertyValueFor(PersistentProperty<?> targetProperty, PersistentEntity<?, ?> sourceEntity,
 			PersistentPropertyAccessor sourceAccessor, EntityInstanceWithSource entityInstanceAndSource) {
 
@@ -125,13 +132,12 @@ class DtoInstantiatingConverter implements Converter<EntityInstanceWithSource, O
 		}
 
 		if (!sourceRecord.containsKey(targetPropertyName)) {
-			Neo4jQuerySupport.REPOSITORY_QUERY_LOG.warn(() -> String.format(""
-							+ "Cannot retrieve a value for property `%s` of DTO `%s` and the property will always be null. "
-							+ "Make sure to project only properties of the domain type or use a custom query that "
-							+ "returns a mappable data under the name `%1$s`.",
-					targetPropertyName, targetType.getName()));
+			log.warn(() -> String.format(""
+					+ "Cannot retrieve a value for property `%s` of DTO `%s` and the property will always be null. "
+					+ "Make sure to project only properties of the domain type or use a custom query that "
+					+ "returns a mappable data under the name `%1$s`.", targetPropertyName, targetType.getName()));
 		} else if (targetProperty.isMap()) {
-			Neo4jQuerySupport.REPOSITORY_QUERY_LOG.warn(() -> String.format(""
+			log.warn(() -> String.format(""
 					+ "%s is an additional property to be projected. "
 					+ "However, map properties cannot be projected and the property will always be null.",
 					targetPropertyName));
@@ -143,7 +149,7 @@ class DtoInstantiatingConverter implements Converter<EntityInstanceWithSource, O
 
 			Value property = sourceRecord.get(targetPropertyName);
 			if (targetProperty.isCollectionLike() && !typeSystem.LIST().isTypeOf(property)) {
-				Neo4jQuerySupport.REPOSITORY_QUERY_LOG.warn(() -> String.format(""
+				log.warn(() -> String.format(""
 						+ "%s is a list property but the selected value is not a list and the property will always be null.",
 						targetPropertyName));
 			} else {

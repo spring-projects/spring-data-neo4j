@@ -23,6 +23,8 @@ import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
 import org.springframework.data.neo4j.core.transaction.ReactiveNeo4jTransactionManager;
 import org.springframework.data.neo4j.test.BookmarkCapture;
 import org.springframework.transaction.ReactiveTransactionManager;
+
+import lombok.Data;
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 
@@ -318,6 +320,16 @@ class ReactiveNeo4jTemplateIT {
 		String getLastName();
 	}
 
+	@Data
+	static class DtoPersonProjection {
+
+		/** The ID is required in a project that should be saved. */
+		private final Long id;
+
+		private String lastName;
+		private String firstName;
+	}
+
 	@Test
 	void saveAsWithOpenProjectionShouldWork(@Autowired ReactiveNeo4jTemplate template) {
 
@@ -532,6 +544,29 @@ class ReactiveNeo4jTemplateIT {
 				.sort()
 				.as(StepVerifier::create)
 				.expectNext("A LA", "Bela B.", "Helge Schnitzel", "Michael Siemons")
+				.verifyComplete();
+	}
+
+	@Test // GH-2270
+	void executableFindShouldWorkAllDomainObjectsProjectedDTOShouldWork() {
+
+		neo4jTemplate.find(Person.class).as(DtoPersonProjection.class).all()
+				.map(DtoPersonProjection::getLastName)
+				.sort()
+				.as(StepVerifier::create)
+				.expectNext("B.", "LA", "Schnitzel", "Siemons")
+				.verifyComplete();
+	}
+
+	@Test // GH-2270
+	void executableFindShouldWorkOneDomainObjectsProjectedDTOShouldWork() {
+
+		neo4jTemplate.find(Person.class).as(DtoPersonProjection.class)
+				.matching("MATCH (p:Person {lastName: $lastName}) RETURN p", Collections.singletonMap("lastName", "Schnitzel"))
+				.one()
+				.map(DtoPersonProjection::getLastName)
+				.as(StepVerifier::create)
+				.expectNext("Schnitzel")
 				.verifyComplete();
 	}
 

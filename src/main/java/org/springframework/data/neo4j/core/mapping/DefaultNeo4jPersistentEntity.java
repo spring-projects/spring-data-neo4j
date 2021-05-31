@@ -31,9 +31,7 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.apache.commons.logging.LogFactory;
 import org.springframework.core.annotation.AnnotatedElementUtils;
-import org.springframework.core.log.LogAccessor;
 import org.springframework.data.annotation.Persistent;
 import org.springframework.data.mapping.Association;
 import org.springframework.data.mapping.PropertyHandler;
@@ -63,8 +61,6 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 
 	private static final Set<Class<?>> VALID_GENERATED_ID_TYPES = Collections
 			.unmodifiableSet(new HashSet<>(Arrays.asList(Long.class, long.class)));
-
-	private static final LogAccessor log = new LogAccessor(LogFactory.getLog(DefaultNeo4jPersistentProperty.class));
 
 	/**
 	 * The label that describes the label most concrete.

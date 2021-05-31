@@ -33,6 +33,8 @@ import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
 import org.springframework.data.neo4j.core.Neo4jOperations;
 import org.springframework.data.neo4j.core.PreparedQuery;
+import org.springframework.data.neo4j.core.mapping.DtoInstantiatingConverter;
+import org.springframework.data.neo4j.core.mapping.EntityInstanceWithSource;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.data.repository.query.RepositoryQuery;

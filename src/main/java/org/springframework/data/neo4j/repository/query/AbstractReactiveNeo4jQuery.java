@@ -23,6 +23,8 @@ import org.neo4j.driver.types.TypeSystem;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.neo4j.core.PreparedQuery;
 import org.springframework.data.neo4j.core.ReactiveNeo4jOperations;
+import org.springframework.data.neo4j.core.mapping.DtoInstantiatingConverter;
+import org.springframework.data.neo4j.core.mapping.EntityInstanceWithSource;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.data.repository.query.RepositoryQuery;
