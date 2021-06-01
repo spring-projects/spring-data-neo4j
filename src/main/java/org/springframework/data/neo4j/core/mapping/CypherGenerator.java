@@ -30,6 +30,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
+import java.util.regex.Pattern;
 
 import org.apiguardian.api.API;
 import org.neo4j.cypherdsl.core.Condition;
@@ -76,6 +77,7 @@ public enum CypherGenerator {
 	private static final SymbolicName END_NODE_NAME = Cypher.name("endNode");
 
 	private static final SymbolicName RELATIONSHIP_NAME = Cypher.name("relProps");
+	private static final Pattern LOOKS_LIKE_A_FUNCTION = Pattern.compile(".+\\(.*\\)");
 
 	/**
 	 * @param nodeDescription The node description for which a match clause should be generated
@@ -466,12 +468,13 @@ public enum CypherGenerator {
 		if (sort == null || sort.isUnsorted()) {
 			return null;
 		}
-
-		Statement statement = Cypher.match(Cypher.anyNode()).returning("n")
-				.orderBy(sort.stream().filter(order -> order != null).map(order -> {
-					String property = order.getProperty();
+		Statement statement = match(anyNode()).returning("n")
+				.orderBy(sort.stream().filter(order -> order != null && order.getProperty() != null).map(order -> {
+					String property = order.getProperty().trim();
 					Expression expression;
-					if (property.contains(".")) {
+					if (LOOKS_LIKE_A_FUNCTION.matcher(property).matches()) {
+						expression = Cypher.raw(property);
+					} else if (property.contains(".")) {
 						String[] path = property.split("\\.");
 						if (path.length != 2) {
 							throw new IllegalArgumentException(String.format(

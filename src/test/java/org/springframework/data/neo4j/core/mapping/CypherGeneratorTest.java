@@ -15,10 +15,22 @@
  */
 package org.springframework.data.neo4j.core.mapping;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.when;
+
+import java.util.Collection;
+import java.util.Map;
+import java.util.Optional;
+import java.util.regex.Pattern;
+import java.util.stream.Stream;
+
 import org.junit.Assert;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mockito;
 import org.neo4j.cypherdsl.core.Cypher;
@@ -27,17 +39,6 @@ import org.neo4j.cypherdsl.core.renderer.Renderer;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
-
-import java.util.Collection;
-import java.util.Map;
-import java.util.Optional;
-import java.util.regex.Pattern;
-import java.util.stream.Stream;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.when;
 
 /**
  * @author Davide Fantuzzi
@@ -175,10 +176,29 @@ class CypherGeneratorTest {
 				.withMessageMatching("Cannot handle order property `.*`, it must be a simple property or one-hop path\\.");
 	}
 
+	@CsvSource(delimiterString = "|", value = {
+			"apoc.text.clean(department.name)   |false| ORDER BY apoc.text.clean(department.name) ASC",
+			"apoc.text.clean(department.name)   |true | ORDER BY apoc.text.clean(department.name) DESC",
+			"apoc.text.clean()                  |true | ORDER BY apoc.text.clean() DESC",
+			"date()                             |false| ORDER BY date() ASC",
+			"date({year:1984, month:10, day:11})|false| ORDER BY date({year:1984, month:10, day:11}) ASC",
+			"round(3.141592, 3)                 |false| ORDER BY round(3.141592, 3) ASC"
+	})
+	@ParameterizedTest // GH-2273
+	void functionCallsShouldWork(String input, boolean descending, String expected) {
+
+		Sort sort = Sort.by(input);
+		if (descending) {
+			sort = sort.descending();
+		}
+		String orderByFragment = CypherGenerator.INSTANCE.createOrderByFragment(sort);
+		assertThat(orderByFragment).isEqualTo(expected);
+	}
+
 	@Test
 	void shouldFailOnInvalidSymbolicNames() {
 
-		assertThatIllegalArgumentException().isThrownBy(() -> CypherGenerator.INSTANCE.createOrderByFragment(Sort.by("n()")))
+		assertThatIllegalArgumentException().isThrownBy(() -> CypherGenerator.INSTANCE.createOrderByFragment(Sort.by("()")))
 				.withMessage("Name must be a valid identifier.");
 	}
 
