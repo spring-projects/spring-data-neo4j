@@ -302,4 +302,7 @@ public interface PersonRepository extends Neo4jRepository<PersonWithAllConstruct
 
 	@Query("MATCH (n:PersonWithAllConstructor) return n")
 	List<PersonProjection> loadAllProjectionsWithNodeReturn();
+
+	@Query(value = "MATCH (n:PersonWithAllConstructor) RETURN n :#{ orderBy (#pageable.sort)} SKIP $skip LIMIT $limit")
+	List<PersonWithAllConstructor> orderBySpel(Pageable page);
 }

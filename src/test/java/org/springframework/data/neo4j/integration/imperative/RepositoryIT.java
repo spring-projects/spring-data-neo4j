@@ -356,6 +356,24 @@ class RepositoryIT {
 					.containsExactly("aa", "Ab", "Test", "Test2");
 		}
 
+		@Test // GH-2274
+		void findAllWithSortWithCaseIgnoredSpelBased(@Autowired PersonRepository repository) {
+
+			try (Session session = createSession()) {
+				session.writeTransaction(tx -> {
+					tx.run("CREATE (n:PersonWithAllConstructor {name: 'Ab', firstName: 'n/a'})");
+					tx.run("CREATE (n:PersonWithAllConstructor {name: 'aa', firstName: 'n/a'})");
+					return null;
+				});
+			}
+
+			List<PersonWithAllConstructor> persons = repository
+					.orderBySpel(PageRequest.of(0, 10, Sort.by(Sort.Order.asc("n.name").ignoreCase())));
+			assertThat(persons)
+					.extracting(PersonWithAllConstructor::getName)
+					.containsExactly("aa", "Ab", "Test", "Test2");
+		}
+
 		@Test
 		void findAllWithPageable(@Autowired PersonRepository repository) {
 
