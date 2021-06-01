@@ -68,7 +68,7 @@
 	</developers>
 
 	<properties>
-		<apiguardian.version>1.1.0</apiguardian.version>
+		<apiguardian.version>1.1.1</apiguardian.version>
 		<asciidoctor-maven-plugin.version>1.6.0</asciidoctor-maven-plugin.version>
 		<asciidoctorj-diagram.version>2.0.5</asciidoctorj-diagram.version>
 
