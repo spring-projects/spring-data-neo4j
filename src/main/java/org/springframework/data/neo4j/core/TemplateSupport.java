@@ -43,6 +43,8 @@ import org.springframework.data.neo4j.core.mapping.Constants;
 import org.springframework.data.neo4j.core.mapping.EntityInstanceWithSource;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
+import org.springframework.data.neo4j.core.mapping.NodeDescription;
+import org.springframework.data.neo4j.repository.query.MagicPropertyPathClass;
 import org.springframework.data.neo4j.repository.query.QueryFragments;
 import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.neo4j.core.mapping.MappingSupport;
@@ -112,17 +114,10 @@ final class TemplateSupport {
 		return candidate;
 	}
 
-	static Predicate<PropertyPath> computeIncludePropertyPredicate(@Nullable List<PropertyDescriptor> includedProperties,
-																   TypeInformation<?> typeInformation) {
+	static MagicPropertyPathClass computeIncludePropertyPredicate(Collection<PropertyPath> includedProperties,
+																  NodeDescription<?> nodeDescription) {
 
-		if (includedProperties == null) {
-			return MappingSupport.ALL_PROPERTIES_PREDICATE;
-		} else {
-			Set<PropertyPath> includedPropertyNames = includedProperties.stream()
-					.map(property -> PropertyPath.from(property.getName(), typeInformation))
-					.collect(Collectors.toSet());
-			return includedPropertyNames::contains;
-		}
+		return MagicPropertyPathClass.from(includedProperties, nodeDescription);
 	}
 
 	static void updateVersionPropertyIfPossible(

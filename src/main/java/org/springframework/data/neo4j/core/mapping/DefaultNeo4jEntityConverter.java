@@ -258,7 +258,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 					.getNodeDescription();
 
 			Collection<RelationshipDescription> relationships = nodeDescription
-					.getRelationshipsInHierarchy(MappingSupport.ALL_PROPERTIES_PREDICATE);
+					.getRelationshipsInHierarchy((pp -> true));
 
 			ET instance = instantiate(concreteNodeDescription, queryResult, allValues, relationships,
 					nodeDescriptionAndLabels.getDynamicLabels(), lastMappedEntity);

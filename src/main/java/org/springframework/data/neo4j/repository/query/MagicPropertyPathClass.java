@@ -15,79 +15,110 @@
  */
 package org.springframework.data.neo4j.repository.query;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.core.mapping.NodeDescription;
 import org.springframework.data.util.TypeInformation;
 
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Something that makes sense of propertyPaths by having an understanding of projection classes.
  */
 public class MagicPropertyPathClass {
 
-	private final Collection<PropertyPath> properties;
-	private final NodeDescription<?> dingDong;
-	private final Class<?> originalClass;
-	private Class<?> projectingClass;
+	private final ProjectingPropertyPaths projectingPropertyPaths;
 
-	public MagicPropertyPathClass(Collection<PropertyPath> properties, NodeDescription<?> dingDong) {
+	public static MagicPropertyPathClass from(Collection<PropertyPath> properties, NodeDescription<?> dingDong) {
+		return new MagicPropertyPathClass(properties, dingDong);
+	}
+
+//	public MagicPropertyPathClass with()
+
+	private MagicPropertyPathClass(Collection<PropertyPath> properties, NodeDescription<?> dingDong) {
 		TypeInformation<?> domainClassTypeInformation = ((Neo4jPersistentEntity<?>) dingDong).getTypeInformation();
-		originalClass = domainClassTypeInformation.getType();
-		this.properties = properties;
-		if (properties.isEmpty()) {
-			projectingClass = null;
-		} else {
+		Set<Class<?>> classes = new HashSet<>();
+		classes.add(domainClassTypeInformation.getType());
+		if (!properties.isEmpty()) {
 			for (PropertyPath property : properties) {
 				TypeInformation<?> returnClassTypeInformation = property.getOwningType();
 				if (!returnClassTypeInformation.equals(domainClassTypeInformation)) {
-					projectingClass = returnClassTypeInformation.getType();
-				} else {
-					projectingClass = null;
+					classes.add(returnClassTypeInformation.getType());
 				}
-				break;
 			}
 		}
 
-		this.dingDong = dingDong;
+		Set<ProjectingPropertyPath> projectingProperties = new HashSet<>();
+		for (PropertyPath property : properties) {
+			projectingProperties.add(new ProjectingPropertyPath(createPropertyPath(property)));
+		}
+		projectingPropertyPaths = new ProjectingPropertyPaths(classes, projectingProperties);
 	}
 
-	public Collection<PropertyPath> getProperties() {
-		return properties;
+	@NotNull
+	private static String createPropertyPath(PropertyPath propertyPath) {
+		String propertyDotPath = propertyPath.toDotPath();
+		return propertyDotPath.substring(propertyDotPath.indexOf(".") + 1);
 	}
 
-	public NodeDescription<?> getDingDong() {
-		return dingDong;
-	}
-
-	public Class<?> getProjectingClass() {
-		return projectingClass;
+	public static MagicPropertyPathClass acceptAll(Neo4jPersistentEntity<?> sourceEntity) {
+		return new MagicPropertyPathClass(Collections.emptySet(), sourceEntity);
 	}
 
 	public boolean isNotFiltering() {
-		return properties.isEmpty();
+		return projectingPropertyPaths.isEmpty();
 	}
 
 	public boolean contains(PropertyPath fieldName) {
-		boolean ownerMatches = ownerMatchesWithProjection(fieldName);
-		if (!ownerMatches) {
+		if (isNotFiltering()) {
+			return true;
+		}
+
+		return projectingPropertyPaths.contains(fieldName);
+
+	}
+
+	private static class ProjectingPropertyPaths {
+		private final Set<Class<?>> classes;
+		private final Set<ProjectingPropertyPath> projectingPropertyPaths;
+
+		private ProjectingPropertyPaths(Set<Class<?>> classes, Set<ProjectingPropertyPath> projectingPropertyPaths) {
+			this.classes = classes;
+			this.projectingPropertyPaths = projectingPropertyPaths;
+		}
+
+		public boolean isEmpty() {
+			return this.projectingPropertyPaths.isEmpty();
+		}
+
+		public boolean contains(PropertyPath propertyPathToCheck) {
+			Class<?> typeToCheck = propertyPathToCheck.getOwningType().getType();
+			if (!classes.contains(typeToCheck)) {
+				return false;
+			}
+
+			String propertyPath = createPropertyPath(propertyPathToCheck);
+
+			for (ProjectingPropertyPath projectingPropertyPath : projectingPropertyPaths) {
+				if (projectingPropertyPath.path.equals(propertyPath)) {
+					return true;
+				}
+			}
+
 			return false;
 		}
+	}
 
-		for (PropertyPath propertyPath : properties) {
-			if (propertyPath.getSegment().equals(fieldName.getSegment())) {
-				return true;
-			}
+	private static class ProjectingPropertyPath {
+		private final String path;
+
+		private ProjectingPropertyPath(String path) {
+			this.path = path;
 		}
-		return false;
-	}
-
-	private boolean ownerMatchesWithProjection(PropertyPath fieldName) {
-		return fieldName.getOwningType().getType().equals(originalClass) || properties.contains(fieldName);
-	}
-
-	private boolean isProjecting() {
-		return projectingClass != null;
 	}
 }

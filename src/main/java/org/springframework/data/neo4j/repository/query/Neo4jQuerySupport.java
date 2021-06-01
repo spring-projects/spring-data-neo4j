@@ -167,6 +167,7 @@ abstract class Neo4jQuerySupport {
 		} else {
 			// welcome to the second level
 			ProjectionInformation projectionInformation = factory.getProjectionInformation(leafType);
+			ding.add(pp);
 			if (projectionInformation.isClosed()) {
 				String s = pp.toDotPath();
 				for (PropertyDescriptor secondInputProperty : projectionInformation.getInputProperties()) {

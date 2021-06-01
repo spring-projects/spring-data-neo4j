@@ -315,6 +315,18 @@ class Neo4jTemplateIT {
 		String getLastName();
 	}
 
+	interface ClosedProjectionWithEmbeddedProjection {
+
+		String getLastName();
+
+		AddressProjection getAddress();
+
+		interface AddressProjection {
+
+			String getStreet();
+		}
+	}
+
 	@Data
 	static class DtoPersonProjection {
 
@@ -460,6 +472,23 @@ class Neo4jTemplateIT {
 		assertThat(p.getFirstName()).isEqualTo("Michael");
 		assertThat(p.getLastName()).isEqualTo("Simons");
 		assertThat(p.getAddress()).isNotNull();
+	}
+
+	@Test
+	void saveAsWithClosedProjectionOnSecondLevelShouldWork() {
+
+		// Using a query on purpose so that the address is null
+		Person p = neo4jTemplate.findOne("MATCH (p:Person {lastName: $lastName})-[r:LIVES_AT]-(a:Address) RETURN p, collect(r), collect(a)",
+				Collections.singletonMap("lastName", "Siemons"), Person.class).get();
+
+		p.getAddress().setCity("Braunschweig");
+		p.getAddress().setStreet("Single Trail");
+		ClosedProjectionWithEmbeddedProjection projection = neo4jTemplate.saveAs(p, ClosedProjectionWithEmbeddedProjection.class);
+
+		assertThat(projection.getAddress().getStreet()).isEqualTo("Single Trail");
+		p = neo4jTemplate.findById(p.getId(), Person.class).get();
+		assertThat(p.getAddress().getCity()).isEqualTo("Aachen");
+		assertThat(p.getAddress().getStreet()).isEqualTo("Single Trail");
 	}
 
 	@Test

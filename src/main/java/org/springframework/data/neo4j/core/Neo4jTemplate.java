@@ -62,11 +62,13 @@ import org.springframework.data.mapping.PersistentPropertyAccessor;
 import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.mapping.callback.EntityCallbacks;
 import org.springframework.data.neo4j.core.TemplateSupport.NodesAndRelationshipsByIdStatementProvider;
+import org.springframework.data.neo4j.core.convert.Neo4jSimpleTypes;
 import org.springframework.data.neo4j.core.mapping.Constants;
 import org.springframework.data.neo4j.core.mapping.CreateRelationshipStatementHolder;
 import org.springframework.data.neo4j.core.mapping.CypherGenerator;
 import org.springframework.data.neo4j.core.mapping.DtoInstantiatingConverter;
 import org.springframework.data.neo4j.core.mapping.EntityInstanceWithSource;
+import org.springframework.data.neo4j.core.mapping.GraphPropertyDescription;
 import org.springframework.data.neo4j.core.mapping.MappingSupport;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
@@ -78,6 +80,7 @@ import org.springframework.data.neo4j.core.mapping.NodeDescription;
 import org.springframework.data.neo4j.core.mapping.RelationshipDescription;
 import org.springframework.data.neo4j.core.mapping.callback.EventSupport;
 import org.springframework.data.neo4j.repository.NoResultException;
+import org.springframework.data.neo4j.repository.query.MagicPropertyPathClass;
 import org.springframework.data.neo4j.repository.query.QueryFragments;
 import org.springframework.data.neo4j.repository.query.QueryFragmentsAndParameters;
 import org.springframework.data.projection.ProjectionFactory;
@@ -311,7 +314,7 @@ public final class Neo4jTemplate implements
 	@Override
 	public <T> T save(T instance) {
 
-		return saveImpl(instance, null);
+		return saveImpl(instance, Collections.emptyList());
 	}
 
 	@Override
@@ -328,7 +331,12 @@ public final class Neo4jTemplate implements
 		}
 
 		ProjectionInformation projectionInformation = projectionFactory.getProjectionInformation(resultType);
-		T savedInstance = saveImpl(instance, projectionInformation.getInputProperties());
+		List<PropertyDescriptor> inputProperties = projectionInformation.getInputProperties();
+		Set<PropertyPath> pps = new HashSet<>();
+		for (PropertyDescriptor inputProperty : inputProperties) {
+			extracted(projectionFactory, resultType, pps, inputProperty.getName());
+		}
+		T savedInstance = saveImpl(instance, pps);
 		if (projectionInformation.isClosed()) {
 			return projectionFactory.createProjection(resultType, savedInstance);
 		}
@@ -340,7 +348,69 @@ public final class Neo4jTemplate implements
 				this.findById(propertyAccessor.getProperty(idProperty), savedInstance.getClass()).get());
 	}
 
-	private <T> T saveImpl(T instance, @Nullable List<PropertyDescriptor> includedProperties) {
+	private void extracted(ProjectionFactory factory, Class<?> returnedType, Collection<PropertyPath> ding, String inputProperty) {
+		PropertyPath pp = PropertyPath.from(inputProperty, returnedType);
+
+		Class<?> leafType = pp.getLeafType();
+		if (Neo4jSimpleTypes.HOLDER.isSimpleType(leafType)
+				|| neo4jMappingContext.hasCustomWriteTarget(leafType)
+		) {
+			ding.add(pp);
+		} else if (neo4jMappingContext.hasPersistentEntityFor(leafType)) {
+			Neo4jPersistentEntity<?> persistentEntity = neo4jMappingContext.getPersistentEntity(leafType);
+			List<String> collect = persistentEntity.getGraphProperties().stream().map(GraphPropertyDescription::getFieldName).collect(Collectors.toList());
+			ding.add(pp);
+			for (String s : collect) {
+				extracted(persistentEntity, ding, s);
+			}
+			collect = persistentEntity.getRelationships().stream().map(RelationshipDescription::getFieldName).collect(Collectors.toList());
+			for (String s : collect) {
+				extracted(persistentEntity, ding, s);
+			}
+		} else {
+			// welcome to the second level
+			ProjectionInformation projectionInformation = factory.getProjectionInformation(leafType);
+			if (projectionInformation.isClosed()) {
+				ding.add(pp);
+				String s = pp.toDotPath();
+				for (PropertyDescriptor secondInputProperty : projectionInformation.getInputProperties()) {
+					String source = s + "." + secondInputProperty.getName();
+					PropertyPath pppp = PropertyPath.from(source, returnedType);
+					ding.add(pppp);
+					extracted(factory, returnedType, ding, source);
+				}
+			} else {
+				PropertyPath pppp = PropertyPath.from(inputProperty, returnedType);
+				ding.add(pppp);
+			}
+		}
+	}
+
+	private void extracted(Neo4jPersistentEntity<?> persistentEntity, Collection<PropertyPath> ding, String inputProperty) {
+		PropertyPath pp = PropertyPath.from(inputProperty, persistentEntity.getTypeInformation());
+		if (ding.contains(pp)) {
+			return;
+		}
+		Class<?> leafType = pp.getLeafType();
+		if (Neo4jSimpleTypes.HOLDER.isSimpleType(leafType)
+				|| neo4jMappingContext.hasCustomWriteTarget(leafType)
+		) {
+			ding.add(pp);
+		} else if (neo4jMappingContext.hasPersistentEntityFor(leafType)) {
+			Neo4jPersistentEntity<?> persistentEntity2 = neo4jMappingContext.getPersistentEntity(leafType);
+			List<String> collect = persistentEntity2.getGraphProperties().stream().map(GraphPropertyDescription::getFieldName).collect(Collectors.toList());
+			ding.add(pp);
+			for (String s : collect) {
+				extracted(persistentEntity2, ding, s);
+			}
+			collect = persistentEntity2.getRelationships().stream().map(RelationshipDescription::getFieldName).collect(Collectors.toList());
+			for (String s : collect) {
+				extracted(persistentEntity2, ding, s);
+			}
+		}
+	}
+
+	private <T> T saveImpl(T instance, Collection<PropertyPath> includedProperties) {
 
 		Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getPersistentEntity(instance.getClass());
 		boolean isEntityNew = entityMetaData.isNew(instance);
@@ -352,14 +422,15 @@ public final class Neo4jTemplate implements
 		Function<T, Map<String, Object>> binderFunction = neo4jMappingContext
 				.getRequiredBinderFunctionFor((Class<T>) entityToBeSaved.getClass());
 
-		Predicate<PropertyPath> includeProperty = TemplateSupport.computeIncludePropertyPredicate(includedProperties, entityMetaData.getTypeInformation());
-		if (includedProperties != null) {
-			binderFunction = binderFunction.andThen(tree -> {
-				Map<String, Object> properties = (Map<String, Object>) tree.get(Constants.NAME_OF_PROPERTIES_PARAM);
-				properties.entrySet().removeIf(e -> !includeProperty.test(PropertyPath.from(e.getKey(), entityMetaData.getTypeInformation())));
-				return tree;
-			});
-		}
+		MagicPropertyPathClass includeProperty = TemplateSupport.computeIncludePropertyPredicate(includedProperties, entityMetaData);
+		binderFunction = binderFunction.andThen(tree -> {
+			Map<String, Object> properties = (Map<String, Object>) tree.get(Constants.NAME_OF_PROPERTIES_PARAM);
+
+			if (!includeProperty.isNotFiltering()) {
+				properties.entrySet().removeIf(e -> !includeProperty.contains(PropertyPath.from(e.getKey(), entityMetaData.getTypeInformation())));
+			}
+			return tree;
+		});
 		Optional<Entity> newOrUpdatedNode = neo4jClient
 				.query(() -> renderer.render(cypherGenerator.prepareSaveOf(entityMetaData, dynamicLabels)))
 				.bind(entityToBeSaved)
@@ -382,7 +453,7 @@ public final class Neo4jTemplate implements
 			propertyAccessor.setProperty(entityMetaData.getRequiredIdProperty(), internalId);
 		}
 		TemplateSupport.updateVersionPropertyIfPossible(entityMetaData, propertyAccessor, newOrUpdatedNode.get());
-		processRelations(entityMetaData, instance, internalId, propertyAccessor, isEntityNew, includeProperty);
+		processRelations(entityMetaData, instance, internalId, propertyAccessor, isEntityNew, includeProperty, "");
 
 		return propertyAccessor.getBean();
 	}
@@ -411,10 +482,10 @@ public final class Neo4jTemplate implements
 
 	@Override
 	public <T> List<T> saveAll(Iterable<T> instances) {
-		return saveAllImpl(instances, null);
+		return saveAllImpl(instances, Collections.emptyList());
 	}
 
-	private <T> List<T> saveAllImpl(Iterable<T> instances, @Nullable List<PropertyDescriptor> includedProperties) {
+	private <T> List<T> saveAllImpl(Iterable<T> instances, List<PropertyPath> includedProperties) {
 
 		List<T> entities;
 		if (instances instanceof Collection) {
@@ -470,7 +541,7 @@ public final class Neo4jTemplate implements
 		// Save related
 		return entitiesToBeSaved.stream().map(t -> {
 			PersistentPropertyAccessor<T> propertyAccessor = entityMetaData.getPropertyAccessor(t.modifiedInstance);
-			return processRelations(entityMetaData, t.originalInstance, propertyAccessor, t.wasNew, TemplateSupport.computeIncludePropertyPredicate(includedProperties, entityMetaData.getTypeInformation()));
+			return processRelations(entityMetaData, t.originalInstance, propertyAccessor, t.wasNew, TemplateSupport.computeIncludePropertyPredicate(includedProperties, entityMetaData), "");
 		}).collect(Collectors.toList());
 	}
 
@@ -486,7 +557,11 @@ public final class Neo4jTemplate implements
 		}
 
 		ProjectionInformation projectionInformation = projectionFactory.getProjectionInformation(resultType);
-		List<T> savedInstances = saveAllImpl(instances, projectionInformation.getInputProperties());
+		List<PropertyPath> pps = new ArrayList<>();
+		for (PropertyDescriptor inputProperty : projectionInformation.getInputProperties()) {
+			extracted(projectionFactory, resultType, pps, inputProperty.getName());
+		}
+		List<T> savedInstances = saveAllImpl(instances, pps);
 
 		if (projectionInformation.isClosed()) {
 			return savedInstances.stream().map(instance -> projectionFactory.createProjection(resultType, instance))
@@ -621,22 +696,22 @@ public final class Neo4jTemplate implements
 	 */
 	private <T> T processRelations(Neo4jPersistentEntity<?> neo4jPersistentEntity, T originalInstance, Long internalId,
 								   PersistentPropertyAccessor<?> parentPropertyAccessor,
-								   boolean isParentObjectNew, Predicate<PropertyPath> includeProperty) {
+								   boolean isParentObjectNew, MagicPropertyPathClass includeProperty, String previousPath) {
 
 		return processNestedRelations(neo4jPersistentEntity, parentPropertyAccessor, isParentObjectNew,
-				new NestedRelationshipProcessingStateMachine(originalInstance, internalId), includeProperty);
+				new NestedRelationshipProcessingStateMachine(originalInstance, internalId), includeProperty, previousPath);
 	}
 
 	private <T> T processRelations(Neo4jPersistentEntity<?> neo4jPersistentEntity, T originalInstance,
 			PersistentPropertyAccessor<?> parentPropertyAccessor,
-			boolean isParentObjectNew, Predicate<PropertyPath> includeProperty) {
+			boolean isParentObjectNew, MagicPropertyPathClass includeProperty, String previousPath) {
 
 		return processNestedRelations(neo4jPersistentEntity, parentPropertyAccessor, isParentObjectNew,
-				new NestedRelationshipProcessingStateMachine(originalInstance), includeProperty);
+				new NestedRelationshipProcessingStateMachine(originalInstance), includeProperty, previousPath);
 	}
 
 	private <T> T processNestedRelations(Neo4jPersistentEntity<?> sourceEntity, PersistentPropertyAccessor<?> propertyAccessor,
-			boolean isParentObjectNew, NestedRelationshipProcessingStateMachine stateMachine, Predicate<PropertyPath> includeProperty) {
+			boolean isParentObjectNew, NestedRelationshipProcessingStateMachine stateMachine, MagicPropertyPathClass includeProperty, String previousPath) {
 
 		Object fromId = propertyAccessor.getProperty(sourceEntity.getRequiredIdProperty());
 
@@ -652,7 +727,9 @@ public final class Neo4jTemplate implements
 			RelationshipDescription relationshipDescription = relationshipContext.getRelationship();
 			RelationshipDescription relationshipDescriptionObverse = relationshipDescription.getRelationshipObverse();
 
-			if (!includeProperty.test(PropertyPath.from(relationshipDescription.getFieldName(), sourceEntity.getTypeInformation()))) {
+			String currentPropertyPath = previousPath.isEmpty() ? relationshipDescription.getFieldName() : previousPath + "." + relationshipDescription.getFieldName();
+			boolean dynamicRelationship = relationshipDescription.isDynamic();
+			if (!includeProperty.isNotFiltering() && !dynamicRelationship && !includeProperty.contains(PropertyPath.from(currentPropertyPath, sourceEntity.getTypeInformation()))) {
 				return;
 			}
 			Neo4jPersistentProperty idProperty;
@@ -727,7 +804,7 @@ public final class Neo4jTemplate implements
 				if (stateMachine.hasProcessedValue(relatedValueToStore)) {
 					relatedInternalId = stateMachine.getInternalId(relatedObjectBeforeCallbacksApplied);
 				} else {
-					savedEntity = saveRelatedNode(newRelatedObject, targetEntity);
+					savedEntity = saveRelatedNode(newRelatedObject, targetEntity, sourceEntity, includeProperty, currentPropertyPath);
 					relatedInternalId = savedEntity.id();
 				}
 				stateMachine.markValueAsProcessed(relatedValueToStore, relatedInternalId);
@@ -769,7 +846,7 @@ public final class Neo4jTemplate implements
 				stateMachine.markValueAsProcessedAs(relatedObjectBeforeCallbacksApplied, targetPropertyAccessor.getBean());
 
 				if (processState != ProcessState.PROCESSED_ALL_VALUES) {
-					processNestedRelations(targetEntity, targetPropertyAccessor, isEntityNew, stateMachine, MappingSupport.ALL_PROPERTIES_PREDICATE);
+					processNestedRelations(targetEntity, targetPropertyAccessor, isEntityNew, stateMachine, dynamicRelationship ? MagicPropertyPathClass.acceptAll(sourceEntity) : includeProperty, currentPropertyPath);
 				}
 
 				Object potentiallyRecreatedNewRelatedObject = MappingSupport.getRelationshipOrRelationshipPropertiesObject(neo4jMappingContext,
@@ -787,13 +864,23 @@ public final class Neo4jTemplate implements
 		return (T) propertyAccessor.getBean();
 	}
 
-	private <Y> Entity saveRelatedNode(Object entity, NodeDescription targetNodeDescription) {
+	private <Y> Entity saveRelatedNode(Object entity, NodeDescription targetNodeDescription, Neo4jPersistentEntity<?> parentEntity, MagicPropertyPathClass includeProperty, String currentPropertyPath) {
 
 		DynamicLabels dynamicLabels = determineDynamicLabels(entity, (Neo4jPersistentEntity) targetNodeDescription);
 		Class<Y> entityType = (Class<Y>) ((Neo4jPersistentEntity<?>) targetNodeDescription).getType();
+		Function<Y, Map<String, Object>> binderFunction = neo4jMappingContext.getRequiredBinderFunctionFor(entityType);
+		binderFunction = binderFunction.andThen(tree -> {
+			Map<String, Object> properties = (Map<String, Object>) tree.get(Constants.NAME_OF_PROPERTIES_PARAM);
+
+			if (!includeProperty.isNotFiltering()) {
+				properties.entrySet().removeIf(e -> !includeProperty.contains(PropertyPath.from(currentPropertyPath + "." + e.getKey(),
+						parentEntity.getTypeInformation())));
+			}
+			return tree;
+		});
 		Optional<Entity> optionalSavedNode = neo4jClient
 				.query(() -> renderer.render(cypherGenerator.prepareSaveOf(targetNodeDescription, dynamicLabels)))
-				.bind((Y) entity).with(neo4jMappingContext.getRequiredBinderFunctionFor(entityType))
+				.bind((Y) entity).with(binderFunction)
 				.fetchAs(Entity.class)
 				.one();
 
@@ -971,7 +1058,7 @@ public final class Neo4jTemplate implements
 		private void iterateNextLevel(Collection<Long> nodeIds, Neo4jPersistentEntity<?> target, Set<Long> relationshipIds,
 									  Set<Long> relatedNodeIds) {
 
-			Collection<RelationshipDescription> relationships = target.getRelationshipsInHierarchy(MappingSupport.ALL_PROPERTIES_PREDICATE);
+			Collection<RelationshipDescription> relationships = target.getRelationshipsInHierarchy((pp -> true));
 			for (RelationshipDescription relationshipDescription : relationships) {
 
 				Node node = anyNode(Constants.NAME_OF_ROOT_NODE);

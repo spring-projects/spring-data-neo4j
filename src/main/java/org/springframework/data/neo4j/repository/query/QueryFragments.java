@@ -85,8 +85,7 @@ public final class QueryFragments {
 	}
 
 	public boolean includeField(PropertyPath fieldName) {
-		return this.returnTuple == null || this.returnTuple.includedProperties.isNotFiltering()
-			   || this.returnTuple.includedProperties.contains(fieldName);
+		return this.returnTuple == null || this.returnTuple.includedProperties.contains(fieldName);
 	}
 
 	public void setOrderBy(SortItem[] orderBy) {
@@ -182,8 +181,7 @@ public final class QueryFragments {
 
 		private ReturnTuple(NodeDescription<?> nodeDescription, List<PropertyPath> includedProperties, boolean isDistinct) {
 			this.nodeDescription = nodeDescription;
-			this.includedProperties = new MagicPropertyPathClass(
-					includedProperties == null ? Collections.emptySet() : new HashSet<>(includedProperties), nodeDescription);
+			this.includedProperties = MagicPropertyPathClass.from(includedProperties, nodeDescription);
 			this.isDistinct = isDistinct;
 		}
 	}
