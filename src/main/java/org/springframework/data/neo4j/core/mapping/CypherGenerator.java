@@ -15,6 +15,22 @@
  */
 package org.springframework.data.neo4j.core.mapping;
 
+import static org.neo4j.cypherdsl.core.Cypher.anyNode;
+import static org.neo4j.cypherdsl.core.Cypher.listBasedOn;
+import static org.neo4j.cypherdsl.core.Cypher.literalOf;
+import static org.neo4j.cypherdsl.core.Cypher.match;
+import static org.neo4j.cypherdsl.core.Cypher.node;
+import static org.neo4j.cypherdsl.core.Cypher.optionalMatch;
+import static org.neo4j.cypherdsl.core.Cypher.parameter;
+import static org.neo4j.cypherdsl.core.Functions.coalesce;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.function.Predicate;
+import java.util.function.UnaryOperator;
+
 import org.apiguardian.api.API;
 import org.neo4j.cypherdsl.core.Condition;
 import org.neo4j.cypherdsl.core.Conditions;
@@ -40,22 +56,6 @@ import org.springframework.data.mapping.PersistentProperty;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.function.Predicate;
-import java.util.function.UnaryOperator;
-
-import static org.neo4j.cypherdsl.core.Cypher.anyNode;
-import static org.neo4j.cypherdsl.core.Cypher.listBasedOn;
-import static org.neo4j.cypherdsl.core.Cypher.literalOf;
-import static org.neo4j.cypherdsl.core.Cypher.match;
-import static org.neo4j.cypherdsl.core.Cypher.node;
-import static org.neo4j.cypherdsl.core.Cypher.optionalMatch;
-import static org.neo4j.cypherdsl.core.Cypher.parameter;
-import static org.neo4j.cypherdsl.core.Functions.coalesce;
 
 /**
  * A generator based on the schema defined by node and relationship descriptions. Most methods return renderable Cypher
@@ -481,6 +481,9 @@ public enum CypherGenerator {
 						expression = Cypher.property(path[0], path[1]);
 					} else {
 						expression = Cypher.name(property);
+					}
+					if (order.isIgnoreCase()) {
+						expression = Functions.toLower(expression);
 					}
 					return order.isAscending() ? expression.ascending() : expression.descending();
 				}).toArray(SortItem[]::new))
