@@ -310,4 +310,7 @@ public interface PersonRepository extends Neo4jRepository<PersonWithAllConstruct
 
 	@Query("CREATE (n:PersonWithAllConstructor) SET n+= $testNode.__properties__ RETURN n")
 	PersonWithAllConstructor createWithCustomQuery(@Param("testNode") PersonWithAllConstructor testNode);
+
+	@Query(value = "MATCH (n:PersonWithAllConstructor) RETURN n :#{ orderBy (#pageable.sort)} SKIP $skip LIMIT $limit")
+	List<PersonWithAllConstructor> orderBySpel(Pageable page);
 }
