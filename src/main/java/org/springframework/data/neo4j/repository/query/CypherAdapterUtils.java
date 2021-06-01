@@ -21,6 +21,8 @@ import java.util.function.Function;
 
 import org.apiguardian.api.API;
 import org.neo4j.cypherdsl.core.Cypher;
+import org.neo4j.cypherdsl.core.Expression;
+import org.neo4j.cypherdsl.core.Functions;
 import org.neo4j.cypherdsl.core.SortItem;
 import org.neo4j.cypherdsl.core.StatementBuilder;
 import org.neo4j.cypherdsl.core.SymbolicName;
@@ -60,7 +62,11 @@ public final class CypherAdapterUtils {
 			String graphProperty = nodeDescription.getGraphProperty(domainProperty)
 					.map(GraphPropertyDescription::getPropertyName).orElseThrow(() -> new IllegalStateException(
 							String.format("Cannot order by the unknown graph property: '%s'", order.getProperty())));
-			SortItem sortItem = Cypher.sort(property(root, graphProperty));
+			Expression expression = property(root, graphProperty);
+			if (order.isIgnoreCase()) {
+				expression = Functions.toLower(expression);
+			}
+			SortItem sortItem = Cypher.sort(expression);
 
 			// Spring's Sort.Order defaults to ascending, so we just need to change this if we have descending order.
 			if (order.isDescending()) {
