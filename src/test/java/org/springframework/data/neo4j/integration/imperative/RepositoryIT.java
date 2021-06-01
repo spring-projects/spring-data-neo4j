@@ -358,6 +358,22 @@ class RepositoryIT {
 			assertThat(persons).containsExactly(person2, person1);
 		}
 
+		@Test // GH-2274
+		void findAllWithSortWithCaseIgnored(@Autowired PersonRepository repository) {
+
+			doWithSession(session ->
+					session.writeTransaction(tx -> {
+						tx.run("CREATE (n:PersonWithAllConstructor {name: 'Ab', firstName: 'n/a'})");
+						tx.run("CREATE (n:PersonWithAllConstructor {name: 'aa', firstName: 'n/a'})");
+						return null;
+					}));
+
+			List<PersonWithAllConstructor> persons = repository.findAll(Sort.by(Sort.Order.asc("name").ignoreCase()));
+			assertThat(persons)
+					.extracting(PersonWithAllConstructor::getName)
+					.containsExactly("aa", "Ab", "Test", "Test2");
+		}
+
 		@Test
 		void findAllWithPageable(@Autowired PersonRepository repository) {
 
