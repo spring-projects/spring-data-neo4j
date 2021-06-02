@@ -15,7 +15,6 @@
  */
 package org.springframework.data.neo4j.core;
 
-import java.beans.PropertyDescriptor;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -47,8 +46,6 @@ import org.springframework.data.neo4j.core.mapping.NodeDescription;
 import org.springframework.data.neo4j.repository.query.MagicPropertyPathClass;
 import org.springframework.data.neo4j.repository.query.QueryFragments;
 import org.springframework.data.mapping.PropertyPath;
-import org.springframework.data.neo4j.core.mapping.MappingSupport;
-import org.springframework.data.util.TypeInformation;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 

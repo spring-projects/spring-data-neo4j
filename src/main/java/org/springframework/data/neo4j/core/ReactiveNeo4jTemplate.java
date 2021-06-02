@@ -40,7 +40,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiFunction;
 import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import org.apache.commons.logging.LogFactory;
@@ -411,7 +410,7 @@ public final class ReactiveNeo4jTemplate implements
 					binderFunction = binderFunction.andThen(tree -> {
 						Map<String, Object> properties = (Map<String, Object>) tree.get(Constants.NAME_OF_PROPERTIES_PARAM);
 						if (!includeProperty.isNotFiltering()) {
-							properties.entrySet().removeIf(e -> !includeProperty.contains(PropertyPath.from(e.getKey(), entityMetaData.getTypeInformation())));
+							properties.entrySet().removeIf(e -> !includeProperty.contains(e.getKey(), entityMetaData.getUnderlyingClass()));
 						}
 						return tree;
 					});
@@ -808,7 +807,7 @@ public final class ReactiveNeo4jTemplate implements
 			RelationshipDescription relationshipDescription = relationshipContext.getRelationship();
 			RelationshipDescription relationshipDescriptionObverse = relationshipDescription.getRelationshipObverse();
 
-			if (!includeProperty.contains(PropertyPath.from(relationshipDescription.getFieldName(), sourceEntity.getTypeInformation()))) {
+			if (!includeProperty.contains(relationshipDescription.getFieldName(), sourceEntity.getUnderlyingClass())) {
 				return;
 			}
 			Neo4jPersistentProperty idProperty;

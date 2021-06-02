@@ -102,7 +102,10 @@ class Neo4jTemplateIT {
 
 			transaction.run("CREATE (p:Person{firstName: 'A', lastName: 'LA'})");
 			transaction
-					.run("CREATE (p:Person{firstName: 'Michael', lastName: 'Siemons'}) -[:LIVES_AT]-> (a:Address {city: 'Aachen'}) RETURN id(p)");
+					.run("CREATE (p:Person{firstName: 'Michael', lastName: 'Siemons'})" +
+							" -[:LIVES_AT]-> (a:Address {city: 'Aachen'})" +
+							" -[:BASED_IN]->(c:YetAnotherCountryEntity{name: 'Gemany', countryCode: 'DE'})" +
+							" RETURN id(p)");
 			transaction
 					.run("CREATE (p:Person{firstName: 'Helge', lastName: 'Schnitzel'}) -[:LIVES_AT]-> (a:Address {city: 'Mülheim an der Ruhr'}) RETURN id(p)");
 			transaction.run("CREATE (p:Person{firstName: 'Bela', lastName: 'B.'})");
@@ -324,6 +327,12 @@ class Neo4jTemplateIT {
 		interface AddressProjection {
 
 			String getStreet();
+
+			CountryProjection getCountry();
+
+			interface CountryProjection {
+				String getName();
+			}
 		}
 	}
 
@@ -489,6 +498,24 @@ class Neo4jTemplateIT {
 		p = neo4jTemplate.findById(p.getId(), Person.class).get();
 		assertThat(p.getAddress().getCity()).isEqualTo("Aachen");
 		assertThat(p.getAddress().getStreet()).isEqualTo("Single Trail");
+	}
+
+	@Test
+	void saveAsWithClosedProjectionOnThreeLevelShouldWork() {
+
+		// Using a query on purpose so that the address is null
+		Person p = neo4jTemplate.findOne("MATCH (p:Person {lastName: $lastName})-[r:LIVES_AT]-(a:Address)-[r2:BASED_IN]->(c:YetAnotherCountryEntity) RETURN p, collect(r), collect(r2), collect(a), collect(c)",
+				Collections.singletonMap("lastName", "Siemons"), Person.class).get();
+
+		Person.Address.Country country = p.getAddress().getCountry();
+		country.setName("Germany");
+		country.setCountryCode("AT");
+		ClosedProjectionWithEmbeddedProjection projection = neo4jTemplate.saveAs(p, ClosedProjectionWithEmbeddedProjection.class);
+
+		p = neo4jTemplate.findById(p.getId(), Person.class).get();
+		Person.Address.Country savedCountry = p.getAddress().getCountry();
+		assertThat(savedCountry.getCountryCode()).isEqualTo("DE");
+		assertThat(savedCountry.getName()).isEqualTo("Germany");
 	}
 
 	@Test
