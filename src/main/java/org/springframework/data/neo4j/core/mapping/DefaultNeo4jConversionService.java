@@ -90,10 +90,9 @@ final class DefaultNeo4jConversionService implements Neo4jConversionService {
 						.forEach(element -> target.add(conversion.apply(element, type.getComponentType().getType())));
 				return target;
 			}
-
-			return conversion.apply(valueIsLiteralNullOrNullValue ? null : value, rawType);
+			return valueIsLiteralNullOrNullValue ? null : conversion.apply(value, rawType);
 		} catch (Exception e) {
-			String msg = String.format("Could not convert %s into %s", value, type.toString());
+			String msg = String.format("Could not convert %s into %s", value, type);
 			throw new TypeMismatchDataAccessException(msg, e);
 		}
 	}
