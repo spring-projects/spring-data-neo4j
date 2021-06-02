@@ -117,9 +117,8 @@ class TypeConversionIT extends Neo4jConversionsITBase {
 				.isThrownBy(() -> repository.findById(ID_OF_NON_EXISTING_PRIMITIVES_NODE))
 				.withMessageMatching(
 						"Error mapping Record<\\{n: \\{__internalNeo4jId__: \\d+, id: NULL, someBoolean: NULL, __nodeLabels__: \\[\"NonExistingPrimitives\"\\]\\}\\}>")
-				.withStackTraceContaining(
-						"org.springframework.dao.TypeMismatchDataAccessException: Could not convert NULL into boolean; nested exception is org.springframework.core.convert.ConversionFailedException: Failed to convert from type [null] to type [boolean] for value 'null'; nested exception is java.lang.IllegalArgumentException: A null value cannot be assigned to a primitive type")
-				.withRootCauseInstanceOf(IllegalArgumentException.class);
+				.withStackTraceContaining("unboxBoolean")
+				.withRootCauseInstanceOf(NullPointerException.class);
 	}
 
 	@TestFactory
