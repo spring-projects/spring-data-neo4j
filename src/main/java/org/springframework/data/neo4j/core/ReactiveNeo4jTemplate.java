@@ -509,7 +509,7 @@ public final class ReactiveNeo4jTemplate implements
 							counters.nodesCreated(), counters.nodesDeleted(), counters.relationshipsCreated(),
 							counters.relationshipsDeleted(), counters.propertiesSet()));
 				}).thenMany(Flux.fromIterable(entitiesToBeSaved)
-						.flatMap(t -> processRelations(entityMetaData, t.getT1(),
+						.flatMap(t -> processRelations(entityMetaData.getType(), entityMetaData, t.getT1(),
 								entityMetaData.getPropertyAccessor(t.getT3()), t.getT2(),
 								TemplateSupport.computeIncludePropertyPredicate(includedProperties, entityMetaData)))
 				));
@@ -738,20 +738,22 @@ public final class ReactiveNeo4jTemplate implements
 										 Long internalId, PersistentPropertyAccessor<?> parentPropertyAccessor,
 										 boolean isParentObjectNew, MagicPropertyPathClass includeProperty) {
 
-		return processNestedRelations(neo4jPersistentEntity, parentPropertyAccessor, isParentObjectNew,
-				new NestedRelationshipProcessingStateMachine(originalInstance, internalId), includeProperty);
+		String previousPropertyPath = "";
+		return processNestedRelations(neo4jPersistentEntity.getType(), neo4jPersistentEntity, parentPropertyAccessor, isParentObjectNew,
+				new NestedRelationshipProcessingStateMachine(originalInstance, internalId), includeProperty, previousPropertyPath);
 	}
 
-	private <T> Mono<T> processRelations(Neo4jPersistentEntity<?> neo4jPersistentEntity, T originalInstance,
+	private <T> Mono<T> processRelations(Class<?> chef, Neo4jPersistentEntity<?> neo4jPersistentEntity, T originalInstance,
 			PersistentPropertyAccessor<?> parentPropertyAccessor,
 			boolean isParentObjectNew, MagicPropertyPathClass includeProperty) {
 
-		return processNestedRelations(neo4jPersistentEntity, parentPropertyAccessor, isParentObjectNew,
-				new NestedRelationshipProcessingStateMachine(originalInstance), includeProperty);
+		String previousPropertyPath = "";
+		return processNestedRelations(chef, neo4jPersistentEntity, parentPropertyAccessor, isParentObjectNew,
+				new NestedRelationshipProcessingStateMachine(originalInstance), includeProperty, previousPropertyPath);
 	}
 
-	private <T> Mono<T> processNestedRelations(Neo4jPersistentEntity<?> sourceEntity, PersistentPropertyAccessor<?> parentPropertyAccessor,
-		  boolean isParentObjectNew, NestedRelationshipProcessingStateMachine stateMachine, MagicPropertyPathClass includeProperty) {
+	private <T> Mono<T> processNestedRelations(Class<?> chef, Neo4jPersistentEntity<?> sourceEntity, PersistentPropertyAccessor<?> parentPropertyAccessor,
+		  boolean isParentObjectNew, NestedRelationshipProcessingStateMachine stateMachine, MagicPropertyPathClass includeProperty, String previousPath) {
 
 		Object fromId = parentPropertyAccessor.getProperty(sourceEntity.getRequiredIdProperty());
 		List<Mono<Void>> relationshipDeleteMonos = new ArrayList<>();
@@ -770,7 +772,9 @@ public final class ReactiveNeo4jTemplate implements
 			RelationshipDescription relationshipDescription = relationshipContext.getRelationship();
 			RelationshipDescription relationshipDescriptionObverse = relationshipDescription.getRelationshipObverse();
 
-			if (!includeProperty.contains(relationshipDescription.getFieldName(), sourceEntity.getUnderlyingClass())) {
+			String currentPropertyPath = previousPath.isEmpty() ? relationshipDescription.getFieldName() : previousPath + "." + relationshipDescription.getFieldName();
+			boolean dynamicRelationship = relationshipDescription.isDynamic();
+			if (!includeProperty.isNotFiltering() && !dynamicRelationship && !includeProperty.contains(currentPropertyPath, chef)) {
 				return;
 			}
 			Neo4jPersistentProperty idProperty;
@@ -888,7 +892,7 @@ public final class ReactiveNeo4jTemplate implements
 
 												Mono<Object> nestedRelationshipsSignal = null;
 												if (processState != ProcessState.PROCESSED_ALL_VALUES) {
-													nestedRelationshipsSignal = processNestedRelations(targetEntity, targetPropertyAccessor, targetEntity.isNew(newRelatedObject), stateMachine, MagicPropertyPathClass.from(Collections.emptyList(), targetEntity));
+													nestedRelationshipsSignal = processNestedRelations(chef, targetEntity, targetPropertyAccessor, targetEntity.isNew(newRelatedObject), stateMachine, dynamicRelationship ? MagicPropertyPathClass.acceptAll(sourceEntity) : includeProperty, previousPath);
 												}
 
 												Mono<Object> getRelationshipOrRelationshipPropertiesObject = Mono.fromSupplier(() -> MappingSupport.getRelationshipOrRelationshipPropertiesObject(

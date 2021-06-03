@@ -389,7 +389,7 @@ public final class Neo4jTemplate implements
 			propertyAccessor.setProperty(entityMetaData.getRequiredIdProperty(), internalId);
 		}
 		TemplateSupport.updateVersionPropertyIfPossible(entityMetaData, propertyAccessor, newOrUpdatedNode.get());
-		processRelations(entityMetaData, instance, internalId, propertyAccessor, isEntityNew, includeProperty, "");
+		processRelations(entityMetaData, instance, internalId, propertyAccessor, isEntityNew, includeProperty);
 
 		return propertyAccessor.getBean();
 	}
@@ -477,7 +477,7 @@ public final class Neo4jTemplate implements
 		// Save related
 		return entitiesToBeSaved.stream().map(t -> {
 			PersistentPropertyAccessor<T> propertyAccessor = entityMetaData.getPropertyAccessor(t.modifiedInstance);
-			return processRelations(entityMetaData.getType(), entityMetaData, t.originalInstance, propertyAccessor, t.wasNew, TemplateSupport.computeIncludePropertyPredicate(includedProperties, entityMetaData), "");
+			return processRelations(entityMetaData.getType(), entityMetaData, t.originalInstance, propertyAccessor, t.wasNew, TemplateSupport.computeIncludePropertyPredicate(includedProperties, entityMetaData));
 		}).collect(Collectors.toList());
 	}
 
@@ -630,20 +630,22 @@ public final class Neo4jTemplate implements
 	 * @param isParentObjectNew      A flag if the parent was new
 	 * @param includeProperty        A predicate telling to include a relationship property or not
 	 */
-	private <T> T processRelations(Neo4jPersistentEntity<?> neo4jPersistentEntity, T originalInstance, Long internalId,
+	private <T> void processRelations(Neo4jPersistentEntity<?> neo4jPersistentEntity, T originalInstance, Long internalId,
 								   PersistentPropertyAccessor<?> parentPropertyAccessor,
-								   boolean isParentObjectNew, MagicPropertyPathClass includeProperty, String previousPath) {
+								   boolean isParentObjectNew, MagicPropertyPathClass includeProperty) {
 
-		return processNestedRelations(neo4jPersistentEntity.getType(), neo4jPersistentEntity, parentPropertyAccessor, isParentObjectNew,
-				new NestedRelationshipProcessingStateMachine(originalInstance, internalId), includeProperty, previousPath);
+		String previousPropertyPath = "";
+		processNestedRelations(neo4jPersistentEntity.getType(), neo4jPersistentEntity, parentPropertyAccessor, isParentObjectNew,
+				new NestedRelationshipProcessingStateMachine(originalInstance, internalId), includeProperty, previousPropertyPath);
 	}
 
 	private <T> T processRelations(Class<?> chef, Neo4jPersistentEntity<?> neo4jPersistentEntity, T originalInstance,
 			PersistentPropertyAccessor<?> parentPropertyAccessor,
-			boolean isParentObjectNew, MagicPropertyPathClass includeProperty, String previousPath) {
+			boolean isParentObjectNew, MagicPropertyPathClass includeProperty) {
 
+		String previousPropertyPath = "";
 		return processNestedRelations(chef, neo4jPersistentEntity, parentPropertyAccessor, isParentObjectNew,
-				new NestedRelationshipProcessingStateMachine(originalInstance), includeProperty, previousPath);
+				new NestedRelationshipProcessingStateMachine(originalInstance), includeProperty, previousPropertyPath);
 	}
 
 	private <T> T processNestedRelations(Class<?> chef, Neo4jPersistentEntity<?> sourceEntity, PersistentPropertyAccessor<?> propertyAccessor,

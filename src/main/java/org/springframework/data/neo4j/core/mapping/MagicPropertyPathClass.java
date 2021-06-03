@@ -29,7 +29,8 @@ import java.util.Set;
  */
 public class MagicPropertyPathClass {
 
-	private final ProjectingPropertyPaths projectingPropertyPaths;
+	private final Set<Class<?>> rootClasses;
+	private final Set<ProjectingPropertyPath> projectingPropertyPaths;
 
 	public static MagicPropertyPathClass from(Collection<PropertyPath> properties, NodeDescription<?> dingDong) {
 		return new MagicPropertyPathClass(properties, dingDong);
@@ -37,29 +38,34 @@ public class MagicPropertyPathClass {
 
 	private MagicPropertyPathClass(Collection<PropertyPath> properties, @Nullable NodeDescription<?> dingDong) {
 		if (dingDong == null) {
-			projectingPropertyPaths = ProjectingPropertyPaths.empty();
+			rootClasses = new HashSet<>();
+			projectingPropertyPaths = Collections.emptySet();
 		} else {
 			Class<?> domainClass = dingDong.getUnderlyingClass();
-			Set<Class<?>> classes = new HashSet<>();
-			classes.add(domainClass);
+
+			rootClasses = new HashSet<>();
+			rootClasses.add(domainClass);
+
+			// supported projection classes
 			if (!properties.isEmpty()) {
 				for (PropertyPath property : properties) {
 					Class<?> returnClassTypeInformation = property.getType();
 					if (!returnClassTypeInformation.equals(domainClass)) {
-						classes.add(returnClassTypeInformation);
+						rootClasses.add(returnClassTypeInformation);
 					}
 				}
 			}
 
+			// supported inheriting classes
 			for (NodeDescription<?> nodeDescription : dingDong.getChildNodeDescriptionsInHierarchy()) {
-				classes.add(nodeDescription.getUnderlyingClass());
+				rootClasses.add(nodeDescription.getUnderlyingClass());
 			}
 
 			Set<ProjectingPropertyPath> projectingProperties = new HashSet<>();
 			for (PropertyPath property : properties) {
 				projectingProperties.add(new ProjectingPropertyPath(createPropertyPath(property.toDotPath())));
 			}
-			projectingPropertyPaths = new ProjectingPropertyPaths(classes, projectingProperties);
+			projectingPropertyPaths = projectingProperties;
 		}
 	}
 
@@ -68,7 +74,7 @@ public class MagicPropertyPathClass {
 		return dotPath.substring(dotPath.indexOf(".") + 1);
 	}
 
-	public static MagicPropertyPathClass acceptAll(@Nullable Neo4jPersistentEntity<?> sourceEntity) {
+	public static MagicPropertyPathClass acceptAll(Neo4jPersistentEntity<?> sourceEntity) {
 		return new MagicPropertyPathClass(Collections.emptySet(), sourceEntity);
 	}
 
@@ -80,48 +86,25 @@ public class MagicPropertyPathClass {
 		return projectingPropertyPaths.isEmpty();
 	}
 
-	public boolean contains(String dotPath, Class<?> type) {
+	public boolean contains(String dotPath, Class<?> typeToCheck) {
 		if (isNotFiltering()) {
 			return true;
 		}
 
-		return projectingPropertyPaths.contains(dotPath, type);
-
-	}
-
-	private static class ProjectingPropertyPaths {
-		private final Set<Class<?>> classes;
-		private final Set<ProjectingPropertyPath> projectingPropertyPaths;
-
-		private ProjectingPropertyPaths(Set<Class<?>> classes, Set<ProjectingPropertyPath> projectingPropertyPaths) {
-			this.classes = classes;
-			this.projectingPropertyPaths = projectingPropertyPaths;
-		}
-
-		public static ProjectingPropertyPaths empty() {
-			return new ProjectingPropertyPaths(Collections.emptySet(), Collections.emptySet());
-		}
-
-		public boolean isEmpty() {
-			return this.projectingPropertyPaths.isEmpty();
-		}
-
-		public boolean contains(String dotPath, Class<?> typeToCheck) {
-
-			if (!classes.contains(typeToCheck)) {
-				return false;
-			}
-
-			String propertyPath = createPropertyPath(dotPath);
-
-			for (ProjectingPropertyPath projectingPropertyPath : projectingPropertyPaths) {
-				if (projectingPropertyPath.path.equals(propertyPath)) {
-					return true;
-				}
-			}
-
+		if (!rootClasses.contains(typeToCheck)) {
 			return false;
 		}
+
+		String propertyPath = createPropertyPath(dotPath);
+
+		for (ProjectingPropertyPath projectingPropertyPath : projectingPropertyPaths) {
+			if (projectingPropertyPath.path.equals(propertyPath)) {
+				return true;
+			}
+		}
+
+		return false;
+
 	}
 
 	/**
