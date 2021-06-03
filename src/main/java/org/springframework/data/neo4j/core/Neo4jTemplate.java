@@ -17,7 +17,6 @@ package org.springframework.data.neo4j.core;
 
 import static org.neo4j.cypherdsl.core.Cypher.anyNode;
 import static org.neo4j.cypherdsl.core.Cypher.asterisk;
-import static org.neo4j.cypherdsl.core.Cypher.match;
 import static org.neo4j.cypherdsl.core.Cypher.parameter;
 
 import java.beans.PropertyDescriptor;
@@ -940,9 +939,13 @@ public final class Neo4jTemplate implements
 		return new FluentOperationSupport(this).save(domainType);
 	}
 
-	<T, R> R doSave(R instance, Class<T> domainType, Class<R> resultType) {
-		EntityFromDtoInstantiatingConverter<T> converter = new EntityFromDtoInstantiatingConverter(domainType, neo4jMappingContext);
-		T domainObject = converter.convert(instance);
+	<T, R> List<R> doSave(Iterable<R> instances, Class<T> domainType) {
+		// empty check
+		if (!instances.iterator().hasNext()) {
+			return Collections.emptyList();
+		}
+		// just a sneak peek
+		Class<?> resultType = instances.iterator().next().getClass();
 
 		ProjectionInformation projectionInformation = projectionFactory.getProjectionInformation(resultType);
 		List<PropertyDescriptor> inputProperties = projectionInformation.getInputProperties();
@@ -950,10 +953,17 @@ public final class Neo4jTemplate implements
 		for (PropertyDescriptor inputProperty : inputProperties) {
 			extracted(projectionFactory, resultType, pps, inputProperty.getName());
 		}
-		T savedEntity = saveImpl(domainObject, pps);
+		List<R> results = new ArrayList<>();
+		for (R instance : instances) {
+			EntityFromDtoInstantiatingConverter<T> converter = new EntityFromDtoInstantiatingConverter<>(domainType, neo4jMappingContext);
+			T domainObject = converter.convert(instance);
 
-		R convertedBack = (R) new DtoInstantiatingConverter(resultType, neo4jMappingContext).convertDirectly(savedEntity);
-		return convertedBack;
+			T savedEntity = saveImpl(domainObject, pps);
+
+			R convertedBack = (R) new DtoInstantiatingConverter(resultType, neo4jMappingContext).convertDirectly(savedEntity);
+			results.add(convertedBack);
+		}
+		return results;
 	}
 
 	final class DefaultExecutableQuery<T> implements ExecutableQuery<T> {

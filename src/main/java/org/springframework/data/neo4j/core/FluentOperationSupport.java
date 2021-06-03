@@ -120,17 +120,21 @@ final class FluentOperationSupport implements FluentFindOperation, FluentSaveOpe
 		@Override
 		public <T> T one(T instance) {
 
-			return doSave(instance);
+			List<T> result = doSave(Collections.singleton(instance));
+			if (result.isEmpty()) {
+				return null;
+			}
+			return result.get(0);
 		}
 
 		@Override
 		public <T> List<T> all(Iterable<T> instances) {
-			throw new UnsupportedOperationException("Not yet done.");
+
+			return doSave(instances);
 		}
 
-		private <T> T doSave(T instance) {
-			Class<T> instanceType = (Class<T>) instance.getClass();
-			return (T) template.doSave(instance, domainType, instanceType);
+		private <T> List<T> doSave(Iterable<T> instances) {
+			return template.doSave(instances, domainType);
 		}
 	}
 }
