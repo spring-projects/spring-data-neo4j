@@ -30,11 +30,11 @@ import org.springframework.util.Assert;
  * @soundtrack Ozzy Osbourne - Ordinary Man
  * @since 6.1
  */
-final class ReactiveFluentFindOperationSupport implements ReactiveFluentFindOperation, ReactiveFluentSaveOperation {
+final class ReactiveFluentOperationSupport implements ReactiveFluentFindOperation, ReactiveFluentSaveOperation {
 
 	private final ReactiveNeo4jTemplate template;
 
-	ReactiveFluentFindOperationSupport(ReactiveNeo4jTemplate template) {
+	ReactiveFluentOperationSupport(ReactiveNeo4jTemplate template) {
 		this.template = template;
 	}
 

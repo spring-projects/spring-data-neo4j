@@ -61,14 +61,12 @@ import org.springframework.data.mapping.PersistentPropertyAccessor;
 import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.mapping.callback.EntityCallbacks;
 import org.springframework.data.neo4j.core.TemplateSupport.NodesAndRelationshipsByIdStatementProvider;
-import org.springframework.data.neo4j.core.convert.Neo4jSimpleTypes;
 import org.springframework.data.neo4j.core.mapping.Constants;
 import org.springframework.data.neo4j.core.mapping.CreateRelationshipStatementHolder;
 import org.springframework.data.neo4j.core.mapping.CypherGenerator;
 import org.springframework.data.neo4j.core.mapping.DtoInstantiatingConverter;
 import org.springframework.data.neo4j.core.mapping.EntityFromDtoInstantiatingConverter;
 import org.springframework.data.neo4j.core.mapping.EntityInstanceWithSource;
-import org.springframework.data.neo4j.core.mapping.GraphPropertyDescription;
 import org.springframework.data.neo4j.core.mapping.MappingSupport;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
@@ -334,7 +332,7 @@ public final class Neo4jTemplate implements
 		List<PropertyDescriptor> inputProperties = projectionInformation.getInputProperties();
 		Set<PropertyPath> pps = new HashSet<>();
 		for (PropertyDescriptor inputProperty : inputProperties) {
-			extracted(projectionFactory, resultType, pps, inputProperty.getName());
+			PropertyFilterSupport.addPropertiesFromProjection(projectionFactory, resultType, pps, inputProperty.getName(), neo4jMappingContext);
 		}
 		T savedInstance = saveImpl(instance, pps);
 		if (projectionInformation.isClosed()) {
@@ -346,68 +344,6 @@ public final class Neo4jTemplate implements
 		PersistentPropertyAccessor<T> propertyAccessor = entityMetaData.getPropertyAccessor(savedInstance);
 		return projectionFactory.createProjection(resultType,
 				this.findById(propertyAccessor.getProperty(idProperty), savedInstance.getClass()).get());
-	}
-
-	private void extracted(ProjectionFactory factory, Class<?> returnedType, Collection<PropertyPath> ding, String inputProperty) {
-		PropertyPath pp = PropertyPath.from(inputProperty, returnedType);
-
-		Class<?> leafType = pp.getLeafType();
-		if (Neo4jSimpleTypes.HOLDER.isSimpleType(leafType)
-				|| neo4jMappingContext.hasCustomWriteTarget(leafType)
-		) {
-			ding.add(pp);
-		} else if (neo4jMappingContext.hasPersistentEntityFor(leafType)) {
-			Neo4jPersistentEntity<?> persistentEntity = neo4jMappingContext.getPersistentEntity(leafType);
-			List<String> collect = persistentEntity.getGraphProperties().stream().map(GraphPropertyDescription::getFieldName).collect(Collectors.toList());
-			ding.add(pp);
-			for (String s : collect) {
-				extracted(persistentEntity, ding, s);
-			}
-			collect = persistentEntity.getRelationships().stream().map(RelationshipDescription::getFieldName).collect(Collectors.toList());
-			for (String s : collect) {
-				extracted(persistentEntity, ding, s);
-			}
-		} else {
-			// welcome to the second level
-			ProjectionInformation projectionInformation = factory.getProjectionInformation(leafType);
-			if (projectionInformation.isClosed()) {
-				ding.add(pp);
-				String s = pp.toDotPath();
-				for (PropertyDescriptor secondInputProperty : projectionInformation.getInputProperties()) {
-					String source = s + "." + secondInputProperty.getName();
-					PropertyPath pppp = PropertyPath.from(source, returnedType);
-					ding.add(pppp);
-					extracted(factory, returnedType, ding, source);
-				}
-			} else {
-				PropertyPath pppp = PropertyPath.from(inputProperty, returnedType);
-				ding.add(pppp);
-			}
-		}
-	}
-
-	private void extracted(Neo4jPersistentEntity<?> persistentEntity, Collection<PropertyPath> ding, String inputProperty) {
-		PropertyPath pp = PropertyPath.from(inputProperty, persistentEntity.getTypeInformation());
-		if (ding.contains(pp)) {
-			return;
-		}
-		Class<?> leafType = pp.getLeafType();
-		if (Neo4jSimpleTypes.HOLDER.isSimpleType(leafType)
-				|| neo4jMappingContext.hasCustomWriteTarget(leafType)
-		) {
-			ding.add(pp);
-		} else if (neo4jMappingContext.hasPersistentEntityFor(leafType)) {
-			Neo4jPersistentEntity<?> persistentEntity2 = neo4jMappingContext.getPersistentEntity(leafType);
-			List<String> collect = persistentEntity2.getGraphProperties().stream().map(GraphPropertyDescription::getFieldName).collect(Collectors.toList());
-			ding.add(pp);
-			for (String s : collect) {
-				extracted(persistentEntity2, ding, s);
-			}
-			collect = persistentEntity2.getRelationships().stream().map(RelationshipDescription::getFieldName).collect(Collectors.toList());
-			for (String s : collect) {
-				extracted(persistentEntity2, ding, s);
-			}
-		}
 	}
 
 	private <T> T saveImpl(T instance, Collection<PropertyPath> includedProperties) {
@@ -559,7 +495,7 @@ public final class Neo4jTemplate implements
 		ProjectionInformation projectionInformation = projectionFactory.getProjectionInformation(resultType);
 		List<PropertyPath> pps = new ArrayList<>();
 		for (PropertyDescriptor inputProperty : projectionInformation.getInputProperties()) {
-			extracted(projectionFactory, resultType, pps, inputProperty.getName());
+			PropertyFilterSupport.addPropertiesFromProjection(projectionFactory, resultType, pps, inputProperty.getName(), neo4jMappingContext);
 		}
 		List<T> savedInstances = saveAllImpl(instances, pps);
 
@@ -951,7 +887,7 @@ public final class Neo4jTemplate implements
 		List<PropertyDescriptor> inputProperties = projectionInformation.getInputProperties();
 		Set<PropertyPath> pps = new HashSet<>();
 		for (PropertyDescriptor inputProperty : inputProperties) {
-			extracted(projectionFactory, resultType, pps, inputProperty.getName());
+			PropertyFilterSupport.addPropertiesFromProjection(projectionFactory, resultType, pps, inputProperty.getName(), neo4jMappingContext);
 		}
 		List<R> results = new ArrayList<>();
 		for (R instance : instances) {

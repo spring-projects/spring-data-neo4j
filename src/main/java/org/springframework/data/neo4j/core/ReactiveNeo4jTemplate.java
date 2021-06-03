@@ -20,9 +20,7 @@ import static org.neo4j.cypherdsl.core.Cypher.asterisk;
 import static org.neo4j.cypherdsl.core.Cypher.parameter;
 
 import org.springframework.data.mapping.PropertyPath;
-import org.springframework.data.neo4j.core.convert.Neo4jSimpleTypes;
 import org.springframework.data.neo4j.core.mapping.EntityFromDtoInstantiatingConverter;
-import org.springframework.data.neo4j.core.mapping.GraphPropertyDescription;
 import org.springframework.data.neo4j.core.mapping.MagicPropertyPathClass;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -223,7 +221,7 @@ public final class ReactiveNeo4jTemplate implements
 
 	@Override
 	public <T> ExecutableFind<T> find(Class<T> domainType) {
-		return new ReactiveFluentFindOperationSupport(this).find(domainType);
+		return new ReactiveFluentOperationSupport(this).find(domainType);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -317,7 +315,7 @@ public final class ReactiveNeo4jTemplate implements
 		ProjectionInformation projectionInformation = projectionFactory.getProjectionInformation(resultType);
 		List<PropertyPath> pps = new ArrayList<>();
 		for (PropertyDescriptor inputProperty : projectionInformation.getInputProperties()) {
-			extracted(projectionFactory, resultType, pps, inputProperty.getName());
+			PropertyFilterSupport.addPropertiesFromProjection(projectionFactory, resultType, pps, inputProperty.getName(), neo4jMappingContext);
 		}
 		Mono<T> savingPublisher = saveImpl(instance, pps);
 		if (projectionInformation.isClosed()) {
@@ -346,7 +344,7 @@ public final class ReactiveNeo4jTemplate implements
 		List<PropertyDescriptor> inputProperties = projectionInformation.getInputProperties();
 		Set<PropertyPath> pps = new HashSet<>();
 		for (PropertyDescriptor inputProperty : inputProperties) {
-			extracted(projectionFactory, resultType, pps, inputProperty.getName());
+			PropertyFilterSupport.addPropertiesFromProjection(projectionFactory, resultType, pps, inputProperty.getName(), neo4jMappingContext);
 		}
 		return Flux.fromIterable(instances)
 			.flatMap(instance -> {
@@ -356,67 +354,6 @@ public final class ReactiveNeo4jTemplate implements
 				return saveImpl(domainObject, pps)
 						.map(savedEntity -> (R) new DtoInstantiatingConverter(resultType, neo4jMappingContext).convertDirectly(savedEntity));
 			});
-	}
-
-	private void extracted(ProjectionFactory factory, Class<?> returnedType, Collection<PropertyPath> ding, String inputProperty) {
-		PropertyPath pp = PropertyPath.from(inputProperty, returnedType);
-
-		Class<?> leafType = pp.getLeafType();
-		if (Neo4jSimpleTypes.HOLDER.isSimpleType(leafType)
-				|| neo4jMappingContext.hasCustomWriteTarget(leafType)
-		) {
-			ding.add(pp);
-		} else if (neo4jMappingContext.hasPersistentEntityFor(leafType)) {
-			Neo4jPersistentEntity<?> persistentEntity = neo4jMappingContext.getPersistentEntity(leafType);
-			List<String> collect = persistentEntity.getGraphProperties().stream().map(GraphPropertyDescription::getFieldName).collect(Collectors.toList());
-			ding.add(pp);
-			for (String s : collect) {
-				extracted(persistentEntity, ding, s);
-			}
-			collect = persistentEntity.getRelationships().stream().map(RelationshipDescription::getFieldName).collect(Collectors.toList());
-			for (String s : collect) {
-				extracted(persistentEntity, ding, s);
-			}
-		} else {
-			// welcome to the second level
-			ProjectionInformation projectionInformation = factory.getProjectionInformation(leafType);
-			if (projectionInformation.isClosed()) {
-				String s = pp.toDotPath();
-				for (PropertyDescriptor secondInputProperty : projectionInformation.getInputProperties()) {
-					String source = s + "." + secondInputProperty.getName();
-					PropertyPath pppp = PropertyPath.from(source, returnedType);
-					ding.add(pppp);
-					extracted(factory, returnedType, ding, source);
-				}
-			} else {
-				PropertyPath pppp = PropertyPath.from(inputProperty, returnedType);
-				ding.add(pppp);
-			}
-		}
-	}
-
-	private void extracted(Neo4jPersistentEntity<?> persistentEntity, Collection<PropertyPath> ding, String inputProperty) {
-		PropertyPath pp = PropertyPath.from(inputProperty, persistentEntity.getTypeInformation());
-		if (ding.contains(pp)) {
-			return;
-		}
-		Class<?> leafType = pp.getLeafType();
-		if (Neo4jSimpleTypes.HOLDER.isSimpleType(leafType)
-				|| neo4jMappingContext.hasCustomWriteTarget(leafType)
-		) {
-			ding.add(pp);
-		} else if (neo4jMappingContext.hasPersistentEntityFor(leafType)) {
-			Neo4jPersistentEntity<?> persistentEntity2 = neo4jMappingContext.getPersistentEntity(leafType);
-			List<String> collect = persistentEntity2.getGraphProperties().stream().map(GraphPropertyDescription::getFieldName).collect(Collectors.toList());
-			ding.add(pp);
-			for (String s : collect) {
-				extracted(persistentEntity2, ding, s);
-			}
-			collect = persistentEntity2.getRelationships().stream().map(RelationshipDescription::getFieldName).collect(Collectors.toList());
-			for (String s : collect) {
-				extracted(persistentEntity2, ding, s);
-			}
-		}
 	}
 
 	private <T> Mono<T> saveImpl(T instance, @Nullable Collection<PropertyPath> includedProperties) {
@@ -508,7 +445,7 @@ public final class ReactiveNeo4jTemplate implements
 		ProjectionInformation projectionInformation = projectionFactory.getProjectionInformation(resultType);
 		List<PropertyPath> pps = new ArrayList<>();
 		for (PropertyDescriptor inputProperty : projectionInformation.getInputProperties()) {
-			extracted(projectionFactory, resultType, pps, inputProperty.getName());
+			PropertyFilterSupport.addPropertiesFromProjection(projectionFactory, resultType, pps, inputProperty.getName(), neo4jMappingContext);
 		}
 		Flux<T> savedInstances = saveAllImpl(instances, pps);
 		if (projectionInformation.isClosed()) {
@@ -1070,7 +1007,7 @@ public final class ReactiveNeo4jTemplate implements
 
 	@Override
 	public <T> ExecutableSave<T> save(Class<T> domainType) {
-		return new ReactiveFluentFindOperationSupport(this).save(domainType);
+		return new ReactiveFluentOperationSupport(this).save(domainType);
 	}
 
 	final class DefaultReactiveExecutableQuery<T> implements ExecutableQuery<T> {

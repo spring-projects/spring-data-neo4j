@@ -23,6 +23,7 @@ import org.neo4j.driver.types.TypeSystem;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.neo4j.core.PreparedQuery;
+import org.springframework.data.neo4j.core.PropertyFilterSupport;
 import org.springframework.data.neo4j.core.ReactiveNeo4jOperations;
 import org.springframework.data.neo4j.core.mapping.DtoInstantiatingConverter;
 import org.springframework.data.neo4j.core.mapping.EntityInstanceWithSource;
@@ -70,7 +71,8 @@ abstract class AbstractReactiveNeo4jQuery extends Neo4jQuerySupport implements R
 
 		ReturnedType returnedType = resultProcessor.getReturnedType();
 		PreparedQuery<?> preparedQuery = prepareQuery(returnedType.getReturnedType(),
-				getInputProperties(resultProcessor, factory), parameterAccessor, null, getMappingFunction(resultProcessor));
+				PropertyFilterSupport.getInputProperties(resultProcessor, factory, mappingContext), parameterAccessor,
+				null, getMappingFunction(resultProcessor));
 
 		Object rawResult = new Neo4jQueryExecution.ReactiveQueryExecution(neo4jOperations).execute(preparedQuery,
 				queryMethod.isCollectionLikeQuery());

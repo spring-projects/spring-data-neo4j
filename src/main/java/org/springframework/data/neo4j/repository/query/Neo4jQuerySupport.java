@@ -15,7 +15,6 @@
  */
 package org.springframework.data.neo4j.repository.query;
 
-import java.beans.PropertyDescriptor;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.Arrays;
@@ -24,7 +23,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.BiFunction;
@@ -43,16 +41,10 @@ import org.springframework.data.geo.Box;
 import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.Metrics;
-import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.neo4j.core.convert.Neo4jSimpleTypes;
 import org.springframework.data.neo4j.core.mapping.CypherGenerator;
 import org.springframework.data.neo4j.core.mapping.EntityInstanceWithSource;
-import org.springframework.data.neo4j.core.mapping.GraphPropertyDescription;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
-import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
-import org.springframework.data.neo4j.core.mapping.RelationshipDescription;
-import org.springframework.data.projection.ProjectionFactory;
-import org.springframework.data.projection.ProjectionInformation;
 import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.data.repository.query.ResultProcessor;
 import org.springframework.data.repository.query.ReturnedType;
@@ -130,83 +122,6 @@ abstract class Neo4jQuerySupport {
 		return mappingFunction;
 	}
 
-	protected final List<PropertyPath> getInputProperties(final ResultProcessor resultProcessor, ProjectionFactory factory) {
-
-		ReturnedType returnedType = resultProcessor.getReturnedType();
-		List<PropertyPath> ding = new ArrayList<>();
-
-		for (String inputProperty : returnedType.getInputProperties()) {
-			if (returnedType.isProjecting()) {
-				extracted(factory, returnedType, ding, inputProperty);
-			} else {
-				ding.add(PropertyPath.from(inputProperty, returnedType.getDomainType()));
-			}
-		}
-		return returnedType.isProjecting() ? ding : Collections.emptyList();
-	}
-
-	private void extracted(ProjectionFactory factory, ReturnedType returnedType, List<PropertyPath> ding, String inputProperty) {
-		PropertyPath pp = PropertyPath.from(inputProperty, returnedType.getReturnedType());
-
-		Class<?> leafType = pp.getLeafType();
-		if (Neo4jSimpleTypes.HOLDER.isSimpleType(leafType)
-				|| mappingContext.hasCustomWriteTarget(leafType)
-		) {
-			ding.add(pp);
-		} else if (mappingContext.hasPersistentEntityFor(leafType)) {
-			Neo4jPersistentEntity<?> persistentEntity = mappingContext.getPersistentEntity(leafType);
-			List<String> collect = persistentEntity.getGraphProperties().stream().map(GraphPropertyDescription::getFieldName).collect(Collectors.toList());
-			ding.add(pp);
-			for (String s : collect) {
-				extracted(persistentEntity, ding, s);
-			}
-			collect = persistentEntity.getRelationships().stream().map(RelationshipDescription::getFieldName).collect(Collectors.toList());
-			for (String s : collect) {
-				extracted(persistentEntity, ding, s);
-			}
-		} else {
-			// welcome to the second level
-			ProjectionInformation projectionInformation = factory.getProjectionInformation(leafType);
-			ding.add(pp);
-			if (projectionInformation.isClosed()) {
-				String s = pp.toDotPath();
-				for (PropertyDescriptor secondInputProperty : projectionInformation.getInputProperties()) {
-					String source = s + "." + secondInputProperty.getName();
-					PropertyPath pppp = PropertyPath.from(source, returnedType.getReturnedType());
-					ding.add(pppp);
-					extracted(factory, returnedType, ding, source);
-				}
-			} else {
-				PropertyPath pppp = PropertyPath.from(inputProperty, returnedType.getDomainType());
-				ding.add(pppp);
-			}
-		}
-	}
-
-	private void extracted(Neo4jPersistentEntity<?> persistentEntity, List<PropertyPath> ding, String inputProperty) {
-		PropertyPath pp = PropertyPath.from(inputProperty, persistentEntity.getTypeInformation());
-		if (ding.contains(pp)) {
-			return;
-		}
-		Class<?> leafType = pp.getLeafType();
-		if (Neo4jSimpleTypes.HOLDER.isSimpleType(leafType)
-				|| mappingContext.hasCustomWriteTarget(leafType)
-		) {
-			ding.add(pp);
-		} else if (mappingContext.hasPersistentEntityFor(leafType)) {
-			Neo4jPersistentEntity<?> persistentEntity2 = mappingContext.getPersistentEntity(leafType);
-			List<String> collect = persistentEntity2.getGraphProperties().stream().map(GraphPropertyDescription::getFieldName).collect(Collectors.toList());
-			ding.add(pp);
-			for (String s : collect) {
-				extracted(persistentEntity2, ding, s);
-			}
-			collect = persistentEntity2.getRelationships().stream().map(RelationshipDescription::getFieldName).collect(Collectors.toList());
-			for (String s : collect) {
-				extracted(persistentEntity2, ding, s);
-			}
-		}
-	}
-
 	private static boolean hasValidReturnTypeForDelete(Neo4jQueryMethod queryMethod) {
 		return VALID_RETURN_TYPES_FOR_DELETE.contains(queryMethod.getResultProcessor().getReturnedType().getReturnedType());
 	}
@@ -220,7 +135,7 @@ abstract class Neo4jQuerySupport {
 		Supplier<CharSequence> messageSupplier = () -> {
 			String pointer = name == null || name.trim().isEmpty() ? "An unknown parameter" : "$" + name;
 			return String.format("%s points to a literal `null` value during a comparison. " +
-						  "The comparisons will always resolve to false and probably lead to an empty result.",
+							"The comparisons will always resolve to false and probably lead to an empty result.",
 					pointer);
 		};
 		REPOSITORY_QUERY_LOG.debug(messageSupplier);
