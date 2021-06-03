@@ -13,12 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.repository.query;
+package org.springframework.data.neo4j.core.mapping;
 
-import org.jetbrains.annotations.NotNull;
 import org.springframework.data.mapping.PropertyPath;
-import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
-import org.springframework.data.neo4j.core.mapping.NodeDescription;
+import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 
 import java.util.Collection;
@@ -65,7 +63,7 @@ public class MagicPropertyPathClass {
 		}
 	}
 
-	@NotNull
+	@NonNull
 	private static String createPropertyPath(String dotPath) {
 		return dotPath.substring(dotPath.indexOf(".") + 1);
 	}
@@ -126,6 +124,9 @@ public class MagicPropertyPathClass {
 		}
 	}
 
+	/**
+	 * Simple encapsulation for a looks-as-property-path.
+	 */
 	public static class LoosePropertyPath {
 		private final String dotPath;
 		private final Class<?> type;

@@ -23,7 +23,7 @@ import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.neo4j.core.convert.Neo4jSimpleTypes;
 import org.springframework.data.neo4j.core.mapping.EntityFromDtoInstantiatingConverter;
 import org.springframework.data.neo4j.core.mapping.GraphPropertyDescription;
-import org.springframework.data.neo4j.repository.query.MagicPropertyPathClass;
+import org.springframework.data.neo4j.core.mapping.MagicPropertyPathClass;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.util.function.Tuple2;

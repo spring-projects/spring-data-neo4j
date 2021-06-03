@@ -43,7 +43,7 @@ import org.springframework.data.neo4j.core.mapping.EntityInstanceWithSource;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.core.mapping.NodeDescription;
-import org.springframework.data.neo4j.repository.query.MagicPropertyPathClass;
+import org.springframework.data.neo4j.core.mapping.MagicPropertyPathClass;
 import org.springframework.data.neo4j.repository.query.QueryFragments;
 import org.springframework.data.mapping.PropertyPath;
 import org.springframework.lang.Nullable;

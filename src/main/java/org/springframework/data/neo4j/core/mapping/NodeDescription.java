@@ -23,7 +23,6 @@ import java.util.function.Predicate;
 
 import org.apiguardian.api.API;
 import org.neo4j.cypherdsl.core.Expression;
-import org.springframework.data.neo4j.repository.query.MagicPropertyPathClass;
 import org.springframework.lang.Nullable;
 
 /**

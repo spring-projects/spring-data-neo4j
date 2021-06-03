@@ -76,6 +76,9 @@ public class Person {
 			this.country = country;
 		}
 
+		/**
+		 * Just another country to persist
+		 */
 		@Node("YetAnotherCountryEntity")
 		public static class Country {
 			@Id @GeneratedValue private Long id;

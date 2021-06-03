@@ -32,6 +32,7 @@ import org.springframework.util.Assert;
 /**
  * {@link Converter} to instantiate entity objects from DTOs
  *
+ * @param <T> entity type
  */
 @API(status = API.Status.INTERNAL, since = "6.1.2")
 public final class EntityFromDtoInstantiatingConverter<T> implements Converter<Object, T> {
