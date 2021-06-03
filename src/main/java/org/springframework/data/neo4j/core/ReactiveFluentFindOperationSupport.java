@@ -19,6 +19,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.util.Assert;
@@ -30,7 +31,7 @@ import org.springframework.util.Assert;
  * @soundtrack Ozzy Osbourne - Ordinary Man
  * @since 6.1
  */
-final class ReactiveFluentFindOperationSupport implements ReactiveFluentFindOperation {
+final class ReactiveFluentFindOperationSupport implements ReactiveFluentFindOperation, ReactiveFluentSaveOperation {
 
 	private final ReactiveNeo4jTemplate template;
 
@@ -94,6 +95,40 @@ final class ReactiveFluentFindOperationSupport implements ReactiveFluentFindOper
 
 		private Flux<T> doFind(TemplateSupport.FetchType fetchType) {
 			return template.doFind(query, parameters, domainType, returnType, fetchType);
+		}
+	}
+
+	@Override
+	public <T> ExecutableSave<T> save(Class<T> domainType) {
+		Assert.notNull(domainType, "DomainType must not be null!");
+
+		return new ExecutableSaveSupport<>(this.template, domainType);
+	}
+
+	private static class ExecutableSaveSupport<DT> implements ReactiveFluentSaveOperation.ExecutableSave<DT> {
+
+		private final ReactiveNeo4jTemplate template;
+		private final Class<DT> domainType;
+
+		ExecutableSaveSupport(ReactiveNeo4jTemplate template, Class<DT> domainType) {
+			this.template = template;
+			this.domainType = domainType;
+		}
+
+		@Override
+		public <T> Mono<T> one(T instance) {
+
+			return doSave(Collections.singleton(instance)).single();
+		}
+
+		@Override
+		public <T> Flux<T> all(Iterable<T> instances) {
+
+			return doSave(instances);
+		}
+
+		private <T> Flux<T> doSave(Iterable<T> instances) {
+			return template.doSave(instances, domainType);
 		}
 	}
 }

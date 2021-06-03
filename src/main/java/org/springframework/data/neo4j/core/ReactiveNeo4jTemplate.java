@@ -21,6 +21,7 @@ import static org.neo4j.cypherdsl.core.Cypher.parameter;
 
 import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.neo4j.core.convert.Neo4jSimpleTypes;
+import org.springframework.data.neo4j.core.mapping.EntityFromDtoInstantiatingConverter;
 import org.springframework.data.neo4j.core.mapping.GraphPropertyDescription;
 import org.springframework.data.neo4j.repository.query.MagicPropertyPathClass;
 import reactor.core.publisher.Flux;
@@ -33,6 +34,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -332,7 +334,31 @@ public final class ReactiveNeo4jTemplate implements
 		});
 	}
 
-	private void extracted(ProjectionFactory factory, Class<?> returnedType, List<PropertyPath> ding, String inputProperty) {
+	<T, R> Flux<R> doSave(Iterable<R> instances, Class<T> domainType) {
+		// empty check
+		if (!instances.iterator().hasNext()) {
+			return Flux.empty();
+		}
+		// just a sneak peek
+		Class<?> resultType = instances.iterator().next().getClass();
+
+		ProjectionInformation projectionInformation = projectionFactory.getProjectionInformation(resultType);
+		List<PropertyDescriptor> inputProperties = projectionInformation.getInputProperties();
+		Set<PropertyPath> pps = new HashSet<>();
+		for (PropertyDescriptor inputProperty : inputProperties) {
+			extracted(projectionFactory, resultType, pps, inputProperty.getName());
+		}
+		return Flux.fromIterable(instances)
+			.flatMap(instance -> {
+				EntityFromDtoInstantiatingConverter<T> converter = new EntityFromDtoInstantiatingConverter<>(domainType, neo4jMappingContext);
+				T domainObject = converter.convert(instance);
+
+				return saveImpl(domainObject, pps)
+						.map(savedEntity -> (R) new DtoInstantiatingConverter(resultType, neo4jMappingContext).convertDirectly(savedEntity));
+			});
+	}
+
+	private void extracted(ProjectionFactory factory, Class<?> returnedType, Collection<PropertyPath> ding, String inputProperty) {
 		PropertyPath pp = PropertyPath.from(inputProperty, returnedType);
 
 		Class<?> leafType = pp.getLeafType();
@@ -369,7 +395,7 @@ public final class ReactiveNeo4jTemplate implements
 		}
 	}
 
-	private void extracted(Neo4jPersistentEntity<?> persistentEntity, List<PropertyPath> ding, String inputProperty) {
+	private void extracted(Neo4jPersistentEntity<?> persistentEntity, Collection<PropertyPath> ding, String inputProperty) {
 		PropertyPath pp = PropertyPath.from(inputProperty, persistentEntity.getTypeInformation());
 		if (ding.contains(pp)) {
 			return;
@@ -393,7 +419,7 @@ public final class ReactiveNeo4jTemplate implements
 		}
 	}
 
-	private <T> Mono<T> saveImpl(T instance, @Nullable List<PropertyPath> includedProperties) {
+	private <T> Mono<T> saveImpl(T instance, @Nullable Collection<PropertyPath> includedProperties) {
 
 		Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getPersistentEntity(instance.getClass());
 		boolean isNewEntity = entityMetaData.isNew(instance);
@@ -1044,7 +1070,7 @@ public final class ReactiveNeo4jTemplate implements
 
 	@Override
 	public <T> ExecutableSave<T> save(Class<T> domainType) {
-		throw new UnsupportedOperationException("Not implemented.");
+		return new ReactiveFluentFindOperationSupport(this).save(domainType);
 	}
 
 	final class DefaultReactiveExecutableQuery<T> implements ExecutableQuery<T> {

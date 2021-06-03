@@ -379,6 +379,31 @@ class ReactiveNeo4jTemplateIT {
 				.verifyComplete();
 	}
 
+	@Test // GH-2215
+	void saveAllProjectionShouldWork(@Autowired ReactiveNeo4jTemplate template) {
+
+		template
+				.find(Person.class)
+				.as(DtoPersonProjection.class)
+				.matching("MATCH (p:Person {lastName: $lastName}) RETURN p", Collections.singletonMap("lastName", "Siemons"))
+				.one()
+				.flatMapMany(p -> {
+					p.setFirstName("Micha");
+					p.setLastName("Simons");
+					return template.save(Person.class).all(Collections.singleton(p));
+				})
+				.doOnNext(signal -> {
+					assertThat(signal.getFirstName()).isEqualTo("Micha");
+					assertThat(signal.getLastName()).isEqualTo("Simons");
+				})
+				.flatMap(savedProjection -> template.findById(savedProjection.getId(), Person.class))
+				.as(StepVerifier::create)
+				.expectNextMatches(
+						person -> person.getFirstName().equals("Micha") && person.getLastName().equals("Simons")
+								  && person.getAddress() != null)
+				.verifyComplete();
+	}
+
 	@Test
 	void saveAllAsWithOpenProjectionShouldWork(@Autowired ReactiveNeo4jTemplate template) {
 
