@@ -17,6 +17,7 @@ package org.springframework.data.neo4j.core;
 
 import static org.neo4j.cypherdsl.core.Cypher.anyNode;
 import static org.neo4j.cypherdsl.core.Cypher.asterisk;
+import static org.neo4j.cypherdsl.core.Cypher.match;
 import static org.neo4j.cypherdsl.core.Cypher.parameter;
 
 import java.beans.PropertyDescriptor;
@@ -66,6 +67,7 @@ import org.springframework.data.neo4j.core.mapping.Constants;
 import org.springframework.data.neo4j.core.mapping.CreateRelationshipStatementHolder;
 import org.springframework.data.neo4j.core.mapping.CypherGenerator;
 import org.springframework.data.neo4j.core.mapping.DtoInstantiatingConverter;
+import org.springframework.data.neo4j.core.mapping.EntityFromDtoInstantiatingConverter;
 import org.springframework.data.neo4j.core.mapping.EntityInstanceWithSource;
 import org.springframework.data.neo4j.core.mapping.GraphPropertyDescription;
 import org.springframework.data.neo4j.core.mapping.MappingSupport;
@@ -242,7 +244,7 @@ public final class Neo4jTemplate implements
 
 	@Override
 	public <T> ExecutableFind<T> find(Class<T> domainType) {
-		return new FluentFindOperationSupport(this).find(domainType);
+		return new FluentOperationSupport(this).find(domainType);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -935,7 +937,23 @@ public final class Neo4jTemplate implements
 	@Override
 	public <T> ExecutableSave<T> save(Class<T> domainType) {
 
-		return new FluentFindOperationSupport(this).save(domainType);
+		return new FluentOperationSupport(this).save(domainType);
+	}
+
+	<T, R> R doSave(R instance, Class<T> domainType, Class<R> resultType) {
+		EntityFromDtoInstantiatingConverter<T> converter = new EntityFromDtoInstantiatingConverter(domainType, neo4jMappingContext);
+		T domainObject = converter.convert(instance);
+
+		ProjectionInformation projectionInformation = projectionFactory.getProjectionInformation(resultType);
+		List<PropertyDescriptor> inputProperties = projectionInformation.getInputProperties();
+		Set<PropertyPath> pps = new HashSet<>();
+		for (PropertyDescriptor inputProperty : inputProperties) {
+			extracted(projectionFactory, resultType, pps, inputProperty.getName());
+		}
+		T savedEntity = saveImpl(domainObject, pps);
+
+		R convertedBack = (R) new DtoInstantiatingConverter(resultType, neo4jMappingContext).convertDirectly(savedEntity);
+		return convertedBack;
 	}
 
 	final class DefaultExecutableQuery<T> implements ExecutableQuery<T> {

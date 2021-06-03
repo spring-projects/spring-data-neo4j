@@ -27,11 +27,11 @@ import org.springframework.util.Assert;
  * @author Michael J. Simons
  * @since 6.1
  */
-final class FluentFindOperationSupport implements FluentFindOperation, FluentSaveOperation {
+final class FluentOperationSupport implements FluentFindOperation, FluentSaveOperation {
 
 	private final Neo4jTemplate template;
 
-	FluentFindOperationSupport(Neo4jTemplate template) {
+	FluentOperationSupport(Neo4jTemplate template) {
 		this.template = template;
 	}
 
@@ -104,7 +104,7 @@ final class FluentFindOperationSupport implements FluentFindOperation, FluentSav
 
 		Assert.notNull(domainType, "DomainType must not be null!");
 
-		return new ExecutableSaveSupport(this.template, domainType);
+		return new ExecutableSaveSupport<>(this.template, domainType);
 	}
 
 	private static class ExecutableSaveSupport<DT> implements ExecutableSave<DT> {
@@ -120,12 +120,17 @@ final class FluentFindOperationSupport implements FluentFindOperation, FluentSav
 		@Override
 		public <T> T one(T instance) {
 
-			throw new UnsupportedOperationException("Not yet done.");
+			return doSave(instance);
 		}
 
 		@Override
 		public <T> List<T> all(Iterable<T> instances) {
 			throw new UnsupportedOperationException("Not yet done.");
+		}
+
+		private <T> T doSave(T instance) {
+			Class<T> instanceType = (Class<T>) instance.getClass();
+			return (T) template.doSave(instance, domainType, instanceType);
 		}
 	}
 }
