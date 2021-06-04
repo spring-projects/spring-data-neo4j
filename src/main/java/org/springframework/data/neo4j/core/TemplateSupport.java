@@ -43,7 +43,7 @@ import org.springframework.data.neo4j.core.mapping.EntityInstanceWithSource;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.core.mapping.NodeDescription;
-import org.springframework.data.neo4j.core.mapping.MagicPropertyPathClass;
+import org.springframework.data.neo4j.core.mapping.PropertyFilter;
 import org.springframework.data.neo4j.repository.query.QueryFragments;
 import org.springframework.data.mapping.PropertyPath;
 import org.springframework.lang.Nullable;
@@ -111,10 +111,10 @@ final class TemplateSupport {
 		return candidate;
 	}
 
-	static MagicPropertyPathClass computeIncludePropertyPredicate(Collection<PropertyPath> includedProperties,
-																  NodeDescription<?> nodeDescription) {
+	static PropertyFilter computeIncludePropertyPredicate(Collection<PropertyPath> includedProperties,
+														  NodeDescription<?> nodeDescription) {
 
-		return MagicPropertyPathClass.from(includedProperties, nodeDescription);
+		return PropertyFilter.from(includedProperties, nodeDescription);
 	}
 
 	static void updateVersionPropertyIfPossible(

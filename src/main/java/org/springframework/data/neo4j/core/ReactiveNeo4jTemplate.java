@@ -21,7 +21,7 @@ import static org.neo4j.cypherdsl.core.Cypher.parameter;
 
 import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.neo4j.core.mapping.EntityFromDtoInstantiatingConverter;
-import org.springframework.data.neo4j.core.mapping.MagicPropertyPathClass;
+import org.springframework.data.neo4j.core.mapping.PropertyFilter;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.util.function.Tuple2;
@@ -369,7 +369,7 @@ public final class ReactiveNeo4jTemplate implements
 					Function<T, Map<String, Object>> binderFunction = neo4jMappingContext
 							.getRequiredBinderFunctionFor((Class<T>) entityToBeSaved.getClass());
 
-					MagicPropertyPathClass includeProperty = TemplateSupport.computeIncludePropertyPredicate(includedProperties, entityMetaData);
+					PropertyFilter includeProperty = TemplateSupport.computeIncludePropertyPredicate(includedProperties, entityMetaData);
 					binderFunction = binderFunction.andThen(tree -> {
 						Map<String, Object> properties = (Map<String, Object>) tree.get(Constants.NAME_OF_PROPERTIES_PARAM);
 						if (!includeProperty.isNotFiltering()) {
@@ -736,7 +736,7 @@ public final class ReactiveNeo4jTemplate implements
 	 */
 	private <T> Mono<T> processRelations(Neo4jPersistentEntity<?> neo4jPersistentEntity, T originalInstance,
 										 Long internalId, PersistentPropertyAccessor<?> parentPropertyAccessor,
-										 boolean isParentObjectNew, MagicPropertyPathClass includeProperty) {
+										 boolean isParentObjectNew, PropertyFilter includeProperty) {
 
 		String previousPropertyPath = "";
 		return processNestedRelations(neo4jPersistentEntity.getType(), neo4jPersistentEntity, parentPropertyAccessor, isParentObjectNew,
@@ -745,7 +745,7 @@ public final class ReactiveNeo4jTemplate implements
 
 	private <T> Mono<T> processRelations(Class<?> chef, Neo4jPersistentEntity<?> neo4jPersistentEntity, T originalInstance,
 			PersistentPropertyAccessor<?> parentPropertyAccessor,
-			boolean isParentObjectNew, MagicPropertyPathClass includeProperty) {
+			boolean isParentObjectNew, PropertyFilter includeProperty) {
 
 		String previousPropertyPath = "";
 		return processNestedRelations(chef, neo4jPersistentEntity, parentPropertyAccessor, isParentObjectNew,
@@ -753,7 +753,7 @@ public final class ReactiveNeo4jTemplate implements
 	}
 
 	private <T> Mono<T> processNestedRelations(Class<?> chef, Neo4jPersistentEntity<?> sourceEntity, PersistentPropertyAccessor<?> parentPropertyAccessor,
-		  boolean isParentObjectNew, NestedRelationshipProcessingStateMachine stateMachine, MagicPropertyPathClass includeProperty, String previousPath) {
+											   boolean isParentObjectNew, NestedRelationshipProcessingStateMachine stateMachine, PropertyFilter includeProperty, String previousPath) {
 
 		Object fromId = parentPropertyAccessor.getProperty(sourceEntity.getRequiredIdProperty());
 		List<Mono<Void>> relationshipDeleteMonos = new ArrayList<>();
@@ -892,7 +892,7 @@ public final class ReactiveNeo4jTemplate implements
 
 												Mono<Object> nestedRelationshipsSignal = null;
 												if (processState != ProcessState.PROCESSED_ALL_VALUES) {
-													nestedRelationshipsSignal = processNestedRelations(chef, targetEntity, targetPropertyAccessor, targetEntity.isNew(newRelatedObject), stateMachine, dynamicRelationship ? MagicPropertyPathClass.acceptAll(sourceEntity) : includeProperty, previousPath);
+													nestedRelationshipsSignal = processNestedRelations(chef, targetEntity, targetPropertyAccessor, targetEntity.isNew(newRelatedObject), stateMachine, dynamicRelationship ? PropertyFilter.acceptAll() : includeProperty, previousPath);
 												}
 
 												Mono<Object> getRelationshipOrRelationshipPropertiesObject = Mono.fromSupplier(() -> MappingSupport.getRelationshipOrRelationshipPropertiesObject(

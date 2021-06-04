@@ -16,31 +16,34 @@
 package org.springframework.data.neo4j.core.mapping;
 
 import org.springframework.data.mapping.PropertyPath;
-import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
 /**
  * Something that makes sense of propertyPaths by having an understanding of projection classes.
  */
-public class MagicPropertyPathClass {
+public abstract class PropertyFilter {
 
-	private final Set<Class<?>> rootClasses;
-	private final Set<ProjectingPropertyPath> projectingPropertyPaths;
-
-	public static MagicPropertyPathClass from(Collection<PropertyPath> properties, NodeDescription<?> dingDong) {
-		return new MagicPropertyPathClass(properties, dingDong);
+	public static PropertyFilter from(Collection<PropertyPath> properties, NodeDescription<?> dingDong) {
+		return new FilteringPropertyFilter(properties, dingDong);
 	}
 
-	private MagicPropertyPathClass(Collection<PropertyPath> properties, @Nullable NodeDescription<?> dingDong) {
-		if (dingDong == null) {
-			rootClasses = new HashSet<>();
-			projectingPropertyPaths = Collections.emptySet();
-		} else {
+	public static PropertyFilter acceptAll() {
+		return new NonFilteringPropertyFilter();
+	}
+
+	public abstract boolean contains(String dotPath, Class<?> typeToCheck);
+
+	public abstract boolean isNotFiltering();
+
+	private static class FilteringPropertyFilter extends PropertyFilter {
+		private final Set<Class<?>> rootClasses;
+		private final Set<ProjectingPropertyPath> projectingPropertyPaths;
+
+		private FilteringPropertyFilter(Collection<PropertyPath> properties, @Nullable NodeDescription<?> dingDong) {
 			Class<?> domainClass = dingDong.getUnderlyingClass();
 
 			rootClasses = new HashSet<>();
@@ -67,44 +70,59 @@ public class MagicPropertyPathClass {
 			}
 			projectingPropertyPaths = projectingProperties;
 		}
+
+		@Override
+		public boolean contains(String dotPath, Class<?> typeToCheck) {
+			if (isNotFiltering()) {
+				return true;
+			}
+
+			if (!rootClasses.contains(typeToCheck)) {
+				return false;
+			}
+
+			String propertyPath = createPropertyPath(dotPath);
+
+			for (ProjectingPropertyPath projectingPropertyPath : projectingPropertyPaths) {
+				if (projectingPropertyPath.path.equals(propertyPath)) {
+					return true;
+				}
+			}
+
+			return false;
+
+		}
+
+		@Override
+		public boolean isNotFiltering() {
+			return projectingPropertyPaths.isEmpty();
+		}
+
+		private static String createPropertyPath(String dotPath) {
+			return dotPath.substring(dotPath.indexOf(".") + 1);
+		}
+
+
+		private static class ProjectingPropertyPath {
+			private final String path;
+
+			private ProjectingPropertyPath(String path) {
+				this.path = path;
+			}
+		}
 	}
 
-	@NonNull
-	private static String createPropertyPath(String dotPath) {
-		return dotPath.substring(dotPath.indexOf(".") + 1);
-	}
+	private static class NonFilteringPropertyFilter extends PropertyFilter {
 
-	public static MagicPropertyPathClass acceptAll(Neo4jPersistentEntity<?> sourceEntity) {
-		return new MagicPropertyPathClass(Collections.emptySet(), sourceEntity);
-	}
-
-	public static MagicPropertyPathClass acceptAll() {
-		return acceptAll(null);
-	}
-
-	public boolean isNotFiltering() {
-		return projectingPropertyPaths.isEmpty();
-	}
-
-	public boolean contains(String dotPath, Class<?> typeToCheck) {
-		if (isNotFiltering()) {
+		@Override
+		public boolean contains(String dotPath, Class<?> typeToCheck) {
 			return true;
 		}
 
-		if (!rootClasses.contains(typeToCheck)) {
-			return false;
+		@Override
+		public boolean isNotFiltering() {
+			return true;
 		}
-
-		String propertyPath = createPropertyPath(dotPath);
-
-		for (ProjectingPropertyPath projectingPropertyPath : projectingPropertyPaths) {
-			if (projectingPropertyPath.path.equals(propertyPath)) {
-				return true;
-			}
-		}
-
-		return false;
-
 	}
 
 	/**
@@ -132,11 +150,4 @@ public class MagicPropertyPathClass {
 		}
 	}
 
-	private static class ProjectingPropertyPath {
-		private final String path;
-
-		private ProjectingPropertyPath(String path) {
-			this.path = path;
-		}
-	}
 }

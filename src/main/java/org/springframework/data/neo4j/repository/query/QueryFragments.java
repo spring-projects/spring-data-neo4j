@@ -26,7 +26,7 @@ import org.neo4j.cypherdsl.core.Statement;
 import org.neo4j.cypherdsl.core.StatementBuilder;
 import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.neo4j.core.mapping.CypherGenerator;
-import org.springframework.data.neo4j.core.mapping.MagicPropertyPathClass;
+import org.springframework.data.neo4j.core.mapping.PropertyFilter;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.core.mapping.NodeDescription;
 import org.springframework.lang.Nullable;
@@ -84,9 +84,9 @@ public final class QueryFragments {
 		this.scalarValueReturn = isScalarValue;
 	}
 
-	public boolean includeField(MagicPropertyPathClass.LoosePropertyPath fieldName) {
+	public boolean includeField(PropertyFilter.LoosePropertyPath fieldName) {
 		return this.returnTuple == null
-				? MagicPropertyPathClass.acceptAll().contains(fieldName.toDotPath(), fieldName.getType())
+				? PropertyFilter.acceptAll().contains(fieldName.toDotPath(), fieldName.getType())
 				: this.returnTuple.filteredProperties.contains(fieldName.toDotPath(), fieldName.getType());
 	}
 
@@ -170,12 +170,12 @@ public final class QueryFragments {
 	 */
 	final static class ReturnTuple {
 		final NodeDescription<?> nodeDescription;
-		final MagicPropertyPathClass filteredProperties;
+		final PropertyFilter filteredProperties;
 		final boolean isDistinct;
 
 		private ReturnTuple(NodeDescription<?> nodeDescription, List<PropertyPath> filteredProperties, boolean isDistinct) {
 			this.nodeDescription = nodeDescription;
-			this.filteredProperties = MagicPropertyPathClass.from(filteredProperties, nodeDescription);
+			this.filteredProperties = PropertyFilter.from(filteredProperties, nodeDescription);
 			this.isDistinct = isDistinct;
 		}
 	}

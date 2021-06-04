@@ -459,7 +459,7 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 	}
 
 	@NonNull
-	public Collection<RelationshipDescription> getRelationshipsInHierarchy(Predicate<MagicPropertyPathClass.LoosePropertyPath> propertyFilter) {
+	public Collection<RelationshipDescription> getRelationshipsInHierarchy(Predicate<PropertyFilter.LoosePropertyPath> propertyFilter) {
 
 		Collection<RelationshipDescription> relationships = new HashSet<>(getRelationships());
 		for (NodeDescription<?> childDescription : getChildNodeDescriptionsInHierarchy()) {
@@ -478,8 +478,8 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 				.collect(Collectors.toSet());
 	}
 
-	private boolean filterProperties(Predicate<MagicPropertyPathClass.LoosePropertyPath> propertyFilter, RelationshipDescription relationshipDescription) {
-		MagicPropertyPathClass.LoosePropertyPath from = MagicPropertyPathClass.LoosePropertyPath.from(relationshipDescription.getFieldName(), relationshipDescription.getSource().getUnderlyingClass());
+	private boolean filterProperties(Predicate<PropertyFilter.LoosePropertyPath> propertyFilter, RelationshipDescription relationshipDescription) {
+		PropertyFilter.LoosePropertyPath from = PropertyFilter.LoosePropertyPath.from(relationshipDescription.getFieldName(), relationshipDescription.getSource().getUnderlyingClass());
 		return propertyFilter.test(from);
 	}
 
@@ -533,11 +533,11 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 	}
 
 	@Override
-	public boolean containsPossibleCircles(Predicate<MagicPropertyPathClass.LoosePropertyPath> includeField) {
+	public boolean containsPossibleCircles(Predicate<PropertyFilter.LoosePropertyPath> includeField) {
 		return calculatePossibleCircles(includeField);
 	}
 
-	private boolean calculatePossibleCircles(Predicate<MagicPropertyPathClass.LoosePropertyPath> includeField) {
+	private boolean calculatePossibleCircles(Predicate<PropertyFilter.LoosePropertyPath> includeField) {
 		Collection<RelationshipDescription> relationships = new HashSet<>(getRelationshipsInHierarchy(includeField));
 
 		Set<RelationshipDescription> processedRelationships = new HashSet<>();
@@ -556,7 +556,7 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 		return false;
 	}
 
-	private boolean calculatePossibleCircles(NodeDescription<?> nodeDescription, Set<RelationshipDescription> processedRelationships, Predicate<MagicPropertyPathClass.LoosePropertyPath> includeField) {
+	private boolean calculatePossibleCircles(NodeDescription<?> nodeDescription, Set<RelationshipDescription> processedRelationships, Predicate<PropertyFilter.LoosePropertyPath> includeField) {
 		Collection<RelationshipDescription> relationships = nodeDescription.getRelationshipsInHierarchy(includeField);
 
 		for (RelationshipDescription relationship : relationships) {

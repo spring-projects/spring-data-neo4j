@@ -78,7 +78,7 @@ import org.springframework.data.neo4j.core.mapping.NodeDescription;
 import org.springframework.data.neo4j.core.mapping.RelationshipDescription;
 import org.springframework.data.neo4j.core.mapping.callback.EventSupport;
 import org.springframework.data.neo4j.repository.NoResultException;
-import org.springframework.data.neo4j.core.mapping.MagicPropertyPathClass;
+import org.springframework.data.neo4j.core.mapping.PropertyFilter;
 import org.springframework.data.neo4j.repository.query.QueryFragments;
 import org.springframework.data.neo4j.repository.query.QueryFragmentsAndParameters;
 import org.springframework.data.projection.ProjectionFactory;
@@ -358,7 +358,7 @@ public final class Neo4jTemplate implements
 		Function<T, Map<String, Object>> binderFunction = neo4jMappingContext
 				.getRequiredBinderFunctionFor((Class<T>) entityToBeSaved.getClass());
 
-		MagicPropertyPathClass includeProperty = TemplateSupport.computeIncludePropertyPredicate(includedProperties, entityMetaData);
+		PropertyFilter includeProperty = TemplateSupport.computeIncludePropertyPredicate(includedProperties, entityMetaData);
 		binderFunction = binderFunction.andThen(tree -> {
 			Map<String, Object> properties = (Map<String, Object>) tree.get(Constants.NAME_OF_PROPERTIES_PARAM);
 
@@ -632,7 +632,7 @@ public final class Neo4jTemplate implements
 	 */
 	private <T> void processRelations(Neo4jPersistentEntity<?> neo4jPersistentEntity, T originalInstance, Long internalId,
 								   PersistentPropertyAccessor<?> parentPropertyAccessor,
-								   boolean isParentObjectNew, MagicPropertyPathClass includeProperty) {
+								   boolean isParentObjectNew, PropertyFilter includeProperty) {
 
 		String previousPropertyPath = "";
 		processNestedRelations(neo4jPersistentEntity.getType(), neo4jPersistentEntity, parentPropertyAccessor, isParentObjectNew,
@@ -641,7 +641,7 @@ public final class Neo4jTemplate implements
 
 	private <T> T processRelations(Class<?> chef, Neo4jPersistentEntity<?> neo4jPersistentEntity, T originalInstance,
 			PersistentPropertyAccessor<?> parentPropertyAccessor,
-			boolean isParentObjectNew, MagicPropertyPathClass includeProperty) {
+			boolean isParentObjectNew, PropertyFilter includeProperty) {
 
 		String previousPropertyPath = "";
 		return processNestedRelations(chef, neo4jPersistentEntity, parentPropertyAccessor, isParentObjectNew,
@@ -649,7 +649,7 @@ public final class Neo4jTemplate implements
 	}
 
 	private <T> T processNestedRelations(Class<?> chef, Neo4jPersistentEntity<?> sourceEntity, PersistentPropertyAccessor<?> propertyAccessor,
-			boolean isParentObjectNew, NestedRelationshipProcessingStateMachine stateMachine, MagicPropertyPathClass includeProperty, String previousPath) {
+										 boolean isParentObjectNew, NestedRelationshipProcessingStateMachine stateMachine, PropertyFilter includeProperty, String previousPath) {
 
 		Object fromId = propertyAccessor.getProperty(sourceEntity.getRequiredIdProperty());
 
@@ -784,7 +784,7 @@ public final class Neo4jTemplate implements
 				stateMachine.markValueAsProcessedAs(relatedObjectBeforeCallbacksApplied, targetPropertyAccessor.getBean());
 
 				if (processState != ProcessState.PROCESSED_ALL_VALUES) {
-					processNestedRelations(chef, targetEntity, targetPropertyAccessor, isEntityNew, stateMachine, dynamicRelationship ? MagicPropertyPathClass.acceptAll(sourceEntity) : includeProperty, currentPropertyPath);
+					processNestedRelations(chef, targetEntity, targetPropertyAccessor, isEntityNew, stateMachine, dynamicRelationship ? PropertyFilter.acceptAll() : includeProperty, currentPropertyPath);
 				}
 
 				Object potentiallyRecreatedNewRelatedObject = MappingSupport.getRelationshipOrRelationshipPropertiesObject(neo4jMappingContext,
@@ -802,7 +802,7 @@ public final class Neo4jTemplate implements
 		return (T) propertyAccessor.getBean();
 	}
 
-	private <Y> Entity saveRelatedNode(Object entity, NodeDescription targetNodeDescription, Class<?> chef, MagicPropertyPathClass includeProperty, String currentPropertyPath) {
+	private <Y> Entity saveRelatedNode(Object entity, NodeDescription targetNodeDescription, Class<?> chef, PropertyFilter includeProperty, String currentPropertyPath) {
 
 		DynamicLabels dynamicLabels = determineDynamicLabels(entity, (Neo4jPersistentEntity) targetNodeDescription);
 		Class<Y> entityType = (Class<Y>) ((Neo4jPersistentEntity<?>) targetNodeDescription).getType();

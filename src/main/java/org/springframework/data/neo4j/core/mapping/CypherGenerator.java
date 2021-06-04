@@ -513,7 +513,7 @@ public enum CypherGenerator {
 	 * @return An expression to be returned by a Cypher statement
 	 */
 	public Expression[] createReturnStatementForMatch(Neo4jPersistentEntity<?> nodeDescription,
-			Predicate<MagicPropertyPathClass.LoosePropertyPath> includeField) {
+			Predicate<PropertyFilter.LoosePropertyPath> includeField) {
 
 		List<RelationshipDescription> processedRelationships = new ArrayList<>();
 		if (nodeDescription.containsPossibleCircles(includeField)) {
@@ -531,11 +531,11 @@ public enum CypherGenerator {
 		return returnExpressions.toArray(new Expression[]{});
 	}
 
-	private MapProjection projectPropertiesAndRelationships(@Nullable MagicPropertyPathClass.LoosePropertyPath parentPath, Class<?> parentType, Neo4jPersistentEntity<?> nodeDescription, SymbolicName nodeName,
-			Predicate<MagicPropertyPathClass.LoosePropertyPath> includedProperties, RelationshipDescription relationshipDescription, List<RelationshipDescription> processedRelationships) {
+	private MapProjection projectPropertiesAndRelationships(@Nullable PropertyFilter.LoosePropertyPath parentPath, Class<?> parentType, Neo4jPersistentEntity<?> nodeDescription, SymbolicName nodeName,
+                                                            Predicate<PropertyFilter.LoosePropertyPath> includedProperties, RelationshipDescription relationshipDescription, List<RelationshipDescription> processedRelationships) {
 
 		Collection<RelationshipDescription> relationships = nodeDescription.getRelationshipsInHierarchy(includedProperties);
-		relationships.removeIf(r -> !includedProperties.test(MagicPropertyPathClass.LoosePropertyPath.from(r.getFieldName(), nodeDescription.getType())));
+		relationships.removeIf(r -> !includedProperties.test(PropertyFilter.LoosePropertyPath.from(r.getFieldName(), nodeDescription.getType())));
 
 		List<Object> propertiesProjection = projectNodeProperties(parentPath, parentType, nodeDescription, nodeName, relationshipDescription, includedProperties);
 		List<Object> contentOfProjection = new ArrayList<>(propertiesProjection);
@@ -549,8 +549,8 @@ public enum CypherGenerator {
 	 * this list can also contain two "keys" in a row. The {@link MapProjection} will take care to handle them as
 	 * self-reflecting fields. Example with self-reflection and explicit value: {@code n {.id, name: n.name}}.
 	 */
-	private List<Object> projectNodeProperties(@Nullable MagicPropertyPathClass.LoosePropertyPath parentPath, Class<?> parentType, NodeDescription<?> nodeDescription, SymbolicName nodeName,
-											   @Nullable RelationshipDescription relationshipDescription, Predicate<MagicPropertyPathClass.LoosePropertyPath> includeField) {
+	private List<Object> projectNodeProperties(@Nullable PropertyFilter.LoosePropertyPath parentPath, Class<?> parentType, NodeDescription<?> nodeDescription, SymbolicName nodeName,
+                                               @Nullable RelationshipDescription relationshipDescription, Predicate<PropertyFilter.LoosePropertyPath> includeField) {
 
 		List<Object> nodePropertiesProjection = new ArrayList<>();
 		Node node = anyNode(nodeName);
@@ -564,20 +564,20 @@ public enum CypherGenerator {
 			if (property.isDynamicLabels() || property.isComposite()) {
 				continue;
 			}
-			MagicPropertyPathClass.LoosePropertyPath from;
+			PropertyFilter.LoosePropertyPath from;
 			if (parentPath == null && relationshipDescription == null) {
-				from = MagicPropertyPathClass.LoosePropertyPath.from(property.getFieldName(), parentType);
+				from = PropertyFilter.LoosePropertyPath.from(property.getFieldName(), parentType);
 			} else if (relationshipDescription != null && relationshipDescription.hasRelationshipProperties()) {
 				String relationshipPropertyTargetNodeFieldName =
 						((Neo4jPersistentEntity<?>) relationshipDescription.getRelationshipPropertiesEntity())
 								.getPersistentProperty(TargetNode.class).getFieldName();
 				if (parentPath == null) {
-					from = MagicPropertyPathClass.LoosePropertyPath.from(relationshipPropertyTargetNodeFieldName + "." + property.getFieldName(), parentType);
+					from = PropertyFilter.LoosePropertyPath.from(relationshipPropertyTargetNodeFieldName + "." + property.getFieldName(), parentType);
 				} else {
-					from = MagicPropertyPathClass.LoosePropertyPath.from(parentPath.toDotPath() + "." + relationshipPropertyTargetNodeFieldName + "." + property.getFieldName(), parentType);
+					from = PropertyFilter.LoosePropertyPath.from(parentPath.toDotPath() + "." + relationshipPropertyTargetNodeFieldName + "." + property.getFieldName(), parentType);
 				}
 			} else {
-				from = MagicPropertyPathClass.LoosePropertyPath.from(parentPath.toDotPath() + "." + property.getFieldName(), parentType);
+				from = PropertyFilter.LoosePropertyPath.from(parentPath.toDotPath() + "." + property.getFieldName(), parentType);
 			}
 
 
@@ -603,8 +603,8 @@ public enum CypherGenerator {
 	/**
 	 * @see CypherGenerator#projectNodeProperties
 	 */
-	private List<Object> generateListsFor(MagicPropertyPathClass.LoosePropertyPath parentPath, Class<?> parentType, Collection<RelationshipDescription> relationships, SymbolicName nodeName,
-			Predicate<MagicPropertyPathClass.LoosePropertyPath> includedProperties, List<RelationshipDescription> processedRelationships) {
+	private List<Object> generateListsFor(PropertyFilter.LoosePropertyPath parentPath, Class<?> parentType, Collection<RelationshipDescription> relationships, SymbolicName nodeName,
+                                          Predicate<PropertyFilter.LoosePropertyPath> includedProperties, List<RelationshipDescription> processedRelationships) {
 
 		List<Object> mapProjectionLists = new ArrayList<>();
 
@@ -625,8 +625,8 @@ public enum CypherGenerator {
 		return mapProjectionLists;
 	}
 
-	private void generateListFor(MagicPropertyPathClass.LoosePropertyPath parentPath, Class<?> parentType, RelationshipDescription relationshipDescription, SymbolicName nodeName,
-			List<RelationshipDescription> processedRelationships, String fieldName, List<Object> mapProjectionLists, Predicate<MagicPropertyPathClass.LoosePropertyPath> includedProperties) {
+	private void generateListFor(PropertyFilter.LoosePropertyPath parentPath, Class<?> parentType, RelationshipDescription relationshipDescription, SymbolicName nodeName,
+                                 List<RelationshipDescription> processedRelationships, String fieldName, List<Object> mapProjectionLists, Predicate<PropertyFilter.LoosePropertyPath> includedProperties) {
 
 		String relationshipType = relationshipDescription.getType();
 		String relationshipTargetName = relationshipDescription.generateRelatedNodesCollectionName(relationshipDescription.getSource());
@@ -641,17 +641,17 @@ public enum CypherGenerator {
 		Neo4jPersistentEntity<?> endNodeDescription = (Neo4jPersistentEntity<?>) relationshipDescription.getTarget();
 
 		processedRelationships.add(relationshipDescription);
-		MagicPropertyPathClass.LoosePropertyPath newParentPath;
+		PropertyFilter.LoosePropertyPath newParentPath;
 				if (parentPath == null) {
-					newParentPath = MagicPropertyPathClass.LoosePropertyPath.from(relationshipDescription.getFieldName(), parentType);
+					newParentPath = PropertyFilter.LoosePropertyPath.from(relationshipDescription.getFieldName(), parentType);
 				} else if (relationshipDescription.hasRelationshipProperties()) {
 					String relationshipPropertyTargetNodeFieldName =
 							((Neo4jPersistentEntity<?>) relationshipDescription.getRelationshipPropertiesEntity())
 									.getPersistentProperty(TargetNode.class).getFieldName();
 
-					newParentPath = MagicPropertyPathClass.LoosePropertyPath.from(parentPath.toDotPath() + "." + relationshipPropertyTargetNodeFieldName + "." + relationshipDescription.getFieldName(), parentType);
+					newParentPath = PropertyFilter.LoosePropertyPath.from(parentPath.toDotPath() + "." + relationshipPropertyTargetNodeFieldName + "." + relationshipDescription.getFieldName(), parentType);
 				} else {
-					newParentPath =	MagicPropertyPathClass.LoosePropertyPath.from(parentPath.toDotPath() + "." + relationshipDescription.getFieldName(), parentType);
+					newParentPath =	PropertyFilter.LoosePropertyPath.from(parentPath.toDotPath() + "." + relationshipDescription.getFieldName(), parentType);
 				}
 
 		if (relationshipDescription.isDynamic()) {
