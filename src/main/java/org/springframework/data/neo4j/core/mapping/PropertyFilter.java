@@ -16,7 +16,6 @@
 package org.springframework.data.neo4j.core.mapping;
 
 import org.springframework.data.mapping.PropertyPath;
-import org.springframework.lang.Nullable;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -43,7 +42,7 @@ public abstract class PropertyFilter {
 		private final Set<Class<?>> rootClasses;
 		private final Set<ProjectingPropertyPath> projectingPropertyPaths;
 
-		private FilteringPropertyFilter(Collection<PropertyPath> properties, @Nullable NodeDescription<?> dingDong) {
+		private FilteringPropertyFilter(Collection<PropertyPath> properties, NodeDescription<?> dingDong) {
 			Class<?> domainClass = dingDong.getUnderlyingClass();
 
 			rootClasses = new HashSet<>();
@@ -126,14 +125,18 @@ public abstract class PropertyFilter {
 	}
 
 	/**
-	 * Simple encapsulation for a looks-as-property-path.
+	 * A very loose coupling between a dot path and its (possible) owning type.
+	 * This is due to the fact that the original PropertyPath does throw an exception on creation when a property
+	 * is not found on the entity.
+	 * Since we are supporting also querying for base classes with properties coming from the inheriting classes,
+	 * this test on creation is too strict.
 	 */
-	public static class LoosePropertyPath {
+	public static class RelaxedPropertyPath {
 		private final String dotPath;
 		private final Class<?> type;
 
-		public static LoosePropertyPath from(String dotPath, Class<?> type) {
-			return new LoosePropertyPath(dotPath, type);
+		public static RelaxedPropertyPath from(String dotPath, Class<?> type) {
+			return new RelaxedPropertyPath(dotPath, type);
 		}
 
 		public String toDotPath() {
@@ -144,7 +147,7 @@ public abstract class PropertyFilter {
 			return type;
 		}
 
-		private LoosePropertyPath(String dotPath, Class<?> type) {
+		private RelaxedPropertyPath(String dotPath, Class<?> type) {
 			this.dotPath = dotPath;
 			this.type = type;
 		}

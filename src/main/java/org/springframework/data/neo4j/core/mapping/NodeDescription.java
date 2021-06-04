@@ -109,7 +109,7 @@ public interface NodeDescription<T> {
 	 * @param propertyPredicate - Predicate to filter the fields on this node description to
 	 * @return The relationships defined by instances of this node.
 	 */
-	Collection<RelationshipDescription> getRelationshipsInHierarchy(Predicate<PropertyFilter.LoosePropertyPath> propertyPredicate);
+	Collection<RelationshipDescription> getRelationshipsInHierarchy(Predicate<PropertyFilter.RelaxedPropertyPath> propertyPredicate);
 
 	/**
 	 * Register a direct child node description for this entity.
@@ -146,7 +146,7 @@ public interface NodeDescription<T> {
 	 * @param includeField A predicate used to determine the properties that need to be looked at while detecting possible circles.
 	 * @return True if the domain would contain schema circles.
 	 */
-	boolean containsPossibleCircles(Predicate<PropertyFilter.LoosePropertyPath> includeField);
+	boolean containsPossibleCircles(Predicate<PropertyFilter.RelaxedPropertyPath> includeField);
 
 	/**
 	 * @return True if this persistent entity has been created for an interface.

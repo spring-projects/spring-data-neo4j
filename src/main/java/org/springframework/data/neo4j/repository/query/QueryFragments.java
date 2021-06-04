@@ -84,7 +84,7 @@ public final class QueryFragments {
 		this.scalarValueReturn = isScalarValue;
 	}
 
-	public boolean includeField(PropertyFilter.LoosePropertyPath fieldName) {
+	public boolean includeField(PropertyFilter.RelaxedPropertyPath fieldName) {
 		return this.returnTuple == null
 				? PropertyFilter.acceptAll().contains(fieldName.toDotPath(), fieldName.getType())
 				: this.returnTuple.filteredProperties.contains(fieldName.toDotPath(), fieldName.getType());
