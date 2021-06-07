@@ -259,6 +259,7 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndPar
 		QueryFragments queryFragments = createQueryFragments(condition, sort);
 
 		Map<String, Object> convertedParameters = this.boundedParameters.stream()
+				.peek(p -> Neo4jQuerySupport.logParameterIfNull(p.nameOrIndex, p.value))
 				.collect(Collectors.toMap(p -> p.nameOrIndex, p -> parameterConversion.apply(p.value, p.conversionOverride)));
 		return new QueryFragmentsAndParameters(nodeDescription, queryFragments, convertedParameters);
 	}

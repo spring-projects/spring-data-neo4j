@@ -200,10 +200,9 @@ final class StringBasedNeo4jQuery extends AbstractNeo4jQuery {
 
 		// Values from the parameter accessor can only get converted after evaluation
 		for (Entry<String, Object> evaluatedParam : spelEvaluator.evaluate(parameterAccessor.getValues()).entrySet()) {
-			Object value;
-			if (evaluatedParam.getValue() instanceof LiteralReplacement) {
-				value = evaluatedParam.getValue();
-			} else {
+			Object value = evaluatedParam.getValue();
+			if (!(evaluatedParam.getValue() instanceof LiteralReplacement)) {
+				Neo4jQuerySupport.logParameterIfNull(evaluatedParam.getKey(), value);
 				value = super.convertParameter(evaluatedParam.getValue());
 			}
 			resolvedParameters.put(evaluatedParam.getKey(), value);
@@ -211,13 +210,15 @@ final class StringBasedNeo4jQuery extends AbstractNeo4jQuery {
 
 		formalParameters.getBindableParameters().forEach(parameter -> {
 
-			int parameterIndex = parameter.getIndex();
-			Object parameterValue = super.convertParameter(parameterAccessor.getBindableValue(parameterIndex));
+			int index = parameter.getIndex();
+			Object value = parameterAccessor.getBindableValue(index);
+			Neo4jQuerySupport.logParameterIfNull(parameter.getName().orElseGet(() -> Integer.toString(index)), value);
+			Object convertedValue = super.convertParameter(value);
 
 			// Add the parameter under its name when possible
-			parameter.getName().ifPresent(parameterName -> resolvedParameters.put(parameterName, parameterValue));
+			parameter.getName().ifPresent(parameterName -> resolvedParameters.put(parameterName, convertedValue));
 			// Always add under its index.
-			resolvedParameters.put(Integer.toString(parameterIndex), parameterValue);
+			resolvedParameters.put(Integer.toString(index), convertedValue);
 		});
 
 		if (formalParameters.hasPageableParameter() && includePageableParameter) {
