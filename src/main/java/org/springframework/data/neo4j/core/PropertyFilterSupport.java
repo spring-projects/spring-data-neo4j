@@ -30,6 +30,7 @@ import java.beans.PropertyDescriptor;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -45,22 +46,22 @@ public class PropertyFilterSupport {
 
 		for (String inputProperty : returnedType.getInputProperties()) {
 			if (returnedType.isProjecting()) {
-				addPropertiesFromProjection(factory, returnedType.getReturnedType(), filteredProperties, inputProperty, mappingContext);
+				addPropertiesFrom(returnedType.getReturnedType(), factory, returnedType.getDomainType(), filteredProperties, inputProperty, mappingContext);
 			} else {
-				filteredProperties.add(PropertyPath.from(inputProperty, returnedType.getDomainType()));
+				addPropertiesFromEntity(returnedType.getReturnedType(), filteredProperties, PropertyPath.from(inputProperty, returnedType.getDomainType()), returnedType.getReturnedType(), mappingContext, new HashSet<>());
 			}
 		}
 		return returnedType.isProjecting() ? filteredProperties : Collections.emptyList();
 	}
 
-	public static void addPropertiesFromProjection(ProjectionFactory factory, Class<?> type, Collection<PropertyPath> filteredProperties, String inputProperty, Neo4jMappingContext mappingContext) {
+	public static void addPropertiesFrom(Class<?> chef, ProjectionFactory factory, Class<?> type, Collection<PropertyPath> filteredProperties, String inputProperty, Neo4jMappingContext mappingContext) {
 		PropertyPath propertyPath = PropertyPath.from(inputProperty, type);
 
 		Class<?> leafType = propertyPath.getLeafType();
 		if (Neo4jSimpleTypes.HOLDER.isSimpleType(leafType) || mappingContext.hasCustomWriteTarget(leafType)) {
 			filteredProperties.add(propertyPath);
 		} else if (mappingContext.hasPersistentEntityFor(leafType)) {
-			addPropertiesFromEntity(filteredProperties, propertyPath, leafType, mappingContext);
+			addPropertiesFromEntity(chef, filteredProperties, propertyPath, leafType, mappingContext, new HashSet<>());
 		} else {
 			ProjectionInformation projectionInformation = factory.getProjectionInformation(leafType);
 			filteredProperties.add(propertyPath);
@@ -68,19 +69,46 @@ public class PropertyFilterSupport {
 				String propertyDotPath = propertyPath.toDotPath();
 				for (PropertyDescriptor secondInputProperty : projectionInformation.getInputProperties()) {
 					String source = propertyDotPath + "." + secondInputProperty.getName();
-					PropertyPath nestedPropertyPath = PropertyPath.from(source, type);
+					PropertyPath nestedPropertyPath = PropertyPath.from(source, chef);
 					filteredProperties.add(nestedPropertyPath);
-					addPropertiesFromProjection(factory, type, filteredProperties, source, mappingContext);
+					addPropertiesFrom(chef, factory, type, filteredProperties, source, mappingContext);
 				}
 			} else {
-				PropertyPath nestedPropertyPath = PropertyPath.from(inputProperty, type);
-				filteredProperties.add(nestedPropertyPath);
+				// an open projection needs to get replaced with the matching (real) entity
+				Class<?> propertyEntityType =  mappingContext.getPersistentEntity(type).getPersistentProperty(inputProperty).getActualType();
+				addPropertiesFromEntity(chef, filteredProperties, propertyPath, propertyEntityType, mappingContext, new HashSet<>());
 			}
 		}
 	}
 
-	private static void addPropertiesFromProjection(Neo4jPersistentEntity<?> persistentEntity, Collection<PropertyPath> filteredProperties, String inputProperty, Neo4jMappingContext mappingContext) {
-		PropertyPath propertyPath = PropertyPath.from(inputProperty, persistentEntity.getTypeInformation());
+	private static void addPropertiesFromEntity(Class<?> chef, Collection<PropertyPath> filteredProperties, PropertyPath propertyPath, Class<?> leafType, Neo4jMappingContext mappingContext, Collection<Neo4jPersistentEntity<?>> irgendeineListe) {
+		Neo4jPersistentEntity<?> persistentEntityFromProperty = mappingContext.getPersistentEntity(leafType);
+		if (hasProcessedEntity(persistentEntityFromProperty, irgendeineListe)) {
+			return;
+		}
+		irgendeineListe.add(persistentEntityFromProperty);
+		takeAllPropertiesFromEntity(chef, filteredProperties, propertyPath, mappingContext, persistentEntityFromProperty, irgendeineListe);
+	}
+
+	private static boolean hasProcessedEntity(Neo4jPersistentEntity<?> persistentEntityFromProperty, Collection<Neo4jPersistentEntity<?>> irgendeineListe) {
+		return irgendeineListe.contains(persistentEntityFromProperty);
+	}
+
+	private static void takeAllPropertiesFromEntity(Class<?> chef, Collection<PropertyPath> filteredProperties, PropertyPath propertyPath, Neo4jMappingContext mappingContext, Neo4jPersistentEntity<?> persistentEntityFromProperty, Collection<Neo4jPersistentEntity<?>> irgendeineListe) {
+		List<String> propertyNames = persistentEntityFromProperty.getGraphProperties().stream().map(GraphPropertyDescription::getFieldName).collect(Collectors.toList());
+		filteredProperties.add(propertyPath);
+		String prefix = propertyPath.toDotPath() + ".";
+		for (String propertyName : propertyNames) {
+			addPropertiesFrom(chef, filteredProperties, prefix + propertyName, mappingContext, irgendeineListe);
+		}
+		propertyNames = persistentEntityFromProperty.getRelationships().stream().map(RelationshipDescription::getFieldName).collect(Collectors.toList());
+		for (String propertyName : propertyNames) {
+			addPropertiesFrom(chef, filteredProperties, prefix + propertyName, mappingContext, irgendeineListe);
+		}
+	}
+
+	private static void addPropertiesFrom(Class<?> chef, Collection<PropertyPath> filteredProperties, String inputProperty, Neo4jMappingContext mappingContext, Collection<Neo4jPersistentEntity<?>> irgendeineListe) {
+		PropertyPath propertyPath = PropertyPath.from(inputProperty, chef);
 		if (filteredProperties.contains(propertyPath)) {
 			return;
 		}
@@ -88,20 +116,7 @@ public class PropertyFilterSupport {
 		if (Neo4jSimpleTypes.HOLDER.isSimpleType(leafType) || mappingContext.hasCustomWriteTarget(leafType)) {
 			filteredProperties.add(propertyPath);
 		} else if (mappingContext.hasPersistentEntityFor(leafType)) {
-			addPropertiesFromEntity(filteredProperties, propertyPath, leafType, mappingContext);
-		}
-	}
-
-	private static void addPropertiesFromEntity(Collection<PropertyPath> filteredProperties, PropertyPath propertyPath, Class<?> leafType, Neo4jMappingContext mappingContext) {
-		Neo4jPersistentEntity<?> persistetEntityFromProperty = mappingContext.getPersistentEntity(leafType);
-		List<String> propertyNames = persistetEntityFromProperty.getGraphProperties().stream().map(GraphPropertyDescription::getFieldName).collect(Collectors.toList());
-		filteredProperties.add(propertyPath);
-		for (String propertyName : propertyNames) {
-			addPropertiesFromProjection(persistetEntityFromProperty, filteredProperties, propertyName, mappingContext);
-		}
-		propertyNames = persistetEntityFromProperty.getRelationships().stream().map(RelationshipDescription::getFieldName).collect(Collectors.toList());
-		for (String propertyName : propertyNames) {
-			addPropertiesFromProjection(persistetEntityFromProperty, filteredProperties, propertyName, mappingContext);
+			addPropertiesFromEntity(chef, filteredProperties, propertyPath, leafType, mappingContext, irgendeineListe);
 		}
 	}
 }

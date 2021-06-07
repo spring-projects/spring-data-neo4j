@@ -315,7 +315,7 @@ public final class ReactiveNeo4jTemplate implements
 		ProjectionInformation projectionInformation = projectionFactory.getProjectionInformation(resultType);
 		List<PropertyPath> pps = new ArrayList<>();
 		for (PropertyDescriptor inputProperty : projectionInformation.getInputProperties()) {
-			PropertyFilterSupport.addPropertiesFromProjection(projectionFactory, resultType, pps, inputProperty.getName(), neo4jMappingContext);
+			PropertyFilterSupport.addPropertiesFrom(instance.getClass(), projectionFactory, resultType, pps, inputProperty.getName(), neo4jMappingContext);
 		}
 		Mono<T> savingPublisher = saveImpl(instance, pps);
 		if (projectionInformation.isClosed()) {
@@ -337,14 +337,14 @@ public final class ReactiveNeo4jTemplate implements
 		if (!instances.iterator().hasNext()) {
 			return Flux.empty();
 		}
-		// just a sneak peek
-		Class<?> resultType = instances.iterator().next().getClass();
+
+		Class<?> resultType = TemplateSupport.findCommonElementType(instances);
 
 		ProjectionInformation projectionInformation = projectionFactory.getProjectionInformation(resultType);
 		List<PropertyDescriptor> inputProperties = projectionInformation.getInputProperties();
 		Set<PropertyPath> pps = new HashSet<>();
 		for (PropertyDescriptor inputProperty : inputProperties) {
-			PropertyFilterSupport.addPropertiesFromProjection(projectionFactory, resultType, pps, inputProperty.getName(), neo4jMappingContext);
+			PropertyFilterSupport.addPropertiesFrom(domainType, projectionFactory, resultType, pps, inputProperty.getName(), neo4jMappingContext);
 		}
 		return Flux.fromIterable(instances)
 			.flatMap(instance -> {
@@ -445,7 +445,7 @@ public final class ReactiveNeo4jTemplate implements
 		ProjectionInformation projectionInformation = projectionFactory.getProjectionInformation(resultType);
 		List<PropertyPath> pps = new ArrayList<>();
 		for (PropertyDescriptor inputProperty : projectionInformation.getInputProperties()) {
-			PropertyFilterSupport.addPropertiesFromProjection(projectionFactory, resultType, pps, inputProperty.getName(), neo4jMappingContext);
+			PropertyFilterSupport.addPropertiesFrom(commonElementType, projectionFactory, resultType, pps, inputProperty.getName(), neo4jMappingContext);
 		}
 		Flux<T> savedInstances = saveAllImpl(instances, pps);
 		if (projectionInformation.isClosed()) {

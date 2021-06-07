@@ -40,7 +40,7 @@ public abstract class PropertyFilter {
 
 	private static class FilteringPropertyFilter extends PropertyFilter {
 		private final Set<Class<?>> rootClasses;
-		private final Set<ProjectingPropertyPath> projectingPropertyPaths;
+		private final Set<String> projectingPropertyPaths;
 
 		private FilteringPropertyFilter(Collection<PropertyPath> properties, NodeDescription<?> dingDong) {
 			Class<?> domainClass = dingDong.getUnderlyingClass();
@@ -63,11 +63,10 @@ public abstract class PropertyFilter {
 				rootClasses.add(nodeDescription.getUnderlyingClass());
 			}
 
-			Set<ProjectingPropertyPath> projectingProperties = new HashSet<>();
+			projectingPropertyPaths = new HashSet<>();
 			for (PropertyPath property : properties) {
-				projectingProperties.add(new ProjectingPropertyPath(createPropertyPath(property.toDotPath())));
+				projectingPropertyPaths.add(property.toDotPath());
 			}
-			projectingPropertyPaths = projectingProperties;
 		}
 
 		@Override
@@ -80,34 +79,18 @@ public abstract class PropertyFilter {
 				return false;
 			}
 
-			String propertyPath = createPropertyPath(dotPath);
-
-			for (ProjectingPropertyPath projectingPropertyPath : projectingPropertyPaths) {
-				if (projectingPropertyPath.path.equals(propertyPath)) {
+			for (String projectingPropertyPath : projectingPropertyPaths) {
+				if (projectingPropertyPath.equals(dotPath)) {
 					return true;
 				}
 			}
 
 			return false;
-
 		}
 
 		@Override
 		public boolean isNotFiltering() {
 			return projectingPropertyPaths.isEmpty();
-		}
-
-		private static String createPropertyPath(String dotPath) {
-			return dotPath.substring(dotPath.indexOf(".") + 1);
-		}
-
-
-		private static class ProjectingPropertyPath {
-			private final String path;
-
-			private ProjectingPropertyPath(String path) {
-				this.path = path;
-			}
 		}
 	}
 
@@ -150,6 +133,11 @@ public abstract class PropertyFilter {
 		private RelaxedPropertyPath(String dotPath, Class<?> type) {
 			this.dotPath = dotPath;
 			this.type = type;
+		}
+
+		public RelaxedPropertyPath add(String pathPart) {
+			String existingPath = toDotPath();
+			return new RelaxedPropertyPath(existingPath.isEmpty() ? pathPart : existingPath + "." + pathPart, getType());
 		}
 	}
 
