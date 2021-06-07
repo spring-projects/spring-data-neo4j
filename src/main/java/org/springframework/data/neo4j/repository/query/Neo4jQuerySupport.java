@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 import org.apache.commons.logging.LogFactory;
 import org.neo4j.driver.Value;
@@ -115,6 +116,21 @@ abstract class Neo4jQuerySupport {
 		return returnedType.isProjecting() ? returnedType.getInputProperties() : Collections.emptyList();
 	}
 
+	static void logParameterIfNull(String name, Object value) {
+
+		if (value != null || !REPOSITORY_QUERY_LOG.isDebugEnabled()) {
+			return;
+		}
+
+		Supplier<CharSequence> messageSupplier = () -> {
+			String pointer = name == null || name.trim().isEmpty() ? "An unknown parameter" : "$" + name;
+			return String.format("%s points to a literal `null` value during a comparison. " +
+						  "The comparisons will always resolve to false and probably lead to an empty result.",
+					pointer);
+		};
+		REPOSITORY_QUERY_LOG.debug(messageSupplier);
+	}
+
 	/**
 	 * Converts parameter as needed by the query generated, which is not covered by standard conversion services.
 	 *
@@ -135,17 +151,8 @@ abstract class Neo4jQuerySupport {
 	final Object convertParameter(Object parameter, @Nullable Function<Object, Value> conversionOverride) {
 
 		if (parameter == null) {
-			// According to https://neo4j.com/docs/cypher-manual/current/syntax/working-with-null/#cypher-null-intro
-			// it does not make any sense to continue if a `null` value gets into a comparison
-			// but we just warn the users and do not throw an exception on `null`.
-			REPOSITORY_QUERY_LOG.warn("Do not use `null` as a property value for comparison."
-					+ " It will always be false and return an empty result.");
-
 			return Values.NULL;
-		}
-
-		// Maybe move all of those into Neo4jConverter at some point.
-		if (parameter instanceof Range) {
+		} else if (parameter instanceof Range) {
 			return convertRange((Range) parameter);
 		} else if (parameter instanceof Distance) {
 			return calculateDistanceInMeter((Distance) parameter);
