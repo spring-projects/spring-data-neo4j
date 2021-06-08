@@ -2274,6 +2274,29 @@ class ReactiveRepositoryIT {
 				assertThat(person.getPets()).hasSize(1);
 			}).verifyComplete();
 		}
+
+		@Test // GH-2281
+		void deleteByDerivedQuery1(@Autowired ReactivePersonRepository repository) {
+
+			repository.deleteAllByName(TEST_PERSON1_NAME)
+					.as(StepVerifier::create)
+					.verifyComplete();
+
+			repository.existsById(id1).as(StepVerifier::create).expectNext(false).verifyComplete();
+			repository.existsById(id2).as(StepVerifier::create).expectNext(true).verifyComplete();
+		}
+
+		@Test // GH-2281
+		void deleteByDerivedQuery2(@Autowired ReactivePersonRepository repository) {
+
+			repository.deleteAllByNameOrName(TEST_PERSON1_NAME, TEST_PERSON2_NAME)
+					.as(StepVerifier::create)
+					.expectNext(2L)
+					.verifyComplete();
+
+			repository.existsById(id1).as(StepVerifier::create).expectNext(false).verifyComplete();
+			repository.existsById(id2).as(StepVerifier::create).expectNext(false).verifyComplete();
+		}
 	}
 
 	@Nested

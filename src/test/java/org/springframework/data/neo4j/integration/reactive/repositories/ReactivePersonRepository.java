@@ -95,4 +95,8 @@ public interface ReactivePersonRepository extends ReactiveNeo4jRepository<Person
 
 	Flux<PersonWithAllConstructor> getOptionalPersonViaNamedQuery(@Param("part1") String part1,
 			@Param("part2") String part2);
+
+	Mono<Void> deleteAllByName(String name);
+
+	Mono<Long> deleteAllByNameOrName(String name, String otherName);
 }

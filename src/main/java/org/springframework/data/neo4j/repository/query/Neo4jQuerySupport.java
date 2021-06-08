@@ -17,11 +17,14 @@ package org.springframework.data.neo4j.repository.query;
 
 import java.time.Instant;
 import java.time.ZoneOffset;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -63,6 +66,8 @@ abstract class Neo4jQuerySupport {
 	 * The query type.
 	 */
 	protected final Neo4jQueryType queryType;
+	private static final Set<Class<?>> VALID_RETURN_TYPES_FOR_DELETE = Collections.unmodifiableSet(new HashSet<>(
+			Arrays.asList(Long.class, long.class, Void.class, void.class)));
 
 	static final LogAccessor REPOSITORY_QUERY_LOG = new LogAccessor(LogFactory.getLog(Neo4jQuerySupport.class));
 
@@ -83,6 +88,9 @@ abstract class Neo4jQuerySupport {
 		Assert.notNull(mappingContext, "The mapping context is required.");
 		Assert.notNull(queryMethod, "Query method must not be null!");
 		Assert.notNull(queryType, "Query type must not be null!");
+		Assert.isTrue(queryType != Neo4jQueryType.DELETE || hasValidReturnTypeForDelete(queryMethod),
+				"A derived delete query can only return the number of deleted nodes as a long or void."
+		);
 
 		this.mappingContext = mappingContext;
 		this.queryMethod = queryMethod;
@@ -114,6 +122,10 @@ abstract class Neo4jQuerySupport {
 
 		ReturnedType returnedType = resultProcessor.getReturnedType();
 		return returnedType.isProjecting() ? returnedType.getInputProperties() : Collections.emptyList();
+	}
+
+	private static boolean hasValidReturnTypeForDelete(Neo4jQueryMethod queryMethod) {
+		return VALID_RETURN_TYPES_FOR_DELETE.contains(queryMethod.getResultProcessor().getReturnedType().getReturnedType());
 	}
 
 	static void logParameterIfNull(String name, Object value) {

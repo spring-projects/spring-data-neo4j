@@ -53,6 +53,9 @@ final class SingleValueMappingFunction<T> implements BiFunction<TypeSystem, Reco
 		}
 
 		Value source = record.get(0);
+		if (targetClass == Void.class || targetClass == void.class) {
+			return null;
+		}
 		return source == null || source == Values.NULL ? null : conversionService.convert(source, targetClass);
 	}
 }

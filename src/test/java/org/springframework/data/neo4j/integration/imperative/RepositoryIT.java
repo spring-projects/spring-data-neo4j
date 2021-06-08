@@ -2495,11 +2495,11 @@ class RepositoryIT {
 
 		@Override
 		void setupData(Transaction transaction) {
-			id1 = transaction.run("CREATE (n:PersonWithAllConstructor) RETURN id(n)").next().get(0).asLong();
-			id2 = transaction.run("CREATE (n:PersonWithAllConstructor) RETURN id(n)").next().get(0).asLong();
+			id1 = transaction.run("CREATE (n:PersonWithAllConstructor {name: $name}) RETURN id(n)", Collections.singletonMap("name", TEST_PERSON1_NAME)).next().get(0).asLong();
+			id2 = transaction.run("CREATE (n:PersonWithAllConstructor {name: $name}) RETURN id(n)", Collections.singletonMap("name", TEST_PERSON2_NAME)).next().get(0).asLong();
 
-			person1 = new PersonWithAllConstructor(id1, null, null, null, null, null, null, null, null, null, null);
-			person2 = new PersonWithAllConstructor(id2, null, null, null, null, null, null, null, null, null, null);
+			person1 = new PersonWithAllConstructor(id1, TEST_PERSON1_NAME, null, null, null, null, null, null, null, null, null);
+			person2 = new PersonWithAllConstructor(id2, TEST_PERSON2_NAME, null, null, null, null, null, null, null, null, null);
 		}
 
 		@Test
@@ -2518,6 +2518,25 @@ class RepositoryIT {
 
 			assertThat(repository.existsById(id1)).isFalse();
 			assertThat(repository.existsById(id2)).isTrue();
+		}
+
+		@Test // GH-2281
+		void deleteByDerivedQuery1(@Autowired PersonRepository repository) {
+
+			repository.deleteAllByName(TEST_PERSON1_NAME);
+
+			assertThat(repository.existsById(id1)).isFalse();
+			assertThat(repository.existsById(id2)).isTrue();
+		}
+
+		@Test // GH-2281
+		void deleteByDerivedQuery2(@Autowired PersonRepository repository) {
+
+			long deleted = repository.deleteAllByNameOrName(TEST_PERSON1_NAME, TEST_PERSON2_NAME);
+
+			assertThat(deleted).isEqualTo(2L);
+			assertThat(repository.existsById(id1)).isFalse();
+			assertThat(repository.existsById(id2)).isFalse();
 		}
 
 		@Test

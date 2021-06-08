@@ -49,6 +49,7 @@ import org.neo4j.cypherdsl.core.SortItem;
 import org.neo4j.cypherdsl.core.Statement;
 import org.neo4j.cypherdsl.core.StatementBuilder;
 import org.neo4j.cypherdsl.core.StatementBuilder.OngoingMatchAndUpdate;
+import org.neo4j.cypherdsl.core.StatementBuilder.OngoingUpdate;
 import org.neo4j.cypherdsl.core.SymbolicName;
 import org.neo4j.cypherdsl.core.renderer.Renderer;
 import org.springframework.data.domain.Sort;
@@ -246,9 +247,18 @@ public enum CypherGenerator {
 
 	public Statement prepareDeleteOf(NodeDescription<?> nodeDescription, @Nullable Condition condition) {
 
+		return prepareDeleteOf(nodeDescription, condition, false);
+	}
+
+	public Statement prepareDeleteOf(NodeDescription<?> nodeDescription, @Nullable Condition condition, boolean count) {
+
 		Node rootNode = node(nodeDescription.getPrimaryLabel(), nodeDescription.getAdditionalLabels())
 				.named(Constants.NAME_OF_ROOT_NODE);
-		return match(rootNode).where(conditionOrNoCondition(condition)).detachDelete(rootNode).build();
+		OngoingUpdate ongoingUpdate = match(rootNode).where(conditionOrNoCondition(condition)).detachDelete(rootNode);
+		if (count) {
+			return ongoingUpdate.returning(Functions.count(rootNode)).build();
+		}
+		return ongoingUpdate.build();
 	}
 
 	public Statement prepareSaveOf(NodeDescription<?> nodeDescription,

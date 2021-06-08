@@ -113,7 +113,6 @@ class Neo4jRepositoryFactoryTest {
 		@Test
 		void validateIgnoreCaseShouldWork() {
 
-
 			assertThatIllegalArgumentException().isThrownBy(() -> repositoryFactory.getRepository(InvalidIgnoreCase.class))
 					.withMessageMatching("Can not derive query for '.*': Only the case of String based properties can be ignored within the following keywords: \\[IsNotLike, NotLike, IsLike, Like, IsStartingWith, StartingWith, StartsWith, IsEndingWith, EndingWith, EndsWith, IsNotContaining, NotContaining, NotContains, IsContaining, Containing, Contains, IsNot, Not, Is, Equals\\].");
 		}
@@ -145,6 +144,13 @@ class Neo4jRepositoryFactoryTest {
 			assertThatIllegalArgumentException().isThrownBy(() -> repositoryFactory.getRepository(DerivedWithComposite.class))
 					.withMessageMatching("Can not derive query for '.*': Derived queries are not supported for composite properties.");
 		}
+
+		@Test // GH-2281
+		void validateDeleteReturnType() {
+
+			assertThatIllegalArgumentException().isThrownBy(() -> repositoryFactory.getRepository(InvalidDeleteBy.class))
+					.withMessageMatching("A derived delete query can only return the number of deleted nodes as a long or void.");
+		}
 	}
 
 	interface InvalidIgnoreCase extends Neo4jRepository<ThingWithAllAdditionalTypes, Long> {
@@ -165,6 +171,11 @@ class Neo4jRepositoryFactoryTest {
 	interface InvalidSpatial extends Neo4jRepository<ThingWithAllCypherTypes, Long> {
 
 		Optional<ThingWithAllCypherTypes> findOneByALongIsNear(Point point);
+	}
+
+	interface InvalidDeleteBy extends Neo4jRepository<ThingWithAllCypherTypes, Long> {
+
+		Optional<ThingWithAllCypherTypes> deleteAllBy(Point point);
 	}
 
 	interface DerivedWithComposite extends Neo4jRepository<ThingWithCompositeProperties, Long> {
