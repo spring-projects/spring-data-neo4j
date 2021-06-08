@@ -24,6 +24,7 @@ import org.springframework.data.mapping.PersistentProperty;
 import org.springframework.data.neo4j.core.schema.CompositeProperty;
 import org.springframework.data.neo4j.core.schema.DynamicLabels;
 import org.springframework.data.neo4j.core.schema.RelationshipProperties;
+import org.springframework.lang.Nullable;
 
 /**
  * A {@link org.springframework.data.mapping.PersistentProperty} interface with additional methods for metadata related
@@ -76,8 +77,10 @@ public interface Neo4jPersistentProperty extends PersistentProperty<Neo4jPersist
 		return isAssociation() && isCollectionLike() && getActualType().isAnnotationPresent(RelationshipProperties.class);
 	}
 
+	@Nullable
 	Function<Object, Value> getOptionalWritingConverter();
 
+	@Nullable
 	Function<Value, Object> getOptionalReadingConverter();
 
 	/**

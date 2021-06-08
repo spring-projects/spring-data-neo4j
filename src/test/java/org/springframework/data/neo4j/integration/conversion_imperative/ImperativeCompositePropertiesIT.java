@@ -19,6 +19,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
 import org.neo4j.driver.Driver;
+import org.neo4j.driver.Record;
+import org.neo4j.driver.Session;
+import org.neo4j.driver.types.Node;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -74,6 +77,28 @@ class ImperativeCompositePropertiesIT extends CompositePropertiesITBase {
 
 		Long id = createNodeWithCompositeProperties();
 		assertThat(repository.findById(id)).isPresent().hasValueSatisfying(this::assertNodePropertiesOn);
+	}
+
+	@Test // GH-2280
+	void compositePropertiesOnNodesShouldBeDeleted(@Autowired Repository repository) {
+
+		Long id = createNodeWithCompositeProperties();
+		ThingWithCompositeProperties thing = repository.findById(id).get();
+		thing.setDatesWithTransformedKey(Collections.singletonMap("Test", null));
+		thing.setSomeDatesByEnumA(Collections.singletonMap(ThingWithCompositeProperties.EnumA.VALUE_AA, null));
+		thing.setSomeOtherDTO(null);
+		repository.save(thing);
+
+		try (Session session = driver.session()) {
+			Record r = session.readTransaction(tx -> tx.run("MATCH (t:CompositeProperties) WHERE id(t) = $id RETURN t",
+					Collections.singletonMap("id", id)).single());
+			Node n = r.get("t").asNode();
+			assertThat(n.asMap()).doesNotContainKeys(
+					"someDatesByEnumA.VALUE_AA",
+					"datesWithTransformedKey.test",
+					"dto.x", "dto.y", "dto.z"
+			);
+		}
 	}
 
 	public interface Repository extends Neo4jRepository<ThingWithCompositeProperties, Long> {

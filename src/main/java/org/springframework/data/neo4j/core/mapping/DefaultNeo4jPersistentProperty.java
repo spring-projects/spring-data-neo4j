@@ -195,7 +195,12 @@ final class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProp
 
 	@Override
 	public Function<Object, Value> getOptionalWritingConverter() {
-		return customConversion.getOptional().map(c -> nullSafeWrite(c::write)).orElse(null);
+		return customConversion.getOptional()
+				.map(c -> {
+					Function<Object, Value> originalConversion = c::write;
+					return this.isComposite() ? originalConversion : nullSafeWrite(originalConversion);
+				})
+				.orElse(null);
 	}
 
 	private static Function<Value, Object> nullSafeRead(Function<Value, Object> delegate) {
