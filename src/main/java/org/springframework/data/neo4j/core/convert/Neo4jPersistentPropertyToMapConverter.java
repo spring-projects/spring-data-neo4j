@@ -19,6 +19,7 @@ import java.util.Map;
 
 import org.apiguardian.api.API;
 import org.neo4j.driver.Value;
+import org.springframework.lang.Nullable;
 
 /**
  * You need to provide an implementation of this interface in case you want to store a property of an entity as separate
@@ -43,7 +44,7 @@ public interface Neo4jPersistentPropertyToMapConverter<K, P> {
 	 * @param neo4jConversionService The conversion service to delegate to if necessary
 	 * @return The decomposed object.
 	 */
-	Map<K, Value> decompose(P property, Neo4jConversionService neo4jConversionService);
+	Map<K, Value> decompose(@Nullable P property, Neo4jConversionService neo4jConversionService);
 
 	/**
 	 * Composes the object back from the map. The map contains the raw driver values, as SDN cannot know how you want to

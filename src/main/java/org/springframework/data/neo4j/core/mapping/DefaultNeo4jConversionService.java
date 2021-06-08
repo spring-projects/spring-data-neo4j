@@ -103,6 +103,7 @@ final class DefaultNeo4jConversionService implements Neo4jConversionService {
 
 		Function<Object, Value> conversion =
 				writingConverter == null ? v -> conversionService.convert(v, Value.class) : writingConverter;
+
 		return writeValueImpl(value, sourceType, conversion);
 	}
 
@@ -110,7 +111,12 @@ final class DefaultNeo4jConversionService implements Neo4jConversionService {
 			Function<Object, Value> conversion) {
 
 		if (value == null) {
-			return Values.NULL;
+			try {
+				// Some conversion services may treat null special, so we pass it anyway and ask for forgiveness
+				return conversion.apply(null);
+			} catch (NullPointerException e) {
+				return Values.NULL;
+			}
 		}
 
 		if (isCollection(type)) {
