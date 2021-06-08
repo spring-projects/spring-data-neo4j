@@ -18,10 +18,19 @@ package org.springframework.data.neo4j.repository.query;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
+import java.util.Collections;
+
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
+import org.springframework.data.neo4j.core.schema.Id;
+import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.repository.query.Neo4jSpelSupport.LiteralReplacement;
+import org.springframework.data.repository.core.EntityMetadata;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
 
 /**
  * @author Michael J. Simons
@@ -76,5 +85,53 @@ class Neo4jSpelSupportTest {
 		LiteralReplacement literalReplacement1 = Neo4jSpelSupport.literal("x");
 		LiteralReplacement literalReplacement2 = Neo4jSpelSupport.literal("x");
 		assertThat(literalReplacement1).isSameAs(literalReplacement2);
+	}
+
+	@ParameterizedTest // GH-2279
+	@CsvSource({
+			"MATCH (n:Something) WHERE n.name = ?#{#name}, MATCH (n:Something) WHERE n.name = ?__HASH__{#name}",
+			"MATCH (n:Something) WHERE n.name = :#{#name}, MATCH (n:Something) WHERE n.name = :__HASH__{#name}"
+	})
+	void shouldQuoteParameterExpressionsCorrectly(String query, String expected) {
+
+		String quoted = Neo4jSpelSupport.potentiallyQuoteExpressionsParameter(query);
+		assertThat(quoted).isEqualTo(expected);
+	}
+
+	@ParameterizedTest // GH-2279
+	@CsvSource({
+			"MATCH (n:Something) WHERE n.name = ?__HASH__{#name}, MATCH (n:Something) WHERE n.name = ?#{#name}",
+			"MATCH (n:Something) WHERE n.name = :__HASH__{#name}, MATCH (n:Something) WHERE n.name = :#{#name}"
+	})
+	void shouldUnquoteParameterExpressionsCorrectly(String quoted, String expected) {
+
+		String query = Neo4jSpelSupport.potentiallyUnquoteParameterExpressions(quoted);
+		assertThat(query).isEqualTo(expected);
+	}
+
+	@Test // GH-2279
+	void shouldQuoteParameterExpressionsCorrectly() {
+
+		String quoted = Neo4jSpelSupport.potentiallyQuoteExpressionsParameter("MATCH (n:#{#staticLabels}) WHERE n.name = ?#{#name}");
+		assertThat(quoted).isEqualTo("MATCH (n:#{#staticLabels}) WHERE n.name = ?__HASH__{#name}");
+	}
+
+	@Test // GH-2279
+	void shouldReplaceStaticLabels() {
+
+		Neo4jMappingContext schema = new Neo4jMappingContext();
+		schema.setInitialEntitySet(Collections.singleton(BikeNode.class));
+
+		String query = Neo4jSpelSupport.renderQueryIfExpressionOrReturnQuery(
+				"MATCH (n:#{#staticLabels}) WHERE n.name = ?#{#name} OR n.name = :?#{#name} RETURN n",
+				new Neo4jMappingContext(), (EntityMetadata<BikeNode>) () -> BikeNode.class, new SpelExpressionParser());
+
+		assertThat(query).isEqualTo("MATCH (n:`Bike`:`Gravel`:`Easy Trail`) WHERE n.name = ?#{#name} OR n.name = :?#{#name} RETURN n");
+
+	}
+
+	@Node(primaryLabel = "Bike", labels = {"Gravel", "Easy Trail"})
+	static class BikeNode {
+		@Id String id;
 	}
 }

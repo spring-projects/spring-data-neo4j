@@ -3972,8 +3972,8 @@ class RepositoryIT {
 		@Query(value = "MATCH (p:Pet) return p SKIP $skip LIMIT $limit", countQuery = "MATCH (p:Pet) return count(p)")
 		Slice<Pet> slicedPets(Pageable pageable);
 
-		@Query(value = "MATCH (p:Pet) where p.name=$petName return p SKIP $skip LIMIT $limit",
-				countQuery = "MATCH (p:Pet) return count(p)")
+		@Query(value = "MATCH (p:#{#staticLabels}) where p.name=$petName return p SKIP $skip LIMIT $limit",
+				countQuery = "MATCH (p:#{#staticLabels}) return count(p)")
 		Page<Pet> pagedPetsWithParameter(@Param("petName") String petName, Pageable pageable);
 
 		Pet findByFriendsName(String friendName);

@@ -161,10 +161,12 @@ final class StringBasedNeo4jQuery extends AbstractNeo4jQuery {
 		super(neo4jOperations, mappingContext, queryMethod, queryType);
 
 		Parameters<?, ?> methodParameters = queryMethod.getParameters();
+		cypherTemplate = Neo4jSpelSupport.renderQueryIfExpressionOrReturnQuery(cypherTemplate, mappingContext, queryMethod.getEntityInformation(), SPEL_EXPRESSION_PARSER);
 		this.spelEvaluator = new SpelEvaluator(
 				evaluationContextProvider, methodParameters, SPEL_QUERY_CONTEXT.parse(cypherTemplate));
 		this.spelEvaluatorForCountQuery = queryMethod.getQueryAnnotation()
 				.map(Query::countQuery)
+				.map(q -> Neo4jSpelSupport.renderQueryIfExpressionOrReturnQuery(q, mappingContext, queryMethod.getEntityInformation(), SPEL_EXPRESSION_PARSER))
 				.map(countQuery -> new SpelEvaluator(evaluationContextProvider, methodParameters, SPEL_QUERY_CONTEXT.parse(countQuery)));
 	}
 

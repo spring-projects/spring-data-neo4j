@@ -45,6 +45,7 @@ import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.data.repository.query.ResultProcessor;
 import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.data.util.ClassTypeInformation;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
@@ -57,6 +58,8 @@ import org.springframework.util.Assert;
  * @since 6.0
  */
 abstract class Neo4jQuerySupport {
+
+	protected static final SpelExpressionParser SPEL_EXPRESSION_PARSER = new SpelExpressionParser();
 
 	protected final Neo4jMappingContext mappingContext;
 	protected final Neo4jQueryMethod queryMethod;
