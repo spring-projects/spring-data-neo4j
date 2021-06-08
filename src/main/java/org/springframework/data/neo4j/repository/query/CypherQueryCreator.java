@@ -44,6 +44,7 @@ import org.neo4j.cypherdsl.core.Predicates;
 import org.neo4j.cypherdsl.core.Property;
 import org.neo4j.cypherdsl.core.RelationshipPattern;
 import org.neo4j.cypherdsl.core.SortItem;
+import org.neo4j.cypherdsl.core.Statement;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.types.Point;
 import org.springframework.data.domain.Pageable;
@@ -56,6 +57,7 @@ import org.springframework.data.geo.Polygon;
 import org.springframework.data.mapping.PersistentProperty;
 import org.springframework.data.mapping.PersistentPropertyPath;
 import org.springframework.data.neo4j.core.mapping.Constants;
+import org.springframework.data.neo4j.core.mapping.CypherGenerator;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentProperty;
@@ -256,12 +258,17 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndPar
 	@Override
 	protected QueryFragmentsAndParameters complete(@Nullable Condition condition, Sort sort) {
 
-		QueryFragments queryFragments = createQueryFragments(condition, sort);
-
 		Map<String, Object> convertedParameters = this.boundedParameters.stream()
 				.peek(p -> Neo4jQuerySupport.logParameterIfNull(p.nameOrIndex, p.value))
 				.collect(Collectors.toMap(p -> p.nameOrIndex, p -> parameterConversion.apply(p.value, p.conversionOverride)));
-		return new QueryFragmentsAndParameters(nodeDescription, queryFragments, convertedParameters);
+
+		if (queryType == Neo4jQueryType.DELETE) {
+			Statement statement = CypherGenerator.INSTANCE.prepareDeleteOf(nodeDescription, condition, true);
+			return new QueryFragmentsAndParameters(statement.getCypher(), convertedParameters);
+		} else {
+			QueryFragments queryFragments = createQueryFragments(condition, sort);
+			return new QueryFragmentsAndParameters(nodeDescription, queryFragments, convertedParameters);
+		}
 	}
 
 	@NonNull

@@ -67,7 +67,6 @@ final class PartTreeNeo4jQuery extends AbstractNeo4jQuery {
 				includedProperties, this::convertParameter, limitModifier);
 
 		QueryFragmentsAndParameters queryAndParameters = queryCreator.createQuery();
-
 		return PreparedQuery.queryFor(returnedType).withQueryFragmentsAndParameters(queryAndParameters)
 				.usingMappingFunction(mappingFunction).build();
 	}
