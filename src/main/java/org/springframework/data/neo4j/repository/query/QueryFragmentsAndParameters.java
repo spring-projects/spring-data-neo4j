@@ -58,9 +58,13 @@ public final class QueryFragmentsAndParameters {
 	}
 
 	public QueryFragmentsAndParameters(String cypherQuery) {
+		this(cypherQuery, null);
+	}
+
+	public QueryFragmentsAndParameters(String cypherQuery, Map<String, Object> parameters) {
 		this.cypherQuery = cypherQuery;
 		this.queryFragments = new QueryFragments();
-		this.parameters = null;
+		this.parameters = parameters;
 	}
 
 	public Map<String, Object> getParameters() {

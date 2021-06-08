@@ -303,7 +303,7 @@ class DefaultNeo4jClient implements Neo4jClient {
 			try (AutoCloseableQueryRunner statementRunner = getQueryRunner(this.targetDatabase)) {
 				Result result = runnableStatement.runWith(statementRunner);
 				Optional<T> optionalValue = result.hasNext() ?
-						Optional.of(mappingFunction.apply(typeSystem, result.single())) :
+						Optional.ofNullable(mappingFunction.apply(typeSystem, result.single())) :
 						Optional.empty();
 				ResultSummaries.process(result.consume());
 				return optionalValue;

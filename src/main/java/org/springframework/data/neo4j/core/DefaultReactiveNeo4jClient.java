@@ -235,7 +235,7 @@ class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 		Flux<T> executeWith(Tuple2<String, Map<String, Object>> t, RxQueryRunner runner) {
 
 			return Flux.usingWhen(Flux.just(runner.run(t.getT1(), t.getT2())),
-					result -> Flux.from(result.records()).map(r -> mappingFunction.apply(typeSystem, r)),
+					result -> Flux.from(result.records()).mapNotNull(r -> mappingFunction.apply(typeSystem, r)),
 					result -> Flux.from(result.consume()).doOnNext(ResultSummaries::process));
 		}
 
