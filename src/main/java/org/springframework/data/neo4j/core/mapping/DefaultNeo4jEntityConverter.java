@@ -30,7 +30,6 @@ import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import org.neo4j.driver.Value;
@@ -111,7 +110,12 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 		}
 	}
 
-	private <R> MapAccessor determineQueryRoot(MapAccessor mapAccessor, Neo4jPersistentEntity<R> rootNodeDescription) {
+	@Nullable
+	private <R> MapAccessor determineQueryRoot(MapAccessor mapAccessor, @Nullable Neo4jPersistentEntity<R> rootNodeDescription) {
+
+		if (rootNodeDescription == null) {
+			return null;
+		}
 
 		List<String> primaryLabels = new ArrayList<>();
 		primaryLabels.add(rootNodeDescription.getPrimaryLabel());
@@ -354,7 +358,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 
 	private <ET> ET instantiate(Neo4jPersistentEntity<ET> nodeDescription, MapAccessor values, MapAccessor allValues,
 			Collection<RelationshipDescription> relationships, Collection<String> surplusLabels,
-			Object lastMappedEntity) {
+			@Nullable Object lastMappedEntity) {
 
 		ParameterValueProvider<Neo4jPersistentProperty> parameterValueProvider = new ParameterValueProvider<Neo4jPersistentProperty>() {
 			@Override
@@ -459,22 +463,10 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 
 		if (Values.NULL.equals(list)) {
 
-			Collection<Relationship> allMatchingTypeRelationshipsInResult = new ArrayList<>();
-			Collection<Node> allNodesWithMatchingLabelInResult = new ArrayList<>();
-
 			// Retrieve all relationships from the result's list(s)
-			StreamSupport.stream(allValues.values().spliterator(), false)
-					.filter(MappingSupport.isListContainingOnly(listType, this.relationshipType))
-					.flatMap(entry -> MappingSupport.extractRelationships(listType, entry).stream())
-					.filter(r -> r.type().equals(typeOfRelationship) || relationshipDescription.isDynamic())
-					.forEach(allMatchingTypeRelationshipsInResult::add);
-
+			Collection<Relationship> allMatchingTypeRelationshipsInResult = extractMatchingRelationships(allValues, relationshipDescription, typeOfRelationship);
 			// Retrieve all nodes from the result's list(s)
-			StreamSupport.stream(allValues.values().spliterator(), false)
-					.filter(MappingSupport.isListContainingOnly(listType, this.nodeType))
-					.flatMap(entry -> MappingSupport.extractNodes(listType, entry).stream())
-					.filter(n -> n.hasLabel(targetLabel)).collect(Collectors.toList())
-					.forEach(allNodesWithMatchingLabelInResult::add);
+			Collection<Node> allNodesWithMatchingLabelInResult = extractMatchingNodes(allValues, targetLabel);
 
 			Function<Relationship, Long> targetIdSelector = relationshipDescription.isIncoming() ? Relationship::startNodeId : Relationship::endNodeId;
 			Function<Relationship, Long> sourceIdSelector = relationshipDescription.isIncoming() ? Relationship::endNodeId : Relationship::startNodeId;
@@ -544,6 +536,48 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 				return Optional.ofNullable(value.isEmpty() ? null : value.get(0));
 			}
 		}
+	}
+
+	private Collection<Node> extractMatchingNodes(MapAccessor allValues, String targetLabel) {
+
+		Collection<Node> allNodesWithMatchingLabelInResult = new ArrayList<>();
+		Predicate<Node> onlyWithMatchingLabels = n -> n.hasLabel(targetLabel);
+		StreamSupport.stream(allValues.values().spliterator(), false)
+				.filter(MappingSupport.isListContainingOnly(listType, this.nodeType))
+				.flatMap(entry -> MappingSupport.extractNodes(listType, entry).stream())
+				.filter(onlyWithMatchingLabels)
+				.forEach(allNodesWithMatchingLabelInResult::add);
+
+		if (allNodesWithMatchingLabelInResult.isEmpty()) {
+			StreamSupport.stream(allValues.values().spliterator(), false)
+					.filter(this.nodeType::isTypeOf)
+					.map(Value::asNode)
+					.filter(onlyWithMatchingLabels)
+					.forEach(allNodesWithMatchingLabelInResult::add);
+		}
+
+		return allNodesWithMatchingLabelInResult;
+	}
+
+	private Collection<Relationship> extractMatchingRelationships(MapAccessor allValues, RelationshipDescription relationshipDescription, String typeOfRelationship) {
+
+		Collection<Relationship> allMatchingTypeRelationshipsInResult = new ArrayList<>();
+		Predicate<Relationship> onlyWithMatchingType = r -> r.type().equals(typeOfRelationship) || relationshipDescription.isDynamic();
+		StreamSupport.stream(allValues.values().spliterator(), false)
+				.filter(MappingSupport.isListContainingOnly(listType, this.relationshipType))
+				.flatMap(entry -> MappingSupport.extractRelationships(listType, entry).stream())
+				.filter(onlyWithMatchingType)
+				.forEach(allMatchingTypeRelationshipsInResult::add);
+
+		if (allMatchingTypeRelationshipsInResult.isEmpty()) {
+			StreamSupport.stream(allValues.values().spliterator(), false)
+					.filter(this.relationshipType::isTypeOf)
+					.map(Value::asRelationship)
+					.filter(onlyWithMatchingType)
+					.forEach(allMatchingTypeRelationshipsInResult::add);
+		}
+
+		return allMatchingTypeRelationshipsInResult;
 	}
 
 	private static Value extractValueOf(Neo4jPersistentProperty property, MapAccessor propertyContainer) {

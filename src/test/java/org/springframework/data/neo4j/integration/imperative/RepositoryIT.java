@@ -118,6 +118,8 @@ import org.springframework.data.neo4j.integration.shared.common.Inheritance;
 import org.springframework.data.neo4j.integration.shared.common.KotlinPerson;
 import org.springframework.data.neo4j.integration.shared.common.LikesHobbyRelationship;
 import org.springframework.data.neo4j.integration.shared.common.MultipleLabels;
+import org.springframework.data.neo4j.integration.shared.common.OneToOneSource;
+import org.springframework.data.neo4j.integration.shared.common.OneToOneTarget;
 import org.springframework.data.neo4j.integration.shared.common.ParentNode;
 import org.springframework.data.neo4j.integration.shared.common.Person;
 import org.springframework.data.neo4j.integration.shared.common.PersonWithAllConstructor;
@@ -1229,6 +1231,63 @@ class RepositoryIT {
 			assertThat(people).hasSize(1);
 		}
 
+		private void createOneToOneScenario() {
+			doWithSession(session -> {
+						try (Transaction tx = session.beginTransaction()) {
+							tx.run("CREATE (s:OneToOneSource {name: 's1'}) -[:OWNS]->(t:OneToOneTarget {name: 't1'})");
+							tx.run("CREATE (s:OneToOneSource {name: 's2'}) -[:OWNS]->(t:OneToOneTarget {name: 't2'})");
+							tx.commit();
+						}
+						return null;
+					}
+			);
+		}
+
+		private void assertOneToOneScenario(List<OneToOneSource> oneToOnes) {
+			assertThat(oneToOnes).hasSize(2);
+			assertThat(oneToOnes).extracting(OneToOneSource::getName).contains("s1", "s2");
+			assertThat(oneToOnes).extracting(s -> s.getTarget().getName()).contains("t1", "t2");
+		}
+
+		@Test // GH-2269
+		void shouldFindOneToOneWithDefault(@Autowired OneToOneRepository repository)  {
+			createOneToOneScenario();
+
+			List<OneToOneSource> oneToOnes = repository.findAll();
+			assertOneToOneScenario(oneToOnes);
+		}
+
+		@Test // GH-2269
+		void shouldFindOneToOneWithCollect(@Autowired OneToOneRepository repository)  {
+			createOneToOneScenario();
+
+			List<OneToOneSource> oneToOnes = repository.findAllWithCustomQuery();
+			assertOneToOneScenario(oneToOnes);
+		}
+
+		@Test // GH-2269
+		void shouldFindOneToOneWithoutCollect(@Autowired OneToOneRepository repository)  {
+			createOneToOneScenario();
+
+			List<OneToOneSource> oneToOnes = repository.findAllWithCustomQueryNoCollect();
+			assertOneToOneScenario(oneToOnes);
+		}
+
+		@Test // GH-2269
+		void shouldFindOne(@Autowired OneToOneRepository repository)  {
+			createOneToOneScenario();
+
+			Optional<OneToOneSource> optionalSource = repository.findOneByName("s1");
+			assertThat(optionalSource).hasValueSatisfying(s -> assertThat(s).extracting(OneToOneSource::getTarget).extracting(OneToOneTarget::getName).isEqualTo("t1"));
+		}
+
+		@Test // GH-2269
+		void shouldFindOneToOneWithWildcardReturn(@Autowired OneToOneRepository repository)  {
+			createOneToOneScenario();
+
+			List<OneToOneSource> oneToOnes = repository.findAllWithCustomQueryReturnStar();
+			assertOneToOneScenario(oneToOnes);
+		}
 	}
 
 	@Nested
@@ -3988,6 +4047,21 @@ class RepositoryIT {
 		long countByFriendsNameAndFriendsFriendsName(String friendName, String friendFriendName);
 
 		boolean existsByName(String name);
+	}
+
+	interface OneToOneRepository extends Neo4jRepository<OneToOneSource, String> {
+
+		@Query("MATCH (p1:#{#staticLabels})-[r:OWNS]-(p2) return p1, collect(r), collect(p2)")
+		List<OneToOneSource> findAllWithCustomQuery();
+
+		@Query("MATCH (p1:#{#staticLabels})-[r:OWNS]-(p2) return p1, r, p2")
+		List<OneToOneSource> findAllWithCustomQueryNoCollect();
+
+		@Query("MATCH (p1:#{#staticLabels})-[r:OWNS]-(p2) WHERE p1.name = $0 return p1, r, p2")
+		Optional<OneToOneSource> findOneByName(String name);
+
+		@Query("MATCH (p1:#{#staticLabels})-[r:OWNS]-(p2) return *")
+		List<OneToOneSource> findAllWithCustomQueryReturnStar();
 	}
 
 	interface RelationshipRepository extends Neo4jRepository<PersonWithRelationship, Long> {
