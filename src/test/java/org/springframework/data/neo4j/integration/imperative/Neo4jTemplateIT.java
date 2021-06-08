@@ -516,7 +516,6 @@ class Neo4jTemplateIT {
 	@Test
 	void saveAsWithClosedProjectionOnSecondLevelShouldWork() {
 
-		// Using a query on purpose so that the address is null
 		Person p = neo4jTemplate.findOne("MATCH (p:Person {lastName: $lastName})-[r:LIVES_AT]-(a:Address) RETURN p, collect(r), collect(a)",
 				Collections.singletonMap("lastName", "Siemons"), Person.class).get();
 
@@ -533,7 +532,6 @@ class Neo4jTemplateIT {
 	@Test
 	void saveAsWithClosedProjectionOnThreeLevelShouldWork() {
 
-		// Using a query on purpose so that the address is null
 		Person p = neo4jTemplate.findOne("MATCH (p:Person {lastName: $lastName})-[r:LIVES_AT]-(a:Address)-[r2:BASED_IN]->(c:YetAnotherCountryEntity) RETURN p, collect(r), collect(r2), collect(a), collect(c)",
 				Collections.singletonMap("lastName", "Siemons"), Person.class).get();
 

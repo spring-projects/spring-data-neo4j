@@ -332,7 +332,7 @@ public final class Neo4jTemplate implements
 		List<PropertyDescriptor> inputProperties = projectionInformation.getInputProperties();
 		Set<PropertyPath> pps = new HashSet<>();
 		for (PropertyDescriptor inputProperty : inputProperties) {
-			PropertyFilterSupport.addPropertiesFrom(instance.getClass(), projectionFactory, resultType, pps, inputProperty.getName(), neo4jMappingContext);
+			PropertyFilterSupport.addPropertiesFrom(resultType, projectionFactory, resultType, pps, inputProperty.getName(), neo4jMappingContext);
 		}
 		T savedInstance = saveImpl(instance, pps);
 		if (projectionInformation.isClosed()) {

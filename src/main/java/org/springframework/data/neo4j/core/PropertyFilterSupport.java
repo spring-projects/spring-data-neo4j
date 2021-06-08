@@ -46,7 +46,11 @@ public class PropertyFilterSupport {
 
 		for (String inputProperty : returnedType.getInputProperties()) {
 			if (returnedType.isProjecting()) {
-				addPropertiesFrom(returnedType.getReturnedType(), factory, returnedType.getDomainType(), filteredProperties, inputProperty, mappingContext);
+				if (returnedType.getReturnedType().isInterface()) {
+					addPropertiesFrom(returnedType.getDomainType(), factory, returnedType.getDomainType(), filteredProperties, inputProperty, mappingContext);
+				} else {
+					addPropertiesFrom(returnedType.getReturnedType(), factory, returnedType.getDomainType(), filteredProperties, inputProperty, mappingContext);
+				}
 			} else {
 				addPropertiesFromEntity(returnedType.getReturnedType(), filteredProperties, PropertyPath.from(inputProperty, returnedType.getDomainType()), returnedType.getReturnedType(), mappingContext, new HashSet<>());
 			}
@@ -55,7 +59,7 @@ public class PropertyFilterSupport {
 	}
 
 	public static void addPropertiesFrom(Class<?> chef, ProjectionFactory factory, Class<?> type, Collection<PropertyPath> filteredProperties, String inputProperty, Neo4jMappingContext mappingContext) {
-		PropertyPath propertyPath = PropertyPath.from(inputProperty, type);
+		PropertyPath propertyPath = PropertyPath.from(inputProperty, chef);
 
 		Class<?> leafType = propertyPath.getLeafType();
 		if (Neo4jSimpleTypes.HOLDER.isSimpleType(leafType) || mappingContext.hasCustomWriteTarget(leafType)) {
