@@ -16,17 +16,29 @@
 package org.springframework.data.neo4j.repository.query;
 
 import java.util.LinkedHashMap;
+import java.util.Locale;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import org.apiguardian.api.API;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.core.mapping.CypherGenerator;
+import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
+import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
+import org.springframework.data.repository.core.EntityMetadata;
+import org.springframework.expression.Expression;
+import org.springframework.expression.ParserContext;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.lang.Nullable;
+import org.springframework.util.Assert;
 
 /**
- * This class provides a couple of extensions to the Spring Data Neo4j SpEL support and is registered by
- * the appropriate repository factories as a root bean.
+ * This class provides a couple of extensions to the Spring Data Neo4j SpEL support. It's static functions are registered
+ * inside an {@link org.springframework.data.spel.spi.EvaluationContextExtension} that in turn will be provided as a root bean.
  *
  * @author Michael J. Simons
  * @soundtrack Red Hot Chili Peppers - Californication
@@ -138,4 +150,68 @@ public final class Neo4jSpelSupport {
 		}
 	}
 
+	private static final Pattern LABEL_AND_TYPE_QUOTATION = Pattern.compile("`");
+	private static final String EXPRESSION_PARAMETER = "$1#{";
+	private static final String QUOTED_EXPRESSION_PARAMETER = "$1__HASH__{";
+
+	private static final String ENTITY_NAME = "staticLabels";
+	private static final String ENTITY_NAME_VARIABLE = "#" + ENTITY_NAME;
+	private static final String ENTITY_NAME_VARIABLE_EXPRESSION = "#{" + ENTITY_NAME_VARIABLE + "}";
+
+	private static final Pattern EXPRESSION_PARAMETER_QUOTING = Pattern.compile("([:?])#\\{(?!"  + ENTITY_NAME_VARIABLE + ")");
+	private static final Pattern EXPRESSION_PARAMETER_UNQUOTING = Pattern.compile("([:?])__HASH__\\{");
+
+	/**
+	 * @param query the query expression potentially containing a SpEL expression. Must not be {@literal null}.
+	 * @param metadata the {@link Neo4jPersistentEntity} for the given entity. Must not be {@literal null}.
+	 * @param parser Must not be {@literal null}.
+	 * @return A query in which some SpEL expression have been replaced with the result of evaluating the expression
+	 */
+	public static String renderQueryIfExpressionOrReturnQuery(String query, Neo4jMappingContext mappingContext, EntityMetadata<?> metadata,
+			SpelExpressionParser parser) {
+
+		Assert.notNull(query, "query must not be null!");
+		Assert.notNull(metadata, "metadata must not be null!");
+		Assert.notNull(parser, "parser must not be null!");
+
+		if (!containsExpression(query)) {
+			return query;
+		}
+
+		StandardEvaluationContext evalContext = new StandardEvaluationContext();
+		Neo4jPersistentEntity<?> requiredPersistentEntity = mappingContext
+				.getRequiredPersistentEntity(metadata.getJavaType());
+		evalContext.setVariable(ENTITY_NAME, requiredPersistentEntity.getStaticLabels()
+				.stream()
+				.map(l -> {
+					Matcher matcher = LABEL_AND_TYPE_QUOTATION.matcher(l);
+					return String.format(Locale.ENGLISH, "`%s`", matcher.replaceAll("``"));
+				})
+				.collect(Collectors.joining(":")));
+
+		query = potentiallyQuoteExpressionsParameter(query);
+
+		Expression expr = parser.parseExpression(query, ParserContext.TEMPLATE_EXPRESSION);
+
+		String result = expr.getValue(evalContext, String.class);
+
+		if (result == null) {
+			return query;
+		}
+
+		return potentiallyUnquoteParameterExpressions(result);
+	}
+
+	static String potentiallyUnquoteParameterExpressions(String result) {
+		return EXPRESSION_PARAMETER_UNQUOTING.matcher(result).replaceAll(EXPRESSION_PARAMETER);
+	}
+
+	static String potentiallyQuoteExpressionsParameter(String query) {
+		return EXPRESSION_PARAMETER_QUOTING.matcher(query).replaceAll(QUOTED_EXPRESSION_PARAMETER);
+	}
+
+
+	private static boolean containsExpression(String query) {
+		return query.contains(ENTITY_NAME_VARIABLE_EXPRESSION);
+	}
 }
