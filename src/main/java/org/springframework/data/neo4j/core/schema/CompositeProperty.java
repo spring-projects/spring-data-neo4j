@@ -21,6 +21,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.lang.reflect.Type;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiFunction;
@@ -128,7 +129,12 @@ public @interface CompositeProperty {
 		}
 
 		@Override
-		public Map<K, Value> decompose(Map<K, Object> property, Neo4jConversionService conversionService) {
+		public Map<K, Value> decompose(@Nullable Map<K, Object> property, Neo4jConversionService conversionService) {
+
+			if (property == null) {
+				return Collections.emptyMap();
+			}
+
 			Map<K, Value> decomposed = new HashMap<>(property.size());
 			property.forEach(
 					(k, v) -> decomposed.put(k, conversionService.writeValue(v, typeInformationForValues, null)));
