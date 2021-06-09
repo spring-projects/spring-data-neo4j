@@ -366,6 +366,9 @@ One way to do this are correlated subqueries (Neo4j 4.1+ required).
 == Spring Expression Language in custom queries
 
 {spring-framework-ref}/core.html#expressions[Spring Expression Language (SpEL)] can be used in custom queries inside `:#{}`.
+The colon here refers to a parameter and such an expression should be used where parameters make sense.
+However, when using our <<literal-extension,literal extension>> you can use SpEL expression in places where standard Cypher
+won't allow parameters (such as for labels or relationship types).
 This is the standard Spring Data way of defining a block of text inside a query that undergoes SpEL evaluation.
 
 The following example basically defines the same query as above, but uses a `WHERE` clause to avoid even more curly braces:
@@ -416,6 +419,7 @@ The `literal` extension can be used to make things like labels or relationship-t
 Neither labels nor relationship types can be parameterized in Cypher, so they must be given literal.
 
 [source,java]
+[[literal-extension]]
 .literal-Extension
 ----
 interface BaseClassRepository extends Neo4jRepository<Inheritance.BaseClass, Long> {
@@ -430,3 +434,42 @@ Here, the `literal` value has been used to match dynamically on a Label.
 If you pass in `SomeLabel` as a parameter to the method, `MATCH (n:``SomeLabel``) RETURN n`
 will be generated. Ticks have been added to correctly escape values. SDN won't do this
 for you as this is probably not what you want in all cases.
+
+=== Referring to Labels
+
+You already know how to map a Node to a domain object:
+
+[source,java]
+.A Node with many labels
+----
+@Node(primaryLabel = "Bike", labels = {"Gravel", "Easy Trail"})
+public class BikeNode {
+    @Id String id;
+
+    String name;
+}
+----
+
+This node has a couple of labels, and it would be rather error prone to repeat them all the time in custom queries: You might
+forget one or make a typo. We offer the following expression to mitigate this: `#{#staticLabels}`. Notice that this one does
+_not_ start with a colon! You use it on repository methods annotated with `@Query`:
+
+[source,java,indent=0,tabsize=4]
+.`#{#staticLabels}` in action
+----
+public interface BikeRepository extends Neo4jRepository<Bike, String> {
+
+	@Query("MATCH (n:#{#staticLabels}) WHERE n.id = $nameOrId OR n.name = $nameOrId RETURN n")
+	Optional<Bike> findByNameOrId(@Param("nameOrId") String nameOrId);
+}
+----
+
+This query will resolve to
+
+[source,cypher]
+----
+MATCH (n:`Bike`:`Gravel`:`Easy Trail`) WHERE n.id = $nameOrId OR n.name = $nameOrId RETURN n
+----
+
+Notice how we used standard parameter for the `nameOrId`: In most cases there is no need to complicate things here by
+adding a SpEL expression.
