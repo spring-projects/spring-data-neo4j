@@ -16,6 +16,7 @@
 package org.springframework.data.neo4j.core;
 
 import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.Collection;
@@ -105,7 +106,11 @@ class DefaultNeo4jClient implements Neo4jClient {
 				}
 				return null;
 			} else {
-				return method.invoke(target, args);
+				try {
+					return method.invoke(target, args);
+				} catch (InvocationTargetException ite) {
+					throw ite.getCause();
+				}
 			}
 		}
 	}
