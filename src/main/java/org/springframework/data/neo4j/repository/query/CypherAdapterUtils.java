@@ -17,7 +17,9 @@ package org.springframework.data.neo4j.repository.query;
 
 import static org.neo4j.cypherdsl.core.Cypher.property;
 
+import java.util.Collection;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.apiguardian.api.API;
 import org.neo4j.cypherdsl.core.Cypher;
@@ -83,9 +85,9 @@ public final class CypherAdapterUtils {
 	 * @param sort The sort object to convert
 	 * @return An of sort items. It will be empty when sort is unsorted.
 	 */
-	public static SortItem[] toSortItems(NodeDescription<?> nodeDescription, Sort sort) {
+	public static Collection<SortItem> toSortItems(NodeDescription<?> nodeDescription, Sort sort) {
 
-		return sort.stream().map(sortAdapterFor(nodeDescription)).toArray(SortItem[]::new);
+		return sort.stream().map(sortAdapterFor(nodeDescription)).collect(Collectors.toList());
 	}
 
 	public static StatementBuilder.BuildableStatement addPagingParameter(NodeDescription<?> nodeDescription,

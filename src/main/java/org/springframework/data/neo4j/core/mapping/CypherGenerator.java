@@ -27,6 +27,7 @@ import static org.neo4j.cypherdsl.core.Functions.coalesce;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
@@ -463,7 +464,7 @@ public enum CypherGenerator {
 				.build();
 	}
 
-	public Expression[] createReturnStatementForMatch(NodeDescription<?> nodeDescription) {
+	public Collection<Expression> createReturnStatementForMatch(NodeDescription<?> nodeDescription) {
 		return createReturnStatementForMatch(nodeDescription, fieldName -> true);
 	}
 
@@ -511,23 +512,23 @@ public enum CypherGenerator {
 	 *                     of projections which allow to exclude one or more fields.
 	 * @return An expresion to be returned by a Cypher statement
 	 */
-	public Expression[] createReturnStatementForMatch(NodeDescription<?> nodeDescription,
+	public Collection<Expression> createReturnStatementForMatch(NodeDescription<?> nodeDescription,
 			Predicate<String> includeField) {
 
 		List<RelationshipDescription> processedRelationships = new ArrayList<>();
 		if (nodeDescription.containsPossibleCircles(includeField)) {
 			return createGenericReturnStatement();
 		} else {
-			return new Expression[]{projectPropertiesAndRelationships(nodeDescription, Constants.NAME_OF_ROOT_NODE, includeField, processedRelationships)};
+			return Collections.singleton(projectPropertiesAndRelationships(nodeDescription, Constants.NAME_OF_ROOT_NODE, includeField, processedRelationships));
 		}
 	}
 
-	public Expression[] createGenericReturnStatement() {
+	public Collection<Expression> createGenericReturnStatement() {
 		List<Expression> returnExpressions = new ArrayList<>();
 		returnExpressions.add(Cypher.name(Constants.NAME_OF_SYNTHESIZED_ROOT_NODE));
 		returnExpressions.add(Cypher.name(Constants.NAME_OF_SYNTHESIZED_RELATED_NODES));
 		returnExpressions.add(Cypher.name(Constants.NAME_OF_SYNTHESIZED_RELATIONS));
-		return returnExpressions.toArray(new Expression[]{});
+		return returnExpressions;
 	}
 
 	// recursive entry point for relationships in return statement
