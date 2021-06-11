@@ -17,13 +17,13 @@ package org.springframework.data.neo4j.repository.query;
 
 import static org.neo4j.cypherdsl.core.Cypher.parameter;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 
 import org.apiguardian.api.API;
 import org.neo4j.cypherdsl.core.Condition;
 import org.neo4j.cypherdsl.core.Conditions;
-import org.neo4j.cypherdsl.core.Expression;
 import org.neo4j.cypherdsl.core.SortItem;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Pageable;
@@ -94,11 +94,10 @@ public final class QueryFragmentsAndParameters {
 		Map<String, Object> parameters = Collections.singletonMap(Constants.NAME_OF_ID, idValues);
 
 		Condition condition = entityMetaData.getIdExpression().isEqualTo(parameter(Constants.NAME_OF_ID));
-		Expression[] returnStatement = cypherGenerator.createReturnStatementForMatch(entityMetaData);
 		QueryFragments queryFragments = new QueryFragments();
 		queryFragments.addMatchOn(cypherGenerator.createRootNode(entityMetaData));
 		queryFragments.setCondition(condition);
-		queryFragments.setReturnExpressions(returnStatement);
+		queryFragments.setReturnExpressions(cypherGenerator.createReturnStatementForMatch(entityMetaData));
 		return new QueryFragmentsAndParameters(entityMetaData, queryFragments, parameters);
 	}
 
@@ -106,11 +105,10 @@ public final class QueryFragmentsAndParameters {
 		Map<String, Object> parameters = Collections.singletonMap(Constants.NAME_OF_IDS, idValues);
 
 		Condition condition = entityMetaData.getIdExpression().in((parameter(Constants.NAME_OF_IDS)));
-		Expression[] returnStatement = cypherGenerator.createReturnStatementForMatch(entityMetaData);
 		QueryFragments queryFragments = new QueryFragments();
 		queryFragments.addMatchOn(cypherGenerator.createRootNode(entityMetaData));
 		queryFragments.setCondition(condition);
-		queryFragments.setReturnExpressions(returnStatement);
+		queryFragments.setReturnExpressions(cypherGenerator.createReturnStatementForMatch(entityMetaData));
 		return new QueryFragmentsAndParameters(entityMetaData, queryFragments, parameters);
 	}
 
@@ -140,15 +138,13 @@ public final class QueryFragmentsAndParameters {
 	static QueryFragmentsAndParameters forCondition(Neo4jPersistentEntity<?> entityMetaData,
 			Condition condition,
 			@Nullable Pageable pageable,
-			@Nullable SortItem[] sortItems
+			@Nullable Collection<SortItem> sortItems
 	) {
-
-		Expression[] returnStatement = cypherGenerator.createReturnStatementForMatch(entityMetaData);
 
 		QueryFragments queryFragments = new QueryFragments();
 		queryFragments.addMatchOn(cypherGenerator.createRootNode(entityMetaData));
 		queryFragments.setCondition(condition);
-		queryFragments.setReturnExpressions(returnStatement);
+		queryFragments.setReturnExpressions(cypherGenerator.createReturnStatementForMatch(entityMetaData));
 		queryFragments.setRenderConstantsAsParameters(true);
 
 		if (pageable != null) {
@@ -192,12 +188,10 @@ public final class QueryFragmentsAndParameters {
 			Neo4jPersistentEntity<?> entityMetaData, @Nullable Pageable pageable, @Nullable Sort sort,
 			@Nullable Map<String, Object> parameters, @Nullable Condition condition) {
 
-		Expression[] returnStatement = cypherGenerator.createReturnStatementForMatch(entityMetaData);
-
 		QueryFragments queryFragments = new QueryFragments();
 		queryFragments.addMatchOn(cypherGenerator.createRootNode(entityMetaData));
 		queryFragments.setCondition(condition);
-		queryFragments.setReturnExpressions(returnStatement);
+		queryFragments.setReturnExpressions(cypherGenerator.createReturnStatementForMatch(entityMetaData));
 
 		if (pageable != null) {
 			adaptPageable(entityMetaData, pageable, queryFragments);

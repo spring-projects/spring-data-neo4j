@@ -307,7 +307,7 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndPar
 			queryFragments.setOrderBy(Stream
 					.concat(sortItems.stream(),
 							pagingParameter.getSort().and(sort).stream().map(CypherAdapterUtils.sortAdapterFor(nodeDescription)))
-					.toArray(SortItem[]::new));
+					.collect(Collectors.toList()));
 			if (pagingParameter.isUnpaged()) {
 				queryFragments.setLimit(maxResults);
 			} else {

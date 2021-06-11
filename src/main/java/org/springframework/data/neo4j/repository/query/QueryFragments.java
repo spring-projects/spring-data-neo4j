@@ -16,7 +16,7 @@
 package org.springframework.data.neo4j.repository.query;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -46,8 +46,8 @@ import org.springframework.lang.Nullable;
 public final class QueryFragments {
 	private List<PatternElement> matchOn = new ArrayList<>();
 	private Condition condition;
-	private List<Expression> returnExpressions = new ArrayList<>();
-	private SortItem[] orderBy;
+	private Collection<Expression> returnExpressions = new ArrayList<>();
+	private Collection<SortItem> orderBy;
 	private Number limit;
 	private Long skip;
 	private ReturnTuple returnTuple;
@@ -74,8 +74,8 @@ public final class QueryFragments {
 		return condition;
 	}
 
-	public void setReturnExpressions(Expression[] expression) {
-		this.returnExpressions = Arrays.asList(expression);
+	public void setReturnExpressions(Collection<Expression> expression) {
+		this.returnExpressions = expression;
 	}
 
 	public void setReturnExpression(Expression returnExpression, boolean isScalarValue) {
@@ -88,7 +88,7 @@ public final class QueryFragments {
 			   || this.returnTuple.includedProperties.contains(fieldName);
 	}
 
-	public void setOrderBy(SortItem[] orderBy) {
+	public void setOrderBy(Collection<SortItem> orderBy) {
 		this.orderBy = orderBy;
 	}
 
@@ -148,9 +148,9 @@ public final class QueryFragments {
 		return statement;
 	}
 
-	private Expression[] getReturnExpressions() {
+	private Collection<Expression> getReturnExpressions() {
 		return returnExpressions.size() > 0
-				? returnExpressions.toArray(new Expression[] {})
+				? returnExpressions
 				: CypherGenerator.INSTANCE.createReturnStatementForMatch(getReturnTuple().nodeDescription,
 				this::includeField);
 	}
@@ -159,8 +159,8 @@ public final class QueryFragments {
 		return returnExpressions.isEmpty() && getReturnTuple().isDistinct;
 	}
 
-	public SortItem[] getOrderBy() {
-		return orderBy != null ? orderBy : new SortItem[] {};
+	public Collection<SortItem> getOrderBy() {
+		return orderBy != null ? orderBy : Collections.emptySet();
 	}
 
 	public Number getLimit() {

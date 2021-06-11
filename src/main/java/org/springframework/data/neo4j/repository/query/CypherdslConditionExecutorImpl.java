@@ -17,6 +17,7 @@ package org.springframework.data.neo4j.repository.query;
 
 import static org.neo4j.cypherdsl.core.Cypher.asterisk;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -95,7 +96,7 @@ public final class CypherdslConditionExecutorImpl<T> implements CypherdslConditi
 		return this.neo4jOperations.toExecutableQuery(
 				this.metaData.getType(),
 				QueryFragmentsAndParameters.forCondition(
-						this.metaData, condition, null, sortItems
+						this.metaData, condition, null, Arrays.asList(sortItems)
 				)
 		).getResults();
 	}
@@ -105,7 +106,7 @@ public final class CypherdslConditionExecutorImpl<T> implements CypherdslConditi
 
 		return this.neo4jOperations.toExecutableQuery(
 				this.metaData.getType(),
-				QueryFragmentsAndParameters.forCondition(this.metaData, Conditions.noCondition(), null, sortItems)
+				QueryFragmentsAndParameters.forCondition(this.metaData, Conditions.noCondition(), null, Arrays.asList(sortItems))
 		).getResults();
 	}
 
