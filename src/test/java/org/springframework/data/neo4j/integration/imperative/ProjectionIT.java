@@ -265,6 +265,20 @@ class ProjectionIT {
 		});
 	}
 
+	@Test
+	void nested1to1ProjectionsWithNestedProjectionShouldWork(@Autowired TreestructureRepository repository) {
+
+		Optional<ProjectionWithNestedProjection> optionalProjection = repository
+				.findById(projectionTestRootId, ProjectionWithNestedProjection.class);
+		assertThat(optionalProjection).hasValueSatisfying(p -> {
+
+			assertThat(p.getName()).isEqualTo("root");
+			assertThat(p.getLevel1()).extracting("name").containsExactlyInAnyOrder("level11", "level12");
+			assertThat(p.getLevel1()).flatExtracting("level2").extracting("name")
+					.containsExactlyInAnyOrder("level21", "level22", "level23");
+		});
+	}
+
 	@Test // GH-2165
 	void nested1toManyProjectionsShouldWork(@Autowired TreestructureRepository repository) {
 
@@ -391,6 +405,22 @@ class ProjectionIT {
 			 */
 			@Value("#{target.id + ' ' + target.name}")
 			String getFullName();
+		}
+	}
+
+	interface ProjectionWithNestedProjection {
+
+		String getName();
+
+		List<Subprojection1> getLevel1();
+
+		interface Subprojection1 {
+			String getName();
+			List<Subprojection2> getLevel2();
+		}
+
+		interface Subprojection2 {
+			String getName();
 		}
 	}
 

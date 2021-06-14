@@ -46,7 +46,7 @@ public class PropertyFilterSupport {
 
 		for (String inputProperty : returnedType.getInputProperties()) {
 			if (returnedType.isProjecting()) {
-				if (returnedType.getReturnedType().isInterface()) {
+				if (returnedType.getReturnedType().isInterface() && factory.getProjectionInformation(returnedType.getReturnedType()).isClosed()) {
 					addPropertiesFrom(returnedType.getDomainType(), factory, returnedType.getDomainType(), filteredProperties, inputProperty, mappingContext);
 				} else {
 					addPropertiesFrom(returnedType.getReturnedType(), factory, returnedType.getDomainType(), filteredProperties, inputProperty, mappingContext);
