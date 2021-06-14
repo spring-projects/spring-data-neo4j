@@ -20,14 +20,15 @@ import org.springframework.data.mapping.PropertyPath;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Something that makes sense of propertyPaths by having an understanding of projection classes.
  */
 public abstract class PropertyFilter {
 
-	public static PropertyFilter from(Collection<PropertyPath> properties, NodeDescription<?> dingDong) {
-		return new FilteringPropertyFilter(properties, dingDong);
+	public static PropertyFilter from(Collection<PropertyPath> properties, NodeDescription<?> nodeDescription) {
+		return new FilteringPropertyFilter(properties, nodeDescription);
 	}
 
 	public static PropertyFilter acceptAll() {
@@ -59,14 +60,11 @@ public abstract class PropertyFilter {
 			}
 
 			// supported inheriting classes
-			for (NodeDescription<?> nodeDescription : dingDong.getChildNodeDescriptionsInHierarchy()) {
-				rootClasses.add(nodeDescription.getUnderlyingClass());
-			}
+			dingDong.getChildNodeDescriptionsInHierarchy().stream()
+					.map(NodeDescription::getUnderlyingClass)
+					.forEach(rootClasses::add);
 
-			projectingPropertyPaths = new HashSet<>();
-			for (PropertyPath property : properties) {
-				projectingPropertyPaths.add(property.toDotPath());
-			}
+			projectingPropertyPaths = properties.stream().map(PropertyPath::toDotPath).collect(Collectors.toSet());
 		}
 
 		@Override
@@ -79,13 +77,8 @@ public abstract class PropertyFilter {
 				return false;
 			}
 
-			for (String projectingPropertyPath : projectingPropertyPaths) {
-				if (projectingPropertyPath.equals(dotPath)) {
-					return true;
-				}
-			}
+			return projectingPropertyPaths.contains(dotPath);
 
-			return false;
 		}
 
 		@Override
@@ -136,8 +129,11 @@ public abstract class PropertyFilter {
 		}
 
 		public RelaxedPropertyPath add(String pathPart) {
-			String existingPath = toDotPath();
-			return new RelaxedPropertyPath(existingPath.isEmpty() ? pathPart : existingPath + "." + pathPart, getType());
+			return new RelaxedPropertyPath(appendToDotPath(pathPart), getType());
+		}
+
+		private String appendToDotPath(String pathPart) {
+			return dotPath.isEmpty() ? pathPart : dotPath + "." + pathPart;
 		}
 	}
 
