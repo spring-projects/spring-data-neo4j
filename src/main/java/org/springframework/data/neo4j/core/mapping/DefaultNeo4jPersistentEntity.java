@@ -485,7 +485,7 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 	}
 
 	private boolean filterProperties(Predicate<PropertyFilter.RelaxedPropertyPath> propertyFilter, RelationshipDescription relationshipDescription, PropertyFilter.RelaxedPropertyPath path) {
-		PropertyFilter.RelaxedPropertyPath from = path.add(relationshipDescription.getFieldName());
+		PropertyFilter.RelaxedPropertyPath from = path.append(relationshipDescription.getFieldName());
 		return propertyFilter.test(from);
 	}
 
@@ -571,7 +571,7 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 				return true;
 			}
 			processedRelationships.add(relationship);
-			if (calculatePossibleCircles(relationship.getTarget(), processedRelationships, includeField, path.add(relationship.getFieldName()))) {
+			if (calculatePossibleCircles(relationship.getTarget(), processedRelationships, includeField, path.append(relationship.getFieldName()))) {
 				return true;
 			}
 		}

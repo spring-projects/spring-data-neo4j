@@ -477,7 +477,7 @@ public final class Neo4jTemplate implements
 		// Save related
 		return entitiesToBeSaved.stream().map(t -> {
 			PersistentPropertyAccessor<T> propertyAccessor = entityMetaData.getPropertyAccessor(t.modifiedInstance);
-			return processRelations(entityMetaData.getType(), entityMetaData, t.originalInstance, propertyAccessor, t.wasNew, TemplateSupport.computeIncludePropertyPredicate(includedProperties, entityMetaData));
+			return processRelations(entityMetaData, t.originalInstance, propertyAccessor, t.wasNew, TemplateSupport.computeIncludePropertyPredicate(includedProperties, entityMetaData));
 		}).collect(Collectors.toList());
 	}
 
@@ -634,22 +634,22 @@ public final class Neo4jTemplate implements
 								   PersistentPropertyAccessor<?> parentPropertyAccessor,
 								   boolean isParentObjectNew, PropertyFilter includeProperty) {
 
-		String previousPropertyPath = "";
-		processNestedRelations(neo4jPersistentEntity.getType(), neo4jPersistentEntity, parentPropertyAccessor, isParentObjectNew,
-				new NestedRelationshipProcessingStateMachine(originalInstance, internalId), includeProperty, previousPropertyPath);
+		PropertyFilter.RelaxedPropertyPath startingPropertyPath = PropertyFilter.RelaxedPropertyPath.from("", neo4jPersistentEntity.getUnderlyingClass());
+		processNestedRelations(neo4jPersistentEntity, parentPropertyAccessor, isParentObjectNew,
+				new NestedRelationshipProcessingStateMachine(originalInstance, internalId), includeProperty, startingPropertyPath);
 	}
 
-	private <T> T processRelations(Class<?> chef, Neo4jPersistentEntity<?> neo4jPersistentEntity, T originalInstance,
+	private <T> T processRelations(Neo4jPersistentEntity<?> neo4jPersistentEntity, T originalInstance,
 			PersistentPropertyAccessor<?> parentPropertyAccessor,
 			boolean isParentObjectNew, PropertyFilter includeProperty) {
 
-		String previousPropertyPath = "";
-		return processNestedRelations(chef, neo4jPersistentEntity, parentPropertyAccessor, isParentObjectNew,
-				new NestedRelationshipProcessingStateMachine(originalInstance), includeProperty, previousPropertyPath);
+		PropertyFilter.RelaxedPropertyPath startingPropertyPath = PropertyFilter.RelaxedPropertyPath.from("", neo4jPersistentEntity.getUnderlyingClass());
+		return processNestedRelations(neo4jPersistentEntity, parentPropertyAccessor, isParentObjectNew,
+				new NestedRelationshipProcessingStateMachine(originalInstance), includeProperty, startingPropertyPath);
 	}
 
-	private <T> T processNestedRelations(Class<?> chef, Neo4jPersistentEntity<?> sourceEntity, PersistentPropertyAccessor<?> propertyAccessor,
-										 boolean isParentObjectNew, NestedRelationshipProcessingStateMachine stateMachine, PropertyFilter includeProperty, String previousPath) {
+	private <T> T processNestedRelations(Neo4jPersistentEntity<?> sourceEntity, PersistentPropertyAccessor<?> propertyAccessor,
+										 boolean isParentObjectNew, NestedRelationshipProcessingStateMachine stateMachine, PropertyFilter includeProperty, PropertyFilter.RelaxedPropertyPath previousPath) {
 
 		Object fromId = propertyAccessor.getProperty(sourceEntity.getRequiredIdProperty());
 
@@ -665,9 +665,9 @@ public final class Neo4jTemplate implements
 			RelationshipDescription relationshipDescription = relationshipContext.getRelationship();
 			RelationshipDescription relationshipDescriptionObverse = relationshipDescription.getRelationshipObverse();
 
-			String currentPropertyPath = previousPath.isEmpty() ? relationshipDescription.getFieldName() : previousPath + "." + relationshipDescription.getFieldName();
+			PropertyFilter.RelaxedPropertyPath currentPropertyPath = previousPath.append(relationshipDescription.getFieldName());
 			boolean dynamicRelationship = relationshipDescription.isDynamic();
-			if (!includeProperty.isNotFiltering() && !dynamicRelationship && !includeProperty.contains(currentPropertyPath, chef)) {
+			if (!includeProperty.isNotFiltering() && !dynamicRelationship && !includeProperty.contains(currentPropertyPath)) {
 				return;
 			}
 			Neo4jPersistentProperty idProperty;
@@ -742,7 +742,7 @@ public final class Neo4jTemplate implements
 				if (stateMachine.hasProcessedValue(relatedValueToStore)) {
 					relatedInternalId = stateMachine.getInternalId(relatedObjectBeforeCallbacksApplied);
 				} else {
-					savedEntity = saveRelatedNode(newRelatedObject, targetEntity, chef, includeProperty, currentPropertyPath);
+					savedEntity = saveRelatedNode(newRelatedObject, targetEntity, includeProperty, currentPropertyPath);
 					relatedInternalId = savedEntity.id();
 				}
 				stateMachine.markValueAsProcessed(relatedValueToStore, relatedInternalId);
@@ -784,7 +784,7 @@ public final class Neo4jTemplate implements
 				stateMachine.markValueAsProcessedAs(relatedObjectBeforeCallbacksApplied, targetPropertyAccessor.getBean());
 
 				if (processState != ProcessState.PROCESSED_ALL_VALUES) {
-					processNestedRelations(chef, targetEntity, targetPropertyAccessor, isEntityNew, stateMachine, dynamicRelationship ? PropertyFilter.acceptAll() : includeProperty, currentPropertyPath);
+					processNestedRelations(targetEntity, targetPropertyAccessor, isEntityNew, stateMachine, dynamicRelationship ? PropertyFilter.acceptAll() : includeProperty, currentPropertyPath);
 				}
 
 				Object potentiallyRecreatedNewRelatedObject = MappingSupport.getRelationshipOrRelationshipPropertiesObject(neo4jMappingContext,
@@ -802,7 +802,7 @@ public final class Neo4jTemplate implements
 		return (T) propertyAccessor.getBean();
 	}
 
-	private <Y> Entity saveRelatedNode(Object entity, NodeDescription targetNodeDescription, Class<?> chef, PropertyFilter includeProperty, String currentPropertyPath) {
+	private <Y> Entity saveRelatedNode(Object entity, NodeDescription<?> targetNodeDescription, PropertyFilter includeProperty, PropertyFilter.RelaxedPropertyPath currentPropertyPath) {
 
 		DynamicLabels dynamicLabels = determineDynamicLabels(entity, (Neo4jPersistentEntity) targetNodeDescription);
 		Class<Y> entityType = (Class<Y>) ((Neo4jPersistentEntity<?>) targetNodeDescription).getType();
@@ -811,8 +811,7 @@ public final class Neo4jTemplate implements
 			Map<String, Object> properties = (Map<String, Object>) tree.get(Constants.NAME_OF_PROPERTIES_PARAM);
 
 			if (!includeProperty.isNotFiltering()) {
-				properties.entrySet().removeIf(e -> !includeProperty.contains(currentPropertyPath + "." + e.getKey(),
-						chef));
+				properties.entrySet().removeIf(e -> !includeProperty.contains(currentPropertyPath.append(e.getKey())));
 			}
 			return tree;
 		});

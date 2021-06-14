@@ -535,7 +535,7 @@ public enum CypherGenerator {
 															Predicate<PropertyFilter.RelaxedPropertyPath> includedProperties, RelationshipDescription relationshipDescription, List<RelationshipDescription> processedRelationships) {
 
 		Collection<RelationshipDescription> relationships = ((DefaultNeo4jPersistentEntity<?>) nodeDescription).getRelationshipsInHierarchy(includedProperties, parentPath);
-		relationships.removeIf(r -> !includedProperties.test(parentPath.add(r.getFieldName())));
+		relationships.removeIf(r -> !includedProperties.test(parentPath.append(r.getFieldName())));
 
 		List<Object> propertiesProjection = projectNodeProperties(parentPath, nodeDescription, nodeName, relationshipDescription, includedProperties);
 		List<Object> contentOfProjection = new ArrayList<>(propertiesProjection);
@@ -567,16 +567,16 @@ public enum CypherGenerator {
 			PropertyFilter.RelaxedPropertyPath from;
 
 			if (relationshipDescription == null) {
-				from = parentPath.add(property.getFieldName());
+				from = parentPath.append(property.getFieldName());
 
 			} else if (relationshipDescription.hasRelationshipProperties()) {
 				String relationshipPropertyTargetNodeFieldName =
 						((Neo4jPersistentEntity<?>) relationshipDescription.getRelationshipPropertiesEntity())
 								.getPersistentProperty(TargetNode.class).getFieldName();
 
-				from = parentPath.add(relationshipPropertyTargetNodeFieldName + "." + property.getFieldName());
+				from = parentPath.append(relationshipPropertyTargetNodeFieldName + "." + property.getFieldName());
 			} else {
-				from = parentPath.add(property.getFieldName());
+				from = parentPath.append(property.getFieldName());
 			}
 
 			if (!includeField.test(from)) {
@@ -645,9 +645,9 @@ public enum CypherGenerator {
 							((Neo4jPersistentEntity<?>) relationshipDescription.getRelationshipPropertiesEntity())
 									.getPersistentProperty(TargetNode.class).getFieldName();
 
-					newParentPath = parentPath.add(relationshipPropertyTargetNodeFieldName + "." + relationshipDescription.getFieldName());
+					newParentPath = parentPath.append(relationshipPropertyTargetNodeFieldName + "." + relationshipDescription.getFieldName());
 				} else {
-					newParentPath =	parentPath.add(relationshipDescription.getFieldName());
+					newParentPath =	parentPath.append(relationshipDescription.getFieldName());
 				}
 
 		if (relationshipDescription.isDynamic()) {

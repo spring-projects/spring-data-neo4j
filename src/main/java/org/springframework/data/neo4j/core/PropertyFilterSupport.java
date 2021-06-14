@@ -70,12 +70,10 @@ public class PropertyFilterSupport {
 			ProjectionInformation projectionInformation = factory.getProjectionInformation(leafType);
 			filteredProperties.add(propertyPath);
 			if (projectionInformation.isClosed()) {
-				String propertyDotPath = propertyPath.toDotPath();
 				for (PropertyDescriptor secondInputProperty : projectionInformation.getInputProperties()) {
-					String source = propertyDotPath + "." + secondInputProperty.getName();
-					PropertyPath nestedPropertyPath = PropertyPath.from(source, chef);
+					PropertyPath nestedPropertyPath = propertyPath.nested(secondInputProperty.getName());
 					filteredProperties.add(nestedPropertyPath);
-					addPropertiesFrom(chef, factory, type, filteredProperties, source, mappingContext);
+					addPropertiesFrom(chef, factory, type, filteredProperties, nestedPropertyPath.toDotPath(), mappingContext);
 				}
 			} else {
 				// an open projection needs to get replaced with the matching (real) entity
@@ -101,13 +99,13 @@ public class PropertyFilterSupport {
 	private static void takeAllPropertiesFromEntity(Class<?> chef, Collection<PropertyPath> filteredProperties, PropertyPath propertyPath, Neo4jMappingContext mappingContext, Neo4jPersistentEntity<?> persistentEntityFromProperty, Collection<Neo4jPersistentEntity<?>> irgendeineListe) {
 		List<String> propertyNames = persistentEntityFromProperty.getGraphProperties().stream().map(GraphPropertyDescription::getFieldName).collect(Collectors.toList());
 		filteredProperties.add(propertyPath);
-		String prefix = propertyPath.toDotPath() + ".";
+
 		for (String propertyName : propertyNames) {
-			addPropertiesFrom(chef, filteredProperties, prefix + propertyName, mappingContext, irgendeineListe);
+			addPropertiesFrom(chef, filteredProperties, propertyPath.nested(propertyName).toDotPath(), mappingContext, irgendeineListe);
 		}
 		propertyNames = persistentEntityFromProperty.getRelationships().stream().map(RelationshipDescription::getFieldName).collect(Collectors.toList());
 		for (String propertyName : propertyNames) {
-			addPropertiesFrom(chef, filteredProperties, prefix + propertyName, mappingContext, irgendeineListe);
+			addPropertiesFrom(chef, filteredProperties, propertyPath.nested(propertyName).toDotPath(), mappingContext, irgendeineListe);
 		}
 	}
 

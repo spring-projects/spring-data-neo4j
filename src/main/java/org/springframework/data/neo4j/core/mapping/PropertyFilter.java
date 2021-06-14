@@ -37,6 +37,8 @@ public abstract class PropertyFilter {
 
 	public abstract boolean contains(String dotPath, Class<?> typeToCheck);
 
+	public abstract boolean contains(RelaxedPropertyPath propertyPath);
+
 	public abstract boolean isNotFiltering();
 
 	private static class FilteringPropertyFilter extends PropertyFilter {
@@ -82,6 +84,11 @@ public abstract class PropertyFilter {
 		}
 
 		@Override
+		public boolean contains(RelaxedPropertyPath propertyPath) {
+			return contains(propertyPath.toDotPath(), propertyPath.getType());
+		}
+
+		@Override
 		public boolean isNotFiltering() {
 			return projectingPropertyPaths.isEmpty();
 		}
@@ -91,6 +98,11 @@ public abstract class PropertyFilter {
 
 		@Override
 		public boolean contains(String dotPath, Class<?> typeToCheck) {
+			return true;
+		}
+
+		@Override
+		public boolean contains(RelaxedPropertyPath propertyPath) {
 			return true;
 		}
 
@@ -128,7 +140,7 @@ public abstract class PropertyFilter {
 			this.type = type;
 		}
 
-		public RelaxedPropertyPath add(String pathPart) {
+		public RelaxedPropertyPath append(String pathPart) {
 			return new RelaxedPropertyPath(appendToDotPath(pathPart), getType());
 		}
 
