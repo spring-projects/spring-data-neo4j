@@ -211,7 +211,9 @@ class AdvancedMappingIT {
 		MovieProjectionWithActorProjection projection = movieRepository
 				.findProjectionWithProjectionByTitle("The Matrix");
 		assertThat(projection.getTitle()).isNotNull();
-		assertThat(projection.getActors()).isNotEmpty();
+		assertThat(projection.getActors()).extracting("name")
+				.containsExactlyInAnyOrder("Gloria Foster", "Keanu Reeves", "Emil Eifrem", "Laurence Fishburne",
+						"Carrie-Anne Moss", "Hugo Weaving");
 	}
 
 	@Test // GH-2114

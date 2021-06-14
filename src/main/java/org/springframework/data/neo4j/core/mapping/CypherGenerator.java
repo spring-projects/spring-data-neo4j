@@ -639,16 +639,7 @@ public enum CypherGenerator {
 		Neo4jPersistentEntity<?> endNodeDescription = (Neo4jPersistentEntity<?>) relationshipDescription.getTarget();
 
 		processedRelationships.add(relationshipDescription);
-		PropertyFilter.RelaxedPropertyPath newParentPath;
-				if (relationshipDescription.hasRelationshipProperties()) {
-					String relationshipPropertyTargetNodeFieldName =
-							((Neo4jPersistentEntity<?>) relationshipDescription.getRelationshipPropertiesEntity())
-									.getPersistentProperty(TargetNode.class).getFieldName();
-
-					newParentPath = parentPath.append(relationshipPropertyTargetNodeFieldName + "." + relationshipDescription.getFieldName());
-				} else {
-					newParentPath =	parentPath.append(relationshipDescription.getFieldName());
-				}
+		PropertyFilter.RelaxedPropertyPath newParentPath = parentPath.append(relationshipDescription.getFieldName());
 
 		if (relationshipDescription.isDynamic()) {
 			Relationship relationship = relationshipDescription.isOutgoing()
