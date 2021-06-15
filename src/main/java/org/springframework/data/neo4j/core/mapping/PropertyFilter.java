@@ -54,10 +54,8 @@ public abstract class PropertyFilter {
 			// supported projection classes
 			if (!properties.isEmpty()) {
 				for (PropertyPath property : properties) {
-					Class<?> returnClassTypeInformation = property.getType();
-					if (!returnClassTypeInformation.equals(domainClass)) {
-						rootClasses.add(returnClassTypeInformation);
-					}
+					Class<?> returnClassTypeInformation = property.getOwningType().getType();
+					rootClasses.add(returnClassTypeInformation);
 				}
 			}
 

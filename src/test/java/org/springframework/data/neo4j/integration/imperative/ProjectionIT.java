@@ -282,7 +282,6 @@ class ProjectionIT {
 	@Test // GH-2165
 	void nested1toManyProjectionsShouldWork(@Autowired TreestructureRepository repository) {
 
-		//repository.findById(projectionTestRootId).get();
 		Optional<ProjectedOneToMany> optionalProjection = repository
 				.findById(projectionTestRootId, ProjectedOneToMany.class);
 		assertThat(optionalProjection).hasValueSatisfying(p -> {

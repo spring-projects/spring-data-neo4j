@@ -176,7 +176,9 @@ class ReactiveAdvancedMappingIT {
 		StepVerifier.create(movieRepository.findDTOByTitle("The Matrix"))
 				.assertNext(dtoProjection -> {
 					assertThat(dtoProjection.getTitle()).isNotNull();
-					assertThat(dtoProjection.getActors()).isNotEmpty();
+					assertThat(dtoProjection.getActors()).extracting("name")
+							.containsExactlyInAnyOrder("Gloria Foster", "Keanu Reeves", "Emil Eifrem", "Laurence Fishburne",
+									"Carrie-Anne Moss", "Hugo Weaving");
 				})
 				.verifyComplete();
 	}
@@ -190,7 +192,9 @@ class ReactiveAdvancedMappingIT {
 		StepVerifier.create(movieRepository.findProjectionWithProjectionByTitle("The Matrix"))
 				.assertNext(projection -> {
 					assertThat(projection.getTitle()).isNotNull();
-					assertThat(projection.getActors()).isNotEmpty();
+					assertThat(projection.getActors()).extracting("name")
+							.containsExactlyInAnyOrder("Gloria Foster", "Keanu Reeves", "Emil Eifrem", "Laurence Fishburne",
+									"Carrie-Anne Moss", "Hugo Weaving");
 				})
 				.verifyComplete();
 	}

@@ -20,9 +20,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.neo4j.cypherdsl.core.Cypher;
 import org.neo4j.cypherdsl.core.Node;
 import org.neo4j.cypherdsl.core.Statement;
+import org.neo4j.driver.Record;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.neo4j.core.ReactiveDatabaseSelectionProvider;
 import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
 import org.springframework.data.neo4j.core.transaction.ReactiveNeo4jTransactionManager;
+import org.springframework.data.neo4j.integration.shared.common.ProjectionTest1O1;
+import org.springframework.data.neo4j.integration.shared.common.ProjectionTestLevel1;
+import org.springframework.data.neo4j.integration.shared.common.ProjectionTestRoot;
 import org.springframework.data.neo4j.repository.query.Query;
 import org.springframework.data.neo4j.repository.support.ReactiveCypherdslStatementExecutor;
 import org.springframework.data.neo4j.test.BookmarkCapture;
@@ -52,6 +57,8 @@ import org.springframework.data.neo4j.test.Neo4jExtension;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
+import java.util.List;
+
 /**
  * @author Gerrit Meier
  */
@@ -66,6 +73,9 @@ class ReactiveProjectionIT {
 	private static Neo4jExtension.Neo4jConnectionSupport neo4jConnectionSupport;
 
 	private final Driver driver;
+	private Long projectionTestRootId;
+	private Long projectionTest1O1Id;
+	private Long projectionTestLevel1Id;
 
 	@Autowired
 	ReactiveProjectionIT(Driver driver) {
@@ -82,6 +92,24 @@ class ReactiveProjectionIT {
 		transaction.run("CREATE (:Person{firstName:'" + FIRST_NAME + "', lastName:'" + LAST_NAME + "'})" + "-[:LIVES_AT]->"
 				+ "(:Address{city:'" + CITY + "'})");
 
+		Record result = transaction.run("create (r:ProjectionTestRoot {name: 'root'}) \n"
+				+ "create (o:ProjectionTest1O1 {name: '1o1'}) "
+				+ "create (l11:ProjectionTestLevel1 {name: 'level11'})\n"
+				+ "create (l12:ProjectionTestLevel1 {name: 'level12'})\n"
+				+ "create (l21:ProjectionTestLevel2 {name: 'level21'})\n"
+				+ "create (l22:ProjectionTestLevel2 {name: 'level22'})\n"
+				+ "create (l23:ProjectionTestLevel2 {name: 'level23'})\n"
+				+ "create (r) - [:ONE_OONE] -> (o)\n"
+				+ "create (r) - [:LEVEL_1] -> (l11)\n"
+				+ "create (r) - [:LEVEL_1] -> (l12)\n"
+				+ "create (l11) - [:LEVEL_2] -> (l21)\n"
+				+ "create (l11) - [:LEVEL_2] -> (l22)\n"
+				+ "create (l12) - [:LEVEL_2] -> (l23)\n"
+				+ "return id(r), id(l11), id(o)").single();
+
+		projectionTestRootId = result.get(0).asLong();
+		projectionTestLevel1Id = result.get(1).asLong();
+		projectionTest1O1Id = result.get(2).asLong();
 		transaction.commit();
 		transaction.close();
 		bookmarkCapture.seedWith(session.lastBookmark());
@@ -193,6 +221,87 @@ class ReactiveProjectionIT {
 				.build();
 	}
 
+	@Test // GH-2164
+	void findByIdWithProjectionShouldWork(@Autowired TreestructureRepository repository) {
+
+		StepVerifier.create(repository.findById(projectionTestRootId, SimpleProjection.class))
+				.assertNext(projection -> {
+					assertThat(projection.getName()).isEqualTo("root");
+				})
+				.verifyComplete();
+	}
+
+	@Test // GH-2165
+	void relationshipsShouldBeIncludedInProjections(@Autowired TreestructureRepository repository) {
+
+		StepVerifier.create(repository.findById(projectionTestRootId, SimpleProjectionWithLevelAndLower.class))
+				.assertNext(projection ->
+						assertThat(projection).satisfies(p -> {
+							assertThat(p.getName()).isEqualTo("root");
+							assertThat(p.getOneOone()).extracting(ProjectionTest1O1::getName).isEqualTo("1o1");
+							assertThat(p.getLevel1()).hasSize(2);
+							assertThat(p.getLevel1().stream())
+									.anyMatch(e -> e.getId().equals(projectionTestLevel1Id) && e.getLevel2().size() == 2);
+				}))
+				.verifyComplete();
+	}
+
+	@Test // GH-2165
+	void nested1to1ProjectionsShouldWork(@Autowired TreestructureRepository repository) {
+
+		StepVerifier.create(repository.findById(projectionTestRootId, ProjectedOneToOne.class))
+				.assertNext(projection ->
+					assertThat(projection).satisfies(p -> {
+						assertThat(p.getName()).isEqualTo("root");
+						assertThat(p.getOneOone()).extracting(ProjectedOneToOne.Subprojection::getFullName)
+								.isEqualTo(projectionTest1O1Id + " 1o1");
+				}))
+				.verifyComplete();
+	}
+
+	@Test
+	void nested1to1ProjectionsWithNestedProjectionShouldWork(@Autowired TreestructureRepository repository) {
+
+		StepVerifier.create(repository.findById(projectionTestRootId, ProjectionWithNestedProjection.class))
+				.assertNext(projection ->
+						assertThat(projection).satisfies(p -> {
+							assertThat(p.getName()).isEqualTo("root");
+							assertThat(p.getLevel1()).extracting("name").containsExactlyInAnyOrder("level11", "level12");
+							assertThat(p.getLevel1()).flatExtracting("level2").extracting("name")
+									.containsExactlyInAnyOrder("level21", "level22", "level23");
+						}))
+				.verifyComplete();
+	}
+
+	@Test // GH-2165
+	void nested1toManyProjectionsShouldWork(@Autowired TreestructureRepository repository) {
+
+		StepVerifier.create(repository.findById(projectionTestRootId, ProjectedOneToMany.class))
+				.assertNext(projection ->
+						assertThat(projection).satisfies(p -> {
+							assertThat(p.getName()).isEqualTo("root");
+							assertThat(p.getLevel1()).hasSize(2);
+						}))
+				.verifyComplete();
+	}
+
+	@Test // GH-2164
+	void findByIdInDerivedFinderMethodInRelatedObjectShouldWork(@Autowired TreestructureRepository repository) {
+
+		StepVerifier.create(repository.findOneByLevel1Id(projectionTestLevel1Id))
+				.assertNext(projection -> assertThat(projection.getName()).isEqualTo("root"))
+				.verifyComplete();
+	}
+
+	@Test // GH-2164
+	void findByIdInDerivedFinderMethodInRelatedObjectWithProjectionShouldWork(
+			@Autowired TreestructureRepository repository) {
+
+		StepVerifier.create(repository.findOneByLevel1Id(projectionTestLevel1Id, SimpleProjection.class))
+				.assertNext(projection -> assertThat(projection.getName()).isEqualTo("root"))
+				.verifyComplete();
+	}
+
 	interface ReactiveProjectionPersonRepository extends ReactiveNeo4jRepository<Person, Long>,
 			ReactiveCypherdslStatementExecutor<Person> {
 
@@ -206,6 +315,77 @@ class ReactiveProjectionIT {
 
 		@Query("MATCH (n:Person) where n.firstName = $firstName return n")
 		Mono<PersonSummary> customQueryByFirstName(@Param("firstName") String firstName);
+	}
+
+	interface TreestructureRepository extends ReactiveNeo4jRepository<ProjectionTestRoot, Long> {
+
+		<T> Mono<T> findById(Long id, Class<T> typeOfProjection);
+
+		Mono<ProjectionTestRoot> findOneByLevel1Id(Long idOfLevel1);
+
+		<T> Mono<T> findOneByLevel1Id(Long idOfLevel1, Class<T> typeOfProjection);
+	}
+
+	interface SimpleProjection {
+
+		String getName();
+	}
+
+	interface SimpleProjectionWithLevelAndLower {
+
+		String getName();
+
+		ProjectionTest1O1 getOneOone();
+
+		List<ProjectionTestLevel1> getLevel1();
+	}
+
+	interface ProjectedOneToOne {
+
+		String getName();
+
+		Subprojection getOneOone();
+
+		interface Subprojection {
+
+			/**
+			 * @return Some arbitrary computed projection result to make sure that machinery works as well
+			 */
+			@Value("#{target.id + ' ' + target.name}")
+			String getFullName();
+		}
+	}
+
+	interface ProjectedOneToMany {
+
+		String getName();
+
+		List<Subprojection> getLevel1();
+
+		interface Subprojection {
+
+			/**
+			 * @return Some arbitrary computed projection result to make sure that machinery works as well
+			 */
+			@Value("#{target.id + ' ' + target.name}")
+			String getFullName();
+		}
+	}
+
+	interface ProjectionWithNestedProjection {
+
+		String getName();
+
+		List<Subprojection1> getLevel1();
+
+		interface Subprojection1 {
+			String getName();
+			List<Subprojection2> getLevel2();
+		}
+
+		interface Subprojection2 {
+			String getName();
+		}
 	}
 
 	@Configuration

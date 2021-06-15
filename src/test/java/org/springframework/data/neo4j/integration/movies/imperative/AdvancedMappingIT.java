@@ -198,7 +198,9 @@ class AdvancedMappingIT {
 		// this does OOM in most setups.
 		MovieDTO dtoProjection = movieRepository.findDTOByTitle("The Matrix");
 		assertThat(dtoProjection.getTitle()).isNotNull();
-		assertThat(dtoProjection.getActors()).isNotEmpty();
+		assertThat(dtoProjection.getActors()).extracting("name")
+				.containsExactlyInAnyOrder("Gloria Foster", "Keanu Reeves", "Emil Eifrem", "Laurence Fishburne",
+						"Carrie-Anne Moss", "Hugo Weaving");
 	}
 
 	@Test // GH-2117

@@ -104,7 +104,10 @@ class ReactiveNeo4jTemplateIT {
 
 			transaction.run("CREATE (p:Person{firstName: 'A', lastName: 'LA'})");
 			simonsId = transaction
-					.run("CREATE (p:Person{firstName: 'Michael', lastName: 'Siemons'}) -[:LIVES_AT]-> (a:Address {city: 'Aachen'}) RETURN id(p)")
+					.run("CREATE (p:Person{firstName: 'Michael', lastName: 'Siemons'})" +
+							"-[:LIVES_AT]->(a:Address {city: 'Aachen'})" +
+							"-[:BASED_IN]->(c:YetAnotherCountryEntity{name: 'Gemany', countryCode: 'DE'})" +
+							"RETURN id(p)")
 					.single().get(0).asLong();
 			nullNullSchneider = transaction
 					.run("CREATE (p:Person{firstName: 'Helge', lastName: 'Schnitzel'}) -[:LIVES_AT]-> (a:Address {city: 'Mülheim an der Ruhr'}) RETURN id(p)")
@@ -319,6 +322,24 @@ class ReactiveNeo4jTemplateIT {
 		String getLastName();
 	}
 
+	interface ClosedProjectionWithEmbeddedProjection {
+
+		String getLastName();
+
+		AddressProjection getAddress();
+
+		interface AddressProjection {
+
+			String getStreet();
+
+			CountryProjection getCountry();
+
+			interface CountryProjection {
+				String getName();
+			}
+		}
+	}
+
 	@Data
 	static class DtoPersonProjection {
 
@@ -522,6 +543,57 @@ class ReactiveNeo4jTemplateIT {
 					assertThat(p.getFirstName()).isEqualTo("Michael");
 					assertThat(p.getLastName()).isEqualTo("Simons");
 					assertThat(p.getAddress()).isNotNull();
+				})
+				.verifyComplete();
+	}
+
+	@Test
+	void saveAsWithClosedProjectionOnSecondLevelShouldWork(@Autowired ReactiveNeo4jTemplate template) {
+
+		template.findOne("MATCH (p:Person {lastName: $lastName})-[r:LIVES_AT]-(a:Address) RETURN p, collect(r), collect(a)",
+				Collections.singletonMap("lastName", "Siemons"), Person.class)
+				.flatMapMany(p -> {
+
+					p.getAddress().setCity("Braunschweig");
+					p.getAddress().setStreet("Single Trail");
+					return neo4jTemplate.saveAs(p, ClosedProjectionWithEmbeddedProjection.class);
+				})
+				.as(StepVerifier::create)
+				.assertNext(projection -> {
+					assertThat(projection.getAddress().getStreet()).isEqualTo("Single Trail");
+				})
+				.verifyComplete();
+		template.findById(simonsId, Person.class)
+				.as(StepVerifier::create)
+				.assertNext(p -> {
+					assertThat(p.getAddress().getCity()).isEqualTo("Aachen");
+					assertThat(p.getAddress().getStreet()).isEqualTo("Single Trail");
+				})
+				.verifyComplete();
+	}
+
+	@Test
+	void saveAsWithClosedProjectionOnThreeLevelShouldWork(@Autowired ReactiveNeo4jTemplate template) {
+
+		template.findOne("MATCH (p:Person {lastName: $lastName})-[r:LIVES_AT]-(a:Address)-[r2:BASED_IN]->(c:YetAnotherCountryEntity) RETURN p, collect(r), collect(r2), collect(a), collect(c)",
+				Collections.singletonMap("lastName", "Siemons"), Person.class)
+				.flatMapMany(p -> {
+
+					Person.Address.Country country = p.getAddress().getCountry();
+					country.setName("Germany");
+					country.setCountryCode("AT");
+					return neo4jTemplate.saveAs(p, ClosedProjectionWithEmbeddedProjection.class);
+				})
+				.as(StepVerifier::create)
+				.assertNext(p -> assertThat(p.getAddress().getCountry().getName()).isEqualTo("Germany"))
+				.verifyComplete();
+
+		template.findById(simonsId, Person.class)
+				.as(StepVerifier::create)
+				.assertNext(p -> {
+					Person.Address.Country savedCountry = p.getAddress().getCountry();
+					assertThat(savedCountry.getCountryCode()).isEqualTo("DE");
+					assertThat(savedCountry.getName()).isEqualTo("Germany");
 				})
 				.verifyComplete();
 	}

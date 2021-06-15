@@ -844,7 +844,7 @@ public final class ReactiveNeo4jTemplate implements
 								queryOrSave = Mono.just(stateMachine.getInternalId(relatedObjectBeforeCallbacksApplied))
 										.map(id -> Tuples.of(id, noVersion));
 							} else {
-								queryOrSave = saveRelatedNode(newRelatedObject, targetEntity)
+								queryOrSave = saveRelatedNode(newRelatedObject, targetEntity, includeProperty, currentPropertyPath)
 										.map(entity -> Tuples.of(entity.id(), targetEntity.hasVersionProperty() ?
 												entity.get(targetEntity.getVersionProperty().getPropertyName())
 														.asLong() :
@@ -892,7 +892,7 @@ public final class ReactiveNeo4jTemplate implements
 
 												Mono<Object> nestedRelationshipsSignal = null;
 												if (processState != ProcessState.PROCESSED_ALL_VALUES) {
-													nestedRelationshipsSignal = processNestedRelations(targetEntity, targetPropertyAccessor, targetEntity.isNew(newRelatedObject), stateMachine, dynamicRelationship ? PropertyFilter.acceptAll() : includeProperty, previousPath);
+													nestedRelationshipsSignal = processNestedRelations(targetEntity, targetPropertyAccessor, targetEntity.isNew(newRelatedObject), stateMachine, dynamicRelationship ? PropertyFilter.acceptAll() : includeProperty, currentPropertyPath);
 												}
 
 												Mono<Object> getRelationshipOrRelationshipPropertiesObject = Mono.fromSupplier(() -> MappingSupport.getRelationshipOrRelationshipPropertiesObject(
@@ -928,17 +928,25 @@ public final class ReactiveNeo4jTemplate implements
 
 	}
 
-	private <Y> Mono<Entity> saveRelatedNode(Object relatedNode, Neo4jPersistentEntity<?> targetNodeDescription) {
+	private <Y> Mono<Entity> saveRelatedNode(Object relatedNode, Neo4jPersistentEntity<?> targetNodeDescription, PropertyFilter includeProperty, PropertyFilter.RelaxedPropertyPath currentPropertyPath) {
 
 		return determineDynamicLabels((Y) relatedNode, targetNodeDescription)
 				.flatMap(t -> {
 					Y entity = t.getT1();
 					Class<Y> entityType = (Class<Y>) targetNodeDescription.getType();
 					DynamicLabels dynamicLabels = t.getT2();
+					Function<Y, Map<String, Object>> binderFunction = neo4jMappingContext.getRequiredBinderFunctionFor(entityType);
+					binderFunction = binderFunction.andThen(tree -> {
+						Map<String, Object> properties = (Map<String, Object>) tree.get(Constants.NAME_OF_PROPERTIES_PARAM);
 
+						if (!includeProperty.isNotFiltering()) {
+							properties.entrySet().removeIf(e -> !includeProperty.contains(currentPropertyPath.append(e.getKey())));
+						}
+						return tree;
+					});
 					return neo4jClient
 							.query(() -> renderer.render(cypherGenerator.prepareSaveOf(targetNodeDescription, dynamicLabels)))
-							.bind((Y) entity).with(neo4jMappingContext.getRequiredBinderFunctionFor(entityType))
+							.bind((Y) entity).with(binderFunction)
 							.fetchAs(Entity.class)
 							.one();
 				}).switchIfEmpty(Mono.defer(() -> {

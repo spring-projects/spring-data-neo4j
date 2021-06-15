@@ -59,7 +59,13 @@ public class PropertyFilterSupport {
 	}
 
 	public static void addPropertiesFrom(Class<?> chef, ProjectionFactory factory, Class<?> type, Collection<PropertyPath> filteredProperties, String inputProperty, Neo4jMappingContext mappingContext) {
-		PropertyPath propertyPath = PropertyPath.from(inputProperty, chef);
+		ProjectionInformation projectionInformation1 = factory.getProjectionInformation(type);
+		PropertyPath propertyPath;
+		if (projectionInformation1.isClosed() && type.isInterface()) {
+			propertyPath = PropertyPath.from(inputProperty, type);
+		} else {
+			propertyPath = PropertyPath.from(inputProperty, chef);
+		}
 
 		Class<?> leafType = propertyPath.getLeafType();
 		if (Neo4jSimpleTypes.HOLDER.isSimpleType(leafType) || mappingContext.hasCustomWriteTarget(leafType)) {
