@@ -15,14 +15,20 @@
  */
 package org.springframework.data.neo4j.test;
 
+import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.extension.ExtensionContext;
+import org.slf4j.LoggerFactory;
 
 /**
  * Provides access to the formatted message captured from Logback during test run.
@@ -34,11 +40,20 @@ public final class LogbackCapture implements ExtensionContext.Store.CloseableRes
 
 	private final ListAppender<ILoggingEvent> listAppender;
 	private final Logger logger;
+	private final Map<Logger, Level> additionalLoggers = new HashMap<>();
 
 	LogbackCapture() {
 		this.listAppender = new ListAppender<>();
 		// While forbidden by our checkstyle, we must go that route to get the logback root logger.
 		this.logger = (Logger) org.slf4j.LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
+	}
+
+	public void addLogger(String logger, Level level) {
+		Logger additionalLogger = (Logger) LoggerFactory.getLogger(logger);
+
+		// save the current log level for restore later
+		this.additionalLoggers.put(additionalLogger, additionalLogger.getLevel());
+		additionalLogger.setLevel(level);
 	}
 
 	public List<String> getFormattedMessages() {
@@ -56,7 +71,12 @@ public final class LogbackCapture implements ExtensionContext.Store.CloseableRes
 
 	@Override
 	public void close() {
+		resetLogLevel();
 		this.listAppender.stop();
 		this.logger.detachAppender(listAppender);
+	}
+
+	public void resetLogLevel() {
+		this.additionalLoggers.entrySet().forEach(entry -> entry.getKey().setLevel(entry.getValue()));
 	}
 }

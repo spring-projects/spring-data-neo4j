@@ -15,8 +15,10 @@
  */
 package org.springframework.data.neo4j.integration.movies.imperative;
 
+import ch.qos.logback.classic.Level;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Session;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,6 +39,8 @@ import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.data.neo4j.repository.query.Query;
 import org.springframework.data.neo4j.test.BookmarkCapture;
+import org.springframework.data.neo4j.test.LogbackCapture;
+import org.springframework.data.neo4j.test.LogbackCapturingExtension;
 import org.springframework.data.neo4j.test.Neo4jExtension;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 import org.springframework.data.repository.query.Param;
@@ -59,6 +63,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Michael J. Simons
  * @soundtrack Body Count - Manslaughter
  */
+@ExtendWith(LogbackCapturingExtension.class)
 @Neo4jIntegrationTest
 class AdvancedMappingIT {
 
@@ -205,7 +210,9 @@ class AdvancedMappingIT {
 
 	@Test // GH-2117
 	void bothCyclicAndNonCyclicRelationshipsAreExcludedFromProjectionsWithProjections(
-			@Autowired MovieRepository movieRepository) {
+			@Autowired MovieRepository movieRepository, LogbackCapture logbackCapture) {
+
+		logbackCapture.addLogger("org.springframework.data.neo4j.cypher", Level.DEBUG);
 
 		// The movie domain is a good fit for this test
 		// as the cyclic dependencies is pretty slow to retrieve from Neo4j
@@ -216,6 +223,15 @@ class AdvancedMappingIT {
 		assertThat(projection.getActors()).extracting("name")
 				.containsExactlyInAnyOrder("Gloria Foster", "Keanu Reeves", "Emil Eifrem", "Laurence Fishburne",
 						"Carrie-Anne Moss", "Hugo Weaving");
+
+		assertThat(logbackCapture.getFormattedMessages()).anyMatch(message ->
+				message.contains("MATCH (n:`Movie`) WHERE n.title = $0 RETURN " +
+				"n{.title, __nodeLabels__: labels(n), __internalNeo4jId__: id(n), " +
+				"Movie_ACTED_IN_Person: [(n)<-[Movie__relationship__Person:`ACTED_IN`]-(n_actors:`Person`) | " +
+				"n_actors{.born, .id, .name, __nodeLabels__: labels(n_actors), " +
+				"__internalNeo4jId__: id(n_actors), Movie__relationship__Person}]}"));
+
+		logbackCapture.resetLogLevel();
 	}
 
 	@Test // GH-2114
