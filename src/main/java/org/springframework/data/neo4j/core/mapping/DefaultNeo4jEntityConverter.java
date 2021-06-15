@@ -278,7 +278,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 				knownObjects.storeObject(internalId, instance);
 				// Fill associations
 				concreteNodeDescription.doWithAssociations(
-						populateFrom(queryResult, allValues, propertyAccessor, isConstructorParameter, relationships));
+						populateFrom(queryResult, allValues, propertyAccessor, isConstructorParameter));
 			}
 			ET bean = propertyAccessor.getBean();
 
@@ -363,7 +363,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 				Neo4jPersistentProperty matchingProperty = nodeDescription.getRequiredPersistentProperty(parameter.getName());
 
 				if (matchingProperty.isRelationship()) {
-					return createInstanceOfRelationships(matchingProperty, values, allValues, relationships).orElse(null);
+					return createInstanceOfRelationships(matchingProperty, values, allValues, nodeDescription.getRelationships().stream().filter(r -> r.getFieldName().equals(matchingProperty.getFieldName())).findFirst().get()).orElse(null);
 				} else if (matchingProperty.isDynamicLabels()) {
 					return createDynamicLabelsProperty(matchingProperty.getTypeInformation(), surplusLabels);
 				} else if (matchingProperty.isEntityWithRelationshipProperties()) {
@@ -399,8 +399,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 	}
 
 	private AssociationHandler<Neo4jPersistentProperty> populateFrom(MapAccessor queryResult, MapAccessor allValues,
-			PersistentPropertyAccessor<?> propertyAccessor, Predicate<Neo4jPersistentProperty> isConstructorParameter,
-			Collection<RelationshipDescription> relationshipDescriptions) {
+			PersistentPropertyAccessor<?> propertyAccessor, Predicate<Neo4jPersistentProperty> isConstructorParameter) {
 		return association -> {
 
 			Neo4jPersistentProperty persistentProperty = association.getInverse();
@@ -408,16 +407,13 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 				return;
 			}
 
-			createInstanceOfRelationships(persistentProperty, queryResult, allValues, relationshipDescriptions)
+			createInstanceOfRelationships(persistentProperty, queryResult, allValues, (RelationshipDescription) association)
 					.ifPresent(value -> propertyAccessor.setProperty(persistentProperty, value));
 		};
 	}
 
 	private Optional<Object> createInstanceOfRelationships(Neo4jPersistentProperty persistentProperty, MapAccessor values,
-			MapAccessor allValues, Collection<RelationshipDescription> relationshipDescriptions) {
-
-		RelationshipDescription relationshipDescription = relationshipDescriptions.stream()
-				.filter(r -> r.getFieldName().equals(persistentProperty.getName())).findFirst().get();
+			MapAccessor allValues, RelationshipDescription relationshipDescription) {
 
 		String typeOfRelationship = relationshipDescription.getType();
 		String sourceLabel = relationshipDescription.getSource().getPrimaryLabel();
