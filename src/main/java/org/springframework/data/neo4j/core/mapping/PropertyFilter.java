@@ -51,13 +51,8 @@ public abstract class PropertyFilter {
 			rootClasses = new HashSet<>();
 			rootClasses.add(domainClass);
 
-			// supported projection classes
-			if (!properties.isEmpty()) {
-				for (PropertyPath property : properties) {
-					Class<?> returnClassTypeInformation = property.getOwningType().getType();
-					rootClasses.add(returnClassTypeInformation);
-				}
-			}
+			// supported projection based classes
+			properties.stream().map(property -> property.getOwningType().getType()).forEach(rootClasses::add);
 
 			// supported inheriting classes
 			dingDong.getChildNodeDescriptionsInHierarchy().stream()

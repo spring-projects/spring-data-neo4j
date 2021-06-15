@@ -649,7 +649,7 @@ public final class ReactiveNeo4jTemplate implements
 
 										return Tuples.of(newRelationshipIds, newRelatedNodeIds);
 									})
-									.expand(iterateAndMapNextLevel(relationshipDescription));
+									.expand(iterateAndMapNextLevel(relationshipDescription, queryFragments));
 						})
 						.then(Mono.fromSupplier(() -> new NodesAndRelationshipsByIdStatementProvider(rootNodeIds, processedRelationshipIds, processedNodeIds, queryFragments)));
 			})
@@ -661,11 +661,11 @@ public final class ReactiveNeo4jTemplate implements
 	}
 
 	private Flux<Tuple2<Collection<Long>, Collection<Long>>> iterateNextLevel(Collection<Long> relatedNodeIds,
-				  						RelationshipDescription relationshipDescription) {
+																			  RelationshipDescription relationshipDescription, QueryFragments queryFragments) {
 
 		NodeDescription<?> target = relationshipDescription.getTarget();
 
-		return Flux.fromIterable(target.getRelationshipsInHierarchy((pp -> true)))
+		return Flux.fromIterable(target.getRelationshipsInHierarchy(queryFragments::includeField))
 			.flatMap(relDe -> {
 				Node node = anyNode(Constants.NAME_OF_ROOT_NODE);
 
@@ -685,7 +685,7 @@ public final class ReactiveNeo4jTemplate implements
 
 							return Tuples.of(newRelationshipIds, newRelatedNodeIds);
 						})
-						.expand(object -> iterateAndMapNextLevel(relDe).apply(object));
+						.expand(object -> iterateAndMapNextLevel(relDe, queryFragments).apply(object));
 			});
 
 	}
@@ -693,7 +693,7 @@ public final class ReactiveNeo4jTemplate implements
 	@NonNull
 	private Function<Tuple2<Collection<Long>, Collection<Long>>,
 			Publisher<Tuple2<Collection<Long>, Collection<Long>>>> iterateAndMapNextLevel(
-					RelationshipDescription relationshipDescription) {
+			RelationshipDescription relationshipDescription, QueryFragments queryFragments) {
 
 		return newRelationshipAndRelatedNodeIds -> {
 			return Flux.deferContextual(ctx -> {
@@ -716,7 +716,7 @@ public final class ReactiveNeo4jTemplate implements
 					return Mono.empty();
 				}
 
-				return iterateNextLevel(newRelatedNodeIds, relationshipDescription);
+				return iterateNextLevel(newRelatedNodeIds, relationshipDescription, queryFragments);
 			});
 		};
 	}
