@@ -538,7 +538,9 @@ class Neo4jTemplateIT {
 		Person.Address.Country country = p.getAddress().getCountry();
 		country.setName("Germany");
 		country.setCountryCode("AT");
+
 		ClosedProjectionWithEmbeddedProjection projection = neo4jTemplate.saveAs(p, ClosedProjectionWithEmbeddedProjection.class);
+		assertThat(projection.getAddress().getCountry().getName()).isEqualTo("Germany");
 
 		p = neo4jTemplate.findById(p.getId(), Person.class).get();
 		Person.Address.Country savedCountry = p.getAddress().getCountry();

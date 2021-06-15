@@ -83,7 +83,7 @@ public class PropertyFilterSupport {
 				}
 			} else {
 				// an open projection needs to get replaced with the matching (real) entity
-				Class<?> propertyEntityType =  mappingContext.getPersistentEntity(type).getPersistentProperty(inputProperty).getActualType();
+				Class<?> propertyEntityType = mappingContext.getPersistentEntity(type).getPersistentProperty(inputProperty).getActualType();
 				addPropertiesFromEntity(chef, filteredProperties, propertyPath, propertyEntityType, mappingContext, new HashSet<>());
 			}
 		}
