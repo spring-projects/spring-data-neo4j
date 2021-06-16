@@ -20,15 +20,12 @@ import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.junit.jupiter.api.extension.ExtensionContext;
-import org.slf4j.LoggerFactory;
 
 /**
  * Provides access to the formatted message captured from Logback during test run.
@@ -48,8 +45,8 @@ public final class LogbackCapture implements ExtensionContext.Store.CloseableRes
 		this.logger = (Logger) org.slf4j.LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
 	}
 
-	public void addLogger(String logger, Level level) {
-		Logger additionalLogger = (Logger) LoggerFactory.getLogger(logger);
+	public void addLogger(String loggerName, Level level) {
+		Logger additionalLogger = (Logger) org.slf4j.LoggerFactory.getLogger(loggerName);
 
 		// save the current log level for restore later
 		this.additionalLoggers.put(additionalLogger, additionalLogger.getLevel());
