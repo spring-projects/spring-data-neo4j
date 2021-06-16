@@ -18,6 +18,7 @@ package org.springframework.data.neo4j.repository.query;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -28,6 +29,7 @@ import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import org.apache.commons.logging.LogFactory;
 import org.neo4j.driver.Value;
@@ -35,11 +37,13 @@ import org.neo4j.driver.Values;
 import org.neo4j.driver.types.MapAccessor;
 import org.neo4j.driver.types.TypeSystem;
 import org.springframework.core.log.LogAccessor;
+import org.springframework.data.convert.EntityWriter;
 import org.springframework.data.domain.Range;
 import org.springframework.data.geo.Box;
 import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.Metrics;
+import org.springframework.data.neo4j.core.TemplateSupport;
 import org.springframework.data.neo4j.core.convert.Neo4jSimpleTypes;
 import org.springframework.data.neo4j.core.mapping.CypherGenerator;
 import org.springframework.data.neo4j.core.mapping.EntityInstanceWithSource;
@@ -179,6 +183,20 @@ abstract class Neo4jQuerySupport {
 			return convertBox((Box) parameter);
 		} else if (parameter instanceof BoundingBox) {
 			return convertBoundingBox((BoundingBox) parameter);
+		}
+
+		Class<?> type;
+		if (parameter instanceof Collection && mappingContext
+				.hasPersistentEntityFor(TemplateSupport.findCommonElementType((Collection) parameter))) {
+
+			EntityWriter<Object, Map<String, Object>> objectMapEntityWriter = Neo4jNestedMapEntityWriter
+					.forContext(mappingContext);
+
+			return ((Collection<?>) parameter).stream().map(v -> {
+				Map<String, Object> result = new HashMap<>();
+				objectMapEntityWriter.write(v, result);
+				return result;
+			}).collect(Collectors.toList());
 		}
 
 		if (mappingContext.hasPersistentEntityFor(parameter.getClass())) {
