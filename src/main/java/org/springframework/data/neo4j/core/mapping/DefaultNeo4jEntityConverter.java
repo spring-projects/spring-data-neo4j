@@ -363,7 +363,12 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 				Neo4jPersistentProperty matchingProperty = nodeDescription.getRequiredPersistentProperty(parameter.getName());
 
 				if (matchingProperty.isRelationship()) {
-					return createInstanceOfRelationships(matchingProperty, values, allValues, nodeDescription.getRelationships().stream().filter(r -> r.getFieldName().equals(matchingProperty.getFieldName())).findFirst().get()).orElse(null);
+					RelationshipDescription relationshipDescription = nodeDescription.getRelationships().stream()
+							.filter(r -> {
+								String propertyFieldName = matchingProperty.getFieldName();
+								return r.getFieldName().equals(propertyFieldName);
+							}).findFirst().get();
+					return createInstanceOfRelationships(matchingProperty, values, allValues, relationshipDescription).orElse(null);
 				} else if (matchingProperty.isDynamicLabels()) {
 					return createDynamicLabelsProperty(matchingProperty.getTypeInformation(), surplusLabels);
 				} else if (matchingProperty.isEntityWithRelationshipProperties()) {
