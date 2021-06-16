@@ -86,12 +86,11 @@ import org.springframework.data.neo4j.core.convert.Neo4jConversions;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
 import org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager;
+import org.springframework.data.neo4j.integration.imperative.repositories.FlightRepository;
 import org.springframework.data.neo4j.integration.imperative.repositories.PersonRepository;
 import org.springframework.data.neo4j.integration.imperative.repositories.PersonWithNoConstructorRepository;
 import org.springframework.data.neo4j.integration.imperative.repositories.PersonWithWitherRepository;
 import org.springframework.data.neo4j.integration.imperative.repositories.ThingRepository;
-import org.springframework.data.neo4j.integration.shared.common.Flight;
-import org.springframework.data.neo4j.integration.imperative.repositories.FlightRepository;
 import org.springframework.data.neo4j.integration.shared.common.AltHobby;
 import org.springframework.data.neo4j.integration.shared.common.AltLikedByPersonRelationship;
 import org.springframework.data.neo4j.integration.shared.common.AltPerson;
@@ -110,6 +109,7 @@ import org.springframework.data.neo4j.integration.shared.common.EntitiesWithDyna
 import org.springframework.data.neo4j.integration.shared.common.EntityWithConvertedId;
 import org.springframework.data.neo4j.integration.shared.common.EntityWithRelationshipPropertiesPath;
 import org.springframework.data.neo4j.integration.shared.common.ExtendedParentNode;
+import org.springframework.data.neo4j.integration.shared.common.Flight;
 import org.springframework.data.neo4j.integration.shared.common.Friend;
 import org.springframework.data.neo4j.integration.shared.common.FriendshipRelationship;
 import org.springframework.data.neo4j.integration.shared.common.Hobby;
@@ -1909,17 +1909,7 @@ class RepositoryIT {
 
 			Assumptions.assumeTrue(ServerVersion.version(driver).greaterThanOrEqual(ServerVersion.v4_1_0));
 
-			PersonWithRelationship p = new PersonWithRelationship();
-			p.setName("A Person");
-			p.setId(4711L);
-			Hobby h = new Hobby();
-			h.setName("A Hobby");
-			p.setHobbies(h);
-			p.setPets(Arrays.asList(new Pet("A"), new Pet("B")));
-
-			Club club = new Club();
-			club.setName("C27");
-			p.setClub(club);
+			PersonWithRelationship p = createNewPerson("A Person", createNewClub("C27"));
 
 			PersonWithRelationship newPerson = repository.createWithCustomQuery(p);
 			newPerson = repository.findById(newPerson.getId()).get();
@@ -1927,6 +1917,46 @@ class RepositoryIT {
 			assertThat(newPerson.getHobbies().getName()).isEqualTo("A Hobby");
 			assertThat(newPerson.getPets()).extracting(Pet::getName).containsExactlyInAnyOrder("A", "B");
 			assertThat(newPerson.getClub().getName()).isEqualTo("C27");
+		}
+
+		private PersonWithRelationship createNewPerson(String name, Club club) {
+			PersonWithRelationship p = new PersonWithRelationship();
+			p.setName(name);
+			p.setId(4711L);
+			Hobby h = new Hobby();
+			h.setName("A Hobby");
+			p.setHobbies(h);
+			p.setPets(Arrays.asList(new Pet("A"), new Pet("B")));
+
+			p.setClub(club);
+			return p;
+		}
+
+		private Club createNewClub(String name) {
+			Club club = new Club();
+			club.setName(name);
+			return club;
+		}
+
+		@Test // DATAGRAPH-2292
+		void createWithCustomQueryShouldWorkWithCollectionsOfNestedObjects(@Autowired Driver driver, @Autowired RelationshipRepository repository) {
+
+			Assumptions.assumeTrue(ServerVersion.version(driver).greaterThanOrEqual(ServerVersion.v4_1_0));
+
+			Club c27 = createNewClub("C27");
+			Set<PersonWithRelationship> people = new HashSet<>();
+			people.add(createNewPerson("A person", c27));
+			people.add(createNewPerson("Another person", c27));
+
+			List<PersonWithRelationship> newPeople = repository.createManyWithCustomQuery(people);
+			assertThat(newPeople).hasSize(2)
+					.allSatisfy(p -> {
+						PersonWithRelationship newPerson = repository.findById(p.getId()).get();
+						assertThat(newPerson.getName()).isEqualTo(p.getName());
+						assertThat(newPerson.getHobbies().getName()).isEqualTo("A Hobby");
+						assertThat(newPerson.getPets()).extracting(Pet::getName).containsExactlyInAnyOrder("A", "B");
+						assertThat(newPerson.getClub().getName()).isEqualTo("C27");
+					});
 		}
 
 		@Test
@@ -1937,8 +1967,7 @@ class RepositoryIT {
 			Hobby hobby = new Hobby();
 			hobby.setName("Music");
 			person.setHobbies(hobby);
-			Club club = new Club();
-			club.setName("ClownsClub");
+			Club club = createNewClub("ClownsClub");
 			person.setClub(club);
 			Pet pet1 = new Pet("Jerry");
 			Pet pet2 = new Pet("Tom");
@@ -4141,6 +4170,37 @@ class RepositoryIT {
 			   + "}\n"
 			   + "RETURN n, collect(r), collect(p)")
 		PersonWithRelationship createWithCustomQuery(PersonWithRelationship p);
+
+		@Transactional
+		@Query("UNWIND $0 AS pwr WITH pwr CREATE (n:PersonWithRelationship) \n"
+			   + "SET n.name = pwr.__properties__.name  \n"
+			   + "WITH pwr, n, id(n) as parentId\n"
+			   + "UNWIND pwr.__properties__.Has as x\n"
+			   + "CALL { WITH x, parentId\n"
+			   + " \n"
+			   + " WITH x, parentId\n"
+			   + " MATCH (_) \n"
+			   + " WHERE id(_) = parentId AND x.__labels__[0] = 'Pet'\n"
+			   + " CREATE (p:Pet {name: x.__properties__.name}) <- [r:Has] - (_)\n"
+			   + " RETURN p, r\n"
+			   + " \n"
+			   + " UNION\n"
+			   + " WITH x, parentId\n"
+			   + " MATCH (_) \n"
+			   + " WHERE id(_) = parentId AND x.__labels__[0] = 'Hobby'\n"
+			   + " CREATE (p:Hobby {name: x.__properties__.name}) <- [r:Has] - (_)\n"
+			   + " RETURN p, r\n"
+			   + "\n"
+			   + " UNION\n"
+			   + " WITH x, parentId\n"
+			   + " MATCH (_) \n"
+			   + " WHERE id(_) = parentId AND x.__labels__[0] = 'Club'\n"
+			   + " CREATE (p:Club {name: x.__properties__.name}) - [r:Has] -> (_)\n"
+			   + " RETURN p, r\n"
+			   + "\n"
+			   + "}\n"
+			   + "RETURN n, collect(r), collect(p)")
+		List<PersonWithRelationship> createManyWithCustomQuery(Collection<PersonWithRelationship> p);
 
 		PersonWithRelationship.PersonWithHobby findDistinctByHobbiesName(String hobbyName);
 	}

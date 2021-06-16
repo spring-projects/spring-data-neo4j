@@ -55,7 +55,7 @@ import org.springframework.util.Assert;
  * @since 6.0.9
  */
 @API(status = API.Status.INTERNAL, since = "6.0.9")
-final class TemplateSupport {
+public final class TemplateSupport {
 
 	enum FetchType {
 
@@ -64,11 +64,11 @@ final class TemplateSupport {
 	}
 
 	@Nullable
-	static Class<?> findCommonElementType(Iterable<?> collection) {
+	public static Class<?> findCommonElementType(Iterable<?> collection) {
 
-		List<Class<?>> allClasses = StreamSupport.stream(collection.spliterator(), true)
+		Collection<Class<?>> allClasses = StreamSupport.stream(collection.spliterator(), true)
 				.filter(o -> o != null)
-				.map(Object::getClass).collect(Collectors.toList());
+				.map(Object::getClass).collect(Collectors.toSet());
 
 		Class<?> candidate = null;
 		for (Class<?> type : allClasses) {
