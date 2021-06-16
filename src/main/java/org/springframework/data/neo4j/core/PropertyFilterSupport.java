@@ -95,6 +95,9 @@ public class PropertyFilterSupport {
 			return;
 		}
 		irgendeineListe.add(persistentEntityFromProperty);
+		if (mappingContext.hasPersistentEntityFor(chef)) {
+			irgendeineListe.add(mappingContext.getPersistentEntity(chef));
+		}
 		takeAllPropertiesFromEntity(chef, filteredProperties, propertyPath, mappingContext, persistentEntityFromProperty, irgendeineListe);
 	}
 

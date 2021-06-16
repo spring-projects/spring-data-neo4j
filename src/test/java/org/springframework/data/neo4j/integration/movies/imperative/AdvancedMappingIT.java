@@ -86,7 +86,14 @@ class AdvancedMappingIT {
 		List<ActorProjection> getActors();
 
 		interface ActorProjection {
-			String getName();
+			List<String> getRoles();
+
+			PersonProjection getPerson();
+
+			interface PersonProjection {
+
+				String getName();
+			}
 		}
 	}
 
@@ -220,9 +227,11 @@ class AdvancedMappingIT {
 		MovieProjectionWithActorProjection projection = movieRepository
 				.findProjectionWithProjectionByTitle("The Matrix");
 		assertThat(projection.getTitle()).isNotNull();
-		assertThat(projection.getActors()).extracting("name")
+		assertThat(projection.getActors()).extracting("person").extracting("name")
 				.containsExactlyInAnyOrder("Gloria Foster", "Keanu Reeves", "Emil Eifrem", "Laurence Fishburne",
 						"Carrie-Anne Moss", "Hugo Weaving");
+		assertThat(projection.getActors()).flatExtracting("roles")
+				.containsExactlyInAnyOrder("The Oracle", "Morpheus", "Trinity", "Agent Smith", "Emil", "Neo");
 
 		assertThat(logbackCapture.getFormattedMessages()).anyMatch(message ->
 				message.contains("MATCH (n:`Movie`) WHERE n.title = $0 RETURN " +
