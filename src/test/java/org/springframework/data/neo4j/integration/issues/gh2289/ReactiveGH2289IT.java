@@ -15,18 +15,21 @@
  */
 package org.springframework.data.neo4j.integration.issues.gh2289;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Tag;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.Transaction;
+import org.neo4j.driver.Values;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -54,6 +57,10 @@ class ReactiveGH2289IT {
 				Transaction transaction = session.beginTransaction();
 		) {
 			transaction.run("MATCH (n) detach delete n");
+			for (int i = 0; i < 4; ++i) {
+				transaction.run("CREATE (s:SKU_RO {number: $i, name: $n})",
+						Values.parameters("i", i, "n", new String(new char[] { (char) ('A' + i) })));
+			}
 			transaction.commit();
 			bookmarkCapture.seedWith(session.lastBookmark());
 		}
@@ -84,7 +91,7 @@ class ReactiveGH2289IT {
 				.verifyComplete();
 
 		skuRepo.findById(bId.get())
-				.doOnNext(b -> Assertions.assertThat(b.getRangeRelationsIn()).hasSize(1))
+				.doOnNext(b -> assertThat(b.getRangeRelationsIn()).hasSize(1))
 				.flatMap(b -> {
 					b.rangeRelationTo(cRef.get(), 1, 1, RelationType.MULTIPLICATIVE);
 					return skuRepo.save(b);
@@ -94,8 +101,60 @@ class ReactiveGH2289IT {
 				.verifyComplete();
 	}
 
+	@RepeatedTest(5) // GH-2294
+	void testNewRelationRo(@Autowired SkuRORepository skuRepo) {
+
+		AtomicLong bId = new AtomicLong();
+		AtomicReference<SkuRO> cRef = new AtomicReference<>();
+		skuRepo.findOneByName("A")
+				.zipWith(skuRepo.findOneByName("B"))
+				.zipWith(skuRepo.findOneByName("C"))
+				.zipWith(skuRepo.findOneByName("D"))
+				.flatMap(t -> {
+			SkuRO a = t.getT1().getT1().getT1();
+			SkuRO b = t.getT1().getT1().getT2();
+			SkuRO c = t.getT1().getT2();
+			SkuRO d = t.getT2();
+
+			bId.set(b.getId());
+			cRef.set(c);
+			a.rangeRelationTo(b, 1, 1, RelationType.MULTIPLICATIVE);
+			a.rangeRelationTo(c, 1, 1, RelationType.MULTIPLICATIVE);
+			a.rangeRelationTo(d, 1, 1, RelationType.MULTIPLICATIVE);
+
+			a.setName("a new name");
+
+			return skuRepo.save(a);
+		}).as(StepVerifier::create)
+				.expectNextMatches(a -> a.getRangeRelationsOut().size() == 3 && "a new name".equals(a.getName()))
+				.verifyComplete();
+
+		skuRepo.findOneByName("a new name")
+				.as(StepVerifier::create)
+				.verifyComplete();
+
+		skuRepo.findOneByName("B")
+				.doOnNext(b -> {
+					assertThat(b.getRangeRelationsIn()).hasSize(1);
+					assertThat(b.getRangeRelationsOut()).hasSizeLessThanOrEqualTo(1);
+				})
+				.flatMap(b -> {
+					b.rangeRelationTo(cRef.get(), 1, 1, RelationType.MULTIPLICATIVE);
+					return skuRepo.save(b);
+				})
+				.as(StepVerifier::create)
+				.expectNextMatches(b -> b.getRangeRelationsIn().size() == 1 && b.getRangeRelationsOut().size() == 1)
+				.verifyComplete();
+	}
+
 	@Repository
 	public interface SkuRepository extends ReactiveNeo4jRepository<Sku, Long> {
+	}
+
+	@Repository
+	public interface SkuRORepository extends ReactiveNeo4jRepository<SkuRO, Long> {
+
+		Mono<SkuRO> findOneByName(String name);
 	}
 
 	@Configuration

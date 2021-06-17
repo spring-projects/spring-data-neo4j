@@ -15,12 +15,14 @@
  */
 package org.springframework.data.neo4j.integration.issues.gh2289;
 
-import org.assertj.core.api.Assertions;
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.RepeatedTest;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.Transaction;
+import org.neo4j.driver.Values;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -47,6 +49,10 @@ class GH2289IT {
 				Transaction transaction = session.beginTransaction();
 		) {
 			transaction.run("MATCH (n) detach delete n");
+			for (int i = 0; i < 4; ++i) {
+				transaction.run("CREATE (s:SKU_RO {number: $i, name: $n})",
+						Values.parameters("i", i, "n", new String(new char[] { (char) ('A' + i) })));
+			}
 			transaction.commit();
 			bookmarkCapture.seedWith(session.lastBookmark());
 		}
@@ -64,18 +70,51 @@ class GH2289IT {
 		a.rangeRelationTo(d, 1, 1, RelationType.MULTIPLICATIVE);
 		a = skuRepo.save(a);
 
-		Assertions.assertThat(a.getRangeRelationsOut()).hasSize(3);
+		assertThat(a.getRangeRelationsOut()).hasSize(3);
 		b = skuRepo.findById(b.getId()).get();
-		Assertions.assertThat(b.getRangeRelationsIn()).hasSize(1);
+		assertThat(b.getRangeRelationsIn()).hasSize(1);
 
 		b.rangeRelationTo(c, 1, 1, RelationType.MULTIPLICATIVE);
 		b = skuRepo.save(b);
-		Assertions.assertThat(b.getRangeRelationsIn()).hasSize(1);
-		Assertions.assertThat(b.getRangeRelationsOut()).hasSize(1);
+		assertThat(b.getRangeRelationsIn()).hasSize(1);
+		assertThat(b.getRangeRelationsOut()).hasSize(1);
+	}
+
+	@RepeatedTest(5) // GH-2294
+	void testNewRelationRo(@Autowired SkuRORepository skuRepo) {
+		SkuRO a = skuRepo.findOneByName("A");
+		SkuRO b = skuRepo.findOneByName("B");
+		SkuRO c = skuRepo.findOneByName("C");
+		SkuRO d = skuRepo.findOneByName("D");
+
+		a.rangeRelationTo(b, 1, 1, RelationType.MULTIPLICATIVE);
+		a.rangeRelationTo(c, 1, 1, RelationType.MULTIPLICATIVE);
+		a.rangeRelationTo(d, 1, 1, RelationType.MULTIPLICATIVE);
+		a.setName("a new name");
+		a = skuRepo.save(a);
+		assertThat(a.getRangeRelationsOut()).hasSize(3);
+		assertThat(a.getName()).isEqualTo("a new name");
+
+		assertThat(skuRepo.findOneByName("a new name")).isNull();
+
+		b = skuRepo.findOneByName("B");
+		assertThat(b.getRangeRelationsIn()).hasSize(1);
+		assertThat(b.getRangeRelationsOut()).hasSizeLessThanOrEqualTo(1);
+
+		b.rangeRelationTo(c, 1, 1, RelationType.MULTIPLICATIVE);
+		b = skuRepo.save(b);
+		assertThat(b.getRangeRelationsIn()).hasSize(1);
+		assertThat(b.getRangeRelationsOut()).hasSize(1);
 	}
 
 	@Repository
 	public interface SkuRepository extends Neo4jRepository<Sku, Long> {
+	}
+
+	@Repository
+	public interface SkuRORepository extends Neo4jRepository<SkuRO, Long> {
+
+		SkuRO findOneByName(String name);
 	}
 
 	@Configuration

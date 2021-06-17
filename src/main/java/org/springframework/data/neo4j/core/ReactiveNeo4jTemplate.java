@@ -725,8 +725,10 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Rea
 		sourceEntity.doWithAssociations((AssociationHandler<Neo4jPersistentProperty>) association -> {
 
 			// create context to bundle parameters
-			NestedRelationshipContext relationshipContext = NestedRelationshipContext.of(association, parentPropertyAccessor,
-					sourceEntity);
+			NestedRelationshipContext relationshipContext = NestedRelationshipContext.of(association, parentPropertyAccessor, sourceEntity);
+			if (relationshipContext.isReadOnly()) {
+				return;
+			}
 
 			Object rawValue = relationshipContext.getValue();
 			Collection<?> relatedValuesToStore = MappingSupport.unifyRelationshipValue(relationshipContext.getInverse(),

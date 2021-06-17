@@ -641,6 +641,9 @@ public final class Neo4jTemplate implements Neo4jOperations, FluentNeo4jOperatio
 
 			// create context to bundle parameters
 			NestedRelationshipContext relationshipContext = NestedRelationshipContext.of(association, propertyAccessor, sourceEntity);
+			if (relationshipContext.isReadOnly()) {
+				return;
+			}
 
 			Object rawValue = relationshipContext.getValue();
 			Collection<?> relatedValuesToStore = MappingSupport.unifyRelationshipValue(relationshipContext.getInverse(),
