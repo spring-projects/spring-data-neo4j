@@ -138,7 +138,6 @@ final class DefaultRelationshipDescription extends Association<Neo4jPersistentPr
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(type, type, fieldName, target, source, direction);
+		return Objects.hash(fieldName, type, target, source, direction);
 	}
-
 }

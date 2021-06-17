@@ -733,7 +733,6 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Rea
 					rawValue);
 
 			RelationshipDescription relationshipDescription = relationshipContext.getRelationship();
-			RelationshipDescription relationshipDescriptionObverse = relationshipDescription.getRelationshipObverse();
 
 			if (!includeProperty.test(relationshipDescription.getFieldName())) {
 				return;
@@ -747,7 +746,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Rea
 			}
 
 				// break recursive procession and deletion of previously created relationships
-				ProcessState processState = stateMachine.getStateOf(fromId, relationshipDescriptionObverse, relatedValuesToStore);
+				ProcessState processState = stateMachine.getStateOf(fromId, relationshipDescription, relatedValuesToStore);
 				if (processState == ProcessState.PROCESSED_ALL_RELATIONSHIPS || processState == ProcessState.PROCESSED_BOTH) {
 					return;
 				}
