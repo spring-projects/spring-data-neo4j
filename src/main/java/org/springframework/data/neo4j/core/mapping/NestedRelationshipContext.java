@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apiguardian.api.API;
+import org.springframework.data.annotation.ReadOnlyProperty;
 import org.springframework.data.mapping.Association;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
 import org.springframework.data.neo4j.core.schema.TargetNode;
@@ -51,6 +52,10 @@ public final class NestedRelationshipContext {
 		this.value = value;
 		this.relationship = relationship;
 		this.inverseValueIsEmpty = inverseValueIsEmpty;
+	}
+
+	public boolean isReadOnly() {
+		return inverse.isAnnotationPresent(ReadOnlyProperty.class);
 	}
 
 	public Neo4jPersistentProperty getInverse() {
