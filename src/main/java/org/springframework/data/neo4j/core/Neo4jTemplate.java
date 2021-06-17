@@ -721,12 +721,27 @@ public final class Neo4jTemplate implements Neo4jOperations, FluentNeo4jOperatio
 				Entity savedEntity = null;
 				// No need to save values if processed
 				if (stateMachine.hasProcessedValue(relatedValueToStore)) {
-					relatedInternalId = stateMachine.getInternalId(relatedObjectBeforeCallbacksApplied);
+					relatedInternalId = stateMachine.getInternalId(relatedValueToStore);
 				} else {
 					savedEntity = saveRelatedNode(newRelatedObject, targetEntity);
 					relatedInternalId = savedEntity.id();
+					stateMachine.markValueAsProcessed(relatedValueToStore, relatedInternalId);
 				}
-				stateMachine.markValueAsProcessed(relatedValueToStore, relatedInternalId);
+
+				PersistentPropertyAccessor<?> targetPropertyAccessor = targetEntity.getPropertyAccessor(newRelatedObject);
+				// if an internal id is used this must be set to link this entity in the next iteration
+				if (targetEntity.isUsingInternalIds()) {
+					Neo4jPersistentProperty requiredIdProperty = targetEntity.getRequiredIdProperty();
+					if (relatedInternalId == null && targetPropertyAccessor.getProperty(requiredIdProperty) != null) {
+						relatedInternalId = (Long) targetPropertyAccessor.getProperty(requiredIdProperty);
+					} else if (targetPropertyAccessor.getProperty(requiredIdProperty) == null) {
+						targetPropertyAccessor.setProperty(requiredIdProperty, relatedInternalId);
+					}
+				}
+				if (savedEntity != null) {
+					TemplateSupport.updateVersionPropertyIfPossible(targetEntity, targetPropertyAccessor, savedEntity);
+				}
+				stateMachine.markValueAsProcessedAs(relatedObjectBeforeCallbacksApplied, targetPropertyAccessor.getBean());
 
 				Object idValue = idProperty != null
 						? relationshipContext
@@ -753,16 +768,6 @@ public final class Neo4jTemplate implements Neo4jOperations, FluentNeo4jOperatio
 							.getRelationshipPropertiesPropertyAccessor(relatedValueToStore)
 							.setProperty(idProperty, relationshipInternalId.get());
 				}
-
-				PersistentPropertyAccessor<?> targetPropertyAccessor = targetEntity.getPropertyAccessor(newRelatedObject);
-				// if an internal id is used this must be set to link this entity in the next iteration
-				if (targetEntity.isUsingInternalIds()) {
-					targetPropertyAccessor.setProperty(targetEntity.getRequiredIdProperty(), relatedInternalId);
-				}
-				if (savedEntity != null) {
-					TemplateSupport.updateVersionPropertyIfPossible(targetEntity, targetPropertyAccessor, savedEntity);
-				}
-				stateMachine.markValueAsProcessedAs(relatedObjectBeforeCallbacksApplied, targetPropertyAccessor.getBean());
 
 				if (processState != ProcessState.PROCESSED_ALL_VALUES) {
 					processNestedRelations(targetEntity, targetPropertyAccessor, isEntityNew, stateMachine, s -> true);

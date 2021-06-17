@@ -162,7 +162,9 @@ public final class NestedRelationshipProcessingStateMachine {
 		try {
 			write.lock();
 			this.processedObjects.add(valueToStore);
-			this.processedObjectsIds.put(valueToStore, internalId);
+			if (internalId != null) {
+				this.processedObjectsIds.put(valueToStore, internalId);
+			}
 		} finally {
 			write.unlock();
 		}
@@ -175,7 +177,7 @@ public final class NestedRelationshipProcessingStateMachine {
  	 * @return processed yes (true) / no (false)
 	 */
 	public boolean hasProcessedValue(Object value) {
-		return processedObjects.contains(value);
+		return processedObjects.contains(value) || processedObjectsAlias.containsKey(value);
 	}
 
 	/**
@@ -200,6 +202,7 @@ public final class NestedRelationshipProcessingStateMachine {
 		}
 	}
 
+	@Nullable
 	public Long getInternalId(Object object) {
 		try {
 			read.lock();

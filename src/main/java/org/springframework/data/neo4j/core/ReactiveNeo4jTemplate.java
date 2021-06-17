@@ -793,35 +793,48 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Rea
 			Flux<RelationshipHandler> relationshipCreation = Flux.fromIterable(relatedValuesToStore).concatMap(relatedValueToStore -> {
 
 				Object relatedObjectBeforeCallbacksApplied = relationshipContext.identifyAndExtractRelationshipTargetNode(relatedValueToStore);
-				return Mono.deferContextual(ctx -> eventSupport
-						.maybeCallBeforeBind(relatedObjectBeforeCallbacksApplied)
+				return Mono.deferContextual(ctx ->
+
+						(stateMachine.hasProcessedValue(relatedObjectBeforeCallbacksApplied)
+								? Mono.just(stateMachine.getProcessedAs(relatedObjectBeforeCallbacksApplied))
+								: eventSupport.maybeCallBeforeBind(relatedObjectBeforeCallbacksApplied))
+
 						.flatMap(newRelatedObject -> {
 							Neo4jPersistentEntity<?> targetEntity = neo4jMappingContext.getPersistentEntity(relatedObjectBeforeCallbacksApplied.getClass());
 
-							Mono<Tuple2<Long, Long>> queryOrSave;
-							long noVersion = Long.MIN_VALUE;
+							Mono<Tuple2<Long[], Long[]>> queryOrSave;
 							if (stateMachine.hasProcessedValue(relatedValueToStore)) {
-								queryOrSave = Mono.just(stateMachine.getInternalId(relatedObjectBeforeCallbacksApplied))
-										.map(id -> Tuples.of(id, noVersion));
+								queryOrSave = Mono.just(new Long[] {stateMachine.getInternalId(relatedValueToStore)})
+										.map(id -> Tuples.of(id, new Long[1]));
 							} else {
 								queryOrSave = saveRelatedNode(newRelatedObject, targetEntity)
-										.map(entity -> Tuples.of(entity.id(), targetEntity.hasVersionProperty() ?
-												entity.get(targetEntity.getVersionProperty().getPropertyName())
-														.asLong() :
-												noVersion));
+										.doOnNext(entity -> stateMachine.markValueAsProcessed(relatedValueToStore, entity.id()))
+										.map(entity -> {
+											Long version = targetEntity.hasVersionProperty() ?
+													entity.get(targetEntity.getVersionProperty().getPropertyName()).asLong() :
+													null;
+											return Tuples.of(
+													new Long[] { entity.id() },
+													new Long[] { version });
+										});
 							}
 							return queryOrSave.flatMap(idAndVersion -> {
-									long relatedInternalId = idAndVersion.getT1();
-									stateMachine.markValueAsProcessed(relatedValueToStore, relatedInternalId);
+									Long relatedInternalId = idAndVersion.getT1()[0];
 									// if an internal id is used this must be set to link this entity in the next iteration
 									PersistentPropertyAccessor<?> targetPropertyAccessor = targetEntity.getPropertyAccessor(newRelatedObject);
 									if (targetEntity.isUsingInternalIds()) {
-										targetPropertyAccessor.setProperty(targetEntity.getRequiredIdProperty(), relatedInternalId);
-										stateMachine.markValueAsProcessedAs(newRelatedObject, targetPropertyAccessor.getBean());
+										Neo4jPersistentProperty requiredIdProperty = targetEntity.getRequiredIdProperty();
+										if (relatedInternalId == null
+											&& targetPropertyAccessor.getProperty(requiredIdProperty) != null) {
+											relatedInternalId = (Long) targetPropertyAccessor.getProperty(requiredIdProperty);
+										} else if (targetPropertyAccessor.getProperty(requiredIdProperty) == null) {
+											targetPropertyAccessor.setProperty(requiredIdProperty, relatedInternalId);
+										}
 									}
-									if (targetEntity.hasVersionProperty() && idAndVersion.getT2() != noVersion) {
-										targetPropertyAccessor.setProperty(targetEntity.getVersionProperty(), idAndVersion.getT2());
+									if (targetEntity.hasVersionProperty() && idAndVersion.getT2()[0] != null) {
+										targetPropertyAccessor.setProperty(targetEntity.getVersionProperty(), idAndVersion.getT2()[0]);
 									}
+									stateMachine.markValueAsProcessedAs(relatedObjectBeforeCallbacksApplied, targetPropertyAccessor.getBean());
 
 									Object idValue = idProperty != null
 											? relationshipContext
@@ -898,7 +911,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Rea
 
 					return neo4jClient
 							.query(() -> renderer.render(cypherGenerator.prepareSaveOf(targetNodeDescription, dynamicLabels)))
-							.bind((Y) entity).with(neo4jMappingContext.getRequiredBinderFunctionFor(entityType))
+							.bind(entity).with(neo4jMappingContext.getRequiredBinderFunctionFor(entityType))
 							.fetchAs(Entity.class)
 							.one();
 				}).switchIfEmpty(Mono.defer(() -> {
