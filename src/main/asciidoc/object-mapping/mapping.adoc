@@ -46,9 +46,13 @@ See <<conversions>> for more information on that.
 * `@CreatedDate`: Applied at the field level to indicate the creation date of a node.
 * `@LastModifiedBy`: Applied at the field level to indicate the author of the last change to a node.
 * `@LastModifiedDate`: Applied at the field level to indicate the last modification date of a node.
-* `@PersistenceConstructor`: Applied at one constructor to mark it as a the preferred constructor when reading entities.
+* `@PersistenceConstructor`: Applied at one constructor to mark it as the preferred constructor when reading entities.
 * `@Persistent`: Applied at the class level to indicate this class is a candidate for mapping to the database.
-* `@Version`: Applied at field level is used for optimistic locking and checked for modification on save operations.
+* `@Version`: Applied at field level it is used for optimistic locking and checked for modification on save operations.
+* `@ReadOnlyProperty`: Applied at field level to mark a property as read only. The property will be hydrated during database reads,
+ but not be subject to writes. When used on relationships be aware that no related entity in that collection will be persisted
+ if not related otherwise.
+
 The initial value is zero which is bumped automatically on every update.
 
 Have a look at <<auditing>> for all annotations regarding auditing support.
