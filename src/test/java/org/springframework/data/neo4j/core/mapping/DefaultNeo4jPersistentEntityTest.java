@@ -131,7 +131,7 @@ class DefaultNeo4jPersistentEntityTest {
 					.withMessageContaining("Missing @TargetNode declaration in");
 		}
 
-		@Test // DATAGRAPH-2189
+		@Test // GH-2289
 		void correctlyFindRelationshipObverseSameEntity() {
 			Neo4jMappingContext neo4jMappingContext = new Neo4jMappingContext();
 			Neo4jPersistentEntity<?> persistentEntity = neo4jMappingContext.getPersistentEntity(EntityWithBidirectionalRelationship.class);
@@ -141,7 +141,7 @@ class DefaultNeo4jPersistentEntityTest {
 			});
 		}
 
-		@Test // DATAGRAPH-2189
+		@Test // GH-2289
 		void correctlyFindRelationshipObverse() {
 			Neo4jMappingContext neo4jMappingContext = new Neo4jMappingContext();
 			Neo4jPersistentEntity<?> persistentEntity = neo4jMappingContext.getPersistentEntity(EntityWithBidirectionalRelationshipToOtherEntity.class);
@@ -156,7 +156,7 @@ class DefaultNeo4jPersistentEntityTest {
 			});
 		}
 
-		@Test // DATAGRAPH-2189
+		@Test // GH-2289
 		void correctlyFindRelationshipObverseWithRelationshipProperties() {
 			Neo4jMappingContext neo4jMappingContext = new Neo4jMappingContext();
 			Neo4jPersistentEntity<?> persistentEntity = neo4jMappingContext.getPersistentEntity(EntityWithBidirectionalRelationshipToOtherEntityWithRelationshipProperties.class);
@@ -171,7 +171,7 @@ class DefaultNeo4jPersistentEntityTest {
 			});
 		}
 
-		@Test // DATAGRAPH-2189
+		@Test // GH-2289
 		void correctlyFindSameEntityRelationshipObverseWithRelationshipProperties() {
 			Neo4jMappingContext neo4jMappingContext = new Neo4jMappingContext();
 			Neo4jPersistentEntity<?> persistentEntity = neo4jMappingContext.getPersistentEntity(EntityWithBidirectionalRelationshipProperties.class);
@@ -181,7 +181,7 @@ class DefaultNeo4jPersistentEntityTest {
 			});
 		}
 
-		@Test // DATAGRAPH-2189
+		@Test // GH-2289
 		void correctlyDontFindRelationshipObverse() {
 			Neo4jMappingContext neo4jMappingContext = new Neo4jMappingContext();
 			Neo4jPersistentEntity<?> persistentEntity = neo4jMappingContext.getPersistentEntity(EntityLooksLikeHasObserve.class);
