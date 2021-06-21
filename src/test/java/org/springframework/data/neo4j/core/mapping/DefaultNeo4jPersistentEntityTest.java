@@ -30,6 +30,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.data.annotation.Transient;
+import org.springframework.data.mapping.AssociationHandler;
 import org.springframework.data.mapping.MappingException;
 import org.springframework.data.neo4j.core.schema.DynamicLabels;
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
@@ -128,6 +129,26 @@ class DefaultNeo4jPersistentEntityTest {
 					.isThrownBy(() -> new Neo4jMappingContext()
 							.getPersistentEntity(EntityWithInCorrectRelationshipProperties.class))
 					.withMessageContaining("Missing @TargetNode declaration in");
+		}
+
+		@Test // DATAGRAPH-2289
+		void correctlyFindRelationshipObverse() {
+			Neo4jMappingContext neo4jMappingContext = new Neo4jMappingContext();
+			Neo4jPersistentEntity<?> persistentEntity = neo4jMappingContext.getPersistentEntity(EntityWithBidirectionalRelationship.class);
+			persistentEntity.doWithAssociations((AssociationHandler<Neo4jPersistentProperty>) a -> {
+				RelationshipDescription rd = (RelationshipDescription) a;
+				assertThat(rd.getRelationshipObverse()).isNotNull();
+			});
+		}
+
+		@Test // DATAGRAPH-2289
+		void correctlyFindRelationshipObverseWithRelationshipProperties() {
+			Neo4jMappingContext neo4jMappingContext = new Neo4jMappingContext();
+			Neo4jPersistentEntity<?> persistentEntity = neo4jMappingContext.getPersistentEntity(EntityWithBidirectionalRelationshipProperties.class);
+			persistentEntity.doWithAssociations((AssociationHandler<Neo4jPersistentProperty>) a -> {
+				RelationshipDescription rd = (RelationshipDescription) a;
+				assertThat(rd.getRelationshipObverse()).isNotNull();
+			});
 		}
 	}
 
@@ -491,4 +512,43 @@ class DefaultNeo4jPersistentEntityTest {
 		@Id @GeneratedValue
 		private Long id;
 	}
+
+	@Node
+	static class EntityWithBidirectionalRelationship {
+
+		@Id @GeneratedValue
+		private Long id;
+
+		@Relationship("KNOWS")
+		List<EntityWithBidirectionalRelationship> knows;
+
+		@Relationship(type = "KNOWS" , direction = Relationship.Direction.INCOMING)
+		List<EntityWithBidirectionalRelationship> knownBy;
+
+	}
+
+	@Node
+	static class EntityWithBidirectionalRelationshipProperties {
+
+		@Id @GeneratedValue
+		private Long id;
+
+		@Relationship("KNOWS")
+		List<BidirectionalRelationshipProperties> knows;
+
+		@Relationship(type = "KNOWS" , direction = Relationship.Direction.INCOMING)
+		List<BidirectionalRelationshipProperties> knownBy;
+
+	}
+
+	@RelationshipProperties
+	static class BidirectionalRelationshipProperties {
+
+		@Id @GeneratedValue
+		private Long id;
+
+		@TargetNode
+		EntityWithBidirectionalRelationshipProperties target;
+	}
+
 }
