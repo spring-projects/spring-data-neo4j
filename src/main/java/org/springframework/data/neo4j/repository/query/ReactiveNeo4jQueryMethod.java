@@ -21,6 +21,7 @@ import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
+import org.springframework.data.neo4j.repository.support.ReactiveCypherdslStatementExecutor;
 import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.util.ReactiveWrappers;
@@ -54,7 +55,7 @@ final class ReactiveNeo4jQueryMethod extends Neo4jQueryMethod {
 	 * @param factory must not be {@literal null}.
 	 */
 	ReactiveNeo4jQueryMethod(Method method, RepositoryMetadata metadata, ProjectionFactory factory) {
-		super(method, metadata, factory);
+		super(method, metadata, factory, ClassUtils.hasMethod(ReactiveCypherdslStatementExecutor.class, method));
 
 		if (org.springframework.data.repository.util.ClassUtils.hasParameterOfType(method, Pageable.class)) {
 

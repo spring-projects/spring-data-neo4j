@@ -22,7 +22,6 @@ import java.util.Optional;
 import org.springframework.core.MethodParameter;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.data.neo4j.repository.support.CypherdslStatementExecutor;
-import org.springframework.data.neo4j.repository.support.ReactiveCypherdslStatementExecutor;
 import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.query.Parameter;
@@ -61,12 +60,24 @@ class Neo4jQueryMethod extends QueryMethod {
 	 * @param factory must not be {@literal null}.
 	 */
 	Neo4jQueryMethod(Method method, RepositoryMetadata metadata, ProjectionFactory factory) {
+		this(method, metadata, factory, ClassUtils.hasMethod(CypherdslStatementExecutor.class, method));
+	}
+
+	/**
+	 * Allows to configure {@link #cypherBasedProjection} from inheriting classes. Not meant to be called outside the
+	 * inheritance tree.
+	 *
+	 * @param method must not be {@literal null}.
+	 * @param metadata must not be {@literal null}.
+	 * @param factory must not be {@literal null}.
+	 * @param cypherBasedProjection True if this points to a Cypher-DSL based projection.
+	 */
+	Neo4jQueryMethod(Method method, RepositoryMetadata metadata, ProjectionFactory factory, boolean cypherBasedProjection) {
 		super(method, metadata, factory);
 
 		Class<?> declaringClass = method.getDeclaringClass();
 		this.repositoryName = declaringClass.getName();
-		this.cypherBasedProjection = ClassUtils.hasMethod(CypherdslStatementExecutor.class, method) || ClassUtils
-				.hasMethod(ReactiveCypherdslStatementExecutor.class, method);
+		this.cypherBasedProjection = cypherBasedProjection;
 		this.queryAnnotation = AnnotatedElementUtils.findMergedAnnotation(method, Query.class);
 	}
 
