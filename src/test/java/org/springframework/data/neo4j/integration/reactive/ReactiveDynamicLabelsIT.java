@@ -26,6 +26,8 @@ import reactor.test.StepVerifier;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Predicate;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -56,6 +58,7 @@ import org.springframework.data.neo4j.integration.shared.common.EntitiesWithDyna
 import org.springframework.data.neo4j.integration.shared.common.EntitiesWithDynamicLabels.SimpleDynamicLabelsWithBusinessIdAndVersion;
 import org.springframework.data.neo4j.integration.shared.common.EntitiesWithDynamicLabels.SimpleDynamicLabelsWithVersion;
 import org.springframework.data.neo4j.integration.shared.common.EntitiesWithDynamicLabels.SuperNode;
+import org.springframework.data.neo4j.integration.shared.common.EntityWithDynamicLabelsAndIdThatNeedsToBeConverted;
 import org.springframework.data.neo4j.test.Neo4jExtension;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -348,6 +351,27 @@ public class ReactiveDynamicLabelsIT {
 			template.findById(existingEntityId, DynamicLabelsWithMultipleNodeLabels.class)
 					.flatMapMany(entity -> Flux.fromIterable(entity.moreLabels)).sort().as(StepVerifier::create)
 					.expectNext("Baz", "Foobar", "SimpleDynamicLabels");
+		}
+
+		@Test // GH-2296
+		void shouldConvertIds(@Autowired ReactiveNeo4jTemplate template) {
+
+			String label = "value_1";
+			Predicate<EntityWithDynamicLabelsAndIdThatNeedsToBeConverted> expectatations = savedInstance ->
+					label.equals(savedInstance.getValue()) && savedInstance.getExtraLabels().contains(label);
+
+			AtomicReference<UUID> generatedUUID = new AtomicReference<>();
+			template.deleteAll(EntityWithDynamicLabelsAndIdThatNeedsToBeConverted.class)
+					.then(template.save(new EntityWithDynamicLabelsAndIdThatNeedsToBeConverted(label)))
+					.doOnNext(s -> generatedUUID.set(s.getId()))
+					.as(StepVerifier::create)
+					.expectNextMatches(expectatations)
+					.verifyComplete();
+
+			template.findById(generatedUUID.get(), EntityWithDynamicLabelsAndIdThatNeedsToBeConverted.class)
+					.as(StepVerifier::create)
+					.expectNextMatches(expectatations)
+					.verifyComplete();
 		}
 	}
 
