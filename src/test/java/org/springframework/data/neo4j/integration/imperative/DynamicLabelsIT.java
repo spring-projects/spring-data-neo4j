@@ -58,6 +58,7 @@ import org.springframework.data.neo4j.integration.shared.common.EntitiesWithDyna
 import org.springframework.data.neo4j.integration.shared.common.EntitiesWithDynamicLabels.SimpleDynamicLabelsWithBusinessIdAndVersion;
 import org.springframework.data.neo4j.integration.shared.common.EntitiesWithDynamicLabels.SimpleDynamicLabelsWithVersion;
 import org.springframework.data.neo4j.integration.shared.common.EntitiesWithDynamicLabels.SuperNode;
+import org.springframework.data.neo4j.integration.shared.common.EntityWithDynamicLabelsAndIdThatNeedsToBeConverted;
 import org.springframework.data.neo4j.test.BookmarkCapture;
 import org.springframework.data.neo4j.test.Neo4jExtension;
 import org.springframework.test.annotation.DirtiesContext;
@@ -393,6 +394,20 @@ public class DynamicLabelsIT {
 					entity -> assertThat(entity.moreLabels).containsExactlyInAnyOrder("SimpleDynamicLabels", "Baz", "Foobar"));
 		}
 
+		@Test // GH-2296
+		void shouldConvertIds(@Autowired Neo4jTemplate template) {
+
+			template.deleteAll(EntityWithDynamicLabelsAndIdThatNeedsToBeConverted.class);
+			EntityWithDynamicLabelsAndIdThatNeedsToBeConverted savedInstance = template
+					.save(new EntityWithDynamicLabelsAndIdThatNeedsToBeConverted("value_1"));
+
+			assertThat(savedInstance.getValue()).isEqualTo("value_1");
+			assertThat(savedInstance.getExtraLabels()).containsExactlyInAnyOrder("value_1");
+
+			Optional<EntityWithDynamicLabelsAndIdThatNeedsToBeConverted> optionalReloadedInstance =
+					template.findById(savedInstance.getId(), EntityWithDynamicLabelsAndIdThatNeedsToBeConverted.class);
+			assertThat(optionalReloadedInstance).hasValueSatisfying(v -> v.getExtraLabels().contains("value_1"));
+		}
 	}
 
 	@Nested

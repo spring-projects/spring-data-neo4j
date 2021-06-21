@@ -300,6 +300,10 @@ public final class Neo4jTemplate implements Neo4jOperations, FluentNeo4jOperatio
 
 	private Object convertIdValues(@Nullable Neo4jPersistentProperty idProperty, Object idValues) {
 
+		if (((Neo4jPersistentEntity<?>) idProperty.getOwner()).isUsingInternalIds()) {
+			return idValues;
+		}
+
 		return neo4jMappingContext.getConversionService().writeValue(idValues,
 				ClassTypeInformation.from(idValues.getClass()),
 				idProperty == null ? null : idProperty.getOptionalWritingConverter());
@@ -388,9 +392,10 @@ public final class Neo4jTemplate implements Neo4jOperations, FluentNeo4jOperatio
 		return entityMetaData.getDynamicLabelsProperty().map(p -> {
 
 			PersistentPropertyAccessor<T> propertyAccessor = entityMetaData.getPropertyAccessor(entityToBeSaved);
+			Neo4jPersistentProperty idProperty = entityMetaData.getRequiredIdProperty();
 			Neo4jClient.RunnableSpecTightToDatabase runnableQuery = neo4jClient
 					.query(() -> renderer.render(cypherGenerator.createStatementReturningDynamicLabels(entityMetaData)))
-					.bind(propertyAccessor.getProperty(entityMetaData.getRequiredIdProperty()))
+					.bind(convertIdValues(idProperty, propertyAccessor.getProperty(idProperty)))
 					.to(Constants.NAME_OF_ID).bind(entityMetaData.getStaticLabels())
 					.to(Constants.NAME_OF_STATIC_LABELS_PARAM);
 
