@@ -131,8 +131,8 @@ class DefaultNeo4jPersistentEntityTest {
 					.withMessageContaining("Missing @TargetNode declaration in");
 		}
 
-		@Test // DATAGRAPH-2289
-		void correctlyFindRelationshipObverse() {
+		@Test // DATAGRAPH-2189
+		void correctlyFindRelationshipObverseSameEntity() {
 			Neo4jMappingContext neo4jMappingContext = new Neo4jMappingContext();
 			Neo4jPersistentEntity<?> persistentEntity = neo4jMappingContext.getPersistentEntity(EntityWithBidirectionalRelationship.class);
 			persistentEntity.doWithAssociations((AssociationHandler<Neo4jPersistentProperty>) a -> {
@@ -141,13 +141,58 @@ class DefaultNeo4jPersistentEntityTest {
 			});
 		}
 
-		@Test // DATAGRAPH-2289
+		@Test // DATAGRAPH-2189
+		void correctlyFindRelationshipObverse() {
+			Neo4jMappingContext neo4jMappingContext = new Neo4jMappingContext();
+			Neo4jPersistentEntity<?> persistentEntity = neo4jMappingContext.getPersistentEntity(EntityWithBidirectionalRelationshipToOtherEntity.class);
+			persistentEntity.doWithAssociations((AssociationHandler<Neo4jPersistentProperty>) a -> {
+				RelationshipDescription rd = (RelationshipDescription) a;
+				assertThat(rd.getRelationshipObverse()).isNotNull();
+			});
+			persistentEntity = neo4jMappingContext.getPersistentEntity(OtherEntityWithBidirectionalRelationship.class);
+			persistentEntity.doWithAssociations((AssociationHandler<Neo4jPersistentProperty>) a -> {
+				RelationshipDescription rd = (RelationshipDescription) a;
+				assertThat(rd.getRelationshipObverse()).isNotNull();
+			});
+		}
+
+		@Test // DATAGRAPH-2189
 		void correctlyFindRelationshipObverseWithRelationshipProperties() {
+			Neo4jMappingContext neo4jMappingContext = new Neo4jMappingContext();
+			Neo4jPersistentEntity<?> persistentEntity = neo4jMappingContext.getPersistentEntity(EntityWithBidirectionalRelationshipToOtherEntityWithRelationshipProperties.class);
+			persistentEntity.doWithAssociations((AssociationHandler<Neo4jPersistentProperty>) a -> {
+				RelationshipDescription rd = (RelationshipDescription) a;
+				assertThat(rd.getRelationshipObverse()).isNotNull();
+			});
+			persistentEntity = neo4jMappingContext.getPersistentEntity(OtherEntityWithBidirectionalRelationship.class);
+			persistentEntity.doWithAssociations((AssociationHandler<Neo4jPersistentProperty>) a -> {
+				RelationshipDescription rd = (RelationshipDescription) a;
+				assertThat(rd.getRelationshipObverse()).isNotNull();
+			});
+		}
+
+		@Test // DATAGRAPH-2189
+		void correctlyFindSameEntityRelationshipObverseWithRelationshipProperties() {
 			Neo4jMappingContext neo4jMappingContext = new Neo4jMappingContext();
 			Neo4jPersistentEntity<?> persistentEntity = neo4jMappingContext.getPersistentEntity(EntityWithBidirectionalRelationshipProperties.class);
 			persistentEntity.doWithAssociations((AssociationHandler<Neo4jPersistentProperty>) a -> {
 				RelationshipDescription rd = (RelationshipDescription) a;
 				assertThat(rd.getRelationshipObverse()).isNotNull();
+			});
+		}
+
+		@Test // DATAGRAPH-2189
+		void correctlyDontFindRelationshipObverse() {
+			Neo4jMappingContext neo4jMappingContext = new Neo4jMappingContext();
+			Neo4jPersistentEntity<?> persistentEntity = neo4jMappingContext.getPersistentEntity(EntityLooksLikeHasObserve.class);
+			persistentEntity.doWithAssociations((AssociationHandler<Neo4jPersistentProperty>) a -> {
+				RelationshipDescription rd = (RelationshipDescription) a;
+				assertThat(rd.getRelationshipObverse()).isNull();
+			});
+			persistentEntity = neo4jMappingContext.getPersistentEntity(OtherEntityLooksLikeHasObserve.class);
+			persistentEntity.doWithAssociations((AssociationHandler<Neo4jPersistentProperty>) a -> {
+				RelationshipDescription rd = (RelationshipDescription) a;
+				assertThat(rd.getRelationshipObverse()).isNull();
 			});
 		}
 	}
@@ -522,9 +567,71 @@ class DefaultNeo4jPersistentEntityTest {
 		@Relationship("KNOWS")
 		List<EntityWithBidirectionalRelationship> knows;
 
-		@Relationship(type = "KNOWS" , direction = Relationship.Direction.INCOMING)
+		@Relationship(type = "KNOWS", direction = Relationship.Direction.INCOMING)
 		List<EntityWithBidirectionalRelationship> knownBy;
 
+	}
+
+	@Node
+	static class EntityWithBidirectionalRelationshipToOtherEntity {
+
+		@Id @GeneratedValue
+		private Long id;
+
+		@Relationship("KNOWS")
+		List<OtherEntityWithBidirectionalRelationship> knows;
+
+	}
+
+	@Node
+	static class OtherEntityWithBidirectionalRelationship {
+
+		@Id @GeneratedValue
+		private Long id;
+
+		@Relationship(type = "KNOWS", direction = Relationship.Direction.INCOMING)
+		List<EntityWithBidirectionalRelationshipToOtherEntity> knownBy;
+
+	}
+
+	@Node
+	static class EntityWithBidirectionalRelationshipToOtherEntityWithRelationshipProperties {
+
+		@Id @GeneratedValue
+		private Long id;
+
+		@Relationship("KNOWS")
+		List<OtherEntityWithBidirectionalRelationshipWithRelationshipPropertiesProperties> knows;
+
+	}
+
+	@Node
+	static class OtherEntityWithBidirectionalRelationshipWithRelationshipProperties {
+
+		@Id @GeneratedValue
+		private Long id;
+
+		@Relationship(type = "KNOWS", direction = Relationship.Direction.INCOMING)
+		List<EntityWithBidirectionalRelationshipWithRelationshipPropertiesProperties> knownBy;
+
+	}
+
+	@RelationshipProperties
+	static class OtherEntityWithBidirectionalRelationshipWithRelationshipPropertiesProperties {
+		@Id @GeneratedValue
+		private Long id;
+
+		@TargetNode
+		OtherEntityWithBidirectionalRelationshipWithRelationshipProperties target;
+	}
+
+	@RelationshipProperties
+	static class EntityWithBidirectionalRelationshipWithRelationshipPropertiesProperties {
+		@Id @GeneratedValue
+		private Long id;
+
+		@TargetNode
+		EntityWithBidirectionalRelationshipToOtherEntityWithRelationshipProperties target;
 	}
 
 	@Node
@@ -536,7 +643,7 @@ class DefaultNeo4jPersistentEntityTest {
 		@Relationship("KNOWS")
 		List<BidirectionalRelationshipProperties> knows;
 
-		@Relationship(type = "KNOWS" , direction = Relationship.Direction.INCOMING)
+		@Relationship(type = "KNOWS", direction = Relationship.Direction.INCOMING)
 		List<BidirectionalRelationshipProperties> knownBy;
 
 	}
@@ -549,6 +656,24 @@ class DefaultNeo4jPersistentEntityTest {
 
 		@TargetNode
 		EntityWithBidirectionalRelationshipProperties target;
+	}
+
+	@Node
+	static class EntityLooksLikeHasObserve {
+		@Id @GeneratedValue
+		private Long id;
+
+		@Relationship("KNOWS")
+		private List<OtherEntityLooksLikeHasObserve> knows;
+	}
+
+	@Node
+	static class OtherEntityLooksLikeHasObserve {
+		@Id @GeneratedValue
+		private Long id;
+
+		@Relationship("KNOWS")
+		private List<EntityLooksLikeHasObserve> knows;
 	}
 
 }
