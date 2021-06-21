@@ -17,6 +17,7 @@ package org.springframework.data.neo4j.integration.issues.gh2289;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.RepeatedTest;
 import org.neo4j.driver.Driver;
@@ -70,17 +71,29 @@ class GH2289IT {
 		a.rangeRelationTo(d, 1, 1, RelationType.MULTIPLICATIVE);
 		a = skuRepo.save(a);
 
-		assertThat(a.getRangeRelationsOut()).hasSize(3);
+		Assertions.assertThat(a.getRangeRelationsOut()).hasSize(3);
 		b = skuRepo.findById(b.getId()).get();
-		assertThat(b.getRangeRelationsIn()).hasSize(1);
+		Assertions.assertThat(b.getRangeRelationsIn()).hasSize(1);
+
+		Assertions.assertThat(b.getRangeRelationsIn().stream().findFirst().get().getTargetSku().getRangeRelationsOut()).hasSize(3);
 
 		b.rangeRelationTo(c, 1, 1, RelationType.MULTIPLICATIVE);
 		b = skuRepo.save(b);
-		assertThat(b.getRangeRelationsIn()).hasSize(1);
-		assertThat(b.getRangeRelationsOut()).hasSize(1);
+		Assertions.assertThat(b.getRangeRelationsIn()).hasSize(1);
+		Assertions.assertThat(b.getRangeRelationsOut()).hasSize(1);
+
+		a = skuRepo.findById(a.getId()).get();
+		Assertions.assertThat(a.getRangeRelationsOut()).hasSize(3);
+		Assertions.assertThat(a.getRangeRelationsOut()).allSatisfy(r -> {
+			int expectedSize = 1;
+			if ("C".equals(r.getTargetSku().getName())) {
+				expectedSize = 2;
+			}
+			Assertions.assertThat(r.getTargetSku().getRangeRelationsIn()).hasSize(expectedSize);
+		});
 	}
 
-	@RepeatedTest(5) // GH-2294
+	 @RepeatedTest(5) // GH-2294
 	void testNewRelationRo(@Autowired SkuRORepository skuRepo) {
 		SkuRO a = skuRepo.findOneByName("A");
 		SkuRO b = skuRepo.findOneByName("B");

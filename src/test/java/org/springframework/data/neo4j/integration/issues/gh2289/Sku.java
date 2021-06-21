@@ -62,4 +62,13 @@ public class Sku {
 		sku.rangeRelationsIn.add(relationIn);
 		return relationOut;
 	}
+
+	@Override
+	public String toString() {
+		return "Sku{" +
+				"id=" + id +
+				", number=" + number +
+				", name='" + name +
+				'}';
+	}
 }
