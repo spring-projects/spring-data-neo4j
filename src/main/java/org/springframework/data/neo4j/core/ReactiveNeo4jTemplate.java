@@ -837,6 +837,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Rea
 										targetPropertyAccessor.setProperty(targetEntity.getVersionProperty(), idAndVersion.getT2()[0]);
 									}
 									stateMachine.markValueAsProcessedAs(relatedObjectBeforeCallbacksApplied, targetPropertyAccessor.getBean());
+									stateMachine.markRelationshipAsProcessed(relatedInternalId, relationshipDescription.getRelationshipObverse());
 
 									Object idValue = idProperty != null
 											? relationshipContext
