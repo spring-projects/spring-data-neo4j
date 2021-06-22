@@ -74,13 +74,25 @@ class GH2289IT {
 		b = skuRepo.findById(b.getId()).get();
 		assertThat(b.getRangeRelationsIn()).hasSize(1);
 
+		assertThat(b.getRangeRelationsIn().stream().findFirst().get().getTargetSku().getRangeRelationsOut()).hasSize(3);
+
 		b.rangeRelationTo(c, 1, 1, RelationType.MULTIPLICATIVE);
 		b = skuRepo.save(b);
 		assertThat(b.getRangeRelationsIn()).hasSize(1);
 		assertThat(b.getRangeRelationsOut()).hasSize(1);
+
+		a = skuRepo.findById(a.getId()).get();
+		assertThat(a.getRangeRelationsOut()).hasSize(3);
+		assertThat(a.getRangeRelationsOut()).allSatisfy(r -> {
+			int expectedSize = 1;
+			if ("C".equals(r.getTargetSku().getName())) {
+				expectedSize = 2;
+			}
+			assertThat(r.getTargetSku().getRangeRelationsIn()).hasSize(expectedSize);
+		});
 	}
 
-	@RepeatedTest(5) // GH-2294
+	 @RepeatedTest(5) // GH-2294
 	void testNewRelationRo(@Autowired SkuRORepository skuRepo) {
 		SkuRO a = skuRepo.findOneByName("A");
 		SkuRO b = skuRepo.findOneByName("B");

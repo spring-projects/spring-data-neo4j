@@ -750,6 +750,7 @@ public final class Neo4jTemplate implements Neo4jOperations, FluentNeo4jOperatio
 					TemplateSupport.updateVersionPropertyIfPossible(targetEntity, targetPropertyAccessor, savedEntity);
 				}
 				stateMachine.markValueAsProcessedAs(relatedObjectBeforeCallbacksApplied, targetPropertyAccessor.getBean());
+				stateMachine.markRelationshipAsProcessed(relatedInternalId, relationshipDescription.getRelationshipObverse());
 
 				Object idValue = idProperty != null
 						? relationshipContext

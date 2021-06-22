@@ -53,7 +53,11 @@ public @interface Relationship {
 		/**
 		 * Describes an incoming relationship.
 		 */
-		INCOMING
+		INCOMING;
+
+		public Direction opposite() {
+			return this == OUTGOING ? INCOMING : OUTGOING;
+		}
 	}
 
 	/**
