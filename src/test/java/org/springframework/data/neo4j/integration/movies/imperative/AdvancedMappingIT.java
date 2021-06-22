@@ -93,6 +93,8 @@ class AdvancedMappingIT {
 			interface PersonProjection {
 
 				String getName();
+
+				List<Movie> getActedIn();
 			}
 		}
 	}
@@ -216,7 +218,7 @@ class AdvancedMappingIT {
 	}
 
 	@Test // GH-2117
-	void bothCyclicAndNonCyclicRelationshipsAreExcludedFromProjectionsWithProjections(
+	void cyclicRelationshipsAreExcludedFromProjectionsWithProjections(
 			@Autowired MovieRepository movieRepository, LogbackCapture logbackCapture) {
 
 		logbackCapture.addLogger("org.springframework.data.neo4j.cypher", Level.DEBUG);
@@ -234,11 +236,7 @@ class AdvancedMappingIT {
 				.containsExactlyInAnyOrder("The Oracle", "Morpheus", "Trinity", "Agent Smith", "Emil", "Neo");
 
 		assertThat(logbackCapture.getFormattedMessages()).anyMatch(message ->
-				message.contains("MATCH (n:`Movie`) WHERE n.title = $0 RETURN " +
-				"n{.title, __nodeLabels__: labels(n), __internalNeo4jId__: id(n), " +
-				"Movie_ACTED_IN_Person: [(n)<-[Movie__relationship__Person:`ACTED_IN`]-(n_actors:`Person`) | " +
-				"n_actors{.born, .id, .name, __nodeLabels__: labels(n_actors), " +
-				"__internalNeo4jId__: id(n_actors), Movie__relationship__Person}]}"));
+				message.contains("MATCH (n:`Movie`) WHERE n.title = $0 RETURN n{.title"));
 
 		logbackCapture.resetLogLevel();
 	}

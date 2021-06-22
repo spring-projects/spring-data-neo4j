@@ -332,7 +332,7 @@ public final class Neo4jTemplate implements
 		List<PropertyDescriptor> inputProperties = projectionInformation.getInputProperties();
 		Set<PropertyPath> pps = new HashSet<>();
 		for (PropertyDescriptor inputProperty : inputProperties) {
-			PropertyFilterSupport.addPropertiesFrom(resultType, projectionFactory, resultType, pps, inputProperty.getName(), neo4jMappingContext);
+			PropertyFilterSupport.addPropertiesFrom(resultType, resultType, projectionFactory, pps, inputProperty.getName(), neo4jMappingContext);
 		}
 		T savedInstance = saveImpl(instance, pps);
 		if (projectionInformation.isClosed()) {
@@ -495,7 +495,7 @@ public final class Neo4jTemplate implements
 		ProjectionInformation projectionInformation = projectionFactory.getProjectionInformation(resultType);
 		List<PropertyPath> pps = new ArrayList<>();
 		for (PropertyDescriptor inputProperty : projectionInformation.getInputProperties()) {
-			PropertyFilterSupport.addPropertiesFrom(commonElementType, projectionFactory, resultType, pps, inputProperty.getName(), neo4jMappingContext);
+			PropertyFilterSupport.addPropertiesFrom(commonElementType, resultType, projectionFactory, pps, inputProperty.getName(), neo4jMappingContext);
 		}
 		List<T> savedInstances = saveAllImpl(instances, pps);
 
@@ -888,7 +888,7 @@ public final class Neo4jTemplate implements
 		List<PropertyDescriptor> inputProperties = projectionInformation.getInputProperties();
 		Set<PropertyPath> pps = new HashSet<>();
 		for (PropertyDescriptor inputProperty : inputProperties) {
-			PropertyFilterSupport.addPropertiesFrom(domainType, projectionFactory, resultType, pps, inputProperty.getName(), neo4jMappingContext);
+			PropertyFilterSupport.addPropertiesFrom(domainType, resultType, projectionFactory, pps, inputProperty.getName(), neo4jMappingContext);
 		}
 		List<R> results = new ArrayList<>();
 		for (R instance : instances) {

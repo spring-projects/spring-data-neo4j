@@ -79,10 +79,20 @@ class ReactiveAdvancedMappingIT {
 
 	interface MovieProjectionWithActorProjection {
 		String getTitle();
-		List<ActorProjection> getActors();
+
+		List<MovieProjectionWithActorProjection.ActorProjection> getActors();
 
 		interface ActorProjection {
-			String getName();
+			List<String> getRoles();
+
+			MovieProjectionWithActorProjection.ActorProjection.PersonProjection getPerson();
+
+			interface PersonProjection {
+
+				String getName();
+
+				List<Movie> getActedIn();
+			}
 		}
 	}
 
@@ -191,10 +201,12 @@ class ReactiveAdvancedMappingIT {
 		// this does OOM in most setups.
 		StepVerifier.create(movieRepository.findProjectionWithProjectionByTitle("The Matrix"))
 				.assertNext(projection -> {
-					assertThat(projection.getTitle()).isNotNull();
-					assertThat(projection.getActors()).extracting("name")
+					assertThat(projection.getTitle()).isEqualTo("The Matrix");
+					assertThat(projection.getActors()).extracting("person").extracting("name")
 							.containsExactlyInAnyOrder("Gloria Foster", "Keanu Reeves", "Emil Eifrem", "Laurence Fishburne",
 									"Carrie-Anne Moss", "Hugo Weaving");
+					assertThat(projection.getActors()).flatExtracting("roles")
+							.containsExactlyInAnyOrder("The Oracle", "Morpheus", "Trinity", "Agent Smith", "Emil", "Neo");
 				})
 				.verifyComplete();
 	}
