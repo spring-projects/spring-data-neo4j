@@ -42,6 +42,10 @@ final class TemplateSupport {
 	@Nullable
 	static Class<?> findCommonElementType(Iterable<?> collection) {
 
+		if (collection == null) {
+			return null;
+		}
+
 		List<Class<?>> allClasses = StreamSupport.stream(collection.spliterator(), true)
 				.filter(o -> o != null)
 				.map(Object::getClass).collect(Collectors.toList());
