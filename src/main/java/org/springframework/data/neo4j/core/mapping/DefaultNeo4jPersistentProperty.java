@@ -125,24 +125,25 @@ final class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProp
 			}
 		}
 
-		Relationship outgoingRelationship = this.findAnnotation(Relationship.class);
+		Relationship relationship = this.findAnnotation(Relationship.class);
 
 		String type;
-		if (outgoingRelationship != null && StringUtils.hasText(outgoingRelationship.type())) {
-			type = outgoingRelationship.type();
+		if (relationship != null && StringUtils.hasText(relationship.type())) {
+			type = relationship.type();
 		} else {
 			type = deriveRelationshipType(this.getName());
 		}
 
-		Relationship.Direction direction = Relationship.Direction.OUTGOING;
-		if (outgoingRelationship != null) {
-			direction = outgoingRelationship.direction();
-		}
+		Relationship.Direction direction = relationship != null
+				? relationship.direction()
+				: Relationship.Direction.OUTGOING;
 
 		// Try to determine if there is a relationship definition that expresses logically the same relationship
 		// on the other end.
 		Optional<RelationshipDescription> obverseRelationshipDescription = obverseOwner.getRelationships().stream()
-				.filter(rel -> rel.getType().equals(type) && rel.getTarget().equals(this.getOwner())).findFirst();
+				.filter(rel -> rel.getType().equals(type)
+						&& rel.getTarget().equals(this.getOwner())
+						&& rel.getDirection() == direction.opposite()).findFirst();
 
 		DefaultRelationshipDescription relationshipDescription = new DefaultRelationshipDescription(this,
 				obverseRelationshipDescription.orElse(null), type, dynamicAssociation, (NodeDescription<?>) getOwner(),
@@ -150,7 +151,7 @@ final class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProp
 
 		// Update the previous found, if any, relationship with the newly created one as its counterpart.
 		obverseRelationshipDescription
-				.ifPresent(relationship -> relationship.setRelationshipObverse(relationshipDescription));
+				.ifPresent(observeRelationship -> observeRelationship.setRelationshipObverse(relationshipDescription));
 
 		return relationshipDescription;
 	}

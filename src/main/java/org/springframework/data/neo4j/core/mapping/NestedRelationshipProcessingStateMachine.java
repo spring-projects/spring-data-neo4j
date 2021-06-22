@@ -143,7 +143,10 @@ public final class NestedRelationshipProcessingStateMachine {
 	 *
 	 * @param relationshipDescription To be marked as processed
 	 */
-	public void markRelationshipAsProcessed(Object fromId, RelationshipDescription relationshipDescription) {
+	public void markRelationshipAsProcessed(Object fromId, @Nullable RelationshipDescription relationshipDescription) {
+		if (relationshipDescription == null) {
+			return;
+		}
 
 		try {
 			write.lock();

@@ -15,12 +15,13 @@
  */
 package org.springframework.data.neo4j.integration.issues.gh2289;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import reactor.test.StepVerifier;
 
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Tag;
@@ -60,6 +61,7 @@ class ReactiveGH2289IT {
 	@RepeatedTest(23)
 	void testNewRelation(@Autowired SkuRepository skuRepo) {
 
+		AtomicLong aId = new AtomicLong();
 		AtomicLong bId = new AtomicLong();
 		AtomicReference<Sku> cRef = new AtomicReference<>();
 		skuRepo.save(new Sku(0L, "A"))
@@ -78,17 +80,37 @@ class ReactiveGH2289IT {
 			a.rangeRelationTo(d, 1, 1, RelationType.MULTIPLICATIVE);
 			return skuRepo.save(a);
 		}).as(StepVerifier::create)
-				.expectNextMatches(a -> a.getRangeRelationsOut().size() == 3)
+				.expectNextMatches(a -> {
+					aId.set(a.getId()); // side-effects for the win
+					return a.getRangeRelationsOut().size() == 3;
+				})
 				.verifyComplete();
 
 		skuRepo.findById(bId.get())
-				.doOnNext(b -> Assertions.assertThat(b.getRangeRelationsIn()).hasSize(1))
+				.doOnNext(b -> assertThat(b.getRangeRelationsIn()).hasSize(1))
 				.flatMap(b -> {
 					b.rangeRelationTo(cRef.get(), 1, 1, RelationType.MULTIPLICATIVE);
 					return skuRepo.save(b);
 				})
 				.as(StepVerifier::create)
-				.expectNextMatches(a -> a.getRangeRelationsIn().size() == 1 && a.getRangeRelationsOut().size() == 1)
+				.assertNext(b -> {
+					assertThat(b.getRangeRelationsIn()).hasSize(1);
+					assertThat(b.getRangeRelationsOut()).hasSize(1);
+				})
+				.verifyComplete();
+
+		skuRepo.findById(aId.get())
+				.as(StepVerifier::create)
+				.assertNext(a -> {
+					assertThat(a.getRangeRelationsOut()).hasSize(3);
+					assertThat(a.getRangeRelationsOut()).allSatisfy(r -> {
+						int expectedSize = 1;
+						if ("C".equals(r.getTargetSku().getName())) {
+							expectedSize = 2;
+						}
+						assertThat(r.getTargetSku().getRangeRelationsIn()).hasSize(expectedSize);
+					});
+				})
 				.verifyComplete();
 	}
 

@@ -698,6 +698,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 									if (targetEntity.hasVersionProperty() && idAndVersion.getT2() != noVersion) {
 										targetPropertyAccessor.setProperty(targetEntity.getVersionProperty(), idAndVersion.getT2());
 									}
+									stateMachine.markRelationshipAsProcessed(relatedInternalId, relationshipDescription.getRelationshipObverse());
 
 									Object idValue = idProperty != null
 											? relationshipContext
