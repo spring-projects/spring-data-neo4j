@@ -45,8 +45,8 @@ public abstract class PropertyFilter {
 		private final Set<Class<?>> rootClasses;
 		private final Set<String> projectingPropertyPaths;
 
-		private FilteringPropertyFilter(Collection<PropertyPath> properties, NodeDescription<?> dingDong) {
-			Class<?> domainClass = dingDong.getUnderlyingClass();
+		private FilteringPropertyFilter(Collection<PropertyPath> properties, NodeDescription<?> nodeDescription) {
+			Class<?> domainClass = nodeDescription.getUnderlyingClass();
 
 			rootClasses = new HashSet<>();
 			rootClasses.add(domainClass);
@@ -55,7 +55,7 @@ public abstract class PropertyFilter {
 			properties.stream().map(property -> property.getOwningType().getType()).forEach(rootClasses::add);
 
 			// supported inheriting classes
-			dingDong.getChildNodeDescriptionsInHierarchy().stream()
+			nodeDescription.getChildNodeDescriptionsInHierarchy().stream()
 					.map(NodeDescription::getUnderlyingClass)
 					.forEach(rootClasses::add);
 
