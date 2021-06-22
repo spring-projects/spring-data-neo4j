@@ -1,6 +1,28 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 6.0.10 (2021-06-22)
+--------------------------------------
+* #2301 - Passing empty collections to derived finder methods lead to a `NullPointerException`.
+* #2299 - Upgrade to Neo4j-Java-Driver 4.1.4.
+* #2296 - Ids need to be potentially converted before dynamic labels are determined.
+* #2290 - Ambiguous relationship definition during mapping.
+* #2289 - Persistence logic bails out on the wrong combination of source and relationship.
+* #2285 - Unwrap invocation target exceptions in the `AutoCloseableQueryRunner`.
+* #2281 - Support derived deleteBy methods.
+* #2280 - Allow custom composite converters to delete decomposed properties.
+* #2277 - Don't log warnings on literal `null` parameters.
+* #2276 - Support default, primitive Kotlin attributes.
+* #2275 - Upgrade to API Guardian 1.1.1.
+* #2274 - Honor `ignoreCase()` from `Sort.Order`.
+* #2273 - Allow function calls in Sort / Pageable objects in custom queries.
+* #2267 - Clean up deprecation warnings.
+* #2262 - Fetch all properties when querying via a base interface.
+* #2259 - Explicitly acquire locks on nodes when `@Version` is used.
+* #2254 - Document BeforeBindCallbacks.
+* #2019 - Add documentation for using health indicators without access to the default database.
+
+
 Changes in version 6.1.1 (2021-05-14)
 -------------------------------------
 * #2252 - Allow seeding and retrieval of Neo4j bookmarks from the transaction managers.
@@ -2240,6 +2262,7 @@ General
 * Support for building traversal descriptions
 * Support for cross-store persistence including basic transaction support
 * Abstract configuration class
+
 
 
 
