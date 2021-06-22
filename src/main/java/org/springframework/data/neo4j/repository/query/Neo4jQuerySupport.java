@@ -185,18 +185,19 @@ abstract class Neo4jQuerySupport {
 			return convertBoundingBox((BoundingBox) parameter);
 		}
 
-		Class<?> type;
-		if (parameter instanceof Collection && mappingContext
-				.hasPersistentEntityFor(TemplateSupport.findCommonElementType((Collection) parameter))) {
+		if (parameter instanceof Collection) {
+			Class<?> type = TemplateSupport.findCommonElementType((Collection) parameter);
+			if (type != null && mappingContext.hasPersistentEntityFor(type)) {
 
-			EntityWriter<Object, Map<String, Object>> objectMapEntityWriter = Neo4jNestedMapEntityWriter
-					.forContext(mappingContext);
+				EntityWriter<Object, Map<String, Object>> objectMapEntityWriter = Neo4jNestedMapEntityWriter
+						.forContext(mappingContext);
 
-			return ((Collection<?>) parameter).stream().map(v -> {
-				Map<String, Object> result = new HashMap<>();
-				objectMapEntityWriter.write(v, result);
-				return result;
-			}).collect(Collectors.toList());
+				return ((Collection<?>) parameter).stream().map(v -> {
+					Map<String, Object> result = new HashMap<>();
+					objectMapEntityWriter.write(v, result);
+					return result;
+				}).collect(Collectors.toList());
+			}
 		}
 
 		if (mappingContext.hasPersistentEntityFor(parameter.getClass())) {

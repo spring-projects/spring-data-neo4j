@@ -3101,6 +3101,14 @@ class RepositoryIT {
 			assertThat(persons).hasSize(1).contains(person2);
 		}
 
+		@Test // GH-2301
+		void findByEmptyIn(@Autowired PersonRepository repository) {
+
+			List<PersonWithAllConstructor> persons = repository
+					.findAllByFirstNameIn(Collections.emptyList());
+			assertThat(persons).isEmpty();
+		}
+
 		@Test
 		void findByNotIn(@Autowired PersonRepository repository) {
 
