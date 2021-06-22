@@ -68,21 +68,16 @@ public class PropertyFilterSupport {
 		if (Neo4jSimpleTypes.HOLDER.isSimpleType(leafType) || mappingContext.hasCustomWriteTarget(leafType)) {
 			filteredProperties.add(propertyPath);
 		} else if (mappingContext.hasPersistentEntityFor(leafType)) {
-			PropertyPath asdf = propertyPath;
-			while (asdf.hasNext()) {
-				PropertyPath next = asdf.next();
-				if (next.getLeafType().equals(domainType)) {
-					return;
-				}
-				asdf = next;
+			if (leafType.equals(domainType)) {
+				return;
 			}
 			addPropertiesFromEntity(domainType, filteredProperties, propertyPath, leafType, mappingContext, new HashSet<>());
 
 		} else {
-			ProjectionInformation projectionInformation = factory.getProjectionInformation(leafType);
+			ProjectionInformation nestedProjectionInformation = factory.getProjectionInformation(leafType);
 			filteredProperties.add(propertyPath);
-			if (projectionInformation.isClosed()) {
-				for (PropertyDescriptor secondInputProperty : projectionInformation.getInputProperties()) {
+			if (nestedProjectionInformation.isClosed()) {
+				for (PropertyDescriptor secondInputProperty : nestedProjectionInformation.getInputProperties()) {
 					PropertyPath nestedPropertyPath = propertyPath.nested(secondInputProperty.getName());
 					filteredProperties.add(nestedPropertyPath);
 					addPropertiesFrom(domainType, returnedType, factory, filteredProperties, nestedPropertyPath.toDotPath(), mappingContext);
@@ -93,11 +88,7 @@ public class PropertyFilterSupport {
 				Neo4jPersistentProperty persistentProperty = persistentEntity.getPersistentProperty(inputProperty);
 				Class<?> propertyEntityType = persistentProperty.getActualType();
 				propertyPath = PropertyPath.from(inputProperty, domainType);
-				HashSet<Neo4jPersistentEntity<?>> irgendeineListe = new HashSet<>();
-				if (mappingContext.hasPersistentEntityFor(propertyEntityType)) {
-//					irgendeineListe.add(mappingContext.getPersistentEntity(propertyEntityType));
-				}
-				addPropertiesFromEntity(domainType, filteredProperties, propertyPath, propertyEntityType, mappingContext, irgendeineListe);
+				addPropertiesFromEntity(domainType, filteredProperties, propertyPath, propertyEntityType, mappingContext, new HashSet<>());
 			}
 		}
 	}
