@@ -18,6 +18,7 @@ package org.springframework.data.neo4j.core;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Arrays;
+import java.util.Collections;
 
 import org.junit.jupiter.api.Test;
 
@@ -74,6 +75,20 @@ class TemplateSupportTest {
 
 		Class<?> type = TemplateSupport.findCommonElementType(Arrays.asList(new A(), null, new A()));
 		assertThat(type).isNotNull().isEqualTo(A.class);
+	}
+
+	@Test
+	void shouldNotFailWithNullInput() {
+
+		Class<?> type = TemplateSupport.findCommonElementType(null);
+		assertThat(type).isNull();
+	}
+
+	@Test
+	void shouldNotFailWithEmptyInput() {
+
+		Class<?> type = TemplateSupport.findCommonElementType(Collections.emptyList());
+		assertThat(type).isNull();
 	}
 
 	@Test

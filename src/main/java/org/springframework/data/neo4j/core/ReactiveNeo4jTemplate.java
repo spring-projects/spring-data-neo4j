@@ -448,7 +448,8 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Rea
 		}
 
 		Class<T> domainClass = (Class<T>) TemplateSupport.findCommonElementType(entities);
-		Neo4jPersistentEntity entityMetaData = neo4jMappingContext.getPersistentEntity(domainClass);
+		Assert.notNull(domainClass, "Could not determine common domain class to save.");
+		Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getPersistentEntity(domainClass);
 
 		if (entityMetaData.isUsingInternalIds() || entityMetaData.hasVersionProperty()
 				|| entityMetaData.getDynamicLabelsProperty().isPresent()) {
