@@ -35,4 +35,13 @@ public class OneToOneSource {
 
 	@Relationship("OWNS")
 	private OneToOneTarget target;
+
+	/**
+	 * Simple DTO projection for OneToOneSource
+	 */
+	@Data
+	public static class OneToOneSourceProjection {
+		String name;
+		OneToOneTarget target;
+	}
 }

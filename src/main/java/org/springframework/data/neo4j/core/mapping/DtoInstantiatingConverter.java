@@ -33,6 +33,7 @@ import org.springframework.data.mapping.PersistentProperty;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
 import org.springframework.data.mapping.PreferredConstructor;
 import org.springframework.data.mapping.PreferredConstructor.Parameter;
+import org.springframework.data.mapping.PropertyHandler;
 import org.springframework.data.mapping.SimplePropertyHandler;
 import org.springframework.data.mapping.model.ParameterValueProvider;
 import org.springframework.data.util.ClassTypeInformation;
@@ -151,17 +152,22 @@ public final class DtoInstantiatingConverter implements Converter<EntityInstance
 				});
 
 		PersistentPropertyAccessor<Object> dtoAccessor = targetEntity.getPropertyAccessor(dto);
-		targetEntity.doWithProperties((SimplePropertyHandler) property -> {
-
-			if (constructor.isConstructorParameter(property)) {
-				return;
-			}
-
-			Object propertyValue = getPropertyValueFor(property, sourceEntity, sourceAccessor, entityInstanceAndSource);
-			dtoAccessor.setProperty(property, propertyValue);
-		});
+		targetEntity.doWithAll((PropertyHandler) property ->
+				setPropertyOnDtoObject(entityInstanceAndSource, sourceEntity, sourceAccessor, constructor, dtoAccessor, property));
 
 		return dto;
+	}
+
+	private void setPropertyOnDtoObject(EntityInstanceWithSource entityInstanceAndSource, PersistentEntity<?, ?> sourceEntity,
+			PersistentPropertyAccessor<Object> sourceAccessor, PreferredConstructor<?, ?> constructor,
+			PersistentPropertyAccessor<Object> dtoAccessor, PersistentProperty<?> property) {
+
+		if (constructor.isConstructorParameter(property)) {
+			return;
+		}
+
+		Object propertyValue = getPropertyValueFor(property, sourceEntity, sourceAccessor, entityInstanceAndSource);
+		dtoAccessor.setProperty(property, propertyValue);
 	}
 
 	@Nullable
