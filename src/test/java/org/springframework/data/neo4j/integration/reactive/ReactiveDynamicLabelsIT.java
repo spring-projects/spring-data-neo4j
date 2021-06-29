@@ -151,7 +151,7 @@ public class ReactiveDynamicLabelsIT {
 		@Override
 		Long createTestEntity(Transaction transaction) {
 			Record r = transaction
-					.run("" + "CREATE (e:InheritedSimpleDynamicLabels:Foo:Bar:Baz:Foobar) " + "RETURN id(e) as existingEntityId")
+					.run("" + "CREATE (e:SimpleDynamicLabels:InheritedSimpleDynamicLabels:Foo:Bar:Baz:Foobar) " + "RETURN id(e) as existingEntityId")
 					.single();
 			long newId = r.get("existingEntityId").asLong();
 			transaction.commit();
@@ -175,7 +175,7 @@ public class ReactiveDynamicLabelsIT {
 				return template.save(entity);
 			}).as(transactionalOperator::transactional)
 					.thenMany(getLabels(existingEntityId)).sort().as(StepVerifier::create)
-					.expectNext("Bar", "Baz", "Fizz", "Foobar", "InheritedSimpleDynamicLabels").verifyComplete();
+					.expectNext("Bar", "Baz", "Fizz", "Foobar", "InheritedSimpleDynamicLabels", "SimpleDynamicLabels").verifyComplete();
 		}
 
 		@Test
@@ -190,7 +190,7 @@ public class ReactiveDynamicLabelsIT {
 			template.save(entity).map(SimpleDynamicLabels::getId)
 					.as(transactionalOperator::transactional)
 					.flatMapMany(this::getLabels).sort().as(StepVerifier::create)
-					.expectNext("A", "B", "C", "InheritedSimpleDynamicLabels").verifyComplete();
+					.expectNext("A", "B", "C", "InheritedSimpleDynamicLabels", "SimpleDynamicLabels").verifyComplete();
 		}
 	}
 

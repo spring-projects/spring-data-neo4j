@@ -153,7 +153,7 @@ class KotlinInheritanceIT @Autowired constructor(
 		// Note: The open base class used here is not abstract, there fore labels are not inherited
 		val cnt = driver.session(bookmarkCapture.createSessionConfig()).use { session ->
 			session.readTransaction { tx ->
-				tx.run("MATCH (t:ConcreteNodeWithOpenKotlinBase) WHERE NOT t:OpenKotlinBase AND id(t) = \$id RETURN count(t)", mapOf("id" to thing.id)).single()[0].asLong()
+				tx.run("MATCH (t:ConcreteNodeWithOpenKotlinBase:OpenKotlinBase) WHERE id(t) = \$id RETURN count(t)", mapOf("id" to thing.id)).single()[0].asLong()
 			}
 		}
 		assertThat(cnt).isEqualTo(1L)
@@ -185,7 +185,7 @@ class KotlinInheritanceIT @Autowired constructor(
 		// Note: The open base class used here is not abstract, there fore labels are not inherited
 		val cnt = driver.session(bookmarkCapture.createSessionConfig()).use { session ->
 			session.readTransaction { tx ->
-				tx.run("MATCH (t:ConcreteDataNodeWithOpenKotlinBase) WHERE NOT t:OpenKotlinBase AND id(t) = \$id RETURN count(t)", mapOf("id" to thing.id)).single()[0].asLong()
+				tx.run("MATCH (t:ConcreteDataNodeWithOpenKotlinBase) WHERE id(t) = \$id RETURN count(t)", mapOf("id" to thing.id)).single()[0].asLong()
 			}
 		}
 		assertThat(cnt).isEqualTo(1L)

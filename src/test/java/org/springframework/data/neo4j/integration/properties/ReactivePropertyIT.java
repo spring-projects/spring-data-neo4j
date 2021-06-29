@@ -85,7 +85,7 @@ class ReactivePropertyIT {
 
 		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
 			session.run(
-					"CREATE (m:SimplePropertyContainerWithVersion {id: 'id1', version: 1, knownProperty: 'A', unknownProperty: 'Mr. X'}) RETURN id(m)")
+					"CREATE (m:SimplePropertyContainer:SimplePropertyContainerWithVersion {id: 'id1', version: 1, knownProperty: 'A', unknownProperty: 'Mr. X'}) RETURN id(m)")
 					.consume();
 			bookmarkCapture.seedWith(session.lastBookmark());
 		}
@@ -113,7 +113,7 @@ class ReactivePropertyIT {
 		Long id;
 		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
 			id = session
-					.run("CREATE (m:SimpleGeneratedIDPropertyContainerWithVersion {version: 1, knownProperty: 'A', unknownProperty: 'Mr. X'}) RETURN id(m)")
+					.run("CREATE (m:SimpleGeneratedIDPropertyContainer:SimpleGeneratedIDPropertyContainerWithVersion {version: 1, knownProperty: 'A', unknownProperty: 'Mr. X'}) RETURN id(m)")
 					.single().get(0).asLong();
 			bookmarkCapture.seedWith(session.lastBookmark());
 		}

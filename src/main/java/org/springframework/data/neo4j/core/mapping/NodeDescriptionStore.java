@@ -15,14 +15,18 @@
  */
 package org.springframework.data.neo4j.core.mapping;
 
+import java.lang.reflect.Modifier;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
-import java.util.function.BiFunction;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.springframework.data.mapping.context.AbstractMappingContext;
 import org.springframework.lang.Nullable;
@@ -79,23 +83,32 @@ final class NodeDescriptionStore {
 
 	public NodeDescriptionAndLabels deriveConcreteNodeDescription(Neo4jPersistentEntity<?> entityDescription, List<String> labels) {
 
-		if (labels == null || labels.isEmpty()) {
+		boolean isConcreteClassThatFulfillsEverything = !Modifier.isAbstract(entityDescription.getUnderlyingClass().getModifiers()) && entityDescription.getStaticLabels().containsAll(labels);
+
+		if (labels == null || labels.isEmpty() || isConcreteClassThatFulfillsEverything) {
 			return new NodeDescriptionAndLabels(entityDescription, Collections.emptyList());
 		}
 
 		Collection<NodeDescription<?>> haystack;
-		BiFunction<List<String>, NodeDescription<?>, Boolean> selector;
+		Function<NodeDescription<?>, Boolean> selector;
 		if (entityDescription.describesInterface()) {
 			haystack = this.values();
-			selector = (staticLabels, other) -> staticLabels.containsAll(labels) && entityDescription.getType().isAssignableFrom(((Neo4jPersistentEntity<?>) other).getType());
+			selector = (other) -> other.getStaticLabels().containsAll(labels) && entityDescription.getType().isAssignableFrom(((Neo4jPersistentEntity<?>) other).getType());
 		} else {
 			haystack = entityDescription.getChildNodeDescriptionsInHierarchy();
-			selector = (staticLabels, other) -> staticLabels.containsAll(labels) && other.getChildNodeDescriptionsInHierarchy().isEmpty();
+			selector = (other) -> other.getStaticLabels().containsAll(labels) && other.getChildNodeDescriptionsInHierarchy().isEmpty();
 		}
 
-		for (NodeDescription<?> childNodeDescription : haystack) {
-			List<String> staticLabels = childNodeDescription.getStaticLabels();
-			if (selector.apply(staticLabels, childNodeDescription)) {
+		if (!haystack.isEmpty()) {
+			Function<NodeDescription<?>, Integer> count = (nodeDescription) -> Math.toIntExact(nodeDescription.getStaticLabels().stream().filter(labels::contains).count());
+			Optional<Map.Entry<NodeDescription<?>, Integer>> mostMatchingNodeDescription = haystack.stream()
+					.collect(Collectors.toMap(Function.identity(), nodeDescription -> count.apply(nodeDescription)))
+					.entrySet().stream()
+					.max(Comparator.comparingInt(Map.Entry::getValue));
+
+			if (mostMatchingNodeDescription.isPresent()) {
+				NodeDescription<?> childNodeDescription = mostMatchingNodeDescription.get().getKey();
+				List<String> staticLabels = childNodeDescription.getStaticLabels();
 				Set<String> surplusLabels = new HashSet<>(labels);
 				surplusLabels.removeAll(staticLabels);
 				return new NodeDescriptionAndLabels(childNodeDescription, surplusLabels);
