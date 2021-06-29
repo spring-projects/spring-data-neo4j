@@ -48,6 +48,7 @@ import org.springframework.data.neo4j.core.convert.Neo4jPersistentPropertyConver
 import org.springframework.data.neo4j.core.convert.Neo4jPersistentPropertyConverterFactory;
 import org.springframework.data.neo4j.core.convert.Neo4jSimpleTypes;
 import org.springframework.data.neo4j.core.schema.IdGenerator;
+import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.util.ReflectionUtils;
 import org.springframework.data.util.TypeInformation;
 import org.springframework.lang.Nullable;
@@ -209,11 +210,13 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 	}
 
 	private static boolean isValidParentNode(@Nullable Class<?> parentClass) {
-		if (parentClass == null) {
+		if (parentClass == null || parentClass.equals(Object.class)) {
 			return false;
 		}
 
-		return Modifier.isAbstract(parentClass.getModifiers());
+		// Either a concrete class explicitly annotated as Node or an abstract class
+		return Modifier.isAbstract(parentClass.getModifiers()) ||
+				parentClass.isAnnotationPresent(Node.class);
 	}
 
 	/*
