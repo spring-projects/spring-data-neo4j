@@ -44,10 +44,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.neo4j.config.AbstractNeo4jConfig;
+import org.springframework.data.neo4j.config.Neo4jEntityScanner;
 import org.springframework.data.neo4j.core.DatabaseSelectionProvider;
 import org.springframework.data.neo4j.core.Neo4jTemplate;
+import org.springframework.data.neo4j.core.convert.Neo4jConversions;
+import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
 import org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager;
+import org.springframework.data.neo4j.integration.shared.common.EntitiesWithDynamicLabels;
 import org.springframework.data.neo4j.integration.shared.common.EntitiesWithDynamicLabels.DynamicLabelsWithMultipleNodeLabels;
 import org.springframework.data.neo4j.integration.shared.common.EntitiesWithDynamicLabels.DynamicLabelsWithNodeLabel;
 import org.springframework.data.neo4j.integration.shared.common.EntitiesWithDynamicLabels.ExtendedBaseClass1;
@@ -83,7 +87,7 @@ public class DynamicLabelsIT {
 		@Override
 		Long createTestEntity(Transaction transaction) {
 			Record r = transaction
-					.run("CREATE (e:SimpleDynamicLabels:Foo:Bar:Baz:Foobar) RETURN id(e) as existingEntityId").single();
+					.run("CREATE (e:InheritedSimpleDynamicLabels:SimpleDynamicLabels:Foo:Bar:Baz:Foobar) RETURN id(e) as existingEntityId").single();
 			long newId = r.get("existingEntityId").asLong();
 			transaction.commit();
 			return newId;
@@ -108,7 +112,7 @@ public class DynamicLabelsIT {
 			});
 
 			List<String> labels = getLabels(existingEntityId);
-			assertThat(labels).containsExactlyInAnyOrder("SimpleDynamicLabels", "Fizz", "Bar", "Baz", "Foobar");
+			assertThat(labels).containsExactlyInAnyOrder("SimpleDynamicLabels", "InheritedSimpleDynamicLabels", "Fizz", "Bar", "Baz", "Foobar");
 		}
 
 		@Test
@@ -151,7 +155,7 @@ public class DynamicLabelsIT {
 		@Override
 		Long createTestEntity(Transaction transaction) {
 			Record r = transaction
-					.run("CREATE (e:InheritedSimpleDynamicLabels:Foo:Bar:Baz:Foobar) RETURN id(e) as existingEntityId")
+					.run("CREATE (e:InheritedSimpleDynamicLabels:SimpleDynamicLabels:Foo:Bar:Baz:Foobar) RETURN id(e) as existingEntityId")
 					.single();
 			long newId = r.get("existingEntityId").asLong();
 			transaction.commit();
@@ -179,7 +183,7 @@ public class DynamicLabelsIT {
 			});
 
 			List<String> labels = getLabels(existingEntityId);
-			assertThat(labels).containsExactlyInAnyOrder("InheritedSimpleDynamicLabels", "Fizz", "Bar", "Baz", "Foobar");
+			assertThat(labels).containsExactlyInAnyOrder("SimpleDynamicLabels", "InheritedSimpleDynamicLabels", "Fizz", "Bar", "Baz", "Foobar");
 		}
 
 		@Test
@@ -195,7 +199,7 @@ public class DynamicLabelsIT {
 			});
 
 			List<String> labels = getLabels(id);
-			assertThat(labels).containsExactlyInAnyOrder("InheritedSimpleDynamicLabels", "A", "B", "C");
+			assertThat(labels).containsExactlyInAnyOrder("SimpleDynamicLabels", "InheritedSimpleDynamicLabels", "A", "B", "C");
 		}
 	}
 
@@ -506,6 +510,14 @@ public class DynamicLabelsIT {
 			@Bean
 			public TransactionTemplate transactionTemplate(PlatformTransactionManager transactionManager) {
 				return new TransactionTemplate(transactionManager);
+			}
+
+			@Bean
+			public Neo4jMappingContext neo4jMappingContext(Neo4jConversions neo4JConversions) throws ClassNotFoundException {
+
+				Neo4jMappingContext mappingContext = new Neo4jMappingContext(neo4JConversions);
+				mappingContext.setInitialEntitySet(Neo4jEntityScanner.get().scan(EntitiesWithDynamicLabels.class.getPackage().getName()));
+				return mappingContext;
 			}
 		}
 	}
