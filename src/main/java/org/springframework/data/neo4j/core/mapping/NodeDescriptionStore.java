@@ -90,18 +90,16 @@ final class NodeDescriptionStore {
 		}
 
 		Collection<NodeDescription<?>> haystack;
-		Function<NodeDescription<?>, Boolean> selector;
 		if (entityDescription.describesInterface()) {
 			haystack = this.values();
-			selector = (other) -> other.getStaticLabels().containsAll(labels) && entityDescription.getType().isAssignableFrom(((Neo4jPersistentEntity<?>) other).getType());
 		} else {
 			haystack = entityDescription.getChildNodeDescriptionsInHierarchy();
-			selector = (other) -> other.getStaticLabels().containsAll(labels) && other.getChildNodeDescriptionsInHierarchy().isEmpty();
 		}
 
 		if (!haystack.isEmpty()) {
 			Function<NodeDescription<?>, Integer> count = (nodeDescription) -> Math.toIntExact(nodeDescription.getStaticLabels().stream().filter(labels::contains).count());
 			Optional<Map.Entry<NodeDescription<?>, Integer>> mostMatchingNodeDescription = haystack.stream()
+					.filter(nd -> labels.containsAll(nd.getStaticLabels())) // remove candidates having more mandatory labels
 					.collect(Collectors.toMap(Function.identity(), nodeDescription -> count.apply(nodeDescription)))
 					.entrySet().stream()
 					.max(Comparator.comparingInt(Map.Entry::getValue));
