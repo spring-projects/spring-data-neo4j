@@ -640,7 +640,7 @@ public final class Neo4jTemplate implements
 								   PersistentPropertyAccessor<?> parentPropertyAccessor,
 								   boolean isParentObjectNew, PropertyFilter includeProperty) {
 
-		PropertyFilter.RelaxedPropertyPath startingPropertyPath = PropertyFilter.RelaxedPropertyPath.from("", neo4jPersistentEntity.getUnderlyingClass());
+		PropertyFilter.RelaxedPropertyPath startingPropertyPath = PropertyFilter.RelaxedPropertyPath.withRootType(neo4jPersistentEntity.getUnderlyingClass());
 		processNestedRelations(neo4jPersistentEntity, parentPropertyAccessor, isParentObjectNew,
 				new NestedRelationshipProcessingStateMachine(originalInstance, internalId), includeProperty, startingPropertyPath);
 	}
@@ -649,7 +649,7 @@ public final class Neo4jTemplate implements
 			PersistentPropertyAccessor<?> parentPropertyAccessor,
 			boolean isParentObjectNew, PropertyFilter includeProperty) {
 
-		PropertyFilter.RelaxedPropertyPath startingPropertyPath = PropertyFilter.RelaxedPropertyPath.from("", neo4jPersistentEntity.getUnderlyingClass());
+		PropertyFilter.RelaxedPropertyPath startingPropertyPath = PropertyFilter.RelaxedPropertyPath.withRootType(neo4jPersistentEntity.getUnderlyingClass());
 		return processNestedRelations(neo4jPersistentEntity, parentPropertyAccessor, isParentObjectNew,
 				new NestedRelationshipProcessingStateMachine(originalInstance), includeProperty, startingPropertyPath);
 	}

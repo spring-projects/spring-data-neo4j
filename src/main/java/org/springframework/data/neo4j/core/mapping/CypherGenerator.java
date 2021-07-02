@@ -519,7 +519,7 @@ public enum CypherGenerator {
 		if (nodeDescription.containsPossibleCircles(includeField)) {
 			return createGenericReturnStatement();
 		} else {
-			return new Expression[]{projectPropertiesAndRelationships(PropertyFilter.RelaxedPropertyPath.from("", nodeDescription.getUnderlyingClass()), nodeDescription, Constants.NAME_OF_ROOT_NODE, includeField, null, processedRelationships)};
+			return new Expression[]{projectPropertiesAndRelationships(PropertyFilter.RelaxedPropertyPath.withRootType(nodeDescription.getUnderlyingClass()), nodeDescription, Constants.NAME_OF_ROOT_NODE, includeField, null, processedRelationships)};
 		}
 	}
 

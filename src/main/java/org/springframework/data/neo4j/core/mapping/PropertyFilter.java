@@ -116,8 +116,8 @@ public abstract class PropertyFilter {
 		private final String dotPath;
 		private final Class<?> type;
 
-		public static RelaxedPropertyPath from(String dotPath, Class<?> type) {
-			return new RelaxedPropertyPath(dotPath, type);
+		public static RelaxedPropertyPath withRootType(Class<?> type) {
+			return new RelaxedPropertyPath("", type);
 		}
 
 		public String toDotPath() {

@@ -462,7 +462,7 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 	@NonNull
 	public Collection<RelationshipDescription> getRelationshipsInHierarchy(Predicate<PropertyFilter.RelaxedPropertyPath> propertyFilter) {
 
-		return getRelationshipsInHierarchy(propertyFilter, PropertyFilter.RelaxedPropertyPath.from("", this.getUnderlyingClass()));
+		return getRelationshipsInHierarchy(propertyFilter, PropertyFilter.RelaxedPropertyPath.withRootType(this.getUnderlyingClass()));
 	}
 
 	@NonNull
@@ -549,7 +549,7 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 
 		Set<RelationshipDescription> processedRelationships = new HashSet<>();
 		for (RelationshipDescription relationship : relationships) {
-			PropertyFilter.RelaxedPropertyPath relaxedPropertyPath = PropertyFilter.RelaxedPropertyPath.from("", this.getUnderlyingClass());
+			PropertyFilter.RelaxedPropertyPath relaxedPropertyPath = PropertyFilter.RelaxedPropertyPath.withRootType(this.getUnderlyingClass());
 			if (!filterProperties(includeField, relationship, relaxedPropertyPath)) {
 				continue;
 			}
