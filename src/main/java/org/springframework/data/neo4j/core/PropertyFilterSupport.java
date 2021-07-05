@@ -59,7 +59,19 @@ public class PropertyFilterSupport {
 		return returnedType.isProjecting() ? filteredProperties : Collections.emptyList();
 	}
 
-	public static void addPropertiesFrom(Class<?> domainType, Class<?> returnedType, ProjectionFactory factory,
+	public static List<PropertyPath> addPropertiesFrom(Class<?> returnType, Class<?> domainType,
+													   ProjectionFactory projectionFactory,
+													   Neo4jMappingContext neo4jMappingContext) {
+
+		ProjectionInformation projectionInformation = projectionFactory.getProjectionInformation(returnType);
+		List<PropertyPath> pps = new ArrayList<>();
+		for (PropertyDescriptor inputProperty : projectionInformation.getInputProperties()) {
+			addPropertiesFrom(returnType, domainType, projectionFactory, pps, inputProperty.getName(), neo4jMappingContext);
+		}
+		return pps;
+	}
+
+	private static void addPropertiesFrom(Class<?> domainType, Class<?> returnedType, ProjectionFactory factory,
 										 Collection<PropertyPath> filteredProperties, String inputProperty,
 										 Neo4jMappingContext mappingContext) {
 

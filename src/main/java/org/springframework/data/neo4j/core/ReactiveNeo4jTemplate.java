@@ -27,12 +27,10 @@ import reactor.core.publisher.Mono;
 import reactor.util.function.Tuple2;
 import reactor.util.function.Tuples;
 
-import java.beans.PropertyDescriptor;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -317,10 +315,9 @@ public final class ReactiveNeo4jTemplate implements
 		}
 
 		ProjectionInformation projectionInformation = projectionFactory.getProjectionInformation(resultType);
-		List<PropertyPath> pps = new ArrayList<>();
-		for (PropertyDescriptor inputProperty : projectionInformation.getInputProperties()) {
-			PropertyFilterSupport.addPropertiesFrom(instance.getClass(), resultType, projectionFactory, pps, inputProperty.getName(), neo4jMappingContext);
-		}
+		Collection<PropertyPath> pps = PropertyFilterSupport.addPropertiesFrom(resultType, instance.getClass(),
+				projectionFactory, neo4jMappingContext);
+
 		Mono<T> savingPublisher = saveImpl(instance, pps);
 		if (projectionInformation.isClosed()) {
 			return savingPublisher.map(savedInstance -> projectionFactory.createProjection(resultType, savedInstance));
@@ -344,12 +341,9 @@ public final class ReactiveNeo4jTemplate implements
 
 		Class<?> resultType = TemplateSupport.findCommonElementType(instances);
 
-		ProjectionInformation projectionInformation = projectionFactory.getProjectionInformation(resultType);
-		List<PropertyDescriptor> inputProperties = projectionInformation.getInputProperties();
-		Set<PropertyPath> pps = new HashSet<>();
-		for (PropertyDescriptor inputProperty : inputProperties) {
-			PropertyFilterSupport.addPropertiesFrom(domainType, resultType, projectionFactory, pps, inputProperty.getName(), neo4jMappingContext);
-		}
+		Collection<PropertyPath> pps = PropertyFilterSupport.addPropertiesFrom(resultType, domainType,
+				projectionFactory, neo4jMappingContext);
+
 		return Flux.fromIterable(instances)
 			.flatMap(instance -> {
 				EntityFromDtoInstantiatingConverter<T> converter = new EntityFromDtoInstantiatingConverter<>(domainType, neo4jMappingContext);
@@ -448,10 +442,9 @@ public final class ReactiveNeo4jTemplate implements
 		}
 
 		ProjectionInformation projectionInformation = projectionFactory.getProjectionInformation(resultType);
-		List<PropertyPath> pps = new ArrayList<>();
-		for (PropertyDescriptor inputProperty : projectionInformation.getInputProperties()) {
-			PropertyFilterSupport.addPropertiesFrom(commonElementType, resultType, projectionFactory, pps, inputProperty.getName(), neo4jMappingContext);
-		}
+		List<PropertyPath> pps = PropertyFilterSupport.addPropertiesFrom(resultType, commonElementType,
+				projectionFactory, neo4jMappingContext);
+
 		Flux<T> savedInstances = saveAllImpl(instances, pps);
 		if (projectionInformation.isClosed()) {
 			return savedInstances.map(instance -> projectionFactory.createProjection(resultType, instance));

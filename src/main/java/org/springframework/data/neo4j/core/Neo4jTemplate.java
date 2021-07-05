@@ -19,7 +19,6 @@ import static org.neo4j.cypherdsl.core.Cypher.anyNode;
 import static org.neo4j.cypherdsl.core.Cypher.asterisk;
 import static org.neo4j.cypherdsl.core.Cypher.parameter;
 
-import java.beans.PropertyDescriptor;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -333,11 +332,9 @@ public final class Neo4jTemplate implements
 		}
 
 		ProjectionInformation projectionInformation = projectionFactory.getProjectionInformation(resultType);
-		List<PropertyDescriptor> inputProperties = projectionInformation.getInputProperties();
-		Set<PropertyPath> pps = new HashSet<>();
-		for (PropertyDescriptor inputProperty : inputProperties) {
-			PropertyFilterSupport.addPropertiesFrom(resultType, resultType, projectionFactory, pps, inputProperty.getName(), neo4jMappingContext);
-		}
+		Collection<PropertyPath> pps = PropertyFilterSupport.addPropertiesFrom(resultType, resultType,
+				projectionFactory, neo4jMappingContext);
+
 		T savedInstance = saveImpl(instance, pps);
 		if (projectionInformation.isClosed()) {
 			return projectionFactory.createProjection(resultType, savedInstance);
@@ -499,11 +496,11 @@ public final class Neo4jTemplate implements
 		}
 
 		ProjectionInformation projectionInformation = projectionFactory.getProjectionInformation(resultType);
-		List<PropertyPath> pps = new ArrayList<>();
-		for (PropertyDescriptor inputProperty : projectionInformation.getInputProperties()) {
-			PropertyFilterSupport.addPropertiesFrom(commonElementType, resultType, projectionFactory, pps, inputProperty.getName(), neo4jMappingContext);
-		}
-		List<T> savedInstances = saveAllImpl(instances, pps);
+
+		Collection<PropertyPath> pps = PropertyFilterSupport.addPropertiesFrom(resultType, commonElementType,
+				projectionFactory, neo4jMappingContext);
+
+		List<T> savedInstances = saveAllImpl(instances, new ArrayList<>(pps));
 
 		if (projectionInformation.isClosed()) {
 			return savedInstances.stream().map(instance -> projectionFactory.createProjection(resultType, instance))
@@ -898,12 +895,9 @@ public final class Neo4jTemplate implements
 
 		Class<?> resultType = TemplateSupport.findCommonElementType(instances);
 
-		ProjectionInformation projectionInformation = projectionFactory.getProjectionInformation(resultType);
-		List<PropertyDescriptor> inputProperties = projectionInformation.getInputProperties();
-		Set<PropertyPath> pps = new HashSet<>();
-		for (PropertyDescriptor inputProperty : inputProperties) {
-			PropertyFilterSupport.addPropertiesFrom(domainType, resultType, projectionFactory, pps, inputProperty.getName(), neo4jMappingContext);
-		}
+		Collection<PropertyPath> pps = PropertyFilterSupport.addPropertiesFrom(resultType, domainType,
+				projectionFactory, neo4jMappingContext);
+
 		List<R> results = new ArrayList<>();
 		for (R instance : instances) {
 			EntityFromDtoInstantiatingConverter<T> converter = new EntityFromDtoInstantiatingConverter<>(domainType, neo4jMappingContext);
