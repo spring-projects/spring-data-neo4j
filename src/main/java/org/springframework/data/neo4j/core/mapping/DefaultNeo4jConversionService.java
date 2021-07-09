@@ -27,6 +27,7 @@ import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.ConfigurableConversionService;
 import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.dao.TypeMismatchDataAccessException;
+import org.springframework.data.mapping.model.SimpleTypeHolder;
 import org.springframework.data.neo4j.core.convert.Neo4jConversionService;
 import org.springframework.data.neo4j.core.convert.Neo4jConversions;
 import org.springframework.data.util.TypeInformation;
@@ -41,6 +42,7 @@ final class DefaultNeo4jConversionService implements Neo4jConversionService {
 
 	private final ConversionService conversionService;
 	private final Predicate<Class<?>> hasCustomWriteTargetPredicate;
+	private final SimpleTypeHolder simpleTypes;
 
 	DefaultNeo4jConversionService(Neo4jConversions neo4jConversions) {
 
@@ -49,6 +51,7 @@ final class DefaultNeo4jConversionService implements Neo4jConversionService {
 
 		this.conversionService = configurableConversionService;
 		this.hasCustomWriteTargetPredicate = neo4jConversions::hasCustomWriteTarget;
+		this.simpleTypes = neo4jConversions.getSimpleTypeHolder();
 	}
 
 	@Override
@@ -131,5 +134,10 @@ final class DefaultNeo4jConversionService implements Neo4jConversionService {
 
 	private static boolean isCollection(TypeInformation<?> type) {
 		return Collection.class.isAssignableFrom(type.getType());
+	}
+
+	@Override
+	public boolean isSimpleType(Class<?> type) {
+		return simpleTypes.isSimpleType(type);
 	}
 }

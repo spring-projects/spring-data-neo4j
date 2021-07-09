@@ -16,7 +16,6 @@
 package org.springframework.data.neo4j.core;
 
 import org.springframework.data.mapping.PropertyPath;
-import org.springframework.data.neo4j.core.convert.Neo4jSimpleTypes;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentProperty;
@@ -89,7 +88,7 @@ public class PropertyFilterSupport {
 		// 1. Simple types can be added directly
 		// 2. Something that looks like an entity needs to get processed as such
 		// 3. Embedded projection
-		if (Neo4jSimpleTypes.HOLDER.isSimpleType(propertyType) || mappingContext.hasCustomWriteTarget(propertyType)) {
+		if (mappingContext.getConversionService().isSimpleType(propertyType)) {
 			filteredProperties.add(propertyPath);
 		} else if (mappingContext.hasPersistentEntityFor(propertyType)) {
 			// avoid recursion / cycles
@@ -176,7 +175,7 @@ public class PropertyFilterSupport {
 		}
 		Class<?> propertyType = propertyPath.getLeafType();
 		// simple types can get added directly to the list.
-		if (Neo4jSimpleTypes.HOLDER.isSimpleType(propertyType) || mappingContext.hasCustomWriteTarget(propertyType)) {
+		if (mappingContext.getConversionService().isSimpleType(propertyType)) {
 			filteredProperties.add(propertyPath);
 		// Other types are handled also as entities because there cannot be any nested projection within a real entity.
 		} else if (mappingContext.hasPersistentEntityFor(propertyType)) {

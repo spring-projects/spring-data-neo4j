@@ -82,4 +82,10 @@ public interface Neo4jConversionService {
 	Value writeValue(
 			@Nullable Object value, TypeInformation<?> sourceType, @Nullable Function<Object, Value> conversionOverride
 	);
+
+	/**
+	 * @param type A type that should be checked whether it's simple or not.
+	 * @return True if {@code type} is a simple type, according to {@link Neo4jSimpleTypes} and the registered converters.
+	 */
+	boolean isSimpleType(Class<?> type);
 }
