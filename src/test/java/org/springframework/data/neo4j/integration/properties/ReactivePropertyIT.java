@@ -17,6 +17,7 @@ package org.springframework.data.neo4j.integration.properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import org.junit.jupiter.api.Tag;
 import org.springframework.data.neo4j.core.ReactiveDatabaseSelectionProvider;
 import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
 import org.springframework.data.neo4j.core.transaction.ReactiveNeo4jTransactionManager;
@@ -48,6 +49,9 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
  * @soundtrack Metallica - Metallica
  */
 @Neo4jIntegrationTest
+// Not actually incompatible, but not worth the effort adding additional complexity for handling bookmarks
+// between fixture and test
+@Tag(Neo4jExtension.INCOMPATIBLE_WITH_CLUSTERS)
 class ReactivePropertyIT {
 
 	protected static Neo4jExtension.Neo4jConnectionSupport neo4jConnectionSupport;
