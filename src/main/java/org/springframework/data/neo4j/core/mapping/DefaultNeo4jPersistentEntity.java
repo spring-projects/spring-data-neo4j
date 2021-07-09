@@ -547,7 +547,6 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 	private boolean calculatePossibleCircles(Predicate<PropertyFilter.RelaxedPropertyPath> includeField) {
 		Collection<RelationshipDescription> relationships = new HashSet<>(getRelationshipsInHierarchy(includeField));
 
-		Set<NodeDescription<?>> visitedNodes = new HashSet<>();
 		for (RelationshipDescription relationship : relationships) {
 			PropertyFilter.RelaxedPropertyPath relaxedPropertyPath = PropertyFilter.RelaxedPropertyPath.withRootType(this.getUnderlyingClass());
 			if (!filterProperties(includeField, relationship, relaxedPropertyPath)) {
@@ -556,13 +555,14 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 			// We don't look at the direction because we need to look for cycles based on the modelled relationship
 			// direction instead of the "real graph" directions
 			NodeDescription<?> targetNode = relationship.getTarget();
-			if (visitedNodes.contains(targetNode)) {
+			if (this.equals(targetNode)) {
 				return true;
 			}
-			visitedNodes.add(targetNode);
 			String relationshipPropertiesPrefix = relationship.hasRelationshipProperties() ? "." + ((Neo4jPersistentEntity<?>) relationship.getRelationshipPropertiesEntity())
 					.getPersistentProperty(TargetNode.class).getFieldName() : "";
-			if (calculatePossibleCircles(targetNode, new HashSet<>(visitedNodes), includeField, relaxedPropertyPath.append(relationship.getFieldName() + relationshipPropertiesPrefix))) {
+
+			Set<NodeDescription<?>> visitedNodes = new HashSet<>(Collections.singletonList(targetNode));
+			if (calculatePossibleCircles(targetNode, visitedNodes, includeField, relaxedPropertyPath.append(relationship.getFieldName() + relationshipPropertiesPrefix))) {
 				return true;
 			}
 		}
@@ -578,7 +578,8 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 				return true;
 			}
 			visitedNodes.add(targetNode);
-			if (calculatePossibleCircles(targetNode, new HashSet<>(visitedNodes), includeField, path.append(relationship.getFieldName()))) {
+			Set<NodeDescription<?>> branchedVisitedNodes = new HashSet<>(visitedNodes);
+			if (calculatePossibleCircles(targetNode, branchedVisitedNodes, includeField, path.append(relationship.getFieldName()))) {
 				return true;
 			}
 		}
