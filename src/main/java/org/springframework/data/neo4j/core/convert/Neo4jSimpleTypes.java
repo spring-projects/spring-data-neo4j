@@ -87,7 +87,7 @@ public final class Neo4jSimpleTypes {
 	}
 
 	/**
-	 * The simple types we support plus all the simple types recognized by Spring.
+	 * The simple types we support plus all the simple types recognized by Spring. Not taking custom conversions into account.
 	 */
 	public static final SimpleTypeHolder HOLDER = new SimpleTypeHolder(NEO4J_NATIVE_TYPES, true);
 

@@ -46,7 +46,6 @@ import org.springframework.data.neo4j.core.convert.Neo4jConversionService;
 import org.springframework.data.neo4j.core.convert.Neo4jConversions;
 import org.springframework.data.neo4j.core.convert.Neo4jPersistentPropertyConverter;
 import org.springframework.data.neo4j.core.convert.Neo4jPersistentPropertyConverterFactory;
-import org.springframework.data.neo4j.core.convert.Neo4jSimpleTypes;
 import org.springframework.data.neo4j.core.schema.IdGenerator;
 import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.util.ReflectionUtils;
@@ -126,10 +125,10 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 	@API(status = API.Status.INTERNAL, since = "6.0")
 	public Neo4jMappingContext(Neo4jConversions neo4jConversions, @Nullable TypeSystem typeSystem) {
 
-		super.setSimpleTypeHolder(Neo4jSimpleTypes.HOLDER);
 		this.conversionService = new DefaultNeo4jConversionService(neo4jConversions);
-
 		this.typeSystem = typeSystem == null ? InternalTypeSystem.TYPE_SYSTEM : typeSystem;
+
+		super.setSimpleTypeHolder(neo4jConversions.getSimpleTypeHolder());
 	}
 
 	public Neo4jEntityConverter getEntityConverter() {
