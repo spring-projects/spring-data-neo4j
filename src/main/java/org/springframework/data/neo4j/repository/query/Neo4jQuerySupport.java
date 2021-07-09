@@ -40,7 +40,6 @@ import org.springframework.data.geo.Box;
 import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.Metrics;
-import org.springframework.data.neo4j.core.convert.Neo4jSimpleTypes;
 import org.springframework.data.neo4j.core.mapping.CypherGenerator;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.repository.query.QueryMethod;
@@ -105,7 +104,7 @@ abstract class Neo4jQuerySupport {
 
 		final BiFunction<TypeSystem, MapAccessor, ?> mappingFunction;
 
-		if (Neo4jSimpleTypes.HOLDER.isSimpleType(returnedType)) {
+		if (mappingContext.getConversionService().isSimpleType(returnedType)) {
 			// Clients automatically selects a single value mapping function.
 			// It will thrown an error if the query contains more than one column.
 			mappingFunction = null;

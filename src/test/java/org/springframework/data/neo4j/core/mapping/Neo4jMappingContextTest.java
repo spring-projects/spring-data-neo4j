@@ -63,6 +63,8 @@ import org.springframework.data.neo4j.core.schema.Relationship;
 import org.springframework.data.neo4j.core.schema.RelationshipProperties;
 import org.springframework.data.neo4j.core.schema.TargetNode;
 import org.springframework.data.neo4j.integration.shared.common.FriendshipRelationship;
+import org.springframework.data.neo4j.integration.shared.conversion.ThingWithCompositeProperties;
+import org.springframework.data.neo4j.integration.shared.conversion.ThingWithCustomTypes;
 import org.springframework.data.neo4j.test.LogbackCapture;
 import org.springframework.data.neo4j.test.LogbackCapturingExtension;
 
@@ -478,6 +480,31 @@ class Neo4jMappingContextTest {
 		Neo4jMappingContext schema = new Neo4jMappingContext();
 		Neo4jPersistentEntity<?> entity = schema.getPersistentEntity(UserNode.class);
 		assertThat(entity.getRelationships()).anyMatch(r -> r.getFieldName().equals("theSuperBike") && r.getType().equals("THE_SUPER_BIKE"));
+	}
+
+	@Test // COMMONS-2390
+	void shouldNotCreateEntityForConvertedSimpleTypes() {
+
+		Set<GenericConverter> additionalConverters = new HashSet<>();
+		additionalConverters.add(new ThingWithCustomTypes.CustomTypeConverter());
+		additionalConverters.add(new ThingWithCustomTypes.DifferentTypeConverter());
+
+		Neo4jMappingContext schema = new Neo4jMappingContext(new Neo4jConversions(additionalConverters));
+		schema.setStrict(true);
+		schema.setInitialEntitySet(
+				new HashSet<>(Arrays.asList(ThingWithCustomTypes.class, ThingWithCompositeProperties.class)));
+		schema.initialize();
+
+		assertThat(schema.hasPersistentEntityFor(ThingWithCustomTypes.class)).isTrue();
+		assertThat(schema.hasPersistentEntityFor(ThingWithCompositeProperties.class)).isTrue();
+
+		Neo4jPersistentEntity<?> entity = schema.getPersistentEntity(ThingWithCustomTypes.class);
+		assertThat(entity.getPersistentProperty("customType").isEntity()).isFalse();
+
+		entity = schema.getPersistentEntity(ThingWithCompositeProperties.class);
+		assertThat(entity.getPersistentProperty("customTypeMap").isEntity()).isFalse();
+
+		assertThat(schema.hasPersistentEntityFor(ThingWithCustomTypes.CustomType.class)).isFalse();
 	}
 
 	static class DummyIdGenerator implements IdGenerator<Void> {
