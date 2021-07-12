@@ -36,6 +36,7 @@ import org.springframework.data.convert.EntityWriter;
 import org.springframework.data.mapping.AssociationHandler;
 import org.springframework.data.mapping.MappingException;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
+import org.springframework.data.mapping.PropertyHandler;
 import org.springframework.data.neo4j.core.convert.Neo4jConversionService;
 import org.springframework.data.neo4j.core.mapping.Constants;
 import org.springframework.data.neo4j.core.mapping.MappingSupport.RelationshipPropertiesWithEntityHolder;
@@ -45,6 +46,7 @@ import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.core.mapping.NestedRelationshipContext;
 import org.springframework.data.neo4j.core.mapping.RelationshipDescription;
+import org.springframework.data.neo4j.core.schema.TargetNode;
 import org.springframework.data.util.TypeInformation;
 
 /**
@@ -80,10 +82,10 @@ final class Neo4jNestedMapEntityWriter implements EntityWriter<Object, Map<Strin
 		}
 
 		Set<Object> seenObjects = new HashSet<>();
-		writeImpl(source, sink, seenObjects);
+		writeImpl(source, sink, seenObjects, true);
 	}
 
-	Map<String, Object> writeImpl(Object source, Map<String, Object> sink, Set<Object> seenObjects) {
+	Map<String, Object> writeImpl(Object source, Map<String, Object> sink, Set<Object> seenObjects, boolean initialObject) {
 
 		Class<?> sourceType = source.getClass();
 		if (!this.mappingContext.hasPersistentEntityFor(sourceType)) {
@@ -111,6 +113,16 @@ final class Neo4jNestedMapEntityWriter implements EntityWriter<Object, Map<Strin
 
 		addLabels(sink, entity, propertyAccessor);
 		addRelations(sink, entity, propertyAccessor, seenObjects);
+		if (initialObject && entity.isRelationshipPropertiesEntity()) {
+			Map<String, Object> propertyMap = (Map<String, Object>) sink.get(Constants.NAME_OF_PROPERTIES_PARAM);
+			entity.doWithProperties((PropertyHandler<Neo4jPersistentProperty>) p -> {
+				if (p.isAnnotationPresent(TargetNode.class)) {
+					Map<String, Object> target = this.writeImpl(propertyAccessor.getProperty(p), new HashMap<>(), seenObjects, false);
+					propertyMap.put("__target__", Values.value(target));
+					return;
+				}
+			});
+		}
 
 		// Remove redundant values
 		// Internal ID
@@ -225,17 +237,17 @@ final class Neo4jNestedMapEntityWriter implements EntityWriter<Object, Map<Strin
 	) {
 
 		if (!description.hasRelationshipProperties()) {
-			return this.writeImpl(relatedObject, new HashMap<>(), seenObjects);
+			return this.writeImpl(relatedObject, new HashMap<>(), seenObjects, false);
 		}
 
 		RelationshipPropertiesWithEntityHolder tuple = (RelationshipPropertiesWithEntityHolder) relatedObject;
 		Map<String, Object> relatedObjectProperties;
 		relatedObjectProperties = this
 				.writeImpl(tuple.getRelationshipProperties(), new HashMap<>(),
-						seenObjects);
+						seenObjects, false);
 		relatedObjectProperties.put("__target__",
 				this.writeImpl(tuple.getRelatedEntity(), new HashMap<>(),
-						seenObjects));
+						seenObjects, false));
 		return relatedObjectProperties;
 	}
 }

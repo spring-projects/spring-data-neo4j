@@ -54,6 +54,10 @@ import org.springframework.data.neo4j.core.schema.Property;
 import org.springframework.data.neo4j.core.schema.Relationship;
 import org.springframework.data.neo4j.core.schema.RelationshipProperties;
 import org.springframework.data.neo4j.core.schema.TargetNode;
+import org.springframework.data.neo4j.integration.issues.gh2323.Knows;
+import org.springframework.data.neo4j.integration.issues.gh2323.Language;
+import org.springframework.data.neo4j.integration.issues.gh2323.Person;
+import org.springframework.util.ReflectionUtils;
 
 /**
  * @author Michael J. Simons
@@ -79,7 +83,8 @@ class Neo4jNestedMapEntityWriterTest {
 						GraphPropertyNamesShouldBeUsed.class,
 						A.class, B.class,
 						A2.class, B2.class,
-						A3.class, A4.class, A5.class, A6.class, A7.class, A8.class
+						A3.class, A4.class, A5.class, A6.class, A7.class, A8.class,
+						Person.class, Knows.class, Language.class
 				)
 		));
 		this.mappingContext.initialize();
@@ -94,6 +99,56 @@ class Neo4jNestedMapEntityWriterTest {
 		assertThatExceptionOfType(MappingException.class)
 				.isThrownBy(() -> writer.write(entity, new HashMap<>()))
 				.withMessageMatching("Cannot write unknown entity of type '.+' into a map\\.");
+	}
+
+	@Test // GH-2323
+	void propertiesOfRelationshipsShouldStillWorkAfterHandlingFirstResultDifferent() {
+
+		Knows knows = new Knows("Some description", new Language("German"));
+		Person p = new Person("F");
+		ReflectionUtils.setField(ReflectionUtils.findField(Person.class, "id"), p, "xxx");
+		p.getKnownLanguages().add(knows);
+
+		EntityWriter<Object, Map<String, Object>> writer = Neo4jNestedMapEntityWriter.forContext(this.mappingContext);
+		Map<String, Object> result = toMap(writer, p);
+
+		assertThat(result).hasEntrySatisfying("__labels__", isAListValue);
+		Value labels = (Value) result.get("__labels__");
+		assertThat(labels.asList(v -> v.asString())).containsExactlyInAnyOrder("Person");
+		assertThat(result).containsEntry("__id__", Values.value("xxx"));
+
+		assertThat(result).hasEntrySatisfying("__properties__", isAMap);
+		Map<String, Value> properties = (Map<String, Value>) result.get("__properties__");
+
+		assertThat(properties).hasEntrySatisfying("KNOWS", isAListValue);
+		List<Value> rels = properties.get("KNOWS").asList(Function.identity());
+		properties = rels.get(0).get("__properties__").asMap(Function.identity());
+		assertThat(properties).containsEntry("description", Values.value("Some description"));
+
+		properties = rels.get(0).get("__target__").asMap(Function.identity());
+		assertThat(properties).containsEntry("__id__", Values.value("German"));
+		assertThat(properties).hasEntrySatisfying("__properties__", isAMapValue);
+	}
+
+	@Test // GH-2323
+	void relationshipPropertiesShouldBeSerializedWithTargetNodeWhenPassedFirstToWriterToo() {
+
+		Knows knows = new Knows("Some description", new Language("German"));
+		ReflectionUtils.setField(ReflectionUtils.findField(Knows.class, "id"), knows, 4711L);
+
+		EntityWriter<Object, Map<String, Object>> writer = Neo4jNestedMapEntityWriter.forContext(this.mappingContext);
+		Map<String, Object> result = toMap(writer, knows);
+
+		assertThat(result).containsEntry("__id__", Values.value(4711L));
+
+		assertThat(result).hasEntrySatisfying("__properties__", isAMap);
+		Map<String, Value> properties = (Map<String, Value>) result.get("__properties__");
+		assertThat(properties).containsEntry("description", Values.value("Some description"));
+
+		assertThat(properties).hasEntrySatisfying("__target__", isAMapValue);
+		properties = properties.get("__target__").asMap(Function.identity());
+		assertThat(properties).containsEntry("__id__", Values.value("German"));
+		assertThat(properties).hasEntrySatisfying("__properties__", isAMapValue);
 	}
 
 	@Test // DATAGRAPH-1452
