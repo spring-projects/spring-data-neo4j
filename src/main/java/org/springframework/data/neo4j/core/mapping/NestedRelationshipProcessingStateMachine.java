@@ -25,6 +25,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.apiguardian.api.API;
+import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 
 /**
@@ -164,9 +165,12 @@ public final class NestedRelationshipProcessingStateMachine {
 
 		try {
 			write.lock();
+			Object value = extractRelatedValueFromRelationshipProperties(valueToStore);
 			this.processedObjects.add(valueToStore);
+			this.processedObjects.add(value);
 			if (internalId != null) {
 				this.processedObjectsIds.put(valueToStore, internalId);
+				this.processedObjectsIds.put(value, internalId);
 			}
 		} finally {
 			write.unlock();
@@ -180,7 +184,13 @@ public final class NestedRelationshipProcessingStateMachine {
  	 * @return processed yes (true) / no (false)
 	 */
 	public boolean hasProcessedValue(Object value) {
-		return processedObjects.contains(value) || processedObjectsAlias.containsKey(value);
+		try {
+			read.lock();
+			Object valueToCheck = extractRelatedValueFromRelationshipProperties(value);
+			return processedObjects.contains(valueToCheck) || processedObjectsAlias.containsKey(valueToCheck);
+		} finally {
+			read.unlock();
+		}
 	}
 
 	/**
@@ -209,8 +219,9 @@ public final class NestedRelationshipProcessingStateMachine {
 	public Long getInternalId(Object object) {
 		try {
 			read.lock();
-			Long possibleId = processedObjectsIds.get(object);
-			return possibleId != null ? possibleId : processedObjectsIds.get(processedObjectsAlias.get(object));
+			Object valueToCheck = extractRelatedValueFromRelationshipProperties(object);
+			Long possibleId = processedObjectsIds.get(valueToCheck);
+			return possibleId != null ? possibleId : processedObjectsIds.get(processedObjectsAlias.get(valueToCheck));
 		} finally {
 			read.unlock();
 		}
@@ -234,4 +245,14 @@ public final class NestedRelationshipProcessingStateMachine {
 		return processedObjects.containsAll(valuesToStore);
 	}
 
+	@NonNull
+	private Object extractRelatedValueFromRelationshipProperties(Object valueToStore) {
+		Object value;
+		if (valueToStore instanceof MappingSupport.RelationshipPropertiesWithEntityHolder) {
+			value = ((MappingSupport.RelationshipPropertiesWithEntityHolder) valueToStore).getRelatedEntity();
+		} else {
+			value = valueToStore;
+		}
+		return value;
+	}
 }
