@@ -848,7 +848,13 @@ public final class ReactiveNeo4jTemplate implements
 										.map(id -> Tuples.of(id, new Long[1]));
 							} else {
 								queryOrSave = saveRelatedNode(newRelatedObject, targetEntity, includeProperty, currentPropertyPath)
-										.doOnNext(entity -> stateMachine.markValueAsProcessed(relatedValueToStore, entity.id()))
+										.doOnNext(entity -> {
+											stateMachine.markValueAsProcessed(relatedValueToStore, entity.id());
+											if (relatedValueToStore instanceof MappingSupport.RelationshipPropertiesWithEntityHolder) {
+												Object value = ((MappingSupport.RelationshipPropertiesWithEntityHolder) relatedValueToStore).getRelatedEntity();
+												stateMachine.markValueAsProcessedAs(value, entity.id());
+											}
+										})
 										.map(entity -> {
 											Long version = targetEntity.hasVersionProperty() ?
 													entity.get(targetEntity.getVersionProperty().getPropertyName()).asLong() :

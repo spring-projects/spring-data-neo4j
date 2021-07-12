@@ -750,6 +750,10 @@ public final class Neo4jTemplate implements
 					savedEntity = saveRelatedNode(newRelatedObject, targetEntity, includeProperty, currentPropertyPath);
 					relatedInternalId = savedEntity.id();
 					stateMachine.markValueAsProcessed(relatedValueToStore, relatedInternalId);
+					if (relatedValueToStore instanceof MappingSupport.RelationshipPropertiesWithEntityHolder) {
+						Object entity = ((MappingSupport.RelationshipPropertiesWithEntityHolder) relatedValueToStore).getRelatedEntity();
+						stateMachine.markValueAsProcessedAs(entity, relatedInternalId);
+					}
 				}
 
 				PersistentPropertyAccessor<?> targetPropertyAccessor = targetEntity.getPropertyAccessor(newRelatedObject);
