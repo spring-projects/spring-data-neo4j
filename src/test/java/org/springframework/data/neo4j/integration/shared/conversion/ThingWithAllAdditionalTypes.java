@@ -118,4 +118,8 @@ public class ThingWithAllAdditionalTypes {
 	private TimeZone aTimeZone;
 
 	private ZoneId aZoneId;
+
+	private Period aZeroPeriod;
+
+	private Duration aZeroDuration;
 }

@@ -24,39 +24,47 @@ import java.time.temporal.ChronoUnit;
 
 import org.junit.jupiter.api.Test;
 import org.neo4j.driver.Values;
+import org.neo4j.driver.types.IsoDuration;
 
 /**
  * @author Michael J. Simons
  */
 class TemporalAmountAdapterTest {
+
+	private final TemporalAmountAdapter underTest = new TemporalAmountAdapter();
+
 	@Test
 	public void internallyCreatedTypesShouldBeConvertedCorrect() {
-		final TemporalAmountAdapter adapter = new TemporalAmountAdapter();
 
-		assertThat(adapter.apply(Values.isoDuration(1, 0, 0, 0).asIsoDuration())).isEqualTo(Period.ofMonths(1));
-		assertThat(adapter.apply(Values.isoDuration(1, 1, 0, 0).asIsoDuration())).isEqualTo(Period.ofMonths(1).plusDays(1));
-		assertThat(adapter.apply(Values.isoDuration(1, 1, 1, 0).asIsoDuration()))
+		assertThat(underTest.apply(Values.isoDuration(1, 0, 0, 0).asIsoDuration())).isEqualTo(Period.ofMonths(1));
+		assertThat(underTest.apply(Values.isoDuration(1, 1, 0, 0).asIsoDuration())).isEqualTo(Period.ofMonths(1).plusDays(1));
+		assertThat(underTest.apply(Values.isoDuration(1, 1, 1, 0).asIsoDuration()))
 				.isEqualTo(Values.isoDuration(1, 1, 1, 0).asIsoDuration());
-		assertThat(adapter.apply(Values.isoDuration(0, 0, 120, 1).asIsoDuration()))
+		assertThat(underTest.apply(Values.isoDuration(0, 0, 120, 1).asIsoDuration()))
 				.isEqualTo(Duration.ofMinutes(2).plusNanos(1));
 	}
 
 	@Test
 	public void durationsShouldStayDurations() {
-		final TemporalAmountAdapter adapter = new TemporalAmountAdapter();
 
 		Duration duration = ChronoUnit.MONTHS.getDuration().multipliedBy(13).plus(ChronoUnit.DAYS.getDuration().multipliedBy(32)).plusHours(25)
 				.plusMinutes(120);
 
-		assertThat(adapter.apply(Values.value(duration).asIsoDuration())).isEqualTo(duration);
+		assertThat(underTest.apply(Values.value(duration).asIsoDuration())).isEqualTo(duration);
 	}
 
 	@Test
 	public void periodsShouldStayPeriods() {
-		final TemporalAmountAdapter adapter = new TemporalAmountAdapter();
 
 		Period period = Period.between(LocalDate.of(2018, 11, 15), LocalDate.of(2020, 12, 24));
 
-		assertThat(adapter.apply(Values.value(period).asIsoDuration())).isEqualTo(period.normalized());
+		assertThat(underTest.apply(Values.value(period).asIsoDuration())).isEqualTo(period.normalized());
+	}
+
+	@Test // GH-2324
+	public void zeroDurationShouldReturnTheIsoDuration() {
+
+		IsoDuration zeroDuration = Values.isoDuration(0, 0, 0, 0).asIsoDuration();
+		assertThat(underTest.apply(zeroDuration)).isSameAs(zeroDuration);
 	}
 }
