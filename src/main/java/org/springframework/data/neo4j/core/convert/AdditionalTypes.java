@@ -25,7 +25,6 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.TemporalAmount;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -93,8 +92,7 @@ final class AdditionalTypes {
 		hlp.add(ConverterBuilder.reading(Value.class, String[].class, AdditionalTypes::asStringArray).andWriting(Values::value));
 		hlp.add(ConverterBuilder.reading(Value.class, BigDecimal.class, AdditionalTypes::asBigDecimal).andWriting(AdditionalTypes::value));
 		hlp.add(ConverterBuilder.reading(Value.class, BigInteger.class, AdditionalTypes::asBigInteger).andWriting(AdditionalTypes::value));
-		hlp.add(ConverterBuilder.reading(Value.class, TemporalAmount.class, AdditionalTypes::asTemporalAmount)
-				.andWriting(AdditionalTypes::value));
+		hlp.add(new TemporalAmountConverter());
 		hlp.add(ConverterBuilder.reading(Value.class, Instant.class, AdditionalTypes::asInstant).andWriting(AdditionalTypes::value));
 		hlp.add(ConverterBuilder.reading(Value.class, UUID.class, AdditionalTypes::asUUID).andWriting(AdditionalTypes::value));
 		hlp.add(ConverterBuilder.reading(Value.class, URL.class, AdditionalTypes::asURL).andWriting(AdditionalTypes::value));
@@ -177,14 +175,6 @@ final class AdditionalTypes {
 
 	static Value value(Instant instant) {
 		return Values.value(instant.atOffset(ZoneOffset.UTC));
-	}
-
-	static TemporalAmount asTemporalAmount(Value value) {
-		return new TemporalAmountAdapter().apply(value.asIsoDuration());
-	}
-
-	static Value value(TemporalAmount temporalAmount) {
-		return Values.value(temporalAmount);
 	}
 
 	static BigDecimal asBigDecimal(Value value) {
