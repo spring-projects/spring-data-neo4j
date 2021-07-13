@@ -21,10 +21,12 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.With;
 
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.OffsetTime;
+import java.time.Period;
 import java.time.ZonedDateTime;
 
 import org.neo4j.driver.types.IsoDuration;
@@ -69,4 +71,8 @@ public class ThingWithAllCypherTypes {
 	private IsoDuration anIsoDuration;
 
 	private Point aPoint;
+
+	private Period aZeroPeriod;
+
+	private Duration aZeroDuration;
 }

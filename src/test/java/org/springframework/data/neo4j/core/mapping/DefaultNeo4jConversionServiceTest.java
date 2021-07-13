@@ -15,10 +15,14 @@
  */
 package org.springframework.data.neo4j.core.mapping;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
+import java.time.Duration;
 import java.time.LocalDate;
+import java.time.Period;
 import java.time.format.DateTimeParseException;
+import java.time.temporal.TemporalAmount;
 import java.util.Date;
 
 import org.junit.jupiter.api.Nested;
@@ -43,6 +47,35 @@ class DefaultNeo4jConversionServiceTest {
 
 	@Nested
 	class Reads {
+
+		@Test // GH-2324
+		void shouldDealWith0IsoDurationsAsPeriods() {
+			Value zeroDuration = Values.isoDuration(0, 0, 0, 0);
+
+			Period period = (Period) defaultNeo4jEntityAccessor.readValue(zeroDuration, ClassTypeInformation.from(Period.class), null);
+			assertThat(period.isZero()).isTrue();
+		}
+
+		@Test // GH-2324
+		void shouldDealWith0IsoDurationsAsDurations() {
+			Value zeroDuration = Values.isoDuration(0, 0, 0, 0);
+
+			Duration duration = (Duration) defaultNeo4jEntityAccessor.readValue(zeroDuration, ClassTypeInformation.from(Duration.class), null);
+			assertThat(duration).isZero();
+		}
+
+		@Test // GH-2324
+		void shouldDealWithNullTemporalValueOnRead() {
+			Duration duration = (Duration) defaultNeo4jEntityAccessor.readValue(null, ClassTypeInformation.from(Duration.class), null);
+			assertThat(duration).isNull();
+		}
+
+		@Test // GH-2324
+		void shouldDealWithNullTemporalValueOnWrite() {
+			Value value = defaultNeo4jEntityAccessor.writeValue(null, ClassTypeInformation.from(TemporalAmount.class), null);
+			assertThat(value).isNull();
+		}
+
 		@Test
 		void shouldCatchConversionErrors() {
 			Value value = Values.value("Das funktioniert nicht.");
@@ -65,7 +98,7 @@ class DefaultNeo4jConversionServiceTest {
 		}
 
 		@Test
-		void shouldCatchUncoerfcibleErrors() {
+		void shouldCatchCoercibleErrors() {
 			Value value = Values.value("Das funktioniert nicht.");
 
 			assertThatExceptionOfType(TypeMismatchDataAccessException.class).isThrownBy(

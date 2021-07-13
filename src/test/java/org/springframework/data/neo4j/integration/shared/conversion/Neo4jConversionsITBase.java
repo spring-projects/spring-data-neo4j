@@ -123,6 +123,8 @@ public abstract class Neo4jConversionsITBase {
 		hlp.put("listOfDoubles", Arrays.asList(1.0));
 		hlp.put("aTimeZone", TimeZone.getTimeZone("America/Los_Angeles"));
 		hlp.put("aZoneId", ZoneId.of("America/New_York"));
+		hlp.put("aZeroPeriod", Period.of(0, 0, 0));
+		hlp.put("aZeroDuration", Duration.ZERO);
 		ADDITIONAL_TYPES = Collections.unmodifiableMap(hlp);
 	}
 
@@ -202,37 +204,36 @@ public abstract class Neo4jConversionsITBase {
 
 				parameters = new HashMap<>();
 				parameters.put("aByteArray", "A thing".getBytes());
-				ID_OF_CYPHER_TYPES_NODE = w.run("CREATE (n:CypherTypes) SET " + " n.aBoolean = true,"
-						+ " n.aLong = 9223372036854775807," + " n.aDouble = 1.7976931348," + " n.aString = 'Hallo, Cypher',"
-						+ " n.aByteArray = $aByteArray," + " n.aLocalDate = date('2015-07-21'),"
-						+ " n.anOffsetTime  = time({ hour:12, minute:31, timezone: '+01:00' }),"
-						+ " n.aLocalTime = localtime({ hour:12, minute:31, second:14 }),"
-						+ " n.aZoneDateTime = datetime('2015-07-21T21:40:32-04[America/New_York]'),"
-						+ " n.aLocalDateTime = localdatetime('2015202T21')," + " n.anIsoDuration = duration('P14DT16H12M'),"
-						+ " n.aPoint = point({x:47, y:11})" + " RETURN id(n) AS id", parameters).single().get("id").asLong();
+				ID_OF_CYPHER_TYPES_NODE = w.run("CREATE (n:CypherTypes) SET  n.aBoolean = true,\n"
+						+ " n.aLong = 9223372036854775807, n.aDouble = 1.7976931348, n.aString = 'Hallo, Cypher',\n"
+						+ " n.aByteArray = $aByteArray, n.aLocalDate = date('2015-07-21'),\n"
+						+ " n.anOffsetTime  = time({ hour:12, minute:31, timezone: '+01:00' }),\n"
+						+ " n.aLocalTime = localtime({ hour:12, minute:31, second:14 }),\n"
+						+ " n.aZoneDateTime = datetime('2015-07-21T21:40:32-04[America/New_York]'),\n"
+						+ " n.aLocalDateTime = localdatetime('2015202T21'), n.anIsoDuration = duration('P14DT16H12M'),\n"
+						+ " n.aPoint = point({x:47, y:11})\n"
+						+ " RETURN id(n) AS id", parameters).single().get("id").asLong();
 
 				parameters = new HashMap<>();
 				parameters.put("aByte", Values.value(new byte[] { 6 }));
-				ID_OF_ADDITIONAL_TYPES_NODE = w
-						.run("CREATE (n:AdditionalTypes) SET " + " n.booleanArray = [true, true, false]," + " n.aByte = $aByte,"
-								+ " n.aChar = 'x'," + " n.charArray = ['x', 'y', 'z']," + " n.aDate = '2019-09-21T13:23:11Z',"
-								+ " n.doubleArray = [1.1, 2.2, 3.3]," + " n.aFloat = '23.42'," + " n.floatArray = ['4.4', '5.5'],"
-								+ " n.anInt = 42," + " n.intArray = [21, 9]," + " n.aLocale = 'de_DE',"
-								+ " n.longArray = [-9223372036854775808, 9223372036854775807]," + " n.aShort = 127,"
-								+ " n.shortArray = [-10, 10]," + " n.aBigDecimal = '1.79769313486231570E+309',"
-								+ " n.aBigInteger = '92233720368547758070'," + " n.aPeriod = duration('P23Y4M7D'),"
-								+ " n.aDuration = duration('PT26H4M5S')," + " n.stringArray = ['Hallo', 'Welt'],"
-								+ " n.listOfStrings = ['Hello', 'World']," + " n.setOfStrings = ['Hallo', 'Welt'],"
-								+ " n.anInstant = datetime('2019-09-26T20:34:23Z'),"
-								+ " n.aUUID = 'd4ec9208-4b17-4ec7-a709-19a5e53865a8'," + " n.listOfDoubles = [1.0],"
-								+ " n.aURL = 'https://www.test.com',"
-								+ " n.aURI = 'urn:isbn:9783864905254',"
-								+ " n.anEnum = 'TheUsualMisfit'," + " n.anArrayOfEnums = ['ValueA', 'ValueB'],"
-								+ " n.aCollectionOfEnums = ['ValueC', 'TheUsualMisfit'],"
-							 	+ " n.aTimeZone = 'America/Los_Angeles', "
-							 	+ " n.aZoneId = 'America/New_York'"
-							 	+ " RETURN id(n) AS id", parameters)
-						.single().get("id").asLong();
+				ID_OF_ADDITIONAL_TYPES_NODE = w.run("CREATE (n:AdditionalTypes) SET  n.booleanArray = [true, true, false], n.aByte = $aByte,\n"
+						+ " n.aChar = 'x', n.charArray = ['x', 'y', 'z'], n.aDate = '2019-09-21T13:23:11Z',\n"
+						+ " n.doubleArray = [1.1, 2.2, 3.3], n.aFloat = '23.42', n.floatArray = ['4.4', '5.5'],\n"
+						+ " n.anInt = 42, n.intArray = [21, 9], n.aLocale = 'de_DE',\n"
+						+ " n.longArray = [-9223372036854775808, 9223372036854775807], n.aShort = 127,\n"
+						+ " n.shortArray = [-10, 10], n.aBigDecimal = '1.79769313486231570E+309',\n"
+						+ " n.aBigInteger = '92233720368547758070', n.aPeriod = duration('P23Y4M7D'),\n"
+						+ " n.aDuration = duration('PT26H4M5S'), n.stringArray = ['Hallo', 'Welt'],\n"
+						+ " n.listOfStrings = ['Hello', 'World'], n.setOfStrings = ['Hallo', 'Welt'],\n"
+						+ " n.anInstant = datetime('2019-09-26T20:34:23Z'),\n"
+						+ " n.aUUID = 'd4ec9208-4b17-4ec7-a709-19a5e53865a8', n.listOfDoubles = [1.0],\n"
+						+ " n.aURL = 'https://www.test.com',\n"
+						+ " n.aURI = 'urn:isbn:9783864905254',\n"
+						+ " n.anEnum = 'TheUsualMisfit', n.anArrayOfEnums = ['ValueA', 'ValueB'],\n"
+						+ " n.aCollectionOfEnums = ['ValueC', 'TheUsualMisfit'],\n"
+						+ " n.aTimeZone = 'America/Los_Angeles', \n"
+						+ " n.aZoneId = 'America/New_York', n.aZeroPeriod = duration('PT0S'), n.aZeroDuration = duration('PT0S')\n"
+						+ " RETURN id(n) AS id", parameters).single().get("id").asLong();
 
 				parameters = new HashMap<>();
 				parameters.put("neo4j", NEO_HQ.toParameterMap());
