@@ -13,25 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.integration.issues.gh2326;
+package org.springframework.data.neo4j.integration.issues.gh2328;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.util.Collections;
-import java.util.List;
+import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.Transaction;
-import org.neo4j.driver.Value;
 import org.springframework.data.neo4j.test.Neo4jExtension;
 
 /**
  * @author Michael J. Simons
+ * @soundtrack Motörhead - Better Motörhead Than Dead - Live At Hammersmith
  */
 abstract class TestBase {
 
 	protected static Neo4jExtension.Neo4jConnectionSupport neo4jConnectionSupport;
+
+	protected static UUID id;
 
 	@BeforeAll
 	protected static void setupData() {
@@ -39,23 +40,17 @@ abstract class TestBase {
 				Transaction transaction = session.beginTransaction();
 		) {
 			transaction.run("MATCH (n) detach delete n");
+			id = UUID.fromString(
+					transaction.run("CREATE (f:SomeEntity {name: 'A name', id: randomUUID()}) RETURN f.id").single()
+							.get(0).asString());
 			transaction.commit();
 		}
 	}
 
-	protected final void assertLabels(List<String> ids) {
-		try (Session session = neo4jConnectionSupport.getDriver().session()) {
-			for (String id : ids) {
-				List<String> labels = session.readTransaction(
-						tx -> tx.run("MATCH (n) WHERE n.id = $id RETURN labels(n)", Collections.singletonMap("id", id))
-								.single().get(0).asList(
-										Value::asString));
-				assertThat(labels)
-						.hasSize(3)
-						.contains("Animal", "Pet")
-						.containsAnyOf("Dog", "Cat");
-
-			}
-		}
+	protected final boolean requirements(SomeEntity someEntity) {
+		assertThat(someEntity).isNotNull();
+		assertThat(someEntity).extracting(SomeEntity::getId).isEqualTo(id);
+		assertThat(someEntity).extracting(SomeEntity::getName).isEqualTo("A name");
+		return true;
 	}
 }
