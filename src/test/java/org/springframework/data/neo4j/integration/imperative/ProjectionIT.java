@@ -48,6 +48,7 @@ import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
 import org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager;
 import org.springframework.data.neo4j.integration.shared.common.NamesOnly;
 import org.springframework.data.neo4j.integration.shared.common.NamesOnlyDto;
+import org.springframework.data.neo4j.integration.shared.common.NamesWithSpELCity;
 import org.springframework.data.neo4j.integration.shared.common.Person;
 import org.springframework.data.neo4j.integration.shared.common.PersonSummary;
 import org.springframework.data.neo4j.integration.shared.common.ProjectionTest1O1;
@@ -141,6 +142,18 @@ class ProjectionIT {
 		assertThat(people).extracting(NamesOnly::getLastName).containsOnly(LAST_NAME);
 
 		assertThat(people).extracting(NamesOnly::getFullName).containsExactlyInAnyOrder(FIRST_NAME + " " + LAST_NAME, FIRST_NAME2 + " " + LAST_NAME);
+	}
+
+	@Test // GH-2325
+	void loadNamesWithCityProjection(@Autowired ProjectionPersonRepository repository) {
+
+		Collection<NamesWithSpELCity> people = repository.findProjectionByLastName(LAST_NAME);
+		assertThat(people).hasSize(2);
+
+		assertThat(people).extracting(NamesWithSpELCity::getFirstName).containsExactlyInAnyOrder(FIRST_NAME, FIRST_NAME2);
+		assertThat(people).extracting(NamesWithSpELCity::getLastName).containsOnly(LAST_NAME);
+
+		assertThat(people).extracting(NamesWithSpELCity::getCity).containsExactlyInAnyOrder(CITY, CITY);
 	}
 
 	@Test
@@ -337,6 +350,8 @@ class ProjectionIT {
 	interface ProjectionPersonRepository extends Neo4jRepository<Person, Long>, CypherdslStatementExecutor<Person>  {
 
 		Collection<NamesOnly> findByLastName(String lastName);
+
+		Collection<NamesWithSpELCity> findProjectionByLastName(String lastName);
 
 		Page<NamesOnly> findAllProjectedBy(Pageable pageable);
 
