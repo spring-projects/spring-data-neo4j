@@ -17,8 +17,8 @@ package org.springframework.data.neo4j.core
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.reactive.asFlow
-import kotlinx.coroutines.reactive.awaitSingle
-import kotlinx.coroutines.reactive.awaitSingleOrNull
+import kotlinx.coroutines.reactor.awaitSingle
+import kotlinx.coroutines.reactor.awaitSingleOrNull
 import org.neo4j.cypherdsl.core.Statement
 import reactor.core.publisher.Mono
 
