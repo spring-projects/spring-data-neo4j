@@ -74,10 +74,10 @@ import org.springframework.data.neo4j.core.mapping.NestedRelationshipContext;
 import org.springframework.data.neo4j.core.mapping.NestedRelationshipProcessingStateMachine;
 import org.springframework.data.neo4j.core.mapping.NestedRelationshipProcessingStateMachine.ProcessState;
 import org.springframework.data.neo4j.core.mapping.NodeDescription;
+import org.springframework.data.neo4j.core.mapping.PropertyFilter;
 import org.springframework.data.neo4j.core.mapping.RelationshipDescription;
 import org.springframework.data.neo4j.core.mapping.callback.EventSupport;
 import org.springframework.data.neo4j.repository.NoResultException;
-import org.springframework.data.neo4j.core.mapping.PropertyFilter;
 import org.springframework.data.neo4j.repository.query.QueryFragments;
 import org.springframework.data.neo4j.repository.query.QueryFragmentsAndParameters;
 import org.springframework.data.projection.ProjectionFactory;
@@ -425,22 +425,21 @@ public final class Neo4jTemplate implements
 
 	private <T> List<T> saveAllImpl(Iterable<T> instances, List<PropertyPath> includedProperties) {
 
-		List<T> entities;
-		if (instances instanceof Collection) {
-			entities = new ArrayList<>((Collection<T>) instances);
-		} else {
-			entities = new ArrayList<>();
-			instances.forEach(entities::add);
-		}
+		Set<Class<?>> types = new HashSet<>();
+		List<T> entities = new ArrayList<>();
+		instances.forEach(instance -> {
+			entities.add(instance);
+			types.add(instance.getClass());
+		});
 
 		if (entities.isEmpty()) {
 			return Collections.emptyList();
 		}
 
-		Class<T> domainClass = (Class<T>) TemplateSupport.findCommonElementType(entities);
-		Assert.notNull(domainClass, "Could not determine common domain class to save.");
-		Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getPersistentEntity(domainClass);
-		if (entityMetaData.isUsingInternalIds() || entityMetaData.hasVersionProperty()
+		boolean heterogeneousCollection = types.size() > 1;
+		Class<T> domainClass = (Class<T>) types.iterator().next();
+		Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getRequiredPersistentEntity(domainClass);
+		if (heterogeneousCollection || entityMetaData.isUsingInternalIds() || entityMetaData.hasVersionProperty()
 				|| entityMetaData.getDynamicLabelsProperty().isPresent()) {
 			log.debug("Saving entities using single statements.");
 
@@ -460,7 +459,7 @@ public final class Neo4jTemplate implements
 		}
 
 		List<Tuple3<T>> entitiesToBeSaved = entities.stream()
-				.map(e -> new Tuple3<>(e, neo4jMappingContext.getPersistentEntity(e.getClass()).isNew(e), eventSupport.maybeCallBeforeBind(e)))
+				.map(e -> new Tuple3<>(e, entityMetaData.isNew(e), eventSupport.maybeCallBeforeBind(e)))
 				.collect(Collectors.toList());
 
 		// Save roots

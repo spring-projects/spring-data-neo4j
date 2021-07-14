@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -461,24 +462,22 @@ public final class ReactiveNeo4jTemplate implements
 
 	private <T> Flux<T> saveAllImpl(Iterable<T> instances, @Nullable List<PropertyPath> includedProperties) {
 
-		List<T> entities;
-		if (instances instanceof Collection) {
-			entities = new ArrayList<>((Collection<T>) instances);
-		} else {
-			entities = new ArrayList<>();
-			instances.forEach(entities::add);
-		}
+		Set<Class<?>> types = new HashSet<>();
+		List<T> entities = new ArrayList<>();
+		instances.forEach(instance -> {
+			entities.add(instance);
+			types.add(instance.getClass());
+		});
 
 		if (entities.isEmpty()) {
 			return Flux.empty();
 		}
 
-		Class<T> domainClass = (Class<T>) TemplateSupport.findCommonElementType(entities);
-		Assert.notNull(domainClass, "Could not determine common domain class to save.");
-		Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getPersistentEntity(domainClass);
-
-		if (entityMetaData.isUsingInternalIds() || entityMetaData.hasVersionProperty()
-				|| entityMetaData.getDynamicLabelsProperty().isPresent()) {
+		boolean heterogeneousCollection = types.size() > 1;
+		Class<T> domainClass = (Class<T>) types.iterator().next();
+		Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getRequiredPersistentEntity(domainClass);
+		if (heterogeneousCollection || entityMetaData.isUsingInternalIds() || entityMetaData.hasVersionProperty()
+			|| entityMetaData.getDynamicLabelsProperty().isPresent()) {
 			log.debug("Saving entities using single statements.");
 
 			return Flux.fromIterable(entities).flatMap(e -> this.saveImpl(e, includedProperties));
