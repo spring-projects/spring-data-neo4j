@@ -44,16 +44,18 @@ public class PropertyFilterSupport {
 		List<PropertyPath> filteredProperties = new ArrayList<>();
 
 		boolean isProjecting = returnedType.isProjecting();
-		for (String inputProperty : returnedType.getInputProperties()) {
-			if (isProjecting) {
-				addPropertiesFrom(returnedType.getDomainType(), returnedType.getReturnedType(), factory,
-						filteredProperties, inputProperty, mappingContext);
-			} else {
-				addPropertiesFromEntity(filteredProperties, PropertyPath.from(inputProperty, returnedType.getDomainType()),
-						returnedType.getReturnedType(), mappingContext, new HashSet<>());
-			}
+		boolean isClosedProjection = factory.getProjectionInformation(returnedType.getReturnedType()).isClosed();
+
+		if (!isProjecting || !isClosedProjection) {
+			return Collections.emptyList();
 		}
-		return isProjecting ? filteredProperties : Collections.emptyList();
+
+		for (String inputProperty : returnedType.getInputProperties()) {
+			addPropertiesFrom(returnedType.getDomainType(), returnedType.getReturnedType(), factory,
+					filteredProperties, inputProperty, mappingContext);
+		}
+
+		return filteredProperties;
 	}
 
 	public static List<PropertyPath> addPropertiesFrom(Class<?> returnType, Class<?> domainType,
@@ -161,11 +163,11 @@ public class PropertyFilterSupport {
 		filteredProperties.add(propertyPath);
 
 		persistentEntityFromProperty.doWithAll(neo4jPersistentProperty -> {
-			addPropertiesFrom(filteredProperties, propertyPath.nested(neo4jPersistentProperty.getFieldName()), mappingContext, processedEntities);
+			addPropertiesFromEntity(filteredProperties, propertyPath.nested(neo4jPersistentProperty.getFieldName()), mappingContext, processedEntities);
 		});
 	}
 
-	private static void addPropertiesFrom(Collection<PropertyPath> filteredProperties, PropertyPath propertyPath,
+	private static void addPropertiesFromEntity(Collection<PropertyPath> filteredProperties, PropertyPath propertyPath,
 										  Neo4jMappingContext mappingContext,
 										  Collection<Neo4jPersistentEntity<?>> processedEntities) {
 
