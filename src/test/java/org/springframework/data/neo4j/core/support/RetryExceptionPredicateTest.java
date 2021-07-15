@@ -21,6 +21,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.junit.platform.commons.util.ReflectionUtils;
+import org.neo4j.driver.exceptions.DiscoveryException;
 import org.neo4j.driver.exceptions.ServiceUnavailableException;
 import org.neo4j.driver.exceptions.SessionExpiredException;
 import org.springframework.dao.TransientDataAccessResourceException;
@@ -46,6 +47,13 @@ class RetryExceptionPredicateTest {
 
 		RetryExceptionPredicate predicate = new RetryExceptionPredicate();
 		assertThat(predicate.test(new IllegalStateException())).isFalse();
+	}
+
+	@Test // GH-2311
+	void shouldRetryDiscoveryExceptions() {
+
+		RetryExceptionPredicate predicate = new RetryExceptionPredicate();
+		assertThat(predicate.test(new DiscoveryException("Broken", new RuntimeException()))).isTrue();
 	}
 
 	@Test
