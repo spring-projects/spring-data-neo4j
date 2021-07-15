@@ -11,7 +11,7 @@ image:https://spring.io/badges/spring-data-neo4j/ga.svg[Spring Data Neo4j,link=h
 
 :neo4j-version: 4.1.5
 :spring-boot-version: 2.4.1
-:spring-data-neo4j-version: 6.0.2
+:spring-data-neo4j-version: 6.1.3
 // end::properties[]
 
 [abstract]
@@ -46,9 +46,8 @@ If you are on https://spring.io/projects/spring-boot[Spring Boot], all you have 
 [source,xml,subs="verbatim,attributes"]
 ----
 <dependency>
-	<groupId>{neo4jgroupId}</groupId>
+	<groupId>{neo4jGroupId}</groupId>
 	<artifactId>{artifactIdStarter}</artifactId>
-	<version>{spring-data-neo4j-version}</version>
 </dependency>
 ----
 
@@ -71,7 +70,7 @@ If you are using a plain Spring Framework project without Spring Boot, please ad
 [source,xml,subs="verbatim,attributes"]
 ----
 <dependency>
-	<groupId>{springGroupId}</groupId>
+	<groupId>{neo4jGroupId}</groupId>
 	<artifactId>{artifactId}</artifactId>
 	<version>{spring-data-neo4j-version}</version>
 </dependency>
