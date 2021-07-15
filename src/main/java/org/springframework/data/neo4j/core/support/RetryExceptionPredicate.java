@@ -22,6 +22,7 @@ import java.util.Set;
 import java.util.function.Predicate;
 
 import org.apiguardian.api.API;
+import org.neo4j.driver.exceptions.DiscoveryException;
 import org.neo4j.driver.exceptions.ServiceUnavailableException;
 import org.neo4j.driver.exceptions.SessionExpiredException;
 import org.neo4j.driver.exceptions.TransientException;
@@ -60,7 +61,7 @@ public final class RetryExceptionPredicate implements Predicate<Throwable> {
 			return !("Neo.TransientError.Transaction.Terminated".equals(code) ||
 					"Neo.TransientError.Transaction.LockClientStopped".equals(code));
 		} else {
-			return ex instanceof SessionExpiredException || ex instanceof ServiceUnavailableException;
+			return ex instanceof SessionExpiredException || ex instanceof ServiceUnavailableException || ex instanceof DiscoveryException;
 		}
 	}
 }
