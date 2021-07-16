@@ -18,13 +18,11 @@ package org.springframework.data.neo4j.repository.support;
 import java.io.Serializable;
 
 import org.apiguardian.api.API;
-import org.springframework.data.mapping.callback.ReactiveEntityCallbacks;
 import org.springframework.data.neo4j.core.ReactiveNeo4jOperations;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.core.support.RepositoryFactorySupport;
 import org.springframework.data.repository.core.support.TransactionalRepositoryFactoryBeanSupport;
-import org.springframework.lang.Nullable;
 
 /**
  * Special adapter for Springs {@link org.springframework.beans.factory.FactoryBean} interface to allow easy setup of
@@ -44,8 +42,6 @@ public final class ReactiveNeo4jRepositoryFactoryBean<T extends Repository<S, ID
 	private ReactiveNeo4jOperations neo4jOperations;
 
 	private Neo4jMappingContext neo4jMappingContext;
-
-	private @Nullable ReactiveEntityCallbacks entityCallbacks;
 
 	/**
 	 * Creates a new {@link TransactionalRepositoryFactoryBeanSupport} for the given repository interface.

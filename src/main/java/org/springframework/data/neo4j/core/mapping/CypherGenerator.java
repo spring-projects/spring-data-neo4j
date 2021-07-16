@@ -44,7 +44,6 @@ import org.neo4j.cypherdsl.core.Parameter;
 import org.neo4j.cypherdsl.core.PatternElement;
 import org.neo4j.cypherdsl.core.Property;
 import org.neo4j.cypherdsl.core.Relationship;
-import org.neo4j.cypherdsl.core.RelationshipPattern;
 import org.neo4j.cypherdsl.core.SortItem;
 import org.neo4j.cypherdsl.core.Statement;
 import org.neo4j.cypherdsl.core.StatementBuilder;
@@ -673,15 +672,4 @@ public enum CypherGenerator {
 	private static Condition conditionOrNoCondition(@Nullable Condition condition) {
 		return condition == null ? Conditions.noCondition() : condition;
 	}
-
-	private static class RelationshipProcessState {
-		private final RelationshipPattern relationship;
-		private final boolean done;
-
-		RelationshipProcessState(RelationshipPattern relationship, boolean done) {
-			this.relationship = relationship;
-			this.done = done;
-		}
-	}
-
 }
