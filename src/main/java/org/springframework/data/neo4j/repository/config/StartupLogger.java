@@ -21,7 +21,6 @@ import org.apache.commons.logging.LogFactory;
 import org.neo4j.driver.Driver;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.data.mapping.context.AbstractMappingContext;
-import org.springframework.data.repository.config.RepositoryConfigurationExtensionSupport;
 
 /**
  * Logs startup information.
@@ -67,7 +66,7 @@ final class StartupLogger {
 				.orElse("an unknown version of Spring Data Commons");
 		String driver = getVersionOf(Driver.class).map(v -> "Neo4j Driver v" + v)
 				.orElse("an unknown version of the Neo4j Java Driver");
-		RepositoryConfigurationExtensionSupport f;
+
 		sb.append("Bootstrapping ").append(mode.displayValue).append(" Neo4j repositories based on ").append(sdnRx)
 				.append(" with ").append(sdC).append(" and ").append(driver).append(".");
 
