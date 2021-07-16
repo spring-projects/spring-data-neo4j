@@ -27,7 +27,6 @@ import org.reactivestreams.Publisher;
 
 import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.core.ReactiveNeo4jOperations;
-import org.springframework.data.neo4j.core.mapping.CypherGenerator;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.repository.query.QueryFragmentsAndParameters;
@@ -57,15 +56,12 @@ public class SimpleReactiveNeo4jRepository<T, ID> implements ReactiveSortingRepo
 
 	private final Neo4jPersistentEntity<T> entityMetaData;
 
-	private final CypherGenerator cypherGenerator;
-
 	protected SimpleReactiveNeo4jRepository(ReactiveNeo4jOperations neo4jOperations,
 			Neo4jEntityInformation<T, ID> entityInformation) {
 
 		this.neo4jOperations = neo4jOperations;
 		this.entityInformation = entityInformation;
 		this.entityMetaData = this.entityInformation.getEntityMetaData();
-		this.cypherGenerator = CypherGenerator.INSTANCE;
 	}
 
 	@Override
