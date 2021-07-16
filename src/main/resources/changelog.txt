@@ -1,6 +1,14 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 6.0.11 (2021-07-16)
+--------------------------------------
+* #2328 - Create tests for named queries in a non-default location.
+* #2326 - `saveAll` use the lowest common denominator for determining the entity type to be saved.
+* #2324 - Improve handling of 0-valued `IsoDuration`.
+* #2311 - Include `DiscoveryException` in retry predicate.
+
+
 Changes in version 6.1.2 (2021-06-22)
 -------------------------------------
 * #2301 - Passing empty collections to derived finder methods lead to a `NullPointerException`.
@@ -2293,6 +2301,7 @@ General
 * Support for building traversal descriptions
 * Support for cross-store persistence including basic transaction support
 * Abstract configuration class
+
 
 
 
