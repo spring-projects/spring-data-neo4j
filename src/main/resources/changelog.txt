@@ -1,6 +1,24 @@
 Spring Data Neo4j Changelog
 ===========================
 
+Changes in version 6.1.3 (2021-07-16)
+-------------------------------------
+* #2330 - Upgrade to Neo4j 4.2.9.
+* #2328 - Create tests for named queries in a non-default location.
+* #2326 - `saveAll` use the lowest common denominator for determining the entity type to be saved.
+* #2325 - Support for SpEL pointing to related entities in projection on first level.
+* #2324 - Improve handling of 0-valued `IsoDuration`.
+* #2323 - Support entities annotated with `@RelationshipProperties` as top level parameters to custom procedures.
+* #2319 - Mapping performance optimization.
+* #2318 - Bug in connecting objects.
+* #2317 - Detection of cycles too defensive.
+* #2313 - Multi-level projection support.
+* #2311 - Include `DiscoveryException` in retry predicate.
+* #2305 - Add association support for DTO projections.
+* #2287 - Upgrade to CypherDSL 2021.2.3 and adapt Collection-API.
+* #2216 - Allow inheritance of concrete classes.
+
+
 Changes in version 6.1.2 (2021-06-22)
 -------------------------------------
 * #2301 - Passing empty collections to derived finder methods lead to a `NullPointerException`.
@@ -2293,6 +2311,7 @@ General
 * Support for building traversal descriptions
 * Support for cross-store persistence including basic transaction support
 * Abstract configuration class
+
 
 
 
