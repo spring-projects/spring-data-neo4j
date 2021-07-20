@@ -278,7 +278,7 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndPar
 
 		// all the ways we could query for
 		Node startNode = Cypher.node(nodeDescription.getPrimaryLabel(), nodeDescription.getAdditionalLabels())
-				.named(Constants.NAME_OF_ROOT_NODE);
+				.named(Constants.NAME_OF_TYPED_ROOT_NODE.apply(nodeDescription));
 
 		Condition conditionFragment = Optional.ofNullable(condition).orElseGet(Conditions::noCondition);
 		List<PatternElement> relationshipChain = new ArrayList<>();
@@ -302,7 +302,7 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndPar
 		if (queryType == Neo4jQueryType.COUNT) {
 			queryFragments.setReturnExpression(Functions.count(Cypher.asterisk()), true);
 		} else if (queryType == Neo4jQueryType.EXISTS) {
-			queryFragments.setReturnExpression(Functions.count(Constants.NAME_OF_ROOT_NODE).gt(Cypher.literalOf(0)), true);
+			queryFragments.setReturnExpression(Functions.count(Constants.NAME_OF_TYPED_ROOT_NODE.apply(nodeDescription)).gt(Cypher.literalOf(0)), true);
 		} else {
 			queryFragments.setReturnBasedOn(nodeDescription, includedProperties, isDistinct);
 			queryFragments.setOrderBy(Stream
@@ -535,7 +535,7 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndPar
 
 	private Property toCypherProperty(Neo4jPersistentProperty persistentProperty) {
 
-		return Cypher.property(Constants.NAME_OF_ROOT_NODE, persistentProperty.getPropertyName());
+		return Cypher.property(Constants.NAME_OF_TYPED_ROOT_NODE.apply(nodeDescription), persistentProperty.getPropertyName());
 	}
 
 	private Expression toCypherProperty(PersistentPropertyPath<Neo4jPersistentProperty> path, boolean addToLower) {
@@ -546,8 +546,8 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndPar
 
 		if (owner.equals(this.nodeDescription) && path.getLength() == 1) {
 			expression = leafProperty.isInternalIdProperty() ?
-					Cypher.call("id").withArgs(Constants.NAME_OF_ROOT_NODE).asFunction() :
-					Cypher.property(Constants.NAME_OF_ROOT_NODE, leafProperty.getPropertyName());
+					Cypher.call("id").withArgs(Constants.NAME_OF_TYPED_ROOT_NODE.apply(nodeDescription)).asFunction() :
+					Cypher.property(Constants.NAME_OF_TYPED_ROOT_NODE.apply(nodeDescription), leafProperty.getPropertyName());
 		} else {
 			PropertyPathWrapper propertyPathWrapper = propertyPathWrappers.stream()
 					.filter(rp -> rp.getPropertyPath().equals(path)).findFirst().get();

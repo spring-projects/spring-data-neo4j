@@ -19,6 +19,9 @@ import org.apiguardian.api.API;
 import org.apiguardian.api.API.Status;
 import org.neo4j.cypherdsl.core.Cypher;
 import org.neo4j.cypherdsl.core.SymbolicName;
+import org.springframework.util.StringUtils;
+
+import java.util.function.Function;
 
 /**
  * A pool of constants used in our Cypher generation. These constants may change without further notice and are meant
@@ -32,6 +35,9 @@ import org.neo4j.cypherdsl.core.SymbolicName;
 public final class Constants {
 
 	public static final SymbolicName NAME_OF_ROOT_NODE = Cypher.name("n");
+
+	public static final Function<NodeDescription<?>, SymbolicName> NAME_OF_TYPED_ROOT_NODE = (nodeDescription) ->
+			Cypher.name(StringUtils.uncapitalize(nodeDescription.getUnderlyingClass().getSimpleName()));
 
 	public static final String NAME_OF_INTERNAL_ID = "__internalNeo4jId__";
 	/**
@@ -54,7 +60,6 @@ public final class Constants {
 	public static final String NAME_OF_ENTITY_LIST_PARAM = "__entities__";
 	public static final String NAME_OF_KNOWN_RELATIONSHIP_PARAM = "__knownRelationShipId__";
 	public static final String NAME_OF_KNOWN_RELATIONSHIPS_PARAM = "__knownRelationShipIds__";
-	public static final String NAME_OF_PATHS = "__paths__";
 	public static final String NAME_OF_ALL_PROPERTIES = "__allProperties__";
 
 	public static final String NAME_OF_SYNTHESIZED_ROOT_NODE = "__sn__";

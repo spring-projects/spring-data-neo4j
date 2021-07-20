@@ -55,7 +55,7 @@ public final class CypherAdapterUtils {
 			boolean propertyIsQualified = domainProperty.contains(".");
 			SymbolicName root;
 			if (!propertyIsQualified) {
-				root = Constants.NAME_OF_ROOT_NODE;
+				root = Constants.NAME_OF_TYPED_ROOT_NODE.apply(nodeDescription);
 			} else {
 				int indexOfSeparator = domainProperty.indexOf(".");
 				root = Cypher.name(domainProperty.substring(0, indexOfSeparator));

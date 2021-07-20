@@ -22,6 +22,7 @@ import org.neo4j.cypherdsl.core.Cypher;
 import org.neo4j.cypherdsl.core.Expression;
 import org.neo4j.cypherdsl.core.Functions;
 import org.neo4j.cypherdsl.core.Node;
+import org.neo4j.cypherdsl.core.SymbolicName;
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.IdGenerator;
 import org.springframework.data.util.Lazy;
@@ -54,45 +55,48 @@ public final class IdDescription {
 
 	private final Lazy<Expression> idExpression;
 
-	public static IdDescription forAssignedIds(String graphPropertyName) {
+	public static IdDescription forAssignedIds(SymbolicName symbolicName, String graphPropertyName) {
 
 		Assert.notNull(graphPropertyName, "Graph property name is required.");
-		return new IdDescription(null, null, graphPropertyName);
+		return new IdDescription(symbolicName, null, null, graphPropertyName);
 	}
 
-	public static IdDescription forInternallyGeneratedIds() {
-		return new IdDescription(GeneratedValue.InternalIdGenerator.class, null, null);
+	public static IdDescription forInternallyGeneratedIds(SymbolicName symbolicName) {
+		return new IdDescription(symbolicName, GeneratedValue.InternalIdGenerator.class, null, null);
 	}
 
-	public static IdDescription forExternallyGeneratedIds(@Nullable Class<? extends IdGenerator<?>> idGeneratorClass,
+	public static IdDescription forExternallyGeneratedIds(SymbolicName symbolicName,
+		    @Nullable Class<? extends IdGenerator<?>> idGeneratorClass,
 			@Nullable String idGeneratorRef, String graphPropertyName) {
 
 		Assert.notNull(graphPropertyName, "Graph property name is required.");
 		try {
 			Assert.hasText(idGeneratorRef, "Reference to an ID generator has precedence.");
 
-			return new IdDescription(null, idGeneratorRef, graphPropertyName);
+			return new IdDescription(symbolicName, null, idGeneratorRef, graphPropertyName);
 		} catch (IllegalArgumentException e) {
 			Assert.notNull(idGeneratorClass, "Class of id generator is required.");
 			Assert.isTrue(idGeneratorClass != GeneratedValue.InternalIdGenerator.class,
 					"Cannot use InternalIdGenerator for externally generated ids.");
 
-			return new IdDescription(idGeneratorClass, null, graphPropertyName);
+			return new IdDescription(symbolicName, idGeneratorClass, null, graphPropertyName);
 		}
 	}
 
-	private IdDescription(@Nullable Class<? extends IdGenerator<?>> idGeneratorClass, @Nullable String idGeneratorRef,
-			@Nullable String graphPropertyName) {
+	private IdDescription(@Nullable SymbolicName symbolicName, @Nullable Class<? extends IdGenerator<?>> idGeneratorClass,
+		    @Nullable String idGeneratorRef, @Nullable String graphPropertyName) {
+
 		this.idGeneratorClass = idGeneratorClass;
 		this.idGeneratorRef = idGeneratorRef != null && idGeneratorRef.isEmpty() ? null : idGeneratorRef;
 		this.graphPropertyName = graphPropertyName;
+		SymbolicName nodeName = symbolicName != null ? symbolicName : Constants.NAME_OF_ROOT_NODE;
 		this.idExpression = Lazy.of(() -> {
-			final Node rootNode = Cypher.anyNode(Constants.NAME_OF_ROOT_NODE);
+			final Node rootNode = Cypher.anyNode(nodeName);
 			if (this.isInternallyGeneratedId()) {
 				return Functions.id(rootNode);
 			} else {
 				return this.getOptionalGraphPropertyName()
-						.map(propertyName -> Cypher.property(Constants.NAME_OF_ROOT_NODE, propertyName)).get();
+						.map(propertyName -> Cypher.property(nodeName, propertyName)).get();
 			}
 		});
 	}

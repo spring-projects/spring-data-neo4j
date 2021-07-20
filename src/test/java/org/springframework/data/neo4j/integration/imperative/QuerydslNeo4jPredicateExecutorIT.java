@@ -61,7 +61,7 @@ class QuerydslNeo4jPredicateExecutorIT {
 	private final Path<String> lastName;
 
 	QuerydslNeo4jPredicateExecutorIT() {
-		this.person = Expressions.path(Person.class, "n");
+		this.person = Expressions.path(Person.class, "person");
 		this.firstName = Expressions.path(String.class, person, "firstName");
 		this.lastName = Expressions.path(String.class, person, "lastName");
 	}

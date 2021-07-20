@@ -420,7 +420,7 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 
 		// Assigned ids
 		if (generatedValueAnnotation == null) {
-			return IdDescription.forAssignedIds(propertyName);
+			return IdDescription.forAssignedIds(Constants.NAME_OF_TYPED_ROOT_NODE.apply(this), propertyName);
 		}
 
 		Class<? extends IdGenerator<?>> idGeneratorClass = generatedValueAnnotation.generatorClass();
@@ -443,11 +443,11 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 						"Internally generated ids can only be assigned to one of " + VALID_GENERATED_ID_TYPES);
 			}
 
-			return IdDescription.forInternallyGeneratedIds();
+			return IdDescription.forInternallyGeneratedIds(Constants.NAME_OF_TYPED_ROOT_NODE.apply(this));
 		}
 
 		// Externally generated ids.
-		return IdDescription.forExternallyGeneratedIds(idGeneratorClass, idGeneratorRef, propertyName);
+		return IdDescription.forExternallyGeneratedIds(Constants.NAME_OF_TYPED_ROOT_NODE.apply(this), idGeneratorClass, idGeneratorRef, propertyName);
 	}
 
 	@Override

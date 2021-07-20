@@ -109,7 +109,7 @@ public enum CypherGenerator {
 		Node rootNode = createRootNode(nodeDescription);
 
 		List<Expression> expressions = new ArrayList<>();
-		expressions.add(Constants.NAME_OF_ROOT_NODE);
+		expressions.add(rootNode.getRequiredSymbolicName());
 		expressions.add(Functions.id(rootNode).as(Constants.NAME_OF_INTERNAL_ID));
 
 		return match(rootNode).where(conditionOrNoCondition(condition)).with(expressions.toArray(new Expression[] {}));
@@ -121,7 +121,7 @@ public enum CypherGenerator {
 		String primaryLabel = nodeDescription.getPrimaryLabel();
 		List<String> additionalLabels = nodeDescription.getAdditionalLabels();
 
-		Node rootNode = node(primaryLabel, additionalLabels).named(Constants.NAME_OF_ROOT_NODE);
+		Node rootNode = node(primaryLabel, additionalLabels).named(Constants.NAME_OF_TYPED_ROOT_NODE.apply(nodeDescription));
 
 		StatementBuilder.OngoingReadingWithoutWhere match = null;
 		if (initialMatchOn == null || initialMatchOn.isEmpty()) {
@@ -150,7 +150,7 @@ public enum CypherGenerator {
 		String primaryLabel = nodeDescription.getPrimaryLabel();
 		List<String> additionalLabels = nodeDescription.getAdditionalLabels();
 
-		Node rootNode = node(primaryLabel, additionalLabels).named(Constants.NAME_OF_ROOT_NODE);
+		Node rootNode = node(primaryLabel, additionalLabels).named(Constants.NAME_OF_TYPED_ROOT_NODE.apply(nodeDescription));
 
 		StatementBuilder.OngoingReadingWithoutWhere match = null;
 		if (initialMatchOn == null || initialMatchOn.isEmpty()) {
@@ -210,7 +210,7 @@ public enum CypherGenerator {
 		String primaryLabel = nodeDescription.getPrimaryLabel();
 		List<String> additionalLabels = nodeDescription.getAdditionalLabels();
 
-		return node(primaryLabel, additionalLabels).named(Constants.NAME_OF_ROOT_NODE);
+		return node(primaryLabel, additionalLabels).named(Constants.NAME_OF_TYPED_ROOT_NODE.apply(nodeDescription));
 	}
 
 	/**
@@ -223,7 +223,7 @@ public enum CypherGenerator {
 	 */
 	public Statement createStatementReturningDynamicLabels(NodeDescription<?> nodeDescription) {
 
-		final Node rootNode = Cypher.anyNode(Constants.NAME_OF_ROOT_NODE);
+		final Node rootNode = Cypher.anyNode(Constants.NAME_OF_TYPED_ROOT_NODE.apply(nodeDescription));
 
 		Condition versionCondition;
 		if (((Neo4jPersistentEntity) nodeDescription).hasVersionProperty()) {
@@ -254,7 +254,7 @@ public enum CypherGenerator {
 	public Statement prepareDeleteOf(NodeDescription<?> nodeDescription, @Nullable Condition condition, boolean count) {
 
 		Node rootNode = node(nodeDescription.getPrimaryLabel(), nodeDescription.getAdditionalLabels())
-				.named(Constants.NAME_OF_ROOT_NODE);
+				.named(Constants.NAME_OF_TYPED_ROOT_NODE.apply(nodeDescription));
 		OngoingUpdate ongoingUpdate = match(rootNode).where(conditionOrNoCondition(condition)).detachDelete(rootNode);
 		if (count) {
 			return ongoingUpdate.returning(Functions.count(rootNode)).build();
@@ -268,7 +268,7 @@ public enum CypherGenerator {
 		String primaryLabel = nodeDescription.getPrimaryLabel();
 		List<String> additionalLabels = nodeDescription.getAdditionalLabels();
 
-		Node rootNode = node(primaryLabel, additionalLabels).named(Constants.NAME_OF_ROOT_NODE);
+		Node rootNode = node(primaryLabel, additionalLabels).named(Constants.NAME_OF_TYPED_ROOT_NODE.apply(nodeDescription));
 		IdDescription idDescription = nodeDescription.getIdDescription();
 		Parameter idParameter = parameter(Constants.NAME_OF_ID);
 
@@ -356,7 +356,7 @@ public enum CypherGenerator {
 				"Only entities that use external IDs can be saved in a batch.");
 
 		Node rootNode = node(nodeDescription.getPrimaryLabel(), nodeDescription.getAdditionalLabels())
-				.named(Constants.NAME_OF_ROOT_NODE);
+				.named(Constants.NAME_OF_TYPED_ROOT_NODE.apply(nodeDescription));
 		IdDescription idDescription = nodeDescription.getIdDescription();
 
 		String nameOfIdProperty = idDescription.getOptionalGraphPropertyName()
@@ -519,7 +519,13 @@ public enum CypherGenerator {
 		if (nodeDescription.containsPossibleCircles(includeField)) {
 			return createGenericReturnStatement();
 		} else {
-			return Collections.singleton(projectPropertiesAndRelationships(PropertyFilter.RelaxedPropertyPath.withRootType(nodeDescription.getUnderlyingClass()), nodeDescription, Constants.NAME_OF_ROOT_NODE, includeField, null, processedRelationships));
+			return Collections.singleton(projectPropertiesAndRelationships(
+					PropertyFilter.RelaxedPropertyPath.withRootType(nodeDescription.getUnderlyingClass()),
+					nodeDescription,
+					Constants.NAME_OF_TYPED_ROOT_NODE.apply(nodeDescription),
+					includeField,
+					null,
+					processedRelationships));
 		}
 	}
 

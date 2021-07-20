@@ -83,8 +83,6 @@ import org.springframework.util.ReflectionUtils;
 @Neo4jIntegrationTest
 class TypeConversionIT extends Neo4jConversionsITBase {
 
-	private final Driver driver;
-
 	@Autowired CypherTypesRepository cypherTypesRepository;
 
 	private final AdditionalTypesRepository additionalTypesRepository;
@@ -96,11 +94,10 @@ class TypeConversionIT extends Neo4jConversionsITBase {
 
 	private final DefaultConversionService defaultConversionService;
 
-	@Autowired TypeConversionIT(Driver driver, CypherTypesRepository cypherTypesRepository,
+	@Autowired TypeConversionIT(CypherTypesRepository cypherTypesRepository,
 			AdditionalTypesRepository additionalTypesRepository, SpatialTypesRepository spatialTypesRepository,
 			CustomTypesRepository customTypesRepository,
 			Neo4jConversions neo4jConversions, BookmarkCapture bookmarkCapture) {
-		this.driver = driver;
 		this.cypherTypesRepository = cypherTypesRepository;
 		this.additionalTypesRepository = additionalTypesRepository;
 		this.spatialTypesRepository = spatialTypesRepository;
@@ -116,7 +113,7 @@ class TypeConversionIT extends Neo4jConversionsITBase {
 		assertThatExceptionOfType(MappingException.class)
 				.isThrownBy(() -> repository.findById(ID_OF_NON_EXISTING_PRIMITIVES_NODE))
 				.withMessageMatching(
-						"Error mapping Record<\\{n: \\{__internalNeo4jId__: \\d+, id: NULL, someBoolean: NULL, __nodeLabels__: \\[\"NonExistingPrimitives\"\\]\\}\\}>")
+						"Error mapping Record<\\{thingWithNonExistingPrimitives: \\{__internalNeo4jId__: \\d+, id: NULL, someBoolean: NULL, __nodeLabels__: \\[\"NonExistingPrimitives\"\\]\\}\\}>")
 				.withStackTraceContaining("unboxBoolean")
 				.withRootCauseInstanceOf(NullPointerException.class);
 	}

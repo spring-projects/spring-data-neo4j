@@ -33,7 +33,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.config.AbstractNeo4jConfig;
 import org.springframework.data.neo4j.core.DatabaseSelectionProvider;
-import org.springframework.data.neo4j.core.mapping.Constants;
 import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
 import org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager;
 import org.springframework.data.neo4j.integration.shared.common.Person;
@@ -73,7 +72,7 @@ class CypherdslConditionExecutorIT {
 
 		//CHECKSTYLE:OFF
 		// tag::sdn-mixins.dynamic-conditions.usage[]
-		Node person = Cypher.node("Person").named(Constants.NAME_OF_ROOT_NODE); // <.>
+		Node person = Cypher.node("Person").named("person"); // <.>
 		Property firstName = person.property("firstName"); // <.>
 		Property lastName = person.property("lastName");
 		// end::sdn-mixins.dynamic-conditions.usage[]

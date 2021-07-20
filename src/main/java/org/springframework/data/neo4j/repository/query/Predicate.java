@@ -84,7 +84,7 @@ final class Predicate {
 
 			if (!optionalValue.isPresent()) {
 				if (!internalId && matcherAccessor.getNullHandler().equals(ExampleMatcher.NullHandler.INCLUDE)) {
-					predicate.add(mode, property(Constants.NAME_OF_ROOT_NODE, propertyName).isNull());
+					predicate.add(mode, property(Constants.NAME_OF_TYPED_ROOT_NODE.apply(probeNodeDescription), propertyName).isNull());
 				}
 				continue;
 			}
@@ -97,7 +97,7 @@ final class Predicate {
 				predicate.add(mode,
 						predicate.neo4jPersistentEntity.getIdExpression().isEqualTo(literalOf(optionalValue.get())));
 			} else {
-				Expression property = property(Constants.NAME_OF_ROOT_NODE, propertyName);
+				Expression property = property(Constants.NAME_OF_TYPED_ROOT_NODE.apply(probeNodeDescription), propertyName);
 				Expression parameter = parameter(propertyName);
 				Condition condition = property.isEqualTo(parameter);
 

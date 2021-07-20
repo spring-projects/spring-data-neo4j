@@ -413,7 +413,7 @@ public final class Neo4jTemplate implements
 			}
 
 			Optional<Map<String, Object>> optionalResult = runnableQuery.fetch().one();
-			return new DynamicLabels(optionalResult.map(r -> (Collection<String>) r.get(Constants.NAME_OF_LABELS))
+			return new DynamicLabels(entityMetaData, optionalResult.map(r -> (Collection<String>) r.get(Constants.NAME_OF_LABELS))
 					.orElseGet(Collections::emptyList), (Collection<String>) propertyAccessor.getProperty(p));
 		}).orElse(DynamicLabels.EMPTY);
 	}
@@ -545,12 +545,12 @@ public final class Neo4jTemplate implements
 
 		String nameOfParameter = "id";
 		Condition condition = entityMetaData.getIdExpression().isEqualTo(parameter(nameOfParameter))
-				.and(Cypher.property(Constants.NAME_OF_ROOT_NODE, versionProperty.getPropertyName())
+				.and(Cypher.property(Constants.NAME_OF_TYPED_ROOT_NODE.apply(entityMetaData), versionProperty.getPropertyName())
 						.isEqualTo(parameter(Constants.NAME_OF_VERSION_PARAM))
-						.or(Cypher.property(Constants.NAME_OF_ROOT_NODE, versionProperty.getPropertyName()).isNull()));
+						.or(Cypher.property(Constants.NAME_OF_TYPED_ROOT_NODE.apply(entityMetaData), versionProperty.getPropertyName()).isNull()));
 
 		Statement statement = cypherGenerator.prepareMatchOf(entityMetaData, condition)
-				.returning(Constants.NAME_OF_ROOT_NODE).build();
+				.returning(Constants.NAME_OF_TYPED_ROOT_NODE.apply(entityMetaData)).build();
 
 		Map<String, Object> parameters = new HashMap<>();
 		parameters.put(nameOfParameter, convertIdValues(entityMetaData.getRequiredIdProperty(), id));
@@ -971,7 +971,7 @@ public final class Neo4jTemplate implements
 					if (nodesAndRelationshipsById.hasRootNodeIds()) {
 						return Optional.empty();
 					}
-					cypherQuery = renderer.render(nodesAndRelationshipsById.toStatement());
+					cypherQuery = renderer.render(nodesAndRelationshipsById.toStatement(entityMetaData));
 					finalParameters = nodesAndRelationshipsById.getParameters();
 				} else {
 					Statement statement = queryFragments.toStatement();
@@ -1036,7 +1036,7 @@ public final class Neo4jTemplate implements
 			Collection<RelationshipDescription> relationships = target.getRelationshipsInHierarchy(preparedQuery.getQueryFragmentsAndParameters().getQueryFragments()::includeField);
 			for (RelationshipDescription relationshipDescription : relationships) {
 
-				Node node = anyNode(Constants.NAME_OF_ROOT_NODE);
+				Node node = anyNode(Constants.NAME_OF_TYPED_ROOT_NODE.apply(target));
 
 				Statement statement = cypherGenerator
 						.prepareMatchOf(target, relationshipDescription, null,
