@@ -28,34 +28,34 @@ class IdDescriptionTest {
 	@Test
 	void isAssignedShouldWork() {
 
-		assertThat(IdDescription.forAssignedIds("foobar").isAssignedId()).isTrue();
-		assertThat(IdDescription.forAssignedIds("foobar").isExternallyGeneratedId()).isFalse();
-		assertThat(IdDescription.forAssignedIds("foobar").isInternallyGeneratedId()).isFalse();
+		assertThat(IdDescription.forAssignedIds(Constants.NAME_OF_ROOT_NODE, "foobar").isAssignedId()).isTrue();
+		assertThat(IdDescription.forAssignedIds(Constants.NAME_OF_ROOT_NODE, "foobar").isExternallyGeneratedId()).isFalse();
+		assertThat(IdDescription.forAssignedIds(Constants.NAME_OF_ROOT_NODE, "foobar").isInternallyGeneratedId()).isFalse();
 	}
 
 	@Test
 	void idIsGeneratedInternallyShouldWork() {
 
-		assertThat(IdDescription.forInternallyGeneratedIds().isAssignedId()).isFalse();
-		assertThat(IdDescription.forInternallyGeneratedIds().isExternallyGeneratedId()).isFalse();
-		assertThat(IdDescription.forInternallyGeneratedIds().isInternallyGeneratedId()).isTrue();
+		assertThat(IdDescription.forInternallyGeneratedIds(Constants.NAME_OF_ROOT_NODE).isAssignedId()).isFalse();
+		assertThat(IdDescription.forInternallyGeneratedIds(Constants.NAME_OF_ROOT_NODE).isExternallyGeneratedId()).isFalse();
+		assertThat(IdDescription.forInternallyGeneratedIds(Constants.NAME_OF_ROOT_NODE).isInternallyGeneratedId()).isTrue();
 	}
 
 	@Test
 	void idIsGeneratedExternally() {
 
-		assertThat(IdDescription.forExternallyGeneratedIds(DummyIdGenerator.class, null, "foobar").isAssignedId())
+		assertThat(IdDescription.forExternallyGeneratedIds(Constants.NAME_OF_ROOT_NODE, DummyIdGenerator.class, null, "foobar").isAssignedId())
 				.isFalse();
 		assertThat(
-				IdDescription.forExternallyGeneratedIds(DummyIdGenerator.class, null, "foobar").isExternallyGeneratedId())
+				IdDescription.forExternallyGeneratedIds(Constants.NAME_OF_ROOT_NODE, DummyIdGenerator.class, null, "foobar").isExternallyGeneratedId())
 						.isTrue();
 		assertThat(
-				IdDescription.forExternallyGeneratedIds(DummyIdGenerator.class, null, "foobar").isInternallyGeneratedId())
+				IdDescription.forExternallyGeneratedIds(Constants.NAME_OF_ROOT_NODE, DummyIdGenerator.class, null, "foobar").isInternallyGeneratedId())
 						.isFalse();
 
-		assertThat(IdDescription.forExternallyGeneratedIds(null, "someId", "foobar").isAssignedId()).isFalse();
-		assertThat(IdDescription.forExternallyGeneratedIds(null, "someId", "foobar").isExternallyGeneratedId()).isTrue();
-		assertThat(IdDescription.forExternallyGeneratedIds(null, "someId", "foobar").isInternallyGeneratedId()).isFalse();
+		assertThat(IdDescription.forExternallyGeneratedIds(Constants.NAME_OF_ROOT_NODE, null, "someId", "foobar").isAssignedId()).isFalse();
+		assertThat(IdDescription.forExternallyGeneratedIds(Constants.NAME_OF_ROOT_NODE, null, "someId", "foobar").isExternallyGeneratedId()).isTrue();
+		assertThat(IdDescription.forExternallyGeneratedIds(Constants.NAME_OF_ROOT_NODE, null, "someId", "foobar").isInternallyGeneratedId()).isFalse();
 	}
 
 	private static class DummyIdGenerator implements IdGenerator<Void> {

@@ -49,7 +49,7 @@ class DefaultNeo4jIsNewStrategyTest {
 			Object a = new Object();
 			Object b = new Object();
 
-			IdDescription idDescription = IdDescription.forInternallyGeneratedIds();
+			IdDescription idDescription = IdDescription.forInternallyGeneratedIds(Constants.NAME_OF_ROOT_NODE);
 			doReturn(Long.class).when(idProperty).getType();
 			doReturn(idDescription).when(entityMetaData).getIdDescription();
 			doReturn(idProperty).when(entityMetaData).getRequiredIdProperty();
@@ -67,7 +67,7 @@ class DefaultNeo4jIsNewStrategyTest {
 			Object b = new Object();
 			Object c = new Object();
 
-			IdDescription idDescription = IdDescription.forInternallyGeneratedIds();
+			IdDescription idDescription = IdDescription.forInternallyGeneratedIds(Constants.NAME_OF_ROOT_NODE);
 			doReturn(long.class).when(idProperty).getType();
 			doReturn(idDescription).when(entityMetaData).getIdDescription();
 			doReturn(idProperty).when(entityMetaData).getRequiredIdProperty();
@@ -89,7 +89,7 @@ class DefaultNeo4jIsNewStrategyTest {
 
 			Object a = new Object();
 			Object b = new Object();
-			IdDescription idDescription = IdDescription.forExternallyGeneratedIds(DummyIdGenerator.class, null, "na");
+			IdDescription idDescription = IdDescription.forExternallyGeneratedIds(Constants.NAME_OF_ROOT_NODE, DummyIdGenerator.class, null, "na");
 			doReturn(String.class).when(idProperty).getType();
 			doReturn(idDescription).when(entityMetaData).getIdDescription();
 			doReturn(idProperty).when(entityMetaData).getRequiredIdProperty();
@@ -104,7 +104,7 @@ class DefaultNeo4jIsNewStrategyTest {
 		@Test
 		void doesntNeedToDealWithPrimitives() {
 
-			IdDescription idDescription = IdDescription.forExternallyGeneratedIds(DummyIdGenerator.class, null, "na");
+			IdDescription idDescription = IdDescription.forExternallyGeneratedIds(Constants.NAME_OF_ROOT_NODE, DummyIdGenerator.class, null, "na");
 			doReturn(long.class).when(idProperty).getType();
 			doReturn(idDescription).when(entityMetaData).getIdDescription();
 			doReturn(idProperty).when(entityMetaData).getRequiredIdProperty();
@@ -121,7 +121,7 @@ class DefaultNeo4jIsNewStrategyTest {
 		@Test
 		void shouldAlwaysTreatEntitiesAsNewWithoutVersion() {
 			Object a = new Object();
-			IdDescription idDescription = IdDescription.forAssignedIds("na");
+			IdDescription idDescription = IdDescription.forAssignedIds(Constants.NAME_OF_ROOT_NODE, "na");
 			doReturn(String.class).when(idProperty).getType();
 			doReturn(idDescription).when(entityMetaData).getIdDescription();
 			doReturn(idProperty).when(entityMetaData).getRequiredIdProperty();
@@ -134,7 +134,7 @@ class DefaultNeo4jIsNewStrategyTest {
 		void shouldDealWithVersion() {
 			Object a = new Object();
 			Object b = new Object();
-			IdDescription idDescription = IdDescription.forAssignedIds("na");
+			IdDescription idDescription = IdDescription.forAssignedIds(Constants.NAME_OF_ROOT_NODE, "na");
 
 			doReturn(String.class).when(idProperty).getType();
 			doReturn(String.class).when(versionProperty).getType();
@@ -161,7 +161,7 @@ class DefaultNeo4jIsNewStrategyTest {
 		void shouldDealWithPrimitiveVersion() {
 			Object a = new Object();
 			Object b = new Object();
-			IdDescription idDescription = IdDescription.forAssignedIds("na");
+			IdDescription idDescription = IdDescription.forAssignedIds(Constants.NAME_OF_ROOT_NODE, "na");
 
 			doReturn(String.class).when(idProperty).getType();
 			doReturn(int.class).when(versionProperty).getType();

@@ -180,7 +180,7 @@ public final class TemplateSupport {
 			return parameters.get(ROOT_NODE_IDS).isEmpty();
 		}
 
-		Statement toStatement() {
+		Statement toStatement(NodeDescription<?> nodeDescription) {
 
 			String rootNodeIds = "rootNodeIds";
 			String relationshipIds = "relationshipIds";
@@ -195,12 +195,12 @@ public final class TemplateSupport {
 					.optionalMatch(relatedNodes)
 					.where(Functions.id(relatedNodes).in(Cypher.parameter(relatedNodeIds)))
 					.with(
-							rootNodes.as(Constants.NAME_OF_ROOT_NODE.getValue()),
+							rootNodes.as(Constants.NAME_OF_TYPED_ROOT_NODE.apply(nodeDescription).getValue()),
 							Functions.collectDistinct(relationships).as(Constants.NAME_OF_SYNTHESIZED_RELATIONS),
 							Functions.collectDistinct(relatedNodes).as(Constants.NAME_OF_SYNTHESIZED_RELATED_NODES))
 					.orderBy(queryFragments.getOrderBy())
 					.returning(
-							Constants.NAME_OF_ROOT_NODE.as(Constants.NAME_OF_SYNTHESIZED_ROOT_NODE),
+							Constants.NAME_OF_TYPED_ROOT_NODE.apply(nodeDescription).as(Constants.NAME_OF_SYNTHESIZED_ROOT_NODE),
 							Cypher.name(Constants.NAME_OF_SYNTHESIZED_RELATIONS),
 							Cypher.name(Constants.NAME_OF_SYNTHESIZED_RELATED_NODES)
 					)

@@ -422,7 +422,7 @@ public final class ReactiveNeo4jTemplate implements
 			return runnableQuery.fetch().one().map(m -> (Collection<String>) m.get(Constants.NAME_OF_LABELS))
 					.switchIfEmpty(Mono.just(Collections.emptyList()))
 					.zipWith(Mono.just((Collection<String>) propertyAccessor.getProperty(p)))
-					.map(t -> Tuples.of(entityToBeSaved, new DynamicLabels(t.getT1(), t.getT2())));
+					.map(t -> Tuples.of(entityToBeSaved, new DynamicLabels(entityMetaData, t.getT1(), t.getT2())));
 		}).orElse(Mono.just(Tuples.of(entityToBeSaved, DynamicLabels.EMPTY)));
 	}
 
@@ -548,12 +548,12 @@ public final class ReactiveNeo4jTemplate implements
 		String nameOfParameter = "id";
 		Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getPersistentEntity(domainType);
 		Condition condition = entityMetaData.getIdExpression().isEqualTo(parameter(nameOfParameter))
-				.and(Cypher.property(Constants.NAME_OF_ROOT_NODE, versionProperty.getPropertyName())
+				.and(Cypher.property(Constants.NAME_OF_TYPED_ROOT_NODE.apply(entityMetaData), versionProperty.getPropertyName())
 						.isEqualTo(parameter(Constants.NAME_OF_VERSION_PARAM))
-						.or(Cypher.property(Constants.NAME_OF_ROOT_NODE, versionProperty.getPropertyName()).isNull()));
+						.or(Cypher.property(Constants.NAME_OF_TYPED_ROOT_NODE.apply(entityMetaData), versionProperty.getPropertyName()).isNull()));
 
 		Statement statement = cypherGenerator.prepareMatchOf(entityMetaData, condition)
-				.returning(Constants.NAME_OF_ROOT_NODE).build();
+				.returning(Constants.NAME_OF_TYPED_ROOT_NODE.apply(entityMetaData)).build();
 
 		Map<String, Object> parameters = new HashMap<>();
 		parameters.put(nameOfParameter, convertIdValues(entityMetaData.getRequiredIdProperty(), id));
@@ -612,7 +612,7 @@ public final class ReactiveNeo4jTemplate implements
 		if (containsPossibleCircles && !queryFragments.isScalarValueReturn()) {
 			return createNodesAndRelationshipsByIdStatementProvider(entityMetaData, queryFragments, queryFragmentsAndParameters.getParameters())
 					.flatMap(finalQueryAndParameters ->
-							createExecutableQuery(domainType, resultType, renderer.render(finalQueryAndParameters.toStatement()),
+							createExecutableQuery(domainType, resultType, renderer.render(finalQueryAndParameters.toStatement(entityMetaData)),
 									finalQueryAndParameters.getParameters()));
 		}
 
@@ -665,7 +665,7 @@ public final class ReactiveNeo4jTemplate implements
 
 		return Flux.fromIterable(target.getRelationshipsInHierarchy(queryFragments::includeField))
 			.flatMap(relDe -> {
-				Node node = anyNode(Constants.NAME_OF_ROOT_NODE);
+				Node node = anyNode(Constants.NAME_OF_TYPED_ROOT_NODE.apply(target));
 
 				Statement statement = cypherGenerator
 						.prepareMatchOf(target, relDe, null,
@@ -995,7 +995,7 @@ public final class ReactiveNeo4jTemplate implements
 					return createNodesAndRelationshipsByIdStatementProvider(entityMetaData, queryFragments, finalParameters)
 							.map(nodesAndRelationshipsById -> {
 								ReactiveNeo4jClient.MappingSpec<T> mappingSpec = this.neo4jClient.query(renderer.render(
-										nodesAndRelationshipsById.toStatement()))
+										nodesAndRelationshipsById.toStatement(entityMetaData)))
 										.bindAll(nodesAndRelationshipsById.getParameters()).fetchAs(resultType);
 
 								ReactiveNeo4jClient.RecordFetchSpec<T> fetchSpec = preparedQuery.getOptionalMappingFunction()

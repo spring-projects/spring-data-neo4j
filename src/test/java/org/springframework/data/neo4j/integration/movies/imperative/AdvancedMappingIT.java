@@ -237,7 +237,7 @@ class AdvancedMappingIT {
 					.containsExactlyInAnyOrder("The Oracle", "Morpheus", "Trinity", "Agent Smith", "Emil", "Neo");
 
 			assertThat(logbackCapture.getFormattedMessages()).anyMatch(message ->
-					message.contains("MATCH (n:`Movie`) WHERE n.title = $0 RETURN n{.title"));
+					message.contains("MATCH (movie:`Movie`) WHERE movie.title = $0 RETURN movie{.title"));
 		} finally {
 			logbackCapture.resetLogLevel();
 		}

@@ -26,6 +26,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.neo4j.core.mapping.Constants;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
@@ -57,7 +58,7 @@ class IdPopulatorTest {
 	@Test
 	void shouldIgnoreInternalIdGenerator() {
 
-		IdDescription toBeReturned = IdDescription.forInternallyGeneratedIds();
+		IdDescription toBeReturned = IdDescription.forInternallyGeneratedIds(Constants.NAME_OF_ROOT_NODE);
 		doReturn(toBeReturned).when(nodeDescription).getIdDescription();
 		doReturn(nodeDescription).when(neo4jMappingContext).getRequiredPersistentEntity(Sample.class);
 
