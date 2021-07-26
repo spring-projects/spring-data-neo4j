@@ -39,7 +39,6 @@ import org.neo4j.cypherdsl.core.renderer.Renderer;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
-import org.springframework.data.neo4j.test.TestConstants;
 
 /**
  * @author Davide Fantuzzi
@@ -208,7 +207,7 @@ class CypherGeneratorTest {
 		Neo4jPersistentEntity<?> persistentEntity = new Neo4jMappingContext()
 				.getPersistentEntity(CyclicEntityWithEnumeratedDynamicRelationship1.class);
 
-		org.neo4j.cypherdsl.core.Node rootNode = Cypher.anyNode(TestConstants.NAME_OF_ROOT_NODE);
+		org.neo4j.cypherdsl.core.Node rootNode = Cypher.anyNode(Constants.NAME_OF_ROOT_NODE);
 		Collection<RelationshipDescription> relationships = persistentEntity.getRelationships();
 		Statement statement = CypherGenerator.INSTANCE.prepareMatchOf(
 				persistentEntity, relationships.iterator().next(), null, null).returning(rootNode).build();
@@ -230,7 +229,7 @@ class CypherGeneratorTest {
 		Neo4jPersistentEntity<?> persistentEntity = new Neo4jMappingContext()
 				.getPersistentEntity(CyclicEntityWithStringDynamicRelationship1.class);
 
-		org.neo4j.cypherdsl.core.Node rootNode = Cypher.anyNode(TestConstants.NAME_OF_ROOT_NODE);
+		org.neo4j.cypherdsl.core.Node rootNode = Cypher.anyNode(Constants.NAME_OF_ROOT_NODE);
 		Collection<RelationshipDescription> relationships = persistentEntity.getRelationships();
 		Statement statement = CypherGenerator.INSTANCE.prepareMatchOf(
 				persistentEntity, relationships.iterator().next(), null, null).returning(rootNode).build();
