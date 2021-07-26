@@ -45,9 +45,7 @@ final class DynamicLabels implements UnaryOperator<OngoingMatchAndUpdate> {
 	DynamicLabels(@Nullable NodeDescription<?> nodeDescription, Collection<String> oldLabels, Collection<String> newLabels) {
 		this.oldLabels = new ArrayList<>(oldLabels);
 		this.newLabels = new ArrayList<>(newLabels);
-		this.rootNode = nodeDescription != null
-				? Cypher.anyNode(Constants.NAME_OF_TYPED_ROOT_NODE.apply(nodeDescription))
-				: Cypher.anyNode(Constants.NAME_OF_ROOT_NODE);
+		this.rootNode = Cypher.anyNode(Constants.NAME_OF_TYPED_ROOT_NODE.apply(nodeDescription));
 	}
 
 	@Override

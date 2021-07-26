@@ -618,7 +618,7 @@ public enum CypherGenerator {
 
 			// if we already processed the other way before, do not try to jump in the infinite loop
 			// unless it is a root node relationship
-			if (!nodeName.equals(Constants.NAME_OF_ROOT_NODE) && relationshipDescription.hasRelationshipObverse()
+			if (relationshipDescription.hasRelationshipObverse()
 					&& processedRelationships.contains(relationshipDescription.getRelationshipObverse())) {
 				continue;
 			}

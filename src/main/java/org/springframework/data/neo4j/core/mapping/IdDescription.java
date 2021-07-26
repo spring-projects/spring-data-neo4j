@@ -83,20 +83,20 @@ public final class IdDescription {
 		}
 	}
 
-	private IdDescription(@Nullable SymbolicName symbolicName, @Nullable Class<? extends IdGenerator<?>> idGeneratorClass,
+	private IdDescription(SymbolicName symbolicName, @Nullable Class<? extends IdGenerator<?>> idGeneratorClass,
 		    @Nullable String idGeneratorRef, @Nullable String graphPropertyName) {
 
 		this.idGeneratorClass = idGeneratorClass;
 		this.idGeneratorRef = idGeneratorRef != null && idGeneratorRef.isEmpty() ? null : idGeneratorRef;
 		this.graphPropertyName = graphPropertyName;
-		SymbolicName nodeName = symbolicName != null ? symbolicName : Constants.NAME_OF_ROOT_NODE;
+
 		this.idExpression = Lazy.of(() -> {
-			final Node rootNode = Cypher.anyNode(nodeName);
+			final Node rootNode = Cypher.anyNode(symbolicName);
 			if (this.isInternallyGeneratedId()) {
 				return Functions.id(rootNode);
 			} else {
 				return this.getOptionalGraphPropertyName()
-						.map(propertyName -> Cypher.property(nodeName, propertyName)).get();
+						.map(propertyName -> Cypher.property(symbolicName, propertyName)).get();
 			}
 		});
 	}
