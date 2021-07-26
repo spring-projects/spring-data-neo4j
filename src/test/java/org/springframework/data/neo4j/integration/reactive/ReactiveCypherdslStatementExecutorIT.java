@@ -20,6 +20,7 @@ import org.springframework.data.neo4j.core.ReactiveDatabaseSelectionProvider;
 import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
 import org.springframework.data.neo4j.core.transaction.ReactiveNeo4jTransactionManager;
 import org.springframework.data.neo4j.test.BookmarkCapture;
+import org.springframework.data.neo4j.test.TestConstants;
 import org.springframework.transaction.ReactiveTransactionManager;
 import reactor.test.StepVerifier;
 
@@ -39,7 +40,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.neo4j.config.AbstractReactiveNeo4jConfig;
-import org.springframework.data.neo4j.core.mapping.Constants;
 import org.springframework.data.neo4j.integration.shared.common.NamesOnly;
 import org.springframework.data.neo4j.integration.shared.common.Person;
 import org.springframework.data.neo4j.repository.ReactiveNeo4jRepository;
@@ -67,7 +67,7 @@ class ReactiveCypherdslStatementExecutorIT {
 
 		this.driver = driver;
 
-		this.person = Cypher.node("Person").named(Constants.NAME_OF_ROOT_NODE);
+		this.person = Cypher.node("Person").named(TestConstants.NAME_OF_ROOT_NODE);
 		this.firstName = this.person.property("firstName");
 		this.lastName = this.person.property("lastName");
 	}

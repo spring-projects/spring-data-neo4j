@@ -34,12 +34,10 @@ import java.util.function.Function;
 @API(status = Status.EXPERIMENTAL, since = "6.0")
 public final class Constants {
 
-	public static final SymbolicName NAME_OF_ROOT_NODE = Cypher.name("n");
-
 	public static final Function<NodeDescription<?>, SymbolicName> NAME_OF_TYPED_ROOT_NODE =
 			(nodeDescription) -> nodeDescription != null
 			? Cypher.name(StringUtils.uncapitalize(nodeDescription.getUnderlyingClass().getSimpleName()))
-			: Constants.NAME_OF_ROOT_NODE;
+			: Cypher.name("n");
 
 	public static final String NAME_OF_INTERNAL_ID = "__internalNeo4jId__";
 	/**
