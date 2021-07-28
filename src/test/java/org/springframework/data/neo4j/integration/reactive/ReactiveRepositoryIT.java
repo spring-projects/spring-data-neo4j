@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.tuple;
 
+import org.springframework.data.mapping.MappingException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -829,9 +830,14 @@ class ReactiveRepositoryIT {
 				return startNode.id();
 			});
 
-			StepVerifier.create(repository.findById(startId)).assertNext(entity -> {
-				assertThat(entity.getEnds()).hasSize(1);
-			}).verifyComplete();
+			StepVerifier.create(repository.findById(startId))
+					.verifyErrorMatches(error -> {
+						Throwable cause = error.getCause();
+						return cause instanceof MappingException && cause.getMessage().equals(
+								"The node with id " + startId + " has a logical cyclic mapping dependency. " +
+							"Its creation caused the creation of another node that has a reference to this.");
+					});
+
 		}
 
 		@Test
