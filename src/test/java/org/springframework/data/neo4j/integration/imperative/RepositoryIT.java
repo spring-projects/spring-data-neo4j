@@ -18,6 +18,7 @@ package org.springframework.data.neo4j.integration.imperative;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.tuple;
 
 import java.time.Instant;
@@ -78,6 +79,7 @@ import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.Metrics;
 import org.springframework.data.geo.Polygon;
+import org.springframework.data.mapping.MappingException;
 import org.springframework.data.neo4j.config.AbstractNeo4jConfig;
 import org.springframework.data.neo4j.core.DatabaseSelection;
 import org.springframework.data.neo4j.core.DatabaseSelectionProvider;
@@ -977,21 +979,17 @@ class RepositoryIT {
 		}
 
 		@Test
-		void findEntityWithBidirectionalRelationship(@Autowired BidirectionalStartRepository repository) {
+		void findEntityWithBidirectionalRelationshipInConstructorThrowsException(@Autowired BidirectionalStartRepository repository) {
 
 			long startId = doWithSession(session ->  session
 						.run("CREATE (n:BidirectionalStart{name:'Ernie'})-[:CONNECTED]->(e:BidirectionalEnd{name:'Bert'}), "
 							 + "(e)<-[:ANOTHER_CONNECTION]-(anotherStart:BidirectionalStart{name:'Elmo'})" + "RETURN n")
 						.single().get("n").asNode().id());
 
-			Optional<BidirectionalStart> entityOptional = repository.findById(startId);
-			assertThat(entityOptional).isPresent();
-			BidirectionalStart entity = entityOptional.get();
-			assertThat(entity.getEnds()).hasSize(1);
-
-			BidirectionalEnd end = entity.getEnds().iterator().next();
-			assertThat(end.getAnotherStart()).isNotNull();
-			assertThat(end.getAnotherStart().getName()).isEqualTo("Elmo");
+			assertThatThrownBy(() -> repository.findById(startId))
+					.hasRootCauseMessage("The node with id " + startId + " has a logical cyclic mapping dependency. " +
+							"Its creation caused the creation of another node that has a reference to this.")
+					.hasRootCauseInstanceOf(MappingException.class);
 
 		}
 

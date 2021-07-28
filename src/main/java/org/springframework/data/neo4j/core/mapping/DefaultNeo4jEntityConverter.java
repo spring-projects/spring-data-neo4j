@@ -254,6 +254,15 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 		Long internalId = getInternalId(queryResult);
 
 		Supplier<Object> mappedObjectSupplier = () -> {
+			if (knownObjects.isInCreation(internalId)) {
+				throw new MappingException(
+						String.format(
+								"The node with id %s has a logical cyclic mapping dependency. " +
+								"Its creation caused the creation of another node that has a reference to this.",
+								internalId)
+				);
+			}
+			knownObjects.setInCreation(internalId);
 
 			List<String> allLabels = getLabels(queryResult, nodeDescription);
 			NodeDescriptionAndLabels nodeDescriptionAndLabels = nodeDescriptionStore
@@ -264,6 +273,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 			ET instance = instantiate(concreteNodeDescription, queryResult,
 					nodeDescriptionAndLabels.getDynamicLabels(), lastMappedEntity, relationshipsFromResult, nodesFromResult);
 
+			knownObjects.removeFromInCreation(internalId);
 			PersistentPropertyAccessor<ET> propertyAccessor = concreteNodeDescription.getPropertyAccessor(instance);
 
 			if (concreteNodeDescription.requiresPropertyPopulation()) {
@@ -634,6 +644,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 		private final Lock write = lock.writeLock();
 
 		private final Map<Long, Object> internalIdStore = new HashMap<>();
+		private final Set<Long> idsInCreation = new HashSet<>();
 
 		private void storeObject(@Nullable Long internalId, Object object) {
 			if (internalId == null) {
@@ -641,9 +652,34 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 			}
 			try {
 				write.lock();
+				idsInCreation.remove(internalId);
 				internalIdStore.put(internalId, object);
 			} finally {
 				write.unlock();
+			}
+		}
+
+		private void setInCreation(@Nullable Long internalId) {
+			if (internalId == null) {
+				return;
+			}
+			try {
+				write.lock();
+				idsInCreation.add(internalId);
+			} finally {
+				write.unlock();
+			}
+		}
+
+		private boolean isInCreation(@Nullable Long internalId) {
+			if (internalId == null) {
+				return false;
+			}
+			try {
+				read.lock();
+				return idsInCreation.contains(internalId);
+			} finally {
+				read.unlock();
 			}
 		}
 
@@ -666,6 +702,18 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 				read.unlock();
 			}
 			return null;
+		}
+
+		private void removeFromInCreation(@Nullable Long internalId) {
+			if (internalId == null) {
+				return;
+			}
+			try {
+				write.lock();
+				idsInCreation.remove(internalId);
+			} finally {
+				write.unlock();
+			}
 		}
 	}
 }
