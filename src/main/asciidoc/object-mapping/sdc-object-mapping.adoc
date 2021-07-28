@@ -222,6 +222,16 @@ It's an established pattern to rather use static factory methods to expose these
 * _Use Lombok to avoid boilerplate code_ --
 As persistence operations usually require a constructor taking all arguments, their declaration becomes a tedious repetition of boilerplate parameter to field assignments that can best be avoided by using Lombok's `@AllArgsConstructor`.
 
+[[mapping.fundamentals.recommendations.note-immutable]]
+=== A note on immutable mapping
+
+Although we recommend to use immutable mapping and constructs wherever possible, there are some limitations when it comes to mapping.
+Given a bidirectional relationship where `A` has a constructor reference to `B` and `B` has a reference to `A`, or a more complex scenario.
+This hen/egg situation is not solvable for Spring Data Neo4j.
+During the instantiation of `A` it eagerly needs to have a fully instantiated `B`, which on the other hand requires an instance (to be precise, the _same_ instance) of `A`.
+SDN allows such models in general, but will throw a `MappingException` at runtime if the data that gets returned from the database contains such constellation as described above.
+In such cases or scenarios, where you cannot foresee what the data that gets returned looks like, you are better suited with a mutable field for the relationships.
+
 [[mapping.fundamentals.kotlin]]
 == Kotlin support
 

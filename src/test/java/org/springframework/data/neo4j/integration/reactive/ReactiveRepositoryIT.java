@@ -15,35 +15,6 @@
  */
 package org.springframework.data.neo4j.integration.reactive;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.assertj.core.api.Assertions.tuple;
-
-import org.springframework.data.neo4j.integration.shared.common.BidirectionalAssignedId;
-import org.springframework.data.neo4j.integration.shared.common.BidirectionalExternallyGeneratedId;
-import org.springframework.data.neo4j.integration.shared.common.DtoPersonProjection;
-import org.springframework.data.neo4j.integration.shared.common.EntitiesWithDynamicLabels;
-import org.springframework.data.neo4j.integration.shared.common.SimplePerson;
-import org.springframework.data.neo4j.integration.shared.common.ThingWithFixedGeneratedId;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
-import reactor.test.StepVerifier;
-
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
@@ -69,6 +40,7 @@ import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.mapping.MappingException;
 import org.springframework.data.neo4j.config.AbstractReactiveNeo4jConfig;
 import org.springframework.data.neo4j.core.DatabaseSelection;
 import org.springframework.data.neo4j.core.ReactiveDatabaseSelectionProvider;
@@ -79,10 +51,14 @@ import org.springframework.data.neo4j.integration.shared.common.AltHobby;
 import org.springframework.data.neo4j.integration.shared.common.AltLikedByPersonRelationship;
 import org.springframework.data.neo4j.integration.shared.common.AltPerson;
 import org.springframework.data.neo4j.integration.shared.common.AnotherThingWithAssignedId;
+import org.springframework.data.neo4j.integration.shared.common.BidirectionalAssignedId;
 import org.springframework.data.neo4j.integration.shared.common.BidirectionalEnd;
+import org.springframework.data.neo4j.integration.shared.common.BidirectionalExternallyGeneratedId;
 import org.springframework.data.neo4j.integration.shared.common.BidirectionalStart;
 import org.springframework.data.neo4j.integration.shared.common.Club;
 import org.springframework.data.neo4j.integration.shared.common.DeepRelationships;
+import org.springframework.data.neo4j.integration.shared.common.DtoPersonProjection;
+import org.springframework.data.neo4j.integration.shared.common.EntitiesWithDynamicLabels;
 import org.springframework.data.neo4j.integration.shared.common.EntityWithConvertedId;
 import org.springframework.data.neo4j.integration.shared.common.Hobby;
 import org.springframework.data.neo4j.integration.shared.common.ImmutablePerson;
@@ -94,7 +70,9 @@ import org.springframework.data.neo4j.integration.shared.common.PersonWithRelati
 import org.springframework.data.neo4j.integration.shared.common.PersonWithRelationshipWithProperties;
 import org.springframework.data.neo4j.integration.shared.common.Pet;
 import org.springframework.data.neo4j.integration.shared.common.SimilarThing;
+import org.springframework.data.neo4j.integration.shared.common.SimplePerson;
 import org.springframework.data.neo4j.integration.shared.common.ThingWithAssignedId;
+import org.springframework.data.neo4j.integration.shared.common.ThingWithFixedGeneratedId;
 import org.springframework.data.neo4j.integration.shared.common.ThingWithGeneratedId;
 import org.springframework.data.neo4j.integration.shared.common.WorksInClubRelationship;
 import org.springframework.data.neo4j.repository.ReactiveNeo4jRepository;
@@ -110,6 +88,28 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.transaction.ReactiveTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.reactive.TransactionalOperator;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
+
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.tuple;
 
 /**
  * @author Gerrit Meier
@@ -869,9 +869,14 @@ class ReactiveRepositoryIT {
 				startId = startNode.id();
 			}
 
-			StepVerifier.create(repository.findById(startId)).assertNext(entity -> {
-				assertThat(entity.getEnds()).hasSize(1);
-			}).verifyComplete();
+			StepVerifier.create(repository.findById(startId))
+					.verifyErrorMatches(error -> {
+						Throwable cause = error.getCause();
+						return cause instanceof MappingException && cause.getMessage().equals(
+								"The node with id " + startId + " has a logical cyclic mapping dependency. " +
+							"Its creation caused the creation of another node that has a reference to this.");
+					});
+
 		}
 
 		@Test
