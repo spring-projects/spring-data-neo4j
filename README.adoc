@@ -46,7 +46,7 @@ If you are on https://spring.io/projects/spring-boot[Spring Boot], all you have 
 [source,xml,subs="verbatim,attributes"]
 ----
 <dependency>
-	<groupId>{neo4jgroupId}</groupId>
+	<groupId>{groupIdStarter}</groupId>
 	<artifactId>{artifactIdStarter}</artifactId>
 	<version>{spring-data-neo4j-version}</version>
 </dependency>
