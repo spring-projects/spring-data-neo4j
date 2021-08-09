@@ -332,7 +332,7 @@ public final class Neo4jTemplate implements
 		}
 
 		ProjectionInformation projectionInformation = projectionFactory.getProjectionInformation(resultType);
-		Collection<PropertyPath> pps = PropertyFilterSupport.addPropertiesFrom(resultType, resultType,
+		Collection<PropertyPath> pps = PropertyFilterSupport.addPropertiesFrom(instance.getClass(), resultType,
 				projectionFactory, neo4jMappingContext);
 
 		T savedInstance = saveImpl(instance, pps);
@@ -496,7 +496,7 @@ public final class Neo4jTemplate implements
 
 		ProjectionInformation projectionInformation = projectionFactory.getProjectionInformation(resultType);
 
-		Collection<PropertyPath> pps = PropertyFilterSupport.addPropertiesFrom(resultType, commonElementType,
+		Collection<PropertyPath> pps = PropertyFilterSupport.addPropertiesFrom(commonElementType, resultType,
 				projectionFactory, neo4jMappingContext);
 
 		List<T> savedInstances = saveAllImpl(instances, new ArrayList<>(pps));
@@ -898,7 +898,7 @@ public final class Neo4jTemplate implements
 
 		Class<?> resultType = TemplateSupport.findCommonElementType(instances);
 
-		Collection<PropertyPath> pps = PropertyFilterSupport.addPropertiesFrom(resultType, domainType,
+		Collection<PropertyPath> pps = PropertyFilterSupport.addPropertiesFrom(domainType, resultType,
 				projectionFactory, neo4jMappingContext);
 
 		List<R> results = new ArrayList<>();

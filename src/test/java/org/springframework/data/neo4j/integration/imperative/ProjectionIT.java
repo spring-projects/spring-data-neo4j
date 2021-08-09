@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.AbstractMap;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -44,8 +45,12 @@ import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.config.AbstractNeo4jConfig;
 import org.springframework.data.neo4j.core.DatabaseSelectionProvider;
+import org.springframework.data.neo4j.core.Neo4jTemplate;
 import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
 import org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager;
+import org.springframework.data.neo4j.integration.shared.common.DepartmentEntity;
+import org.springframework.data.neo4j.integration.shared.common.PersonDepartmentQueryResult;
+import org.springframework.data.neo4j.integration.shared.common.PersonEntity;
 import org.springframework.data.neo4j.integration.shared.common.NamesOnly;
 import org.springframework.data.neo4j.integration.shared.common.NamesOnlyDto;
 import org.springframework.data.neo4j.integration.shared.common.NamesWithSpELCity;
@@ -98,6 +103,7 @@ class ProjectionIT {
 		Transaction transaction = session.beginTransaction();) {
 
 			transaction.run("MATCH (n) detach delete n");
+			transaction.run("CREATE (p:PersonEntity {id: 'p1', email: 'p1@dep1.org'}) -[:MEMBER_OF]->(department:DepartmentEntity {id: 'd1', name: 'Dep1'}) RETURN p");
 
 			for (Map.Entry<String, String> person : new Map.Entry[] {
 					new AbstractMap.SimpleEntry(FIRST_NAME, LAST_NAME),
@@ -337,6 +343,35 @@ class ProjectionIT {
 		assertThat(personSummary.get().getLastName()).isEqualTo(LAST_NAME);
 	}
 
+	@Test // GH-2349
+	void projectionsContainingKnownEntitiesShouldWorkFromRepository(@Autowired PersonRepository personRepository) {
+
+		List<PersonDepartmentQueryResult> results = personRepository.findPersonWithDepartment();
+		assertThat(results)
+				.hasSize(1)
+				.first()
+				.satisfies(personAndDepartment -> projectedEntities(personAndDepartment));
+	}
+
+	@Test // GH-2349
+	void projectionsContainingKnownEntitiesShouldWorkFromTemplate(@Autowired Neo4jTemplate template) {
+
+		List<PersonDepartmentQueryResult> results = template.find(PersonEntity.class).as(PersonDepartmentQueryResult.class)
+				.matching("MATCH (person:PersonEntity)-[:MEMBER_OF]->(department:DepartmentEntity) RETURN person, department")
+				.all();
+		assertThat(results)
+				.hasSize(1)
+				.first()
+				.satisfies(personAndDepartment -> projectedEntities(personAndDepartment));
+	}
+
+	private static void projectedEntities(PersonDepartmentQueryResult personAndDepartment) {
+		assertThat(personAndDepartment.getPerson()).extracting(PersonEntity::getId).isEqualTo("p1");
+		assertThat(personAndDepartment.getPerson()).extracting(PersonEntity::getEmail).isEqualTo("p1@dep1.org");
+		assertThat(personAndDepartment.getDepartment()).extracting(DepartmentEntity::getId).isEqualTo("d1");
+		assertThat(personAndDepartment.getDepartment()).extracting(DepartmentEntity::getName).isEqualTo("Dep1");
+	}
+
 	private static Statement whoHasFirstName(String firstName) {
 		Node p = Cypher.node("Person").named("p");
 		return Cypher.match(p)
@@ -438,6 +473,11 @@ class ProjectionIT {
 		}
 	}
 
+	interface PersonRepository extends Neo4jRepository<PersonEntity, String> {
+		@Query("MATCH (person:PersonEntity)-[:MEMBER_OF]->(department:DepartmentEntity) RETURN person, department")
+		List<PersonDepartmentQueryResult> findPersonWithDepartment();
+	}
+
 	@Configuration
 	@EnableNeo4jRepositories(considerNestedRepositories = true)
 	@EnableTransactionManagement
@@ -451,6 +491,11 @@ class ProjectionIT {
 		@Bean
 		public BookmarkCapture bookmarkCapture() {
 			return new BookmarkCapture();
+		}
+
+		@Override
+		protected Collection<String> getMappingBasePackages() {
+			return Collections.singletonList(DepartmentEntity.class.getPackage().getName());
 		}
 
 		@Override

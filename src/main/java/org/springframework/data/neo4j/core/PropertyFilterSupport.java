@@ -15,6 +15,7 @@
  */
 package org.springframework.data.neo4j.core;
 
+import org.apiguardian.api.API;
 import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
@@ -35,7 +36,8 @@ import java.util.List;
  * This class is responsible for creating a List of {@link PropertyPath} entries that contains all reachable
  * properties (w/o circles).
  */
-public class PropertyFilterSupport {
+@API(status = API.Status.INTERNAL, since = "6.1.3")
+public final class PropertyFilterSupport {
 
 	public static List<PropertyPath> getInputProperties(ResultProcessor resultProcessor, ProjectionFactory factory,
 														Neo4jMappingContext mappingContext) {
@@ -58,14 +60,14 @@ public class PropertyFilterSupport {
 		return filteredProperties;
 	}
 
-	public static List<PropertyPath> addPropertiesFrom(Class<?> returnType, Class<?> domainType,
+	static List<PropertyPath> addPropertiesFrom(Class<?> domainType, Class<?> returnType,
 													   ProjectionFactory projectionFactory,
 													   Neo4jMappingContext neo4jMappingContext) {
 
 		ProjectionInformation projectionInformation = projectionFactory.getProjectionInformation(returnType);
 		List<PropertyPath> propertyPaths = new ArrayList<>();
 		for (PropertyDescriptor inputProperty : projectionInformation.getInputProperties()) {
-			addPropertiesFrom(returnType, domainType, projectionFactory, propertyPaths, inputProperty.getName(), neo4jMappingContext);
+			addPropertiesFrom(domainType, returnType, projectionFactory, propertyPaths, inputProperty.getName(), neo4jMappingContext);
 		}
 		return propertyPaths;
 	}
@@ -97,8 +99,8 @@ public class PropertyFilterSupport {
 			if (propertyType.equals(domainType)) {
 				return;
 			}
-			processEntity(domainType, filteredProperties, inputProperty, mappingContext);
 
+			addPropertiesFromEntity(filteredProperties, propertyPath, propertyType, mappingContext, new HashSet<>());
 		} else {
 			ProjectionInformation nestedProjectionInformation = factory.getProjectionInformation(propertyType);
 			filteredProperties.add(propertyPath);
