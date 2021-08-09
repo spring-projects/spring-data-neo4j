@@ -18,7 +18,6 @@ package org.springframework.data.neo4j.integration.conversion_imperative;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
-import java.lang.reflect.Field;
 import java.text.SimpleDateFormat;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -41,7 +40,6 @@ import org.junit.jupiter.api.DynamicNode;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestFactory;
-import org.junit.platform.commons.util.AnnotationUtils;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.Value;
@@ -53,22 +51,20 @@ import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.data.mapping.MappingException;
 import org.springframework.data.neo4j.config.AbstractNeo4jConfig;
-import org.springframework.data.neo4j.core.convert.ConvertWith;
 import org.springframework.data.neo4j.core.convert.Neo4jConversions;
+import org.springframework.data.neo4j.core.Neo4jTemplate;
+import org.springframework.data.neo4j.integration.shared.common.ThingWithAllCypherTypes2;
 import org.springframework.data.neo4j.integration.shared.conversion.Neo4jConversionsITBase;
 import org.springframework.data.neo4j.integration.shared.conversion.ThingWithAllAdditionalTypes;
 import org.springframework.data.neo4j.integration.shared.common.ThingWithAllCypherTypes;
 import org.springframework.data.neo4j.integration.shared.common.ThingWithAllSpatialTypes;
-import org.springframework.data.neo4j.integration.shared.conversion.ThingWithCompositeProperties;
 import org.springframework.data.neo4j.integration.shared.conversion.ThingWithCustomTypes;
-import org.springframework.data.neo4j.integration.shared.common.ThingWithNonExistingPrimitives;
 import org.springframework.data.neo4j.integration.shared.common.ThingWithUUIDID;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
-import org.springframework.util.ReflectionUtils;
 
 /**
  * @author Michael J. Simons
@@ -78,9 +74,7 @@ import org.springframework.util.ReflectionUtils;
 @Neo4jIntegrationTest
 class TypeConversionIT extends Neo4jConversionsITBase {
 
-	private final Driver driver;
-
-	@Autowired CypherTypesRepository cypherTypesRepository;
+	private final CypherTypesRepository cypherTypesRepository;
 
 	private final AdditionalTypesRepository additionalTypesRepository;
 
@@ -90,11 +84,10 @@ class TypeConversionIT extends Neo4jConversionsITBase {
 
 	private final DefaultConversionService defaultConversionService;
 
-	@Autowired TypeConversionIT(Driver driver, CypherTypesRepository cypherTypesRepository,
+	@Autowired TypeConversionIT(CypherTypesRepository cypherTypesRepository,
 			AdditionalTypesRepository additionalTypesRepository, SpatialTypesRepository spatialTypesRepository,
 			CustomTypesRepository customTypesRepository,
 			Neo4jConversions neo4jConversions) {
-		this.driver = driver;
 		this.cypherTypesRepository = cypherTypesRepository;
 		this.additionalTypesRepository = additionalTypesRepository;
 		this.spatialTypesRepository = spatialTypesRepository;
@@ -104,14 +97,20 @@ class TypeConversionIT extends Neo4jConversionsITBase {
 	}
 
 	@Test
-	void thereShallBeNoDefaultValuesForNonExistingAttributes(@Autowired NonExistingPrimitivesRepository repository) {
+	void thereShallBeNoDefaultValuesForNonExistingAttributes() {
+
+		Long id;
+		try (Session session = neo4jConnectionSupport.getDriver().session()) {
+
+			id = session.writeTransaction(tx -> tx.run("CREATE (n:CypherTypes) RETURN id(n)").single().get(0).asLong());
+		}
 
 		assertThatExceptionOfType(MappingException.class)
-				.isThrownBy(() -> repository.findById(ID_OF_NON_EXISTING_PRIMITIVES_NODE))
+				.isThrownBy(() -> cypherTypesRepository.findById(id))
 				.withMessageMatching(
-						"Error mapping Record<\\{n: \\{__internalNeo4jId__: \\d+, id: NULL, someBoolean: NULL, __nodeLabels__: \\[\"NonExistingPrimitives\"\\]\\}\\}>")
-				.withStackTraceContaining("unboxBoolean")
-				.withRootCauseInstanceOf(NullPointerException.class);
+						"Error mapping Record<\\{n: \\{__internalNeo4jId__: \\d+, aBoolean: NULL, aString: NULL, aLong: NULL, anOffsetTime: NULL, aLocalDateTime: NULL, aDouble: NULL, aByteArray: NULL, aPoint: NULL, aZeroDuration: NULL, aZoneDateTime: NULL, __nodeLabels__: \\[\"CypherTypes\"], aLocalDate: NULL, aZeroPeriod: NULL, anIsoDuration: NULL, aLocalTime: NULL, id: NULL}}>")
+				.withStackTraceContaining("Illegal arguments for constructor")
+				.withRootCauseInstanceOf(IllegalArgumentException.class);
 	}
 
 	@TestFactory
@@ -158,10 +157,10 @@ class TypeConversionIT extends Neo4jConversionsITBase {
 							() -> assertThat(ReflectionTestUtils.getField(thing, a.getKey()))
 									.isEqualTo(a.getValue()))));
 
-			DynamicContainer writes = DynamicContainer.dynamicContainer("write", entry.getValue().entrySet().stream()
-					.map(a -> DynamicTest
-							.dynamicTest(a.getKey(),
-									() -> assertWrite(copyOfThing, a.getKey(), defaultConversionService))));
+			DynamicContainer writes = DynamicContainer.dynamicContainer("write", entry.getValue().keySet().stream()
+					.map(o -> DynamicTest
+							.dynamicTest(o,
+									() -> assertWrite(copyOfThing, o, defaultConversionService))));
 
 			return DynamicContainer.dynamicContainer(entry.getKey(), Arrays.asList(reads, writes));
 		});
@@ -172,8 +171,6 @@ class TypeConversionIT extends Neo4jConversionsITBase {
 		long id = (long) ReflectionTestUtils.getField(thing, "id");
 		Object domainValue = ReflectionTestUtils.getField(thing, fieldName);
 
-		Field field = ReflectionUtils.findField(thing.getClass(), fieldName);
-		Optional<ConvertWith> annotation = AnnotationUtils.findAnnotation(field, ConvertWith.class);
 		Function<Object, Value> conversion;
 		if (fieldName.equals("dateAsLong")) {
 			conversion = o -> Values.value(((Date) o).getTime());
@@ -185,8 +182,7 @@ class TypeConversionIT extends Neo4jConversionsITBase {
 		Value driverValue;
 		if (domainValue != null && Collection.class.isAssignableFrom(domainValue.getClass())) {
 			Collection<?> sourceCollection = (Collection<?>) domainValue;
-			Object[] targetCollection = (sourceCollection).stream()
-					.map(element -> conversion.apply(element)).toArray();
+			Object[] targetCollection = (sourceCollection).stream().map(conversion).toArray();
 			driverValue = Values.value(targetCollection);
 		} else {
 			driverValue = conversion.apply(domainValue);
@@ -236,6 +232,34 @@ class TypeConversionIT extends Neo4jConversionsITBase {
 				.hasSizeGreaterThan(0);
 	}
 
+	@Test // GH-2348
+	void nonExistingPrimitivesShouldNotFailWithFieldAccess(@Autowired Neo4jTemplate template) {
+		Long id;
+		try (Session session = neo4jConnectionSupport.getDriver().session()) {
+
+			id = session.writeTransaction(tx -> tx.run("CREATE (n:ThingWithAllCypherTypes2) RETURN id(n)").single().get(0).asLong());
+		}
+
+		Optional<ThingWithAllCypherTypes2> optionalResult = template.findById(id, ThingWithAllCypherTypes2.class);
+		assertThat(optionalResult).hasValueSatisfying(result -> {
+			assertThat(result.isABoolean()).isFalse();
+			assertThat(result.getALong()).isEqualTo(0L);
+			assertThat(result.getAnInt()).isEqualTo(0);
+			assertThat(result.getADouble()).isEqualTo(0.0);
+			assertThat(result.getAString()).isNull();
+			assertThat(result.getAByteArray()).isNull();
+			assertThat(result.getALocalDate()).isNull();
+			assertThat(result.getAnOffsetTime()).isNull();
+			assertThat(result.getALocalTime()).isNull();
+			assertThat(result.getAZoneDateTime()).isNull();
+			assertThat(result.getALocalDateTime()).isNull();
+			assertThat(result.getAnIsoDuration()).isNull();
+			assertThat(result.getAPoint()).isNull();
+			assertThat(result.getAZeroPeriod()).isNull();
+			assertThat(result.getAZeroDuration()).isNull();
+		});
+	}
+
 	public interface ConvertedIDsRepository extends Neo4jRepository<ThingWithUUIDID, UUID> {
 	}
 
@@ -248,16 +272,9 @@ class TypeConversionIT extends Neo4jConversionsITBase {
 	public interface SpatialTypesRepository extends Neo4jRepository<ThingWithAllSpatialTypes, Long> {
 	}
 
-	public interface NonExistingPrimitivesRepository extends Neo4jRepository<ThingWithNonExistingPrimitives, Long> {
-	}
-
 	public interface CustomTypesRepository extends Neo4jRepository<ThingWithCustomTypes, Long> {
 
 		List<ThingWithCustomTypes> findAllByDateAsString(Date theDate);
-	}
-
-	public interface ThingWithCompositePropertiesRepository
-			extends Neo4jRepository<ThingWithCompositeProperties, Long> {
 	}
 
 	@Configuration
