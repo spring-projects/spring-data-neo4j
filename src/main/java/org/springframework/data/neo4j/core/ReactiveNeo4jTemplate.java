@@ -316,7 +316,7 @@ public final class ReactiveNeo4jTemplate implements
 		}
 
 		ProjectionInformation projectionInformation = projectionFactory.getProjectionInformation(resultType);
-		Collection<PropertyPath> pps = PropertyFilterSupport.addPropertiesFrom(resultType, instance.getClass(),
+		Collection<PropertyPath> pps = PropertyFilterSupport.addPropertiesFrom(instance.getClass(), resultType,
 				projectionFactory, neo4jMappingContext);
 
 		Mono<T> savingPublisher = saveImpl(instance, pps);
@@ -342,7 +342,7 @@ public final class ReactiveNeo4jTemplate implements
 
 		Class<?> resultType = TemplateSupport.findCommonElementType(instances);
 
-		Collection<PropertyPath> pps = PropertyFilterSupport.addPropertiesFrom(resultType, domainType,
+		Collection<PropertyPath> pps = PropertyFilterSupport.addPropertiesFrom(domainType, resultType,
 				projectionFactory, neo4jMappingContext);
 
 		return Flux.fromIterable(instances)
@@ -443,7 +443,7 @@ public final class ReactiveNeo4jTemplate implements
 		}
 
 		ProjectionInformation projectionInformation = projectionFactory.getProjectionInformation(resultType);
-		List<PropertyPath> pps = PropertyFilterSupport.addPropertiesFrom(resultType, commonElementType,
+		List<PropertyPath> pps = PropertyFilterSupport.addPropertiesFrom(commonElementType, resultType,
 				projectionFactory, neo4jMappingContext);
 
 		Flux<T> savedInstances = saveAllImpl(instances, pps);
