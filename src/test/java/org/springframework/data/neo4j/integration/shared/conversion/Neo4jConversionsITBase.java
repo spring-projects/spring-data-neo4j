@@ -190,7 +190,6 @@ public abstract class Neo4jConversionsITBase {
 	protected static long ID_OF_CYPHER_TYPES_NODE;
 	protected static long ID_OF_ADDITIONAL_TYPES_NODE;
 	protected static long ID_OF_SPATIAL_TYPES_NODE;
-	protected static long ID_OF_NON_EXISTING_PRIMITIVES_NODE;
 	protected static long ID_OF_CUSTOM_TYPE_NODE;
 
 	@BeforeAll
@@ -201,9 +200,6 @@ public abstract class Neo4jConversionsITBase {
 				Map<String, Object> parameters;
 
 				w.run("MATCH (n) detach delete n");
-
-				ID_OF_NON_EXISTING_PRIMITIVES_NODE = w.run("CREATE (n:NonExistingPrimitives) RETURN id(n) AS id").single()
-						.get("id").asLong();
 
 				parameters = new HashMap<>();
 				parameters.put("aByteArray", "A thing".getBytes());

@@ -43,6 +43,7 @@ import org.neo4j.driver.types.Relationship;
 import org.neo4j.driver.types.Type;
 import org.neo4j.driver.types.TypeSystem;
 import org.springframework.core.CollectionFactory;
+import org.springframework.core.KotlinDetector;
 import org.springframework.data.annotation.ReadOnlyProperty;
 import org.springframework.data.mapping.AssociationHandler;
 import org.springframework.data.mapping.MappingException;
@@ -53,6 +54,7 @@ import org.springframework.data.mapping.model.EntityInstantiators;
 import org.springframework.data.mapping.model.ParameterValueProvider;
 import org.springframework.data.neo4j.core.convert.Neo4jConversionService;
 import org.springframework.data.neo4j.core.schema.TargetNode;
+import org.springframework.data.util.ReflectionUtils;
 import org.springframework.data.util.TypeInformation;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
@@ -108,7 +110,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 		try {
 			return map(queryRoot, queryRoot, rootNodeDescription);
 		} catch (Exception e) {
-			throw new MappingException("Error mapping " + mapAccessor.toString(), e);
+			throw new MappingException("Error mapping " + mapAccessor, e);
 		}
 	}
 
@@ -270,6 +272,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 			Neo4jPersistentEntity<ET> concreteNodeDescription = (Neo4jPersistentEntity<ET>) nodeDescriptionAndLabels
 					.getNodeDescription();
 
+			boolean isKotlinType = KotlinDetector.isKotlinType(concreteNodeDescription.getType());
 			ET instance = instantiate(concreteNodeDescription, queryResult,
 					nodeDescriptionAndLabels.getDynamicLabels(), lastMappedEntity, relationshipsFromResult, nodesFromResult);
 
@@ -282,7 +285,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 				Predicate<Neo4jPersistentProperty> isConstructorParameter = concreteNodeDescription
 						.getPersistenceConstructor()::isConstructorParameter;
 				PropertyHandler<Neo4jPersistentProperty> handler = populateFrom(queryResult, propertyAccessor,
-						isConstructorParameter, nodeDescriptionAndLabels.getDynamicLabels(), lastMappedEntity);
+						isConstructorParameter, nodeDescriptionAndLabels.getDynamicLabels(), lastMappedEntity, isKotlinType);
 				concreteNodeDescription.doWithProperties(handler);
 
 				// in a cyclic graph / with bidirectional relationships, we could end up in a state in which we
@@ -396,24 +399,31 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 
 	private PropertyHandler<Neo4jPersistentProperty> populateFrom(MapAccessor queryResult,
 			PersistentPropertyAccessor<?> propertyAccessor, Predicate<Neo4jPersistentProperty> isConstructorParameter,
-			Collection<String> surplusLabels, Object targetNode) {
+			Collection<String> surplusLabels, Object targetNode, boolean ownerIsKotlinType) {
 		return property -> {
 			if (isConstructorParameter.test(property)) {
 				return;
 			}
 
+			TypeInformation<?> typeInformation = property.getTypeInformation();
 			if (property.isDynamicLabels()) {
 				propertyAccessor.setProperty(property,
-						createDynamicLabelsProperty(property.getTypeInformation(), surplusLabels));
+						createDynamicLabelsProperty(typeInformation, surplusLabels));
 			} else if (property.isAnnotationPresent(TargetNode.class)) {
 				if (queryResult instanceof Relationship) {
 					propertyAccessor.setProperty(property, targetNode);
 				}
 			} else {
-				propertyAccessor.setProperty(property,
-						conversionService.readValue(extractValueOf(property, queryResult), property.getTypeInformation(), property.getOptionalReadingConverter()));
+				Object value = conversionService.readValue(extractValueOf(property, queryResult), typeInformation, property.getOptionalReadingConverter());
+				Class<?> rawType = typeInformation.getType();
+				propertyAccessor.setProperty(property, getValueOrDefault(ownerIsKotlinType, rawType, value));
 			}
 		};
+	}
+
+	private static Object getValueOrDefault(boolean ownerIsKotlinType, Class<?> rawType, @Nullable Object value) {
+
+		return value == null && !ownerIsKotlinType && rawType.isPrimitive() ? ReflectionUtils.getPrimitiveDefault(rawType) : value;
 	}
 
 	private AssociationHandler<Neo4jPersistentProperty> populateFrom(MapAccessor queryResult,
