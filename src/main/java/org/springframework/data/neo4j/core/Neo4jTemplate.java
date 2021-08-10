@@ -19,6 +19,7 @@ import static org.neo4j.cypherdsl.core.Cypher.anyNode;
 import static org.neo4j.cypherdsl.core.Cypher.asterisk;
 import static org.neo4j.cypherdsl.core.Cypher.parameter;
 
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -42,9 +43,9 @@ import org.neo4j.cypherdsl.core.Functions;
 import org.neo4j.cypherdsl.core.Node;
 import org.neo4j.cypherdsl.core.Statement;
 import org.neo4j.cypherdsl.core.renderer.Renderer;
+import org.neo4j.driver.Value;
 import org.neo4j.driver.exceptions.NoSuchRecordException;
 import org.neo4j.driver.summary.ResultSummary;
-import org.neo4j.driver.summary.SummaryCounters;
 import org.neo4j.driver.types.Entity;
 import org.neo4j.driver.types.MapAccessor;
 import org.neo4j.driver.types.TypeSystem;
@@ -466,20 +467,22 @@ public final class Neo4jTemplate implements
 		Function<T, Map<String, Object>> binderFunction = neo4jMappingContext.getRequiredBinderFunctionFor(domainClass);
 		List<Map<String, Object>> entityList = entitiesToBeSaved.stream().map(h -> h.modifiedInstance).map(binderFunction)
 				.collect(Collectors.toList());
-		ResultSummary resultSummary = neo4jClient
+		Map<Value, Long> idToInternalIdMapping = neo4jClient
 				.query(() -> renderer.render(cypherGenerator.prepareSaveOfMultipleInstancesOf(entityMetaData)))
-				.bind(entityList).to(Constants.NAME_OF_ENTITY_LIST_PARAM).run();
-
-		SummaryCounters counters = resultSummary.counters();
-		log.debug(() -> String.format(
-				"Created %d and deleted %d nodes, created %d and deleted %d relationships and set %d properties.",
-				counters.nodesCreated(), counters.nodesDeleted(), counters.relationshipsCreated(),
-				counters.relationshipsDeleted(), counters.propertiesSet()));
+				.bind(entityList).to(Constants.NAME_OF_ENTITY_LIST_PARAM)
+				.fetchAs(Map.Entry.class)
+				.mappedBy((t, r) -> new AbstractMap.SimpleEntry<>(r.get(Constants.NAME_OF_ID), r.get(Constants.NAME_OF_INTERNAL_ID).asLong()))
+				.all()
+				.stream()
+				.collect(Collectors.toMap(m -> (Value) m.getKey(), m -> (Long) m.getValue()));
 
 		// Save related
 		return entitiesToBeSaved.stream().map(t -> {
 			PersistentPropertyAccessor<T> propertyAccessor = entityMetaData.getPropertyAccessor(t.modifiedInstance);
-			return processRelations(entityMetaData, t.originalInstance, propertyAccessor, t.wasNew, TemplateSupport.computeIncludePropertyPredicate(includedProperties, entityMetaData));
+			Neo4jPersistentProperty idProperty = entityMetaData.getRequiredIdProperty();
+			Object id = convertIdValues(idProperty, propertyAccessor.getProperty(idProperty));
+			Long internalId = idToInternalIdMapping.get(id);
+			return processRelations(entityMetaData, t.originalInstance, internalId, propertyAccessor, t.wasNew, TemplateSupport.computeIncludePropertyPredicate(includedProperties, entityMetaData));
 		}).collect(Collectors.toList());
 	}
 
@@ -632,22 +635,13 @@ public final class Neo4jTemplate implements
 	 * @param isParentObjectNew      A flag if the parent was new
 	 * @param includeProperty        A predicate telling to include a relationship property or not
 	 */
-	private <T> void processRelations(Neo4jPersistentEntity<?> neo4jPersistentEntity, T originalInstance, Long internalId,
+	private <T> T processRelations(Neo4jPersistentEntity<?> neo4jPersistentEntity, T originalInstance, Long internalId,
 								   PersistentPropertyAccessor<?> parentPropertyAccessor,
 								   boolean isParentObjectNew, PropertyFilter includeProperty) {
 
 		PropertyFilter.RelaxedPropertyPath startingPropertyPath = PropertyFilter.RelaxedPropertyPath.withRootType(neo4jPersistentEntity.getUnderlyingClass());
-		processNestedRelations(neo4jPersistentEntity, parentPropertyAccessor, isParentObjectNew,
-				new NestedRelationshipProcessingStateMachine(originalInstance, internalId), includeProperty, startingPropertyPath);
-	}
-
-	private <T> T processRelations(Neo4jPersistentEntity<?> neo4jPersistentEntity, T originalInstance,
-			PersistentPropertyAccessor<?> parentPropertyAccessor,
-			boolean isParentObjectNew, PropertyFilter includeProperty) {
-
-		PropertyFilter.RelaxedPropertyPath startingPropertyPath = PropertyFilter.RelaxedPropertyPath.withRootType(neo4jPersistentEntity.getUnderlyingClass());
 		return processNestedRelations(neo4jPersistentEntity, parentPropertyAccessor, isParentObjectNew,
-				new NestedRelationshipProcessingStateMachine(originalInstance), includeProperty, startingPropertyPath);
+				new NestedRelationshipProcessingStateMachine(originalInstance, internalId), includeProperty, startingPropertyPath);
 	}
 
 	private <T> T processNestedRelations(Neo4jPersistentEntity<?> sourceEntity, PersistentPropertyAccessor<?> propertyAccessor,

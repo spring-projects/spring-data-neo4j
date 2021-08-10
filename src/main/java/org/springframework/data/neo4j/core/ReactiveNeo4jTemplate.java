@@ -19,6 +19,7 @@ import static org.neo4j.cypherdsl.core.Cypher.anyNode;
 import static org.neo4j.cypherdsl.core.Cypher.asterisk;
 import static org.neo4j.cypherdsl.core.Cypher.parameter;
 
+import org.neo4j.driver.Value;
 import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.neo4j.core.mapping.EntityFromDtoInstantiatingConverter;
 import org.springframework.data.neo4j.core.mapping.PropertyFilter;
@@ -49,7 +50,6 @@ import org.neo4j.cypherdsl.core.Functions;
 import org.neo4j.cypherdsl.core.Node;
 import org.neo4j.cypherdsl.core.Statement;
 import org.neo4j.cypherdsl.core.renderer.Renderer;
-import org.neo4j.driver.summary.SummaryCounters;
 import org.neo4j.driver.types.Entity;
 import org.neo4j.driver.types.MapAccessor;
 import org.neo4j.driver.types.TypeSystem;
@@ -499,18 +499,23 @@ public final class ReactiveNeo4jTemplate implements
 							.map(binderFunction).collect(Collectors.toList());
 					return neo4jClient
 							.query(() -> renderer.render(cypherGenerator.prepareSaveOfMultipleInstancesOf(entityMetaData)))
-							.bind(boundedEntityList).to(Constants.NAME_OF_ENTITY_LIST_PARAM).run();
-				}).doOnNext(resultSummary -> {
-					SummaryCounters counters = resultSummary.counters();
-					log.debug(() -> String.format(
-							"Created %d and deleted %d nodes, created %d and deleted %d relationships and set %d properties.",
-							counters.nodesCreated(), counters.nodesDeleted(), counters.relationshipsCreated(),
-							counters.relationshipsDeleted(), counters.propertiesSet()));
-				}).thenMany(Flux.fromIterable(entitiesToBeSaved)
-						.flatMap(t -> processRelations(entityMetaData, t.getT1(),
-								entityMetaData.getPropertyAccessor(t.getT3()), t.getT2(),
-								TemplateSupport.computeIncludePropertyPredicate(includedProperties, entityMetaData)))
-				));
+							.bind(boundedEntityList).to(Constants.NAME_OF_ENTITY_LIST_PARAM)
+							.fetchAs(Tuple2.class)
+							.mappedBy((t, r) -> Tuples.of(r.get(Constants.NAME_OF_ID), r.get(Constants.NAME_OF_INTERNAL_ID).asLong()))
+							.all()
+							.collectMap(m -> (Value) m.getT1(), m -> (Long) m.getT2());
+				}).flatMapMany(idToInternalIdMapping -> Flux.fromIterable(entitiesToBeSaved)
+						.flatMap(t -> {
+							PersistentPropertyAccessor<T> propertyAccessor = entityMetaData.getPropertyAccessor(t.getT3());
+							Neo4jPersistentProperty idProperty = entityMetaData.getRequiredIdProperty();
+							Object id = convertIdValues(idProperty, propertyAccessor.getProperty(idProperty));
+							Long internalId = idToInternalIdMapping.get(id);
+							return processRelations(entityMetaData, t.getT1(), internalId,
+									propertyAccessor, t.getT2(),
+								TemplateSupport.computeIncludePropertyPredicate(includedProperties,
+										entityMetaData));
+						}))
+				);
 	}
 
 	@Override
@@ -739,15 +744,6 @@ public final class ReactiveNeo4jTemplate implements
 		PropertyFilter.RelaxedPropertyPath startingPropertyPath = PropertyFilter.RelaxedPropertyPath.withRootType(neo4jPersistentEntity.getUnderlyingClass());
 		return processNestedRelations(neo4jPersistentEntity, parentPropertyAccessor, isParentObjectNew,
 				new NestedRelationshipProcessingStateMachine(originalInstance, internalId), includeProperty, startingPropertyPath);
-	}
-
-	private <T> Mono<T> processRelations(Neo4jPersistentEntity<?> neo4jPersistentEntity, T originalInstance,
-			PersistentPropertyAccessor<?> parentPropertyAccessor,
-			boolean isParentObjectNew, PropertyFilter includeProperty) {
-
-		PropertyFilter.RelaxedPropertyPath startingPropertyPath = PropertyFilter.RelaxedPropertyPath.withRootType(neo4jPersistentEntity.getUnderlyingClass());
-		return processNestedRelations(neo4jPersistentEntity, parentPropertyAccessor, isParentObjectNew,
-				new NestedRelationshipProcessingStateMachine(originalInstance), includeProperty, startingPropertyPath);
 	}
 
 	private <T> Mono<T> processNestedRelations(Neo4jPersistentEntity<?> sourceEntity, PersistentPropertyAccessor<?> parentPropertyAccessor,

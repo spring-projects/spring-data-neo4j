@@ -27,6 +27,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.apiguardian.api.API;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
+import org.springframework.util.Assert;
 
 /**
  * This stores all processed nested relations and objects during save of objects so that the recursive descent can be
@@ -72,12 +73,12 @@ public final class NestedRelationshipProcessingStateMachine {
 	private final Map<Object, Long> processedObjectsIds = new HashMap<>();
 
 	public NestedRelationshipProcessingStateMachine(Object initialObject, Long internalId) {
-		this(initialObject);
-		processedObjectsIds.put(initialObject, internalId);
-	}
 
-	public NestedRelationshipProcessingStateMachine(Object initialObject) {
+		Assert.notNull(initialObject, "Initial object must not be null.");
+		Assert.notNull(internalId, "The initial objects internal ID must not be null.");
+
 		processedObjects.add(initialObject);
+		processedObjectsIds.put(initialObject, internalId);
 	}
 
 	/**
