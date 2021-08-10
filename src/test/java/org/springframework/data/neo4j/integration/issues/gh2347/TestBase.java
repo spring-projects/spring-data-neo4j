@@ -18,7 +18,9 @@ package org.springframework.data.neo4j.integration.issues.gh2347;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
+import java.util.function.BiConsumer;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.neo4j.driver.Driver;
@@ -60,7 +62,22 @@ abstract class TestBase {
 		return app1;
 	}
 
-	protected final void assertDatabase(Driver driver, BookmarkCapture bookmarkCapture) {
+	protected final void createData(BiConsumer<List<Application>, List<Workflow>> actualTest) {
+
+		Application app1 = new Application("app-1");
+		Workflow wf1 = new Workflow("wf-1");
+		wf1.setApplication(app1);
+		app1.getWorkflows().add(wf1);
+
+		Application app2 = new Application("app-2");
+		Workflow wf2 = new Workflow("wf-2");
+		wf2.setApplication(app2);
+		app2.getWorkflows().add(wf2);
+
+		actualTest.accept(Arrays.asList(app1, app2), Arrays.asList(wf1, wf2));
+	}
+
+	protected final void assertSingleApplicationNodeWithMultipleWorkflows(Driver driver, BookmarkCapture bookmarkCapture) {
 
 		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
 			Record record = session.readTransaction(
@@ -68,6 +85,21 @@ abstract class TestBase {
 			assertThat(record.get("a").asNode().get("id").asString()).isEqualTo("app-1");
 			assertThat(record.get("workflows").asList(v -> v.asNode().get("id").asString())).containsExactlyInAnyOrder(
 					"wf-1", "wf-2");
+		}
+	}
+
+	protected final void assertMultipleApplicationsNodeWithASingleWorkflow(Driver driver, BookmarkCapture bookmarkCapture) {
+
+		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
+			List<Record> records = session.readTransaction(
+					tx -> tx.run("MATCH (a:Application)-->(w) RETURN a, collect(w) as workflows").list());
+			assertThat(records).hasSize(2);
+			assertThat(records.get(0).get("a").asNode().get("id").asString()).isEqualTo("app-1");
+			assertThat(records.get(0).get("workflows")
+					.asList(v -> v.asNode().get("id").asString())).containsExactlyInAnyOrder("wf-1");
+			assertThat(records.get(1).get("a").asNode().get("id").asString()).isEqualTo("app-2");
+			assertThat(records.get(1).get("workflows")
+					.asList(v -> v.asNode().get("id").asString())).containsExactlyInAnyOrder("wf-2");
 		}
 	}
 }

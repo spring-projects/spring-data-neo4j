@@ -52,7 +52,7 @@ class ReactiveGH2347IT extends TestBase {
 				.expectNextCount(1L)
 				.verifyComplete();
 
-		assertDatabase(driver, bookmarkCapture);
+		assertSingleApplicationNodeWithMultipleWorkflows(driver, bookmarkCapture);
 	}
 
 	@Test
@@ -66,10 +66,45 @@ class ReactiveGH2347IT extends TestBase {
 				.as(StepVerifier::create)
 				.expectNextCount(1L)
 				.verifyComplete();
-		assertDatabase(driver, bookmarkCapture);
+		assertSingleApplicationNodeWithMultipleWorkflows(driver, bookmarkCapture);
+	}
+
+	@Test // GH-2346
+	void relationshipsStartingAtEntitiesWithAssignedIdsShouldBeCreated(
+			@Autowired ApplicationRepository applicationRepository,
+			@Autowired Driver driver,
+			@Autowired BookmarkCapture bookmarkCapture
+	) {
+		createData((applications, workflows) -> {
+			applicationRepository.saveAll(applications)
+					.as(StepVerifier::create)
+					.expectNextCount(2L)
+					.verifyComplete();
+
+			assertMultipleApplicationsNodeWithASingleWorkflow(driver, bookmarkCapture);
+		});
+	}
+
+	@Test // GH-2346
+	void relationshipsStartingAtEntitiesWithAssignedIdsShouldBeCreatedOtherDirection(
+			@Autowired WorkflowRepository workflowRepository,
+			@Autowired Driver driver,
+			@Autowired BookmarkCapture bookmarkCapture
+	) {
+		createData((applications, workflows) -> {
+			workflowRepository.saveAll(workflows)
+					.as(StepVerifier::create)
+					.expectNextCount(2L)
+					.verifyComplete();
+
+			assertMultipleApplicationsNodeWithASingleWorkflow(driver, bookmarkCapture);
+		});
 	}
 
 	interface ApplicationRepository extends ReactiveNeo4jRepository<Application, String> {
+	}
+
+	interface WorkflowRepository extends ReactiveNeo4jRepository<Workflow, String> {
 	}
 
 	@Configuration
