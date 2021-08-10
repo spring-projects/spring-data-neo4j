@@ -47,7 +47,7 @@ class ReactiveGH2347IT extends TestBase {
 				.expectNextCount(1L)
 				.verifyComplete();
 
-		assertDatabase(driver);
+		assertSingleApplicationNodeWithMultipleWorkflows(driver);
 	}
 
 	@Test
@@ -60,10 +60,43 @@ class ReactiveGH2347IT extends TestBase {
 				.as(StepVerifier::create)
 				.expectNextCount(1L)
 				.verifyComplete();
-		assertDatabase(driver);
+		assertSingleApplicationNodeWithMultipleWorkflows(driver);
+	}
+
+	@Test // GH-2346
+	void relationshipsStartingAtEntitiesWithAssignedIdsShouldBeCreated(
+			@Autowired ApplicationRepository applicationRepository,
+			@Autowired Driver driver
+	) {
+		createData((applications, workflows) -> {
+			applicationRepository.saveAll(applications)
+					.as(StepVerifier::create)
+					.expectNextCount(2L)
+					.verifyComplete();
+
+			assertMultipleApplicationsNodeWithASingleWorkflow(driver);
+		});
+	}
+
+	@Test // GH-2346
+	void relationshipsStartingAtEntitiesWithAssignedIdsShouldBeCreatedOtherDirection(
+			@Autowired WorkflowRepository workflowRepository,
+			@Autowired Driver driver
+	) {
+		createData((applications, workflows) -> {
+			workflowRepository.saveAll(workflows)
+					.as(StepVerifier::create)
+					.expectNextCount(2L)
+					.verifyComplete();
+
+			assertMultipleApplicationsNodeWithASingleWorkflow(driver);
+		});
 	}
 
 	interface ApplicationRepository extends ReactiveNeo4jRepository<Application, String> {
+	}
+
+	interface WorkflowRepository extends ReactiveNeo4jRepository<Workflow, String> {
 	}
 
 	@Configuration
