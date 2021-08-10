@@ -51,7 +51,7 @@ class GH2347IT extends TestBase {
 		List<Application> savedApplications = applicationRepository.saveAll(Collections.singletonList(createData()));
 
 		assertThat(savedApplications).hasSize(1);
-		assertDatabase(driver, bookmarkCapture);
+		assertSingleApplicationNodeWithMultipleWorkflows(driver, bookmarkCapture);
 	}
 
 	@Test
@@ -61,10 +61,41 @@ class GH2347IT extends TestBase {
 			@Autowired BookmarkCapture bookmarkCapture
 	) {
 		applicationRepository.save(createData());
-		assertDatabase(driver, bookmarkCapture);
+		assertSingleApplicationNodeWithMultipleWorkflows(driver, bookmarkCapture);
+	}
+
+	@Test // GH-2346
+	void relationshipsStartingAtEntitiesWithAssignedIdsShouldBeCreated(
+			@Autowired ApplicationRepository applicationRepository,
+			@Autowired Driver driver,
+			@Autowired BookmarkCapture bookmarkCapture
+	) {
+		createData((applications, workflows) -> {
+			List<Application> savedApplications = applicationRepository.saveAll(applications);
+
+			assertThat(savedApplications).hasSize(2);
+			assertMultipleApplicationsNodeWithASingleWorkflow(driver, bookmarkCapture);
+		});
+	}
+
+	@Test // GH-2346
+	void relationshipsStartingAtEntitiesWithAssignedIdsShouldBeCreatedOtherDirection(
+			@Autowired WorkflowRepository workflowRepository,
+			@Autowired Driver driver,
+			@Autowired BookmarkCapture bookmarkCapture
+	) {
+		createData((applications, workflows) -> {
+			List<Workflow> savedWorkflows = workflowRepository.saveAll(workflows);
+
+			assertThat(savedWorkflows).hasSize(2);
+			assertMultipleApplicationsNodeWithASingleWorkflow(driver, bookmarkCapture);
+		});
 	}
 
 	interface ApplicationRepository extends Neo4jRepository<Application, String> {
+	}
+
+	interface WorkflowRepository extends Neo4jRepository<Workflow, String> {
 	}
 
 	@Configuration
