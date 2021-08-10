@@ -366,7 +366,8 @@ public enum CypherGenerator {
 		return Cypher.unwind(parameter(Constants.NAME_OF_ENTITY_LIST_PARAM)).as(row)
 				.merge(rootNode.withProperties(nameOfIdProperty, Cypher.property(row, Constants.NAME_OF_ID)))
 				.mutate(rootNode, Cypher.property(row, Constants.NAME_OF_PROPERTIES_PARAM))
-				.returning(Functions.collect(rootNode.property(nameOfIdProperty)).as(Constants.NAME_OF_IDS)).build();
+				.returning(rootNode.internalId().as(Constants.NAME_OF_INTERNAL_ID), rootNode.property(nameOfIdProperty).as(Constants.NAME_OF_ID))
+				.build();
 	}
 
 	@NonNull
