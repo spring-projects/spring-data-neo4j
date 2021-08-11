@@ -34,8 +34,8 @@ import org.springframework.data.repository.config.CustomRepositoryImplementation
 /**
  * The CDI pendant to the {@link Neo4jRepositoryFactoryBean}. It creates instances of {@link Neo4jRepositoryFactory}.
  *
- * @param <T> The type of the repository being created
  * @author Michael J. Simons
+ * @param <T> The type of the repository being created
  * @soundtrack Various - TRON Legacy R3conf1gur3d
  * @since 6.0
  */

@@ -28,8 +28,8 @@ import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 /**
  * Make sure that dynamic relationships can be loaded and stored.
  *
- * @param <T> Type of the person with relatives
  * @author Michael J. Simons
+ * @param <T> Type of the person with relatives
  * @soundtrack Helge Schneider - Live At The Grugahalle
  */
 @Neo4jIntegrationTest

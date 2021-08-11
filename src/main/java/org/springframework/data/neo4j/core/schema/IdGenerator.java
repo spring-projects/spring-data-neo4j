@@ -20,8 +20,8 @@ import org.apiguardian.api.API;
 /**
  * Interface for generating ids for entities.
  *
- * @param <T> Type of the id to generate
  * @author Michael J. Simons
+ * @param <T> Type of the id to generate
  * @since 6.0
  */
 @FunctionalInterface
