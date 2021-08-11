@@ -50,9 +50,9 @@ import java.util.stream.Collectors;
  * that the query fits to the mapping function, that is: It must return all nodes, relationships and paths that is
  * expected by the mapping function to work correctly.
  *
- * @param <T> The type of the objects returned by this query.
  * @author Michael J. Simons
  * @author Gerrit Meier
+ * @param <T> The type of the objects returned by this query.
  * @soundtrack Deichkind - Arbeit nervt
  * @since 6.0
  */

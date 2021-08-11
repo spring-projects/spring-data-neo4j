@@ -40,8 +40,8 @@ import org.springframework.data.neo4j.repository.support.Neo4jEntityInformation;
 import org.springframework.data.support.PageableExecutionUtils;
 
 /**
- * @param <T> The returned domain type.
  * @author Michael J. Simons
+ * @param <T> The returned domain type.
  * @since 6.1
  */
 @API(status = API.Status.INTERNAL, since = "6.1")

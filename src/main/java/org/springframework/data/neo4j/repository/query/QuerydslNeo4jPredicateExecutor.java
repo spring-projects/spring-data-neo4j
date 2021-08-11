@@ -39,8 +39,8 @@ import com.querydsl.core.types.Predicate;
  * to the Cypher-DSL and eventually to the template infrastructure. This fragment will be loaded by the repository
  * infrastructure when
  *
- * @param <T> The returned domain type.
  * @author Michael J. Simons
+ * @param <T> The returned domain type.
  * @soundtrack Various - Chef Aid: The South Park Album
  * @since 6.1
  */

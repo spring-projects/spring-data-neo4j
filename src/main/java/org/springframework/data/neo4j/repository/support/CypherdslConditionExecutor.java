@@ -29,8 +29,8 @@ import org.springframework.data.domain.Sort;
  * An interface that can be added to any repository so that queries can be enriched by {@link Condition conditions} of the
  * Cypher-DSL. This interface behaves the same like the {@link org.springframework.data.querydsl.QuerydslPredicateExecutor}.
  *
- * @param <T> Type of the domain
  * @author Michael J. Simons
+ * @param <T> Type of the domain
  * @since 6.1
  */
 @API(status = API.Status.STABLE, since = "6.1")

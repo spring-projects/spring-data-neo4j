@@ -28,9 +28,9 @@ import org.springframework.lang.Nullable;
  * <p>The calling mechanism will take care of adding and removing configured prefixes and transforming keys and values into
  * something that Neo4j can understand.
  *
+ * @author Michael J. Simons
  * @param <K> The type of the keys (Only Strings and Enums are supported).
  * @param <P> The type of the property.
- * @author Michael J. Simons
  * @soundtrack Metallica - Helping Hands… Live & Acoustic At The Masonic
  * @since 6.0
  */

@@ -27,8 +27,8 @@ import org.neo4j.cypherdsl.core.Statement;
  * way in contrast to provide custom queries declaratively via {@link org.springframework.data.neo4j.repository.query.Query @Query}
  * annotations.
  *
- * @param <T> The domain type of the repository
  * @author Michael J. Simons
+ * @param <T> The domain type of the repository
  * @soundtrack Queen - Queen On Air
  * @since 6.1
  */
