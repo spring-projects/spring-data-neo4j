@@ -74,8 +74,7 @@ public final class Neo4jEntityScanner {
 	 * @return a set of entity classes
 	 * @throws ClassNotFoundException if an entity class cannot be loaded
 	 */
-	@SafeVarargs
-	public final Set<Class<?>> scan(String... basePackages) throws ClassNotFoundException {
+	public Set<Class<?>> scan(String... basePackages) throws ClassNotFoundException {
 		return scan(Arrays.stream(basePackages).collect(Collectors.toList()));
 	}
 
@@ -105,7 +104,10 @@ public final class Neo4jEntityScanner {
 		for (String basePackage : packages) {
 			if (StringUtils.hasText(basePackage)) {
 				for (BeanDefinition candidate : scanner.findCandidateComponents(basePackage)) {
-					entitySet.add(ClassUtils.forName(candidate.getBeanClassName(), classLoader));
+					String beanClassName = candidate.getBeanClassName();
+					if (beanClassName != null) {
+						entitySet.add(ClassUtils.forName(beanClassName, classLoader));
+					}
 				}
 			}
 		}
@@ -120,7 +122,7 @@ public final class Neo4jEntityScanner {
 	 * @return a {@link ClassPathScanningCandidateComponentProvider} suitable to scan for Neo4j entities
 	 */
 	private static ClassPathScanningCandidateComponentProvider createClassPathScanningCandidateComponentProvider(
-			ResourceLoader resourceLoader) {
+			@Nullable ResourceLoader resourceLoader) {
 
 		ClassPathScanningCandidateComponentProvider delegate = new ClassPathScanningCandidateComponentProvider(false);
 		if (resourceLoader != null) {

@@ -33,6 +33,8 @@ import org.neo4j.driver.reactive.RxSession;
 import org.neo4j.driver.reactive.RxTransaction;
 import org.neo4j.driver.summary.ResultSummary;
 import org.neo4j.driver.types.TypeSystem;
+import org.springframework.lang.Nullable;
+
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -128,6 +130,7 @@ class ReactiveNeo4jClientTest {
 		verify(result).records();
 		verify(result).consume();
 		verify(resultSummary).notifications();
+		verify(resultSummary).hasPlan();
 		verify(record1).asMap();
 		verify(record2).asMap();
 		verify(transaction).commit();
@@ -162,6 +165,7 @@ class ReactiveNeo4jClientTest {
 		verify(result).records();
 		verify(result).consume();
 		verify(resultSummary).notifications();
+		verify(resultSummary).hasPlan();
 		verify(record1).asMap();
 		verify(transaction).commit();
 		verify(transaction).rollback();
@@ -217,6 +221,7 @@ class ReactiveNeo4jClientTest {
 		verify(result).records();
 		verify(result).consume();
 		verify(resultSummary).notifications();
+		verify(resultSummary).hasPlan();
 		verify(record1).asMap();
 		verify(transaction).commit();
 		verify(transaction).rollback();
@@ -299,6 +304,7 @@ class ReactiveNeo4jClientTest {
 			verify(transaction).run(eq(cypher), MockitoHamcrest.argThat(new Neo4jClientTest.MapAssertionMatcher(expectedParameters)));
 			verify(result).records();
 			verify(resultSummary).notifications();
+			verify(resultSummary).hasPlan();
 			verify(record1).get("name");
 			verify(transaction).commit();
 			verify(transaction).rollback();
@@ -334,6 +340,7 @@ class ReactiveNeo4jClientTest {
 					MockitoHamcrest.argThat(new Neo4jClientTest.MapAssertionMatcher(Collections.emptyMap())));
 			verify(result).records();
 			verify(resultSummary).notifications();
+			verify(resultSummary).hasPlan();
 			verify(record1).get("name");
 			verify(transaction).commit();
 			verify(transaction).rollback();
@@ -370,6 +377,7 @@ class ReactiveNeo4jClientTest {
 			verify(transaction).run(eq(cypher), MockitoHamcrest.argThat(new Neo4jClientTest.MapAssertionMatcher(expectedParameters)));
 			verify(result).consume();
 			verify(resultSummary).notifications();
+			verify(resultSummary).hasPlan();
 			verify(transaction).commit();
 			verify(transaction).rollback();
 			verify(session).close();
@@ -399,6 +407,7 @@ class ReactiveNeo4jClientTest {
 
 			verify(result).consume();
 			verify(resultSummary).notifications();
+			verify(resultSummary).hasPlan();
 			verify(transaction).run(eq(cypher), anyMap());
 			verify(transaction).commit();
 			verify(transaction).rollback();
@@ -433,12 +442,13 @@ class ReactiveNeo4jClientTest {
 		verify(transaction).run(eq(cypher), MockitoHamcrest.argThat(new Neo4jClientTest.MapAssertionMatcher(expectedParameters)));
 		verify(result).consume();
 		verify(resultSummary).notifications();
+		verify(resultSummary).hasPlan();
 		verify(transaction).commit();
 		verify(transaction).rollback();
 		verify(session).close();
 	}
 
-	void verifyDatabaseSelection(String targetDatabase) {
+	void verifyDatabaseSelection(@Nullable String targetDatabase) {
 
 		verify(driver).rxSession(configArgumentCaptor.capture());
 		SessionConfig config = configArgumentCaptor.getValue();

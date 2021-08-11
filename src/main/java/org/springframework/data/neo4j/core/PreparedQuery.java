@@ -67,6 +67,7 @@ public final class PreparedQuery<T> {
 	private final QueryFragmentsAndParameters queryFragmentsAndParameters;
 	private final @Nullable BiFunction<TypeSystem, Record, T> mappingFunction;
 
+	@SuppressWarnings("unchecked")
 	private PreparedQuery(OptionalBuildSteps<T> optionalBuildSteps) {
 		this.resultType = optionalBuildSteps.resultType;
 		if (optionalBuildSteps.mappingFunction == null) {

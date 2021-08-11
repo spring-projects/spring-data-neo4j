@@ -53,7 +53,7 @@ final class StartupLogger {
 		if (!logger.isDebugEnabled()) {
 			return;
 		}
-		logger.debug(() -> getStartingMessage());
+		logger.debug(this::getStartingMessage);
 	}
 
 	String getStartingMessage() {
@@ -75,7 +75,7 @@ final class StartupLogger {
 
 	private Optional<String> getVersionOf(Class<?> clazz) {
 
-		return Optional.ofNullable(clazz).map(Class::getPackage).map(Package::getImplementationVersion).map(String::trim)
+		return Optional.of(clazz).map(Class::getPackage).map(Package::getImplementationVersion).map(String::trim)
 				.filter(v -> !v.isEmpty());
 	}
 }

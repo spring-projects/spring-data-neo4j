@@ -35,6 +35,7 @@ final class Neo4jParameterAccessor extends ParametersParameterAccessor {
 		super(parameters, values);
 	}
 
+	@SuppressWarnings("unchecked") // That's the whole ida of this override
 	@Override
 	public Parameters<Neo4jParameters, Neo4jParameter> getParameters() {
 		return (Parameters<Neo4jParameters, Neo4jParameter>) super.getParameters();

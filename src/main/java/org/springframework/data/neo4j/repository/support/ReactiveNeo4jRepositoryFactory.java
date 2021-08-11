@@ -54,6 +54,7 @@ final class ReactiveNeo4jRepositoryFactory extends ReactiveRepositoryFactorySupp
 		this.mappingContext = mappingContext;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public <T, ID> Neo4jEntityInformation<T, ID> getEntityInformation(Class<T> domainClass) {
 
@@ -74,7 +75,7 @@ final class ReactiveNeo4jRepositoryFactory extends ReactiveRepositoryFactorySupp
 
 		RepositoryFragments fragments = RepositoryFragments.empty();
 
-		SimpleReactiveQueryByExampleExecutor byExampleExecutor = instantiateClass(
+		SimpleReactiveQueryByExampleExecutor<?> byExampleExecutor = instantiateClass(
 				SimpleReactiveQueryByExampleExecutor.class, neo4jOperations, mappingContext);
 
 		fragments = fragments.append(RepositoryFragment.implemented(byExampleExecutor));

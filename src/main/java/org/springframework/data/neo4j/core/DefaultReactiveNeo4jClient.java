@@ -154,8 +154,8 @@ class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 		}
 
 		@Override
-		public Neo4jClient.OngoingBindSpec<?, RunnableSpecTightToDatabase> bind(@Nullable Object value) {
-			return new DefaultOngoingBindSpec(value);
+		public <T> Neo4jClient.OngoingBindSpec<T, RunnableSpecTightToDatabase> bind(T value) {
+			return new DefaultOngoingBindSpec<>(value);
 		}
 
 		@Override
@@ -168,7 +168,7 @@ class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 		public <R> MappingSpec<R> fetchAs(Class<R> targetClass) {
 
 			return new DefaultRecordFetchSpec<>(this.targetDatabase, this.cypherSupplier, this.parameters,
-					new SingleValueMappingFunction(conversionService, targetClass));
+					new SingleValueMappingFunction<>(conversionService, targetClass));
 		}
 
 		@Override
@@ -280,7 +280,7 @@ class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 	 * exception if the conversation failed. Thus allows safe re-throwing of the return value.
 	 *
 	 * @param ex the exception to translate
-	 * @return
+	 * @return Any translated exception
 	 */
 	private RuntimeException potentiallyConvertRuntimeException(RuntimeException ex) {
 		RuntimeException resolved = persistenceExceptionTranslator.translateExceptionIfPossible(ex);
@@ -303,7 +303,7 @@ class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 		}
 
 		@Override
-		public RunnableDelegation in(@Nullable @SuppressWarnings("HiddenField") String targetDatabase) {
+		public RunnableDelegation<T> in(@Nullable @SuppressWarnings("HiddenField") String targetDatabase) {
 
 			this.targetDatabase = Neo4jClient.verifyDatabaseName(targetDatabase);
 			return this;
@@ -317,7 +317,7 @@ class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 		}
 	}
 
-	final class RxStatementRunnerHolder {
+	static final class RxStatementRunnerHolder {
 		private final RxQueryRunner rxQueryRunner;
 
 		private final Publisher<Void> commit;

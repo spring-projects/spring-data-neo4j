@@ -27,49 +27,18 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.FilterType;
-import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.data.neo4j.config.AbstractNeo4jConfig;
-import org.springframework.data.neo4j.repository.Neo4jRepository;
+import org.springframework.data.neo4j.repository.ReactiveNeo4jRepository;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 /**
- * @author Gerrit Meier
+ * @author Michael J. Simons
  */
-class EnableNeo4jRepositoriesTests {
-
-	private static final String BASE_PACKAGES_VALUE = "basePackages";
-
-	@Test
-	void valueIsAliasForBasePackages() {
-
-		EnableNeo4jRepositories annotation = AnnotationUtils.findAnnotation(EnableRepositoryConfigWithValue.class,
-				EnableNeo4jRepositories.class);
-
-		assertThat(annotation).isNotNull();
-		assertThat(annotation.value()).containsExactly(BASE_PACKAGES_VALUE);
-		assertThat(annotation.value()).containsExactly(annotation.basePackages());
-	}
-
-	@Test
-	void basePackagesIsAliasForValue() {
-
-		EnableNeo4jRepositories annotation = AnnotationUtils.findAnnotation(EnableRepositoryConfigWithBasePackages.class,
-				EnableNeo4jRepositories.class);
-
-		assertThat(annotation).isNotNull();
-		assertThat(annotation.basePackages()).containsExactly(BASE_PACKAGES_VALUE);
-		assertThat(annotation.basePackages()).containsExactly(annotation.value());
-	}
-
-	@EnableNeo4jRepositories(BASE_PACKAGES_VALUE)
-	private class EnableRepositoryConfigWithValue {}
-
-	@EnableNeo4jRepositories(basePackages = BASE_PACKAGES_VALUE)
-	private class EnableRepositoryConfigWithBasePackages {}
+class EnableReactiveNeo4jRepositoriesTests {
 
 	@ExtendWith({ SpringExtension.class })
-	@ContextConfiguration(classes = ExcludeFilterShouldWork.Config.class)
+	@ContextConfiguration(classes = EnableReactiveNeo4jRepositoriesTests.ExcludeFilterShouldWork.Config.class)
 	static class ExcludeFilterShouldWork {
 
 		@Test
@@ -77,10 +46,11 @@ class EnableNeo4jRepositoriesTests {
 			assertThat(repos.iterator()).isExhausted();
 		}
 
-		interface RepositoryToBeExcluded extends Neo4jRepository<AnEntity, String> {}
+		interface RepositoryToBeExcluded extends ReactiveNeo4jRepository<AnEntity, String> {
+		}
 
 		@Configuration
-		@EnableNeo4jRepositories(considerNestedRepositories = true, excludeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = RepositoryToBeExcluded.class))
+		@EnableReactiveNeo4jRepositories(considerNestedRepositories = true, excludeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = RepositoryToBeExcluded.class))
 		static class Config extends AbstractNeo4jConfig {
 
 			@Bean

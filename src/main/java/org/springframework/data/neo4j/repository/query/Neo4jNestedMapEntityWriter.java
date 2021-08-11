@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
@@ -48,6 +49,7 @@ import org.springframework.data.neo4j.core.mapping.NestedRelationshipContext;
 import org.springframework.data.neo4j.core.mapping.RelationshipDescription;
 import org.springframework.data.neo4j.core.schema.TargetNode;
 import org.springframework.data.util.TypeInformation;
+import org.springframework.lang.Nullable;
 
 /**
  * A specialized version of an {@link EntityWriter} for Neo4j that traverses the entity and maps the entity,
@@ -75,7 +77,7 @@ final class Neo4jNestedMapEntityWriter implements EntityWriter<Object, Map<Strin
 	}
 
 	@Override
-	public void write(Object source, Map<String, Object> sink) {
+	public void write(@Nullable Object source, Map<String, Object> sink) {
 
 		if (source == null) {
 			return;
@@ -85,14 +87,17 @@ final class Neo4jNestedMapEntityWriter implements EntityWriter<Object, Map<Strin
 		writeImpl(source, sink, seenObjects, true);
 	}
 
-	Map<String, Object> writeImpl(Object source, Map<String, Object> sink, Set<Object> seenObjects, boolean initialObject) {
+	Map<String, Object> writeImpl(@Nullable Object source, Map<String, Object> sink, Set<Object> seenObjects, boolean initialObject) {
 
+		if (source == null) {
+			return sink;
+		}
 		Class<?> sourceType = source.getClass();
 		if (!this.mappingContext.hasPersistentEntityFor(sourceType)) {
 			throw new MappingException("Cannot write unknown entity of type '" + sourceType.getName() + "' into a map.");
 		}
 
-		Neo4jPersistentEntity<?> entity = this.mappingContext.getPersistentEntity(sourceType);
+		Neo4jPersistentEntity<?> entity = this.mappingContext.getRequiredPersistentEntity(sourceType);
 		PersistentPropertyAccessor<Object> propertyAccessor = entity.getPropertyAccessor(source);
 		Neo4jPersistentProperty idProperty = entity.getIdProperty();
 
@@ -114,12 +119,12 @@ final class Neo4jNestedMapEntityWriter implements EntityWriter<Object, Map<Strin
 		addLabels(sink, entity, propertyAccessor);
 		addRelations(sink, entity, propertyAccessor, seenObjects);
 		if (initialObject && entity.isRelationshipPropertiesEntity()) {
+			@SuppressWarnings("unchecked")
 			Map<String, Object> propertyMap = (Map<String, Object>) sink.get(Constants.NAME_OF_PROPERTIES_PARAM);
 			entity.doWithProperties((PropertyHandler<Neo4jPersistentProperty>) p -> {
 				if (p.isAnnotationPresent(TargetNode.class)) {
 					Map<String, Object> target = this.writeImpl(propertyAccessor.getProperty(p), new HashMap<>(), seenObjects, false);
 					propertyMap.put("__target__", Values.value(target));
-					return;
 				}
 			});
 		}
@@ -127,6 +132,7 @@ final class Neo4jNestedMapEntityWriter implements EntityWriter<Object, Map<Strin
 		// Remove redundant values
 		// Internal ID
 		if (!(idProperty == null || idProperty.isInternalIdProperty())) {
+			@SuppressWarnings("unchecked")
 			Map<String, Object> propertyMap = (Map<String, Object>) sink.get(Constants.NAME_OF_PROPERTIES_PARAM);
 			propertyMap.remove(idProperty.getPropertyName());
 		}
@@ -137,9 +143,11 @@ final class Neo4jNestedMapEntityWriter implements EntityWriter<Object, Map<Strin
 		return sink;
 	}
 
-	private Map<String, Object> addRelations(Map<String, Object> sink, Neo4jPersistentEntity<?> entity,
+
+	private void addRelations(Map<String, Object> sink, Neo4jPersistentEntity<?> entity,
 			PersistentPropertyAccessor<Object> propertyAccessor, Set<Object> seenObjects) {
 
+		@SuppressWarnings("unchecked")
 		Map<String, Object> propertyMap = (Map<String, Object>) sink.get(Constants.NAME_OF_PROPERTIES_PARAM);
 		entity.doWithAssociations((AssociationHandler<Neo4jPersistentProperty>) association -> {
 
@@ -157,7 +165,7 @@ final class Neo4jNestedMapEntityWriter implements EntityWriter<Object, Map<Strin
 				TypeInformation<?> keyType = property.getTypeInformation().getRequiredComponentType();
 
 				Map<String, Value> collect = unifiedView
-						.stream().filter(v -> v != null)
+						.stream().filter(Objects::nonNull)
 						.flatMap(intoSingleMapEntries())
 						.flatMap(intoSingleCollectionEntries())
 						.map(relatedEntry -> {
@@ -180,7 +188,7 @@ final class Neo4jNestedMapEntityWriter implements EntityWriter<Object, Map<Strin
 				}
 			} else {
 				List<Object> relatedObjects = unifiedView
-						.stream().filter(v -> v != null)
+						.stream().filter(Objects::nonNull)
 						.map(relatedObject -> extractPotentialRelationProperties(description, relatedObject,
 								seenObjects))
 						.collect(Collectors.toList());
@@ -195,39 +203,45 @@ final class Neo4jNestedMapEntityWriter implements EntityWriter<Object, Map<Strin
 				}
 			}
 		});
-		return propertyMap;
 	}
 
-	private Function<Map.Entry, Stream<? extends Map.Entry>> intoSingleCollectionEntries() {
+	private Function<Map.Entry<?, ?>, Stream<? extends Map.Entry<?, ?>>> intoSingleCollectionEntries() {
 		return e -> {
 			if (e.getValue() instanceof Collection) {
 				return ((Collection<?>) e.getValue()).stream()
-						.map(v -> new AbstractMap.SimpleEntry(e.getKey(), v));
+						.map(v -> new AbstractMap.SimpleEntry<>(e.getKey(), v));
 			} else {
 				return Stream.of(e);
 			}
 		};
 	}
 
-	private Function<Object, Stream<? extends Map.Entry>> intoSingleMapEntries() {
+	private Function<Object, Stream<? extends Map.Entry<?, ?>>> intoSingleMapEntries() {
 		return e -> {
 			if (e instanceof Map) {
-				return ((Map) e).entrySet().stream();
+				return ((Map<?, ?>) e).entrySet().stream();
 			} else {
-				return Stream.of((Map.Entry) e);
+				return Stream.of((Map.Entry<?, ?>) e);
 			}
 		};
 	}
 
-	private void addLabels(Map<String, Object> sink, Neo4jPersistentEntity<?> entity,
-			PersistentPropertyAccessor<Object> propertyAccessor) {
-		if (!entity.isRelationshipPropertiesEntity()) {
-			List<String> labels = new ArrayList<>();
-			labels.add(entity.getPrimaryLabel());
-			entity.getDynamicLabelsProperty()
-					.ifPresent(p -> labels.addAll((Collection<String>) propertyAccessor.getProperty(p)));
-			sink.put(Constants.NAME_OF_ALL_LABELS, Values.value(labels));
+	private void addLabels(Map<String, Object> sink, Neo4jPersistentEntity<?> entity, PersistentPropertyAccessor<Object> propertyAccessor) {
+
+		if (entity.isRelationshipPropertiesEntity()) {
+			return;
 		}
+
+		List<String> labels = new ArrayList<>();
+		labels.add(entity.getPrimaryLabel());
+		entity.getDynamicLabelsProperty()
+				.map(p -> {
+					@SuppressWarnings("unchecked")
+					Collection<String> propertyValue = (Collection<String>) propertyAccessor.getProperty(p);
+					return propertyValue;
+				})
+				.ifPresent(labels::addAll);
+		sink.put(Constants.NAME_OF_ALL_LABELS, Values.value(labels));
 	}
 
 	private Map<String, Object> extractPotentialRelationProperties(

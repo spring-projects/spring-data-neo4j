@@ -166,7 +166,7 @@ public final class Neo4jTemplate implements
 	@Override
 	public long count(Class<?> domainType) {
 
-		Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getPersistentEntity(domainType);
+		Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getRequiredPersistentEntity(domainType);
 		Statement statement = cypherGenerator.prepareMatchOf(entityMetaData).returning(Functions.count(asterisk()))
 				.build();
 
@@ -203,8 +203,8 @@ public final class Neo4jTemplate implements
 		return doFindAll(domainType, null);
 	}
 
-	private <T> List<T> doFindAll(Class<T> domainType, Class<?> resultType) {
-		Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getPersistentEntity(domainType);
+	private <T> List<T> doFindAll(Class<T> domainType, @Nullable Class<?> resultType) {
+		Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getRequiredPersistentEntity(domainType);
 		return createExecutableQuery(domainType, resultType, QueryFragmentsAndParameters.forFindAll(entityMetaData))
 				.getResults();
 	}
@@ -284,7 +284,7 @@ public final class Neo4jTemplate implements
 
 	@Override
 	public <T> Optional<T> findById(Object id, Class<T> domainType) {
-		Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getPersistentEntity(domainType);
+		Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getRequiredPersistentEntity(domainType);
 
 		return createExecutableQuery(domainType, null,
 				QueryFragmentsAndParameters.forFindById(entityMetaData,
@@ -294,7 +294,7 @@ public final class Neo4jTemplate implements
 
 	@Override
 	public <T> List<T> findAllById(Iterable<?> ids, Class<T> domainType) {
-		Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getPersistentEntity(domainType);
+		Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getRequiredPersistentEntity(domainType);
 
 		return createExecutableQuery(domainType, null,
 				QueryFragmentsAndParameters.forFindByAllId(
@@ -304,7 +304,7 @@ public final class Neo4jTemplate implements
 
 	private Object convertIdValues(@Nullable Neo4jPersistentProperty idProperty, Object idValues) {
 
-		if (((Neo4jPersistentEntity<?>) idProperty.getOwner()).isUsingInternalIds()) {
+		if (idProperty != null && ((Neo4jPersistentEntity<?>) idProperty.getOwner()).isUsingInternalIds()) {
 			return idValues;
 		}
 
@@ -329,7 +329,7 @@ public final class Neo4jTemplate implements
 		}
 
 		if (resultType.isInstance(instance)) {
-			return (R) save(instance);
+			return resultType.cast(save(instance));
 		}
 
 		ProjectionInformation projectionInformation = projectionFactory.getProjectionInformation(resultType);
@@ -341,7 +341,7 @@ public final class Neo4jTemplate implements
 			return projectionFactory.createProjection(resultType, savedInstance);
 		}
 
-		Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getPersistentEntity(savedInstance.getClass());
+		Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getRequiredPersistentEntity(savedInstance.getClass());
 		Neo4jPersistentProperty idProperty = entityMetaData.getIdProperty();
 		PersistentPropertyAccessor<T> propertyAccessor = entityMetaData.getPropertyAccessor(savedInstance);
 		return projectionFactory.createProjection(resultType,
@@ -350,18 +350,20 @@ public final class Neo4jTemplate implements
 
 	private <T> T saveImpl(T instance, Collection<PropertyPath> includedProperties) {
 
-		Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getPersistentEntity(instance.getClass());
+		Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getRequiredPersistentEntity(instance.getClass());
 		boolean isEntityNew = entityMetaData.isNew(instance);
 
 		T entityToBeSaved = eventSupport.maybeCallBeforeBind(instance);
 
 		DynamicLabels dynamicLabels = determineDynamicLabels(entityToBeSaved, entityMetaData);
 
+		@SuppressWarnings("unchecked")
 		Function<T, Map<String, Object>> binderFunction = neo4jMappingContext
 				.getRequiredBinderFunctionFor((Class<T>) entityToBeSaved.getClass());
 
 		PropertyFilter includeProperty = TemplateSupport.computeIncludePropertyPredicate(includedProperties, entityMetaData);
 		binderFunction = binderFunction.andThen(tree -> {
+			@SuppressWarnings("unchecked")
 			Map<String, Object> properties = (Map<String, Object>) tree.get(Constants.NAME_OF_PROPERTIES_PARAM);
 
 			if (!includeProperty.isNotFiltering()) {
@@ -396,6 +398,7 @@ public final class Neo4jTemplate implements
 		return propertyAccessor.getBean();
 	}
 
+	@SuppressWarnings("unchecked")
 	private <T> DynamicLabels determineDynamicLabels(T entityToBeSaved, Neo4jPersistentEntity<?> entityMetaData) {
 		return entityMetaData.getDynamicLabelsProperty().map(p -> {
 
@@ -438,7 +441,7 @@ public final class Neo4jTemplate implements
 		}
 
 		boolean heterogeneousCollection = types.size() > 1;
-		Class<T> domainClass = (Class<T>) types.iterator().next();
+		Class<?> domainClass = types.iterator().next();
 		Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getRequiredPersistentEntity(domainClass);
 		if (heterogeneousCollection || entityMetaData.isUsingInternalIds() || entityMetaData.hasVersionProperty()
 				|| entityMetaData.getDynamicLabelsProperty().isPresent()) {
@@ -464,7 +467,8 @@ public final class Neo4jTemplate implements
 				.collect(Collectors.toList());
 
 		// Save roots
-		Function<T, Map<String, Object>> binderFunction = neo4jMappingContext.getRequiredBinderFunctionFor(domainClass);
+		@SuppressWarnings("unchecked") // We can safely assume here that we have a homongous collection with only one single type being either T or extending it
+		Function<T, Map<String, Object>> binderFunction = neo4jMappingContext.getRequiredBinderFunctionFor((Class<T>) domainClass);
 		List<Map<String, Object>> entityList = entitiesToBeSaved.stream().map(h -> h.modifiedInstance).map(binderFunction)
 				.collect(Collectors.toList());
 		Map<Value, Long> idToInternalIdMapping = neo4jClient
@@ -494,7 +498,9 @@ public final class Neo4jTemplate implements
 		Class<?> commonElementType = TemplateSupport.findCommonElementType(instances);
 
 		if (resultType.isAssignableFrom(commonElementType)) {
-			return (List<R>) saveAll(instances);
+			@SuppressWarnings("unchecked") // Nicer to live with this than streaming, mapping and collecting to avoid the cast. It's easier on the reactive side.
+			List<R> saveElements = (List<R>) saveAll(instances);
+			return saveElements;
 		}
 
 		ProjectionInformation projectionInformation = projectionFactory.getProjectionInformation(resultType);
@@ -509,7 +515,7 @@ public final class Neo4jTemplate implements
 					.collect(Collectors.toList());
 		}
 
-		Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getPersistentEntity(commonElementType);
+		Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getRequiredPersistentEntity(commonElementType);
 		Neo4jPersistentProperty idProperty = entityMetaData.getIdProperty();
 
 		List<Object> ids = savedInstances.stream().map(savedInstance -> {
@@ -525,7 +531,7 @@ public final class Neo4jTemplate implements
 	@Override
 	public <T> void deleteById(Object id, Class<T> domainType) {
 
-		Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getPersistentEntity(domainType);
+		Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getRequiredPersistentEntity(domainType);
 		String nameOfParameter = "id";
 		Condition condition = entityMetaData.getIdExpression().isEqualTo(parameter(nameOfParameter));
 
@@ -544,7 +550,7 @@ public final class Neo4jTemplate implements
 	public <T> void deleteByIdWithVersion(Object id, Class<T> domainType, Neo4jPersistentProperty versionProperty,
 										  Object versionValue) {
 
-		Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getPersistentEntity(domainType);
+		Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getRequiredPersistentEntity(domainType);
 
 		String nameOfParameter = "id";
 		Condition condition = entityMetaData.getIdExpression().isEqualTo(parameter(nameOfParameter))
@@ -569,7 +575,7 @@ public final class Neo4jTemplate implements
 	@Override
 	public <T> void deleteAllById(Iterable<?> ids, Class<T> domainType) {
 
-		Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getPersistentEntity(domainType);
+		Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getRequiredPersistentEntity(domainType);
 		String nameOfParameter = "ids";
 		Condition condition = entityMetaData.getIdExpression().in(parameter(nameOfParameter));
 
@@ -587,7 +593,7 @@ public final class Neo4jTemplate implements
 	@Override
 	public void deleteAll(Class<?> domainType) {
 
-		Neo4jPersistentEntity entityMetaData = neo4jMappingContext.getPersistentEntity(domainType);
+		Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getRequiredPersistentEntity(domainType);
 		log.debug(() -> String.format("Deleting all nodes with primary label %s", entityMetaData.getPrimaryLabel()));
 
 		Statement statement = cypherGenerator.prepareDeleteOf(entityMetaData);
@@ -726,7 +732,7 @@ public final class Neo4jTemplate implements
 
 				// here a map entry is not always anymore a dynamic association
 				Object relatedObjectBeforeCallbacksApplied = relationshipContext.identifyAndExtractRelationshipTargetNode(relatedValueToStore);
-				Neo4jPersistentEntity<?> targetEntity = neo4jMappingContext.getPersistentEntity(relatedObjectBeforeCallbacksApplied.getClass());
+				Neo4jPersistentEntity<?> targetEntity = neo4jMappingContext.getRequiredPersistentEntity(relatedObjectBeforeCallbacksApplied.getClass());
 
 				boolean isEntityNew = targetEntity.isNew(relatedObjectBeforeCallbacksApplied);
 
@@ -807,15 +813,20 @@ public final class Neo4jTemplate implements
 			relationshipHandler.applyFinalResultToOwner(propertyAccessor);
 		});
 
-		return (T) propertyAccessor.getBean();
+		@SuppressWarnings("unchecked")
+		T finalSubgraphRoot = (T) propertyAccessor.getBean();
+		return finalSubgraphRoot;
 	}
 
-	private <Y> Entity saveRelatedNode(Object entity, NodeDescription<?> targetNodeDescription, PropertyFilter includeProperty, PropertyFilter.RelaxedPropertyPath currentPropertyPath) {
+	private Entity saveRelatedNode(Object entity, NodeDescription<?> targetNodeDescription, PropertyFilter includeProperty, PropertyFilter.RelaxedPropertyPath currentPropertyPath) {
 
-		DynamicLabels dynamicLabels = determineDynamicLabels(entity, (Neo4jPersistentEntity) targetNodeDescription);
-		Class<Y> entityType = (Class<Y>) ((Neo4jPersistentEntity<?>) targetNodeDescription).getType();
-		Function<Y, Map<String, Object>> binderFunction = neo4jMappingContext.getRequiredBinderFunctionFor(entityType);
+		DynamicLabels dynamicLabels = determineDynamicLabels(entity, (Neo4jPersistentEntity<?>) targetNodeDescription);
+		@SuppressWarnings("rawtypes")
+		Class entityType = ((Neo4jPersistentEntity<?>) targetNodeDescription).getType();
+		@SuppressWarnings("unchecked")
+		Function<Object, Map<String, Object>> binderFunction = neo4jMappingContext.getRequiredBinderFunctionFor(entityType);
 		binderFunction = binderFunction.andThen(tree -> {
+			@SuppressWarnings("unchecked")
 			Map<String, Object> properties = (Map<String, Object>) tree.get(Constants.NAME_OF_PROPERTIES_PARAM);
 
 			if (!includeProperty.isNotFiltering()) {
@@ -825,14 +836,16 @@ public final class Neo4jTemplate implements
 		});
 		Optional<Entity> optionalSavedNode = neo4jClient
 				.query(() -> renderer.render(cypherGenerator.prepareSaveOf(targetNodeDescription, dynamicLabels)))
-				.bind((Y) entity).with(binderFunction)
+				.bind(entity).with(binderFunction)
 				.fetchAs(Entity.class)
 				.one();
 
-		if (((Neo4jPersistentEntity) targetNodeDescription).hasVersionProperty() && !optionalSavedNode.isPresent()) {
+		if (((Neo4jPersistentEntity<?>) targetNodeDescription).hasVersionProperty() && !optionalSavedNode.isPresent()) {
 			throw new OptimisticLockingFailureException(OPTIMISTIC_LOCKING_ERROR_MESSAGE);
 		}
 
+		// It is checked above, god dammit.
+		//noinspection OptionalGetWithoutIsPresent
 		return optionalSavedNode.get();
 	}
 
@@ -860,7 +873,7 @@ public final class Neo4jTemplate implements
 	}
 
 
-	private <T> ExecutableQuery<T> createExecutableQuery(Class<T> domainType, Class<?> resultType,
+	private <T> ExecutableQuery<T> createExecutableQuery(Class<T> domainType, @Nullable Class<?> resultType,
  			QueryFragmentsAndParameters queryFragmentsAndParameters) {
 
 		BiFunction<TypeSystem, MapAccessor, ?> mappingFunction = TemplateSupport
@@ -902,6 +915,7 @@ public final class Neo4jTemplate implements
 
 			T savedEntity = saveImpl(domainObject, pps);
 
+			@SuppressWarnings("unchecked")
 			R convertedBack = (R) new DtoInstantiatingConverter(resultType, neo4jMappingContext).convertDirectly(savedEntity);
 			results.add(convertedBack);
 		}
@@ -925,11 +939,12 @@ public final class Neo4jTemplate implements
 			return all.stream().collect(Collectors.toList());
 		}
 
+		@SuppressWarnings("unchecked")
 		public Optional<T> getSingleResult() {
 			try {
 				Optional<T> one = createFetchSpec().flatMap(Neo4jClient.RecordFetchSpec::one);
 				if (preparedQuery.resultsHaveBeenAggregated()) {
-					return one.map(aggregatedResults -> (T) ((LinkedHashSet<?>) aggregatedResults).iterator().next());
+					return one.map(aggregatedResults -> ((LinkedHashSet<T>) aggregatedResults).iterator().next());
 				}
 				return one;
 			} catch (NoSuchRecordException e) {
@@ -939,10 +954,11 @@ public final class Neo4jTemplate implements
 			}
 		}
 
+		@SuppressWarnings("unchecked")
 		public T getRequiredSingleResult() {
 			Optional<T> one = createFetchSpec().flatMap(Neo4jClient.RecordFetchSpec::one);
 			if (preparedQuery.resultsHaveBeenAggregated()) {
-				one = one.map(aggregatedResults -> (T) ((LinkedHashSet<?>) aggregatedResults).iterator().next());
+				one = one.map(aggregatedResults -> ((LinkedHashSet<T>) aggregatedResults).iterator().next());
 			}
 			return one.orElseThrow(() -> new NoResultException(1, preparedQuery.getQueryFragmentsAndParameters().getCypherQuery()));
 		}
@@ -977,7 +993,7 @@ public final class Neo4jTemplate implements
 			Neo4jClient.MappingSpec<T> newMappingSpec = neo4jClient.query(cypherQuery)
 					.bindAll(finalParameters).fetchAs(preparedQuery.getResultType());
 			return Optional.of(preparedQuery.getOptionalMappingFunction()
-					.map(f -> newMappingSpec.mappedBy(f)).orElse(newMappingSpec));
+					.map(newMappingSpec::mappedBy).orElse(newMappingSpec));
 		}
 
 		private NodesAndRelationshipsByIdStatementProvider createNodesAndRelationshipsByIdStatementProvider(Neo4jPersistentEntity<?> entityMetaData,
@@ -990,12 +1006,13 @@ public final class Neo4jTemplate implements
 
 			Map<String, Object> usedParameters = new HashMap<>(parameters);
 			usedParameters.putAll(rootNodesStatement.getParameters());
-			final Collection<Long> rootNodeIds = new HashSet<>((Collection<Long>) neo4jClient
+
+			final Collection<Long> rootNodeIds = new HashSet<>(neo4jClient
 					.query(renderer.render(rootNodesStatement))
 					.bindAll(usedParameters)
-					.fetch()
+					.fetchAs(Value.class).mappedBy((t, r) -> r.get(Constants.NAME_OF_SYNTHESIZED_ROOT_NODE))
 					.one()
-					.map(values -> values.get(Constants.NAME_OF_SYNTHESIZED_ROOT_NODE))
+					.map(value -> value.asList(Value::asLong))
 					.get());
 
 			if (rootNodeIds.isEmpty()) {
@@ -1006,7 +1023,7 @@ public final class Neo4jTemplate implements
 			final Set<Long> relationshipIds = new HashSet<>();
 			final Set<Long> relatedNodeIds = new HashSet<>();
 
-			for (RelationshipDescription relationshipDescription : entityMetaData.getRelationshipsInHierarchy(fieldName -> queryFragments.includeField(fieldName))) {
+			for (RelationshipDescription relationshipDescription : entityMetaData.getRelationshipsInHierarchy(queryFragments::includeField)) {
 
 				Statement statement = cypherGenerator
 						.prepareMatchOf(entityMetaData, relationshipDescription, queryFragments.getMatchOn(), queryFragments.getCondition())
@@ -1050,9 +1067,11 @@ public final class Neo4jTemplate implements
 																	 Set<Long> relatedNodeIds, RelationshipDescription relationshipDescription) {
 
 			return record -> {
+				@SuppressWarnings("unchecked")
 				List<Long> newRelationshipIds = (List<Long>) record.get(Constants.NAME_OF_SYNTHESIZED_RELATIONS);
 				relationshipIds.addAll(newRelationshipIds);
 
+				@SuppressWarnings("unchecked")
 				List<Long> newRelatedNodeIds = (List<Long>) record.get(Constants.NAME_OF_SYNTHESIZED_RELATED_NODES);
 
 				Set<Long> relatedIds = new HashSet<>(newRelatedNodeIds);

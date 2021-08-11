@@ -73,7 +73,7 @@ public @interface DateString {
 final class DateStringConverterFactory implements Neo4jPersistentPropertyConverterFactory {
 
 	@Override
-	public Neo4jPersistentPropertyConverter getPropertyConverterFor(Neo4jPersistentProperty persistentProperty) {
+	public Neo4jPersistentPropertyConverter<?> getPropertyConverterFor(Neo4jPersistentProperty persistentProperty) {
 
 		if (persistentProperty.getActualType() == Date.class) {
 			DateString config = persistentProperty.getRequiredAnnotation(DateString.class);

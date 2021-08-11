@@ -28,6 +28,7 @@ import org.neo4j.driver.Values;
 import org.neo4j.driver.types.IsoDuration;
 import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.core.convert.converter.GenericConverter;
+import org.springframework.lang.Nullable;
 
 /**
  * This generic converter has been introduce to augment the {@link TemporalAmountAdapter} with the type information passed
@@ -52,7 +53,7 @@ final class TemporalAmountConverter implements GenericConverter {
 	}
 
 	@Override
-	public Object convert(Object value, TypeDescriptor sourceType, TypeDescriptor targetType) {
+	public Object convert(@Nullable Object value, TypeDescriptor sourceType, TypeDescriptor targetType) {
 
 		if (TemporalAmount.class.isAssignableFrom(sourceType.getType())) {
 			return Values.value(value);

@@ -29,6 +29,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
 import java.util.regex.Pattern;
@@ -118,23 +119,10 @@ public enum CypherGenerator {
 	public StatementBuilder.OngoingReading prepareMatchOf(NodeDescription<?> nodeDescription,
 														  @Nullable List<PatternElement> initialMatchOn,
 														  @Nullable Condition condition) {
-		String primaryLabel = nodeDescription.getPrimaryLabel();
-		List<String> additionalLabels = nodeDescription.getAdditionalLabels();
+		Node rootNode = createRootNode(nodeDescription);
 
-		Node rootNode = node(primaryLabel, additionalLabels).named(Constants.NAME_OF_TYPED_ROOT_NODE.apply(nodeDescription));
+		StatementBuilder.OngoingReadingWithoutWhere match = prepareMatchOfRootNode(rootNode, initialMatchOn);
 
-		StatementBuilder.OngoingReadingWithoutWhere match = null;
-		if (initialMatchOn == null || initialMatchOn.isEmpty()) {
-			match = Cypher.match(rootNode);
-		} else {
-			for (PatternElement patternElement : initialMatchOn) {
-				if (match == null) {
-					match = Cypher.match(patternElement);
-				} else {
-					match.match(patternElement);
-				}
-			}
-		}
 		List<Expression> expressions = new ArrayList<>();
 		expressions.add(Functions.collect(Functions.id(rootNode)).as(Constants.NAME_OF_SYNTHESIZED_ROOT_NODE));
 
@@ -147,23 +135,9 @@ public enum CypherGenerator {
 			  RelationshipDescription relationshipDescription, @Nullable List<PatternElement> initialMatchOn,
 														  @Nullable Condition condition) {
 
-		String primaryLabel = nodeDescription.getPrimaryLabel();
-		List<String> additionalLabels = nodeDescription.getAdditionalLabels();
+		Node rootNode = createRootNode(nodeDescription);
 
-		Node rootNode = node(primaryLabel, additionalLabels).named(Constants.NAME_OF_TYPED_ROOT_NODE.apply(nodeDescription));
-
-		StatementBuilder.OngoingReadingWithoutWhere match = null;
-		if (initialMatchOn == null || initialMatchOn.isEmpty()) {
-			match = Cypher.match(rootNode);
-		} else {
-			for (PatternElement patternElement : initialMatchOn) {
-				if (match == null) {
-					match = Cypher.match(patternElement);
-				} else {
-					match.match(patternElement);
-				}
-			}
-		}
+		StatementBuilder.OngoingReadingWithoutWhere match = prepareMatchOfRootNode(rootNode, initialMatchOn);
 
 		Node targetNode = node(relationshipDescription.getTarget().getPrimaryLabel(),
 				relationshipDescription.getTarget().getAdditionalLabels())
@@ -180,7 +154,7 @@ public enum CypherGenerator {
 		}
 		String[] types = relationshipTypes.toArray(new String[]{});
 
-		Relationship relationship = null;
+		Relationship relationship;
 		switch (relationshipDescription.getDirection()) {
 			case OUTGOING:
 				relationship = rootNode.relationshipTo(targetNode, types);
@@ -213,6 +187,25 @@ public enum CypherGenerator {
 		return node(primaryLabel, additionalLabels).named(Constants.NAME_OF_TYPED_ROOT_NODE.apply(nodeDescription));
 	}
 
+	private StatementBuilder.OngoingReadingWithoutWhere prepareMatchOfRootNode(
+			Node rootNode, @Nullable List<PatternElement> initialMatchOn
+	) {
+
+		StatementBuilder.OngoingReadingWithoutWhere match = null;
+		if (initialMatchOn == null || initialMatchOn.isEmpty()) {
+			match = Cypher.match(rootNode);
+		} else {
+			for (PatternElement patternElement : initialMatchOn) {
+				if (match == null) {
+					match = Cypher.match(patternElement);
+				} else {
+					match = match.match(patternElement);
+				}
+			}
+		}
+		return match;
+	}
+
 	/**
 	 * Creates a statement that returns all labels of a node that are not part of a list parameter named
 	 * {@link Constants#NAME_OF_STATIC_LABELS_PARAM}. Those are the "dynamic labels" of a node as set through SDN.
@@ -223,12 +216,15 @@ public enum CypherGenerator {
 	 */
 	public Statement createStatementReturningDynamicLabels(NodeDescription<?> nodeDescription) {
 
+		IdDescription idDescription = nodeDescription.getIdDescription();
+		Assert.notNull(idDescription, "Cannot load specific nodes by id without a corresponding attribute.");
+
 		final Node rootNode = Cypher.anyNode(Constants.NAME_OF_TYPED_ROOT_NODE.apply(nodeDescription));
 
 		Condition versionCondition;
-		if (((Neo4jPersistentEntity) nodeDescription).hasVersionProperty()) {
+		if (((Neo4jPersistentEntity<?>) nodeDescription).hasVersionProperty()) {
 
-			PersistentProperty versionProperty = ((Neo4jPersistentEntity) nodeDescription).getRequiredVersionProperty();
+			PersistentProperty<?> versionProperty = ((Neo4jPersistentEntity<?>) nodeDescription).getRequiredVersionProperty();
 			versionCondition = rootNode.property(versionProperty.getName())
 					.isEqualTo(coalesce(parameter(Constants.NAME_OF_VERSION_PARAM), literalOf(0)));
 		} else {
@@ -236,7 +232,7 @@ public enum CypherGenerator {
 		}
 
 		return match(rootNode)
-				.where(nodeDescription.getIdDescription().asIdExpression().isEqualTo(parameter(Constants.NAME_OF_ID)))
+				.where(idDescription.asIdExpression().isEqualTo(parameter(Constants.NAME_OF_ID)))
 				.and(versionCondition).unwind(rootNode.labels()).as("label").with(Cypher.name("label"))
 				.where(Cypher.name("label").in(parameter(Constants.NAME_OF_STATIC_LABELS_PARAM)).not())
 				.returning(Functions.collect(Cypher.name("label")).as(Constants.NAME_OF_LABELS)).build();
@@ -270,14 +266,15 @@ public enum CypherGenerator {
 
 		Node rootNode = node(primaryLabel, additionalLabels).named(Constants.NAME_OF_TYPED_ROOT_NODE.apply(nodeDescription));
 		IdDescription idDescription = nodeDescription.getIdDescription();
-		Parameter idParameter = parameter(Constants.NAME_OF_ID);
+		Assert.notNull(idDescription, "Cannot save individual nodes without an id attribute.");
+		Parameter<?> idParameter = parameter(Constants.NAME_OF_ID);
 
 		if (!idDescription.isInternallyGeneratedId()) {
 			String nameOfIdProperty = idDescription.getOptionalGraphPropertyName()
 					.orElseThrow(() -> new MappingException("External id does not correspond to a graph property!"));
 
-			if (((Neo4jPersistentEntity) nodeDescription).hasVersionProperty()) {
-				Property versionProperty = rootNode.property(((Neo4jPersistentEntity) nodeDescription).getRequiredVersionProperty().getName());
+			if (((Neo4jPersistentEntity<?>) nodeDescription).hasVersionProperty()) {
+				Property versionProperty = rootNode.property(((Neo4jPersistentEntity<?>) nodeDescription).getRequiredVersionProperty().getName());
 				String nameOfPossibleExistingNode = "hlp";
 				Node possibleExistingNode = node(primaryLabel, additionalLabels).named(nameOfPossibleExistingNode);
 
@@ -313,8 +310,8 @@ public enum CypherGenerator {
 			Statement createIfNew;
 			Statement updateIfExists;
 
-			if (((Neo4jPersistentEntity) nodeDescription).hasVersionProperty()) {
-				Property versionProperty = rootNode.property(((Neo4jPersistentEntity) nodeDescription).getRequiredVersionProperty().getName());
+			if (((Neo4jPersistentEntity<?>) nodeDescription).hasVersionProperty()) {
+				Property versionProperty = rootNode.property(((Neo4jPersistentEntity<?>) nodeDescription).getRequiredVersionProperty().getName());
 
 				createIfNew = updateDecorator.apply(optionalMatch(possibleExistingNode)
 						.where(possibleExistingNode.internalId().isEqualTo(idParameter))
@@ -359,6 +356,7 @@ public enum CypherGenerator {
 				.named(Constants.NAME_OF_TYPED_ROOT_NODE.apply(nodeDescription));
 		IdDescription idDescription = nodeDescription.getIdDescription();
 
+		@SuppressWarnings("ConstantConditions") // We now already that the node is using internal ids, and as such, an IdDescription must be present
 		String nameOfIdProperty = idDescription.getOptionalGraphPropertyName()
 				.orElseThrow(() -> new MappingException("External id does not correspond to a graph property!"));
 
@@ -381,7 +379,7 @@ public enum CypherGenerator {
 		final Node endNode = anyNode(END_NODE_NAME);
 		String idPropertyName = neo4jPersistentEntity.getRequiredIdProperty().getPropertyName();
 
-		Parameter idParameter = parameter(Constants.FROM_ID_PARAMETER_NAME);
+		Parameter<?> idParameter = parameter(Constants.FROM_ID_PARAMETER_NAME);
 		String type = relationship.isDynamic() ? dynamicRelationshipType : relationship.getType();
 		Relationship relationshipFragment = (relationship.isOutgoing() ?
 				startNode.relationshipTo(endNode, type) :
@@ -409,8 +407,8 @@ public enum CypherGenerator {
 		Node endNode = anyNode(END_NODE_NAME);
 		String idPropertyName = neo4jPersistentEntity.getRequiredIdProperty().getPropertyName();
 
-		Parameter idParameter = parameter(Constants.FROM_ID_PARAMETER_NAME);
-		Parameter relationshipProperties = parameter(Constants.NAME_OF_PROPERTIES_PARAM);
+		Parameter<?> idParameter = parameter(Constants.FROM_ID_PARAMETER_NAME);
+		Parameter<?> relationshipProperties = parameter(Constants.NAME_OF_PROPERTIES_PARAM);
 		String type = relationship.isDynamic() ? dynamicRelationshipType : relationship.getType();
 
 		Relationship relationshipFragment = (
@@ -456,12 +454,12 @@ public enum CypherGenerator {
 				? startNode.relationshipTo(endNode, relationshipType).named(relationshipToRemoveName)
 				: startNode.relationshipFrom(endNode, relationshipType).named(relationshipToRemoveName);
 
-		Parameter idParameter = parameter(Constants.FROM_ID_PARAMETER_NAME);
+		Parameter<?> idParameter = parameter(Constants.FROM_ID_PARAMETER_NAME);
 		return match(relationship)
 				.where(neo4jPersistentEntity.isUsingInternalIds() ? startNode.internalId().isEqualTo(idParameter)
 						: startNode.property(idPropertyName).isEqualTo(idParameter))
 				.and(Functions.id(relationship).in(Cypher.parameter(Constants.NAME_OF_KNOWN_RELATIONSHIPS_PARAM)).not())
-				.delete(relationship.getSymbolicName().get())
+				.delete(relationship.getRequiredSymbolicName())
 				.build();
 	}
 
@@ -481,7 +479,7 @@ public enum CypherGenerator {
 			return null;
 		}
 		Statement statement = match(anyNode()).returning("n")
-				.orderBy(sort.stream().filter(order -> order != null && order.getProperty() != null).map(order -> {
+				.orderBy(sort.stream().filter(Objects::nonNull).map(order -> {
 					String property = order.getProperty().trim();
 					Expression expression;
 					if (LOOKS_LIKE_A_FUNCTION.matcher(property).matches()) {
@@ -539,7 +537,7 @@ public enum CypherGenerator {
 	}
 
 	private MapProjection projectPropertiesAndRelationships(PropertyFilter.RelaxedPropertyPath parentPath, Neo4jPersistentEntity<?> nodeDescription, SymbolicName nodeName,
-															Predicate<PropertyFilter.RelaxedPropertyPath> includedProperties, RelationshipDescription relationshipDescription, List<RelationshipDescription> processedRelationships) {
+															Predicate<PropertyFilter.RelaxedPropertyPath> includedProperties, @Nullable RelationshipDescription relationshipDescription, List<RelationshipDescription> processedRelationships) {
 
 		Collection<RelationshipDescription> relationships = ((DefaultNeo4jPersistentEntity<?>) nodeDescription).getRelationshipsInHierarchy(includedProperties, parentPath);
 		relationships.removeIf(r -> !includedProperties.test(parentPath.append(r.getFieldName())));
@@ -577,6 +575,7 @@ public enum CypherGenerator {
 				from = parentPath.append(property.getFieldName());
 
 			} else if (relationshipDescription.hasRelationshipProperties()) {
+				@SuppressWarnings("ConstantConditions") // All prerequisites have been checked by the persistence context at this point.
 				String relationshipPropertyTargetNodeFieldName =
 						((Neo4jPersistentEntity<?>) relationshipDescription.getRelationshipPropertiesEntity())
 								.getPersistentProperty(TargetNode.class).getFieldName();

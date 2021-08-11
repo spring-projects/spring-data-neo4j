@@ -31,9 +31,9 @@ import org.neo4j.driver.Value;
 import org.neo4j.driver.types.Node;
 import org.neo4j.driver.types.Relationship;
 import org.neo4j.driver.types.Type;
+import org.springframework.data.mapping.PersistentPropertyAccessor;
 import org.springframework.data.neo4j.core.schema.TargetNode;
 import org.springframework.lang.Nullable;
-import org.springframework.data.mapping.PersistentPropertyAccessor;
 
 /**
  * @author Michael J. Simons
@@ -62,15 +62,15 @@ public final class MappingSupport {
 		Collection<?> unifiedValue;
 		if (property.isDynamicAssociation()) {
 			if (property.isDynamicOneToManyAssociation()) {
-				unifiedValue = ((Map<?, Collection<?>>) rawValue)
+				unifiedValue = ((Map<?, ?>) rawValue)
 						.entrySet().stream()
-						.flatMap(e -> e.getValue().stream().map(v -> new SimpleEntry(e.getKey(), v)))
+						.flatMap(e -> ((Collection<?>) e.getValue()).stream().map(v -> new SimpleEntry<>(e.getKey(), v)))
 						.collect(Collectors.toList());
 			} else {
-				unifiedValue = ((Map<?, Object>) rawValue).entrySet();
+				unifiedValue = ((Map<?, ?>) rawValue).entrySet();
 			}
 		} else if (property.isCollectionLike()) {
-			unifiedValue = (Collection<Object>) rawValue;
+			unifiedValue = (Collection<?>) rawValue;
 		} else {
 			unifiedValue = Collections.singleton(rawValue);
 		}
@@ -166,7 +166,7 @@ public final class MappingSupport {
 			MappingSupport.RelationshipPropertiesWithEntityHolder entityHolder =
 					(RelationshipPropertiesWithEntityHolder)
 							(isDynamicAssociation
-								? ((Map.Entry<Object, Object>) valueToStore).getValue()
+								? ((Map.Entry<?, ?>) valueToStore).getValue()
 								: valueToStore);
 
 			Object relationshipPropertiesValue = entityHolder.getRelationshipProperties();

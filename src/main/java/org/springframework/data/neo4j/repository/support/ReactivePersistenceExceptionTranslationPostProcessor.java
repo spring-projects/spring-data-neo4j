@@ -86,7 +86,7 @@ public final class ReactivePersistenceExceptionTranslationPostProcessor
 	 * Spring AOP exception translation aspect for use at Repository or DAO layer level. Translates native persistence
 	 * exceptions into Spring's DataAccessException hierarchy, based on a given PersistenceExceptionTranslator.
 	 */
-	final class ReactivePersistenceExceptionTranslationAdvisor extends AbstractPointcutAdvisor {
+	static final class ReactivePersistenceExceptionTranslationAdvisor extends AbstractPointcutAdvisor {
 
 		private final ReactivePersistenceExceptionTranslationInterceptor advice;
 

@@ -44,6 +44,7 @@ final class ResultSummaries {
 	 */
 	static ResultSummary process(ResultSummary resultSummary) {
 		logNotifications(resultSummary);
+		logPlan(resultSummary);
 		return resultSummary;
 	}
 

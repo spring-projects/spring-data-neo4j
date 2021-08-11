@@ -265,7 +265,7 @@ abstract class Neo4jQuerySupport {
 		}
 	}
 
-	private Map<String, Object> convertRange(Range range) {
+	private Map<String, Object> convertRange(Range<?> range) {
 		Map<String, Object> map = new HashMap<>();
 		range.getLowerBound().getValue().map(this::convertParameter).ifPresent(v -> map.put("lb", v));
 		range.getUpperBound().getValue().map(this::convertParameter).ifPresent(v -> map.put("ub", v));

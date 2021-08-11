@@ -56,7 +56,7 @@ final class Predicate {
 
 	static <S> Predicate create(Neo4jMappingContext mappingContext, Example<S> example) {
 
-		Neo4jPersistentEntity probeNodeDescription = mappingContext.getRequiredPersistentEntity(example.getProbeType());
+		Neo4jPersistentEntity<?> probeNodeDescription = mappingContext.getRequiredPersistentEntity(example.getProbeType());
 
 		Collection<GraphPropertyDescription> graphProperties = probeNodeDescription.getGraphProperties();
 		DirectFieldAccessFallbackBeanWrapper beanWrapper = new DirectFieldAccessFallbackBeanWrapper(example.getProbe());

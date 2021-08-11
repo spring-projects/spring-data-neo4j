@@ -17,7 +17,6 @@ package org.springframework.data.neo4j.config;
 
 import java.lang.annotation.Annotation;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 
 import javax.enterprise.event.Observes;
@@ -81,8 +80,7 @@ public final class Neo4jCdiExtension extends CdiRepositoryExtensionSupport {
 
 	void registerRepositoryFactoryBeanPerRepositoryType(@Observes AfterBeanDiscovery event, BeanManager beanManager) {
 
-		Optional<CustomRepositoryImplementationDetector> optionalCustomRepositoryImplementationDetector =
-				Optional.ofNullable(getCustomImplementationDetector());
+		CustomRepositoryImplementationDetector optionalCustomRepositoryImplementationDetector = getCustomImplementationDetector();
 
 		for (Map.Entry<Class<?>, Set<Annotation>> entry : getRepositoryTypes()) {
 

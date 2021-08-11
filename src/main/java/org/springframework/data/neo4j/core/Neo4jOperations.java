@@ -25,6 +25,7 @@ import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.repository.NoResultException;
 import org.springframework.data.neo4j.repository.query.QueryFragmentsAndParameters;
+import org.springframework.lang.Nullable;
 
 /**
  * Specifies operations one can perform on a database, based on an <em>Domain Type</em>.
@@ -224,7 +225,7 @@ public interface Neo4jOperations {
 	 */
 	<T> void deleteById(Object id, Class<T> domainType);
 
-	<T> void deleteByIdWithVersion(Object id, Class<T> domainType, Neo4jPersistentProperty versionProperty, Object versionValue);
+	<T> void deleteByIdWithVersion(Object id, Class<T> domainType, Neo4jPersistentProperty versionProperty, @Nullable Object versionValue);
 
 	/**
 	 * Deletes all entities with one of the given ids, including all entities related to that entity.

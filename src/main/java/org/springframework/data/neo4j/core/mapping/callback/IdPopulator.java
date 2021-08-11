@@ -82,8 +82,8 @@ final class IdPopulator {
 					() -> new IllegalStateException("Id generator named " + optionalIdGeneratorRef.get() + " not found!"));
 		} else {
 
-			// At this point, the class must be present, so we don't check the optional not anymore
-			idGenerator = neo4jMappingContext.getOrCreateIdGeneratorOfType(idDescription.getIdGeneratorClass().get());
+			idGenerator = neo4jMappingContext.getOrCreateIdGeneratorOfType(idDescription.getIdGeneratorClass().orElseThrow(
+					() -> new IllegalStateException("Neither generator reference nor generator class configured.")));
 		}
 
 		propertyAccessor.setProperty(idProperty, idGenerator.generateId(nodeDescription.getPrimaryLabel(), entity));

@@ -13,27 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.repository.query;
+package org.springframework.data.neo4j.repository.config;
 
-import java.util.Optional;
-
-import org.springframework.core.convert.converter.Converter;
-import org.springframework.lang.Nullable;
+import org.springframework.data.neo4j.core.schema.Id;
+import org.springframework.data.neo4j.core.schema.Node;
 
 /**
- * Used to unwrap optionals before further processing by a
- * {@link org.springframework.data.repository.query.ResultProcessor}.
- *
  * @author Michael J. Simons
  */
-enum OptionalUnwrappingConverter implements Converter<Object, Object> {
-	INSTANCE;
-
-	@Override
-	public @Nullable Object convert(Object source) {
-		if (source instanceof Optional) {
-			return ((Optional<?>) source).orElse(null);
-		}
-		return source;
-	}
+@Node
+class AnEntity {
+	@SuppressWarnings("unused")
+	@Id String name;
 }

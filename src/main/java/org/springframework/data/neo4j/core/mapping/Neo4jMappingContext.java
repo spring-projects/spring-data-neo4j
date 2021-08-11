@@ -307,11 +307,16 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 	@Override
 	public <T extends IdGenerator<?>> T getOrCreateIdGeneratorOfType(Class<T> idGeneratorType) {
 
-		return (T) this.idGenerators.computeIfAbsent(idGeneratorType, this::createBeanOrInstantiate);
+		return idGeneratorType.cast(this.idGenerators.computeIfAbsent(idGeneratorType, this::createBeanOrInstantiate));
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public <T extends IdGenerator<?>> Optional<T> getIdGenerator(String reference) {
+
+		if (this.beanFactory == null) {
+			return Optional.empty();
+		}
 		try {
 			return Optional.of((T) this.beanFactory.getBean(reference));
 		} catch (NoSuchBeanDefinitionException e) {
@@ -319,17 +324,15 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 		}
 	}
 
-	private <T extends Neo4jPersistentPropertyConverterFactory> T getOrCreateConverterFactoryOfType(
-			Class<T> converterFactoryType) {
+	private <T extends Neo4jPersistentPropertyConverterFactory> T getOrCreateConverterFactoryOfType(Class<T> converterFactoryType) {
 
-		return (T) this.converterFactorys.computeIfAbsent(converterFactoryType, t -> {
-			Optional<Constructor<?>> optionalConstructor = ReflectionUtils
-					.findConstructor(t, this.conversionService);
-			return optionalConstructor
-					.map(c -> (T) BeanUtils.instantiateClass(c, this.conversionService))
-					.orElseGet(() -> (T) BeanUtils.instantiateClass(t));
-
-		});
+		return converterFactoryType.cast(this.converterFactorys.computeIfAbsent(converterFactoryType, t -> {
+			Optional<Constructor<?>> optionalConstructor = ReflectionUtils.findConstructor(t, this.conversionService);
+			if (optionalConstructor.isPresent()) {
+				return t.cast(BeanUtils.instantiateClass(optionalConstructor.get(), this.conversionService));
+			}
+			return BeanUtils.instantiateClass(t);
+		}));
 	}
 
 	/**
@@ -337,7 +340,7 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 	 * @return An optional conversion.
 	 */
 	@Nullable
-	Neo4jPersistentPropertyConverter getOptionalCustomConversionsFor(Neo4jPersistentProperty persistentProperty) {
+	Neo4jPersistentPropertyConverter<?> getOptionalCustomConversionsFor(Neo4jPersistentProperty persistentProperty) {
 
 		// Is the annotation present at all?
 		if (!persistentProperty.isAnnotationPresent(ConvertWith.class)) {

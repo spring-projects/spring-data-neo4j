@@ -94,6 +94,9 @@ public final class ReactiveNeo4jRepositoryConfigurationExtension extends Reposit
 	@Override
 	public void registerBeansForRoot(BeanDefinitionRegistry registry, RepositoryConfigurationSource configurationSource) {
 
+		// configurationSource.getSource() might be null and registerIfNotAlreadyRegistered is non-null api,
+		// but BeanMetadataAttributeAccessor will be eventually happy with a null value
+		// noinspection ConstantConditions
 		registerIfNotAlreadyRegistered(() -> BeanDefinitionBuilder
 						.rootBeanDefinition(Neo4jEvaluationContextExtension.class)
 						.setRole(BeanDefinition.ROLE_INFRASTRUCTURE)

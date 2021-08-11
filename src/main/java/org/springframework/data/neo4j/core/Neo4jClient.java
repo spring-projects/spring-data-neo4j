@@ -269,7 +269,8 @@ public interface Neo4jClient {
 	 * @return A possibly trimmed name of the database.
 	 * @throws IllegalArgumentException when the database name is not allowed with the underlying driver.
 	 */
-	static String verifyDatabaseName(String databaseName) {
+	@Nullable
+	static String verifyDatabaseName(@Nullable String databaseName) {
 
 		String newTargetDatabase = databaseName == null ? null : databaseName.trim();
 		if (newTargetDatabase != null && newTargetDatabase.isEmpty()) {

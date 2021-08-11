@@ -254,6 +254,7 @@ final class AdditionalTypes {
 			return convertibleTypes;
 		}
 
+		@SuppressWarnings({"raw", "unchecked"}) // Due to dynamic enum retrieval
 		@Override
 		public Object convert(Object source, TypeDescriptor sourceType, TypeDescriptor targetType) {
 
@@ -264,7 +265,7 @@ final class AdditionalTypes {
 			if (Value.class.isAssignableFrom(sourceType.getType())) {
 				return Enum.valueOf((Class<Enum>) targetType.getType(), ((Value) source).asString());
 			} else {
-				return Values.value(((Enum) source).name());
+				return Values.value(((Enum<?>) source).name());
 			}
 		}
 	}

@@ -24,6 +24,7 @@ import java.util.Map;
 import org.apiguardian.api.API;
 import org.springframework.data.annotation.ReadOnlyProperty;
 import org.springframework.data.mapping.Association;
+import org.springframework.data.mapping.MappingException;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
 import org.springframework.data.neo4j.core.schema.TargetNode;
 import org.springframework.lang.Nullable;
@@ -99,7 +100,7 @@ public final class NestedRelationshipContext {
 		return valueToBeSaved;
 	}
 
-	public @Nullable PersistentPropertyAccessor<?> getRelationshipPropertiesPropertyAccessor(Object relatedValue) {
+	public @Nullable PersistentPropertyAccessor<?> getRelationshipPropertiesPropertyAccessor(@Nullable Object relatedValue) {
 
 		if (!this.hasRelationshipWithProperties() || relatedValue == null) {
 			return null;
@@ -125,7 +126,8 @@ public final class NestedRelationshipContext {
 		boolean inverseValueIsEmpty = value == null;
 
 		RelationshipDescription relationship = neo4jPersistentEntity.getRelationshipsInHierarchy((pp -> true)).stream()
-				.filter(r -> r.getFieldName().equals(inverse.getName())).findFirst().get();
+				.filter(r -> r.getFieldName().equals(inverse.getName())).findFirst().orElseThrow(() -> new MappingException(
+						neo4jPersistentEntity.getName() + " does not define a relationship for " + inverse.getFieldName()));
 
 		if (relationship.hasRelationshipProperties() && value != null) {
 			Neo4jPersistentEntity<?> relationshipPropertiesEntity = (Neo4jPersistentEntity<?>) relationship.getRelationshipPropertiesEntity();
@@ -135,14 +137,14 @@ public final class NestedRelationshipContext {
 			// The values themself can be either a scalar or a List.
 			if (relationship.isDynamic()) {
 				Map<Object, Object> relationshipProperties = new HashMap<>();
-				for (Map.Entry<Object, Object> mapEntry : ((Map<Object, Object>) value).entrySet()) {
+				for (Map.Entry<?, ?> mapEntry : ((Map<?, ?>) value).entrySet()) {
 					List<MappingSupport.RelationshipPropertiesWithEntityHolder> relationshipValues = new ArrayList<>();
 					// register the relationship type as key
 					relationshipProperties.put(mapEntry.getKey(), relationshipValues);
 					Object mapEntryValue = mapEntry.getValue();
 
 					if (mapEntryValue instanceof List) {
-						for (Object relationshipProperty : ((List<Object>) mapEntryValue)) {
+						for (Object relationshipProperty : ((List<?>) mapEntryValue)) {
 							MappingSupport.RelationshipPropertiesWithEntityHolder oneOfThem =
 									new MappingSupport.RelationshipPropertiesWithEntityHolder(
 											relationshipPropertiesEntity, relationshipProperty,
@@ -162,7 +164,7 @@ public final class NestedRelationshipContext {
 			} else {
 				if (inverse.isCollectionLike()) {
 					List<MappingSupport.RelationshipPropertiesWithEntityHolder> relationshipProperties = new ArrayList<>();
-					for (Object relationshipProperty : ((Collection<Object>) value)) {
+					for (Object relationshipProperty : ((Collection<?>) value)) {
 
 						MappingSupport.RelationshipPropertiesWithEntityHolder oneOfThem =
 								new MappingSupport.RelationshipPropertiesWithEntityHolder(

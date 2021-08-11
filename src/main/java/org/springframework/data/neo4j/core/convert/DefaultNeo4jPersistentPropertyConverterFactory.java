@@ -26,15 +26,15 @@ import org.springframework.data.neo4j.core.mapping.Neo4jPersistentProperty;
 final class DefaultNeo4jPersistentPropertyConverterFactory implements Neo4jPersistentPropertyConverterFactory {
 
 	@Override
-	public Neo4jPersistentPropertyConverter getPropertyConverterFor(Neo4jPersistentProperty persistentProperty) {
+	public Neo4jPersistentPropertyConverter<?> getPropertyConverterFor(Neo4jPersistentProperty persistentProperty) {
 
-		ConvertWith config = persistentProperty.findAnnotation(ConvertWith.class);
+		// At this point we already checked for the annotation.
+		ConvertWith config = persistentProperty.getRequiredAnnotation(ConvertWith.class);
 		if (config.converter() == ConvertWith.UnsetConverter.class) {
 			throw new IllegalArgumentException(
 					"The default custom conversion factory cannot be used with a placeholder");
 		}
 
-		Neo4jPersistentPropertyConverter<?> converter = BeanUtils.instantiateClass(config.converter());
-		return converter;
+		return BeanUtils.instantiateClass(config.converter());
 	}
 }

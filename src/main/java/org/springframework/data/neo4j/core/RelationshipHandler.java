@@ -39,7 +39,7 @@ final class RelationshipHandler {
 		ONE_TO_ONE,
 		ONE_TO_MANY,
 		DYNAMIC_ONE_TO_ONE,
-		DYNAMIC_ONE_TO_MANY;
+		DYNAMIC_ONE_TO_MANY
 	}
 
 	static RelationshipHandler forProperty(Neo4jPersistentProperty property, Object rawValue) {
@@ -94,14 +94,15 @@ final class RelationshipHandler {
 			} else if (cardinality == Cardinality.ONE_TO_MANY) {
 				newRelatedObjects.add(potentiallyRecreatedRelatedObject);
 			} else {
-				Object key = ((Map.Entry<Object, Object>) relatedValueToStore).getKey();
+				Object key = ((Map.Entry<?, ?>) relatedValueToStore).getKey();
 				if (cardinality == Cardinality.DYNAMIC_ONE_TO_ONE) {
 					newRelatedObjectsByType.put(key, potentiallyRecreatedRelatedObject);
 				} else {
+					@SuppressWarnings("unchecked")
 					Collection<Object> newCollection = (Collection<Object>) newRelatedObjectsByType
 							.computeIfAbsent(key, k -> CollectionFactory.createCollection(
 									property.getTypeInformation().getRequiredActualType().getType(),
-									((Collection) ((Map) rawValue).get(key)).size()));
+									((Collection<?>) ((Map<?, ?>) rawValue).get(key)).size()));
 					newCollection.add(potentiallyRecreatedRelatedObject);
 				}
 			}

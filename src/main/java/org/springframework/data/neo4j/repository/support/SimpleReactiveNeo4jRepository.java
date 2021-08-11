@@ -169,6 +169,7 @@ public class SimpleReactiveNeo4jRepository<T, ID> implements ReactiveSortingRepo
 		Assert.notNull(entity, "The given entity must not be null!");
 
 		ID id = this.entityInformation.getId(entity);
+		Assert.notNull(id, "Cannot delete individual nodes without an id.");
 		if (entityMetaData.hasVersionProperty()) {
 			Neo4jPersistentProperty versionProperty = entityMetaData.getRequiredVersionProperty();
 			Object versionValue = entityMetaData.getPropertyAccessor(entity).getProperty(versionProperty);
@@ -176,12 +177,11 @@ public class SimpleReactiveNeo4jRepository<T, ID> implements ReactiveSortingRepo
 		} else {
 			return this.deleteById(id);
 		}
-
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.reactive.ReactiveCrudRepository#deleteAllById(java.lang.Iterabl)
+	 * @see org.springframework.data.repository.reactive.ReactiveCrudRepository#deleteAllById(java.lang.Iterable)
 	 */
 	@Override
 	@Transactional

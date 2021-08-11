@@ -720,6 +720,23 @@
 					</execution>
 				</executions>
 			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<executions>
+					<execution>
+						<goals>
+							<goal>compile</goal>
+						</goals>
+						<configuration combine.self="append">
+							<compilerArgs>
+								<arg>-Xlint:all,-options,-path</arg>
+								<arg>-Werror</arg>
+							</compilerArgs>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
 
 	</build>

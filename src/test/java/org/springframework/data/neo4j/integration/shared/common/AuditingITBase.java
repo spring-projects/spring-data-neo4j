@@ -101,7 +101,11 @@ public abstract class AuditingITBase {
 
 	private void assertDataMatch(AuditableThing expectedValues, Node node) {
 		assertThat(node.get("name").asString()).isEqualTo(expectedValues.getName());
-		assertThat(node.get("createdAt").asLocalDateTime()).isEqualTo(expectedValues.getCreatedAt());
+		if (expectedValues.getCreatedAt() == null) {
+			assertThat(node.get("createdAt").isNull()).isTrue();
+		} else {
+			assertThat(node.get("createdAt").asLocalDateTime()).isEqualTo(expectedValues.getCreatedAt());
+		}
 		assertThat(node.get("createdBy").asString()).isEqualTo(expectedValues.getCreatedBy());
 
 		Value modifiedAt = node.get("modifiedAt");

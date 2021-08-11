@@ -33,6 +33,7 @@ import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
 
 /**
  * Repository base implementation for Neo4j.
@@ -136,6 +137,7 @@ public class SimpleNeo4jRepository<T, ID> implements PagingAndSortingRepository<
 	public void delete(T entity) {
 
 		ID id = this.entityInformation.getId(entity);
+		Assert.notNull(id, "Cannot delete individual nodes without an id.");
 		if (entityMetaData.hasVersionProperty()) {
 			Neo4jPersistentProperty versionProperty = entityMetaData.getRequiredVersionProperty();
 			Object versionValue = entityMetaData.getPropertyAccessor(entity).getProperty(versionProperty);

@@ -24,6 +24,7 @@ import java.lang.annotation.Target;
 
 import org.apiguardian.api.API;
 import org.neo4j.driver.Value;
+import org.neo4j.driver.Values;
 
 /**
  * This annotation can be used to define either custom conversions for single attributes by specifying a custom
@@ -58,7 +59,7 @@ public @interface ConvertWith {
 	final class UnsetConverter implements Neo4jPersistentPropertyConverter<Object> {
 
 		@Override public Value write(Object source) {
-			return null;
+			return Values.NULL;
 		}
 
 		@Override public Object read(Value source) {

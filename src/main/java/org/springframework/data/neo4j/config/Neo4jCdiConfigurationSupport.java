@@ -72,19 +72,19 @@ class Neo4jCdiConfigurationSupport {
 	}
 
 	@Produces @Singleton
-	public Neo4jClient neo4jClient(Driver driver) {
+	public Neo4jClient neo4jClient(@SuppressWarnings("CdiInjectionPointsInspection") Driver driver) {
 		return Neo4jClient.create(driver);
 	}
 
 	@Produces @Singleton
-	public Neo4jMappingContext neo4jMappingContext(Driver driver, @Any Instance<Neo4jConversions> neo4JConversions) {
+	public Neo4jMappingContext neo4jMappingContext(@SuppressWarnings("CdiInjectionPointsInspection") Driver driver, @Any Instance<Neo4jConversions> neo4JConversions) {
 
 		return new Neo4jMappingContext(resolve(neo4JConversions), driver.defaultTypeSystem());
 	}
 
 	@Produces @Singleton
 	public PlatformTransactionManager transactionManager(
-			Driver driver, @Any Instance<DatabaseSelectionProvider> databaseNameProvider) {
+			@SuppressWarnings("CdiInjectionPointsInspection") Driver driver, @Any Instance<DatabaseSelectionProvider> databaseNameProvider) {
 
 		return new Neo4jTransactionManager(driver, resolve(databaseNameProvider));
 	}

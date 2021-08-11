@@ -173,13 +173,13 @@ public @interface CompositeProperty {
  */
 final class CompositePropertyConverter<K, P> implements Neo4jPersistentPropertyConverter<P> {
 
-	protected final Neo4jPersistentPropertyToMapConverter<K, P> delegate;
+	private final Neo4jPersistentPropertyToMapConverter<K, P> delegate;
 
-	protected final String prefixWithDelimiter;
+	private final String prefixWithDelimiter;
 
-	protected final Neo4jConversionService neo4jConversionService;
+	private final Neo4jConversionService neo4jConversionService;
 
-	protected final Class<?> typeOfKeys;
+	private final Class<?> typeOfKeys;
 
 	private final Function<K, String> keyWriter;
 
@@ -238,8 +238,9 @@ final class CompositePropertyConverterFactory implements Neo4jPersistentProperty
 		this.conversionServiceDelegate = conversionServiceDelegate;
 	}
 
+	@SuppressWarnings({"raw", "unchecked"}) // Due to dynamic enum retrieval
 	@Override
-	public Neo4jPersistentPropertyConverter getPropertyConverterFor(Neo4jPersistentProperty persistentProperty) {
+	public Neo4jPersistentPropertyConverter<?> getPropertyConverterFor(Neo4jPersistentProperty persistentProperty) {
 
 		CompositeProperty config = persistentProperty.getRequiredAnnotation(CompositeProperty.class);
 		Class<? extends Neo4jPersistentPropertyToMapConverter> delegateClass = config.converter();
@@ -260,7 +261,7 @@ final class CompositePropertyConverterFactory implements Neo4jPersistentProperty
 			// Avoid resolving this as long as possible.
 			Map<String, Type> typeVariableMap = GenericTypeResolver.getTypeVariableMap(delegateClass).entrySet()
 					.stream()
-					.collect(Collectors.toMap(e -> e.getKey().getName(), e -> e.getValue()));
+					.collect(Collectors.toMap(e -> e.getKey().getName(), Map.Entry::getValue));
 
 			Assert.isTrue(typeVariableMap.containsKey(KEY_TYPE_KEY),
 					() -> "SDN could not determine the key type of your toMap converter " + generateLocation(
@@ -291,7 +292,7 @@ final class CompositePropertyConverterFactory implements Neo4jPersistentProperty
 		Function<?, String> keyWriter;
 		if (isEnum) {
 			keyReader = key -> Enum.valueOf(((Class<Enum>) componentType), keyTransformation.apply(Phase.READ, key));
-			keyWriter = (Enum key) -> keyTransformation.apply(Phase.WRITE, key.name());
+			keyWriter = (Enum<?> key) -> keyTransformation.apply(Phase.WRITE, key.name());
 		} else {
 			keyReader = key -> keyTransformation.apply(Phase.READ, key);
 			keyWriter = (String key) -> keyTransformation.apply(Phase.WRITE, key);

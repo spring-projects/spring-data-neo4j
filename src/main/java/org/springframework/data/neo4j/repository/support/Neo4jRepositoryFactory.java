@@ -58,6 +58,7 @@ final class Neo4jRepositoryFactory extends RepositoryFactorySupport {
 		setEvaluationContextProvider(QueryMethodEvaluationContextProvider.DEFAULT);
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public <T, ID> Neo4jEntityInformation<T, ID> getEntityInformation(Class<T> domainClass) {
 

@@ -57,6 +57,7 @@ import org.neo4j.driver.SessionConfig;
 import org.neo4j.driver.Values;
 import org.neo4j.driver.summary.ResultSummary;
 import org.neo4j.driver.types.TypeSystem;
+import org.springframework.lang.Nullable;
 
 /**
  * @author Michael J. Simons
@@ -128,6 +129,7 @@ class Neo4jClientTest {
 		verify(result).stream();
 		verify(result).consume();
 		verify(resultSummary).notifications();
+		verify(resultSummary).hasPlan();
 		verify(record1).asMap();
 		verify(record2).asMap();
 		verify(session).close();
@@ -160,6 +162,7 @@ class Neo4jClientTest {
 		verify(result).stream();
 		verify(result).consume();
 		verify(resultSummary).notifications();
+		verify(resultSummary).hasPlan();
 		verify(record1).asMap();
 		verify(session).close();
 	}
@@ -206,6 +209,7 @@ class Neo4jClientTest {
 		verify(result).stream();
 		verify(result).consume();
 		verify(resultSummary).notifications();
+		verify(resultSummary).hasPlan();
 		verify(record1).asMap();
 		verify(session).close();
 
@@ -279,6 +283,7 @@ class Neo4jClientTest {
 			verify(result).stream();
 			verify(result).consume();
 			verify(resultSummary).notifications();
+			verify(resultSummary).hasPlan();
 			verify(record1).get("name");
 			verify(session).close();
 		}
@@ -334,6 +339,7 @@ class Neo4jClientTest {
 			verify(session).run(eq(cypher), MockitoHamcrest.argThat(new MapAssertionMatcher(expectedParameters)));
 			verify(result).consume();
 			verify(resultSummary).notifications();
+			verify(resultSummary).hasPlan();
 			verify(session).close();
 		}
 
@@ -364,6 +370,7 @@ class Neo4jClientTest {
 			verify(result).single();
 			verify(result).consume();
 			verify(resultSummary).notifications();
+			verify(resultSummary).hasPlan();
 			verify(session).close();
 		}
 	}
@@ -391,6 +398,7 @@ class Neo4jClientTest {
 		verify(session).run(eq(cypher), MockitoHamcrest.argThat(new MapAssertionMatcher(expectedParameters)));
 		verify(result).consume();
 		verify(resultSummary).notifications();
+		verify(resultSummary).hasPlan();
 		verify(session).close();
 	}
 
@@ -447,7 +455,7 @@ class Neo4jClientTest {
 		}
 	}
 
-	void verifyDatabaseSelection(String targetDatabase) {
+	void verifyDatabaseSelection(@Nullable String targetDatabase) {
 
 		verify(driver).session(configArgumentCaptor.capture());
 		SessionConfig config = configArgumentCaptor.getValue();

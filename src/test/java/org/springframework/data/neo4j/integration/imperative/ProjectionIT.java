@@ -350,7 +350,7 @@ class ProjectionIT {
 		assertThat(results)
 				.hasSize(1)
 				.first()
-				.satisfies(personAndDepartment -> projectedEntities(personAndDepartment));
+				.satisfies(ProjectionIT::projectedEntities);
 	}
 
 	@Test // GH-2349
@@ -362,7 +362,7 @@ class ProjectionIT {
 		assertThat(results)
 				.hasSize(1)
 				.first()
-				.satisfies(personAndDepartment -> projectedEntities(personAndDepartment));
+				.satisfies(ProjectionIT::projectedEntities);
 	}
 
 	private static void projectedEntities(PersonDepartmentQueryResult personAndDepartment) {

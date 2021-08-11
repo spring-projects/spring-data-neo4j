@@ -36,5 +36,5 @@ public interface Neo4jPersistentPropertyConverterFactory {
 	 * @param persistentProperty The property for which the converter should be build.
 	 * @return The new or existing converter
 	 */
-	Neo4jPersistentPropertyConverter getPropertyConverterFor(Neo4jPersistentProperty persistentProperty);
+	Neo4jPersistentPropertyConverter<?> getPropertyConverterFor(Neo4jPersistentProperty persistentProperty);
 }
