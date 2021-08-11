@@ -26,8 +26,8 @@ import org.springframework.data.mapping.callback.ReactiveEntityCallbacks;
  * Entity callback triggered before an Entity is bound to a record (represented by a {@link java.util.Map
  * java.util.Map&lt;String, Object&gt;}).
  *
- * @param <T> The type of the entity.
  * @author Michael J. Simons
+ * @param <T> The type of the entity.
  * @soundtrack Iron Maiden - Killers
  * @see ReactiveEntityCallbacks
  * @since 6.0.2

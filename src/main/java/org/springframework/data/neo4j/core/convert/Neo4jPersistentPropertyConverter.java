@@ -21,8 +21,8 @@ import org.neo4j.driver.Value;
 /**
  * This interface represents a pair of methods capable of converting values of type {@code T} to and from {@link Value values}.
  *
- * @param <T> The type of the property to convert (the type of the actual attribute).
  * @author Michael J. Simons
+ * @param <T> The type of the property to convert (the type of the actual attribute).
  * @soundtrack Antilopen Gang - Adrenochrom
  * @since 6.0
  */

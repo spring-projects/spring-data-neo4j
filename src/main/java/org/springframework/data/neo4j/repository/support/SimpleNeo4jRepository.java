@@ -41,9 +41,9 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Michael J. Simons
  * @author Ján Šúr
  * @author Jens Schauder
- * @since 6.0
  * @param <T> the type of the domain class managed by this repository
  * @param <ID> the type of the unique identifier of the domain class
+ * @since 6.0
  */
 @Repository
 @Transactional(readOnly = true)

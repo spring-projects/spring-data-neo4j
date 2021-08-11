@@ -29,8 +29,8 @@ import org.springframework.lang.Nullable;
  * Describes how a class is mapped to a node inside the database. It provides navigable links to relationships and
  * access to the nodes properties.
  *
- * @param <T> The type of the underlying class
  * @author Michael J. Simons
+ * @param <T> The type of the underlying class
  * @since 6.0
  */
 @API(status = API.Status.STABLE, since = "6.0")
