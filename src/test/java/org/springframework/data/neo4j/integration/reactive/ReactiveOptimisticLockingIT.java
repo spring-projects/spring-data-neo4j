@@ -129,10 +129,22 @@ class ReactiveOptimisticLockingIT {
 		List<VersionedThing> things = Arrays.asList(thing1, thing2);
 		List<VersionedThing> savedThings = repository.saveAll(things).collectList().block();
 
+		savedThings.get(0).setMutableProperty("changed");
 		savedThings.get(1).setMyVersion(1L); // Version in DB is 0
 
-		StepVerifier.create(repository.saveAll(savedThings)).expectError(OptimisticLockingFailureException.class).verify();
+		StepVerifier.create(repository.saveAll(savedThings))
+				.expectNextCount(1L)
+				.expectError(OptimisticLockingFailureException.class)
+				.verify();
 
+		// Make sure the first object that has the correct version number doesn't get persisted either
+		try (Session session = driver.session()) {
+			long cnt = session.run(
+					"MATCH (n:VersionedThing) WHERE id(n) = $id AND n.mutableProperty = 'changed' RETURN count(*)",
+					Collections.singletonMap("id", savedThings.get(0).getId())
+			).single().get(0).asLong();
+			assertThat(cnt).isEqualTo(0L);
+		}
 	}
 
 	@Test
