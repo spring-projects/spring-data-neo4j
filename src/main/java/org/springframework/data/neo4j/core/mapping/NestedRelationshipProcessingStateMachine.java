@@ -21,8 +21,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.concurrent.locks.StampedLock;
 
 import org.apiguardian.api.API;
 import org.springframework.lang.NonNull;
@@ -46,9 +45,9 @@ public final class NestedRelationshipProcessingStateMachine {
 		PROCESSED_NONE, PROCESSED_BOTH, PROCESSED_ALL_RELATIONSHIPS, PROCESSED_ALL_VALUES
 	}
 
-	private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
-	private final Lock read = lock.readLock();
-	private final Lock write = lock.writeLock();
+	private final StampedLock lock = new StampedLock();
+
+	private final Neo4jMappingContext mappingContext;
 
 	/**
 	 * The set of already processed relationships.
@@ -72,7 +71,15 @@ public final class NestedRelationshipProcessingStateMachine {
 	 */
 	private final Map<Object, Long> processedObjectsIds = new HashMap<>();
 
-	public NestedRelationshipProcessingStateMachine(Object initialObject, Long internalId) {
+	public NestedRelationshipProcessingStateMachine(final Neo4jMappingContext mappingContext) {
+
+		Assert.notNull(mappingContext, "Mapping context is required");
+
+		this.mappingContext = mappingContext;
+	}
+
+	public NestedRelationshipProcessingStateMachine(final Neo4jMappingContext mappingContext, Object initialObject, Long internalId) {
+		this(mappingContext);
 
 		Assert.notNull(initialObject, "Initial object must not be null.");
 		Assert.notNull(internalId, "The initial objects internal ID must not be null.");
@@ -88,8 +95,8 @@ public final class NestedRelationshipProcessingStateMachine {
 	 */
 	public ProcessState getStateOf(Object fromId, RelationshipDescription relationshipDescription, @Nullable Collection<?> valuesToStore) {
 
+		final long stamp = lock.readLock();
 		try {
-			read.lock();
 			boolean hasProcessedRelationship = hasProcessedRelationship(fromId, relationshipDescription);
 			boolean hasProcessedAllValues = hasProcessedAllOf(valuesToStore);
 			if (hasProcessedRelationship && hasProcessedAllValues) {
@@ -103,7 +110,7 @@ public final class NestedRelationshipProcessingStateMachine {
 			}
 			return ProcessState.PROCESSED_NONE;
 		} finally {
-			read.unlock();
+			lock.unlock(stamp);
 		}
 	}
 
@@ -150,31 +157,38 @@ public final class NestedRelationshipProcessingStateMachine {
 			return;
 		}
 
+		final long stamp = lock.writeLock();
 		try {
-			write.lock();
 			this.processedRelationshipDescriptions.add(new RelationshipDescriptionWithSourceId(fromId, relationshipDescription));
 		} finally {
-			write.unlock();
+			lock.unlock(stamp);
 		}
 	}
+
 	/**
 	 * Marks the passed objects as processed
 	 *
 	 * @param valueToStore If not {@literal null}, all non-null values will be marked as processed
+	 * @param internalId The internal id of the value processed
 	 */
-	public void markValueAsProcessed(Object valueToStore, Long internalId) {
+	public void markValueAsProcessed(Object valueToStore, @Nullable Long internalId) {
 
+		final long stamp = lock.writeLock();
 		try {
-			write.lock();
-			Object value = extractRelatedValueFromRelationshipProperties(valueToStore);
-			this.processedObjects.add(valueToStore);
-			this.processedObjects.add(value);
-			if (internalId != null) {
-				this.processedObjectsIds.put(valueToStore, internalId);
-				this.processedObjectsIds.put(value, internalId);
-			}
+			doMarkValueAsProcessed(valueToStore, internalId);
 		} finally {
-			write.unlock();
+			lock.unlock(stamp);
+		}
+	}
+
+	private void doMarkValueAsProcessed(Object valueToStore, Long internalId) {
+
+		Object value = extractRelatedValueFromRelationshipProperties(valueToStore);
+		this.processedObjects.add(valueToStore);
+		this.processedObjects.add(value);
+		if (internalId != null) {
+			this.processedObjectsIds.put(valueToStore, internalId);
+			this.processedObjectsIds.put(value, internalId);
 		}
 	}
 
@@ -182,15 +196,32 @@ public final class NestedRelationshipProcessingStateMachine {
 	 * Checks if the value has already been processed.
 	 *
 	 * @param value the object that should be looked for in the registry.
- 	 * @return processed yes (true) / no (false)
+	 * @return processed yes (true) / no (false)
 	 */
 	public boolean hasProcessedValue(Object value) {
+
+		long stamp = lock.readLock();
 		try {
-			read.lock();
 			Object valueToCheck = extractRelatedValueFromRelationshipProperties(value);
-			return processedObjects.contains(valueToCheck) || processedObjectsAlias.containsKey(valueToCheck);
+			boolean processed = processedObjects.contains(valueToCheck) || processedObjectsAlias.containsKey(valueToCheck);
+			// This can be the case the object has been loaded via an additional findXXX call
+			// We can enforce sets and so on, but this is more user-friendly
+			Class<?> typeOfValue = value.getClass();
+			if (!processed && mappingContext.hasPersistentEntityFor(typeOfValue)) {
+				Neo4jPersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(typeOfValue);
+				Neo4jPersistentProperty idProperty = entity.getIdProperty();
+				Object id = idProperty == null ? null : entity.getPropertyAccessor(value).getProperty(idProperty);
+				processed = id != null && processedObjects.stream()
+						.filter(typeOfValue::isInstance)
+						.anyMatch(processedObject -> id.equals(entity.getPropertyAccessor(processedObject).getProperty(idProperty)));
+				if (processed) { // Skip the show the next time around.
+					stamp = lock.tryConvertToWriteLock(stamp);
+					doMarkValueAsProcessed(valueToCheck, null);
+				}
+			}
+			return processed;
 		} finally {
-			read.unlock();
+			lock.unlock(stamp);
 		}
 	}
 
@@ -202,39 +233,45 @@ public final class NestedRelationshipProcessingStateMachine {
 	 */
 	public boolean hasProcessedRelationship(Object fromId, @Nullable RelationshipDescription relationshipDescription) {
 		if (relationshipDescription != null) {
-			return processedRelationshipDescriptions.contains(new RelationshipDescriptionWithSourceId(fromId, relationshipDescription));
+			final long stamp = lock.readLock();
+			try {
+				return processedRelationshipDescriptions.contains(new RelationshipDescriptionWithSourceId(fromId, relationshipDescription));
+			} finally {
+				lock.unlock(stamp);
+			}
 		}
 		return false;
 	}
 
-	public void markValueAsProcessedAs(Object relatedValueToStore, Object bean) {
+	public void markValueAsProcessedAs(Object valueToStore, Object bean) {
+		final long stamp = lock.writeLock();
 		try {
-			write.lock();
-			processedObjectsAlias.put(relatedValueToStore, bean);
+			processedObjectsAlias.put(valueToStore, bean);
 		} finally {
-			write.unlock();
+			lock.unlock(stamp);
 		}
 	}
 
 	@Nullable
 	public Long getInternalId(Object object) {
+		final long stamp = lock.readLock();
 		try {
-			read.lock();
 			Object valueToCheck = extractRelatedValueFromRelationshipProperties(object);
 			Long possibleId = processedObjectsIds.get(valueToCheck);
 			return possibleId != null ? possibleId : processedObjectsIds.get(processedObjectsAlias.get(valueToCheck));
 		} finally {
-			read.unlock();
+			lock.unlock(stamp);
 		}
 
 	}
 
 	public Object getProcessedAs(Object entity) {
+
+		final long stamp = lock.readLock();
 		try {
-			read.lock();
 			return processedObjectsAlias.getOrDefault(entity, entity);
 		} finally {
-			read.unlock();
+			lock.unlock(stamp);
 		}
 	}
 

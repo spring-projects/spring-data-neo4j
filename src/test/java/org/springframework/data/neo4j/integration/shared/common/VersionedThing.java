@@ -36,6 +36,8 @@ public class VersionedThing {
 
 	private final String name;
 
+	private String mutableProperty;
+
 	@Relationship("HAS") private List<VersionedThing> otherVersionedThings;
 
 	public VersionedThing(String name) {
@@ -60,6 +62,14 @@ public class VersionedThing {
 
 	public void setOtherVersionedThings(List<VersionedThing> otherVersionedThings) {
 		this.otherVersionedThings = otherVersionedThings;
+	}
+
+	public String getMutableProperty() {
+		return mutableProperty;
+	}
+
+	public void setMutableProperty(String mutableProperty) {
+		this.mutableProperty = mutableProperty;
 	}
 
 	@Override
