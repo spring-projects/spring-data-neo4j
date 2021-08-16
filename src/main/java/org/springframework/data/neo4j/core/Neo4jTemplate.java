@@ -316,7 +316,7 @@ public final class Neo4jTemplate implements
 	@Override
 	public <T> T save(T instance) {
 
-		return saveImpl(instance, Collections.emptyList());
+		return saveImpl(instance, Collections.emptyList(), null);
 	}
 
 	@Override
@@ -336,7 +336,7 @@ public final class Neo4jTemplate implements
 		Collection<PropertyPath> pps = PropertyFilterSupport.addPropertiesFrom(instance.getClass(), resultType,
 				projectionFactory, neo4jMappingContext);
 
-		T savedInstance = saveImpl(instance, pps);
+		T savedInstance = saveImpl(instance, pps, null);
 		if (projectionInformation.isClosed()) {
 			return projectionFactory.createProjection(resultType, savedInstance);
 		}
@@ -348,7 +348,11 @@ public final class Neo4jTemplate implements
 				this.findById(propertyAccessor.getProperty(idProperty), savedInstance.getClass()).get());
 	}
 
-	private <T> T saveImpl(T instance, Collection<PropertyPath> includedProperties) {
+	private <T> T saveImpl(T instance, @Nullable Collection<PropertyPath> includedProperties, @Nullable NestedRelationshipProcessingStateMachine stateMachine) {
+
+		if (stateMachine != null && stateMachine.hasProcessedValue(instance)) {
+			return instance;
+		}
 
 		Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getRequiredPersistentEntity(instance.getClass());
 		boolean isEntityNew = entityMetaData.isNew(instance);
@@ -393,9 +397,17 @@ public final class Neo4jTemplate implements
 			propertyAccessor.setProperty(entityMetaData.getRequiredIdProperty(), internalId);
 		}
 		TemplateSupport.updateVersionPropertyIfPossible(entityMetaData, propertyAccessor, newOrUpdatedNode.get());
-		processRelations(entityMetaData, instance, internalId, propertyAccessor, isEntityNew, includeProperty);
 
-		return propertyAccessor.getBean();
+		if (stateMachine == null) {
+			stateMachine = new NestedRelationshipProcessingStateMachine(neo4jMappingContext, instance, internalId);
+		}
+
+		stateMachine.markValueAsProcessed(instance, internalId);
+		processRelations(entityMetaData, propertyAccessor, isEntityNew, stateMachine, includeProperty);
+
+		T bean = propertyAccessor.getBean();
+		stateMachine.markValueAsProcessedAs(instance, bean);
+		return bean;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -447,7 +459,8 @@ public final class Neo4jTemplate implements
 				|| entityMetaData.getDynamicLabelsProperty().isPresent()) {
 			log.debug("Saving entities using single statements.");
 
-			return entities.stream().map(e -> saveImpl(e, includedProperties)).collect(Collectors.toList());
+			NestedRelationshipProcessingStateMachine stateMachine = new NestedRelationshipProcessingStateMachine(neo4jMappingContext);
+			return entities.stream().map(e -> saveImpl(e, includedProperties, stateMachine)).collect(Collectors.toList());
 		}
 
 		class Tuple3<T> {
@@ -486,7 +499,7 @@ public final class Neo4jTemplate implements
 			Neo4jPersistentProperty idProperty = entityMetaData.getRequiredIdProperty();
 			Object id = convertIdValues(idProperty, propertyAccessor.getProperty(idProperty));
 			Long internalId = idToInternalIdMapping.get(id);
-			return processRelations(entityMetaData, t.originalInstance, internalId, propertyAccessor, t.wasNew, TemplateSupport.computeIncludePropertyPredicate(includedProperties, entityMetaData));
+			return this.<T>processRelations(entityMetaData, propertyAccessor, t.wasNew, new NestedRelationshipProcessingStateMachine(neo4jMappingContext, t.originalInstance, internalId), TemplateSupport.computeIncludePropertyPredicate(includedProperties, entityMetaData));
 		}).collect(Collectors.toList());
 	}
 
@@ -634,24 +647,34 @@ public final class Neo4jTemplate implements
 	 * Starts of processing of the relationships.
 	 *
 	 * @param neo4jPersistentEntity  The description of the instance to save
-	 * @param originalInstance       The original parent instance. It is paramount to pass in the original instance (prior
-	 *                               to generating the id and prior to eventually create new instances via the property accessor,
-	 *                               so that we can reliable stop traversing relationships.
 	 * @param parentPropertyAccessor The property accessor of the parent, to modify the relationships
 	 * @param isParentObjectNew      A flag if the parent was new
+	 * @param stateMachine           Initial state of entity processing
 	 * @param includeProperty        A predicate telling to include a relationship property or not
+	 * @param <T>                    The type of the object being initially processed
+	 * @return The owner of the relations being processed
 	 */
-	private <T> T processRelations(Neo4jPersistentEntity<?> neo4jPersistentEntity, T originalInstance, Long internalId,
-								   PersistentPropertyAccessor<?> parentPropertyAccessor,
-								   boolean isParentObjectNew, PropertyFilter includeProperty) {
+	private <T> T processRelations(
+			Neo4jPersistentEntity<?> neo4jPersistentEntity,
+			PersistentPropertyAccessor<?> parentPropertyAccessor,
+			boolean isParentObjectNew,
+			NestedRelationshipProcessingStateMachine stateMachine,
+			PropertyFilter includeProperty
+	) {
 
 		PropertyFilter.RelaxedPropertyPath startingPropertyPath = PropertyFilter.RelaxedPropertyPath.withRootType(neo4jPersistentEntity.getUnderlyingClass());
 		return processNestedRelations(neo4jPersistentEntity, parentPropertyAccessor, isParentObjectNew,
-				new NestedRelationshipProcessingStateMachine(originalInstance, internalId), includeProperty, startingPropertyPath);
+				stateMachine, includeProperty, startingPropertyPath);
 	}
 
-	private <T> T processNestedRelations(Neo4jPersistentEntity<?> sourceEntity, PersistentPropertyAccessor<?> propertyAccessor,
-										 boolean isParentObjectNew, NestedRelationshipProcessingStateMachine stateMachine, PropertyFilter includeProperty, PropertyFilter.RelaxedPropertyPath previousPath) {
+	private <T> T processNestedRelations(
+			Neo4jPersistentEntity<?> sourceEntity,
+			PersistentPropertyAccessor<?> propertyAccessor,
+			boolean isParentObjectNew,
+			NestedRelationshipProcessingStateMachine stateMachine,
+			PropertyFilter includeProperty,
+			PropertyFilter.RelaxedPropertyPath previousPath
+	) {
 
 		Object fromId = propertyAccessor.getProperty(sourceEntity.getRequiredIdProperty());
 
@@ -908,12 +931,13 @@ public final class Neo4jTemplate implements
 		Collection<PropertyPath> pps = PropertyFilterSupport.addPropertiesFrom(domainType, resultType,
 				projectionFactory, neo4jMappingContext);
 
+		NestedRelationshipProcessingStateMachine stateMachine = new NestedRelationshipProcessingStateMachine(neo4jMappingContext);
 		List<R> results = new ArrayList<>();
 		for (R instance : instances) {
 			EntityFromDtoInstantiatingConverter<T> converter = new EntityFromDtoInstantiatingConverter<>(domainType, neo4jMappingContext);
 			T domainObject = converter.convert(instance);
 
-			T savedEntity = saveImpl(domainObject, pps);
+			T savedEntity = saveImpl(domainObject, pps, stateMachine);
 
 			@SuppressWarnings("unchecked")
 			R convertedBack = (R) new DtoInstantiatingConverter(resultType, neo4jMappingContext).convertDirectly(savedEntity);
