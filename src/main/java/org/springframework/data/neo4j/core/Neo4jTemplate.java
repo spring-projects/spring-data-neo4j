@@ -351,6 +351,7 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 				.collect(Collectors.toList());
 		Map<Value, Long> idToInternalIdMapping = neo4jClient
 				.query(() -> renderer.render(cypherGenerator.prepareSaveOfMultipleInstancesOf(entityMetaData)))
+				.in(databaseName)
 				.bind(entityList).to(Constants.NAME_OF_ENTITY_LIST_PARAM)
 				.fetchAs(Map.Entry.class)
 				.mappedBy((t, r) -> new AbstractMap.SimpleEntry<>(r.get(Constants.NAME_OF_ID), r.get(Constants.NAME_OF_INTERNAL_ID).asLong()))

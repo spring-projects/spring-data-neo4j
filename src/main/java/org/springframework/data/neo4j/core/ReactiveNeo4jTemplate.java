@@ -346,6 +346,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 									.map(binderFunction).collect(Collectors.toList());
 							return neo4jClient
 									.query(() -> renderer.render(cypherGenerator.prepareSaveOfMultipleInstancesOf(entityMetaData)))
+									.in(databaseName.getValue())
 									.bind(boundedEntityList).to(Constants.NAME_OF_ENTITY_LIST_PARAM)
 									.fetchAs(Tuple2.class)
 									.mappedBy((t, r) -> Tuples.of(r.get(Constants.NAME_OF_ID), r.get(Constants.NAME_OF_INTERNAL_ID).asLong()))
