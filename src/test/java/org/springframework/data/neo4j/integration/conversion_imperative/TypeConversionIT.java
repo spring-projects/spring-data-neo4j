@@ -113,8 +113,7 @@ class TypeConversionIT extends Neo4jConversionsITBase {
 
 		assertThatExceptionOfType(MappingException.class)
 				.isThrownBy(() -> cypherTypesRepository.findById(id))
-				.withMessageMatching(
-						"Error mapping Record<\\{n: \\{__internalNeo4jId__: \\d+, aBoolean: NULL, aString: NULL, aLong: NULL, anOffsetTime: NULL, aLocalDateTime: NULL, aDouble: NULL, aByteArray: NULL, aPoint: NULL, aZeroDuration: NULL, aZoneDateTime: NULL, __nodeLabels__: \\[\"CypherTypes\"], aLocalDate: NULL, aZeroPeriod: NULL, anIsoDuration: NULL, aLocalTime: NULL, id: NULL}}>")
+				.withMessageMatching("Error mapping Record<\\{n: .*>")
 				.withStackTraceContaining("Illegal arguments for constructor")
 				.withRootCauseInstanceOf(IllegalArgumentException.class);
 	}
