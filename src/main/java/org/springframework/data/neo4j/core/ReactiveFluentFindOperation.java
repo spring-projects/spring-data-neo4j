@@ -23,6 +23,7 @@ import java.util.Map;
 
 import org.apiguardian.api.API;
 import org.neo4j.cypherdsl.core.Statement;
+import org.springframework.data.neo4j.repository.query.QueryFragmentsAndParameters;
 import org.springframework.lang.Nullable;
 
 /**
@@ -95,6 +96,16 @@ public interface ReactiveFluentFindOperation {
 		 * @throws IllegalArgumentException if query is {@literal null}.
 		 */
 		TerminatingFind<T> matching(String query, @Nullable Map<String, Object> parameter);
+
+		/**
+		 * Creates an executable query based on fragments and parameters. Hardly useful outside framework-code
+		 * and we actively discourage using this method.
+		 *
+		 * @param queryFragmentsAndParameters Encapsulated query fragements and parameters as created by the repository abstraction.
+		 * @return new instance of {@link FluentFindOperation.TerminatingFind}.
+		 * @throws IllegalArgumentException if queryFragmentsAndParameters is {@literal null}.
+		 */
+		TerminatingFind<T> matching(QueryFragmentsAndParameters queryFragmentsAndParameters);
 
 		/**
 		 * Set the filter query to be used.

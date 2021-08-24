@@ -30,6 +30,6 @@ class StartupLoggerTest {
 
 		String message = new StartupLogger(StartupLogger.Mode.IMPERATIVE).getStartingMessage();
 		assertThat(message).matches(
-				"Bootstrapping imperative Neo4j repositories based on an unknown version of SDN with Spring Data Commons v2\\.\\d+\\.\\d+.(RELEASE|(?:DATACMNS-\\d+-)?SNAPSHOT) and Neo4j Driver v4\\.\\d+\\.\\d+(?:-.*)\\.");
+				"Bootstrapping imperative Neo4j repositories based on an unknown version of SDN with Spring Data Commons v2\\.\\d+\\.\\d+.(RELEASE|(?:(?:DATACMNS-)?\\d+-)?SNAPSHOT) and Neo4j Driver v4\\.\\d+\\.\\d+-.*\\.");
 	}
 }

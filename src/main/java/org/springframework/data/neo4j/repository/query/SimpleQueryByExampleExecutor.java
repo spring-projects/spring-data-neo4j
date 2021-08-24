@@ -22,14 +22,17 @@ import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.neo4j.core.FluentFindOperation;
 import org.springframework.data.neo4j.core.Neo4jOperations;
 import org.springframework.data.neo4j.core.mapping.CypherGenerator;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
+import org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery;
 import org.springframework.data.repository.query.QueryByExampleExecutor;
 import org.springframework.data.support.PageableExecutionUtils;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.function.LongSupplier;
 
 import static org.neo4j.cypherdsl.core.Cypher.asterisk;
@@ -101,4 +104,15 @@ public final class SimpleQueryByExampleExecutor<T> implements QueryByExampleExec
 		return findAll(example).iterator().hasNext();
 	}
 
+	@Override
+	public <S extends T, R> R findBy(Example<S> example, Function<FetchableFluentQuery<S>, R> queryFunction) {
+
+		if (this.neo4jOperations instanceof FluentFindOperation) {
+			FetchableFluentQuery<S> fluentQuery = new FetchableFluentQueryByExample<>(example, example.getProbeType(),
+					mappingContext, (FluentFindOperation) this.neo4jOperations, this::count, this::exists);
+			return queryFunction.apply(fluentQuery);
+		}
+		throw new UnsupportedOperationException(
+				"Fluent find by example not supported with standard Neo4jOperations. Must support fluent queries too.");
+	}
 }

@@ -41,6 +41,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import org.assertj.core.api.Assertions;
@@ -146,6 +147,7 @@ import org.springframework.data.neo4j.test.BookmarkCapture;
 import org.springframework.data.neo4j.test.Neo4jExtension;
 import org.springframework.data.neo4j.types.CartesianPoint2d;
 import org.springframework.data.neo4j.types.GeographicPoint2d;
+import org.springframework.data.repository.query.FluentQuery;
 import org.springframework.data.repository.query.Param;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
@@ -2650,6 +2652,17 @@ class RepositoryIT {
 			assertThat(person.get()).isEqualTo(person1);
 		}
 
+		@Test // GH-2343
+		void findOneByExampleFluent(@Autowired PersonRepository repository) {
+
+			Example<PersonWithAllConstructor> example = Example.of(person1,
+					ExampleMatcher.matchingAll().withIgnoreNullValues());
+			PersonWithAllConstructor person = repository.findBy(example, q -> q.one());
+
+			assertThat(person).isNotNull();
+			assertThat(person).isEqualTo(person1);
+		}
+
 		@Test
 		void findAllByExample(@Autowired PersonRepository repository) {
 
@@ -2658,6 +2671,76 @@ class RepositoryIT {
 			List<PersonWithAllConstructor> persons = repository.findAll(example);
 
 			assertThat(persons).containsExactly(person1);
+		}
+
+		@Test // GH-2343
+		void findAllByExampleFluent(@Autowired PersonRepository repository) {
+
+			Example<PersonWithAllConstructor> example = Example.of(person1,
+					ExampleMatcher.matchingAll().withIgnoreNullValues());
+			List<PersonWithAllConstructor> persons = repository.findBy(example, FluentQuery.FetchableFluentQuery::all);
+
+			assertThat(persons).containsExactly(person1);
+		}
+
+		@Test // GH-2343
+		void findAllByExampleFluentProjecting(@Autowired PersonRepository repository) {
+
+			Example<PersonWithAllConstructor> example = Example.of(person1,
+					ExampleMatcher.matchingAll().withIgnoreNullValues());
+			List<PersonWithAllConstructor> persons = repository.findBy(example,
+					q -> q.project("name", "firstName").all());
+
+			assertThat(persons)
+					.hasSize(1)
+					.first().satisfies(p -> {
+						assertThat(p.getName()).isEqualTo(person1.getName());
+						assertThat(p.getFirstName()).isEqualTo(person1.getFirstName());
+						assertThat(p.getId()).isNotNull();
+
+						assertThat(p.getBornOn()).isNull();
+						assertThat(p.getCool()).isNull();
+						assertThat(p.getCreatedAt()).isNull();
+						assertThat(p.getNullable()).isNull();
+						assertThat(p.getPersonNumber()).isNull();
+						assertThat(p.getPlace()).isNull();
+						assertThat(p.getSameValue()).isNull();
+						assertThat(p.getThings()).isNull();
+					});
+		}
+
+		@Test // GH-2343
+		void findAllByExampleFluentAs(@Autowired PersonRepository repository) {
+
+			Example<PersonWithAllConstructor> example = Example.of(person1,
+					ExampleMatcher.matchingAll().withIgnoreNullValues());
+
+			List<DtoPersonProjection> people = repository.findBy(example, q -> q.as(DtoPersonProjection.class).all());
+			assertThat(people)
+					.hasSize(1)
+					.extracting(DtoPersonProjection::getFirstName)
+					.first().isEqualTo(TEST_PERSON1_FIRST_NAME);
+		}
+
+		@Test // GH-2343
+		void streamByExample(@Autowired PersonRepository repository) {
+
+			Example<PersonWithAllConstructor> example = Example.of(person1,
+					ExampleMatcher.matchingAll().withIgnoreNullValues());
+			Stream<PersonWithAllConstructor> persons = repository.findBy(example, FluentQuery.FetchableFluentQuery::stream);
+
+			assertThat(persons).containsExactly(person1);
+		}
+
+		@Test // GH-2343
+		void findFirstByExample(@Autowired PersonRepository repository) {
+
+			Example<PersonWithAllConstructor> example = Example.of(person1,
+					ExampleMatcher.matchingAll().withIgnoreNullValues());
+			PersonWithAllConstructor person = repository.findBy(example, q -> q.sortBy(Sort.by(Sort.Direction.DESC, "name")).first());
+
+			assertThat(person).isNotNull();
+			assertThat(person).isEqualTo(person1);
 		}
 
 		@Test
@@ -2716,11 +2799,30 @@ class RepositoryIT {
 			assertThat(persons).containsExactly(person2, person1);
 		}
 
+		@Test // GH-2343
+		void findAllByExampleWithSortFluent(@Autowired PersonRepository repository) {
+
+			Example<PersonWithAllConstructor> example = Example.of(personExample(TEST_PERSON_SAMEVALUE));
+			List<PersonWithAllConstructor> persons = repository
+					.findBy(example, q -> q.sortBy(Sort.by(Sort.Direction.DESC, "name")).all());
+
+			assertThat(persons).containsExactly(person2, person1);
+		}
+
 		@Test
 		void findAllByExampleWithPagination(@Autowired PersonRepository repository) {
 
 			Example<PersonWithAllConstructor> example = Example.of(personExample(TEST_PERSON_SAMEVALUE));
 			Iterable<PersonWithAllConstructor> persons = repository.findAll(example, PageRequest.of(1, 1, Sort.by("name")));
+
+			assertThat(persons).containsExactly(person2);
+		}
+
+		@Test // GH-2343
+		void findAllByExampleWithPaginationFluent(@Autowired PersonRepository repository) {
+
+			Example<PersonWithAllConstructor> example = Example.of(personExample(TEST_PERSON_SAMEVALUE));
+			Iterable<PersonWithAllConstructor> persons = repository.findBy(example, q -> q.page(PageRequest.of(1, 1, Sort.by("name"))));
 
 			assertThat(persons).containsExactly(person2);
 		}
@@ -2734,11 +2836,29 @@ class RepositoryIT {
 			assertThat(exists).isTrue();
 		}
 
+		@Test // GH-2343
+		void existsByExampleFluent(@Autowired PersonRepository repository) {
+
+			Example<PersonWithAllConstructor> example = Example.of(personExample(TEST_PERSON_SAMEVALUE));
+			boolean exists = repository.findBy(example, q -> q.exists());
+
+			assertThat(exists).isTrue();
+		}
+
 		@Test
 		void countByExample(@Autowired PersonRepository repository) {
 
 			Example<PersonWithAllConstructor> example = Example.of(person1);
 			long count = repository.count(example);
+
+			assertThat(count).isEqualTo(1);
+		}
+
+		@Test // GH-2343
+		void countByExampleFluent(@Autowired PersonRepository repository) {
+
+			Example<PersonWithAllConstructor> example = Example.of(person1);
+			long count = repository.findBy(example, q -> q.count());
 
 			assertThat(count).isEqualTo(1);
 		}

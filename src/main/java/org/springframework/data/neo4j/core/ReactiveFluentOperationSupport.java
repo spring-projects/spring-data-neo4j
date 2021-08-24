@@ -21,6 +21,7 @@ import reactor.core.publisher.Mono;
 import java.util.Collections;
 import java.util.Map;
 
+import org.springframework.data.neo4j.repository.query.QueryFragmentsAndParameters;
 import org.springframework.util.Assert;
 
 /**
@@ -54,6 +55,7 @@ final class ReactiveFluentOperationSupport implements ReactiveFluentFindOperatio
 		private final Class<T> returnType;
 		private final String query;
 		private final Map<String, Object> parameters;
+		private final QueryFragmentsAndParameters queryFragmentsAndParameters;
 
 		ExecutableFindSupport(ReactiveNeo4jTemplate template, Class<?> domainType, Class<T> returnType, String query,
 				Map<String, Object> parameters) {
@@ -62,6 +64,16 @@ final class ReactiveFluentOperationSupport implements ReactiveFluentFindOperatio
 			this.returnType = returnType;
 			this.query = query;
 			this.parameters = parameters;
+			this.queryFragmentsAndParameters = null;
+		}
+
+		ExecutableFindSupport(ReactiveNeo4jTemplate template, Class<?> domainType, Class<T> returnType, QueryFragmentsAndParameters queryFragmentsAndParameters) {
+			this.template = template;
+			this.domainType = domainType;
+			this.returnType = returnType;
+			this.query = null;
+			this.parameters = null;
+			this.queryFragmentsAndParameters = queryFragmentsAndParameters;
 		}
 
 		@Override
@@ -83,6 +95,13 @@ final class ReactiveFluentOperationSupport implements ReactiveFluentFindOperatio
 		}
 
 		@Override
+		@SuppressWarnings("HiddenField")
+		public TerminatingFind<T> matching(QueryFragmentsAndParameters queryFragmentsAndParameters) {
+
+			return new ExecutableFindSupport<>(template, domainType, returnType, queryFragmentsAndParameters);
+		}
+
+		@Override
 		public Mono<T> one() {
 			return doFind(TemplateSupport.FetchType.ONE).single();
 		}
@@ -93,7 +112,7 @@ final class ReactiveFluentOperationSupport implements ReactiveFluentFindOperatio
 		}
 
 		private Flux<T> doFind(TemplateSupport.FetchType fetchType) {
-			return template.doFind(query, parameters, domainType, returnType, fetchType);
+			return template.doFind(query, parameters, domainType, returnType, fetchType, queryFragmentsAndParameters);
 		}
 	}
 

@@ -225,14 +225,19 @@ public final class ReactiveNeo4jTemplate implements
 	}
 
 	@SuppressWarnings("unchecked")
-	<T, R> Flux<R> doFind(@Nullable String cypherQuery, @Nullable Map<String, Object> parameters, Class<T> domainType, Class<R> resultType, TemplateSupport.FetchType fetchType) {
+	<T, R> Flux<R> doFind(@Nullable String cypherQuery, @Nullable Map<String, Object> parameters, Class<T> domainType, Class<R> resultType, TemplateSupport.FetchType fetchType, @Nullable QueryFragmentsAndParameters queryFragmentsAndParameters) {
 
 		Flux<T> intermediaResults = null;
-		if (cypherQuery == null && fetchType == TemplateSupport.FetchType.ALL) {
+		if (cypherQuery == null && queryFragmentsAndParameters == null && fetchType == TemplateSupport.FetchType.ALL) {
 			intermediaResults = doFindAll(domainType, resultType);
 		} else {
-			Mono<ExecutableQuery<T>> executableQuery = createExecutableQuery(domainType, resultType, cypherQuery,
-					parameters == null ? Collections.emptyMap() : parameters);
+			Mono<ExecutableQuery<T>> executableQuery;
+			if (queryFragmentsAndParameters == null) {
+				executableQuery = createExecutableQuery(domainType, resultType, cypherQuery,
+						parameters == null ? Collections.emptyMap() : parameters);
+			} else {
+				executableQuery = createExecutableQuery(domainType, resultType, queryFragmentsAndParameters);
+			}
 
 			switch (fetchType) {
 				case ALL:
