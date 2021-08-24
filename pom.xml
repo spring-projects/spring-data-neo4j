@@ -24,7 +24,7 @@
 
 	<groupId>org.springframework.data</groupId>
 	<artifactId>spring-data-neo4j</artifactId>
-	<version>6.2.0-SNAPSHOT</version>
+	<version>6.2.0-2343-SNAPSHOT</version>
 
 	<name>Spring Data Neo4j</name>
 	<description>Next generation Object-Graph-Mapping for Spring Data.</description>
@@ -117,7 +117,7 @@
 		<skipIntegrationTests>${skipTests}</skipIntegrationTests>
 
 		<skipUnitTests>${skipTests}</skipUnitTests>
-		<springdata.commons>2.6.0-SNAPSHOT</springdata.commons>
+		<springdata.commons>2.6.0-2228-SNAPSHOT</springdata.commons>
 
 		<spring-data-commons-docs.dir>../../../../spring-data-commons/src/main/asciidoc</spring-data-commons-docs.dir>
 	</properties>
