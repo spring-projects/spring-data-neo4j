@@ -19,7 +19,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.tuple;
 
-import org.springframework.data.mapping.MappingException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -65,6 +64,7 @@ import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.mapping.MappingException;
 import org.springframework.data.neo4j.config.AbstractReactiveNeo4jConfig;
 import org.springframework.data.neo4j.core.DatabaseSelection;
 import org.springframework.data.neo4j.core.ReactiveDatabaseSelectionProvider;
@@ -107,6 +107,7 @@ import org.springframework.data.neo4j.test.BookmarkCapture;
 import org.springframework.data.neo4j.test.Neo4jExtension;
 import org.springframework.data.neo4j.types.CartesianPoint2d;
 import org.springframework.data.neo4j.types.GeographicPoint2d;
+import org.springframework.data.repository.query.FluentQuery;
 import org.springframework.data.repository.query.Param;
 import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 import org.springframework.test.annotation.DirtiesContext;
@@ -276,11 +277,83 @@ class ReactiveRepositoryIT {
 			StepVerifier.create(repository.findOne(example)).expectNext(person1).verifyComplete();
 		}
 
+		@Test // GH-2343
+		void findOneByExampleFluent(@Autowired ReactivePersonRepository repository) {
+
+			Example<PersonWithAllConstructor> example = Example.of(person1,
+					ExampleMatcher.matchingAll().withIgnoreNullValues());
+
+			repository.findBy(example, q -> q.one())
+					.as(StepVerifier::create)
+					.expectNext(person1)
+					.verifyComplete();
+		}
+
 		@Test
 		void findAllByExample(@Autowired ReactivePersonRepository repository) {
 			Example<PersonWithAllConstructor> example = Example.of(person1,
 					ExampleMatcher.matchingAll().withIgnoreNullValues());
 			StepVerifier.create(repository.findAll(example)).expectNext(person1).verifyComplete();
+		}
+
+		@Test // GH-2343
+		void findAllByExampleFluent(@Autowired ReactivePersonRepository repository) {
+
+			Example<PersonWithAllConstructor> example = Example.of(person1,
+					ExampleMatcher.matchingAll().withIgnoreNullValues());
+			repository.findBy(example, FluentQuery.ReactiveFluentQuery::all)
+					.as(StepVerifier::create)
+					.expectNext(person1)
+					.verifyComplete();
+		}
+
+		@Test // GH-2343
+		void findAllByExampleFluentProjecting(@Autowired ReactivePersonRepository repository) {
+
+			Example<PersonWithAllConstructor> example = Example.of(person1,
+					ExampleMatcher.matchingAll().withIgnoreNullValues());
+
+			repository.findBy(example, q -> q.project("name", "firstName").all())
+					.as(StepVerifier::create)
+					.expectNextMatches(p -> {
+						assertThat(p.getName()).isEqualTo(person1.getName());
+						assertThat(p.getFirstName()).isEqualTo(person1.getFirstName());
+						assertThat(p.getId()).isNotNull();
+
+						assertThat(p.getBornOn()).isNull();
+						assertThat(p.getCool()).isNull();
+						assertThat(p.getCreatedAt()).isNull();
+						assertThat(p.getNullable()).isNull();
+						assertThat(p.getPersonNumber()).isNull();
+						assertThat(p.getPlace()).isNull();
+						assertThat(p.getSameValue()).isNull();
+						assertThat(p.getThings()).isNull();
+						return true;
+					}).verifyComplete();
+		}
+
+		@Test // GH-2343
+		void findAllByExampleFluentAs(@Autowired ReactivePersonRepository repository) {
+
+			Example<PersonWithAllConstructor> example = Example.of(person1,
+					ExampleMatcher.matchingAll().withIgnoreNullValues());
+
+			repository.findBy(example, q -> q.as(DtoPersonProjection.class).all())
+					.map(DtoPersonProjection::getFirstName)
+					.as(StepVerifier::create)
+					.expectNext(TEST_PERSON1_FIRST_NAME)
+					.verifyComplete();
+		}
+
+		@Test // GH-2343
+		void findFirstByExample(@Autowired ReactivePersonRepository repository) {
+
+			Example<PersonWithAllConstructor> example = Example.of(person1,
+					ExampleMatcher.matchingAll().withIgnoreNullValues());
+			repository.findBy(example, q -> q.sortBy(Sort.by(Sort.Direction.DESC, "name")).first())
+					.as(StepVerifier::create)
+					.expectNext(person1)
+					.verifyComplete();
 		}
 
 		@Test
@@ -332,6 +405,17 @@ class ReactiveRepositoryIT {
 
 			StepVerifier.create(repository.findAll(example, Sort.by(Sort.Direction.DESC, "name")))
 					.expectNext(person2, person1).verifyComplete();
+		}
+
+		@Test // GH-2343
+		void findAllByExampleWithSortFluent(@Autowired ReactivePersonRepository repository) {
+
+			Example<PersonWithAllConstructor> example = Example.of(personExample(TEST_PERSON_SAMEVALUE));
+			repository
+					.findBy(example, q -> q.sortBy(Sort.by(Sort.Direction.DESC, "name")).all())
+					.as(StepVerifier::create)
+					.expectNext(person2, person1)
+					.verifyComplete();
 		}
 
 		@Test
@@ -465,11 +549,37 @@ class ReactiveRepositoryIT {
 			StepVerifier.create(repository.existsById(NOT_EXISTING_NODE_ID)).expectNext(false).verifyComplete();
 		}
 
+		@Test // GH-2343
+		void findAllByExampleWithPaginationFluent(@Autowired ReactivePersonRepository repository) {
+
+			Example<PersonWithAllConstructor> example = Example.of(personExample(TEST_PERSON_SAMEVALUE));
+			repository.findBy(example, q -> q.page(PageRequest.of(1, 1, Sort.by("name"))))
+					.as(StepVerifier::create)
+					.expectNextMatches(page -> {
+						assertThat(page).containsExactly(person2);
+						assertThat(page.getTotalPages()).isEqualTo(2L);
+						assertThat(page.getTotalElements()).isEqualTo(2L);
+						assertThat(page.hasPrevious()).isTrue();
+						assertThat(page.hasNext()).isFalse();
+						return true;
+					})
+					.verifyComplete();
+		}
+
 		@Test
 		void existsByExample(@Autowired ReactivePersonRepository repository) {
 			Example<PersonWithAllConstructor> example = Example.of(personExample(TEST_PERSON_SAMEVALUE));
 			StepVerifier.create(repository.exists(example)).expectNext(true).verifyComplete();
+		}
 
+		@Test // GH-2343
+		void existsByExampleFluent(@Autowired ReactivePersonRepository repository) {
+
+			Example<PersonWithAllConstructor> example = Example.of(personExample(TEST_PERSON_SAMEVALUE));
+			repository.findBy(example, q -> q.exists())
+					.as(StepVerifier::create)
+					.expectNext(true)
+					.verifyComplete();
 		}
 
 		@Test
@@ -481,6 +591,16 @@ class ReactiveRepositoryIT {
 		void countByExample(@Autowired ReactivePersonRepository repository) {
 			Example<PersonWithAllConstructor> example = Example.of(person1);
 			StepVerifier.create(repository.count(example)).expectNext(1L).verifyComplete();
+		}
+
+		@Test // GH-2343
+		void countByExampleFluent(@Autowired ReactivePersonRepository repository) {
+
+			Example<PersonWithAllConstructor> example = Example.of(person1);
+			repository.findBy(example, q -> q.count())
+					.as(StepVerifier::create)
+					.expectNext(1L)
+					.verifyComplete();
 		}
 
 		@Test

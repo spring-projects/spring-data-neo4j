@@ -33,6 +33,7 @@ import org.springframework.data.neo4j.core.mapping.CypherGenerator;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.core.mapping.NodeDescription;
+import org.springframework.data.neo4j.core.mapping.PropertyFilter;
 import org.springframework.lang.Nullable;
 
 /**
@@ -124,15 +125,28 @@ public final class QueryFragmentsAndParameters {
 	 * Following methods are used by the Simple(Reactive)QueryByExampleExecutor
 	 */
 	static QueryFragmentsAndParameters forExample(Neo4jMappingContext mappingContext, Example<?> example) {
-		return QueryFragmentsAndParameters.forExample(mappingContext, example, null, null);
+		return QueryFragmentsAndParameters.forExample(mappingContext, example,
+				(java.util.function.Predicate<PropertyFilter.RelaxedPropertyPath>) null);
+	}
+
+	static QueryFragmentsAndParameters forExample(Neo4jMappingContext mappingContext, Example<?> example, @Nullable java.util.function.Predicate<PropertyFilter.RelaxedPropertyPath> includeField) {
+		return QueryFragmentsAndParameters.forExample(mappingContext, example, null, null, includeField);
 	}
 
 	static QueryFragmentsAndParameters forExample(Neo4jMappingContext mappingContext, Example<?> example, Sort sort) {
-		return QueryFragmentsAndParameters.forExample(mappingContext, example, null, sort);
+		return QueryFragmentsAndParameters.forExample(mappingContext, example, sort, null);
+	}
+
+	static QueryFragmentsAndParameters forExample(Neo4jMappingContext mappingContext, Example<?> example, Sort sort, @Nullable java.util.function.Predicate<PropertyFilter.RelaxedPropertyPath> includeField) {
+		return QueryFragmentsAndParameters.forExample(mappingContext, example, null, sort, includeField);
 	}
 
 	static QueryFragmentsAndParameters forExample(Neo4jMappingContext mappingContext, Example<?> example, Pageable pageable) {
 		return QueryFragmentsAndParameters.forExample(mappingContext, example, pageable, null);
+	}
+
+	static QueryFragmentsAndParameters forExample(Neo4jMappingContext mappingContext, Example<?> example, Pageable pageable, @Nullable java.util.function.Predicate<PropertyFilter.RelaxedPropertyPath> includeField) {
+		return QueryFragmentsAndParameters.forExample(mappingContext, example, pageable, null, includeField);
 	}
 
 	static QueryFragmentsAndParameters forCondition(Neo4jPersistentEntity<?> entityMetaData,
@@ -140,11 +154,25 @@ public final class QueryFragmentsAndParameters {
 			@Nullable Pageable pageable,
 			@Nullable Collection<SortItem> sortItems
 	) {
+		return forCondition(entityMetaData, condition, pageable, sortItems, null);
+	}
+
+	static QueryFragmentsAndParameters forCondition(Neo4jPersistentEntity<?> entityMetaData,
+			Condition condition,
+			@Nullable Pageable pageable,
+			@Nullable Collection<SortItem> sortItems,
+			@Nullable java.util.function.Predicate<PropertyFilter.RelaxedPropertyPath> includeField
+	) {
 
 		QueryFragments queryFragments = new QueryFragments();
 		queryFragments.addMatchOn(cypherGenerator.createRootNode(entityMetaData));
 		queryFragments.setCondition(condition);
-		queryFragments.setReturnExpressions(cypherGenerator.createReturnStatementForMatch(entityMetaData));
+		if (includeField == null) {
+			queryFragments.setReturnExpressions(cypherGenerator.createReturnStatementForMatch(entityMetaData));
+		} else {
+			queryFragments.setReturnExpressions(
+					cypherGenerator.createReturnStatementForMatch(entityMetaData, includeField));
+		}
 		queryFragments.setRenderConstantsAsParameters(true);
 
 		if (pageable != null) {
@@ -168,30 +196,36 @@ public final class QueryFragmentsAndParameters {
 	}
 
 	static QueryFragmentsAndParameters forExample(Neo4jMappingContext mappingContext, Example<?> example,
-												  @Nullable Pageable pageable, @Nullable Sort sort) {
+												  @Nullable Pageable pageable, @Nullable Sort sort, java.util.function.Predicate<PropertyFilter.RelaxedPropertyPath> includeField) {
 
 		Predicate predicate = Predicate.create(mappingContext, example);
 		Map<String, Object> parameters = predicate.getParameters();
 		Condition condition = predicate.getCondition();
 
 		return getQueryFragmentsAndParameters(mappingContext.getPersistentEntity(example.getProbeType()), pageable,
-				sort, parameters, condition);
+				sort, parameters, condition, includeField);
 	}
 
 	public static QueryFragmentsAndParameters forPageableAndSort(Neo4jPersistentEntity<?> neo4jPersistentEntity,
 																 @Nullable Pageable pageable, @Nullable Sort sort) {
 
-		return getQueryFragmentsAndParameters(neo4jPersistentEntity, pageable, sort, Collections.emptyMap(), null);
+		return getQueryFragmentsAndParameters(neo4jPersistentEntity, pageable, sort, Collections.emptyMap(), null, null);
 	}
 
 	private static QueryFragmentsAndParameters getQueryFragmentsAndParameters(
 			Neo4jPersistentEntity<?> entityMetaData, @Nullable Pageable pageable, @Nullable Sort sort,
-			@Nullable Map<String, Object> parameters, @Nullable Condition condition) {
+			@Nullable Map<String, Object> parameters, @Nullable Condition condition, @Nullable
+			java.util.function.Predicate<PropertyFilter.RelaxedPropertyPath> includeField) {
 
 		QueryFragments queryFragments = new QueryFragments();
 		queryFragments.addMatchOn(cypherGenerator.createRootNode(entityMetaData));
 		queryFragments.setCondition(condition);
-		queryFragments.setReturnExpressions(cypherGenerator.createReturnStatementForMatch(entityMetaData));
+		if (includeField == null) {
+			queryFragments.setReturnExpressions(cypherGenerator.createReturnStatementForMatch(entityMetaData));
+		} else {
+			queryFragments.setReturnExpressions(
+					cypherGenerator.createReturnStatementForMatch(entityMetaData, includeField));
+		}
 
 		if (pageable != null) {
 			adaptPageable(entityMetaData, pageable, queryFragments);
