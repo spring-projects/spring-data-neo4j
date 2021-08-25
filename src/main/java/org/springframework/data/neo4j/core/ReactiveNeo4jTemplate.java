@@ -99,7 +99,7 @@ import org.springframework.util.Assert;
  */
 @API(status = API.Status.STABLE, since = "6.0")
 public final class ReactiveNeo4jTemplate implements
-		ReactiveNeo4jOperations, ReactiveFluentNeo4jOperations, ReactiveFluentSaveOperation,
+		ReactiveNeo4jOperations, ReactiveFluentNeo4jOperations,
 		BeanClassLoaderAware, BeanFactoryAware {
 
 	private static final LogAccessor log = new LogAccessor(LogFactory.getLog(ReactiveNeo4jTemplate.class));
