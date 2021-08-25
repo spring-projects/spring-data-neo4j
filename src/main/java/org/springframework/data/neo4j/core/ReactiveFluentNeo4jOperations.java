@@ -26,5 +26,5 @@ import org.apiguardian.api.API;
  * @since 6.1
  */
 @API(status = API.Status.STABLE, since = "6.1")
-public interface ReactiveFluentNeo4jOperations extends ReactiveFluentFindOperation {
+public interface ReactiveFluentNeo4jOperations extends ReactiveFluentFindOperation, ReactiveFluentSaveOperation {
 }

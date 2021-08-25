@@ -26,5 +26,5 @@ import org.apiguardian.api.API;
  * @since 6.1
  */
 @API(status = API.Status.STABLE, since = "6.1")
-public interface FluentNeo4jOperations extends FluentFindOperation {
+public interface FluentNeo4jOperations extends FluentFindOperation, FluentSaveOperation {
 }

@@ -98,7 +98,7 @@ import org.springframework.util.Assert;
  */
 @API(status = API.Status.STABLE, since = "6.0")
 public final class Neo4jTemplate implements
-		Neo4jOperations, FluentNeo4jOperations, FluentSaveOperation,
+		Neo4jOperations, FluentNeo4jOperations,
 		BeanClassLoaderAware, BeanFactoryAware {
 
 	private static final LogAccessor log = new LogAccessor(LogFactory.getLog(Neo4jTemplate.class));
