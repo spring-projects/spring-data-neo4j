@@ -116,6 +116,7 @@ import org.springframework.data.neo4j.integration.shared.common.Friend;
 import org.springframework.data.neo4j.integration.shared.common.FriendshipRelationship;
 import org.springframework.data.neo4j.integration.shared.common.Hobby;
 import org.springframework.data.neo4j.integration.shared.common.ImmutablePerson;
+import org.springframework.data.neo4j.integration.shared.common.ImmutablePet;
 import org.springframework.data.neo4j.integration.shared.common.Inheritance;
 import org.springframework.data.neo4j.integration.shared.common.KotlinPerson;
 import org.springframework.data.neo4j.integration.shared.common.LikesHobbyRelationship;
@@ -707,6 +708,27 @@ class RepositoryIT {
 
 			Pet pet2 = loadedPet.getFriends().get(loadedPet.getFriends().indexOf(comparisonPet2));
 			assertThat(pet2.getFriends()).containsExactly(comparisonPet3);
+		}
+
+		@Test // GH-2345
+		void customFindHydratesIncompleteCustomQueryObjectsCorrect(@Autowired PetRepository repository) {
+			doWithSession(session ->
+				session.run("CREATE (:Pet{name: 'Luna'})-[:Has]->(:Pet{name:'Luna'})-[:Has]->(:Pet{name:'Daphne'})").consume()
+			);
+
+			List<Pet> pets = repository.findLunas();
+			assertThat(pets).hasSize(2);
+
+			assertThat(pets).allMatch(pet -> !pet.getFriends().isEmpty());
+		}
+
+		@Test // GH-2345
+		void customFindFailsOnHydrationOfCustomQueryObjectsIfImmutable(@Autowired ImmutablePetRepository repository) {
+			doWithSession(session ->
+				session.run("CREATE (:ImmutablePet{name: 'Luna'})-[:Has]->(:ImmutablePet{name:'Luna'})-[:Has]->(:ImmutablePet{name:'Daphne'})").consume()
+			);
+
+			assertThatExceptionOfType(MappingException.class).isThrownBy(repository::findLunas);
 		}
 
 		@Test // DATAGRAPH-1409
@@ -4128,6 +4150,16 @@ class RepositoryIT {
 		long countByFriendsNameAndFriendsFriendsName(String friendName, String friendFriendName);
 
 		boolean existsByName(String name);
+
+		@Query("MATCH (n:Pet) where n.name='Luna' OPTIONAL MATCH (n)-[r:Has]->(m:Pet) return n, collect(r), collect(m)")
+		List<Pet> findLunas();
+	}
+
+	interface ImmutablePetRepository extends Neo4jRepository<ImmutablePet, Long> {
+
+		@Query("MATCH (n:ImmutablePet) where n.name='Luna' OPTIONAL MATCH (n)-[r:Has]->(m:ImmutablePet) return n, collect(r), collect(m)")
+		List<ImmutablePet> findLunas();
+
 	}
 
 	interface OneToOneRepository extends Neo4jRepository<OneToOneSource, String> {
