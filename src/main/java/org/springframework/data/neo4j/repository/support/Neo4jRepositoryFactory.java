@@ -17,7 +17,6 @@ package org.springframework.data.neo4j.repository.support;
 
 import java.util.Optional;
 
-import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.neo4j.core.Neo4jOperations;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
@@ -101,11 +100,6 @@ final class Neo4jRepositoryFactory extends RepositoryFactorySupport {
 	}
 
 	private RepositoryFragment<Object> createDSLExecutorFragment(RepositoryMetadata metadata, Class<?> implementor) {
-
-		if (metadata.isReactiveRepository()) {
-			throw new InvalidDataAccessApiUsageException(
-					"Cannot combine DSL executor and reactive repository support in a single interface");
-		}
 
 		Neo4jEntityInformation<?, Object> entityInformation = getEntityInformation(metadata.getDomainType());
 		Object querydslFragment = instantiateClass(implementor, entityInformation, neo4jOperations);
