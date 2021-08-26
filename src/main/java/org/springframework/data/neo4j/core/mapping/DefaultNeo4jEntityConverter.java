@@ -79,7 +79,6 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 	private final Type relationshipType;
 	private final Type mapType;
 	private final Type listType;
-	private boolean newRow = true;
 
 	DefaultNeo4jEntityConverter(EntityInstantiators entityInstantiators, Neo4jConversionService conversionService,
 			NodeDescriptionStore nodeDescriptionStore, TypeSystem typeSystem) {
@@ -102,7 +101,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 	@Override
 	public <R> R read(Class<R> targetType, MapAccessor mapAccessor) {
 
-		knownObjects.newRecord();
+		knownObjects.nextRecord();
 		@SuppressWarnings("unchecked") // ¯\_(ツ)_/¯
 		Neo4jPersistentEntity<R> rootNodeDescription = (Neo4jPersistentEntity<R>) nodeDescriptionStore.getNodeDescription(targetType);
 		MapAccessor queryRoot = determineQueryRoot(mapAccessor, rootNodeDescription);
@@ -276,30 +275,14 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 			Neo4jPersistentEntity<ET> concreteNodeDescription = (Neo4jPersistentEntity<ET>) nodeDescriptionAndLabels
 					.getNodeDescription();
 
-			boolean isKotlinType = KotlinDetector.isKotlinType(concreteNodeDescription.getType());
 			ET instance = instantiate(concreteNodeDescription, queryResult,
 					nodeDescriptionAndLabels.getDynamicLabels(), lastMappedEntity, relationshipsFromResult, nodesFromResult);
 
 			knownObjects.removeFromInCreation(internalId);
+
+			populateProperties(queryResult, nodeDescription, internalId, instance, lastMappedEntity, relationshipsFromResult, nodesFromResult);
+
 			PersistentPropertyAccessor<ET> propertyAccessor = concreteNodeDescription.getPropertyAccessor(instance);
-
-			if (concreteNodeDescription.requiresPropertyPopulation()) {
-
-				// Fill simple properties
-				Predicate<Neo4jPersistentProperty> isConstructorParameter = concreteNodeDescription
-						.getPersistenceConstructor()::isConstructorParameter;
-				PropertyHandler<Neo4jPersistentProperty> handler = populateFrom(queryResult, propertyAccessor,
-						isConstructorParameter, nodeDescriptionAndLabels.getDynamicLabels(), lastMappedEntity, isKotlinType);
-				concreteNodeDescription.doWithProperties(handler);
-
-				// in a cyclic graph / with bidirectional relationships, we could end up in a state in which we
-				// reference the start again. Because it is getting still constructed, it won't be in the knownObjects
-				// store unless we temporarily put it there.
-				knownObjects.storeObject(internalId, instance);
-				// Fill associations
-				concreteNodeDescription.doWithAssociations(
-						populateFrom(queryResult, propertyAccessor, isConstructorParameter, relationshipsFromResult, nodesFromResult));
-			}
 			ET bean = propertyAccessor.getBean();
 
 			// save final state of the bean
@@ -312,34 +295,52 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 		if (mappedObject == null) {
 			mappedObject = mappedObjectSupplier.get();
 			knownObjects.storeObject(internalId, mappedObject);
-		} else if (knownObjects.internalNewRecord.get(internalId)) {
-			List<String> allLabels = getLabels(queryResult, nodeDescription);
-			NodeDescriptionAndLabels nodeDescriptionAndLabels = nodeDescriptionStore
-					.deriveConcreteNodeDescription(nodeDescription, allLabels);
-			@SuppressWarnings("unchecked")
-			Neo4jPersistentEntity<ET> concreteNodeDescription = (Neo4jPersistentEntity<ET>) nodeDescriptionAndLabels
-					.getNodeDescription();
-			if (concreteNodeDescription.requiresPropertyPopulation()) {
-				PersistentPropertyAccessor<ET> propertyAccessor = concreteNodeDescription.getPropertyAccessor(mappedObject);
-				boolean isKotlinType = KotlinDetector.isKotlinType(concreteNodeDescription.getType());
-
-				// Fill simple properties
-				Predicate<Neo4jPersistentProperty> isConstructorParameter = concreteNodeDescription
-						.getPersistenceConstructor()::isConstructorParameter;
-				PropertyHandler<Neo4jPersistentProperty> handler = populateFrom(queryResult, propertyAccessor,
-						isConstructorParameter, nodeDescriptionAndLabels.getDynamicLabels(), lastMappedEntity, isKotlinType);
-				concreteNodeDescription.doWithProperties(handler);
-
-				// in a cyclic graph / with bidirectional relationships, we could end up in a state in which we
-				// reference the start again. Because it is getting still constructed, it won't be in the knownObjects
-				// store unless we temporarily put it there.
-				knownObjects.storeObject(internalId, mappedObject);
-				// Fill associations
-				concreteNodeDescription.doWithAssociations(
-						populateFrom(queryResult, propertyAccessor, isConstructorParameter, relationshipsFromResult, nodesFromResult));
-			}
+		} else if (knownObjects.isNextRecord(internalId)) {
+			// If the object were created in a run before, it _could_ have missing fields
+			// (e.g. due to incomplete fetching by a custom query)
+			// in such cases we will add the additional data from the next record.
+			// This can and should only work for
+			// 1. mutable owning types
+			// AND (!!!)
+			// 2. mutable target types
+			// because we cannot just create new instances
+			populateProperties(queryResult, nodeDescription, internalId, mappedObject, lastMappedEntity, relationshipsFromResult, nodesFromResult);
 		}
 		return mappedObject;
+	}
+
+
+	private <ET> void populateProperties(MapAccessor queryResult, Neo4jPersistentEntity<ET> nodeDescription, Long internalId,
+										 ET mappedObject, @Nullable Object lastMappedEntity,
+										 Collection<Relationship> relationshipsFromResult, Collection<Node> nodesFromResult) {
+
+		List<String> allLabels = getLabels(queryResult, nodeDescription);
+		NodeDescriptionAndLabels nodeDescriptionAndLabels = nodeDescriptionStore
+				.deriveConcreteNodeDescription(nodeDescription, allLabels);
+
+		@SuppressWarnings("unchecked")
+		Neo4jPersistentEntity<ET> concreteNodeDescription = (Neo4jPersistentEntity<ET>) nodeDescriptionAndLabels
+				.getNodeDescription();
+
+		if (concreteNodeDescription.requiresPropertyPopulation()) {
+			PersistentPropertyAccessor<ET> propertyAccessor = concreteNodeDescription.getPropertyAccessor(mappedObject);
+			boolean isKotlinType = KotlinDetector.isKotlinType(concreteNodeDescription.getType());
+
+			// Fill simple properties
+			Predicate<Neo4jPersistentProperty> isConstructorParameter = concreteNodeDescription
+					.getPersistenceConstructor()::isConstructorParameter;
+			PropertyHandler<Neo4jPersistentProperty> handler = populateFrom(queryResult, propertyAccessor,
+					isConstructorParameter, nodeDescriptionAndLabels.getDynamicLabels(), lastMappedEntity, isKotlinType);
+			concreteNodeDescription.doWithProperties(handler);
+
+			// in a cyclic graph / with bidirectional relationships, we could end up in a state in which we
+			// reference the start again. Because it is getting still constructed, it won't be in the knownObjects
+			// store unless we temporarily put it there.
+			knownObjects.storeObject(internalId, mappedObject);
+			// Fill associations
+			concreteNodeDescription.doWithAssociations(
+					populateFrom(queryResult, propertyAccessor, isConstructorParameter, relationshipsFromResult, nodesFromResult));
+		}
 	}
 
 	@Nullable
@@ -434,7 +435,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 
 	private PropertyHandler<Neo4jPersistentProperty> populateFrom(MapAccessor queryResult,
 			PersistentPropertyAccessor<?> propertyAccessor, Predicate<Neo4jPersistentProperty> isConstructorParameter,
-			Collection<String> surplusLabels, Object targetNode, boolean ownerIsKotlinType) {
+			Collection<String> surplusLabels, @Nullable Object targetNode, boolean ownerIsKotlinType) {
 		return property -> {
 			if (isConstructorParameter.test(property)) {
 				return;
@@ -456,6 +457,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 		};
 	}
 
+	@Nullable
 	private static Object getValueOrDefault(boolean ownerIsKotlinType, Class<?> rawType, @Nullable Object value) {
 
 		return value == null && !ownerIsKotlinType && rawType.isPrimitive() ? ReflectionUtils.getPrimitiveDefault(rawType) : value;
@@ -690,7 +692,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 		private final Lock write = lock.writeLock();
 
 		private final Map<Long, Object> internalIdStore = new HashMap<>();
-		private final Map<Long, Boolean> internalNewRecord = new HashMap<>();
+		private final Map<Long, Boolean> internalNextRecord = new HashMap<>();
 		private final Set<Long> idsInCreation = new HashSet<>();
 
 		private void storeObject(@Nullable Long internalId, Object object) {
@@ -701,7 +703,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 				write.lock();
 				idsInCreation.remove(internalId);
 				internalIdStore.put(internalId, object);
-				internalNewRecord.put(internalId, false);
+				internalNextRecord.put(internalId, false);
 			} finally {
 				write.unlock();
 			}
@@ -764,8 +766,28 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 			}
 		}
 
-		private void newRecord() {
-			internalNewRecord.replaceAll((aLong, aBoolean) -> true);
+		private boolean isNextRecord(@Nullable Long internalId) {
+			if (internalId == null) {
+				return false;
+			}
+			try {
+
+				read.lock();
+
+				Boolean nextRecord = internalNextRecord.get(internalId);
+
+				if (nextRecord != null) {
+					return nextRecord;
+				}
+
+			} finally {
+				read.unlock();
+			}
+			return false;
+		}
+
+		private void nextRecord() {
+			internalNextRecord.replaceAll((x, y) -> true);
 		}
 	}
 }
