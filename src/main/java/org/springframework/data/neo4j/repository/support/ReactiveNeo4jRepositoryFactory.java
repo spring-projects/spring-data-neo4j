@@ -25,7 +25,10 @@ import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.repository.ReactiveNeo4jRepository;
 import org.springframework.data.neo4j.repository.query.ReactiveNeo4jQueryLookupStrategy;
+import org.springframework.data.neo4j.repository.query.ReactiveQuerydslNeo4jPredicateExecutor;
 import org.springframework.data.neo4j.repository.query.SimpleReactiveQueryByExampleExecutor;
+import org.springframework.data.querydsl.QuerydslUtils;
+import org.springframework.data.querydsl.ReactiveQuerydslPredicateExecutor;
 import org.springframework.data.repository.core.RepositoryInformation;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.core.support.ReactiveRepositoryFactorySupport;
@@ -80,7 +83,23 @@ final class ReactiveNeo4jRepositoryFactory extends ReactiveRepositoryFactorySupp
 
 		fragments = fragments.append(RepositoryFragment.implemented(byExampleExecutor));
 
+		boolean isQueryDslRepository = QuerydslUtils.QUERY_DSL_PRESENT
+									   && ReactiveQuerydslPredicateExecutor.class.isAssignableFrom(metadata.getRepositoryInterface());
+
+		if (isQueryDslRepository) {
+
+			fragments = fragments.append(createDSLExecutorFragment(metadata, ReactiveQuerydslNeo4jPredicateExecutor.class));
+		}
+
 		return fragments;
+	}
+
+	private RepositoryFragment<Object> createDSLExecutorFragment(RepositoryMetadata metadata, Class<?> implementor) {
+
+		Neo4jEntityInformation<?, Object> entityInformation = getEntityInformation(metadata.getDomainType());
+		Object querydslFragment = instantiateClass(implementor, entityInformation, neo4jOperations);
+
+		return RepositoryFragment.implemented(querydslFragment);
 	}
 
 	@Override
