@@ -709,6 +709,18 @@ class RepositoryIT {
 			assertThat(pet2.getFriends()).containsExactly(comparisonPet3);
 		}
 
+		@Test // GH-2345
+		void customFindHydratesObjectsCorrect(@Autowired PetRepository repository) {
+			doWithSession(session ->
+				session.run("CREATE (:Pet{name: 'Luna'})-[:Has]->(:Pet{name:'Luna'})-[:Has]->(:Pet{name:'Daphne'})").consume()
+			);
+
+			List<Pet> pets = repository.findLunas();
+			assertThat(pets).hasSize(2);
+
+			assertThat(pets).allMatch(pet -> !pet.getFriends().isEmpty());
+		}
+
 		@Test // DATAGRAPH-1409
 		void findPageWithCustomQuery(@Autowired PetRepository repository) {
 
@@ -4128,6 +4140,9 @@ class RepositoryIT {
 		long countByFriendsNameAndFriendsFriendsName(String friendName, String friendFriendName);
 
 		boolean existsByName(String name);
+
+		@Query("MATCH (n:Pet) where n.name='Luna' OPTIONAL MATCH (n)-[r:Has]->(m:Pet) return n, collect(r), collect(m)")
+		List<Pet> findLunas();
 	}
 
 	interface OneToOneRepository extends Neo4jRepository<OneToOneSource, String> {
