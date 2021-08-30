@@ -67,6 +67,18 @@ public class ThingWithCustomTypes {
 		this.dateAsLong = dateAsLong;
 	}
 
+	public Long getId() {
+		return id;
+	}
+
+	public Date getDateAsLong() {
+		return dateAsLong;
+	}
+
+	public Date getDateAsString() {
+		return dateAsString;
+	}
+
 	/**
 	 * Custom type to convert
 	 */
