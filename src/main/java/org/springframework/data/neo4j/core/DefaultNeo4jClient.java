@@ -79,7 +79,8 @@ class DefaultNeo4jClient implements Neo4jClient {
 		new Neo4jConversions().registerConvertersIn((ConverterRegistry) conversionService);
 	}
 
-	QueryRunner getQueryRunner(DatabaseSelection databaseSelection) {
+	@Override
+	public QueryRunner getQueryRunner(DatabaseSelection databaseSelection) {
 
 		String targetDatabase = databaseSelection.getValue();
 		QueryRunner queryRunner = Neo4jTransactionManager.retrieveTransaction(driver, targetDatabase);

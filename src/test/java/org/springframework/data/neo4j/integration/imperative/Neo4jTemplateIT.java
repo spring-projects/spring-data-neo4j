@@ -91,7 +91,7 @@ class Neo4jTemplateIT {
 
 		try (
 				Session session = driver.session(bookmarkCapture.createSessionConfig());
-				Transaction transaction = session.beginTransaction();
+				Transaction transaction = session.beginTransaction()
 		) {
 			transaction.run("MATCH (n) detach delete n");
 

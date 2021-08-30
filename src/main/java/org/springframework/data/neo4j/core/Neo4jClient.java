@@ -42,8 +42,6 @@ import org.springframework.lang.Nullable;
 @API(status = API.Status.STABLE, since = "6.0")
 public interface Neo4jClient {
 
-	// TODO Create examples how to use the callbacks etc. with Springs TransactionTemplate to deal with rollbacks etc.
-
 	LogAccessor cypherLog = new LogAccessor(LogFactory.getLog("org.springframework.data.neo4j.cypher"));
 
 	static Neo4jClient create(Driver driver) {
@@ -55,6 +53,27 @@ public interface Neo4jClient {
 
 		return new DefaultNeo4jClient(driver, databaseSelectionProvider);
 	}
+
+	/**
+	 * @return A managed query runner
+	 * @see #getQueryRunner(DatabaseSelection)
+	 * @since 6.2
+	 */
+	default QueryRunner getQueryRunner() {
+		return getQueryRunner(DatabaseSelection.undecided());
+	}
+
+	/**
+	 * Retrieves a query runner that will participate in ongoing Spring transactions (either in declarative
+	 * (implicit via {@code @Transactional}) or in programmatically (explicit via transaction template) ones).
+	 * This runner can be used with the Cypher-DSL for example.
+	 * If the client cannot retrieve an ongoing Spring transaction, this runner will use auto-commit semantics.
+	 *
+	 * @param databaseSelection The target database.
+	 * @return A managed query runner
+	 * @since 6.2
+	 */
+	QueryRunner getQueryRunner(DatabaseSelection databaseSelection);
 
 	/**
 	 * Entrypoint for creating a new Cypher query. Doesn't matter at this point whether it's a match, merge, create or

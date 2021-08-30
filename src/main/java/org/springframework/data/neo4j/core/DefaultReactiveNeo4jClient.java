@@ -79,7 +79,8 @@ class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 		new Neo4jConversions().registerConvertersIn((ConverterRegistry) conversionService);
 	}
 
-	Mono<RxQueryRunner> retrieveRxStatementRunnerHolder(Mono<DatabaseSelection> databaseSelection) {
+	@Override
+	public Mono<RxQueryRunner> getQueryRunner(Mono<DatabaseSelection> databaseSelection) {
 
 		return databaseSelection.flatMap(targetDatabase ->
 				ReactiveNeo4jTransactionManager.retrieveReactiveTransaction(driver, targetDatabase.getValue())
@@ -160,14 +161,14 @@ class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 
 	<T> Mono<T> doInQueryRunnerForMono(Mono<DatabaseSelection> databaseSelection, Function<RxQueryRunner, Mono<T>> func) {
 
-		return Mono.usingWhen(retrieveRxStatementRunnerHolder(databaseSelection),
+		return Mono.usingWhen(getQueryRunner(databaseSelection),
 				func::apply,
 				runner -> ((DelegatingQueryRunner) runner).close());
 	}
 
 	<T> Flux<T> doInStatementRunnerForFlux(Mono<DatabaseSelection> databaseSelection, Function<RxQueryRunner, Flux<T>> func) {
 
-		return Flux.usingWhen(retrieveRxStatementRunnerHolder(databaseSelection),
+		return Flux.usingWhen(getQueryRunner(databaseSelection),
 				func::apply,
 				runner -> ((DelegatingQueryRunner) runner).close());
 	}

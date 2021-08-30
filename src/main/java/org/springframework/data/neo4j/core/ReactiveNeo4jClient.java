@@ -58,6 +58,27 @@ public interface ReactiveNeo4jClient {
 	}
 
 	/**
+	 * @return A managed query runner
+	 * @see #getQueryRunner(Mono)
+	 * @since 6.2
+	 */
+	default Mono<RxQueryRunner> getQueryRunner() {
+		return getQueryRunner(Mono.just(DatabaseSelection.undecided()));
+	}
+
+	/**
+	 * Retrieves a query runner that will participate in ongoing Spring transactions (either in declarative
+	 * (implicit via {@code @Transactional}) or in programmatically (explicit via transaction template) ones).
+	 * This runner can be used with the Cypher-DSL for example.
+	 * If the client cannot retrieve an ongoing Spring transaction, this runner will use auto-commit semantics.
+	 *
+	 * @param databaseSelection The target database.
+	 * @return A managed query runner
+	 * @since 6.2
+	 */
+	Mono<RxQueryRunner> getQueryRunner(Mono<DatabaseSelection> databaseSelection);
+
+	/**
 	 * Entrypoint for creating a new Cypher query. Doesn't matter at this point whether it's a match, merge, create or
 	 * removal of things.
 	 *
