@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -42,6 +43,7 @@ import org.springframework.data.neo4j.config.AbstractNeo4jConfig;
 import org.springframework.data.neo4j.core.DatabaseSelectionProvider;
 import org.springframework.data.neo4j.core.Neo4jOperations;
 import org.springframework.data.neo4j.core.convert.Neo4jConversions;
+import org.springframework.data.neo4j.core.support.DateLong;
 import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
 import org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager;
 import org.springframework.data.neo4j.integration.shared.conversion.PersonWithCustomId;
@@ -90,7 +92,8 @@ public class CustomTypesIT {
 		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
 			session.writeTransaction(transaction -> {
 				transaction.run("MATCH (n) detach delete n").consume();
-				transaction.run("CREATE (:CustomTypes{customType:'XYZ'})").consume();
+				transaction.run("CREATE (:CustomTypes{customType:'XYZ', dateAsLong: 1630311077418})").consume();
+				transaction.run("CREATE (:CustomTypes{customType:'ABC'})").consume();
 				return null;
 			});
 			bookmarkCapture.seedWith(session.lastBookmark());
@@ -124,7 +127,7 @@ public class CustomTypesIT {
 				.limit(2)
 				.collect(Collectors.toList());
 		try (
-				Session session = driver.session(bookmarkCapture.createSessionConfig());
+				Session session = driver.session(bookmarkCapture.createSessionConfig())
 		) {
 			ids.forEach(id -> session.writeTransaction(createPersonWithCustomId(id)));
 			bookmarkCapture.seedWith(session.lastBookmark());
@@ -143,13 +146,40 @@ public class CustomTypesIT {
 	@Test
 	void findByConvertedCustomType(@Autowired EntityWithCustomTypePropertyRepository repository) {
 
-		assertThat(repository.findByCustomType(ThingWithCustomTypes.CustomType.of("XYZ"))).isNotNull();
+		ThingWithCustomTypes xyz = repository.findByCustomType(ThingWithCustomTypes.CustomType.of("XYZ"));
+		assertThat(xyz).isNotNull();
+		assertThat(xyz.getDateAsLong()).isNotNull();
 	}
 
 	@Test
 	void findByConvertedCustomTypeWithCustomQuery(@Autowired EntityWithCustomTypePropertyRepository repository) {
 
 		assertThat(repository.findByCustomTypeCustomQuery(ThingWithCustomTypes.CustomType.of("XYZ"))).isNotNull();
+	}
+
+	@Test // GH-2365
+	void customConverterShouldBeApplied(@Autowired EntityWithCustomTypePropertyRepository repository) {
+
+		ThingWithCustomTypes xyz = repository.defaultAttributeWithCoalesce(ThingWithCustomTypes.CustomType.of("XYZ"));
+		assertThat(xyz).isNotNull();
+		assertThat(xyz.getDateAsLong()).isInSameDayAs("2021-08-30");
+	}
+
+	@Test // GH-2365
+	void customConverterShouldBeAppliedWithCoalesce(@Autowired EntityWithCustomTypePropertyRepository repository) {
+
+		ThingWithCustomTypes abc = repository.defaultAttributeWithCoalesce(ThingWithCustomTypes.CustomType.of("ABC"));
+		assertThat(abc).isNotNull();
+		assertThat(abc.getDateAsLong()).isInSameDayAs("2021-09-21");
+	}
+
+	@Test // GH-2365
+	void converterAndProjection(@Autowired EntityWithCustomTypePropertyRepository repository) {
+
+		ThingWithCustomTypesProjection projection = repository.converterOnProjection(ThingWithCustomTypes.CustomType.of("XYZ"));
+		assertThat(projection).isNotNull();
+		assertThat(projection.dateAsLong).isInSameDayAs("2021-08-30");
+		assertThat(projection.modified).isInSameDayAs("2021-09-21");
 	}
 
 	@Test
@@ -172,12 +202,26 @@ public class CustomTypesIT {
 		assertThat(repository.findByDifferentTypeCustomQuery(ThingWithCustomTypes.DifferentType.of("XYZ"))).isNotNull();
 	}
 
+	static class ThingWithCustomTypesProjection {
+
+		Date dateAsLong;
+
+		@DateLong
+		Date modified;
+	}
+
 	interface EntityWithCustomTypePropertyRepository extends Neo4jRepository<ThingWithCustomTypes, Long> {
 
 		ThingWithCustomTypes findByCustomType(ThingWithCustomTypes.CustomType customType);
 
 		@Query("MATCH (c:CustomTypes) WHERE c.customType = $customType return c")
 		ThingWithCustomTypes findByCustomTypeCustomQuery(@Param("customType") ThingWithCustomTypes.CustomType customType);
+
+		@Query("MATCH (c:CustomTypes) WHERE c.customType = $customType return c, 1632200400000 as modified")
+		ThingWithCustomTypesProjection converterOnProjection(@Param("customType") ThingWithCustomTypes.CustomType customType);
+
+		@Query("MATCH (thingWithCustomTypes:`CustomTypes`) WHERE thingWithCustomTypes.customType = $0 RETURN thingWithCustomTypes{.customType, dateAsLong: COALESCE(thingWithCustomTypes.dateAsLong, 1632200400000), .dateAsString, .id, __nodeLabels__: labels(thingWithCustomTypes), __internalNeo4jId__: id(thingWithCustomTypes)}")
+		ThingWithCustomTypes defaultAttributeWithCoalesce(@Param("customType") ThingWithCustomTypes.CustomType customType);
 
 		@Query("MATCH (c:CustomTypes) WHERE c.customType = $differentType return c")
 		ThingWithCustomTypes findByDifferentTypeCustomQuery(

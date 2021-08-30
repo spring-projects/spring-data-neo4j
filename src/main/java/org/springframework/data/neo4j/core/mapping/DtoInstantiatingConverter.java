@@ -33,7 +33,6 @@ import org.springframework.data.mapping.PersistentProperty;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
 import org.springframework.data.mapping.PreferredConstructor;
 import org.springframework.data.mapping.PreferredConstructor.Parameter;
-import org.springframework.data.mapping.PropertyHandler;
 import org.springframework.data.mapping.SimplePropertyHandler;
 import org.springframework.data.mapping.model.ParameterValueProvider;
 import org.springframework.data.util.ClassTypeInformation;
@@ -129,10 +128,10 @@ public final class DtoInstantiatingConverter implements Converter<EntityInstance
 			return entityInstance;
 		}
 
-		PersistentEntity<?, ?> sourceEntity = context.getRequiredPersistentEntity(entityInstance.getClass());
+		Neo4jPersistentEntity<?> sourceEntity = context.getRequiredPersistentEntity(entityInstance.getClass());
 		PersistentPropertyAccessor<Object> sourceAccessor = sourceEntity.getPropertyAccessor(entityInstance);
 
-		PersistentEntity<?, ?> targetEntity = context.addPersistentEntity(ClassTypeInformation.from(targetType)).get();
+		Neo4jPersistentEntity<?> targetEntity = context.addPersistentEntity(ClassTypeInformation.from(targetType)).get();
 		PreferredConstructor<?, ? extends PersistentProperty<?>> constructor = targetEntity
 				.getPersistenceConstructor();
 
@@ -141,7 +140,7 @@ public final class DtoInstantiatingConverter implements Converter<EntityInstance
 				.createInstance(targetEntity, new ParameterValueProvider() {
 					@Override
 					public Object getParameterValue(Parameter parameter) {
-						PersistentProperty<?> targetProperty = targetEntity.getPersistentProperty(parameter.getName());
+						Neo4jPersistentProperty targetProperty = targetEntity.getPersistentProperty(parameter.getName());
 						if (targetProperty == null) {
 							throw new MappingException("Cannot map constructor parameter " + parameter.getName()
 									+ " to a property of class " + targetType);
@@ -152,7 +151,7 @@ public final class DtoInstantiatingConverter implements Converter<EntityInstance
 				});
 
 		PersistentPropertyAccessor<Object> dtoAccessor = targetEntity.getPropertyAccessor(dto);
-		targetEntity.doWithAll((PropertyHandler) property ->
+		targetEntity.doWithAll(property ->
 				setPropertyOnDtoObject(entityInstanceAndSource, sourceEntity, sourceAccessor, constructor, dtoAccessor, property));
 
 		return dto;
@@ -160,7 +159,7 @@ public final class DtoInstantiatingConverter implements Converter<EntityInstance
 
 	private void setPropertyOnDtoObject(EntityInstanceWithSource entityInstanceAndSource, PersistentEntity<?, ?> sourceEntity,
 			PersistentPropertyAccessor<Object> sourceAccessor, PreferredConstructor<?, ?> constructor,
-			PersistentPropertyAccessor<Object> dtoAccessor, PersistentProperty<?> property) {
+			PersistentPropertyAccessor<Object> dtoAccessor, Neo4jPersistentProperty property) {
 
 		if (constructor.isConstructorParameter(property)) {
 			return;
@@ -171,7 +170,7 @@ public final class DtoInstantiatingConverter implements Converter<EntityInstance
 	}
 
 	@Nullable
-	Object getPropertyValueFor(PersistentProperty<?> targetProperty, PersistentEntity<?, ?> sourceEntity,
+	Object getPropertyValueFor(Neo4jPersistentProperty targetProperty, PersistentEntity<?, ?> sourceEntity,
 			PersistentPropertyAccessor sourceAccessor, EntityInstanceWithSource entityInstanceAndSource) {
 
 		TypeSystem typeSystem = entityInstanceAndSource.getTypeSystem();
@@ -212,7 +211,7 @@ public final class DtoInstantiatingConverter implements Converter<EntityInstance
 					singleValue = p -> context.getEntityConverter().read(actualType, p);
 				} else {
 					ClassTypeInformation<?> actualTargetType = ClassTypeInformation.from(actualType);
-					singleValue = p -> context.getConversionService().readValue(p, actualTargetType, null);
+					singleValue = p -> context.getConversionService().readValue(p, actualTargetType, targetProperty.getOptionalReadingConverter());
 				}
 
 				if (targetProperty.isCollectionLike()) {
