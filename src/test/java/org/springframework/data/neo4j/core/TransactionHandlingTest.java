@@ -39,6 +39,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.neo4j.driver.Driver;
+import org.neo4j.driver.QueryRunner;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.SessionConfig;
 import org.neo4j.driver.Transaction;
@@ -92,8 +93,10 @@ class TransactionHandlingTest {
 
 				// Make template acquire session
 				DefaultNeo4jClient neo4jClient = new DefaultNeo4jClient(driver, null);
-				try (DefaultNeo4jClient.AutoCloseableQueryRunner s = neo4jClient.getQueryRunner("aDatabase")) {
+				try (QueryRunner s = neo4jClient.getQueryRunner("aDatabase")) {
 					s.run("MATCH (n) RETURN n");
+				} catch (Exception e) {
+					throw new RuntimeException(e);
 				}
 
 				verify(driver).session(configArgumentCaptor.capture());
@@ -126,8 +129,10 @@ class TransactionHandlingTest {
 
 				DefaultNeo4jClient neo4jClient = new DefaultNeo4jClient(driver, null);
 				txTemplate.execute(tx -> {
-					try (DefaultNeo4jClient.AutoCloseableQueryRunner s = neo4jClient.getQueryRunner(null)) {
+					try (QueryRunner s = neo4jClient.getQueryRunner(null)) {
 						s.run("MATCH (n) RETURN n");
+					} catch (Exception e) {
+						throw new RuntimeException(e);
 					}
 					return null;
 				});
