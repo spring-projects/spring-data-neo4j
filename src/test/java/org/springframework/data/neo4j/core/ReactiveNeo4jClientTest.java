@@ -22,15 +22,16 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.hamcrest.MockitoHamcrest;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.neo4j.driver.Bookmark;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.SessionConfig;
 import org.neo4j.driver.Values;
 import org.neo4j.driver.reactive.RxResult;
 import org.neo4j.driver.reactive.RxSession;
-import org.neo4j.driver.reactive.RxTransaction;
 import org.neo4j.driver.summary.ResultSummary;
 import org.neo4j.driver.types.TypeSystem;
 import reactor.core.publisher.Flux;
@@ -69,8 +70,6 @@ class ReactiveNeo4jClientTest {
 
 	@Mock private RxResult result;
 
-	@Mock private RxTransaction transaction;
-
 	@Mock private ResultSummary resultSummary;
 
 	@Mock private Record record1;
@@ -82,14 +81,14 @@ class ReactiveNeo4jClientTest {
 		when(driver.defaultTypeSystem()).thenReturn(typeSystem);
 
 		when(driver.rxSession(any(SessionConfig.class))).thenReturn(session);
-		when(session.beginTransaction()).thenReturn(Mono.just(transaction));
 
+		when(session.lastBookmark()).thenReturn(Mockito.mock(Bookmark.class));
 		when(session.close()).thenReturn(Mono.empty());
 	}
 
 	@AfterEach
 	void verifyNoMoreInteractionsWithMocks() {
-		verifyNoMoreInteractions(driver, session, transaction, result, resultSummary, record1, record2);
+		verifyNoMoreInteractions(driver, session, result, resultSummary, record1, record2);
 	}
 
 	@Test
@@ -98,8 +97,7 @@ class ReactiveNeo4jClientTest {
 
 		prepareMocks();
 
-		when(transaction.run(anyString(), anyMap())).thenReturn(result);
-		when(transaction.commit()).thenReturn(Mono.empty());
+		when(session.run(anyString(), anyMap())).thenReturn(result);
 		when(result.records()).thenReturn(Flux.just(record1, record2));
 		when(result.consume()).thenReturn(Mono.just(resultSummary));
 
@@ -123,15 +121,13 @@ class ReactiveNeo4jClientTest {
 		expectedParameters.putAll(parameters);
 		expectedParameters.put("name", "michael");
 		expectedParameters.put("aDate", LocalDate.of(2019, 1, 1));
-		verify(transaction).run(eq(cypher), MockitoHamcrest.argThat(new Neo4jClientTest.MapAssertionMatcher(expectedParameters)));
+		verify(session).run(eq(cypher), MockitoHamcrest.argThat(new Neo4jClientTest.MapAssertionMatcher(expectedParameters)));
 
 		verify(result).records();
 		verify(result).consume();
 		verify(resultSummary).notifications();
 		verify(record1).asMap();
 		verify(record2).asMap();
-		verify(transaction).commit();
-		verify(transaction).rollback();
 		verify(session).close();
 	}
 
@@ -140,8 +136,7 @@ class ReactiveNeo4jClientTest {
 
 		prepareMocks();
 
-		when(transaction.run(anyString(), anyMap())).thenReturn(result);
-		when(transaction.commit()).thenReturn(Mono.empty());
+		when(session.run(anyString(), anyMap())).thenReturn(result);
 		when(result.records()).thenReturn(Flux.just(record1, record2));
 		when(result.consume()).thenReturn(Mono.just(resultSummary));
 
@@ -158,13 +153,11 @@ class ReactiveNeo4jClientTest {
 		Map<String, Object> expectedParameters = new HashMap<>();
 		expectedParameters.put("name", "Someone.*");
 
-		verify(transaction).run(eq(cypher), MockitoHamcrest.argThat(new Neo4jClientTest.MapAssertionMatcher(expectedParameters)));
+		verify(session).run(eq(cypher), MockitoHamcrest.argThat(new Neo4jClientTest.MapAssertionMatcher(expectedParameters)));
 		verify(result).records();
 		verify(result).consume();
 		verify(resultSummary).notifications();
 		verify(record1).asMap();
-		verify(transaction).commit();
-		verify(transaction).rollback();
 		verify(session).close();
 	}
 
@@ -194,8 +187,7 @@ class ReactiveNeo4jClientTest {
 
 		prepareMocks();
 
-		when(transaction.run(anyString(), anyMap())).thenReturn(result);
-		when(transaction.commit()).thenReturn(Mono.empty());
+		when(session.run(anyString(), anyMap())).thenReturn(result);
 		when(result.records()).thenReturn(Flux.just(record1, record2));
 		when(result.consume()).thenReturn(Mono.just(resultSummary));
 
@@ -213,13 +205,11 @@ class ReactiveNeo4jClientTest {
 
 		verifyDatabaseSelection(databaseName);
 
-		verify(transaction).run(eq(cypher), anyMap());
+		verify(session).run(eq(cypher), anyMap());
 		verify(result).records();
 		verify(result).consume();
 		verify(resultSummary).notifications();
 		verify(record1).asMap();
-		verify(transaction).commit();
-		verify(transaction).rollback();
 		verify(session).close();
 	}
 
@@ -227,8 +217,6 @@ class ReactiveNeo4jClientTest {
 	void databaseSelectionShouldBePropagatedToDelegate() {
 
 		prepareMocks();
-
-		when(transaction.commit()).thenReturn(Mono.empty());
 
 		String databaseName = "aDatabase";
 		ReactiveDatabaseSelectionProvider databaseSelection = ReactiveDatabaseSelectionProvider
@@ -240,8 +228,6 @@ class ReactiveNeo4jClientTest {
 
 		verifyDatabaseSelection("aDatabase");
 
-		verify(transaction).commit();
-		verify(transaction).rollback();
 		verify(session).close();
 	}
 
@@ -254,8 +240,6 @@ class ReactiveNeo4jClientTest {
 
 			prepareMocks();
 
-			when(transaction.commit()).thenReturn(Mono.empty());
-
 			ReactiveNeo4jClient client = ReactiveNeo4jClient.create(driver);
 			Mono<Integer> singleResult = client.delegateTo(runner -> Mono.just(21)).run();
 
@@ -263,8 +247,6 @@ class ReactiveNeo4jClientTest {
 
 			verifyDatabaseSelection(null);
 
-			verify(transaction).commit();
-			verify(transaction).rollback();
 			verify(session).close();
 		}
 
@@ -273,8 +255,6 @@ class ReactiveNeo4jClientTest {
 
 			prepareMocks();
 
-			when(transaction.commit()).thenReturn(Mono.empty());
-
 			ReactiveNeo4jClient client = ReactiveNeo4jClient.create(driver);
 			Mono<Integer> singleResult = client.delegateTo(runner -> Mono.just(21)).in("aDatabase").run();
 
@@ -282,8 +262,6 @@ class ReactiveNeo4jClientTest {
 
 			verifyDatabaseSelection("aDatabase");
 
-			verify(transaction).commit();
-			verify(transaction).rollback();
 			verify(session).close();
 		}
 	}
@@ -297,8 +275,7 @@ class ReactiveNeo4jClientTest {
 
 			prepareMocks();
 
-			when(transaction.run(anyString(), anyMap())).thenReturn(result);
-			when(transaction.commit()).thenReturn(Mono.empty());
+			when(session.run(anyString(), anyMap())).thenReturn(result);
 			when(result.records()).thenReturn(Flux.just(record1));
 			when(result.consume()).thenReturn(Mono.just(resultSummary));
 			when(record1.get("name")).thenReturn(Values.value("michael"));
@@ -318,12 +295,10 @@ class ReactiveNeo4jClientTest {
 			Map<String, Object> expectedParameters = new HashMap<>();
 			expectedParameters.put("name", "michael");
 
-			verify(transaction).run(eq(cypher), MockitoHamcrest.argThat(new Neo4jClientTest.MapAssertionMatcher(expectedParameters)));
+			verify(session).run(eq(cypher), MockitoHamcrest.argThat(new Neo4jClientTest.MapAssertionMatcher(expectedParameters)));
 			verify(result).records();
 			verify(resultSummary).notifications();
 			verify(record1).get("name");
-			verify(transaction).commit();
-			verify(transaction).rollback();
 			verify(session).close();
 		}
 
@@ -332,8 +307,7 @@ class ReactiveNeo4jClientTest {
 
 			prepareMocks();
 
-			when(transaction.run(anyString(), anyMap())).thenReturn(result);
-			when(transaction.rollback()).thenReturn(Mono.empty());
+			when(session.run(anyString(), anyMap())).thenReturn(result);
 			when(result.records()).thenReturn(Flux.just(record1, record2));
 			when(result.consume()).thenReturn(Mono.just(resultSummary));
 			when(record1.get("name")).thenReturn(Values.value("michael"));
@@ -352,13 +326,11 @@ class ReactiveNeo4jClientTest {
 
 			verifyDatabaseSelection(null);
 
-			verify(transaction).run(eq("MATCH (n) RETURN n"),
+			verify(session).run(eq("MATCH (n) RETURN n"),
 					MockitoHamcrest.argThat(new Neo4jClientTest.MapAssertionMatcher(Collections.emptyMap())));
 			verify(result).records();
 			verify(resultSummary).notifications();
 			verify(record1).get("name");
-			verify(transaction).commit();
-			verify(transaction).rollback();
 			verify(session).close();
 		}
 
@@ -367,8 +339,7 @@ class ReactiveNeo4jClientTest {
 
 			prepareMocks();
 
-			when(transaction.run(anyString(), anyMap())).thenReturn(result);
-			when(transaction.commit()).thenReturn(Mono.empty());
+			when(session.run(anyString(), anyMap())).thenReturn(result);
 			when(result.records()).thenReturn(Flux.empty());
 			when(result.consume()).thenReturn(Mono.just(resultSummary));
 
@@ -389,11 +360,9 @@ class ReactiveNeo4jClientTest {
 			Map<String, Object> expectedParameters = new HashMap<>();
 			expectedParameters.put("name", "Michael");
 
-			verify(transaction).run(eq(cypher), MockitoHamcrest.argThat(new Neo4jClientTest.MapAssertionMatcher(expectedParameters)));
+			verify(session).run(eq(cypher), MockitoHamcrest.argThat(new Neo4jClientTest.MapAssertionMatcher(expectedParameters)));
 			verify(result).consume();
 			verify(resultSummary).notifications();
-			verify(transaction).commit();
-			verify(transaction).rollback();
 			verify(session).close();
 		}
 
@@ -403,8 +372,7 @@ class ReactiveNeo4jClientTest {
 
 			prepareMocks();
 
-			when(transaction.run(anyString(), anyMap())).thenReturn(result);
-			when(transaction.commit()).thenReturn(Mono.empty());
+			when(session.run(anyString(), anyMap())).thenReturn(result);
 			when(result.records()).thenReturn(Flux.just(record1));
 			when(result.consume()).thenReturn(Mono.just(resultSummary));
 			when(record1.size()).thenReturn(1);
@@ -421,9 +389,7 @@ class ReactiveNeo4jClientTest {
 
 			verify(result).consume();
 			verify(resultSummary).notifications();
-			verify(transaction).run(eq(cypher), anyMap());
-			verify(transaction).commit();
-			verify(transaction).rollback();
+			verify(session).run(eq(cypher), anyMap());
 			verify(session).close();
 		}
 	}
@@ -434,8 +400,7 @@ class ReactiveNeo4jClientTest {
 
 		prepareMocks();
 
-		when(transaction.run(anyString(), anyMap())).thenReturn(result);
-		when(transaction.commit()).thenReturn(Mono.empty());
+		when(session.run(anyString(), anyMap())).thenReturn(result);
 		when(result.records()).thenReturn(Flux.empty());
 		when(result.consume()).thenReturn(Mono.just(resultSummary));
 
@@ -452,11 +417,9 @@ class ReactiveNeo4jClientTest {
 		Map<String, Object> expectedParameters = new HashMap<>();
 		expectedParameters.put("name", "fixie");
 
-		verify(transaction).run(eq(cypher), MockitoHamcrest.argThat(new Neo4jClientTest.MapAssertionMatcher(expectedParameters)));
+		verify(session).run(eq(cypher), MockitoHamcrest.argThat(new Neo4jClientTest.MapAssertionMatcher(expectedParameters)));
 		verify(result).consume();
 		verify(resultSummary).notifications();
-		verify(transaction).commit();
-		verify(transaction).rollback();
 		verify(session).close();
 	}
 

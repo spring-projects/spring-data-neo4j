@@ -47,8 +47,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.hamcrest.MockitoHamcrest;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.neo4j.driver.Bookmark;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Result;
@@ -84,6 +86,8 @@ class Neo4jClientTest {
 
 		when(driver.session(any(SessionConfig.class))).thenReturn(session);
 		when(driver.defaultTypeSystem()).thenReturn(typeSystem);
+
+		when(session.lastBookmark()).thenReturn(Mockito.mock(Bookmark.class));
 	}
 
 	@AfterEach
