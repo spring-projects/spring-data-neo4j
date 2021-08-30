@@ -55,11 +55,11 @@ class DefaultNeo4jClient implements Neo4jClient {
 
 	private final Driver driver;
 	private final TypeSystem typeSystem;
-	private final DatabaseSelectionProvider databaseSelectionProvider;
+	private @Nullable final DatabaseSelectionProvider databaseSelectionProvider;
 	private final ConversionService conversionService;
 	private final Neo4jPersistenceExceptionTranslator persistenceExceptionTranslator = new Neo4jPersistenceExceptionTranslator();
 
-	DefaultNeo4jClient(Driver driver, DatabaseSelectionProvider databaseSelectionProvider) {
+	DefaultNeo4jClient(Driver driver, @Nullable DatabaseSelectionProvider databaseSelectionProvider) {
 
 		this.driver = driver;
 		this.typeSystem = driver.defaultTypeSystem();
@@ -69,8 +69,9 @@ class DefaultNeo4jClient implements Neo4jClient {
 		new Neo4jConversions().registerConvertersIn((ConverterRegistry) conversionService);
 	}
 
-	DelegatingQueryRunner getQueryRunner(@Nullable final String targetDatabase) {
+	DelegatingQueryRunner getQueryRunner(DatabaseSelection databaseSelection) {
 
+		String targetDatabase = databaseSelection.getValue();
 		QueryRunner queryRunner = Neo4jTransactionManager.retrieveTransaction(driver, targetDatabase);
 		if (queryRunner == null) {
 			queryRunner = driver.session(Neo4jTransactionUtils.defaultSessionConfig(targetDatabase));
@@ -193,21 +194,33 @@ class DefaultNeo4jClient implements Neo4jClient {
 		return resolved == null ? ex : resolved;
 	}
 
+	private DatabaseSelection resolveTargetDatabaseName(@Nullable String parameterTargetDatabase) {
+
+		String value = Neo4jClient.verifyDatabaseName(parameterTargetDatabase);
+		if (value != null) {
+			return DatabaseSelection.byName(value);
+		}
+		if (databaseSelectionProvider != null) {
+			return databaseSelectionProvider.getDatabaseSelection();
+		}
+		return DatabaseSelectionProvider.getDefaultSelectionProvider().getDatabaseSelection();
+	}
+
 	class DefaultRunnableSpec implements RunnableSpec {
 
 		private RunnableStatement runnableStatement;
 
-		private String targetDatabase;
+		private DatabaseSelection databaseSelection;
 
 		DefaultRunnableSpec(Supplier<String> cypherSupplier) {
-			this.targetDatabase = Neo4jClient.verifyDatabaseName(resolveTargetDatabaseName(targetDatabase));
+			this.databaseSelection = resolveTargetDatabaseName(null);
 			this.runnableStatement = new RunnableStatement(cypherSupplier);
 		}
 
 		@Override
-		public RunnableSpecTightToDatabase in(@SuppressWarnings("HiddenField") String targetDatabase) {
+		public RunnableSpecTightToDatabase in(String targetDatabase) {
 
-			this.targetDatabase = Neo4jClient.verifyDatabaseName(targetDatabase);
+			this.databaseSelection = resolveTargetDatabaseName(targetDatabase);
 			return this;
 		}
 
@@ -249,53 +262,40 @@ class DefaultNeo4jClient implements Neo4jClient {
 		@Override
 		public <T> MappingSpec<T> fetchAs(Class<T> targetClass) {
 
-			return new DefaultRecordFetchSpec(this.targetDatabase, this.runnableStatement,
+			return new DefaultRecordFetchSpec<>(this.databaseSelection, this.runnableStatement,
 					new SingleValueMappingFunction(conversionService, targetClass));
 		}
 
 		@Override
 		public RecordFetchSpec<Map<String, Object>> fetch() {
 
-			return new DefaultRecordFetchSpec<>(this.targetDatabase, this.runnableStatement, (t, r) -> r.asMap());
+			return new DefaultRecordFetchSpec<>(this.databaseSelection, this.runnableStatement, (t, r) -> r.asMap());
 		}
 
 		@Override
 		public ResultSummary run() {
 
-			try (DelegatingQueryRunner statementRunner = getQueryRunner(this.targetDatabase)) {
+			try (DelegatingQueryRunner statementRunner = getQueryRunner(this.databaseSelection)) {
 				Result result = runnableStatement.runWith(statementRunner);
 				return ResultSummaries.process(result.consume());
 			} catch (RuntimeException e) {
 				throw potentiallyConvertRuntimeException(e, persistenceExceptionTranslator);
 			}
 		}
-
-		private String resolveTargetDatabaseName(@Nullable String parameterTargetDatabase) {
-			if (parameterTargetDatabase != null) {
-				return parameterTargetDatabase;
-			}
-			if (databaseSelectionProvider != null) {
-				String databaseSelectionProviderValue = databaseSelectionProvider.getDatabaseSelection().getValue();
-				if (databaseSelectionProviderValue != null) {
-					return databaseSelectionProviderValue;
-				}
-			}
-			return DatabaseSelectionProvider.getDefaultSelectionProvider().getDatabaseSelection().getValue();
-		}
 	}
 
 	class DefaultRecordFetchSpec<T> implements RecordFetchSpec<T>, MappingSpec<T> {
 
-		private final String targetDatabase;
+		private final DatabaseSelection databaseSelection;
 
 		private final RunnableStatement runnableStatement;
 
 		private BiFunction<TypeSystem, Record, T> mappingFunction;
 
-		DefaultRecordFetchSpec(String parameterTargetDatabase, RunnableStatement runnableStatement,
+		DefaultRecordFetchSpec(DatabaseSelection databaseSelection, RunnableStatement runnableStatement,
 				BiFunction<TypeSystem, Record, T> mappingFunction) {
 
-			this.targetDatabase = parameterTargetDatabase;
+			this.databaseSelection = databaseSelection;
 			this.runnableStatement = runnableStatement;
 			this.mappingFunction = mappingFunction;
 		}
@@ -311,7 +311,7 @@ class DefaultNeo4jClient implements Neo4jClient {
 		@Override
 		public Optional<T> one() {
 
-			try (DelegatingQueryRunner statementRunner = getQueryRunner(this.targetDatabase)) {
+			try (DelegatingQueryRunner statementRunner = getQueryRunner(this.databaseSelection)) {
 				Result result = runnableStatement.runWith(statementRunner);
 				Optional<T> optionalValue = result.hasNext() ?
 						Optional.ofNullable(mappingFunction.apply(typeSystem, result.single())) :
@@ -326,7 +326,7 @@ class DefaultNeo4jClient implements Neo4jClient {
 		@Override
 		public Optional<T> first() {
 
-			try (DelegatingQueryRunner statementRunner = getQueryRunner(this.targetDatabase)) {
+			try (DelegatingQueryRunner statementRunner = getQueryRunner(this.databaseSelection)) {
 				Result result = runnableStatement.runWith(statementRunner);
 				Optional<T> optionalValue = result.stream().map(partialMappingFunction(typeSystem)).findFirst();
 				ResultSummaries.process(result.consume());
@@ -339,7 +339,7 @@ class DefaultNeo4jClient implements Neo4jClient {
 		@Override
 		public Collection<T> all() {
 
-			try (DelegatingQueryRunner statementRunner = getQueryRunner(this.targetDatabase)) {
+			try (DelegatingQueryRunner statementRunner = getQueryRunner(this.databaseSelection)) {
 				Result result = runnableStatement.runWith(statementRunner);
 				Collection<T> values = result.stream().map(partialMappingFunction(typeSystem)).collect(Collectors.toList());
 				ResultSummaries.process(result.consume());
@@ -360,34 +360,29 @@ class DefaultNeo4jClient implements Neo4jClient {
 
 	class DefaultRunnableDelegation<T> implements RunnableDelegation<T>, OngoingDelegation<T> {
 
+		private DatabaseSelection databaseSelection;
+
 		private final Function<QueryRunner, Optional<T>> callback;
 
-		@Nullable private String targetDatabase;
-
 		DefaultRunnableDelegation(Function<QueryRunner, Optional<T>> callback) {
-			this(callback, null);
-		}
-
-		DefaultRunnableDelegation(Function<QueryRunner, Optional<T>> callback, @Nullable String targetDatabase) {
 			this.callback = callback;
-			this.targetDatabase = Neo4jClient.verifyDatabaseName(targetDatabase);
+			this.databaseSelection = resolveTargetDatabaseName(null);
 		}
 
 		@Override
-		public RunnableDelegation in(@Nullable @SuppressWarnings("HiddenField") String targetDatabase) {
+		public RunnableDelegation in(@Nullable String targetDatabase) {
 
-			this.targetDatabase = Neo4jClient.verifyDatabaseName(targetDatabase);
+			this.databaseSelection = resolveTargetDatabaseName(targetDatabase);
 			return this;
 		}
 
 		@Override
 		public Optional<T> run() {
-			try (DelegatingQueryRunner queryRunner = getQueryRunner(targetDatabase)) {
+			try (DelegatingQueryRunner queryRunner = getQueryRunner(databaseSelection)) {
 				return callback.apply(queryRunner);
 			} catch (RuntimeException e) {
 				throw potentiallyConvertRuntimeException(e, persistenceExceptionTranslator);
 			}
 		}
 	}
-
 }

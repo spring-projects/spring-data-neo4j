@@ -89,6 +89,8 @@ public final class Neo4jPersistenceExceptionTranslator implements PersistenceExc
 			return translateImpl((Neo4jException) ex, InvalidDataAccessApiUsageException::new);
 		} else if (ex instanceof ClientException) {
 			return translateImpl((Neo4jException) ex, InvalidDataAccessResourceUsageException::new);
+		} else if (ex instanceof Neo4jClient.IllegalDatabaseNameException) {
+			return null;
 		}
 
 		log.warn(() -> String.format("Don't know how to translate exception of type %s", ex.getClass()));

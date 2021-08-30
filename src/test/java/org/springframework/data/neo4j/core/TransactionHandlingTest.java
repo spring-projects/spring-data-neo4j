@@ -93,7 +93,7 @@ class TransactionHandlingTest {
 
 				// Make template acquire session
 				DefaultNeo4jClient neo4jClient = new DefaultNeo4jClient(driver, null);
-				try (DelegatingQueryRunner s = neo4jClient.getQueryRunner("aDatabase")) {
+				try (DelegatingQueryRunner s = neo4jClient.getQueryRunner(DatabaseSelection.byName("aDatabase"))) {
 					s.run("MATCH (n) RETURN n");
 				} catch (Exception e) {
 					throw new RuntimeException(e);
@@ -129,7 +129,7 @@ class TransactionHandlingTest {
 
 				DefaultNeo4jClient neo4jClient = new DefaultNeo4jClient(driver, null);
 				txTemplate.execute(tx -> {
-					try (DelegatingQueryRunner s = neo4jClient.getQueryRunner(null)) {
+					try (DelegatingQueryRunner s = neo4jClient.getQueryRunner(DatabaseSelection.undecided())) {
 						s.run("MATCH (n) RETURN n");
 					} catch (Exception e) {
 						throw new RuntimeException(e);
@@ -176,7 +176,7 @@ class TransactionHandlingTest {
 
 			DefaultReactiveNeo4jClient neo4jClient = new DefaultReactiveNeo4jClient(driver, null);
 
-			Mono<String> sequence = neo4jClient.doInQueryRunnerForMono("aDatabase", tx -> Mono.just("1"));
+			Mono<String> sequence = neo4jClient.doInQueryRunnerForMono(Mono.just(DatabaseSelection.byName("aDatabase")), tx -> Mono.just("1"));
 
 			StepVerifier.create(sequence).expectNext("1").verifyComplete();
 
@@ -198,7 +198,7 @@ class TransactionHandlingTest {
 
 			DefaultReactiveNeo4jClient neo4jClient = new DefaultReactiveNeo4jClient(driver, null);
 
-			Mono<String> sequence = neo4jClient.doInQueryRunnerForMono("aDatabase", tx -> Mono.error(new SomeException()));
+			Mono<String> sequence = neo4jClient.doInQueryRunnerForMono(Mono.just(DatabaseSelection.byName("aDatabase")), tx -> Mono.error(new SomeException()));
 
 			StepVerifier.create(sequence).expectError(SomeException.class).verify();
 

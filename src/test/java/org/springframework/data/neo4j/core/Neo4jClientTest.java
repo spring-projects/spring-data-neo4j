@@ -244,6 +244,25 @@ class Neo4jClientTest {
 
 			verify(session).close();
 		}
+
+		@Test // GH-2369
+		void databaseSelectionShouldBePropagatedToDelegate() {
+
+			prepareMocks();
+
+			String databaseName = "aDatabase";
+			DatabaseSelectionProvider databaseSelection = DatabaseSelectionProvider
+					.createStaticDatabaseSelectionProvider(databaseName);
+
+			Neo4jClient client = Neo4jClient.create(driver, databaseSelection);
+			Optional<Integer> singleResult = client.delegateTo(runner -> Optional.of(42)).run();
+
+			assertThat(singleResult).isPresent().hasValue(42);
+
+			verifyDatabaseSelection("aDatabase");
+
+			verify(session).close();
+		}
 	}
 
 	@Nested
