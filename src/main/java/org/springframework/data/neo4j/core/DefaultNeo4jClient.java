@@ -16,13 +16,19 @@
 package org.springframework.data.neo4j.core;
 
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import org.neo4j.driver.Bookmark;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Query;
 import org.neo4j.driver.QueryRunner;
@@ -58,6 +64,10 @@ class DefaultNeo4jClient implements Neo4jClient {
 	private final ConversionService conversionService;
 	private final Neo4jPersistenceExceptionTranslator persistenceExceptionTranslator = new Neo4jPersistenceExceptionTranslator();
 
+	// Basically a local bookmark manager
+	private final Set<Bookmark> bookmarks = new HashSet<>();
+	private final ReentrantReadWriteLock bookmarksLock = new ReentrantReadWriteLock();
+
 	DefaultNeo4jClient(Driver driver) {
 
 		this.driver = driver;
@@ -70,19 +80,41 @@ class DefaultNeo4jClient implements Neo4jClient {
 	DelegatingQueryRunner getQueryRunner(@Nullable final String targetDatabase) {
 
 		QueryRunner queryRunner = Neo4jTransactionManager.retrieveTransaction(driver, targetDatabase);
+		Collection<Bookmark> lastBookmarks = Collections.emptySet();
 		if (queryRunner == null) {
-			queryRunner = driver.session(Neo4jTransactionUtils.defaultSessionConfig(targetDatabase));
+			ReentrantReadWriteLock.ReadLock lock = bookmarksLock.readLock();
+			try {
+				lock.lock();
+				lastBookmarks = new HashSet<>(bookmarks);
+				queryRunner = driver.session(Neo4jTransactionUtils.sessionConfig(false, lastBookmarks, targetDatabase));
+			} finally {
+				lock.unlock();
+			}
 		}
 
-		return new DelegatingQueryRunner(queryRunner);
+		return new DelegatingQueryRunner(queryRunner, lastBookmarks, (usedBookmarks, newBookmark) -> {
+
+			ReentrantReadWriteLock.WriteLock lock = bookmarksLock.writeLock();
+			try {
+				lock.lock();
+				bookmarks.removeAll(usedBookmarks);
+				bookmarks.add(newBookmark);
+			} finally {
+				lock.unlock();
+			}
+		});
 	}
 
 	static class DelegatingQueryRunner implements QueryRunner, AutoCloseable {
 
 		private final QueryRunner delegate;
+		private final Collection<Bookmark> usedBookmarks;
+		private final BiConsumer<Collection<Bookmark>, Bookmark> newBookmarkConsumer;
 
-		DelegatingQueryRunner(QueryRunner delegate) {
+		private DelegatingQueryRunner(QueryRunner delegate, Collection<Bookmark> lastBookmarks, BiConsumer<Collection<Bookmark>, Bookmark> newBookmarkConsumer) {
 			this.delegate = delegate;
+			this.usedBookmarks = lastBookmarks;
+			this.newBookmarkConsumer = newBookmarkConsumer;
 		}
 
 		@Override
@@ -91,7 +123,10 @@ class DefaultNeo4jClient implements Neo4jClient {
 			// We're only going to close sessions we have acquired inside the client, not something that
 			// has been retrieved from the tx manager.
 			if (this.delegate instanceof Session) {
-				((Session) this.delegate).close();
+
+				Session session = (Session) this.delegate;
+				session.close();
+				this.newBookmarkConsumer.accept(usedBookmarks, session.lastBookmark());
 			}
 		}
 
