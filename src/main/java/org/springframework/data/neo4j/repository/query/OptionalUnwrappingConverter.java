@@ -18,7 +18,6 @@ package org.springframework.data.neo4j.repository.query;
 import java.util.Optional;
 
 import org.springframework.core.convert.converter.Converter;
-import org.springframework.lang.Nullable;
 
 /**
  * Used to unwrap optionals before further processing by a
@@ -30,7 +29,7 @@ enum OptionalUnwrappingConverter implements Converter<Object, Object> {
 	INSTANCE;
 
 	@Override
-	public @Nullable Object convert(Object source) {
+	public Object convert(Object source) {
 		if (source instanceof Optional) {
 			return ((Optional<?>) source).orElse(null);
 		}

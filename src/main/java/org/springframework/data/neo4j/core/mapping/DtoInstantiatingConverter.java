@@ -89,7 +89,7 @@ public final class DtoInstantiatingConverter implements Converter<EntityInstance
 		PersistentPropertyAccessor<Object> dtoAccessor = targetEntity.getPropertyAccessor(dto);
 		targetEntity.doWithProperties((SimplePropertyHandler) property -> {
 
-			if (constructor.isConstructorParameter(property)) {
+			if (constructor != null && constructor.isConstructorParameter(property)) {
 				return;
 			}
 
@@ -108,11 +108,14 @@ public final class DtoInstantiatingConverter implements Converter<EntityInstance
 		String targetPropertyName = targetProperty.getName();
 		PersistentProperty<?> sourceProperty = sourceEntity.getPersistentProperty(targetPropertyName);
 
+		if (sourceProperty == null) {
+			return null;
+		}
 		return sourceAccessor.getProperty(sourceProperty);
 	}
 
 	@Override
-	public Object convert(EntityInstanceWithSource entityInstanceAndSource) {
+	public Object convert(@Nullable EntityInstanceWithSource entityInstanceAndSource) {
 
 		if (entityInstanceAndSource == null) {
 			return null;
@@ -126,7 +129,8 @@ public final class DtoInstantiatingConverter implements Converter<EntityInstance
 		Neo4jPersistentEntity<?> sourceEntity = context.getRequiredPersistentEntity(entityInstance.getClass());
 		PersistentPropertyAccessor<Object> sourceAccessor = sourceEntity.getPropertyAccessor(entityInstance);
 
-		Neo4jPersistentEntity<?> targetEntity = context.addPersistentEntity(ClassTypeInformation.from(targetType)).get();
+		Neo4jPersistentEntity<?> targetEntity = context.addPersistentEntity(ClassTypeInformation.from(targetType))
+														.orElseThrow(() -> new MappingException("Could not add a persistent entity for the projection target type '" + targetType.getName() + "'."));
 		PreferredConstructor<?, ? extends PersistentProperty<?>> constructor = targetEntity
 				.getPersistenceConstructor();
 
@@ -146,7 +150,7 @@ public final class DtoInstantiatingConverter implements Converter<EntityInstance
 
 	private ParameterValueProvider<Neo4jPersistentProperty> getParameterValueProvider(
 			Neo4jPersistentEntity<?> targetEntity,
-			Function<PersistentProperty<?>, Object> extractFromSource
+			Function<Neo4jPersistentProperty, Object> extractFromSource
 	) {
 		return new ParameterValueProvider<Neo4jPersistentProperty>() {
 			@SuppressWarnings("unchecked") // Needed for the last cast. It's easier that way than using the parameter type info and checking for primivites
@@ -157,7 +161,7 @@ public final class DtoInstantiatingConverter implements Converter<EntityInstance
 					throw new MappingException(
 							"Constructor parameter names aren't available, please recompile your domain.");
 				}
-				PersistentProperty<?> targetProperty = targetEntity.getPersistentProperty(parameterName);
+				Neo4jPersistentProperty targetProperty = targetEntity.getPersistentProperty(parameterName);
 				if (targetProperty == null) {
 					throw new MappingException("Cannot map constructor parameter " + parameterName
 											   + " to a property of class " + targetType);
@@ -168,10 +172,10 @@ public final class DtoInstantiatingConverter implements Converter<EntityInstance
 	}
 
 	private void setPropertyOnDtoObject(EntityInstanceWithSource entityInstanceAndSource, PersistentEntity<?, ?> sourceEntity,
-			PersistentPropertyAccessor<Object> sourceAccessor, PreferredConstructor<?, ?> constructor,
-			PersistentPropertyAccessor<Object> dtoAccessor, PersistentProperty<?> property) {
+			PersistentPropertyAccessor<Object> sourceAccessor, @Nullable PreferredConstructor<?, ?> constructor,
+			PersistentPropertyAccessor<Object> dtoAccessor, Neo4jPersistentProperty property) {
 
-		if (constructor.isConstructorParameter(property)) {
+		if (constructor != null && constructor.isConstructorParameter(property)) {
 			return;
 		}
 
@@ -180,7 +184,7 @@ public final class DtoInstantiatingConverter implements Converter<EntityInstance
 	}
 
 	@Nullable
-	Object getPropertyValueFor(PersistentProperty<?> targetProperty, PersistentEntity<?, ?> sourceEntity,
+	Object getPropertyValueFor(Neo4jPersistentProperty targetProperty, PersistentEntity<?, ?> sourceEntity,
 			PersistentPropertyAccessor<?> sourceAccessor, EntityInstanceWithSource entityInstanceAndSource) {
 
 		TypeSystem typeSystem = entityInstanceAndSource.getTypeSystem();
@@ -221,7 +225,7 @@ public final class DtoInstantiatingConverter implements Converter<EntityInstance
 					singleValue = p -> context.getEntityConverter().read(actualType, p);
 				} else {
 					ClassTypeInformation<?> actualTargetType = ClassTypeInformation.from(actualType);
-					singleValue = p -> context.getConversionService().readValue(p, actualTargetType, null);
+					singleValue = p -> context.getConversionService().readValue(p, actualTargetType, targetProperty.getOptionalReadingConverter());
 				}
 
 				if (targetProperty.isCollectionLike()) {

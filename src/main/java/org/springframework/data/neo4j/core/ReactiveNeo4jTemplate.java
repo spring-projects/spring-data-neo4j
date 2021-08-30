@@ -254,7 +254,7 @@ public final class ReactiveNeo4jTemplate implements
 
 		DtoInstantiatingConverter converter = new DtoInstantiatingConverter(resultType, neo4jMappingContext);
 		return (Flux<R>) intermediaResults.map(EntityInstanceWithSource.class::cast)
-				.map(converter::convert);
+				.mapNotNull(converter::convert);
 	}
 
 	@Override
