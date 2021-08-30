@@ -46,6 +46,7 @@ import org.neo4j.driver.TransactionConfig;
 import org.neo4j.driver.reactive.RxSession;
 import org.neo4j.driver.reactive.RxTransaction;
 import org.neo4j.driver.types.TypeSystem;
+import org.springframework.data.neo4j.core.DefaultNeo4jClient.DelegatingQueryRunner;
 import org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
@@ -92,8 +93,10 @@ class TransactionHandlingTest {
 
 				// Make template acquire session
 				DefaultNeo4jClient neo4jClient = new DefaultNeo4jClient(driver, null);
-				try (DefaultNeo4jClient.AutoCloseableQueryRunner s = neo4jClient.getQueryRunner("aDatabase")) {
+				try (DelegatingQueryRunner s = neo4jClient.getQueryRunner("aDatabase")) {
 					s.run("MATCH (n) RETURN n");
+				} catch (Exception e) {
+					throw new RuntimeException(e);
 				}
 
 				verify(driver).session(configArgumentCaptor.capture());
@@ -126,8 +129,10 @@ class TransactionHandlingTest {
 
 				DefaultNeo4jClient neo4jClient = new DefaultNeo4jClient(driver, null);
 				txTemplate.execute(tx -> {
-					try (DefaultNeo4jClient.AutoCloseableQueryRunner s = neo4jClient.getQueryRunner(null)) {
+					try (DelegatingQueryRunner s = neo4jClient.getQueryRunner(null)) {
 						s.run("MATCH (n) RETURN n");
+					} catch (Exception e) {
+						throw new RuntimeException(e);
 					}
 					return null;
 				});
