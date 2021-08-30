@@ -92,7 +92,7 @@ abstract class TestBase {
 
 		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
 			List<Record> records = session.readTransaction(
-					tx -> tx.run("MATCH (a:Application)-->(w) RETURN a, collect(w) as workflows").list());
+					tx -> tx.run("MATCH (a:Application)-->(w) RETURN a, collect(w) as workflows ORDER by a.id ASC").list());
 			assertThat(records).hasSize(2);
 			assertThat(records.get(0).get("a").asNode().get("id").asString()).isEqualTo("app-1");
 			assertThat(records.get(0).get("workflows")
