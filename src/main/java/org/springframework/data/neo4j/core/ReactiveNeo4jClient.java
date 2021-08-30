@@ -32,6 +32,7 @@ import org.neo4j.driver.summary.ResultSummary;
 import org.neo4j.driver.types.TypeSystem;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.data.neo4j.core.Neo4jClient.BindSpec;
+import org.springframework.lang.Nullable;
 
 /**
  * Reactive Neo4j client. The main difference to the {@link Neo4jClient imperative Neo4j client} is the fact that all
@@ -146,10 +147,10 @@ public interface ReactiveNeo4jClient {
 		/**
 		 * Pins the previously defined query to a specific database.
 		 *
-		 * @param targetDatabase selected database to use
+		 * @param targetDatabase selected database to use. A {@literal null} value indicates the default database.
 		 * @return A runnable query specification that is now tight to a given database.
 		 */
-		RunnableSpecTightToDatabase in(String targetDatabase);
+		RunnableSpecTightToDatabase in(@Nullable String targetDatabase);
 	}
 
 	/**
@@ -195,10 +196,10 @@ public interface ReactiveNeo4jClient {
 		/**
 		 * Runs the delegation in the given target database.
 		 *
-		 * @param targetDatabase selected database to use
+		 * @param targetDatabase selected database to use. A {@literal null} value indicates the default database.
 		 * @return An ongoing delegation
 		 */
-		RunnableDelegation<T> in(String targetDatabase);
+		RunnableDelegation<T> in(@Nullable String targetDatabase);
 	}
 
 	/**

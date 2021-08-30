@@ -100,7 +100,7 @@ public final class ReactiveNeo4jTransactionManager extends AbstractReactiveTrans
 		this.bookmarkManager.setApplicationEventPublisher(applicationContext);
 	}
 
-	public static Mono<RxTransaction> retrieveReactiveTransaction(final Driver driver, final String targetDatabase) {
+	public static Mono<RxTransaction> retrieveReactiveTransaction(final Driver driver, @Nullable final String targetDatabase) {
 
 		return TransactionSynchronizationManager.forCurrentTransaction() // Do we have a Transaction context?
 				// Bail out early if synchronization between transaction managers is not active

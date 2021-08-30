@@ -104,7 +104,7 @@ public interface Neo4jClient {
 		 * Pins the previously defined query to a specific database. A value of {@literal null} chooses the default
 		 * database. The empty string {@literal ""} is not permitted.
 		 *
-		 * @param targetDatabase selected database to use
+		 * @param targetDatabase selected database to use. A {@literal null} value indicates the default database.
 		 * @return A runnable query specification that is now tight to a given database.
 		 */
 		RunnableSpecTightToDatabase in(@Nullable String targetDatabase);
@@ -240,10 +240,10 @@ public interface Neo4jClient {
 		/**
 		 * Runs the delegation in the given target database.
 		 *
-		 * @param targetDatabase selected database to use
+		 * @param targetDatabase selected database to use. A {@literal null} value indicates the default database.
 		 * @return An ongoing delegation
 		 */
-		RunnableDelegation<T> in(String targetDatabase);
+		RunnableDelegation<T> in(@Nullable String targetDatabase);
 	}
 
 	/**
@@ -274,9 +274,28 @@ public interface Neo4jClient {
 
 		String newTargetDatabase = databaseName == null ? null : databaseName.trim();
 		if (newTargetDatabase != null && newTargetDatabase.isEmpty()) {
-			throw new IllegalArgumentException(
-					"Either use null to indicate the default database or a valid database name. The empty string is not permitted.");
+			throw new IllegalDatabaseNameException(newTargetDatabase);
 		}
 		return newTargetDatabase;
+	}
+
+	/**
+	 * Indicates an illegal database name and is not translated into a {@link org.springframework.dao.DataAccessException}.
+	 * @since 6.1.5
+	 */
+	@API(status = API.Status.STABLE, since = "6.1.5")
+	class IllegalDatabaseNameException extends IllegalArgumentException {
+
+		private final String illegalDatabaseName;
+
+		private IllegalDatabaseNameException(String illegalDatabaseName) {
+			super("Either use null to indicate the default database or a valid database name. The empty string is not permitted.");
+			this.illegalDatabaseName = illegalDatabaseName;
+		}
+
+		@SuppressWarnings("unused")
+		public String getIllegalDatabaseName() {
+			return illegalDatabaseName;
+		}
 	}
 }

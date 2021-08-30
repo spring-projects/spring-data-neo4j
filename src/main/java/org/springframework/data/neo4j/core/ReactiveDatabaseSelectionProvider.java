@@ -68,6 +68,6 @@ enum DefaultReactiveDatabaseSelectionProvider implements ReactiveDatabaseSelecti
 
 	@Override
 	public Mono<DatabaseSelection> getDatabaseSelection() {
-		return Mono.empty();
+		return Mono.just(DatabaseSelection.undecided());
 	}
 }

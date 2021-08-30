@@ -228,6 +228,28 @@ class ReactiveNeo4jClientTest {
 		verify(session).close();
 	}
 
+	@Test // GH-2369
+	void databaseSelectionShouldBePropagatedToDelegate() {
+
+		prepareMocks();
+
+		when(transaction.commit()).thenReturn(Mono.empty());
+
+		String databaseName = "aDatabase";
+		ReactiveDatabaseSelectionProvider databaseSelection = ReactiveDatabaseSelectionProvider
+				.createStaticDatabaseSelectionProvider(databaseName);
+		ReactiveNeo4jClient client = ReactiveNeo4jClient.create(driver, databaseSelection);
+		Mono<Integer> singleResult = client.delegateTo(runner -> Mono.just(21)).run();
+
+		StepVerifier.create(singleResult).expectNext(21).verifyComplete();
+
+		verifyDatabaseSelection("aDatabase");
+
+		verify(transaction).commit();
+		verify(transaction).rollback();
+		verify(session).close();
+	}
+
 	@Nested
 	@DisplayName("Callback handling should feel good")
 	class CallbackHandlingShouldFeelGood {
