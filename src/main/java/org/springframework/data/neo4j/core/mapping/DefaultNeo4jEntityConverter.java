@@ -295,7 +295,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 		if (mappedObject == null) {
 			mappedObject = mappedObjectSupplier.get();
 			knownObjects.storeObject(internalId, mappedObject);
-		} else if (knownObjects.isNextRecord(internalId)) {
+		} else if (knownObjects.alreadyMappedInPreviousRecord(internalId)) {
 			// If the object were created in a run before, it _could_ have missing relationships
 			// (e.g. due to incomplete fetching by a custom query)
 			// in such cases we will add the additional data from the next record.
@@ -312,7 +312,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 
 	private <ET> void populateProperties(MapAccessor queryResult, Neo4jPersistentEntity<ET> nodeDescription, Long internalId,
 										 ET mappedObject, @Nullable Object lastMappedEntity,
-										 Collection<Relationship> relationshipsFromResult, Collection<Node> nodesFromResult, boolean secondRun) {
+										 Collection<Relationship> relationshipsFromResult, Collection<Node> nodesFromResult, boolean alreadyMapped) {
 
 		List<String> allLabels = getLabels(queryResult, nodeDescription);
 		NodeDescriptionAndLabels nodeDescriptionAndLabels = nodeDescriptionStore
@@ -330,7 +330,8 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 		Predicate<Neo4jPersistentProperty> isConstructorParameter = concreteNodeDescription
 				.getPersistenceConstructor()::isConstructorParameter;
 
-		if (!secondRun) {
+		// if the object were mapped before, we assume that at least all properties are populated
+		if (!alreadyMapped) {
 			boolean isKotlinType = KotlinDetector.isKotlinType(concreteNodeDescription.getType());
 			// Fill simple properties
 			PropertyHandler<Neo4jPersistentProperty> handler = populateFrom(queryResult, propertyAccessor,
@@ -343,7 +344,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 		knownObjects.storeObject(internalId, mappedObject);
 		// Fill associations
 		concreteNodeDescription.doWithAssociations(
-				populateFrom(queryResult, propertyAccessor, isConstructorParameter, secondRun, relationshipsFromResult, nodesFromResult));
+				populateFrom(queryResult, propertyAccessor, isConstructorParameter, alreadyMapped, relationshipsFromResult, nodesFromResult));
 	}
 
 	@Nullable
@@ -469,24 +470,45 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 
 	private AssociationHandler<Neo4jPersistentProperty> populateFrom(MapAccessor queryResult,
 			PersistentPropertyAccessor<?> propertyAccessor, Predicate<Neo4jPersistentProperty> isConstructorParameter,
-		    boolean secondRun, Collection<Relationship> relationshipsFromResult, Collection<Node> nodesFromResult) {
+		    boolean alreadyMapped, Collection<Relationship> relationshipsFromResult, Collection<Node> nodesFromResult) {
 
 		return association -> {
 
 			Neo4jPersistentProperty persistentProperty = association.getInverse();
-			Object property = propertyAccessor.getProperty(persistentProperty);
-			boolean alreadyPopulated =
-					(persistentProperty.isCollectionLike() && property != null && !((Collection<?>) property).isEmpty()) // either an empty collection
-					|| (persistentProperty.isMap() && property != null && !((Map<?, ?>) property).isEmpty()) // or an empty map
-					|| (!persistentProperty.isCollectionLike() && property != null); // or null
 
-			if (isConstructorParameter.test(persistentProperty) || secondRun && alreadyPopulated) {
+			if (isConstructorParameter.test(persistentProperty)) {
 				return;
 			}
 
-			boolean propertyHasWither = persistentProperty.getWither() != null;
-			if (secondRun && propertyHasWither) {
-				throw new MappingException("Cannot create a new instance of an already existing object.");
+			if (alreadyMapped) {
+
+				// avoid multiple instances of the "same" object
+				boolean willCreateNewInstance = persistentProperty.getWither() != null;
+				if (willCreateNewInstance) {
+					throw new MappingException("Cannot create a new instance of an already existing object.");
+				}
+
+				Object propertyValue = propertyAccessor.getProperty(persistentProperty);
+
+				boolean propertyValueNotNull = propertyValue != null;
+
+				boolean populatedCollection = persistentProperty.isCollectionLike()
+						&& propertyValueNotNull
+						&& !((Collection<?>) propertyValue).isEmpty();
+
+				boolean populatedMap = persistentProperty.isMap()
+						&& propertyValueNotNull
+						&& !((Map<?, ?>) propertyValue).isEmpty();
+
+				boolean populatedScalarValue = !persistentProperty.isCollectionLike()
+						&& propertyValueNotNull;
+
+				boolean alreadyPopulated = populatedCollection || populatedMap || populatedScalarValue;
+
+				// avoid unnecessary re-assignment of values
+				if (alreadyPopulated) {
+					return;
+				}
 			}
 
 			createInstanceOfRelationships(persistentProperty, queryResult, (RelationshipDescription) association, relationshipsFromResult, nodesFromResult)
@@ -783,7 +805,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 			}
 		}
 
-		private boolean isNextRecord(@Nullable Long internalId) {
+		private boolean alreadyMappedInPreviousRecord(@Nullable Long internalId) {
 			if (internalId == null) {
 				return false;
 			}
@@ -803,6 +825,9 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 			return false;
 		}
 
+		/**
+		 * Mark all currently existing objects as mapped.
+		 */
 		private void nextRecord() {
 			internalNextRecord.replaceAll((x, y) -> true);
 		}
