@@ -159,16 +159,12 @@ class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 
 	<T> Mono<T> doInQueryRunnerForMono(final String targetDatabase, Function<RxQueryRunner, Mono<T>> func) {
 
-		return Mono.usingWhen(retrieveRxStatementRunnerHolder(targetDatabase),
-				func::apply,
-				runner -> ((DelegatingQueryRunner) runner).close());
+		return Mono.usingWhen(retrieveRxStatementRunnerHolder(targetDatabase), func, runner -> ((DelegatingQueryRunner) runner).close());
 	}
 
 	<T> Flux<T> doInStatementRunnerForFlux(final String targetDatabase, Function<RxQueryRunner, Flux<T>> func) {
 
-		return Flux.usingWhen(retrieveRxStatementRunnerHolder(targetDatabase),
-				func::apply,
-				runner -> ((DelegatingQueryRunner) runner).close());
+		return Flux.usingWhen(retrieveRxStatementRunnerHolder(targetDatabase), func, runner -> ((DelegatingQueryRunner) runner).close());
 	}
 
 	@Override
