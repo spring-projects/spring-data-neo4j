@@ -109,6 +109,7 @@ public interface Neo4jClient {
 	 *
 	 * @return The database selection provider - can be null
 	 */
+	@Nullable
 	DatabaseSelectionProvider getDatabaseSelectionProvider();
 
 	/**

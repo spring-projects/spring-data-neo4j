@@ -112,7 +112,9 @@ public interface ReactiveNeo4jClient {
 	 *
 	 * @return The database selection provider - can be null
 	 */
+	@Nullable
 	ReactiveDatabaseSelectionProvider getDatabaseSelectionProvider();
+
 	/**
 	 * @param <T> The resulting type of this mapping
 	 * @since 6.0

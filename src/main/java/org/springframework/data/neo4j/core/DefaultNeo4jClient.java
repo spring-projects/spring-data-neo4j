@@ -178,6 +178,7 @@ class DefaultNeo4jClient implements Neo4jClient {
 	}
 
 	@Override
+	@Nullable
 	public DatabaseSelectionProvider getDatabaseSelectionProvider() {
 		return databaseSelectionProvider;
 	}
