@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.locks.StampedLock;
 
@@ -215,12 +216,15 @@ public final class NestedRelationshipProcessingStateMachine {
 				Neo4jPersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(typeOfValue);
 				Neo4jPersistentProperty idProperty = entity.getIdProperty();
 				Object id = idProperty == null ? null : entity.getPropertyAccessor(value).getProperty(idProperty);
-				processed = id != null && processedObjects.stream()
+				Optional<Object> alreadyProcessedObject = id == null ? Optional.empty() : processedObjects.stream()
 						.filter(typeOfValue::isInstance)
-						.anyMatch(processedObject -> id.equals(entity.getPropertyAccessor(processedObject).getProperty(idProperty)));
-				if (processed) { // Skip the show the next time around.
+						.filter(processedObject -> id.equals(entity.getPropertyAccessor(processedObject).getProperty(idProperty)))
+						.findAny();
+				if (alreadyProcessedObject.isPresent()) { // Skip the show the next time around.
+					processed = true;
+					Long internalId = this.getInternalId(alreadyProcessedObject.get());
 					stamp = lock.tryConvertToWriteLock(stamp);
-					doMarkValueAsProcessed(valueToCheck, null);
+					doMarkValueAsProcessed(valueToCheck, internalId);
 				}
 			}
 			return processed;
