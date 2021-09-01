@@ -207,11 +207,11 @@ public final class NestedRelationshipProcessingStateMachine {
 			boolean processed = processedObjects.contains(valueToCheck) || processedObjectsAlias.containsKey(valueToCheck);
 			// This can be the case the object has been loaded via an additional findXXX call
 			// We can enforce sets and so on, but this is more user-friendly
-			Class<?> typeOfValue = value.getClass();
+			Class<?> typeOfValue = valueToCheck.getClass();
 			if (!processed && mappingContext.hasPersistentEntityFor(typeOfValue)) {
 				Neo4jPersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(typeOfValue);
 				Neo4jPersistentProperty idProperty = entity.getIdProperty();
-				Object id = idProperty == null ? null : entity.getPropertyAccessor(value).getProperty(idProperty);
+				Object id = idProperty == null ? null : entity.getPropertyAccessor(valueToCheck).getProperty(idProperty);
 				Optional<Object> alreadyProcessedObject = id == null ? Optional.empty() : processedObjects.stream()
 						.filter(typeOfValue::isInstance)
 						.filter(processedObject -> id.equals(entity.getPropertyAccessor(processedObject).getProperty(idProperty)))
