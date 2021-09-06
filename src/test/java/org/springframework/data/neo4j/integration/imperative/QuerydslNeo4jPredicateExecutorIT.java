@@ -92,7 +92,7 @@ class QuerydslNeo4jPredicateExecutorIT {
 	void fluentFindOneShouldWork(@Autowired QueryDSLPersonRepository repository) {
 
 		Predicate predicate = Expressions.predicate(Ops.EQ, firstNamePath, Expressions.asString("Helge"));
-		Person person = repository.findBy(predicate, q -> q.one());
+		Person person = repository.findBy(predicate, q -> q.oneValue());
 
 		assertThat(person).isNotNull();
 		assertThat(person).extracting(Person::getLastName).isEqualTo("Schneider");
@@ -174,7 +174,7 @@ class QuerydslNeo4jPredicateExecutorIT {
 	void fluentFindFirstShouldWork(@Autowired QueryDSLPersonRepository repository) {
 
 		Predicate predicate = Expressions.TRUE.isTrue();
-		Person person = repository.findBy(predicate, q -> q.sortBy(Sort.by(Sort.Direction.DESC, "lastName")).first());
+		Person person = repository.findBy(predicate, q -> q.sortBy(Sort.by(Sort.Direction.DESC, "lastName")).firstValue());
 
 		assertThat(person).isNotNull();
 		assertThat(person).extracting(Person::getFirstName).isEqualTo("Helge");
