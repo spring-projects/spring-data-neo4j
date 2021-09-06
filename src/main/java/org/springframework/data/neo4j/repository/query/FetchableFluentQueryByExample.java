@@ -110,7 +110,7 @@ final class FetchableFluentQueryByExample<S, R> extends FluentQuerySupport<R> im
 	}
 
 	@Override
-	public R one() {
+	public R oneValue() {
 
 		return findOperation.find(example.getProbeType())
 				.as(resultType)
@@ -120,7 +120,7 @@ final class FetchableFluentQueryByExample<S, R> extends FluentQuerySupport<R> im
 	}
 
 	@Override
-	public R first() {
+	public R firstValue() {
 
 		List<R> all = all();
 		return all.isEmpty() ? null : all.get(0);

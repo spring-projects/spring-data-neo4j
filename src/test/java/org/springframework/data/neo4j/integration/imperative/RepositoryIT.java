@@ -2679,7 +2679,7 @@ class RepositoryIT {
 
 			Example<PersonWithAllConstructor> example = Example.of(person1,
 					ExampleMatcher.matchingAll().withIgnoreNullValues());
-			PersonWithAllConstructor person = repository.findBy(example, q -> q.one());
+			PersonWithAllConstructor person = repository.findBy(example, q -> q.oneValue());
 
 			assertThat(person).isNotNull();
 			assertThat(person).isEqualTo(person1);
@@ -2759,7 +2759,7 @@ class RepositoryIT {
 
 			Example<PersonWithAllConstructor> example = Example.of(person1,
 					ExampleMatcher.matchingAll().withIgnoreNullValues());
-			PersonWithAllConstructor person = repository.findBy(example, q -> q.sortBy(Sort.by(Sort.Direction.DESC, "name")).first());
+			PersonWithAllConstructor person = repository.findBy(example, q -> q.sortBy(Sort.by(Sort.Direction.DESC, "name")).firstValue());
 
 			assertThat(person).isNotNull();
 			assertThat(person).isEqualTo(person1);

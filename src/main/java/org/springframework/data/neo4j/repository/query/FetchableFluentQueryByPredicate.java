@@ -112,7 +112,7 @@ final class FetchableFluentQueryByPredicate<S, R> extends FluentQuerySupport<R> 
 	}
 
 	@Override
-	public R one() {
+	public R oneValue() {
 
 		return findOperation.find(metaData.getType())
 				.as(resultType)
@@ -126,7 +126,7 @@ final class FetchableFluentQueryByPredicate<S, R> extends FluentQuerySupport<R> 
 	}
 
 	@Override
-	public R first() {
+	public R firstValue() {
 
 		List<R> all = all();
 		return all.isEmpty() ? null : all.get(0);
