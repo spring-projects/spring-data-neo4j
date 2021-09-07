@@ -132,7 +132,7 @@ class AdvancedMappingIT {
 
 		MovieDTO findDTOByTitle(String title);
 
-		MovieProjectionWithActorProjection findProjectionWithProjectionByTitle(String title);
+		MovieProjectionWithActorProjection findProjectionWithProjectionByTitle(@Param("title") String title);
 
 		@Query("MATCH p=(movie:Movie)<-[r:ACTED_IN]-(n:Person) WHERE movie.title=$title RETURN collect(p)")
 		Movie customPathQueryMovieFind(@Param("title") String title);
@@ -237,7 +237,7 @@ class AdvancedMappingIT {
 					.containsExactlyInAnyOrder("The Oracle", "Morpheus", "Trinity", "Agent Smith", "Emil", "Neo");
 
 			assertThat(logbackCapture.getFormattedMessages()).anyMatch(message ->
-					message.contains("MATCH (n:`Movie`) WHERE n.title = $0 RETURN n{.title"));
+					message.contains("MATCH (n:`Movie`) WHERE n.title = $title RETURN n{.title"));
 		} finally {
 			logbackCapture.resetLogLevel();
 		}
