@@ -174,6 +174,18 @@ That bean also needs to implement `IdGenerator`, but can make use of everything 
 
 NOTE: Don't skip the important notes about ID handling in <<mapping.id-handling>>
 
+[[mapping.annotations.version]]
+=== Optimistic locking: `@Version`
+
+Spring Data Neo4j supports optimistic locking by using the `@Version` annotation on a `Long` typed field.
+This attribute will get incremented automatically during updates and must not be manually modified.
+
+If, e.g., two transactions in different threads want to modify the same object with version `x`, the first operation will get successfully persisted to the database.
+At this moment, the version field will get incremented, so it is `x+1`.
+The second operation will fail with a `OptimisticLockingFailureException` because it wants to modify the object with the version `x`
+that does not exist anymore in the database.
+In such cases the operation needs to get retried, beginning with a fresh fetch of the object with the current version from the database.
+
 [[mapping.annotations.property]]
 === Mapping properties: `@Property`
 
