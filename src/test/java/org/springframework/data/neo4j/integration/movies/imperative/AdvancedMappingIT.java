@@ -15,10 +15,8 @@
  */
 package org.springframework.data.neo4j.integration.movies.imperative;
 
-import ch.qos.logback.classic.Level;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Session;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,8 +37,6 @@ import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.data.neo4j.repository.query.Query;
 import org.springframework.data.neo4j.test.BookmarkCapture;
-import org.springframework.data.neo4j.test.LogbackCapture;
-import org.springframework.data.neo4j.test.LogbackCapturingExtension;
 import org.springframework.data.neo4j.test.Neo4jExtension;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 import org.springframework.data.repository.query.Param;
@@ -49,6 +45,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -63,7 +60,6 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Michael J. Simons
  * @soundtrack Body Count - Manslaughter
  */
-@ExtendWith(LogbackCapturingExtension.class)
 @Neo4jIntegrationTest
 class AdvancedMappingIT {
 
@@ -126,6 +122,16 @@ class AdvancedMappingIT {
 		}
 	}
 
+	interface MovieWithSequelProjection {
+		String getTitle();
+		MovieWithSequelProjection getSequel();
+	}
+
+	interface MovieWithSequelEntity {
+		String getTitle();
+		Movie getSequel();
+	}
+
 	interface MovieRepository extends Neo4jRepository<Movie, String> {
 
 		MovieProjection findProjectionByTitle(String title);
@@ -139,6 +145,10 @@ class AdvancedMappingIT {
 
 		@Query("MATCH p=(movie:Movie)<-[r:ACTED_IN]-(n:Person) WHERE movie.title=$title RETURN collect(p)")
 		List<Movie> customPathQueryMoviesFind(@Param("title") String title);
+
+		MovieWithSequelProjection findProjectionByTitleAndDescription(String title, String description);
+
+		MovieWithSequelEntity findByTitleAndDescription(String title, String description);
 	}
 
 	@Test // GH-1906
@@ -217,30 +227,30 @@ class AdvancedMappingIT {
 						"Carrie-Anne Moss", "Hugo Weaving");
 	}
 
-	@Test // GH-2117
-	void cyclicRelationshipsAreExcludedFromProjectionsWithProjections(
-			@Autowired MovieRepository movieRepository, LogbackCapture logbackCapture) {
+	@Test // GH-2117 updated for GH-2320
+	void cyclicRelationshipsShouldHydrateCorrectlyProjectionsWithProjections(
+			@Autowired MovieRepository movieRepository) {
 
-		logbackCapture.addLogger("org.springframework.data.neo4j.cypher", Level.DEBUG);
+		// The movie domain is a good fit for this test
+		// as the cyclic dependencies is pretty slow to retrieve from Neo4j
+		// this does OOM in most setups.
+		MovieProjectionWithActorProjection projection = movieRepository
+				.findProjectionWithProjectionByTitle("The Matrix");
+		assertThat(projection.getTitle()).isNotNull();
+		assertThat(projection.getActors()).extracting("person").extracting("name")
+				.containsExactlyInAnyOrder("Gloria Foster", "Keanu Reeves", "Emil Eifrem", "Laurence Fishburne",
+						"Carrie-Anne Moss", "Hugo Weaving");
+		assertThat(projection.getActors()).flatExtracting("roles")
+				.containsExactlyInAnyOrder("The Oracle", "Morpheus", "Trinity", "Agent Smith", "Emil", "Neo");
 
-		try {
-			// The movie domain is a good fit for this test
-			// as the cyclic dependencies is pretty slow to retrieve from Neo4j
-			// this does OOM in most setups.
-			MovieProjectionWithActorProjection projection = movieRepository
-					.findProjectionWithProjectionByTitle("The Matrix");
-			assertThat(projection.getTitle()).isNotNull();
-			assertThat(projection.getActors()).extracting("person").extracting("name")
-					.containsExactlyInAnyOrder("Gloria Foster", "Keanu Reeves", "Emil Eifrem", "Laurence Fishburne",
-							"Carrie-Anne Moss", "Hugo Weaving");
-			assertThat(projection.getActors()).flatExtracting("roles")
-					.containsExactlyInAnyOrder("The Oracle", "Morpheus", "Trinity", "Agent Smith", "Emil", "Neo");
+		// second level mapping of entity cycle
+		assertThat(projection.getActors()).extracting("person")
+				.allMatch(person ->
+					!((MovieProjectionWithActorProjection.ActorProjection.PersonProjection) person).getActedIn().isEmpty());
 
-			assertThat(logbackCapture.getFormattedMessages()).anyMatch(message ->
-					message.contains("MATCH (movie:`Movie`) WHERE movie.title = $title RETURN movie{.title"));
-		} finally {
-			logbackCapture.resetLogLevel();
-		}
+		// n+1 level mapping of entity cycle
+		assertThat(projection.getActors()).extracting("person").flatExtracting("actedIn").extracting("directors")
+				.allMatch(directors -> !((Collection<?>) directors).isEmpty());
 	}
 
 	@Test // GH-2114
@@ -422,6 +432,29 @@ class AdvancedMappingIT {
 
 		assertThat(movies).hasSize(1);
 		assertThat(movies.get(0).getActors()).hasSize(5);
+	}
+
+	@Test // GH-2320
+	void projectDirectCycleProjectionReference(@Autowired MovieRepository movieRepository) {
+		MovieWithSequelProjection movie = movieRepository.findProjectionByTitleAndDescription("The Matrix",
+				"Welcome to the Real World");
+
+		assertThat(movie.getSequel().getTitle()).isEqualTo("The Matrix Reloaded");
+		assertThat(movie.getSequel().getSequel().getTitle()).isEqualTo("The Matrix Revolutions");
+	}
+
+	@Test // GH-2320
+	void projectDirectCycleEntityReference(@Autowired MovieRepository movieRepository) {
+		MovieWithSequelEntity movie = movieRepository.findByTitleAndDescription("The Matrix",
+				"Welcome to the Real World");
+
+		Movie firstSequel = movie.getSequel();
+		assertThat(firstSequel.getTitle()).isEqualTo("The Matrix Reloaded");
+		assertThat(firstSequel.getActors()).isNotEmpty();
+
+		Movie secondSequel = firstSequel.getSequel();
+		assertThat(secondSequel.getTitle()).isEqualTo("The Matrix Revolutions");
+		assertThat(secondSequel.getActors()).isNotEmpty();
 	}
 
 	@Configuration

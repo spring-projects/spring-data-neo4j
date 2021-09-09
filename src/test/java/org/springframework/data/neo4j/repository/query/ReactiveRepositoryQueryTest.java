@@ -142,7 +142,7 @@ final class ReactiveRepositoryQueryTest {
 
 			query.prepareQuery(
 					TestEntity.class,
-					Collections.emptyList(),
+					Collections.emptyMap(),
 					parameterAccessor,
 					Neo4jQueryType.DEFAULT,
 					(typeSystem, mapAccessor) -> new TestEntity()
@@ -176,7 +176,7 @@ final class ReactiveRepositoryQueryTest {
 					new Object[] { PageRequest.of(1, 1, Sort.by("name").ascending()) });
 			PreparedQuery pq = query.prepareQuery(
 					TestEntity.class,
-					Collections.emptyList(),
+					Collections.emptyMap(),
 					parameterAccessor,
 					Neo4jQueryType.DEFAULT,
 					(typeSystem, mapAccessor) -> new TestEntity()
@@ -212,7 +212,7 @@ final class ReactiveRepositoryQueryTest {
 								Sort.by("name").ascending() });
 				PreparedQuery pq = query.prepareQuery(
 						TestEntity.class,
-						Collections.emptyList(),
+						Collections.emptyMap(),
 						parameterAccessor,
 						Neo4jQueryType.DEFAULT,
 						(typeSystem, mapAccessor) -> new TestEntity()

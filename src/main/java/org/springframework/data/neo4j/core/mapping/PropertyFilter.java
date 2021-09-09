@@ -18,10 +18,11 @@ package org.springframework.data.neo4j.core.mapping;
 import org.apiguardian.api.API;
 import org.springframework.data.mapping.PropertyPath;
 
-import java.util.Collection;
 import java.util.HashSet;
+import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Something that makes sense of propertyPaths by having an understanding of projection classes.
@@ -29,7 +30,7 @@ import java.util.stream.Collectors;
 @API(status = API.Status.INTERNAL)
 public abstract class PropertyFilter {
 
-	public static PropertyFilter from(Collection<PropertyPath> properties, NodeDescription<?> nodeDescription) {
+	public static PropertyFilter from(Map<PropertyPath, Boolean> properties, NodeDescription<?> nodeDescription) {
 		return new FilteringPropertyFilter(properties, nodeDescription);
 	}
 
@@ -45,15 +46,16 @@ public abstract class PropertyFilter {
 
 	private static class FilteringPropertyFilter extends PropertyFilter {
 		private final Set<Class<?>> rootClasses;
-		private final Set<String> projectingPropertyPaths;
+		private final Map<String, Boolean> projectingPropertyPaths;
 
-		private FilteringPropertyFilter(Collection<PropertyPath> properties, NodeDescription<?> nodeDescription) {
+		private FilteringPropertyFilter(Map<PropertyPath, Boolean> propertiesMap, NodeDescription<?> nodeDescription) {
 			Class<?> domainClass = nodeDescription.getUnderlyingClass();
 
 			rootClasses = new HashSet<>();
 			rootClasses.add(domainClass);
 
 			// supported projection based classes
+			Set<PropertyPath> properties = propertiesMap.keySet();
 			properties.stream().map(property -> property.getOwningType().getType()).forEach(rootClasses::add);
 
 			// supported inheriting classes
@@ -61,7 +63,10 @@ public abstract class PropertyFilter {
 					.map(NodeDescription::getUnderlyingClass)
 					.forEach(rootClasses::add);
 
-			projectingPropertyPaths = properties.stream().map(PropertyPath::toDotPath).collect(Collectors.toSet());
+			projectingPropertyPaths = new ConcurrentHashMap<>();
+			propertiesMap.keySet()
+					.forEach(propertyPath ->
+							projectingPropertyPaths.put(propertyPath.toDotPath(), propertiesMap.get(propertyPath)));
 		}
 
 		@Override
@@ -74,8 +79,10 @@ public abstract class PropertyFilter {
 				return false;
 			}
 
-			return projectingPropertyPaths.contains(dotPath);
+			Optional<String> first = projectingPropertyPaths.keySet().stream().sorted((o1, o2) -> Integer.compare(o2.length(), o1.length())).filter(dotPath::contains).findFirst();
 
+			return projectingPropertyPaths.containsKey(dotPath) ||
+					(first.isPresent() && projectingPropertyPaths.get(first.get()));
 		}
 
 		@Override
@@ -139,8 +146,16 @@ public abstract class PropertyFilter {
 			return new RelaxedPropertyPath(appendToDotPath(pathPart), getType());
 		}
 
+		public RelaxedPropertyPath prepend(String pathPart) {
+			return new RelaxedPropertyPath(prependDotPathWith(pathPart), getType());
+		}
+
 		private String appendToDotPath(String pathPart) {
 			return dotPath.isEmpty() ? pathPart : dotPath + "." + pathPart;
+		}
+
+		private String prependDotPathWith(String pathPart) {
+			return dotPath.isEmpty() ? pathPart : pathPart + "." + dotPath;
 		}
 	}
 

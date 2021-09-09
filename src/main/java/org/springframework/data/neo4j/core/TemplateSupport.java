@@ -115,7 +115,7 @@ public final class TemplateSupport {
 		return candidate;
 	}
 
-	static PropertyFilter computeIncludePropertyPredicate(Collection<PropertyPath> includedProperties,
+	static PropertyFilter computeIncludePropertyPredicate(Map<PropertyPath, Boolean> includedProperties,
 														  NodeDescription<?> nodeDescription) {
 
 		return PropertyFilter.from(includedProperties, nodeDescription);

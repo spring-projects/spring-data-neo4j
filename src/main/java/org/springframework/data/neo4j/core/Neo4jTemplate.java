@@ -57,6 +57,7 @@ import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.dao.OptimisticLockingFailureException;
+import org.springframework.data.mapping.Association;
 import org.springframework.data.mapping.AssociationHandler;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
 import org.springframework.data.mapping.PropertyPath;
@@ -79,6 +80,7 @@ import org.springframework.data.neo4j.core.mapping.NodeDescription;
 import org.springframework.data.neo4j.core.mapping.PropertyFilter;
 import org.springframework.data.neo4j.core.mapping.RelationshipDescription;
 import org.springframework.data.neo4j.core.mapping.callback.EventSupport;
+import org.springframework.data.neo4j.core.schema.TargetNode;
 import org.springframework.data.neo4j.repository.NoResultException;
 import org.springframework.data.neo4j.repository.query.QueryFragments;
 import org.springframework.data.neo4j.repository.query.QueryFragmentsAndParameters;
@@ -318,7 +320,7 @@ public final class Neo4jTemplate implements
 	@Override
 	public <T> T save(T instance) {
 
-		return saveImpl(instance, Collections.emptyList(), null);
+		return saveImpl(instance, Collections.emptyMap(), null);
 	}
 
 	@Override
@@ -335,7 +337,7 @@ public final class Neo4jTemplate implements
 		}
 
 		ProjectionInformation projectionInformation = projectionFactory.getProjectionInformation(resultType);
-		Collection<PropertyPath> pps = PropertyFilterSupport.addPropertiesFrom(instance.getClass(), resultType,
+		Map<PropertyPath, Boolean> pps = PropertyFilterSupport.addPropertiesFrom(instance.getClass(), resultType,
 				projectionFactory, neo4jMappingContext);
 
 		T savedInstance = saveImpl(instance, pps, null);
@@ -350,7 +352,7 @@ public final class Neo4jTemplate implements
 				this.findById(propertyAccessor.getProperty(idProperty), savedInstance.getClass()).get());
 	}
 
-	private <T> T saveImpl(T instance, @Nullable Collection<PropertyPath> includedProperties, @Nullable NestedRelationshipProcessingStateMachine stateMachine) {
+	private <T> T saveImpl(T instance, @Nullable Map<PropertyPath, Boolean> includedProperties, @Nullable NestedRelationshipProcessingStateMachine stateMachine) {
 
 		if (stateMachine != null && stateMachine.hasProcessedValue(instance)) {
 			return instance;
@@ -438,10 +440,10 @@ public final class Neo4jTemplate implements
 
 	@Override
 	public <T> List<T> saveAll(Iterable<T> instances) {
-		return saveAllImpl(instances, Collections.emptyList());
+		return saveAllImpl(instances, Collections.emptyMap());
 	}
 
-	private <T> List<T> saveAllImpl(Iterable<T> instances, List<PropertyPath> includedProperties) {
+	private <T> List<T> saveAllImpl(Iterable<T> instances, Map<PropertyPath, Boolean> includedProperties) {
 
 		Set<Class<?>> types = new HashSet<>();
 		List<T> entities = new ArrayList<>();
@@ -520,10 +522,10 @@ public final class Neo4jTemplate implements
 
 		ProjectionInformation projectionInformation = projectionFactory.getProjectionInformation(resultType);
 
-		Collection<PropertyPath> pps = PropertyFilterSupport.addPropertiesFrom(commonElementType, resultType,
+		Map<PropertyPath, Boolean> pps = PropertyFilterSupport.addPropertiesFrom(commonElementType, resultType,
 				projectionFactory, neo4jMappingContext);
 
-		List<T> savedInstances = saveAllImpl(instances, new ArrayList<>(pps));
+		List<T> savedInstances = saveAllImpl(instances, pps);
 
 		if (projectionInformation.isClosed()) {
 			return savedInstances.stream().map(instance -> projectionFactory.createProjection(resultType, instance))
@@ -930,7 +932,7 @@ public final class Neo4jTemplate implements
 
 		Class<?> resultType = TemplateSupport.findCommonElementType(instances);
 
-		Collection<PropertyPath> pps = PropertyFilterSupport.addPropertiesFrom(domainType, resultType,
+		Map<PropertyPath, Boolean> pps = PropertyFilterSupport.addPropertiesFrom(domainType, resultType,
 				projectionFactory, neo4jMappingContext);
 
 		NestedRelationshipProcessingStateMachine stateMachine = new NestedRelationshipProcessingStateMachine(neo4jMappingContext);
@@ -1061,16 +1063,34 @@ public final class Neo4jTemplate implements
 						.bindAll(parameters)
 						.fetch()
 						.one()
-						.ifPresent(iterateAndMapNextLevel(relationshipIds, relatedNodeIds, relationshipDescription));
+						.ifPresent(iterateAndMapNextLevel(relationshipIds, relatedNodeIds, relationshipDescription, PropertyPathWalkStep.empty()));
 			}
 
 			return new NodesAndRelationshipsByIdStatementProvider(rootNodeIds, relationshipIds, relatedNodeIds, queryFragments);
 		}
 
-		private void iterateNextLevel(Collection<Long> nodeIds, Neo4jPersistentEntity<?> target, Set<Long> relationshipIds,
-									  Set<Long> relatedNodeIds) {
+		private void iterateNextLevel(Collection<Long> nodeIds, RelationshipDescription sourceRelationshipDescription, Set<Long> relationshipIds,
+									  Set<Long> relatedNodeIds, PropertyPathWalkStep currentPathStep) {
 
-			Collection<RelationshipDescription> relationships = target.getRelationshipsInHierarchy(preparedQuery.getQueryFragmentsAndParameters().getQueryFragments()::includeField);
+			Neo4jPersistentEntity<?> target = (Neo4jPersistentEntity<?>) sourceRelationshipDescription.getTarget();
+
+			@SuppressWarnings("unchecked")
+			String fieldName = ((Association<Neo4jPersistentProperty>) sourceRelationshipDescription).getInverse().getFieldName();
+			PropertyPathWalkStep nextPathStep = currentPathStep.with((sourceRelationshipDescription.hasRelationshipProperties() ?
+					fieldName + "." + ((Neo4jPersistentEntity<?>) sourceRelationshipDescription.getRelationshipPropertiesEntity())
+							.getPersistentProperty(TargetNode.class).getFieldName() : fieldName));
+
+
+			Collection<RelationshipDescription> relationships = target
+					.getRelationshipsInHierarchy(
+							relaxedPropertyPath -> {
+
+								PropertyFilter.RelaxedPropertyPath prepend = relaxedPropertyPath.prepend(nextPathStep.path);
+								prepend = PropertyFilter.RelaxedPropertyPath.withRootType(preparedQuery.getResultType()).append(prepend.toDotPath());
+								return preparedQuery.getQueryFragmentsAndParameters().getQueryFragments().includeField(prepend);
+							}
+					);
+
 			for (RelationshipDescription relationshipDescription : relationships) {
 
 				Node node = anyNode(Constants.NAME_OF_TYPED_ROOT_NODE.apply(target));
@@ -1084,13 +1104,15 @@ public final class Neo4jTemplate implements
 						.bindAll(Collections.singletonMap(Constants.NAME_OF_IDS, nodeIds))
 						.fetch()
 						.one()
-						.ifPresent(iterateAndMapNextLevel(relationshipIds, relatedNodeIds, relationshipDescription));
+						.ifPresent(iterateAndMapNextLevel(relationshipIds, relatedNodeIds, relationshipDescription, nextPathStep));
 			}
 		}
 
 		@NonNull
 		private Consumer<Map<String, Object>> iterateAndMapNextLevel(Set<Long> relationshipIds,
-																	 Set<Long> relatedNodeIds, RelationshipDescription relationshipDescription) {
+																	 Set<Long> relatedNodeIds,
+																	 RelationshipDescription relationshipDescription,
+																	 PropertyPathWalkStep currentPathStep) {
 
 			return record -> {
 				@SuppressWarnings("unchecked")
@@ -1107,8 +1129,7 @@ public final class Neo4jTemplate implements
 				relatedNodeIds.addAll(relatedIds);
 				// 2. for the rest start the exploration
 				if (!relatedIds.isEmpty()) {
-					iterateNextLevel(relatedIds, (Neo4jPersistentEntity<?>) relationshipDescription.getTarget(),
-							relationshipIds, relatedNodeIds);
+					iterateNextLevel(relatedIds, relationshipDescription, relationshipIds, relatedNodeIds, currentPathStep);
 				}
 			};
 		}

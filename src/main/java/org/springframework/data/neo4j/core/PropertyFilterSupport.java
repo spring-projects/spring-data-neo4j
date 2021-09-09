@@ -26,11 +26,11 @@ import org.springframework.data.repository.query.ResultProcessor;
 import org.springframework.data.repository.query.ReturnedType;
 
 import java.beans.PropertyDescriptor;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
+import java.util.Map;
 
 /**
  * This class is responsible for creating a List of {@link PropertyPath} entries that contains all reachable
@@ -39,17 +39,17 @@ import java.util.List;
 @API(status = API.Status.INTERNAL, since = "6.1.3")
 public final class PropertyFilterSupport {
 
-	public static List<PropertyPath> getInputProperties(ResultProcessor resultProcessor, ProjectionFactory factory,
-														Neo4jMappingContext mappingContext) {
+	public static Map<PropertyPath, Boolean> getInputProperties(ResultProcessor resultProcessor, ProjectionFactory factory,
+													   Neo4jMappingContext mappingContext) {
 
 		ReturnedType returnedType = resultProcessor.getReturnedType();
-		List<PropertyPath> filteredProperties = new ArrayList<>();
+		Map<PropertyPath, Boolean> filteredProperties = new HashMap<>();
 
 		boolean isProjecting = returnedType.isProjecting();
 		boolean isClosedProjection = factory.getProjectionInformation(returnedType.getReturnedType()).isClosed();
 
 		if (!isProjecting || !isClosedProjection) {
-			return Collections.emptyList();
+			return Collections.emptyMap();
 		}
 
 		for (String inputProperty : returnedType.getInputProperties()) {
@@ -60,12 +60,12 @@ public final class PropertyFilterSupport {
 		return filteredProperties;
 	}
 
-	static List<PropertyPath> addPropertiesFrom(Class<?> domainType, Class<?> returnType,
+	static Map<PropertyPath, Boolean> addPropertiesFrom(Class<?> domainType, Class<?> returnType,
 													   ProjectionFactory projectionFactory,
 													   Neo4jMappingContext neo4jMappingContext) {
 
 		ProjectionInformation projectionInformation = projectionFactory.getProjectionInformation(returnType);
-		List<PropertyPath> propertyPaths = new ArrayList<>();
+		Map<PropertyPath, Boolean> propertyPaths = new HashMap<>();
 		for (PropertyDescriptor inputProperty : projectionInformation.getInputProperties()) {
 			addPropertiesFrom(domainType, returnType, projectionFactory, propertyPaths, inputProperty.getName(), neo4jMappingContext);
 		}
@@ -73,8 +73,8 @@ public final class PropertyFilterSupport {
 	}
 
 	private static void addPropertiesFrom(Class<?> domainType, Class<?> returnedType, ProjectionFactory factory,
-										 Collection<PropertyPath> filteredProperties, String inputProperty,
-										 Neo4jMappingContext mappingContext) {
+										  Map<PropertyPath, Boolean> filteredProperties, String inputProperty,
+										  Neo4jMappingContext mappingContext) {
 
 		ProjectionInformation projectionInformation = factory.getProjectionInformation(returnedType);
 		PropertyPath propertyPath;
@@ -93,33 +93,33 @@ public final class PropertyFilterSupport {
 		// 2. Something that looks like an entity needs to get processed as such
 		// 3. Embedded projection
 		if (mappingContext.getConversionService().isSimpleType(propertyType)) {
-			filteredProperties.add(propertyPath);
+			filteredProperties.put(propertyPath, false);
 		} else if (mappingContext.hasPersistentEntityFor(propertyType)) {
-			// avoid recursion / cycles
-			if (propertyType.equals(domainType)) {
-				return;
-			}
-
 			addPropertiesFromEntity(filteredProperties, propertyPath, propertyType, mappingContext, new HashSet<>());
 		} else {
 			ProjectionInformation nestedProjectionInformation = factory.getProjectionInformation(propertyType);
-			filteredProperties.add(propertyPath);
 			// Closed projection should get handled as above (recursion)
 			if (nestedProjectionInformation.isClosed()) {
+				filteredProperties.put(propertyPath, false);
 				for (PropertyDescriptor nestedInputProperty : nestedProjectionInformation.getInputProperties()) {
 					PropertyPath nestedPropertyPath = propertyPath.nested(nestedInputProperty.getName());
-					filteredProperties.add(nestedPropertyPath);
+					if (propertyPath.hasNext() && (domainType.equals(propertyPath.getLeafProperty().getOwningType().getType())
+					|| returnedType.equals(propertyPath.getLeafProperty().getOwningType().getType()))) {
+						break;
+					}
+
 					addPropertiesFrom(domainType, returnedType, factory, filteredProperties,
 							nestedPropertyPath.toDotPath(), mappingContext);
 				}
 			} else {
 				// an open projection at this place needs to get replaced with the matching (real) entity
+				filteredProperties.put(propertyPath, true);
 				processEntity(domainType, filteredProperties, inputProperty, mappingContext);
 			}
 		}
 	}
 
-	private static void processEntity(Class<?> domainType, Collection<PropertyPath> filteredProperties,
+	private static void processEntity(Class<?> domainType, Map<PropertyPath, Boolean> filteredProperties,
 									  String inputProperty, Neo4jMappingContext mappingContext) {
 
 		Neo4jPersistentEntity<?> persistentEntity = mappingContext.getPersistentEntity(domainType);
@@ -131,59 +131,27 @@ public final class PropertyFilterSupport {
 		addPropertiesFromEntity(filteredProperties, propertyPath, propertyEntityType, mappingContext, new HashSet<>());
 	}
 
-	private static void addPropertiesFromEntity(Collection<PropertyPath> filteredProperties, PropertyPath propertyPath,
+	private static void addPropertiesFromEntity(Map<PropertyPath, Boolean> filteredProperties, PropertyPath propertyPath,
 												Class<?> propertyType, Neo4jMappingContext mappingContext,
 												Collection<Neo4jPersistentEntity<?>> processedEntities) {
+
+		if (!mappingContext.hasPersistentEntityFor(propertyType)) {
+			throw new RuntimeException("hmmmm");
+		}
 
 		Neo4jPersistentEntity<?> persistentEntityFromProperty = mappingContext.getPersistentEntity(propertyType);
 		// break the recursion / cycles
 		if (hasProcessedEntity(persistentEntityFromProperty, processedEntities)) {
 			return;
 		}
-		processedEntities.add(persistentEntityFromProperty);
 
-		// save base/root entity/projection type to avoid recursion later
-		Class<?> pathRootType = propertyPath.getOwningType().getType();
-		if (mappingContext.hasPersistentEntityFor(pathRootType)) {
-			processedEntities.add(mappingContext.getPersistentEntity(pathRootType));
-		}
+		filteredProperties.put(propertyPath, true);
 
-		takeAllPropertiesFromEntity(filteredProperties, propertyPath, mappingContext, persistentEntityFromProperty, processedEntities);
 	}
 
 	private static boolean hasProcessedEntity(Neo4jPersistentEntity<?> persistentEntityFromProperty,
 											  Collection<Neo4jPersistentEntity<?>> processedEntities) {
 
 		return processedEntities.contains(persistentEntityFromProperty);
-	}
-
-	private static void takeAllPropertiesFromEntity(Collection<PropertyPath> filteredProperties,
-													PropertyPath propertyPath, Neo4jMappingContext mappingContext,
-													Neo4jPersistentEntity<?> persistentEntityFromProperty,
-													Collection<Neo4jPersistentEntity<?>> processedEntities) {
-
-		filteredProperties.add(propertyPath);
-
-		persistentEntityFromProperty.doWithAll(neo4jPersistentProperty -> {
-			addPropertiesFromEntity(filteredProperties, propertyPath.nested(neo4jPersistentProperty.getFieldName()), mappingContext, processedEntities);
-		});
-	}
-
-	private static void addPropertiesFromEntity(Collection<PropertyPath> filteredProperties, PropertyPath propertyPath,
-										  Neo4jMappingContext mappingContext,
-										  Collection<Neo4jPersistentEntity<?>> processedEntities) {
-
-		// break the recursion / cycles
-		if (filteredProperties.contains(propertyPath)) {
-			return;
-		}
-		Class<?> propertyType = propertyPath.getLeafType();
-		// simple types can get added directly to the list.
-		if (mappingContext.getConversionService().isSimpleType(propertyType)) {
-			filteredProperties.add(propertyPath);
-		// Other types are handled also as entities because there cannot be any nested projection within a real entity.
-		} else if (mappingContext.hasPersistentEntityFor(propertyType)) {
-			addPropertiesFromEntity(filteredProperties, propertyPath, propertyType, mappingContext, processedEntities);
-		}
 	}
 }

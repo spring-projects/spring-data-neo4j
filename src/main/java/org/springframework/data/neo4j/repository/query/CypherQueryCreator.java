@@ -110,7 +110,7 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndPar
 	 */
 	private final List<SortItem> sortItems = new ArrayList<>();
 
-	private final List<PropertyPath> includedProperties;
+	private final Map<PropertyPath, Boolean> includedProperties;
 
 	private final List<PropertyPathWrapper> propertyPathWrappers;
 
@@ -120,7 +120,7 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndPar
 	private final UnaryOperator<Integer> limitModifier;
 
 	CypherQueryCreator(Neo4jMappingContext mappingContext, Class<?> domainType, Neo4jQueryType queryType, PartTree tree,
-			Neo4jParameterAccessor actualParameters, List<PropertyPath> includedProperties,
+			Neo4jParameterAccessor actualParameters, Map<PropertyPath, Boolean> includedProperties,
 			BiFunction<Object, Function<Object, Value>, Object> parameterConversion,
 			UnaryOperator<Integer> limitModifier) {
 
