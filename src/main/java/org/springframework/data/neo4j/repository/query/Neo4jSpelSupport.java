@@ -17,6 +17,7 @@ package org.springframework.data.neo4j.repository.query;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.concurrent.locks.StampedLock;
 
 import org.apiguardian.api.API;
 import org.springframework.data.domain.Pageable;
@@ -111,12 +112,39 @@ public final class Neo4jSpelSupport {
 					}
 				};
 
+		private static final StampedLock LOCK = new StampedLock();
+
 		static LiteralReplacement withTargetAndValue(LiteralReplacement.Target target, @Nullable String value) {
 
 			String valueUsed = value == null ? "" : value;
-			StringBuilder key = new StringBuilder(target.name()).append("_").append(valueUsed);
+			String key = new StringBuilder(target.name()).append("_").append(valueUsed).toString();
 
-			return INSTANCES.computeIfAbsent(key.toString(), k -> new StringBasedLiteralReplacement(target, valueUsed));
+			long stamp = LOCK.tryOptimisticRead();
+			if (LOCK.validate(stamp) && INSTANCES.containsKey(key)) {
+				return INSTANCES.get(key);
+			}
+			try {
+				stamp = LOCK.readLock();
+				LiteralReplacement replacement = null;
+				while (replacement == null) {
+					if (INSTANCES.containsKey(key)) {
+						replacement = INSTANCES.get(key);
+					} else {
+						long writeStamp = LOCK.tryConvertToWriteLock(stamp);
+						if (LOCK.validate(writeStamp)) {
+							replacement = new StringBasedLiteralReplacement(target, valueUsed);
+							stamp = writeStamp;
+							INSTANCES.put(key, replacement);
+						} else {
+							LOCK.unlockRead(stamp);
+							stamp = LOCK.writeLock();
+						}
+					}
+				}
+				return replacement;
+			} finally {
+				LOCK.unlock(stamp);
+			}
 		}
 
 		private final Target target;

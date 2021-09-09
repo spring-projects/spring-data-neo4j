@@ -17,11 +17,26 @@ package org.springframework.data.neo4j.repository.query;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.assertj.core.api.Assumptions.assumeThat;
+
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.IdentityHashMap;
+import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.repository.query.Neo4jSpelSupport.LiteralReplacement;
+import org.springframework.util.ReflectionUtils;
 
 /**
  * @author Michael J. Simons
@@ -65,16 +80,76 @@ class Neo4jSpelSupportTest {
 				.withMessageMatching(".+is not a valid order criteria.");
 	}
 
+	private Map<?, ?> getCacheInstance() throws ClassNotFoundException, IllegalAccessException {
+		Class<?> type = Class.forName(
+				"org.springframework.data.neo4j.repository.query.Neo4jSpelSupport$StringBasedLiteralReplacement");
+		Field cacheField = ReflectionUtils.findField(type, "INSTANCES");
+		cacheField.setAccessible(true);
+		return (Map<?, ?>) cacheField.get(null);
+	}
+
+	private void flushLiteralCache() {
+		try {
+			Map<?, ?> cache = getCacheInstance();
+			cache.clear();
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	private int getCacheSize() {
+		try {
+			Map<?, ?> cache = getCacheInstance();
+			return cache.size();
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
 	@Test // DATAGRAPH-1454
 	void cacheShouldWork() {
 
-		// Make sure we flush this before...
-		for (int i = 0; i < 16; ++i) {
-			LiteralReplacement literalReplacement = Neo4jSpelSupport.literal("y" + i);
-		}
+		flushLiteralCache();
 
 		LiteralReplacement literalReplacement1 = Neo4jSpelSupport.literal("x");
 		LiteralReplacement literalReplacement2 = Neo4jSpelSupport.literal("x");
 		assertThat(literalReplacement1).isSameAs(literalReplacement2);
+	}
+
+	@Test // GH-2375
+	void cacheShouldBeThreadSafe() throws ExecutionException, InterruptedException {
+
+		flushLiteralCache();
+
+		int numThreads = Runtime.getRuntime().availableProcessors();
+		ExecutorService executor = Executors.newWorkStealingPool();
+
+		AtomicBoolean running = new AtomicBoolean();
+		AtomicInteger overlaps = new AtomicInteger();
+
+		Collection<Callable<LiteralReplacement>> getReplacementCalls = new ArrayList<>();
+		for (int t = 0; t < numThreads; ++t) {
+			getReplacementCalls.add(() -> {
+				if (!running.compareAndSet(false, true)) {
+					overlaps.incrementAndGet();
+				}
+				Thread.sleep(100); // Make the chances of overlapping a bit bigger
+				LiteralReplacement d = Neo4jSpelSupport.literal("x");
+				running.compareAndSet(true, false);
+				return d;
+			});
+		}
+
+		Map<LiteralReplacement, Integer> replacements = new IdentityHashMap<>();
+		for (Future<LiteralReplacement> getDriverFuture : executor.invokeAll(getReplacementCalls)) {
+			replacements.put(getDriverFuture.get(), 1);
+		}
+		executor.shutdown();
+
+		// Assume things actually had been concurrent
+		assumeThat(overlaps.get()).isGreaterThan(0);
+
+		assertThat(getCacheSize()).isEqualTo(1);
+		assertThat(replacements).hasSize(1);
 	}
 }
