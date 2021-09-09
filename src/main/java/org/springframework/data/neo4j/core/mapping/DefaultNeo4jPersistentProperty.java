@@ -20,6 +20,7 @@ import java.util.function.Function;
 
 import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
+import org.springframework.data.annotation.ReadOnlyProperty;
 import org.springframework.data.mapping.Association;
 import org.springframework.data.mapping.MappingException;
 import org.springframework.data.mapping.PersistentEntity;
@@ -318,5 +319,12 @@ final class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProp
 			i += Character.charCount(codePoint);
 		}
 		return sb.toString();
+	}
+
+	@Override
+	public boolean isReadOnly() {
+
+		Class<org.springframework.data.neo4j.core.schema.Property> typeOfAnnotation = org.springframework.data.neo4j.core.schema.Property.class;
+		return isAnnotationPresent(ReadOnlyProperty.class) || (isAnnotationPresent(typeOfAnnotation) && getRequiredAnnotation(typeOfAnnotation).readOnly());
 	}
 }

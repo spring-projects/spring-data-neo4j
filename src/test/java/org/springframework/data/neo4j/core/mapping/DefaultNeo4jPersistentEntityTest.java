@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -29,6 +30,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.springframework.data.annotation.ReadOnlyProperty;
 import org.springframework.data.annotation.Transient;
 import org.springframework.data.mapping.AssociationHandler;
 import org.springframework.data.mapping.MappingException;
@@ -52,6 +54,36 @@ class DefaultNeo4jPersistentEntityTest {
 		Neo4jMappingContext neo4jMappingContext = new Neo4jMappingContext();
 		neo4jMappingContext.getPersistentEntity(CorrectEntity1.class);
 		neo4jMappingContext.getPersistentEntity(CorrectEntity2.class);
+	}
+
+	@Nested
+	class ReadOnlyProperties {
+
+		private final Neo4jMappingContext neo4jMappingContext;
+
+		ReadOnlyProperties() {
+
+			neo4jMappingContext = new Neo4jMappingContext();
+			neo4jMappingContext.setInitialEntitySet(Collections.singleton(WithAnnotatedProperties.class));
+		}
+
+		@ParameterizedTest // GH-2376
+		@ValueSource(strings = {"defaultProperty", "defaultAnnotatedProperty", "writableProperty"})
+		void propertiesShouldBeWritable(String propertyName) {
+
+			Neo4jPersistentProperty property = neo4jMappingContext.getPersistentEntity(WithAnnotatedProperties.class)
+					.getRequiredPersistentProperty(propertyName);
+			assertThat(property.isReadOnly()).isFalse();
+		}
+
+		@ParameterizedTest // GH-2376, GH-2294
+		@ValueSource(strings = {"readOnlyProperty", "usingSpringsAnnotation"})
+		void propertiesShouldBeReadOnly(String propertyName) {
+
+			Neo4jPersistentProperty property = neo4jMappingContext.getPersistentEntity(WithAnnotatedProperties.class)
+					.getRequiredPersistentProperty(propertyName);
+			assertThat(property.isReadOnly()).isTrue();
+		}
 	}
 
 	@Nested
@@ -676,4 +708,25 @@ class DefaultNeo4jPersistentEntityTest {
 		private List<EntityLooksLikeHasObserve> knows;
 	}
 
+	@Node
+	static class WithAnnotatedProperties {
+
+		@Id @GeneratedValue
+		private Long id;
+
+		private String defaultProperty;
+
+		@Property
+		private String defaultAnnotatedProperty;
+
+		@Property(readOnly = true)
+		private String readOnlyProperty;
+
+		@ReadOnlyProperty
+		private String usingSpringsAnnotation;
+
+		@SuppressWarnings("DefaultAnnotationParam")
+		@Property(readOnly = false)
+		private String writableProperty;
+	}
 }

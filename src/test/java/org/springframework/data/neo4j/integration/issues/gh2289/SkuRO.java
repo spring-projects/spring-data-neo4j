@@ -46,8 +46,7 @@ public class SkuRO {
 	@EqualsAndHashCode.Include
 	private Long number;
 
-	@ReadOnlyProperty
-	@Property("name")
+	@Property(value = "name", readOnly = true)
 	@EqualsAndHashCode.Include
 	private String name;
 

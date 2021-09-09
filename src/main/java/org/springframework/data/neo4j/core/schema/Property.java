@@ -49,4 +49,9 @@ public @interface Property {
 	 */
 	@AliasFor("value")
 	String name() default "";
+
+	/**
+	 * @return Set this attribute to {@literal true} to prevent writing any value of this property to the graph.
+	 */
+	boolean readOnly() default false;
 }

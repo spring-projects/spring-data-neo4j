@@ -44,7 +44,6 @@ import org.neo4j.driver.types.Type;
 import org.neo4j.driver.types.TypeSystem;
 import org.springframework.core.CollectionFactory;
 import org.springframework.core.KotlinDetector;
-import org.springframework.data.annotation.ReadOnlyProperty;
 import org.springframework.data.mapping.AssociationHandler;
 import org.springframework.data.mapping.MappingException;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
@@ -190,7 +189,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 		nodeDescription.doWithProperties((Neo4jPersistentProperty p) -> {
 
 			// Skip the internal properties, we don't want them to end up stored as properties
-			if (p.isInternalIdProperty() || p.isDynamicLabels() || p.isEntity() || p.isVersionProperty() || p.isAnnotationPresent(ReadOnlyProperty.class)) {
+			if (p.isInternalIdProperty() || p.isDynamicLabels() || p.isEntity() || p.isVersionProperty() || p.isReadOnly()) {
 				return;
 			}
 

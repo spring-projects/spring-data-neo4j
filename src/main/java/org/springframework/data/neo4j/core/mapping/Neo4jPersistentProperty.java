@@ -90,4 +90,11 @@ public interface Neo4jPersistentProperty extends PersistentProperty<Neo4jPersist
 		return Optional.of(compositeProperty.prefix()).map(String::trim).filter(s -> !s.isEmpty())
 				.orElseGet(this::getFieldName) + compositeProperty.delimiter();
 	}
+
+	/**
+	 * @return {@literal true} if this is a read only property.
+	 */
+	default boolean isReadOnly() {
+		return false;
+	}
 }
