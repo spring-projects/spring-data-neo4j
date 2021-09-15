@@ -56,6 +56,7 @@ import org.springframework.data.neo4j.core.Neo4jTemplate;
 import org.springframework.data.neo4j.core.convert.Neo4jConversions;
 import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
 import org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager;
+import org.springframework.data.neo4j.integration.shared.common.AllArgsCtorNoBuilder;
 import org.springframework.data.neo4j.integration.shared.common.ThingWithAllCypherTypes2;
 import org.springframework.data.neo4j.integration.shared.conversion.Neo4jConversionsITBase;
 import org.springframework.data.neo4j.integration.shared.conversion.ThingWithAllAdditionalTypes;
@@ -102,20 +103,20 @@ class TypeConversionIT extends Neo4jConversionsITBase {
 	}
 
 	@Test
-	void thereShallBeNoDefaultValuesForNonExistingAttributes() {
+	void thereShallBeNoDefaultValuesForNonExistingAttributes(@Autowired Neo4jTemplate template) {
 
 		Long id;
 		try (Session session = neo4jConnectionSupport.getDriver().session(bookmarkCapture.createSessionConfig())) {
 
-			id = session.writeTransaction(tx -> tx.run("CREATE (n:CypherTypes) RETURN id(n)").single().get(0).asLong());
+			id = session.writeTransaction(tx -> tx.run("CREATE (n:AllArgsCtorNoBuilder) RETURN id(n)").single().get(0).asLong());
 			bookmarkCapture.seedWith(session.lastBookmark());
 		}
 
 		assertThatExceptionOfType(MappingException.class)
-				.isThrownBy(() -> cypherTypesRepository.findById(id))
-				.withMessageMatching("Error mapping Record<\\{n: .*>")
-				.withStackTraceContaining("Illegal arguments for constructor")
-				.withRootCauseInstanceOf(IllegalArgumentException.class);
+				.isThrownBy(() -> template.findById(id, AllArgsCtorNoBuilder.class))
+				.withMessageMatching("Error mapping Record<\\{.+: .*>")
+				.withRootCauseInstanceOf(IllegalArgumentException.class)
+				.withStackTraceContaining("Parameter aBoolean must not be null!");
 	}
 
 	@TestFactory
