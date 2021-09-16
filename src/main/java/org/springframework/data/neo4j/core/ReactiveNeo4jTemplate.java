@@ -23,6 +23,8 @@ import org.neo4j.driver.Value;
 import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.neo4j.core.mapping.EntityFromDtoInstantiatingConverter;
 import org.springframework.data.neo4j.core.mapping.PropertyFilter;
+import org.springframework.data.mapping.Association;
+import org.springframework.data.neo4j.core.schema.TargetNode;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.util.function.Tuple2;
@@ -299,7 +301,7 @@ public final class ReactiveNeo4jTemplate implements
 	@Override
 	public <T> Mono<T> save(T instance) {
 
-		return saveImpl(instance, Collections.emptyList(), null);
+		return saveImpl(instance, Collections.emptyMap(), null);
 	}
 
 	@Override
@@ -316,7 +318,7 @@ public final class ReactiveNeo4jTemplate implements
 		}
 
 		ProjectionInformation projectionInformation = projectionFactory.getProjectionInformation(resultType);
-		Collection<PropertyPath> pps = PropertyFilterSupport.addPropertiesFrom(instance.getClass(), resultType,
+		Map<PropertyPath, Boolean> pps = PropertyFilterSupport.addPropertiesFrom(instance.getClass(), resultType,
 				projectionFactory, neo4jMappingContext);
 
 		Mono<T> savingPublisher = saveImpl(instance, pps, null);
@@ -342,7 +344,7 @@ public final class ReactiveNeo4jTemplate implements
 
 		Class<?> resultType = TemplateSupport.findCommonElementType(instances);
 
-		Collection<PropertyPath> pps = PropertyFilterSupport.addPropertiesFrom(domainType, resultType,
+		Map<PropertyPath, Boolean> pps = PropertyFilterSupport.addPropertiesFrom(domainType, resultType,
 				projectionFactory, neo4jMappingContext);
 
 		NestedRelationshipProcessingStateMachine stateMachine = new NestedRelationshipProcessingStateMachine(neo4jMappingContext);
@@ -356,7 +358,7 @@ public final class ReactiveNeo4jTemplate implements
 			});
 	}
 
-	private <T> Mono<T> saveImpl(T instance, @Nullable Collection<PropertyPath> includedProperties, @Nullable NestedRelationshipProcessingStateMachine stateMachine) {
+	private <T> Mono<T> saveImpl(T instance, @Nullable Map<PropertyPath, Boolean> includedProperties, @Nullable NestedRelationshipProcessingStateMachine stateMachine) {
 
 		if (stateMachine != null && stateMachine.hasProcessedValue(instance)) {
 			return Mono.just(instance);
@@ -442,7 +444,7 @@ public final class ReactiveNeo4jTemplate implements
 
 	@Override
 	public <T> Flux<T> saveAll(Iterable<T> instances) {
-		return saveAllImpl(instances, Collections.emptyList());
+		return saveAllImpl(instances, Collections.emptyMap());
 	}
 
 	@Override
@@ -457,7 +459,7 @@ public final class ReactiveNeo4jTemplate implements
 		}
 
 		ProjectionInformation projectionInformation = projectionFactory.getProjectionInformation(resultType);
-		List<PropertyPath> pps = PropertyFilterSupport.addPropertiesFrom(commonElementType, resultType,
+		Map<PropertyPath, Boolean> pps = PropertyFilterSupport.addPropertiesFrom(commonElementType, resultType,
 				projectionFactory, neo4jMappingContext);
 
 		Flux<T> savedInstances = saveAllImpl(instances, pps);
@@ -474,7 +476,7 @@ public final class ReactiveNeo4jTemplate implements
 		}).map(instance -> projectionFactory.createProjection(resultType, instance));
 	}
 
-	private <T> Flux<T> saveAllImpl(Iterable<T> instances, @Nullable List<PropertyPath> includedProperties) {
+	private <T> Flux<T> saveAllImpl(Iterable<T> instances, @Nullable Map<PropertyPath, Boolean> includedProperties) {
 
 		Set<Class<?>> types = new HashSet<>();
 		List<T> entities = new ArrayList<>();
@@ -641,6 +643,8 @@ public final class ReactiveNeo4jTemplate implements
 		 	QueryFragments queryFragments, Map<String, Object> parameters) {
 
 			return Mono.deferContextual(ctx -> {
+				Class<?> rootClass = entityMetaData.getUnderlyingClass();
+
 				Set<Long> rootNodeIds = ctx.get("rootNodes");
 				Set<Long> processedRelationshipIds = ctx.get("processedRelationships");
 				Set<Long> processedNodeIds = ctx.get("processedNodes");
@@ -665,7 +669,7 @@ public final class ReactiveNeo4jTemplate implements
 
 										return Tuples.of(newRelationshipIds, newRelatedNodeIds);
 									})
-									.expand(iterateAndMapNextLevel(relationshipDescription, queryFragments));
+									.expand(iterateAndMapNextLevel(relationshipDescription, queryFragments, rootClass, PropertyPathWalkStep.empty()));
 						})
 						.then(Mono.fromSupplier(() -> new NodesAndRelationshipsByIdStatementProvider(rootNodeIds, processedRelationshipIds, processedNodeIds, queryFragments)));
 			})
@@ -677,11 +681,26 @@ public final class ReactiveNeo4jTemplate implements
 	}
 
 	private Flux<Tuple2<Collection<Long>, Collection<Long>>> iterateNextLevel(Collection<Long> relatedNodeIds,
-																			  RelationshipDescription relationshipDescription, QueryFragments queryFragments) {
+			  RelationshipDescription sourceRelationshipDescription, QueryFragments queryFragments,
+			  Class<?> rootClass, PropertyPathWalkStep currentPathStep) {
 
-		NodeDescription<?> target = relationshipDescription.getTarget();
+		NodeDescription<?> target = sourceRelationshipDescription.getTarget();
 
-		return Flux.fromIterable(target.getRelationshipsInHierarchy(queryFragments::includeField))
+		@SuppressWarnings("unchecked")
+		String fieldName = ((Association<Neo4jPersistentProperty>) sourceRelationshipDescription).getInverse().getFieldName();
+
+		PropertyPathWalkStep nextPathStep = currentPathStep.with((sourceRelationshipDescription.hasRelationshipProperties() ?
+				fieldName + "." + ((Neo4jPersistentEntity<?>) sourceRelationshipDescription.getRelationshipPropertiesEntity())
+						.getPersistentProperty(TargetNode.class).getFieldName() : fieldName));
+
+		return Flux.fromIterable(target
+				.getRelationshipsInHierarchy(
+						relaxedPropertyPath -> {
+							PropertyFilter.RelaxedPropertyPath prepend = relaxedPropertyPath.prepend(nextPathStep.path);
+							prepend = PropertyFilter.RelaxedPropertyPath.withRootType(rootClass).append(prepend.toDotPath());
+							return queryFragments.includeField(prepend);
+						}
+				))
 			.flatMap(relDe -> {
 				Node node = anyNode(Constants.NAME_OF_ROOT_NODE);
 
@@ -701,7 +720,7 @@ public final class ReactiveNeo4jTemplate implements
 
 							return Tuples.of(newRelationshipIds, newRelatedNodeIds);
 						})
-						.expand(object -> iterateAndMapNextLevel(relDe, queryFragments).apply(object));
+						.expand(object -> iterateAndMapNextLevel(relDe, queryFragments, rootClass, nextPathStep).apply(object));
 			});
 
 	}
@@ -709,7 +728,7 @@ public final class ReactiveNeo4jTemplate implements
 	@NonNull
 	private Function<Tuple2<Collection<Long>, Collection<Long>>,
 			Publisher<Tuple2<Collection<Long>, Collection<Long>>>> iterateAndMapNextLevel(
-			RelationshipDescription relationshipDescription, QueryFragments queryFragments) {
+			RelationshipDescription relationshipDescription, QueryFragments queryFragments, Class<?> rootClass, PropertyPathWalkStep currentPathStep) {
 
 		return newRelationshipAndRelatedNodeIds -> {
 			return Flux.deferContextual(ctx -> {
@@ -732,7 +751,7 @@ public final class ReactiveNeo4jTemplate implements
 					return Mono.empty();
 				}
 
-				return iterateNextLevel(newRelatedNodeIds, relationshipDescription, queryFragments);
+				return iterateNextLevel(newRelatedNodeIds, relationshipDescription, queryFragments, rootClass, currentPathStep);
 			});
 		};
 	}

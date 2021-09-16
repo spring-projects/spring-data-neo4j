@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.apiguardian.api.API;
@@ -102,7 +103,7 @@ public final class QueryFragments {
 		this.skip = skip;
 	}
 
-	public void setReturnBasedOn(NodeDescription<?> nodeDescription, List<PropertyPath> includedProperties,
+	public void setReturnBasedOn(NodeDescription<?> nodeDescription, Map<PropertyPath, Boolean> includedProperties,
 			boolean isDistinct) {
 		this.returnTuple = new ReturnTuple(nodeDescription, includedProperties, isDistinct);
 	}
@@ -173,7 +174,7 @@ public final class QueryFragments {
 		final PropertyFilter filteredProperties;
 		final boolean isDistinct;
 
-		private ReturnTuple(NodeDescription<?> nodeDescription, List<PropertyPath> filteredProperties, boolean isDistinct) {
+		private ReturnTuple(NodeDescription<?> nodeDescription, Map<PropertyPath, Boolean> filteredProperties, boolean isDistinct) {
 			this.nodeDescription = nodeDescription;
 			this.filteredProperties = PropertyFilter.from(filteredProperties, nodeDescription);
 			this.isDistinct = isDistinct;

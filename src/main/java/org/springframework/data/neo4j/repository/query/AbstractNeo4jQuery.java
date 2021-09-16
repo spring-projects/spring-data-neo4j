@@ -17,6 +17,7 @@ package org.springframework.data.neo4j.repository.query;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.LongSupplier;
@@ -115,7 +116,7 @@ abstract class AbstractNeo4jQuery extends Neo4jQuerySupport implements Repositor
 		LongSupplier totalSupplier = () -> {
 
 			Supplier<PreparedQuery<Long>> defaultCountQuery = () -> prepareQuery(Long.class,
-					Collections.emptyList(), parameterAccessor, Neo4jQueryType.COUNT, null, UnaryOperator.identity());
+					Collections.emptyMap(), parameterAccessor, Neo4jQueryType.COUNT, null, UnaryOperator.identity());
 			PreparedQuery<Long> countQuery = getCountQuery(parameterAccessor).orElseGet(defaultCountQuery);
 
 			return neo4jOperations.toExecutableQuery(countQuery).getRequiredSingleResult();
@@ -135,7 +136,7 @@ abstract class AbstractNeo4jQuery extends Neo4jQuerySupport implements Repositor
 			);
 		} else {
 			PreparedQuery<Long> countQuery = getCountQuery(parameterAccessor)
-					.orElseGet(() -> prepareQuery(Long.class, Collections.emptyList(), parameterAccessor,
+					.orElseGet(() -> prepareQuery(Long.class, Collections.emptyMap(), parameterAccessor,
 							Neo4jQueryType.COUNT, null, UnaryOperator.identity()));
 			long total = neo4jOperations.toExecutableQuery(countQuery).getRequiredSingleResult();
 			return new SliceImpl<>(
@@ -147,7 +148,7 @@ abstract class AbstractNeo4jQuery extends Neo4jQuerySupport implements Repositor
 	}
 
 	protected abstract <T extends Object> PreparedQuery<T> prepareQuery(Class<T> returnedType,
-			List<PropertyPath> includedProperties, Neo4jParameterAccessor parameterAccessor,
+			Map<PropertyPath, Boolean> includedProperties, Neo4jParameterAccessor parameterAccessor,
 			@Nullable Neo4jQueryType queryType,
 			@Nullable BiFunction<TypeSystem, MapAccessor, ?> mappingFunction,
 			@Nullable UnaryOperator<Integer> limitModifier);

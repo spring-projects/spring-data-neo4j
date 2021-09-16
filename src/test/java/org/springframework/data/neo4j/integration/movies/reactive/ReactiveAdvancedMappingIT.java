@@ -48,6 +48,7 @@ import reactor.test.StepVerifier;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -123,6 +124,16 @@ class ReactiveAdvancedMappingIT {
 		}
 	}
 
+	interface MovieWithSequelProjection {
+		String getTitle();
+		MovieWithSequelProjection getSequel();
+	}
+
+	interface MovieWithSequelEntity {
+		String getTitle();
+		Movie getSequel();
+	}
+
 	interface MovieRepository extends ReactiveNeo4jRepository<Movie, String> {
 
 		Mono<MovieProjection> findProjectionByTitle(String title);
@@ -136,6 +147,10 @@ class ReactiveAdvancedMappingIT {
 
 		@Query("MATCH p=(movie:Movie)<-[r:ACTED_IN]-(n:Person) WHERE movie.title=$title RETURN collect(p)")
 		Flux<Movie> customPathQueryMoviesFind(@Param("title") String title);
+
+		Mono<MovieWithSequelProjection> findProjectionByTitleAndDescription(String title, String description);
+
+		Mono<MovieWithSequelEntity> findByTitleAndDescription(String title, String description);
 	}
 
 	@Test
@@ -408,6 +423,60 @@ class ReactiveAdvancedMappingIT {
 	void customPathMappingCollectionResultsInHydratedEntities(@Autowired MovieRepository movieRepository) {
 		StepVerifier.create(movieRepository.customPathQueryMoviesFind("The Matrix Revolutions"))
 				.assertNext(movie -> assertThat(movie.getActors()).hasSize(5))
+				.verifyComplete();
+	}
+
+	@Test // GH-2117 updated for GH-2320
+	void cyclicRelationshipsShouldHydrateCorrectlyProjectionsWithProjections(@Autowired MovieRepository movieRepository) {
+
+		// The movie domain is a good fit for this test
+		// as the cyclic dependencies is pretty slow to retrieve from Neo4j
+		// this does OOM in most setups.
+		StepVerifier.create(movieRepository.findProjectionWithProjectionByTitle("The Matrix"))
+				.assertNext(projection -> {
+					assertThat(projection.getTitle()).isNotNull();
+					assertThat(projection.getActors()).extracting("person").extracting("name")
+							.containsExactlyInAnyOrder("Gloria Foster", "Keanu Reeves", "Emil Eifrem", "Laurence Fishburne",
+									"Carrie-Anne Moss", "Hugo Weaving");
+					assertThat(projection.getActors()).flatExtracting("roles")
+							.containsExactlyInAnyOrder("The Oracle", "Morpheus", "Trinity", "Agent Smith", "Emil", "Neo");
+
+					// second level mapping of entity cycle
+					assertThat(projection.getActors()).extracting("person")
+							.allMatch(person ->
+									!((MovieProjectionWithActorProjection.ActorProjection.PersonProjection) person).getActedIn().isEmpty());
+
+					// n+1 level mapping of entity cycle
+					assertThat(projection.getActors()).extracting("person").flatExtracting("actedIn").extracting("directors")
+							.allMatch(directors -> !((Collection<?>) directors).isEmpty());
+				})
+				.verifyComplete();
+	}
+
+	@Test // GH-2320
+	void projectDirectCycleProjectionReference(@Autowired MovieRepository movieRepository) {
+		StepVerifier.create(movieRepository.findProjectionByTitleAndDescription("The Matrix",
+				"Welcome to the Real World"))
+				.assertNext(movie -> {
+					assertThat(movie.getSequel().getTitle()).isEqualTo("The Matrix Reloaded");
+					assertThat(movie.getSequel().getSequel().getTitle()).isEqualTo("The Matrix Revolutions");
+				})
+				.verifyComplete();
+	}
+
+	@Test // GH-2320
+	void projectDirectCycleEntityReference(@Autowired MovieRepository movieRepository) {
+		StepVerifier.create(movieRepository.findByTitleAndDescription("The Matrix", "Welcome to the Real World"))
+				.assertNext(movie -> {
+
+					Movie firstSequel = movie.getSequel();
+					assertThat(firstSequel.getTitle()).isEqualTo("The Matrix Reloaded");
+					assertThat(firstSequel.getActors()).isNotEmpty();
+
+					Movie secondSequel = firstSequel.getSequel();
+					assertThat(secondSequel.getTitle()).isEqualTo("The Matrix Revolutions");
+					assertThat(secondSequel.getActors()).isNotEmpty();
+				})
 				.verifyComplete();
 	}
 
