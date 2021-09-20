@@ -18,18 +18,14 @@ package org.springframework.data.neo4j.core;
 import org.apiguardian.api.API;
 import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
-import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
-import org.springframework.data.neo4j.core.mapping.Neo4jPersistentProperty;
 import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.projection.ProjectionInformation;
 import org.springframework.data.repository.query.ResultProcessor;
 import org.springframework.data.repository.query.ReturnedType;
 
 import java.beans.PropertyDescriptor;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 
 /**
@@ -95,7 +91,7 @@ public final class PropertyFilterSupport {
 		if (mappingContext.getConversionService().isSimpleType(propertyType)) {
 			filteredProperties.put(propertyPath, false);
 		} else if (mappingContext.hasPersistentEntityFor(propertyType)) {
-			addPropertiesFromEntity(filteredProperties, propertyPath, propertyType, mappingContext, new HashSet<>());
+			filteredProperties.put(propertyPath, true);
 		} else {
 			ProjectionInformation nestedProjectionInformation = factory.getProjectionInformation(propertyType);
 			// Closed projection should get handled as above (recursion)
@@ -112,46 +108,12 @@ public final class PropertyFilterSupport {
 							nestedPropertyPath.toDotPath(), mappingContext);
 				}
 			} else {
-				// an open projection at this place needs to get replaced with the matching (real) entity
-				filteredProperties.put(propertyPath, true);
-				processEntity(domainType, filteredProperties, inputProperty, mappingContext);
+				// An open projection at this place needs to get replaced with the matching (real) entity
+				// Use domain type as root type for the property path
+				PropertyPath domainBasedPropertyPath = PropertyPath.from(inputProperty, domainType);
+				filteredProperties.put(domainBasedPropertyPath, true);
 			}
 		}
 	}
 
-	private static void processEntity(Class<?> domainType, Map<PropertyPath, Boolean> filteredProperties,
-									  String inputProperty, Neo4jMappingContext mappingContext) {
-
-		Neo4jPersistentEntity<?> persistentEntity = mappingContext.getPersistentEntity(domainType);
-		Neo4jPersistentProperty persistentProperty = persistentEntity.getPersistentProperty(inputProperty);
-		Class<?> propertyEntityType = persistentProperty.getActualType();
-
-		// Use domain type as root type for the property path
-		PropertyPath propertyPath = PropertyPath.from(inputProperty, domainType);
-		addPropertiesFromEntity(filteredProperties, propertyPath, propertyEntityType, mappingContext, new HashSet<>());
-	}
-
-	private static void addPropertiesFromEntity(Map<PropertyPath, Boolean> filteredProperties, PropertyPath propertyPath,
-												Class<?> propertyType, Neo4jMappingContext mappingContext,
-												Collection<Neo4jPersistentEntity<?>> processedEntities) {
-
-		if (!mappingContext.hasPersistentEntityFor(propertyType)) {
-			throw new RuntimeException("hmmmm");
-		}
-
-		Neo4jPersistentEntity<?> persistentEntityFromProperty = mappingContext.getPersistentEntity(propertyType);
-		// break the recursion / cycles
-		if (hasProcessedEntity(persistentEntityFromProperty, processedEntities)) {
-			return;
-		}
-
-		filteredProperties.put(propertyPath, true);
-
-	}
-
-	private static boolean hasProcessedEntity(Neo4jPersistentEntity<?> persistentEntityFromProperty,
-											  Collection<Neo4jPersistentEntity<?>> processedEntities) {
-
-		return processedEntities.contains(persistentEntityFromProperty);
-	}
 }
