@@ -18,6 +18,7 @@ package org.springframework.data.neo4j.integration.conversion_imperative;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
+import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -57,13 +58,13 @@ import org.springframework.data.neo4j.core.convert.Neo4jConversions;
 import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
 import org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager;
 import org.springframework.data.neo4j.integration.shared.common.AllArgsCtorNoBuilder;
+import org.springframework.data.neo4j.integration.shared.common.ThingWithAllCypherTypes;
 import org.springframework.data.neo4j.integration.shared.common.ThingWithAllCypherTypes2;
+import org.springframework.data.neo4j.integration.shared.common.ThingWithAllSpatialTypes;
+import org.springframework.data.neo4j.integration.shared.common.ThingWithUUIDID;
 import org.springframework.data.neo4j.integration.shared.conversion.Neo4jConversionsITBase;
 import org.springframework.data.neo4j.integration.shared.conversion.ThingWithAllAdditionalTypes;
-import org.springframework.data.neo4j.integration.shared.common.ThingWithAllCypherTypes;
-import org.springframework.data.neo4j.integration.shared.common.ThingWithAllSpatialTypes;
 import org.springframework.data.neo4j.integration.shared.conversion.ThingWithCustomTypes;
-import org.springframework.data.neo4j.integration.shared.common.ThingWithUUIDID;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.data.neo4j.test.BookmarkCapture;
@@ -160,8 +161,17 @@ class TypeConversionIT extends Neo4jConversionsITBase {
 
 			DynamicContainer reads = DynamicContainer.dynamicContainer("read",
 					entry.getValue().entrySet().stream().map(a -> DynamicTest.dynamicTest(a.getKey(),
-							() -> assertThat(ReflectionTestUtils.getField(thing, a.getKey()))
-									.isEqualTo(a.getValue()))));
+							() -> {
+								Object actual = ReflectionTestUtils.getField(thing, a.getKey());
+								Object expected = a.getValue();
+								if (actual instanceof URL && expected instanceof URL) {
+									// The host has been chosen to avoid interaction with the URLStreamHandler
+									// Should be enough for our comparision.
+									actual = ((URL) actual).getHost();
+									expected = ((URL) expected).getHost();
+								}
+								assertThat(actual).isEqualTo(expected);
+							})));
 
 			DynamicContainer writes = DynamicContainer.dynamicContainer("write", entry.getValue().keySet().stream()
 					.map(o -> DynamicTest
