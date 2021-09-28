@@ -598,23 +598,17 @@ public class MoviesIntegrationTests {
 				Optional<TempMovie> tempMovieOptional = tempMovieRepository.findById(movie.getId());
 
 				assertThat(tempMovieOptional.isPresent()).isTrue();
-				tempMovieOptional.ifPresent(actual -> {
-					assertThat(actual.getName()).isEqualTo(movie.getName());
-				});
+				tempMovieOptional.ifPresent(actual -> assertThat(actual.getName()).isEqualTo(movie.getName()));
 
 				Optional<User> userOptional = userRepository.findById(user.getId());
 
 				assertThat(userOptional.isPresent()).isTrue();
-				userOptional.ifPresent(actual -> {
-					assertThat(actual.getName()).isEqualTo(user.getName());
-				});
+				userOptional.ifPresent(actual -> assertThat(actual.getName()).isEqualTo(user.getName()));
 
 				Optional<Rating> ratingOptional = ratingRepository.findById(user.getRatings().iterator().next().getId());
 
 				assertThat(ratingOptional.isPresent()).isTrue();
-				ratingOptional.ifPresent(actual -> {
-					assertThat(actual.getStars()).isEqualTo(5);
-				});
+				ratingOptional.ifPresent(actual -> assertThat(actual.getStars()).isEqualTo(5));
 
 				assertThat(tempMovieRepository.findById(user.getId()).isPresent())
 						.isFalse();
@@ -671,6 +665,14 @@ public class MoviesIntegrationTests {
 
 		List<User> foundUser = userRepository.findByEmailAddressesNotContaining(KNOWN_MAIL_ADDRESS_1);
 		assertThat(foundUser.isEmpty()).isTrue();
+	}
+
+	@Test
+	public void findUserByContainingValue() {
+		createUserForContainsTest();
+
+		List<User> foundUser = userRepository.findByNameContaining("body");
+		assertThat(foundUser).hasSize(1);
 	}
 
 	@Test // DATAGRAPH-1407

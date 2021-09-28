@@ -166,6 +166,8 @@ public interface UserRepository extends PersonRepository<User, Long> {
 
 	List<User> findByEmailAddressesNotContaining(String email);
 
+	List<User> findByNameContaining(String name);
+
 	@Query("MATCH (user:User) WHERE user.name=$0 RETURN user")
 	Optional<User> findOptionalUserWithCustomQuery(String userName);
 

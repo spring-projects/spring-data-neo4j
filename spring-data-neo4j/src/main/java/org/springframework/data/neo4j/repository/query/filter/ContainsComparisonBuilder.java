@@ -15,13 +15,17 @@
  */
 package org.springframework.data.neo4j.repository.query.filter;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Stack;
 
 import org.neo4j.ogm.cypher.BooleanOperator;
+import org.neo4j.ogm.cypher.ComparisonOperator;
 import org.neo4j.ogm.cypher.Filter;
 import org.neo4j.ogm.cypher.function.ContainsAnyComparison;
+import org.neo4j.ogm.cypher.function.FilterFunction;
+import org.neo4j.ogm.cypher.function.PropertyComparison;
 import org.springframework.data.repository.query.parser.Part;
 
 /**
@@ -41,10 +45,18 @@ class ContainsComparisonBuilder extends FilterBuilder {
 
 		NestedAttributes nestedAttributes = getNestedAttributes(part);
 
-		final Object containingValue = params.pop();
-		Filter containingFilter = new Filter(
-				nestedAttributes.isEmpty() ? propertyName() : nestedAttributes.getLeafPropertySegment(),
-				new ContainsAnyComparison(containingValue));
+		Object valueToBeContained = params.pop();
+		Filter containingFilter;
+		if (Collection.class.isAssignableFrom(part.getProperty().getTypeInformation().getType())) {
+			if(!(valueToBeContained instanceof Collection)) {
+				valueToBeContained = Collections.singletonList(valueToBeContained);
+			}
+			FilterFunction<Object> comparison = new ContainsAnyComparison(valueToBeContained);
+			containingFilter = new Filter(nestedAttributes.isEmpty() ? propertyName() : nestedAttributes.getLeafPropertySegment(), comparison);
+		} else {
+			containingFilter = new Filter(nestedAttributes.isEmpty() ? propertyName() : nestedAttributes.getLeafPropertySegment(), ComparisonOperator.CONTAINING, valueToBeContained);
+		}
+
 		containingFilter.setOwnerEntityType(entityType);
 		containingFilter.setBooleanOperator(booleanOperator);
 		containingFilter.setNegated(isNegated());

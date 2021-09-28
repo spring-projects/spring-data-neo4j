@@ -27,7 +27,7 @@ import org.springframework.data.repository.query.Param;
  */
 public interface MyNodeRepository extends Repository<MyNode, Long> {
 
-	@Query("CALL test.generateListOfNodes({empty})")
+	@Query("CALL test.generateListOfNodes($empty)")
 	List<ResultHolder> generateListOfNodes(@Param("empty") boolean empty);
 
 	Optional<MyNode> findOneByName(String name);
