@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Session;
@@ -77,6 +78,27 @@ class GH2323IT {
 			assertThat(knows.getDescription()).isEqualTo("Some description");
 			assertThat(knows.getLanguage()).extracting(Language::getName).isEqualTo("German");
 		});
+	}
+
+	@RepeatedTest(20) // GH-2386
+	void dontMixRelatedNodes(@Autowired PersonRepository repository, @Autowired BookmarkCapture bookmarkCapture) {
+		String id;
+		try (Session session = neo4jConnectionSupport.getDriver().session(bookmarkCapture.createSessionConfig());
+			 Transaction transaction = session.beginTransaction();
+		) {
+			id = transaction.run("CREATE (n:Person {id:randomUUID(), name: 'Gerrit'})-[:KNOWS]->(:Language{name:'English'}) return n.id").single().get(0).asString();
+			transaction.run("MATCH (n:Person {name: 'Gerrit'}) MERGE (n)-[:MOTHER_TONGUE_IS]->(:Language{name:'German'})").consume();
+			transaction.commit();
+			bookmarkCapture.seedWith(session.lastBookmark());
+
+			Person gerrit = repository.findById(id).get();
+			List<Knows> knownLanguages = gerrit.getKnownLanguages();
+			assertThat(knownLanguages).hasSize(1);
+			assertThat(knownLanguages.get(0).getLanguage().getName()).isEqualTo("English");
+			KnowsMtEntity motherTongue = gerrit.getMotherTongue();
+			assertThat(motherTongue).isNotNull();
+			assertThat(motherTongue.getLanguage().getName()).isEqualTo("German");
+		}
 	}
 
 	@Repository

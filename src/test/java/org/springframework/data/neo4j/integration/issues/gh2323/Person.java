@@ -21,6 +21,7 @@ import java.util.List;
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
+import org.springframework.data.neo4j.core.schema.Property;
 import org.springframework.data.neo4j.core.schema.Relationship;
 
 /**
@@ -51,5 +52,13 @@ public class Person {
 
 	public List<Knows> getKnownLanguages() {
 		return knownLanguages;
+	}
+
+	@Relationship(type = "MOTHER_TONGUE_IS", direction = Relationship.Direction.OUTGOING)
+	@Property("motherTongue")
+	private KnowsMtEntity motherTongue;
+
+	public KnowsMtEntity getMotherTongue() {
+		return motherTongue;
 	}
 }
