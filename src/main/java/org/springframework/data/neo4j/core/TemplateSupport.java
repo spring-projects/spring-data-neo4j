@@ -181,7 +181,6 @@ public final class TemplateSupport {
 		}
 
 		Statement toStatement() {
-
 			String rootNodeIds = "rootNodeIds";
 			String relationshipIds = "relationshipIds";
 			String relatedNodeIds = "relatedNodeIds";
@@ -190,14 +189,20 @@ public final class TemplateSupport {
 			Relationship relationships = Cypher.anyNode().relationshipBetween(Cypher.anyNode()).named(relationshipIds);
 			return Cypher.match(rootNodes)
 					.where(Functions.id(rootNodes).in(Cypher.parameter(rootNodeIds)))
+					.with(Functions.collect(rootNodes).as("n"))
 					.optionalMatch(relationships)
 					.where(Functions.id(relationships).in(Cypher.parameter(relationshipIds)))
+					.with(Constants.NAME_OF_ROOT_NODE, Functions.collectDistinct(relationships).as(Constants.NAME_OF_SYNTHESIZED_RELATIONS).asExpression())
 					.optionalMatch(relatedNodes)
 					.where(Functions.id(relatedNodes).in(Cypher.parameter(relatedNodeIds)))
-					.with(
-							rootNodes.as(Constants.NAME_OF_ROOT_NODE.getValue()),
-							Functions.collectDistinct(relationships).as(Constants.NAME_OF_SYNTHESIZED_RELATIONS),
-							Functions.collectDistinct(relatedNodes).as(Constants.NAME_OF_SYNTHESIZED_RELATED_NODES))
+					.with(Constants.NAME_OF_ROOT_NODE,
+							Cypher.name(Constants.NAME_OF_SYNTHESIZED_RELATIONS).as(Constants.NAME_OF_SYNTHESIZED_RELATIONS),
+							Functions.collectDistinct(relatedNodes).as(Constants.NAME_OF_SYNTHESIZED_RELATED_NODES).asExpression()
+					)
+					.unwind(Constants.NAME_OF_ROOT_NODE).as(rootNodeIds)
+					.with(Cypher.name(rootNodeIds).as(Constants.NAME_OF_ROOT_NODE).asExpression(),
+							Cypher.name(Constants.NAME_OF_SYNTHESIZED_RELATIONS),
+							Cypher.name(Constants.NAME_OF_SYNTHESIZED_RELATED_NODES))
 					.orderBy(queryFragments.getOrderBy())
 					.returning(
 							Constants.NAME_OF_ROOT_NODE.as(Constants.NAME_OF_SYNTHESIZED_ROOT_NODE),
