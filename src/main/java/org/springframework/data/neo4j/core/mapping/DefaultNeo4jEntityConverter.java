@@ -645,7 +645,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 		Collection<Node> allNodesInResult = new ArrayList<>();
 		StreamSupport.stream(allValues.values().spliterator(), false)
 				.filter(MappingSupport.isListContainingOnly(listType, this.nodeType))
-				.flatMap(entry -> MappingSupport.extractNodes(listType, entry).stream())
+				.flatMap(entry -> MappingSupport.extractNodesFromCollection(listType, entry).stream())
 				.forEach(allNodesInResult::add);
 
 		if (allNodesInResult.isEmpty()) {
@@ -670,7 +670,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 		Collection<Relationship> allRelationshipsInResult = new ArrayList<>();
 		StreamSupport.stream(allValues.values().spliterator(), false)
 				.filter(MappingSupport.isListContainingOnly(listType, this.relationshipType))
-				.flatMap(entry -> MappingSupport.extractRelationships(listType, entry).stream())
+				.flatMap(entry -> MappingSupport.extractRelationshipsFromCollection(listType, entry).stream())
 				.forEach(allRelationshipsInResult::add);
 
 		if (allRelationshipsInResult.isEmpty()) {

@@ -109,36 +109,38 @@ public final class MappingSupport {
 		return isList.and(containsOnlyRequiredType);
 	}
 
-	static Collection<Relationship> extractRelationships(Type collectionType, Value entry) {
+	static Collection<Relationship> extractRelationshipsFromCollection(Type collectionType, Value entry) {
 
 		Collection<Relationship> relationships = new HashSet<>();
-
-		for (Value listEntry : entry.values()) {
-			if (listEntry.hasType(collectionType)) {
-				for (Value listInListEntry : entry.asList(Function.identity())) {
-					relationships.addAll(extractRelationships(collectionType, listInListEntry));
+		if (entry.hasType(collectionType)) {
+			for (Value listWithRelationshipsOrRelationship : entry.values()) {
+				if (listWithRelationshipsOrRelationship.hasType(collectionType)) {
+					relationships.addAll(listWithRelationshipsOrRelationship.asList(Value::asRelationship));
+				} else {
+					relationships.add(listWithRelationshipsOrRelationship.asRelationship());
 				}
-			} else {
-				relationships.add(listEntry.asRelationship());
 			}
+		} else {
+			relationships.add(entry.asRelationship());
 		}
 		return relationships;
 	}
 
-	static Collection<Node> extractNodes(Type collectionType, Value entry) {
+	static Collection<Node> extractNodesFromCollection(Type collectionType, Value entry) {
 
 		// There can be multiple relationships leading to the same node.
-		// Thus we need a collection implementation that supports duplicates.
+		// Thus, we need a collection implementation that supports duplicates.
 		Collection<Node> nodes = new ArrayList<>();
-
-		for (Value listEntry : entry.values()) {
-			if (listEntry.hasType(collectionType)) {
-				for (Value listInListEntry : entry.asList(Function.identity())) {
-					nodes.addAll(extractNodes(collectionType, listInListEntry));
+		if (entry.hasType(collectionType)) {
+			for (Value listWithNodesOrNode : entry.values()) {
+				if (listWithNodesOrNode.hasType(collectionType)) {
+					nodes.addAll(listWithNodesOrNode.asList(Value::asNode));
+				} else {
+					nodes.add(listWithNodesOrNode.asNode());
 				}
-			} else {
-				nodes.add(listEntry.asNode());
 			}
+		} else {
+			nodes.add(entry.asNode());
 		}
 		return nodes;
 	}
