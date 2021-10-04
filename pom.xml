@@ -111,6 +111,7 @@
 		<reactive-streams.version>1.2.1</reactive-streams.version>
 		<skipArchitectureTests>${skipTests}</skipArchitectureTests>
 		<skipIntegrationTests>${skipTests}</skipIntegrationTests>
+		<checkstyle.skip>${skipTests}</checkstyle.skip>
 
 		<skipUnitTests>${skipTests}</skipUnitTests>
 		<springdata.commons>2.6.0-SNAPSHOT</springdata.commons>
@@ -502,7 +503,6 @@
 					<consoleOutput>true</consoleOutput>
 					<failsOnError>true</failsOnError>
 					<includeTestSourceDirectory>true</includeTestSourceDirectory>
-					<skip>${skipArchitectureTests}</skip>
 				</configuration>
 			</plugin>
 			<plugin>
