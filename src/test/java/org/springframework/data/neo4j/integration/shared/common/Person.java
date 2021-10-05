@@ -30,6 +30,8 @@ public class Person {
 	private String firstName;
 	private String lastName;
 
+	private int primitiveValue; // never used but always null
+
 	@Relationship("LIVES_AT") private Address address;
 
 	/**

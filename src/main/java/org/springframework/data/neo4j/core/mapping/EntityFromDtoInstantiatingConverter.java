@@ -26,6 +26,7 @@ import org.springframework.data.mapping.PreferredConstructor.Parameter;
 import org.springframework.data.mapping.SimplePropertyHandler;
 import org.springframework.data.mapping.model.ParameterValueProvider;
 import org.springframework.data.util.ClassTypeInformation;
+import org.springframework.data.util.ReflectionUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
@@ -102,11 +103,17 @@ public final class EntityFromDtoInstantiatingConverter<T> implements Converter<O
 			PersistentPropertyAccessor<?> sourceAccessor) {
 
 		String targetPropertyName = targetProperty.getName();
+		Class<?> targetPropertyType = targetProperty.getType();
 		PersistentProperty<?> sourceProperty = sourceEntity.getPersistentProperty(targetPropertyName);
+		Object propertyValue = null;
 		if (sourceProperty != null) {
-			return sourceAccessor.getProperty(sourceProperty);
+			propertyValue = sourceAccessor.getProperty(sourceProperty);
 		}
 
-		return null;
+		if (propertyValue == null && targetPropertyType.isPrimitive()) {
+			return ReflectionUtils.getPrimitiveDefault(targetPropertyType);
+		}
+
+		return propertyValue;
 	}
 }
