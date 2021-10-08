@@ -3952,36 +3952,6 @@ class RepositoryIT {
 			assertThat(((Inheritance.ExtendingBaseClassWithRelationshipProperties) all.get(0)).getThings())
 					.containsExactlyInAnyOrder(relCcA, relCcB1);
 		}
-
-//		@Test
-//		void asdf(@Autowired ConcreteEntityRepository repository) {
-//			Inheritance.ConcreteEntity entity = new Inheritance.ConcreteEntity();
-//			Inheritance.ConcreteEntity anotherEntity = new Inheritance.ConcreteEntity();
-//			Inheritance.ConcreteEntity bnotherEntity = new Inheritance.ConcreteEntity();
-//			Inheritance.ConcreteEntity cnotherEntity = new Inheritance.ConcreteEntity();
-//			entity.id = "1";
-//			anotherEntity.id = "2";
-//			bnotherEntity.id = "3";
-//			cnotherEntity.id = "4";
-//
-//			Inheritance.ARelationship a = new Inheritance.ARelationship();
-//			Inheritance.BRelationship b = new Inheritance.BRelationship();
-//			Inheritance.CRelationship c = new Inheritance.CRelationship();
-//			a.target = anotherEntity;
-//			b.target = bnotherEntity;
-//			c.target = cnotherEntity;
-//
-//			entity.as = Collections.singleton(a);
-//			entity.bs = Collections.singleton(b);
-//			entity.cs = Collections.singleton(c);
-//			repository.save(entity);
-//
-//			Inheritance.ConcreteEntity loadedThing = repository.findOneById("1");
-//			assertThat(loadedThing).isNotNull();
-//			assertThat(loadedThing.as).hasSize(1);
-//			assertThat(loadedThing.bs).hasSize(1);
-//			assertThat(loadedThing.cs).hasSize(1);
-//		}
 	}
 
 	@Nested

@@ -924,4 +924,5 @@ public class Inheritance {
 		}
 	}
 
+
 }
