@@ -15,6 +15,7 @@
  */
 package org.springframework.data.neo4j.core.mapping;
 
+import java.lang.reflect.Field;
 import java.util.Optional;
 import java.util.function.Function;
 
@@ -24,7 +25,6 @@ import org.springframework.data.annotation.ReadOnlyProperty;
 import org.springframework.data.mapping.Association;
 import org.springframework.data.mapping.MappingException;
 import org.springframework.data.mapping.PersistentEntity;
-import org.springframework.data.mapping.PersistentProperty;
 import org.springframework.data.mapping.model.AnnotationBasedPersistentProperty;
 import org.springframework.data.mapping.model.Property;
 import org.springframework.data.mapping.model.SimpleTypeHolder;
@@ -36,6 +36,7 @@ import org.springframework.data.neo4j.core.schema.RelationshipProperties;
 import org.springframework.data.neo4j.core.schema.TargetNode;
 import org.springframework.data.util.ClassTypeInformation;
 import org.springframework.data.util.Lazy;
+import org.springframework.data.util.ReflectionUtils;
 import org.springframework.data.util.TypeInformation;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
@@ -115,9 +116,9 @@ final class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProp
 		Neo4jPersistentEntity<?> relationshipPropertiesClass = null;
 
 		if (this.hasActualTypeAnnotation(RelationshipProperties.class)) {
-			TypeInformation<?> type = getRelationshipPropertiesTargetType(getActualType());
-			obverseOwner = this.mappingContext.getPersistentEntity(type);
-			relationshipPropertiesClass = this.mappingContext.getPersistentEntity(getActualType());
+			Class<?> type = getRelationshipPropertiesTargetType(getActualType());
+			obverseOwner = this.mappingContext.addPersistentEntity(ClassTypeInformation.from(type)).get();
+			relationshipPropertiesClass = this.mappingContext.addPersistentEntity(ClassTypeInformation.from(getActualType())).get();
 		} else {
 			Class<?> associationTargetType = this.getAssociationTargetType();
 			obverseOwner = this.mappingContext.addPersistentEntity(ClassTypeInformation.from(associationTargetType)).orElse(null);
@@ -134,13 +135,13 @@ final class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProp
 						mapValueType.getType().isAnnotationPresent(RelationshipProperties.class);
 
 				if (relationshipPropertiesCollection) {
-					TypeInformation<?> type = getRelationshipPropertiesTargetType(mapValueType.getActualType().getType());
-					obverseOwner = this.mappingContext.getPersistentEntity(type);
+					Class<?> type = getRelationshipPropertiesTargetType(mapValueType.getActualType().getType());
+					obverseOwner = this.mappingContext.addPersistentEntity(ClassTypeInformation.from(type)).get();
 					relationshipPropertiesClass = this.mappingContext
-							.getPersistentEntity(mapValueType.getComponentType().getType());
+							.addPersistentEntity(mapValueType.getComponentType()).get();
 
 				} else if (relationshipPropertiesScalar) {
-					relationshipPropertiesClass = this.mappingContext.getPersistentEntity(mapValueType.getType());
+					relationshipPropertiesClass = this.mappingContext.addPersistentEntity(mapValueType.getComponentType()).get();
 				}
 			}
 		}
@@ -177,12 +178,16 @@ final class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProp
 	}
 
 	@NonNull
-	private TypeInformation<?> getRelationshipPropertiesTargetType(Class<?> relationshipPropertiesType) {
-		return this.mappingContext.addPersistentEntity(ClassTypeInformation.from(relationshipPropertiesType))
-				.map(entity -> entity.getPersistentProperty(TargetNode.class))
-				.map(PersistentProperty::getTypeInformation)
-				.orElseThrow(
-						() -> new MappingException("Missing @TargetNode declaration in " + relationshipPropertiesType));
+	private Class<?> getRelationshipPropertiesTargetType(Class<?> relationshipPropertiesType) {
+
+		Field targetNodeField = ReflectionUtils.findField(relationshipPropertiesType,
+				field -> field.isAnnotationPresent(TargetNode.class));
+
+		if (targetNodeField == null) {
+			throw new MappingException("Missing @TargetNode declaration in " + relationshipPropertiesType);
+		}
+		ClassTypeInformation<?> relationshipPropertiesTypeInformation = ClassTypeInformation.from(relationshipPropertiesType);
+		return relationshipPropertiesTypeInformation.getProperty(targetNodeField.getName()).getType();
 	}
 
 	@Override

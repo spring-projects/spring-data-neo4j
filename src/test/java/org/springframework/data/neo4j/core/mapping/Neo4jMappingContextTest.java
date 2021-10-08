@@ -87,7 +87,7 @@ class Neo4jMappingContextTest {
 								Arrays.asList(IrrelevantSourceContainer.class, InvalidRelationshipPropertyContainer.class,
 										IrrelevantTargetContainer.class)));
 						schema.initialize();
-					}).withMessage("The target class `org.springframework.data.neo4j.core.mapping.Neo4jMappingContextTest$InvalidRelationshipPropertyContainer` for the properties of the relationship `RELATIONSHIP_PROPERTY_CONTAINER` is missing a property for the generated, internal ID (`@Id @GeneratedValue Long id`) which is needed for safely updating properties.");
+					}).withMessage("The class `org.springframework.data.neo4j.core.mapping.Neo4jMappingContextTest$InvalidRelationshipPropertyContainer` for the properties of a relationship is missing a property for the generated, internal ID (`@Id @GeneratedValue Long id`) which is needed for safely updating properties.");
 		}
 
 		@Test // GH-2214
@@ -99,7 +99,7 @@ class Neo4jMappingContextTest {
 						Arrays.asList(IrrelevantSourceContainer3.class, InvalidRelationshipPropertyContainer2.class,
 								IrrelevantTargetContainer.class)));
 				schema.initialize();
-			}).withMessage("The target class `org.springframework.data.neo4j.core.mapping.Neo4jMappingContextTest$InvalidRelationshipPropertyContainer2` for the properties of the relationship `RELATIONSHIP_PROPERTY_CONTAINER` is missing a property for the generated, internal ID (`@Id @GeneratedValue Long id`) which is needed for safely updating properties.");
+			}).withMessage("The class `org.springframework.data.neo4j.core.mapping.Neo4jMappingContextTest$InvalidRelationshipPropertyContainer2` for the properties of a relationship is missing a property for the generated, internal ID (`@Id @GeneratedValue Long id`) which is needed for safely updating properties.");
 		}
 
 		@Test // GH-2118
@@ -523,6 +523,14 @@ class Neo4jMappingContextTest {
 		assertThat(schema.hasPersistentEntityFor(ThingWithCustomTypes.CustomType.class)).isFalse();
 	}
 
+	@Test
+	void dontFailOnCyclicRelationshipProperties() { // GH-2398
+		Neo4jMappingContext context = new Neo4jMappingContext();
+		Neo4jPersistentEntity<?> persistentEntity = context.getPersistentEntity(ARelationship.class);
+		assertThat(persistentEntity.isRelationshipPropertiesEntity()).isTrue();
+		assertThat(persistentEntity.getGraphProperties()).hasSize(3);
+	}
+
 	static class DummyIdGenerator implements IdGenerator<Void> {
 
 		@Override
@@ -863,6 +871,58 @@ class Neo4jMappingContextTest {
 
 		@SuppressWarnings("unused")
 		SomeInterface3 related;
+	}
+
+	@Node
+	public static class SomeBaseEntity {
+		@Id
+		@GeneratedValue
+		public Long internalId;
+
+		public String id;
+	}
+
+	@Node
+	public static class ConcreteEntity extends SomeBaseEntity {
+
+		@Relationship("A")
+		public Set<ARelationship> as;
+		@Relationship("B")
+		public Set<BRelationship> bs;
+		@Relationship("C")
+		public Set<CRelationship> cs;
+
+
+	}
+
+	public static class RelationshipPropertiesBaseClass<T extends SomeBaseEntity> {
+		@Id
+		@GeneratedValue
+		public Long internalId;
+
+		public String id;
+
+		@TargetNode
+		public T target;
+	}
+
+	public static abstract class RelationshipPropertiesAbstractClass extends RelationshipPropertiesBaseClass<ConcreteEntity> {
+
+	}
+
+	@RelationshipProperties
+	public static class ARelationship extends RelationshipPropertiesAbstractClass {
+
+	}
+
+	@RelationshipProperties
+	public static class BRelationship extends RelationshipPropertiesAbstractClass {
+
+	}
+
+	@RelationshipProperties
+	public static class CRelationship extends RelationshipPropertiesAbstractClass {
+
 	}
 
 	static class MissingIdToMapConverter implements Neo4jPersistentPropertyToMapConverter<String, MissingId> {

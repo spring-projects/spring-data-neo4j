@@ -255,22 +255,14 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 
 	private void verifyAssociationsWithProperties() {
 
-		this.doWithAssociations((Association<Neo4jPersistentProperty> association) -> {
-
-			if (association instanceof RelationshipDescription) {
-				RelationshipDescription relationship = (RelationshipDescription) association;
-				if (relationship.hasRelationshipProperties()) {
-					NodeDescription<?> relationshipPropertiesEntity = relationship.getRelationshipPropertiesEntity();
-					Supplier<String> messageSupplier = () -> String.format(
-							"The target class `%s` for the properties of the relationship `%s` "
+		if (this.isRelationshipPropertiesEntity()) {
+			Supplier<String> messageSupplier = () -> String.format(
+					"The class `%s` for the properties of a relationship "
 							+ "is missing a property for the generated, internal ID (`@Id @GeneratedValue Long id`) "
 							+ "which is needed for safely updating properties.",
-							relationshipPropertiesEntity.getUnderlyingClass().getName(),
-							relationship.getType());
-					Assert.state(relationshipPropertiesEntity.getIdDescription() != null && relationshipPropertiesEntity.getIdDescription().isInternallyGeneratedId(), messageSupplier);
-				}
-			}
-		});
+					this.getUnderlyingClass().getName());
+			Assert.state(this.getIdDescription() != null && this.getIdDescription().isInternallyGeneratedId(), messageSupplier);
+		}
 	}
 
 	private void verifyDynamicLabels() {
