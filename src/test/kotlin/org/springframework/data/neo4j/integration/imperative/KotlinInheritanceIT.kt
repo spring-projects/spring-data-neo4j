@@ -38,6 +38,7 @@ import org.springframework.data.neo4j.test.Neo4jIntegrationTest
 import org.springframework.transaction.PlatformTransactionManager
 import org.springframework.transaction.annotation.EnableTransactionManagement
 import org.springframework.transaction.support.TransactionTemplate
+import java.util.function.Consumer
 
 /**
  * @author Michael J. Simons
@@ -204,12 +205,12 @@ class KotlinInheritanceIT @Autowired constructor(
 
 		val cinemas = cinemaRepository.findAll()
 		assertThat(cinemas).hasSize(1);
-		assertThat(cinemas).first().satisfies { c ->
-			assertThat(c.plays).hasSize(1);
-			assertThat(c.plays).first().isInstanceOf(KotlinAnimationMovie::class.java)
+		assertThat(cinemas).first().satisfies(Consumer<KotlinCinema> {
+				assertThat(it.plays).hasSize(1);
+				assertThat(it.plays).first().isInstanceOf(KotlinAnimationMovie::class.java)
 					.extracting { m -> (m as KotlinAnimationMovie).studio }
 					.isEqualTo("Pixar")
-		}
+			})
 	}
 
 	interface KotlinCinemaRepository: Neo4jRepository<KotlinCinema, String>

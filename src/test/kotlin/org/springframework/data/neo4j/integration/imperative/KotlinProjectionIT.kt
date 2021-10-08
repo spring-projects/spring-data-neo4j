@@ -39,6 +39,7 @@ import org.springframework.data.neo4j.test.Neo4jExtension.Neo4jConnectionSupport
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest
 import org.springframework.transaction.PlatformTransactionManager
 import org.springframework.transaction.annotation.EnableTransactionManagement
+import java.util.function.Consumer
 
 /**
  * @author Michael J. Simons
@@ -71,7 +72,9 @@ internal class KotlinProjectionIT {
 		assertThat(results)
 				.hasSize(1)
 				.first()
-				.satisfies { personAndDepartment -> projectedEntities(personAndDepartment) }
+				.satisfies(Consumer<PersonDepartmentQueryResult> {
+					projectedEntities(it)
+				})
 	}
 
 	@Test // GH-2349
@@ -83,7 +86,9 @@ internal class KotlinProjectionIT {
 		assertThat(results)
 				.hasSize(1)
 				.first()
-				.satisfies { personAndDepartment -> projectedEntities(personAndDepartment) }
+				.satisfies(Consumer<PersonDepartmentQueryResult> {
+					projectedEntities(it)
+				})
 	}
 
 	private fun projectedEntities(personAndDepartment: PersonDepartmentQueryResult) {
