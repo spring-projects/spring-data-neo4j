@@ -23,7 +23,7 @@ import org.springframework.data.convert.EntityReader;
 import org.springframework.data.convert.EntityWriter;
 
 /**
- * This orchestrates the build-in store conversions and any additional Spring converters.
+ * This orchestrates the built-in store conversions and any additional Spring converters.
  *
  * @author Michael J. Simons
  * @soundtrack The Kleptones - A Night At The Hip-Hopera

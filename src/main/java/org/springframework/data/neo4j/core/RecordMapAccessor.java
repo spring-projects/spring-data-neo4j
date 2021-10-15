@@ -24,7 +24,7 @@ import org.neo4j.driver.Value;
 import org.neo4j.driver.types.MapAccessor;
 
 /**
- * A shim to adapt between {@link Record} (respectively {@link org.neo4j.driver.types.MapAccessorWithDefaultValue}
+ * A shim to adapt between {@link Record} (respectively {@link org.neo4j.driver.types.MapAccessorWithDefaultValue})
  * and {@link MapAccessor}.
  *
  * @author Michael J. Simons

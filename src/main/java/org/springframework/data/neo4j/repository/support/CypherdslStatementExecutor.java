@@ -77,9 +77,9 @@ public interface CypherdslStatementExecutor<T> {
 	<PT> Collection<PT> findAll(Statement statement, Class<PT> projectionClass);
 
 	/**
-	 * The pages here are build with a fragment of a {@link Statement}: An
+	 * The pages here are built with a fragment of a {@link Statement}: An
 	 * {@link OngoingReadingAndReturn ongoing reading with an attached return}. The next step is ordering the results,
-	 * and that order will be derived from the {@code pageable}. The same applies than for the values of skip and limit.
+	 * and that order will be derived from the {@code pageable}. The same applies for the values of skip and limit.
 	 *
 	 * @param statement       The almost complete statement that actually matches and returns the nodes and relationships to be projected
 	 * @param countQuery      The statement that is executed to count the total number of matches for computing the correct number of pages
@@ -89,9 +89,9 @@ public interface CypherdslStatementExecutor<T> {
 	Page<T> findAll(OngoingReadingAndReturn statement, Statement countQuery, Pageable pageable);
 
 	/**
-	 * The pages here are build with a fragment of a {@link Statement}: An
+	 * The pages here are built with a fragment of a {@link Statement}: An
 	 * {@link OngoingReadingAndReturn ongoing reading with an attached return}. The next step is ordering the results,
-	 * and that order will be derived from the {@code pageable}. The same applies than for the values of skip and limit.
+	 * and that order will be derived from the {@code pageable}. The same applies for the values of skip and limit.
 	 *
 	 * @param statement       The almost complete statement that actually matches and returns the nodes and relationships to be projected
 	 * @param countQuery      The statement that is executed to count the total number of matches for computing the correct number of pages

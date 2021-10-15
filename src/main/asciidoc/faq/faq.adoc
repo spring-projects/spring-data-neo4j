@@ -147,7 +147,7 @@ public class DatabaseSelectionAwareNeo4jHealthIndicator extends AbstractHealthIn
 }
 ----
 
-This uses the available database selection to run the same query that Boot runs to check wether a connection is healthy or not.
+This uses the available database selection to run the same query that Boot runs to check whether a connection is healthy or not.
 Use the following configuration to apply it:
 
 [[faq.multidatabase.health.imperative.config]]
@@ -361,7 +361,7 @@ public final class BookmarkCapture
 }
 ----
 
-For seeding the transaction system, a customized transactionmanager like the the following is required:
+For seeding the transaction system, a customized transaction manager like the following is required:
 
 [source,java,indent=0,tabsize=4]
 .BookmarkSeedingConfig.java
@@ -402,7 +402,7 @@ public class BookmarkSeedingConfig {
 <.> Pass it on to the customized transaction manager
 
 WARNING: There is *no* need to do any of these things above, unless your application has the need to access or provide
-         this data. If in doubt, don't do neither.
+         this data. If in doubt, don't do either.
 
 [[faq.annotations.specific]]
 == Do I need to use Neo4j specific annotations?
@@ -557,7 +557,7 @@ public interface MyPersonRepository extends Neo4jRepository<Person, Long> {
 == Can I map named paths?
 
 A series of connected nodes and relationships is called a "path" in Neo4j.
-Cypher allows paths to be named using an identifer, as exemplified by:
+Cypher allows paths to be named using an identifier, as exemplified by:
 
 [source,cypher]
 ----
@@ -578,7 +578,7 @@ Which looks like this:
 
 image::bacon-distance.png[]
 
-We find 3 nodes labeled `Person` and 2 nodes labeled `Movie`. Both can be mapped with a custom queury.
+We find 3 nodes labeled `Person` and 2 nodes labeled `Movie`. Both can be mapped with a custom query.
 Assume there's a node entity for both `Person` and `Movie` as well as `Actor` taking care of the relationship:
 
 
@@ -690,7 +690,7 @@ What are the alternatives?
 * <<projections.sdn.general-remarks,Projections>> might be already enough to shape your *view* on the graph: They can be used to define
   the depth of fetching properties and related entities in an explicit way: By modelling them.
 * If your goal is to make only the conditions of your queries *dynamic*, then have a look at the <<core.extensions.querydsl, `QuerydslPredicateExecutor`>>
-  but especially our own variant of it, the `CypherdslConditionExecutor`. Both <<sdn-mixins,mixins>> allow to add conditions to
+  but especially our own variant of it, the `CypherdslConditionExecutor`. Both <<sdn-mixins,mixins>> allow adding conditions to
   the full queries we create for you. Thus, you will have the domain fully populated together with custom conditions.
   Of course, your conditions must work with what we generate. Find the names of the root node, the related nodes and more
   <<custom-queries,here>>.
@@ -710,7 +710,7 @@ Why speaking about custom repository fragments now?
 * You might have more complex situation in which more than one dynamic query is required, but the queries still belong
   conceptually in a repository and not in the service layer
 * Your custom queries return a graph shaped result that fits not quite to your domain model
-  and therefore the custom query should be accomponied by a custom mapping as well
+  and therefore the custom query should be accompanied by a custom mapping as well
 * You have the need for interacting with the driver, i.e. for bulk loads that should not go through object mapping.
 
 Assume the following repository _declaration_ that basically aggregates one base repository plus 3 fragments:
@@ -725,9 +725,9 @@ include::../../../../src/test/java/org/springframework/data/neo4j/documentation/
 The repository contains <<movie-entity, Movies>> as shown in <<example-node-spring-boot-project,the getting started section>>.
 
 The additional interface from which the repository extends (`DomainResults`, `NonDomainResults` and `LowlevelInteractions`)
-are the fragments that addresses all the concerncs above.
+are the fragments that addresses all the concerns above.
 
-=== Using complex, dynamic custom queries and but still returning domain types
+=== Using complex, dynamic custom queries but still returning domain types
 
 The fragment `DomainResults` declares one additional method `findMoviesAlongShortestPath`:
 
@@ -758,13 +758,13 @@ The important takeaway here is:
 
 * The template "knows" your domain objects and maps them accordingly
 * `@Query` is not the only option to define custom queries
-* The can be generated in various ways
+* They can be generated in various ways
 * The `@Transactional` annotation is respected
 
 === Using custom queries and custom mappings
 
 Often times a custom query indicates custom results.
-Should all of those results be mapepd as `@Node`? Of course not! Many times those objects represents read commands
+Should all of those results be mapped as `@Node`? Of course not! Many times those objects represents read commands
 and are not meant to be used as write commands.
 It is also not unlikely that SDN 6 cannot or want not map everything that is possible with Cypher.
 It does however offer several hooks to run your own mapping: On the `Neo4jClient`.
@@ -772,7 +772,7 @@ The benefit of using the SDN 6 `Neo4jClient` over the driver:
 
 * The `Neo4jClient` is integrated with Springs transaction management
 * It has a fluent API for binding parameters
-* It has a fluent API exposing both the records and the Neo4j typesystem so that you can access
+* It has a fluent API exposing both the records and the Neo4j type system so that you can access
   everything in your result to execute the mapping
 
 Declaring the fragment is exactly the same as before:
@@ -798,7 +798,7 @@ include::../../../../src/test/java/org/springframework/data/neo4j/documentation/
 <.> The client takes only in Strings, but the Cypher-DSL can still be used when rendering into a String
 <.> Bind one single value to a named parameter. There's also an overload to bind a whole map of parameters
 <.> This is the type of the result you want
-<.> And finally, the `mappedBy` method, exposing one `Record` for each entry in the result plus the drivers typesystem if needed.
+<.> And finally, the `mappedBy` method, exposing one `Record` for each entry in the result plus the drivers type system if needed.
     This is the API in which you hook in for your custom mappings
 
 The whole query runs in the context of a Spring transaction, in this case, a read-only one.
@@ -816,7 +816,7 @@ include::../../../../src/test/java/org/springframework/data/neo4j/documentation/
 ----
 <.> Work with the driver directly. As with all the examples: There is no need for `@Autowired` magic. All the fragments
     are actually testable on their own.
-<.> The usecase is made up. Here we use a driver managed transaction deleting the whole graph and return the number of
+<.> The use case is made up. Here we use a driver managed transaction deleting the whole graph and return the number of
     deleted nodes and relationships
 
 This interaction does of course not run in a Spring transaction, as the driver does not know about Spring.
@@ -855,11 +855,11 @@ include::../../../../src/test/java/org/springframework/data/neo4j/integration/im
 <.> This signature is required by the base class. Take the `Neo4jOperations` (the actual specification of the `Neo4jTemplate`)
     and the entity information and store them on an attribute if needed.
 
-In this example we forbide the use of the `findAll` method.
+In this example we forbid the use of the `findAll` method.
 You could add methods taking in a fetch depth and run custom queries based on that depth.
 One way to do this is shown in <<domain-results>>.
 
-To enable this base repository for all declared repesotiries enable Neo4j repositories with: `@EnableNeo4jRepositories(repositoryBaseClass = MyRepositoryImpl.class)`.
+To enable this base repository for all declared repositories enable Neo4j repositories with: `@EnableNeo4jRepositories(repositoryBaseClass = MyRepositoryImpl.class)`.
 
 [[faq.entities.auditing]]
 == How do I audit entities?

@@ -30,7 +30,7 @@ import org.springframework.lang.Nullable;
  * <p>
  * The starting {@literal domainType} is used for mapping the query provided via {@code by} into the
  * Neo4j specific representation. By default, the originating {@literal domainType} is also used for mapping back the
- * result. However, it is possible to define an different {@literal returnType} via
+ * result. However, it is possible to define a different {@literal returnType} via
  * {@code as} to mapping the result.
  *
  * @author Michael Simons
@@ -111,7 +111,7 @@ public interface FluentFindOperation {
 		 * Creates an executable query based on fragments and parameters. Hardly useful outside framework-code
 		 * and we actively discourage using this method.
 		 *
-		 * @param queryFragmentsAndParameters Encapsulated query fragements and parameters as created by the repository abstraction.
+		 * @param queryFragmentsAndParameters Encapsulated query fragments and parameters as created by the repository abstraction.
 		 * @return new instance of {@link TerminatingFind}.
 		 * @throws IllegalArgumentException if queryFragmentsAndParameters is {@literal null}.
 		 */

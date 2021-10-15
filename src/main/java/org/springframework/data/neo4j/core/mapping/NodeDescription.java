@@ -44,13 +44,13 @@ public interface NodeDescription<T> {
 	String getMostAbstractParentLabel(NodeDescription<?> mostAbstractNodeDescription);
 
 	/**
-	 * @return the list of all additional labels (All labels except the {@link NodeDescription#getPrimaryLabel()}.
+	 * @return the list of all additional labels (All labels except the {@link NodeDescription#getPrimaryLabel()}).
 	 */
 	List<String> getAdditionalLabels();
 
 	/**
 	 * @return The list of all static labels, that is the union of {@link #getPrimaryLabel()} +
-	 *         {@link #getAdditionalLabels()}. Order is guaranteed to be the primary first, than the others.
+	 *         {@link #getAdditionalLabels()}. Order is guaranteed to be the primary first, then the others.
 	 * @since 6.0
 	 */
 	default List<String> getStaticLabels() {

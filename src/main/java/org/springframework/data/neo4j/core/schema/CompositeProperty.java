@@ -48,7 +48,7 @@ import org.springframework.util.Assert;
 
 /**
  * This annotation indicates a {@link org.springframework.data.neo4j.core.mapping.Neo4jPersistentProperty persistent property}
- * that is composed from multiple properties on a node or relationship. The properties must share a common prefix. SDN defaults
+ * that is composed of multiple properties on a node or relationship. The properties must share a common prefix. SDN defaults
  * to the name of the field declared on the {@link org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity persistent entity}.
  * <p>This annotation is mainly to be used on properties of type {@link Map Map&lt;String, Object&gt;}. All values in the
  * map are subject to conversions by other registered converters. <b>Nested maps are not supported.</b>
@@ -74,7 +74,7 @@ public @interface CompositeProperty {
 	Class<? extends Neo4jPersistentPropertyToMapConverter> converter() default CompositeProperty.DefaultToMapConverter.class;
 
 	/**
-	 * Allows to specify the prefix for the map properties. The default empty value indicates SDN to used the
+	 * Allows to specify the prefix for the map properties. The default empty value instructs SDN to use the
 	 * field name of the annotated property.
 	 *
 	 * @return The prefix used for storing the properties in the graph on the node or relationship

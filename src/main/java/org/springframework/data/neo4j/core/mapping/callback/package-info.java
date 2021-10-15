@@ -1,7 +1,7 @@
 /**
  * <!-- tag::intent[] -->
    This package contains the callback API. There are both imperative and reactive callbacks available that get invoked
-   just before an entity is bound to a statement. These can be implemented by client code. For further convinience,
+   just before an entity is bound to a statement. These can be implemented by client code. For further convenience,
    both imperative and reactive auditing callbacks are available. The config package contains a registrar and an
    annotation to enable those without having to provide the beans manually.
 

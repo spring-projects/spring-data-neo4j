@@ -36,7 +36,7 @@ final class ResultSummaries {
 	private static final String LINE_SEPARATOR = System.lineSeparator();
 
 	/**
-	 * Does some post processing on the giving result summary, especially logging all notifications
+	 * Does some post-processing on the giving result summary, especially logging all notifications
 	 * and potentially query plans.
 	 *
 	 * @param resultSummary The result summary to process

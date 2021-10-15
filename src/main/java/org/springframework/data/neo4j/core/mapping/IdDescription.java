@@ -138,7 +138,7 @@ public final class IdDescription {
 
 	/**
 	 * An ID description has only a corresponding graph property name when it's bas on an external assigment. An internal
-	 * id has no corresponding graph property and therefor this method will return an empty {@link Optional} in such
+	 * id has no corresponding graph property and therefore this method will return an empty {@link Optional} in such
 	 * cases.
 	 *
 	 * @return The name of an optional graph property.

@@ -153,7 +153,7 @@ final class ReactiveRepositoryQueryTest {
 									.quote("Please specify the order in the query itself and use an unsorted request or use the SpEL extension `:#{orderBy(#sort)}`.")
 							+ ".*"))
 					.anyMatch(s -> s.matches(
-							"(?s).*One possible order clause matching your page reguest would be the following fragment:.*ORDER BY name ASC"));
+							"(?s).*One possible order clause matching your page request would be the following fragment:.*ORDER BY name ASC"));
 		}
 
 		@Test // DATAGRAPH-1454
@@ -187,7 +187,7 @@ final class ReactiveRepositoryQueryTest {
 					.noneMatch(s -> s.matches(
 							".*Please specify the order in the query itself and use an unsorted page request\\..*"))
 					.noneMatch(s -> s.matches(
-							"(?s).*One possible order clause matching your page reguest would be the following fragment:.*ORDER BY name ASC"));
+							"(?s).*One possible order clause matching your page request would be the following fragment:.*ORDER BY name ASC"));
 		}
 
 		@Test // DATAGRAPH-1454

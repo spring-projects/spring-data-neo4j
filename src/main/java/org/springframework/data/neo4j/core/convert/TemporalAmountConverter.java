@@ -31,7 +31,7 @@ import org.springframework.core.convert.converter.GenericConverter;
 import org.springframework.lang.Nullable;
 
 /**
- * This generic converter has been introduce to augment the {@link TemporalAmountAdapter} with the type information passed
+ * This generic converter has been introduced to augment the {@link TemporalAmountAdapter} with the type information passed
  * to a generic converter to make some educated guesses whether an {@link org.neo4j.driver.types.IsoDuration} of {@literal 0}
  * should be possibly treated as {@link java.time.Period} or {@link java.time.Duration}.
  *

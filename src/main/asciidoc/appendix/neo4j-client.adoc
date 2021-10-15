@@ -5,7 +5,7 @@ Spring Data Neo4j comes with a Neo4j Client, providing a thin layer on top of Ne
 
 While the https://github.com/neo4j/neo4j-java-driver[plain Java driver] is a very versatile tool providing an asynchronous API in addition to the imperative and reactive versions, it doesn't integrate with Spring application level transactions.
 
-SDN uses the driver through the concept of a idiomatic client as directly as possible.
+SDN uses the driver through the concept of an idiomatic client as directly as possible.
 
 The client has the following main goals
 
@@ -36,7 +36,7 @@ Interactions with a Neo4j Client usually ends with a call to
 * `fetch().all()`
 * `run()`
 
-The imperative version will interact at this moment with the database and get the requested results or summary, wrapped in a `Optional<>` or a `Collection`.
+The imperative version will interact at this moment with the database and get the requested results or summary, wrapped in an `Optional<>` or a `Collection`.
 
 The reactive version will in contrast return a publisher of the requested type.
 Interaction with the database and retrieval of the results will not happen until the publisher is subscribed to.
@@ -150,7 +150,7 @@ Both reactive and imperative client offer
 
 The imperative client returns `Optional<T>` and `Collection<T>` respectively, while the reactive client returns `Mono<T>` and `Flux<T>`, the later one being executed only if subscribed to.
 
-If you don't expect any results from your query, than use `run()` after specificity the query.
+If you don't expect any results from your query, then use `run()` after specifying the query.
 
 [[neo4j-client-reactive-get-result-summaries]]
 [source,java]
@@ -172,7 +172,7 @@ Please take a moment to compare both listings and understand the difference when
 
 [[neo4j-client-imperative-get-result-summaries]]
 [source,java]
-.Retrieving result summaries in a imperative way
+.Retrieving result summaries in an imperative way
 ----
 ResultSummary resultSummary = imperativeClient
 	.query("MATCH (m:Movie) where m.title = 'Aeon Flux' DETACH DELETE m")

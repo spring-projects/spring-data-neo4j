@@ -409,7 +409,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 
 		ParameterValueProvider<Neo4jPersistentProperty> parameterValueProvider = new ParameterValueProvider<Neo4jPersistentProperty>() {
 
-			@SuppressWarnings("unchecked") // Needed for the last cast. It's easier that way than using the parameter type info and checking for primivites
+			@SuppressWarnings("unchecked") // Needed for the last cast. It's easier that way than using the parameter type info and checking for primitives
 			@Override
 			public <T> T getParameterValue(PreferredConstructor.Parameter<T, Neo4jPersistentProperty> parameter) {
 				Neo4jPersistentProperty matchingProperty = nodeDescription.getRequiredPersistentProperty(parameter.getName());

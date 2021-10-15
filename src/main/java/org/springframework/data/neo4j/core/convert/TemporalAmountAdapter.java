@@ -26,12 +26,12 @@ import java.util.function.Function;
 /**
  * This adapter maps a Driver or embedded based {@link TemporalAmount} to a valid Java temporal amount. It tries to be
  * as specific as possible: If the amount can be reliable mapped to a {@link Period}, it returns a period. If only
- * fields are present that are no estimated time unites, than it returns a {@link Duration}. <br>
+ * fields are present that are no estimated time unites, then it returns a {@link Duration}. <br>
  * <br>
  * In cases a user has used Cypher and its <code>duration()</code> function, i.e. like so
  * <code>CREATE (s:SomeTime {isoPeriod: duration('P13Y370M45DT25H120M')}) RETURN s</code> a duration object has been
  * created that cannot be represented by either a {@link Period} or {@link Duration}. The user has to map it to a plain
- * {@link TemporalAmount} in this cases. <br>
+ * {@link TemporalAmount} in these cases. <br>
  * The Java Driver uses a <code>org.neo4j.driver.v1.types.IsoDuration</code>, embedded uses
  * <code>org.neo4j.values.storable.DurationValue</code> for representing a temporal amount, but in the end, they can be
  * treated the same. However be aware that the temporal amount returned in that case may not be equal to the other one,

@@ -77,7 +77,7 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 	 */
 	private final Map<Class<? extends IdGenerator<?>>, IdGenerator<?>> idGenerators = new ConcurrentHashMap<>();
 
-	private final Map<Class<? extends Neo4jPersistentPropertyConverterFactory>, Neo4jPersistentPropertyConverterFactory> converterFactorys = new ConcurrentHashMap<>();
+	private final Map<Class<? extends Neo4jPersistentPropertyConverterFactory>, Neo4jPersistentPropertyConverterFactory> converterFactories = new ConcurrentHashMap<>();
 
 	/**
 	 * The {@link NodeDescriptionStore} is basically a {@link Map} and it is used to break the dependency cycle between
@@ -105,7 +105,7 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 
 	/**
 	 * We need to set the context to non-strict in case we must dynamically add parent classes. As there is no
-	 * way to access the original value without reflection, we track it's change.
+	 * way to access the original value without reflection, we track its change.
 	 *
 	 * @param strict The new value for the strict setting.
 	 */
@@ -120,7 +120,7 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 	 * we don't get notified of the context via {@link #setApplicationContext(ApplicationContext applicationContext)}.
 	 *
 	 * @param neo4jConversions The conversions to be used
-	 * @param typeSystem       The current drivers typeystem. If this is null, we use the default one without accessing the driver.
+	 * @param typeSystem       The current drivers type system. If this is null, we use the default one without accessing the driver.
 	 */
 	@API(status = API.Status.INTERNAL, since = "6.0")
 	public Neo4jMappingContext(Neo4jConversions neo4jConversions, @Nullable TypeSystem typeSystem) {
@@ -262,7 +262,7 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 	}
 
 	/**
-	 * @param typeInformation The type to retrieve an persistent entity for
+	 * @param typeInformation The type to retrieve a persistent entity for
 	 * @return An optional persistent entity
 	 * @see #doGetPersistentEntity(Class)
 	 */
@@ -326,7 +326,7 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 
 	private <T extends Neo4jPersistentPropertyConverterFactory> T getOrCreateConverterFactoryOfType(Class<T> converterFactoryType) {
 
-		return converterFactoryType.cast(this.converterFactorys.computeIfAbsent(converterFactoryType, t -> {
+		return converterFactoryType.cast(this.converterFactories.computeIfAbsent(converterFactoryType, t -> {
 			Optional<Constructor<?>> optionalConstructor = ReflectionUtils.findConstructor(t, this.conversionService);
 			if (optionalConstructor.isPresent()) {
 				return t.cast(BeanUtils.instantiateClass(optionalConstructor.get(), this.conversionService));
