@@ -132,7 +132,7 @@ public final class NestedRelationshipContext {
 
 			// If this is dynamic relationship (Map<Object, Object>), extract the keys as relationship names
 			// and the map values as values.
-			// The values themself can be either a scalar or a List.
+			// The values themselves can be either a scalar or a List.
 			if (relationship.isDynamic()) {
 				Map<Object, Object> relationshipProperties = new HashMap<>();
 				for (Map.Entry<Object, Object> mapEntry : ((Map<Object, Object>) value).entrySet()) {

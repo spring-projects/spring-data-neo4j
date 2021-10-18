@@ -102,10 +102,10 @@ public final class Neo4jTransactionManager extends AbstractPlatformTransactionMa
 	}
 
 	/**
-	 * This methods provides a native Neo4j transaction to be used from within a {@link Neo4jClient}. In most cases this
+	 * This method provides a native Neo4j transaction to be used from within a {@link Neo4jClient}. In most cases this
 	 * the native transaction will be controlled from the Neo4j specific
 	 * {@link org.springframework.transaction.PlatformTransactionManager}. However, SDN provides support for other
-	 * transaction managers as well. This methods registers a session synchronization in such cases on the foreign
+	 * transaction managers as well. This method registers a session synchronization in such cases on the foreign
 	 * transaction manager.
 	 *
 	 * @param driver The driver that has been used as a synchronization object.

@@ -18,7 +18,7 @@ package org.springframework.data.neo4j.types;
 import org.apiguardian.api.API;
 
 /**
- * A dedicated Neo4j point, that is aware of it's nature, either being geographic or cartesian. While you can use this
+ * A dedicated Neo4j point, that is aware of its nature, either being geographic or cartesian. While you can use this
  * interface as an attribute type in your domain class, you should not mix different type of points on the same
  * attribute of the same label. Queries will lead to inconsistent results. Use one of the concrete implementations. See
  * <a href="https://neo4j.com/docs/cypher-manual/current/syntax/spatial/#cypher-spatial">Spatial values</a>.

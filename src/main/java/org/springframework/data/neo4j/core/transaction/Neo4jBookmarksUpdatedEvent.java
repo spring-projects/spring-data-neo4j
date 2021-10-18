@@ -24,7 +24,7 @@ import org.springframework.context.ApplicationEvent;
 
 /**
  * This event will be published after a Neo4j transaction manager physically committed a transaction without errors
- * and reveiced a new set of bookmarks from the cluster.
+ * and received a new set of bookmarks from the cluster.
  *
  * @author Michael J. Simons
  * @soundtrack Black Sabbath - Master Of Reality

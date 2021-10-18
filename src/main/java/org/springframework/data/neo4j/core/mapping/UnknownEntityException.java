@@ -19,7 +19,7 @@ import org.apiguardian.api.API;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 
 /**
- * Thrown when required information about a class or primary label is requested from the {@link Schema} and those
+ * Thrown when required information about a class or primary label is requested from the {@link Schema} and that
  * information is not available.
  *
  * @author Michael J. Simons

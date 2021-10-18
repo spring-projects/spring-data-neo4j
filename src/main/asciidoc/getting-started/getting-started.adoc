@@ -29,7 +29,7 @@ If you don't have a running database but Docker installed, please run:
 docker run --publish=7474:7474 --publish=7687:7687 -e 'NEO4J_AUTH=neo4j/secret' neo4j:{neo4j-version}
 ----
 
-You know can access http://localhost:7474/browser/?cmd=play&arg=movies[http://localhost:7474].
+You can now access http://localhost:7474/browser/?cmd=play&arg=movies[http://localhost:7474].
 The above command sets the password of the server to `secret`.
 Note the command ready to run in the prompt (`:play movies`).
 Execute it to fill your database with some test data.
@@ -37,7 +37,7 @@ Execute it to fill your database with some test data.
 [[create-spring-boot-project]]
 == Create a new Spring Boot project
 
-The easiest way to setup a Spring Boot project is https://start.spring.io[start.spring.io]
+The easiest way to set up a Spring Boot project is https://start.spring.io[start.spring.io]
 (which is integrated in the major IDEs as well, in case you don't want to use the website).
 
 Select the "Spring Web Starter" to get all the dependencies needed for creating a Spring based web application.
@@ -148,8 +148,8 @@ module your.module {
 	exports your.domain; // <.>
 }
 ----
-<.> Spring Data Neo4j uses Spring Data Commons and it's reflective capabilities, so
-    you would need to open up your domain packages to `spring.core`  at least.
+<.> Spring Data Neo4j uses Spring Data Commons and its reflective capabilities, so
+    you would need to open up your domain packages to `spring.core` at least.
 <.> We assume here that `your.domain` contains also repositories: Those must be exported to be accessible by
     `spring.beans`, `spring.context` and `spring.data.commons`. If you don't want to export them to the world,
     you can restrict them to those modules.

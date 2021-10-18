@@ -47,7 +47,8 @@ public class MovieEntity {
 	private List<Roles> actorsAndRoles;
 	// end::mapping.relationship.properties[]
 
-	@Relationship(type = "DIRECTED", direction = Direction.INCOMING) private List<PersonEntity> directors = new ArrayList<>();
+	@Relationship(type = "DIRECTED", direction = Direction.INCOMING)
+	private List<PersonEntity> directors = new ArrayList<>();
 
 	public MovieEntity(String title, String description) { // <.>
 		this.title = title;

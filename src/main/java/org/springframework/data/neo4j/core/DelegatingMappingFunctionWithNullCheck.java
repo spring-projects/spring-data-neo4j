@@ -21,10 +21,10 @@ import org.neo4j.driver.Record;
 import org.neo4j.driver.types.TypeSystem;
 
 /**
- * A delegating mapping function that first calls the delegate to get a record map and than checks the returned value
+ * A delegating mapping function that first calls the delegate to get a record map and then checks the returned value
  * for {@literal null} and in the case of a null value, an {@link IllegalStateException} will be thrown.
  * <p>
- * This class has been introduced instead of {@code Function#andThen} notion to be able throw a decent exception
+ * This class has been introduced instead of {@code Function#andThen} notion to be able to throw a decent exception
  * containing some information about the delegate used and which record was problematic.
  *
  * @author Michael J. Simons

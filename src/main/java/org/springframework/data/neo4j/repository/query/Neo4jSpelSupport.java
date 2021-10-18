@@ -38,7 +38,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
- * This class provides a couple of extensions to the Spring Data Neo4j SpEL support. It's static functions are registered
+ * This class provides a couple of extensions to the Spring Data Neo4j SpEL support. Its static functions are registered
  * inside an {@link org.springframework.data.spel.spi.EvaluationContextExtension} that in turn will be provided as a root bean.
  *
  * @author Michael J. Simons

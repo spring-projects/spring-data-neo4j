@@ -343,7 +343,7 @@ final class RepositoryQueryTest {
 					.anyMatch(s -> s.matches(
 							".*" + Pattern.quote("Please specify the order in the query itself and use an unsorted request or use the SpEL extension `:#{orderBy(#sort)}`.")  + ".*"))
 					.anyMatch(s -> s.matches(
-							"(?s).*One possible order clause matching your page reguest would be the following fragment:.*ORDER BY name ASC"));
+							"(?s).*One possible order clause matching your page request would be the following fragment:.*ORDER BY name ASC"));
 		}
 
 		@Test // DATAGRAPH-1440
@@ -371,7 +371,7 @@ final class RepositoryQueryTest {
 									.quote("Please specify the order in the query itself and use an unsorted request or use the SpEL extension `:#{orderBy(#sort)}`.")
 							+ ".*"))
 					.anyMatch(s -> s.matches(
-							"(?s).*One possible order clause matching your page reguest would be the following fragment:.*ORDER BY name ASC"));
+							"(?s).*One possible order clause matching your page request would be the following fragment:.*ORDER BY name ASC"));
 		}
 
 		@Test // DATAGRAPH-1454
@@ -403,7 +403,7 @@ final class RepositoryQueryTest {
 					.noneMatch(s -> s.matches(
 							".*Please specify the order in the query itself and use an unsorted page request\\..*"))
 					.noneMatch(s -> s.matches(
-							"(?s).*One possible order clause matching your page reguest would be the following fragment:.*ORDER BY name ASC"));
+							"(?s).*One possible order clause matching your page request would be the following fragment:.*ORDER BY name ASC"));
 		}
 
 		@Test // DATAGRAPH-1454
@@ -502,7 +502,7 @@ final class RepositoryQueryTest {
 							TestEntity.class
 					),
 					Arguments.of(
-							"findAllExtendedEntites",
+							"findAllExtendedEntities",
 							false,
 							ExtendedTestEntity.class,
 							ExtendedTestEntity.class
@@ -606,7 +606,7 @@ final class RepositoryQueryTest {
 
 		List<TestEntityDTOProjection> findAllDTOProjections();
 
-		List<ExtendedTestEntity> findAllExtendedEntites();
+		List<ExtendedTestEntity> findAllExtendedEntities();
 
 		@Query("MATCH (n:Test) RETURN n SKIP $skip LIMIT $limit")
 		List<ExtendedTestEntity> findAllExtendedEntitiesWithCustomQuery(Sort sort);

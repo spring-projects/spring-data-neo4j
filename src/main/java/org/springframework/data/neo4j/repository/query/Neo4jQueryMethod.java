@@ -64,7 +64,7 @@ class Neo4jQueryMethod extends QueryMethod {
 	}
 
 	/**
-	 * Allows to configure {@link #cypherBasedProjection} from inheriting classes. Not meant to be called outside the
+	 * Allows configuring {@link #cypherBasedProjection} from inheriting classes. Not meant to be called outside the
 	 * inheritance tree.
 	 *
 	 * @param method must not be {@literal null}.

@@ -30,7 +30,7 @@ import org.springframework.lang.Nullable;
  * <br />
  * The starting {@literal domainType} is used for mapping the query provided via {@code by} into the
  * Neo4j specific representation. By default, the originating {@literal domainType} is also used for mapping back the
- * result. However, it is possible to define an different {@literal returnType} via
+ * result. However, it is possible to define a different {@literal returnType} via
  * {@code as} to mapping the result.<br />
  *
  * @author Michael Simons

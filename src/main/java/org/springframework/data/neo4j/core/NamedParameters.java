@@ -64,7 +64,7 @@ final class NamedParameters {
 	}
 
 	/**
-	 * @return An unmodifiable copy of this lists values.
+	 * @return An unmodifiable copy of this list's values.
 	 */
 	Map<String, Object> get() {
 		return Collections.unmodifiableMap(parameters);

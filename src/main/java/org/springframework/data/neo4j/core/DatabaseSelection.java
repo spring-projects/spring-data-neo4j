@@ -21,7 +21,7 @@ import org.apiguardian.api.API;
 import org.springframework.lang.Nullable;
 
 /**
- * A value holder indicating a database selection based on a optional name. {@literal null} indicates to let the server
+ * A value holder indicating a database selection based on an optional name. {@literal null} indicates to let the server
  * decide.
  *
  * @author Michael J. Simons

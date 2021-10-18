@@ -27,7 +27,7 @@ The template comes in handy in scenarios with a large number of domain classes o
 The highest level of abstraction is a Spring Data repository.
 
 All abstractions of SDN come in both imperative and reactive fashions.
-It is not recommend to mix both programming styles in the same application.
+It is not recommended mixing both programming styles in the same application.
 The reactive infrastructure requires a Neo4j 4.0+ database.
 
 [[sdn-building-blocks]]
@@ -72,7 +72,7 @@ The reactive infrastructure requires a Neo4j 4.0+ database.
 The template mechanism is similar to the templates of others stores.
 Find some more information about it in <<template-support,our FAQ>>.
 The Neo4j Client as such is unique to SDN.
-You will find it's documentation in the <<neo4j-client,appendix>>.
+You will find its documentation in the <<neo4j-client,appendix>>.
 
 [[sdn-packages]]
 == On the package level
