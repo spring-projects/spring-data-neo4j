@@ -2387,7 +2387,7 @@ class RepositoryIT {
 		}
 
 		@Test // GH-2108
-		void saveRelatedEntitesWithSameCustomIdsAndRelationshipProperties(
+		void saveRelatedEntitiesWithSameCustomIdsAndRelationshipProperties(
 				@Autowired SameIdEntitiesWithRelationshipPropertiesRepository repository) {
 
 			List<SameIdProperty.RouteProperties> routes = new ArrayList<>();
@@ -2428,7 +2428,7 @@ class RepositoryIT {
 		}
 
 		@Test // GH-2108
-		void saveRelatedEntitesWithSameCustomIdsAndPlainRelationships(
+		void saveRelatedEntitiesWithSameCustomIdsAndPlainRelationships(
 				@Autowired SameIdEntitiesRepository repository) {
 
 			List<SameIdProperty.PodEntity> routes = new ArrayList<>();

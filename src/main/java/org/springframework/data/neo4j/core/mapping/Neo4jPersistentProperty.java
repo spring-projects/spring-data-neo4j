@@ -53,7 +53,7 @@ public interface Neo4jPersistentProperty extends PersistentProperty<Neo4jPersist
 	 * Dynamic one-to-many associations are associations to non-simple types stored in a map with a key type of
 	 * {@literal java.lang.String} and values of {@literal java.util.Collection}.
 	 *
-	 * @return True, if this association is a dynamic association with multple values per type.
+	 * @return True, if this association is a dynamic association with multiple values per type.
 	 * @since 6.0.1
 	 */
 	default boolean isDynamicOneToManyAssociation() {
@@ -62,7 +62,7 @@ public interface Neo4jPersistentProperty extends PersistentProperty<Neo4jPersist
 	}
 
 	/**
-	 * @return whether the property is an property describing dynamic labels
+	 * @return whether the property is a property describing dynamic labels
 	 * @since 6.0
 	 */
 	default boolean isDynamicLabels() {

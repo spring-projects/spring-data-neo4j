@@ -272,7 +272,7 @@ final class AdditionalTypes {
 	/**
 	 * This is a workaround for the fact that Spring Data Commons requires {@link GenericConverter generic converters} to
 	 * have a non-null convertible pair since 2.3. Without it, they get filtered out and thus not registered in a
-	 * conversion service. We do this as an after thought in
+	 * conversion service. We do this as an afterthought in
 	 * {@link Neo4jConversions#registerConvertersIn(ConverterRegistry)}.
 	 * <p>
 	 * This class uses is a {@link GenericConverter} without a concrete pair of convertible types. By making it implement

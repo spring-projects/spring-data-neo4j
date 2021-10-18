@@ -37,7 +37,7 @@ final class EntityInstanceWithSource {
 	private final TypeSystem typeSystem;
 
 	/**
-	 * The record from which the source above was hydrated and which might contain top level properties that are elligable to mapping.
+	 * The record from which the source above was hydrated and which might contain top level properties that are eligible to mapping.
 	 */
 	private final MapAccessor sourceRecord;
 

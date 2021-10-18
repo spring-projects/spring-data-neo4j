@@ -106,7 +106,7 @@ abstract class Neo4jQuerySupport {
 
 		if (mappingContext.getConversionService().isSimpleType(returnedType)) {
 			// Clients automatically selects a single value mapping function.
-			// It will thrown an error if the query contains more than one column.
+			// It will throw an error if the query contains more than one column.
 			mappingFunction = null;
 		} else if (returnedTypeMetadata.isProjecting()) {
 			BiFunction<TypeSystem, MapAccessor, ?> target = this.mappingContext.getRequiredMappingFunctionFor(domainType);
@@ -146,7 +146,7 @@ abstract class Neo4jQuerySupport {
 	 * Converts parameter as needed by the query generated, which is not covered by standard conversion services.
 	 *
 	 * @param parameter The parameter to fit into the generated query.
-	 * @return A parameter that fits the place holders of a generated query
+	 * @return A parameter that fits the placeholders of a generated query
 	 */
 	final Object convertParameter(Object parameter) {
 		return this.convertParameter(parameter, null);
@@ -157,7 +157,7 @@ abstract class Neo4jQuerySupport {
 	 *
 	 * @param parameter The parameter to fit into the generated query.
 	 * @param conversionOverride Passed to the entity converter if present.
-	 * @return A parameter that fits the place holders of a generated query
+	 * @return A parameter that fits the placeholders of a generated query
 	 */
 	final Object convertParameter(Object parameter, @Nullable Function<Object, Value> conversionOverride) {
 
@@ -238,7 +238,7 @@ abstract class Neo4jQuerySupport {
 			if (fragment != null) {
 				Neo4jQuerySupport.REPOSITORY_QUERY_LOG.warn(() ->
 						String.format(
-								"One possible order clause matching your page reguest would be the following fragment:%n%s",
+								"One possible order clause matching your page request would be the following fragment:%n%s",
 								fragment));
 			}
 		}

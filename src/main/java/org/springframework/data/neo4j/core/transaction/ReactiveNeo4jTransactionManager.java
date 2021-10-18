@@ -103,7 +103,7 @@ public class ReactiveNeo4jTransactionManager extends AbstractReactiveTransaction
 					}
 					return transaction;
 				})
-				// If not, than just don't open a transaction
+				// If not, then just don't open a transaction
 				.onErrorResume(NoTransactionException.class, nte -> Mono.empty());
 	}
 

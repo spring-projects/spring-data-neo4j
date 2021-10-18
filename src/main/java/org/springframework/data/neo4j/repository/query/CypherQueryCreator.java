@@ -398,7 +398,7 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndPar
 	}
 
 	/**
-	 * Checks whether or not to ignore the case for some operations. {@link PartTreeNeo4jQuery} will already have
+	 * Checks whether to ignore the case for some operations. {@link PartTreeNeo4jQuery} will already have
 	 * validated which properties can be made case insensitive given a certain keyword.
 	 *
 	 * @param part query part to get checked if case should get ignored

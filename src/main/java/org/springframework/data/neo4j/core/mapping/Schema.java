@@ -38,7 +38,7 @@ import org.springframework.lang.Nullable;
 public interface Schema {
 
 	/**
-	 * Retrieves a nodes description by its primary label.
+	 * Retrieves a node's description by its primary label.
 	 *
 	 * @param primaryLabel The primary label under which the node is described
 	 * @return The description if any, null otherwise
@@ -47,7 +47,7 @@ public interface Schema {
 	NodeDescription<?> getNodeDescription(String primaryLabel);
 
 	/**
-	 * Retrieves a nodes description by its underlying class.
+	 * Retrieves a node's description by its underlying class.
 	 *
 	 * @param underlyingClass The underlying class of the node description to be retrieved
 	 * @return The description if any, null otherwise

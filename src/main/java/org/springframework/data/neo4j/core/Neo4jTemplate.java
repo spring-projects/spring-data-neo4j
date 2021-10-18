@@ -714,7 +714,7 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 				return one;
 			} catch (NoSuchRecordException e) {
 				// This exception is thrown by the driver in both cases when there are 0 or 1+n records
-				// So there has been an incorrect result size, but not to few results but to many.
+				// So there has been an incorrect result size, but not too few results but too many.
 				throw new IncorrectResultSizeDataAccessException(e.getMessage(), 1);
 			}
 		}

@@ -125,7 +125,7 @@ public interface ReactiveNeo4jClient {
 	}
 
 	/**
-	 * Contract for a runnable query that can be either run returning it's result, run without results or be
+	 * Contract for a runnable query that can be either run returning its result, run without results or be
 	 * parameterized.
 	 *
 	 * @since 6.0

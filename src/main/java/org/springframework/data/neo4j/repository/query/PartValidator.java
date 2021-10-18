@@ -48,7 +48,7 @@ import org.springframework.util.Assert;
 class PartValidator {
 
 	/**
-	 * A set of the temporal types that are directly passable to the driver and support a meaningful comparision in a
+	 * A set of the temporal types that are directly passable to the driver and support a meaningful comparison in a
 	 * temporal sense (after, before). See
 	 * <a href="See https://neo4j.com/docs/driver-manual/1.7/cypher-values/#driver-neo4j-type-system" />
 	 */

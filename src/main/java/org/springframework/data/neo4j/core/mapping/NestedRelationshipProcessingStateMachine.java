@@ -65,7 +65,7 @@ public final class NestedRelationshipProcessingStateMachine {
 	private final Set<Object> processedObjects = new HashSet<>();
 
 	/**
-	 * A map of processed objects pointing towards a possible new instance of themself.
+	 * A map of processed objects pointing towards a possible new instance of themselves.
 	 * This will happen for immutable entities.
 	 */
 	private final Map<Object, Object> processedObjectsAlias = new HashMap<>();

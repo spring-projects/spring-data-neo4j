@@ -95,7 +95,7 @@ It is an embedded instance that is especially useful when testing stored procedu
 The test harness can however be used to test an application as well.
 As it brings up a database inside the same JVM as your application, performance and timings may not resemble your production setup.
 
-For your convinience we provide three possible scenarios, Neo4j test harness 3.5 and 4.0 as well as Testcontainers Neo4j.
+For your convenience we provide three possible scenarios, Neo4j test harness 3.5 and 4.0 as well as Testcontainers Neo4j.
 We provide different examples for 3.5 and 4.0 as the test harness changed between those versions.
 Also, 4.0 requires JDK 11.
 
@@ -343,7 +343,7 @@ class MovieRepositoryTCTest {
 [[dataneo4jtest-dynamicpropertysource-alternatives]]
 === Alternatives to a `@DynamicPropertySource`
 
-There are some scenarios in which the above annotation does not fit your usecase.
+There are some scenarios in which the above annotation does not fit your use case.
 One of those might be that you want to have 100% control over how the driver is initialized.
 With a test container running, you could do this with a nested, static configuration class like this:
 

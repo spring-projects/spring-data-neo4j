@@ -23,7 +23,7 @@ the common Spring Data infrastructure. The latter is already ensured, as the dom
 the first place.
 
 DTO based projections are somewhat more flexible when used with custom queries. While the standard query is derived from
-the original domain type and therefore only the properties and relationship beeing defined there can be used, custom queries
+the original domain type and therefore only the properties and relationship being defined there can be used, custom queries
 can add additional properties.
 
 The rules are as follows: first, the properties of the domain type are used to populate the DTO. In case the DTO declares
@@ -112,7 +112,7 @@ interface TestRepository extends CrudRepository<TestEntity, Long> { // <.>
 
     List<TestEntity> findAll(); // <.>
 
-    List<ExtendedTestEntity> findAllExtendedEntites(); // <.>
+    List<ExtendedTestEntity> findAllExtendedEntities(); // <.>
 
     List<TestEntityInterfaceProjection> findAllInterfaceProjections(); // <.>
 
@@ -124,9 +124,9 @@ interface TestRepository extends CrudRepository<TestEntity, Long> { // <.>
 ----
 <.> The domain type of the repository is `TestEntity`
 <.> Methods returning one or more `TestEntity` will just return instances of it, as it matches the domain type
-<.> Methods returning one or more instances of class that extend the domain type will just return instances
-    of the extending class. The domain type of the method in question will the extended class, which
-    still satifies the domain type of the repository itself
+<.> Methods returning one or more instances of classes that extend the domain type will just return instances
+    of the extending class. The domain type of the method in question will be the extended class, which
+    still satisfies the domain type of the repository itself
 <.> This method returns an interface projection, the return type of the method is therefore different
     from the repository's domain type. The interface can only access properties defined in the domain type
 <.> This method returns a DTO projection. Executing it will cause SDN to issue a warning, as the DTO defines
