@@ -38,7 +38,7 @@ public interface RelationshipDescription {
 	String NAME_OF_RELATIONSHIP_TYPE = "__relationshipType__";
 
 	/**
-	 * If this relationship is dynamic, than this method always returns the name of the inverse property.
+	 * If this relationship is dynamic, then this method always returns the name of the inverse property.
 	 *
 	 * @return The type of this relationship
 	 */

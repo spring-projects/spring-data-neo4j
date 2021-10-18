@@ -41,7 +41,7 @@ final class Neo4jTransactionHolder extends ResourceHolderSupport {
 	 */
 	private final Session session;
 	/**
-	 * The drivers transaction as the second building block of what synchronize our transaction against.
+	 * The driver's transaction as the second building block of what to synchronize our transaction against.
 	 */
 	private final Transaction transaction;
 

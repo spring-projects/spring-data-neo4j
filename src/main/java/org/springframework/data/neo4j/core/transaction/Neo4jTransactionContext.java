@@ -22,7 +22,7 @@ import org.neo4j.driver.Bookmark;
 import org.springframework.lang.Nullable;
 
 /**
- * Represents the context in which a transaction has been opened. The context consists primarly of the target database
+ * Represents the context in which a transaction has been opened. The context consists primarily of the target database
  * and the set of bookmarks used to start the session from.
  *
  * @author Michael J. Simons

@@ -39,7 +39,7 @@ import org.springframework.util.Assert;
  * hierarchy.
  * <p>
  * The interceptor uses all {@link PersistenceExceptionTranslator persistence exception translators} it finds in the
- * context through a {@link ChainedPersistenceExceptionTranslator}. Translations is eventually done with
+ * context through a {@link ChainedPersistenceExceptionTranslator}. Translations are eventually done with
  * {@link DataAccessUtils#translateIfNecessary(RuntimeException, PersistenceExceptionTranslator)} which returns the
  * original exception in case translation is not possible (the translator returned null).
  *

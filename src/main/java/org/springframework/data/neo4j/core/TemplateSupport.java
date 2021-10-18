@@ -220,11 +220,11 @@ public final class TemplateSupport {
 	/**
 	 * Checks if the {@code domainType} is a known entity in the {@code mappingContext} and retrieves the mapping function
 	 * for it. If the {@code resultType} is not an interface, a DTO based projection further down the chain is assumed
-	 * and therefor a call to {@link EntityInstanceWithSource#decorateMappingFunction(BiFunction)} is made, so that
+	 * and therefore a call to {@link EntityInstanceWithSource#decorateMappingFunction(BiFunction)} is made, so that
 	 * a {@link org.springframework.data.neo4j.core.mapping.DtoInstantiatingConverter} can be used with the query result.
 	 *
 	 * @param mappingContext Needed for retrieving the original mapping function
-	 * @param domainType     The actual domain type (a {@link org.springframework.data.neo4j.core.schema.Node}.
+	 * @param domainType     The actual domain type (a {@link org.springframework.data.neo4j.core.schema.Node}).
 	 * @param resultType     An optional different result type
 	 * @param <T>            The domain type
 	 * @return A mapping function

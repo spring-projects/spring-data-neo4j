@@ -49,7 +49,7 @@ public final class Neo4jBookmarkManager {
 	 * Use this factory method to add supplier of initial "seeding" bookmarks to the transaction managers
 	 * <p>
 	 * While this class will make sure that the supplier will be accessed in a thread-safe manner,
-	 * it us the callers duty to provide thread safe supplier (not changing the seed in during a call etc).
+	 * it is the caller's duty to provide a thread safe supplier (not changing the seed during a call, etc.).
 	 * <p>
 	 *
 	 * @param bookmarksSupplier        A supplier for seeding bookmarks, can be null. The supplier is free to provide different

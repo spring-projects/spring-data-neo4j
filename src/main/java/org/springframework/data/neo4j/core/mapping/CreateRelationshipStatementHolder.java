@@ -26,7 +26,7 @@ import org.springframework.lang.NonNull;
 
 /**
  * The {@link CreateRelationshipStatementHolder} holds the Cypher Statement to create a relationship as well as the optional
- * properties that describe the relationship in case of more then a simple relationship. By holding the relationship
+ * properties that describe the relationship in case of more than a simple relationship. By holding the relationship
  * creation cypher together with the properties, we can reuse the same logic in the {@link Neo4jTemplate} as well as in
  * the {@link ReactiveNeo4jTemplate}.
  *

@@ -92,7 +92,7 @@ public enum CypherGenerator {
 	}
 
 	/**
-	 * This will create a match statement that fits the given node description and may contains additional conditions. The
+	 * This will create a match statement that fits the given node description and may contain additional conditions. The
 	 * {@code WITH} clause of this statement contains all nodes and relationships necessary to map a record to the given
 	 * {@code nodeDescription}.
 	 * <p>
@@ -471,7 +471,7 @@ public enum CypherGenerator {
 	 * Creates an order by fragment, assuming the node to match is named `n`
 	 *
 	 * @param sort The {@link Sort sort} that should be turned into a valid Cypher {@code ORDER}-clause
-	 * @return An optional order clause. Will be {@literal null} on sorts that are {@literal null} or a unsorted.
+	 * @return An optional order clause. Will be {@literal null} on sorts that are {@literal null} or unsorted.
 	 */
 	public @Nullable String createOrderByFragment(@Nullable Sort sort) {
 

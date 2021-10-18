@@ -38,7 +38,7 @@ If this would get mapped into a list, it will contain duplicates for the `Movie`
 
 To get the right object(s) back, it is required to _collect_ the relationships and related nodes in the query: `MATCH (m:Movie{title: 'The Matrix'})<-[r:ACTED_IN]-(p:Person) return m,collect(r),collect(p)`
 
-.Single record (shortended)
+.Single record (shortened)
 ----
 +------------------------------------------------------------------------+
 | m        | collect(r)                     | collect(p)                 |
@@ -380,7 +380,7 @@ The following example basically defines the same query as above, but uses a `WHE
 include::../../../../src/test/java/org/springframework/data/neo4j/documentation/repositories/domain_events/ARepository.java[tags=spel]
 ----
 
-The SpEL blocked starts with `:#{` and than refers to the given `String` parameters by name (`#pt1`).
+The SpEL blocked starts with `:#{` and then refers to the given `String` parameters by name (`#pt1`).
 Don't confuse this with the above Cypher syntax!
 The SpEL expression concatenates both parameters into one single value that is eventually passed on to the <<neo4j-client>>.
 The SpEL block ends with `}`.

@@ -1,6 +1,6 @@
 /**
  * <!-- tag::intent[] -->
-   Provides a set of simples types that SDN supports. The `Neo4jConversions` allows to bring in additional, custom
+   Provides a set of simples types that SDN supports. The `Neo4jConversions` allows bringing in additional, custom
    converters.
  * <!-- end::intent[] -->
  */

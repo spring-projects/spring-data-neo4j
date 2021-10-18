@@ -291,4 +291,4 @@ data class Person(val id: String, val name: String)
 ====
 
 This class is effectively immutable.
-It allows to create new instances as Kotlin generates a `copy(…)` method that creates new object instances copying all property values from the existing object and applying property values provided as arguments to the method.
+It allows creating new instances as Kotlin generates a `copy(…)` method that creates new object instances copying all property values from the existing object and applying property values provided as arguments to the method.

@@ -41,9 +41,9 @@ import org.springframework.data.domain.AuditorAware;
 public @interface EnableReactiveNeo4jAuditing {
 
 	/**
-	 * Configures the {@link AuditorAware} bean to be used to lookup the current principal.
+	 * Configures the {@link AuditorAware} bean to be used to look up the current principal.
 	 *
-	 * @return The name of the {@link AuditorAware} bean to be used to lookup the current principal.
+	 * @return The name of the {@link AuditorAware} bean to be used to look up the current principal.
 	 */
 	String auditorAwareRef() default "";
 

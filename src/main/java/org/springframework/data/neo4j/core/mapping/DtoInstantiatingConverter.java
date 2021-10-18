@@ -153,7 +153,7 @@ public final class DtoInstantiatingConverter implements Converter<EntityInstance
 			Function<Neo4jPersistentProperty, Object> extractFromSource
 	) {
 		return new ParameterValueProvider<Neo4jPersistentProperty>() {
-			@SuppressWarnings("unchecked") // Needed for the last cast. It's easier that way than using the parameter type info and checking for primivites
+			@SuppressWarnings("unchecked") // Needed for the last cast. It's easier that way than using the parameter type info and checking for primitives
 			@Override
 			public <T> T getParameterValue(Parameter<T, Neo4jPersistentProperty> parameter) {
 				String parameterName = parameter.getName();

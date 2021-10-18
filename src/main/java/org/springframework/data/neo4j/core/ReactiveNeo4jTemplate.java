@@ -511,7 +511,7 @@ public final class ReactiveNeo4jTemplate implements
 			return Flux.fromIterable(entities).concatMap(e -> this.saveImpl(e, includedProperties, stateMachine));
 		}
 
-		@SuppressWarnings("unchecked") // We can safely assume here that we have a homongous collection with only one single type being either T or extending it
+		@SuppressWarnings("unchecked") // We can safely assume here that we have a humongous collection with only one single type being either T or extending it
 		Function<T, Map<String, Object>> binderFunction = neo4jMappingContext.getRequiredBinderFunctionFor((Class<T>) domainClass);
 		return Flux.fromIterable(entities)
 				// Map all entities into a tuple <Original, OriginalWasNew>

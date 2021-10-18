@@ -21,8 +21,8 @@ import org.springframework.data.mapping.MappingException;
 /**
  * A {@link NoRootNodeMappingException} is thrown when the entity converter cannot find a node or map like structure
  * that can be mapped.
- * Nodes eligible for mapping are actual nodes with at least the primarly label attached or exactly one map structure
- * that is neither a node or relationship itself.
+ * Nodes eligible for mapping are actual nodes with at least the primary label attached or exactly one map structure
+ * that is neither a node nor relationship itself.
  *
  * @author Michael J. Simons
  * @soundtrack Helge Schneider - Sammlung Schneider! Musik und Lifeshows!

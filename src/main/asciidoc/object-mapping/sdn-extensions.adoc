@@ -64,13 +64,13 @@ Literals can be expressed with `Cypher.literalOf`.
 
 The code looks pretty similar for the Query-DSL mixin. Reasons for the Query-DSL mixin can be familiarity of the API and
 that it works with other stores, too. Reasons against it are the fact that you need an additional library on the class path,
-it's missing support for traversing relationships and the above mentioned fact that it doesn't support parameters in its
+it's missing support for traversing relationships and the above-mentioned fact that it doesn't support parameters in its
 predicates (it technically does, but there are no API methods to actually pass them to the query being executed).
 
 [[sdn-mixins.using-cypher-dsl-statements]]
 ==== Using (dynamic) Cypher-DSL statements for entities and projections
 
-Adding the corresponding mixin is not different than using the <<sdn-mixins.dynamic-conditions, condition excecutor>>:
+Adding the corresponding mixin is not different from using the <<sdn-mixins.dynamic-conditions, condition excecutor>>:
 
 [source,java,indent=0,tabsize=4]
 ----

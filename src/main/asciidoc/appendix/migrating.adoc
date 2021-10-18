@@ -13,21 +13,21 @@ It depends to large extend on the Spring Data and therefore, on the Spring Frame
 Depending on how the application has been structured, that is, how much the any of the framework part leaked into your business code, the more you have to adapt your application.
 It gets worse when you have more than one Spring Data module in your application, if you accessed a relational database in the same service layer as your graph database.
 Updating two object mapping frameworks is not fun.
-Relying on a embedded database configured through Spring Data itself::
+Relying on an embedded database configured through Spring Data itself::
 The embedded database in a SDN+OGM project is configured by Neo4j-OGM.
 Say you want to upgrade from Neo4j 3.0 to 3.5, you can't without upgrading your whole application.
 Why is that?
 As you chose to embed a database into your application, you tied yourself into the modules that configure this embedded database.
 To have another, embedded database version, you have to upgrade the module that configured it, because the old one does not support the new database.
 As there is always a Spring Data version corresponding to Neo4j-OGM, you would have to upgrade that as well.
-Spring Data however depends on Spring Framework and than the arguments from the first bullet apply.
+Spring Data however depends on Spring Framework and then the arguments from the first bullet apply.
 Being unsure about which building blocks to include::
 It's not easy to get the terms right.
 We wrote the building blocks of an SDN+OGM setting https://michael-simons.github.io/neo4j-sdn-ogm-tips/what_are_the_building_blocks_of_sdn_and_ogm.html[here].
 It may be so that all of them have been added by coincidence and you're dealing with a lot of conflicting dependencies.
 
 TIP: Backed by those observations, we recommend to make sure you're using only the Bolt or http transport in your current application before switching from SDN+OGM to SDN.
-Thus, your application and the access layer of your application is to large extend independent from the databases version.
+Thus, your application and the access layer of your application is to a large extent independent of the database's version.
 From that state, consider moving from SDN+OGM to SDN.
 
 [[migrating.preparation]]
@@ -136,7 +136,7 @@ Both `@EnableBookmarkManagement` and `@UseBookmark` as well as the `org.springfr
 interface and its only implementation `org.springframework.data.neo4j.bookmark.CaffeineBookmarkManager` are gone and are not needed anymore.
 
 SDN uses Bookmarks for all transactions, without configuration.
-You can remove the bean declaration of `CaffeineBookmarkManager` as well as the the dependency to `com.github.ben-manes.caffeine:caffeine`.
+You can remove the bean declaration of `CaffeineBookmarkManager` as well as the dependency to `com.github.ben-manes.caffeine:caffeine`.
 
 [[migrating.autoindex]]
 === Automatic creation of constraints and indexes
@@ -158,7 +158,7 @@ they tend to be not so nice in production: How do you handle different versions 
 Version A asserting the indexes that have been created by a newer version B?
 
 We think it's better to take control about this upfront and recommend using controlled database migrations, based on a tool like https://www.liquigraph.org[Liquigraph] or https://github.com/michael-simons/neo4j-migrations[Neo4j migrations].
-The later has been seen in use with SDN inside the JHipster project.
+The latter has been seen in use with SDN inside the JHipster project.
 Both projects have in common that they store the current version of the schema within the database and make sure that a schema matches expectations before things are being updated.
 
 Migrating off from previous Neo4j-OGM annotations affects `@Index`, `@CompositeIndex` and `@Required` and an example for those is given here in <<indexed.class>>:
