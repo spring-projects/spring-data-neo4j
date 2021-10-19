@@ -33,9 +33,9 @@ import org.neo4j.cypherdsl.core.Functions;
 import org.neo4j.cypherdsl.core.StatementBuilder;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
+import org.springframework.data.neo4j.core.convert.Neo4jConversionService;
 import org.springframework.data.neo4j.core.mapping.Constants;
 import org.springframework.data.neo4j.core.mapping.GraphPropertyDescription;
-import org.springframework.data.neo4j.core.convert.Neo4jConversionService;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentProperty;
@@ -82,7 +82,7 @@ final class Predicate {
 			Optional<Object> optionalValue = transformer
 					.apply(Optional.ofNullable(beanWrapper.getPropertyValue(currentPath)));
 
-			if (!optionalValue.isPresent()) {
+			if (optionalValue.isEmpty()) {
 				if (!internalId && matcherAccessor.getNullHandler().equals(ExampleMatcher.NullHandler.INCLUDE)) {
 					predicate.add(mode, property(Constants.NAME_OF_TYPED_ROOT_NODE.apply(probeNodeDescription), propertyName).isNull());
 				}
@@ -108,29 +108,15 @@ final class Predicate {
 						parameter = Functions.toLower(parameter);
 					}
 
-					switch (matcherAccessor.getStringMatcherForPath(currentPath)) {
-						case DEFAULT:
-						case EXACT:
-							// This needs to be recreated as both property and parameter might have changed above
-							condition = property.isEqualTo(parameter);
-							break;
-						case CONTAINING:
-							condition = property.contains(parameter);
-							break;
-						case STARTING:
-							condition = property.startsWith(parameter);
-							break;
-						case ENDING:
-							condition = property.endsWith(parameter);
-							break;
-						case REGEX:
-							condition = property.matches(parameter);
-							break;
-						default:
-							throw new IllegalArgumentException(
-									"Unsupported StringMatcher " + matcherAccessor
-											.getStringMatcherForPath(currentPath));
-					}
+					condition = switch (matcherAccessor.getStringMatcherForPath(currentPath)) {
+						case DEFAULT, EXACT ->
+								// This needs to be recreated as both property and parameter might have changed above
+								property.isEqualTo(parameter);
+						case CONTAINING -> property.contains(parameter);
+						case STARTING -> property.startsWith(parameter);
+						case ENDING -> property.endsWith(parameter);
+						case REGEX -> property.matches(parameter);
+					};
 				}
 				predicate.add(mode, condition);
 				predicate.parameters.put(propertyName, optionalValue.map(
@@ -167,16 +153,10 @@ final class Predicate {
 
 	private void add(ExampleMatcher.MatchMode matchMode, Condition additionalCondition) {
 
-		switch (matchMode) {
-			case ALL:
-				this.condition = this.condition.and(additionalCondition);
-				break;
-			case ANY:
-				this.condition = this.condition.or(additionalCondition);
-				break;
-			default:
-				throw new IllegalArgumentException("Unsupported match mode: " + matchMode);
-		}
+		this.condition = switch (matchMode) {
+			case ALL -> this.condition.and(additionalCondition);
+			case ANY -> this.condition.or(additionalCondition);
+		};
 	}
 
 	public NodeDescription<?> getNeo4jPersistentEntity() {

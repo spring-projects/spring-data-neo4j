@@ -128,15 +128,9 @@ class GH2210IT {
 		assertThat(entities).hasSize(4);
 		assertThat(entities).allSatisfy(v -> {
 			switch (v.getName()) {
-				case "A":
-					assertA(Optional.of(v));
-					break;
-				case "B":
-					assertB(Optional.of(v));
-					break;
-				case "D":
-					assertD(Optional.of(v));
-					break;
+				case "A" -> assertA(Optional.of(v));
+				case "B" -> assertB(Optional.of(v));
+				case "D" -> assertD(Optional.of(v));
 			}
 		});
 	}

@@ -154,18 +154,10 @@ public enum CypherGenerator {
 		}
 		String[] types = relationshipTypes.toArray(new String[]{});
 
-		Relationship relationship;
-		switch (relationshipDescription.getDirection()) {
-			case OUTGOING:
-				relationship = rootNode.relationshipTo(targetNode, types);
-				break;
-			case INCOMING:
-				relationship = rootNode.relationshipFrom(targetNode, types);
-				break;
-			default:
-				relationship = rootNode.relationshipBetween(targetNode, types);
-				break;
-		}
+		Relationship relationship = switch (relationshipDescription.getDirection()) {
+			case OUTGOING -> rootNode.relationshipTo(targetNode, types);
+			case INCOMING -> rootNode.relationshipFrom(targetNode, types);
+		};
 
 		relationship = relationship.named(Constants.NAME_OF_SYNTHESIZED_RELATIONS);
 		List<Expression> expressions = new ArrayList<>();

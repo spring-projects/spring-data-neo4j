@@ -75,18 +75,9 @@ class PartValidator {
 
 		validateIgnoreCase(part);
 		switch (part.getType()) {
-			case AFTER:
-			case BEFORE:
-				validateTemporalProperty(part);
-				break;
-			case IS_EMPTY:
-			case IS_NOT_EMPTY:
-				validateCollectionProperty(part);
-				break;
-			case NEAR:
-			case WITHIN:
-				validatePointProperty(part);
-				break;
+			case AFTER, BEFORE -> validateTemporalProperty(part);
+			case IS_EMPTY, IS_NOT_EMPTY -> validateCollectionProperty(part);
+			case NEAR, WITHIN -> validatePointProperty(part);
 		}
 
 		validateNotACompositeProperty(part);

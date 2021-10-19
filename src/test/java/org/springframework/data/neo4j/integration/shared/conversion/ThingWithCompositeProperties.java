@@ -221,14 +221,11 @@ public class ThingWithCompositeProperties {
 				return null;
 			}
 
-			switch (phase) {
-				case WRITE:
-					return s.toLowerCase(Locale.ENGLISH);
-				case READ:
-					return s.toUpperCase(Locale.ENGLISH);
-				default:
-					throw new IllegalArgumentException();
-			}
+			return switch (phase) {
+				case WRITE -> s.toLowerCase(Locale.ENGLISH);
+				case READ -> s.toUpperCase(Locale.ENGLISH);
+				default -> throw new IllegalArgumentException();
+			};
 		}
 	}
 

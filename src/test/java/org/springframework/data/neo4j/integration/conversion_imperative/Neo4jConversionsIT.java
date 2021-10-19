@@ -87,16 +87,12 @@ class Neo4jConversionsIT extends Neo4jConversionsITBase {
 
 		ConverterBuilder.ConverterAware converterAware = ConverterBuilder.reading(Value.class, LocalDate.class, v -> {
 			String s = v.asString();
-			switch (s) {
-				case "gestern":
-					return LocalDate.now().minusDays(1);
-				case "heute":
-					return LocalDate.now();
-				case "morgen":
-					return LocalDate.now().plusDays(1);
-				default:
-					throw new IllegalArgumentException();
-			}
+			return switch (s) {
+				case "gestern" -> LocalDate.now().minusDays(1);
+				case "heute" -> LocalDate.now();
+				case "morgen" -> LocalDate.now().plusDays(1);
+				default -> throw new IllegalArgumentException();
+			};
 		}).andWriting(d -> {
 			if (d.isBefore(LocalDate.now())) {
 				return Values.value("gestern");

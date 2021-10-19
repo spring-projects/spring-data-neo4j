@@ -134,29 +134,28 @@ class TypeConversionIT extends Neo4jConversionsITBase {
 			Object thing;
 			Object copyOfThing;
 			switch (entry.getKey()) {
-				case "CypherTypes":
+				case "CypherTypes" -> {
 					ThingWithAllCypherTypes hlp = cypherTypesRepository.findById(ID_OF_CYPHER_TYPES_NODE).get();
 					copyOfThing = cypherTypesRepository.save(hlp.withId(null));
 					thing = hlp;
-					break;
-				case "AdditionalTypes":
+				}
+				case "AdditionalTypes" -> {
 					ThingWithAllAdditionalTypes hlp2 = additionalTypesRepository.findById(ID_OF_ADDITIONAL_TYPES_NODE)
 							.get();
 					copyOfThing = additionalTypesRepository.save(hlp2.withId(null));
 					thing = hlp2;
-					break;
-				case "SpatialTypes":
+				}
+				case "SpatialTypes" -> {
 					ThingWithAllSpatialTypes hlp3 = spatialTypesRepository.findById(ID_OF_SPATIAL_TYPES_NODE).get();
 					copyOfThing = spatialTypesRepository.save(hlp3.withId(null));
 					thing = hlp3;
-					break;
-				case "CustomTypes":
+				}
+				case "CustomTypes" -> {
 					ThingWithCustomTypes hlp4 = customTypesRepository.findById(ID_OF_CUSTOM_TYPE_NODE).get();
 					copyOfThing = customTypesRepository.save(hlp4.withId(null));
 					thing = hlp4;
-					break;
-				default:
-					throw new UnsupportedOperationException("Unsupported types: " + entry.getKey());
+				}
+				default -> throw new UnsupportedOperationException("Unsupported types: " + entry.getKey());
 			}
 
 			DynamicContainer reads = DynamicContainer.dynamicContainer("read",

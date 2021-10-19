@@ -100,7 +100,7 @@ final class NodeDescriptionStore {
 			Function<NodeDescription<?>, Integer> count = (nodeDescription) -> Math.toIntExact(nodeDescription.getStaticLabels().stream().filter(labels::contains).count());
 			Optional<Map.Entry<NodeDescription<?>, Integer>> mostMatchingNodeDescription = haystack.stream()
 					.filter(nd -> labels.containsAll(nd.getStaticLabels())) // remove candidates having more mandatory labels
-					.collect(Collectors.toMap(Function.identity(), nodeDescription -> count.apply(nodeDescription)))
+					.collect(Collectors.toMap(Function.identity(), count::apply))
 					.entrySet().stream()
 					.max(Comparator.comparingInt(Map.Entry::getValue));
 

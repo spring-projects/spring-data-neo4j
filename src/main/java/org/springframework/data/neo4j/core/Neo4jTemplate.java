@@ -263,15 +263,11 @@ public final class Neo4jTemplate implements
 			} else {
 				executableQuery = createExecutableQuery(domainType, resultType, queryFragmentsAndParameters);
 			}
-			switch (fetchType) {
-				case ALL:
-					intermediaResults = executableQuery.getResults();
-					break;
-				case ONE:
-					intermediaResults = executableQuery.getSingleResult().map(Collections::singletonList)
-							.orElseGet(Collections::emptyList);
-					break;
-			}
+			intermediaResults = switch (fetchType) {
+				case ALL -> executableQuery.getResults();
+				case ONE -> executableQuery.getSingleResult().map(Collections::singletonList)
+						.orElseGet(Collections::emptyList);
+			};
 		}
 
 		if (resultType.isAssignableFrom(domainType)) {
@@ -408,7 +404,7 @@ public final class Neo4jTemplate implements
 				.fetchAs(Entity.class)
 				.one();
 
-		if (!newOrUpdatedNode.isPresent()) {
+		if (newOrUpdatedNode.isEmpty()) {
 			if (entityMetaData.hasVersionProperty()) {
 				throw new OptimisticLockingFailureException(OPTIMISTIC_LOCKING_ERROR_MESSAGE);
 			}

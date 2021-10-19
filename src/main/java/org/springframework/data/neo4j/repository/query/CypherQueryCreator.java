@@ -200,19 +200,12 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndPar
 					relatedNode = relatedNode.named(getNodeName());
 				}
 
-				switch (relationshipDescription.getDirection()) {
-					case OUTGOING:
-						cypherRelationship = cypherRelationship
-								.relationshipTo(relatedNode, relationshipDescription.getType());
-						break;
-					case INCOMING:
-						cypherRelationship = cypherRelationship
-								.relationshipFrom(relatedNode, relationshipDescription.getType());
-						break;
-					default:
-						cypherRelationship = cypherRelationship
-								.relationshipBetween(relatedNode, relationshipDescription.getType());
-				}
+				cypherRelationship = switch (relationshipDescription.getDirection()) {
+					case OUTGOING -> cypherRelationship
+							.relationshipTo(relatedNode, relationshipDescription.getType());
+					case INCOMING -> cypherRelationship
+							.relationshipFrom(relatedNode, relationshipDescription.getType());
+				};
 
 				if (lastNode || hasTargetNode) {
 					cypherRelationship = ((RelationshipPattern) cypherRelationship).named(getRelationshipName());
@@ -326,73 +319,45 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndPar
 		Neo4jPersistentProperty property = path.getRequiredLeafProperty();
 
 		boolean ignoreCase = ignoreCase(part);
-		switch (part.getType()) {
-			case AFTER:
-			case GREATER_THAN:
-				return toCypherProperty(path, ignoreCase)
-						.gt(toCypherParameter(nextRequiredParameter(actualParameters, property), ignoreCase));
-			case BEFORE:
-			case LESS_THAN:
-				return toCypherProperty(path, ignoreCase)
-						.lt(toCypherParameter(nextRequiredParameter(actualParameters, property), ignoreCase));
-			case BETWEEN:
-				return betweenCondition(path, actualParameters, ignoreCase);
-			case CONTAINING:
-				return containingCondition(path, property, actualParameters, ignoreCase);
-			case ENDING_WITH:
-				return toCypherProperty(path, ignoreCase)
-						.endsWith(toCypherParameter(nextRequiredParameter(actualParameters, property), ignoreCase));
-			case EXISTS:
-				return Predicates.exists(toCypherProperty(property));
-			case FALSE:
-				return toCypherProperty(path, ignoreCase).isFalse();
-			case GREATER_THAN_EQUAL:
-				return toCypherProperty(path, ignoreCase)
-						.gte(toCypherParameter(nextRequiredParameter(actualParameters, property), ignoreCase));
-			case IN:
-				return toCypherProperty(path, ignoreCase)
-						.in(toCypherParameter(nextRequiredParameter(actualParameters, property), ignoreCase));
-			case IS_EMPTY:
-				return toCypherProperty(path, ignoreCase).isEmpty();
-			case IS_NOT_EMPTY:
-				return toCypherProperty(path, ignoreCase).isEmpty().not();
-			case IS_NOT_NULL:
-				return toCypherProperty(path, ignoreCase).isNotNull();
-			case IS_NULL:
-				return toCypherProperty(path, ignoreCase).isNull();
-			case LESS_THAN_EQUAL:
-				return toCypherProperty(path, ignoreCase)
-						.lte(toCypherParameter(nextRequiredParameter(actualParameters, property), ignoreCase));
-			case LIKE:
-				return likeCondition(path, nextRequiredParameter(actualParameters, property).nameOrIndex, ignoreCase);
-			case NEAR:
-				return createNearCondition(path, actualParameters);
-			case NEGATING_SIMPLE_PROPERTY:
-				return toCypherProperty(path, ignoreCase)
-						.isNotEqualTo(toCypherParameter(nextRequiredParameter(actualParameters, property), ignoreCase));
-			case NOT_CONTAINING:
-				return containingCondition(path, property, actualParameters, ignoreCase).not();
-			case NOT_IN:
-				return toCypherProperty(path, ignoreCase)
-						.in(toCypherParameter(nextRequiredParameter(actualParameters, property), ignoreCase)).not();
-			case NOT_LIKE:
-				return likeCondition(path, nextRequiredParameter(actualParameters, property).nameOrIndex, ignoreCase).not();
-			case SIMPLE_PROPERTY:
-				return toCypherProperty(path, ignoreCase)
-						.isEqualTo(toCypherParameter(nextRequiredParameter(actualParameters, property), ignoreCase));
-			case STARTING_WITH:
-				return toCypherProperty(path, ignoreCase)
-						.startsWith(toCypherParameter(nextRequiredParameter(actualParameters, property), ignoreCase));
-			case REGEX:
-				return toCypherProperty(path, ignoreCase)
-						.matches(toCypherParameter(nextRequiredParameter(actualParameters, property), ignoreCase));
-			case TRUE:
-				return toCypherProperty(path, ignoreCase).isTrue();
-			case WITHIN:
-				return createWithinCondition(path, actualParameters);
-			default:
-				throw new IllegalArgumentException("Unsupported part type: " + part.getType());
-		}
+		return switch (part.getType()) {
+			case AFTER, GREATER_THAN -> toCypherProperty(path, ignoreCase)
+					.gt(toCypherParameter(nextRequiredParameter(actualParameters, property), ignoreCase));
+			case BEFORE, LESS_THAN -> toCypherProperty(path, ignoreCase)
+					.lt(toCypherParameter(nextRequiredParameter(actualParameters, property), ignoreCase));
+			case BETWEEN -> betweenCondition(path, actualParameters, ignoreCase);
+			case CONTAINING -> 	containingCondition(path, property, actualParameters, ignoreCase);
+			case ENDING_WITH -> toCypherProperty(path, ignoreCase)
+					.endsWith(toCypherParameter(nextRequiredParameter(actualParameters, property), ignoreCase));
+			case EXISTS -> Predicates.exists(toCypherProperty(property));
+			case FALSE -> toCypherProperty(path, ignoreCase).isFalse();
+			case GREATER_THAN_EQUAL -> toCypherProperty(path, ignoreCase)
+					.gte(toCypherParameter(nextRequiredParameter(actualParameters, property), ignoreCase));
+			case IN -> toCypherProperty(path, ignoreCase)
+					.in(toCypherParameter(nextRequiredParameter(actualParameters, property), ignoreCase));
+			case IS_EMPTY -> toCypherProperty(path, ignoreCase).isEmpty();
+			case IS_NOT_EMPTY -> toCypherProperty(path, ignoreCase).isEmpty().not();
+			case IS_NOT_NULL -> toCypherProperty(path, ignoreCase).isNotNull();
+			case IS_NULL -> toCypherProperty(path, ignoreCase).isNull();
+			case LESS_THAN_EQUAL -> toCypherProperty(path, ignoreCase)
+					.lte(toCypherParameter(nextRequiredParameter(actualParameters, property), ignoreCase));
+			case LIKE -> likeCondition(path, nextRequiredParameter(actualParameters, property).nameOrIndex, ignoreCase);
+			case NEAR -> createNearCondition(path, actualParameters);
+			case NEGATING_SIMPLE_PROPERTY -> toCypherProperty(path, ignoreCase)
+					.isNotEqualTo(toCypherParameter(nextRequiredParameter(actualParameters, property), ignoreCase));
+			case NOT_CONTAINING -> containingCondition(path, property, actualParameters, ignoreCase).not();
+			case NOT_IN -> toCypherProperty(path, ignoreCase)
+					.in(toCypherParameter(nextRequiredParameter(actualParameters, property), ignoreCase)).not();
+			case NOT_LIKE -> likeCondition(path, nextRequiredParameter(actualParameters, property).nameOrIndex,
+					ignoreCase).not();
+			case SIMPLE_PROPERTY -> toCypherProperty(path, ignoreCase)
+					.isEqualTo(toCypherParameter(nextRequiredParameter(actualParameters, property), ignoreCase));
+			case STARTING_WITH -> toCypherProperty(path, ignoreCase)
+					.startsWith(toCypherParameter(nextRequiredParameter(actualParameters, property), ignoreCase));
+			case REGEX -> toCypherProperty(path, ignoreCase)
+					.matches(toCypherParameter(nextRequiredParameter(actualParameters, property), ignoreCase));
+			case TRUE -> toCypherProperty(path, ignoreCase).isTrue();
+			case WITHIN -> createWithinCondition(path, actualParameters);
+		};
 	}
 
 	private Condition containingCondition(PersistentPropertyPath<Neo4jPersistentProperty> path,
@@ -415,16 +380,11 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndPar
 	 */
 	boolean ignoreCase(Part part) {
 
-		switch (part.shouldIgnoreCase()) {
-			case ALWAYS:
-				return true;
-			case WHEN_POSSIBLE:
-				return PartValidator.canIgnoreCase(part);
-			case NEVER:
-				return false;
-			default:
-				throw new IllegalArgumentException("Unsupported option for ignoring case: " + part.shouldIgnoreCase());
-		}
+		return switch (part.shouldIgnoreCase()) {
+			case ALWAYS -> true;
+			case WHEN_POSSIBLE -> PartValidator.canIgnoreCase(part);
+			case NEVER -> false;
+		};
 	}
 
 	private Condition likeCondition(PersistentPropertyPath<Neo4jPersistentProperty> path, String parameterName,
