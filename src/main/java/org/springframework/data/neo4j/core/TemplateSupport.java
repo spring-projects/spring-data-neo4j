@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -38,6 +39,7 @@ import org.neo4j.driver.types.Entity;
 import org.neo4j.driver.types.MapAccessor;
 import org.neo4j.driver.types.TypeSystem;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
+import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.neo4j.core.mapping.Constants;
 import org.springframework.data.neo4j.core.mapping.EntityInstanceWithSource;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
@@ -45,7 +47,6 @@ import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.core.mapping.NodeDescription;
 import org.springframework.data.neo4j.core.mapping.PropertyFilter;
 import org.springframework.data.neo4j.repository.query.QueryFragments;
-import org.springframework.data.mapping.PropertyPath;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
@@ -239,6 +240,54 @@ public final class TemplateSupport {
 			mappingFunction = EntityInstanceWithSource.decorateMappingFunction(mappingFunction);
 		}
 		return mappingFunction;
+	}
+
+	/**
+	 * Computes a {@link PropertyFilter} from a set of included properties based on an entities meta data and applies it
+	 * to a given binder function.
+	 *
+	 * @param includedProperties The set of included properties
+	 * @param entityMetaData     The metadata of the entity in question
+	 * @param binderFunction     The original binder function for persisting the entity.
+	 * @param <T>                The type of the entity
+	 * @return A new binder function that only works on the included properties.
+	 */
+	static <T> FilteredBinderFunction<T> createAndApplyPropertyFilter(
+			Map<PropertyPath, Boolean> includedProperties, Neo4jPersistentEntity<?> entityMetaData,
+			Function<T, Map<String, Object>> binderFunction) {
+
+		PropertyFilter includeProperty = TemplateSupport.computeIncludePropertyPredicate(includedProperties, entityMetaData);
+		return new FilteredBinderFunction<>(includeProperty, binderFunction.andThen(tree -> {
+			@SuppressWarnings("unchecked")
+			Map<String, Object> properties = (Map<String, Object>) tree.get(Constants.NAME_OF_PROPERTIES_PARAM);
+
+			if (!includeProperty.isNotFiltering()) {
+				properties.entrySet()
+						.removeIf(e -> !includeProperty.contains(e.getKey(), entityMetaData.getUnderlyingClass()));
+			}
+			return tree;
+		}));
+	}
+
+	/**
+	 * A wrapper around a {@link Function} from entity to {@link Map} which is filtered the {@link PropertyFilter} included as well.
+	 *
+	 * @param <T> Type of the entity
+	 */
+	static class FilteredBinderFunction<T> implements Function<T, Map<String, Object>> {
+		final PropertyFilter filter;
+
+		final Function<T, Map<String, Object>> binderFunction;
+
+		FilteredBinderFunction(PropertyFilter filter, Function<T, Map<String, Object>> binderFunction) {
+			this.filter = filter;
+			this.binderFunction = binderFunction;
+		}
+
+		@Override
+		public Map<String, Object> apply(T t) {
+			return binderFunction.apply(t);
+		}
 	}
 
 	private TemplateSupport() {

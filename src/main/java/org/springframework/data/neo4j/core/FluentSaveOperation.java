@@ -28,9 +28,10 @@ import org.apiguardian.api.API;
  * helpful when you received them via {@link FluentFindOperation fluent find operations} as they won't be modifiable.
  *
  * @author Michael J. Simons
- * @since TBA
+ * @author Gerrit Meier
+ * @since 6.1.3
  */
-@API(status = API.Status.STABLE, since = "TBA")
+@API(status = API.Status.STABLE, since = "6.1.3")
 public interface FluentSaveOperation {
 
 	/**

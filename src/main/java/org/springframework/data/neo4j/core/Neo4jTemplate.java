@@ -370,20 +370,11 @@ public final class Neo4jTemplate implements
 
 		DynamicLabels dynamicLabels = determineDynamicLabels(entityToBeSaved, entityMetaData);
 
-		@SuppressWarnings("unchecked")
-		Function<T, Map<String, Object>> binderFunction = neo4jMappingContext
-				.getRequiredBinderFunctionFor((Class<T>) entityToBeSaved.getClass());
-
-		PropertyFilter includeProperty = TemplateSupport.computeIncludePropertyPredicate(includedProperties, entityMetaData);
-		binderFunction = binderFunction.andThen(tree -> {
-			@SuppressWarnings("unchecked")
-			Map<String, Object> properties = (Map<String, Object>) tree.get(Constants.NAME_OF_PROPERTIES_PARAM);
-
-			if (!includeProperty.isNotFiltering()) {
-				properties.entrySet().removeIf(e -> !includeProperty.contains(e.getKey(), entityMetaData.getUnderlyingClass()));
-			}
-			return tree;
-		});
+		@SuppressWarnings("unchecked") // Applies to retrieving the meta data
+		TemplateSupport.FilteredBinderFunction<T> binderFunction = TemplateSupport.createAndApplyPropertyFilter(
+				includedProperties, entityMetaData,
+				neo4jMappingContext.getRequiredBinderFunctionFor((Class<T>) entityToBeSaved.getClass())
+		);
 		Optional<Entity> newOrUpdatedNode = neo4jClient
 				.query(() -> renderer.render(cypherGenerator.prepareSaveOf(entityMetaData, dynamicLabels)))
 				.bind(entityToBeSaved)
@@ -412,7 +403,7 @@ public final class Neo4jTemplate implements
 		}
 
 		stateMachine.markValueAsProcessed(instance, internalId);
-		processRelations(entityMetaData, propertyAccessor, isEntityNew, stateMachine, includeProperty);
+		processRelations(entityMetaData, propertyAccessor, isEntityNew, stateMachine, binderFunction.filter);
 
 		T bean = propertyAccessor.getBean();
 		stateMachine.markValueAsProcessedAs(instance, bean);
@@ -489,8 +480,9 @@ public final class Neo4jTemplate implements
 				.collect(Collectors.toList());
 
 		// Save roots
-		@SuppressWarnings("unchecked") // We can safely assume here that we have a homongous collection with only one single type being either T or extending it
+		@SuppressWarnings("unchecked") // We can safely assume here that we have a humongous collection with only one single type being either T or extending it
 		Function<T, Map<String, Object>> binderFunction = neo4jMappingContext.getRequiredBinderFunctionFor((Class<T>) domainClass);
+		binderFunction = TemplateSupport.createAndApplyPropertyFilter(includedProperties, entityMetaData, binderFunction);
 		List<Map<String, Object>> entityList = entitiesToBeSaved.stream().map(h -> h.modifiedInstance).map(binderFunction)
 				.collect(Collectors.toList());
 		Map<Value, Long> idToInternalIdMapping = neo4jClient
