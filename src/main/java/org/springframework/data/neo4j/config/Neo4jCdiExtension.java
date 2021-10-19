@@ -37,11 +37,11 @@ import org.springframework.data.repository.config.CustomRepositoryImplementation
 /**
  * This CDI extension enables Spring Data Neo4j on a CDI 2.0 compatible CDI container. It creates a Neo4j client, template
  * and brings in the Neo4j repository mechanism as well. It is the main entry point to our CDI support.
- * <p/>
+ * <p>
  * It requires the presence of a Neo4j Driver bean. Other beans, like the {@link org.springframework.data.neo4j.core.convert.Neo4jConversions}
- * can be overwritten by providing a producer of it. If such a producer or bean is added, it must not use any {@link javax.inject.Qualifier @Qualifier}
+ * can be overwritten by providing a producer of it. If such a producer or bean is added, it must not use any {@link jakarta.inject.Qualifier @Qualifier}
  * on the bean.
- * <p/>
+ * <p>
  * This CDI extension can be used either via a build in service loader mechanism or through building a context manually.
  *
  * @author Michael J. Simons

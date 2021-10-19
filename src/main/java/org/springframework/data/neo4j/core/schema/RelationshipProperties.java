@@ -28,8 +28,7 @@ import org.apiguardian.api.API;
  * This marker interface is used on classes to mark that they represent additional relationship properties. A class that
  * implements this interface must not be used as a or annotated with {@link Node}. It must however have exactly one field
  * of type `Long` annotated with `@Id @GeneratedValue` such as this:
- * <p>
- *     <p>
+ *
  * <pre>
  * &#064;RelationshipProperties
  * public class Roles {
