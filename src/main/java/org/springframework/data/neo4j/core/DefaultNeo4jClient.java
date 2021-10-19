@@ -58,7 +58,7 @@ import org.springframework.util.StringUtils;
  * @author Michael J. Simons
  * @since 6.0
  */
-class DefaultNeo4jClient implements Neo4jClient {
+final class DefaultNeo4jClient implements Neo4jClient {
 
 	private final Driver driver;
 	private final TypeSystem typeSystem;

@@ -22,7 +22,7 @@ import java.util.Objects;
  *
  * @author Michael J. Simons
  */
-abstract class AbstractPoint implements Neo4jPoint {
+abstract non-sealed class AbstractPoint implements Neo4jPoint {
 
 	protected final Coordinate coordinate;
 

@@ -60,7 +60,7 @@ import java.util.function.Supplier;
  * @soundtrack Die Toten Hosen - Im Auftrag des Herrn
  * @since 6.0
  */
-class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
+final class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 
 	private final Driver driver;
 	private final TypeSystem typeSystem;

@@ -27,7 +27,7 @@ import org.apiguardian.api.API;
  * @since 6.0
  */
 @API(status = API.Status.STABLE, since = "6.0")
-public interface Neo4jPoint {
+public sealed interface Neo4jPoint permits AbstractPoint {
 
 	/**
 	 * @return The Srid identifying the Coordinate Reference Systems (CRS) used by this point.
