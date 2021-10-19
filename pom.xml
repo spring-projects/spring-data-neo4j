@@ -19,12 +19,12 @@
 	<parent>
 		<groupId>org.springframework.data.build</groupId>
 		<artifactId>spring-data-parent</artifactId>
-		<version>2.7.0-SNAPSHOT</version>
+		<version>3.0.0-SNAPSHOT</version>
 	</parent>
 
 	<groupId>org.springframework.data</groupId>
 	<artifactId>spring-data-neo4j</artifactId>
-	<version>6.3.0-SNAPSHOT</version>
+	<version>7.0.0-SNAPSHOT</version>
 
 	<name>Spring Data Neo4j</name>
 	<description>Next generation Object-Graph-Mapping for Spring Data.</description>
@@ -73,20 +73,19 @@
 		<asciidoctorj-diagram.version>2.1.0</asciidoctorj-diagram.version>
 
 		<byte-buddy.version>1.11.0</byte-buddy.version>
-		<cdi>2.0.SP1</cdi>
 		<checkstyle.version>8.40</checkstyle.version>
 		<cypher-dsl.version>2022.0.0</cypher-dsl.version>
 		<dist.id>spring-data-neo4j</dist.id>
 		<dist.key>SDNEO4J</dist.key>
 		<flatten-maven-plugin.version>1.2.5</flatten-maven-plugin.version>
-		<jacoco-maven-plugin.version>0.8.6</jacoco-maven-plugin.version>
+		<jacoco-maven-plugin.version>0.8.7</jacoco-maven-plugin.version>
 		<java-module-name>spring.data.neo4j</java-module-name>
-		<java.version>1.8</java.version>
+		<java.version>17</java.version>
 		<jaxb.version>2.3.1</jaxb.version>
-		<jqassistant-dashboard-plugin.version>1.9.0</jqassistant-dashboard-plugin.version>
+		<jqassistant-dashboard-plugin.version>1.10.0</jqassistant-dashboard-plugin.version>
 		<jqassistant.plugin.git.version>1.8.0</jqassistant.plugin.git.version>
-		<jqassistant.plugin.version>1.9.1</jqassistant.plugin.version>
-		<jqassistant.version>1.9.1</jqassistant.version>
+		<jqassistant.plugin.version>1.10.1</jqassistant.plugin.version>
+		<jqassistant.version>1.10.1</jqassistant.version>
 		<junit-cc-testcontainer>2021.0.1</junit-cc-testcontainer>
 		<maven-checkstyle-plugin.version>3.1.2</maven-checkstyle-plugin.version>
 		<maven-deploy-plugin.version>3.0.0-M1</maven-deploy-plugin.version>
@@ -98,23 +97,32 @@
 		<maven-site-plugin.version>3.7.1</maven-site-plugin.version>
 		<maven-source-plugin.version>3.2.0</maven-source-plugin.version>
 		<maven-surefire-plugin.version>3.0.0-M4</maven-surefire-plugin.version>
-		<maven.compiler.source>${java.version}</maven.compiler.source>
-		<maven.compiler.target>${java.version}</maven.compiler.target>
+		<maven.compiler.release>${java.version}</maven.compiler.release>
 		<mockito>${mockito.version}</mockito>
+<<<<<<< HEAD
 		<mockito.version>3.10.0</mockito.version>
 		<neo4j-java-driver.version>4.4.2</neo4j-java-driver.version>
 		<neo4j.version>4.3.6</neo4j.version>
+=======
+		<mockito.version>4.0.0</mockito.version>
+		<neo4j-java-driver.version>4.3.4</neo4j-java-driver.version>
+		<neo4j.version>4.3.2</neo4j.version>
+>>>>>>> 4ebd4a7d1 (Update to Spring Data Commons 3.0.0 and JDK 17.)
 		<objenesis.version>3.0.1</objenesis.version>
 		<project.build.docs>${project.build.directory}/docs</project.build.docs>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<r2dbc.releasetrain>Arabba-SR5</r2dbc.releasetrain>
+		<r2dbc.releasetrain>Arabba-SR11</r2dbc.releasetrain>
 		<reactive-streams.version>1.2.1</reactive-streams.version>
-		<skipArchitectureTests>${skipTests}</skipArchitectureTests>
+		<skipArchitectureTests>true</skipArchitectureTests>
 		<skipIntegrationTests>${skipTests}</skipIntegrationTests>
 		<checkstyle.skip>${skipTests}</checkstyle.skip>
 
 		<skipUnitTests>${skipTests}</skipUnitTests>
+<<<<<<< HEAD
 		<springdata.commons>2.7.0-SNAPSHOT</springdata.commons>
+=======
+		<springdata.commons>3.0.0-SNAPSHOT</springdata.commons>
+>>>>>>> 4ebd4a7d1 (Update to Spring Data Commons 3.0.0 and JDK 17.)
 
 		<spring-data-commons-docs.dir>../../../../spring-data-commons/src/main/asciidoc</spring-data-commons-docs.dir>
 	</properties>
@@ -133,16 +141,6 @@
 				<version>${r2dbc.releasetrain}</version>
 				<type>pom</type>
 				<scope>import</scope>
-			</dependency>
-			<dependency>
-				<groupId>io.reactivex</groupId>
-				<artifactId>rxjava</artifactId>
-				<version>${rxjava}</version>
-			</dependency>
-			<dependency>
-				<groupId>io.reactivex</groupId>
-				<artifactId>rxjava-reactive-streams</artifactId>
-				<version>${rxjava-reactive-streams}</version>
 			</dependency>
 			<dependency>
 				<groupId>io.reactivex.rxjava2</groupId>
@@ -249,41 +247,45 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>io.reactivex</groupId>
-			<artifactId>rxjava</artifactId>
-			<optional>true</optional>
-		</dependency>
-		<dependency>
-			<groupId>io.reactivex</groupId>
-			<artifactId>rxjava-reactive-streams</artifactId>
-			<optional>true</optional>
-		</dependency>
-		<dependency>
 			<groupId>io.reactivex.rxjava2</groupId>
 			<artifactId>rxjava</artifactId>
 			<optional>true</optional>
 		</dependency>
 
 		<dependency>
-			<groupId>javax.enterprise</groupId>
-			<artifactId>cdi-api</artifactId>
+			<groupId>jakarta.enterprise</groupId>
+			<artifactId>jakarta.enterprise.cdi-api</artifactId>
 			<version>${cdi}</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
-			<groupId>javax.transaction</groupId>
-			<artifactId>jta</artifactId>
-			<version>1.1</version>
-			<scope>test</scope>
+			<groupId>jakarta.transaction</groupId>
+			<artifactId>jakarta.transaction-api</artifactId>
+			<version>2.0.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apiguardian</groupId>
 			<artifactId>apiguardian-api</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>org.jboss.weld.se</groupId>
-			<artifactId>weld-se-core</artifactId>
-			<version>3.1.4.Final</version>
+			<groupId>org.apache.openwebbeans</groupId>
+			<artifactId>openwebbeans-se</artifactId>
+			<classifier>jakarta</classifier>
+			<version>${webbeans}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.openwebbeans</groupId>
+			<artifactId>openwebbeans-spi</artifactId>
+			<classifier>jakarta</classifier>
+			<version>${webbeans}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.openwebbeans</groupId>
+			<artifactId>openwebbeans-impl</artifactId>
+			<classifier>jakarta</classifier>
+			<version>${webbeans}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>

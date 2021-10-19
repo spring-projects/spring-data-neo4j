@@ -15,7 +15,7 @@
  */
 package org.springframework.data.neo4j.integration.cdi;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.neo4j.driver.Driver;
 

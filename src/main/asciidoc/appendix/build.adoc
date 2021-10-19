@@ -155,6 +155,16 @@ Your build will break on formatting errors or something like unused imports.
 [[building-SDN.jqassistant]]
 === jQAssistant
 
+WARNING: Verification of those rules is off by default since Spring Data Neo4j 7, as the it requires JDK 17 to build.
+         The currently available version of jQAssistant does not run without several `--add-opens` arguments to the Java
+         module system and we won't apply this to the whole build as we must ensure that SDN itself does *not* need them.
+         +
+         To execute the rules during a build run the build like this:
+         +
+         +
+         `MAVEN_OPTS="--add-opens java.base/sun.nio.ch=ALL-UNNAMED --add-opens java.base/java.lang=ALL-UNNAMED" ./mvnw -DskipArchitectureTests=false -DskipTests=true verify`
+
+
 We also use https://jqassistant.org[jQAssistant], a Neo4j-based tool, to verify some aspects of our architecture.
 The rules are described with Cypher and your build will break when they are violated:
 
@@ -171,7 +181,7 @@ When the build finishes, execute the following command:
 [[start-jqassistant]]
 .Start jQAssistant
 ----
-$ ./mvnw -pl org.springframework.data.neo4j:spring-data-neo4j jqassistant:server
+$ MAVEN_OPTS="--add-opens java.base/sun.nio.ch=ALL-UNNAMED --add-opens java.base/java.lang=ALL-UNNAMED" ./mvnw -DskipArchitectureTests=false jqassistant:server
 ----
 
 Access the standard Neo4j browser at http://localhost:7474 and a dedicated jQA-Dashboard at http://localhost:7474/jqassistant/dashboard/.
@@ -182,6 +192,6 @@ The scanning and analyzing can be triggered individually, without going through 
 [[scan-with-jqassistant]]
 .Manually scan and analyze the main project
 ----
-$ ./mvnw -pl org.springframework.data.neo4j:spring-data-neo4j jqassistant:scan@jqassistant-scan
-$ ./mvnw -pl org.springframework.data.neo4j:spring-data-neo4j jqassistant:analyze@jqassistant-analyze
+$ MAVEN_OPTS="--add-opens java.base/sun.nio.ch=ALL-UNNAMED --add-opens java.base/java.lang=ALL-UNNAMED" ./mvnw -DskipArchitectureTests=false jqassistant:scan@jqassistant-scan
+$ MAVEN_OPTS="--add-opens java.base/sun.nio.ch=ALL-UNNAMED --add-opens java.base/java.lang=ALL-UNNAMED" ./mvnw -DskipArchitectureTests=false jqassistant:analyze@jqassistant-analyze
 ----
