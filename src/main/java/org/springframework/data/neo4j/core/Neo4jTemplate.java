@@ -363,18 +363,10 @@ public final class Neo4jTemplate implements
 
 		DynamicLabels dynamicLabels = determineDynamicLabels(entityToBeSaved, entityMetaData);
 
-		Function<T, Map<String, Object>> binderFunction = neo4jMappingContext
-				.getRequiredBinderFunctionFor((Class<T>) entityToBeSaved.getClass());
-
-		PropertyFilter includeProperty = TemplateSupport.computeIncludePropertyPredicate(includedProperties, entityMetaData);
-		binderFunction = binderFunction.andThen(tree -> {
-			Map<String, Object> properties = (Map<String, Object>) tree.get(Constants.NAME_OF_PROPERTIES_PARAM);
-
-			if (!includeProperty.isNotFiltering()) {
-				properties.entrySet().removeIf(e -> !includeProperty.contains(e.getKey(), entityMetaData.getUnderlyingClass()));
-			}
-			return tree;
-		});
+		TemplateSupport.FilteredBinderFunction<T> binderFunction = TemplateSupport.createAndApplyPropertyFilter(
+				includedProperties, entityMetaData,
+				neo4jMappingContext.getRequiredBinderFunctionFor((Class<T>) entityToBeSaved.getClass())
+		);
 		Optional<Entity> newOrUpdatedNode = neo4jClient
 				.query(() -> renderer.render(cypherGenerator.prepareSaveOf(entityMetaData, dynamicLabels)))
 				.bind(entityToBeSaved)
@@ -403,7 +395,7 @@ public final class Neo4jTemplate implements
 		}
 
 		stateMachine.markValueAsProcessed(instance, internalId);
-		processRelations(entityMetaData, propertyAccessor, isEntityNew, stateMachine, includeProperty);
+		processRelations(entityMetaData, propertyAccessor, isEntityNew, stateMachine, binderFunction.filter);
 
 		T bean = propertyAccessor.getBean();
 		stateMachine.markValueAsProcessedAs(instance, bean);
@@ -480,6 +472,7 @@ public final class Neo4jTemplate implements
 
 		// Save roots
 		Function<T, Map<String, Object>> binderFunction = neo4jMappingContext.getRequiredBinderFunctionFor(domainClass);
+		binderFunction = TemplateSupport.createAndApplyPropertyFilter(includedProperties, entityMetaData, binderFunction);
 		List<Map<String, Object>> entityList = entitiesToBeSaved.stream().map(h -> h.modifiedInstance).map(binderFunction)
 				.collect(Collectors.toList());
 		Map<Value, Long> idToInternalIdMapping = neo4jClient

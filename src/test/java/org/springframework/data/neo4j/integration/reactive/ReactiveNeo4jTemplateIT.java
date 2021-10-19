@@ -55,6 +55,7 @@ import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
 import org.springframework.data.neo4j.core.transaction.ReactiveNeo4jTransactionManager;
 import org.springframework.data.neo4j.integration.shared.common.Person;
 import org.springframework.data.neo4j.integration.shared.common.PersonWithAllConstructor;
+import org.springframework.data.neo4j.integration.shared.common.PersonWithAssignedId;
 import org.springframework.data.neo4j.integration.shared.common.ThingWithGeneratedId;
 import org.springframework.data.neo4j.test.BookmarkCapture;
 import org.springframework.data.neo4j.test.Neo4jExtension;
@@ -113,6 +114,7 @@ class ReactiveNeo4jTemplateIT {
 					.run("CREATE (p:Person{firstName: 'Helge', lastName: 'Schnitzel'}) -[:LIVES_AT]-> (a:Address {city: 'Mülheim an der Ruhr'}) RETURN id(p)")
 					.single().get(0).asLong();
 			transaction.run("CREATE (p:Person{firstName: 'Bela', lastName: 'B.'})");
+			transaction.run("CREATE (p:PersonWithAssignedId{id: 'x', firstName: 'John', lastName: 'Doe'})");
 
 			transaction.commit();
 
@@ -755,6 +757,50 @@ class ReactiveNeo4jTemplateIT {
 				.returning(person).build(), Collections.singletonMap("lastName", "Schnitzel"))
 				.all();
 		people.map(Person::getLastName).as(StepVerifier::create).expectNext("Schnitzel").verifyComplete();
+	}
+
+	@Test // GH-2407
+	void shouldSaveAllAsWithAssignedIdProjected() {
+
+		neo4jTemplate.findById("x", PersonWithAssignedId.class)
+				.flatMapMany(p -> {
+					p.setLastName("modifiedLast");
+					p.setFirstName("modifiedFirst");
+					return neo4jTemplate.saveAllAs(Collections.singletonList(p), ClosedProjection.class);
+				}).map(ClosedProjection::getLastName)
+				.as(StepVerifier::create)
+				.expectNext("modifiedLast")
+				.verifyComplete();
+
+		neo4jTemplate.findById("x", PersonWithAssignedId.class)
+				.as(StepVerifier::create)
+				.consumeNextWith(p -> {
+					assertThat(p.getFirstName()).isEqualTo("John");
+					assertThat(p.getLastName()).isEqualTo("modifiedLast");
+				})
+				.verifyComplete();
+	}
+
+	@Test // GH-2407
+	void shouldSaveAsWithAssignedIdProjected() {
+
+		neo4jTemplate.findById("x", PersonWithAssignedId.class)
+				.flatMap(p -> {
+					p.setLastName("modifiedLast");
+					p.setFirstName("modifiedFirst");
+					return neo4jTemplate.saveAs(p, ClosedProjection.class);
+				}).map(ClosedProjection::getLastName)
+				.as(StepVerifier::create)
+				.expectNext("modifiedLast")
+				.verifyComplete();
+
+		neo4jTemplate.findById("x", PersonWithAssignedId.class)
+				.as(StepVerifier::create)
+				.consumeNextWith(p -> {
+					assertThat(p.getFirstName()).isEqualTo("John");
+					assertThat(p.getLastName()).isEqualTo("modifiedLast");
+				})
+				.verifyComplete();
 	}
 
 	@Configuration

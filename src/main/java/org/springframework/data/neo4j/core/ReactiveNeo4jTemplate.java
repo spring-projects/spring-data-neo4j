@@ -24,6 +24,7 @@ import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.neo4j.core.mapping.EntityFromDtoInstantiatingConverter;
 import org.springframework.data.neo4j.core.mapping.PropertyFilter;
 import org.springframework.data.mapping.Association;
+import org.springframework.data.neo4j.core.TemplateSupport.FilteredBinderFunction;
 import org.springframework.data.neo4j.core.schema.TargetNode;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -380,17 +381,9 @@ public final class ReactiveNeo4jTemplate implements
 
 					DynamicLabels dynamicLabels = t.getT2();
 
-					Function<T, Map<String, Object>> binderFunction = neo4jMappingContext
-							.getRequiredBinderFunctionFor((Class<T>) entityToBeSaved.getClass());
-
-					PropertyFilter includeProperty = TemplateSupport.computeIncludePropertyPredicate(includedProperties, entityMetaData);
-					binderFunction = binderFunction.andThen(tree -> {
-						Map<String, Object> properties = (Map<String, Object>) tree.get(Constants.NAME_OF_PROPERTIES_PARAM);
-						if (!includeProperty.isNotFiltering()) {
-							properties.entrySet().removeIf(e -> !includeProperty.contains(e.getKey(), entityMetaData.getUnderlyingClass()));
-						}
-						return tree;
-					});
+					FilteredBinderFunction<T> binderFunction = TemplateSupport.createAndApplyPropertyFilter(
+							includedProperties, entityMetaData,
+							neo4jMappingContext.getRequiredBinderFunctionFor((Class<T>) entityToBeSaved.getClass()));
 
 					Mono<Entity> idMono = this.neo4jClient.query(() -> renderer.render(cypherGenerator.prepareSaveOf(entityMetaData, dynamicLabels)))
 							.bind(entityToBeSaved)
@@ -412,7 +405,7 @@ public final class ReactiveNeo4jTemplate implements
 						TemplateSupport.updateVersionPropertyIfPossible(entityMetaData, propertyAccessor, newOrUpdatedNode);
 						finalStateMachine.markValueAsProcessed(instance, newOrUpdatedNode.id());
 					}).map(Entity::id)
-							.flatMap(internalId -> processRelations(entityMetaData,  propertyAccessor, isNewEntity, finalStateMachine, includeProperty));
+							.flatMap(internalId -> processRelations(entityMetaData,  propertyAccessor, isNewEntity, finalStateMachine, binderFunction.filter));
 				});
 	}
 
@@ -500,7 +493,9 @@ public final class ReactiveNeo4jTemplate implements
 			return Flux.fromIterable(entities).concatMap(e -> this.saveImpl(e, includedProperties, stateMachine));
 		}
 
-		Function<T, Map<String, Object>> binderFunction = neo4jMappingContext.getRequiredBinderFunctionFor(domainClass);
+		Function<T, Map<String, Object>> binderFunction = TemplateSupport.createAndApplyPropertyFilter(
+				includedProperties, entityMetaData,
+				neo4jMappingContext.getRequiredBinderFunctionFor(domainClass));
 		return Flux.fromIterable(entities)
 				// Map all entities into a tuple <Original, OriginalWasNew>
 				.map(e -> Tuples.of(e, entityMetaData.isNew(e)))

@@ -53,6 +53,7 @@ import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
 import org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager;
 import org.springframework.data.neo4j.integration.shared.common.Person;
 import org.springframework.data.neo4j.integration.shared.common.PersonWithAllConstructor;
+import org.springframework.data.neo4j.integration.shared.common.PersonWithAssignedId;
 import org.springframework.data.neo4j.integration.shared.common.ThingWithGeneratedId;
 import org.springframework.data.neo4j.test.BookmarkCapture;
 import org.springframework.data.neo4j.test.Neo4jExtension.Neo4jConnectionSupport;
@@ -101,14 +102,14 @@ class Neo4jTemplateIT {
 					Values.parameters("name", TEST_PERSON2_NAME)).single().get("id").asLong();
 
 			transaction.run("CREATE (p:Person{firstName: 'A', lastName: 'LA'})");
-			transaction
-					.run("CREATE (p:Person{firstName: 'Michael', lastName: 'Siemons'})" +
+			transaction.run("CREATE (p:Person{firstName: 'Michael', lastName: 'Siemons'})" +
 							" -[:LIVES_AT]-> (a:Address {city: 'Aachen'})" +
 							" -[:BASED_IN]->(c:YetAnotherCountryEntity{name: 'Gemany', countryCode: 'DE'})" +
 							" RETURN id(p)");
-			transaction
-					.run("CREATE (p:Person{firstName: 'Helge', lastName: 'Schnitzel'}) -[:LIVES_AT]-> (a:Address {city: 'Mülheim an der Ruhr'}) RETURN id(p)");
+			transaction.run(
+					"CREATE (p:Person{firstName: 'Helge', lastName: 'Schnitzel'}) -[:LIVES_AT]-> (a:Address {city: 'Mülheim an der Ruhr'}) RETURN id(p)");
 			transaction.run("CREATE (p:Person{firstName: 'Bela', lastName: 'B.'})");
+			transaction.run("CREATE (p:PersonWithAssignedId{id: 'x', firstName: 'John', lastName: 'Doe'})");
 
 			transaction.commit();
 			bookmarkCapture.seedWith(session.lastBookmark());
@@ -438,9 +439,9 @@ class Neo4jTemplateIT {
 		p2.setFirstName("Helga");
 		p2.setLastName("Schneider");
 
-		List<OpenProjection> openProjection = neo4jTemplate.saveAllAs(Arrays.asList(p1, p2), OpenProjection.class);
+		List<OpenProjection> openProjections = neo4jTemplate.saveAllAs(Arrays.asList(p1, p2), OpenProjection.class);
 
-		assertThat(openProjection).extracting(OpenProjection::getFullName)
+		assertThat(openProjections).extracting(OpenProjection::getFullName)
 				.containsExactlyInAnyOrder("Michael Simons", "Helge Schneider");
 
 		List<Person> people = neo4jTemplate.findAllById(Arrays.asList(p1.getId(), p2.getId()), Person.class);
@@ -529,6 +530,105 @@ class Neo4jTemplateIT {
 		assertThat(p.getAddress().getStreet()).isEqualTo("Single Trail");
 	}
 
+	@Test // GH-2407
+	void saveAllAsWithClosedProjectionOnSecondLevelShouldWork() {
+
+		Person p = neo4jTemplate.findOne("MATCH (p:Person {lastName: $lastName})-[r:LIVES_AT]-(a:Address) RETURN p, collect(r), collect(a)",
+				Collections.singletonMap("lastName", "Siemons"), Person.class).get();
+
+		p.setFirstName("Klaus");
+		p.setLastName("Simons");
+		p.getAddress().setCity("Braunschweig");
+		p.getAddress().setStreet("Single Trail");
+		List<ClosedProjectionWithEmbeddedProjection> projections = neo4jTemplate.saveAllAs(Collections.singletonList(p), ClosedProjectionWithEmbeddedProjection.class);
+
+		assertThat(projections)
+				.hasSize(1).first()
+				.satisfies(projection -> assertThat(projection.getAddress().getStreet()).isEqualTo("Single Trail"));
+
+		p = neo4jTemplate.findById(p.getId(), Person.class).get();
+		assertThat(p.getFirstName()).isEqualTo("Michael");
+		assertThat(p.getLastName()).isEqualTo("Simons");
+		assertThat(p.getAddress().getCity()).isEqualTo("Aachen");
+		assertThat(p.getAddress().getStreet()).isEqualTo("Single Trail");
+	}
+
+	@Test // GH-2407
+	void shouldSaveNewProjectedThing() {
+
+		Person p = new Person();
+		p.setFirstName("John");
+		p.setLastName("Doe");
+
+		ClosedProjection projection = neo4jTemplate.saveAs(p, ClosedProjection.class);
+		List<Person> people = neo4jTemplate.findAll("MATCH (p:Person {lastName: $lastName}) RETURN p",
+				Collections.singletonMap("lastName", "Doe"), Person.class);
+		assertThat(people).hasSize(1)
+				.first().satisfies(person -> {
+					assertThat(person.getFirstName()).isNull();
+					assertThat(person.getLastName()).isEqualTo(projection.getLastName());
+				});
+	}
+
+	@Test // GH-2407
+	void shouldSaveAllNewProjectedThings() {
+
+		Person p = new Person();
+		p.setFirstName("John");
+		p.setLastName("Doe");
+
+		List<ClosedProjection> projections = neo4jTemplate.saveAllAs(Collections.singletonList(p),
+				ClosedProjection.class);
+		assertThat(projections).hasSize(1);
+
+		ClosedProjection projection = projections.get(0);
+		List<Person> people = neo4jTemplate.findAll("MATCH (p:Person {lastName: $lastName}) RETURN p",
+				Collections.singletonMap("lastName", "Doe"), Person.class);
+		assertThat(people).hasSize(1)
+				.first().satisfies(person -> {
+					assertThat(person.getFirstName()).isNull();
+					assertThat(person.getLastName()).isEqualTo(projection.getLastName());
+				});
+	}
+
+	@Test // GH-2407
+	void shouldSaveAllAsWithAssignedIdProjected() {
+
+		PersonWithAssignedId p = neo4jTemplate.findById("x", PersonWithAssignedId.class).get();
+		p.setLastName("modifiedLast");
+		p.setFirstName("modifiedFirst");
+
+		List<ClosedProjection> projections = neo4jTemplate.saveAllAs(Collections.singletonList(p),
+				ClosedProjection.class);
+		assertThat(projections).hasSize(1);
+
+		ClosedProjection projection = projections.get(0);
+		List<PersonWithAssignedId> people = neo4jTemplate.findAll("MATCH (p:PersonWithAssignedId {id: $id}) RETURN p",
+				Collections.singletonMap("id", "x"), PersonWithAssignedId.class);
+		assertThat(people).hasSize(1)
+				.first().satisfies(person -> {
+					assertThat(person.getFirstName()).isEqualTo("John");
+					assertThat(person.getLastName()).isEqualTo(projection.getLastName());
+				});
+	}
+
+	@Test // GH-2407
+	void shouldSaveAsWithAssignedIdProjected() {
+
+		PersonWithAssignedId p = neo4jTemplate.findById("x", PersonWithAssignedId.class).get();
+		p.setLastName("modifiedLast");
+		p.setFirstName("modifiedFirst");
+
+		ClosedProjection projection = neo4jTemplate.saveAs(p, ClosedProjection.class);
+		List<PersonWithAssignedId> people = neo4jTemplate.findAll("MATCH (p:PersonWithAssignedId {id: $id}) RETURN p",
+				Collections.singletonMap("id", "x"), PersonWithAssignedId.class);
+		assertThat(people).hasSize(1)
+				.first().satisfies(person -> {
+					assertThat(person.getFirstName()).isEqualTo("John");
+					assertThat(person.getLastName()).isEqualTo(projection.getLastName());
+				});
+	}
+
 	@Test
 	void saveAsWithClosedProjectionOnThreeLevelShouldWork() {
 
@@ -541,6 +641,28 @@ class Neo4jTemplateIT {
 
 		ClosedProjectionWithEmbeddedProjection projection = neo4jTemplate.saveAs(p, ClosedProjectionWithEmbeddedProjection.class);
 		assertThat(projection.getAddress().getCountry().getName()).isEqualTo("Germany");
+
+		p = neo4jTemplate.findById(p.getId(), Person.class).get();
+		Person.Address.Country savedCountry = p.getAddress().getCountry();
+		assertThat(savedCountry.getCountryCode()).isEqualTo("DE");
+		assertThat(savedCountry.getName()).isEqualTo("Germany");
+	}
+
+	@Test // GH-2407
+	void saveAllAsWithClosedProjectionOnThreeLevelShouldWork() {
+
+		Person p = neo4jTemplate.findOne("MATCH (p:Person {lastName: $lastName})-[r:LIVES_AT]-(a:Address)-[r2:BASED_IN]->(c:YetAnotherCountryEntity) RETURN p, collect(r), collect(r2), collect(a), collect(c)",
+				Collections.singletonMap("lastName", "Siemons"), Person.class).get();
+
+		Person.Address.Country country = p.getAddress().getCountry();
+		country.setName("Germany");
+		country.setCountryCode("AT");
+
+		List<ClosedProjectionWithEmbeddedProjection> projections = neo4jTemplate.saveAllAs(Collections.singletonList(p), ClosedProjectionWithEmbeddedProjection.class);
+
+		assertThat(projections)
+				.hasSize(1).first()
+				.satisfies(projection -> assertThat(projection.getAddress().getCountry().getName()).isEqualTo("Germany"));
 
 		p = neo4jTemplate.findById(p.getId(), Person.class).get();
 		Person.Address.Country savedCountry = p.getAddress().getCountry();
@@ -563,10 +685,10 @@ class Neo4jTemplateIT {
 		p2.setFirstName("Helga");
 		p2.setLastName("Schneider");
 
-		List<ClosedProjection> openProjection = neo4jTemplate
+		List<ClosedProjection> closedProjections = neo4jTemplate
 				.saveAllAs(Arrays.asList(p1, p2), ClosedProjection.class);
 
-		assertThat(openProjection).extracting(ClosedProjection::getLastName)
+		assertThat(closedProjections).extracting(ClosedProjection::getLastName)
 				.containsExactlyInAnyOrder("Simons", "Schneider");
 
 		List<Person> people = neo4jTemplate.findAllById(Arrays.asList(p1.getId(), p2.getId()), Person.class);
