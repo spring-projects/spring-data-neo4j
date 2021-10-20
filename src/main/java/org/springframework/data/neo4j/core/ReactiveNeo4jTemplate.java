@@ -295,7 +295,7 @@ public final class ReactiveNeo4jTemplate implements
 		}
 
 		return neo4jMappingContext.getConversionService().writeValue(idValues,
-				ClassTypeInformation.from(idValues.getClass()), idProperty == null ? null : idProperty.getOptionalWritingConverter());
+				ClassTypeInformation.from(idValues.getClass()), idProperty == null ? null : idProperty.getOptionalConverter());
 	}
 
 	@Override
