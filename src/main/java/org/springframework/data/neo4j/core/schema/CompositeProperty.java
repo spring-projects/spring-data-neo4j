@@ -20,6 +20,7 @@ import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Collections;
 import java.util.HashMap;
@@ -270,7 +271,15 @@ final class CompositePropertyConverterFactory implements Neo4jPersistentProperty
 					() -> "SDN could not determine the property type of your toMap converter " + generateLocation(
 							persistentProperty));
 
-			if (persistentProperty.getActualType() != typeVariableMap.get(PROPERTY_TYPE_KEY)) {
+			Type type = typeVariableMap.get(PROPERTY_TYPE_KEY);
+			if (persistentProperty.isCollectionLike() && type instanceof ParameterizedType) {
+				ParameterizedType pt = (ParameterizedType) type;
+				if (persistentProperty.getType().equals(pt.getRawType()) && pt.getActualTypeArguments().length == 1) {
+					type = ((ParameterizedType) type).getActualTypeArguments()[0];
+				}
+			}
+
+			if (persistentProperty.getActualType() != type) {
 				throw new IllegalArgumentException(
 						"The property type `" + typeVariableMap.get(PROPERTY_TYPE_KEY).getTypeName() + "` created by `"
 								+ delegateClass.getName() + "` " + generateLocation(persistentProperty)

@@ -319,7 +319,7 @@ public final class Neo4jTemplate implements
 
 		return neo4jMappingContext.getConversionService().writeValue(idValues,
 				ClassTypeInformation.from(idValues.getClass()),
-				idProperty == null ? null : idProperty.getOptionalWritingConverter());
+				idProperty == null ? null : idProperty.getOptionalConverter());
 	}
 
 	@Override

@@ -193,7 +193,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 				return;
 			}
 
-			final Value value = conversionService.writeValue(propertyAccessor.getProperty(p), p.getTypeInformation(), p.getOptionalWritingConverter());
+			final Value value = conversionService.writeValue(propertyAccessor.getProperty(p), p.getTypeInformation(), p.getOptionalConverter());
 			if (p.isComposite()) {
 				value.keys().forEach(k -> properties.put(k, value.get(k)));
 			} else {
@@ -207,7 +207,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 		if (nodeDescription.hasIdProperty()) {
 			Neo4jPersistentProperty idProperty = nodeDescription.getRequiredIdProperty();
 			parameters.put(Constants.NAME_OF_ID,
-					conversionService.writeValue(propertyAccessor.getProperty(idProperty), idProperty.getTypeInformation(), idProperty.getOptionalWritingConverter()));
+					conversionService.writeValue(propertyAccessor.getProperty(idProperty), idProperty.getTypeInformation(), idProperty.getOptionalConverter()));
 		}
 		// in case of relationship properties ignore internal id property
 		if (nodeDescription.hasVersionProperty()) {
@@ -427,7 +427,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 				} else if (matchingProperty.isEntityWithRelationshipProperties()) {
 					result = lastMappedEntity;
 				} else {
-					result =  conversionService.readValue(extractValueOf(matchingProperty, values), parameter.getType(), matchingProperty.getOptionalReadingConverter());
+					result =  conversionService.readValue(extractValueOf(matchingProperty, values), parameter.getType(), matchingProperty.getOptionalConverter());
 				}
 				return (T) result;
 			}
@@ -454,7 +454,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 					propertyAccessor.setProperty(property, targetNode);
 				}
 			} else {
-				Object value = conversionService.readValue(extractValueOf(property, queryResult), typeInformation, property.getOptionalReadingConverter());
+				Object value = conversionService.readValue(extractValueOf(property, queryResult), typeInformation, property.getOptionalConverter());
 				Class<?> rawType = typeInformation.getType();
 				propertyAccessor.setProperty(property, getValueOrDefault(ownerIsKotlinType, rawType, value));
 			}

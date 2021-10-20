@@ -30,6 +30,7 @@ import org.springframework.dao.TypeMismatchDataAccessException;
 import org.springframework.data.mapping.model.SimpleTypeHolder;
 import org.springframework.data.neo4j.core.convert.Neo4jConversionService;
 import org.springframework.data.neo4j.core.convert.Neo4jConversions;
+import org.springframework.data.neo4j.core.convert.Neo4jPersistentPropertyConverter;
 import org.springframework.data.util.TypeInformation;
 import org.springframework.lang.Nullable;
 
@@ -68,25 +69,31 @@ final class DefaultNeo4jConversionService implements Neo4jConversionService {
 	@Override
 	@Nullable
 	public Object readValue(@Nullable Value source, TypeInformation<?> targetType,
-			@Nullable Function<Value, Object> conversionOverride) {
+			@Nullable Neo4jPersistentPropertyConverter<?> conversionOverride) {
 
-		BiFunction<Value, Class<?>, Object> conversion = conversionOverride == null ?
-				(v, t) -> conversionService.convert(v, t) :
-				(v, t) -> conversionOverride.apply(v);
+		BiFunction<Value, Class<?>, Object> conversion;
+		boolean applyConversionToCompleteCollection = false;
+		if (conversionOverride == null) {
+			conversion = (v, t) -> conversionService.convert(v, t);
+		} else {
+			applyConversionToCompleteCollection = conversionOverride instanceof NullSafeNeo4jPersistentPropertyConverter
+												  && ((NullSafeNeo4jPersistentPropertyConverter<?>) conversionOverride).isForCollection();
+			conversion = (v, t) -> conversionOverride.read(v);
+		}
 
-		return readValueImpl(source, targetType, conversion);
+		return readValueImpl(source, targetType, conversion, applyConversionToCompleteCollection);
 	}
 
 	@Nullable
 	private Object readValueImpl(@Nullable Value value, TypeInformation<?> type,
-			BiFunction<Value, Class<?>, Object> conversion) {
+			BiFunction<Value, Class<?>, Object> conversion, boolean applyConversionToCompleteCollection) {
 
 		boolean valueIsLiteralNullOrNullValue = value == null || value == Values.NULL;
 
 		try {
 			Class<?> rawType = type.getType();
 
-			if (!valueIsLiteralNullOrNullValue && isCollection(type)) {
+			if (!valueIsLiteralNullOrNullValue && isCollection(type) && !applyConversionToCompleteCollection) {
 				Collection<Object> target = CollectionFactory
 						.createCollection(rawType, type.getComponentType().getType(), value.size());
 				value.values()
@@ -102,16 +109,25 @@ final class DefaultNeo4jConversionService implements Neo4jConversionService {
 
 	@Override
 	public Value writeValue(@Nullable Object value, TypeInformation<?> sourceType,
-			@Nullable Function<Object, Value> writingConverter) {
+			@Nullable Neo4jPersistentPropertyConverter<?> writingConverter) {
 
-		Function<Object, Value> conversion =
-				writingConverter == null ? v -> conversionService.convert(v, Value.class) : writingConverter;
+		Function<Object, Value> conversion;
+		boolean applyConversionToCompleteCollection = false;
+		if (writingConverter == null) {
+			conversion = v -> conversionService.convert(v, Value.class);
+		} else {
+			@SuppressWarnings("unchecked")
+			Neo4jPersistentPropertyConverter<Object> hlp = (Neo4jPersistentPropertyConverter<Object>) writingConverter;
+			applyConversionToCompleteCollection = writingConverter instanceof NullSafeNeo4jPersistentPropertyConverter
+												  && ((NullSafeNeo4jPersistentPropertyConverter<?>) writingConverter).isForCollection();
+			conversion = hlp::write;
+		}
 
-		return writeValueImpl(value, sourceType, conversion);
+		return writeValueImpl(value, sourceType, conversion, applyConversionToCompleteCollection);
 	}
 
 	private Value writeValueImpl(@Nullable Object value, TypeInformation<?> type,
-			Function<Object, Value> conversion) {
+			Function<Object, Value> conversion, boolean applyConversionToCompleteCollection) {
 
 		if (value == null) {
 			try {
@@ -122,10 +138,9 @@ final class DefaultNeo4jConversionService implements Neo4jConversionService {
 			}
 		}
 
-		if (isCollection(type)) {
+		if (isCollection(type) && !applyConversionToCompleteCollection) {
 			Collection<?> sourceCollection = (Collection<?>) value;
-			Object[] targetCollection = (sourceCollection).stream()
-					.map(conversion::apply).toArray();
+			Object[] targetCollection = (sourceCollection).stream().map(conversion::apply).toArray();
 			return Values.value(targetCollection);
 		}
 
