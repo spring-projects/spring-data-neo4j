@@ -16,10 +16,7 @@
 package org.springframework.data.neo4j.core.mapping;
 
 import java.util.Optional;
-import java.util.function.Function;
 
-import org.neo4j.driver.Value;
-import org.neo4j.driver.Values;
 import org.springframework.data.mapping.Association;
 import org.springframework.data.mapping.MappingException;
 import org.springframework.data.mapping.PersistentEntity;
@@ -190,27 +187,11 @@ final class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProp
 		return super.isEntity() && isAssociation() || (isEntityWithRelationshipProperties() && !isComposite());
 	}
 
-	private static Function<Object, Value> nullSafeWrite(Function<Object, Value> delegate) {
-		return source -> source == null ? Values.NULL : delegate.apply(source);
-	}
-
 	@Override
-	public Function<Object, Value> getOptionalWritingConverter() {
+	public Neo4jPersistentPropertyConverter<?> getOptionalConverter() {
 		return customConversion.getOptional()
-				.map(c -> {
-					Function<Object, Value> originalConversion = c::write;
-					return this.isComposite() ? originalConversion : nullSafeWrite(originalConversion);
-				})
+				.map(Neo4jPersistentPropertyConverter.class::cast)
 				.orElse(null);
-	}
-
-	private static Function<Value, Object> nullSafeRead(Function<Value, Object> delegate) {
-		return source -> source == null || source.isNull() ? null : delegate.apply(source);
-	}
-
-	@Override
-	public Function<Value, Object> getOptionalReadingConverter() {
-		return customConversion.getOptional().map(c -> nullSafeRead(c::read)).orElse(null);
 	}
 
 	@Override

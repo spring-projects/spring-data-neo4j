@@ -17,6 +17,8 @@ package org.springframework.data.neo4j.core.mapping;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -24,6 +26,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 import org.apiguardian.api.API;
 import org.neo4j.cypherdsl.core.Statement;
@@ -34,6 +37,7 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.context.ApplicationContext;
+import org.springframework.core.GenericTypeResolver;
 import org.springframework.data.mapping.MappingException;
 import org.springframework.data.mapping.PersistentEntity;
 import org.springframework.data.mapping.context.AbstractMappingContext;
@@ -344,7 +348,26 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 
 		ConvertWith convertWith = persistentProperty.getRequiredAnnotation(ConvertWith.class);
 		Neo4jPersistentPropertyConverterFactory persistentPropertyConverterFactory = this.getOrCreateConverterFactoryOfType(convertWith.converterFactory());
-		return persistentPropertyConverterFactory.getPropertyConverterFor(persistentProperty);
+		Neo4jPersistentPropertyConverter<?> customConversions = persistentPropertyConverterFactory.getPropertyConverterFor(persistentProperty);
+
+		boolean forCollection = false;
+		if (persistentProperty.isCollectionLike() && convertWith.converter() != ConvertWith.UnsetConverter.class) {
+			Map<String, Type> typeVariableMap = GenericTypeResolver.getTypeVariableMap(convertWith.converter())
+					.entrySet()
+					.stream()
+					.collect(Collectors.toMap(e -> e.getKey().getName(), Map.Entry::getValue));
+			Type propertyType = null;
+			if (typeVariableMap.containsKey("T")) {
+				propertyType = typeVariableMap.get("T");
+			} else if (typeVariableMap.containsKey("P")) {
+				propertyType = typeVariableMap.get("P");
+			}
+			forCollection =
+					propertyType != null && propertyType instanceof ParameterizedType && persistentProperty.getType()
+							.equals(((ParameterizedType) propertyType).getRawType());
+		}
+
+		return new NullSafeNeo4jPersistentPropertyConverter<>(customConversions, persistentProperty.isComposite(), forCollection);
 	}
 
 	@Override
@@ -376,7 +399,7 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 			if (relationshipContext.getRelationship().isDynamic()) {
 				TypeInformation<?> keyType = relationshipContext.getInverse().getTypeInformation().getRequiredComponentType();
 				Object key = ((Map.Entry<String, ?>) relatedValue).getKey();
-				dynamicRelationshipType = conversionService.writeValue(key, keyType, relationshipContext.getInverse().getOptionalWritingConverter()).asString();
+				dynamicRelationshipType = conversionService.writeValue(key, keyType, relationshipContext.getInverse().getOptionalConverter()).asString();
 			}
 			return createStatementForRelationShipWithProperties(
 					neo4jPersistentEntity, relationshipContext,
@@ -412,7 +435,7 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 			Neo4jPersistentProperty inverse = relationshipContext.getInverse();
 			TypeInformation<?> keyType = inverse.getTypeInformation().getRequiredComponentType();
 			Object key = ((Map.Entry<?, ?>) relatedValue).getKey();
-			relationshipType = conversionService.writeValue(key, keyType, inverse.getOptionalWritingConverter()).asString();
+			relationshipType = conversionService.writeValue(key, keyType, inverse.getOptionalConverter()).asString();
 		}
 
 		Statement relationshipCreationQuery = CypherGenerator.INSTANCE.prepareSaveOfRelationship(

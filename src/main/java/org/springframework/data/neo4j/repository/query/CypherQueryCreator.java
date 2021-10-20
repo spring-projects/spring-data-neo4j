@@ -26,7 +26,6 @@ import java.util.Optional;
 import java.util.Queue;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiFunction;
-import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
@@ -45,7 +44,6 @@ import org.neo4j.cypherdsl.core.Property;
 import org.neo4j.cypherdsl.core.RelationshipPattern;
 import org.neo4j.cypherdsl.core.SortItem;
 import org.neo4j.cypherdsl.core.Statement;
-import org.neo4j.driver.Value;
 import org.neo4j.driver.types.Point;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Range;
@@ -56,6 +54,7 @@ import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.Polygon;
 import org.springframework.data.mapping.PersistentProperty;
 import org.springframework.data.mapping.PersistentPropertyPath;
+import org.springframework.data.neo4j.core.convert.Neo4jPersistentPropertyConverter;
 import org.springframework.data.neo4j.core.mapping.Constants;
 import org.springframework.data.neo4j.core.mapping.CypherGenerator;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
@@ -94,7 +93,7 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndPar
 
 	private final Supplier<String> indexSupplier = new IndexSupplier();
 
-	private final BiFunction<Object, Function<Object, Value>, Object> parameterConversion;
+	private final BiFunction<Object, Neo4jPersistentPropertyConverter<?>, Object> parameterConversion;
 	private final List<Parameter> boundedParameters = new ArrayList<>();
 
 	private final Pageable pagingParameter;
@@ -120,7 +119,7 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndPar
 
 	CypherQueryCreator(Neo4jMappingContext mappingContext, Class<?> domainType, Neo4jQueryType queryType, PartTree tree,
 			Neo4jParameterAccessor actualParameters, List<String> includedProperties,
-			BiFunction<Object, Function<Object, Value>, Object> parameterConversion,
+			BiFunction<Object, Neo4jPersistentPropertyConverter<?>, Object> parameterConversion,
 			UnaryOperator<Integer> limitModifier) {
 
 		super(tree, actualParameters);
@@ -594,7 +593,7 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndPar
 			final Neo4jQueryMethod.Neo4jParameter parameter = formalParameters.next();
 
 			Parameter boundedParameter = new Parameter(parameter.getName().orElseGet(indexSupplier),
-					actualParameters.next(), property.getOptionalWritingConverter());
+					actualParameters.next(), property.getOptionalConverter());
 			boundedParameters.add(boundedParameter);
 			return Optional.of(boundedParameter);
 		} else {
@@ -613,7 +612,7 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndPar
 			}
 			final Neo4jQueryMethod.Neo4jParameter parameter = formalParameters.next();
 			Parameter boundedParameter = new Parameter(parameter.getName().orElseGet(indexSupplier),
-					actualParameters.next(), property.getOptionalWritingConverter());
+					actualParameters.next(), property.getOptionalConverter());
 			boundedParameters.add(boundedParameter);
 			return boundedParameter;
 		}
@@ -625,9 +624,9 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndPar
 
 		final Object value;
 
-		final @Nullable Function<Object, Value> conversionOverride;
+		final @Nullable Neo4jPersistentPropertyConverter<?> conversionOverride;
 
-		Parameter(String nameOrIndex, Object value, @Nullable Function<Object, Value> conversionOverride) {
+		Parameter(String nameOrIndex, Object value, @Nullable Neo4jPersistentPropertyConverter<?> conversionOverride) {
 			this.nameOrIndex = nameOrIndex;
 			this.value = value;
 			this.conversionOverride = conversionOverride;

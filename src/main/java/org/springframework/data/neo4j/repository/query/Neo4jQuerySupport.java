@@ -26,11 +26,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.BiFunction;
-import java.util.function.Function;
 import java.util.function.Supplier;
 
 import org.apache.commons.logging.LogFactory;
-import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
 import org.neo4j.driver.types.MapAccessor;
 import org.neo4j.driver.types.TypeSystem;
@@ -40,6 +38,7 @@ import org.springframework.data.geo.Box;
 import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.Metrics;
+import org.springframework.data.neo4j.core.convert.Neo4jPersistentPropertyConverter;
 import org.springframework.data.neo4j.core.mapping.CypherGenerator;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.repository.query.QueryMethod;
@@ -159,7 +158,7 @@ abstract class Neo4jQuerySupport {
 	 * @param conversionOverride Passed to the entity converter if present.
 	 * @return A parameter that fits the placeholders of a generated query
 	 */
-	final Object convertParameter(Object parameter, @Nullable Function<Object, Value> conversionOverride) {
+	final Object convertParameter(Object parameter, @Nullable Neo4jPersistentPropertyConverter<?> conversionOverride) {
 
 		if (parameter == null) {
 			return Values.NULL;
