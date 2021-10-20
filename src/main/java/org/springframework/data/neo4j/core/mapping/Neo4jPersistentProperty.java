@@ -16,11 +16,10 @@
 package org.springframework.data.neo4j.core.mapping;
 
 import java.util.Optional;
-import java.util.function.Function;
 
 import org.apiguardian.api.API;
-import org.neo4j.driver.Value;
 import org.springframework.data.mapping.PersistentProperty;
+import org.springframework.data.neo4j.core.convert.Neo4jPersistentPropertyConverter;
 import org.springframework.data.neo4j.core.schema.CompositeProperty;
 import org.springframework.data.neo4j.core.schema.DynamicLabels;
 import org.springframework.lang.Nullable;
@@ -69,10 +68,7 @@ public interface Neo4jPersistentProperty extends PersistentProperty<Neo4jPersist
 	}
 
 	@Nullable
-	Function<Object, Value> getOptionalWritingConverter();
-
-	@Nullable
-	Function<Value, Object> getOptionalReadingConverter();
+	Neo4jPersistentPropertyConverter<?> getOptionalConverter();
 
 	/**
 	 * @return True if this property targets an entity which is a container for relationship properties.

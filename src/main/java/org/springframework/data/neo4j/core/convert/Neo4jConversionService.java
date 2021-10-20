@@ -15,8 +15,6 @@
  */
 package org.springframework.data.neo4j.core.convert;
 
-import java.util.function.Function;
-
 import org.apiguardian.api.API;
 import org.neo4j.driver.Value;
 import org.springframework.dao.TypeMismatchDataAccessException;
@@ -69,7 +67,7 @@ public interface Neo4jConversionService {
 	 */
 	@Nullable
 	Object readValue(
-			@Nullable Value source, TypeInformation<?> targetType, @Nullable Function<Value, Object> conversionOverride
+			@Nullable Value source, TypeInformation<?> targetType, @Nullable Neo4jPersistentPropertyConverter<?> conversionOverride
 	);
 
 	/**
@@ -80,7 +78,7 @@ public interface Neo4jConversionService {
 	 * @return A driver compatible value object.
 	 */
 	Value writeValue(
-			@Nullable Object value, TypeInformation<?> sourceType, @Nullable Function<Object, Value> conversionOverride
+			@Nullable Object value, TypeInformation<?> sourceType, @Nullable Neo4jPersistentPropertyConverter<?> conversionOverride
 	);
 
 	/**

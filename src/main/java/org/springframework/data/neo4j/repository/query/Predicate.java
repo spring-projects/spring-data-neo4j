@@ -137,7 +137,7 @@ final class Predicate {
 						v -> {
 							Neo4jPersistentProperty neo4jPersistentProperty = (Neo4jPersistentProperty) graphProperty;
 							return conversionService.writeValue(v, neo4jPersistentProperty.getTypeInformation(),
-											neo4jPersistentProperty.getOptionalWritingConverter());
+											neo4jPersistentProperty.getOptionalConverter());
 						})
 						.get());
 			}

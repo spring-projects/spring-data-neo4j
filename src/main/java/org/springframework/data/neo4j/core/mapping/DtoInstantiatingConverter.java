@@ -225,7 +225,7 @@ public final class DtoInstantiatingConverter implements Converter<EntityInstance
 					singleValue = p -> context.getEntityConverter().read(actualType, p);
 				} else {
 					ClassTypeInformation<?> actualTargetType = ClassTypeInformation.from(actualType);
-					singleValue = p -> context.getConversionService().readValue(p, actualTargetType, targetProperty.getOptionalReadingConverter());
+					singleValue = p -> context.getConversionService().readValue(p, actualTargetType, targetProperty.getOptionalConverter());
 				}
 
 				if (targetProperty.isCollectionLike()) {

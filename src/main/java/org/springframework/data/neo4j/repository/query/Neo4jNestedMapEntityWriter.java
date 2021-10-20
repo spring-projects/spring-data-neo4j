@@ -170,7 +170,7 @@ final class Neo4jNestedMapEntityWriter implements EntityWriter<Object, Map<Strin
 						.flatMap(intoSingleCollectionEntries())
 						.map(relatedEntry -> {
 							String key = conversionService.writeValue(relatedEntry.getKey(), keyType,
-									property.getOptionalWritingConverter())
+									property.getOptionalConverter())
 									.asString();
 
 							Map<String, Object> relatedObjectProperties;
