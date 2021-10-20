@@ -158,7 +158,7 @@ final class Neo4jNestedMapEntityWriter implements EntityWriter<Object, Map<Strin
 			// Not using the Mapping support here so that we don't have to deal with the nested array lists.
 			Collection<?> unifiedView = Optional
 					.ofNullable(context.getValue())
-					.map(v -> v instanceof Collection ? (Collection<?>) v : Collections.singletonList(v))
+					.map(v -> v instanceof Collection col ? col : Collections.singletonList(v))
 					.orElseGet(Collections::emptyList);
 
 			if (property.isDynamicAssociation()) {
@@ -207,9 +207,8 @@ final class Neo4jNestedMapEntityWriter implements EntityWriter<Object, Map<Strin
 
 	private Function<Map.Entry<?, ?>, Stream<? extends Map.Entry<?, ?>>> intoSingleCollectionEntries() {
 		return e -> {
-			if (e.getValue() instanceof Collection) {
-				return ((Collection<?>) e.getValue()).stream()
-						.map(v -> new AbstractMap.SimpleEntry<>(e.getKey(), v));
+			if (e.getValue() instanceof Collection<?> col) {
+				return col.stream().map(v -> new AbstractMap.SimpleEntry<>(e.getKey(), v));
 			} else {
 				return Stream.of(e);
 			}
@@ -218,8 +217,8 @@ final class Neo4jNestedMapEntityWriter implements EntityWriter<Object, Map<Strin
 
 	private Function<Object, Stream<? extends Map.Entry<?, ?>>> intoSingleMapEntries() {
 		return e -> {
-			if (e instanceof Map) {
-				return ((Map<?, ?>) e).entrySet().stream();
+			if (e instanceof Map<?, ?> map) {
+				return map.entrySet().stream();
 			} else {
 				return Stream.of((Map.Entry<?, ?>) e);
 			}

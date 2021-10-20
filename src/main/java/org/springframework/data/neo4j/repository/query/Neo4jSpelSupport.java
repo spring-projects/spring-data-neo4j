@@ -62,10 +62,10 @@ public final class Neo4jSpelSupport {
 	public static LiteralReplacement orderBy(@Nullable Object arg) {
 
 		Sort sort = null;
-		if (arg instanceof Pageable) {
-			sort = ((Pageable) arg).getSort();
-		} else if (arg instanceof Sort) {
-			sort = (Sort) arg;
+		if (arg instanceof Pageable v) {
+			sort = v.getSort();
+		} else if (arg instanceof Sort v) {
+			sort = v;
 		} else if (arg != null) {
 			throw new IllegalArgumentException(arg.getClass() + " is not a valid order criteria.");
 		}

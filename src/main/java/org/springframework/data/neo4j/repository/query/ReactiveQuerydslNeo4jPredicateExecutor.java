@@ -130,10 +130,10 @@ public final class ReactiveQuerydslNeo4jPredicateExecutor<T> implements Reactive
 	@Override
 	public <S extends T, R, P extends Publisher<R>> P findBy(Predicate predicate, Function<ReactiveFluentQuery<S>, P> queryFunction) {
 
-		if (this.neo4jOperations instanceof ReactiveFluentFindOperation) {
+		if (this.neo4jOperations instanceof ReactiveFluentFindOperation ops) {
 			@SuppressWarnings("unchecked") // defaultResultType will be a supertype of S and at this stage, the same.
 			ReactiveFluentQuery<S> fluentQuery = (ReactiveFluentQuery<S>) new ReactiveFluentQueryByPredicate<>(predicate, metaData, metaData.getType(),
-							(ReactiveFluentFindOperation) this.neo4jOperations, this::count, this::exists);
+							ops, this::count, this::exists);
 			return queryFunction.apply(fluentQuery);
 		}
 		throw new UnsupportedOperationException(

@@ -30,8 +30,8 @@ enum OptionalUnwrappingConverter implements Converter<Object, Object> {
 
 	@Override
 	public Object convert(Object source) {
-		if (source instanceof Optional) {
-			return ((Optional<?>) source).orElse(null);
+		if (source instanceof Optional<?> v) {
+			return v.orElse(null);
 		}
 		return source;
 	}

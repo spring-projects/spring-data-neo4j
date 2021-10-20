@@ -165,28 +165,28 @@ abstract class Neo4jQuerySupport {
 
 		if (parameter == null) {
 			return Values.NULL;
-		} else if (parameter instanceof Range) {
-			return convertRange((Range) parameter);
-		} else if (parameter instanceof Distance) {
-			return calculateDistanceInMeter((Distance) parameter);
-		} else if (parameter instanceof Circle) {
-			return convertCircle((Circle) parameter);
-		} else if (parameter instanceof Instant) {
-			return ((Instant) parameter).atOffset(ZoneOffset.UTC);
-		} else if (parameter instanceof Box) {
-			return convertBox((Box) parameter);
-		} else if (parameter instanceof BoundingBox) {
-			return convertBoundingBox((BoundingBox) parameter);
+		} else if (parameter instanceof Range v) {
+			return convertRange(v);
+		} else if (parameter instanceof Distance v) {
+			return calculateDistanceInMeter(v);
+		} else if (parameter instanceof Circle v) {
+			return convertCircle(v);
+		} else if (parameter instanceof Instant v) {
+			return v.atOffset(ZoneOffset.UTC);
+		} else if (parameter instanceof Box v) {
+			return convertBox(v);
+		} else if (parameter instanceof BoundingBox v) {
+			return convertBoundingBox(v);
 		}
 
-		if (parameter instanceof Collection) {
-			Class<?> type = TemplateSupport.findCommonElementType((Collection) parameter);
+		if (parameter instanceof Collection<?> col) {
+			Class<?> type = TemplateSupport.findCommonElementType(col);
 			if (type != null && mappingContext.hasPersistentEntityFor(type)) {
 
 				EntityWriter<Object, Map<String, Object>> objectMapEntityWriter = Neo4jNestedMapEntityWriter
 						.forContext(mappingContext);
 
-				return ((Collection<?>) parameter).stream().map(v -> {
+				return col.stream().map(v -> {
 					Map<String, Object> result = new HashMap<>();
 					objectMapEntityWriter.write(v, result);
 					return result;

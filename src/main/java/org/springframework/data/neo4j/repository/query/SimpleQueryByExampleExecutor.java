@@ -112,9 +112,9 @@ public final class SimpleQueryByExampleExecutor<T> implements QueryByExampleExec
 	@Override
 	public <S extends T, R> R findBy(Example<S> example, Function<FetchableFluentQuery<S>, R> queryFunction) {
 
-		if (this.neo4jOperations instanceof FluentFindOperation) {
+		if (this.neo4jOperations instanceof FluentFindOperation ops) {
 			FetchableFluentQuery<S> fluentQuery = new FetchableFluentQueryByExample<>(example, example.getProbeType(),
-					mappingContext, (FluentFindOperation) this.neo4jOperations, this::count, this::exists);
+					mappingContext, ops, this::count, this::exists);
 			return queryFunction.apply(fluentQuery);
 		}
 		throw new UnsupportedOperationException(

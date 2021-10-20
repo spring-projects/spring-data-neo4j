@@ -96,9 +96,9 @@ public final class SimpleReactiveQueryByExampleExecutor<T> implements ReactiveQu
 
 	@Override
 	public <S extends T, R, P extends Publisher<R>> P findBy(Example<S> example, Function<ReactiveFluentQuery<S>, P> queryFunction) {
-		if (this.neo4jOperations instanceof ReactiveFluentFindOperation) {
+		if (this.neo4jOperations instanceof ReactiveFluentFindOperation ops) {
 			ReactiveFluentQuery<S> fluentQuery = new ReactiveFluentQueryByExample<>(example, example.getProbeType(),
-					mappingContext, (ReactiveFluentFindOperation) this.neo4jOperations, this::count, this::exists);
+					mappingContext, ops, this::count, this::exists);
 			return queryFunction.apply(fluentQuery);
 		}
 		throw new UnsupportedOperationException(

@@ -131,11 +131,11 @@ public final class QuerydslNeo4jPredicateExecutor<T> implements QuerydslPredicat
 	@Override
 	public <S extends T, R> R findBy(Predicate predicate, Function<FetchableFluentQuery<S>, R> queryFunction) {
 
-		if (this.neo4jOperations instanceof FluentFindOperation) {
+		if (this.neo4jOperations instanceof FluentFindOperation ops) {
 			@SuppressWarnings("unchecked") // defaultResultType will be a supertype of S and at this stage, the same.
 			FetchableFluentQuery<S> fluentQuery =
 					(FetchableFluentQuery<S>) new FetchableFluentQueryByPredicate<>(predicate, metaData, metaData.getType(),
-							(FluentFindOperation) this.neo4jOperations, this::count, this::exists);
+							ops, this::count, this::exists);
 			return queryFunction.apply(fluentQuery);
 		}
 		throw new UnsupportedOperationException(
