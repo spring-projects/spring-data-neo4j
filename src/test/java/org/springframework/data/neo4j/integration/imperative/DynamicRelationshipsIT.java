@@ -216,13 +216,11 @@ class DynamicRelationshipsIT extends DynamicRelationshipsITBase<PersonWithRelati
 
 		try (Transaction transaction = driver.session().beginTransaction()) {
 			long numberOfRelations = transaction
-					.run("" + "MATCH (t:" + labelOfTestSubject + ") WHERE id(t) = $id " + "RETURN size((t)-->(:Person))"
-							+ " as numberOfRelations", Values.parameters("id", newPerson.getId()))
+					.run(("MATCH (t:%s) WHERE id(t) = $id RETURN size((t)-->(:Person)) as numberOfRelations").formatted(labelOfTestSubject), Values.parameters("id", newPerson.getId()))
 					.single().get("numberOfRelations").asLong();
 			assertThat(numberOfRelations).isEqualTo(2L);
 			numberOfRelations = transaction
-					.run("" + "MATCH (t:" + labelOfTestSubject + ") WHERE id(t) = $id " + "RETURN size((t)-->(:Club))"
-							+ " as numberOfRelations", Values.parameters("id", newPerson.getId()))
+					.run(("MATCH (t:%s) WHERE id(t) = $id RETURN size((t)-->(:Club)) as numberOfRelations").formatted(labelOfTestSubject), Values.parameters("id", newPerson.getId()))
 					.single().get("numberOfRelations").asLong();
 			assertThat(numberOfRelations).isEqualTo(2L);
 		}
@@ -264,13 +262,13 @@ class DynamicRelationshipsIT extends DynamicRelationshipsITBase<PersonWithRelati
 
 		try (Transaction transaction = driver.session().beginTransaction()) {
 			long numberOfRelations = transaction
-					.run("" + "MATCH (t:" + labelOfTestSubject + ") WHERE id(t) = $id " + "RETURN size((t)-->(:Pet))"
-							+ " as numberOfRelations", Values.parameters("id", newPerson.getId()))
+					.run(("MATCH (t:%s) WHERE id(t) = $id RETURN size((t)-->(:Pet)) as numberOfRelations").formatted(labelOfTestSubject),
+							Values.parameters("id", newPerson.getId()))
 					.single().get("numberOfRelations").asLong();
 			assertThat(numberOfRelations).isEqualTo(3L);
 			numberOfRelations = transaction
-					.run("" + "MATCH (t:" + labelOfTestSubject + ") WHERE id(t) = $id " + "RETURN size((t)-->(:Hobby))"
-							+ " as numberOfRelations", Values.parameters("id", newPerson.getId()))
+					.run(("MATCH (t:%s) WHERE id(t) = $id RETURN size((t)-->(:Hobby)) as numberOfRelations").formatted(labelOfTestSubject),
+							Values.parameters("id", newPerson.getId()))
 					.single().get("numberOfRelations").asLong();
 			assertThat(numberOfRelations).isEqualTo(2L);
 		}

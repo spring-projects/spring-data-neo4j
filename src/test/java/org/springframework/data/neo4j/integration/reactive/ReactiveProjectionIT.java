@@ -89,23 +89,24 @@ class ReactiveProjectionIT {
 
 		transaction.run("MATCH (n) detach delete n");
 
-		transaction.run("CREATE (:Person{firstName:'" + FIRST_NAME + "', lastName:'" + LAST_NAME + "'})" + "-[:LIVES_AT]->"
-				+ "(:Address{city:'" + CITY + "'})");
+		transaction.run("CREATE (:Person{firstName:'%s', lastName:'%s'})-[:LIVES_AT]->(:Address{city:'%s'})" .formatted(FIRST_NAME, LAST_NAME, CITY));
 
-		Record result = transaction.run("create (r:ProjectionTestRoot {name: 'root'}) \n"
-				+ "create (o:ProjectionTest1O1 {name: '1o1'}) "
-				+ "create (l11:ProjectionTestLevel1 {name: 'level11'})\n"
-				+ "create (l12:ProjectionTestLevel1 {name: 'level12'})\n"
-				+ "create (l21:ProjectionTestLevel2 {name: 'level21'})\n"
-				+ "create (l22:ProjectionTestLevel2 {name: 'level22'})\n"
-				+ "create (l23:ProjectionTestLevel2 {name: 'level23'})\n"
-				+ "create (r) - [:ONE_OONE] -> (o)\n"
-				+ "create (r) - [:LEVEL_1] -> (l11)\n"
-				+ "create (r) - [:LEVEL_1] -> (l12)\n"
-				+ "create (l11) - [:LEVEL_2] -> (l21)\n"
-				+ "create (l11) - [:LEVEL_2] -> (l22)\n"
-				+ "create (l12) - [:LEVEL_2] -> (l23)\n"
-				+ "return id(r), id(l11), id(o)").single();
+		Record result = transaction.run("""
+				create (r:ProjectionTestRoot {name: 'root'})
+				create (o:ProjectionTest1O1 {name: '1o1'})
+				create (l11:ProjectionTestLevel1 {name: 'level11'})
+				create (l12:ProjectionTestLevel1 {name: 'level12'})
+				create (l21:ProjectionTestLevel2 {name: 'level21'})
+				create (l22:ProjectionTestLevel2 {name: 'level22'})
+				create (l23:ProjectionTestLevel2 {name: 'level23'})
+				create (r) - [:ONE_OONE] -> (o)
+				create (r) - [:LEVEL_1] -> (l11)
+				create (r) - [:LEVEL_1] -> (l12)
+				create (l11) - [:LEVEL_2] -> (l21)
+				create (l11) - [:LEVEL_2] -> (l22)
+				create (l12) - [:LEVEL_2] -> (l23)
+				return id(r), id(l11), id(o)
+				""").single();
 
 		projectionTestRootId = result.get(0).asLong();
 		projectionTestLevel1Id = result.get(1).asLong();

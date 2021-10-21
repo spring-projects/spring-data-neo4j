@@ -208,8 +208,10 @@ public class DynamicLabelsIT {
 
 		@Override
 		Long createTestEntity(Transaction transaction) {
-			Record r = transaction.run("" + "CREATE (e:SimpleDynamicLabelsWithBusinessId:Foo:Bar:Baz:Foobar {id: 'E1'}) "
-					+ "RETURN id(e) as existingEntityId").single();
+			Record r = transaction.run("""
+				CREATE (e:SimpleDynamicLabelsWithBusinessId:Foo:Bar:Baz:Foobar {id: 'E1'})
+   				RETURN id(e) as existingEntityId
+   				""").single();
 			long newId = r.get("existingEntityId").asLong();
 			transaction.commit();
 			return newId;
@@ -300,9 +302,7 @@ public class DynamicLabelsIT {
 
 		@Override
 		Long createTestEntity(Transaction transaction) {
-			Record r = transaction.run(
-					"" + "CREATE (e:SimpleDynamicLabelsWithBusinessIdAndVersion:Foo:Bar:Baz:Foobar {id: 'E2', myVersion: 0}) "
-							+ "RETURN id(e) as existingEntityId")
+			Record r = transaction.run("CREATE (e:SimpleDynamicLabelsWithBusinessIdAndVersion:Foo:Bar:Baz:Foobar {id: 'E2', myVersion: 0}) RETURN id(e) as existingEntityId")
 					.single();
 			long newId = r.get("existingEntityId").asLong();
 			transaction.commit();
@@ -352,7 +352,7 @@ public class DynamicLabelsIT {
 		@Override
 		Long createTestEntity(Transaction transaction) {
 			Record r = transaction
-					.run("" + "CREATE (e:SimpleDynamicLabelsCtor:Foo:Bar:Baz:Foobar) " + "RETURN id(e) as existingEntityId")
+					.run("CREATE (e:SimpleDynamicLabelsCtor:Foo:Bar:Baz:Foobar) RETURN id(e) as existingEntityId")
 					.single();
 			long newId = r.get("existingEntityId").asLong();
 			transaction.commit();
@@ -375,7 +375,7 @@ public class DynamicLabelsIT {
 		@Override
 		Long createTestEntity(Transaction transaction) {
 			Record r = transaction
-					.run("" + "CREATE (e:SimpleDynamicLabels:Foo:Bar:Baz:Foobar) " + "RETURN id(e) as existingEntityId").single();
+					.run("CREATE (e:SimpleDynamicLabels:Foo:Bar:Baz:Foobar) RETURN id(e) as existingEntityId").single();
 			long newId = r.get("existingEntityId").asLong();
 			transaction.commit();
 			return newId;
@@ -419,8 +419,7 @@ public class DynamicLabelsIT {
 
 		@Override
 		Long createTestEntity(Transaction transaction) {
-			Record r = transaction.run(
-					"" + "CREATE (e:DynamicLabelsBaseClass:ExtendedBaseClass1:D1:D2:D3) " + "RETURN id(e) as existingEntityId")
+			Record r = transaction.run("CREATE (e:DynamicLabelsBaseClass:ExtendedBaseClass1:D1:D2:D3) RETURN id(e) as existingEntityId")
 					.single();
 			long newId = r.get("existingEntityId").asLong();
 			transaction.commit();

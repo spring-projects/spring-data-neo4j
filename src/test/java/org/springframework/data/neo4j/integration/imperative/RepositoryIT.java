@@ -202,18 +202,20 @@ class RepositoryIT {
 		@Override
 		void setupData(Transaction transaction) {
 			ZonedDateTime createdAt = LocalDateTime.of(2019, 1, 1, 23, 23, 42, 0).atZone(ZoneOffset.UTC.normalized());
-			id1 = transaction.run("" + "CREATE (n:PersonWithAllConstructor) "
-								  + "  SET n.name = $name, n.sameValue = $sameValue, n.first_name = $firstName, n.cool = $cool, n.personNumber = $personNumber, n.bornOn = $bornOn, n.nullable = 'something', n.things = ['a', 'b'], n.place = $place, n.createdAt = $createdAt "
-								  + "RETURN id(n)",
-					Values.parameters("name", TEST_PERSON1_NAME, "sameValue", TEST_PERSON_SAMEVALUE, "firstName",
-							TEST_PERSON1_FIRST_NAME, "cool", true, "personNumber", 1, "bornOn", TEST_PERSON1_BORN_ON, "place",
-							NEO4J_HQ, "createdAt", createdAt))
-					.next().get(0).asLong();
+			id1 = transaction.run("""
+				CREATE (n:PersonWithAllConstructor)
+				SET n.name = $name, n.sameValue = $sameValue, n.first_name = $firstName, n.cool = $cool, n.personNumber = $personNumber, n.bornOn = $bornOn, n.nullable = 'something', n.things = ['a', 'b'], n.place = $place, n.createdAt = $createdAt
+				RETURN id(n)
+				""",
+				Values.parameters("name", TEST_PERSON1_NAME, "sameValue", TEST_PERSON_SAMEVALUE, "firstName",
+						TEST_PERSON1_FIRST_NAME, "cool", true, "personNumber", 1, "bornOn", TEST_PERSON1_BORN_ON, "place",
+						NEO4J_HQ, "createdAt", createdAt)
+			).next().get(0).asLong();
 			id2 = transaction.run(
-					"CREATE (n:PersonWithAllConstructor) SET n.name = $name, n.sameValue = $sameValue, n.first_name = $firstName, n.cool = $cool, n.personNumber = $personNumber, n.bornOn = $bornOn, n.things = [], n.place = $place return id(n)",
-					Values.parameters("name", TEST_PERSON2_NAME, "sameValue", TEST_PERSON_SAMEVALUE, "firstName",
-							TEST_PERSON2_FIRST_NAME, "cool", false, "personNumber", 2, "bornOn", TEST_PERSON2_BORN_ON, "place", SFO))
-					.next().get(0).asLong();
+				"CREATE (n:PersonWithAllConstructor) SET n.name = $name, n.sameValue = $sameValue, n.first_name = $firstName, n.cool = $cool, n.personNumber = $personNumber, n.bornOn = $bornOn, n.things = [], n.place = $place return id(n)",
+				Values.parameters("name", TEST_PERSON2_NAME, "sameValue", TEST_PERSON_SAMEVALUE, "firstName",
+						TEST_PERSON2_FIRST_NAME, "cool", false, "personNumber", 2, "bornOn", TEST_PERSON2_BORN_ON, "place", SFO)
+			).next().get(0).asLong();
 			transaction.run("CREATE (n:PersonWithNoConstructor) SET n.name = $name, n.first_name = $firstName",
 					Values.parameters("name", TEST_PERSON1_NAME, "firstName", TEST_PERSON1_FIRST_NAME));
 			transaction.run("CREATE (n:PersonWithWither) SET n.name = '" + TEST_PERSON1_NAME + "'");
@@ -230,19 +232,20 @@ class RepositoryIT {
 			person2 = new PersonWithAllConstructor(id2, TEST_PERSON2_NAME, TEST_PERSON2_FIRST_NAME, TEST_PERSON_SAMEVALUE,
 					false, 2L, TEST_PERSON2_BORN_ON, null, Collections.emptyList(), SFO, null);
 
-			transaction.run("CREATE (lhr:Airport {code: 'LHR', name: 'London Heathrow'})\n" +
-							"CREATE (lax:Airport {code: 'LAX', name: 'Los Angeles'})\n" +
-							"CREATE (cdg:Airport {code: 'CDG', name: 'Paris Charles de Gaulle'})\n" +
-							"CREATE (f1:Flight {name: 'FL 001'})\n" +
-							"CREATE (f2:Flight {name: 'FL 002'})\n" +
-							"CREATE (f3:Flight {name: 'FL 003'})\n" +
-							"CREATE (f1) -[:DEPARTS] ->(lhr)\n" +
-							"CREATE (f1) -[:ARRIVES] ->(lax)\n" +
-							"CREATE (f2) -[:DEPARTS] ->(lhr)\n" +
-							"CREATE (f2) -[:ARRIVES] ->(cdg)\n" +
-							"CREATE (f3) -[:DEPARTS] ->(lax)\n" +
-							"CREATE (f3) -[:ARRIVES] ->(lhr)\n" +
-							"RETURN *");
+			transaction.run("""
+					CREATE (lhr:Airport {code: 'LHR', name: 'London Heathrow'})
+					CREATE (lax:Airport {code: 'LAX', name: 'Los Angeles'})
+					CREATE (cdg:Airport {code: 'CDG', name: 'Paris Charles de Gaulle'})
+					CREATE (f1:Flight {name: 'FL 001'})
+					CREATE (f2:Flight {name: 'FL 002'})
+					CREATE (f3:Flight {name: 'FL 003'})
+					CREATE (f1) -[:DEPARTS] ->(lhr)
+					CREATE (f1) -[:ARRIVES] ->(lax)
+					CREATE (f2) -[:DEPARTS] ->(lhr)
+					CREATE (f2) -[:ARRIVES] ->(cdg)
+					CREATE (f3) -[:DEPARTS] ->(lax)
+					CREATE (f3) -[:ARRIVES] ->(lhr)
+					RETURN *""");
 		}
 
 		@Test
@@ -695,8 +698,8 @@ class RepositoryIT {
 		@Test // DATAGRAPH-1412
 		void customFindMapsDeepRelationships(@Autowired PetRepository repository) {
 
-			Record record = doWithSession(session -> session.run("CREATE " + "(p1:Pet{name: 'Pet1'})-[:Has]->(p2:Pet{name: 'Pet2'}), "
-										+ "(p2)-[:Has]->(p3:Pet{name: 'Pet3'}) " + "RETURN p1, p2, p3").single());
+			Record record = doWithSession(session -> session.run(
+					"CREATE (p1:Pet{name: 'Pet1'})-[:Has]->(p2:Pet{name: 'Pet2'}), (p2)-[:Has]->(p3:Pet{name: 'Pet3'}) RETURN p1, p2, p3").single());
 
 			long petNode1Id = record.get("p1").asNode().id();
 			long petNode2Id = record.get("p2").asNode().id();
@@ -839,10 +842,12 @@ class RepositoryIT {
 		void findEntityWithRelationship(@Autowired RelationshipRepository repository) {
 
 			Record record = doWithSession(session -> session
-					.run("CREATE (n:PersonWithRelationship{name:'Freddie'})-[:Has]->(h1:Hobby{name:'Music'}), "
-						 + "(n)-[:Has]->(p1:Pet{name: 'Jerry'}), (n)-[:Has]->(p2:Pet{name: 'Tom'}), "
-						 + "(n)<-[:Has]-(c:Club{name:'ClownsClub'}), " + "(p1)-[:Has]->(h2:Hobby{name:'sleeping'}), "
-						 + "(p1)-[:Has]->(p2)" + "RETURN n, h1, h2, p1, p2, c")
+					.run("""
+						CREATE (n:PersonWithRelationship{name:'Freddie'})-[:Has]->(h1:Hobby{name:'Music'}),
+						(n)-[:Has]->(p1:Pet{name: 'Jerry'}), (n)-[:Has]->(p2:Pet{name: 'Tom'}),
+						(n)<-[:Has]-(c:Club{name:'ClownsClub'}), (p1)-[:Has]->(h2:Hobby{name:'sleeping'}),
+						(p1)-[:Has]->(p2)RETURN n, h1, h2, p1, p2, c
+						""")
 					.single());
 
 			Node personNode = record.get("n").asNode();
@@ -889,8 +894,8 @@ class RepositoryIT {
 		@Test
 		void findDeepSameLabelsAndTypeRelationships(@Autowired PetRepository repository) {
 
-			Record record = doWithSession(session -> session.run("CREATE " + "(p1:Pet{name: 'Pet1'})-[:Has]->(p2:Pet{name: 'Pet2'}), "
-										+ "(p2)-[:Has]->(p3:Pet{name: 'Pet3'}) " + "RETURN p1, p2, p3").single());
+			Record record = doWithSession(session -> session.run(
+					"CREATE (p1:Pet{name: 'Pet1'})-[:Has]->(p2:Pet{name: 'Pet2'}), (p2)-[:Has]->(p3:Pet{name: 'Pet3'}) RETURN p1, p2, p3").single());
 
 			long petNode1Id = record.get("p1").asNode().id();
 			long petNode2Id = record.get("p2").asNode().id();
@@ -928,19 +933,20 @@ class RepositoryIT {
 		@Test
 		void findLoopingDeepRelationships(@Autowired LoopingRelationshipRepository loopingRelationshipRepository) {
 
-			long type1Id = doWithSession(session -> session.run(
-					"CREATE " + "(t1:LoopingType1)-[:NEXT_TYPE]->(:LoopingType2)-[:NEXT_TYPE]->(:LoopingType3)-[:NEXT_TYPE]->"
-					+ "(:LoopingType1)-[:NEXT_TYPE]->(:LoopingType2)-[:NEXT_TYPE]->(:LoopingType3)-[:NEXT_TYPE]->"
-					+ "(:LoopingType1)-[:NEXT_TYPE]->(:LoopingType2)-[:NEXT_TYPE]->(:LoopingType3)-[:NEXT_TYPE]->"
-					+ "(:LoopingType1)-[:NEXT_TYPE]->(:LoopingType2)-[:NEXT_TYPE]->(:LoopingType3)-[:NEXT_TYPE]->"
-					+ "(:LoopingType1)-[:NEXT_TYPE]->(:LoopingType2)-[:NEXT_TYPE]->(:LoopingType3)-[:NEXT_TYPE]->"
-					+ "(:LoopingType1)-[:NEXT_TYPE]->(:LoopingType2)-[:NEXT_TYPE]->(:LoopingType3)-[:NEXT_TYPE]->"
-					+ "(:LoopingType1)-[:NEXT_TYPE]->(:LoopingType2)-[:NEXT_TYPE]->(:LoopingType3)-[:NEXT_TYPE]->"
-					+ "(:LoopingType1)-[:NEXT_TYPE]->(:LoopingType2)-[:NEXT_TYPE]->(:LoopingType3)-[:NEXT_TYPE]->"
-					+ "(:LoopingType1)-[:NEXT_TYPE]->(:LoopingType2)-[:NEXT_TYPE]->(:LoopingType3)-[:NEXT_TYPE]->"
-					+ "(:LoopingType1)-[:NEXT_TYPE]->(:LoopingType2)-[:NEXT_TYPE]->(:LoopingType3)-[:NEXT_TYPE]->"
-					+ "(:LoopingType1)" + "RETURN t1")
-					.single().get("t1").asNode().id());
+			long type1Id = doWithSession(session -> session.run("""
+				CREATE (t1:LoopingType1)-[:NEXT_TYPE]->(:LoopingType2)-[:NEXT_TYPE]->(:LoopingType3)-[:NEXT_TYPE]->
+				(:LoopingType1)-[:NEXT_TYPE]->(:LoopingType2)-[:NEXT_TYPE]->(:LoopingType3)-[:NEXT_TYPE]->
+				(:LoopingType1)-[:NEXT_TYPE]->(:LoopingType2)-[:NEXT_TYPE]->(:LoopingType3)-[:NEXT_TYPE]->
+				(:LoopingType1)-[:NEXT_TYPE]->(:LoopingType2)-[:NEXT_TYPE]->(:LoopingType3)-[:NEXT_TYPE]->
+				(:LoopingType1)-[:NEXT_TYPE]->(:LoopingType2)-[:NEXT_TYPE]->(:LoopingType3)-[:NEXT_TYPE]->
+				(:LoopingType1)-[:NEXT_TYPE]->(:LoopingType2)-[:NEXT_TYPE]->(:LoopingType3)-[:NEXT_TYPE]->
+				(:LoopingType1)-[:NEXT_TYPE]->(:LoopingType2)-[:NEXT_TYPE]->(:LoopingType3)-[:NEXT_TYPE]->
+				(:LoopingType1)-[:NEXT_TYPE]->(:LoopingType2)-[:NEXT_TYPE]->(:LoopingType3)-[:NEXT_TYPE]->
+				(:LoopingType1)-[:NEXT_TYPE]->(:LoopingType2)-[:NEXT_TYPE]->(:LoopingType3)-[:NEXT_TYPE]->
+				(:LoopingType1)-[:NEXT_TYPE]->(:LoopingType2)-[:NEXT_TYPE]->(:LoopingType3)-[:NEXT_TYPE]->
+				(:LoopingType1)RETURN t1
+				"""
+			).single().get("t1").asNode().id());
 
 			DeepRelationships.LoopingType1 type1 = loopingRelationshipRepository.findById(type1Id).get();
 
@@ -971,8 +977,7 @@ class RepositoryIT {
 		void findEntityWithRelationshipToTheSameNode(@Autowired RelationshipRepository repository) {
 
 			Record record = doWithSession(session -> session
-					.run("CREATE (n:PersonWithRelationship{name:'Freddie'})-[:Has]->(h1:Hobby{name:'Music'}), "
-						 + "(n)-[:Has]->(p1:Pet{name: 'Jerry'}), " + "(p1)-[:Has]->(h1)" + "RETURN n, h1, p1")
+					.run("CREATE (n:PersonWithRelationship{name:'Freddie'})-[:Has]->(h1:Hobby{name:'Music'}), (n)-[:Has]->(p1:Pet{name: 'Jerry'}), (p1)-[:Has]->(h1)RETURN n, h1, p1")
 					.single());
 
 			Node personNode = record.get("n").asNode();
@@ -1006,8 +1011,12 @@ class RepositoryIT {
 		void findEntityWithBidirectionalRelationshipInConstructorThrowsException(@Autowired BidirectionalStartRepository repository) {
 
 			long startId = doWithSession(session ->  session
-						.run("CREATE (n:BidirectionalStart{name:'Ernie'})-[:CONNECTED]->(e:BidirectionalEnd{name:'Bert'}), "
-							 + "(e)<-[:ANOTHER_CONNECTION]-(anotherStart:BidirectionalStart{name:'Elmo'})" + "RETURN n")
+						.run("""
+							CREATE
+      							(n:BidirectionalStart{name:'Ernie'})-[:CONNECTED]->(e:BidirectionalEnd{name:'Bert'}),
+								(e)<-[:ANOTHER_CONNECTION]-(anotherStart:BidirectionalStart{name:'Elmo'})
+      						RETURN n"""
+						)
 						.single().get("n").asNode().id());
 
 			assertThatThrownBy(() -> repository.findById(startId))
@@ -1052,15 +1061,15 @@ class RepositoryIT {
 		}
 
 		private long createFriendlyPets() {
-			return doWithSession(session -> session.run("CREATE (luna:Pet{name:'Luna'})-[:Has]->(daphne:Pet{name:'Daphne'})"
-								   + "-[:Has]->(:Pet{name:'Tom'})" + "RETURN id(luna) as id").single().get("id").asLong());
+			return doWithSession(session -> session.run(
+					"CREATE (luna:Pet{name:'Luna'})-[:Has]->(daphne:Pet{name:'Daphne'})-[:Has]->(:Pet{name:'Tom'})RETURN id(luna) as id").single().get("id").asLong());
 		}
 
 		@Test
 		void findEntityWithBidirectionalRelationshipFromIncomingSide(@Autowired BidirectionalEndRepository repository) {
 
 			long endId = doWithSession(session -> session.run(
-						"CREATE (n:BidirectionalStart{name:'Ernie'})-[:CONNECTED]->(e:BidirectionalEnd{name:'Bert'}) " + "RETURN e")
+							"CREATE (n:BidirectionalStart{name:'Ernie'})-[:CONNECTED]->(e:BidirectionalEnd{name:'Bert'}) RETURN e")
 						.single().get("e").asNode().id());
 
 			Optional<BidirectionalEnd> entityOptional = repository.findById(endId);
@@ -1074,15 +1083,14 @@ class RepositoryIT {
 		void findMultipleEntitiesWithRelationship(@Autowired RelationshipRepository repository) {
 
 			Record record = doWithSession(session -> session
-					.run("CREATE (n:PersonWithRelationship{name:'Freddie'})-[:Has]->(h:Hobby{name:'Music'}), "
-						 + "(n)-[:Has]->(p:Pet{name: 'Jerry'}) " + "RETURN n, h, p")
+					.run("CREATE (n:PersonWithRelationship{name:'Freddie'})-[:Has]->(h:Hobby{name:'Music'}), (n)-[:Has]->(p:Pet{name: 'Jerry'}) RETURN n, h, p")
 					.single());
 
 			long hobbyNode1Id = record.get("h").asNode().id();
 			long petNode1Id = record.get("p").asNode().id();
 
-			record = doWithSession(session -> session.run("CREATE (n:PersonWithRelationship{name:'SomeoneElse'})-[:Has]->(h:Hobby{name:'Music2'}), "
-								 + "(n)-[:Has]->(p:Pet{name: 'Jerry2'}) " + "RETURN n, h, p").single());
+			record = doWithSession(session -> session.run(
+					"CREATE (n:PersonWithRelationship{name:'SomeoneElse'})-[:Has]->(h:Hobby{name:'Music2'}), (n)-[:Has]->(p:Pet{name: 'Jerry2'}) RETURN n, h, p").single());
 
 			long hobbyNode2Id = record.get("h").asNode().id();
 			long petNode2Id = record.get("p").asNode().id();
@@ -1109,8 +1117,7 @@ class RepositoryIT {
 		void findEntityWithRelationshipViaQuery(@Autowired RelationshipRepository repository) {
 
 			Record record = doWithSession(session -> session
-					.run("CREATE (n:PersonWithRelationship{name:'Freddie'})-[:Has]->(h1:Hobby{name:'Music'}), "
-						 + "(n)-[:Has]->(p1:Pet{name: 'Jerry'}), (n)-[:Has]->(p2:Pet{name: 'Tom'}) " + "RETURN n, h1, p1, p2")
+					.run("CREATE (n:PersonWithRelationship{name:'Freddie'})-[:Has]->(h1:Hobby{name:'Music'}), (n)-[:Has]->(p1:Pet{name: 'Jerry'}), (n)-[:Has]->(p2:Pet{name: 'Tom'}) RETURN n, h1, p1, p2")
 					.single());
 
 			Node personNode = record.get("n").asNode();
@@ -1142,9 +1149,14 @@ class RepositoryIT {
 		void findEntityWithRelationshipViaPathQuery(@Autowired RelationshipRepository repository) {
 
 			Record record = doWithSession(session -> session
-					.run("CREATE (n:PersonWithRelationship{name:'Freddie'})-[:Has]->(h1:Hobby{name:'Music'}), "
-						 + "(n)-[:Has]->(p1:Pet{name: 'Jerry'}), (n)-[:Has]->(p2:Pet{name: 'Tom'}) " + "RETURN n, h1, p1, p2")
-					.single());
+					.run("""
+						CREATE
+							(n:PersonWithRelationship{name:'Freddie'})-[:Has]->(h1:Hobby{name:'Music'}),
+							(n)-[:Has]->(p1:Pet{name: 'Jerry'}),
+							(n)-[:Has]->(p2:Pet{name: 'Tom'})
+						RETURN n, h1, p1, p2
+						"""
+					).single());
 
 			Node personNode = record.get("n").asNode();
 			Node hobbyNode1 = record.get("h1").asNode();
@@ -1175,7 +1187,7 @@ class RepositoryIT {
 		void findEntityWithRelationshipWithAssignedId(@Autowired PetRepository repository) {
 
 			long petNodeId = doWithSession(session -> session
-						.run("CREATE (p:Pet{name:'Jerry'})-[:Has]->(t:Thing{theId:'t1', name:'Thing1'}) " + "RETURN p, t").single()
+						.run("CREATE (p:Pet{name:'Jerry'})-[:Has]->(t:Thing{theId:'t1', name:'Thing1'}) RETURN p, t").single()
 						.get("p").asNode().id());
 
 			Pet pet = repository.findById(petNodeId).get();
@@ -1186,10 +1198,10 @@ class RepositoryIT {
 
 		@Test // DATAGRAPH-1431
 		void findAndMapMultipleLevelsOfSimpleRelationships(@Autowired SimpleEntityWithRelationshipARepository repository) {
-			Long aId = doWithSession(session -> session.writeTransaction(tx -> tx.run("CREATE (a:SimpleEntityWithRelationshipA)" +
-															"-[:TO_B]->(:SimpleEntityWithRelationshipB)" +
-															"-[:TO_C]->(:SimpleEntityWithRelationshipC)" +
-															" RETURN id(a) as aId").single().get("aId").asLong()));
+			Long aId = doWithSession(session -> session.writeTransaction(tx -> tx.run("""
+					CREATE (a:SimpleEntityWithRelationshipA)-[:TO_B]->(:SimpleEntityWithRelationshipB)-[:TO_C]->(:SimpleEntityWithRelationshipC)
+					RETURN id(a) as aId
+					""").single().get("aId").asLong()));
 
 			SimpleEntityWithRelationshipA entityA = repository.findById(aId).get();
 			assertThat(entityA).isNotNull();
@@ -1200,11 +1212,12 @@ class RepositoryIT {
 		@Test // GH-2175
 		void findCyclicWithPageable(@Autowired RelationshipRepository repository) {
 			doWithSession(session ->
-				session.run("CREATE (n:PersonWithRelationship{name:'Freddie'})-[:Has]->(h1:Hobby{name:'Music'}), "
-								+ "(n)-[:Has]->(p1:Pet{name: 'Jerry'}), (n)-[:Has]->(p2:Pet{name: 'Tom'}), "
-								+ "(n)<-[:Has]-(c:Club{name:'ClownsClub'}), " + "(p1)-[:Has]->(h2:Hobby{name:'sleeping'}), "
-								+ "(p1)-[:Has]->(p2)")
-						.consume()
+				session.run("""
+					CREATE (n:PersonWithRelationship{name:'Freddie'})-[:Has]->(h1:Hobby{name:'Music'}),
+					(n)-[:Has]->(p1:Pet{name: 'Jerry'}), (n)-[:Has]->(p2:Pet{name: 'Tom'}),
+					(n)<-[:Has]-(c:Club{name:'ClownsClub'}), (p1)-[:Has]->(h2:Hobby{name:'sleeping'}),
+					(p1)-[:Has]->(p2)
+					""").consume()
 			);
 
 			Page<PersonWithRelationship> peoplePage = repository.findAll(PageRequest.of(0, 1));
@@ -1214,11 +1227,13 @@ class RepositoryIT {
 		@Test // GH-2175
 		void findCyclicWithSort(@Autowired RelationshipRepository repository) {
 			doWithSession(session ->
-				session.run("CREATE (n:PersonWithRelationship{name:'Freddie'})-[:Has]->(h1:Hobby{name:'Music'}), "
-							+ "(n)-[:Has]->(p1:Pet{name: 'Jerry'}), (n)-[:Has]->(p2:Pet{name: 'Tom'}), "
-							+ "(n)<-[:Has]-(c:Club{name:'ClownsClub'}), " + "(p1)-[:Has]->(h2:Hobby{name:'sleeping'}), "
-							+ "(p1)-[:Has]->(p2)")
-						.consume()
+				session.run("""
+					CREATE
+						(n:PersonWithRelationship{name:'Freddie'})-[:Has]->(h1:Hobby{name:'Music'}),
+						(n)-[:Has]->(p1:Pet{name: 'Jerry'}), (n)-[:Has]->(p2:Pet{name: 'Tom'}),
+						(n)<-[:Has]-(c:Club{name:'ClownsClub'}), (p1)-[:Has]->(h2:Hobby{name:'sleeping'}),
+						(p1)-[:Has]->(p2)
+					""").consume()
 			);
 
 			List<PersonWithRelationship> people = repository.findAll(Sort.by("name"));
@@ -1228,11 +1243,13 @@ class RepositoryIT {
 		@Test // GH-2175
 		void cyclicDerivedFinderWithPageable(@Autowired RelationshipRepository repository) {
 			doWithSession(session ->
-				session.run("CREATE (n:PersonWithRelationship{name:'Freddie'})-[:Has]->(h1:Hobby{name:'Music'}), "
-							+ "(n)-[:Has]->(p1:Pet{name: 'Jerry'}), (n)-[:Has]->(p2:Pet{name: 'Tom'}), "
-							+ "(n)<-[:Has]-(c:Club{name:'ClownsClub'}), " + "(p1)-[:Has]->(h2:Hobby{name:'sleeping'}), "
-							+ "(p1)-[:Has]->(p2)")
-						.consume()
+				session.run("""
+					CREATE
+						(n:PersonWithRelationship{name:'Freddie'})-[:Has]->(h1:Hobby{name:'Music'}),
+						(n)-[:Has]->(p1:Pet{name: 'Jerry'}), (n)-[:Has]->(p2:Pet{name: 'Tom'}),
+						(n)<-[:Has]-(c:Club{name:'ClownsClub'}), (p1)-[:Has]->(h2:Hobby{name:'sleeping'}),
+						(p1)-[:Has]->(p2)
+					""").consume()
 			);
 
 			Page<PersonWithRelationship> peoplePage = repository.findByName("Freddie", PageRequest.of(0, 1));
@@ -1242,11 +1259,13 @@ class RepositoryIT {
 		@Test // GH-2175
 		void cyclicDerivedFinderWithSort(@Autowired RelationshipRepository repository) {
 			doWithSession(session ->
-				session.run("CREATE (n:PersonWithRelationship{name:'Freddie'})-[:Has]->(h1:Hobby{name:'Music'}), "
-							+ "(n)-[:Has]->(p1:Pet{name: 'Jerry'}), (n)-[:Has]->(p2:Pet{name: 'Tom'}), "
-							+ "(n)<-[:Has]-(c:Club{name:'ClownsClub'}), " + "(p1)-[:Has]->(h2:Hobby{name:'sleeping'}), "
-							+ "(p1)-[:Has]->(p2)")
-						.consume()
+				session.run("""
+					CREATE
+						(n:PersonWithRelationship{name:'Freddie'})-[:Has]->(h1:Hobby{name:'Music'}),
+						(n)-[:Has]->(p1:Pet{name: 'Jerry'}), (n)-[:Has]->(p2:Pet{name: 'Tom'}),
+						(n)<-[:Has]-(c:Club{name:'ClownsClub'}), (p1)-[:Has]->(h2:Hobby{name:'sleeping'}),
+						(p1)-[:Has]->(p2)
+					""").consume()
 			);
 
 			List<PersonWithRelationship> people = repository.findByName("Freddie", Sort.by("name"));
@@ -1510,8 +1529,8 @@ class RepositoryIT {
 			assertThat(shouldBeDifferentPerson.getName()).isEqualToIgnoringCase("Freddie clone");
 
 			assertWithSession(session -> {
-				Record record = session.run("MATCH (n:PersonWithRelationshipWithProperties {name:'Freddie clone'}) "
-											+ "RETURN n, " + "[(n) -[:LIKES]->(h:Hobby) |h] as Hobbies, " + "[(n) -[r:LIKES]->(:Hobby) |r] as rels")
+				Record record = session.run(
+								"MATCH (n:PersonWithRelationshipWithProperties {name:'Freddie clone'}) RETURN n, [(n) -[:LIKES]->(h:Hobby) |h] as Hobbies, [(n) -[r:LIKES]->(:Hobby) |r] as rels")
 						.single();
 
 				assertThat(record.containsKey("n")).isTrue();
@@ -1538,12 +1557,13 @@ class RepositoryIT {
 		void findEntityWithRelationshipWithPropertiesFromCustomQuery(
 				@Autowired PersonWithRelationshipWithPropertiesRepository repository) {
 
-			Record record = doWithSession(session -> session.run("CREATE (n:PersonWithRelationshipWithProperties{name:'Freddie'}),"
-										+ " (n)-[l1:LIKES"
-										+ "{since: 1995, active: true, localDate: date('1995-02-26'), myEnum: 'SOMETHING', point: point({x: 0, y: 1})}"
-										+ "]->(h1:Hobby{name:'Music'})," + " (n)-[l2:LIKES"
-										+ "{since: 2000, active: false, localDate: date('2000-06-28'), myEnum: 'SOMETHING_DIFFERENT', point: point({x: 2, y: 3})}"
-										+ "]->(h2:Hobby{name:'Something else'})" + "RETURN n, h1, h2").single());
+			Record record = doWithSession(session -> session.run("""
+					CREATE
+						(n:PersonWithRelationshipWithProperties{name:'Freddie'}),
+						(n)-[l1:LIKES {since: 1995, active: true, localDate: date('1995-02-26'), myEnum: 'SOMETHING', point: point({x: 0, y: 1})}]->(h1:Hobby{name:'Music'}),
+						(n)-[l2:LIKES {since: 2000, active: false, localDate: date('2000-06-28'), myEnum: 'SOMETHING_DIFFERENT', point: point({x: 2, y: 3})}]->(h2:Hobby{name:'Something else'})
+						RETURN n, h1, h2
+					""").single());
 
 			Node personNode = record.get("n").asNode();
 			Node hobbyNode1 = record.get("h1").asNode();
@@ -1656,13 +1676,15 @@ class RepositoryIT {
 		@Override
 		void setupData(Transaction transaction) {
 			ZonedDateTime createdAt = LocalDateTime.of(2019, 1, 1, 23, 23, 42, 0).atZone(ZoneOffset.UTC.normalized());
-			id1 = transaction.run("" + "CREATE (n:PersonWithAllConstructor) "
-								  + "  SET n.name = $name, n.sameValue = $sameValue, n.first_name = $firstName, n.cool = $cool, n.personNumber = $personNumber, n.bornOn = $bornOn, n.nullable = 'something', n.things = ['a', 'b'], n.place = $place, n.createdAt = $createdAt "
-								  + "RETURN id(n)",
-					Values.parameters("name", TEST_PERSON1_NAME, "sameValue", TEST_PERSON_SAMEVALUE, "firstName",
-							TEST_PERSON1_FIRST_NAME, "cool", true, "personNumber", 1, "bornOn", TEST_PERSON1_BORN_ON, "place",
-							NEO4J_HQ, "createdAt", createdAt))
-					.next().get(0).asLong();
+			id1 = transaction.run("""
+				CREATE (n:PersonWithAllConstructor)
+				SET n.name = $name, n.sameValue = $sameValue, n.first_name = $firstName, n.cool = $cool, n.personNumber = $personNumber, n.bornOn = $bornOn, n.nullable = 'something', n.things = ['a', 'b'], n.place = $place, n.createdAt = $createdAt
+				RETURN id(n)
+				""",
+				Values.parameters("name", TEST_PERSON1_NAME, "sameValue", TEST_PERSON_SAMEVALUE, "firstName",
+						TEST_PERSON1_FIRST_NAME, "cool", true, "personNumber", 1, "bornOn", TEST_PERSON1_BORN_ON, "place",
+						NEO4J_HQ, "createdAt", createdAt)
+			).next().get(0).asLong();
 			transaction.run("CREATE (a:Thing {theId: 'anId', name: 'Homer'})-[:Has]->(b:Thing2{theId: 4711, name: 'Bart'})");
 			IntStream.rangeClosed(1, 20)
 					.forEach(i -> transaction.run("CREATE (a:Thing {theId: 'id' + $i, name: 'name' + $i})",
@@ -1695,8 +1717,7 @@ class RepositoryIT {
 
 			doWithSession(session ->
 					session.writeTransaction(tx ->
-						tx.run("CREATE (:ThingWithFixedGeneratedId{theId:'ThingWithFixedGeneratedId'})" +
-							   "-[r:KNOWS]->(:SimplePerson) return id(r) as rId").consume()));
+						tx.run("CREATE (:ThingWithFixedGeneratedId{theId:'ThingWithFixedGeneratedId'})-[r:KNOWS]->(:SimplePerson) return id(r) as rId").consume()));
 
 			ThingWithFixedGeneratedId thing = new ThingWithFixedGeneratedId("name");
 			// this will create a duplicated relationship because we use the same ids
@@ -2028,11 +2049,13 @@ class RepositoryIT {
 			PersonWithRelationship savedPerson = repository.save(person);
 			assertWithSession(session -> {
 
-				Record record = session.run(
-						"MATCH (n:PersonWithRelationship)" + " RETURN n,"
-						+ " [(n)-[:Has]->(p:Pet) | [ p , [ (p)-[:Has]-(h:Hobby) | h ] ] ] as petsWithHobbies,"
-						+ " [(n)-[:Has]->(h:Hobby) | h] as hobbies, " + " [(n)<-[:Has]-(c:Club) | c] as clubs",
-						Values.parameters("name", "Freddie")).single();
+				Record record = session.run("""
+					MATCH (n:PersonWithRelationship)
+					RETURN
+						n,
+						[(n)-[:Has]->(p:Pet) | [ p , [ (p)-[:Has]-(h:Hobby) | h ] ] ] as petsWithHobbies,
+					 	[(n)-[:Has]->(h:Hobby) | h] as hobbies,  [(n)<-[:Has]-(c:Club) | c] as clubs
+					""", Values.parameters("name", "Freddie")).single();
 
 				assertThat(record.containsKey("n")).isTrue();
 				Node rootNode = record.get("n").asNode();
@@ -2082,9 +2105,13 @@ class RepositoryIT {
 			PersonWithRelationship savedPerson = repository.save(repository.save(person));
 			assertWithSession(session -> {
 
-				List<Record> recordList = session.run("MATCH (n:PersonWithRelationship)" + " RETURN n,"
-													  + " [(n)-[:Has]->(p:Pet) | [ p , [ (p)-[:Has]-(h:Hobby) | h ] ] ] as petsWithHobbies,"
-													  + " [(n)-[:Has]->(h:Hobby) | h] as hobbies", Values.parameters("name", "Freddie")).list();
+				List<Record> recordList = session.run("""
+						MATCH (n:PersonWithRelationship)
+						RETURN
+							n,
+						 	[(n)-[:Has]->(p:Pet) | [ p , [ (p)-[:Has]-(h:Hobby) | h ] ] ] as petsWithHobbies,
+						 	[(n)-[:Has]->(h:Hobby) | h] as hobbies
+						""", Values.parameters("name", "Freddie")).list();
 
 				// assert that there is only one record in the returned list
 				assertThat(recordList).hasSize(1);
@@ -2141,7 +2168,7 @@ class RepositoryIT {
 			assertWithSession(session -> {
 
 				List<Record> recordList = session
-						.run("MATCH (n:PersonWithRelationship)" + " RETURN n," + " [(n)-[:Has]->(h:Hobby) | h] as hobbies",
+						.run("MATCH (n:PersonWithRelationship) RETURN n, [(n)-[:Has]->(h:Hobby) | h] as hobbies",
 								Values.parameters("name", "Freddie"))
 						.list();
 
@@ -2185,8 +2212,7 @@ class RepositoryIT {
 			assertWithSession(session -> {
 
 				List<Record> recordList = session
-						.run("MATCH (n:PersonWithRelationship)" + " RETURN n," + " [(n)-[:Has]->(h:Hobby) | h] as hobbies",
-								Values.parameters("name", "Freddie"))
+						.run("MATCH (n:PersonWithRelationship) RETURN n, [(n)-[:Has]->(h:Hobby) | h] as hobbies", Values.parameters("name", "Freddie"))
 						.list();
 
 				assertThat(recordList).hasSize(1);
@@ -2221,8 +2247,10 @@ class RepositoryIT {
 			repository.save(rootPet);
 
 			assertWithSession(session -> {
-				Record record = session.run("MATCH (rootPet:Pet)-[:Has]->(petOfRootPet:Pet)-[:Has]->(petOfChildPet:Pet)"
-											+ "-[:Has]->(petOfGrandChildPet:Pet) " + "RETURN rootPet, petOfRootPet, petOfChildPet, petOfGrandChildPet",
+				Record record = session.run("""
+      					MATCH (rootPet:Pet)-[:Has]->(petOfRootPet:Pet)-[:Has]->(petOfChildPet:Pet)-[:Has]->(petOfGrandChildPet:Pet)
+      					RETURN rootPet, petOfRootPet, petOfChildPet, petOfGrandChildPet
+						""",
 						Collections.emptyMap()).single();
 
 				assertThat(record.get("rootPet").asNode().get("name").asString()).isEqualTo("Luna");
@@ -2243,8 +2271,10 @@ class RepositoryIT {
 			repository.save(luna);
 
 			assertWithSession(session -> {
-				Record record = session.run("MATCH (luna:Pet{name:'Luna'})-[:Has]->(daphne:Pet{name:'Daphne'})"
-											+ "-[:Has]->(luna2:Pet{name:'Luna'})" + "RETURN luna, daphne, luna2").single();
+				Record record = session.run("""
+      					MATCH (luna:Pet{name:'Luna'})-[:Has]->(daphne:Pet{name:'Daphne'})-[:Has]->(luna2:Pet{name:'Luna'})
+      					RETURN luna, daphne, luna2
+						""").single();
 
 				assertThat(record.get("luna").asNode().get("name").asString()).isEqualTo("Luna");
 				assertThat(record.get("daphne").asNode().get("name").asString()).isEqualTo("Daphne");
@@ -2262,9 +2292,7 @@ class RepositoryIT {
 			repository.save(originalThing);
 
 			assertWithSession(session -> {
-				Record record = session.run(
-						"MATCH (ot:SimilarThing{name:'Original'})-[r:SimilarTo]->(st:SimilarThing {name:'Similar'})" + " RETURN r")
-						.single();
+				Record record = session.run("MATCH (ot:SimilarThing{name:'Original'})-[r:SimilarTo]->(st:SimilarThing {name:'Similar'}) RETURN r").single();
 
 				assertThat(record.keys()).isNotEmpty();
 				assertThat(record.containsKey("r")).isTrue();
@@ -2644,9 +2672,11 @@ class RepositoryIT {
 		@Override
 		void setupData(Transaction transaction) {
 			ZonedDateTime createdAt = LocalDateTime.of(2019, 1, 1, 23, 23, 42, 0).atZone(ZoneOffset.UTC.normalized());
-			id1 = transaction.run("" + "CREATE (n:PersonWithAllConstructor) "
-								  + "  SET n.name = $name, n.sameValue = $sameValue, n.first_name = $firstName, n.cool = $cool, n.personNumber = $personNumber, n.bornOn = $bornOn, n.nullable = 'something', n.things = ['a', 'b'], n.place = $place, n.createdAt = $createdAt "
-								  + "RETURN id(n)",
+			id1 = transaction.run("""
+					CREATE (n:PersonWithAllConstructor)
+					SET n.name = $name, n.sameValue = $sameValue, n.first_name = $firstName, n.cool = $cool, n.personNumber = $personNumber, n.bornOn = $bornOn, n.nullable = 'something', n.things = ['a', 'b'], n.place = $place, n.createdAt = $createdAt
+					RETURN id(n)
+					""",
 					Values.parameters("name", TEST_PERSON1_NAME, "sameValue", TEST_PERSON_SAMEVALUE, "firstName",
 							TEST_PERSON1_FIRST_NAME, "cool", true, "personNumber", 1, "bornOn", TEST_PERSON1_BORN_ON, "place",
 							NEO4J_HQ, "createdAt", createdAt))
@@ -2889,8 +2919,7 @@ class RepositoryIT {
 		void findEntityWithRelationshipByFindOneByExample(@Autowired RelationshipRepository repository) {
 
 			Record record = doWithSession(session -> session
-					.run("CREATE (n:PersonWithRelationship{name:'Freddie'})-[:Has]->(h1:Hobby{name:'Music'}), "
-						 + "(n)-[:Has]->(p1:Pet{name: 'Jerry'}), (n)-[:Has]->(p2:Pet{name: 'Tom'}) " + "RETURN n, h1, p1, p2")
+					.run("CREATE (n:PersonWithRelationship{name:'Freddie'})-[:Has]->(h1:Hobby{name:'Music'}), (n)-[:Has]->(p1:Pet{name: 'Jerry'}), (n)-[:Has]->(p2:Pet{name: 'Tom'}) RETURN n, h1, p1, p2")
 					.single());
 
 			Node personNode = record.get("n").asNode();
@@ -2924,9 +2953,13 @@ class RepositoryIT {
 		void findEntityWithRelationshipByFindAllByExample(@Autowired RelationshipRepository repository) {
 
 			Record record = doWithSession(session -> session
-					.run("CREATE (n:PersonWithRelationship{name:'Freddie'})-[:Has]->(h1:Hobby{name:'Music'}), "
-						 + "(n)-[:Has]->(p1:Pet{name: 'Jerry'}), (n)-[:Has]->(p2:Pet{name: 'Tom'}) " + "RETURN n, h1, p1, p2")
-					.single());
+					.run("""
+     					CREATE
+     						(n:PersonWithRelationship{name:'Freddie'})-[:Has]->(h1:Hobby{name:'Music'}),
+     						(n)-[:Has]->(p1:Pet{name: 'Jerry'}),
+     						(n)-[:Has]->(p2:Pet{name: 'Tom'})
+						RETURN n, h1, p1, p2
+						""").single());
 
 			Node personNode = record.get("n").asNode();
 			Node hobbyNode1 = record.get("h1").asNode();
@@ -2959,9 +2992,13 @@ class RepositoryIT {
 		void findEntityWithRelationshipByFindAllByExampleWithSort(@Autowired RelationshipRepository repository) {
 
 			Record record = doWithSession(session -> session
-					.run("CREATE (n:PersonWithRelationship{name:'Freddie'})-[:Has]->(h1:Hobby{name:'Music'}), "
-						 + "(n)-[:Has]->(p1:Pet{name: 'Jerry'}), (n)-[:Has]->(p2:Pet{name: 'Tom'}) " + "RETURN n, h1, p1, p2")
-					.single());
+					.run("""
+     					CREATE
+     						(n:PersonWithRelationship{name:'Freddie'})-[:Has]->(h1:Hobby{name:'Music'}),
+     						(n)-[:Has]->(p1:Pet{name: 'Jerry'}),
+     						(n)-[:Has]->(p2:Pet{name: 'Tom'})
+						 RETURN n, h1, p1, p2
+						 """).single());
 
 			Node personNode = record.get("n").asNode();
 			Node hobbyNode1 = record.get("h1").asNode();
@@ -2994,9 +3031,13 @@ class RepositoryIT {
 		void findEntityWithRelationshipByFindAllByExampleWithPageable(@Autowired RelationshipRepository repository) {
 
 			Record record = doWithSession(session -> session
-					.run("CREATE (n:PersonWithRelationship{name:'Freddie'})-[:Has]->(h1:Hobby{name:'Music'}), "
-						 + "(n)-[:Has]->(p1:Pet{name: 'Jerry'}), (n)-[:Has]->(p2:Pet{name: 'Tom'}) " + "RETURN n, h1, p1, p2")
-					.single());
+					.run("""
+     					CREATE
+     						(n:PersonWithRelationship{name:'Freddie'})-[:Has]->(h1:Hobby{name:'Music'}),
+     						(n)-[:Has]->(p1:Pet{name: 'Jerry'}),
+     						(n)-[:Has]->(p2:Pet{name: 'Tom'})
+						RETURN n, h1, p1, p2
+						""").single());
 
 			Node personNode = record.get("n").asNode();
 			Node hobbyNode1 = record.get("h1").asNode();
@@ -3033,9 +3074,11 @@ class RepositoryIT {
 		@Override
 		void setupData(Transaction transaction) {
 			ZonedDateTime createdAt = LocalDateTime.of(2019, 1, 1, 23, 23, 42, 0).atZone(ZoneOffset.UTC.normalized());
-			id1 = transaction.run("" + "CREATE (n:PersonWithAllConstructor) "
-								  + "  SET n.name = $name, n.sameValue = $sameValue, n.first_name = $firstName, n.cool = $cool, n.personNumber = $personNumber, n.bornOn = $bornOn, n.nullable = 'something', n.things = ['a', 'b'], n.place = $place, n.createdAt = $createdAt "
-								  + "RETURN id(n)",
+			id1 = transaction.run("""
+					CREATE (n:PersonWithAllConstructor)
+					SET n.name = $name, n.sameValue = $sameValue, n.first_name = $firstName, n.cool = $cool, n.personNumber = $personNumber, n.bornOn = $bornOn, n.nullable = 'something', n.things = ['a', 'b'], n.place = $place, n.createdAt = $createdAt
+					RETURN id(n)
+					""",
 					Values.parameters("name", TEST_PERSON1_NAME, "sameValue", TEST_PERSON_SAMEVALUE, "firstName",
 							TEST_PERSON1_FIRST_NAME, "cool", true, "personNumber", 1, "bornOn", TEST_PERSON1_BORN_ON, "place",
 							NEO4J_HQ, "createdAt", createdAt))
@@ -3443,15 +3486,11 @@ class RepositoryIT {
 
 		@Override
 		void setupData(Transaction transaction) {
-			id1 = transaction.run(
-					"CREATE (n:PersonWithAllConstructor) "
-					+ "SET n.name = $name, n.sameValue = $sameValue, n.nullable = 'something', n.first_name = $firstName " + "RETURN id(n)",
+			id1 = transaction.run("CREATE (n:PersonWithAllConstructor) SET n.name = $name, n.sameValue = $sameValue, n.nullable = 'something', n.first_name = $firstName RETURN id(n)",
 					Values.parameters("name", TEST_PERSON1_NAME, "sameValue", TEST_PERSON_SAMEVALUE, "firstName",
 							TEST_PERSON1_FIRST_NAME))
 					.next().get(0).asLong();
-			id2 = transaction.run(
-					"CREATE (n:PersonWithAllConstructor) "
-					+ "SET n.name = $name, n.sameValue = $sameValue, n.first_name = $firstName " + "RETURN id(n)",
+			id2 = transaction.run("CREATE (n:PersonWithAllConstructor) SET n.name = $name, n.sameValue = $sameValue, n.first_name = $firstName RETURN id(n)",
 					Values.parameters("name", TEST_PERSON2_NAME, "sameValue", TEST_PERSON_SAMEVALUE, "firstName",
 							TEST_PERSON2_FIRST_NAME))
 					.next().get(0).asLong();
@@ -3543,8 +3582,9 @@ class RepositoryIT {
 
 		@Override
 		void setupData(Transaction transaction) {
-			transaction.run("CREATE (:PersonWithAllConstructor{name: '" + TEST_PERSON1_NAME + "', first_name: '"
-							+ TEST_PERSON1_FIRST_NAME + "'})," + " (:PersonWithAllConstructor{name: '" + TEST_PERSON2_NAME + "'})");
+			transaction.run(
+					"CREATE (:PersonWithAllConstructor{name: '%s', first_name: '%s'}), (:PersonWithAllConstructor{name: '%s'})".formatted(TEST_PERSON1_NAME, TEST_PERSON1_FIRST_NAME, TEST_PERSON2_NAME)
+			);
 		}
 
 		@Test

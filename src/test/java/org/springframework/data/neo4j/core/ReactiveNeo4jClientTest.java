@@ -230,8 +230,12 @@ class ReactiveNeo4jClientTest {
 		parameters.put("bikeName", "M.*");
 		parameters.put("location", "Sweden");
 
-		String cypher = "MATCH (o:User {name: $name}) - [:OWNS] -> (b:Bike) - [:USED_ON] -> (t:Trip) "
-				+ "WHERE t.takenOn > $aDate " + "  AND b.name =~ $bikeName " + "  AND t.location = $location " + "RETURN b";
+		String cypher = """
+			MATCH (o:User {name: $name}) - [:OWNS] -> (b:Bike) - [:USED_ON] -> (t:Trip)
+			WHERE t.takenOn > $aDate
+			AND b.name =~ $bikeName
+			AND t.location = $location RETURN b
+			""";
 
 		Flux<Map<String, Object>> usedBikes = client.query(cypher).bind("michael").to("name").bindAll(parameters)
 				.bind(LocalDate.of(2019, 1, 1)).to("aDate").fetch().all();
@@ -408,7 +412,7 @@ class ReactiveNeo4jClientTest {
 
 			ReactiveNeo4jClient client = ReactiveNeo4jClient.create(driver);
 
-			String cypher = "MATCH (o:User {name: $name}) - [:OWNS] -> (b:Bike)" + "RETURN o, collect(b) as bikes";
+			String cypher = "MATCH (o:User {name: $name}) - [:OWNS] -> (b:Bike) RETURN o, collect(b) as bikes";
 
 			Neo4jClientTest.BikeOwnerReader mappingFunction = new Neo4jClientTest.BikeOwnerReader();
 			Flux<Neo4jClientTest.BikeOwner> bikeOwners = client.query(cypher).bind("michael").to("name")
@@ -475,8 +479,7 @@ class ReactiveNeo4jClientTest {
 
 			Neo4jClientTest.BikeOwner michael = new Neo4jClientTest.BikeOwner("Michael",
 					Arrays.asList(new Neo4jClientTest.Bike("Road"), new Neo4jClientTest.Bike("MTB")));
-			String cypher = "MERGE (u:User {name: 'Michael'}) " + "WITH u UNWIND $bikes as bike "
-					+ "MERGE (b:Bike {name: bike}) " + "MERGE (u) - [o:OWNS] -> (b) ";
+			String cypher = "MERGE (u:User {name: 'Michael'}) WITH u UNWIND $bikes as bike MERGE (b:Bike {name: bike}) MERGE (u) - [o:OWNS] -> (b) ";
 
 			Mono<ResultSummary> summary = client.query(cypher).bind(michael).with(new Neo4jClientTest.BikeOwnerBinder())
 					.run();

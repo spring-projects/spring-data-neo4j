@@ -232,10 +232,11 @@ class Neo4jClientTest {
 		parameters.put("bikeName", "M.*");
 		parameters.put("location", "Sweden");
 
-		String cypher = ""
-						+ "MATCH (o:User {name: $name}) - [:OWNS] -> (b:Bike) - [:USED_ON] -> (t:Trip) "
-						+ "WHERE t.takenOn > $aDate " + "  AND b.name =~ $bikeName " + "  AND t.location = $location "
-						+ "RETURN b";
+		String cypher = """
+			MATCH (o:User {name: $name}) - [:OWNS] -> (b:Bike) - [:USED_ON] -> (t:Trip)\s
+			WHERE t.takenOn > $aDate   AND b.name =~ $bikeName   AND t.location = $location\s
+			RETURN b
+			""";
 
 		Collection<Map<String, Object>> usedBikes = client.query(cypher).bind("michael").to("name").bindAll(parameters)
 				.bind(LocalDate.of(2019, 1, 1)).to("aDate").fetch().all();
@@ -244,8 +245,7 @@ class Neo4jClientTest {
 
 		verifyDatabaseSelection(null);
 
-		Map<String, Object> expectedParameters = new HashMap<>();
-		expectedParameters.putAll(parameters);
+		Map<String, Object> expectedParameters = new HashMap<>(parameters);
 		expectedParameters.put("name", "michael");
 		expectedParameters.put("aDate", LocalDate.of(2019, 1, 1));
 		verify(session).run(eq(cypher), MockitoHamcrest.argThat(new MapAssertionMatcher(expectedParameters)));
@@ -409,7 +409,7 @@ class Neo4jClientTest {
 
 			Neo4jClient client = Neo4jClient.create(driver);
 
-			String cypher = "MATCH (o:User {name: $name}) - [:OWNS] -> (b:Bike)" + "RETURN o, collect(b) as bikes";
+			String cypher = "MATCH (o:User {name: $name}) - [:OWNS] -> (b:Bike) RETURN o, collect(b) as bikes";
 
 			BikeOwnerReader mappingFunction = new BikeOwnerReader();
 			Collection<BikeOwner> bikeOwners = client.query(cypher).bind("michael").to("name").fetchAs(BikeOwner.class)
@@ -470,8 +470,11 @@ class Neo4jClientTest {
 			Neo4jClient client = Neo4jClient.create(driver);
 
 			BikeOwner michael = new BikeOwner("Michael", Arrays.asList(new Bike("Road"), new Bike("MTB")));
-			String cypher = "MERGE (u:User {name: 'Michael'}) " + "WITH u UNWIND $bikes as bike "
-					+ "MERGE (b:Bike {name: bike}) " + "MERGE (u) - [o:OWNS] -> (b) ";
+			String cypher = """
+				MERGE (u:User {name: 'Michael'})
+				WITH u UNWIND $bikes as bike
+				MERGE (b:Bike {name: bike}) MERGE (u) - [o:OWNS] -> (b)
+				""";
 			ResultSummary summary = client.query(cypher).bind(michael).with(new BikeOwnerBinder()).run();
 
 			verifyDatabaseSelection(null);
