@@ -314,7 +314,7 @@ public final class ReactiveNeo4jTemplate implements
 			return null;
 		}
 
-		if (resultType.isInstance(instance)) {
+		if (resultType.equals(instance.getClass())) {
 			return (Mono<R>) save(instance);
 		}
 

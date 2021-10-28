@@ -53,6 +53,9 @@ import org.springframework.data.neo4j.core.ReactiveDatabaseSelectionProvider;
 import org.springframework.data.neo4j.core.ReactiveNeo4jTemplate;
 import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
 import org.springframework.data.neo4j.core.transaction.ReactiveNeo4jTransactionManager;
+import org.springframework.data.neo4j.integration.issues.gh2415.BaseNodeEntity;
+import org.springframework.data.neo4j.integration.issues.gh2415.NodeEntity;
+import org.springframework.data.neo4j.integration.issues.gh2415.NodeWithDefinedCredentials;
 import org.springframework.data.neo4j.integration.shared.common.Person;
 import org.springframework.data.neo4j.integration.shared.common.PersonWithAllConstructor;
 import org.springframework.data.neo4j.integration.shared.common.PersonWithAssignedId;
@@ -115,6 +118,14 @@ class ReactiveNeo4jTemplateIT {
 					.single().get(0).asLong();
 			transaction.run("CREATE (p:Person{firstName: 'Bela', lastName: 'B.'})");
 			transaction.run("CREATE (p:PersonWithAssignedId{id: 'x', firstName: 'John', lastName: 'Doe'})");
+
+			transaction.run(
+					"CREATE (root:NodeEntity:BaseNodeEntity{nodeId: 'root'}) " +
+					"CREATE (company:NodeEntity:BaseNodeEntity{nodeId: 'comp'}) " +
+					"CREATE (cred:Credential{id: 'uuid-1', name: 'Creds'}) " +
+					"CREATE (company)-[:CHILD_OF]->(root) " +
+					"CREATE (root)-[:HAS_CREDENTIAL]->(cred) " +
+					"CREATE (company)-[:WITH_CREDENTIAL]->(cred)");
 
 			transaction.commit();
 
@@ -800,6 +811,24 @@ class ReactiveNeo4jTemplateIT {
 					assertThat(p.getFirstName()).isEqualTo("John");
 					assertThat(p.getLastName()).isEqualTo("modifiedLast");
 				})
+				.verifyComplete();
+	}
+
+	@Test // GH-2415
+	void saveWithProjectionImplementedByEntity() {
+
+		neo4jTemplate
+				.find(BaseNodeEntity.class)
+				.as(NodeEntity.class)
+				.matching(
+						"MATCH p=(n:BaseNodeEntity)-[r]-(t) WHERE n.nodeId = $nodeId  WITH n, collect([x in relationships(p) |x]) AS r, collect(t) AS o RETURN n, r, o",
+						Collections.singletonMap("nodeId", "root")
+				)
+				.one()
+				.flatMap(nodeEntity -> neo4jTemplate.saveAs(nodeEntity, NodeWithDefinedCredentials.class))
+				.flatMap(nodeEntity -> neo4jTemplate.findById(nodeEntity.getNodeId(), NodeEntity.class))
+				.as(StepVerifier::create)
+				.consumeNextWith(nodeEntity -> assertThat(nodeEntity.getChildren()).hasSize(1))
 				.verifyComplete();
 	}
 
