@@ -13,7 +13,7 @@ and annotations.
 ----
 MATCH (c:Java)-[:ANNOTATED_BY]->(a)-[:OF_TYPE]->(t:Type {fqn: 'org.apiguardian.api.API'}),
       (p)-[:DECLARES]->(c)
-WHERE c:Member AND NOT c:Constructor
+WHERE c:Member AND NOT (c:Constructor OR c:Method)
 RETURN p.fqn, c.name
 ----
 

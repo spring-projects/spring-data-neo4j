@@ -149,6 +149,18 @@ public final class QueryFragmentsAndParameters {
 		return QueryFragmentsAndParameters.forExample(mappingContext, example, pageable, null, includeField);
 	}
 
+	/**
+	 * Utility method for creating a query fragment including parameters for a given condition.
+	 *
+	 * @param entityMetaData The metadata of a given and known entity
+	 * @param condition A Cypher-DSL condition
+	 * @return Fully populated fragments and parameter
+	 */
+	@API(status = API.Status.EXPERIMENTAL, since = "6.1.7")
+	public static QueryFragmentsAndParameters forCondition(Neo4jPersistentEntity<?> entityMetaData, Condition condition) {
+		return forCondition(entityMetaData, condition, null, null);
+	}
+
 	static QueryFragmentsAndParameters forCondition(Neo4jPersistentEntity<?> entityMetaData,
 			Condition condition,
 			@Nullable Pageable pageable,

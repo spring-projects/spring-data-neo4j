@@ -51,12 +51,19 @@ import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.data.neo4j.config.AbstractReactiveNeo4jConfig;
 import org.springframework.data.neo4j.core.ReactiveDatabaseSelectionProvider;
 import org.springframework.data.neo4j.core.ReactiveNeo4jTemplate;
+import org.springframework.data.neo4j.core.mapping.Constants;
+import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
+import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
 import org.springframework.data.neo4j.core.transaction.ReactiveNeo4jTransactionManager;
+import org.springframework.data.neo4j.integration.issues.gh2415.BaseNodeEntity;
+import org.springframework.data.neo4j.integration.issues.gh2415.NodeEntity;
+import org.springframework.data.neo4j.integration.issues.gh2415.NodeWithDefinedCredentials;
 import org.springframework.data.neo4j.integration.shared.common.Person;
 import org.springframework.data.neo4j.integration.shared.common.PersonWithAllConstructor;
 import org.springframework.data.neo4j.integration.shared.common.PersonWithAssignedId;
 import org.springframework.data.neo4j.integration.shared.common.ThingWithGeneratedId;
+import org.springframework.data.neo4j.repository.query.QueryFragmentsAndParameters;
 import org.springframework.data.neo4j.test.BookmarkCapture;
 import org.springframework.data.neo4j.test.Neo4jExtension;
 import org.springframework.data.neo4j.test.Neo4jExtension.Neo4jConnectionSupport;
@@ -115,6 +122,14 @@ class ReactiveNeo4jTemplateIT {
 					.single().get(0).asLong();
 			transaction.run("CREATE (p:Person{firstName: 'Bela', lastName: 'B.'})");
 			transaction.run("CREATE (p:PersonWithAssignedId{id: 'x', firstName: 'John', lastName: 'Doe'})");
+
+			transaction.run(
+					"CREATE (root:NodeEntity:BaseNodeEntity{nodeId: 'root'}) " +
+					"CREATE (company:NodeEntity:BaseNodeEntity{nodeId: 'comp'}) " +
+					"CREATE (cred:Credential{id: 'uuid-1', name: 'Creds'}) " +
+					"CREATE (company)-[:CHILD_OF]->(root) " +
+					"CREATE (root)-[:HAS_CREDENTIAL]->(cred) " +
+					"CREATE (company)-[:WITH_CREDENTIAL]->(cred)");
 
 			transaction.commit();
 
@@ -800,6 +815,22 @@ class ReactiveNeo4jTemplateIT {
 					assertThat(p.getFirstName()).isEqualTo("John");
 					assertThat(p.getLastName()).isEqualTo("modifiedLast");
 				})
+				.verifyComplete();
+	}
+
+	@Test // GH-2415
+	void saveWithProjectionImplementedByEntity(@Autowired Neo4jMappingContext mappingContext) {
+
+		Neo4jPersistentEntity<?> metaData = mappingContext.getPersistentEntity(BaseNodeEntity.class);
+		neo4jTemplate
+				.find(BaseNodeEntity.class)
+				.as(NodeEntity.class)
+				.matching(QueryFragmentsAndParameters.forCondition(metaData, Constants.NAME_OF_TYPED_ROOT_NODE.apply(metaData).property("nodeId").isEqualTo(Cypher.literalOf("root"))))
+				.one()
+				.flatMap(nodeEntity -> neo4jTemplate.saveAs(nodeEntity, NodeWithDefinedCredentials.class))
+				.flatMap(nodeEntity -> neo4jTemplate.findById(nodeEntity.getNodeId(), NodeEntity.class))
+				.as(StepVerifier::create)
+				.consumeNextWith(nodeEntity -> assertThat(nodeEntity.getChildren()).hasSize(1))
 				.verifyComplete();
 	}
 
