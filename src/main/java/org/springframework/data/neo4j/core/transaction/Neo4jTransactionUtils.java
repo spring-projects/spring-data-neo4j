@@ -15,6 +15,7 @@
  */
 package org.springframework.data.neo4j.core.transaction;
 
+import java.lang.reflect.Method;
 import java.time.Duration;
 import java.util.Collection;
 import java.util.Collections;
@@ -24,10 +25,12 @@ import org.neo4j.driver.AccessMode;
 import org.neo4j.driver.Bookmark;
 import org.neo4j.driver.SessionConfig;
 import org.neo4j.driver.TransactionConfig;
+import org.springframework.data.neo4j.core.ImpersonatedUser;
 import org.springframework.lang.Nullable;
 import org.springframework.transaction.IllegalTransactionStateException;
 import org.springframework.transaction.InvalidIsolationLevelException;
 import org.springframework.transaction.TransactionDefinition;
+import org.springframework.util.ReflectionUtils;
 
 /**
  * Internal use only.
@@ -37,22 +40,33 @@ import org.springframework.transaction.TransactionDefinition;
 public final class Neo4jTransactionUtils {
 
 	/**
+	 * Cater for drivers below 4.4
+	 */
+	private static final Method withImpersonatedUser
+		= ReflectionUtils.findMethod(SessionConfig.Builder.class, "withImpersonatedUser", String.class);
+
+	/**
 	 * The default session uses {@link AccessMode#WRITE} and an empty list of bookmarks.
 	 *
 	 * @param databaseName The database to use. May be null, which then designates the default database.
+	 * @param asUser An impersonated user. May be null, which designates the user that has been used to create the connection
 	 * @return Session parameters to configure the default session used
 	 */
-	public static SessionConfig defaultSessionConfig(@Nullable String databaseName) {
-		return sessionConfig(false, Collections.emptyList(), databaseName);
+	public static SessionConfig defaultSessionConfig(@Nullable String databaseName, @Nullable ImpersonatedUser asUser) {
+		return sessionConfig(false, Collections.emptyList(), databaseName, asUser);
 	}
 
 	public static SessionConfig sessionConfig(boolean readOnly, Collection<Bookmark> bookmarks,
-			@Nullable String databaseName) {
+			@Nullable String databaseName, @Nullable ImpersonatedUser asUser) {
 		SessionConfig.Builder builder = SessionConfig.builder()
 				.withDefaultAccessMode(readOnly ? AccessMode.READ : AccessMode.WRITE).withBookmarks(bookmarks);
 
 		if (databaseName != null) {
 			builder.withDatabase(databaseName);
+		}
+
+		if (asUser != null && withImpersonatedUser != null) {
+			ReflectionUtils.invokeMethod(withImpersonatedUser, builder, asUser.getValue());
 		}
 
 		return builder.build();
@@ -92,7 +106,7 @@ public final class Neo4jTransactionUtils {
 		return Objects.equals(name1, name2);
 	}
 
-	static String formatOngoingTxInAnotherDbErrorMessage(String currentDb, String requestedDb) {
+	static String formatOngoingTxInAnotherDbErrorMessage(@Nullable String currentDb, @Nullable String requestedDb) {
 		String defaultDatabase = "the default database";
 		String _currentDb = currentDb == null ? defaultDatabase : String.format("'%s'", currentDb);
 		String _requestedDb = requestedDb == null ? defaultDatabase : String.format("'%s'", requestedDb);

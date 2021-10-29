@@ -91,7 +91,8 @@ class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 							try {
 								lock.lock();
 								Set<Bookmark> lastBookmarks = new HashSet<>(bookmarks);
-								return Tuples.of(driver.rxSession(Neo4jTransactionUtils.sessionConfig(false, lastBookmarks, targetDatabase.getValue())), lastBookmarks);
+								// TODO fix imp
+								return Tuples.of(driver.rxSession(Neo4jTransactionUtils.sessionConfig(false, lastBookmarks, targetDatabase.getValue(), null)), lastBookmarks);
 							} finally {
 								lock.unlock();
 							}

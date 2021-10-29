@@ -115,11 +115,13 @@ public final class ReactiveNeo4jTransactionManager extends AbstractReactiveTrans
 
 					// Otherwise open up a new native transaction
 					return Mono.defer(() -> {
-						RxSession session = driver.rxSession(Neo4jTransactionUtils.defaultSessionConfig(targetDatabase));
+						// TODO fix imp
+						RxSession session = driver.rxSession(Neo4jTransactionUtils.defaultSessionConfig(targetDatabase, null));
 						return Mono.from(session.beginTransaction(TransactionConfig.empty())).map(tx -> {
 
+							// TODO fix imp
 							ReactiveNeo4jTransactionHolder newConnectionHolder = new ReactiveNeo4jTransactionHolder(
-									new Neo4jTransactionContext(targetDatabase), session, tx);
+									new Neo4jTransactionContext(targetDatabase, null), session, tx);
 							newConnectionHolder.setSynchronizedWithTransaction(true);
 
 							tsm.registerSynchronization(new ReactiveNeo4jSessionSynchronization(tsm, newConnectionHolder, driver));
@@ -186,12 +188,13 @@ public final class ReactiveNeo4jTransactionManager extends AbstractReactiveTrans
 
 			return databaseSelectionProvider.getDatabaseSelection().switchIfEmpty(Mono.just(DatabaseSelection.undecided()))
 					.map(
-							databaseName -> new Neo4jTransactionContext(databaseName.getValue(), bookmarkManager.getBookmarks()))
+							// TODO fix imp
+							databaseName -> new Neo4jTransactionContext(databaseName.getValue(), null, bookmarkManager.getBookmarks()))
 					.map(
+							// TODO fix imp
 							context -> Tuples
 									.of(context,
-											this.driver.rxSession(Neo4jTransactionUtils.sessionConfig(readOnly, context.getBookmarks(),
-													context.getDatabaseName()))))
+											this.driver.rxSession(Neo4jTransactionUtils.sessionConfig(readOnly, context.getBookmarks(), context.getDatabaseName(), null))))
 					.flatMap(contextAndSession -> Mono.from(contextAndSession.getT2().beginTransaction(transactionConfig))
 							.map(nativeTransaction -> new ReactiveNeo4jTransactionHolder(contextAndSession.getT1(),
 									contextAndSession.getT2(), nativeTransaction)))

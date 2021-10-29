@@ -31,7 +31,7 @@ import org.springframework.lang.Nullable;
 @API(status = API.Status.STABLE, since = "6.0")
 public final class DatabaseSelection {
 
-	private final static DatabaseSelection DEFAULT_DATABASE_NAME = new DatabaseSelection(null);
+	private static final DatabaseSelection DEFAULT_DATABASE_NAME = new DatabaseSelection(null);
 
 	@Nullable private final String value;
 
@@ -51,7 +51,7 @@ public final class DatabaseSelection {
 		return new DatabaseSelection(databaseName);
 	}
 
-	private DatabaseSelection(String value) {
+	private DatabaseSelection(@Nullable String value) {
 		this.value = value;
 	}
 

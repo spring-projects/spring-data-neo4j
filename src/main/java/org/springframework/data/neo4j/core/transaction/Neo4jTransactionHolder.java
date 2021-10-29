@@ -20,6 +20,7 @@ import java.util.Collection;
 import org.neo4j.driver.Bookmark;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.Transaction;
+import org.springframework.data.neo4j.core.ImpersonatedUser;
 import org.springframework.lang.Nullable;
 import org.springframework.transaction.support.ResourceHolderSupport;
 import org.springframework.util.Assert;
@@ -56,11 +57,12 @@ final class Neo4jTransactionHolder extends ResourceHolderSupport {
 	 * Returns the transaction if it has been opened in a session for the requested database or an empty optional.
 	 *
 	 * @param inDatabase selected database to use
+	 * @param asUser impersonated user if any
 	 * @return An optional, ongoing transaction.
 	 */
 	@Nullable
-	Transaction getTransaction(String inDatabase) {
-		return Neo4jTransactionUtils.namesMapToTheSameDatabase(this.context.getDatabaseName(), inDatabase) ? transaction : null;
+	Transaction getTransaction(@Nullable String inDatabase, @Nullable ImpersonatedUser asUser) {
+		return this.context.isForDatabaseAndUser(inDatabase, asUser) ? transaction : null;
 	}
 
 	@Nullable
@@ -103,8 +105,14 @@ final class Neo4jTransactionHolder extends ResourceHolderSupport {
 		return transaction.isOpen();
 	}
 
+	@Nullable
 	String getDatabaseName() {
 		return context.getDatabaseName();
+	}
+
+	@Nullable
+	ImpersonatedUser getImpersonatedUser() {
+		return context.getImpersonatedUser();
 	}
 
 	Collection<Bookmark> getBookmarks() {

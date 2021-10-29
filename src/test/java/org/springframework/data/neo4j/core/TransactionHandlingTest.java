@@ -92,7 +92,7 @@ class TransactionHandlingTest {
 				when(driver.session(any(SessionConfig.class))).thenReturn(session);
 
 				// Make template acquire session
-				DefaultNeo4jClient neo4jClient = new DefaultNeo4jClient(driver, null);
+				DefaultNeo4jClient neo4jClient = new DefaultNeo4jClient(Neo4jClient.with(driver));
 				try (QueryRunner s = neo4jClient.getQueryRunner(DatabaseSelection.byName("aDatabase"))) {
 					s.run("MATCH (n) RETURN n");
 				} catch (Exception e) {
@@ -128,7 +128,7 @@ class TransactionHandlingTest {
 				Neo4jTransactionManager txManager = new Neo4jTransactionManager(driver);
 				TransactionTemplate txTemplate = new TransactionTemplate(txManager);
 
-				DefaultNeo4jClient neo4jClient = new DefaultNeo4jClient(driver, null);
+				DefaultNeo4jClient neo4jClient = new DefaultNeo4jClient(Neo4jClient.with(driver));
 				txTemplate.execute(tx -> {
 					try (QueryRunner s = neo4jClient.getQueryRunner(DatabaseSelection.undecided())) {
 						s.run("MATCH (n) RETURN n");
