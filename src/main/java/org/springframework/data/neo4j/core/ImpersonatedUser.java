@@ -18,7 +18,6 @@ package org.springframework.data.neo4j.core;
 import java.util.Objects;
 
 import org.apiguardian.api.API;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -43,21 +42,14 @@ public final class ImpersonatedUser {
 		return new ImpersonatedUser(value);
 	}
 
-	@Nullable
 	private final String value;
 
-	private ImpersonatedUser(@Nullable String value) {
+	private ImpersonatedUser(String value) {
 		this.value = value;
 	}
 
-	@Nullable
 	public String getValue() {
 		return value;
-	}
-
-	@Override
-	public String toString() {
-		return this.value == null ? "ConnectedUser" : String.format("Impersonates '%s'", value);
 	}
 
 	@Override
@@ -69,7 +61,7 @@ public final class ImpersonatedUser {
 			return false;
 		}
 		ImpersonatedUser that = (ImpersonatedUser) o;
-		return Objects.equals(value, that.value);
+		return value.equals(that.value);
 	}
 
 	@Override
