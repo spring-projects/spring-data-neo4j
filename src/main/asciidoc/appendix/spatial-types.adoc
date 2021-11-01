@@ -1,0 +1,34 @@
+[[spatial-types]]
+= Spatial types
+
+Spring Data Neo4j supports the following spatial types
+
+[[spatial-types.conversion]]
+== Supported conversions
+
+* Spring Data common's `Point` (*must* be a WGS 84-2D/SRID 4326 point in the database)
+* `GeographicPoint2d` (WGS84 2D/SRID 4326)
+* `GeographicPoint3d` (WGS84 3D/SRID 4979)
+* `CartesianPoint2d` (Cartesian 2D/SRID 7203)
+* `CartesianPoint3d` (Cartesian 3D/SRID 9157)
+
+[[spatial-types.derived-finder]]
+== Derived finder keywords
+
+If you are using the native Neo4j Java driver `org.neo4j.driver.types.Point` type,
+you can make use of the following keywords and parameter types in derived finder methods.
+
+Query inside an area:
+
+* `findBy[...]Within(org.springframework.data.geo.Circle circle)`
+* `findBy[...]Within(org.springframework.data.geo.Box box)`
+* `findBy[...]Within(org.springframework.data.neo4j.repository.query.BoundingBox boundingBox)`
+
+NOTE: You could also use a `org.springframework.data.geo.Polygon` but would need to pass it into a `BoundingBox` by calling `BoundingBox#of`.
+
+Query near a certain point:
+
+* `findBy[...]Near(org.neo4j.driver.types.Point point)` - returns result sorted by distance to the given point ascending
+* `findBy[...]Near(Point point, org.springframework.data.geo.Distance max)`
+* `findBy[...]Near(Point point, org.springframework.data.domain.Range<Distance> between)`
+* `findBy[...]Near(Range<Distance> between, Point p)`
