@@ -37,7 +37,7 @@ class Neo4jTransactionUtilsTest {
 			}
 	)
 	@ParameterizedTest
-	void f(String cdb, String rdb, String cu, String ru, String expected) {
+	void formatOngoingTxInAnotherDbErrorMessageShouldWork(String cdb, String rdb, String cu, String ru, String expected) {
 
 		DatabaseSelection currentDatabaseSelection = StringUtils.hasText(cdb) ?
 				DatabaseSelection.byName(cdb) :
