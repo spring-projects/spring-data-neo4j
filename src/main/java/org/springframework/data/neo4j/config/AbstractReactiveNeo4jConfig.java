@@ -54,8 +54,9 @@ public abstract class AbstractReactiveNeo4jConfig extends Neo4jConfigurationSupp
 	 * @return A reactive Neo4j client.
 	 */
 	@Bean(ReactiveNeo4jRepositoryConfigurationExtension.DEFAULT_NEO4J_CLIENT_BEAN_NAME)
-	public ReactiveNeo4jClient neo4jClient(Driver driver, ReactiveDatabaseSelectionProvider databaseNameProvider) {
-		return ReactiveNeo4jClient.create(driver, databaseNameProvider);
+	public ReactiveNeo4jClient neo4jClient(Driver driver, ReactiveDatabaseSelectionProvider databaseSelectionProvider) {
+
+		return ReactiveNeo4jClient.with(driver).withDatabaseSelectionProvider(databaseSelectionProvider).build();
 	}
 
 	@Bean(ReactiveNeo4jRepositoryConfigurationExtension.DEFAULT_NEO4J_TEMPLATE_BEAN_NAME)
@@ -73,9 +74,9 @@ public abstract class AbstractReactiveNeo4jConfig extends Neo4jConfigurationSupp
 	 */
 	@Bean(ReactiveNeo4jRepositoryConfigurationExtension.DEFAULT_TRANSACTION_MANAGER_BEAN_NAME)
 	public ReactiveTransactionManager reactiveTransactionManager(Driver driver,
-			ReactiveDatabaseSelectionProvider databaseNameProvider) {
+			ReactiveDatabaseSelectionProvider databaseSelectionProvider) {
 
-		return new ReactiveNeo4jTransactionManager(driver, databaseNameProvider);
+		return ReactiveNeo4jTransactionManager.with(driver).withDatabaseSelectionProvider(databaseSelectionProvider).build();
 	}
 
 	/**

@@ -119,9 +119,9 @@ class ReactiveGH2347IT extends TestBase {
 
 		@Override
 		public ReactiveTransactionManager reactiveTransactionManager(Driver driver,
-				ReactiveDatabaseSelectionProvider databaseNameProvider) {
+				ReactiveDatabaseSelectionProvider databaseSelectionProvider) {
 			BookmarkCapture bookmarkCapture = bookmarkCapture();
-			return new ReactiveNeo4jTransactionManager(driver, databaseNameProvider,
+			return new ReactiveNeo4jTransactionManager(driver, databaseSelectionProvider,
 					Neo4jBookmarkManager.create(bookmarkCapture));
 		}
 
