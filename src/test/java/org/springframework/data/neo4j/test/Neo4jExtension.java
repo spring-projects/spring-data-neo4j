@@ -41,6 +41,7 @@ import org.neo4j.driver.Config;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.GraphDatabase;
 import org.neo4j.driver.Logging;
+import org.neo4j.driver.Record;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.SessionConfig;
 import org.neo4j.driver.internal.util.ServerVersion;
@@ -234,7 +235,12 @@ public class Neo4jExtension implements BeforeAllCallback, BeforeEachCallback {
 				synchronized (this) {
 					serverVersion = this.cachedServerVersion;
 					if (serverVersion == null) {
-						this.cachedServerVersion = ServerVersion.version(getDriver());
+						try (Session session = this.getDriver().session()) {
+							Record result = session.run("CALL dbms.components() YIELD versions RETURN 'Neo4j/' + versions[0] as version").single();
+							this.cachedServerVersion = ServerVersion.version(result.get("version").asString());
+						} catch (Exception e) {
+							this.cachedServerVersion = ServerVersion.version(getDriver());
+						}
 						serverVersion = this.cachedServerVersion;
 					}
 				}
