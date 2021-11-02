@@ -341,7 +341,15 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 		// reference the start again. Because it is getting still constructed, it won't be in the knownObjects
 		// store unless we temporarily put it there.
 		knownObjects.storeObject(internalId, mappedObject);
+
 		// Fill associations
+		// If the nodeDescription is a more abstract class as the concrete node description,
+		// it might contain associations not named CONCRETE_TYPE_TARGET but ABSTRACT_TYPE_TARGET.
+		// Those won't get caught by the most concrete node description.
+		if (nodeDescription != concreteNodeDescription) {
+			nodeDescription.doWithAssociations(
+					populateFrom(queryResult, propertyAccessor, isConstructorParameter, objectAlreadyMapped, relationshipsFromResult, nodesFromResult));
+		}
 		concreteNodeDescription.doWithAssociations(
 				populateFrom(queryResult, propertyAccessor, isConstructorParameter, objectAlreadyMapped, relationshipsFromResult, nodesFromResult));
 	}
