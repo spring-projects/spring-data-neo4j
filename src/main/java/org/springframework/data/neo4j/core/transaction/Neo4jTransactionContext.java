@@ -17,11 +17,10 @@ package org.springframework.data.neo4j.core.transaction;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Objects;
 
 import org.neo4j.driver.Bookmark;
-import org.springframework.data.neo4j.core.ImpersonatedUser;
-import org.springframework.lang.Nullable;
+import org.springframework.data.neo4j.core.DatabaseSelection;
+import org.springframework.data.neo4j.core.UserSelection;
 
 /**
  * Represents the context in which a transaction has been opened. The context consists primarily of the target database
@@ -36,37 +35,35 @@ final class Neo4jTransactionContext {
 	/**
 	 * The target database of the session.
 	 */
-	private @Nullable final String databaseName;
+	private final DatabaseSelection databaseSelection;
 
 	/**
 	 * Will be {@literal null} for the default user, non-null for an impersonated user.
 	 */
-	private @Nullable final ImpersonatedUser impersonatedUser;
+	private final UserSelection userSelection;
 
 	/**
 	 * The bookmarks from which that session was started. Maybe empty but never null.
 	 */
 	private final Collection<Bookmark> bookmarks;
 
-	Neo4jTransactionContext(@Nullable String databaseName, @Nullable ImpersonatedUser impersonatedUser) {
+	Neo4jTransactionContext(DatabaseSelection databaseSelection, UserSelection userSelection) {
 
-		this(databaseName, impersonatedUser, Collections.emptyList());
+		this(databaseSelection, userSelection, Collections.emptyList());
 	}
 
-	Neo4jTransactionContext(@Nullable String databaseName, @Nullable ImpersonatedUser impersonatedUser, Collection<Bookmark> bookmarks) {
-		this.databaseName = databaseName;
-		this.impersonatedUser = impersonatedUser;
+	Neo4jTransactionContext(DatabaseSelection databaseSelection, UserSelection userSelection, Collection<Bookmark> bookmarks) {
+		this.databaseSelection = databaseSelection;
+		this.userSelection = userSelection;
 		this.bookmarks = bookmarks;
 	}
 
-	@Nullable
-	String getDatabaseName() {
-		return databaseName;
+	DatabaseSelection getDatabaseSelection() {
+		return databaseSelection;
 	}
 
-	@Nullable
-	ImpersonatedUser getImpersonatedUser() {
-		return impersonatedUser;
+	UserSelection getUserSelection() {
+		return userSelection;
 	}
 
 	Collection<Bookmark> getBookmarks() {
@@ -75,10 +72,11 @@ final class Neo4jTransactionContext {
 
 	/**
 	 * @param inDatabase Target database
-	 * @param user A Neo4j user
+	 * @param asUser A Neo4j user
 	 * @return True if the combination of target database and impersonated user is the same in this context as for the given arguments.
 	 */
-	boolean isForDatabaseAndUser(@Nullable String inDatabase, @Nullable ImpersonatedUser user) {
-		return Neo4jTransactionUtils.namesMapToTheSameDatabase(this.getDatabaseName(), inDatabase) && Objects.equals(this.getImpersonatedUser(), user);
+	boolean isForDatabaseAndUser(DatabaseSelection inDatabase, UserSelection asUser) {
+
+		return this.databaseSelection.equals(inDatabase) && this.userSelection.equals(asUser);
 	}
 }

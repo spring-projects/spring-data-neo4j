@@ -160,7 +160,7 @@ class TransactionHandlingTest {
 
 		@Test
 		void shouldNotOpenTransactionsWithoutSubscription() {
-			DefaultReactiveNeo4jClient neo4jClient = new DefaultReactiveNeo4jClient(driver, null);
+			DefaultReactiveNeo4jClient neo4jClient = new DefaultReactiveNeo4jClient(ReactiveNeo4jClient.with(driver));
 			neo4jClient.query("RETURN 1").in("aDatabase").fetch().one();
 
 			verify(driver, never()).rxSession(any(SessionConfig.class));
@@ -173,9 +173,9 @@ class TransactionHandlingTest {
 			when(driver.rxSession(any(SessionConfig.class))).thenReturn(session);
 			when(session.close()).thenReturn(Mono.empty());
 
-			DefaultReactiveNeo4jClient neo4jClient = new DefaultReactiveNeo4jClient(driver, null);
+			DefaultReactiveNeo4jClient neo4jClient = new DefaultReactiveNeo4jClient(ReactiveNeo4jClient.with(driver));
 
-			Mono<String> sequence = neo4jClient.doInQueryRunnerForMono(Mono.just(DatabaseSelection.byName("aDatabase")), tx -> Mono.just("1"));
+			Mono<String> sequence = neo4jClient.doInQueryRunnerForMono(Mono.just(DatabaseSelection.byName("aDatabase")), Mono.just(UserSelection.connectedUser()), tx -> Mono.just("1"));
 
 			StepVerifier.create(sequence).expectNext("1").verifyComplete();
 
@@ -191,9 +191,9 @@ class TransactionHandlingTest {
 			when(driver.rxSession(any(SessionConfig.class))).thenReturn(session);
 			when(session.close()).thenReturn(Mono.empty());
 
-			DefaultReactiveNeo4jClient neo4jClient = new DefaultReactiveNeo4jClient(driver, null);
+			DefaultReactiveNeo4jClient neo4jClient = new DefaultReactiveNeo4jClient(ReactiveNeo4jClient.with(driver));
 
-			Mono<String> sequence = neo4jClient.doInQueryRunnerForMono(Mono.just(DatabaseSelection.byName("aDatabase")), tx -> Mono.error(new SomeException()));
+			Mono<String> sequence = neo4jClient.doInQueryRunnerForMono(Mono.just(DatabaseSelection.byName("aDatabase")), Mono.just(UserSelection.connectedUser()), tx -> Mono.error(new SomeException()));
 
 			StepVerifier.create(sequence).expectError(SomeException.class).verify();
 

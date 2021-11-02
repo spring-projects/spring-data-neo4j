@@ -15,24 +15,36 @@
  */
 package org.springframework.data.neo4j.core;
 
-import java.util.Optional;
+import reactor.core.publisher.Mono;
 
 import org.apiguardian.api.API;
 
 /**
- *
  * @author Michael J. Simons
  * @soundtrack Tori Amos - Strange Little Girls
- * @since 6.1.7
+ * @since 6.2
  */
 @API(status = API.Status.STABLE, since = "6.2")
-@FunctionalInterface
-public interface ImpersonatedUserProvider {
+public interface ReactiveUserSelectionProvider {
 
-	Optional<ImpersonatedUser> getUser();
+	Mono<UserSelection> getUserSelection();
 
-	static ImpersonatedUserProvider getDefaultImpersonatedUserProvider() {
+	/**
+	 * A user selection provider always selecting the connected user.
+	 *
+	 * @return A provider for using the connected user.
+	 */
+	static ReactiveUserSelectionProvider getDefaultSelectionProvider() {
 
-		return () -> Optional.empty();
+		return DefaultReactiveUserSelectionProvider.INSTANCE;
+	}
+}
+
+enum DefaultReactiveUserSelectionProvider implements ReactiveUserSelectionProvider {
+	INSTANCE;
+
+	@Override
+	public Mono<UserSelection> getUserSelection() {
+		return Mono.just(UserSelection.connectedUser());
 	}
 }

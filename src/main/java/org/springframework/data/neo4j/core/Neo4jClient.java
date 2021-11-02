@@ -70,7 +70,7 @@ public interface Neo4jClient {
 
 		DatabaseSelectionProvider databaseSelectionProvider;
 
-		ImpersonatedUserProvider impersonatedUserProvider;
+		UserSelectionProvider userSelectionProvider;
 
 		private Builder(Driver driver) {
 			this.driver = driver;
@@ -94,11 +94,11 @@ public interface Neo4jClient {
 		 * {@link org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager}. During runtime, it will be
 		 * checked if a call is made for the same user when happening in a managed transaction.
 		 *
-		 * @param impersonatedUserProvider The provider for impersonated users
+		 * @param userSelectionProvider The provider for impersonated users
 		 * @return The builder
 		 */
-		public Builder withUserProvider(ImpersonatedUserProvider impersonatedUserProvider) {
-			this.impersonatedUserProvider = impersonatedUserProvider;
+		public Builder withUserProvider(UserSelectionProvider userSelectionProvider) {
+			this.userSelectionProvider = userSelectionProvider;
 			return this;
 		}
 
@@ -109,7 +109,7 @@ public interface Neo4jClient {
 
 	/**
 	 * @return A managed query runner
-	 * @see #getQueryRunner(DatabaseSelection, ImpersonatedUser)
+	 * @see #getQueryRunner(DatabaseSelection, UserSelection)
 	 * @since 6.2
 	 */
 	default QueryRunner getQueryRunner() {
@@ -118,11 +118,11 @@ public interface Neo4jClient {
 
 	/**
 	 * @return A managed query runner
-	 * @see #getQueryRunner(DatabaseSelection, ImpersonatedUser)
+	 * @see #getQueryRunner(DatabaseSelection, UserSelection)
 	 * @since 6.2
 	 */
 	default QueryRunner getQueryRunner(DatabaseSelection databaseSelection) {
-		return getQueryRunner(databaseSelection, null);
+		return getQueryRunner(databaseSelection, UserSelection.connectedUser());
 	}
 
 	/**
@@ -136,7 +136,7 @@ public interface Neo4jClient {
 	 * @return A managed query runner
 	 * @since 6.2
 	 */
-	QueryRunner getQueryRunner(DatabaseSelection databaseSelection, @Nullable ImpersonatedUser asUser);
+	QueryRunner getQueryRunner(DatabaseSelection databaseSelection, UserSelection asUser);
 
 	/**
 	 * Entrypoint for creating a new Cypher query. Doesn't matter at this point whether it's a match, merge, create or

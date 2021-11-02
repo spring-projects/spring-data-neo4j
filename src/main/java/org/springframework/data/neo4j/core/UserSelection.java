@@ -18,36 +18,52 @@ package org.springframework.data.neo4j.core;
 import java.util.Objects;
 
 import org.apiguardian.api.API;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
  * This is a value object for a Neo4j user, different from the user owning the physical Neo4j connection. To make use of
- * this a minimum version of Neo4j 4.4 and Neo4j-Java-Driver 4.4 is required, otherwise the usage of this class together with
- * either the {@link ImpersonatedUserProvider} or the {@link ReactiveImpersonatedUserProvider} will lead to runtime errors in case they
- * are different from the provided default implementations.
+ * this a minimum version of Neo4j 4.4 and Neo4j-Java-Driver 4.4 is required, otherwise the any usage of {@link UserSelection#impersonate(String)}
+ * together with either the {@link UserSelectionProvider} or the {@link ReactiveUserSelectionProvider} will lead to runtime
+ * errors.
  * <p>
  * Otherwise, similar usage pattern like with the dynamic database selection are possible, like for example tying
- * a {@link ImpersonatedUserProvider} into Spring Security and use the current user as a user to impersonate.
+ * a {@link UserSelectionProvider} into Spring Security and use the current user as a user to impersonate.
  *
  * @author Michael J. Simons
  * @soundtrack Tori Amos - Strange Little Girls
- * @since 6.1.7
+ * @since 6.2
  */
 @API(status = API.Status.STABLE, since = "6.2")
-public final class ImpersonatedUser {
+public final class UserSelection {
 
-	public static ImpersonatedUser of(String value) {
+	private static final UserSelection CONNECTED_USER = new UserSelection(null);
 
-		Assert.hasText(value, "Cannot impersonate user without username");
-		return new ImpersonatedUser(value);
+	/**
+	 * @return A user selection that will just use the user owning the physical connection.
+	 */
+	public static UserSelection connectedUser() {
+
+		return CONNECTED_USER;
 	}
 
-	private final String value;
+	/**
+	 * @param value The name of the user to impersonate
+	 * @return A user selection representing an impersonated user.
+	 */
+	public static UserSelection impersonate(String value) {
 
-	private ImpersonatedUser(String value) {
+		Assert.hasText(value, "Cannot impersonate user without username");
+		return new UserSelection(value);
+	}
+
+	@Nullable private final String value;
+
+	private UserSelection(@Nullable String value) {
 		this.value = value;
 	}
 
+	@Nullable
 	public String getValue() {
 		return value;
 	}
@@ -60,8 +76,8 @@ public final class ImpersonatedUser {
 		if (o == null || getClass() != o.getClass()) {
 			return false;
 		}
-		ImpersonatedUser that = (ImpersonatedUser) o;
-		return value.equals(that.value);
+		UserSelection that = (UserSelection) o;
+		return Objects.equals(value, that.value);
 	}
 
 	@Override

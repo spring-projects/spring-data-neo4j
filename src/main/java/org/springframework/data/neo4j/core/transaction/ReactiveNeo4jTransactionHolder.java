@@ -22,6 +22,8 @@ import java.util.Collection;
 import org.neo4j.driver.Bookmark;
 import org.neo4j.driver.reactive.RxSession;
 import org.neo4j.driver.reactive.RxTransaction;
+import org.springframework.data.neo4j.core.DatabaseSelection;
+import org.springframework.data.neo4j.core.UserSelection;
 import org.springframework.lang.Nullable;
 import org.springframework.transaction.support.ResourceHolderSupport;
 
@@ -48,15 +50,14 @@ final class ReactiveNeo4jTransactionHolder extends ResourceHolderSupport {
 	}
 
 	@Nullable
-	RxTransaction getTransaction(String inDatabase) {
+	RxTransaction getTransaction(DatabaseSelection inDatabase, UserSelection asUser) {
 
-		return Neo4jTransactionUtils.namesMapToTheSameDatabase(this.context.getDatabaseName(), inDatabase) ? transaction
-				: null;
+		return this.context.isForDatabaseAndUser(inDatabase, asUser) ? transaction : null;
 	}
 
 	Mono<Bookmark> commit() {
 
-		return Mono.from(transaction.commit()).then(Mono.fromSupplier(() -> session.lastBookmark()));
+		return Mono.from(transaction.commit()).then(Mono.fromSupplier(session::lastBookmark));
 	}
 
 	Mono<Void> rollback() {
@@ -69,8 +70,12 @@ final class ReactiveNeo4jTransactionHolder extends ResourceHolderSupport {
 		return Mono.from(session.close());
 	}
 
-	String getDatabaseName() {
-		return context.getDatabaseName();
+	DatabaseSelection getDatabaseSelection() {
+		return context.getDatabaseSelection();
+	}
+
+	UserSelection getUserSelection() {
+		return context.getUserSelection();
 	}
 
 	Collection<Bookmark> getBookmarks() {

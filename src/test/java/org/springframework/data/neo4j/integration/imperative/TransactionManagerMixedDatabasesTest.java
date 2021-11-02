@@ -114,7 +114,7 @@ class TransactionManagerMixedDatabasesTest {
 
 		assertThatIllegalStateException()
 				.isThrownBy(() -> neo4jClient.query("MATCH (n) RETURN COUNT(n)").in(DATABASE_NAME).fetchAs(Long.class).one())
-				.withMessage("There is already an ongoing Spring transaction for the default database, but you request 'boom'");
+				.withMessage("There is already an ongoing Spring transaction for the default user of the default database, but you requested the default user of 'boom'");
 
 	}
 
@@ -124,7 +124,7 @@ class TransactionManagerMixedDatabasesTest {
 		assertThatIllegalStateException()
 				.isThrownBy(() -> transactionTemplate
 						.execute(tx -> neo4jClient.query("MATCH (n) RETURN COUNT(n)").in(DATABASE_NAME).fetchAs(Long.class).one()))
-				.withMessage("There is already an ongoing Spring transaction for the default database, but you request 'boom'");
+				.withMessage("There is already an ongoing Spring transaction for the default user of the default database, but you requested the default user of 'boom'");
 	}
 
 	@Test
@@ -138,7 +138,7 @@ class TransactionManagerMixedDatabasesTest {
 				.isThrownBy(() -> otherTransactionTemplate
 						.execute(tx -> repository.save(new PersonWithAllConstructor(null, "Mercury", "Freddie", "Queen", true,
 								1509L, LocalDate.of(1946, 9, 15), null, Collections.emptyList(), null, null))))
-				.withMessage("There is already an ongoing Spring transaction for 'boom', but you request the default database");
+				.withMessage("There is already an ongoing Spring transaction for the default user of 'boom', but you requested the default user of the default database");
 	}
 
 	@Configuration

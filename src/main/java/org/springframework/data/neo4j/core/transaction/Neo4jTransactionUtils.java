@@ -19,14 +19,13 @@ import java.lang.reflect.Method;
 import java.time.Duration;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Objects;
 
 import org.neo4j.driver.AccessMode;
 import org.neo4j.driver.Bookmark;
 import org.neo4j.driver.SessionConfig;
 import org.neo4j.driver.TransactionConfig;
-import org.springframework.data.neo4j.core.ImpersonatedUser;
-import org.springframework.lang.Nullable;
+import org.springframework.data.neo4j.core.DatabaseSelection;
+import org.springframework.data.neo4j.core.UserSelection;
 import org.springframework.transaction.IllegalTransactionStateException;
 import org.springframework.transaction.InvalidIsolationLevelException;
 import org.springframework.transaction.TransactionDefinition;
@@ -48,24 +47,23 @@ public final class Neo4jTransactionUtils {
 	/**
 	 * The default session uses {@link AccessMode#WRITE} and an empty list of bookmarks.
 	 *
-	 * @param databaseName The database to use. May be null, which then designates the default database.
-	 * @param asUser An impersonated user. May be null, which designates the user that has been used to create the connection
+	 * @param databaseSelection The database to use.
+	 * @param asUser An impersonated user.
 	 * @return Session parameters to configure the default session used
 	 */
-	public static SessionConfig defaultSessionConfig(@Nullable String databaseName, @Nullable ImpersonatedUser asUser) {
-		return sessionConfig(false, Collections.emptyList(), databaseName, asUser);
+	public static SessionConfig defaultSessionConfig(DatabaseSelection databaseSelection, UserSelection asUser) {
+		return sessionConfig(false, Collections.emptyList(), databaseSelection, asUser);
 	}
 
-	public static SessionConfig sessionConfig(boolean readOnly, Collection<Bookmark> bookmarks,
-			@Nullable String databaseName, @Nullable ImpersonatedUser asUser) {
+	public static SessionConfig sessionConfig(boolean readOnly, Collection<Bookmark> bookmarks, DatabaseSelection databaseSelection, UserSelection asUser) {
 		SessionConfig.Builder builder = SessionConfig.builder()
 				.withDefaultAccessMode(readOnly ? AccessMode.READ : AccessMode.WRITE).withBookmarks(bookmarks);
 
-		if (databaseName != null) {
-			builder.withDatabase(databaseName);
+		if (databaseSelection.getValue() != null) {
+			builder.withDatabase(databaseSelection.getValue());
 		}
 
-		if (asUser != null && withImpersonatedUser != null) {
+		if (withImpersonatedUser != null && asUser.getValue() != null) {
 			ReflectionUtils.invokeMethod(withImpersonatedUser, builder, asUser.getValue());
 		}
 
@@ -102,17 +100,21 @@ public final class Neo4jTransactionUtils {
 		return builder.build();
 	}
 
-	static boolean namesMapToTheSameDatabase(@Nullable String name1, @Nullable String name2) {
-		return Objects.equals(name1, name2);
-	}
-
-	static String formatOngoingTxInAnotherDbErrorMessage(@Nullable String currentDb, @Nullable String requestedDb) {
+	static String formatOngoingTxInAnotherDbErrorMessage(
+			DatabaseSelection currentDb, DatabaseSelection requestedDb,
+			UserSelection currentUser, UserSelection requestedUser
+	) {
 		String defaultDatabase = "the default database";
-		String _currentDb = currentDb == null ? defaultDatabase : String.format("'%s'", currentDb);
-		String _requestedDb = requestedDb == null ? defaultDatabase : String.format("'%s'", requestedDb);
+		String defaultUser = "the default user";
 
-		return String.format("There is already an ongoing Spring transaction for %s, but you request %s", _currentDb,
-				_requestedDb);
+		String _currentDb = currentDb.getValue() == null ? defaultDatabase : String.format("'%s'", currentDb.getValue());
+		String _requestedDb = requestedDb.getValue() == null ? defaultDatabase : String.format("'%s'", requestedDb.getValue());
+
+		String _currentUser = currentUser.getValue() == null ? defaultUser : String.format("'%s'", currentUser.getValue());
+		String _requestedUser = requestedUser.getValue() == null ? defaultUser : String.format("'%s'", requestedUser.getValue());
+
+		return String.format("There is already an ongoing Spring transaction for %s of %s, but you requested %s of %s", _currentUser, _currentDb,
+				_requestedUser, _requestedDb);
 
 	}
 
