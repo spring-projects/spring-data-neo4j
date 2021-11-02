@@ -17,12 +17,15 @@ package org.springframework.data.neo4j.config;
 
 import org.apiguardian.api.API;
 import org.neo4j.driver.Driver;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.neo4j.core.DatabaseSelectionProvider;
 import org.springframework.data.neo4j.core.Neo4jClient;
 import org.springframework.data.neo4j.core.Neo4jOperations;
 import org.springframework.data.neo4j.core.Neo4jTemplate;
+import org.springframework.data.neo4j.core.UserSelectionProvider;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager;
 import org.springframework.data.neo4j.repository.config.Neo4jRepositoryConfigurationExtension;
@@ -39,6 +42,9 @@ import org.springframework.transaction.PlatformTransactionManager;
 @Configuration
 @API(status = API.Status.STABLE, since = "6.0")
 public abstract class AbstractNeo4jConfig extends Neo4jConfigurationSupport {
+
+	@Autowired
+	private ObjectProvider<UserSelectionProvider> userSelectionProviders;
 
 	/**
 	 * The driver to be used for interacting with Neo4j.
@@ -75,7 +81,11 @@ public abstract class AbstractNeo4jConfig extends Neo4jConfigurationSupport {
 	@Bean(Neo4jRepositoryConfigurationExtension.DEFAULT_TRANSACTION_MANAGER_BEAN_NAME)
 	public PlatformTransactionManager transactionManager(Driver driver, DatabaseSelectionProvider databaseSelectionProvider) {
 
-		return Neo4jTransactionManager.with(driver).withDatabaseSelectionProvider(databaseSelectionProvider).build();
+		return Neo4jTransactionManager
+				.with(driver)
+				.withDatabaseSelectionProvider(databaseSelectionProvider)
+				.withUserProvider(this.userSelectionProviders == null ? null : this.userSelectionProviders.getIfUnique())
+				.build();
 	}
 
 	/**
