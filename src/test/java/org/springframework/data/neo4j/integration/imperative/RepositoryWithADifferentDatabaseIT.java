@@ -33,10 +33,6 @@ class RepositoryWithADifferentDatabaseIT extends RepositoryIT {
 
 	private static final String TEST_DATABASE_NAME = "aTestDatabase";
 
-	RepositoryWithADifferentDatabaseIT() {
-		databaseSelection = DatabaseSelection.byName(TEST_DATABASE_NAME);
-	}
-
 	@BeforeAll
 	static void createTestDatabase() {
 
@@ -44,6 +40,8 @@ class RepositoryWithADifferentDatabaseIT extends RepositoryIT {
 
 			session.run("CREATE DATABASE " + TEST_DATABASE_NAME).consume();
 		}
+
+		databaseSelection.set(DatabaseSelection.byName(TEST_DATABASE_NAME));
 	}
 
 	@AfterAll
@@ -53,5 +51,7 @@ class RepositoryWithADifferentDatabaseIT extends RepositoryIT {
 
 			session.run("DROP DATABASE " + TEST_DATABASE_NAME).consume();
 		}
+
+		databaseSelection.set(DatabaseSelection.undecided());
 	}
 }

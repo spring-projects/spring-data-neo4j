@@ -33,10 +33,6 @@ class ReactiveRepositoryWithADifferentDatabaseIT extends ReactiveRepositoryIT {
 
 	private static final String TEST_DATABASE_NAME = "aTestDatabase";
 
-	ReactiveRepositoryWithADifferentDatabaseIT() {
-		databaseSelection = DatabaseSelection.byName(TEST_DATABASE_NAME);
-	}
-
 	@BeforeAll
 	static void createTestDatabase() {
 
@@ -44,6 +40,8 @@ class ReactiveRepositoryWithADifferentDatabaseIT extends ReactiveRepositoryIT {
 
 			session.run("CREATE DATABASE " + TEST_DATABASE_NAME).consume();
 		}
+
+		databaseSelection.set(DatabaseSelection.byName(TEST_DATABASE_NAME));
 	}
 
 	@AfterAll
@@ -53,6 +51,7 @@ class ReactiveRepositoryWithADifferentDatabaseIT extends ReactiveRepositoryIT {
 
 			session.run("DROP DATABASE " + TEST_DATABASE_NAME).consume();
 		}
-	}
 
+		databaseSelection.set(DatabaseSelection.undecided());
+	}
 }
