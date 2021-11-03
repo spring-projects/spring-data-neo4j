@@ -28,6 +28,8 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.data.neo4j.core.DatabaseSelection;
 import org.springframework.data.neo4j.core.ReactiveDatabaseSelectionProvider;
+import org.springframework.data.neo4j.core.ReactiveUserSelectionProvider;
+import org.springframework.data.neo4j.core.UserSelection;
 import org.springframework.lang.Nullable;
 import org.springframework.transaction.NoTransactionException;
 import org.springframework.transaction.TransactionDefinition;
@@ -38,6 +40,7 @@ import org.springframework.transaction.reactive.TransactionSynchronizationManage
 import org.springframework.transaction.support.SmartTransactionObject;
 import org.springframework.transaction.support.TransactionSynchronizationUtils;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * @author Gerrit Meier
@@ -46,6 +49,75 @@ import org.springframework.util.Assert;
  */
 @API(status = API.Status.STABLE, since = "6.0")
 public final class ReactiveNeo4jTransactionManager extends AbstractReactiveTransactionManager implements ApplicationContextAware {
+
+	/**
+	 * Start building a new transaction manager for the given driver instance.
+	 * @param driver A fixed driver instance.
+	 * @return A builder for a transaction manager
+	 */
+	@API(status = API.Status.STABLE, since = "6.2")
+	public static Builder with(Driver driver) {
+
+		return new Builder(driver);
+	}
+
+	/**
+	 * A builder for {@link ReactiveNeo4jTransactionManager}.
+	 */
+	@API(status = API.Status.STABLE, since = "6.2")
+	@SuppressWarnings("HiddenField")
+	public static final class Builder {
+
+		private final Driver driver;
+
+		@Nullable
+		private ReactiveDatabaseSelectionProvider databaseSelectionProvider;
+
+		@Nullable
+		private ReactiveUserSelectionProvider userSelectionProvider;
+
+		@Nullable
+		private Neo4jBookmarkManager bookmarkManager;
+
+		private Builder(Driver driver) {
+			this.driver = driver;
+		}
+
+		/**
+		 * Configures the database selection provider. Make sure to use the same instance as for a possible
+		 * {@link org.springframework.data.neo4j.core.ReactiveNeo4jClient}. During runtime, it will be checked if a call is made
+		 * for the same database when happening in a managed transaction.
+		 *
+		 * @param databaseSelectionProvider The database selection provider
+		 * @return The builder
+		 */
+		public Builder withDatabaseSelectionProvider(@Nullable ReactiveDatabaseSelectionProvider databaseSelectionProvider) {
+			this.databaseSelectionProvider = databaseSelectionProvider;
+			return this;
+		}
+
+		/**
+		 * Configures a provider for impersonated users. Make sure to use the same instance as for a possible
+		 * {@link org.springframework.data.neo4j.core.ReactiveNeo4jClient}. During runtime, it will be checked if a call is made
+		 * for the same user when happening in a managed transaction.
+		 *
+		 * @param userSelectionProvider The provider for impersonated users
+		 * @return The builder
+		 */
+		public Builder withUserSelectionProvider(@Nullable ReactiveUserSelectionProvider userSelectionProvider) {
+			this.userSelectionProvider = userSelectionProvider;
+			return this;
+		}
+
+		public Builder withBookmarkManager(@Nullable Neo4jBookmarkManager bookmarkManager) {
+			this.bookmarkManager = bookmarkManager;
+			return this;
+		}
+
+		public ReactiveNeo4jTransactionManager build() {
+			return new ReactiveNeo4jTransactionManager(this);
+		}
+	}
 
 	/**
 	 * The underlying driver, which is also the synchronisation object.
@@ -57,6 +129,11 @@ public final class ReactiveNeo4jTransactionManager extends AbstractReactiveTrans
 	 */
 	private final ReactiveDatabaseSelectionProvider databaseSelectionProvider;
 
+	/**
+	 * Provider for user impersonation.
+	 */
+	private final ReactiveUserSelectionProvider userSelectionProvider;
+
 	private final Neo4jBookmarkManager bookmarkManager;
 
 	/**
@@ -65,7 +142,8 @@ public final class ReactiveNeo4jTransactionManager extends AbstractReactiveTrans
 	 * @param driver A driver instance
 	 */
 	public ReactiveNeo4jTransactionManager(Driver driver) {
-		this(driver, ReactiveDatabaseSelectionProvider.getDefaultSelectionProvider());
+
+		this(with(driver));
 	}
 
 	/**
@@ -76,7 +154,7 @@ public final class ReactiveNeo4jTransactionManager extends AbstractReactiveTrans
 	 */
 	public ReactiveNeo4jTransactionManager(Driver driver, ReactiveDatabaseSelectionProvider databaseSelectionProvider) {
 
-		this(driver, databaseSelectionProvider, Neo4jBookmarkManager.create());
+		this(with(driver).withDatabaseSelectionProvider(databaseSelectionProvider));
 	}
 
 	/**
@@ -89,9 +167,20 @@ public final class ReactiveNeo4jTransactionManager extends AbstractReactiveTrans
 	 */
 	public ReactiveNeo4jTransactionManager(Driver driver, ReactiveDatabaseSelectionProvider databaseSelectionProvider, Neo4jBookmarkManager bookmarkManager) {
 
-		this.driver = driver;
-		this.databaseSelectionProvider = databaseSelectionProvider;
-		this.bookmarkManager = bookmarkManager;
+		this(with(driver).withDatabaseSelectionProvider(databaseSelectionProvider).withBookmarkManager(bookmarkManager));
+	}
+
+	private ReactiveNeo4jTransactionManager(Builder builder) {
+
+		this.driver = builder.driver;
+		this.databaseSelectionProvider = builder.databaseSelectionProvider == null ?
+				ReactiveDatabaseSelectionProvider.getDefaultSelectionProvider() :
+				builder.databaseSelectionProvider;
+		this.userSelectionProvider = builder.userSelectionProvider == null ?
+				ReactiveUserSelectionProvider.getDefaultSelectionProvider() :
+				builder.userSelectionProvider;
+		this.bookmarkManager =
+				builder.bookmarkManager == null ? Neo4jBookmarkManager.create() : builder.bookmarkManager;
 	}
 
 	@Override
@@ -100,7 +189,25 @@ public final class ReactiveNeo4jTransactionManager extends AbstractReactiveTrans
 		this.bookmarkManager.setApplicationEventPublisher(applicationContext);
 	}
 
+	/**
+	 * @param driver The driver that has been used as a synchronization object.
+	 * @param targetDatabase The target database
+	 * @return An optional managed transaction or {@literal null} if the method hasn't been called inside an ongoing
+	 *         Spring transaction
+	 * @see #retrieveReactiveTransaction(Driver, DatabaseSelection, UserSelection)
+	 * @deprecated since 6.2, use #retrieveReactiveTransaction(Driver, DatabaseSelection, UserSelection)
+	 */
+	@Deprecated
 	public static Mono<RxTransaction> retrieveReactiveTransaction(final Driver driver, @Nullable final String targetDatabase) {
+
+		return retrieveReactiveTransaction(driver, StringUtils.hasText(targetDatabase) ? DatabaseSelection.byName(targetDatabase) : DatabaseSelection.undecided(), UserSelection.connectedUser());
+	}
+
+	public static Mono<RxTransaction> retrieveReactiveTransaction(
+			final Driver driver,
+			final DatabaseSelection targetDatabase,
+			final UserSelection asUser
+	) {
 
 		return TransactionSynchronizationManager.forCurrentTransaction() // Do we have a Transaction context?
 				// Bail out early if synchronization between transaction managers is not active
@@ -115,11 +222,11 @@ public final class ReactiveNeo4jTransactionManager extends AbstractReactiveTrans
 
 					// Otherwise open up a new native transaction
 					return Mono.defer(() -> {
-						RxSession session = driver.rxSession(Neo4jTransactionUtils.defaultSessionConfig(targetDatabase));
+						RxSession session = driver.rxSession(Neo4jTransactionUtils.defaultSessionConfig(targetDatabase, asUser));
 						return Mono.from(session.beginTransaction(TransactionConfig.empty())).map(tx -> {
 
 							ReactiveNeo4jTransactionHolder newConnectionHolder = new ReactiveNeo4jTransactionHolder(
-									new Neo4jTransactionContext(targetDatabase), session, tx);
+									new Neo4jTransactionContext(targetDatabase, asUser), session, tx);
 							newConnectionHolder.setSynchronizedWithTransaction(true);
 
 							tsm.registerSynchronization(new ReactiveNeo4jSessionSynchronization(tsm, newConnectionHolder, driver));
@@ -129,10 +236,12 @@ public final class ReactiveNeo4jTransactionManager extends AbstractReactiveTrans
 						});
 					});
 				}).map(connectionHolder -> {
-					RxTransaction transaction = connectionHolder.getTransaction(targetDatabase);
+					RxTransaction transaction = connectionHolder.getTransaction(targetDatabase, asUser);
 					if (transaction == null) {
-						throw new IllegalStateException(Neo4jTransactionUtils
-								.formatOngoingTxInAnotherDbErrorMessage(connectionHolder.getDatabaseName(), targetDatabase));
+						throw new IllegalStateException(
+								Neo4jTransactionUtils.formatOngoingTxInAnotherDbErrorMessage(
+										connectionHolder.getDatabaseSelection(), targetDatabase,
+										connectionHolder.getUserSelection(), asUser));
 					}
 					return transaction;
 				})
@@ -184,14 +293,15 @@ public final class ReactiveNeo4jTransactionManager extends AbstractReactiveTrans
 
 			transactionSynchronizationManager.setCurrentTransactionReadOnly(readOnly);
 
-			return databaseSelectionProvider.getDatabaseSelection().switchIfEmpty(Mono.just(DatabaseSelection.undecided()))
-					.map(
-							databaseName -> new Neo4jTransactionContext(databaseName.getValue(), bookmarkManager.getBookmarks()))
-					.map(
-							context -> Tuples
-									.of(context,
-											this.driver.rxSession(Neo4jTransactionUtils.sessionConfig(readOnly, context.getBookmarks(),
-													context.getDatabaseName()))))
+			return databaseSelectionProvider
+					.getDatabaseSelection()
+					.switchIfEmpty(Mono.just(DatabaseSelection.undecided()))
+					.zipWith(
+							userSelectionProvider
+									.getUserSelection()
+									.switchIfEmpty(Mono.just(UserSelection.connectedUser())),
+							(databaseSelection, userSelection) -> new Neo4jTransactionContext(databaseSelection, userSelection, bookmarkManager.getBookmarks()))
+					.map(context -> Tuples.of(context, this.driver.rxSession(Neo4jTransactionUtils.sessionConfig(readOnly, context.getBookmarks(), context.getDatabaseSelection(), context.getUserSelection()))))
 					.flatMap(contextAndSession -> Mono.from(contextAndSession.getT2().beginTransaction(transactionConfig))
 							.map(nativeTransaction -> new ReactiveNeo4jTransactionHolder(contextAndSession.getT1(),
 									contextAndSession.getT2(), nativeTransaction)))

@@ -15,6 +15,8 @@
  */
 package org.springframework.data.neo4j.integration.reactive;
 
+import static org.assertj.core.api.Assumptions.assumeThat;
+
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -27,6 +29,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.neo4j.driver.Driver;
+import org.neo4j.driver.internal.util.ServerVersion;
 import org.neo4j.driver.reactive.RxResult;
 import org.neo4j.driver.reactive.RxSession;
 import org.neo4j.driver.summary.ResultSummary;
@@ -85,6 +88,13 @@ class ReactiveExceptionTranslationIT {
 
 		Flux.using(driver::rxSession, session -> session.run("MATCH (n) DETACH DELETE n").consume(), RxSession::close)
 				.then().as(StepVerifier::create).verifyComplete();
+	}
+
+	@BeforeEach
+	void assumeNeo4jLowerThan44() {
+
+		assumeThat(neo4jConnectionSupport.getServerVersion()
+				.lessThanOrEqual(ServerVersion.version("Neo4j/4.3.0"))).isTrue();
 	}
 
 	@Test

@@ -68,7 +68,10 @@ import org.springframework.data.mapping.MappingException;
 import org.springframework.data.neo4j.config.AbstractReactiveNeo4jConfig;
 import org.springframework.data.neo4j.core.DatabaseSelection;
 import org.springframework.data.neo4j.core.ReactiveDatabaseSelectionProvider;
+import org.springframework.data.neo4j.core.ReactiveNeo4jClient;
 import org.springframework.data.neo4j.core.ReactiveNeo4jTemplate;
+import org.springframework.data.neo4j.core.ReactiveUserSelectionProvider;
+import org.springframework.data.neo4j.core.UserSelection;
 import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
 import org.springframework.data.neo4j.core.transaction.ReactiveNeo4jTransactionManager;
 import org.springframework.data.neo4j.integration.reactive.repositories.ReactivePersonRepository;
@@ -130,6 +133,7 @@ class ReactiveRepositoryIT {
 
 	protected static Neo4jExtension.Neo4jConnectionSupport neo4jConnectionSupport;
 	protected static final ThreadLocal<DatabaseSelection> databaseSelection = ThreadLocal.withInitial(DatabaseSelection::undecided);
+	protected static final ThreadLocal<UserSelection> userSelection = ThreadLocal.withInitial(UserSelection::connectedUser);
 
 	private static final String TEST_PERSON1_NAME = "Test";
 	private static final String TEST_PERSON2_NAME = "Test2";
@@ -2709,7 +2713,7 @@ class ReactiveRepositoryIT {
 		}
 
 		<T> T doWithSession(Function<Session, T> sessionConsumer) {
-			try (Session session = driver.session(bookmarkCapture.createSessionConfig(databaseSelection.get().getValue()))) {
+			try (Session session = driver.session(bookmarkCapture.createSessionConfig(databaseSelection.get().getValue(), userSelection.get().getValue()))) {
 				T result = sessionConsumer.apply(session);
 				bookmarkCapture.seedWith(session.lastBookmark());
 				return result;
@@ -2718,14 +2722,14 @@ class ReactiveRepositoryIT {
 
 		void assertInSession(Consumer<Session> consumer) {
 
-			try (Session session = driver.session(bookmarkCapture.createSessionConfig(databaseSelection.get().getValue()))) {
+			try (Session session = driver.session(bookmarkCapture.createSessionConfig(databaseSelection.get().getValue(), userSelection.get().getValue()))) {
 				consumer.accept(session);
 			}
 		}
 
 		RxSession createRxSession() {
 
-			return driver.rxSession(bookmarkCapture.createSessionConfig(databaseSelection.get().getValue()));
+			return driver.rxSession(bookmarkCapture.createSessionConfig(databaseSelection.get().getValue(), userSelection.get().getValue()));
 		}
 
 		TransactionalOperator getTransactionalOperator() {
@@ -2754,10 +2758,22 @@ class ReactiveRepositoryIT {
 		}
 
 		@Override
-		public ReactiveTransactionManager reactiveTransactionManager(Driver driver, ReactiveDatabaseSelectionProvider databaseNameProvider) {
+		public ReactiveTransactionManager reactiveTransactionManager(Driver driver, ReactiveDatabaseSelectionProvider databaseSelectionProvider) {
 
-			BookmarkCapture bookmarkCapture = bookmarkCapture();
-			return new ReactiveNeo4jTransactionManager(driver, databaseNameProvider, Neo4jBookmarkManager.create(bookmarkCapture));
+			return ReactiveNeo4jTransactionManager.with(driver)
+					.withDatabaseSelectionProvider(databaseSelectionProvider)
+					.withUserSelectionProvider(getUserSelectionProvider())
+					.withBookmarkManager(Neo4jBookmarkManager.create(bookmarkCapture()))
+					.build();
+		}
+
+		@Override
+		public ReactiveNeo4jClient neo4jClient(Driver driver, ReactiveDatabaseSelectionProvider databaseSelectionProvider) {
+
+			return ReactiveNeo4jClient.with(driver)
+					.withDatabaseSelectionProvider(databaseSelectionProvider)
+					.withUserSelectionProvider(getUserSelectionProvider())
+					.build();
 		}
 
 		@Bean
@@ -2768,9 +2784,16 @@ class ReactiveRepositoryIT {
 		@Override
 		@Bean
 		public ReactiveDatabaseSelectionProvider reactiveDatabaseSelectionProvider() {
-			return Optional.ofNullable(databaseSelection.get().getValue())
+			return Optional.ofNullable(databaseSelection.get().getValue()) // The thread local must be resolved early, before the mono
 					.map(ReactiveDatabaseSelectionProvider::createStaticDatabaseSelectionProvider)
 					.orElse(ReactiveDatabaseSelectionProvider.getDefaultSelectionProvider());
+		}
+
+		@Bean
+		public ReactiveUserSelectionProvider getUserSelectionProvider() {
+			return Optional.ofNullable(userSelection.get()) // The thread local must be resolved early, before the mono
+					.map(u -> (ReactiveUserSelectionProvider) () -> Mono.just(u))
+					.orElse(ReactiveUserSelectionProvider.getDefaultSelectionProvider());
 		}
 	}
 }

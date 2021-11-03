@@ -53,7 +53,8 @@ import org.neo4j.driver.Transaction;
 import org.neo4j.driver.TransactionConfig;
 import org.neo4j.driver.summary.ResultSummary;
 import org.neo4j.driver.types.TypeSystem;
-import org.springframework.data.neo4j.core.DatabaseSelectionProvider;
+import org.springframework.data.neo4j.core.DatabaseSelection;
+import org.springframework.data.neo4j.core.UserSelection;
 import org.springframework.data.neo4j.core.Neo4jClient;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
@@ -70,7 +71,8 @@ import org.springframework.transaction.support.TransactionTemplate;
 @ExtendWith(MockitoExtension.class)
 class Neo4jTransactionManagerTest {
 
-	private String databaseName = "aDatabase";
+	private DatabaseSelection databaseSelection = DatabaseSelection.byName("aDatabase");
+	private UserSelection userSelection = UserSelection.connectedUser();
 
 	@Mock private Driver driver;
 	@Mock private Session session;
@@ -82,7 +84,8 @@ class Neo4jTransactionManagerTest {
 
 	@Test
 	void shouldWorkWithoutSynchronizations() {
-		Transaction optionalTransaction = Neo4jTransactionManager.retrieveTransaction(driver, databaseName);
+		Transaction optionalTransaction = Neo4jTransactionManager.retrieveTransaction(driver, databaseSelection,
+				userSelection);
 
 		assertThat(optionalTransaction).isNull();
 
@@ -210,8 +213,9 @@ class Neo4jTransactionManagerTest {
 			@Test
 			void shouldUseTxFromNeo4jTxManager() {
 
-				Neo4jTransactionManager txManager = new Neo4jTransactionManager(driver,
-						DatabaseSelectionProvider.createStaticDatabaseSelectionProvider(databaseName));
+				Neo4jTransactionManager txManager = Neo4jTransactionManager.with(driver)
+						.withDatabaseSelectionProvider(() -> databaseSelection)
+						.build();
 				TransactionTemplate txTemplate = new TransactionTemplate(txManager);
 
 				txTemplate.execute(new TransactionCallbackWithoutResult() {
@@ -223,7 +227,9 @@ class Neo4jTransactionManagerTest {
 						assertThat(transactionStatus.isNewTransaction()).isTrue();
 						assertThat(TransactionSynchronizationManager.hasResource(driver)).isTrue();
 
-						Transaction optionalTransaction = Neo4jTransactionManager.retrieveTransaction(driver, databaseName);
+						Transaction optionalTransaction = Neo4jTransactionManager.retrieveTransaction(driver,
+								databaseSelection,
+								userSelection);
 						assertThat(optionalTransaction).isNotNull();
 
 						transactionStatus.setRollbackOnly();
@@ -244,8 +250,9 @@ class Neo4jTransactionManagerTest {
 			@Test
 			void shouldParticipateInOngoingTransaction() {
 
-				Neo4jTransactionManager txManager = new Neo4jTransactionManager(driver,
-						DatabaseSelectionProvider.createStaticDatabaseSelectionProvider(databaseName));
+				Neo4jTransactionManager txManager = Neo4jTransactionManager.with(driver)
+						.withDatabaseSelectionProvider(() -> databaseSelection)
+						.build();
 				TransactionTemplate txTemplate = new TransactionTemplate(txManager);
 
 				txTemplate.execute(new TransactionCallbackWithoutResult() {
@@ -253,7 +260,9 @@ class Neo4jTransactionManagerTest {
 					@Override
 					protected void doInTransactionWithoutResult(TransactionStatus outerStatus) {
 
-						Transaction outerNativeTransaction = Neo4jTransactionManager.retrieveTransaction(driver, databaseName);
+						Transaction outerNativeTransaction = Neo4jTransactionManager.retrieveTransaction(driver,
+								databaseSelection,
+								userSelection);
 						assertThat(outerNativeTransaction).isNotNull();
 						assertThat(outerStatus.isNewTransaction()).isTrue();
 
@@ -264,7 +273,9 @@ class Neo4jTransactionManagerTest {
 
 								assertThat(innerStatus.isNewTransaction()).isFalse();
 
-								Transaction innerNativeTransaction = Neo4jTransactionManager.retrieveTransaction(driver, databaseName);
+								Transaction innerNativeTransaction = Neo4jTransactionManager.retrieveTransaction(driver,
+										databaseSelection,
+										userSelection);
 								assertThat(innerNativeTransaction).isNotNull();
 							}
 						});
@@ -307,7 +318,9 @@ class Neo4jTransactionManagerTest {
 						assertThat(transactionStatus.isNewTransaction()).isTrue();
 						assertThat(TransactionSynchronizationManager.hasResource(driver)).isFalse();
 
-						Transaction nativeTransaction = Neo4jTransactionManager.retrieveTransaction(driver, databaseName);
+						Transaction nativeTransaction = Neo4jTransactionManager.retrieveTransaction(driver,
+								databaseSelection,
+								userSelection);
 
 						assertThat(nativeTransaction).isNotNull();
 						assertThat(TransactionSynchronizationManager.hasResource(driver)).isTrue();
@@ -345,7 +358,9 @@ class Neo4jTransactionManagerTest {
 						assertThat(transactionStatus.isNewTransaction()).isTrue();
 						assertThat(TransactionSynchronizationManager.hasResource(driver)).isFalse();
 
-						Transaction nativeTransaction = Neo4jTransactionManager.retrieveTransaction(driver, databaseName);
+						Transaction nativeTransaction = Neo4jTransactionManager.retrieveTransaction(driver,
+								databaseSelection,
+								userSelection);
 
 						assertThat(nativeTransaction).isNotNull();
 						assertThat(TransactionSynchronizationManager.hasResource(driver)).isTrue();

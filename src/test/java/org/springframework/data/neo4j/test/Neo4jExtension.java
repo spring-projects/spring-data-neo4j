@@ -228,7 +228,7 @@ public class Neo4jExtension implements BeforeAllCallback, BeforeEachCallback {
 			}
 		}
 
-		ServerVersion getServerVersion() {
+		public ServerVersion getServerVersion() {
 
 			ServerVersion serverVersion = this.cachedServerVersion;
 			if (serverVersion == null) {

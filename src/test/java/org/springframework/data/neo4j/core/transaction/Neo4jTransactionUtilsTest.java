@@ -15,38 +15,46 @@
  */
 package org.springframework.data.neo4j.core.transaction;
 
-import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.extension.ExtendWith;
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
+import org.springframework.data.neo4j.core.DatabaseSelection;
+import org.springframework.data.neo4j.core.UserSelection;
+import org.springframework.util.StringUtils;
 
 /**
  * @author Michael J. Simons
  */
-@ExtendWith(MockitoExtension.class)
-@MockitoSettings(strictness = Strictness.LENIENT)
 class Neo4jTransactionUtilsTest {
 
-	@Nested
-	class DatabaseNameComparision {
+	@CsvSource(nullValues = "n/a",
+			delimiter = '|',
+			value = {
+					"n/a| dbA| n/a   | userA | There is already an ongoing Spring transaction for the default user of the default database, but you requested 'userA' of 'dbA'",
+					"dbA| n/a| userA | n/a   | There is already an ongoing Spring transaction for 'userA' of 'dbA', but you requested the default user of the default database",
+					"dbA| dbB| userA | userB | There is already an ongoing Spring transaction for 'userA' of 'dbA', but you requested 'userB' of 'dbB'"
+			}
+	)
+	@ParameterizedTest
+	void formatOngoingTxInAnotherDbErrorMessageShouldWork(String cdb, String rdb, String cu, String ru, String expected) {
 
-		@ParameterizedTest
-		@CsvSource({ ",", "a,a" })
-		void nameComparisionShouldWorkForNamesTargetingTheSame(String name1, String name2) {
+		DatabaseSelection currentDatabaseSelection = StringUtils.hasText(cdb) ?
+				DatabaseSelection.byName(cdb) :
+				DatabaseSelection.undecided();
+		DatabaseSelection requestedDatabaseSelection = StringUtils.hasText(rdb) ?
+				DatabaseSelection.byName(rdb) :
+				DatabaseSelection.undecided();
+		UserSelection currentUserSelection = StringUtils.hasText(cu) ?
+				UserSelection.impersonate(cu) :
+				UserSelection.connectedUser();
+		UserSelection requestedUserSelection = StringUtils.hasText(ru) ?
+				UserSelection.impersonate(ru) :
+				UserSelection.connectedUser();
 
-			Assertions.assertThat(Neo4jTransactionUtils.namesMapToTheSameDatabase(name1, name2)).isTrue();
-		}
-
-		@ParameterizedTest
-		@CsvSource({ "a,", ",b", "a,b" })
-		void nameComparisionShouldWorkForNamesTargetingOther(String name1, String name2) {
-
-			Assertions.assertThat(Neo4jTransactionUtils.namesMapToTheSameDatabase(name1, name2)).isFalse();
-		}
+		String result = Neo4jTransactionUtils.formatOngoingTxInAnotherDbErrorMessage(
+				currentDatabaseSelection, requestedDatabaseSelection, currentUserSelection, requestedUserSelection
+		);
+		assertThat(result).isEqualTo(expected);
 	}
-
 }

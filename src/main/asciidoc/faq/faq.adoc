@@ -326,6 +326,82 @@ public class Neo4jHealthConfig {
 }
 ----
 
+[[faq.impersonation]]
+== Neo4j 4.4 supports impersonation of different users - How can I use them?
+
+User impersonation is especially interesting in big multi-tenant settings, in which one physically connected (or technical)
+user can impersonate many tenants. Depending on your setup this will drastically reduce the number of physical driver instances needed.
+
+The feature requires Neo4j Enterprise 4.4+ on the server side and a 4.4+ driver on the client side (`org.neo4j.driver:neo4j-java-driver:4.4.0` or higher).
+
+For both imperative and reactive versions you need to provide a `UserSelectionProvider` respectively a `ReactiveUserSelectionProvider`.
+The same instance needs to be passed along to the `Neo4Client` and `Neo4jTransactionManager` respectively their reactive variants.
+
+In <<bootless-imperative-configuration,Bootless imperative>> and <<bootless-reactive-configuration, and reactive>> configurations you just need to provide a bean of the
+type in question:
+
+[[faq.impersonation.userselectionbean]]
+.User selection provider bean
+[source,java]
+----
+import org.springframework.data.neo4j.core.UserSelection;
+import org.springframework.data.neo4j.core.UserSelectionProvider;
+
+public class CustomConfig {
+
+    @Bean
+    public UserSelectionProvider getUserSelectionProvider() {
+        return () -> UserSelection.impersonate("someUser");
+    }
+}
+----
+
+In a typical Spring Boot scenario this feature requires a bit more work, as Boot supports also SDN versions without that feature.
+So given the bean in <<faq.impersonation.userselectionbean>>, you would need fully customize the client and transaction manager:
+
+[[faq.impersonation.boot]]
+.Necessary customization for Spring Boot
+[source,java]
+----
+import org.neo4j.driver.Driver;
+
+import org.springframework.data.neo4j.core.DatabaseSelectionProvider;
+import org.springframework.data.neo4j.core.Neo4jClient;
+import org.springframework.data.neo4j.core.UserSelectionProvider;
+import org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager;
+
+import org.springframework.transaction.PlatformTransactionManager;
+
+public class CustomConfig {
+
+    @Bean
+    public Neo4jClient neo4jClient(
+        Driver driver,
+        DatabaseSelectionProvider databaseSelectionProvider,
+        UserSelectionProvider userSelectionProvider
+    ) {
+
+        return Neo4jClient.with(driver)
+            .withDatabaseSelectionProvider(databaseSelectionProvider)
+            .withUserSelectionProvider(userSelectionProvider)
+            .build();
+	}
+
+    @Bean
+    public PlatformTransactionManager transactionManager(
+        Driver driver,
+        DatabaseSelectionProvider databaseSelectionProvider,
+        UserSelectionProvider userSelectionProvider
+    ) {
+
+        return Neo4jTransactionManager
+            .with(driver)
+            .withDatabaseSelectionProvider(databaseSelectionProvider)
+            .withUserSelectionProvider(userSelectionProvider)
+            .build();
+	}
+}
+----
 
 [[faq.transactions.cluster]]
 == Do I need specific configuration so that transactions work seamless with a Neo4j Causal Cluster?

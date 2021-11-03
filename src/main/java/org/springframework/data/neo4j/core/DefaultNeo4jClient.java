@@ -48,10 +48,11 @@ import org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager;
 import org.springframework.data.neo4j.core.transaction.Neo4jTransactionUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * Default implementation of {@link Neo4jClient}. Uses the Neo4j Java driver to connect to and interact with the
- * database. TODO Micrometer hooks for statement results...
+ * database.
  *
  * @author Gerrit Meier
  * @author Michael J. Simons
@@ -62,6 +63,7 @@ class DefaultNeo4jClient implements Neo4jClient {
 	private final Driver driver;
 	private final TypeSystem typeSystem;
 	private @Nullable final DatabaseSelectionProvider databaseSelectionProvider;
+	private @Nullable final UserSelectionProvider userSelectionProvider;
 	private final ConversionService conversionService;
 	private final Neo4jPersistenceExceptionTranslator persistenceExceptionTranslator = new Neo4jPersistenceExceptionTranslator();
 
@@ -69,28 +71,28 @@ class DefaultNeo4jClient implements Neo4jClient {
 	private final Set<Bookmark> bookmarks = new HashSet<>();
 	private final ReentrantReadWriteLock bookmarksLock = new ReentrantReadWriteLock();
 
-	DefaultNeo4jClient(Driver driver, @Nullable DatabaseSelectionProvider databaseSelectionProvider) {
+	DefaultNeo4jClient(Builder builder) {
 
-		this.driver = driver;
+		this.driver = builder.driver;
 		this.typeSystem = driver.defaultTypeSystem();
-		this.databaseSelectionProvider = databaseSelectionProvider;
+		this.databaseSelectionProvider = builder.databaseSelectionProvider;
+		this.userSelectionProvider = builder.userSelectionProvider;
 
 		this.conversionService = new DefaultConversionService();
 		new Neo4jConversions().registerConvertersIn((ConverterRegistry) conversionService);
 	}
 
 	@Override
-	public QueryRunner getQueryRunner(DatabaseSelection databaseSelection) {
+	public QueryRunner getQueryRunner(DatabaseSelection databaseSelection, UserSelection impersonatedUser) {
 
-		String targetDatabase = databaseSelection.getValue();
-		QueryRunner queryRunner = Neo4jTransactionManager.retrieveTransaction(driver, targetDatabase);
+		QueryRunner queryRunner = Neo4jTransactionManager.retrieveTransaction(driver, databaseSelection, impersonatedUser);
 		Collection<Bookmark> lastBookmarks = Collections.emptySet();
 		if (queryRunner == null) {
 			ReentrantReadWriteLock.ReadLock lock = bookmarksLock.readLock();
 			try {
 				lock.lock();
 				lastBookmarks = new HashSet<>(bookmarks);
-				queryRunner = driver.session(Neo4jTransactionUtils.sessionConfig(false, lastBookmarks, targetDatabase));
+				queryRunner = driver.session(Neo4jTransactionUtils.sessionConfig(false, lastBookmarks, databaseSelection, impersonatedUser));
 			} finally {
 				lock.unlock();
 			}
@@ -243,14 +245,29 @@ class DefaultNeo4jClient implements Neo4jClient {
 		return DatabaseSelectionProvider.getDefaultSelectionProvider().getDatabaseSelection();
 	}
 
+	private UserSelection resolveUser(@Nullable String userName) {
+
+		if (StringUtils.hasText(userName)) {
+			return UserSelection.impersonate(userName);
+		}
+		if (userSelectionProvider != null) {
+			return userSelectionProvider.getUserSelection();
+		}
+		return UserSelectionProvider.getDefaultSelectionProvider().getUserSelection();
+	}
+
 	class DefaultRunnableSpec implements RunnableSpec {
 
 		private final RunnableStatement runnableStatement;
 
 		private DatabaseSelection databaseSelection;
 
+		@Nullable
+		private UserSelection impersonatedUser;
+
 		DefaultRunnableSpec(Supplier<String> cypherSupplier) {
 			this.databaseSelection = resolveTargetDatabaseName(null);
+			this.impersonatedUser = resolveUser(null);
 			this.runnableStatement = new RunnableStatement(cypherSupplier);
 		}
 
@@ -299,20 +316,20 @@ class DefaultNeo4jClient implements Neo4jClient {
 		@Override
 		public <T> MappingSpec<T> fetchAs(Class<T> targetClass) {
 
-			return new DefaultRecordFetchSpec<>(this.databaseSelection, this.runnableStatement,
+			return new DefaultRecordFetchSpec<>(databaseSelection, impersonatedUser, runnableStatement,
 					new SingleValueMappingFunction<>(conversionService, targetClass));
 		}
 
 		@Override
 		public RecordFetchSpec<Map<String, Object>> fetch() {
 
-			return new DefaultRecordFetchSpec<>(this.databaseSelection, this.runnableStatement, (t, r) -> r.asMap());
+			return new DefaultRecordFetchSpec<>(databaseSelection, impersonatedUser, runnableStatement, (t, r) -> r.asMap());
 		}
 
 		@Override
 		public ResultSummary run() {
 
-			try (QueryRunner statementRunner = getQueryRunner(this.databaseSelection)) {
+			try (QueryRunner statementRunner = getQueryRunner(databaseSelection, impersonatedUser)) {
 				Result result = runnableStatement.runWith(statementRunner);
 				return ResultSummaries.process(result.consume());
 			} catch (RuntimeException e) {
@@ -327,14 +344,20 @@ class DefaultNeo4jClient implements Neo4jClient {
 
 		private final DatabaseSelection databaseSelection;
 
+		@Nullable
+		private final UserSelection impersonatedUser;
+
 		private final RunnableStatement runnableStatement;
 
 		private BiFunction<TypeSystem, Record, T> mappingFunction;
 
-		DefaultRecordFetchSpec(DatabaseSelection databaseSelection, RunnableStatement runnableStatement,
+		DefaultRecordFetchSpec(DatabaseSelection databaseSelection,
+				@Nullable UserSelection impersonatedUser,
+				RunnableStatement runnableStatement,
 				BiFunction<TypeSystem, Record, T> mappingFunction) {
 
 			this.databaseSelection = databaseSelection;
+			this.impersonatedUser = impersonatedUser;
 			this.runnableStatement = runnableStatement;
 			this.mappingFunction = mappingFunction;
 		}
@@ -350,7 +373,7 @@ class DefaultNeo4jClient implements Neo4jClient {
 		@Override
 		public Optional<T> one() {
 
-			try (QueryRunner statementRunner = getQueryRunner(this.databaseSelection)) {
+			try (QueryRunner statementRunner = getQueryRunner(this.databaseSelection, this.impersonatedUser)) {
 				Result result = runnableStatement.runWith(statementRunner);
 				Optional<T> optionalValue = result.hasNext() ?
 						Optional.ofNullable(mappingFunction.apply(typeSystem, result.single())) :
@@ -367,7 +390,7 @@ class DefaultNeo4jClient implements Neo4jClient {
 		@Override
 		public Optional<T> first() {
 
-			try (QueryRunner statementRunner = getQueryRunner(this.databaseSelection)) {
+			try (QueryRunner statementRunner = getQueryRunner(this.databaseSelection, this.impersonatedUser)) {
 				Result result = runnableStatement.runWith(statementRunner);
 				Optional<T> optionalValue = result.stream().map(partialMappingFunction(typeSystem)).findFirst();
 				ResultSummaries.process(result.consume());
@@ -382,7 +405,7 @@ class DefaultNeo4jClient implements Neo4jClient {
 		@Override
 		public Collection<T> all() {
 
-			try (QueryRunner statementRunner = getQueryRunner(this.databaseSelection)) {
+			try (QueryRunner statementRunner = getQueryRunner(this.databaseSelection, this.impersonatedUser)) {
 				Result result = runnableStatement.runWith(statementRunner);
 				Collection<T> values = result.stream().map(partialMappingFunction(typeSystem)).collect(Collectors.toList());
 				ResultSummaries.process(result.consume());
@@ -407,11 +430,15 @@ class DefaultNeo4jClient implements Neo4jClient {
 
 		private DatabaseSelection databaseSelection;
 
+		@Nullable
+		private UserSelection impersonatedUser;
+
 		private final Function<QueryRunner, Optional<T>> callback;
 
 		DefaultRunnableDelegation(Function<QueryRunner, Optional<T>> callback) {
 			this.callback = callback;
 			this.databaseSelection = resolveTargetDatabaseName(null);
+			this.impersonatedUser = resolveUser(null);
 		}
 
 		@Override
@@ -423,7 +450,7 @@ class DefaultNeo4jClient implements Neo4jClient {
 
 		@Override
 		public Optional<T> run() {
-			try (QueryRunner queryRunner = getQueryRunner(databaseSelection)) {
+			try (QueryRunner queryRunner = getQueryRunner(databaseSelection, this.impersonatedUser)) {
 				return callback.apply(queryRunner);
 			} catch (RuntimeException e) {
 				throw potentiallyConvertRuntimeException(e, persistenceExceptionTranslator);

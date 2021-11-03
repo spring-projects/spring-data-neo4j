@@ -49,12 +49,67 @@ public interface ReactiveNeo4jClient {
 
 	static ReactiveNeo4jClient create(Driver driver) {
 
-		return new DefaultReactiveNeo4jClient(driver, null);
+		return with(driver).build();
 	}
 
 	static ReactiveNeo4jClient create(Driver driver, ReactiveDatabaseSelectionProvider databaseSelectionProvider) {
 
-		return new DefaultReactiveNeo4jClient(driver, databaseSelectionProvider);
+		return with(driver).withDatabaseSelectionProvider(databaseSelectionProvider).build();
+	}
+
+	static Builder with(Driver driver) {
+
+		return new Builder(driver);
+	}
+
+	/**
+	 * A builder for {@link ReactiveNeo4jClient reactive Neo4j clients}.
+	 */
+	@API(status = API.Status.STABLE, since = "6.2")
+	@SuppressWarnings("HiddenField")
+	class Builder {
+
+		final Driver driver;
+
+		@Nullable
+		ReactiveDatabaseSelectionProvider databaseSelectionProvider;
+
+		@Nullable
+		ReactiveUserSelectionProvider impersonatedUserProvider;
+
+		private Builder(Driver driver) {
+			this.driver = driver;
+		}
+
+		/**
+		 * Configures the database selection provider. Make sure to use the same instance as for a possible
+		 * {@link org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager}. During runtime, it will be
+		 * checked if a call is made for the same database when happening in a managed transaction.
+		 *
+		 * @param databaseSelectionProvider The database selection provider
+		 * @return The builder
+		 */
+		public Builder withDatabaseSelectionProvider(@Nullable ReactiveDatabaseSelectionProvider databaseSelectionProvider) {
+			this.databaseSelectionProvider = databaseSelectionProvider;
+			return this;
+		}
+
+		/**
+		 * Configures a provider for impersonated users. Make sure to use the same instance as for a possible
+		 * {@link org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager}. During runtime, it will be
+		 * checked if a call is made for the same user when happening in a managed transaction.
+		 *
+		 * @param impersonatedUserProvider The provider for impersonated users
+		 * @return The builder
+		 */
+		public Builder withUserSelectionProvider(@Nullable ReactiveUserSelectionProvider impersonatedUserProvider) {
+			this.impersonatedUserProvider = impersonatedUserProvider;
+			return this;
+		}
+
+		public ReactiveNeo4jClient build() {
+			return new DefaultReactiveNeo4jClient(this);
+		}
 	}
 
 	/**
@@ -67,16 +122,26 @@ public interface ReactiveNeo4jClient {
 	}
 
 	/**
+	 * @return A managed query runner
+	 * @see #getQueryRunner(Mono, Mono)
+	 * @since 6.2
+	 */
+	default Mono<RxQueryRunner> getQueryRunner(Mono<DatabaseSelection> databaseSelection) {
+		return getQueryRunner(databaseSelection, Mono.just(UserSelection.connectedUser()));
+	}
+
+	/**
 	 * Retrieves a query runner that will participate in ongoing Spring transactions (either in declarative
 	 * (implicit via {@code @Transactional}) or in programmatically (explicit via transaction template) ones).
 	 * This runner can be used with the Cypher-DSL for example.
 	 * If the client cannot retrieve an ongoing Spring transaction, this runner will use auto-commit semantics.
 	 *
 	 * @param databaseSelection The target database.
+	 * @param userSelection The user selection
 	 * @return A managed query runner
 	 * @since 6.2
 	 */
-	Mono<RxQueryRunner> getQueryRunner(Mono<DatabaseSelection> databaseSelection);
+	Mono<RxQueryRunner> getQueryRunner(Mono<DatabaseSelection> databaseSelection, Mono<UserSelection> userSelection);
 
 	/**
 	 * Entrypoint for creating a new Cypher query. Doesn't matter at this point whether it's a match, merge, create or

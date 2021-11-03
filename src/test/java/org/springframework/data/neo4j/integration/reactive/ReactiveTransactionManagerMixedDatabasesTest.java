@@ -109,7 +109,7 @@ class ReactiveTransactionManagerMixedDatabasesTest {
 
 		StepVerifier.create(wrapperService.usingAnotherDatabaseDeclarative())
 				.expectErrorMatches(e -> e instanceof IllegalStateException && e.getMessage()
-						.equals("There is already an ongoing Spring transaction for the default database, but you request 'boom'"))
+						.equals("There is already an ongoing Spring transaction for the default user of the default database, but you requested the default user of 'boom'"))
 				.verify();
 	}
 
@@ -123,7 +123,7 @@ class ReactiveTransactionManagerMixedDatabasesTest {
 
 		StepVerifier.create(numberOfNodes)
 				.expectErrorMatches(e -> e instanceof IllegalStateException && e.getMessage()
-						.equals("There is already an ongoing Spring transaction for the default database, but you request 'boom'"))
+						.equals("There is already an ongoing Spring transaction for the default user of the default database, but you requested the default user of 'boom'"))
 				.verify();
 	}
 
@@ -140,7 +140,7 @@ class ReactiveTransactionManagerMixedDatabasesTest {
 
 		StepVerifier.create(p)
 				.expectErrorMatches(e -> e instanceof IllegalStateException && e.getMessage()
-						.equals("There is already an ongoing Spring transaction for 'boom', but you request the default database"))
+						.equals("There is already an ongoing Spring transaction for the default user of 'boom', but you requested the default user of the default database"))
 				.verify();
 	}
 

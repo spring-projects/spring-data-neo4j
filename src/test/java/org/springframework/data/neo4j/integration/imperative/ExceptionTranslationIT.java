@@ -17,6 +17,7 @@ package org.springframework.data.neo4j.integration.imperative;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assumptions.assumeThat;
 
 import java.util.Optional;
 
@@ -27,6 +28,7 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Session;
+import org.neo4j.driver.internal.util.ServerVersion;
 import org.neo4j.driver.summary.ResultSummary;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -75,10 +77,16 @@ class ExceptionTranslationIT {
 
 	@BeforeEach
 	void clearDatabase(@Autowired Driver driver) {
-
 		try (Session session = driver.session()) {
 			session.run("MATCH (n) DETACH DELETE n").consume();
 		}
+	}
+
+	@BeforeEach
+	void assumeNeo4jLowerThan44() {
+
+		assumeThat(neo4jConnectionSupport.getServerVersion()
+				.lessThanOrEqual(ServerVersion.version("Neo4j/4.3.0"))).isTrue();
 	}
 
 	@Test

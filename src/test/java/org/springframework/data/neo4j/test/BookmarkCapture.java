@@ -26,6 +26,8 @@ import org.neo4j.driver.Bookmark;
 import org.neo4j.driver.SessionConfig;
 import org.springframework.context.ApplicationListener;
 import org.springframework.data.neo4j.core.transaction.Neo4jBookmarksUpdatedEvent;
+import org.springframework.data.neo4j.core.transaction.Neo4jTransactionUtils;
+import org.springframework.util.StringUtils;
 
 /**
  * This is a utility class that captures the most recent bookmarks after any of the Spring Data Neo4j transaction managers
@@ -45,15 +47,18 @@ public final class BookmarkCapture implements Supplier<Set<Bookmark>>, Applicati
 	private final Set<Bookmark> nextBookmarks = new HashSet<>();
 
 	public SessionConfig createSessionConfig() {
-		return createSessionConfig(null);
+		return createSessionConfig(null, null);
 	}
 
-	public SessionConfig createSessionConfig(String databaseName) {
+	public SessionConfig createSessionConfig(String databaseName, String impersonatedUser) {
 		try {
 			read.lock();
 			SessionConfig.Builder builder = SessionConfig.builder().withBookmarks(latestBookmarks == null ? Collections.emptyList() : latestBookmarks);
-			if (databaseName != null) {
+			if (StringUtils.hasText(databaseName)) {
 				builder.withDatabase(databaseName);
+			}
+			if (Neo4jTransactionUtils.driverSupportsImpersonation() && StringUtils.hasText(impersonatedUser)) {
+				Neo4jTransactionUtils.withImpersonatedUser(builder, impersonatedUser);
 			}
 			return builder.build();
 		} finally {

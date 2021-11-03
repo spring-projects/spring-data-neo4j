@@ -84,7 +84,10 @@ import org.springframework.data.mapping.MappingException;
 import org.springframework.data.neo4j.config.AbstractNeo4jConfig;
 import org.springframework.data.neo4j.core.DatabaseSelection;
 import org.springframework.data.neo4j.core.DatabaseSelectionProvider;
+import org.springframework.data.neo4j.core.Neo4jClient;
 import org.springframework.data.neo4j.core.Neo4jTemplate;
+import org.springframework.data.neo4j.core.UserSelection;
+import org.springframework.data.neo4j.core.UserSelectionProvider;
 import org.springframework.data.neo4j.core.convert.Neo4jConversions;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
@@ -170,6 +173,7 @@ class RepositoryIT {
 
 	protected static Neo4jExtension.Neo4jConnectionSupport neo4jConnectionSupport;
 	protected static final ThreadLocal<DatabaseSelection> databaseSelection = ThreadLocal.withInitial(DatabaseSelection::undecided);
+	protected static final ThreadLocal<UserSelection> userSelection = ThreadLocal.withInitial(UserSelection::connectedUser);
 
 	private static final String TEST_PERSON1_NAME = "Test";
 	private static final String TEST_PERSON2_NAME = "Test2";
@@ -4511,7 +4515,7 @@ class RepositoryIT {
 		}
 
 		<T> T doWithSession(Function<Session, T> sessionConsumer) {
-			try (Session session = driver.session(bookmarkCapture.createSessionConfig(databaseSelection.get().getValue()))) {
+			try (Session session = driver.session(bookmarkCapture.createSessionConfig(databaseSelection.get().getValue(), userSelection.get().getValue()))) {
 				T result = sessionConsumer.apply(session);
 				bookmarkCapture.seedWith(session.lastBookmark());
 				return result;
@@ -4520,7 +4524,7 @@ class RepositoryIT {
 
 		void assertWithSession(Consumer<Session> consumer) {
 
-			try (Session session = driver.session(bookmarkCapture.createSessionConfig(databaseSelection.get().getValue()))) {
+			try (Session session = driver.session(bookmarkCapture.createSessionConfig(databaseSelection.get().getValue(), userSelection.get().getValue()))) {
 				consumer.accept(session);
 			}
 		}
@@ -4560,10 +4564,22 @@ class RepositoryIT {
 		}
 
 		@Override
-		public PlatformTransactionManager transactionManager(Driver driver, DatabaseSelectionProvider databaseNameProvider) {
+		public PlatformTransactionManager transactionManager(Driver driver, DatabaseSelectionProvider databaseSelectionProvider) {
 
-			BookmarkCapture bookmarkCapture = bookmarkCapture();
-			return new Neo4jTransactionManager(driver, databaseNameProvider, Neo4jBookmarkManager.create(bookmarkCapture));
+			return Neo4jTransactionManager.with(driver)
+					.withDatabaseSelectionProvider(databaseSelectionProvider)
+					.withUserSelectionProvider(getUserSelectionProvider())
+					.withBookmarkManager(Neo4jBookmarkManager.create(bookmarkCapture()))
+					.build();
+		}
+
+		@Override
+		public Neo4jClient neo4jClient(Driver driver, DatabaseSelectionProvider databaseSelectionProvider) {
+
+			return Neo4jClient.with(driver)
+					.withDatabaseSelectionProvider(databaseSelectionProvider)
+					.withUserSelectionProvider(getUserSelectionProvider())
+					.build();
 		}
 
 		@Bean
@@ -4571,9 +4587,14 @@ class RepositoryIT {
 			return new TransactionTemplate(transactionManager);
 		}
 
-		@Bean
+		@Override
 		public DatabaseSelectionProvider databaseSelectionProvider() {
 			return () -> databaseSelection.get();
+		}
+
+		@Bean
+		public UserSelectionProvider getUserSelectionProvider() {
+			return () -> userSelection.get();
 		}
 	}
 }

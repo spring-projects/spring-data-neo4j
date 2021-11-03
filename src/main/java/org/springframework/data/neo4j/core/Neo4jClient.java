@@ -46,21 +46,85 @@ public interface Neo4jClient {
 
 	static Neo4jClient create(Driver driver) {
 
-		return new DefaultNeo4jClient(driver, DatabaseSelectionProvider.getDefaultSelectionProvider());
+		return with(driver).build();
 	}
 
 	static Neo4jClient create(Driver driver, DatabaseSelectionProvider databaseSelectionProvider) {
 
-		return new DefaultNeo4jClient(driver, databaseSelectionProvider);
+		return with(driver).withDatabaseSelectionProvider(databaseSelectionProvider).build();
+	}
+
+	static Builder with(Driver driver) {
+
+		return new Builder(driver);
+	}
+
+	/**
+	 * A builder for {@link Neo4jClient Neo4j clients}.
+	 */
+	@API(status = API.Status.STABLE, since = "6.2")
+	@SuppressWarnings("HiddenField")
+	class Builder {
+
+		final Driver driver;
+
+		@Nullable
+		DatabaseSelectionProvider databaseSelectionProvider;
+
+		@Nullable
+		UserSelectionProvider userSelectionProvider;
+
+		private Builder(Driver driver) {
+			this.driver = driver;
+		}
+
+		/**
+		 * Configures the database selection provider. Make sure to use the same instance as for a possible
+		 * {@link org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager}. During runtime, it will be
+		 * checked if a call is made for the same database when happening in a managed transaction.
+		 *
+		 * @param databaseSelectionProvider The database selection provider
+		 * @return The builder
+		 */
+		public Builder withDatabaseSelectionProvider(@Nullable DatabaseSelectionProvider databaseSelectionProvider) {
+			this.databaseSelectionProvider = databaseSelectionProvider;
+			return this;
+		}
+
+		/**
+		 * Configures a provider for impersonated users. Make sure to use the same instance as for a possible
+		 * {@link org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager}. During runtime, it will be
+		 * checked if a call is made for the same user when happening in a managed transaction.
+		 *
+		 * @param userSelectionProvider The provider for impersonated users
+		 * @return The builder
+		 */
+		public Builder withUserSelectionProvider(@Nullable UserSelectionProvider userSelectionProvider) {
+			this.userSelectionProvider = userSelectionProvider;
+			return this;
+		}
+
+		public Neo4jClient build() {
+			return new DefaultNeo4jClient(this);
+		}
 	}
 
 	/**
 	 * @return A managed query runner
-	 * @see #getQueryRunner(DatabaseSelection)
+	 * @see #getQueryRunner(DatabaseSelection, UserSelection)
 	 * @since 6.2
 	 */
 	default QueryRunner getQueryRunner() {
 		return getQueryRunner(DatabaseSelection.undecided());
+	}
+
+	/**
+	 * @return A managed query runner
+	 * @see #getQueryRunner(DatabaseSelection, UserSelection)
+	 * @since 6.2
+	 */
+	default QueryRunner getQueryRunner(DatabaseSelection databaseSelection) {
+		return getQueryRunner(databaseSelection, UserSelection.connectedUser());
 	}
 
 	/**
@@ -70,10 +134,11 @@ public interface Neo4jClient {
 	 * If the client cannot retrieve an ongoing Spring transaction, this runner will use auto-commit semantics.
 	 *
 	 * @param databaseSelection The target database.
+	 * @param asUser As an impersonated user. Requires Neo4j 4.4 and Driver 4.4
 	 * @return A managed query runner
 	 * @since 6.2
 	 */
-	QueryRunner getQueryRunner(DatabaseSelection databaseSelection);
+	QueryRunner getQueryRunner(DatabaseSelection databaseSelection, UserSelection asUser);
 
 	/**
 	 * Entrypoint for creating a new Cypher query. Doesn't matter at this point whether it's a match, merge, create or

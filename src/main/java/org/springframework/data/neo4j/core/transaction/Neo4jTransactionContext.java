@@ -19,7 +19,8 @@ import java.util.Collection;
 import java.util.Collections;
 
 import org.neo4j.driver.Bookmark;
-import org.springframework.lang.Nullable;
+import org.springframework.data.neo4j.core.DatabaseSelection;
+import org.springframework.data.neo4j.core.UserSelection;
 
 /**
  * Represents the context in which a transaction has been opened. The context consists primarily of the target database
@@ -34,28 +35,48 @@ final class Neo4jTransactionContext {
 	/**
 	 * The target database of the session.
 	 */
-	private @Nullable final String databaseName;
+	private final DatabaseSelection databaseSelection;
+
+	/**
+	 * The impersonated or connected user. Will never be {@literal null}.
+	 */
+	private final UserSelection userSelection;
 
 	/**
 	 * The bookmarks from which that session was started. Maybe empty but never null.
 	 */
 	private final Collection<Bookmark> bookmarks;
 
-	Neo4jTransactionContext(@Nullable String databaseName) {
+	Neo4jTransactionContext(DatabaseSelection databaseSelection, UserSelection userSelection) {
 
-		this(databaseName, Collections.emptyList());
+		this(databaseSelection, userSelection, Collections.emptyList());
 	}
 
-	Neo4jTransactionContext(@Nullable String databaseName, Collection<Bookmark> bookmarks) {
-		this.databaseName = databaseName;
+	Neo4jTransactionContext(DatabaseSelection databaseSelection, UserSelection userSelection, Collection<Bookmark> bookmarks) {
+		this.databaseSelection = databaseSelection;
+		this.userSelection = userSelection;
 		this.bookmarks = bookmarks;
 	}
 
-	String getDatabaseName() {
-		return databaseName;
+	DatabaseSelection getDatabaseSelection() {
+		return databaseSelection;
+	}
+
+	UserSelection getUserSelection() {
+		return userSelection;
 	}
 
 	Collection<Bookmark> getBookmarks() {
 		return bookmarks;
+	}
+
+	/**
+	 * @param inDatabase Target database
+	 * @param asUser A Neo4j user
+	 * @return True if the combination of target database and impersonated user is the same in this context as for the given arguments.
+	 */
+	boolean isForDatabaseAndUser(DatabaseSelection inDatabase, UserSelection asUser) {
+
+		return this.databaseSelection.equals(inDatabase) && this.userSelection.equals(asUser);
 	}
 }
