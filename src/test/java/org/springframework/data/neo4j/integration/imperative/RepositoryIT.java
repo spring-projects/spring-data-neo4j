@@ -4568,7 +4568,7 @@ class RepositoryIT {
 
 			return Neo4jTransactionManager.with(driver)
 					.withDatabaseSelectionProvider(databaseSelectionProvider)
-					.withUserProvider(getUserSelectionProvider())
+					.withUserSelectionProvider(getUserSelectionProvider())
 					.withBookmarkManager(Neo4jBookmarkManager.create(bookmarkCapture()))
 					.build();
 		}
@@ -4578,7 +4578,7 @@ class RepositoryIT {
 
 			return Neo4jClient.with(driver)
 					.withDatabaseSelectionProvider(databaseSelectionProvider)
-					.withUserProvider(getUserSelectionProvider())
+					.withUserSelectionProvider(getUserSelectionProvider())
 					.build();
 		}
 

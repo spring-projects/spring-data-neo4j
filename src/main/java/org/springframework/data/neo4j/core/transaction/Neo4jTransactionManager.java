@@ -104,7 +104,7 @@ public final class Neo4jTransactionManager extends AbstractPlatformTransactionMa
 		 * @param userSelectionProvider The provider for impersonated users
 		 * @return The builder
 		 */
-		public Builder withUserProvider(@Nullable UserSelectionProvider userSelectionProvider) {
+		public Builder withUserSelectionProvider(@Nullable UserSelectionProvider userSelectionProvider) {
 			this.userSelectionProvider = userSelectionProvider;
 			return this;
 		}

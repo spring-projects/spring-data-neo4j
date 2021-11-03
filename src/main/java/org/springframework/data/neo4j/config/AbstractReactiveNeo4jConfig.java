@@ -65,7 +65,7 @@ public abstract class AbstractReactiveNeo4jConfig extends Neo4jConfigurationSupp
 
 		return ReactiveNeo4jClient.with(driver)
 				.withDatabaseSelectionProvider(databaseSelectionProvider)
-				.withUserProvider(getImpersonatedUserProvider())
+				.withUserSelectionProvider(getUserSelectionProvider())
 				.build();
 	}
 
@@ -93,7 +93,7 @@ public abstract class AbstractReactiveNeo4jConfig extends Neo4jConfigurationSupp
 
 		return ReactiveNeo4jTransactionManager.with(driver)
 				.withDatabaseSelectionProvider(databaseSelectionProvider)
-				.withUserProvider(getImpersonatedUserProvider())
+				.withUserSelectionProvider(getUserSelectionProvider())
 				.build();
 	}
 

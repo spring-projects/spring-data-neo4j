@@ -65,7 +65,7 @@ public abstract class AbstractNeo4jConfig extends Neo4jConfigurationSupport {
 
 		return Neo4jClient.with(driver)
 				.withDatabaseSelectionProvider(databaseSelectionProvider)
-				.withUserProvider(getSelectionProvider())
+				.withUserSelectionProvider(getUserSelectionProvider())
 				.build();
 	}
 
@@ -93,7 +93,7 @@ public abstract class AbstractNeo4jConfig extends Neo4jConfigurationSupport {
 		return Neo4jTransactionManager
 				.with(driver)
 				.withDatabaseSelectionProvider(databaseSelectionProvider)
-				.withUserProvider(getSelectionProvider())
+				.withUserSelectionProvider(getUserSelectionProvider())
 				.build();
 	}
 

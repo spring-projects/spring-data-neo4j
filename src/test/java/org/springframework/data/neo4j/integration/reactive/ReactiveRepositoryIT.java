@@ -2762,7 +2762,7 @@ class ReactiveRepositoryIT {
 
 			return ReactiveNeo4jTransactionManager.with(driver)
 					.withDatabaseSelectionProvider(databaseSelectionProvider)
-					.withUserProvider(getUserSelectionProvider())
+					.withUserSelectionProvider(getUserSelectionProvider())
 					.withBookmarkManager(Neo4jBookmarkManager.create(bookmarkCapture()))
 					.build();
 		}
@@ -2772,7 +2772,7 @@ class ReactiveRepositoryIT {
 
 			return ReactiveNeo4jClient.with(driver)
 					.withDatabaseSelectionProvider(databaseSelectionProvider)
-					.withUserProvider(getUserSelectionProvider())
+					.withUserSelectionProvider(getUserSelectionProvider())
 					.build();
 		}
 

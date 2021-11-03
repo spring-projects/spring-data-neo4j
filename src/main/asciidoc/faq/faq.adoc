@@ -332,7 +332,7 @@ public class Neo4jHealthConfig {
 User impersonation is especially interesting in big multi-tenant settings, in which one physically connected (or technical)
 user can impersonate many tenants. Depending on your setup this will drastically reduce the number of physical driver instances needed.
 
-The feature requires Neo4j Enterprise 4.4+ on the server side and a 4.4+ driver on the client side.
+The feature requires Neo4j Enterprise 4.4+ on the server side and a 4.4+ driver on the client side (`org.neo4j.driver:neo4j-java-driver:4.4.0` or higher).
 
 For both imperative and reactive versions you need to provide a `UserSelectionProvider` respectively a `ReactiveUserSelectionProvider`.
 The same instance needs to be passed along to the `Neo4Client` and `Neo4jTransactionManager` respectively their reactive variants.
@@ -383,7 +383,7 @@ public class CustomConfig {
 
         return Neo4jClient.with(driver)
             .withDatabaseSelectionProvider(databaseSelectionProvider)
-            .withUserProvider(userSelectionProvider)
+            .withUserSelectionProvider(userSelectionProvider)
             .build();
 	}
 
@@ -397,7 +397,7 @@ public class CustomConfig {
         return Neo4jTransactionManager
             .with(driver)
             .withDatabaseSelectionProvider(databaseSelectionProvider)
-            .withUserProvider(userSelectionProvider)
+            .withUserSelectionProvider(userSelectionProvider)
             .build();
 	}
 }
