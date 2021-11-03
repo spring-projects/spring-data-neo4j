@@ -68,8 +68,10 @@ public interface Neo4jClient {
 
 		final Driver driver;
 
+		@Nullable
 		DatabaseSelectionProvider databaseSelectionProvider;
 
+		@Nullable
 		UserSelectionProvider userSelectionProvider;
 
 		private Builder(Driver driver) {
@@ -84,7 +86,7 @@ public interface Neo4jClient {
 		 * @param databaseSelectionProvider The database selection provider
 		 * @return The builder
 		 */
-		public Builder withDatabaseSelectionProvider(DatabaseSelectionProvider databaseSelectionProvider) {
+		public Builder withDatabaseSelectionProvider(@Nullable DatabaseSelectionProvider databaseSelectionProvider) {
 			this.databaseSelectionProvider = databaseSelectionProvider;
 			return this;
 		}
@@ -97,7 +99,7 @@ public interface Neo4jClient {
 		 * @param userSelectionProvider The provider for impersonated users
 		 * @return The builder
 		 */
-		public Builder withUserProvider(UserSelectionProvider userSelectionProvider) {
+		public Builder withUserProvider(@Nullable UserSelectionProvider userSelectionProvider) {
 			this.userSelectionProvider = userSelectionProvider;
 			return this;
 		}

@@ -84,7 +84,7 @@ class ExceptionTranslationIT {
 
 	@BeforeEach
 	void assumeNeo4jLowerThan44() {
-		
+
 		assumeThat(neo4jConnectionSupport.getServerVersion().lessThan(ServerVersion.v4_4_0)).isTrue();
 	}
 

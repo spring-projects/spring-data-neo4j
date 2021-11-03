@@ -29,6 +29,7 @@ import org.springframework.data.neo4j.core.UserSelectionProvider;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager;
 import org.springframework.data.neo4j.repository.config.Neo4jRepositoryConfigurationExtension;
+import org.springframework.lang.Nullable;
 import org.springframework.transaction.PlatformTransactionManager;
 
 /**
@@ -62,7 +63,15 @@ public abstract class AbstractNeo4jConfig extends Neo4jConfigurationSupport {
 	@Bean(Neo4jRepositoryConfigurationExtension.DEFAULT_NEO4J_CLIENT_BEAN_NAME)
 	public Neo4jClient neo4jClient(Driver driver, DatabaseSelectionProvider databaseSelectionProvider) {
 
-		return Neo4jClient.with(driver).withDatabaseSelectionProvider(databaseSelectionProvider).build();
+		return Neo4jClient.with(driver)
+				.withDatabaseSelectionProvider(databaseSelectionProvider)
+				.withUserProvider(getSelectionProvider())
+				.build();
+	}
+
+	@Nullable
+	private UserSelectionProvider getSelectionProvider() {
+		return this.userSelectionProviders == null ? null : this.userSelectionProviders.getIfUnique();
 	}
 
 	@Bean(Neo4jRepositoryConfigurationExtension.DEFAULT_NEO4J_TEMPLATE_BEAN_NAME)
@@ -84,7 +93,7 @@ public abstract class AbstractNeo4jConfig extends Neo4jConfigurationSupport {
 		return Neo4jTransactionManager
 				.with(driver)
 				.withDatabaseSelectionProvider(databaseSelectionProvider)
-				.withUserProvider(this.userSelectionProviders == null ? null : this.userSelectionProviders.getIfUnique())
+				.withUserProvider(getSelectionProvider())
 				.build();
 	}
 

@@ -71,8 +71,10 @@ public interface ReactiveNeo4jClient {
 
 		final Driver driver;
 
+		@Nullable
 		ReactiveDatabaseSelectionProvider databaseSelectionProvider;
 
+		@Nullable
 		ReactiveUserSelectionProvider impersonatedUserProvider;
 
 		private Builder(Driver driver) {
@@ -87,7 +89,7 @@ public interface ReactiveNeo4jClient {
 		 * @param databaseSelectionProvider The database selection provider
 		 * @return The builder
 		 */
-		public Builder withDatabaseSelectionProvider(ReactiveDatabaseSelectionProvider databaseSelectionProvider) {
+		public Builder withDatabaseSelectionProvider(@Nullable ReactiveDatabaseSelectionProvider databaseSelectionProvider) {
 			this.databaseSelectionProvider = databaseSelectionProvider;
 			return this;
 		}
@@ -100,7 +102,7 @@ public interface ReactiveNeo4jClient {
 		 * @param impersonatedUserProvider The provider for impersonated users
 		 * @return The builder
 		 */
-		public Builder withUserProvider(ReactiveUserSelectionProvider impersonatedUserProvider) {
+		public Builder withUserProvider(@Nullable ReactiveUserSelectionProvider impersonatedUserProvider) {
 			this.impersonatedUserProvider = impersonatedUserProvider;
 			return this;
 		}
