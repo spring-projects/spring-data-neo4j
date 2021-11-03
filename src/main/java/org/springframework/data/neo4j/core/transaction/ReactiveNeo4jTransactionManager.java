@@ -104,7 +104,7 @@ public final class ReactiveNeo4jTransactionManager extends AbstractReactiveTrans
 		 * @param userSelectionProvider The provider for impersonated users
 		 * @return The builder
 		 */
-		public Builder withUserProvider(@Nullable ReactiveUserSelectionProvider userSelectionProvider) {
+		public Builder withUserSelectionProvider(@Nullable ReactiveUserSelectionProvider userSelectionProvider) {
 			this.userSelectionProvider = userSelectionProvider;
 			return this;
 		}
