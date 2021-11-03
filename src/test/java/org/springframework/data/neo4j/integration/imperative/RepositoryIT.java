@@ -167,7 +167,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 class RepositoryIT {
 
 	protected static Neo4jExtension.Neo4jConnectionSupport neo4jConnectionSupport;
-	protected static DatabaseSelection databaseSelection = DatabaseSelection.undecided();
+	protected static final ThreadLocal<DatabaseSelection> databaseSelection = ThreadLocal.withInitial(DatabaseSelection::undecided);
 
 	private static final String TEST_PERSON1_NAME = "Test";
 	private static final String TEST_PERSON2_NAME = "Test2";
@@ -189,10 +189,6 @@ class RepositoryIT {
 	Long id2;
 	PersonWithAllConstructor person1;
 	PersonWithAllConstructor person2;
-
-	RepositoryIT() {
-		databaseSelection = DatabaseSelection.undecided();
-	}
 
 	@Nested
 	class Find extends IntegrationTestBase {
@@ -4395,7 +4391,7 @@ class RepositoryIT {
 		}
 
 		<T> T doWithSession(Function<Session, T> sessionConsumer) {
-			try (Session session = driver.session(bookmarkCapture.createSessionConfig(databaseSelection.getValue()))) {
+			try (Session session = driver.session(bookmarkCapture.createSessionConfig(databaseSelection.get().getValue()))) {
 				T result = sessionConsumer.apply(session);
 				bookmarkCapture.seedWith(session.lastBookmark());
 				return result;
@@ -4404,7 +4400,7 @@ class RepositoryIT {
 
 		void assertWithSession(Consumer<Session> consumer) {
 
-			try (Session session = driver.session(bookmarkCapture.createSessionConfig(databaseSelection.getValue()))) {
+			try (Session session = driver.session(bookmarkCapture.createSessionConfig(databaseSelection.get().getValue()))) {
 				consumer.accept(session);
 			}
 		}
@@ -4457,7 +4453,7 @@ class RepositoryIT {
 
 		@Bean
 		public DatabaseSelectionProvider databaseSelectionProvider() {
-			return () -> databaseSelection;
+			return () -> databaseSelection.get();
 		}
 	}
 }

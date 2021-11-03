@@ -128,7 +128,7 @@ import org.springframework.transaction.reactive.TransactionalOperator;
 class ReactiveRepositoryIT {
 
 	protected static Neo4jExtension.Neo4jConnectionSupport neo4jConnectionSupport;
-	protected static DatabaseSelection databaseSelection = DatabaseSelection.undecided();
+	protected static final ThreadLocal<DatabaseSelection> databaseSelection = ThreadLocal.withInitial(DatabaseSelection::undecided);
 
 	private static final String TEST_PERSON1_NAME = "Test";
 	private static final String TEST_PERSON2_NAME = "Test2";
@@ -149,10 +149,6 @@ class ReactiveRepositoryIT {
 	private long id2;
 	private PersonWithAllConstructor person1;
 	private PersonWithAllConstructor person2;
-
-	ReactiveRepositoryIT() {
-		databaseSelection = DatabaseSelection.undecided();
-	}
 
 	@Nested
 	class Find extends ReactiveIntegrationTestBase {
@@ -2593,7 +2589,7 @@ class ReactiveRepositoryIT {
 		}
 
 		<T> T doWithSession(Function<Session, T> sessionConsumer) {
-			try (Session session = driver.session(bookmarkCapture.createSessionConfig(databaseSelection.getValue()))) {
+			try (Session session = driver.session(bookmarkCapture.createSessionConfig(databaseSelection.get().getValue()))) {
 				T result = sessionConsumer.apply(session);
 				bookmarkCapture.seedWith(session.lastBookmark());
 				return result;
@@ -2602,14 +2598,14 @@ class ReactiveRepositoryIT {
 
 		void assertInSession(Consumer<Session> consumer) {
 
-			try (Session session = driver.session(bookmarkCapture.createSessionConfig(databaseSelection.getValue()))) {
+			try (Session session = driver.session(bookmarkCapture.createSessionConfig(databaseSelection.get().getValue()))) {
 				consumer.accept(session);
 			}
 		}
 
 		RxSession createRxSession() {
 
-			return driver.rxSession(bookmarkCapture.createSessionConfig(databaseSelection.getValue()));
+			return driver.rxSession(bookmarkCapture.createSessionConfig(databaseSelection.get().getValue()));
 		}
 
 		TransactionalOperator getTransactionalOperator() {
@@ -2652,7 +2648,7 @@ class ReactiveRepositoryIT {
 		@Override
 		@Bean
 		public ReactiveDatabaseSelectionProvider reactiveDatabaseSelectionProvider() {
-			return Optional.ofNullable(databaseSelection.getValue())
+			return Optional.ofNullable(databaseSelection.get().getValue())
 					.map(ReactiveDatabaseSelectionProvider::createStaticDatabaseSelectionProvider)
 					.orElse(ReactiveDatabaseSelectionProvider.getDefaultSelectionProvider());
 		}
