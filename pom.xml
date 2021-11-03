@@ -105,7 +105,7 @@
 		<neo4j.version>4.3.6</neo4j.version>
 =======
 		<mockito.version>4.0.0</mockito.version>
-		<neo4j-java-driver.version>4.3.4</neo4j-java-driver.version>
+		<neo4j-java-driver.version>4.3.5</neo4j-java-driver.version>
 		<neo4j.version>4.3.2</neo4j.version>
 >>>>>>> 4ebd4a7d1 (Update to Spring Data Commons 3.0.0 and JDK 17.)
 		<objenesis.version>3.0.1</objenesis.version>
