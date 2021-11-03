@@ -35,10 +35,6 @@ class ReactiveRepositoryWithADifferentUserIT extends ReactiveRepositoryIT {
 	private static final String TEST_USER = "sdn62";
 	private static final String TEST_DATABASE_NAME = "sdn62db";
 
-	ReactiveRepositoryWithADifferentUserIT() {
-		userSelection = UserSelection.impersonate(TEST_USER);
-	}
-
 	@BeforeAll
 	static void createTestDatabase() {
 
@@ -52,6 +48,8 @@ class ReactiveRepositoryWithADifferentUserIT extends ReactiveRepositoryIT {
 			session.run("GRANT IMPERSONATE ($targetUser) ON DBMS TO admin", Values.parameters("targetUser", TEST_USER))
 					.consume();
 		}
+
+		userSelection.set(UserSelection.impersonate(TEST_USER));
 	}
 
 	@AfterAll
@@ -64,5 +62,7 @@ class ReactiveRepositoryWithADifferentUserIT extends ReactiveRepositoryIT {
 			session.run("DROP USER $user", Values.parameters("user", TEST_USER)).consume();
 			session.run("DROP DATABASE $db", Values.parameters("db", TEST_DATABASE_NAME)).consume();
 		}
+
+		userSelection.set(UserSelection.connectedUser());
 	}
 }
