@@ -99,15 +99,9 @@
 		<maven-surefire-plugin.version>3.0.0-M4</maven-surefire-plugin.version>
 		<maven.compiler.release>${java.version}</maven.compiler.release>
 		<mockito>${mockito.version}</mockito>
-<<<<<<< HEAD
-		<mockito.version>3.10.0</mockito.version>
+		<mockito.version>4.0.0</mockito.version>
 		<neo4j-java-driver.version>4.4.2</neo4j-java-driver.version>
 		<neo4j.version>4.3.6</neo4j.version>
-=======
-		<mockito.version>4.0.0</mockito.version>
-		<neo4j-java-driver.version>4.3.5</neo4j-java-driver.version>
-		<neo4j.version>4.3.2</neo4j.version>
->>>>>>> 4ebd4a7d1 (Update to Spring Data Commons 3.0.0 and JDK 17.)
 		<objenesis.version>3.0.1</objenesis.version>
 		<project.build.docs>${project.build.directory}/docs</project.build.docs>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -118,11 +112,7 @@
 		<checkstyle.skip>${skipTests}</checkstyle.skip>
 
 		<skipUnitTests>${skipTests}</skipUnitTests>
-<<<<<<< HEAD
-		<springdata.commons>2.7.0-SNAPSHOT</springdata.commons>
-=======
 		<springdata.commons>3.0.0-SNAPSHOT</springdata.commons>
->>>>>>> 4ebd4a7d1 (Update to Spring Data Commons 3.0.0 and JDK 17.)
 
 		<spring-data-commons-docs.dir>../../../../spring-data-commons/src/main/asciidoc</spring-data-commons-docs.dir>
 	</properties>
