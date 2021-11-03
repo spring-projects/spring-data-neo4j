@@ -70,7 +70,7 @@ public abstract class AbstractNeo4jConfig extends Neo4jConfigurationSupport {
 	}
 
 	@Nullable
-	private UserSelectionProvider getSelectionProvider() {
+	private UserSelectionProvider getUserSelectionProvider() {
 		return this.userSelectionProviders == null ? null : this.userSelectionProviders.getIfUnique();
 	}
 

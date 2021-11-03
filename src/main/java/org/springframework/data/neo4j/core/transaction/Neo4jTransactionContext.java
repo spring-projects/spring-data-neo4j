@@ -38,7 +38,7 @@ final class Neo4jTransactionContext {
 	private final DatabaseSelection databaseSelection;
 
 	/**
-	 * Will be {@literal null} for the default user, non-null for an impersonated user.
+	 * The impersonated or connected user. Will never be {@literal null}.
 	 */
 	private final UserSelection userSelection;
 

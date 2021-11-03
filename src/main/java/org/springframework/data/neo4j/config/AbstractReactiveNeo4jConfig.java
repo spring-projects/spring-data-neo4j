@@ -70,7 +70,7 @@ public abstract class AbstractReactiveNeo4jConfig extends Neo4jConfigurationSupp
 	}
 
 	@Nullable
-	private ReactiveUserSelectionProvider getImpersonatedUserProvider() {
+	private ReactiveUserSelectionProvider getUserSelectionProvider() {
 		return this.userSelectionProviders == null ? null : this.userSelectionProviders.getIfUnique();
 	}
 

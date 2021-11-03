@@ -330,7 +330,7 @@ public class Neo4jHealthConfig {
 == Neo4j 4.4 supports impersonation of different users - How can I use them?
 
 User impersonation is especially interesting in big multi-tenant settings, in which one physically connected (or technical)
-user can impersonate many tenants. Depending on your setup this will drastically reduce the number of physical driver instances.
+user can impersonate many tenants. Depending on your setup this will drastically reduce the number of physical driver instances needed.
 
 The feature requires Neo4j Enterprise 4.4+ on the server side and a 4.4+ driver on the client side.
 

@@ -22,12 +22,12 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
- * This is a value object for a Neo4j user, different from the user owning the physical Neo4j connection. To make use of
- * this a minimum version of Neo4j 4.4 and Neo4j-Java-Driver 4.4 is required, otherwise the any usage of {@link UserSelection#impersonate(String)}
+ * This is a value object for a Neo4j user, potentially different from the user owning the physical Neo4j connection. To make use of
+ * this a minimum version of Neo4j 4.4 and Neo4j-Java-Driver 4.4 is required, otherwise any usage of {@link UserSelection#impersonate(String)}
  * together with either the {@link UserSelectionProvider} or the {@link ReactiveUserSelectionProvider} will lead to runtime
  * errors.
  * <p>
- * Otherwise, similar usage pattern like with the dynamic database selection are possible, like for example tying
+ * Similar usage pattern like with the dynamic database selection are possible, for example tying
  * a {@link UserSelectionProvider} into Spring Security and use the current user as a user to impersonate.
  *
  * @author Michael J. Simons

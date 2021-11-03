@@ -102,7 +102,7 @@ public interface ReactiveNeo4jClient {
 		 * @param impersonatedUserProvider The provider for impersonated users
 		 * @return The builder
 		 */
-		public Builder withUserProvider(@Nullable ReactiveUserSelectionProvider impersonatedUserProvider) {
+		public Builder withUserSelectionProvider(@Nullable ReactiveUserSelectionProvider impersonatedUserProvider) {
 			this.impersonatedUserProvider = impersonatedUserProvider;
 			return this;
 		}
