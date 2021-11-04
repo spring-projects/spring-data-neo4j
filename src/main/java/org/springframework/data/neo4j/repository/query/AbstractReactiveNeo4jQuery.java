@@ -17,6 +17,7 @@ package org.springframework.data.neo4j.repository.query;
 
 import java.util.Map;
 import java.util.function.BiFunction;
+import java.util.function.Supplier;
 
 import org.neo4j.driver.types.MapAccessor;
 import org.neo4j.driver.types.TypeSystem;
@@ -91,5 +92,5 @@ abstract class AbstractReactiveNeo4jQuery extends Neo4jQuerySupport implements R
 
 	protected abstract <T extends Object> PreparedQuery<T> prepareQuery(Class<T> returnedType,
 				Map<PropertyPath, Boolean> includedProperties, Neo4jParameterAccessor parameterAccessor,
-				@Nullable Neo4jQueryType queryType, @Nullable BiFunction<TypeSystem, MapAccessor, ?> mappingFunction);
+				@Nullable Neo4jQueryType queryType, @Nullable Supplier<BiFunction<TypeSystem, MapAccessor, ?>> mappingFunction);
 }

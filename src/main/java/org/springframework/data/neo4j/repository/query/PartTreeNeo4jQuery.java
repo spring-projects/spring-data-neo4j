@@ -18,6 +18,7 @@ package org.springframework.data.neo4j.repository.query;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiFunction;
+import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
 import org.neo4j.driver.types.MapAccessor;
@@ -62,7 +63,7 @@ final class PartTreeNeo4jQuery extends AbstractNeo4jQuery {
 	@Override
 	protected <T extends Object> PreparedQuery<T> prepareQuery(Class<T> returnedType, Map<PropertyPath, Boolean> includedProperties,
 			Neo4jParameterAccessor parameterAccessor, @Nullable Neo4jQueryType queryType,
-			@Nullable BiFunction<TypeSystem, MapAccessor, ?> mappingFunction, UnaryOperator<Integer> limitModifier) {
+			@Nullable Supplier<BiFunction<TypeSystem, MapAccessor, ?>> mappingFunction, UnaryOperator<Integer> limitModifier) {
 
 		CypherQueryCreator queryCreator = new CypherQueryCreator(mappingContext, getDomainType(queryMethod),
 				Optional.ofNullable(queryType).orElseGet(() -> Neo4jQueryType.fromPartTree(tree)), tree, parameterAccessor,
