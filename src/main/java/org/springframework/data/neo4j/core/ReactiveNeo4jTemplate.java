@@ -38,6 +38,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -892,10 +893,14 @@ public final class ReactiveNeo4jTemplate implements
 						.flatMap(newRelatedObject -> {
 							Neo4jPersistentEntity<?> targetEntity = neo4jMappingContext.getRequiredPersistentEntity(relatedObjectBeforeCallbacksApplied.getClass());
 
-							Mono<Tuple2<Long[], Long[]>> queryOrSave;
+							Mono<Tuple2<AtomicReference<Long>, AtomicReference<Entity>>> queryOrSave;
 							if (stateMachine.hasProcessedValue(relatedValueToStore)) {
-								queryOrSave = Mono.just(new Long[] {stateMachine.getInternalId(relatedValueToStore)})
-										.map(id -> Tuples.of(id, new Long[1]));
+								AtomicReference<Long> relatedInternalId = new AtomicReference<>();
+								Long possibleValue = stateMachine.getInternalId(relatedValueToStore);
+								if (possibleValue != null) {
+									relatedInternalId.set(possibleValue);
+								}
+								queryOrSave = Mono.just(Tuples.of(relatedInternalId, new AtomicReference<>()));
 							} else {
 								queryOrSave = saveRelatedNode(newRelatedObject, targetEntity, includeProperty, currentPropertyPath)
 										.doOnNext(entity -> {
@@ -905,17 +910,11 @@ public final class ReactiveNeo4jTemplate implements
 												stateMachine.markValueAsProcessedAs(value, entity.id());
 											}
 										})
-										.map(entity -> {
-											Long version = targetEntity.hasVersionProperty() ?
-													entity.get(targetEntity.getVersionProperty().getPropertyName()).asLong() :
-													null;
-											return Tuples.of(
-													new Long[] { entity.id() },
-													new Long[] { version });
-										});
+										.map(entity -> Tuples.of(new AtomicReference<>(entity.id()), new AtomicReference<>(entity)));
 							}
-							return queryOrSave.flatMap(idAndVersion -> {
-									Long relatedInternalId = idAndVersion.getT1()[0];
+							return queryOrSave.flatMap(idAndEntity -> {
+									Long relatedInternalId = idAndEntity.getT1().get();
+									Entity savedEntity = idAndEntity.getT2().get();
 									// if an internal id is used this must be set to link this entity in the next iteration
 									PersistentPropertyAccessor<?> targetPropertyAccessor = targetEntity.getPropertyAccessor(newRelatedObject);
 									if (targetEntity.isUsingInternalIds()) {
@@ -927,8 +926,8 @@ public final class ReactiveNeo4jTemplate implements
 											targetPropertyAccessor.setProperty(requiredIdProperty, relatedInternalId);
 										}
 									}
-									if (targetEntity.hasVersionProperty() && idAndVersion.getT2()[0] != null) {
-										targetPropertyAccessor.setProperty(targetEntity.getVersionProperty(), idAndVersion.getT2()[0]);
+									if (savedEntity != null) {
+										TemplateSupport.updateVersionPropertyIfPossible(targetEntity, targetPropertyAccessor, savedEntity);
 									}
 									stateMachine.markValueAsProcessedAs(relatedObjectBeforeCallbacksApplied, targetPropertyAccessor.getBean());
 									stateMachine.markRelationshipAsProcessed(relatedInternalId, relationshipDescription.getRelationshipObverse());
