@@ -429,7 +429,7 @@ public final class ReactiveNeo4jTemplate implements
 
 			PersistentPropertyAccessor<?> propertyAccessor = entityMetaData.getPropertyAccessor(entityToBeSaved);
 			Neo4jPersistentProperty idProperty = entityMetaData.getRequiredIdProperty();
-			ReactiveNeo4jClient.RunnableSpecTightToDatabase runnableQuery = neo4jClient
+			ReactiveNeo4jClient.RunnableSpec runnableQuery = neo4jClient
 					.query(() -> renderer.render(cypherGenerator.createStatementReturningDynamicLabels(entityMetaData)))
 					.bind(convertIdValues(idProperty, propertyAccessor.getProperty(idProperty)))
 					.to(Constants.NAME_OF_ID).bind(entityMetaData.getStaticLabels()).to(Constants.NAME_OF_STATIC_LABELS_PARAM);

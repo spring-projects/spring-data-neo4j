@@ -35,7 +35,7 @@ class ReactiveNeo4jClientExtensionsTest {
     @Test
     fun `RunnableSpec#inDatabase(targetDatabase) extension should call its Java counterpart`() {
 
-        val runnableSpec = mockk<ReactiveNeo4jClient.RunnableSpec>(relaxed = true)
+        val runnableSpec = mockk<ReactiveNeo4jClient.UnboundRunnableSpec>(relaxed = true)
 
         runnableSpec.inDatabase("foobar")
 
@@ -55,7 +55,7 @@ class ReactiveNeo4jClientExtensionsTest {
     @Test
     fun `ReactiveRunnableDelegation#fetchAs() extension should call its Java counterpart`() {
 
-        val runnableSpec = mockk<ReactiveNeo4jClient.RunnableSpecTightToDatabase>(relaxed = true)
+        val runnableSpec = mockk<ReactiveNeo4jClient.RunnableSpecBoundToDatabase>(relaxed = true)
 
         @Suppress("UNUSED_VARIABLE")
         val mappingSpec: ReactiveNeo4jClient.MappingSpec<String> = runnableSpec.fetchAs()
@@ -66,7 +66,7 @@ class ReactiveNeo4jClientExtensionsTest {
     @Test
     fun runnableSpecShouldReturnSuspendedResultSummary() {
 
-        val runnableSpec = mockk<ReactiveNeo4jClient.RunnableSpecTightToDatabase>()
+        val runnableSpec = mockk<ReactiveNeo4jClient.RunnableSpecBoundToDatabase>()
         val resultSummary = mockk<ResultSummary>()
         every { runnableSpec.run() } returns Mono.just(resultSummary)
 
