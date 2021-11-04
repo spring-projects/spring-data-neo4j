@@ -147,7 +147,7 @@ public interface Neo4jClient {
 	 * @param cypher The cypher code that shall be executed
 	 * @return A runnable query specification.
 	 */
-	RunnableSpec query(String cypher);
+	UnboundRunnableSpec query(String cypher);
 
 	/**
 	 * Entrypoint for creating a new Cypher query based on a supplier. Doesn't matter at this point whether it's a match,
@@ -157,7 +157,7 @@ public interface Neo4jClient {
 	 * @param cypherSupplier A supplier of arbitrary Cypher code
 	 * @return A runnable query specification.
 	 */
-	RunnableSpec query(Supplier<String> cypherSupplier);
+	UnboundRunnableSpec query(Supplier<String> cypherSupplier);
 
 	/**
 	 * Delegates interaction with the default database to the given callback.
@@ -183,24 +183,7 @@ public interface Neo4jClient {
 	 *
 	 * @since 6.0
 	 */
-	interface RunnableSpec extends RunnableSpecTightToDatabase {
-
-		/**
-		 * Pins the previously defined query to a specific database. A value of {@literal null} chooses the default
-		 * database. The empty string {@literal ""} is not permitted.
-		 *
-		 * @param targetDatabase selected database to use. A {@literal null} value indicates the default database.
-		 * @return A runnable query specification that is now tight to a given database.
-		 */
-		RunnableSpecTightToDatabase in(@Nullable String targetDatabase);
-	}
-
-	/**
-	 * Contract for a runnable query inside a dedicated database.
-	 *
-	 * @since 6.0
-	 */
-	interface RunnableSpecTightToDatabase extends BindSpec<RunnableSpecTightToDatabase> {
+	interface RunnableSpec extends BindSpec<RunnableSpec> {
 
 		/**
 		 * Create a mapping for each record return to a specific type.
@@ -225,6 +208,61 @@ public interface Neo4jClient {
 		 * @return The native summary of the query.
 		 */
 		ResultSummary run();
+	}
+
+	/**
+	 * Contract for a runnable query specification which still can be bound to a specific database and an impersonated user.
+	 *
+	 * @since 6.2
+	 */
+	interface UnboundRunnableSpec extends RunnableSpec {
+
+		/**
+		 * Pins the previously defined query to a specific database. A value of {@literal null} chooses the default
+		 * database. The empty string {@literal ""} is not permitted.
+		 *
+		 * @param targetDatabase selected database to use. A {@literal null} value indicates the default database.
+		 * @return A runnable query specification that is now bound to a given database.
+		 */
+		RunnableSpecBoundToDatabase in(@Nullable String targetDatabase);
+
+		/**
+		 * Pins the previously defined query to an impersonated user. A value of {@literal null} chooses the user owning
+		 * the physical connection. The empty string {@literal ""} is not permitted.
+		 *
+		 * @param asUser The name of the user to impersonate. A {@literal null) value indicates the connected user.}
+		 * @return A runnable query specification that is now bound to a given database.
+		 */
+		RunnableSpecBoundToUser asUser(@Nullable String asUser);
+	}
+
+	/**
+	 * Contract for a runnable query inside a dedicated database.
+	 *
+	 * @since 6.0
+	 */
+	interface RunnableSpecBoundToDatabase extends RunnableSpec {
+
+		RunnableSpecBoundToDatabaseAndUser asUser(String aUser);
+	}
+
+	/**
+	 * Contract for a runnable query bound to a user to be impersonated.
+	 *
+	 * @since 6.2
+	 */
+	interface RunnableSpecBoundToUser extends RunnableSpec {
+
+		RunnableSpecBoundToDatabaseAndUser in(String aDatabase);
+	}
+
+	/**
+	 * Combination of {@link RunnableSpecBoundToDatabase} and {@link RunnableSpecBoundToUser}, can't be
+	 * bound any further.
+	 *
+	 * @since 6.2
+	 */
+	interface RunnableSpecBoundToDatabaseAndUser extends RunnableSpec {
 	}
 
 	/**

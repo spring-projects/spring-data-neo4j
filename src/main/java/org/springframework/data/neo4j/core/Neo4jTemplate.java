@@ -417,7 +417,7 @@ public final class Neo4jTemplate implements
 
 			PersistentPropertyAccessor<T> propertyAccessor = entityMetaData.getPropertyAccessor(entityToBeSaved);
 			Neo4jPersistentProperty idProperty = entityMetaData.getRequiredIdProperty();
-			Neo4jClient.RunnableSpecTightToDatabase runnableQuery = neo4jClient
+			Neo4jClient.RunnableSpec runnableQuery = neo4jClient
 					.query(() -> renderer.render(cypherGenerator.createStatementReturningDynamicLabels(entityMetaData)))
 					.bind(convertIdValues(idProperty, propertyAccessor.getProperty(idProperty)))
 					.to(Constants.NAME_OF_ID).bind(entityMetaData.getStaticLabels())

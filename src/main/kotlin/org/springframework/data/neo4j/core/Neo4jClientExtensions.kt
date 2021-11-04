@@ -25,7 +25,7 @@ import java.util.function.BiFunction
  * @author Michael J. Simons
  * @since 6.0
  */
-fun Neo4jClient.RunnableSpec.inDatabase(targetDatabase: String): Neo4jClient.RunnableSpecTightToDatabase =
+fun Neo4jClient.UnboundRunnableSpec.inDatabase(targetDatabase: String): Neo4jClient.RunnableSpecBoundToDatabase =
         `in`(targetDatabase)
 
 /**
@@ -65,20 +65,20 @@ class KMappingSpec<T : Any>(private val delegate: Neo4jClient.MappingSpec<T>) {
 }
 
 /**
- * Extension for [Neo4jClient.RunnableSpecTightToDatabase.fetchAs] leveraging reified type parameters.
+ * Extension for [Neo4jClient.RunnableSpec.fetchAs] leveraging reified type parameters.
  * @author Michael J. Simons
  * @since 6.0
  */
-inline fun <reified T : Any> Neo4jClient.RunnableSpecTightToDatabase.fetchAs(): KMappingSpec<T> =
+inline fun <reified T : Any> Neo4jClient.RunnableSpec.fetchAs(): KMappingSpec<T> =
         KMappingSpec(fetchAs(T::class.java))
 
 /**
- * Extension for [Neo4jClient.RunnableSpecTightToDatabase.mappedBy] leveraging reified type parameters and removing
+ * Extension for [Neo4jClient.RunnableSpec.mappedBy] leveraging reified type parameters and removing
  * the need for an explicit `fetchAs`.
  * @author Michael J. Simons
  * @since 6.0
  */
-inline fun <reified T : Any> Neo4jClient.RunnableSpecTightToDatabase.mappedBy(
+inline fun <reified T : Any> Neo4jClient.RunnableSpec.mappedBy(
         noinline mappingFunction: (TypeSystem, Record) -> T
 ) =
         KRecordFetchSpec(fetchAs(T::class.java).mappedBy(mappingFunction))

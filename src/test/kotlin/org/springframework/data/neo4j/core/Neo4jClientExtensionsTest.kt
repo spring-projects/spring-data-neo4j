@@ -27,7 +27,7 @@ class Neo4jClientExtensionsTest {
     @Test
     fun `RunnableSpec#inDatabase(targetDatabase) extension should call its Java counterpart`() {
 
-        val runnableSpec = mockk<Neo4jClient.RunnableSpec>(relaxed = true)
+        val runnableSpec = mockk<Neo4jClient.UnboundRunnableSpec>(relaxed = true)
 
         runnableSpec.inDatabase("foobar")
 
@@ -47,7 +47,7 @@ class Neo4jClientExtensionsTest {
     @Test
     fun `RunnableSpecTightToDatabase#fetchAs() extension should call its Java counterpart`() {
 
-        val runnableSpec = mockk<Neo4jClient.RunnableSpecTightToDatabase>(relaxed = true)
+        val runnableSpec = mockk<Neo4jClient.RunnableSpecBoundToDatabase>(relaxed = true)
 
         @Suppress("UNUSED_VARIABLE")
         val mappingSpec: KRecordFetchSpec<String> =
