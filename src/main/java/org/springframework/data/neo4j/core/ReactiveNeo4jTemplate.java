@@ -452,7 +452,7 @@ public final class ReactiveNeo4jTemplate implements ReactiveNeo4jOperations, Bea
 		Assert.notNull(neo4jMappingContext.getPersistentEntity(domainType), "Cannot get or create persistent entity.");
 		PreparedQuery<T> preparedQuery = PreparedQuery.queryFor(domainType).withCypherQuery(cypherQuery)
 				.withParameters(parameters)
-				.usingMappingFunction(this.neo4jMappingContext.getRequiredMappingFunctionFor(domainType)).build();
+				.usingMappingFunction(() -> this.neo4jMappingContext.getRequiredMappingFunctionFor(domainType)).build();
 		return this.toExecutableQuery(preparedQuery);
 	}
 

@@ -461,7 +461,7 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 		PreparedQuery<T> preparedQuery = PreparedQuery.queryFor(domainType)
 				.withCypherQuery(cypherStatement)
 				.withParameters(parameters)
-				.usingMappingFunction(neo4jMappingContext.getRequiredMappingFunctionFor(domainType))
+				.usingMappingFunction(() -> neo4jMappingContext.getRequiredMappingFunctionFor(domainType))
 				.build();
 
 		return toExecutableQuery(preparedQuery);
@@ -677,7 +677,7 @@ public final class Neo4jTemplate implements Neo4jOperations, BeanFactoryAware {
 
 		PreparedQuery<T> preparedQuery = PreparedQuery.queryFor(domainType)
 				.withQueryFragmentsAndParameters(queryFragmentsAndParameters)
-				.usingMappingFunction(neo4jMappingContext.getRequiredMappingFunctionFor(domainType))
+				.usingMappingFunction(() -> neo4jMappingContext.getRequiredMappingFunctionFor(domainType))
 				.build();
 		return toExecutableQuery(preparedQuery);
 	}

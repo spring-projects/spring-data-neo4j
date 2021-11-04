@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiFunction;
+import java.util.function.Supplier;
 
 import org.neo4j.driver.types.MapAccessor;
 import org.neo4j.driver.types.TypeSystem;
@@ -124,7 +125,7 @@ final class ReactiveStringBasedNeo4jQuery extends AbstractReactiveNeo4jQuery {
 	@Override
 	protected <T extends Object> PreparedQuery<T> prepareQuery(Class<T> returnedType, List<String> includedProperties,
 			Neo4jParameterAccessor parameterAccessor, @Nullable Neo4jQueryType queryType,
-			@Nullable BiFunction<TypeSystem, MapAccessor, ?> mappingFunction) {
+			@Nullable Supplier<BiFunction<TypeSystem, MapAccessor, ?>> mappingFunction) {
 
 		Map<String, Object> boundParameters = bindParameters(parameterAccessor);
 		QueryContext queryContext = new QueryContext(
