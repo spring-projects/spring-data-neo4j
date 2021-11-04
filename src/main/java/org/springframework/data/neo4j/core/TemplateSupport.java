@@ -26,6 +26,7 @@ import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -230,16 +231,18 @@ public final class TemplateSupport {
 	 * @param <T>            The domain type
 	 * @return A mapping function
 	 */
-	static <T> BiFunction<TypeSystem, MapAccessor, ?> getAndDecorateMappingFunction(
+	static <T> Supplier<BiFunction<TypeSystem, MapAccessor, ?>> getAndDecorateMappingFunction(
 			Neo4jMappingContext mappingContext, Class<T> domainType, @Nullable Class<?> resultType) {
 
 		Assert.notNull(mappingContext.getPersistentEntity(domainType), "Cannot get or create persistent entity.");
-		BiFunction<TypeSystem, MapAccessor, ?> mappingFunction = mappingContext
-				.getRequiredMappingFunctionFor(domainType);
-		if (resultType != null && domainType != resultType && !resultType.isInterface()) {
-			mappingFunction = EntityInstanceWithSource.decorateMappingFunction(mappingFunction);
-		}
-		return mappingFunction;
+		return () -> {
+			BiFunction<TypeSystem, MapAccessor, ?> mappingFunction = mappingContext.getRequiredMappingFunctionFor(
+					domainType);
+			if (resultType != null && domainType != resultType && !resultType.isInterface()) {
+				mappingFunction = EntityInstanceWithSource.decorateMappingFunction(mappingFunction);
+			}
+			return mappingFunction;
+		};
 	}
 
 	/**

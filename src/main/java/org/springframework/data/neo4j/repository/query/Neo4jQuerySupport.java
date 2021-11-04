@@ -102,24 +102,27 @@ abstract class Neo4jQuerySupport {
 		this.queryType = queryType;
 	}
 
-	protected final BiFunction<TypeSystem, MapAccessor, ?> getMappingFunction(final ResultProcessor resultProcessor) {
+	protected final Supplier<BiFunction<TypeSystem, MapAccessor, ?>> getMappingFunction(final ResultProcessor resultProcessor) {
 
-		final ReturnedType returnedTypeMetadata = resultProcessor.getReturnedType();
-		final Class<?> returnedType = returnedTypeMetadata.getReturnedType();
-		final Class<?> domainType = returnedTypeMetadata.getDomainType();
+		return () -> {
+			final ReturnedType returnedTypeMetadata = resultProcessor.getReturnedType();
+			final Class<?> returnedType = returnedTypeMetadata.getReturnedType();
+			final Class<?> domainType = returnedTypeMetadata.getDomainType();
 
-		final BiFunction<TypeSystem, MapAccessor, ?> mappingFunction;
+			final BiFunction<TypeSystem, MapAccessor, ?> mappingFunction;
 
-		if (mappingContext.getConversionService().isSimpleType(returnedType)) {
-			// Clients automatically selects a single value mapping function.
-			// It will throw an error if the query contains more than one column.
-			mappingFunction = null;
-		} else if (returnedTypeMetadata.isProjecting()) {
-			mappingFunction = EntityInstanceWithSource.decorateMappingFunction(this.mappingContext.getRequiredMappingFunctionFor(domainType));
-		} else {
-			mappingFunction = this.mappingContext.getRequiredMappingFunctionFor(domainType);
-		}
-		return mappingFunction;
+			if (mappingContext.getConversionService().isSimpleType(returnedType)) {
+				// Clients automatically selects a single value mapping function.
+				// It will throw an error if the query contains more than one column.
+				mappingFunction = null;
+			} else if (returnedTypeMetadata.isProjecting()) {
+				mappingFunction = EntityInstanceWithSource.decorateMappingFunction(
+						this.mappingContext.getRequiredMappingFunctionFor(domainType));
+			} else {
+				mappingFunction = this.mappingContext.getRequiredMappingFunctionFor(domainType);
+			}
+			return mappingFunction;
+		};
 	}
 
 	private static boolean hasValidReturnTypeForDelete(Neo4jQueryMethod queryMethod) {

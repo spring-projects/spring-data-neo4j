@@ -40,6 +40,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
@@ -65,17 +66,13 @@ public final class PreparedQuery<T> {
 
 	private final Class<T> resultType;
 	private final QueryFragmentsAndParameters queryFragmentsAndParameters;
-	private final @Nullable BiFunction<TypeSystem, Record, T> mappingFunction;
+	private final @Nullable Supplier<BiFunction<TypeSystem, MapAccessor, ?>> mappingFunctionSupplier;
+	private volatile Optional<BiFunction<TypeSystem, Record, T>> lastMappingFunction = Optional.empty();
 
 	@SuppressWarnings("unchecked")
 	private PreparedQuery(OptionalBuildSteps<T> optionalBuildSteps) {
 		this.resultType = optionalBuildSteps.resultType;
-		if (optionalBuildSteps.mappingFunction == null) {
-			this.mappingFunction = null;
-		} else {
-			this.mappingFunction = (BiFunction<TypeSystem, Record, T>) new AggregatingMappingFunction(
-					optionalBuildSteps.mappingFunction);
-		}
+		this.mappingFunctionSupplier = optionalBuildSteps.mappingFunctionSupplier;
 		this.queryFragmentsAndParameters = optionalBuildSteps.queryFragmentsAndParameters;
 	}
 
@@ -83,12 +80,20 @@ public final class PreparedQuery<T> {
 		return this.resultType;
 	}
 
-	public Optional<BiFunction<TypeSystem, Record, T>> getOptionalMappingFunction() {
-		return Optional.ofNullable(mappingFunction);
+	@SuppressWarnings("unchecked")
+	public synchronized Optional<BiFunction<TypeSystem, Record, T>> getOptionalMappingFunction() {
+		lastMappingFunction = Optional.ofNullable(this.mappingFunctionSupplier)
+				.map(Supplier::get)
+				.map(f -> (BiFunction<TypeSystem, Record, T>) new AggregatingMappingFunction(f));
+		return lastMappingFunction;
 	}
 
-	boolean resultsHaveBeenAggregated() {
-		return this.mappingFunction != null && ((AggregatingMappingFunction) this.mappingFunction).hasAggregated();
+	synchronized boolean resultsHaveBeenAggregated() {
+		return lastMappingFunction
+				.filter(AggregatingMappingFunction.class::isInstance)
+				.map(AggregatingMappingFunction.class::cast)
+				.map(AggregatingMappingFunction::hasAggregated)
+				.orElse(false);
 	}
 
 	public QueryFragmentsAndParameters getQueryFragmentsAndParameters() {
@@ -123,7 +128,7 @@ public final class PreparedQuery<T> {
 
 		final Class<CT> resultType;
 		final QueryFragmentsAndParameters queryFragmentsAndParameters;
-		@Nullable BiFunction<TypeSystem, MapAccessor, ?> mappingFunction;
+		@Nullable Supplier<BiFunction<TypeSystem, MapAccessor, ?>> mappingFunctionSupplier;
 
 		OptionalBuildSteps(Class<CT> resultType, QueryFragmentsAndParameters queryFragmentsAndParameters) {
 			this.resultType = resultType;
@@ -141,9 +146,8 @@ public final class PreparedQuery<T> {
 			return this;
 		}
 
-		public OptionalBuildSteps<CT> usingMappingFunction(
-				@Nullable BiFunction<TypeSystem, MapAccessor, ?> newMappingFunction) {
-			this.mappingFunction = newMappingFunction;
+		public OptionalBuildSteps<CT> usingMappingFunction(@Nullable Supplier<BiFunction<TypeSystem, MapAccessor, ?>> newMappingFunction) {
+			this.mappingFunctionSupplier = newMappingFunction;
 			return this;
 		}
 
