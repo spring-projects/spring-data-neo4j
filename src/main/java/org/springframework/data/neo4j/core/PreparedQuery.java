@@ -81,12 +81,11 @@ public final class PreparedQuery<T> {
 
 	@SuppressWarnings("unchecked")
 	public synchronized Optional<BiFunction<TypeSystem, Record, T>> getOptionalMappingFunction() {
-		Optional<BiFunction<TypeSystem, Record, T>> currentMappingFunction = Optional.ofNullable(
+		lastMappingFunction = Optional.ofNullable(
 						this.mappingFunctionSupplier)
 				.map(Supplier::get)
 				.map(f -> (BiFunction<TypeSystem, Record, T>) new AggregatingMappingFunction(f));
-		lastMappingFunction = currentMappingFunction;
-		return currentMappingFunction;
+		return lastMappingFunction;
 	}
 
 	synchronized boolean resultsHaveBeenAggregated() {
