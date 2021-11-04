@@ -18,6 +18,7 @@ package org.springframework.data.neo4j.repository.query;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiFunction;
+import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
 import org.neo4j.cypherdsl.core.Statement;
@@ -57,7 +58,7 @@ final class CypherdslBasedQuery extends AbstractNeo4jQuery {
 	protected <T> PreparedQuery<T> prepareQuery(Class<T> returnedType,
 			Map<PropertyPath, Boolean> includedProperties,
 			Neo4jParameterAccessor parameterAccessor, Neo4jQueryType queryType,
-			BiFunction<TypeSystem, MapAccessor, ?> mappingFunction,
+			Supplier<BiFunction<TypeSystem, MapAccessor, ?>> mappingFunction,
 			UnaryOperator<Integer> limitModifier) {
 
 		Object[] parameters = parameterAccessor.getValues();

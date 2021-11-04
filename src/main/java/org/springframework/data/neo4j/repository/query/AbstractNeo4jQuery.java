@@ -150,7 +150,7 @@ abstract class AbstractNeo4jQuery extends Neo4jQuerySupport implements Repositor
 	protected abstract <T extends Object> PreparedQuery<T> prepareQuery(Class<T> returnedType,
 			Map<PropertyPath, Boolean> includedProperties, Neo4jParameterAccessor parameterAccessor,
 			@Nullable Neo4jQueryType queryType,
-			@Nullable BiFunction<TypeSystem, MapAccessor, ?> mappingFunction,
+			@Nullable Supplier<BiFunction<TypeSystem, MapAccessor, ?>> mappingFunction,
 			@Nullable UnaryOperator<Integer> limitModifier);
 
 	protected Optional<PreparedQuery<Long>> getCountQuery(Neo4jParameterAccessor parameterAccessor) {

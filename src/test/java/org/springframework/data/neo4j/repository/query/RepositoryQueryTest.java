@@ -336,7 +336,7 @@ final class RepositoryQueryTest {
 					Collections.emptyMap(),
 					parameterAccessor,
 					Neo4jQueryType.DEFAULT,
-					(typeSystem, mapAccessor) -> new TestEntity(),
+					() -> (typeSystem, mapAccessor) -> new TestEntity(),
 					UnaryOperator.identity()
 			);
 			assertThat(logbackCapture.getFormattedMessages())
@@ -362,7 +362,7 @@ final class RepositoryQueryTest {
 					Collections.emptyMap(),
 					parameterAccessor,
 					Neo4jQueryType.DEFAULT,
-					(typeSystem, mapAccessor) -> new TestEntity(),
+					() -> (typeSystem, mapAccessor) -> new TestEntity(),
 					UnaryOperator.identity()
 			);
 			assertThat(logbackCapture.getFormattedMessages())
@@ -394,7 +394,7 @@ final class RepositoryQueryTest {
 					Collections.emptyMap(),
 					parameterAccessor,
 					Neo4jQueryType.DEFAULT,
-					(typeSystem, mapAccessor) -> new TestEntity(),
+					() -> (typeSystem, mapAccessor) -> new TestEntity(),
 					UnaryOperator.identity()
 			);
 			assertThat(pq.getQueryFragmentsAndParameters().getCypherQuery())
@@ -427,7 +427,7 @@ final class RepositoryQueryTest {
 					Collections.emptyMap(),
 					parameterAccessor,
 					Neo4jQueryType.DEFAULT,
-					(typeSystem, mapAccessor) -> new TestEntity(),
+					() -> (typeSystem, mapAccessor) -> new TestEntity(),
 					UnaryOperator.identity()
 			);
 			assertThat(pq.getQueryFragmentsAndParameters().getCypherQuery())

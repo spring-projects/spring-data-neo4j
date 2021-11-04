@@ -33,6 +33,7 @@ import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import org.apache.commons.logging.LogFactory;
@@ -621,7 +622,7 @@ public final class Neo4jTemplate implements
 	private <T> ExecutableQuery<T> createExecutableQuery(Class<T> domainType, @Nullable Class<?> resultType,  @Nullable String cypherStatement,
 			Map<String, Object> parameters) {
 
-		BiFunction<TypeSystem, MapAccessor, ?> mappingFunction = TemplateSupport
+		Supplier<BiFunction<TypeSystem, MapAccessor, ?>> mappingFunction = TemplateSupport
 				.getAndDecorateMappingFunction(neo4jMappingContext, domainType, resultType);
 		PreparedQuery<T> preparedQuery = PreparedQuery.queryFor(domainType)
 				.withCypherQuery(cypherStatement)
@@ -881,7 +882,7 @@ public final class Neo4jTemplate implements
 	private <T> ExecutableQuery<T> createExecutableQuery(Class<T> domainType, Class<?> resultType,
  			QueryFragmentsAndParameters queryFragmentsAndParameters) {
 
-		BiFunction<TypeSystem, MapAccessor, ?> mappingFunction = TemplateSupport
+		Supplier<BiFunction<TypeSystem, MapAccessor, ?>> mappingFunction = TemplateSupport
 				.getAndDecorateMappingFunction(neo4jMappingContext, domainType, resultType);
 		PreparedQuery<T> preparedQuery = PreparedQuery.queryFor(domainType)
 				.withQueryFragmentsAndParameters(queryFragmentsAndParameters)
