@@ -16,7 +16,10 @@
 package org.springframework.data.neo4j.core.convert;
 
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentProperty;
+import org.springframework.lang.Nullable;
+import org.springframework.util.StringUtils;
 
 /**
  * @author Michael J. Simons
@@ -25,11 +28,29 @@ import org.springframework.data.neo4j.core.mapping.Neo4jPersistentProperty;
  */
 final class DefaultNeo4jPersistentPropertyConverterFactory implements Neo4jPersistentPropertyConverterFactory {
 
+	@Nullable
+	private final BeanFactory beanFactory;
+
+	DefaultNeo4jPersistentPropertyConverterFactory(@Nullable BeanFactory beanFactory) {
+
+		this.beanFactory = beanFactory;
+	}
+
 	@Override
 	public Neo4jPersistentPropertyConverter<?> getPropertyConverterFor(Neo4jPersistentProperty persistentProperty) {
 
 		// At this point we already checked for the annotation.
 		ConvertWith config = persistentProperty.getRequiredAnnotation(ConvertWith.class);
+
+		if (StringUtils.hasText(config.converterRef())) {
+			if (beanFactory == null) {
+				throw new IllegalStateException(
+						"The default converter factory has been configured without a bean factory and cannot use a converter from the application context.");
+			}
+
+			return beanFactory.getBean(config.converterRef(), Neo4jPersistentPropertyConverter.class);
+		}
+
 		if (config.converter() == ConvertWith.UnsetConverter.class) {
 			throw new IllegalArgumentException(
 					"The default custom conversion factory cannot be used with a placeholder");

@@ -43,4 +43,7 @@ public class DomainObject {
 
 	@ConvertWith(converter = UnrelatedObjectPropertyConverter.class)
 	private UnrelatedObject storedAsSingleProperty = new UnrelatedObject();
+
+	@ConvertWith(converterRef = "converterBean")
+	private UnrelatedObject storedAsAnotherSingleProperty = new UnrelatedObject();
 }

@@ -38,6 +38,10 @@ import org.neo4j.driver.Values;
  * either this annotation and its values or with the meta annotated annotation, including all configuration
  * available.
  *
+ * <p>In case {@link ConvertWith#converterRef()} is set to a non {@literal null} and non-empty value, the mapping context
+ * will try to lookup a bean under the given name of type {@link Neo4jPersistentPropertyConverter} in the application context.
+ * If no such bean is found an exception will be thrown. This attribute has precedence over {@link ConvertWith#converter()}.
+ *
  * @author Michael J. Simons
  * @soundtrack Antilopen Gang - Abwasser
  * @since 6.0
@@ -58,6 +62,11 @@ public @interface ConvertWith {
 	 * @return An alternative to {@link #converter()}, for all the scenarios in which constructing a converter is more effort than a constructor call.
 	 */
 	Class<? extends Neo4jPersistentPropertyConverterFactory> converterFactory() default DefaultNeo4jPersistentPropertyConverterFactory.class;
+
+	/**
+	 * @return An optional reference to a bean to be used as converter, must implement {@link Neo4jPersistentPropertyConverter}.
+	 */
+	String converterRef() default "";
 
 	/**
 	 * Indicates an unset converter.

@@ -34,6 +34,7 @@ import org.apiguardian.api.API;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.GenericTypeResolver;
 import org.springframework.core.annotation.AliasFor;
 import org.springframework.data.neo4j.core.convert.ConvertWith;
@@ -47,6 +48,7 @@ import org.springframework.data.util.ClassTypeInformation;
 import org.springframework.data.util.TypeInformation;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * This annotation indicates a {@link org.springframework.data.neo4j.core.mapping.Neo4jPersistentProperty persistent property}
@@ -73,6 +75,9 @@ public @interface CompositeProperty {
 	 */
 	@AliasFor(annotation = ConvertWith.class, value = "converter")
 	Class<? extends Neo4jPersistentPropertyToMapConverter> converter() default CompositeProperty.DefaultToMapConverter.class;
+
+	@AliasFor(annotation = ConvertWith.class, value = "converterRef")
+	String converterRef() default "";
 
 	/**
 	 * Allows to specify the prefix for the map properties. The default empty value instructs SDN to use the
@@ -223,6 +228,15 @@ final class CompositePropertyConverter<K, P> implements Neo4jPersistentPropertyC
 		});
 		return this.delegate.compose(temp, neo4jConversionService);
 	}
+
+	/**
+	 * Internally used via reflection.
+	 * @return The type of the underlying delegate.
+	 */
+	@SuppressWarnings("unused")
+	Class<?> getClassOfDelegate() {
+		return this.delegate.getClass();
+	}
 }
 
 /**
@@ -233,9 +247,11 @@ final class CompositePropertyConverterFactory implements Neo4jPersistentProperty
 	private static final String KEY_TYPE_KEY = "K";
 	private static final String PROPERTY_TYPE_KEY = "P";
 
+	private final BeanFactory beanFactory;
 	private final Neo4jConversionService conversionServiceDelegate;
 
-	CompositePropertyConverterFactory(@Nullable Neo4jConversionService conversionServiceDelegate) {
+	CompositePropertyConverterFactory(@Nullable BeanFactory beanFactory, @Nullable Neo4jConversionService conversionServiceDelegate) {
+		this.beanFactory = beanFactory;
 		this.conversionServiceDelegate = conversionServiceDelegate;
 	}
 
@@ -245,6 +261,17 @@ final class CompositePropertyConverterFactory implements Neo4jPersistentProperty
 
 		CompositeProperty config = persistentProperty.getRequiredAnnotation(CompositeProperty.class);
 		Class<? extends Neo4jPersistentPropertyToMapConverter> delegateClass = config.converter();
+		Neo4jPersistentPropertyToMapConverter<?, Map<?, Object>> delegate = null;
+
+		if (StringUtils.hasText(config.converterRef())) {
+			if (beanFactory == null) {
+				throw new IllegalStateException(
+						"The default composite converter factory has been configured without a bean factory and cannot use a converter from the application context.");
+			}
+
+			delegate = beanFactory.getBean(config.converterRef(), Neo4jPersistentPropertyToMapConverter.class);
+			delegateClass = delegate.getClass();
+		}
 
 		Class<?> componentType;
 
@@ -307,11 +334,12 @@ final class CompositePropertyConverterFactory implements Neo4jPersistentProperty
 			keyWriter = (String key) -> keyTransformation.apply(Phase.WRITE, key);
 		}
 
-		Neo4jPersistentPropertyToMapConverter<?, Map<?, Object>> delegate;
-		if (delegateClass == CompositeProperty.DefaultToMapConverter.class) {
-			delegate = new CompositeProperty.DefaultToMapConverter(ClassTypeInformation.from(persistentProperty.getActualType()));
-		} else {
-			delegate = BeanUtils.instantiateClass(delegateClass);
+		if (delegate == null) {
+			if (delegateClass == CompositeProperty.DefaultToMapConverter.class) {
+				delegate = new CompositeProperty.DefaultToMapConverter(ClassTypeInformation.from(persistentProperty.getActualType()));
+			} else {
+				delegate = BeanUtils.instantiateClass(delegateClass);
+			}
 		}
 
 		String prefixWithDelimiter = persistentProperty.computePrefixWithDelimiter();

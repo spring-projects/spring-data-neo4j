@@ -26,6 +26,9 @@ import org.springframework.data.neo4j.core.mapping.Neo4jPersistentProperty;
  * an instance of {@link Neo4jConversionService}, such service is provided. This allows for conversions delegating part
  * of the conversion.
  *
+ * <p>In same cases a factory might be interested in having access to a {@link org.springframework.beans.factory.BeanFactory}.
+ * In case SDN can provide it, it will prefer such a constructor to the default one or the one taken a {@link Neo4jConversionService}.
+ *
  * @author Michael J. Simons
  * @soundtrack Antilopen Gang - Abwasser
  * @since 6.0
