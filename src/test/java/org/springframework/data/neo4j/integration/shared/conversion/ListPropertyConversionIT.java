@@ -163,7 +163,7 @@ class ListPropertyConversionIT {
 		@CompositeProperty(converter = ListDecomposingConverter.class, delimiter = "", prefix = "someprefix")
 		private List<SomeConvertableClass> collectedData;
 
-		@ConvertWith(converter = F.class)
+		@ConvertWith(converter = SomeconvertableClassConverter.class)
 		private List<SomeConvertableClass> anotherSet;
 
 	}
@@ -245,7 +245,7 @@ class ListPropertyConversionIT {
 		}
 	}
 
-	static class F implements Neo4jPersistentPropertyConverter<List<SomeConvertableClass>> {
+	static class SomeconvertableClassConverter implements Neo4jPersistentPropertyConverter<List<SomeConvertableClass>> {
 
 		@Override public Value write(List<SomeConvertableClass> source) {
 

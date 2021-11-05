@@ -208,11 +208,13 @@ If you need multiple converters in your application, you can add as many as you 
 === For specific attributes only
 
 If you need conversions only for some specific attributes, we provide `@ConvertWith`.
-This is an annotation that can be put on attributes carrying a `Neo4jPersistentPropertyConverter` on its `converter` attribute
+This is an annotation that can be put on attributes of both entities (`@Node`) and relationship properties (`@RelationshipProperties`)
+It defines a `Neo4jPersistentPropertyConverter` via the `converter` attribute
 and an optional `Neo4jPersistentPropertyConverterFactory` to construct the former.
 With an implementation of `Neo4jPersistentPropertyConverter` all specific conversions for a given type can be addressed.
 
 We provide `@DateLong` and `@DateString` as meta-annotated annotations for backward compatibility with Neo4j-OGM schemes not using native types.
+Those are meta annotated annotations building on the concept above.
 
 [[custom.conversions.composite-properties]]
 ==== Composite properties
