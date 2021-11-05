@@ -29,8 +29,8 @@ import org.neo4j.driver.types.TypeSystem
  * @author Michael J. Simons
  * @since 6.0
  */
-fun ReactiveNeo4jClient.RunnableSpec.inDatabase(targetDatabase: String):
-        ReactiveNeo4jClient.RunnableSpecTightToDatabase = `in`(targetDatabase)
+fun ReactiveNeo4jClient.UnboundRunnableSpec.inDatabase(targetDatabase: String):
+        ReactiveNeo4jClient.RunnableSpecBoundToDatabase = `in`(targetDatabase)
 
 /**
  * Extension for [ReactiveNeo4jClient.OngoingDelegation. in] providing an `inDatabase` alias since `in` is a reserved keyword in Kotlin.
@@ -46,7 +46,7 @@ fun <T : Any?> ReactiveNeo4jClient.OngoingDelegation<T>.inDatabase(targetDatabas
  * @author Michael J. Simons
  * @since 6.0
  */
-inline fun <reified T : Any> ReactiveNeo4jClient.RunnableSpecTightToDatabase.fetchAs():
+inline fun <reified T : Any> ReactiveNeo4jClient.RunnableSpec.fetchAs():
         ReactiveNeo4jClient.MappingSpec<T> = fetchAs(T::class.java)
 
 /**
@@ -55,7 +55,7 @@ inline fun <reified T : Any> ReactiveNeo4jClient.RunnableSpecTightToDatabase.fet
  * @author Michael J. Simons
  * @since 6.0
  */
-inline fun <reified T : Any> ReactiveNeo4jClient.RunnableSpecTightToDatabase.mappedBy(
+inline fun <reified T : Any> ReactiveNeo4jClient.RunnableSpec.mappedBy(
         noinline mappingFunction: (TypeSystem, Record) -> T
 ): ReactiveNeo4jClient.RecordFetchSpec<T> =
         fetchAs(T::class.java).mappedBy(mappingFunction)
@@ -66,7 +66,7 @@ inline fun <reified T : Any> ReactiveNeo4jClient.RunnableSpecTightToDatabase.map
  * @author Michael J. Simons
  * @since 6.0
  */
-suspend inline fun ReactiveNeo4jClient.RunnableSpecTightToDatabase.await(): ResultSummary =
+suspend inline fun ReactiveNeo4jClient.RunnableSpec.await(): ResultSummary =
         run().awaitSingle()
 
 /**

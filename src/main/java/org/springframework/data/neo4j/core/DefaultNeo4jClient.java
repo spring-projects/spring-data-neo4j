@@ -165,12 +165,12 @@ class DefaultNeo4jClient implements Neo4jClient {
 	// Below are all the implementations (methods and classes) as defined by the contracts of Neo4jClient
 
 	@Override
-	public RunnableSpec query(String cypher) {
+	public UnboundRunnableSpec query(String cypher) {
 		return query(() -> cypher);
 	}
 
 	@Override
-	public RunnableSpec query(Supplier<String> cypherSupplier) {
+	public UnboundRunnableSpec query(Supplier<String> cypherSupplier) {
 		return new DefaultRunnableSpec(cypherSupplier);
 	}
 
@@ -256,29 +256,73 @@ class DefaultNeo4jClient implements Neo4jClient {
 		return UserSelectionProvider.getDefaultSelectionProvider().getUserSelection();
 	}
 
-	class DefaultRunnableSpec implements RunnableSpec {
+	class DefaultRunnableSpec implements UnboundRunnableSpec, RunnableSpecBoundToDatabaseAndUser {
 
 		private final RunnableStatement runnableStatement;
 
 		private DatabaseSelection databaseSelection;
 
-		@Nullable
-		private UserSelection impersonatedUser;
+		private UserSelection userSelection;
 
 		DefaultRunnableSpec(Supplier<String> cypherSupplier) {
+
 			this.databaseSelection = resolveTargetDatabaseName(null);
-			this.impersonatedUser = resolveUser(null);
+			this.userSelection = resolveUser(null);
 			this.runnableStatement = new RunnableStatement(cypherSupplier);
 		}
 
 		@Override
-		public RunnableSpecTightToDatabase in(String targetDatabase) {
+		public RunnableSpecBoundToDatabase in(String targetDatabase) {
 
 			this.databaseSelection = resolveTargetDatabaseName(targetDatabase);
+			return new DefaultRunnableSpecBoundToDatabase();
+		}
+
+		@Override
+		public RunnableSpecBoundToUser asUser(String asUser) {
+
+			this.userSelection = resolveUser(asUser);
+			return new DefaultRunnableSpecBoundToUser();
+		}
+
+		@Override
+		public <T> OngoingBindSpec<T, RunnableSpec> bind(T value) {
+			return new DefaultOngoingBindSpec<>(value);
+		}
+
+		@Override
+		public RunnableSpec bindAll(Map<String, Object> newParameters) {
+			this.runnableStatement.parameters.addAll(newParameters);
 			return this;
 		}
 
-		class DefaultOngoingBindSpec<T> implements OngoingBindSpec<T, RunnableSpecTightToDatabase> {
+		@Override
+		public <T> MappingSpec<T> fetchAs(Class<T> targetClass) {
+
+			return new DefaultRecordFetchSpec<>(databaseSelection, userSelection, runnableStatement,
+					new SingleValueMappingFunction<>(conversionService, targetClass));
+		}
+
+		@Override
+		public RecordFetchSpec<Map<String, Object>> fetch() {
+
+			return new DefaultRecordFetchSpec<>(databaseSelection, userSelection, runnableStatement, (t, r) -> r.asMap());
+		}
+
+		@Override
+		public ResultSummary run() {
+
+			try (QueryRunner statementRunner = getQueryRunner(databaseSelection, userSelection)) {
+				Result result = runnableStatement.runWith(statementRunner);
+				return ResultSummaries.process(result.consume());
+			} catch (RuntimeException e) {
+				throw potentiallyConvertRuntimeException(e, persistenceExceptionTranslator);
+			} catch (Exception e) {
+				throw new RuntimeException(e);
+			}
+		}
+
+		class DefaultOngoingBindSpec<T> implements OngoingBindSpec<T, RunnableSpec> {
 
 			@Nullable private final T value;
 
@@ -287,14 +331,14 @@ class DefaultNeo4jClient implements Neo4jClient {
 			}
 
 			@Override
-			public RunnableSpecTightToDatabase to(String name) {
+			public RunnableSpec to(String name) {
 
 				DefaultRunnableSpec.this.runnableStatement.parameters.add(name, value);
 				return DefaultRunnableSpec.this;
 			}
 
 			@Override
-			public RunnableSpecTightToDatabase with(Function<T, Map<String, Object>> binder) {
+			public RunnableSpec with(Function<T, Map<String, Object>> binder) {
 
 				Assert.notNull(binder, "Binder is required.");
 
@@ -302,40 +346,72 @@ class DefaultNeo4jClient implements Neo4jClient {
 			}
 		}
 
-		@Override
-		public <T> OngoingBindSpec<T, RunnableSpecTightToDatabase> bind(T value) {
-			return new DefaultOngoingBindSpec<>(value);
+		class DefaultRunnableSpecBoundToDatabase implements RunnableSpecBoundToDatabase {
+			@Override
+			public RunnableSpecBoundToDatabaseAndUser asUser(String aUser) {
+
+				DefaultRunnableSpec.this.userSelection = resolveUser(aUser);
+				return DefaultRunnableSpec.this;
+			}
+
+			@Override
+			public <T> MappingSpec<T> fetchAs(Class<T> targetClass) {
+				return DefaultRunnableSpec.this.fetchAs(targetClass);
+			}
+
+			@Override
+			public RecordFetchSpec<Map<String, Object>> fetch() {
+				return DefaultRunnableSpec.this.fetch();
+			}
+
+			@Override
+			public ResultSummary run() {
+				return DefaultRunnableSpec.this.run();
+			}
+
+			@Override
+			public <T> OngoingBindSpec<T, RunnableSpec> bind(T value) {
+				return DefaultRunnableSpec.this.bind(value);
+			}
+
+			@Override
+			public RunnableSpec bindAll(Map<String, Object> parameters) {
+				return DefaultRunnableSpec.this.bindAll(parameters);
+			}
 		}
 
-		@Override
-		public RunnableSpecTightToDatabase bindAll(Map<String, Object> newParameters) {
-			this.runnableStatement.parameters.addAll(newParameters);
-			return this;
-		}
+		class DefaultRunnableSpecBoundToUser implements RunnableSpecBoundToUser {
 
-		@Override
-		public <T> MappingSpec<T> fetchAs(Class<T> targetClass) {
+			@Override
+			public RunnableSpecBoundToDatabaseAndUser in(String aDatabase) {
 
-			return new DefaultRecordFetchSpec<>(databaseSelection, impersonatedUser, runnableStatement,
-					new SingleValueMappingFunction<>(conversionService, targetClass));
-		}
+				DefaultRunnableSpec.this.databaseSelection = resolveTargetDatabaseName(aDatabase);
+				return DefaultRunnableSpec.this;
+			}
 
-		@Override
-		public RecordFetchSpec<Map<String, Object>> fetch() {
+			@Override
+			public <T> MappingSpec<T> fetchAs(Class<T> targetClass) {
+				return DefaultRunnableSpec.this.fetchAs(targetClass);
+			}
 
-			return new DefaultRecordFetchSpec<>(databaseSelection, impersonatedUser, runnableStatement, (t, r) -> r.asMap());
-		}
+			@Override
+			public RecordFetchSpec<Map<String, Object>> fetch() {
+				return DefaultRunnableSpec.this.fetch();
+			}
 
-		@Override
-		public ResultSummary run() {
+			@Override
+			public ResultSummary run() {
+				return DefaultRunnableSpec.this.run();
+			}
 
-			try (QueryRunner statementRunner = getQueryRunner(databaseSelection, impersonatedUser)) {
-				Result result = runnableStatement.runWith(statementRunner);
-				return ResultSummaries.process(result.consume());
-			} catch (RuntimeException e) {
-				throw potentiallyConvertRuntimeException(e, persistenceExceptionTranslator);
-			} catch (Exception e) {
-				throw new RuntimeException(e);
+			@Override
+			public <T> OngoingBindSpec<T, RunnableSpec> bind(T value) {
+				return DefaultRunnableSpec.this.bind(value);
+			}
+
+			@Override
+			public RunnableSpec bindAll(Map<String, Object> parameters) {
+				return DefaultRunnableSpec.this.bindAll(parameters);
 			}
 		}
 	}

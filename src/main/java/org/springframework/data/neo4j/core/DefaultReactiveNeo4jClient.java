@@ -176,12 +176,12 @@ class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 	}
 
 	@Override
-	public RunnableSpec query(String cypher) {
+	public UnboundRunnableSpec query(String cypher) {
 		return query(() -> cypher);
 	}
 
 	@Override
-	public RunnableSpec query(Supplier<String> cypherSupplier) {
+	public UnboundRunnableSpec query(Supplier<String> cypherSupplier) {
 		return new DefaultRunnableSpec(cypherSupplier);
 	}
 
@@ -219,7 +219,7 @@ class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 		return ReactiveUserSelectionProvider.getDefaultSelectionProvider().getUserSelection();
 	}
 
-	class DefaultRunnableSpec implements RunnableSpec {
+	class DefaultRunnableSpec implements UnboundRunnableSpec, RunnableSpecBoundToDatabaseAndUser {
 
 		private final Supplier<String> cypherSupplier;
 
@@ -236,43 +236,26 @@ class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 		}
 
 		@Override
-		public RunnableSpecTightToDatabase in(String targetDatabase) {
+		public RunnableSpecBoundToDatabase in(String targetDatabase) {
 
 			this.databaseSelection = resolveTargetDatabaseName(targetDatabase);
-			return this;
-		}
-
-		class DefaultOngoingBindSpec<T> implements Neo4jClient.OngoingBindSpec<T, RunnableSpecTightToDatabase> {
-
-			@Nullable private final T value;
-
-			DefaultOngoingBindSpec(@Nullable T value) {
-				this.value = value;
-			}
-
-			@Override
-			public RunnableSpecTightToDatabase to(String name) {
-
-				DefaultRunnableSpec.this.parameters.add(name, value);
-				return DefaultRunnableSpec.this;
-			}
-
-			@Override
-			public RunnableSpecTightToDatabase with(Function<T, Map<String, Object>> binder) {
-
-				Assert.notNull(binder, "Binder is required.");
-
-				return bindAll(binder.apply(value));
-			}
+			return new DefaultRunnableSpecBoundToDatabase();
 		}
 
 		@Override
-		public <T> Neo4jClient.OngoingBindSpec<T, RunnableSpecTightToDatabase> bind(T value) {
+		public RunnableSpecBoundToUser asUser(String asUser) {
+
+			this.userSelection = resolveUser(asUser);
+			return new DefaultRunnableSpecBoundToUser();
+		}
+
+		@Override
+		public <T> Neo4jClient.OngoingBindSpec<T, RunnableSpec> bind(T value) {
 			return new DefaultOngoingBindSpec<>(value);
 		}
 
 		@Override
-		public RunnableSpecTightToDatabase bindAll(Map<String, Object> newParameters) {
+		public RunnableSpec bindAll(Map<String, Object> newParameters) {
 			this.parameters.addAll(newParameters);
 			return this;
 		}
@@ -294,6 +277,99 @@ class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 		public Mono<ResultSummary> run() {
 
 			return new DefaultRecordFetchSpec<>(databaseSelection, userSelection, cypherSupplier, this.parameters, null).run();
+		}
+
+		class DefaultOngoingBindSpec<T> implements Neo4jClient.OngoingBindSpec<T, RunnableSpec> {
+
+			@Nullable private final T value;
+
+			DefaultOngoingBindSpec(@Nullable T value) {
+				this.value = value;
+			}
+
+			@Override
+			public RunnableSpec to(String name) {
+
+				DefaultRunnableSpec.this.parameters.add(name, value);
+				return DefaultRunnableSpec.this;
+			}
+
+			@Override
+			public RunnableSpec with(Function<T, Map<String, Object>> binder) {
+
+				Assert.notNull(binder, "Binder is required.");
+
+				return bindAll(binder.apply(value));
+			}
+		}
+
+		class DefaultRunnableSpecBoundToDatabase implements RunnableSpecBoundToDatabase {
+			@Override
+			public RunnableSpecBoundToDatabaseAndUser asUser(String aUser) {
+
+				DefaultRunnableSpec.this.userSelection = resolveUser(aUser);
+				return DefaultRunnableSpec.this;
+			}
+
+			@Override
+			public <T> MappingSpec<T> fetchAs(Class<T> targetClass) {
+				return DefaultRunnableSpec.this.fetchAs(targetClass);
+			}
+
+			@Override
+			public RecordFetchSpec<Map<String, Object>> fetch() {
+				return DefaultRunnableSpec.this.fetch();
+			}
+
+			@Override
+			public Mono<ResultSummary> run() {
+				return DefaultRunnableSpec.this.run();
+			}
+
+			@Override
+			public <T> Neo4jClient.OngoingBindSpec<T, RunnableSpec> bind(T value) {
+				return DefaultRunnableSpec.this.bind(value);
+			}
+
+			@Override
+			public RunnableSpec bindAll(Map<String, Object> newParameters) {
+				return DefaultRunnableSpec.this.bindAll(newParameters);
+			}
+		}
+
+		class DefaultRunnableSpecBoundToUser implements RunnableSpecBoundToUser {
+
+			@Override
+			public RunnableSpecBoundToDatabaseAndUser in(String aDatabase) {
+
+				DefaultRunnableSpec.this.databaseSelection = resolveTargetDatabaseName(aDatabase);
+				return DefaultRunnableSpec.this;
+			}
+
+			@Override
+			public <T> MappingSpec<T> fetchAs(Class<T> targetClass) {
+				return DefaultRunnableSpec.this.fetchAs(targetClass);
+			}
+
+			@Override
+			public RecordFetchSpec<Map<String, Object>> fetch() {
+				return DefaultRunnableSpec.this.fetch();
+			}
+
+			@Override
+			public Mono<ResultSummary> run() {
+				return DefaultRunnableSpec.this.run();
+			}
+
+			@Override
+			public <T> Neo4jClient.OngoingBindSpec<T, RunnableSpec> bind(T value) {
+				return DefaultRunnableSpec.this.bind(value);
+			}
+
+			@Override
+			public RunnableSpec bindAll(Map<String, Object> newParameters) {
+				return DefaultRunnableSpec.this.bindAll(newParameters);
+			}
 		}
 	}
 

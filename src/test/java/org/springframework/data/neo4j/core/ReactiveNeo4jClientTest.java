@@ -34,20 +34,25 @@ import org.neo4j.driver.reactive.RxResult;
 import org.neo4j.driver.reactive.RxSession;
 import org.neo4j.driver.summary.ResultSummary;
 import org.neo4j.driver.types.TypeSystem;
+import org.springframework.data.neo4j.core.transaction.Neo4jTransactionUtils;
 import org.springframework.lang.Nullable;
+import org.springframework.util.ReflectionUtils;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import java.lang.reflect.Method;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.assertj.core.api.Assumptions.assumeThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -91,6 +96,122 @@ class ReactiveNeo4jClientTest {
 	@AfterEach
 	void verifyNoMoreInteractionsWithMocks() {
 		verifyNoMoreInteractions(driver, session, result, resultSummary, record1, record2);
+	}
+
+	@Test // GH-2426
+	void databaseSelectionShouldWorkBeforeAsUser() {
+
+		assumeThat(Neo4jTransactionUtils.driverSupportsImpersonation()).isTrue();
+
+		prepareMocks();
+
+		when(session.run(anyString(), anyMap())).thenReturn(result);
+		when(result.records()).thenReturn(Flux.just(record1, record2));
+		when(result.consume()).thenReturn(Mono.just(resultSummary));
+
+		ReactiveNeo4jClient client = ReactiveNeo4jClient.create(driver);
+
+		String cypher = "MATCH (u:User) WHERE u.name =~ $name";
+		Mono<Map<String, Object>> firstMatchingUser = client
+				.query(cypher)
+				.in("bikingDatabase")
+				.asUser("aUser")
+				.bind("Someone.*")
+				.to("name")
+				.fetch().first();
+
+		StepVerifier.create(firstMatchingUser).expectNextCount(1L).verifyComplete();
+
+		verifyDatabaseSelection("bikingDatabase");
+		verifyUserSelection("aUser");
+
+		Map<String, Object> expectedParameters = new HashMap<>();
+		expectedParameters.put("name", "Someone.*");
+
+		verify(session).run(eq(cypher), MockitoHamcrest.argThat(new Neo4jClientTest.MapAssertionMatcher(expectedParameters)));
+		verify(result).records();
+		verify(result).consume();
+		verify(resultSummary).notifications();
+		verify(resultSummary).hasPlan();
+		verify(record1).asMap();
+		verify(session).close();
+	}
+
+	@Test // GH-2426
+	void databaseSelectionShouldWorkAfterAsUser() {
+
+		assumeThat(Neo4jTransactionUtils.driverSupportsImpersonation()).isTrue();
+
+		prepareMocks();
+
+		when(session.run(anyString(), anyMap())).thenReturn(result);
+		when(result.records()).thenReturn(Flux.just(record1, record2));
+		when(result.consume()).thenReturn(Mono.just(resultSummary));
+
+		ReactiveNeo4jClient client = ReactiveNeo4jClient.create(driver);
+
+		String cypher = "MATCH (u:User) WHERE u.name =~ $name";
+		Mono<Map<String, Object>> firstMatchingUser = client
+				.query(cypher)
+				.asUser("aUser")
+				.in("bikingDatabase")
+				.bind("Someone.*")
+				.to("name")
+				.fetch().first();
+
+		StepVerifier.create(firstMatchingUser).expectNextCount(1L).verifyComplete();
+
+		verifyDatabaseSelection("bikingDatabase");
+		verifyUserSelection("aUser");
+
+		Map<String, Object> expectedParameters = new HashMap<>();
+		expectedParameters.put("name", "Someone.*");
+
+		verify(session).run(eq(cypher), MockitoHamcrest.argThat(new Neo4jClientTest.MapAssertionMatcher(expectedParameters)));
+		verify(result).records();
+		verify(result).consume();
+		verify(resultSummary).notifications();
+		verify(resultSummary).hasPlan();
+		verify(record1).asMap();
+		verify(session).close();
+	}
+
+	@Test // GH-2426
+	void userSelectionShouldWork() {
+
+		assumeThat(Neo4jTransactionUtils.driverSupportsImpersonation()).isTrue();
+
+		prepareMocks();
+
+		when(session.run(anyString(), anyMap())).thenReturn(result);
+		when(result.records()).thenReturn(Flux.just(record1, record2));
+		when(result.consume()).thenReturn(Mono.just(resultSummary));
+
+		ReactiveNeo4jClient client = ReactiveNeo4jClient.create(driver);
+
+		String cypher = "MATCH (u:User) WHERE u.name =~ $name";
+		Mono<Map<String, Object>> firstMatchingUser = client
+				.query(cypher)
+				.asUser("aUser")
+				.bind("Someone.*")
+				.to("name")
+				.fetch().first();
+
+		StepVerifier.create(firstMatchingUser).expectNextCount(1L).verifyComplete();
+
+		verifyDatabaseSelection(null);
+		verifyUserSelection("aUser");
+
+		Map<String, Object> expectedParameters = new HashMap<>();
+		expectedParameters.put("name", "Someone.*");
+
+		verify(session).run(eq(cypher), MockitoHamcrest.argThat(new Neo4jClientTest.MapAssertionMatcher(expectedParameters)));
+		verify(result).records();
+		verify(result).consume();
+		verify(resultSummary).notifications();
+		verify(resultSummary).hasPlan();
+		verify(record1).asMap();
+		verify(session).close();
 	}
 
 	@Test
@@ -440,6 +561,21 @@ class ReactiveNeo4jClientTest {
 
 		if (targetDatabase != null) {
 			assertThat(config.database()).isPresent().contains(targetDatabase);
+		} else {
+			assertThat(config.database()).isEmpty();
+		}
+	}
+
+	void verifyUserSelection(@Nullable String aUser) {
+
+		verify(driver).rxSession(configArgumentCaptor.capture());
+		SessionConfig config = configArgumentCaptor.getValue();
+
+		// We assume the driver supports this before the test
+		final Method impersonatedUser = ReflectionUtils.findMethod(SessionConfig.class, "impersonatedUser");
+		if (aUser != null) {
+			Optional<String> optionalValue = (Optional<String>) ReflectionUtils.invokeMethod(impersonatedUser, config);
+			assertThat(optionalValue).isPresent().contains(aUser);
 		} else {
 			assertThat(config.database()).isEmpty();
 		}
