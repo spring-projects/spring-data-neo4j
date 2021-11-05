@@ -35,6 +35,7 @@ import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
 import org.springframework.beans.BeanUtils;
 import org.springframework.core.GenericTypeResolver;
+import org.springframework.core.annotation.AliasFor;
 import org.springframework.data.neo4j.core.convert.ConvertWith;
 import org.springframework.data.neo4j.core.convert.Neo4jConversionService;
 import org.springframework.data.neo4j.core.convert.Neo4jPersistentPropertyConverter;
@@ -66,12 +67,11 @@ import org.springframework.util.Assert;
 @API(status = API.Status.STABLE, since = "6.0")
 public @interface CompositeProperty {
 
-	String UNSET = new String("");
-
 	/**
 	 * @return A converter that allows to store arbitrary objects as decomposed maps on nodes and relationships. The
 	 * default converter allows only maps as composite properties.
 	 */
+	@AliasFor(annotation = ConvertWith.class, value = "converter")
 	Class<? extends Neo4jPersistentPropertyToMapConverter> converter() default CompositeProperty.DefaultToMapConverter.class;
 
 	/**
