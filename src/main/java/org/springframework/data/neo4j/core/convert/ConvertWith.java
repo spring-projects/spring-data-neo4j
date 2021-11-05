@@ -49,8 +49,14 @@ import org.neo4j.driver.Values;
 @API(status = API.Status.STABLE, since = "6.0")
 public @interface ConvertWith {
 
+	/**
+	 * @return The converter to instantiated for converting attributes to properties and vice versa.
+	 */
 	Class<? extends Neo4jPersistentPropertyConverter<?>> converter() default UnsetConverter.class;
 
+	/**
+	 * @return An alternative to {@link #converter()}, for all the scenarios in which constructing a converter is more effort than a constructor call.
+	 */
 	Class<? extends Neo4jPersistentPropertyConverterFactory> converterFactory() default DefaultNeo4jPersistentPropertyConverterFactory.class;
 
 	/**
