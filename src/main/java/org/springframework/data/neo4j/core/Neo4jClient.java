@@ -230,7 +230,7 @@ public interface Neo4jClient {
 		 * Pins the previously defined query to an impersonated user. A value of {@literal null} chooses the user owning
 		 * the physical connection. The empty string {@literal ""} is not permitted.
 		 *
-		 * @param asUser The name of the user to impersonate. A {@literal null) value indicates the connected user.}
+		 * @param asUser The name of the user to impersonate. A {@literal null} value indicates the connected user.
 		 * @return A runnable query specification that is now bound to a given database.
 		 */
 		RunnableSpecBoundToUser asUser(@Nullable String asUser);
