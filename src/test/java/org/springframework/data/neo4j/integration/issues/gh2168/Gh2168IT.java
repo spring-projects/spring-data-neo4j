@@ -29,8 +29,12 @@ import org.neo4j.driver.types.Node;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.mapping.PersistentPropertyAccessor;
 import org.springframework.data.neo4j.config.AbstractNeo4jConfig;
 import org.springframework.data.neo4j.core.DatabaseSelectionProvider;
+import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
+import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
+import org.springframework.data.neo4j.core.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
 import org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
@@ -97,30 +101,54 @@ public class Gh2168IT {
 				});
 	}
 
-
-
 	// That test and the underlying mapping cause the original issue to fail, as `@ConvertWith` was missing for non-simple
 	// types in the lookup that checked whether something is an association or not
 	@Test // GH-2168
 	void propertyCustomConverterDefaultPrefixShouldWork(
+			@Autowired Neo4jMappingContext ctx,
 			@Autowired DomainObjectRepository repository,
 			@Autowired Driver driver,
 			@Autowired BookmarkCapture bookmarkCapture
 	) {
+		Neo4jPersistentEntity<?> entity = ctx.getRequiredPersistentEntity(DomainObject.class);
+		assertWriteAndReadConversionForProperty(entity, "storedAsSingleProperty", repository, driver, bookmarkCapture);
+	}
 
-		DomainObject domainObject = new DomainObject();
-		domainObject.setStoredAsSingleProperty(new UnrelatedObject(true, 4711L));
-		domainObject = repository.save(domainObject);
+	@Test // GH-2430
+	void propertyConversionsWithBeansShouldWork(
+			@Autowired Neo4jMappingContext ctx,
+			@Autowired DomainObjectRepository repository,
+			@Autowired Driver driver,
+			@Autowired BookmarkCapture bookmarkCapture
+	) {
+		Neo4jPersistentEntity<?> entity = ctx.getRequiredPersistentEntity(DomainObject.class);
+		assertWriteAndReadConversionForProperty(entity, "storedAsAnotherSingleProperty", repository, driver, bookmarkCapture);
+	}
+
+	private void assertWriteAndReadConversionForProperty(
+			Neo4jPersistentEntity<?> entity,
+			String propertyName,
+			DomainObjectRepository repository,
+			Driver driver,
+			BookmarkCapture bookmarkCapture
+	) {
+		Neo4jPersistentProperty property = entity.getPersistentProperty(propertyName);
+		PersistentPropertyAccessor<DomainObject> propertyAccessor = entity.getPropertyAccessor(new DomainObject());
+
+		propertyAccessor.setProperty(property, new UnrelatedObject(true, 4711L));
+		DomainObject domainObject = repository.save(propertyAccessor.getBean());
 
 		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
 			Node node = session
-					.run("MATCH (n:DomainObject {id: $id}) RETURN n", Collections.singletonMap("id", domainObject.getId()))
+					.run("MATCH (n:DomainObject {id: $id}) RETURN n",
+							Collections.singletonMap("id", domainObject.getId()))
 					.single().get(0).asNode();
-			assertThat(node.get("storedAsSingleProperty").asString()).isEqualTo("true;4711");
+			assertThat(node.get(propertyName).asString()).isEqualTo("true;4711");
 		}
 
 		domainObject = repository.findById(domainObject.getId()).get();
-		assertThat(domainObject.getStoredAsSingleProperty())
+		UnrelatedObject unrelatedObject = (UnrelatedObject) entity.getPropertyAccessor(domainObject).getProperty(property);
+		assertThat(unrelatedObject)
 				.satisfies(t -> {
 					assertThat(t.isABooleanValue()).isTrue();
 					assertThat(t.getALongValue()).isEqualTo(4711L);
@@ -144,6 +172,11 @@ public class Gh2168IT {
 		@Bean
 		public BookmarkCapture bookmarkCapture() {
 			return new BookmarkCapture();
+		}
+
+		@Bean
+		public UnrelatedObjectPropertyConverterAsBean converterBean() {
+			return new UnrelatedObjectPropertyConverterAsBean();
 		}
 
 		@Override

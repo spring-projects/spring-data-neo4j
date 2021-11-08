@@ -212,6 +212,8 @@ This is an annotation that can be put on attributes of both entities (`@Node`) a
 It defines a `Neo4jPersistentPropertyConverter` via the `converter` attribute
 and an optional `Neo4jPersistentPropertyConverterFactory` to construct the former.
 With an implementation of `Neo4jPersistentPropertyConverter` all specific conversions for a given type can be addressed.
+In addition, `@ConvertWith` also provides `converterRef` for referencing any Spring bean in the application context implementing
+`Neo4jPersistentPropertyConverter`. The referenced bean will be preferred over constructing a new converter.
 
 We provide `@DateLong` and `@DateString` as meta-annotated annotations for backward compatibility with Neo4j-OGM schemes not using native types.
 Those are meta annotated annotations building on the concept above.

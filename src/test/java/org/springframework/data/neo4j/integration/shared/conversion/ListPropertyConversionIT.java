@@ -77,6 +77,7 @@ class ListPropertyConversionIT {
 			session.run("MATCH (n) DETACH DELETE n").consume();
 			existingNodeId = session.run("CREATE (n:DomainObjectWithListOfConvertables {"
 										 + "someprefixA_0: '1', someprefixB_0: '2', someprefixA_1: '3', someprefixB_1: '4', "
+										 + "`moreCollectedData.A_0`: '11', `moreCollectedData.B_0`: '22', `moreCollectedData.A_1`: '33', `moreCollectedData.B_1`: '44', "
 										 + "anotherSet: '1;2,3;4'"
 										 + "}) RETURN id(n)")
 					.single().get(0).asLong();
@@ -112,6 +113,31 @@ class ListPropertyConversionIT {
 		}
 	}
 
+	@Test // GH-2430
+	void writingDecomposedListsWithBeansShouldWork(@Autowired Neo4jTemplate template,
+			@Autowired BookmarkCapture bookmarkCapture) {
+
+		DomainObjectWithListOfConvertables object = new DomainObjectWithListOfConvertables();
+		object.moreCollectedData = Arrays.asList(
+				new SomeConvertableClass(new BigDecimal("42"), new BigDecimal("23")),
+				new SomeConvertableClass(new BigDecimal("666"), new BigDecimal("665"))
+		);
+
+		object = template.save(object);
+
+		try (Session session = neo4jConnectionSupport.getDriver().session(bookmarkCapture.createSessionConfig())) {
+			org.neo4j.driver.types.Node node =
+					session.run("MATCH (n:DomainObjectWithListOfConvertables) WHERE id(n) = $id RETURN n",
+							Collections.singletonMap("id", object.id)).single().get(0).asNode();
+
+			assertThat(node.get("moreCollectedData.A_0").asString()).isEqualTo("42");
+			assertThat(node.get("moreCollectedData.A_1").asString()).isEqualTo("666");
+
+			assertThat(node.get("moreCollectedData.B_0").asString()).isEqualTo("23");
+			assertThat(node.get("moreCollectedData.B_1").asString()).isEqualTo("665");
+		}
+	}
+
 	@Test // GH-2408
 	void writingCompressedListsShouldWork(@Autowired Neo4jTemplate template,
 			@Autowired BookmarkCapture bookmarkCapture) {
@@ -133,7 +159,7 @@ class ListPropertyConversionIT {
 	}
 
 	@Test // GH-2408
-	void readingDecomposedListsShouldWork(@Autowired Neo4jTemplate template) {
+	void readingDecomposedListsWithBeansShouldWork(@Autowired Neo4jTemplate template) {
 
 		Optional<DomainObjectWithListOfConvertables> optionalResult = template.findById(existingNodeId,
 				DomainObjectWithListOfConvertables.class);
@@ -143,6 +169,21 @@ class ListPropertyConversionIT {
 			assertThat(object.collectedData).containsExactlyInAnyOrder(
 					new SomeConvertableClass(new BigDecimal("1"), new BigDecimal("2")),
 					new SomeConvertableClass(new BigDecimal("3"), new BigDecimal("4"))
+			);
+		});
+	}
+
+	@Test // GH-2430
+	void readingDecomposedListsShouldWork(@Autowired Neo4jTemplate template) {
+
+		Optional<DomainObjectWithListOfConvertables> optionalResult = template.findById(existingNodeId,
+				DomainObjectWithListOfConvertables.class);
+
+		assertThat(optionalResult).hasValueSatisfying(object -> {
+			assertThat(object.moreCollectedData).hasSize(2);
+			assertThat(object.moreCollectedData).containsExactlyInAnyOrder(
+					new SomeConvertableClass(new BigDecimal("11"), new BigDecimal("22")),
+					new SomeConvertableClass(new BigDecimal("33"), new BigDecimal("44"))
 			);
 		});
 	}
@@ -174,6 +215,8 @@ class ListPropertyConversionIT {
 		@ConvertWith(converter = SomeconvertableClassConverter.class)
 		private List<SomeConvertableClass> anotherSet;
 
+		@CompositeProperty(converterRef = "listDecomposingConverterBean")
+		private List<SomeConvertableClass> moreCollectedData;
 	}
 
 	static class SomeConvertableClass {
@@ -292,6 +335,11 @@ class ListPropertyConversionIT {
 			Neo4jMappingContext ctx = new Neo4jMappingContext(neo4JConversions);
 			ctx.setInitialEntitySet(Collections.singleton(DomainObjectWithListOfConvertables.class));
 			return ctx;
+		}
+
+		@Bean
+		public ListDecomposingConverter listDecomposingConverterBean() {
+			return new ListDecomposingConverter();
 		}
 
 		@Bean
