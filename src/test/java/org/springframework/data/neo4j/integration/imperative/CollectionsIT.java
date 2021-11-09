@@ -29,6 +29,7 @@ import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
+import org.springframework.data.neo4j.core.schema.RelationshipId;
 import org.springframework.data.neo4j.core.schema.RelationshipProperties;
 import org.springframework.data.neo4j.core.schema.TargetNode;
 import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
@@ -149,8 +150,7 @@ public class CollectionsIT {
 	@RelationshipProperties
 	static class RelProperties {
 
-		@Id
-		@GeneratedValue
+		@RelationshipId
 		Long id;
 
 		@TargetNode

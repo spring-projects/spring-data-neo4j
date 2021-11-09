@@ -678,7 +678,7 @@ public final class Person {
 @RelationshipProperties
 public final class Actor {
 
-	@Id @GeneratedValue
+	@RelationshipId
 	private final Long id;
 
 	@TargetNode

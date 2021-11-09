@@ -19,6 +19,7 @@ import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Relationship;
+import org.springframework.data.neo4j.core.schema.RelationshipId;
 import org.springframework.data.neo4j.core.schema.RelationshipProperties;
 import org.springframework.data.neo4j.core.schema.TargetNode;
 
@@ -43,7 +44,7 @@ public class EntityWithRelationshipPropertiesPath {
 	@RelationshipProperties
 	public static class RelationshipPropertyA {
 
-		@Id @GeneratedValue
+		@RelationshipId
 		private Long id;
 
 		@TargetNode
@@ -60,7 +61,7 @@ public class EntityWithRelationshipPropertiesPath {
 	@RelationshipProperties
 	public static class RelationshipPropertyB {
 
-		@Id @GeneratedValue
+		@RelationshipId
 		private Long id;
 
 		@TargetNode

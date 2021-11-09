@@ -61,6 +61,7 @@ import org.springframework.data.neo4j.core.schema.IdGenerator;
 import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Property;
 import org.springframework.data.neo4j.core.schema.Relationship;
+import org.springframework.data.neo4j.core.schema.RelationshipId;
 import org.springframework.data.neo4j.core.schema.RelationshipProperties;
 import org.springframework.data.neo4j.core.schema.TargetNode;
 import org.springframework.data.neo4j.integration.shared.common.FriendshipRelationship;
@@ -808,7 +809,7 @@ class Neo4jMappingContextTest {
 
 	@RelationshipProperties
 	static class RelationshipPropertyContainer {
-		@Id @GeneratedValue @SuppressWarnings("unused")
+		@RelationshipId @SuppressWarnings("unused")
 		private Long id;
 
 		@TargetNode
@@ -896,8 +897,8 @@ class Neo4jMappingContextTest {
 	}
 
 	public static class RelationshipPropertiesBaseClass<T extends SomeBaseEntity> {
-		@Id
-		@GeneratedValue
+
+		@RelationshipId
 		public Long internalId;
 
 		public String id;

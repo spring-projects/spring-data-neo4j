@@ -17,8 +17,7 @@ package org.springframework.data.neo4j.documentation.domain;
 
 import java.util.List;
 
-import org.springframework.data.neo4j.core.schema.GeneratedValue;
-import org.springframework.data.neo4j.core.schema.Id;
+import org.springframework.data.neo4j.core.schema.RelationshipId;
 import org.springframework.data.neo4j.core.schema.RelationshipProperties;
 import org.springframework.data.neo4j.core.schema.TargetNode;
 
@@ -29,7 +28,7 @@ import org.springframework.data.neo4j.core.schema.TargetNode;
 @RelationshipProperties
 public class Roles {
 
-	@Id @GeneratedValue
+	@RelationshipId
 	private Long id;
 
 	private final List<String> roles;

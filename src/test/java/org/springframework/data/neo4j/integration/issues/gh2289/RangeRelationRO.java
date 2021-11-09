@@ -18,9 +18,8 @@ package org.springframework.data.neo4j.integration.issues.gh2289;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-import org.springframework.data.neo4j.core.schema.GeneratedValue;
-import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Property;
+import org.springframework.data.neo4j.core.schema.RelationshipId;
 import org.springframework.data.neo4j.core.schema.RelationshipProperties;
 import org.springframework.data.neo4j.core.schema.TargetNode;
 
@@ -32,7 +31,8 @@ import org.springframework.data.neo4j.core.schema.TargetNode;
 public class RangeRelationRO {
 
 	@EqualsAndHashCode.Exclude
-	@Id @GeneratedValue private Long id;
+	@RelationshipId
+	private Long id;
 
 	@Property private double minDelta;
 	@Property private double maxDelta;

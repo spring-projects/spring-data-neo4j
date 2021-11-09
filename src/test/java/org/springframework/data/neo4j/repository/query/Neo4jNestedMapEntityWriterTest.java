@@ -52,6 +52,7 @@ import org.springframework.data.neo4j.core.schema.IdGenerator;
 import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Property;
 import org.springframework.data.neo4j.core.schema.Relationship;
+import org.springframework.data.neo4j.core.schema.RelationshipId;
 import org.springframework.data.neo4j.core.schema.RelationshipProperties;
 import org.springframework.data.neo4j.core.schema.TargetNode;
 import org.springframework.data.neo4j.integration.issues.gh2323.Knows;
@@ -650,7 +651,8 @@ class Neo4jNestedMapEntityWriterTest {
 	@AllArgsConstructor
 	static class P1 {
 
-		@Id @GeneratedValue @With
+		@RelationshipId
+		@With
 		private Long id;
 
 		private final String prop1;

@@ -40,6 +40,7 @@ import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Property;
 import org.springframework.data.neo4j.core.schema.Relationship;
+import org.springframework.data.neo4j.core.schema.RelationshipId;
 import org.springframework.data.neo4j.core.schema.RelationshipProperties;
 import org.springframework.data.neo4j.core.schema.TargetNode;
 
@@ -576,7 +577,7 @@ class DefaultNeo4jPersistentEntityTest {
 	@RelationshipProperties
 	static class HasTargetNodeRelationshipProperties {
 
-		@Id @GeneratedValue
+		@RelationshipId
 		private Long id;
 
 		@TargetNode
@@ -586,7 +587,7 @@ class DefaultNeo4jPersistentEntityTest {
 	@RelationshipProperties
 	static class HasNoTargetNodeRelationshipProperties {
 
-		@Id @GeneratedValue
+		@RelationshipId
 		private Long id;
 	}
 
@@ -650,7 +651,7 @@ class DefaultNeo4jPersistentEntityTest {
 
 	@RelationshipProperties
 	static class OtherEntityWithBidirectionalRelationshipWithRelationshipPropertiesProperties {
-		@Id @GeneratedValue
+		@RelationshipId
 		private Long id;
 
 		@TargetNode
@@ -659,7 +660,7 @@ class DefaultNeo4jPersistentEntityTest {
 
 	@RelationshipProperties
 	static class EntityWithBidirectionalRelationshipWithRelationshipPropertiesProperties {
-		@Id @GeneratedValue
+		@RelationshipId
 		private Long id;
 
 		@TargetNode
@@ -683,7 +684,7 @@ class DefaultNeo4jPersistentEntityTest {
 	@RelationshipProperties
 	static class BidirectionalRelationshipProperties {
 
-		@Id @GeneratedValue
+		@RelationshipId
 		private Long id;
 
 		@TargetNode

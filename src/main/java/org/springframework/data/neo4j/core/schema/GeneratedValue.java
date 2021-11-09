@@ -39,7 +39,7 @@ import org.springframework.core.annotation.AliasFor;
  * @since 6.0
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.FIELD)
+@Target({ElementType.FIELD, ElementType.ANNOTATION_TYPE})
 @Documented
 @Inherited
 @API(status = API.Status.STABLE, since = "6.0")

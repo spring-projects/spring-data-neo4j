@@ -13,23 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.springframework.data.neo4j.core.schema;
 
-package org.springframework.data.neo4j.integration.shared.common
+import org.apiguardian.api.API;
 
-import org.springframework.data.neo4j.core.schema.*
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Inherited;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
+ * A combined annotation for id fields in {@link RelationshipProperties} classes.
+ *
  * @author Gerrit Meier
- * @author Michael J. Simons
+ * @since 6.2
  */
-@Node
-data class KotlinPerson(@Id @GeneratedValue val id: Long?, val name: String,
-						@Relationship("WORKS_IN") val clubs: List<KotlinClubRelationship>) {
-	constructor(name: String, clubs: List<KotlinClubRelationship>) : this(null, name, clubs)
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.FIELD)
+@Documented
+@Inherited
+@Id
+@GeneratedValue
+@API(status = API.Status.STABLE, since = "6.2")
+public @interface RelationshipId {
 }
-
-@RelationshipProperties
-data class KotlinClubRelationship(@RelationshipId val id: Long, val since: Int, @TargetNode val club: KotlinClub)
-
-@Node
-data class KotlinClub(@Id @GeneratedValue val id: Long, val name: String)

@@ -24,6 +24,7 @@ import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Relationship;
+import org.springframework.data.neo4j.core.schema.RelationshipId;
 import org.springframework.data.neo4j.core.schema.RelationshipProperties;
 import org.springframework.data.neo4j.core.schema.TargetNode;
 
@@ -653,7 +654,7 @@ public class Inheritance {
 	@RelationshipProperties
 	public static class ConcreteARelationshipProperties {
 
-		@Id @GeneratedValue
+		@RelationshipId
 		private Long id;
 
 		@TargetNode
@@ -687,7 +688,7 @@ public class Inheritance {
 	@RelationshipProperties
 	public static class ConcreteBRelationshipProperties {
 
-		@Id @GeneratedValue
+		@RelationshipId
 		private Long id;
 
 		@TargetNode
@@ -721,7 +722,7 @@ public class Inheritance {
 	@RelationshipProperties
 	public static class SuperBaseClassRelationshipProperties {
 
-		@Id @GeneratedValue
+		@RelationshipId
 		private Long id;
 
 		@TargetNode

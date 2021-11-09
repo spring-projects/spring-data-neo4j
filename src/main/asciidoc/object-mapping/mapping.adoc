@@ -223,13 +223,9 @@ A relationship property class and its usage may look like this:
 include::../../../../src/test/java/org/springframework/data/neo4j/documentation/domain/Roles.java[tags=mapping.relationship.properties]
 ----
 
-You must define a property for the generated, internal ID so that SDN can determine during save which relationships
+You must define a property for the generated, internal ID (`@RelationshipId`) so that SDN can determine during save which relationships
 can be safely overwritten without losing properties.
 If SDN does not find a field for storing the internal node id, it will fail during startup.
-
-NOTE: The only supported generated ID field on classes annotated with `@RelationshipProperties` is `@GeneratedValue` with
-      using the default ID generator `InternalIdGenerator` as shown above. Other generators will lead to a failure during
-      startup.
 
 .Defining relationship properties for an entity
 [source,java,indent=0]

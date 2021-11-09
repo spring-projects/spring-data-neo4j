@@ -15,11 +15,11 @@
  */
 package org.springframework.data.neo4j.integration.shared.common;
 
-import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Relationship;
 import org.springframework.data.neo4j.core.schema.Relationship.Direction;
+import org.springframework.data.neo4j.core.schema.RelationshipId;
 import org.springframework.data.neo4j.core.schema.RelationshipProperties;
 import org.springframework.data.neo4j.core.schema.TargetNode;
 
@@ -51,7 +51,7 @@ public class BidirectionalSameEntity {
 	@RelationshipProperties
 	public static class BidirectionalSameRelationship {
 
-		@Id @GeneratedValue
+		@RelationshipId
 		private Long id;
 
 		public BidirectionalSameRelationship(BidirectionalSameEntity entity) {

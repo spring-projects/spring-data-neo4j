@@ -72,7 +72,7 @@ import org.apiguardian.api.API;
  * @since 6.0
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.FIELD)
+@Target({ElementType.FIELD, ElementType.ANNOTATION_TYPE})
 @Documented
 @Inherited
 @org.springframework.data.annotation.Id
