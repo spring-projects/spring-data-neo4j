@@ -108,7 +108,8 @@ public class SimpleNeo4jRepository<T, ID> implements PagingAndSortingRepository<
 
 	@Override
 	public boolean existsById(ID id) {
-		return findById(id).isPresent();
+
+		return this.neo4jOperations.existsById(id, this.entityInformation.getJavaType());
 	}
 
 	@Override

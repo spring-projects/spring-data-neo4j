@@ -463,6 +463,11 @@ public enum CypherGenerator {
 				.build();
 	}
 
+	public Collection<Expression> createReturnStatementForExists(Neo4jPersistentEntity<?> nodeDescription) {
+
+		return Collections.singleton(Functions.count(Constants.NAME_OF_TYPED_ROOT_NODE.apply(nodeDescription)));
+	}
+
 	public Collection<Expression> createReturnStatementForMatch(Neo4jPersistentEntity<?> nodeDescription) {
 		return createReturnStatementForMatch(nodeDescription, (pp -> true));
 	}

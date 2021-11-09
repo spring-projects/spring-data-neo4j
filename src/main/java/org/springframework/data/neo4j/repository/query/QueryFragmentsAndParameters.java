@@ -121,6 +121,17 @@ public final class QueryFragmentsAndParameters {
 		return new QueryFragmentsAndParameters(entityMetaData, queryFragments, Collections.emptyMap());
 	}
 
+	public static QueryFragmentsAndParameters forExistsById(Neo4jPersistentEntity<?> entityMetaData, Object idValues) {
+		Map<String, Object> parameters = Collections.singletonMap(Constants.NAME_OF_ID, idValues);
+
+		Condition condition = entityMetaData.getIdExpression().isEqualTo(parameter(Constants.NAME_OF_ID));
+		QueryFragments queryFragments = new QueryFragments();
+		queryFragments.addMatchOn(cypherGenerator.createRootNode(entityMetaData));
+		queryFragments.setCondition(condition);
+		queryFragments.setReturnExpressions(cypherGenerator.createReturnStatementForExists(entityMetaData));
+		return new QueryFragmentsAndParameters(entityMetaData, queryFragments, parameters);
+	}
+
 	/*
 	 * Following methods are used by the Simple(Reactive)QueryByExampleExecutor
 	 */

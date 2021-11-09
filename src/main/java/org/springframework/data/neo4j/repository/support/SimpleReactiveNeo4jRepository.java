@@ -107,7 +107,7 @@ public class SimpleReactiveNeo4jRepository<T, ID> implements ReactiveSortingRepo
 
 	@Override
 	public Mono<Boolean> existsById(ID id) {
-		return findById(id).hasElement();
+		return this.neo4jOperations.existsById(id, this.entityInformation.getJavaType());
 	}
 
 	@Override

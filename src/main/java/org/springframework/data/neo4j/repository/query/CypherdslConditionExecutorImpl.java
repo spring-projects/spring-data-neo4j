@@ -131,6 +131,8 @@ public final class CypherdslConditionExecutorImpl<T> implements CypherdslConditi
 
 	@Override
 	public boolean exists(Condition condition) {
-		return findAll(condition).iterator().hasNext();
+		Statement statement = CypherGenerator.INSTANCE.prepareMatchOf(this.metaData, condition)
+				.returning(Functions.count(asterisk())).build();
+		return this.neo4jOperations.count(statement, statement.getParameters()) > 0;
 	}
 }

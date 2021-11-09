@@ -293,6 +293,20 @@ public final class Neo4jTemplate implements
 	}
 
 	@Override
+	public <T> boolean existsById(Object id, Class<T> domainType) {
+
+		Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getRequiredPersistentEntity(domainType);
+
+		QueryFragmentsAndParameters fragmentsAndParameters = QueryFragmentsAndParameters
+				.forExistsById(entityMetaData, convertIdValues(entityMetaData.getRequiredIdProperty(), id));
+
+		Statement statement = fragmentsAndParameters.getQueryFragments().toStatement();
+		Map<String, Object> parameters = fragmentsAndParameters.getParameters();
+
+		return count(statement, parameters) > 0;
+	}
+
+	@Override
 	public <T> Optional<T> findById(Object id, Class<T> domainType) {
 		Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getRequiredPersistentEntity(domainType);
 

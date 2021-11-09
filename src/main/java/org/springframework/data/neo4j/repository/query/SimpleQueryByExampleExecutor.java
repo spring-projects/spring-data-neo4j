@@ -101,7 +101,12 @@ public final class SimpleQueryByExampleExecutor<T> implements QueryByExampleExec
 
 	@Override
 	public <S extends T> boolean exists(Example<S> example) {
-		return findAll(example).iterator().hasNext();
+
+		Predicate predicate = Predicate.create(mappingContext, example);
+		Statement statement = predicate.useWithReadingFragment(cypherGenerator::prepareMatchOf)
+				.returning(Functions.count(asterisk())).build();
+
+		return this.neo4jOperations.count(statement, predicate.getParameters()) > 0;
 	}
 
 	@Override

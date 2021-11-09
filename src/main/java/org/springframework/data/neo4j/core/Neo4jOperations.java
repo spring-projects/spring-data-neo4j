@@ -173,6 +173,16 @@ public interface Neo4jOperations {
 	<T> List<T> findAllById(Iterable<?> ids, Class<T> domainType);
 
 	/**
+	 * Check if an entity for a given id exists in the database.
+	 *
+	 * @param id the id of the entity to check. Must not be {@code null}.
+	 * @param domainType the type of the entity. Must not be {@code null}.
+	 * @param <T> the type of the entity.
+	 * @return If entity exists in the database, true, otherwise false.
+	 */
+	<T> boolean existsById(Object id, Class<T> domainType);
+
+	/**
 	 * Saves an instance of an entity, including all the related entities of the entity.
 	 *
 	 * @param instance the entity to be saved. Must not be {@code null}.
