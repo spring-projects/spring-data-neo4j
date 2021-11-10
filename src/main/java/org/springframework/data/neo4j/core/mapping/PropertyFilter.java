@@ -17,6 +17,7 @@ package org.springframework.data.neo4j.core.mapping;
 
 import org.apiguardian.api.API;
 import org.springframework.data.mapping.PropertyPath;
+import org.springframework.util.StringUtils;
 
 import java.util.HashSet;
 import java.util.Map;
@@ -79,10 +80,17 @@ public abstract class PropertyFilter {
 				return false;
 			}
 
-			Optional<String> first = projectingPropertyPaths.keySet().stream().sorted((o1, o2) -> Integer.compare(o2.length(), o1.length())).filter(dotPath::contains).findFirst();
+			// create a sorted list of the deepest paths first
+			Optional<String> candidate = projectingPropertyPaths.keySet().stream().sorted((o1, o2) -> {
+						int depth1 = StringUtils.countOccurrencesOf(o1, ".");
+						int depth2 = StringUtils.countOccurrencesOf(o2, ".");
 
-			return projectingPropertyPaths.containsKey(dotPath) ||
-					(first.isPresent() && projectingPropertyPaths.get(first.get()));
+						return Integer.compare(depth2, depth1);
+					})
+					.filter(d -> dotPath.contains(d) && dotPath.startsWith(d)).findFirst();
+
+			return projectingPropertyPaths.containsKey(dotPath)
+					|| (dotPath.contains(".") && candidate.isPresent() && projectingPropertyPaths.get(candidate.get()));
 		}
 
 		@Override
