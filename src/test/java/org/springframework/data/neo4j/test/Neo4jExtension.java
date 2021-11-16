@@ -23,6 +23,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -298,6 +299,10 @@ public class Neo4jExtension implements BeforeAllCallback, BeforeEachCallback {
 				.withoutAuthentication()
 				.withEnv("NEO4J_ACCEPT_LICENSE_AGREEMENT",
 						Optional.ofNullable(System.getenv(SYS_PROPERTY_NEO4J_ACCEPT_COMMERCIAL_EDITION)).orElse("no"))
+				.withTmpFs(new HashMap<String, String>() {{ // K.W. Gedächtnis-Double-Brace-Initialization
+					put("/log", "rw");
+					put("/data", "rw");
+				}})
 				.withReuse(containerReuseSupported);
 
 		public String getBoltUrl() {
