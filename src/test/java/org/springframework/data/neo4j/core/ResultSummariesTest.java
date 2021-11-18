@@ -29,6 +29,7 @@ import org.neo4j.driver.summary.Notification;
 
 /**
  * @author Michael J. Simons
+ * @author Kevin Wittek
  * @soundtrack Fatoni & Dexter - Yo, Picasso
  */
 class ResultSummariesTest {
