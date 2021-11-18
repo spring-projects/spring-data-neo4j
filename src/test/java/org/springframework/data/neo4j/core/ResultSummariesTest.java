@@ -33,25 +33,27 @@ import org.neo4j.driver.summary.Notification;
  */
 class ResultSummariesTest {
 
+	private static final String LINE_SEPARATOR = System.lineSeparator();
+
 	private static Stream<Arguments> params() {
 		return Stream.of(
 				Arguments.of("match (n) - [r:FOO*] -> (m) RETURN r", 1, 19, ""
-						+ "\tmatch (n) - [r:FOO*] -> (m) RETURN r\n"
-						+ "\t                  ^\n"),
+						+ "\tmatch (n) - [r:FOO*] -> (m) RETURN r" + LINE_SEPARATOR
+						+ "\t                  ^" + LINE_SEPARATOR),
 				Arguments.of("match (n)\n- [r:FOO*] -> (m) RETURN r", 2, 1, ""
-						+ "\tmatch (n)\n"
-						+ "\t- [r:FOO*] -> (m) RETURN r\n"
-						+ "\t^\n"),
+						+ "\tmatch (n)" + LINE_SEPARATOR
+						+ "\t- [r:FOO*] -> (m) RETURN r" + LINE_SEPARATOR
+						+ "\t^" + LINE_SEPARATOR),
 				Arguments.of("match (x0123456789) \nwith x0123456789\nmatch(n) - [r:FOO*] -> (m) RETURN r", 3, 10, ""
-						+ "\tmatch (x0123456789) \n"
-						+ "\twith x0123456789\n"
-						+ "\tmatch(n) - [r:FOO*] -> (m) RETURN r\n"
-						+ "\t         ^\n"),
+						+ "\tmatch (x0123456789) " + LINE_SEPARATOR
+						+ "\twith x0123456789" + LINE_SEPARATOR
+						+ "\tmatch(n) - [r:FOO*] -> (m) RETURN r" + LINE_SEPARATOR
+						+ "\t         ^" + LINE_SEPARATOR),
 				Arguments.of("match (n)                  \n-        [r:FOO*] -> (m) \nRETURN r", 2, 1, ""
-						+ "\tmatch (n)                  \n"
-						+ "\t-        [r:FOO*] -> (m) \n"
-						+ "\t^\n"
-						+ "\tRETURN r\n")
+						+ "\tmatch (n)                  " + LINE_SEPARATOR
+						+ "\t-        [r:FOO*] -> (m) " + LINE_SEPARATOR
+						+ "\t^" + LINE_SEPARATOR
+						+ "\tRETURN r" + LINE_SEPARATOR)
 		);
 	}
 
@@ -71,7 +73,7 @@ class ResultSummariesTest {
 		when(notification.position()).thenReturn(inputPosition);
 
 		String formattedNotification = ResultSummaries.format(notification, query);
-		assertThat(formattedNotification).isEqualTo("KGQ.Warning: Das ist keine gute Query.\n"
+		assertThat(formattedNotification).isEqualTo("KGQ.Warning: Das ist keine gute Query." + LINE_SEPARATOR
 				+ expected
 				+ "Das solltest Du besser nicht mehr machen.");
 	}
