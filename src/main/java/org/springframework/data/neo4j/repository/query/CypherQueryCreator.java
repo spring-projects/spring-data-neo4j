@@ -337,8 +337,7 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndPar
 			case BETWEEN:
 				return betweenCondition(path, actualParameters, ignoreCase);
 			case CONTAINING:
-				return toCypherProperty(path, ignoreCase)
-						.contains(toCypherParameter(nextRequiredParameter(actualParameters, property), ignoreCase));
+				return containingCondition(path, property, actualParameters, ignoreCase);
 			case ENDING_WITH:
 				return toCypherProperty(path, ignoreCase)
 						.endsWith(toCypherParameter(nextRequiredParameter(actualParameters, property), ignoreCase));
@@ -394,6 +393,17 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndPar
 			default:
 				throw new IllegalArgumentException("Unsupported part type: " + part.getType());
 		}
+	}
+
+	private Condition containingCondition(PersistentPropertyPath<Neo4jPersistentProperty> path,
+			Neo4jPersistentProperty property, Iterator<Object> actualParameters, boolean ignoreCase) {
+
+		Expression cypherProperty = toCypherProperty(path, ignoreCase);
+		if (property.isCollectionLike()) {
+			return toCypherParameter(nextRequiredParameter(actualParameters, property), ignoreCase).in(cypherProperty);
+		}
+		return cypherProperty
+				.contains(toCypherParameter(nextRequiredParameter(actualParameters, property), ignoreCase));
 	}
 
 	/**
