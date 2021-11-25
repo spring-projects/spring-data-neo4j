@@ -371,8 +371,7 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndPar
 				return toCypherProperty(path, ignoreCase)
 						.isNotEqualTo(toCypherParameter(nextRequiredParameter(actualParameters, property), ignoreCase));
 			case NOT_CONTAINING:
-				return toCypherProperty(path, ignoreCase)
-						.contains(toCypherParameter(nextRequiredParameter(actualParameters, property), ignoreCase)).not();
+				return containingCondition(path, property, actualParameters, ignoreCase).not();
 			case NOT_IN:
 				return toCypherProperty(path, ignoreCase)
 						.in(toCypherParameter(nextRequiredParameter(actualParameters, property), ignoreCase)).not();
