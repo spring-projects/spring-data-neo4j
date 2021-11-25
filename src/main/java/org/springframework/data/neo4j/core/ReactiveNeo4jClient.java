@@ -43,7 +43,7 @@ import org.springframework.lang.Nullable;
  * @since 6.0
  */
 @API(status = API.Status.STABLE, since = "6.0")
-public sealed interface ReactiveNeo4jClient permits DefaultReactiveNeo4jClient {
+public interface ReactiveNeo4jClient {
 
 	LogAccessor cypherLog = new LogAccessor(LogFactory.getLog("org.springframework.data.neo4j.cypher"));
 
