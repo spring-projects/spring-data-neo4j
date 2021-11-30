@@ -925,5 +925,37 @@ public class Inheritance {
 		}
 	}
 
+	/**
+	 * Parent class with relationship definition in the constructor
+	 */
+	@Node("PCWR")
+	public static abstract class ParentClassWithRelationship {
+
+		@Id
+		@GeneratedValue
+		public final Long id;
+
+		@Relationship("LIVES_IN")
+ 		public final Continent continent;
+
+		public ParentClassWithRelationship(Long id, Continent continent) {
+			this.id = id;
+			this.continent = continent;
+		}
+	}
+
+	/**
+	 * Child class with relationship definition in the constructor
+	 */
+	@Node("CCWR")
+	public static class ChildClassWithRelationship extends ParentClassWithRelationship {
+
+		public String name;
+
+		public ChildClassWithRelationship(Long id, Continent continent) {
+			super(id, continent);
+		}
+	}
+
 
 }
