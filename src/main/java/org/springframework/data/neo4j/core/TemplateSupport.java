@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.BiFunction;
+import java.util.function.BiPredicate;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -45,8 +46,10 @@ import org.springframework.data.neo4j.core.mapping.Constants;
 import org.springframework.data.neo4j.core.mapping.EntityInstanceWithSource;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
+import org.springframework.data.neo4j.core.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.core.mapping.NodeDescription;
 import org.springframework.data.neo4j.core.mapping.PropertyFilter;
+import org.springframework.data.neo4j.core.mapping.PropertyTraverser;
 import org.springframework.data.neo4j.repository.query.QueryFragments;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
@@ -270,6 +273,27 @@ public final class TemplateSupport {
 			}
 			return tree;
 		}));
+	}
+
+	/**
+	 * Helper function that computes the map of included properties for a dynamic projection as expected in 6.2, but
+	 * for fully dynamic projection
+	 *
+	 * @param mappingContext The context to work on
+	 * @param domainType     The projected domain type
+	 * @param predicate      The predicate to compute the included columns
+	 * @param <T>            Type of the domain type
+	 * @return A map as expected by the property filter.
+	 */
+	static <T> Map<PropertyPath, Boolean> computeIncludedPropertiesFromPredicate(Neo4jMappingContext mappingContext,
+			Class<T> domainType, @Nullable BiPredicate<PropertyPath, Neo4jPersistentProperty> predicate) {
+		if (predicate == null) {
+			return Collections.emptyMap();
+		}
+		Map<PropertyPath, Boolean> pps = new HashMap<>();
+		PropertyTraverser traverser = new PropertyTraverser(mappingContext);
+		traverser.traverse(domainType, predicate, (path, property) -> pps.put(path, false));
+		return Collections.unmodifiableMap(pps);
 	}
 
 	/**

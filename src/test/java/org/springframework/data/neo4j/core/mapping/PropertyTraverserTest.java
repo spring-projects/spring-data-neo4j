@@ -1,0 +1,88 @@
+/*
+ * Copyright 2011-2021 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.springframework.data.neo4j.core.mapping;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.data.neo4j.integration.movies.shared.Movie;
+
+/**
+ * @author Michael J. Simons
+ */
+class PropertyTraverserTest {
+
+	private final Neo4jMappingContext ctx;
+
+	PropertyTraverserTest() {
+		this.ctx = new Neo4jMappingContext();
+		Set<Class<?>> entities = new HashSet<>();
+		entities.add(Movie.class);
+		this.ctx.setInitialEntitySet(entities);
+		this.ctx.afterPropertiesSet();
+	}
+
+	@Test
+	void shouldTraverseAll() {
+
+		PropertyTraverser traverser = new PropertyTraverser(this.ctx);
+		Map<String, Boolean> includedProperties = new TreeMap<>();
+		traverser.traverse(Movie.class, (path, property) -> includedProperties.put(path.toString(), property.isAssociation()));
+
+		// The traversal order might depend on the order in which classes have been loaded
+		assertThat(includedProperties).hasSize(74);
+	}
+
+	@Test
+	void onlyMovieDirectFields() {
+
+		PropertyTraverser traverser = new PropertyTraverser(this.ctx);
+		Map<String, Boolean> includedProperties = new TreeMap<>();
+		traverser.traverse(Movie.class,
+				(path, property) -> !property.isAssociation(),
+				(path, property) -> includedProperties.put(path.toString(), property.isAssociation()));
+
+		Map<String, Boolean> expected = new LinkedHashMap<>();
+		expected.put("Movie.description", false);
+		expected.put("Movie.released", false);
+		expected.put("Movie.title", false);
+
+		assertThat(includedProperties).containsExactlyEntriesOf(expected);
+	}
+
+	@Test
+	void onlyDirectors() {
+
+		PropertyTraverser traverser = new PropertyTraverser(this.ctx);
+		Map<String, Boolean> includedProperties = new TreeMap<>();
+		traverser.traverse(Movie.class,
+				(path, property) -> property.getName().equals("directors") || (path.toDotPath().startsWith("directors.")
+																			   && property.getName().equals("name")),
+				(path, property) -> includedProperties.put(path.toString(), property.isAssociation()));
+
+		Map<String, Boolean> expected = new LinkedHashMap<>();
+		expected.put("Movie.directors", true);
+		expected.put("Movie.directors.name", false);
+
+		assertThat(includedProperties).containsExactlyEntriesOf(expected);
+	}
+}
