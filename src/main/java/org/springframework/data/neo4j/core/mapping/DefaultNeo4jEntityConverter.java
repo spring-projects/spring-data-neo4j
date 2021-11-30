@@ -429,7 +429,23 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 								String propertyFieldName = matchingProperty.getFieldName();
 								return r.getFieldName().equals(propertyFieldName);
 							}).findFirst().get();
-					result = createInstanceOfRelationships(matchingProperty, values, relationshipDescription, relationshipsFromResult, nodesFromResult).orElse(null);
+					// If we cannot find any value it does not mean that there isn't any.
+					// The result set might contain associations not named CONCRETE_TYPE_TARGET but ABSTRACT_TYPE_TARGET.
+					// For this we bubble up the hierarchy of NodeDescriptions.
+					result = createInstanceOfRelationships(matchingProperty, values, relationshipDescription, relationshipsFromResult, nodesFromResult, null)
+							.orElseGet(() -> {
+								NodeDescription<?> parentNodeDescription = nodeDescription.getParentNodeDescription();
+								T resultValue = null;
+								while (parentNodeDescription != null) {
+									Optional<Object> value = createInstanceOfRelationships(matchingProperty, values, relationshipDescription, relationshipsFromResult, nodesFromResult, parentNodeDescription);
+									if (value.isPresent()) {
+										resultValue = (T) value.get();
+										break;
+									}
+									parentNodeDescription = parentNodeDescription.getParentNodeDescription();
+								}
+								return resultValue;
+							});
 				} else if (matchingProperty.isDynamicLabels()) {
 					result = createDynamicLabelsProperty(matchingProperty.getTypeInformation(), surplusLabels);
 				} else if (matchingProperty.isEntityWithRelationshipProperties()) {
@@ -518,13 +534,14 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 				}
 			}
 
-			createInstanceOfRelationships(persistentProperty, queryResult, (RelationshipDescription) association, relationshipsFromResult, nodesFromResult)
+			createInstanceOfRelationships(persistentProperty, queryResult, (RelationshipDescription) association, relationshipsFromResult, nodesFromResult, null)
 					.ifPresent(value -> propertyAccessor.setProperty(persistentProperty, value));
 		};
 	}
 
 	private Optional<Object> createInstanceOfRelationships(Neo4jPersistentProperty persistentProperty, MapAccessor values,
-			RelationshipDescription relationshipDescription, Collection<Relationship> relationshipsFromResult, Collection<Node> nodesFromResult) {
+		   RelationshipDescription relationshipDescription, Collection<Relationship> relationshipsFromResult,
+		   Collection<Node> nodesFromResult, @Nullable NodeDescription<?> nodeDescription) {
 
 		String typeOfRelationship = relationshipDescription.getType();
 		String sourceLabel = relationshipDescription.getSource().getPrimaryLabel();
@@ -558,8 +575,13 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 			mappedObjectHandler = (type, mappedObject) -> value.add(mappedObject);
 		}
 
-		String collectionName =
-				relationshipDescription.generateRelatedNodesCollectionName(relationshipDescription.getSource());
+		// Generate name driven by the (nullable) NodeDescription of necessary,
+		// because it might contain associations not named CONCRETE_TYPE_TARGET but ABSTRACT_TYPE_TARGET
+		String collectionName = relationshipDescription.generateRelatedNodesCollectionName(
+				nodeDescription != null
+						? nodeDescription
+						: relationshipDescription.getSource()
+		);
 
 		Value list = values.get(collectionName);
 
@@ -672,7 +694,9 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 		return allNodesInResult;
 	}
 
-	private Collection<Relationship> extractMatchingRelationships(Collection<Relationship> relationshipsFromResult, RelationshipDescription relationshipDescription, String typeOfRelationship, Predicate<Relationship> relationshipPredicate) {
+	private Collection<Relationship> extractMatchingRelationships(Collection<Relationship> relationshipsFromResult,
+									  RelationshipDescription relationshipDescription, String typeOfRelationship,
+									  Predicate<Relationship> relationshipPredicate) {
 
 		Predicate<Relationship> onlyWithMatchingType = r -> r.type().equals(typeOfRelationship) || relationshipDescription.isDynamic();
 		return relationshipsFromResult.stream()

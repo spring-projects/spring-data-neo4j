@@ -405,6 +405,27 @@ public class InheritanceMappingIT {
 		});
 	}
 
+	@Test // GH-2452
+	void asdf(@Autowired ParentClassWithRelationshipRepository repository) {
+
+		long childId;
+		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
+			childId = session
+					.run("CREATE (c:CCWR:PCWR{name:'child'})-[:LIVES_IN]->(:Continent:BaseTerritory:BaseEntity{nameEn:'continent', continentProperty:'small'}) return id(c) as id")
+					.single().get(0).asLong();
+			bookmarkCapture.seedWith(session.lastBookmark());
+		}
+
+		Inheritance.ParentClassWithRelationship potentialChildClass = repository.findById(childId).get();
+		assertThat(potentialChildClass).isInstanceOf(Inheritance.ChildClassWithRelationship.class);
+
+		Inheritance.ChildClassWithRelationship child = (Inheritance.ChildClassWithRelationship) potentialChildClass;
+		assertThat(child.name).isEqualTo("child");
+
+		assertThat(child.continent).isNotNull();
+		assertThat(child.continent.continentProperty).isEqualTo("small");
+	}
+
 	private Consumer<Inheritance.ParentModel2> twoDifferentInterfacesHaveBeenLoaded() {
 		return d -> {
 			assertThat(d.getIsRelatedTo()).hasSize(2);
@@ -453,6 +474,9 @@ public class InheritanceMappingIT {
 		@Query("MATCH (n {name: $name}) RETURN n")
 		List<AbstractPet> findPets(@Param("name") String name);
 
+	}
+
+	interface ParentClassWithRelationshipRepository extends Neo4jRepository<Inheritance.ParentClassWithRelationship, Long> {
 	}
 
 	interface BuildingRepository extends Neo4jRepository<Inheritance.Building, Long> {}
