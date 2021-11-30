@@ -40,6 +40,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiFunction;
+import java.util.function.BiPredicate;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -328,6 +329,16 @@ public final class ReactiveNeo4jTemplate implements
 	}
 
 	@Override
+	public <T> Mono<T> saveAs(T instance, BiPredicate<PropertyPath, Neo4jPersistentProperty> includeProperty) {
+
+		if (instance == null) {
+			return null;
+		}
+
+		return saveImpl(instance, TemplateSupport.computeIncludedPropertiesFromPredicate(this.neo4jMappingContext, instance.getClass(), includeProperty), null);
+	}
+
+	@Override
 	public <T, R> Mono<R> saveAs(T instance, Class<R> resultType) {
 
 		Assert.notNull(resultType, "ResultType must not be null!");
@@ -463,7 +474,13 @@ public final class ReactiveNeo4jTemplate implements
 
 	@Override
 	public <T> Flux<T> saveAll(Iterable<T> instances) {
-		return saveAllImpl(instances, Collections.emptyMap());
+		return saveAllImpl(instances, Collections.emptyMap(), null);
+	}
+
+	@Override
+	public <T> Flux<T> saveAllAs(Iterable<T> instances, BiPredicate<PropertyPath, Neo4jPersistentProperty> includeProperty) {
+
+		return saveAllImpl(instances, null, includeProperty);
 	}
 
 	@Override
@@ -481,7 +498,7 @@ public final class ReactiveNeo4jTemplate implements
 		Map<PropertyPath, Boolean> pps = PropertyFilterSupport.addPropertiesFrom(commonElementType, resultType,
 				projectionFactory, neo4jMappingContext);
 
-		Flux<T> savedInstances = saveAllImpl(instances, pps);
+		Flux<T> savedInstances = saveAllImpl(instances, pps, null);
 		if (projectionInformation.isClosed()) {
 			return savedInstances.map(instance -> projectionFactory.createProjection(resultType, instance));
 		}
@@ -495,7 +512,7 @@ public final class ReactiveNeo4jTemplate implements
 		}).map(instance -> projectionFactory.createProjection(resultType, instance));
 	}
 
-	private <T> Flux<T> saveAllImpl(Iterable<T> instances, @Nullable Map<PropertyPath, Boolean> includedProperties) {
+	private <T> Flux<T> saveAllImpl(Iterable<T> instances, @Nullable Map<PropertyPath, Boolean> includedProperties, @Nullable BiPredicate<PropertyPath, Neo4jPersistentProperty> includeProperty) {
 
 		Set<Class<?>> types = new HashSet<>();
 		List<T> entities = new ArrayList<>();
@@ -510,18 +527,24 @@ public final class ReactiveNeo4jTemplate implements
 
 		boolean heterogeneousCollection = types.size() > 1;
 		Class<?> domainClass = types.iterator().next();
+
+		Map<PropertyPath, Boolean> pps = includeProperty == null ?
+				includedProperties :
+				TemplateSupport.computeIncludedPropertiesFromPredicate(this.neo4jMappingContext, domainClass,
+						includeProperty);
+
 		Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getRequiredPersistentEntity(domainClass);
 		if (heterogeneousCollection || entityMetaData.isUsingInternalIds() || entityMetaData.hasVersionProperty()
 			|| entityMetaData.getDynamicLabelsProperty().isPresent()) {
 			log.debug("Saving entities using single statements.");
 
 			NestedRelationshipProcessingStateMachine stateMachine = new NestedRelationshipProcessingStateMachine(neo4jMappingContext);
-			return Flux.fromIterable(entities).concatMap(e -> this.saveImpl(e, includedProperties, stateMachine));
+			return Flux.fromIterable(entities).concatMap(e -> this.saveImpl(e, pps, stateMachine));
 		}
 
 		@SuppressWarnings("unchecked") // We can safely assume here that we have a humongous collection with only one single type being either T or extending it
 		Function<T, Map<String, Object>> binderFunction = TemplateSupport.createAndApplyPropertyFilter(
-				includedProperties, entityMetaData,
+				pps, entityMetaData,
 				neo4jMappingContext.getRequiredBinderFunctionFor((Class<T>) domainClass));
 		return Flux.fromIterable(entities)
 				// Map all entities into a tuple <Original, OriginalWasNew>
@@ -550,7 +573,7 @@ public final class ReactiveNeo4jTemplate implements
 							Object id = convertIdValues(idProperty, propertyAccessor.getProperty(idProperty));
 							Long internalId = idToInternalIdMapping.get(id);
 							return processRelations(entityMetaData, propertyAccessor, t.getT2(), new NestedRelationshipProcessingStateMachine(neo4jMappingContext, t.getT1(), internalId),
-								TemplateSupport.computeIncludePropertyPredicate(includedProperties, entityMetaData));
+								TemplateSupport.computeIncludePropertyPredicate(pps, entityMetaData));
 						}))
 				);
 	}

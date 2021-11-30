@@ -27,6 +27,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.BiPredicate;
 import java.util.function.Function;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -46,12 +47,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
+import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.neo4j.config.AbstractNeo4jConfig;
 import org.springframework.data.neo4j.core.DatabaseSelectionProvider;
 import org.springframework.data.neo4j.core.Neo4jTemplate;
 import org.springframework.data.neo4j.core.mapping.Constants;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
+import org.springframework.data.neo4j.core.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
 import org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager;
 import org.springframework.data.neo4j.integration.issues.gh2415.BaseNodeEntity;
@@ -352,6 +355,16 @@ class Neo4jTemplateIT {
 		}
 	}
 
+	private static BiPredicate<PropertyPath, Neo4jPersistentProperty> create2LevelProjectingPredicate() {
+		BiPredicate<PropertyPath, Neo4jPersistentProperty> predicate = (path, property) -> false;
+		predicate = predicate.or((path, property) -> property.getName().equals("lastName"));
+		predicate = predicate.or((path, property) -> property.getName().equals("address")
+													 || path.toDotPath().startsWith("address.") && property.getName().equals("street"));
+		predicate = predicate.or((path, property) -> property.getName().equals("country")
+													 || path.toDotPath().contains("address.country.") && property.getName().equals("name"));
+		return predicate;
+	}
+
 	@Data
 	static class DtoPersonProjection {
 
@@ -545,6 +558,31 @@ class Neo4jTemplateIT {
 		assertThat(p.getAddress().getStreet()).isEqualTo("Single Trail");
 	}
 
+	@Test // GH-2420
+	void saveAsWithDynamicProjectionOnSecondLevelShouldWork() {
+
+		Person p = neo4jTemplate.findOne("MATCH (p:Person {lastName: $lastName})-[r:LIVES_AT]-(a:Address) RETURN p, collect(r), collect(a)",
+				Collections.singletonMap("lastName", "Siemons"), Person.class).get();
+
+		p.getAddress().setCity("Braunschweig");
+		p.getAddress().setStreet("Single Trail");
+		Person.Address.Country country = new Person.Address.Country();
+		country.setName("Foo");
+		country.setCountryCode("DE");
+		p.getAddress().setCountry(country);
+
+		BiPredicate<PropertyPath, Neo4jPersistentProperty> predicate = create2LevelProjectingPredicate();
+
+		Person projection = neo4jTemplate.saveAs(p, predicate);
+
+		assertThat(projection.getAddress().getStreet()).isEqualTo("Single Trail");
+		assertThat(projection.getAddress().getCountry().getName()).isEqualTo("Foo");
+		p = neo4jTemplate.findById(p.getId(), Person.class).get();
+		assertThat(p.getAddress().getCity()).isEqualTo("Aachen");
+		assertThat(p.getAddress().getStreet()).isEqualTo("Single Trail");
+		assertThat(p.getAddress().getCountry().getName()).isEqualTo("Foo");
+	}
+
 	@Test // GH-2407
 	void saveAllAsWithClosedProjectionOnSecondLevelShouldWork() {
 
@@ -566,6 +604,40 @@ class Neo4jTemplateIT {
 		assertThat(p.getLastName()).isEqualTo("Simons");
 		assertThat(p.getAddress().getCity()).isEqualTo("Aachen");
 		assertThat(p.getAddress().getStreet()).isEqualTo("Single Trail");
+	}
+
+	@Test // GH-2420
+	void saveAllAsWithDynamicProjectionOnSecondLevelShouldWork() {
+
+		Person p = neo4jTemplate.findOne("MATCH (p:Person {lastName: $lastName})-[r:LIVES_AT]-(a:Address) RETURN p, collect(r), collect(a)",
+				Collections.singletonMap("lastName", "Siemons"), Person.class).get();
+
+		p.setFirstName("Klaus");
+		p.setLastName("Simons");
+		p.getAddress().setCity("Braunschweig");
+		p.getAddress().setStreet("Single Trail");
+		Person.Address.Country country = new Person.Address.Country();
+		country.setName("Foo");
+		country.setCountryCode("DE");
+		p.getAddress().setCountry(country);
+
+		BiPredicate<PropertyPath, Neo4jPersistentProperty> predicate = create2LevelProjectingPredicate();
+
+		List<Person> projections = neo4jTemplate.saveAllAs(Collections.singletonList(p), predicate);
+
+		assertThat(projections)
+				.hasSize(1).first()
+				.satisfies(projection -> {
+					assertThat(projection.getAddress().getStreet()).isEqualTo("Single Trail");
+					assertThat(projection.getAddress().getCountry().getName()).isEqualTo("Foo");
+				});
+
+		p = neo4jTemplate.findById(p.getId(), Person.class).get();
+		assertThat(p.getFirstName()).isEqualTo("Michael");
+		assertThat(p.getLastName()).isEqualTo("Simons");
+		assertThat(p.getAddress().getCity()).isEqualTo("Aachen");
+		assertThat(p.getAddress().getStreet()).isEqualTo("Single Trail");
+		assertThat(p.getAddress().getCountry().getName()).isEqualTo("Foo");
 	}
 
 	@Test // GH-2407
