@@ -18,10 +18,12 @@ package org.springframework.data.neo4j.core;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.BiPredicate;
 
 import org.apiguardian.api.API;
 import org.neo4j.cypherdsl.core.Statement;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
+import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.repository.NoResultException;
 import org.springframework.data.neo4j.repository.query.QueryFragmentsAndParameters;
@@ -192,6 +194,24 @@ public interface Neo4jOperations {
 	<T> T save(T instance);
 
 	/**
+	 * Saves an instance of an entity, using the provided predicate to shape the stored graph. One can think of the predicate
+	 * as a dynamic projection. If you want to save or update properties of associations (aka related nodes), you must include
+	 * the association property as well (meaning the predicate must return {@literal true} for that property, too).
+	 * <p>
+	 * Be careful when reusing the returned instance for further persistence operations, as it will most likely not be
+	 * fully hydrated and without using a static or dynamic projection, you will most likely cause data loss.
+	 *
+	 * @param instance        the entity to be saved. Must not be {@code null}.
+	 * @param includeProperty A predicate to determine the properties to save.
+	 * @param <T>             the type of the entity.
+	 * @return the saved instance.
+	 * @since 6.3
+	 */
+	default <T> T saveAs(T instance, BiPredicate<PropertyPath, Neo4jPersistentProperty> includeProperty) {
+		throw new UnsupportedOperationException();
+	}
+
+	/**
 	 * Saves an instance of an entity, including the properties and relationship defined by the projected {@code resultType}.
 	 *
 	 * @param instance the entity to be saved. Must not be {@code null}.
@@ -212,6 +232,24 @@ public interface Neo4jOperations {
 	 * @return the saved instances.
 	 */
 	<T> List<T> saveAll(Iterable<T> instances);
+
+	/**
+	 * Saves several instances of an entity, using the provided predicate to shape the stored graph. One can think of the predicate
+	 * as a dynamic projection. If you want to save or update properties of associations (aka related nodes), you must include
+	 * the association property as well (meaning the predicate must return {@literal true} for that property, too).
+	 * <p>
+	 * Be careful when reusing the returned instances for further persistence operations, as they will most likely not be
+	 * fully hydrated and without using a static or dynamic projection, you will most likely cause data loss.
+	 *
+	 * @param instances       the instances to be saved. Must not be {@code null}.
+	 * @param includeProperty A predicate to determine the properties to save.
+	 * @param <T>             the type of the entity.
+	 * @return the saved instances.
+	 * @since 6.3
+	 */
+	default <T> List<T> saveAllAs(Iterable<T> instances, BiPredicate<PropertyPath, Neo4jPersistentProperty> includeProperty) {
+		throw new UnsupportedOperationException();
+	}
 
 	/**
 	 * Saves an instance of an entity, including the properties and relationship defined by the project {@code resultType}.

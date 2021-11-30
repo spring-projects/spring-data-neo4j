@@ -32,6 +32,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiFunction;
+import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -344,6 +345,16 @@ public final class Neo4jTemplate implements
 	}
 
 	@Override
+	public <T> T saveAs(T instance, BiPredicate<PropertyPath, Neo4jPersistentProperty> includeProperty) {
+
+		if (instance == null) {
+			return null;
+		}
+
+		return saveImpl(instance, TemplateSupport.computeIncludedPropertiesFromPredicate(this.neo4jMappingContext, instance.getClass(), includeProperty), null);
+	}
+
+	@Override
 	public <T, R> R saveAs(T instance, Class<R> resultType) {
 
 		Assert.notNull(resultType, "ResultType must not be null!");
@@ -451,10 +462,10 @@ public final class Neo4jTemplate implements
 
 	@Override
 	public <T> List<T> saveAll(Iterable<T> instances) {
-		return saveAllImpl(instances, Collections.emptyMap());
+		return saveAllImpl(instances, Collections.emptyMap(), null);
 	}
 
-	private <T> List<T> saveAllImpl(Iterable<T> instances, Map<PropertyPath, Boolean> includedProperties) {
+	private <T> List<T> saveAllImpl(Iterable<T> instances, @Nullable Map<PropertyPath, Boolean> includedProperties, @Nullable BiPredicate<PropertyPath, Neo4jPersistentProperty> includeProperty) {
 
 		Set<Class<?>> types = new HashSet<>();
 		List<T> entities = new ArrayList<>();
@@ -469,13 +480,19 @@ public final class Neo4jTemplate implements
 
 		boolean heterogeneousCollection = types.size() > 1;
 		Class<?> domainClass = types.iterator().next();
+
+		Map<PropertyPath, Boolean> pps = includeProperty == null ?
+				includedProperties :
+				TemplateSupport.computeIncludedPropertiesFromPredicate(this.neo4jMappingContext, domainClass,
+						includeProperty);
+
 		Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getRequiredPersistentEntity(domainClass);
 		if (heterogeneousCollection || entityMetaData.isUsingInternalIds() || entityMetaData.hasVersionProperty()
 				|| entityMetaData.getDynamicLabelsProperty().isPresent()) {
 			log.debug("Saving entities using single statements.");
 
 			NestedRelationshipProcessingStateMachine stateMachine = new NestedRelationshipProcessingStateMachine(neo4jMappingContext);
-			return entities.stream().map(e -> saveImpl(e, includedProperties, stateMachine)).collect(Collectors.toList());
+			return entities.stream().map(e -> saveImpl(e, pps, stateMachine)).collect(Collectors.toList());
 		}
 
 		class Tuple3<T> {
@@ -497,7 +514,7 @@ public final class Neo4jTemplate implements
 		// Save roots
 		@SuppressWarnings("unchecked") // We can safely assume here that we have a humongous collection with only one single type being either T or extending it
 		Function<T, Map<String, Object>> binderFunction = neo4jMappingContext.getRequiredBinderFunctionFor((Class<T>) domainClass);
-		binderFunction = TemplateSupport.createAndApplyPropertyFilter(includedProperties, entityMetaData, binderFunction);
+		binderFunction = TemplateSupport.createAndApplyPropertyFilter(pps, entityMetaData, binderFunction);
 		List<Map<String, Object>> entityList = entitiesToBeSaved.stream().map(h -> h.modifiedInstance).map(binderFunction)
 				.collect(Collectors.toList());
 		Map<Value, Long> idToInternalIdMapping = neo4jClient
@@ -515,8 +532,14 @@ public final class Neo4jTemplate implements
 			Neo4jPersistentProperty idProperty = entityMetaData.getRequiredIdProperty();
 			Object id = convertIdValues(idProperty, propertyAccessor.getProperty(idProperty));
 			Long internalId = idToInternalIdMapping.get(id);
-			return this.<T>processRelations(entityMetaData, propertyAccessor, t.wasNew, new NestedRelationshipProcessingStateMachine(neo4jMappingContext, t.originalInstance, internalId), TemplateSupport.computeIncludePropertyPredicate(includedProperties, entityMetaData));
+			return this.<T>processRelations(entityMetaData, propertyAccessor, t.wasNew, new NestedRelationshipProcessingStateMachine(neo4jMappingContext, t.originalInstance, internalId), TemplateSupport.computeIncludePropertyPredicate(pps, entityMetaData));
 		}).collect(Collectors.toList());
+	}
+
+	@Override
+	public <T> List<T> saveAllAs(Iterable<T> instances, BiPredicate<PropertyPath, Neo4jPersistentProperty> includeProperty) {
+
+		return saveAllImpl(instances, null, includeProperty);
 	}
 
 	@Override
@@ -537,7 +560,7 @@ public final class Neo4jTemplate implements
 		Map<PropertyPath, Boolean> pps = PropertyFilterSupport.addPropertiesFrom(commonElementType, resultType,
 				projectionFactory, neo4jMappingContext);
 
-		List<T> savedInstances = saveAllImpl(instances, pps);
+		List<T> savedInstances = saveAllImpl(instances, pps, null);
 
 		if (projectionInformation.isClosed()) {
 			return savedInstances.stream().map(instance -> projectionFactory.createProjection(resultType, instance))
