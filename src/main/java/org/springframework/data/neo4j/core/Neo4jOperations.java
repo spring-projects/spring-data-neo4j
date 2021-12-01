@@ -238,7 +238,7 @@ public interface Neo4jOperations {
 	 * as a dynamic projection. If you want to save or update properties of associations (aka related nodes), you must include
 	 * the association property as well (meaning the predicate must return {@literal true} for that property, too).
 	 * <p>
-	 * Be careful when reusing the returned instance for further persistence operations, as it will most likely not be
+	 * Be careful when reusing the returned instances for further persistence operations, as they will most likely not be
 	 * fully hydrated and without using a static or dynamic projection, you will most likely cause data loss.
 	 *
 	 * @param instances       the instances to be saved. Must not be {@code null}.

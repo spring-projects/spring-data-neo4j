@@ -512,7 +512,7 @@ public final class ReactiveNeo4jTemplate implements
 		}).map(instance -> projectionFactory.createProjection(resultType, instance));
 	}
 
-	private <T> Flux<T> saveAllImpl(Iterable<T> instances, @Nullable Map<PropertyPath, Boolean> includedProperties, @Nullable  BiPredicate<PropertyPath, Neo4jPersistentProperty> includeProperty) {
+	private <T> Flux<T> saveAllImpl(Iterable<T> instances, @Nullable Map<PropertyPath, Boolean> includedProperties, @Nullable BiPredicate<PropertyPath, Neo4jPersistentProperty> includeProperty) {
 
 		Set<Class<?>> types = new HashSet<>();
 		List<T> entities = new ArrayList<>();

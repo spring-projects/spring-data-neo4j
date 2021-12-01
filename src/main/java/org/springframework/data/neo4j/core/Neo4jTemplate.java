@@ -465,7 +465,7 @@ public final class Neo4jTemplate implements
 		return saveAllImpl(instances, Collections.emptyMap(), null);
 	}
 
-	private <T> List<T> saveAllImpl(Iterable<T> instances, @Nullable Map<PropertyPath, Boolean> includedProperties, @Nullable  BiPredicate<PropertyPath, Neo4jPersistentProperty> includeProperty) {
+	private <T> List<T> saveAllImpl(Iterable<T> instances, @Nullable Map<PropertyPath, Boolean> includedProperties, @Nullable BiPredicate<PropertyPath, Neo4jPersistentProperty> includeProperty) {
 
 		Set<Class<?>> types = new HashSet<>();
 		List<T> entities = new ArrayList<>();
