@@ -15,8 +15,10 @@
  */
 package org.springframework.data.neo4j.core.mapping;
 
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 
@@ -66,7 +68,9 @@ public final class PropertyTraverser {
 			BiConsumer<PropertyPath, Neo4jPersistentProperty> sink,
 			boolean pathAlreadyVisited
 	) {
-		root.doWithAll(p -> {
+		Set<Neo4jPersistentProperty> sortedProperties = new TreeSet<>(Comparator.comparing(Neo4jPersistentProperty::getName));
+		root.doWithAll(sortedProperties::add);
+		sortedProperties.forEach(p -> {
 			PropertyPath path =
 					base == null ? PropertyPath.from(p.getName(), p.getOwner().getType()) : base.nested(p.getName());
 
