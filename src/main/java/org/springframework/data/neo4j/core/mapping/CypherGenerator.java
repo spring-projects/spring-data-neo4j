@@ -221,7 +221,10 @@ public enum CypherGenerator {
 	 */
 	public Statement createStatementReturningDynamicLabels(NodeDescription<?> nodeDescription) {
 
-		final Node rootNode = Cypher.anyNode(Constants.NAME_OF_ROOT_NODE);
+		String primaryLabel = nodeDescription.getPrimaryLabel();
+		List<String> additionalLabels = nodeDescription.getAdditionalLabels();
+
+		Node rootNode = node(primaryLabel, additionalLabels).named(Constants.NAME_OF_ROOT_NODE);
 
 		Condition versionCondition;
 		if (((Neo4jPersistentEntity) nodeDescription).hasVersionProperty()) {
