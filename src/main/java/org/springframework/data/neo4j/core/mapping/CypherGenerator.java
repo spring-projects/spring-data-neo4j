@@ -219,7 +219,7 @@ public enum CypherGenerator {
 		IdDescription idDescription = nodeDescription.getIdDescription();
 		Assert.notNull(idDescription, "Cannot load specific nodes by id without a corresponding attribute.");
 
-		final Node rootNode = Cypher.anyNode(Constants.NAME_OF_TYPED_ROOT_NODE.apply(nodeDescription));
+		final Node rootNode = createRootNode(nodeDescription);
 
 		Condition versionCondition;
 		if (((Neo4jPersistentEntity<?>) nodeDescription).hasVersionProperty()) {
