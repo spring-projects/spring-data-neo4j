@@ -489,28 +489,28 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 				if (willCreateNewInstance) {
 					throw new MappingException("Cannot create a new instance of an already existing object.");
 				}
+			}
 
-				Object propertyValue = propertyAccessor.getProperty(persistentProperty);
+			Object propertyValue = propertyAccessor.getProperty(persistentProperty);
 
-				boolean propertyValueNotNull = propertyValue != null;
+			boolean propertyValueNotNull = propertyValue != null;
 
-				boolean populatedCollection = persistentProperty.isCollectionLike()
-						&& propertyValueNotNull
-						&& !((Collection<?>) propertyValue).isEmpty();
+			boolean populatedCollection = persistentProperty.isCollectionLike()
+					&& propertyValueNotNull
+					&& !((Collection<?>) propertyValue).isEmpty();
 
-				boolean populatedMap = persistentProperty.isMap()
-						&& propertyValueNotNull
-						&& !((Map<?, ?>) propertyValue).isEmpty();
+			boolean populatedMap = persistentProperty.isMap()
+					&& propertyValueNotNull
+					&& !((Map<?, ?>) propertyValue).isEmpty();
 
-				boolean populatedScalarValue = !persistentProperty.isCollectionLike()
-						&& propertyValueNotNull;
+			boolean populatedScalarValue = !persistentProperty.isCollectionLike() && !persistentProperty.isMap()
+					&& propertyValueNotNull;
 
-				boolean propertyAlreadyPopulated = populatedCollection || populatedMap || populatedScalarValue;
+			boolean propertyAlreadyPopulated = populatedCollection || populatedMap || populatedScalarValue;
 
-				// avoid unnecessary re-assignment of values
-				if (propertyAlreadyPopulated) {
-					return;
-				}
+			// avoid unnecessary re-assignment of values
+			if (propertyAlreadyPopulated) {
+				return;
 			}
 
 			createInstanceOfRelationships(persistentProperty, queryResult, (RelationshipDescription) association, relationshipsFromResult, nodesFromResult)
