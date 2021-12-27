@@ -646,7 +646,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 		Predicate<Node> onlyWithMatchingLabels = n -> n.hasLabel(targetLabel);
 		return allNodesInResult.stream()
 				.filter(onlyWithMatchingLabels)
-				.collect(Collectors.toSet());
+				.collect(Collectors.toList());
 	}
 
 	private Collection<Node> extractNodes(MapAccessor allValues) {
@@ -671,7 +671,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 		Predicate<Relationship> onlyWithMatchingType = r -> r.type().equals(typeOfRelationship) || relationshipDescription.isDynamic();
 		return relationshipsFromResult.stream()
 				.filter(onlyWithMatchingType.and(relationshipPredicate))
-				.collect(Collectors.toSet());
+				.collect(Collectors.toList());
 	}
 
 	private Collection<Relationship> extractRelationships(MapAccessor allValues) {
