@@ -149,6 +149,12 @@ class AdvancedMappingIT {
 		MovieWithSequelProjection findProjectionByTitleAndDescription(String title, String description);
 
 		MovieWithSequelEntity findByTitleAndDescription(String title, String description);
+
+		@Query("MATCH (m:Movie{title:'The Matrix'})<-[a:ACTED_IN]-(p:Person) WITH a,p,m order by p.name return m, collect(a), collect(p)")
+		Movie findMatrixWithSortedAscActors();
+
+		@Query("MATCH (m:Movie{title:'The Matrix'})<-[a:ACTED_IN]-(p:Person) WITH a,p,m order by p.name DESC return m, collect(a), collect(p)")
+		Movie findMatrixWithSortedDescActors();
 	}
 
 	@Test // GH-1906
@@ -455,6 +461,19 @@ class AdvancedMappingIT {
 		Movie secondSequel = firstSequel.getSequel();
 		assertThat(secondSequel.getTitle()).isEqualTo("The Matrix Revolutions");
 		assertThat(secondSequel.getActors()).isNotEmpty();
+	}
+
+	@Test // GH-2458
+	void findPreservesOrderFromResultAscInRelationshipList(@Autowired MovieRepository repository) {
+		assertThat(repository.findMatrixWithSortedAscActors().getActors()).extracting("person").extracting("name")
+				.containsExactly("Carrie-Anne Moss", "Emil Eifrem", "Gloria Foster", "Hugo Weaving", "Keanu Reeves",
+						"Laurence Fishburne");
+	}
+	@Test // GH-2458
+	void findPreservesOrderFromResultDescInRelationshipList(@Autowired MovieRepository repository) {
+		assertThat(repository.findMatrixWithSortedDescActors().getActors()).extracting("person").extracting("name")
+				.containsExactly("Laurence Fishburne", "Keanu Reeves", "Hugo Weaving", "Gloria Foster", "Emil Eifrem",
+						"Carrie-Anne Moss");
 	}
 
 	@Configuration
