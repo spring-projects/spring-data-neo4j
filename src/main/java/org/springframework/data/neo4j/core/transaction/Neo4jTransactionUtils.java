@@ -87,9 +87,10 @@ public final class Neo4jTransactionUtils {
 	 * {@link TransactionDefinition#PROPAGATION_REQUIRED propagation required} behaviour are supported.
 	 *
 	 * @param definition The transaction definition passed to a Neo4j transaction manager
+	 * @param defaultTxManagerTimeout Default timeout from the tx manager (if available, if not, use something negative)
 	 * @return A Neo4j native transaction configuration
 	 */
-	static TransactionConfig createTransactionConfigFrom(TransactionDefinition definition) {
+	static TransactionConfig createTransactionConfigFrom(TransactionDefinition definition, int defaultTxManagerTimeout) {
 
 		if (definition.getIsolationLevel() != TransactionDefinition.ISOLATION_DEFAULT) {
 			throw new InvalidIsolationLevelException(
@@ -106,6 +107,8 @@ public final class Neo4jTransactionUtils {
 		TransactionConfig.Builder builder = TransactionConfig.builder();
 		if (definition.getTimeout() > 0) {
 			builder = builder.withTimeout(Duration.ofSeconds(definition.getTimeout()));
+		} else if (defaultTxManagerTimeout > 0) {
+			builder = builder.withTimeout(Duration.ofSeconds(defaultTxManagerTimeout));
 		}
 
 		return builder.build();

@@ -17,10 +17,16 @@ package org.springframework.data.neo4j.core.transaction;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.time.Duration;
+
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.neo4j.driver.TransactionConfig;
 import org.springframework.data.neo4j.core.DatabaseSelection;
 import org.springframework.data.neo4j.core.UserSelection;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
 import org.springframework.util.StringUtils;
 
 /**
@@ -56,5 +62,34 @@ class Neo4jTransactionUtilsTest {
 				currentDatabaseSelection, requestedDatabaseSelection, currentUserSelection, requestedUserSelection
 		);
 		assertThat(result).isEqualTo(expected);
+	}
+
+	@ParameterizedTest // GH-2463
+	@ValueSource(ints = {Integer.MIN_VALUE, -1, 0, DefaultTransactionDefinition.TIMEOUT_DEFAULT})
+	void shouldNotApplyNegativeOrZeroTimeOuts(int value) {
+
+		DefaultTransactionDefinition springDef = new DefaultTransactionDefinition();
+		springDef.setTimeout(DefaultTransactionDefinition.TIMEOUT_DEFAULT);
+		TransactionConfig driverConfig = Neo4jTransactionUtils.createTransactionConfigFrom(springDef, value);
+		assertThat(driverConfig.timeout()).isNull();
+	}
+
+	@ParameterizedTest // GH-2463
+	@ValueSource(ints = {Integer.MIN_VALUE, -1, 0})
+	void shouldPreferTxDef(int value) {
+
+		DefaultTransactionDefinition springDef = new DefaultTransactionDefinition();
+		springDef.setTimeout(2);
+		TransactionConfig driverConfig = Neo4jTransactionUtils.createTransactionConfigFrom(springDef, value);
+		assertThat(driverConfig.timeout()).isEqualTo(Duration.ofSeconds(2));
+	}
+
+	@Test // GH-2463
+	void shouldFallbackToTxManagerDefault() {
+
+		DefaultTransactionDefinition springDef = new DefaultTransactionDefinition();
+		springDef.setTimeout(DefaultTransactionDefinition.TIMEOUT_DEFAULT);
+		TransactionConfig driverConfig = Neo4jTransactionUtils.createTransactionConfigFrom(springDef, 3);
+		assertThat(driverConfig.timeout()).isEqualTo(Duration.ofSeconds(3));
 	}
 }
