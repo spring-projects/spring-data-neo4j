@@ -179,7 +179,7 @@ public final class ReactiveNeo4jTransactionManager extends AbstractReactiveTrans
 		return Mono.defer(() -> {
 			ReactiveNeo4jTransactionObject transactionObject = extractNeo4jTransaction(transaction);
 
-			TransactionConfig transactionConfig = Neo4jTransactionUtils.createTransactionConfigFrom(transactionDefinition);
+			TransactionConfig transactionConfig = Neo4jTransactionUtils.createTransactionConfigFrom(transactionDefinition, -1);
 			boolean readOnly = transactionDefinition.isReadOnly();
 
 			transactionSynchronizationManager.setCurrentTransactionReadOnly(readOnly);
