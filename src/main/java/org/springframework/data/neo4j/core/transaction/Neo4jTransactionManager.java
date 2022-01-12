@@ -288,7 +288,7 @@ public final class Neo4jTransactionManager extends AbstractPlatformTransactionMa
 	protected void doBegin(Object transaction, TransactionDefinition definition) throws TransactionException {
 		Neo4jTransactionObject transactionObject = extractNeo4jTransaction(transaction);
 
-		TransactionConfig transactionConfig = Neo4jTransactionUtils.createTransactionConfigFrom(definition);
+		TransactionConfig transactionConfig = Neo4jTransactionUtils.createTransactionConfigFrom(definition, super.getDefaultTimeout());
 		boolean readOnly = definition.isReadOnly();
 
 		TransactionSynchronizationManager.setCurrentTransactionReadOnly(readOnly);
