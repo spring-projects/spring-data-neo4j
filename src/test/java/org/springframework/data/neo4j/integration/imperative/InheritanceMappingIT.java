@@ -406,7 +406,7 @@ public class InheritanceMappingIT {
 	}
 
 	@Test // GH-2452
-	void asdf(@Autowired ParentClassWithRelationshipRepository repository) {
+	void loadAndPopulateRelationshipFromTheHierarchy(@Autowired ParentClassWithRelationshipRepository repository) {
 
 		long childId;
 		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {

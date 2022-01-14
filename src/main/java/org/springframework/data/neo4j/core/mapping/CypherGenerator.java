@@ -542,7 +542,7 @@ public enum CypherGenerator {
 		List<Object> propertiesProjection = projectNodeProperties(parentPath, nodeDescription, nodeName, relationshipDescription, includedProperties);
 		List<Object> contentOfProjection = new ArrayList<>(propertiesProjection);
 
-		contentOfProjection.addAll(generateListsFor(parentPath, relationships, nodeName, includedProperties, processedRelationships));
+		contentOfProjection.addAll(generateListsFor(parentPath, nodeDescription, relationships, nodeName, includedProperties, processedRelationships));
 		return Cypher.anyNode(nodeName).project(contentOfProjection);
 	}
 
@@ -604,7 +604,7 @@ public enum CypherGenerator {
 	/**
 	 * @see CypherGenerator#projectNodeProperties
 	 */
-	private List<Object> generateListsFor(PropertyFilter.RelaxedPropertyPath parentPath, Collection<RelationshipDescription> relationships, SymbolicName nodeName,
+	private List<Object> generateListsFor(PropertyFilter.RelaxedPropertyPath parentPath, Neo4jPersistentEntity<?> nodeDescription, Collection<RelationshipDescription> relationships, SymbolicName nodeName,
 										  Predicate<PropertyFilter.RelaxedPropertyPath> includedProperties, List<RelationshipDescription> processedRelationships) {
 
 		List<Object> mapProjectionLists = new ArrayList<>();
@@ -620,17 +620,17 @@ public enum CypherGenerator {
 				continue;
 			}
 
-			generateListFor(parentPath, relationshipDescription, nodeName, processedRelationships, fieldName, mapProjectionLists, includedProperties);
+			generateListFor(parentPath, nodeDescription, relationshipDescription, nodeName, processedRelationships, fieldName, mapProjectionLists, includedProperties);
 		}
 
 		return mapProjectionLists;
 	}
 
-	private void generateListFor(PropertyFilter.RelaxedPropertyPath parentPath, RelationshipDescription relationshipDescription, SymbolicName nodeName,
+	private void generateListFor(PropertyFilter.RelaxedPropertyPath parentPath, Neo4jPersistentEntity<?> nodeDescription, RelationshipDescription relationshipDescription, SymbolicName nodeName,
 								 List<RelationshipDescription> processedRelationships, String fieldName, List<Object> mapProjectionLists, Predicate<PropertyFilter.RelaxedPropertyPath> includedProperties) {
 
 		String relationshipType = relationshipDescription.getType();
-		String relationshipTargetName = relationshipDescription.generateRelatedNodesCollectionName(relationshipDescription.getSource());
+		String relationshipTargetName = relationshipDescription.generateRelatedNodesCollectionName(nodeDescription);
 		String sourcePrimaryLabel = relationshipDescription.getSource().getMostAbstractParentLabel(relationshipDescription.getSource());
 		String targetPrimaryLabel = relationshipDescription.getTarget().getPrimaryLabel();
 		List<String> targetAdditionalLabels = relationshipDescription.getTarget().getAdditionalLabels();

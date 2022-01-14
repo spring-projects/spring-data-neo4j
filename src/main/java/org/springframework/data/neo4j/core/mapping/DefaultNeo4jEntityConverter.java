@@ -342,16 +342,8 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 		// store unless we temporarily put it there.
 		knownObjects.storeObject(internalId, mappedObject);
 
-		// Fill associations
-		// If the nodeDescription is a more abstract class as the concrete node description,
-		// it might contain associations not named CONCRETE_TYPE_TARGET but ABSTRACT_TYPE_TARGET.
-		// Those won't get caught by the most concrete node description.
-		if (nodeDescription != concreteNodeDescription) {
-			nodeDescription.doWithAssociations(
-					populateFrom(queryResult, propertyAccessor, isConstructorParameter, objectAlreadyMapped, relationshipsFromResult, nodesFromResult));
-		}
 		concreteNodeDescription.doWithAssociations(
-				populateFrom(queryResult, propertyAccessor, isConstructorParameter, objectAlreadyMapped, relationshipsFromResult, nodesFromResult));
+				populateFrom(queryResult, nodeDescription, propertyAccessor, isConstructorParameter, objectAlreadyMapped, relationshipsFromResult, nodesFromResult));
 	}
 
 	@Nullable
@@ -432,12 +424,12 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 					// If we cannot find any value it does not mean that there isn't any.
 					// The result set might contain associations not named CONCRETE_TYPE_TARGET but ABSTRACT_TYPE_TARGET.
 					// For this we bubble up the hierarchy of NodeDescriptions.
-					result = createInstanceOfRelationships(matchingProperty, values, relationshipDescription, relationshipsFromResult, nodesFromResult, null)
+					result = createInstanceOfRelationships(matchingProperty, values, relationshipDescription, nodeDescription, relationshipsFromResult, nodesFromResult)
 							.orElseGet(() -> {
 								NodeDescription<?> parentNodeDescription = nodeDescription.getParentNodeDescription();
 								T resultValue = null;
 								while (parentNodeDescription != null) {
-									Optional<Object> value = createInstanceOfRelationships(matchingProperty, values, relationshipDescription, relationshipsFromResult, nodesFromResult, parentNodeDescription);
+									Optional<Object> value = createInstanceOfRelationships(matchingProperty, values, relationshipDescription, parentNodeDescription, relationshipsFromResult, nodesFromResult);
 									if (value.isPresent()) {
 										resultValue = (T) value.get();
 										break;
@@ -491,7 +483,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 		return value == null && !ownerIsKotlinType && rawType.isPrimitive() ? ReflectionUtils.getPrimitiveDefault(rawType) : value;
 	}
 
-	private AssociationHandler<Neo4jPersistentProperty> populateFrom(MapAccessor queryResult,
+	private AssociationHandler<Neo4jPersistentProperty> populateFrom(MapAccessor queryResult, NodeDescription<?> baseDescription,
 			PersistentPropertyAccessor<?> propertyAccessor, Predicate<Neo4jPersistentProperty> isConstructorParameter,
 		    boolean objectAlreadyMapped, Collection<Relationship> relationshipsFromResult, Collection<Node> nodesFromResult) {
 
@@ -534,14 +526,14 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 				return;
 			}
 
-			createInstanceOfRelationships(persistentProperty, queryResult, (RelationshipDescription) association, relationshipsFromResult, nodesFromResult, null)
+			createInstanceOfRelationships(persistentProperty, queryResult, (RelationshipDescription) association, baseDescription, relationshipsFromResult, nodesFromResult)
 					.ifPresent(value -> propertyAccessor.setProperty(persistentProperty, value));
 		};
 	}
 
 	private Optional<Object> createInstanceOfRelationships(Neo4jPersistentProperty persistentProperty, MapAccessor values,
-		   RelationshipDescription relationshipDescription, Collection<Relationship> relationshipsFromResult,
-		   Collection<Node> nodesFromResult, @Nullable NodeDescription<?> nodeDescription) {
+		   RelationshipDescription relationshipDescription, NodeDescription<?> baseDescription, Collection<Relationship> relationshipsFromResult,
+		   Collection<Node> nodesFromResult) {
 
 		String typeOfRelationship = relationshipDescription.getType();
 		String sourceLabel = relationshipDescription.getSource().getPrimaryLabel();
@@ -575,13 +567,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 			mappedObjectHandler = (type, mappedObject) -> value.add(mappedObject);
 		}
 
-		// Generate name driven by the (nullable) NodeDescription of necessary,
-		// because it might contain associations not named CONCRETE_TYPE_TARGET but ABSTRACT_TYPE_TARGET
-		String collectionName = relationshipDescription.generateRelatedNodesCollectionName(
-				nodeDescription != null
-						? nodeDescription
-						: relationshipDescription.getSource()
-		);
+		String collectionName = relationshipDescription.generateRelatedNodesCollectionName(baseDescription);
 
 		Value list = values.get(collectionName);
 
