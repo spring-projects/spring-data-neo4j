@@ -512,11 +512,15 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 	}
 
 	@Override
-	public Set<NodeDescription<?>> getChildNodeDescriptionsInHierarchy() {
-		Set<NodeDescription<?>> childNodes = new HashSet<>(childNodeDescriptions);
+	public List<NodeDescription<?>> getChildNodeDescriptionsInHierarchy() {
+		List<NodeDescription<?>> childNodes = new ArrayList<>(childNodeDescriptions);
 
 		for (NodeDescription<?> childNodeDescription : childNodeDescriptions) {
-			childNodes.addAll(childNodeDescription.getChildNodeDescriptionsInHierarchy());
+			for (NodeDescription<?> grantChildNodeDescription : childNodeDescription.getChildNodeDescriptionsInHierarchy()) {
+				if (!childNodes.contains(grantChildNodeDescription)) {
+					childNodes.add(grantChildNodeDescription);
+				}
+			}
 		}
 		return childNodes;
 	}
