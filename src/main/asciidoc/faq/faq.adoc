@@ -3,6 +3,54 @@
 
 Here are a couple of more frequently asked question in addition to the ones in the <<what-is-sdn,preface>>.
 
+[[faq.change-driver-version]]
+== Which Neo4j Java Driver can be used and how?
+
+SDN6 relies on the Neo4j Java Driver version 4.x.
+Each SDN6 release uses a Neo4j Java Driver version compatible with the latest Neo4j available at the time of its
+release.
+While patch versions of the Neo4j Java Driver are usually drop-in replacements, SDN6 makes sure that even minor versions
+are interchangeable as it checks for the presence or absence of methods or interface changes if necessary.
+
+Therefore, you are able to use any 4.x Neo4j Java Driver with any SDN6 6.x version.
+
+=== With Spring Boot
+
+These days, a Spring boot deployment is the most likely deployment of a Spring Data based applications. Please use
+Spring Boots dependency management to change the driver version like this:
+
+.Change the driver version from Maven (pom.xml)
+[source,xml]
+----
+<properties>
+  <neo4j-java-driver.version>4.4.2</neo4j-java-driver.version>
+</properties>
+----
+
+Or
+
+.Change the driver version from Gradle (gradle.properties)
+[source,properties]
+----
+neo4j-java-driver.version = 4.4.2
+----
+
+=== Without Spring Boot
+
+Without Spring Boot, you would just manually declare the dependency. For Maven, we recommend using the `<dependencyManagement />`
+section like this:
+
+.Change the driver version without Spring Boot from Maven (pom.xml)
+----
+<dependencyManagement>
+    <dependency>
+        <groupId>org.neo4j.driver</groupId>
+        <artifactId>neo4j-java-driver</artifactId>
+        <version>4.4.2</version>
+    </dependency>
+</dependencyManagement>
+----
+
 [[faq.multidatabase]]
 == Neo4j 4.0 supports multiple databases - How can I use them?
 
