@@ -186,6 +186,14 @@ public final class PreparedQuery<T> {
 					: value.asList(Value::asPath);
 
 			for (Path path : paths) {
+				if (path.length() == 0) {
+					// should only be exactly one
+					Iterable<Node> pathNodes = path.nodes();
+					for (Node pathNode : pathNodes) {
+						nodes.add(Values.value(pathNode));
+					}
+					continue;
+				}
 				Node lastNode = null;
 				for (Path.Segment segment : path) {
 					Node start = segment.start();
