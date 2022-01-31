@@ -23,6 +23,9 @@ import java.util.stream.Collectors;
 
 import org.apiguardian.api.API;
 import org.neo4j.cypherdsl.core.Cypher;
+import org.neo4j.driver.Value;
+import org.springframework.data.neo4j.core.mapping.Constants;
+import org.springframework.data.neo4j.core.mapping.MapValueWrapper;
 
 /**
  * @author Michael J. Simons
@@ -60,7 +63,26 @@ final class NamedParameters {
 					"Duplicate parameter name: '%s' already in the list of named parameters with value '%s'. New value would be '%s'",
 					name, previousValue == null ? "null" : previousValue.toString(), value == null ? "null" : value.toString()));
 		}
-		this.parameters.put(name, value);
+
+		if (Constants.NAME_OF_PROPERTIES_PARAM.equals(name) && value != null) {
+			this.parameters.put(name, unwrapMapValueWrapper((Map<String, Object>) value));
+		} else {
+			this.parameters.put(name, value);
+		}
+	}
+
+	private static Map<String, Object> unwrapMapValueWrapper(Map<String, Object> properties) {
+
+		Map<String, Object> newProperties = new HashMap<>(properties.size());
+		properties.forEach((k, v) -> {
+			if (v instanceof MapValueWrapper) {
+				Value mapValue = ((MapValueWrapper) v).getMapValue();
+				mapValue.keys().forEach(k2 -> newProperties.put(k2, mapValue.get(k2)));
+			} else {
+				newProperties.put(k, v);
+			}
+		});
+		return newProperties;
 	}
 
 	/**

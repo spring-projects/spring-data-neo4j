@@ -196,7 +196,8 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 
 			final Value value = conversionService.writeValue(propertyAccessor.getProperty(p), p.getTypeInformation(), p.getOptionalConverter());
 			if (p.isComposite()) {
-				value.keys().forEach(k -> properties.put(k, value.get(k)));
+				properties.put(p.getPropertyName(), new MapValueWrapper(value));
+				//value.keys().forEach(k -> properties.put(k, value.get(k)));
 			} else {
 				properties.put(p.getPropertyName(), value);
 			}

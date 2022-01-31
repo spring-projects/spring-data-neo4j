@@ -18,8 +18,8 @@ package org.springframework.data.neo4j.integration.imperative;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.AbstractMap;
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -48,13 +48,16 @@ import org.springframework.data.neo4j.core.DatabaseSelectionProvider;
 import org.springframework.data.neo4j.core.Neo4jTemplate;
 import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
 import org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager;
+import org.springframework.data.neo4j.integration.issues.gh2451.WidgetEntity;
+import org.springframework.data.neo4j.integration.issues.gh2451.WidgetProjection;
+import org.springframework.data.neo4j.integration.issues.gh2451.WidgetRepository;
 import org.springframework.data.neo4j.integration.shared.common.DepartmentEntity;
-import org.springframework.data.neo4j.integration.shared.common.PersonDepartmentQueryResult;
-import org.springframework.data.neo4j.integration.shared.common.PersonEntity;
 import org.springframework.data.neo4j.integration.shared.common.NamesOnly;
 import org.springframework.data.neo4j.integration.shared.common.NamesOnlyDto;
 import org.springframework.data.neo4j.integration.shared.common.NamesWithSpELCity;
 import org.springframework.data.neo4j.integration.shared.common.Person;
+import org.springframework.data.neo4j.integration.shared.common.PersonDepartmentQueryResult;
+import org.springframework.data.neo4j.integration.shared.common.PersonEntity;
 import org.springframework.data.neo4j.integration.shared.common.PersonSummary;
 import org.springframework.data.neo4j.integration.shared.common.ProjectionTest1O1;
 import org.springframework.data.neo4j.integration.shared.common.ProjectionTestLevel1;
@@ -133,6 +136,9 @@ class ProjectionIT {
 			projectionTestRootId = result.get(0).asLong();
 			projectionTestLevel1Id = result.get(1).asLong();
 			projectionTest1O1Id = result.get(2).asLong();
+
+			transaction.run("create (w:Widget {code: 'Window1', label: 'yyy'})").consume();
+
 			transaction.commit();
 			bookmarkCapture.seedWith(session.lastBookmark());
 		}
@@ -365,6 +371,22 @@ class ProjectionIT {
 				.satisfies(personAndDepartment -> projectedEntities(personAndDepartment));
 	}
 
+	@Test // GH-2451
+	void compositePropertiesShouldBeIncludedInProjections(@Autowired WidgetRepository repository,
+			@Autowired Neo4jTemplate template) {
+
+		String code = "Window1";
+		WidgetEntity window = repository.findByCode(code).get();
+		window.setLabel("changed");
+		window.getAdditionalFields().put("key1", "value1");
+
+		template.saveAs(window, WidgetProjection.class);
+
+		window = repository.findByCode(code).get();
+		assertThat(window.getLabel()).isEqualTo("changed");
+		assertThat(window.getAdditionalFields()).containsEntry("key1", "value1");
+	}
+
 	private static void projectedEntities(PersonDepartmentQueryResult personAndDepartment) {
 		assertThat(personAndDepartment.getPerson()).extracting(PersonEntity::getId).isEqualTo("p1");
 		assertThat(personAndDepartment.getPerson()).extracting(PersonEntity::getEmail).isEqualTo("p1@dep1.org");
@@ -479,7 +501,7 @@ class ProjectionIT {
 	}
 
 	@Configuration
-	@EnableNeo4jRepositories(considerNestedRepositories = true)
+	@EnableNeo4jRepositories(considerNestedRepositories = true, basePackageClasses = {ProjectionIT.class, WidgetEntity.class})
 	@EnableTransactionManagement
 	static class Config extends AbstractNeo4jConfig {
 
@@ -495,7 +517,11 @@ class ProjectionIT {
 
 		@Override
 		protected Collection<String> getMappingBasePackages() {
-			return Collections.singletonList(DepartmentEntity.class.getPackage().getName());
+
+			List<String> packages = new ArrayList<>();
+			packages.add(DepartmentEntity.class.getPackage().getName());
+			packages.add(WidgetEntity.class.getPackage().getName());
+			return packages;
 		}
 
 		@Override
