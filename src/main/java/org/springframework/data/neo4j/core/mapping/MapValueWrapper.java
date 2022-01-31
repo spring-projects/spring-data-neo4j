@@ -27,7 +27,7 @@ import org.neo4j.driver.Value;
  *
  * @author Michael J. Simons
  */
-@API(status = API.Status.INTERNAL, since = "6.1")
+@API(status = API.Status.INTERNAL, since = "6.1.9")
 public final class MapValueWrapper {
 
 	private final Value mapValue;
