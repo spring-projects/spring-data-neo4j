@@ -17,6 +17,8 @@ package org.springframework.data.neo4j.integration.conversion_imperative;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.Collections;
+
 import org.junit.jupiter.api.Test;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Record;
@@ -27,6 +29,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.neo4j.config.AbstractNeo4jConfig;
 import org.springframework.data.neo4j.core.DatabaseSelectionProvider;
+import org.springframework.data.neo4j.core.Neo4jTemplate;
 import org.springframework.data.neo4j.core.convert.Neo4jConversions;
 import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
 import org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager;
@@ -40,8 +43,6 @@ import org.springframework.data.neo4j.test.Neo4jExtension;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
-
-import java.util.Collections;
 
 /**
  * @author Michael J. Simons
@@ -103,6 +104,34 @@ class ImperativeCompositePropertiesIT extends CompositePropertiesITBase {
 					"datesWithTransformedKey.test",
 					"dto.x", "dto.y", "dto.z"
 			);
+		}
+	}
+
+	public interface ThingProjection {
+
+		ThingWithCompositeProperties.SomeOtherDTO getSomeOtherDTO();
+	}
+
+	@Test // GH-2451
+	void compositePropertiesShouldBeFilterableEvenOnNonMapTypes(@Autowired Repository repository, @Autowired Neo4jTemplate template) {
+
+		Long id = createNodeWithCompositeProperties();
+		ThingWithCompositeProperties thing = repository.findById(id).get();
+		thing.setDatesWithTransformedKey(Collections.singletonMap("Test", null));
+		thing.setSomeDatesByEnumA(Collections.singletonMap(ThingWithCompositeProperties.EnumA.VALUE_AA, null));
+		thing.setSomeOtherDTO(null);
+		template.saveAs(thing, ThingProjection.class);
+
+		try (Session session = driver.session()) {
+			Record r = session.readTransaction(tx -> tx.run("MATCH (t:CompositeProperties) WHERE id(t) = $id RETURN t",
+					Collections.singletonMap("id", id)).single());
+			Node n = r.get("t").asNode();
+			assertThat(n.asMap())
+					.containsKeys(
+							"someDatesByEnumA.VALUE_AA",
+							"datesWithTransformedKey.test"
+					)
+					.doesNotContainKeys("dto.x", "dto.y", "dto.z");
 		}
 	}
 

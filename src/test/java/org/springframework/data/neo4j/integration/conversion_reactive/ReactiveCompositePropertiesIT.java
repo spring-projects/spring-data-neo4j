@@ -17,7 +17,11 @@ package org.springframework.data.neo4j.integration.conversion_reactive;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import org.neo4j.driver.Record;
+import org.neo4j.driver.Session;
+import org.neo4j.driver.types.Node;
 import org.springframework.data.neo4j.core.ReactiveDatabaseSelectionProvider;
+import org.springframework.data.neo4j.core.ReactiveNeo4jTemplate;
 import org.springframework.data.neo4j.core.convert.Neo4jConversions;
 import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
 import org.springframework.data.neo4j.core.transaction.ReactiveNeo4jTransactionManager;
@@ -104,6 +108,40 @@ class ReactiveCompositePropertiesIT extends CompositePropertiesITBase {
 				.as(StepVerifier::create)
 				.consumeNextWith(this::assertNodePropertiesOn)
 				.verifyComplete();
+	}
+
+	public interface ThingProjection {
+
+		ThingWithCompositeProperties.SomeOtherDTO getSomeOtherDTO();
+	}
+
+	@Test // GH-2451
+	void compositePropertiesShouldBeFilterableEvenOnNonMapTypes(@Autowired Repository repository, @Autowired ReactiveNeo4jTemplate template) {
+
+		Long id = createNodeWithCompositeProperties();
+		repository.findById(id)
+				.map(thing -> {
+					thing.setDatesWithTransformedKey(Collections.singletonMap("Test", null));
+					thing.setSomeDatesByEnumA(Collections.singletonMap(ThingWithCompositeProperties.EnumA.VALUE_AA, null));
+					thing.setSomeOtherDTO(null);
+					return thing;
+				})
+				.flatMap(thing -> template.saveAs(thing, ThingProjection.class))
+				.as(StepVerifier::create)
+				.expectNextCount(1L)
+				.verifyComplete();
+
+		try (Session session = driver.session()) {
+			Record r = session.readTransaction(tx -> tx.run("MATCH (t:CompositeProperties) WHERE id(t) = $id RETURN t",
+					Collections.singletonMap("id", id)).single());
+			Node n = r.get("t").asNode();
+			assertThat(n.asMap())
+					.containsKeys(
+							"someDatesByEnumA.VALUE_AA",
+							"datesWithTransformedKey.test"
+					)
+					.doesNotContainKeys("dto.x", "dto.y", "dto.z");
+		}
 	}
 
 	public interface Repository extends ReactiveNeo4jRepository<ThingWithCompositeProperties, Long> {
