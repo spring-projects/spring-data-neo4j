@@ -28,6 +28,8 @@ import javax.enterprise.inject.se.SeContainerInitializer;
 import javax.inject.Singleton;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledForJreRange;
+import org.junit.jupiter.api.condition.JRE;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 import org.neo4j.driver.Driver;
@@ -43,6 +45,7 @@ import org.springframework.data.neo4j.test.Neo4jExtension;
  * @soundtrack Various - TRON Legacy R3conf1gur3d
  */
 @ExtendWith(Neo4jExtension.class)
+@EnabledForJreRange(min = JRE.JAVA_8, max = JRE.JAVA_11)
 class Neo4jCdiExtensionIT {
 
 	protected static Neo4jExtension.Neo4jConnectionSupport connectionSupport;
