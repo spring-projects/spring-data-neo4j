@@ -25,6 +25,8 @@ import org.springframework.data.neo4j.repository.query.CypherdslConditionExecuto
 import org.springframework.data.neo4j.repository.query.Neo4jQueryLookupStrategy;
 import org.springframework.data.neo4j.repository.query.QuerydslNeo4jPredicateExecutor;
 import org.springframework.data.neo4j.repository.query.SimpleQueryByExampleExecutor;
+import org.springframework.data.projection.ProjectionFactory;
+import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
 import org.springframework.data.querydsl.QuerydslPredicateExecutor;
 import org.springframework.data.querydsl.QuerydslUtils;
 import org.springframework.data.repository.core.RepositoryInformation;
@@ -121,5 +123,16 @@ final class Neo4jRepositoryFactory extends RepositoryFactorySupport {
 			QueryMethodEvaluationContextProvider evaluationContextProvider) {
 
 		return Optional.of(new Neo4jQueryLookupStrategy(neo4jOperations, mappingContext, evaluationContextProvider));
+	}
+
+	@Override
+	protected ProjectionFactory getProjectionFactory() {
+
+		ProjectionFactory projectionFactory = super.getProjectionFactory();
+		if (projectionFactory instanceof SpelAwareProxyProjectionFactory) {
+			((SpelAwareProxyProjectionFactory) projectionFactory).registerMethodInvokerFactory(
+					EntityAndGraphPropertyAccessingMethodInterceptor.createMethodInterceptorFactory(mappingContext));
+		}
+		return projectionFactory;
 	}
 }
