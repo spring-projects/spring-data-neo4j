@@ -17,47 +17,51 @@ package org.springframework.data.neo4j.integration.reactive;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import org.neo4j.cypherdsl.core.Cypher;
-import org.neo4j.cypherdsl.core.Node;
-import org.neo4j.cypherdsl.core.Statement;
-import org.neo4j.driver.Record;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.neo4j.core.ReactiveDatabaseSelectionProvider;
-import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
-import org.springframework.data.neo4j.core.transaction.ReactiveNeo4jTransactionManager;
-import org.springframework.data.neo4j.integration.shared.common.ProjectionTest1O1;
-import org.springframework.data.neo4j.integration.shared.common.ProjectionTestLevel1;
-import org.springframework.data.neo4j.integration.shared.common.ProjectionTestRoot;
-import org.springframework.data.neo4j.repository.query.Query;
-import org.springframework.data.neo4j.repository.support.ReactiveCypherdslStatementExecutor;
-import org.springframework.data.neo4j.test.BookmarkCapture;
-import org.springframework.data.repository.query.Param;
-import org.springframework.transaction.ReactiveTransactionManager;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import java.util.Collections;
+import java.util.List;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.neo4j.cypherdsl.core.Cypher;
+import org.neo4j.cypherdsl.core.Node;
+import org.neo4j.cypherdsl.core.Statement;
 import org.neo4j.driver.Driver;
+import org.neo4j.driver.Record;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.Transaction;
+import org.neo4j.driver.types.MapAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.neo4j.config.AbstractReactiveNeo4jConfig;
+import org.springframework.data.neo4j.core.ReactiveDatabaseSelectionProvider;
+import org.springframework.data.neo4j.core.ReactiveNeo4jTemplate;
+import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
+import org.springframework.data.neo4j.core.transaction.ReactiveNeo4jTransactionManager;
 import org.springframework.data.neo4j.integration.shared.common.NamesOnly;
 import org.springframework.data.neo4j.integration.shared.common.NamesOnlyDto;
 import org.springframework.data.neo4j.integration.shared.common.Person;
 import org.springframework.data.neo4j.integration.shared.common.PersonSummary;
+import org.springframework.data.neo4j.integration.shared.common.PersonWithNoConstructor;
+import org.springframework.data.neo4j.integration.shared.common.ProjectionTest1O1;
+import org.springframework.data.neo4j.integration.shared.common.ProjectionTestLevel1;
+import org.springframework.data.neo4j.integration.shared.common.ProjectionTestRoot;
 import org.springframework.data.neo4j.repository.ReactiveNeo4jRepository;
 import org.springframework.data.neo4j.repository.config.EnableReactiveNeo4jRepositories;
+import org.springframework.data.neo4j.repository.query.Query;
+import org.springframework.data.neo4j.repository.support.ReactiveCypherdslStatementExecutor;
+import org.springframework.data.neo4j.test.BookmarkCapture;
 import org.springframework.data.neo4j.test.Neo4jExtension;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
+import org.springframework.data.repository.query.Param;
+import org.springframework.transaction.ReactiveTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
-
-import java.util.List;
 
 /**
  * @author Gerrit Meier
@@ -91,6 +95,7 @@ class ReactiveProjectionIT {
 
 		transaction.run("CREATE (:Person{firstName:'" + FIRST_NAME + "', lastName:'" + LAST_NAME + "'})" + "-[:LIVES_AT]->"
 				+ "(:Address{city:'" + CITY + "'})");
+		transaction.run("CREATE (p:PersonWithNoConstructor {name: 'meistermeier', first_name: 'Gerrit', mittlererName: 'unknown'}) RETURN p");
 
 		Record result = transaction.run("create (r:ProjectionTestRoot {name: 'root'}) \n"
 				+ "create (o:ProjectionTest1O1 {name: '1o1'}) "
@@ -301,6 +306,62 @@ class ReactiveProjectionIT {
 				.assertNext(projection -> assertThat(projection.getName()).isEqualTo("root"))
 				.verifyComplete();
 	}
+
+	@Test // GH-2371
+	void findWithCustomPropertyNameWorks(@Autowired PersonWithNoConstructorRepository repository) {
+
+		repository.findAll().as(StepVerifier::create).expectNextCount(1L);
+
+		repository.findByName("meistermeier")
+				.as(StepVerifier::create)
+				.assertNext(person -> {
+					assertThat(person.getFirstName()).isEqualTo("Gerrit");
+					assertThat(person.getMittlererName()).isEqualTo("unknown");
+				})
+				.verifyComplete();
+	}
+
+	@Test // GH-2371
+	void saveWithCustomPropertyNameWorks(@Autowired BookmarkCapture bookmarkCapture, @Autowired ReactiveNeo4jTemplate neo4jTemplate) {
+
+		neo4jTemplate
+				.findOne("MATCH (p:PersonWithNoConstructor {name: 'meistermeier'}) RETURN p", Collections.emptyMap(), PersonWithNoConstructor.class)
+				.doOnNext(person -> {
+					person.setName("rotnroll666");
+					person.setFirstName("Michael");
+					person.setMiddleName("foo");
+				}).flatMap(p -> neo4jTemplate.saveAs(p, ProjectedPersonWithNoConstructor.class))
+				.as(StepVerifier::create)
+				.expectNextCount(1L)
+				.verifyComplete();
+
+
+
+		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
+			Record record = session
+					.run("MATCH (p:PersonWithNoConstructor {name: 'rotnroll666'}) RETURN p")
+					.single();
+
+			MapAccessor p = record.get("p").asNode();
+			assertThat(p.get("first_name").asString()).isEqualTo("Michael");
+			assertThat(p.get("mittlererName").asString()).isEqualTo("foo");
+		}
+	}
+
+	interface ProjectedPersonWithNoConstructor {
+
+		String getName();
+
+		String getFirstName();
+
+		String getMittlererName();
+	}
+
+	interface PersonWithNoConstructorRepository extends ReactiveNeo4jRepository<PersonWithNoConstructor, Long> {
+
+		Mono<ProjectedPersonWithNoConstructor> findByName(String name);
+	}
+
 
 	interface ReactiveProjectionPersonRepository extends ReactiveNeo4jRepository<Person, Long>,
 			ReactiveCypherdslStatementExecutor<Person> {

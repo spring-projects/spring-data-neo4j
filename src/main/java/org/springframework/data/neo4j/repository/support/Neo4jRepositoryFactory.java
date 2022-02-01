@@ -17,6 +17,7 @@ package org.springframework.data.neo4j.repository.support;
 
 import java.util.Optional;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.neo4j.core.Neo4jOperations;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
@@ -26,6 +27,8 @@ import org.springframework.data.neo4j.repository.query.CypherdslConditionExecuto
 import org.springframework.data.neo4j.repository.query.Neo4jQueryLookupStrategy;
 import org.springframework.data.neo4j.repository.query.QuerydslNeo4jPredicateExecutor;
 import org.springframework.data.neo4j.repository.query.SimpleQueryByExampleExecutor;
+import org.springframework.data.projection.ProjectionFactory;
+import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
 import org.springframework.data.querydsl.QuerydslPredicateExecutor;
 import org.springframework.data.querydsl.QuerydslUtils;
 import org.springframework.data.repository.core.RepositoryInformation;
@@ -126,5 +129,16 @@ final class Neo4jRepositoryFactory extends RepositoryFactorySupport {
 			QueryMethodEvaluationContextProvider evaluationContextProvider) {
 
 		return Optional.of(new Neo4jQueryLookupStrategy(neo4jOperations, mappingContext, evaluationContextProvider));
+	}
+
+	@Override
+	protected ProjectionFactory getProjectionFactory(ClassLoader classLoader, BeanFactory beanFactory) {
+
+		ProjectionFactory projectionFactory = super.getProjectionFactory(classLoader, beanFactory);
+		if (projectionFactory instanceof SpelAwareProxyProjectionFactory) {
+			((SpelAwareProxyProjectionFactory) projectionFactory).registerMethodInvokerFactory(
+					EntityAndGraphPropertyAccessingMethodInterceptor.createMethodInterceptorFactory(mappingContext));
+		}
+		return projectionFactory;
 	}
 }
