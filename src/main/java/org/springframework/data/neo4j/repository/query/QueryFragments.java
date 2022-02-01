@@ -33,9 +33,11 @@ import org.neo4j.cypherdsl.core.Statement;
 import org.neo4j.cypherdsl.core.StatementBuilder;
 import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.neo4j.core.mapping.CypherGenerator;
+import org.springframework.data.neo4j.core.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.core.mapping.PropertyFilter;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.core.mapping.NodeDescription;
+import org.springframework.data.neo4j.core.schema.Property;
 import org.springframework.lang.Nullable;
 
 /**
@@ -86,9 +88,7 @@ public final class QueryFragments {
 	}
 
 	public boolean includeField(PropertyFilter.RelaxedPropertyPath fieldName) {
-		return this.returnTuple == null
-				? PropertyFilter.acceptAll().contains(fieldName.toDotPath(), fieldName.getType())
-				: this.returnTuple.filteredProperties.contains(fieldName.toDotPath(), fieldName.getType());
+		return this.returnTuple == null || this.returnTuple.include(fieldName);
 	}
 
 	public void setOrderBy(Collection<SortItem> orderBy) {
@@ -178,6 +178,16 @@ public final class QueryFragments {
 			this.nodeDescription = nodeDescription;
 			this.filteredProperties = PropertyFilter.from(filteredProperties, nodeDescription);
 			this.isDistinct = isDistinct;
+		}
+
+		boolean include(PropertyFilter.RelaxedPropertyPath fieldName) {
+			String dotPath = nodeDescription.getGraphProperty(fieldName.getSegment())
+					.filter(Neo4jPersistentProperty.class::isInstance)
+					.map(Neo4jPersistentProperty.class::cast)
+					.filter(p -> p.findAnnotation(Property.class) != null)
+					.map(p -> fieldName.toDotPath(p.getPropertyName()))
+					.orElseGet(fieldName::toDotPath);
+			return this.filteredProperties.contains(dotPath, fieldName.getType());
 		}
 	}
 }
