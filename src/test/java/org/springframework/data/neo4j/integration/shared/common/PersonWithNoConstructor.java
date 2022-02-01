@@ -38,4 +38,6 @@ public class PersonWithNoConstructor {
 	private String name;
 
 	@Property("first_name") private String firstName;
+
+	@Property("mittlererName") private String middleName;
 }

@@ -27,6 +27,8 @@ import org.springframework.data.neo4j.repository.ReactiveNeo4jRepository;
 import org.springframework.data.neo4j.repository.query.ReactiveNeo4jQueryLookupStrategy;
 import org.springframework.data.neo4j.repository.query.ReactiveQuerydslNeo4jPredicateExecutor;
 import org.springframework.data.neo4j.repository.query.SimpleReactiveQueryByExampleExecutor;
+import org.springframework.data.projection.ProjectionFactory;
+import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
 import org.springframework.data.querydsl.QuerydslUtils;
 import org.springframework.data.querydsl.ReactiveQuerydslPredicateExecutor;
 import org.springframework.data.repository.core.RepositoryInformation;
@@ -131,5 +133,16 @@ final class ReactiveNeo4jRepositoryFactory extends ReactiveRepositoryFactorySupp
 				factory.addAdvice(advice);
 			});
 		}
+	}
+
+	@Override
+	protected ProjectionFactory getProjectionFactory() {
+
+		ProjectionFactory projectionFactory = super.getProjectionFactory();
+		if (projectionFactory instanceof SpelAwareProxyProjectionFactory) {
+			((SpelAwareProxyProjectionFactory) projectionFactory).registerMethodInvokerFactory(
+					EntityAndGraphPropertyAccessingMethodInterceptor.createMethodInterceptorFactory(mappingContext));
+		}
+		return projectionFactory;
 	}
 }
