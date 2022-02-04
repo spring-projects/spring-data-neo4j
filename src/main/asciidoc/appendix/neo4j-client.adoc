@@ -317,6 +317,31 @@ Mono<Director> lily = client
 
 `TypeSystem` gives access to the types the underlying Java driver used to fill the record.
 
+[[neo4j-client.result-objects.mapping-functions]]
+==== Using domain-aware mapping functions
+
+If you know that the result of the query will contain nodes that have entity definitions in your application,
+you can use the injectable `MappingContext` to retrieve their mapping functions and apply them during the mapping.
+
+[[neo4j-client-reader.mapping-function]]
+[source,java]
+.Using an existing mapping function
+----
+BiFunction<TypeSystem, MapAccessor, Movie> mappingFunction = neo4jMappingContext.getRequiredMappingFunctionFor(Movie.class);
+Mono<Director> lily = client
+    .query(""
+        + " MATCH (p:Person {name: $name}) - [:DIRECTED] -> (m:Movie)"
+        + "RETURN p, collect(m) as movies")
+    .bind("Lilly Wachowski").to("name")
+    .fetchAs(Director.class).mappedBy((TypeSystem t, Record record) -> {
+        List<Movie> movies = record.get("movies")
+            .asList(movie -> mappingFunction.apply(t, movie));
+        return new Director(record.get("name").asString(), movies);
+    })
+    .one();
+----
+
+
 [[neo4j-client.interacting.driver.directly]]
 === Interacting directly with the driver while using managed transactions
 

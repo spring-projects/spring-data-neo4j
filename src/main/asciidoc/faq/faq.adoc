@@ -12,7 +12,7 @@ release.
 While patch versions of the Neo4j Java Driver are usually drop-in replacements, SDN6 makes sure that even minor versions
 are interchangeable as it checks for the presence or absence of methods or interface changes if necessary.
 
-Therefore, you are able to use any 4.x Neo4j Java Driver with any SDN6 6.x version.
+Therefore, you are able to use any 4.x Neo4j Java Driver with any SDN 6.x version.
 
 === With Spring Boot
 
