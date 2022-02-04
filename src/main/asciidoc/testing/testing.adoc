@@ -105,7 +105,7 @@ Also, 4.0 requires JDK 11.
 You need the following dependencies to run <<dataneo4jtest-harness35-example>>:
 
 [source,xml]
-.Neo4j 4.0 test harness dependencies
+.Neo4j 3.5 test harness dependencies
 ----
 <dependency>
     <groupId>org.neo4j.test</groupId>
@@ -179,12 +179,12 @@ application properties. We overwrite the corresponding Neo4j settings.
 <.> Shutdown Neo4j after all tests.
 
 [[dataneo4jtest-harness40]]
-=== `@DataNeo4jTest` with Neo4j test harness 4.0+
+=== `@DataNeo4jTest` with Neo4j test harness 4.x
 
 You need the following dependencies to run <<dataneo4jtest-harness40-example>>:
 
 [source,xml]
-.Neo4j 4.0 test harness dependencies
+.Neo4j 4.x test harness dependencies
 ----
 <dependency>
     <groupId>org.neo4j.test</groupId>
@@ -205,7 +205,7 @@ an appropriate repository configuration.
 
 [[dataneo4jtest-harness40-example]]
 [source,java]
-.Using Neo4j 4.0+ test harness
+.Using Neo4j 4.x test harness
 ----
 import static org.assertj.core.api.Assertions.assertThat;
 
