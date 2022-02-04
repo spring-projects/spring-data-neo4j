@@ -287,6 +287,8 @@ We see the `MovieEntity` as the aggregate root, owning the relationships.
 On the other hand, we want to be able to pull all people from the database without selecting all the movies associated with them.
 Please consider your application's use case before you try to map every relationship in your database in every direction.
 While you can do this, you may end up rebuilding a graph database inside your object graph and this is not the intention of a mapping framework.
+If you have to model your circular or bidirectional domain and don't want to fetch the whole graph,
+you can define a fine-grained description of the data that you want to fetch by using <<projections.sdn, projections>>.
 
 [[mapping.id-handling]]
 == Handling and provisioning of unique IDs

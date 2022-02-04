@@ -318,7 +318,7 @@ Thus we stay consistent with all other Spring Boot starters, that are actually p
 
 ==== Responsibilities
 
-The starter and it's automatic configuration is responsible for configuring Spring Data Neo4j repositories and infrastructure.
+The starter and its automatic configuration is responsible for configuring Spring Data Neo4j repositories and infrastructure.
 It needs a configured Neo4j Java Driver and therefor is itself dependent on `org.neo4j.driver:neo4j-java-driver-spring-boot-starter`,
 the official starter for the Neo4j Java Driver.
 

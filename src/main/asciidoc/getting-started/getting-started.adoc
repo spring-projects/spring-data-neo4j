@@ -2,10 +2,10 @@
 = Getting started
 
 We provide a Spring Boot starter for SDN.
-Please include the starter module via your dependency management and configure the bolt URL to use, for example `org.neo4j.driver.uri=bolt://localhost:7687`.
+Please include the starter module via your dependency management and configure the bolt URL to use, for example `spring.neo4j.uri=bolt://localhost:7687`.
 The starter assumes that the server has disabled authentication.
 As the SDN starter depends on the starter for the Java Driver, all things regarding configuration said there, apply here as well.
-For a reference of the available properties, use your IDEs autocompletion in the `org.neo4j.driver` namespace or look at the link:{java-driver-starter-href}/blob/master/docs/manual/index.adoc[dedicated manual].
+For a reference of the available properties, use your IDEs autocompletion in the `spring.neo4j` namespace.
 
 SDN supports
 
@@ -13,7 +13,7 @@ SDN supports
 * Reactive programming based on https://www.reactive-streams.org[Reactive Streams], including full support for https://spring.io/blog/2019/05/16/reactive-transactions-with-spring[reactive transactions].
 
 Those are all included in the same binary.
-The reactive programming model requires a 4.0 Neo4j server on the database side and reactive Spring on the other hand.
+The reactive programming model requires a 4+ Neo4j server on the database side and reactive Spring on the other hand.
 
 [[prepare-the-database]]
 == Prepare the database
@@ -53,7 +53,7 @@ You can issue a _curl_ request against the Spring Initializer to create a basic 
 .Create a basic Maven project with the Spring Initializr
 ----
 curl https://start.spring.io/starter.tgz \
-  -d dependencies=webflux,actuator,data-neo4j  \
+  -d dependencies=webflux,data-neo4j  \
   -d bootVersion={spring-boot-version} \
   -d baseDir=Neo4jSpringBootExample \
   -d name=Neo4j%20SpringBoot%20Example | tar -xzvf -
@@ -84,7 +84,7 @@ The idea is the same, just generate a Gradle project:
 .Create a basic Gradle project with the Spring Initializr
 ----
 curl https://start.spring.io/starter.tgz \
-  -d dependencies=webflux,actuator,data-neo4j \
+  -d dependencies=webflux,data-neo4j \
   -d type=gradle-project \
   -d bootVersion={spring-boot-version} \
   -d baseDir=Neo4jSpringBootExampleGradle \

@@ -124,18 +124,21 @@ You're then ready to replace annotations:
 |`org.springframework.data.neo4j.annotation.UseBookmark`
 |No replacement, not needed
 
+|`org.springframework.data.neo4j.annotation.QueryResult`
+|Use <<projections.sdn, projections>>; arbitrary result mapping not supported anymore
+
 |===
 
 NOTE: Several Neo4j-OGM annotations have not yet a corresponding annotation in SDN, some will never have.
 We will add to the list above as we support additional features.
 
 [[migrating.bookmarks]]
-=== Bookmarkmanagement
+=== Bookmark management
 
 Both `@EnableBookmarkManagement` and `@UseBookmark` as well as the `org.springframework.data.neo4j.bookmark.BookmarkManager`
 interface and its only implementation `org.springframework.data.neo4j.bookmark.CaffeineBookmarkManager` are gone and are not needed anymore.
 
-SDN uses Bookmarks for all transactions, without configuration.
+SDN uses bookmarks for all transactions, without configuration.
 You can remove the bean declaration of `CaffeineBookmarkManager` as well as the dependency to `com.github.ben-manes.caffeine:caffeine`.
 
 [[migrating.autoindex]]
