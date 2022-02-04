@@ -32,13 +32,13 @@ pipeline {
 			options { timeout(time: 30, unit: 'MINUTES') }
 
 			environment {
-				DOCKER_HUB = credentials('hub.docker.com-springbuildmaster')
-				ARTIFACTORY = credentials('02bd1690-b54f-4c9f-819d-a77cb7a9822c')
+				DOCKER_HUB = credentials("${p['docker.credentials']}")
+				ARTIFACTORY = credentials("${p['artifactory.credentials']}")
 			}
 
 			steps {
 				script {
-					docker.withRegistry('', 'hub.docker.com-springbuildmaster') {
+					docker.withRegistry(p['docker.registry'], p['docker.credentials']) {
 						docker.image(p['docker.java.main.image']).inside(p['docker.java.inside.docker']) {
 							sh "docker login --username ${DOCKER_HUB_USR} --password ${DOCKER_HUB_PSW}"
 							sh "PROFILE=none ci/test.sh"
@@ -63,12 +63,12 @@ pipeline {
 			options { timeout(time: 20, unit: 'MINUTES') }
 
 			environment {
-				ARTIFACTORY = credentials('02bd1690-b54f-4c9f-819d-a77cb7a9822c')
+				ARTIFACTORY = credentials("${p['artifactory.credentials']}")
 			}
 
 			steps {
 				script {
-					docker.withRegistry('', 'hub.docker.com-springbuildmaster') {
+					docker.withRegistry(p['docker.registry'], p['docker.credentials']) {
 						docker.image(p['docker.java.main.image']).inside(p['docker.java.inside.basic']) {
 							sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw -s settings.xml -Pci,artifactory -Dmaven.repo.local=/tmp/jenkins-home/.m2/spring-data-neo4j-non-root ' +
 								'-Dartifactory.server=https://repo.spring.io ' +
