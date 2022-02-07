@@ -916,8 +916,8 @@ public final class Neo4jTemplate implements
 
 		NestedRelationshipProcessingStateMachine stateMachine = new NestedRelationshipProcessingStateMachine(neo4jMappingContext);
 		List<R> results = new ArrayList<>();
+		EntityFromDtoInstantiatingConverter<T> converter = new EntityFromDtoInstantiatingConverter<>(domainType, neo4jMappingContext);
 		for (R instance : instances) {
-			EntityFromDtoInstantiatingConverter<T> converter = new EntityFromDtoInstantiatingConverter<>(domainType, neo4jMappingContext);
 			T domainObject = converter.convert(instance);
 
 			T savedEntity = saveImpl(domainObject, pps, stateMachine);

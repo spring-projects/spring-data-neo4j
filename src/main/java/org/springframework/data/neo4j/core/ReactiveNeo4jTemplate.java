@@ -351,9 +351,9 @@ public final class ReactiveNeo4jTemplate implements
 				projectionFactory, neo4jMappingContext);
 
 		NestedRelationshipProcessingStateMachine stateMachine = new NestedRelationshipProcessingStateMachine(neo4jMappingContext);
+		EntityFromDtoInstantiatingConverter<T> converter = new EntityFromDtoInstantiatingConverter<>(domainType, neo4jMappingContext);
 		return Flux.fromIterable(instances)
 			.flatMap(instance -> {
-				EntityFromDtoInstantiatingConverter<T> converter = new EntityFromDtoInstantiatingConverter<>(domainType, neo4jMappingContext);
 				T domainObject = converter.convert(instance);
 
 				return saveImpl(domainObject, pps, stateMachine)
