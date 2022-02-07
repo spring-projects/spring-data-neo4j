@@ -176,6 +176,13 @@ class CypherGeneratorTest {
 				.withMessageMatching("Cannot handle order property `.*`, it must be a simple property or one-hop path\\.");
 	}
 
+	@Test // GH-2474
+	void shouldNotFailOnMultipleEscapedHops() {
+
+		Optional<String> fragment = Optional.ofNullable(CypherGenerator.INSTANCE.createOrderByFragment(Sort.by("n.`a.b.c`")));
+		assertThat(fragment).hasValue("ORDER BY n.`a.b.c` ASC");
+	}
+
 	@CsvSource(delimiterString = "|", value = {
 			"apoc.text.clean(department.name)   |false| ORDER BY apoc.text.clean(department.name) ASC",
 			"apoc.text.clean(department.name)   |true | ORDER BY apoc.text.clean(department.name) DESC",

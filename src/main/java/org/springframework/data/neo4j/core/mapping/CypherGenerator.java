@@ -490,13 +490,18 @@ public enum CypherGenerator {
 					if (LOOKS_LIKE_A_FUNCTION.matcher(property).matches()) {
 						expression = Cypher.raw(property);
 					} else if (property.contains(".")) {
-						String[] path = property.split("\\.");
-						if (path.length != 2) {
-							throw new IllegalArgumentException(String.format(
-									"Cannot handle order property `%s`, it must be a simple property or one-hop path.",
-									property));
+						int firstDot = property.indexOf('.');
+						String tail = property.substring(firstDot + 1);
+						if (tail.isEmpty() || property.lastIndexOf(".") != firstDot) {
+							if (tail.trim().matches("`.+`")) {
+								tail = tail.replaceFirst("`(.+)`", "$1");
+							} else {
+								throw new IllegalArgumentException(String.format(
+										"Cannot handle order property `%s`, it must be a simple property or one-hop path.",
+										property));
+							}
 						}
-						expression = Cypher.property(path[0], path[1]);
+						expression = Cypher.property(property.substring(0, firstDot), tail);
 					} else {
 						expression = Cypher.name(property);
 					}
