@@ -15,7 +15,12 @@
  */
 package org.springframework.data.neo4j.core.mapping;
 
+import java.util.Collection;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 import org.apiguardian.api.API;
+import org.springframework.core.CollectionFactory;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.mapping.MappingException;
 import org.springframework.data.mapping.PersistentEntity;
@@ -23,7 +28,6 @@ import org.springframework.data.mapping.PersistentProperty;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
 import org.springframework.data.mapping.PreferredConstructor;
 import org.springframework.data.mapping.PreferredConstructor.Parameter;
-import org.springframework.data.mapping.SimplePropertyHandler;
 import org.springframework.data.mapping.model.ParameterValueProvider;
 import org.springframework.data.util.ClassTypeInformation;
 import org.springframework.data.util.ReflectionUtils;
@@ -41,11 +45,13 @@ public final class EntityFromDtoInstantiatingConverter<T> implements Converter<O
 	private final Class<?> targetEntityType;
 	private final Neo4jMappingContext context;
 
+	private final Map<Class<?>, EntityFromDtoInstantiatingConverter<?>> converterCache = new ConcurrentHashMap<>();
+
 	/**
 	 * Creates a new {@link Converter} to instantiate Entities from DTOs.
 	 *
 	 * @param entityType must not be {@literal null}.
-	 * @param context must not be {@literal null}.
+	 * @param context    must not be {@literal null}.
 	 */
 	public EntityFromDtoInstantiatingConverter(Class<T> entityType, Neo4jMappingContext context) {
 
@@ -63,7 +69,8 @@ public final class EntityFromDtoInstantiatingConverter<T> implements Converter<O
 			return null;
 		}
 
-		PersistentEntity<?, ?> sourceEntity = context.addPersistentEntity(ClassTypeInformation.from(dtoInstance.getClass())).get();
+		PersistentEntity<?, ?> sourceEntity = context.addPersistentEntity(
+				ClassTypeInformation.from(dtoInstance.getClass())).get();
 		PersistentPropertyAccessor<Object> sourceAccessor = sourceEntity.getPropertyAccessor(dtoInstance);
 
 		PersistentEntity<?, ?> targetEntity = context.getPersistentEntity(targetEntityType);
@@ -78,15 +85,14 @@ public final class EntityFromDtoInstantiatingConverter<T> implements Converter<O
 						PersistentProperty<?> targetProperty = targetEntity.getPersistentProperty(parameter.getName());
 						if (targetProperty == null) {
 							throw new MappingException("Cannot map constructor parameter " + parameter.getName()
-									+ " to a property of class " + targetEntityType);
+													   + " to a property of class " + targetEntityType);
 						}
 						return getPropertyValueFor(targetProperty, sourceEntity, sourceAccessor);
 					}
 				});
 
 		PersistentPropertyAccessor<Object> dtoAccessor = targetEntity.getPropertyAccessor(entity);
-		targetEntity.doWithProperties((SimplePropertyHandler) property -> {
-
+		targetEntity.doWithAll(property -> {
 			if (constructor.isConstructorParameter(property)) {
 				return;
 			}
@@ -94,7 +100,6 @@ public final class EntityFromDtoInstantiatingConverter<T> implements Converter<O
 			Object propertyValue = getPropertyValueFor(property, sourceEntity, sourceAccessor);
 			dtoAccessor.setProperty(property, propertyValue);
 		});
-
 		return entity;
 	}
 
@@ -112,6 +117,23 @@ public final class EntityFromDtoInstantiatingConverter<T> implements Converter<O
 
 		if (propertyValue == null && targetPropertyType.isPrimitive()) {
 			return ReflectionUtils.getPrimitiveDefault(targetPropertyType);
+		}
+
+		if (targetProperty.isAssociation() && targetProperty.isCollectionLike()) {
+			EntityFromDtoInstantiatingConverter<?> nestedConverter = converterCache.computeIfAbsent(targetProperty.getComponentType(), t -> new EntityFromDtoInstantiatingConverter<>(t, context));
+			Collection<?> source = (Collection<?>) propertyValue;
+			if (source == null) {
+				return CollectionFactory.createCollection(targetPropertyType, 0);
+			}
+			Collection<Object> target = CollectionFactory.createApproximateCollection(source, source.size());
+			source.stream().map(nestedConverter::convert).forEach(target::add);
+			return target;
+		}
+
+		if (propertyValue != null && !targetPropertyType.isInstance(propertyValue)) {
+			EntityFromDtoInstantiatingConverter<?> nestedConverter = converterCache.computeIfAbsent(targetProperty.getType(),
+					t -> new EntityFromDtoInstantiatingConverter<>(t, context));
+			return nestedConverter.convert(propertyValue);
 		}
 
 		return propertyValue;
