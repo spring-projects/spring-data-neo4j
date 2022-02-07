@@ -15,26 +15,38 @@
  */
 package org.springframework.data.neo4j.integration.issues.gh2474;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import lombok.Data;
 
-import org.springframework.data.domain.Sort;
-import org.springframework.data.neo4j.repository.Neo4jRepository;
-import org.springframework.data.neo4j.repository.query.Query;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
 /**
  * @author Stephen Jackson
- * @author Michael J. Simons
  */
-public interface CityModelRepository extends Neo4jRepository<CityModel, UUID> {
+@Data
+public class CityModelDTO {
+	private UUID cityId;
+	private String name;
+	private String exoticProperty;
 
-	Optional<CityModelDTO> findByCityId(UUID cityId);
+	public PersonModelDTO mayor;
+	public List<PersonModelDTO> citizens = new ArrayList<>();
+	public List<JobRelationshipDTO> cityEmployees = new ArrayList<>();
 
-	@Query(""
-		   + "MATCH (n:CityModel)"
-		   + "RETURN n :#{orderBy(#sort)}")
-	List<CityModel> customQuery(Sort sort);
+	/**
+	 * Nested projection
+	 */
+	@Data
+	public static class PersonModelDTO {
+		private UUID personId;
+	}
 
-	long deleteAllByExoticProperty(String property);
+	/**
+	 * Nested projection
+	 */
+	@Data
+	public static class JobRelationshipDTO {
+		private PersonModelDTO person;
+	}
 }
