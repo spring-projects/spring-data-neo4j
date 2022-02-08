@@ -155,6 +155,12 @@ class AdvancedMappingIT {
 
 		@Query("MATCH (m:Movie{title:'The Matrix'})<-[a:ACTED_IN]-(p:Person) WITH a,p,m order by p.name DESC return m, collect(a), collect(p)")
 		Movie findMatrixWithSortedDescActors();
+
+		@Query("MATCH p=(:Movie{title:'The Matrix'}) return p")
+		Movie findSingleNodeWithPath();
+
+		@Query("MATCH p=(m:Movie{title:'The Matrix'})<-[:ACTED_IN]-(:Person) return m, collect(nodes(p)), collect(relationships(p))")
+		List<Movie> findMultipleSameTypeRelationshipsWithPath();
 	}
 
 	@Test // GH-1906
@@ -469,11 +475,25 @@ class AdvancedMappingIT {
 				.containsExactly("Carrie-Anne Moss", "Emil Eifrem", "Gloria Foster", "Hugo Weaving", "Keanu Reeves",
 						"Laurence Fishburne");
 	}
+
 	@Test // GH-2458
 	void findPreservesOrderFromResultDescInRelationshipList(@Autowired MovieRepository repository) {
 		assertThat(repository.findMatrixWithSortedDescActors().getActors()).extracting("person").extracting("name")
 				.containsExactly("Laurence Fishburne", "Keanu Reeves", "Hugo Weaving", "Gloria Foster", "Emil Eifrem",
 						"Carrie-Anne Moss");
+	}
+
+
+	@Test // GH-2470
+	void mapPathWithSingleNode(@Autowired MovieRepository repository) {
+		assertThat(repository.findSingleNodeWithPath()).isNotNull();
+	}
+
+	@Test // GH-2473
+	void mapPathWithMultipleSameTypeRelationships(@Autowired MovieRepository repository) {
+		List<Movie> movies = repository.findMultipleSameTypeRelationshipsWithPath();
+		assertThat(movies).hasSize(1);
+		assertThat(movies.get(0).getActors()).hasSize(6);
 	}
 
 	@Configuration
