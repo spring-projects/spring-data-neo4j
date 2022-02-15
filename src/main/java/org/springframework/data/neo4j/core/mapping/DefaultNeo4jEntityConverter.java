@@ -46,8 +46,8 @@ import org.springframework.core.CollectionFactory;
 import org.springframework.core.KotlinDetector;
 import org.springframework.data.mapping.AssociationHandler;
 import org.springframework.data.mapping.MappingException;
+import org.springframework.data.mapping.Parameter;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
-import org.springframework.data.mapping.PreferredConstructor;
 import org.springframework.data.mapping.PropertyHandler;
 import org.springframework.data.mapping.model.EntityInstantiators;
 import org.springframework.data.mapping.model.ParameterValueProvider;
@@ -328,7 +328,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 
 		PersistentPropertyAccessor<ET> propertyAccessor = concreteNodeDescription.getPropertyAccessor(mappedObject);
 		Predicate<Neo4jPersistentProperty> isConstructorParameter = concreteNodeDescription
-				.getPersistenceConstructor()::isConstructorParameter;
+				.getInstanceCreatorMetadata()::isCreatorParameter;
 
 		// if the object were mapped before, we assume that at least all properties are populated
 		if (!objectAlreadyMapped) {
@@ -412,7 +412,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 
 			@SuppressWarnings("unchecked") // Needed for the last cast. It's easier that way than using the parameter type info and checking for primitives
 			@Override
-			public <T> T getParameterValue(PreferredConstructor.Parameter<T, Neo4jPersistentProperty> parameter) {
+			public <T> T getParameterValue(Parameter<T, Neo4jPersistentProperty> parameter) {
 				Neo4jPersistentProperty matchingProperty = nodeDescription.getRequiredPersistentProperty(parameter.getName());
 
 				Object result;

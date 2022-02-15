@@ -27,12 +27,12 @@ import org.neo4j.driver.types.TypeSystem;
 import org.springframework.core.CollectionFactory;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.log.LogAccessor;
+import org.springframework.data.mapping.InstanceCreatorMetadata;
 import org.springframework.data.mapping.MappingException;
+import org.springframework.data.mapping.Parameter;
 import org.springframework.data.mapping.PersistentEntity;
 import org.springframework.data.mapping.PersistentProperty;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
-import org.springframework.data.mapping.PreferredConstructor;
-import org.springframework.data.mapping.PreferredConstructor.Parameter;
 import org.springframework.data.mapping.SimplePropertyHandler;
 import org.springframework.data.mapping.model.ParameterValueProvider;
 import org.springframework.data.util.ClassTypeInformation;
@@ -76,8 +76,7 @@ public final class DtoInstantiatingConverter implements Converter<EntityInstance
 
 		Neo4jPersistentEntity<?> targetEntity = context.addPersistentEntity(ClassTypeInformation.from(targetType)).orElse(null);
 		Assert.notNull(targetEntity, "Target entity could not be created for a DTO");
-		PreferredConstructor<?, Neo4jPersistentProperty> constructor = targetEntity
-				.getPersistenceConstructor();
+		InstanceCreatorMetadata<?> creator = targetEntity.getInstanceCreatorMetadata();
 
 		Object dto = context.getInstantiatorFor(targetEntity)
 				.createInstance(targetEntity,
@@ -89,7 +88,7 @@ public final class DtoInstantiatingConverter implements Converter<EntityInstance
 		PersistentPropertyAccessor<Object> dtoAccessor = targetEntity.getPropertyAccessor(dto);
 		targetEntity.doWithProperties((SimplePropertyHandler) property -> {
 
-			if (constructor != null && constructor.isConstructorParameter(property)) {
+			if (creator != null && creator.isCreatorParameter(property)) {
 				return;
 			}
 
@@ -130,9 +129,9 @@ public final class DtoInstantiatingConverter implements Converter<EntityInstance
 		PersistentPropertyAccessor<Object> sourceAccessor = sourceEntity.getPropertyAccessor(entityInstance);
 
 		Neo4jPersistentEntity<?> targetEntity = context.addPersistentEntity(ClassTypeInformation.from(targetType))
-														.orElseThrow(() -> new MappingException("Could not add a persistent entity for the projection target type '" + targetType.getName() + "'."));
-		PreferredConstructor<?, ? extends PersistentProperty<?>> constructor = targetEntity
-				.getPersistenceConstructor();
+				.orElseThrow(() -> new MappingException(
+						"Could not add a persistent entity for the projection target type '" + targetType.getName() + "'."));
+		InstanceCreatorMetadata<? extends PersistentProperty<?>> creator = targetEntity.getInstanceCreatorMetadata();
 
 		Object dto = context.getInstantiatorFor(targetEntity)
 				.createInstance(targetEntity,
@@ -142,8 +141,8 @@ public final class DtoInstantiatingConverter implements Converter<EntityInstance
 				);
 
 		PersistentPropertyAccessor<Object> dtoAccessor = targetEntity.getPropertyAccessor(dto);
-		targetEntity.doWithAll(property ->
-				setPropertyOnDtoObject(entityInstanceAndSource, sourceEntity, sourceAccessor, constructor, dtoAccessor, property));
+		targetEntity.doWithAll(property -> setPropertyOnDtoObject(entityInstanceAndSource, sourceEntity, sourceAccessor,
+				creator, dtoAccessor, property));
 
 		return dto;
 	}
@@ -171,11 +170,12 @@ public final class DtoInstantiatingConverter implements Converter<EntityInstance
 		};
 	}
 
-	private void setPropertyOnDtoObject(EntityInstanceWithSource entityInstanceAndSource, PersistentEntity<?, ?> sourceEntity,
-			PersistentPropertyAccessor<Object> sourceAccessor, @Nullable PreferredConstructor<?, ?> constructor,
-			PersistentPropertyAccessor<Object> dtoAccessor, Neo4jPersistentProperty property) {
+	private void setPropertyOnDtoObject(EntityInstanceWithSource entityInstanceAndSource,
+			PersistentEntity<?, ?> sourceEntity, PersistentPropertyAccessor<Object> sourceAccessor,
+			@Nullable InstanceCreatorMetadata<?> creator, PersistentPropertyAccessor<Object> dtoAccessor,
+			Neo4jPersistentProperty property) {
 
-		if (constructor != null && constructor.isConstructorParameter(property)) {
+		if (creator != null && creator.isCreatorParameter(property)) {
 			return;
 		}
 
