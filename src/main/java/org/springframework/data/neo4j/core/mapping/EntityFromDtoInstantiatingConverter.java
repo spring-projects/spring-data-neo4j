@@ -22,12 +22,12 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.apiguardian.api.API;
 import org.springframework.core.CollectionFactory;
 import org.springframework.core.convert.converter.Converter;
+import org.springframework.data.mapping.InstanceCreatorMetadata;
 import org.springframework.data.mapping.MappingException;
+import org.springframework.data.mapping.Parameter;
 import org.springframework.data.mapping.PersistentEntity;
 import org.springframework.data.mapping.PersistentProperty;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
-import org.springframework.data.mapping.PreferredConstructor;
-import org.springframework.data.mapping.PreferredConstructor.Parameter;
 import org.springframework.data.mapping.model.ParameterValueProvider;
 import org.springframework.data.util.ClassTypeInformation;
 import org.springframework.data.util.ReflectionUtils;
@@ -74,8 +74,7 @@ public final class EntityFromDtoInstantiatingConverter<T> implements Converter<O
 		PersistentPropertyAccessor<Object> sourceAccessor = sourceEntity.getPropertyAccessor(dtoInstance);
 
 		PersistentEntity<?, ?> targetEntity = context.getPersistentEntity(targetEntityType);
-		PreferredConstructor<?, ? extends PersistentProperty<?>> constructor = targetEntity
-				.getPersistenceConstructor();
+		InstanceCreatorMetadata<?> creator = targetEntity.getInstanceCreatorMetadata();
 
 		@SuppressWarnings({ "rawtypes", "unchecked" })
 		T entity = (T) context.getInstantiatorFor(targetEntity)
@@ -93,7 +92,7 @@ public final class EntityFromDtoInstantiatingConverter<T> implements Converter<O
 
 		PersistentPropertyAccessor<Object> dtoAccessor = targetEntity.getPropertyAccessor(entity);
 		targetEntity.doWithAll(property -> {
-			if (constructor.isConstructorParameter(property)) {
+			if (creator.isCreatorParameter(property)) {
 				return;
 			}
 
