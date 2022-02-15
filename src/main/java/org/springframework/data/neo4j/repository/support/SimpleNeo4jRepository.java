@@ -29,6 +29,7 @@ import org.springframework.data.neo4j.core.Neo4jOperations;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.repository.query.QueryFragmentsAndParameters;
+import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.stereotype.Repository;
@@ -49,7 +50,7 @@ import org.springframework.util.Assert;
 @Repository
 @Transactional(readOnly = true)
 @API(status = API.Status.STABLE, since = "6.0")
-public class SimpleNeo4jRepository<T, ID> implements PagingAndSortingRepository<T, ID> {
+public class SimpleNeo4jRepository<T, ID> implements PagingAndSortingRepository<T, ID>, CrudRepository<T, ID> {
 
 	private final Neo4jOperations neo4jOperations;
 

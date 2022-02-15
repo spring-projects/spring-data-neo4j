@@ -17,6 +17,7 @@ package org.springframework.data.neo4j.repository;
 
 import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.data.repository.query.ReactiveQueryByExampleExecutor;
+import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 import org.springframework.data.repository.reactive.ReactiveSortingRepository;
 
 /**
@@ -29,4 +30,4 @@ import org.springframework.data.repository.reactive.ReactiveSortingRepository;
  */
 @NoRepositoryBean
 public interface ReactiveNeo4jRepository<T, ID>
-		extends ReactiveSortingRepository<T, ID>, ReactiveQueryByExampleExecutor<T> {}
+		extends ReactiveSortingRepository<T, ID>, ReactiveQueryByExampleExecutor<T>, ReactiveCrudRepository<T, ID> {}

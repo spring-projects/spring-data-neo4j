@@ -15,6 +15,7 @@
  */
 package org.springframework.data.neo4j.repository.support;
 
+import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -48,7 +49,8 @@ import org.springframework.util.Assert;
 @Repository
 @Transactional(readOnly = true)
 @API(status = API.Status.STABLE, since = "6.0")
-public class SimpleReactiveNeo4jRepository<T, ID> implements ReactiveSortingRepository<T, ID> {
+public class SimpleReactiveNeo4jRepository<T, ID> implements ReactiveSortingRepository<T, ID>,
+		ReactiveCrudRepository<T, ID> {
 
 	private final ReactiveNeo4jOperations neo4jOperations;
 
