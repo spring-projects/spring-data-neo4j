@@ -23,7 +23,7 @@ Spring Boots dependency management to change the driver version like this:
 [source,xml]
 ----
 <properties>
-  <neo4j-java-driver.version>4.4.2</neo4j-java-driver.version>
+  <neo4j-java-driver.version>4.4.3</neo4j-java-driver.version>
 </properties>
 ----
 
@@ -32,7 +32,7 @@ Or
 .Change the driver version from Gradle (gradle.properties)
 [source,properties]
 ----
-neo4j-java-driver.version = 4.4.2
+neo4j-java-driver.version = 4.4.3
 ----
 
 === Without Spring Boot
@@ -46,7 +46,7 @@ section like this:
     <dependency>
         <groupId>org.neo4j.driver</groupId>
         <artifactId>neo4j-java-driver</artifactId>
-        <version>4.4.2</version>
+        <version>4.4.3</version>
     </dependency>
 </dependencyManagement>
 ----
