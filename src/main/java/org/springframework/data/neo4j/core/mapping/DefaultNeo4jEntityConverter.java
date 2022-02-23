@@ -79,6 +79,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 	private final Type relationshipType;
 	private final Type mapType;
 	private final Type listType;
+	private final Map<String, Collection<Node>> labelNodeCache = new HashMap<>();
 
 	DefaultNeo4jEntityConverter(EntityInstantiators entityInstantiators, Neo4jConversionService conversionService,
 			NodeDescriptionStore nodeDescriptionStore, TypeSystem typeSystem) {
@@ -103,6 +104,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 
 		Neo4jPersistentEntity<R> rootNodeDescription = (Neo4jPersistentEntity) nodeDescriptionStore.getNodeDescription(targetType);
 		knownObjects.nextRecord();
+		labelNodeCache.clear();
 
 		MapAccessor queryRoot = determineQueryRoot(mapAccessor, rootNodeDescription);
 		if (queryRoot == null) {
@@ -644,10 +646,13 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 
 	private Collection<Node> extractMatchingNodes(Collection<Node> allNodesInResult, String targetLabel) {
 
-		Predicate<Node> onlyWithMatchingLabels = n -> n.hasLabel(targetLabel);
-		return allNodesInResult.stream()
-				.filter(onlyWithMatchingLabels)
-				.collect(Collectors.toList());
+		return labelNodeCache.computeIfAbsent(targetLabel, (label) -> {
+
+			Predicate<Node> onlyWithMatchingLabels = n -> n.hasLabel(label);
+			return allNodesInResult.stream()
+					.filter(onlyWithMatchingLabels)
+					.collect(Collectors.toList());
+		});
 	}
 
 	private Collection<Node> extractNodes(MapAccessor allValues) {
