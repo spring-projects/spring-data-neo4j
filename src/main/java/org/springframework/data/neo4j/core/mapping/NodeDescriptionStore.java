@@ -18,15 +18,12 @@ package org.springframework.data.neo4j.core.mapping;
 import java.lang.reflect.Modifier;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
+import java.util.function.BiFunction;
 
 import org.springframework.data.mapping.context.AbstractMappingContext;
 import org.springframework.lang.Nullable;
@@ -45,6 +42,24 @@ final class NodeDescriptionStore {
 	 * {@link AbstractMappingContext}, so this lookup is not synchronized further.
 	 */
 	private final Map<String, NodeDescription<?>> nodeDescriptionsByPrimaryLabel = new HashMap<>();
+
+	private final Map<NodeDescription<?>, Map<List<String>, NodeDescriptionAndLabels>> nodeDescriptionAndLabelsCache = new HashMap<>();
+
+	private final BiFunction<NodeDescription<?>, List<String>, NodeDescriptionAndLabels> nodeDescriptionAndLabels =
+			(nodeDescription, labels) -> {
+				Map<List<String>, NodeDescriptionAndLabels> listNodeDescriptionAndLabelsMap = nodeDescriptionAndLabelsCache.get(nodeDescription);
+				if (listNodeDescriptionAndLabelsMap == null) {
+					nodeDescriptionAndLabelsCache.put(nodeDescription, new HashMap<>());
+					listNodeDescriptionAndLabelsMap = nodeDescriptionAndLabelsCache.get(nodeDescription);
+				}
+
+				NodeDescriptionAndLabels cachedNodeDescriptionAndLabels = listNodeDescriptionAndLabelsMap.get(labels);
+				if (cachedNodeDescriptionAndLabels == null) {
+					cachedNodeDescriptionAndLabels = computeConcreteNodeDescription(nodeDescription, labels);
+					listNodeDescriptionAndLabelsMap.put(labels, cachedNodeDescriptionAndLabels);
+				}
+				return cachedNodeDescriptionAndLabels;
+			};
 
 	public boolean containsKey(String primaryLabel) {
 		return nodeDescriptionsByPrimaryLabel.containsKey(primaryLabel);
@@ -81,7 +96,11 @@ final class NodeDescriptionStore {
 		return null;
 	}
 
-	public NodeDescriptionAndLabels deriveConcreteNodeDescription(Neo4jPersistentEntity<?> entityDescription, List<String> labels) {
+	public NodeDescriptionAndLabels deriveConcreteNodeDescription(NodeDescription<?> entityDescription, List<String> labels) {
+		return nodeDescriptionAndLabels.apply(entityDescription, labels);
+	}
+
+	private NodeDescriptionAndLabels computeConcreteNodeDescription(NodeDescription<?> entityDescription, List<String> labels) {
 
 		boolean isConcreteClassThatFulfillsEverything = !Modifier.isAbstract(entityDescription.getUnderlyingClass().getModifiers()) && entityDescription.getStaticLabels().containsAll(labels);
 
@@ -97,25 +116,48 @@ final class NodeDescriptionStore {
 		}
 
 		if (!haystack.isEmpty()) {
-			Function<NodeDescription<?>, Integer> count = (nodeDescription) -> Math.toIntExact(nodeDescription.getStaticLabels().stream().filter(labels::contains).count());
-			Optional<Map.Entry<NodeDescription<?>, Integer>> mostMatchingNodeDescription = haystack.stream()
-					.filter(nd -> labels.containsAll(nd.getStaticLabels())) // remove candidates having more mandatory labels
-					.collect(Collectors.toMap(Function.identity(), count::apply))
-					.entrySet().stream()
-					.max(Comparator.comparingInt(Map.Entry::getValue));
 
-			if (mostMatchingNodeDescription.isPresent()) {
-				NodeDescription<?> childNodeDescription = mostMatchingNodeDescription.get().getKey();
-				List<String> staticLabels = childNodeDescription.getStaticLabels();
-				Set<String> surplusLabels = new HashSet<>(labels);
-				surplusLabels.removeAll(staticLabels);
-				return new NodeDescriptionAndLabels(childNodeDescription, surplusLabels);
+			NodeDescription<?> mostMatchingNodeDescription = null;
+			Map<NodeDescription<?>, Integer> unmatchedLabelsCache = new HashMap<>();
+			List<String> mostMatchingStaticLabels = null;
+
+			// Remove is faster than "stream, filter, count".
+			BiFunction<NodeDescription<?>, List<String>,  Integer> unmatchedLabelsCount =
+					(nodeDescription, staticLabels) -> {
+						Set<String> staticLabelsClone = new HashSet<>(staticLabels);
+						labels.forEach(staticLabelsClone::remove);
+						return staticLabelsClone.size();
+					};
+
+			for (NodeDescription<?> nd : haystack) {
+				List<String> staticLabels = nd.getStaticLabels();
+
+				if (staticLabels.containsAll(labels)) {
+					Set<String> surplusLabels = new HashSet<>(labels);
+					staticLabels.forEach(surplusLabels::remove);
+					return new NodeDescriptionAndLabels(nd, surplusLabels);
+				}
+
+				unmatchedLabelsCache.put(nd, unmatchedLabelsCount.apply(nd, staticLabels));
+				if (mostMatchingNodeDescription == null) {
+					mostMatchingNodeDescription = nd;
+					mostMatchingStaticLabels = staticLabels;
+					continue;
+				}
+
+				if (unmatchedLabelsCache.get(nd) < unmatchedLabelsCache.get(mostMatchingNodeDescription)) {
+					mostMatchingNodeDescription = nd;
+				}
 			}
+
+			Set<String> surplusLabels = new HashSet<>(labels);
+			mostMatchingStaticLabels.forEach(surplusLabels::remove);
+			return new NodeDescriptionAndLabels(mostMatchingNodeDescription, surplusLabels);
 		}
 
 		Set<String> surplusLabels = new HashSet<>(labels);
 		surplusLabels.remove(entityDescription.getPrimaryLabel());
-		surplusLabels.removeAll(entityDescription.getAdditionalLabels());
+		entityDescription.getAdditionalLabels().forEach(surplusLabels::remove);
 		return new NodeDescriptionAndLabels(entityDescription, surplusLabels);
 	}
 }
