@@ -60,11 +60,11 @@ import org.springframework.core.log.LogAccessor;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.mapping.Association;
-import org.springframework.data.mapping.AssociationHandler;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
 import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.mapping.callback.EntityCallbacks;
 import org.springframework.data.neo4j.core.TemplateSupport.NodesAndRelationshipsByIdStatementProvider;
+import org.springframework.data.neo4j.core.mapping.AssociationHandlerSupport;
 import org.springframework.data.neo4j.core.mapping.Constants;
 import org.springframework.data.neo4j.core.mapping.CreateRelationshipStatementHolder;
 import org.springframework.data.neo4j.core.mapping.CypherGenerator;
@@ -717,7 +717,7 @@ public final class Neo4jTemplate implements
 
 		Object fromId = propertyAccessor.getProperty(sourceEntity.getRequiredIdProperty());
 
-		sourceEntity.doWithAssociations((AssociationHandler<Neo4jPersistentProperty>) association -> {
+		AssociationHandlerSupport.of(sourceEntity).doWithAssociations(association -> {
 
 			// create context to bundle parameters
 			NestedRelationshipContext relationshipContext = NestedRelationshipContext.of(association, propertyAccessor, sourceEntity);

@@ -189,7 +189,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 				.getNodeDescription(source.getClass());
 
 		PersistentPropertyAccessor<Object> propertyAccessor = nodeDescription.getPropertyAccessor(source);
-		nodeDescription.doWithProperties((Neo4jPersistentProperty p) -> {
+		PropertyHandlerSupport.of(nodeDescription).doWithProperties((Neo4jPersistentProperty p) -> {
 
 			// Skip the internal properties, we don't want them to end up stored as properties
 			if (p.isInternalIdProperty() || p.isDynamicLabels() || p.isEntity() || p.isVersionProperty() || p.isReadOnly()) {
@@ -339,14 +339,14 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 			// Fill simple properties
 			PropertyHandler<Neo4jPersistentProperty> handler = populateFrom(queryResult, propertyAccessor,
 					isConstructorParameter, nodeDescriptionAndLabels.getDynamicLabels(), lastMappedEntity, isKotlinType);
-			concreteNodeDescription.doWithProperties(handler);
+			PropertyHandlerSupport.of(concreteNodeDescription).doWithProperties(handler);
 		}
 		// in a cyclic graph / with bidirectional relationships, we could end up in a state in which we
 		// reference the start again. Because it is getting still constructed, it won't be in the knownObjects
 		// store unless we temporarily put it there.
 		knownObjects.storeObject(internalId, mappedObject);
 
-		concreteNodeDescription.doWithAssociations(
+		AssociationHandlerSupport.of(concreteNodeDescription).doWithAssociations(
 				populateFrom(queryResult, nodeDescription, propertyAccessor, isConstructorParameter, objectAlreadyMapped, relationshipsFromResult, nodesFromResult));
 	}
 

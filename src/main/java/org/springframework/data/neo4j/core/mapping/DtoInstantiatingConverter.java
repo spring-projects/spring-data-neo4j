@@ -33,7 +33,6 @@ import org.springframework.data.mapping.Parameter;
 import org.springframework.data.mapping.PersistentEntity;
 import org.springframework.data.mapping.PersistentProperty;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
-import org.springframework.data.mapping.SimplePropertyHandler;
 import org.springframework.data.mapping.model.ParameterValueProvider;
 import org.springframework.data.util.ClassTypeInformation;
 import org.springframework.lang.Nullable;
@@ -86,7 +85,7 @@ public final class DtoInstantiatingConverter implements Converter<EntityInstance
 				);
 
 		PersistentPropertyAccessor<Object> dtoAccessor = targetEntity.getPropertyAccessor(dto);
-		targetEntity.doWithProperties((SimplePropertyHandler) property -> {
+		PropertyHandlerSupport.of(targetEntity).doWithProperties(property -> {
 
 			if (creator != null && creator.isCreatorParameter(property)) {
 				return;

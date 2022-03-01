@@ -180,6 +180,10 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndPar
 			int cnt = 0;
 			for (PersistentProperty<?> persistentProperty : propertyPath) {
 
+				if (persistentProperty.isAssociation() && persistentProperty.isAnnotationPresent(TargetNode.class)) {
+					break;
+				}
+
 				RelationshipDescription relationshipDescription = (RelationshipDescription) persistentProperty.getAssociation();
 
 				if (relationshipDescription == null) {

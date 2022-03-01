@@ -27,6 +27,10 @@ import org.springframework.data.mapping.model.MutablePersistentEntity;
  * Neo4j. Both Spring Data methods {@link #doWithProperties(PropertyHandler)} and
  * {@link #doWithAssociations(AssociationHandler)} are aware which field of a class is meant to be mapped as a property
  * of a node or a relationship or if it is a relationship (in Spring Data terms: if it is an association).
+ * <p>
+ * <strong>Note</strong> to the outside world, we treat the {@link org.springframework.data.neo4j.core.schema.TargetNode @TargetNode}
+ * annotated field of a {@link org.springframework.data.neo4j.core.schema.RelationshipProperties @RelationshipProperties} annotated
+ * class as association. Internally, we treat it as a property
  *
  * @author Michael J. Simons
  * @param <T> type of the underlying class

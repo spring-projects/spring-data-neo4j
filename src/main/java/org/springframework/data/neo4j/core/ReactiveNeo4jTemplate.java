@@ -21,6 +21,7 @@ import static org.neo4j.cypherdsl.core.Cypher.parameter;
 
 import org.springframework.data.mapping.Association;
 import org.springframework.data.neo4j.core.TemplateSupport.FilteredBinderFunction;
+import org.springframework.data.neo4j.core.mapping.AssociationHandlerSupport;
 import org.springframework.data.neo4j.core.schema.TargetNode;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -65,7 +66,6 @@ import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.dao.OptimisticLockingFailureException;
-import org.springframework.data.mapping.AssociationHandler;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
 import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.mapping.callback.ReactiveEntityCallbacks;
@@ -847,7 +847,7 @@ public final class ReactiveNeo4jTemplate implements
 		List<Mono<Void>> relationshipDeleteMonos = new ArrayList<>();
 		List<Flux<RelationshipHandler>> relationshipCreationCreations = new ArrayList<>();
 
-		sourceEntity.doWithAssociations((AssociationHandler<Neo4jPersistentProperty>) association -> {
+		AssociationHandlerSupport.of(sourceEntity).doWithAssociations(association -> {
 
 			// create context to bundle parameters
 			NestedRelationshipContext relationshipContext = NestedRelationshipContext.of(association, parentPropertyAccessor, sourceEntity);

@@ -25,6 +25,7 @@ import java.util.function.BiPredicate;
 import org.apiguardian.api.API;
 import org.springframework.data.mapping.Association;
 import org.springframework.data.mapping.PropertyPath;
+import org.springframework.data.neo4j.core.schema.TargetNode;
 import org.springframework.lang.Nullable;
 
 /**
@@ -79,7 +80,7 @@ public final class PropertyTraverser {
 			}
 
 			sink.accept(path, p);
-			if (p.isAssociation() && !pathAlreadyVisited) {
+			if (p.isAssociation() && !(pathAlreadyVisited || p.isAnnotationPresent(TargetNode.class))) {
 				Class<?> associationTargetType = p.getAssociationTargetType();
 				if (associationTargetType == null) {
 					return;

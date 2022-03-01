@@ -26,7 +26,7 @@ import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.NotReadablePropertyException;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
-import org.springframework.data.neo4j.core.mapping.Neo4jPersistentProperty;
+import org.springframework.data.neo4j.core.mapping.PropertyHandlerSupport;
 import org.springframework.data.neo4j.core.schema.Property;
 import org.springframework.data.projection.MethodInterceptorFactory;
 import org.springframework.data.util.DirectFieldAccessFallbackBeanWrapper;
@@ -121,8 +121,8 @@ final class EntityAndGraphPropertyAccessingMethodInterceptor implements MethodIn
 
 				AtomicReference<String> value = new AtomicReference<>();
 				if (entity != null) {
-					entity.doWithProperties(
-							(org.springframework.data.mapping.PropertyHandler<Neo4jPersistentProperty>) p -> {
+					PropertyHandlerSupport.of(entity).doWithProperties(
+							p -> {
 								if (p.findAnnotation(Property.class) != null && p.getPropertyName()
 										.equals(propertyName)) {
 									value.compareAndSet(null, p.getFieldName());

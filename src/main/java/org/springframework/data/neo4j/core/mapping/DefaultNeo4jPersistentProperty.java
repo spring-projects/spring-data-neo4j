@@ -90,7 +90,7 @@ final class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProp
 			if (isAnnotationPresent(Relationship.class)) {
 				return true;
 			}
-			return !(isWritableProperty.get() || isAnnotationPresent(TargetNode.class));
+			return !(isWritableProperty.get());
 		});
 
 		this.customConversion = Lazy.of(() -> {
@@ -229,7 +229,7 @@ final class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProp
 	@Nullable
 	private String computeGraphPropertyName() {
 
-		if (this.isAssociation()) {
+		if (this.isRelationship()) {
 			return null;
 		}
 
@@ -270,7 +270,7 @@ final class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProp
 	@Override
 	public boolean isRelationship() {
 
-		return isAssociation();
+		return isAssociation() && !isAnnotationPresent(TargetNode.class);
 	}
 
 	@Override
