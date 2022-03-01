@@ -28,7 +28,7 @@ pipeline {
 			agent {
 				label 'data'
 			}
-			options { timeout(time: 30, unit: 'MINUTES') }
+			options { timeout(time: 45, unit: 'MINUTES') }
 
 			environment {
 				DOCKER_HUB = credentials("${p['docker.credentials']}")
@@ -60,7 +60,7 @@ pipeline {
 					agent {
 						label 'data'
 					}
-					options { timeout(time: 30, unit: 'MINUTES') }
+					options { timeout(time: 45, unit: 'MINUTES') }
 
 					environment {
 						DOCKER_HUB = credentials("${p['docker.credentials']}")
@@ -84,7 +84,7 @@ pipeline {
 					agent {
 						label 'data'
 					}
-					options { timeout(time: 30, unit: 'MINUTES') }
+					options { timeout(time: 45, unit: 'MINUTES') }
 
 					environment {
 						DOCKER_HUB = credentials("${p['docker.credentials']}")
