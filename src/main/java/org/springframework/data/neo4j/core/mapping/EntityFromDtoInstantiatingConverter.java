@@ -29,6 +29,7 @@ import org.springframework.data.mapping.PersistentEntity;
 import org.springframework.data.mapping.PersistentProperty;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
 import org.springframework.data.mapping.model.ParameterValueProvider;
+import org.springframework.data.neo4j.core.schema.TargetNode;
 import org.springframework.data.util.ClassTypeInformation;
 import org.springframework.data.util.ReflectionUtils;
 import org.springframework.lang.Nullable;
@@ -118,7 +119,7 @@ public final class EntityFromDtoInstantiatingConverter<T> implements Converter<O
 			return ReflectionUtils.getPrimitiveDefault(targetPropertyType);
 		}
 
-		if (targetProperty.isAssociation() && targetProperty.isCollectionLike()) {
+		if (targetProperty.isAssociation() && !targetProperty.isAnnotationPresent(TargetNode.class) && targetProperty.isCollectionLike()) {
 			EntityFromDtoInstantiatingConverter<?> nestedConverter = converterCache.computeIfAbsent(targetProperty.getComponentType(), t -> new EntityFromDtoInstantiatingConverter<>(t, context));
 			Collection<?> source = (Collection<?>) propertyValue;
 			if (source == null) {
