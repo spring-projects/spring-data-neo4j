@@ -766,6 +766,30 @@
 							<outputDirectory>${project.build.docs}</outputDirectory>
 						</configuration>
 					</plugin>
+					<plugin>
+						<groupId>com.buschmais.jqassistant</groupId>
+						<artifactId>jqassistant-maven-plugin</artifactId>
+						<version>${jqassistant.version}</version>
+						<configuration>
+							<skip>true</skip>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+
+		<profile>
+			<id>artifactory</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>com.buschmais.jqassistant</groupId>
+						<artifactId>jqassistant-maven-plugin</artifactId>
+						<version>${jqassistant.version}</version>
+						<configuration>
+							<skip>true</skip>
+						</configuration>
+					</plugin>
 				</plugins>
 			</build>
 		</profile>
