@@ -24,6 +24,7 @@ import java.util.Set;
 import java.util.TreeMap;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.data.neo4j.core.schema.TargetNode;
 import org.springframework.data.neo4j.integration.movies.shared.Movie;
 
 /**
@@ -46,7 +47,8 @@ class PropertyTraverserTest {
 
 		PropertyTraverser traverser = new PropertyTraverser(this.ctx);
 		Map<String, Boolean> includedProperties = new TreeMap<>();
-		traverser.traverse(Movie.class, (path, property) -> includedProperties.put(path.toString(), property.isAssociation()));
+		traverser.traverse(Movie.class, (path, property) -> includedProperties.put(path.toString(), property.isAssociation() && !property.isAnnotationPresent(
+				TargetNode.class)));
 
 		Map<String, Boolean> expected = new LinkedHashMap<>();
 		expected.put("Movie.actors", true);

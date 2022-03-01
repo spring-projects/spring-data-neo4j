@@ -34,7 +34,6 @@ import java.util.stream.Stream;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.data.annotation.Persistent;
 import org.springframework.data.mapping.Association;
-import org.springframework.data.mapping.PropertyHandler;
 import org.springframework.data.mapping.model.BasicPersistentEntity;
 import org.springframework.data.neo4j.core.schema.DynamicLabels;
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
@@ -222,7 +221,10 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 
 		Set<String> seen = new HashSet<>();
 		Set<String> duplicates = new HashSet<>();
-		this.doWithProperties((PropertyHandler<Neo4jPersistentProperty>) persistentProperty -> {
+		PropertyHandlerSupport.of(this).doWithProperties(persistentProperty -> {
+			if (persistentProperty.isEntity()) {
+				return;
+			}
 			String propertyName = persistentProperty.getPropertyName();
 			if (seen.contains(propertyName)) {
 				duplicates.add(propertyName);
@@ -238,7 +240,7 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 	private void verifyDynamicAssociations() {
 
 		Set<Class> targetEntities = new HashSet<>();
-		this.doWithAssociations((Association<Neo4jPersistentProperty> association) -> {
+		AssociationHandlerSupport.of(this).doWithAssociations((Association<Neo4jPersistentProperty> association) -> {
 			Neo4jPersistentProperty inverse = association.getInverse();
 			if (inverse.isDynamicAssociation()) {
 				Relationship relationship = inverse.findAnnotation(Relationship.class);
@@ -272,7 +274,7 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 
 		Set<String> namesOfPropertiesWithDynamicLabels = new HashSet<>();
 
-		this.doWithProperties((PropertyHandler<Neo4jPersistentProperty>) persistentProperty -> {
+		PropertyHandlerSupport.of(this).doWithProperties(persistentProperty -> {
 			if (!persistentProperty.isAnnotationPresent(DynamicLabels.class)) {
 				return;
 			}
@@ -449,7 +451,7 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 	public Collection<RelationshipDescription> getRelationships() {
 
 		final List<RelationshipDescription> relationships = new ArrayList<>();
-		this.doWithAssociations(
+		AssociationHandlerSupport.of(this).doWithAssociations(
 				(Association<Neo4jPersistentProperty> association) -> relationships.add((RelationshipDescription) association));
 		return Collections.unmodifiableCollection(relationships);
 	}
@@ -489,7 +491,7 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 
 		final List<GraphPropertyDescription> computedGraphProperties = new ArrayList<>();
 
-		doWithProperties((PropertyHandler<Neo4jPersistentProperty>) computedGraphProperties::add);
+		PropertyHandlerSupport.of(this).doWithProperties(computedGraphProperties::add);
 
 		return Collections.unmodifiableCollection(computedGraphProperties);
 	}

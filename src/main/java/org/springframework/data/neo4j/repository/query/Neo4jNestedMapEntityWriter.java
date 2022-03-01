@@ -34,11 +34,10 @@ import org.apiguardian.api.API;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
 import org.springframework.data.convert.EntityWriter;
-import org.springframework.data.mapping.AssociationHandler;
 import org.springframework.data.mapping.MappingException;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
-import org.springframework.data.mapping.PropertyHandler;
 import org.springframework.data.neo4j.core.convert.Neo4jConversionService;
+import org.springframework.data.neo4j.core.mapping.AssociationHandlerSupport;
 import org.springframework.data.neo4j.core.mapping.Constants;
 import org.springframework.data.neo4j.core.mapping.MappingSupport.RelationshipPropertiesWithEntityHolder;
 import org.springframework.data.neo4j.core.mapping.Neo4jEntityConverter;
@@ -46,6 +45,7 @@ import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.core.mapping.NestedRelationshipContext;
+import org.springframework.data.neo4j.core.mapping.PropertyHandlerSupport;
 import org.springframework.data.neo4j.core.mapping.RelationshipDescription;
 import org.springframework.data.neo4j.core.schema.TargetNode;
 import org.springframework.data.util.TypeInformation;
@@ -121,7 +121,7 @@ final class Neo4jNestedMapEntityWriter implements EntityWriter<Object, Map<Strin
 		if (initialObject && entity.isRelationshipPropertiesEntity()) {
 			@SuppressWarnings("unchecked")
 			Map<String, Object> propertyMap = (Map<String, Object>) sink.get(Constants.NAME_OF_PROPERTIES_PARAM);
-			entity.doWithProperties((PropertyHandler<Neo4jPersistentProperty>) p -> {
+			PropertyHandlerSupport.of(entity).doWithProperties(p -> {
 				if (p.isAnnotationPresent(TargetNode.class)) {
 					Map<String, Object> target = this.writeImpl(propertyAccessor.getProperty(p), new HashMap<>(), seenObjects, false);
 					propertyMap.put("__target__", Values.value(target));
@@ -149,7 +149,7 @@ final class Neo4jNestedMapEntityWriter implements EntityWriter<Object, Map<Strin
 
 		@SuppressWarnings("unchecked")
 		Map<String, Object> propertyMap = (Map<String, Object>) sink.get(Constants.NAME_OF_PROPERTIES_PARAM);
-		entity.doWithAssociations((AssociationHandler<Neo4jPersistentProperty>) association -> {
+		AssociationHandlerSupport.of(entity).doWithAssociations(association -> {
 
 			NestedRelationshipContext context = NestedRelationshipContext.of(association, propertyAccessor, entity);
 			RelationshipDescription description = (RelationshipDescription) association;
