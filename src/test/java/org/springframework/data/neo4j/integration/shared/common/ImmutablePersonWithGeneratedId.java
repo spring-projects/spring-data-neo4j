@@ -15,7 +15,7 @@
  */
 package org.springframework.data.neo4j.integration.shared.common;
 
-import org.springframework.data.annotation.PersistenceConstructor;
+import org.springframework.data.annotation.PersistenceCreator;
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
@@ -55,7 +55,7 @@ public class ImmutablePersonWithGeneratedId {
 	public final Map<String, ImmutablePersonWithGeneratedIdRelationshipProperties> relationshipPropertiesDynamic;
 	public final Map<String, List<ImmutableSecondPersonWithGeneratedIdRelationshipProperties>> relationshipPropertiesDynamicCollection;
 
-	@PersistenceConstructor
+	@PersistenceCreator
 	public ImmutablePersonWithGeneratedId(
 		Long id,
 		List<ImmutablePersonWithGeneratedId> wasOnboardedBy,

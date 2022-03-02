@@ -18,7 +18,7 @@ package org.springframework.data.neo4j.integration.shared.common;
 import java.util.List;
 import java.util.Set;
 
-import org.springframework.data.annotation.PersistenceConstructor;
+import org.springframework.data.annotation.PersistenceCreator;
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
@@ -44,7 +44,7 @@ public class PersonWithRelationshipWithProperties {
 
 	@Relationship("OWNS") private List<ClubRelationship> clubs;
 
-	@PersistenceConstructor
+	@PersistenceCreator
 	public PersonWithRelationshipWithProperties(Long id, String name, List<LikesHobbyRelationship> hobbies, WorksInClubRelationship club) {
 		this.id = id;
 		this.name = name;

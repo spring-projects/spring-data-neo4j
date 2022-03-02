@@ -46,7 +46,7 @@ See <<conversions>> for more information on that.
 * `@CreatedDate`: Applied at the field level to indicate the creation date of a node.
 * `@LastModifiedBy`: Applied at the field level to indicate the author of the last change to a node.
 * `@LastModifiedDate`: Applied at the field level to indicate the last modification date of a node.
-* `@PersistenceConstructor`: Applied at one constructor to mark it as the preferred constructor when reading entities.
+* `@PersistenceCreator`: Applied at one constructor to mark it as the preferred constructor when reading entities.
 * `@Persistent`: Applied at the class level to indicate this class is a candidate for mapping to the database.
 * `@Version`: Applied at field level it is used for optimistic locking and checked for modification on save operations.
  The initial value is zero which is bumped automatically on every update.

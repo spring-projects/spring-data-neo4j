@@ -15,7 +15,7 @@
  */
 package org.springframework.data.neo4j.integration.shared.common;
 
-import org.springframework.data.annotation.PersistenceConstructor;
+import org.springframework.data.annotation.PersistenceCreator;
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
@@ -38,7 +38,7 @@ public class ImmutablePet {
 	@Relationship("Has")
 	public final Set<ImmutablePet> friends;
 
-	@PersistenceConstructor
+	@PersistenceCreator
 	public ImmutablePet(Long id, String name) {
 		this.id = id;
 		this.name = name;
