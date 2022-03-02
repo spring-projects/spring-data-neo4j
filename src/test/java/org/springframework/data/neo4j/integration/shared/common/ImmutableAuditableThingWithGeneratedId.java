@@ -26,7 +26,7 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.data.annotation.LastModifiedDate;
-import org.springframework.data.annotation.PersistenceConstructor;
+import org.springframework.data.annotation.PersistenceCreator;
 import org.springframework.data.annotation.Persistent;
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.support.UUIDStringGenerator;
@@ -36,7 +36,7 @@ import org.springframework.data.neo4j.core.support.UUIDStringGenerator;
  */
 @Value
 @With
-@AllArgsConstructor(onConstructor = @__(@PersistenceConstructor))
+@AllArgsConstructor(onConstructor = @__(@PersistenceCreator))
 @Persistent
 public class ImmutableAuditableThingWithGeneratedId implements AuditableThing {
 

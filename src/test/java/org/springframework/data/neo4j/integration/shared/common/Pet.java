@@ -22,7 +22,7 @@ import lombok.RequiredArgsConstructor;
 import java.util.List;
 import java.util.Set;
 
-import org.springframework.data.annotation.PersistenceConstructor;
+import org.springframework.data.annotation.PersistenceCreator;
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
@@ -31,7 +31,7 @@ import org.springframework.data.neo4j.core.schema.Relationship;
 /**
  * @author Gerrit Meier
  */
-@RequiredArgsConstructor(onConstructor = @__(@PersistenceConstructor))
+@RequiredArgsConstructor(onConstructor = @__(@PersistenceCreator))
 @Getter
 @EqualsAndHashCode(of = { "id", "name" })
 @Node

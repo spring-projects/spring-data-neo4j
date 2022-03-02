@@ -18,7 +18,7 @@ The resolution algorithm works as follows:
 1. If there is a no-argument constructor, it will be used.
 Other constructors will be ignored.
 2. If there is a single constructor taking arguments, it will be used.
-3. If there are multiple constructors taking arguments, the one to be used by Spring Data will have to be annotated with `@PersistenceConstructor`.
+3. If there are multiple constructors taking arguments, the one to be used by Spring Data will have to be annotated with `@PersistenceCreator`.
 
 The value resolution assumes constructor argument names to match the property names of the entity, i.e. the resolution will be performed as if the property was to be populated, including all customizations in mapping (different datastore column or field name etc.).
 This also requires either parameter names information available in the class file or an `@ConstructorProperties` annotation being present on the constructor.
@@ -201,7 +201,7 @@ Even if the intent is that the calculation should be preferred, it's important t
 <.> The `comment` property is mutable is populated by setting its field directly.
 <.> The `remarks` properties are mutable and populated by setting the `comment` field directly or by invoking the setter method for
 <.> The class exposes a factory method and a constructor for object creation.
-The core idea here is to use factory methods instead of additional constructors to avoid the need for constructor disambiguation through `@PersistenceConstructor`.
+The core idea here is to use factory methods instead of additional constructors to avoid the need for constructor disambiguation through `@PersistenceCreator`.
 Instead, defaulting of properties is handled within the factory method.
 
 [[mapping.fundamentals.recommendations]]
@@ -214,7 +214,7 @@ If you need those, prefer to make them package protected so that they can only b
 Constructor-only materialization is up to 30% faster than properties population.
 * _Provide an all-args constructor_ --
 Even if you cannot or don't want to model your entities as immutable values, there's still value in providing a constructor that takes all properties of the entity as arguments, including the mutable ones, as this allows the object mapping to skip the property population for optimal performance.
-* _Use factory methods instead of overloaded constructors to avoid ``@PersistenceConstructor``_ --
+* _Use factory methods instead of overloaded constructors to avoid ``@PersistenceCreator``_ --
 With an all-argument constructor needed for optimal performance, we usually want to expose more application use case specific constructors that omit things like auto-generated identifiers etc.
 It's an established pattern to rather use static factory methods to expose these variants of the all-args constructor.
 * _Make sure you adhere to the constraints that allow the generated instantiator and property accessor classes to be used_
@@ -251,14 +251,14 @@ data class Person(val id: String, val name: String)
 ====
 
 The class above compiles to a typical class with an explicit constructor.
-We can customize this class by adding another constructor and annotate it with `@PersistenceConstructor` to indicate a constructor preference:
+We can customize this class by adding another constructor and annotate it with `@PersistenceCreator` to indicate a constructor preference:
 
 ====
 [source,java]
 ----
 data class Person(var id: String, val name: String) {
 
-    @PersistenceConstructor
+    @PersistenceCreator
     constructor(id: String) : this(id, "unknown")
 }
 ----
