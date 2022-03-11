@@ -61,7 +61,7 @@ import java.util.stream.Collectors;
 public final class PreparedQuery<T> {
 
 	public static <CT> RequiredBuildStep<CT> queryFor(Class<CT> resultType) {
-		return new RequiredBuildStep<CT>(resultType);
+		return new RequiredBuildStep<>(resultType);
 	}
 
 	private final Class<T> resultType;
@@ -69,7 +69,6 @@ public final class PreparedQuery<T> {
 	private final @Nullable Supplier<BiFunction<TypeSystem, MapAccessor, ?>> mappingFunctionSupplier;
 	private volatile Optional<BiFunction<TypeSystem, Record, T>> lastMappingFunction = Optional.empty();
 
-	@SuppressWarnings("unchecked")
 	private PreparedQuery(OptionalBuildSteps<T> optionalBuildSteps) {
 		this.resultType = optionalBuildSteps.resultType;
 		this.mappingFunctionSupplier = optionalBuildSteps.mappingFunctionSupplier;
@@ -244,7 +243,7 @@ public final class PreparedQuery<T> {
 			}
 
 			try {
-				return target.apply(t, new RecordMapAccessor(r));
+				return target.apply(t, r);
 			} catch (NoRootNodeMappingException e) {
 
 				// We didn't find anything on the top level. It still can be a path plus some additional information
