@@ -20,6 +20,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -656,7 +657,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 	}
 
 	private Collection<Node> extractNodes(MapAccessor allValues) {
-		Collection<Node> allNodesInResult = new ArrayList<>();
+		Collection<Node> allNodesInResult = new LinkedHashSet<>();
 		StreamSupport.stream(allValues.values().spliterator(), false)
 				.filter(MappingSupport.isListContainingOnly(listType, this.nodeType))
 				.flatMap(entry -> MappingSupport.extractNodesFromCollection(listType, entry).stream())
@@ -681,7 +682,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 	}
 
 	private Collection<Relationship> extractRelationships(MapAccessor allValues) {
-		Collection<Relationship> allRelationshipsInResult = new ArrayList<>();
+		Collection<Relationship> allRelationshipsInResult = new LinkedHashSet<>();
 		StreamSupport.stream(allValues.values().spliterator(), false)
 				.filter(MappingSupport.isListContainingOnly(listType, this.relationshipType))
 				.flatMap(entry -> MappingSupport.extractRelationshipsFromCollection(listType, entry).stream())
