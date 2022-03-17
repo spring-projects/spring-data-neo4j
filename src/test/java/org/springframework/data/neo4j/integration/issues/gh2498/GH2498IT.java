@@ -15,11 +15,12 @@
  */
 package org.springframework.data.neo4j.integration.issues.gh2498;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.neo4j.cypherdsl.core.Condition;
@@ -59,6 +60,10 @@ public class GH2498IT {
 			session.writeTransaction(tx -> tx.run(
 							"UNWIND ['A', 'B', 'C'] AS name WITH name CREATE (n:DomainModel {id: randomUUID(), name: name})")
 					.consume());
+			session.writeTransaction(tx -> tx.run("MATCH (n:Person) DETACH DELETE n").consume());
+			session.writeTransaction(tx -> tx.run(
+							"CREATE (n:Person {name: 'a'}) -[:KNOWS] ->(m:Person {name: 'b'})")
+					.consume());
 			bookmarkCapture.seedWith(session.lastBookmark());
 		}
 	}
@@ -71,9 +76,21 @@ public class GH2498IT {
 		Parameter<List<String>> parameters = Cypher.anonParameter(Arrays.asList("A", "C"));
 		Condition in = name.in(parameters);
 		Collection<DomainModel> result = repository.findAll(in, Cypher.sort(name).descending());
-		Assertions.assertThat(result).hasSize(2)
+		assertThat(result).hasSize(2)
 				.map(DomainModel::getName)
 				.containsExactly("C", "A");
+	}
+
+	@Test // GH-2498
+	void cypherdslConditionExecutorMustApplyParametersToNestedStatementsToo(@Autowired PersonRepository repository) {
+		Node personNode = Cypher.node("Person").named("person");
+		Property name = personNode.property("name");
+		Parameter<List<String>> param = Cypher.anonParameter(Arrays.asList("a", "b"));
+		Condition in = name.in(param);
+		Collection<Person> people = repository.findAll(in);
+		assertThat(people)
+				.extracting(Person::getName)
+				.containsExactlyInAnyOrder("a", "b");
 	}
 
 	@Configuration
