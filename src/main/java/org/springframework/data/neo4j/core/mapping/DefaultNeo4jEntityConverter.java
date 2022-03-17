@@ -738,7 +738,8 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 		private final Lock write = lock.writeLock();
 
 		private final Map<Long, Object> internalIdStore = new HashMap<>();
-		private final Map<Long, Boolean> internalNextRecord = new HashMap<>();
+		private final Map<Long, Boolean> internalCurrentRecord = new HashMap<>();
+		private final Set<Long> previousRecords = new HashSet<>();
 		private final Set<Long> idsInCreation = new HashSet<>();
 
 		private void storeObject(@Nullable Long internalId, Object object) {
@@ -749,7 +750,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 				write.lock();
 				idsInCreation.remove(internalId);
 				internalIdStore.put(internalId, object);
-				internalNextRecord.put(internalId, false);
+				internalCurrentRecord.put(internalId, false);
 			} finally {
 				write.unlock();
 			}
@@ -820,23 +821,19 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 
 				read.lock();
 
-				Boolean nextRecord = internalNextRecord.get(internalId);
-
-				if (nextRecord != null) {
-					return nextRecord;
-				}
+				return previousRecords.contains(internalId) || internalCurrentRecord.get(internalId);
 
 			} finally {
 				read.unlock();
 			}
-			return false;
 		}
 
 		/**
 		 * Mark all currently existing objects as mapped.
 		 */
 		private void nextRecord() {
-			internalNextRecord.replaceAll((x, y) -> true);
+			previousRecords.addAll(internalCurrentRecord.keySet());
+			internalCurrentRecord.clear();
 		}
 	}
 }
