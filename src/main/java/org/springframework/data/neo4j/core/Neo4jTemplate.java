@@ -1035,7 +1035,7 @@ public final class Neo4jTemplate implements
 				usedParameters = new HashMap<>(parameters);
 				usedParameters.putAll(statement.getParameters());
 				neo4jClient.query(renderer.render(statement))
-						.bindAll(parameters)
+						.bindAll(usedParameters)
 						.fetch()
 						.one()
 						.ifPresent(iterateAndMapNextLevel(relationshipIds, relatedNodeIds, relationshipDescription, PropertyPathWalkStep.empty()));
