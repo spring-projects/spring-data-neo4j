@@ -59,6 +59,7 @@ import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.IdGenerator;
 import org.springframework.data.neo4j.core.schema.Node;
+import org.springframework.data.neo4j.core.schema.PostLoad;
 import org.springframework.data.neo4j.core.schema.Property;
 import org.springframework.data.neo4j.core.schema.Relationship;
 import org.springframework.data.neo4j.core.schema.RelationshipId;
@@ -530,6 +531,107 @@ class Neo4jMappingContextTest {
 		Neo4jPersistentEntity<?> persistentEntity = context.getPersistentEntity(ARelationship.class);
 		assertThat(persistentEntity.isRelationshipPropertiesEntity()).isTrue();
 		assertThat(persistentEntity.getGraphProperties()).hasSize(3);
+	}
+
+	@Test // GH-2499
+	void shouldFindPostLoadMethods() {
+		Neo4jMappingContext neo4jMappingContext = new Neo4jMappingContext();
+		Neo4jPersistentEntity<?> entity = neo4jMappingContext.getPersistentEntity(EntityWithPostLoadMethods.class);
+		assertThat(neo4jMappingContext.getPostLoadMethods(entity))
+				.hasSize(2)
+				.extracting(Neo4jMappingContext.MethodHolder::getName)
+				.containsExactlyInAnyOrder("m1", "m2");
+	}
+
+	@Test // GH-2499
+	void shouldInvokePostLoad() {
+		Neo4jMappingContext neo4jMappingContext = new Neo4jMappingContext();
+		Neo4jPersistentEntity<EntityWithPostLoadMethods> entity = (Neo4jPersistentEntity<EntityWithPostLoadMethods>) neo4jMappingContext.getPersistentEntity(EntityWithPostLoadMethods.class);
+		EntityWithPostLoadMethods instance = new EntityWithPostLoadMethods();
+		neo4jMappingContext.invokePostLoad(entity, instance);
+		assertThat(instance.m1).isEqualTo("setM1");
+		assertThat(instance.m2).isEqualTo("setM2");
+	}
+
+	@Test // GH-2499
+	void shouldFindPostLoadMethodsWithInheritance() {
+		Neo4jMappingContext neo4jMappingContext = new Neo4jMappingContext();
+		Neo4jPersistentEntity<?> entity = neo4jMappingContext.getPersistentEntity(EntityWithWithMorePostLoadMethods.class);
+		assertThat(neo4jMappingContext.getPostLoadMethods(entity))
+				.hasSize(3)
+				.extracting(Neo4jMappingContext.MethodHolder::getName)
+				.containsExactlyInAnyOrder("m1", "m2", "m2a");
+	}
+
+	@Test // GH-2499
+	void shouldFindPostLoadMethodsInKotlinClasses() {
+		Neo4jMappingContext neo4jMappingContext = new Neo4jMappingContext();
+		Neo4jPersistentEntity<?> entity = neo4jMappingContext.getPersistentEntity(KotlinBaseImpl.class);
+		assertThat(neo4jMappingContext.getPostLoadMethods(entity))
+				.hasSize(1)
+				.extracting(Neo4jMappingContext.MethodHolder::getName)
+				.containsExactlyInAnyOrder("bar");
+	}
+
+	@Test // GH-2499
+	void shouldFindPostLoadMethodsInKotlinClassesByDelegate() {
+		Neo4jMappingContext neo4jMappingContext = new Neo4jMappingContext();
+		Neo4jPersistentEntity<?> entity = neo4jMappingContext.getPersistentEntity(KotlinAImpl.class);
+		assertThat(neo4jMappingContext.getPostLoadMethods(entity))
+				.hasSize(1)
+				.extracting(Neo4jMappingContext.MethodHolder::getName)
+				.containsExactlyInAnyOrder("bar");
+	}
+
+	@Test // GH-2499
+	void shouldInvokePostLoadInKotlinClassesByDelegate() {
+		Neo4jMappingContext neo4jMappingContext = new Neo4jMappingContext();
+		Neo4jPersistentEntity<KotlinAImpl> entity = (Neo4jPersistentEntity<KotlinAImpl>) neo4jMappingContext.getPersistentEntity(KotlinAImpl.class);
+		KotlinAImpl instance = new KotlinAImpl();
+		neo4jMappingContext.invokePostLoad(entity, instance);
+		assertThat(instance.getBaseName()).isEqualTo("someValue");
+	}
+
+	static class EntityWithPostLoadMethods {
+
+		String m1;
+
+		String m2;
+
+		void m0() {
+		}
+
+		@PostLoad
+		void m1() {
+			m1 = "setM1";
+		}
+
+		@PostLoad
+		public void m2() {
+			m2 = "setM2";
+		}
+
+		@PostLoad
+		static void m3() {
+
+		}
+
+		@PostLoad
+		static void m4(String x) {
+
+		}
+
+		@PostLoad
+		static int m5() {
+			return 1;
+		}
+	}
+
+	static class EntityWithWithMorePostLoadMethods extends EntityWithPostLoadMethods {
+
+		@PostLoad
+		public void m2a() {
+		}
 	}
 
 	static class DummyIdGenerator implements IdGenerator<Void> {

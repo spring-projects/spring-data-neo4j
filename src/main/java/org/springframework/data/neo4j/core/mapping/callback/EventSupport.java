@@ -18,9 +18,12 @@ package org.springframework.data.neo4j.core.mapping.callback;
 import static org.apiguardian.api.API.Status.INTERNAL;
 
 import org.apiguardian.api.API;
+import org.neo4j.driver.types.MapAccessor;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.data.mapping.callback.EntityCallbacks;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
+import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
+import org.springframework.lang.Nullable;
 
 /**
  * Utility class that orchestrates {@link EntityCallbacks}. Not to be used outside the framework.
@@ -62,6 +65,7 @@ public final class EventSupport {
 	private static void addDefaultEntityCallbacks(Neo4jMappingContext context, EntityCallbacks entityCallbacks) {
 
 		entityCallbacks.addEntityCallback(new IdGeneratingBeforeBindCallback(context));
+		entityCallbacks.addEntityCallback(new PostLoadInvocation(context));
 	}
 
 	private final EntityCallbacks entityCallbacks;
@@ -70,11 +74,28 @@ public final class EventSupport {
 		this.entityCallbacks = entityCallbacks;
 	}
 
-	public <T> T maybeCallBeforeBind(T object) {
+	@Nullable
+	public <T> T maybeCallBeforeBind(@Nullable T object) {
 
 		if (object == null) {
 			return object;
 		}
 		return entityCallbacks.callback(BeforeBindCallback.class, object);
+	}
+
+	/**
+	 * @param object The freshly converted instance
+	 * @param entity The entity
+	 * @param source The source of the instance
+	 * @param <T>    Expected type
+	 * @return The instance to which the callback was applied to
+	 */
+	@Nullable
+	public <T> T maybeCallAfterConvert(@Nullable T object, Neo4jPersistentEntity<T> entity, MapAccessor source) {
+
+		if (object == null) {
+			return object;
+		}
+		return entityCallbacks.callback(AfterConvertCallback.class, object, entity, source);
 	}
 }
