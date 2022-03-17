@@ -16,9 +16,12 @@
 package org.springframework.data.neo4j.integration.shared.common;
 
 import java.util.List;
+import java.util.UUID;
 
+import org.springframework.data.annotation.Transient;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
+import org.springframework.data.neo4j.core.schema.PostLoad;
 import org.springframework.data.neo4j.core.schema.Relationship;
 
 /**
@@ -32,6 +35,12 @@ public class ThingWithAssignedId extends AbstractNamedThing {
 	@Id private final String theId;
 
 	@Relationship("Has") private List<AnotherThingWithAssignedId> things;
+
+	@Transient
+	private String randomValue;
+
+	@Transient
+	private String anotherRandomValue;
 
 	public ThingWithAssignedId(String theId, String name) {
 		this.theId = theId;
@@ -48,5 +57,22 @@ public class ThingWithAssignedId extends AbstractNamedThing {
 
 	public void setThings(List<AnotherThingWithAssignedId> things) {
 		this.things = things;
+	}
+
+	public String getRandomValue() {
+		return randomValue;
+	}
+
+	public void setRandomValue(String randomValue) {
+		this.randomValue = randomValue;
+	}
+
+	public String getAnotherRandomValue() {
+		return anotherRandomValue;
+	}
+
+	@PostLoad
+	public void generateValue() {
+		this.anotherRandomValue = UUID.randomUUID().toString();
 	}
 }

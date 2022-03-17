@@ -16,11 +16,18 @@
 package org.springframework.data.neo4j.core.mapping;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -40,8 +47,11 @@ import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.GenericTypeResolver;
+import org.springframework.core.KotlinDetector;
+import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.data.mapping.MappingException;
 import org.springframework.data.mapping.PersistentEntity;
+import org.springframework.data.mapping.callback.EntityCallbacks;
 import org.springframework.data.mapping.context.AbstractMappingContext;
 import org.springframework.data.mapping.model.EntityInstantiator;
 import org.springframework.data.mapping.model.EntityInstantiators;
@@ -52,8 +62,10 @@ import org.springframework.data.neo4j.core.convert.Neo4jConversionService;
 import org.springframework.data.neo4j.core.convert.Neo4jConversions;
 import org.springframework.data.neo4j.core.convert.Neo4jPersistentPropertyConverter;
 import org.springframework.data.neo4j.core.convert.Neo4jPersistentPropertyConverterFactory;
+import org.springframework.data.neo4j.core.mapping.callback.EventSupport;
 import org.springframework.data.neo4j.core.schema.IdGenerator;
 import org.springframework.data.neo4j.core.schema.Node;
+import org.springframework.data.neo4j.core.schema.PostLoad;
 import org.springframework.data.util.TypeInformation;
 import org.springframework.lang.Nullable;
 import org.springframework.util.ReflectionUtils;
@@ -78,6 +90,8 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 	 */
 	private static final EntityInstantiators INSTANTIATORS = new EntityInstantiators();
 
+	private static final Set<Class<?>> VOID_TYPES = new HashSet<>(Arrays.asList(Void.class, void.class));
+
 	/**
 	 * A map of fallback id generators, that have not been added to the application context
 	 */
@@ -94,6 +108,10 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 	private final TypeSystem typeSystem;
 
 	private final Neo4jConversionService conversionService;
+
+	private final Map<Neo4jPersistentEntity, Set<MethodHolder>> postLoadMethods = new ConcurrentHashMap<>();
+
+	private EventSupport eventSupport;
 
 	private @Nullable AutowireCapableBeanFactory beanFactory;
 
@@ -133,12 +151,14 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 
 		this.conversionService = new DefaultNeo4jConversionService(neo4jConversions);
 		this.typeSystem = typeSystem == null ? InternalTypeSystem.TYPE_SYSTEM : typeSystem;
+		this.eventSupport = EventSupport.useExistingCallbacks(this, EntityCallbacks.create());
 
 		super.setSimpleTypeHolder(neo4jConversions.getSimpleTypeHolder());
 	}
 
 	public Neo4jEntityConverter getEntityConverter() {
-		return new DefaultNeo4jEntityConverter(INSTANTIATORS, conversionService, nodeDescriptionStore, typeSystem);
+		return new DefaultNeo4jEntityConverter(INSTANTIATORS, nodeDescriptionStore, conversionService, eventSupport,
+				typeSystem);
 	}
 
 	public Neo4jConversionService getConversionService() {
@@ -170,17 +190,23 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 		if (!newEntity.describesInterface()) {
 			if (this.nodeDescriptionStore.containsKey(primaryLabel)) {
 
-				Neo4jPersistentEntity existingEntity = (Neo4jPersistentEntity) this.nodeDescriptionStore.get(primaryLabel);
-				if (!existingEntity.getTypeInformation().getRawTypeInformation().equals(typeInformation.getRawTypeInformation())) {
-					String message = String.format(Locale.ENGLISH, "The schema already contains a node description under the primary label %s", primaryLabel);
+				Neo4jPersistentEntity existingEntity = (Neo4jPersistentEntity) this.nodeDescriptionStore.get(
+						primaryLabel);
+				if (!existingEntity.getTypeInformation().getRawTypeInformation()
+						.equals(typeInformation.getRawTypeInformation())) {
+					String message = String.format(Locale.ENGLISH,
+							"The schema already contains a node description under the primary label %s", primaryLabel);
 					throw new MappingException(message);
 				}
 			}
 
 			if (this.nodeDescriptionStore.containsValue(newEntity)) {
-				Optional<String> label = this.nodeDescriptionStore.entrySet().stream().filter(e -> e.getValue().equals(newEntity)).map(Map.Entry::getKey).findFirst();
+				Optional<String> label = this.nodeDescriptionStore.entrySet().stream()
+						.filter(e -> e.getValue().equals(newEntity)).map(Map.Entry::getKey).findFirst();
 
-				String message = String.format(Locale.ENGLISH, "The schema already contains description %s under the primary label %s", newEntity, label.orElse("n/a"));
+				String message = String.format(Locale.ENGLISH,
+						"The schema already contains description %s under the primary label %s", newEntity,
+						label.orElse("n/a"));
 				throw new MappingException(message);
 			}
 
@@ -188,7 +214,9 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 			if (existingDescription != null) {
 
 				if (!existingDescription.getPrimaryLabel().equals(newEntity.getPrimaryLabel())) {
-					String message = String.format(Locale.ENGLISH, "The schema already contains description with the underlying class %s under the primary label %s", newEntity.getUnderlyingClass().getName(), existingDescription.getPrimaryLabel());
+					String message = String.format(Locale.ENGLISH,
+							"The schema already contains description with the underlying class %s under the primary label %s",
+							newEntity.getUnderlyingClass().getName(), existingDescription.getPrimaryLabel());
 					throw new MappingException(message);
 				}
 			}
@@ -221,7 +249,7 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 
 		// Either a concrete class explicitly annotated as Node or an abstract class
 		return Modifier.isAbstract(parentClass.getModifiers()) ||
-				parentClass.isAnnotationPresent(Node.class);
+			   parentClass.isAnnotationPresent(Node.class);
 	}
 
 	/*
@@ -339,18 +367,21 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 		}
 	}
 
-	private <T extends Neo4jPersistentPropertyConverterFactory> T getOrCreateConverterFactoryOfType(Class<T> converterFactoryType) {
+	private <T extends Neo4jPersistentPropertyConverterFactory> T getOrCreateConverterFactoryOfType(
+			Class<T> converterFactoryType) {
 
 		return converterFactoryType.cast(this.converterFactories.computeIfAbsent(converterFactoryType, t -> {
 			Constructor<?> optionalConstructor;
 			optionalConstructor = findConstructor(t, BeanFactory.class, Neo4jConversionService.class);
 			if (optionalConstructor != null) {
-				return t.cast(BeanUtils.instantiateClass(optionalConstructor, this.beanFactory, this.conversionService));
+				return t.cast(
+						BeanUtils.instantiateClass(optionalConstructor, this.beanFactory, this.conversionService));
 			}
 
 			optionalConstructor = findConstructor(t, Neo4jConversionService.class, BeanFactory.class);
 			if (optionalConstructor != null) {
-				return t.cast(BeanUtils.instantiateClass(optionalConstructor, this.beanFactory, this.conversionService));
+				return t.cast(
+						BeanUtils.instantiateClass(optionalConstructor, this.beanFactory, this.conversionService));
 			}
 
 			optionalConstructor = findConstructor(t, BeanFactory.class);
@@ -379,8 +410,10 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 		}
 
 		ConvertWith convertWith = persistentProperty.getRequiredAnnotation(ConvertWith.class);
-		Neo4jPersistentPropertyConverterFactory persistentPropertyConverterFactory = this.getOrCreateConverterFactoryOfType(convertWith.converterFactory());
-		Neo4jPersistentPropertyConverter<?> customConverter = persistentPropertyConverterFactory.getPropertyConverterFor(persistentProperty);
+		Neo4jPersistentPropertyConverterFactory persistentPropertyConverterFactory = this.getOrCreateConverterFactoryOfType(
+				convertWith.converterFactory());
+		Neo4jPersistentPropertyConverter<?> customConverter = persistentPropertyConverterFactory.getPropertyConverterFor(
+				persistentProperty);
 
 		boolean forCollection = false;
 		if (persistentProperty.isCollectionLike()) {
@@ -406,7 +439,8 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 							persistentProperty.getType().equals(((ParameterizedType) propertyType).getRawType());
 		}
 
-		return new NullSafeNeo4jPersistentPropertyConverter<>(customConverter, persistentProperty.isComposite(), forCollection);
+		return new NullSafeNeo4jPersistentPropertyConverter<>(customConverter, persistentProperty.isComposite(),
+				forCollection);
 	}
 
 	@Override
@@ -414,12 +448,13 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 		super.setApplicationContext(applicationContext);
 
 		this.beanFactory = applicationContext.getAutowireCapableBeanFactory();
+		this.eventSupport = EventSupport.discoverCallbacks(this, this.beanFactory);
 	}
 
 	public CreateRelationshipStatementHolder createStatement(Neo4jPersistentEntity<?> neo4jPersistentEntity,
-															 NestedRelationshipContext relationshipContext,
-															 Object relatedValue,
-															 boolean isNewRelationship) {
+			NestedRelationshipContext relationshipContext,
+			Object relatedValue,
+			boolean isNewRelationship) {
 
 		if (relationshipContext.hasRelationshipWithProperties()) {
 			MappingSupport.RelationshipPropertiesWithEntityHolder relatedValueEntityHolder =
@@ -436,25 +471,30 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 
 			String dynamicRelationshipType = null;
 			if (relationshipContext.getRelationship().isDynamic()) {
-				TypeInformation<?> keyType = relationshipContext.getInverse().getTypeInformation().getRequiredComponentType();
+				TypeInformation<?> keyType = relationshipContext.getInverse().getTypeInformation()
+						.getRequiredComponentType();
 				Object key = ((Map.Entry) relatedValue).getKey();
-				dynamicRelationshipType = conversionService.writeValue(key, keyType, relationshipContext.getInverse().getOptionalConverter()).asString();
+				dynamicRelationshipType = conversionService.writeValue(key, keyType,
+						relationshipContext.getInverse().getOptionalConverter()).asString();
 			}
 			return createStatementForRelationShipWithProperties(
 					neo4jPersistentEntity, relationshipContext,
 					dynamicRelationshipType, relatedValueEntityHolder, isNewRelationship
 			);
 		} else {
-			return createStatementForRelationshipWithoutProperties(neo4jPersistentEntity, relationshipContext, relatedValue);
+			return createStatementForRelationshipWithoutProperties(neo4jPersistentEntity, relationshipContext,
+					relatedValue);
 		}
 	}
 
-	private CreateRelationshipStatementHolder createStatementForRelationShipWithProperties(Neo4jPersistentEntity<?> neo4jPersistentEntity,
+	private CreateRelationshipStatementHolder createStatementForRelationShipWithProperties(
+			Neo4jPersistentEntity<?> neo4jPersistentEntity,
 			NestedRelationshipContext relationshipContext, @Nullable String dynamicRelationshipType,
-		    MappingSupport.RelationshipPropertiesWithEntityHolder relatedValue, boolean isNewRelationship) {
+			MappingSupport.RelationshipPropertiesWithEntityHolder relatedValue, boolean isNewRelationship) {
 
 		Statement relationshipCreationQuery = CypherGenerator.INSTANCE.prepareSaveOfRelationshipWithProperties(
-						neo4jPersistentEntity, relationshipContext.getRelationship(), isNewRelationship, dynamicRelationshipType);
+				neo4jPersistentEntity, relationshipContext.getRelationship(), isNewRelationship,
+				dynamicRelationshipType);
 
 		Map<String, Object> propMap = new HashMap<>();
 		// write relationship properties
@@ -480,5 +520,90 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 		Statement relationshipCreationQuery = CypherGenerator.INSTANCE.prepareSaveOfRelationship(
 				neo4jPersistentEntity, relationshipContext.getRelationship(), relationshipType);
 		return new CreateRelationshipStatementHolder(relationshipCreationQuery);
+	}
+
+	/**
+	 * Executes all post load methods of the given instance.
+	 *
+	 * @param entity   The entity definition
+	 * @param instance The instance whose post load methods should be executed
+	 * @param <T>      Type of the entity
+	 * @return The instance
+	 */
+	public <T> T invokePostLoad(Neo4jPersistentEntity<T> entity, T instance) {
+
+		getPostLoadMethods(entity).forEach(methodHolder -> methodHolder.invoke(instance));
+		return instance;
+	}
+
+	Set<MethodHolder> getPostLoadMethods(Neo4jPersistentEntity<?> entity) {
+		return this.postLoadMethods.computeIfAbsent(entity, Neo4jMappingContext::computePostLoadMethods);
+	}
+
+	private static Set<MethodHolder> computePostLoadMethods(Neo4jPersistentEntity<?> entity) {
+
+		Set<MethodHolder> postLoadMethods = new LinkedHashSet<>();
+		ReflectionUtils.MethodFilter isValidPostLoad = method -> {
+			int modifiers = method.getModifiers();
+			return !Modifier.isStatic(modifiers) && method.getParameterCount() == 0 && VOID_TYPES.contains(
+					method.getReturnType()) && AnnotationUtils.findAnnotation(method, PostLoad.class) != null;
+		};
+		Class<?> underlyingClass = entity.getUnderlyingClass();
+		ReflectionUtils.doWithMethods(underlyingClass, method -> postLoadMethods.add(new MethodHolder(method, null)),
+				isValidPostLoad);
+		if (KotlinDetector.isKotlinType(underlyingClass)) {
+			ReflectionUtils.doWithFields(underlyingClass, field -> {
+				ReflectionUtils.doWithMethods(field.getType(),
+						method -> postLoadMethods.add(new MethodHolder(method, field)), isValidPostLoad);
+			}, field -> field.isSynthetic() && field.getName().startsWith("$$delegate_"));
+		}
+
+		return Collections.unmodifiableSet(postLoadMethods);
+	}
+
+	static class MethodHolder {
+
+		private final Method method;
+
+		@Nullable
+		private final Field delegate;
+
+		MethodHolder(Method method, @Nullable Field delegate) {
+			this.method = method;
+			this.delegate = delegate;
+		}
+
+		Method getMethod() {
+			return method;
+		}
+
+		String getName() {
+			return method.getName();
+		}
+
+		void invoke(Object instance) {
+			Method methodToInvoke = AccessController.doPrivileged((PrivilegedAction<Method>) () -> {
+				if (!method.isAccessible()) {
+					method.setAccessible(true);
+				}
+				return method;
+			});
+			ReflectionUtils.invokeMethod(methodToInvoke, getInstanceOrDelegate(instance, delegate));
+		}
+
+		static Object getInstanceOrDelegate(Object instance, @Nullable Field delegateHolder) {
+			if (delegateHolder == null) {
+				return instance;
+			} else {
+				return AccessController.doPrivileged((PrivilegedAction<Object>) () -> {
+					try {
+						delegateHolder.setAccessible(true);
+						return delegateHolder.get(instance);
+					} catch (IllegalAccessException e) {
+						throw new RuntimeException(e);
+					}
+				});
+			}
+		}
 	}
 }

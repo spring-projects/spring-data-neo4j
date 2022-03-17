@@ -15,6 +15,19 @@
  */
 package org.springframework.data.neo4j.integration.reactive;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatNoException;
+
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
+import java.util.UUID;
+
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.neo4j.driver.Driver;
@@ -23,6 +36,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.neo4j.config.AbstractReactiveNeo4jConfig;
 import org.springframework.data.neo4j.core.ReactiveDatabaseSelectionProvider;
+import org.springframework.data.neo4j.core.mapping.callback.AfterConvertCallback;
 import org.springframework.data.neo4j.core.mapping.callback.ReactiveBeforeBindCallback;
 import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
 import org.springframework.data.neo4j.core.transaction.ReactiveNeo4jTransactionManager;
@@ -35,21 +49,12 @@ import org.springframework.data.neo4j.test.Neo4jExtension;
 import org.springframework.transaction.ReactiveTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.reactive.TransactionalOperator;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
-import reactor.test.StepVerifier;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 /**
  * @author Michael J. Simons
  */
 @Tag(Neo4jExtension.NEEDS_REACTIVE_SUPPORT)
 class ReactiveCallbacksIT extends CallbacksITBase {
-
-	private static Neo4jExtension.Neo4jConnectionSupport neo4jConnectionSupport;
 
 	private final ReactiveTransactionManager transactionManager;
 
@@ -64,22 +69,41 @@ class ReactiveCallbacksIT extends CallbacksITBase {
 	void onBeforeBindShouldBeCalledForSingleEntity(@Autowired ReactiveThingRepository repository) {
 
 		ThingWithAssignedId thing = new ThingWithAssignedId("aaBB", "A name");
+		thing.setRandomValue("a");
 
 		Mono<ThingWithAssignedId> operationUnderTest = Mono.just(thing).flatMap(repository::save);
 
 		List<ThingWithAssignedId> savedThings = new ArrayList<>();
 		TransactionalOperator transactionalOperator = TransactionalOperator.create(transactionManager);
 		transactionalOperator.execute(t -> operationUnderTest).as(StepVerifier::create).recordWith(() -> savedThings)
-				.expectNextMatches(t -> t.getName().equals("A name (Edited)")).verifyComplete();
+				.expectNextMatches(t -> t.getName().equals("A name (Edited)") && t.getRandomValue() == null)
+				.verifyComplete();
 
 		verifyDatabase(savedThings);
+	}
+
+	@Test // GH-2499
+	void onAfterConvertShouldBeCalledForSingleEntity(@Autowired ReactiveThingRepository repository) {
+
+		repository.findById("E1")
+				.as(StepVerifier::create)
+				.assertNext(thingWithAssignedId -> {
+					assertThat(thingWithAssignedId.getTheId()).isEqualTo("E1");
+					assertThat(thingWithAssignedId.getRandomValue()).isNotNull()
+							.satisfies(v -> assertThatNoException().isThrownBy(() -> UUID.fromString(v)));
+					assertThat(thingWithAssignedId.getAnotherRandomValue()).isNotNull()
+							.satisfies(v -> assertThatNoException().isThrownBy(() -> UUID.fromString(v)));
+				})
+				.verifyComplete();
 	}
 
 	@Test
 	void onBeforeBindShouldBeCalledForAllEntitiesUsingIterable(@Autowired ReactiveThingRepository repository) {
 
 		ThingWithAssignedId thing1 = new ThingWithAssignedId("id1", "A name");
+		thing1.setRandomValue("a");
 		ThingWithAssignedId thing2 = new ThingWithAssignedId("id2", "Another name");
+		thing2.setRandomValue("b");
 		repository.saveAll(Arrays.asList(thing1, thing2));
 
 		Flux<ThingWithAssignedId> operationUnderTest = repository.saveAll(Arrays.asList(thing1, thing2));
@@ -87,8 +111,8 @@ class ReactiveCallbacksIT extends CallbacksITBase {
 		List<ThingWithAssignedId> savedThings = new ArrayList<>();
 		TransactionalOperator transactionalOperator = TransactionalOperator.create(transactionManager);
 		transactionalOperator.execute(t -> operationUnderTest).as(StepVerifier::create).recordWith(() -> savedThings)
-				.expectNextMatches(t -> t.getName().equals("A name (Edited)"))
-				.expectNextMatches(t -> t.getName().equals("Another name (Edited)")).verifyComplete();
+				.expectNextMatches(t -> t.getName().equals("A name (Edited)") && t.getRandomValue() == null)
+				.expectNextMatches(t -> t.getName().equals("Another name (Edited)") && t.getRandomValue() == null).verifyComplete();
 
 		verifyDatabase(savedThings);
 	}
@@ -97,7 +121,9 @@ class ReactiveCallbacksIT extends CallbacksITBase {
 	void onBeforeBindShouldBeCalledForAllEntitiesUsingPublisher(@Autowired ReactiveThingRepository repository) {
 
 		ThingWithAssignedId thing1 = new ThingWithAssignedId("id1", "A name");
+		thing1.setRandomValue("a");
 		ThingWithAssignedId thing2 = new ThingWithAssignedId("id2", "Another name");
+		thing2.setRandomValue("b");
 		repository.saveAll(Arrays.asList(thing1, thing2));
 
 		Flux<ThingWithAssignedId> operationUnderTest = repository.saveAll(Flux.just(thing1, thing2));
@@ -105,10 +131,31 @@ class ReactiveCallbacksIT extends CallbacksITBase {
 		List<ThingWithAssignedId> savedThings = new ArrayList<>();
 		TransactionalOperator transactionalOperator = TransactionalOperator.create(transactionManager);
 		transactionalOperator.execute(t -> operationUnderTest).as(StepVerifier::create).recordWith(() -> savedThings)
-				.expectNextMatches(t -> t.getName().equals("A name (Edited)"))
-				.expectNextMatches(t -> t.getName().equals("Another name (Edited)")).verifyComplete();
+				.expectNextMatches(t -> t.getName().equals("A name (Edited)") && t.getRandomValue() == null)
+				.expectNextMatches(t -> t.getName().equals("Another name (Edited)") && t.getRandomValue() == null).verifyComplete();
 
 		verifyDatabase(savedThings);
+	}
+
+	@Test // GH-2499
+	void onAfterConvertShouldBeCalledForAllEntities(@Autowired ReactiveThingRepository repository) {
+
+		repository.findAllById(Arrays.asList("E1", "E2"))
+				.sort(Comparator.comparing(ThingWithAssignedId::getTheId))
+				.as(StepVerifier::create)
+				.assertNext(thingWithAssignedId -> {
+					assertThat(thingWithAssignedId.getTheId()).isEqualTo("E1");
+					assertThat(thingWithAssignedId.getRandomValue()).isNotNull()
+							.satisfies(v -> assertThatNoException().isThrownBy(() -> UUID.fromString(v)));
+				})
+				.assertNext(thingWithAssignedId -> {
+					assertThat(thingWithAssignedId.getTheId()).isEqualTo("E2");
+					assertThat(thingWithAssignedId.getRandomValue()).isNotNull()
+							.satisfies(v -> assertThatNoException().isThrownBy(() -> UUID.fromString(v)));
+					assertThat(thingWithAssignedId.getAnotherRandomValue()).isNotNull()
+							.satisfies(v -> assertThatNoException().isThrownBy(() -> UUID.fromString(v)));
+				})
+				.verifyComplete();
 	}
 
 	@Configuration
@@ -121,6 +168,15 @@ class ReactiveCallbacksIT extends CallbacksITBase {
 			return entity -> {
 				ThingWithAssignedId updatedThing = new ThingWithAssignedId(entity.getTheId(), entity.getName() + " (Edited)");
 				return Mono.just(updatedThing);
+			};
+		}
+
+
+		@Bean
+		AfterConvertCallback<ThingWithAssignedId> randomValueAssigner() {
+			return (entity, definition, source) -> {
+				entity.setRandomValue(UUID.randomUUID().toString());
+				return entity;
 			};
 		}
 

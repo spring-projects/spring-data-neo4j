@@ -52,6 +52,7 @@ import org.springframework.data.mapping.PropertyHandler;
 import org.springframework.data.mapping.model.EntityInstantiators;
 import org.springframework.data.mapping.model.ParameterValueProvider;
 import org.springframework.data.neo4j.core.convert.Neo4jConversionService;
+import org.springframework.data.neo4j.core.mapping.callback.EventSupport;
 import org.springframework.data.neo4j.core.schema.TargetNode;
 import org.springframework.data.util.ReflectionUtils;
 import org.springframework.data.util.TypeInformation;
@@ -72,6 +73,8 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 	private final NodeDescriptionStore nodeDescriptionStore;
 	private final Neo4jConversionService conversionService;
 
+	private final EventSupport eventSupport;
+
 	private final KnownObjects knownObjects = new KnownObjects();
 
 	private final Type nodeType;
@@ -80,8 +83,8 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 	private final Type listType;
 	private final Map<String, Collection<Node>> labelNodeCache = new HashMap<>();
 
-	DefaultNeo4jEntityConverter(EntityInstantiators entityInstantiators, Neo4jConversionService conversionService,
-			NodeDescriptionStore nodeDescriptionStore, TypeSystem typeSystem) {
+	DefaultNeo4jEntityConverter(EntityInstantiators entityInstantiators, NodeDescriptionStore nodeDescriptionStore,
+			Neo4jConversionService conversionService, EventSupport eventSupport, TypeSystem typeSystem) {
 
 		Assert.notNull(entityInstantiators, "EntityInstantiators must not be null!");
 		Assert.notNull(conversionService, "Neo4jConversionService must not be null!");
@@ -91,6 +94,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 		this.entityInstantiators = entityInstantiators;
 		this.conversionService = conversionService;
 		this.nodeDescriptionStore = nodeDescriptionStore;
+		this.eventSupport = eventSupport;
 
 		this.nodeType = typeSystem.NODE();
 		this.relationshipType = typeSystem.RELATIONSHIP();
@@ -287,6 +291,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 
 			PersistentPropertyAccessor<ET> propertyAccessor = concreteNodeDescription.getPropertyAccessor(instance);
 			ET bean = propertyAccessor.getBean();
+			bean = eventSupport.maybeCallAfterConvert(bean, concreteNodeDescription, queryResult);
 
 			// save final state of the bean
 			knownObjects.storeObject(internalId, bean);

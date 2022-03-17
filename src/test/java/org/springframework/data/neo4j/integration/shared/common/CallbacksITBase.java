@@ -54,9 +54,13 @@ public abstract class CallbacksITBase {
 	@BeforeEach
 	protected void setupData() {
 
-		try (Transaction transaction = driver.session().beginTransaction()) {
-			transaction.run("MATCH (n) detach delete n");
-			transaction.commit();
+		try (Session session = driver.session()) {
+			try (Transaction transaction = session.beginTransaction()) {
+				transaction.run("MATCH (n) detach delete n");
+				transaction.run("UNWIND ['E1', 'E2'] AS id WITH id CREATE (t:Thing {theId: id, name: 'Egal'})");
+				transaction.commit();
+			}
+			bookmarkCapture.seedWith(session.lastBookmark());
 		}
 	}
 
