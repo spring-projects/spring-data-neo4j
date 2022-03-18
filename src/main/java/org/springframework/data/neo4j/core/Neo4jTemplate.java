@@ -817,13 +817,14 @@ public final class Neo4jTemplate implements
 					}
 				}
 
+				Neo4jPersistentProperty requiredIdProperty = targetEntity.getRequiredIdProperty();
 				PersistentPropertyAccessor<?> targetPropertyAccessor = targetEntity.getPropertyAccessor(newRelatedObject);
+				Object actualRelatedId = targetPropertyAccessor.getProperty(requiredIdProperty);
 				// if an internal id is used this must be set to link this entity in the next iteration
 				if (targetEntity.isUsingInternalIds()) {
-					Neo4jPersistentProperty requiredIdProperty = targetEntity.getRequiredIdProperty();
-					if (relatedInternalId == null && targetPropertyAccessor.getProperty(requiredIdProperty) != null) {
+					if (relatedInternalId == null && actualRelatedId != null) {
 						relatedInternalId = (Long) targetPropertyAccessor.getProperty(requiredIdProperty);
-					} else if (targetPropertyAccessor.getProperty(requiredIdProperty) == null) {
+					} else if (actualRelatedId == null) {
 						targetPropertyAccessor.setProperty(requiredIdProperty, relatedInternalId);
 					}
 				}
@@ -831,7 +832,8 @@ public final class Neo4jTemplate implements
 					TemplateSupport.updateVersionPropertyIfPossible(targetEntity, targetPropertyAccessor, savedEntity);
 				}
 				stateMachine.markValueAsProcessedAs(relatedObjectBeforeCallbacksApplied, targetPropertyAccessor.getBean());
-				stateMachine.markRelationshipAsProcessed(relatedInternalId, relationshipDescription.getRelationshipObverse());
+				stateMachine.markRelationshipAsProcessed(actualRelatedId == null ? relatedInternalId : actualRelatedId,
+						relationshipDescription.getRelationshipObverse());
 
 				Object idValue = idProperty != null
 						? relationshipContext
