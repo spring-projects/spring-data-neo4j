@@ -21,8 +21,6 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -582,27 +580,21 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 		}
 
 		void invoke(Object instance) {
-			Method methodToInvoke = AccessController.doPrivileged((PrivilegedAction<Method>) () -> {
-				if (!method.isAccessible()) {
-					method.setAccessible(true);
-				}
-				return method;
-			});
-			ReflectionUtils.invokeMethod(methodToInvoke, getInstanceOrDelegate(instance, delegate));
+
+			method.setAccessible(true);
+			ReflectionUtils.invokeMethod(method, getInstanceOrDelegate(instance, delegate));
 		}
 
 		static Object getInstanceOrDelegate(Object instance, @Nullable Field delegateHolder) {
 			if (delegateHolder == null) {
 				return instance;
 			} else {
-				return AccessController.doPrivileged((PrivilegedAction<Object>) () -> {
-					try {
-						delegateHolder.setAccessible(true);
-						return delegateHolder.get(instance);
-					} catch (IllegalAccessException e) {
-						throw new RuntimeException(e);
-					}
-				});
+				try {
+					delegateHolder.setAccessible(true);
+					return delegateHolder.get(instance);
+				} catch (IllegalAccessException e) {
+					throw new RuntimeException(e);
+				}
 			}
 		}
 	}
