@@ -22,18 +22,25 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Objects;
 import java.util.Optional;
+// tag::faq.entities.auditing.callbacks[]
 import java.util.UUID;
 
+// end::faq.entities.auditing.callbacks[]
 import org.junit.jupiter.api.Test;
 import org.neo4j.driver.Driver;
 import org.springframework.beans.factory.annotation.Autowired;
+// tag::faq.entities.auditing.callbacks[]
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+// end::faq.entities.auditing.callbacks[]
 import org.springframework.context.annotation.Import;
 import org.springframework.data.neo4j.config.AbstractNeo4jConfig;
 import org.springframework.data.neo4j.core.DatabaseSelectionProvider;
+// tag::faq.entities.auditing.callbacks[]
 import org.springframework.data.neo4j.core.mapping.callback.AfterConvertCallback;
 import org.springframework.data.neo4j.core.mapping.callback.BeforeBindCallback;
+
+// end::faq.entities.auditing.callbacks[]
 import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
 import org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager;
 import org.springframework.data.neo4j.integration.imperative.repositories.ThingRepository;
