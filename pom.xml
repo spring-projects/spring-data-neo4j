@@ -74,7 +74,7 @@
 
 		<byte-buddy.version>1.11.0</byte-buddy.version>
 		<checkstyle.version>8.40</checkstyle.version>
-		<cypher-dsl.version>2022.0.0</cypher-dsl.version>
+		<cypher-dsl.version>2022.2.0</cypher-dsl.version>
 		<dist.id>spring-data-neo4j</dist.id>
 		<dist.key>SDNEO4J</dist.key>
 		<flatten-maven-plugin.version>1.2.5</flatten-maven-plugin.version>
