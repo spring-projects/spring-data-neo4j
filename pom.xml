@@ -575,7 +575,6 @@
 						</goals>
 						<configuration>
 							<rules>
-								<DependencyConvergence/>
 								<requireMavenVersion>
 									<version>3.8.3</version>
 								</requireMavenVersion>
