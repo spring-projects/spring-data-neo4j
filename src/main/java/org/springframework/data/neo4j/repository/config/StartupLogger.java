@@ -18,9 +18,8 @@ package org.springframework.data.neo4j.repository.config;
 import java.util.Optional;
 
 import org.apache.commons.logging.LogFactory;
-import org.neo4j.driver.Driver;
 import org.springframework.core.log.LogAccessor;
-import org.springframework.data.mapping.context.AbstractMappingContext;
+import org.springframework.data.neo4j.core.support.UserAgent;
 
 /**
  * Logs startup information.
@@ -59,23 +58,18 @@ final class StartupLogger {
 	String getStartingMessage() {
 
 		StringBuilder sb = new StringBuilder();
+		UserAgent userAgent = UserAgent.INSTANCE;
 
-		String sdnRx = getVersionOf(EnableNeo4jRepositories.class).map(v -> "SDN v" + v)
+		String sdnRx = Optional.ofNullable(userAgent.getSdnVersion()).map(v -> "SDN v" + v)
 				.orElse("an unknown version of SDN");
-		String sdC = getVersionOf(AbstractMappingContext.class).map(v -> "Spring Data Commons v" + v)
+		String sdC = Optional.ofNullable(userAgent.getSpringDataVersion()).map(v -> "Spring Data Commons v" + v)
 				.orElse("an unknown version of Spring Data Commons");
-		String driver = getVersionOf(Driver.class).map(v -> "Neo4j Driver v" + v)
+		String driver = Optional.ofNullable(userAgent.getDriverVersion()).map(v -> "Neo4j Driver v" + v)
 				.orElse("an unknown version of the Neo4j Java Driver");
 
 		sb.append("Bootstrapping ").append(mode.displayValue).append(" Neo4j repositories based on ").append(sdnRx)
 				.append(" with ").append(sdC).append(" and ").append(driver).append(".");
 
 		return sb.toString();
-	}
-
-	private Optional<String> getVersionOf(Class<?> clazz) {
-
-		return Optional.of(clazz).map(Class::getPackage).map(Package::getImplementationVersion).map(String::trim)
-				.filter(v -> !v.isEmpty());
 	}
 }

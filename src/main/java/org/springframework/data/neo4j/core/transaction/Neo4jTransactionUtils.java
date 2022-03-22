@@ -26,6 +26,7 @@ import org.neo4j.driver.SessionConfig;
 import org.neo4j.driver.TransactionConfig;
 import org.springframework.data.neo4j.core.DatabaseSelection;
 import org.springframework.data.neo4j.core.UserSelection;
+import org.springframework.data.neo4j.core.support.UserAgent;
 import org.springframework.transaction.IllegalTransactionStateException;
 import org.springframework.transaction.InvalidIsolationLevelException;
 import org.springframework.transaction.TransactionDefinition;
@@ -111,7 +112,9 @@ public final class Neo4jTransactionUtils {
 			builder = builder.withTimeout(Duration.ofSeconds(defaultTxManagerTimeout));
 		}
 
-		return builder.build();
+		return builder
+				.withMetadata(Collections.singletonMap("app", UserAgent.INSTANCE.toString()))
+				.build();
 	}
 
 	static String formatOngoingTxInAnotherDbErrorMessage(
