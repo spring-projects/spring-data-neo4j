@@ -60,6 +60,7 @@ import org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager;
 import org.springframework.data.neo4j.integration.issues.gh2415.BaseNodeEntity;
 import org.springframework.data.neo4j.integration.issues.gh2415.NodeEntity;
 import org.springframework.data.neo4j.integration.issues.gh2415.NodeWithDefinedCredentials;
+import org.springframework.data.neo4j.integration.shared.common.EntityWithPrimitiveConstructorArguments;
 import org.springframework.data.neo4j.integration.shared.common.Person;
 import org.springframework.data.neo4j.integration.shared.common.PersonWithAllConstructor;
 import org.springframework.data.neo4j.integration.shared.common.PersonWithAssignedId;
@@ -402,6 +403,15 @@ class Neo4jTemplateIT {
 		assertThat(person.getFirstName()).isEqualTo("Micha");
 		assertThat(person.getLastName()).isEqualTo("Simons");
 		assertThat(person.getAddress()).isNotNull();
+	}
+
+	@Test // GH-2505
+	void savePrimitivesShouldWork() {
+		EntityWithPrimitiveConstructorArguments entity = new EntityWithPrimitiveConstructorArguments(true, 42);
+		EntityWithPrimitiveConstructorArguments savedEntity = neo4jTemplate.save(EntityWithPrimitiveConstructorArguments.class).one(entity);
+
+		assertThat(savedEntity.someIntValue).isEqualTo(entity.someIntValue);
+		assertThat(savedEntity.someBooleanValue).isEqualTo(entity.someBooleanValue);
 	}
 
 	@Test // GH-2215
