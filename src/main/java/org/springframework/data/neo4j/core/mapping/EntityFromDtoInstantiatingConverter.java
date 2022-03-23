@@ -29,6 +29,7 @@ import org.springframework.data.mapping.PersistentPropertyAccessor;
 import org.springframework.data.mapping.PreferredConstructor;
 import org.springframework.data.mapping.PreferredConstructor.Parameter;
 import org.springframework.data.mapping.model.ParameterValueProvider;
+import org.springframework.data.neo4j.core.convert.Neo4jConversionService;
 import org.springframework.data.util.ClassTypeInformation;
 import org.springframework.data.util.ReflectionUtils;
 import org.springframework.lang.Nullable;
@@ -131,9 +132,14 @@ public final class EntityFromDtoInstantiatingConverter<T> implements Converter<O
 		}
 
 		if (propertyValue != null && !targetPropertyType.isInstance(propertyValue)) {
-			EntityFromDtoInstantiatingConverter<?> nestedConverter = converterCache.computeIfAbsent(targetProperty.getType(),
-					t -> new EntityFromDtoInstantiatingConverter<>(t, context));
-			return nestedConverter.convert(propertyValue);
+			Neo4jConversionService conversionService = context.getConversionService();
+			if (conversionService.isSimpleType(targetPropertyType)) {
+				return conversionService.convert(propertyValue, targetPropertyType);
+			} else {
+				EntityFromDtoInstantiatingConverter<?> nestedConverter = converterCache.computeIfAbsent(targetProperty.getType(),
+						t -> new EntityFromDtoInstantiatingConverter<>(t, context));
+				return nestedConverter.convert(propertyValue);
+			}
 		}
 
 		return propertyValue;
