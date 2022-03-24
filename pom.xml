@@ -73,12 +73,16 @@
 		<asciidoctorj-diagram.version>2.1.0</asciidoctorj-diagram.version>
 
 		<byte-buddy.version>1.11.0</byte-buddy.version>
+		<cdi>3.0.1</cdi>
+		<checkstyle.skip>${skipTests}</checkstyle.skip>
 		<checkstyle.version>8.40</checkstyle.version>
 		<cypher-dsl.version>2022.2.0</cypher-dsl.version>
 		<dist.id>spring-data-neo4j</dist.id>
 		<dist.key>SDNEO4J</dist.key>
 		<flatten-maven-plugin.version>1.2.5</flatten-maven-plugin.version>
 		<jacoco-maven-plugin.version>0.8.7</jacoco-maven-plugin.version>
+		<jakarta.interceptor-api.version>2.0.1</jakarta.interceptor-api.version>
+		<jakarta.transaction-api.version>2.0.0</jakarta.transaction-api.version>
 		<java-module-name>spring.data.neo4j</java-module-name>
 		<java.version>17</java.version>
 		<jaxb.version>2.3.1</jaxb.version>
@@ -99,7 +103,7 @@
 		<maven-surefire-plugin.version>3.0.0-M4</maven-surefire-plugin.version>
 		<maven.compiler.release>${java.version}</maven.compiler.release>
 		<mockito>${mockito.version}</mockito>
-		<mockito.version>4.0.0</mockito.version>
+		<mockito.version>4.4.0</mockito.version>
 		<neo4j-java-driver.version>4.4.5</neo4j-java-driver.version>
 		<neo4j.version>4.3.6</neo4j.version>
 		<objenesis.version>3.0.1</objenesis.version>
@@ -109,16 +113,20 @@
 		<reactive-streams.version>1.2.1</reactive-streams.version>
 		<skipArchitectureTests>true</skipArchitectureTests>
 		<skipIntegrationTests>${skipTests}</skipIntegrationTests>
-		<checkstyle.skip>${skipTests}</checkstyle.skip>
 
 		<skipUnitTests>${skipTests}</skipUnitTests>
-		<springdata.commons>3.0.0-SNAPSHOT</springdata.commons>
 
 		<spring-data-commons-docs.dir>../../../../spring-data-commons/src/main/asciidoc</spring-data-commons-docs.dir>
+		<springdata.commons>3.0.0-SNAPSHOT</springdata.commons>
 	</properties>
 
 	<dependencyManagement>
 		<dependencies>
+			<dependency>
+				<groupId>com.google.code.findbugs</groupId>
+				<artifactId>jsr305</artifactId>
+				<version>3.0.2</version>
+			</dependency>
 			<dependency>
 				<groupId>eu.michael-simons.neo4j</groupId>
 				<artifactId>junit-jupiter-causal-cluster-testcontainer-extension</artifactId>
@@ -138,6 +146,11 @@
 				<version>${rxjava2}</version>
 			</dependency>
 			<dependency>
+				<groupId>jakarta.interceptor</groupId>
+				<artifactId>jakarta.interceptor-api</artifactId>
+				<version>${jakarta.interceptor-api.version}</version>
+			</dependency>
+			<dependency>
 				<groupId>javax.xml.bind</groupId>
 				<artifactId>jaxb-api</artifactId>
 				<version>${jaxb.version}</version>
@@ -154,6 +167,11 @@
 				<version>${byte-buddy.version}</version>
 			</dependency>
 			<dependency>
+				<groupId>net.java.dev.jna</groupId>
+				<artifactId>jna</artifactId>
+				<version>5.8.0</version>
+			</dependency>
+			<dependency>
 				<groupId>org.apiguardian</groupId>
 				<artifactId>apiguardian-api</artifactId>
 				<version>${apiguardian.version}</version>
@@ -167,6 +185,12 @@
 				<groupId>org.neo4j</groupId>
 				<artifactId>neo4j-cypher-dsl</artifactId>
 				<version>${cypher-dsl.version}</version>
+				<exclusions>
+					<exclusion>
+						<artifactId>annotations</artifactId>
+						<groupId>org.jetbrains</groupId>
+					</exclusion>
+				</exclusions>
 			</dependency>
 			<dependency>
 				<groupId>org.neo4j.driver</groupId>
@@ -182,6 +206,11 @@
 				<groupId>org.objenesis</groupId>
 				<artifactId>objenesis</artifactId>
 				<version>${objenesis.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.osgi</groupId>
+				<artifactId>org.osgi.core</artifactId>
+				<version>6.0.0</version>
 			</dependency>
 			<dependency>
 				<groupId>org.slf4j</groupId>
@@ -208,6 +237,18 @@
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-databind</artifactId>
 			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.querydsl</groupId>
+			<artifactId>querydsl-core</artifactId>
+			<version>${querydsl}</version>
+			<scope>provided</scope>
+			<exclusions>
+				<exclusion>
+					<artifactId>annotations</artifactId>
+					<groupId>org.jetbrains</groupId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>eu.michael-simons.neo4j</groupId>
@@ -251,32 +292,32 @@
 		<dependency>
 			<groupId>jakarta.transaction</groupId>
 			<artifactId>jakarta.transaction-api</artifactId>
-			<version>2.0.0</version>
+			<version>${jakarta.transaction-api.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>org.apiguardian</groupId>
-			<artifactId>apiguardian-api</artifactId>
+			<groupId>org.apache.openwebbeans</groupId>
+			<artifactId>openwebbeans-impl</artifactId>
+			<version>${webbeans}</version>
+			<classifier>jakarta</classifier>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.openwebbeans</groupId>
 			<artifactId>openwebbeans-se</artifactId>
-			<classifier>jakarta</classifier>
 			<version>${webbeans}</version>
+			<classifier>jakarta</classifier>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.openwebbeans</groupId>
 			<artifactId>openwebbeans-spi</artifactId>
-			<classifier>jakarta</classifier>
 			<version>${webbeans}</version>
+			<classifier>jakarta</classifier>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.apache.openwebbeans</groupId>
-			<artifactId>openwebbeans-impl</artifactId>
-			<classifier>jakarta</classifier>
-			<version>${webbeans}</version>
-			<scope>test</scope>
+			<groupId>org.apiguardian</groupId>
+			<artifactId>apiguardian-api</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.jetbrains.kotlin</groupId>
@@ -286,13 +327,13 @@
 		<dependency>
 			<groupId>org.jetbrains.kotlin</groupId>
 			<artifactId>kotlin-stdlib</artifactId>
-			<optional>true</optional>
 			<exclusions>
 				<exclusion>
-					<groupId>org.jetbrains</groupId>
 					<artifactId>annotations</artifactId>
+					<groupId>org.jetbrains</groupId>
 				</exclusion>
 			</exclusions>
+			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>org.jetbrains.kotlin</groupId>
@@ -356,26 +397,28 @@
 		</dependency>
 		<dependency>
 			<groupId>org.testcontainers</groupId>
+			<artifactId>neo4j</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.testcontainers</groupId>
 			<artifactId>testcontainers</artifactId>
 			<scope>test</scope>
 			<!-- Exclusion because there is a Spring Data parent dependency to a newer JUnit version -->
 			<exclusions>
 				<exclusion>
-					<groupId>junit</groupId>
 					<artifactId>junit</artifactId>
+					<groupId>junit</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>annotations</artifactId>
+					<groupId>org.jetbrains</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>lombok</artifactId>
+					<groupId>org.projectlombok</groupId>
 				</exclusion>
 			</exclusions>
-		</dependency>
-		<dependency>
-			<groupId>org.testcontainers</groupId>
-			<artifactId>neo4j</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.querydsl</groupId>
-			<artifactId>querydsl-core</artifactId>
-			<version>${querydsl}</version>
-			<scope>provided</scope>
 		</dependency>
 	</dependencies>
 
@@ -575,6 +618,7 @@
 						</goals>
 						<configuration>
 							<rules>
+								<DependencyConvergence />
 								<requireMavenVersion>
 									<version>3.8.3</version>
 								</requireMavenVersion>
