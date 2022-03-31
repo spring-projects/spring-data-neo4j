@@ -24,6 +24,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.neo4j.driver.Bookmark;
 
@@ -117,6 +118,37 @@ class Neo4jBookmarkManagerTest {
 		bookmarkManager.updateBookmarks(Collections.singleton(oldBookmark), newBookmark);
 
 		assertThat(bookmarkManager.getBookmarks()).containsExactly(newBookmark);
+	}
+
+	@Nested
+	class NoopTests {
+
+
+		@Test
+		void shouldAlwaysReturnEmptyList() {
+
+			Neo4jBookmarkManager bookmarkManager = Neo4jBookmarkManager.noop();
+			assertThat(bookmarkManager.getBookmarks())
+					.isSameAs(Collections.emptyList()) // Might not be that sane to check that but alas
+					.isEmpty();
+		}
+
+
+		@Test
+		void shouldNeverAcceptBookmarks() {
+
+			BookmarkForTesting bookmark = new BookmarkForTesting(Collections.singleton("a"));
+			AtomicBoolean asserted = new AtomicBoolean(false);
+
+			final Neo4jBookmarkManager bookmarkManager = Neo4jBookmarkManager.noop();
+			bookmarkManager.setApplicationEventPublisher(event -> {
+				assertThat(((Neo4jBookmarksUpdatedEvent) event).getBookmarks()).containsExactly(bookmark);
+				asserted.set(true);
+			});
+
+			bookmarkManager.updateBookmarks(new HashSet<>(), bookmark);
+			assertThat(asserted).isFalse();
+		}
 	}
 
 	static private class BookmarkForTesting implements Bookmark {
