@@ -15,9 +15,11 @@
  */
 package org.springframework.data.neo4j.core;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -66,12 +68,44 @@ final class NamedParameters {
 
 		if (Constants.NAME_OF_PROPERTIES_PARAM.equals(name) && value != null) {
 			this.parameters.put(name, unwrapMapValueWrapper((Map<String, Object>) value));
+		} else if (Constants.NAME_OF_ENTITY_LIST_PARAM.equals(name) && value != null) {
+			this.parameters.put(name, unwrapMapValueWrapperInListOfEntities((List<Map<String, Object>>) value));
 		} else {
 			this.parameters.put(name, value);
 		}
 	}
 
+	@SuppressWarnings("unchecked")
+	private List<Map<String, Object>> unwrapMapValueWrapperInListOfEntities(List<Map<String, Object>> entityList) {
+		boolean requiresChange = entityList.stream().anyMatch(
+				entity ->
+						entity.containsKey(Constants.NAME_OF_PROPERTIES_PARAM) &&
+						((Map<String, Object>) entity.get(Constants.NAME_OF_PROPERTIES_PARAM)).values().stream()
+								.anyMatch(MapValueWrapper.class::isInstance)
+		);
+
+		if (!requiresChange) {
+			return entityList;
+		}
+
+		List<Map<String, Object>> newEntityList = new ArrayList<>(entityList.size());
+		for (Map<String, Object> entity : entityList) {
+			if (entity.containsKey(Constants.NAME_OF_PROPERTIES_PARAM)) {
+				Map<String, Object> newEntity = new HashMap<>(entity);
+				newEntity.put(Constants.NAME_OF_PROPERTIES_PARAM, unwrapMapValueWrapper((Map<String, Object>) entity.get(Constants.NAME_OF_PROPERTIES_PARAM)));
+				newEntityList.add(newEntity);
+			} else {
+				newEntityList.add(entity);
+			}
+		}
+		return newEntityList;
+	}
+
 	private static Map<String, Object> unwrapMapValueWrapper(Map<String, Object> properties) {
+
+		if (properties.values().stream().noneMatch(MapValueWrapper.class::isInstance)) {
+			return properties;
+		}
 
 		Map<String, Object> newProperties = new HashMap<>(properties.size());
 		properties.forEach((k, v) -> {
