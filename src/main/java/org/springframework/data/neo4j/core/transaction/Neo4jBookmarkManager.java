@@ -60,6 +60,24 @@ public final class Neo4jBookmarkManager {
 		return new Neo4jBookmarkManager(bookmarksSupplier);
 	}
 
+	/**
+	 * Use this bookmark manager at your own risk, it will effectively disable any bookmark management by dropping all
+	 * bookmarks and never  supplying any. In a cluster you will be at a high risk of experiencing stale reads. In a single
+	 * instance it will most likely not make any difference.
+	 * <p>
+	 * In a cluster this can be a sensible approach only and if only you can tolerate stale reads and are not in danger of
+	 * overwriting old data.
+	 *
+	 * @return A noop bookmark manager, dropping new bookmarks immediately, never supplying bookmarks.
+	 * @since 6.1.11
+	 */
+	@API(status = API.Status.STABLE, since = "6.1.11")
+	public static Neo4jBookmarkManager noop() {
+		return new Neo4jBookmarkManager(null, true);
+	}
+
+	private final boolean noop;
+
 	private final Set<Bookmark> bookmarks = new HashSet<>();
 
 	private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
@@ -72,10 +90,19 @@ public final class Neo4jBookmarkManager {
 	private ApplicationEventPublisher applicationEventPublisher;
 
 	private Neo4jBookmarkManager(@Nullable Supplier<Set<Bookmark>> bookmarksSupplier) {
+		this(bookmarksSupplier, false);
+	}
+
+	private Neo4jBookmarkManager(@Nullable Supplier<Set<Bookmark>> bookmarksSupplier, boolean noop) {
 		this.bookmarksSupplier = bookmarksSupplier == null ? () -> Collections.emptySet() : bookmarksSupplier;
+		this.noop = noop;
 	}
 
 	Collection<Bookmark> getBookmarks() {
+
+		if (noop) {
+			return Collections.emptyList();
+		}
 
 		try {
 			read.lock();
@@ -88,6 +115,11 @@ public final class Neo4jBookmarkManager {
 	}
 
 	void updateBookmarks(Collection<Bookmark> usedBookmarks, Bookmark lastBookmark) {
+
+		if (noop) {
+			return;
+		}
+
 		try {
 			write.lock();
 			bookmarks.removeAll(usedBookmarks);

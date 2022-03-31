@@ -138,6 +138,8 @@ interface and its only implementation `org.springframework.data.neo4j.bookmark.C
 SDN uses Bookmarks for all transactions, without configuration.
 You can remove the bean declaration of `CaffeineBookmarkManager` as well as the dependency to `com.github.ben-manes.caffeine:caffeine`.
 
+If you absolutely must, you can disable the automatic bookmark management by following <<faq.bookmarks.noop, these instructions>>.
+
 [[migrating.autoindex]]
 === Automatic creation of constraints and indexes
 
