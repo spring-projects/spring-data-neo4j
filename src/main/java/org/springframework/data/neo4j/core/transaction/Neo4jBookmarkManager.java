@@ -16,11 +16,7 @@
 package org.springframework.data.neo4j.core.transaction;
 
 import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.Set;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Supplier;
 
 import org.apiguardian.api.API;
@@ -36,13 +32,13 @@ import org.springframework.lang.Nullable;
  * @since 6.0
  */
 @API(status = API.Status.STABLE, since = "6.1.1")
-public final class Neo4jBookmarkManager {
+public sealed interface Neo4jBookmarkManager permits AbstractBookmarkManager, NoopBookmarkManager {
 
 	/**
-	 * @return A default bookmark manager
+	 * {@return the default bookmark manager}
 	 */
-	public static Neo4jBookmarkManager create() {
-		return new Neo4jBookmarkManager(null);
+	static Neo4jBookmarkManager create() {
+		return new DefaultBookmarkManager(null);
 	}
 
 	/**
@@ -51,55 +47,52 @@ public final class Neo4jBookmarkManager {
 	 * While this class will make sure that the supplier will be accessed in a thread-safe manner,
 	 * it is the caller's duty to provide a thread safe supplier (not changing the seed during a call, etc.).
 	 *
-	 * @param bookmarksSupplier        A supplier for seeding bookmarks, can be null. The supplier is free to provide different
-	 *                                 bookmarks on each call.
+	 * @param bookmarksSupplier A supplier for seeding bookmarks, can be null. The supplier is free to provide different
+	 *                          bookmarks on each call.
 	 * @return A bookmark manager
 	 */
-	public static Neo4jBookmarkManager create(@Nullable Supplier<Set<Bookmark>> bookmarksSupplier) {
-		return new Neo4jBookmarkManager(bookmarksSupplier);
+	static Neo4jBookmarkManager create(@Nullable Supplier<Set<Bookmark>> bookmarksSupplier) {
+		return new DefaultBookmarkManager(bookmarksSupplier);
 	}
 
-	private final Set<Bookmark> bookmarks = new HashSet<>();
-
-	private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
-	private final Lock read = lock.readLock();
-	private final Lock write = lock.writeLock();
-
-	private final Supplier<Set<Bookmark>> bookmarksSupplier;
-
-	@Nullable
-	private ApplicationEventPublisher applicationEventPublisher;
-
-	private Neo4jBookmarkManager(@Nullable Supplier<Set<Bookmark>> bookmarksSupplier) {
-		this.bookmarksSupplier = bookmarksSupplier == null ? () -> Collections.emptySet() : bookmarksSupplier;
+	/**
+	 * Use this bookmark manager at your own risk, it will effectively disable any bookmark management by dropping all
+	 * bookmarks and never  supplying any. In a cluster you will be at a high risk of experiencing stale reads. In a single
+	 * instance it will most likely not make any difference.
+	 * <p>
+	 * In a cluster this can be a sensible approach only and if only you can tolerate stale reads and are not in danger of
+	 * overwriting old data.
+	 *
+	 * @return A noop bookmark manager, dropping new bookmarks immediately, never supplying bookmarks.
+	 * @since 6.1.11
+	 */
+	@API(status = API.Status.STABLE, since = "6.1.11")
+	static Neo4jBookmarkManager noop() {
+		return NoopBookmarkManager.INSTANCE;
 	}
 
-	Collection<Bookmark> getBookmarks() {
+	/**
+	 * No need to introspect this collection ever. The Neo4j driver will together with the cluster figure out which of
+	 * the bookmarks is the most recent one.
+	 *
+	 * @return a collection of currently known bookmarks
+	 */
+	Collection<Bookmark> getBookmarks();
 
-		try {
-			read.lock();
-			HashSet<Bookmark> bookmarksToUse = new HashSet<>(this.bookmarks);
-			bookmarksToUse.addAll(bookmarksSupplier.get());
-			return Collections.unmodifiableSet(bookmarksToUse);
-		} finally {
-			read.unlock();
-		}
-	}
+	/**
+	 * Refreshes the bookmark manager with the {@code lastBookmark} received after the last transaction committed. The
+	 * collection of {@code usedBookmarks} should be removed from the list of known bookmarks.
+	 *
+	 * @param usedBookmarks The collection of bookmarks known prior to the end of a transaction
+	 * @param lastBookmark  The bookmark received after the end of a transaction
+	 */
+	void updateBookmarks(Collection<Bookmark> usedBookmarks, Bookmark lastBookmark);
 
-	void updateBookmarks(Collection<Bookmark> usedBookmarks, Bookmark lastBookmark) {
-		try {
-			write.lock();
-			bookmarks.removeAll(usedBookmarks);
-			bookmarks.add(lastBookmark);
-			if (applicationEventPublisher != null) {
-				applicationEventPublisher.publishEvent(new Neo4jBookmarksUpdatedEvent(new HashSet<>(bookmarks)));
-			}
-		} finally {
-			write.unlock();
-		}
-	}
-
-	void setApplicationEventPublisher(@Nullable ApplicationEventPublisher applicationEventPublisher) {
-		this.applicationEventPublisher = applicationEventPublisher;
+	/**
+	 * A hook for bookmark managers supporting events.
+	 *
+	 * @param applicationEventPublisher An event publisher. If null, no events will be published.
+	 */
+	default void setApplicationEventPublisher(@Nullable ApplicationEventPublisher applicationEventPublisher) {
 	}
 }

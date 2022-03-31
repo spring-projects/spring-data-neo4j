@@ -458,7 +458,7 @@ No, you don't.
 SDN uses Neo4j Causal Cluster bookmarks internally without any configuration on your side required.
 Transactions in the same thread or the same reactive stream following each other will be able to read their previously changed values as you would expect.
 
-[[faq.bookmarks]]
+[[faq.bookmarks.seeding]]
 == Can I retrieve the latest Bookmarks or seed the transaction manager?
 
 As mentioned briefly in <<migrating.bookmarks>>, there is no need to configure anything with regard to bookmarks.
@@ -498,6 +498,8 @@ import org.neo4j.driver.Driver;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.neo4j.core.DatabaseSelectionProvider;
+import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
+import org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
 
 @Configuration
@@ -527,6 +529,46 @@ public class BookmarkSeedingConfig {
 
 WARNING: There is *no* need to do any of these things above, unless your application has the need to access or provide
          this data. If in doubt, don't do either.
+
+[[faq.bookmarks.noop]]
+== Can I disable bookmark management?
+
+We provide a Noop bookmark manager that effectively disables bookmark management.
+
+WARNING: Use this bookmark manager at your own risk, it will effectively disable any bookmark management by dropping all
+         bookmarks and never  supplying any. In a cluster you will be at a high risk of experiencing stale reads. In a single
+         instance it will most likely not make any difference.
+         +
+         In a cluster this can be a sensible approach only and if only you can tolerate stale reads and are not in danger of
+         overwriting old data.
+
+You need to provide the following configuration in your system and make sure that SDN uses the transaction manager:
+
+[source,java,indent=0,tabsize=4]
+.BookmarksDisabledConfig.java
+----
+import org.neo4j.driver.Driver;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.data.neo4j.core.DatabaseSelectionProvider;
+import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
+import org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager;
+import org.springframework.transaction.PlatformTransactionManager;
+
+@Configuration
+public class BookmarksDisabledConfig {
+
+	@Bean
+	public PlatformTransactionManager transactionManager(
+			Driver driver, DatabaseSelectionProvider databaseNameProvider) {
+
+		Neo4jBookmarkManager bookmarkManager = Neo4jBookmarkManager.noop(); // <.>
+		return new Neo4jTransactionManager(
+			driver, databaseNameProvider, bookmarkManager);
+	}
+}
+----
+<.> Get an instance of the Noop bookmark manager
 
 [[faq.annotations.specific]]
 == Do I need to use Neo4j specific annotations?

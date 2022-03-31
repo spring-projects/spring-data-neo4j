@@ -17,12 +17,9 @@ package org.springframework.data.neo4j.core.transaction;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.anyCollection;
 import static org.mockito.Mockito.anyMap;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -71,8 +68,8 @@ import org.springframework.transaction.support.TransactionTemplate;
 @ExtendWith(MockitoExtension.class)
 class Neo4jTransactionManagerTest {
 
-	private DatabaseSelection databaseSelection = DatabaseSelection.byName("aDatabase");
-	private UserSelection userSelection = UserSelection.connectedUser();
+	private final DatabaseSelection databaseSelection = DatabaseSelection.byName("aDatabase");
+	private final UserSelection userSelection = UserSelection.connectedUser();
 
 	@Mock private Driver driver;
 	@Mock private Session session;
@@ -147,7 +144,7 @@ class Neo4jTransactionManagerTest {
 		when(statementResult.consume()).thenReturn(resultSummary);
 
 		Neo4jTransactionManager txManager = spy(new Neo4jTransactionManager(driver));
-		Neo4jBookmarkManager bookmarkManager = mock(Neo4jBookmarkManager.class);
+		AssertableBookmarkManager bookmarkManager = new AssertableBookmarkManager();
 		injectBookmarkManager(txManager, bookmarkManager);
 
 		TransactionStatus txStatus = txManager.getTransaction(new DefaultTransactionDefinition());
@@ -158,10 +155,10 @@ class Neo4jTransactionManagerTest {
 		txManager.commit(txStatus);
 
 		verify(txManager).doBegin(any(), any(TransactionDefinition.class));
-		verify(bookmarkManager).getBookmarks();
+		assertThat(bookmarkManager.getBookmarksCalled).isTrue();
 		verify(txManager).doCommit(any(DefaultTransactionStatus.class));
-		verify(bookmarkManager).updateBookmarks(anyCollection(), eq(bookmark));
-
+		assertThat(bookmarkManager.updateBookmarksCalled)
+				.containsEntry(bookmark, true);
 	}
 
 	private void injectBookmarkManager(Neo4jTransactionManager txManager, Neo4jBookmarkManager value)

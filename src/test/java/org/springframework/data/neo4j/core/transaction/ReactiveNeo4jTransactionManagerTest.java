@@ -17,10 +17,7 @@ package org.springframework.data.neo4j.core.transaction;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyCollection;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -145,7 +142,7 @@ class ReactiveNeo4jTransactionManagerTest {
 					.withDatabaseSelectionProvider(() -> Mono.just(databaseSelection))
 					.build();
 
-			Neo4jBookmarkManager bookmarkManager = spy(Neo4jBookmarkManager.create());
+			AssertableBookmarkManager bookmarkManager = new AssertableBookmarkManager();
 			injectBookmarkManager(txManager, bookmarkManager);
 
 			Bookmark bookmark = new Bookmark() {
@@ -171,10 +168,11 @@ class ReactiveNeo4jTransactionManagerTest {
 
 			verify(driver).rxSession(any(SessionConfig.class));
 			verify(session).beginTransaction(any(TransactionConfig.class));
-			verify(bookmarkManager).getBookmarks();
+			assertThat(bookmarkManager.getBookmarksCalled).isTrue();
 			verify(session).close();
 			verify(transaction).commit();
-			verify(bookmarkManager).updateBookmarks(anyCollection(), eq(bookmark));
+			assertThat(bookmarkManager.updateBookmarksCalled)
+					.containsEntry(bookmark, true);
 		}
 
 		private void injectBookmarkManager(ReactiveNeo4jTransactionManager txManager, Neo4jBookmarkManager value)
