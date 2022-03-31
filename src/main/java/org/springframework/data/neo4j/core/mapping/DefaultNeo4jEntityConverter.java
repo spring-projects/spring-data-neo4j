@@ -607,7 +607,14 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 				for (Relationship possibleRelationship : allMatchingTypeRelationshipsInResult) {
 					if (targetIdSelector.apply(possibleRelationship) == targetNodeId) {
 
-						Object mappedObject = map(possibleValueNode, concreteTargetNodeDescription, null, relationshipsFromResult, nodesFromResult);
+						// If the target is the same(equal) node, get the related object from the cache.
+						// Avoiding the call to the map method also breaks an endless cycle of trying to finish
+						// the property population of _this_ object.
+						// The initial population will happen at the end of this mapping. This is sufficient because
+						// it only affects properties not changing the instance of the object.
+						Object mappedObject = sourceNodeId != null && sourceNodeId.equals(targetNodeId)
+								? knownObjects.getObject(sourceNodeId)
+								: map(possibleValueNode, concreteTargetNodeDescription, null, relationshipsFromResult, nodesFromResult);
 						if (relationshipDescription.hasRelationshipProperties()) {
 
 							Object relationshipProperties = map(possibleRelationship,

@@ -830,6 +830,24 @@ class RepositoryIT {
 			assertThat(slice.getTotalElements()).isEqualTo(2);
 			assertThat(slice.getTotalPages()).isEqualTo(2);
 		}
+
+		@Test
+		void findEntityPointingToEqualEntity(@Autowired PetRepository repository) {
+			doWithSession(session ->
+					session
+						.run("CREATE (:Pet{name: 'Pet2'})-[:Has]->(p1:Pet{name: 'Pet1'})-[:Has]->(p1) RETURN p1")
+						.consume());
+
+			List<Pet> allPets = repository.findAllFriends();
+			for (Pet pet : allPets) {
+				// everybody has a friend
+				assertThat(pet.getFriends()).hasSize(1);
+				// but only Pet1 is its own best friend
+				if (pet.getName().equals("Pet1")) {
+					assertThat(pet.getFriends().get(0)).isEqualTo(pet);
+				}
+			}
+		}
 	}
 
 	@Nested
@@ -4273,6 +4291,11 @@ class RepositoryIT {
 
 		@Query("MATCH (n:Pet) where n.name='Luna' OPTIONAL MATCH (n)-[r:Has]->(m:Pet) return n, collect(r), collect(m)")
 		List<Pet> findLunas();
+
+		@Query("MATCH (p:Pet)"
+				+ " OPTIONAL MATCH (p)-[rel:Has]->(op)"
+				+ " RETURN p, collect(rel), collect(op)")
+		List<Pet> findAllFriends();
 	}
 
 	interface ImmutablePetRepository extends Neo4jRepository<ImmutablePet, Long> {
