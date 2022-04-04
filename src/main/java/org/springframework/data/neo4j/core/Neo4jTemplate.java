@@ -124,30 +124,6 @@ public final class Neo4jTemplate implements
 
 	private ProjectionFactory projectionFactory;
 
-	@Deprecated
-	public Neo4jTemplate(Neo4jClient neo4jClient, Neo4jMappingContext neo4jMappingContext,
-						 DatabaseSelectionProvider databaseSelectionProvider) {
-
-		this(neo4jClient, neo4jMappingContext, EntityCallbacks.create());
-
-		if (databaseSelectionProvider != neo4jClient.getDatabaseSelectionProvider()) {
-			throw new IllegalStateException(
-					"The provided database selection provider differs from the Neo4jClient's one.");
-		}
-	}
-
-	@Deprecated
-	public Neo4jTemplate(Neo4jClient neo4jClient, Neo4jMappingContext neo4jMappingContext,
-						 DatabaseSelectionProvider databaseSelectionProvider, EntityCallbacks entityCallbacks) {
-
-		this(neo4jClient, neo4jMappingContext, entityCallbacks);
-
-		if (databaseSelectionProvider != neo4jClient.getDatabaseSelectionProvider()) {
-			throw new IllegalStateException(
-					"The provided database selection provider differs from the Neo4jClient's one.");
-		}
-	}
-
 	public Neo4jTemplate(Neo4jClient neo4jClient) {
 		this(neo4jClient, new Neo4jMappingContext());
 	}
