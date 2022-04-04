@@ -28,6 +28,7 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiFunction;
@@ -128,7 +129,7 @@ public final class Neo4jTemplate implements
 
 		this(neo4jClient, neo4jMappingContext, EntityCallbacks.create());
 
-		if (databaseSelectionProvider != neo4jClient.getDatabaseSelectionProvider()) {
+		if (!Objects.equals(databaseSelectionProvider, neo4jClient.getDatabaseSelectionProvider())) {
 			throw new IllegalStateException(
 					"The provided database selection provider differs from the Neo4jClient's one.");
 		}
@@ -140,7 +141,7 @@ public final class Neo4jTemplate implements
 
 		this(neo4jClient, neo4jMappingContext, entityCallbacks);
 
-		if (databaseSelectionProvider != neo4jClient.getDatabaseSelectionProvider()) {
+		if (!Objects.equals(databaseSelectionProvider, neo4jClient.getDatabaseSelectionProvider())) {
 			throw new IllegalStateException(
 					"The provided database selection provider differs from the Neo4jClient's one.");
 		}

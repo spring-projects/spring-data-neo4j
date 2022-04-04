@@ -19,13 +19,6 @@ import static org.neo4j.cypherdsl.core.Cypher.anyNode;
 import static org.neo4j.cypherdsl.core.Cypher.asterisk;
 import static org.neo4j.cypherdsl.core.Cypher.parameter;
 
-import org.neo4j.driver.Value;
-import org.springframework.data.mapping.PropertyPath;
-import org.springframework.data.neo4j.core.mapping.EntityFromDtoInstantiatingConverter;
-import org.springframework.data.neo4j.core.mapping.PropertyFilter;
-import org.springframework.data.mapping.Association;
-import org.springframework.data.neo4j.core.TemplateSupport.FilteredBinderFunction;
-import org.springframework.data.neo4j.core.schema.TargetNode;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.util.function.Tuple2;
@@ -39,6 +32,7 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
@@ -55,6 +49,7 @@ import org.neo4j.cypherdsl.core.Functions;
 import org.neo4j.cypherdsl.core.Node;
 import org.neo4j.cypherdsl.core.Statement;
 import org.neo4j.cypherdsl.core.renderer.Renderer;
+import org.neo4j.driver.Value;
 import org.neo4j.driver.types.Entity;
 import org.neo4j.driver.types.MapAccessor;
 import org.neo4j.driver.types.TypeSystem;
@@ -66,14 +61,18 @@ import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.dao.OptimisticLockingFailureException;
+import org.springframework.data.mapping.Association;
 import org.springframework.data.mapping.AssociationHandler;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
+import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.mapping.callback.ReactiveEntityCallbacks;
+import org.springframework.data.neo4j.core.TemplateSupport.FilteredBinderFunction;
 import org.springframework.data.neo4j.core.TemplateSupport.NodesAndRelationshipsByIdStatementProvider;
 import org.springframework.data.neo4j.core.mapping.Constants;
 import org.springframework.data.neo4j.core.mapping.CreateRelationshipStatementHolder;
 import org.springframework.data.neo4j.core.mapping.CypherGenerator;
 import org.springframework.data.neo4j.core.mapping.DtoInstantiatingConverter;
+import org.springframework.data.neo4j.core.mapping.EntityFromDtoInstantiatingConverter;
 import org.springframework.data.neo4j.core.mapping.EntityInstanceWithSource;
 import org.springframework.data.neo4j.core.mapping.MappingSupport;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
@@ -83,8 +82,10 @@ import org.springframework.data.neo4j.core.mapping.NestedRelationshipContext;
 import org.springframework.data.neo4j.core.mapping.NestedRelationshipProcessingStateMachine;
 import org.springframework.data.neo4j.core.mapping.NestedRelationshipProcessingStateMachine.ProcessState;
 import org.springframework.data.neo4j.core.mapping.NodeDescription;
+import org.springframework.data.neo4j.core.mapping.PropertyFilter;
 import org.springframework.data.neo4j.core.mapping.RelationshipDescription;
 import org.springframework.data.neo4j.core.mapping.callback.ReactiveEventSupport;
+import org.springframework.data.neo4j.core.schema.TargetNode;
 import org.springframework.data.neo4j.repository.query.QueryFragments;
 import org.springframework.data.neo4j.repository.query.QueryFragmentsAndParameters;
 import org.springframework.data.projection.ProjectionFactory;
@@ -130,7 +131,7 @@ public final class ReactiveNeo4jTemplate implements
 								 ReactiveDatabaseSelectionProvider databaseSelectionProvider) {
 
 		this(neo4jClient, neo4jMappingContext);
-		if (databaseSelectionProvider != neo4jClient.getDatabaseSelectionProvider()) {
+		if (!Objects.equals(databaseSelectionProvider, neo4jClient.getDatabaseSelectionProvider())) {
 			throw new IllegalStateException("The provided database selection provider differs from the ReactiveNeo4jClient's one.");
 		}
 	}
