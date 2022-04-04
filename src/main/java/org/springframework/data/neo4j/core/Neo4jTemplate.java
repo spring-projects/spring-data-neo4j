@@ -130,7 +130,7 @@ public final class Neo4jTemplate implements
 
 		this(neo4jClient, neo4jMappingContext, EntityCallbacks.create());
 
-		if (databaseSelectionProvider != neo4jClient.getDatabaseSelectionProvider()) {
+		if (!Objects.equals(databaseSelectionProvider, neo4jClient.getDatabaseSelectionProvider())) {
 			throw new IllegalStateException(
 					"The provided database selection provider differs from the Neo4jClient's one.");
 		}
@@ -142,7 +142,7 @@ public final class Neo4jTemplate implements
 
 		this(neo4jClient, neo4jMappingContext, entityCallbacks);
 
-		if (databaseSelectionProvider != neo4jClient.getDatabaseSelectionProvider()) {
+		if (!Objects.equals(databaseSelectionProvider, neo4jClient.getDatabaseSelectionProvider())) {
 			throw new IllegalStateException(
 					"The provided database selection provider differs from the Neo4jClient's one.");
 		}

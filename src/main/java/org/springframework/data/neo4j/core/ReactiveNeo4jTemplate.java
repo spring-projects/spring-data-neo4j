@@ -37,6 +37,7 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
@@ -132,7 +133,7 @@ public final class ReactiveNeo4jTemplate implements
 								 ReactiveDatabaseSelectionProvider databaseSelectionProvider) {
 
 		this(neo4jClient, neo4jMappingContext);
-		if (databaseSelectionProvider != neo4jClient.getDatabaseSelectionProvider()) {
+		if (!Objects.equals(databaseSelectionProvider, neo4jClient.getDatabaseSelectionProvider())) {
 			throw new IllegalStateException("The provided database selection provider differs from the ReactiveNeo4jClient's one.");
 		}
 	}
