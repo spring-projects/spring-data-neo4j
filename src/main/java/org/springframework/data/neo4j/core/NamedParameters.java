@@ -134,8 +134,8 @@ final class NamedParameters {
 
 	@Override
 	public String toString() {
-		return parameters.entrySet().stream().map(e -> String.format("%s: %s", e.getKey(), formatValue(e.getValue())))
-				.collect(Collectors.joining(", ", ":params {", "}"));
+		return parameters.entrySet().stream().map(e -> String.format(":param %s => %s", e.getKey(), formatValue(e.getValue())))
+				.collect(Collectors.joining(System.lineSeparator()));
 	}
 
 	@Nullable
