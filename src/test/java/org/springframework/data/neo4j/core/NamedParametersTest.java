@@ -41,7 +41,8 @@ class NamedParametersTest {
 		namedParameters.add("b", "Something");
 		namedParameters.add("c", null);
 
-		assertThat(namedParameters.get()).containsEntry("a", 1).containsEntry("b", "Something").containsEntry("c", null);
+		assertThat(namedParameters.get()).containsEntry("a", 1).containsEntry("b", "Something")
+				.containsEntry("c", null);
 	}
 
 	@Test
@@ -100,7 +101,7 @@ class NamedParametersTest {
 			NamedParameters p = new NamedParameters();
 			p.add("aKey", "A fancy\\ value");
 
-			assertThat(p.toString()).isEqualTo(":params {aKey: 'A fancy\\\\ value'}");
+			assertThat(p.toString()).isEqualTo(":param aKey => 'A fancy\\\\ value'");
 		}
 
 		@Test
@@ -109,7 +110,7 @@ class NamedParametersTest {
 			NamedParameters p = new NamedParameters();
 			p.add("aKey", null);
 
-			assertThat(p.toString()).isEqualTo(":params {aKey: null}");
+			assertThat(p.toString()).isEqualTo(":param aKey => null");
 		}
 
 		@Test
@@ -122,7 +123,11 @@ class NamedParametersTest {
 			NamedParameters p = new NamedParameters();
 			p.add("aKey", outer);
 
-			assertThat(p.toString()).isEqualTo(":params {aKey: {oma: 'Something', omb: {ims: 'Something else'}}}");
+			String[] output = p.toString().split(System.lineSeparator());
+			assertThat(output)
+					.containsExactly(
+							":param aKey => {oma: 'Something', omb: {ims: 'Something else'}}"
+					);
 		}
 
 		@Test
@@ -136,8 +141,11 @@ class NamedParametersTest {
 			NamedParameters p = new NamedParameters();
 			p.add("aKey", outer);
 
-			assertThat(p.toString()).isEqualTo(
-					":params {aKey: {oma: 'Something', omb: {ims: {imi: 'Embedded Thing'}}, omc: {ims: 'Something else'}}}");
+			String[] output = p.toString().split(System.lineSeparator());
+			assertThat(output)
+					.containsExactly(
+							":param aKey => {oma: 'Something', omb: {ims: {imi: 'Embedded Thing'}}, omc: {ims: 'Something else'}}"
+					);
 		}
 
 		@Test
@@ -149,8 +157,13 @@ class NamedParametersTest {
 			p.add("m", Arrays.asList(
 					Collections.singletonMap("a", "av"), Collections.singletonMap("b", Arrays.asList("A", "b"))));
 
-			assertThat(p.toString())
-					.isEqualTo(":params {a: ['Something', 'Else'], l: [1, 2, 3], m: [{a: 'av'}, {b: ['A', 'b']}]}");
+			String[] output = p.toString().split(System.lineSeparator());
+			assertThat(output)
+					.containsExactly(
+							":param a => ['Something', 'Else']",
+							":param l => [1, 2, 3]",
+							":param m => [{a: 'av'}, {b: ['A', 'b']}]"
+					);
 		}
 	}
 }
