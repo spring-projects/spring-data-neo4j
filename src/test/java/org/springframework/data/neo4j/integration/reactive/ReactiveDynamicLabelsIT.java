@@ -16,9 +16,8 @@
 package org.springframework.data.neo4j.integration.reactive;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.neo4j.cypherdsl.core.Conditions.not;
-import static org.neo4j.cypherdsl.core.Predicates.exists;
 
+import org.springframework.data.neo4j.test.Neo4jReactiveTestConfiguration;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -46,7 +45,6 @@ import org.neo4j.driver.reactive.RxSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.neo4j.config.AbstractReactiveNeo4jConfig;
 import org.springframework.data.neo4j.core.ReactiveDatabaseSelectionProvider;
 import org.springframework.data.neo4j.core.ReactiveNeo4jTemplate;
 import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
@@ -452,7 +450,7 @@ public class ReactiveDynamicLabelsIT {
 
 			Node n = Cypher.anyNode("n");
 			String cypher = Renderer.getDefaultRenderer().render(Cypher.match(n).where(idCondition)
-					.and(not(exists(n.property("moreLabels")))).unwind(n.labels()).as("label").returning("label").build());
+					.and(n.property("moreLabels").isNull()).unwind(n.labels()).as("label").returning("label").build());
 			return Flux
 					.usingWhen(Mono.fromSupplier(() -> driver.rxSession(bookmarkCapture.createSessionConfig())),
 							s -> s.run(cypher, Collections.singletonMap("id", id)).records(), RxSession::close)
@@ -461,7 +459,7 @@ public class ReactiveDynamicLabelsIT {
 
 		@Configuration
 		@EnableTransactionManagement
-		static class Config extends AbstractReactiveNeo4jConfig {
+		static class Config extends Neo4jReactiveTestConfiguration {
 
 			@Bean
 			public Driver driver() {
@@ -483,6 +481,11 @@ public class ReactiveDynamicLabelsIT {
 			@Bean
 			public TransactionalOperator transactionalOperator(ReactiveTransactionManager transactionManager) {
 				return TransactionalOperator.create(transactionManager);
+			}
+
+			@Override
+			public boolean isCypher5Compatible() {
+				return neo4jConnectionSupport.isCypher5SyntaxCompatible();
 			}
 		}
 	}

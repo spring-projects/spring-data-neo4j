@@ -17,6 +17,7 @@ package org.springframework.data.neo4j.integration.issues.gh2289;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import org.springframework.data.neo4j.test.Neo4jReactiveTestConfiguration;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
@@ -33,7 +34,6 @@ import org.neo4j.driver.Values;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.neo4j.config.AbstractReactiveNeo4jConfig;
 import org.springframework.data.neo4j.repository.ReactiveNeo4jRepository;
 import org.springframework.data.neo4j.repository.config.EnableReactiveNeo4jRepositories;
 import org.springframework.data.neo4j.test.BookmarkCapture;
@@ -181,7 +181,7 @@ class ReactiveGH2289IT {
 	@Configuration
 	@EnableTransactionManagement
 	@EnableReactiveNeo4jRepositories(considerNestedRepositories = true)
-	static class Config extends AbstractReactiveNeo4jConfig {
+	static class Config extends Neo4jReactiveTestConfiguration {
 
 		@Bean
 		public BookmarkCapture bookmarkCapture() {
@@ -192,6 +192,11 @@ class ReactiveGH2289IT {
 		public Driver driver() {
 
 			return neo4jConnectionSupport.getDriver();
+		}
+
+		@Override
+		public boolean isCypher5Compatible() {
+			return neo4jConnectionSupport.isCypher5SyntaxCompatible();
 		}
 	}
 }

@@ -16,6 +16,8 @@
 package org.springframework.data.neo4j.config;
 
 import org.apiguardian.api.API;
+import org.neo4j.cypherdsl.core.renderer.Configuration;
+import org.neo4j.cypherdsl.core.renderer.Renderer;
 import org.neo4j.driver.Driver;
 import org.springframework.data.neo4j.core.DatabaseSelectionProvider;
 import org.springframework.data.neo4j.core.Neo4jClient;
@@ -64,11 +66,19 @@ class Neo4jCdiConfigurationSupport {
 	}
 
 	@Produces @Builtin @Singleton
+	public Configuration cypherDslConfiguration() {
+		return Configuration.defaultConfig();
+	}
+
+	@Produces @Builtin @Singleton
 	public Neo4jOperations neo4jOperations(
 			@Any Instance<Neo4jClient> neo4jClient,
-			@Any Instance<Neo4jMappingContext> mappingContext
+			@Any Instance<Neo4jMappingContext> mappingContext,
+			@Any Instance<Configuration> cypherDslConfiguration
 	) {
-		return new Neo4jTemplate(resolve(neo4jClient), resolve(mappingContext));
+		Neo4jTemplate neo4jTemplate = new Neo4jTemplate(resolve(neo4jClient), resolve(mappingContext));
+		neo4jTemplate.setCypherRenderer(Renderer.getRenderer(resolve(cypherDslConfiguration)));
+		return neo4jTemplate;
 	}
 
 	@Produces @Singleton

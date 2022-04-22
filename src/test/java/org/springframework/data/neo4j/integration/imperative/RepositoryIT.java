@@ -81,7 +81,7 @@ import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.Metrics;
 import org.springframework.data.geo.Polygon;
 import org.springframework.data.mapping.MappingException;
-import org.springframework.data.neo4j.config.AbstractNeo4jConfig;
+import org.springframework.data.neo4j.test.Neo4jImperativeTestConfiguration;
 import org.springframework.data.neo4j.core.DatabaseSelection;
 import org.springframework.data.neo4j.core.DatabaseSelectionProvider;
 import org.springframework.data.neo4j.core.Neo4jClient;
@@ -4556,7 +4556,7 @@ class RepositoryIT {
 	@Configuration
 	@EnableNeo4jRepositories(considerNestedRepositories = true)
 	@EnableTransactionManagement
-	static class Config extends AbstractNeo4jConfig {
+	static class Config extends Neo4jImperativeTestConfiguration {
 
 		@Bean
 		public Driver driver() {
@@ -4618,6 +4618,11 @@ class RepositoryIT {
 		@Bean
 		public UserSelectionProvider getUserSelectionProvider() {
 			return () -> userSelection.get();
+		}
+
+		@Override
+		public boolean isCypher5Compatible() {
+			return neo4jConnectionSupport.isCypher5SyntaxCompatible();
 		}
 	}
 }

@@ -33,7 +33,7 @@ import org.neo4j.driver.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.neo4j.config.AbstractNeo4jConfig;
+import org.springframework.data.neo4j.test.Neo4jImperativeTestConfiguration;
 import org.springframework.data.neo4j.core.DatabaseSelectionProvider;
 import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
 import org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager;
@@ -96,7 +96,7 @@ public class GH2498IT {
 	@Configuration
 	@EnableTransactionManagement
 	@EnableNeo4jRepositories
-	static class Config extends AbstractNeo4jConfig {
+	static class Config extends Neo4jImperativeTestConfiguration {
 
 		@Bean
 		public BookmarkCapture bookmarkCapture() {
@@ -116,6 +116,11 @@ public class GH2498IT {
 		public Driver driver() {
 
 			return neo4jConnectionSupport.getDriver();
+		}
+
+		@Override
+		public boolean isCypher5Compatible() {
+			return neo4jConnectionSupport.isCypher5SyntaxCompatible();
 		}
 	}
 }

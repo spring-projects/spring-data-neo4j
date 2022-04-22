@@ -27,6 +27,7 @@ import org.springframework.data.neo4j.integration.shared.common.Hobby;
 import org.springframework.data.neo4j.integration.shared.common.HobbyRelationship;
 import org.springframework.data.neo4j.integration.shared.common.PersonWithRelatives.TypeOfClub;
 import org.springframework.data.neo4j.integration.shared.common.PersonWithRelatives.TypeOfHobby;
+import org.springframework.data.neo4j.test.Neo4jReactiveTestConfiguration;
 import reactor.test.StepVerifier;
 
 import java.util.ArrayList;
@@ -42,7 +43,6 @@ import org.neo4j.driver.Values;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.neo4j.config.AbstractReactiveNeo4jConfig;
 import org.springframework.data.neo4j.integration.shared.common.DynamicRelationshipsITBase;
 import org.springframework.data.neo4j.integration.shared.common.Person;
 import org.springframework.data.neo4j.integration.shared.common.PersonWithRelatives;
@@ -291,7 +291,7 @@ class ReactiveDynamicRelationshipsIT extends DynamicRelationshipsITBase<PersonWi
 	@Configuration
 	@EnableTransactionManagement
 	@EnableReactiveNeo4jRepositories(considerNestedRepositories = true)
-	static class Config extends AbstractReactiveNeo4jConfig {
+	static class Config extends Neo4jReactiveTestConfiguration {
 
 		@Bean
 		public Driver driver() {
@@ -308,6 +308,11 @@ class ReactiveDynamicRelationshipsIT extends DynamicRelationshipsITBase<PersonWi
 
 			BookmarkCapture bookmarkCapture = bookmarkCapture();
 			return new ReactiveNeo4jTransactionManager(driver, databaseSelectionProvider, Neo4jBookmarkManager.create(bookmarkCapture));
+		}
+
+		@Override
+		public boolean isCypher5Compatible() {
+			return neo4jConnectionSupport.isCypher5SyntaxCompatible();
 		}
 	}
 }

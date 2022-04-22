@@ -25,7 +25,7 @@ import org.neo4j.driver.Driver;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.neo4j.config.AbstractNeo4jConfig;
+import org.springframework.data.neo4j.test.Neo4jImperativeTestConfiguration;
 import org.springframework.data.neo4j.core.DatabaseSelectionProvider;
 import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
 import org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager;
@@ -101,7 +101,7 @@ class GH2347IT extends TestBase {
 	@Configuration
 	@EnableTransactionManagement
 	@EnableNeo4jRepositories(considerNestedRepositories = true)
-	static class Config extends AbstractNeo4jConfig {
+	static class Config extends Neo4jImperativeTestConfiguration {
 
 		@Bean
 		public BookmarkCapture bookmarkCapture() {
@@ -121,6 +121,11 @@ class GH2347IT extends TestBase {
 		public Driver driver() {
 
 			return neo4jConnectionSupport.getDriver();
+		}
+
+		@Override
+		public boolean isCypher5Compatible() {
+			return neo4jConnectionSupport.isCypher5SyntaxCompatible();
 		}
 	}
 }

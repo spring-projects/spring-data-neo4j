@@ -35,12 +35,14 @@ import org.neo4j.driver.AuthTokens;
 import org.neo4j.driver.Config;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.GraphDatabase;
+import org.neo4j.driver.Session;
+import org.neo4j.driver.internal.util.ServerVersion;
 import org.neo4j.junit.jupiter.causal_cluster.CausalCluster;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.neo4j.config.AbstractNeo4jConfig;
+import org.springframework.data.neo4j.test.Neo4jImperativeTestConfiguration;
 import org.springframework.data.neo4j.core.Neo4jClient;
 import org.springframework.data.neo4j.integration.shared.common.ThingWithSequence;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
@@ -125,7 +127,7 @@ class CausalClusterLoadTestIT {
 	@Configuration
 	@EnableTransactionManagement
 	@EnableNeo4jRepositories(considerNestedRepositories = true)
-	static class TestConfig extends AbstractNeo4jConfig {
+	static class TestConfig extends Neo4jImperativeTestConfiguration {
 
 		@Bean
 		public Driver driver() {
@@ -139,6 +141,18 @@ class CausalClusterLoadTestIT {
 		@Bean
 		public ThingService thingService(Neo4jClient neo4jClient, ThingRepository thingRepository) {
 			return new ThingService(neo4jClient, thingRepository);
+		}
+
+		@Override
+		public boolean isCypher5Compatible() {
+			try (Session session = driver().session()) {
+				String version = session
+						.run("CALL dbms.components() YIELD versions RETURN 'Neo4j/' + versions[0] as version")
+						.single()
+						.get("version").asString();
+
+				return ServerVersion.version(version).greaterThanOrEqual(ServerVersion.v4_4_0);
+			}
 		}
 	}
 }

@@ -269,6 +269,10 @@ public class Neo4jExtension implements BeforeAllCallback, BeforeEachCallback {
 			return COMMERCIAL_EDITION_INDICATOR.contains(getEdition());
 		}
 
+		public boolean isCypher5SyntaxCompatible() {
+			return getServerVersion().greaterThanOrEqual(ServerVersion.v4_4_0);
+		}
+
 		@Override
 		public void close() {
 
@@ -290,7 +294,7 @@ public class Neo4jExtension implements BeforeAllCallback, BeforeEachCallback {
 
 		private final String repository = Optional.ofNullable(System.getenv(SYS_PROPERTY_NEO4J_REPOSITORY)).orElse("neo4j");
 
-		private final String imageVersion = Optional.ofNullable(System.getenv(SYS_PROPERTY_NEO4J_VERSION)).orElse("4.3");
+		private final String imageVersion = Optional.ofNullable(System.getenv(SYS_PROPERTY_NEO4J_VERSION)).orElse("4.4");
 
 		private final boolean containerReuseSupported = TestcontainersConfiguration
 				.getInstance().environmentSupportsReuse();

@@ -23,7 +23,7 @@ import org.neo4j.driver.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.neo4j.config.AbstractNeo4jConfig;
+import org.springframework.data.neo4j.test.Neo4jImperativeTestConfiguration;
 import org.springframework.data.neo4j.core.DatabaseSelectionProvider;
 import org.springframework.data.neo4j.core.convert.Neo4jConversions;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
@@ -359,7 +359,7 @@ public class ImmutableAssignedIdsIT {
 	@Configuration
 	@EnableNeo4jRepositories(considerNestedRepositories = true)
 	@EnableTransactionManagement
-	static class Config extends AbstractNeo4jConfig {
+	static class Config extends Neo4jImperativeTestConfiguration {
 
 		@Bean
 		public Driver driver() {
@@ -399,6 +399,11 @@ public class ImmutableAssignedIdsIT {
 
 			BookmarkCapture bookmarkCapture = bookmarkCapture();
 			return new Neo4jTransactionManager(driver, databaseNameProvider, Neo4jBookmarkManager.create(bookmarkCapture));
+		}
+
+		@Override
+		public boolean isCypher5Compatible() {
+			return neo4jConnectionSupport.isCypher5SyntaxCompatible();
 		}
 	}
 }

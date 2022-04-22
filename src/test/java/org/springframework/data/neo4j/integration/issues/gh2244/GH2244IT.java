@@ -26,7 +26,7 @@ import org.neo4j.driver.Driver;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.neo4j.config.AbstractNeo4jConfig;
+import org.springframework.data.neo4j.test.Neo4jImperativeTestConfiguration;
 import org.springframework.data.neo4j.core.Neo4jTemplate;
 import org.springframework.data.neo4j.core.convert.Neo4jConversions;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
@@ -86,7 +86,7 @@ class GH2244IT {
 
 	@Configuration
 	@EnableTransactionManagement
-	static class Config extends AbstractNeo4jConfig {
+	static class Config extends Neo4jImperativeTestConfiguration {
 
 		@Bean
 		public Driver driver() {
@@ -102,6 +102,11 @@ class GH2244IT {
 			ctx.setInitialEntitySet(new HashSet<>(Arrays.asList(Step.class, Step.Chain.class, Step.End.class,
 					Step.Origin.class)));
 			return ctx;
+		}
+
+		@Override
+		public boolean isCypher5Compatible() {
+			return neo4jConnectionSupport.isCypher5SyntaxCompatible();
 		}
 	}
 }

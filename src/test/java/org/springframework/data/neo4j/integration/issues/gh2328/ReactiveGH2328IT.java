@@ -15,6 +15,7 @@
  */
 package org.springframework.data.neo4j.integration.issues.gh2328;
 
+import org.springframework.data.neo4j.test.Neo4jReactiveTestConfiguration;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
@@ -25,7 +26,6 @@ import org.neo4j.driver.Driver;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.neo4j.config.AbstractReactiveNeo4jConfig;
 import org.springframework.data.neo4j.repository.ReactiveNeo4jRepository;
 import org.springframework.data.neo4j.repository.config.EnableReactiveNeo4jRepositories;
 import org.springframework.data.neo4j.test.BookmarkCapture;
@@ -60,7 +60,7 @@ class ReactiveGH2328IT extends TestBase {
 	@Configuration
 	@EnableTransactionManagement
 	@EnableReactiveNeo4jRepositories(considerNestedRepositories = true, namedQueriesLocation = "more-custom-queries.properties")
-	static class Config extends AbstractReactiveNeo4jConfig {
+	static class Config extends Neo4jReactiveTestConfiguration {
 
 		@Bean
 		public BookmarkCapture bookmarkCapture() {
@@ -71,6 +71,11 @@ class ReactiveGH2328IT extends TestBase {
 		public Driver driver() {
 
 			return neo4jConnectionSupport.getDriver();
+		}
+
+		@Override
+		public boolean isCypher5Compatible() {
+			return neo4jConnectionSupport.isCypher5SyntaxCompatible();
 		}
 	}
 }
