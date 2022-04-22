@@ -17,6 +17,7 @@ package org.springframework.data.neo4j.integration.reactive;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import org.springframework.data.neo4j.test.Neo4jReactiveTestConfiguration;
 import reactor.test.StepVerifier;
 
 import org.junit.jupiter.api.BeforeAll;
@@ -29,7 +30,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.neo4j.config.AbstractReactiveNeo4jConfig;
 import org.springframework.data.neo4j.core.ReactiveDatabaseSelectionProvider;
 import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
 import org.springframework.data.neo4j.core.transaction.ReactiveNeo4jTransactionManager;
@@ -286,7 +286,7 @@ class ReactiveQuerydslNeo4jPredicateExecutorIT {
 	@Configuration
 	@EnableTransactionManagement
 	@EnableReactiveNeo4jRepositories(considerNestedRepositories = true)
-	static class Config extends AbstractReactiveNeo4jConfig {
+	static class Config extends Neo4jReactiveTestConfiguration {
 
 		@Bean
 		public Driver driver() {
@@ -304,6 +304,11 @@ class ReactiveQuerydslNeo4jPredicateExecutorIT {
 
 			BookmarkCapture bookmarkCapture = bookmarkCapture();
 			return new ReactiveNeo4jTransactionManager(driver, databaseSelectionProvider, Neo4jBookmarkManager.create(bookmarkCapture));
+		}
+
+		@Override
+		public boolean isCypher5Compatible() {
+			return neo4jConnectionSupport.isCypher5SyntaxCompatible();
 		}
 	}
 }

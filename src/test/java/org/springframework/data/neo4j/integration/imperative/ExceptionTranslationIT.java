@@ -37,7 +37,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor;
-import org.springframework.data.neo4j.config.AbstractNeo4jConfig;
+import org.springframework.data.neo4j.test.Neo4jImperativeTestConfiguration;
 import org.springframework.data.neo4j.core.Neo4jClient;
 import org.springframework.data.neo4j.core.Neo4jPersistenceExceptionTranslator;
 import org.springframework.data.neo4j.integration.shared.common.SimplePerson;
@@ -61,7 +61,7 @@ class ExceptionTranslationIT {
 
 	@BeforeAll
 	static void createConstraints(@Autowired Driver driver) {
-
+		assumeNeo4jLowerThan44();
 		try (Session session = driver.session()) {
 			session.run("CREATE CONSTRAINT ON (person:SimplePerson) ASSERT person.name IS UNIQUE").consume();
 		}
@@ -69,7 +69,7 @@ class ExceptionTranslationIT {
 
 	@AfterAll
 	static void dropConstraints(@Autowired Driver driver) {
-
+		assumeNeo4jLowerThan44();
 		try (Session session = driver.session()) {
 			session.run("DROP CONSTRAINT ON (person:SimplePerson) ASSERT person.name IS UNIQUE").consume();
 		}
@@ -82,8 +82,7 @@ class ExceptionTranslationIT {
 		}
 	}
 
-	@BeforeEach
-	void assumeNeo4jLowerThan44() {
+	private static void assumeNeo4jLowerThan44() {
 
 		assumeThat(neo4jConnectionSupport.getServerVersion()
 				.lessThan(ServerVersion.version("Neo4j/4.4.0"))).isTrue();
@@ -144,7 +143,7 @@ class ExceptionTranslationIT {
 			includeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE,
 					value = ExceptionTranslationIT.SimplePersonRepository.class))
 	@EnableTransactionManagement
-	static class Config extends AbstractNeo4jConfig {
+	static class Config extends Neo4jImperativeTestConfiguration {
 
 		@Bean
 		public Driver driver() {
@@ -166,6 +165,11 @@ class ExceptionTranslationIT {
 		@Bean
 		public PersistenceExceptionTranslationPostProcessor persistenceExceptionTranslationPostProcessor() {
 			return new PersistenceExceptionTranslationPostProcessor();
+		}
+
+		@Override
+		public boolean isCypher5Compatible() {
+			return neo4jConnectionSupport.isCypher5SyntaxCompatible();
 		}
 	}
 }

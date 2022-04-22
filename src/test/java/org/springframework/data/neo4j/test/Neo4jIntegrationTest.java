@@ -25,12 +25,12 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 /**
- * This annotations triggers the {@link Neo4jExtension}, that provides a driver instance for Neo4j integration tests.
+ * This annotation triggers the {@link Neo4jExtension}, that provides a driver instance for Neo4j integration tests.
  * The important point here is that the extension possibly dirties a Spring context by closing the driver instance, so
  * it has been meta annotated with {@link DirtiesContext}. That issue happens mostly when one and the same integration
  * tests is run several times via an IDE: Spring will detect that the context configuration is the same and reuse the
  * old context based on contextual information from the first run. The Neo4j extension will dutiful create a new
- * connection and driver instance, but Spring won't never use it.
+ * connection and driver instance, but Spring won't ever use it.
  *
  * @author Michael J. Simons
  */

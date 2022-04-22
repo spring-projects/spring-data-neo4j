@@ -17,6 +17,7 @@ package org.springframework.data.neo4j.integration.reactive;
 
 import static org.assertj.core.api.Assumptions.assumeThat;
 
+import org.springframework.data.neo4j.test.Neo4jReactiveTestConfiguration;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -37,7 +38,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.data.neo4j.config.AbstractReactiveNeo4jConfig;
 import org.springframework.data.neo4j.core.Neo4jPersistenceExceptionTranslator;
 import org.springframework.data.neo4j.core.ReactiveNeo4jClient;
 import org.springframework.data.neo4j.integration.shared.common.SimplePerson;
@@ -69,7 +69,7 @@ class ReactiveExceptionTranslationIT {
 
 	@BeforeAll
 	static void createConstraints(@Autowired Driver driver) {
-
+		assumeNeo4jLowerThan44();
 		Flux.using(driver::rxSession,
 				session -> session.run("CREATE CONSTRAINT ON (person:SimplePerson) ASSERT person.name IS UNIQUE").consume(),
 				RxSession::close).then().as(StepVerifier::create).verifyComplete();
@@ -77,7 +77,7 @@ class ReactiveExceptionTranslationIT {
 
 	@AfterAll
 	static void dropConstraints(@Autowired Driver driver) {
-
+		assumeNeo4jLowerThan44();
 		Flux.using(driver::rxSession,
 				session -> session.run("DROP CONSTRAINT ON (person:SimplePerson) ASSERT person.name IS UNIQUE").consume(),
 				RxSession::close).then().as(StepVerifier::create).verifyComplete();
@@ -90,8 +90,7 @@ class ReactiveExceptionTranslationIT {
 				.then().as(StepVerifier::create).verifyComplete();
 	}
 
-	@BeforeEach
-	void assumeNeo4jLowerThan44() {
+	private static void assumeNeo4jLowerThan44() {
 
 		assumeThat(neo4jConnectionSupport.getServerVersion()
 				.lessThan(ServerVersion.version("Neo4j/4.4.0"))).isTrue();
@@ -123,7 +122,7 @@ class ReactiveExceptionTranslationIT {
 	@Configuration
 	@EnableReactiveNeo4jRepositories(considerNestedRepositories = true)
 	@EnableTransactionManagement
-	static class Config extends AbstractReactiveNeo4jConfig {
+	static class Config extends Neo4jReactiveTestConfiguration {
 
 		@Bean
 		public Driver driver() {
@@ -145,6 +144,11 @@ class ReactiveExceptionTranslationIT {
 		@Bean
 		public ReactivePersistenceExceptionTranslationPostProcessor persistenceExceptionTranslationPostProcessor() {
 			return new ReactivePersistenceExceptionTranslationPostProcessor();
+		}
+
+		@Override
+		public boolean isCypher5Compatible() {
+			return neo4jConnectionSupport.isCypher5SyntaxCompatible();
 		}
 	}
 

@@ -34,7 +34,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 // end::faq.entities.auditing.callbacks[]
 import org.springframework.context.annotation.Import;
-import org.springframework.data.neo4j.config.AbstractNeo4jConfig;
+import org.springframework.data.neo4j.test.Neo4jImperativeTestConfiguration;
 import org.springframework.data.neo4j.core.DatabaseSelectionProvider;
 // tag::faq.entities.auditing.callbacks[]
 import org.springframework.data.neo4j.core.mapping.callback.AfterConvertCallback;
@@ -138,7 +138,7 @@ class CallbacksIT extends CallbacksITBase {
 	@Import(CallbacksConfig.class)
 	@EnableNeo4jRepositories
 	@EnableTransactionManagement
-	static class Config extends AbstractNeo4jConfig {
+	static class Config extends Neo4jImperativeTestConfiguration {
 
 		@Bean
 		public Driver driver() {
@@ -159,6 +159,10 @@ class CallbacksIT extends CallbacksITBase {
 					Neo4jBookmarkManager.create(bookmarkCapture));
 		}
 
+		@Override
+		public boolean isCypher5Compatible() {
+			return neo4jConnectionSupport.isCypher5SyntaxCompatible();
+		}
 	}
 }
 

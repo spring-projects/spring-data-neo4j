@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.tuple;
 
+import org.springframework.data.neo4j.test.Neo4jReactiveTestConfiguration;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -65,7 +66,6 @@ import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mapping.MappingException;
-import org.springframework.data.neo4j.config.AbstractReactiveNeo4jConfig;
 import org.springframework.data.neo4j.core.DatabaseSelection;
 import org.springframework.data.neo4j.core.ReactiveDatabaseSelectionProvider;
 import org.springframework.data.neo4j.core.ReactiveNeo4jClient;
@@ -2792,7 +2792,7 @@ class ReactiveRepositoryIT {
 	@Configuration
 	@EnableReactiveNeo4jRepositories(considerNestedRepositories = true)
 	@EnableTransactionManagement
-	static class Config extends AbstractReactiveNeo4jConfig {
+	static class Config extends Neo4jReactiveTestConfiguration {
 
 		@Bean
 		public Driver driver() {
@@ -2846,6 +2846,11 @@ class ReactiveRepositoryIT {
 			return Optional.ofNullable(userSelection.get()) // The thread local must be resolved early, before the mono
 					.map(u -> (ReactiveUserSelectionProvider) () -> Mono.just(u))
 					.orElse(ReactiveUserSelectionProvider.getDefaultSelectionProvider());
+		}
+
+		@Override
+		public boolean isCypher5Compatible() {
+			return neo4jConnectionSupport.isCypher5SyntaxCompatible();
 		}
 	}
 }

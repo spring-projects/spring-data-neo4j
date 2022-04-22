@@ -45,6 +45,7 @@ import org.neo4j.cypherdsl.core.Cypher;
 import org.neo4j.cypherdsl.core.Functions;
 import org.neo4j.cypherdsl.core.Node;
 import org.neo4j.cypherdsl.core.Statement;
+import org.neo4j.cypherdsl.core.renderer.Configuration;
 import org.neo4j.cypherdsl.core.renderer.Renderer;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.exceptions.NoSuchRecordException;
@@ -110,8 +111,6 @@ public final class Neo4jTemplate implements
 
 	private static final String OPTIMISTIC_LOCKING_ERROR_MESSAGE = "An entity with the required version does not exist.";
 
-	private static final Renderer renderer = Renderer.getDefaultRenderer();
-
 	private final Neo4jClient neo4jClient;
 
 	private final Neo4jMappingContext neo4jMappingContext;
@@ -123,6 +122,8 @@ public final class Neo4jTemplate implements
 	private EventSupport eventSupport;
 
 	private ProjectionFactory projectionFactory;
+
+	private Renderer renderer;
 
 	public Neo4jTemplate(Neo4jClient neo4jClient) {
 		this(neo4jClient, new Neo4jMappingContext());
@@ -899,6 +900,16 @@ public final class Neo4jTemplate implements
 		spelAwareProxyProjectionFactory.setBeanClassLoader(beanClassLoader);
 		spelAwareProxyProjectionFactory.setBeanFactory(beanFactory);
 		this.projectionFactory = spelAwareProxyProjectionFactory;
+
+		Configuration cypherDslConfiguration = beanFactory
+				.getBeanProvider(Configuration.class)
+				.getIfAvailable(Configuration::defaultConfig);
+		this.renderer = Renderer.getRenderer(cypherDslConfiguration);
+	}
+
+	// only used for the CDI configuration
+	public void setCypherRenderer(Renderer rendererFromCdiConfiguration) {
+		this.renderer = rendererFromCdiConfiguration;
 	}
 
 	@Override

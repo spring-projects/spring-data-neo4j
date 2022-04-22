@@ -17,6 +17,7 @@ package org.springframework.data.neo4j.integration.reactive;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import org.springframework.data.neo4j.test.Neo4jReactiveTestConfiguration;
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 
@@ -36,7 +37,6 @@ import org.neo4j.driver.Transaction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.neo4j.config.AbstractReactiveNeo4jConfig;
 import org.springframework.data.neo4j.core.ReactiveDatabaseSelectionProvider;
 import org.springframework.data.neo4j.core.ReactiveNeo4jClient;
 import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
@@ -104,7 +104,7 @@ class ReactiveNeo4jClientIT {
 
 	@Configuration
 	@EnableTransactionManagement
-	static class Config extends AbstractReactiveNeo4jConfig {
+	static class Config extends Neo4jReactiveTestConfiguration {
 
 		@Bean
 		public Driver driver() {
@@ -133,6 +133,11 @@ class ReactiveNeo4jClientIT {
 		@Bean
 		public TransactionalOperator transactionalOperator(ReactiveTransactionManager transactionManager) {
 			return TransactionalOperator.create(transactionManager);
+		}
+
+		@Override
+		public boolean isCypher5Compatible() {
+			return neo4jConnectionSupport.isCypher5SyntaxCompatible();
 		}
 	}
 }

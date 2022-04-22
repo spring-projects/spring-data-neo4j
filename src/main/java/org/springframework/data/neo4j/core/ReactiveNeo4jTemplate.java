@@ -19,6 +19,7 @@ import static org.neo4j.cypherdsl.core.Cypher.anyNode;
 import static org.neo4j.cypherdsl.core.Cypher.asterisk;
 import static org.neo4j.cypherdsl.core.Cypher.parameter;
 
+import org.neo4j.cypherdsl.core.renderer.Configuration;
 import org.springframework.data.mapping.Association;
 import org.springframework.data.neo4j.core.TemplateSupport.FilteredBinderFunction;
 import org.springframework.data.neo4j.core.mapping.AssociationHandlerSupport;
@@ -112,7 +113,6 @@ public final class ReactiveNeo4jTemplate implements
 
 	private static final String OPTIMISTIC_LOCKING_ERROR_MESSAGE = "An entity with the required version does not exist.";
 
-	private static final Renderer renderer = Renderer.getDefaultRenderer();
 	private static final String CONTEXT_RELATIONSHIP_HANDLER = "RELATIONSHIP_HANDLER";
 
 	private final ReactiveNeo4jClient neo4jClient;
@@ -126,6 +126,8 @@ public final class ReactiveNeo4jTemplate implements
 	private ReactiveEventSupport eventSupport;
 
 	private ProjectionFactory projectionFactory;
+
+	private Renderer renderer;
 
 	public ReactiveNeo4jTemplate(ReactiveNeo4jClient neo4jClient, Neo4jMappingContext neo4jMappingContext) {
 
@@ -1109,6 +1111,11 @@ public final class ReactiveNeo4jTemplate implements
 		spelAwareProxyProjectionFactory.setBeanClassLoader(beanClassLoader);
 		spelAwareProxyProjectionFactory.setBeanFactory(beanFactory);
 		this.projectionFactory = spelAwareProxyProjectionFactory;
+
+		Configuration cypherDslConfiguration = beanFactory
+				.getBeanProvider(Configuration.class)
+				.getIfAvailable(Configuration::defaultConfig);
+		this.renderer = Renderer.getRenderer(cypherDslConfiguration);
 	}
 
 	@Override

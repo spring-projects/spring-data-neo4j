@@ -17,6 +17,7 @@ package org.springframework.data.neo4j.integration.reactive;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import org.springframework.data.neo4j.test.Neo4jReactiveTestConfiguration;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
@@ -32,7 +33,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.auditing.DateTimeProvider;
 import org.springframework.data.domain.ReactiveAuditorAware;
-import org.springframework.data.neo4j.config.AbstractReactiveNeo4jConfig;
 import org.springframework.data.neo4j.config.EnableReactiveNeo4jAuditing;
 import org.springframework.data.neo4j.core.ReactiveDatabaseSelectionProvider;
 import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
@@ -158,7 +158,7 @@ class ReactiveAuditingIT extends AuditingITBase {
 	@EnableReactiveNeo4jRepositories(considerNestedRepositories = true)
 	@EnableReactiveNeo4jAuditing(modifyOnCreate = false, auditorAwareRef = "auditorProvider",
 			dateTimeProviderRef = "fixedDateTimeProvider")
-	static class Config extends AbstractReactiveNeo4jConfig {
+	static class Config extends Neo4jReactiveTestConfiguration {
 
 		@Bean
 		public Driver driver() {
@@ -185,6 +185,11 @@ class ReactiveAuditingIT extends AuditingITBase {
 
 			BookmarkCapture bookmarkCapture = bookmarkCapture();
 			return new ReactiveNeo4jTransactionManager(driver, databaseSelectionProvider, Neo4jBookmarkManager.create(bookmarkCapture));
+		}
+
+		@Override
+		public boolean isCypher5Compatible() {
+			return neo4jConnectionSupport.isCypher5SyntaxCompatible();
 		}
 	}
 }

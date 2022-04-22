@@ -20,6 +20,7 @@ import java.util.Collections;
 import java.util.Set;
 
 import org.apiguardian.api.API;
+import org.neo4j.cypherdsl.core.renderer.Configuration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.neo4j.core.convert.Neo4jConversions;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
@@ -40,6 +41,11 @@ abstract class Neo4jConfigurationSupport {
 	@Bean
 	public Neo4jConversions neo4jConversions() {
 		return new Neo4jConversions();
+	}
+
+	@Bean
+	public Configuration cypherDslConfiguration() {
+		return Configuration.defaultConfig();
 	}
 
 	/**

@@ -15,6 +15,9 @@
  */
 package org.springframework.data.neo4j.integration.reactive;
 
+import org.neo4j.driver.Session;
+import org.neo4j.driver.internal.util.ServerVersion;
+import org.springframework.data.neo4j.test.Neo4jReactiveTestConfiguration;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
@@ -43,7 +46,6 @@ import org.neo4j.junit.jupiter.causal_cluster.CausalCluster;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.neo4j.config.AbstractReactiveNeo4jConfig;
 import org.springframework.data.neo4j.core.ReactiveNeo4jClient;
 import org.springframework.data.neo4j.integration.shared.common.ThingWithSequence;
 import org.springframework.data.neo4j.repository.ReactiveNeo4jRepository;
@@ -130,7 +132,7 @@ class ReactiveCausalClusterLoadTestIT {
 	@Configuration
 	@EnableTransactionManagement
 	@EnableReactiveNeo4jRepositories(considerNestedRepositories = true)
-	static class TestConfig extends AbstractReactiveNeo4jConfig {
+	static class TestConfig extends Neo4jReactiveTestConfiguration {
 
 		@Bean
 		public Driver driver() {
@@ -144,6 +146,18 @@ class ReactiveCausalClusterLoadTestIT {
 		@Bean
 		public ThingService thingService(ReactiveNeo4jClient neo4jClient, ThingRepository thingRepository) {
 			return new ThingService(neo4jClient, thingRepository);
+		}
+
+		@Override
+		public boolean isCypher5Compatible() {
+			try (Session session = driver().session()) {
+				String version = session
+						.run("CALL dbms.components() YIELD versions RETURN 'Neo4j/' + versions[0] as version")
+						.single()
+						.get("version").asString();
+
+				return ServerVersion.version(version).greaterThanOrEqual(ServerVersion.v4_4_0);
+			}
 		}
 	}
 }

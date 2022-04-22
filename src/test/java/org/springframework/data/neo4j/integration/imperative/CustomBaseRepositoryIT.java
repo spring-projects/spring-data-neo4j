@@ -29,7 +29,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan.Filter;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.FilterType;
-import org.springframework.data.neo4j.config.AbstractNeo4jConfig;
+import org.springframework.data.neo4j.test.Neo4jImperativeTestConfiguration;
 import org.springframework.data.neo4j.core.Neo4jOperations;
 import org.springframework.data.neo4j.integration.shared.common.PersonWithAllConstructor;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
@@ -90,12 +90,16 @@ public class CustomBaseRepositoryIT {
 	@EnableNeo4jRepositories(repositoryBaseClass = MyRepositoryImpl.class, considerNestedRepositories = true,
 			includeFilters = @Filter(type = FilterType.ASSIGNABLE_TYPE, value = MyPersonRepository.class))
 	@EnableTransactionManagement
-	static class Config extends AbstractNeo4jConfig {
+	static class Config extends Neo4jImperativeTestConfiguration {
 
 		@Bean
 		public Driver driver() {
 			return DriverMocks.withOpenSessionAndTransaction();
 		}
 
+		@Override
+		public boolean isCypher5Compatible() {
+			return false; // does not matter
+		}
 	}
 }
