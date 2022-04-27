@@ -15,6 +15,9 @@
  */
 package org.springframework.data.neo4j.integration.issues.gh2526;
 
+import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.InstanceOfAssertFactories.*;
+
 import java.util.Set;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -35,10 +38,11 @@ import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
+/**
+ * @author Andreas Berger
+ */
 @Neo4jIntegrationTest
-public class GH2526 {
+public class GH2526IT {
 
 	protected static Neo4jExtension.Neo4jConnectionSupport neo4jConnectionSupport;
 
@@ -47,26 +51,27 @@ public class GH2526 {
 
 		try (Session session = driver.session()) {
 			session.run("MATCH (n) DETACH DELETE n").consume();
-			session.run(
-					"CREATE (o1:Measurand {measurandId: 'o1'})" +
-							"CREATE (acc1:AccountingMeasurementMeta:BaseNodeEntity {nodeId: 'acc1'})" +
-							"CREATE (o1)-[:IS_MEASURED_BY{ manual: true }]->(acc1)"
-			).consume();
+			session.run("CREATE (o1:Measurand {measurandId: 'o1'})"
+					+ "CREATE (acc1:AccountingMeasurementMeta:BaseNodeEntity {nodeId: 'acc1'})"
+					+ "CREATE (o1)-[:IS_MEASURED_BY{ manual: true }]->(acc1)").consume();
 			bookmarkCapture.seedWith(session.lastBookmark());
 		}
 	}
 
 	@Test
-	void test(@Autowired BaseNodeRepository repository) {
+	// GH-2526
+	void testRichRelationWithInheritance(@Autowired BaseNodeRepository repository) {
 		Projection m = repository.findByNodeId("acc1", Projection.class);
 		assertThat(m).isNotNull();
+		assertThat(m).extracting(Projection::getDataPoints, collection(DataPoint.class))
+				.extracting(DataPoint::isManual, DataPoint::getMeasurand).contains(tuple(true, new Measurand("o1")));
 	}
 
 	interface Projection {
 		String getNodeId();
+
 		Set<DataPoint> getDataPoints();
 	}
-
 
 	@Configuration
 	@EnableTransactionManagement
@@ -79,13 +84,11 @@ public class GH2526 {
 		}
 
 		@Override
-		public PlatformTransactionManager transactionManager(
-				Driver driver, DatabaseSelectionProvider databaseNameProvider)
-		{
+		public PlatformTransactionManager transactionManager(Driver driver,
+				DatabaseSelectionProvider databaseNameProvider) {
 
 			BookmarkCapture bookmarkCapture = bookmarkCapture();
-			return new Neo4jTransactionManager(driver, databaseNameProvider,
-					Neo4jBookmarkManager.create(bookmarkCapture));
+			return new Neo4jTransactionManager(driver, databaseNameProvider, Neo4jBookmarkManager.create(bookmarkCapture));
 		}
 
 		@Bean

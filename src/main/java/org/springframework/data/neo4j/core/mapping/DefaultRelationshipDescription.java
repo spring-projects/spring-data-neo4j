@@ -24,6 +24,7 @@ import org.springframework.lang.Nullable;
 /**
  * @author Michael J. Simons
  * @author Gerrit Meier
+ * @author Andreas Berger
  * @since 6.0
  */
 final class DefaultRelationshipDescription extends Association<Neo4jPersistentProperty> implements RelationshipDescription {
@@ -55,11 +56,28 @@ final class DefaultRelationshipDescription extends Association<Neo4jPersistentPr
 		this.relationshipObverse = relationshipObverse;
 		this.type = type;
 		this.dynamic = dynamic;
-		this.source = source;
+		this.source = getSourceForField(source, type, dynamic, target, direction, relationshipProperties);
 		this.fieldName = fieldName;
 		this.target = target;
 		this.direction = direction;
 		this.relationshipPropertiesClass = relationshipProperties;
+	}
+
+	private static NodeDescription<?> getSourceForField(NodeDescription<?> source, String type, boolean dynamic,
+			NodeDescription<?> target, Relationship.Direction direction,
+			@Nullable NodeDescription<?> relationshipProperties) {
+		NodeDescription<?> parent = source.getParentNodeDescription();
+		if (parent == null) {
+			return source;
+		}
+		for (RelationshipDescription relationship : parent.getRelationships()) {
+			if (Objects.equals(relationship.getTarget(), target) && Objects.equals(relationship.getDirection(), direction)
+					&& Objects.equals(relationship.isDynamic(), dynamic) && Objects.equals(relationship.getType(), type)
+					&& Objects.equals(relationship.getRelationshipPropertiesEntity(), relationshipProperties)) {
+				return getSourceForField(relationship.getSource(), type, dynamic, target, direction, relationshipProperties);
+			}
+		}
+		return source;
 	}
 
 	@Override

@@ -17,6 +17,9 @@ package org.springframework.data.neo4j.integration.issues.gh2526;
 
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 
+/**
+ * @author Andreas Berger
+ */
 public interface BaseNodeRepository extends Neo4jRepository<BaseNodeEntity, String> {
 
 	<R> R findByNodeId(String nodeIds, Class<R> clazz);
