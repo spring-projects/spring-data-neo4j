@@ -19,6 +19,7 @@ import java.util.Objects;
 
 import org.springframework.data.mapping.Association;
 import org.springframework.data.neo4j.core.schema.Relationship;
+import org.springframework.data.util.Lazy;
 import org.springframework.lang.Nullable;
 
 /**
@@ -27,13 +28,14 @@ import org.springframework.lang.Nullable;
  * @author Andreas Berger
  * @since 6.0
  */
-final class DefaultRelationshipDescription extends Association<Neo4jPersistentProperty> implements RelationshipDescription {
+final class DefaultRelationshipDescription extends Association<Neo4jPersistentProperty>
+		implements RelationshipDescription {
 
 	private final String type;
 
 	private final boolean dynamic;
 
-	private final NodeDescription<?> source;
+	private final Lazy<NodeDescription<?>> source;
 
 	private final NodeDescription<?> target;
 
@@ -56,7 +58,7 @@ final class DefaultRelationshipDescription extends Association<Neo4jPersistentPr
 		this.relationshipObverse = relationshipObverse;
 		this.type = type;
 		this.dynamic = dynamic;
-		this.source = getSourceForField(source, type, dynamic, target, direction, relationshipProperties);
+		this.source = Lazy.of(() -> getSourceForField(source, type, dynamic, target, direction, relationshipProperties));
 		this.fieldName = fieldName;
 		this.target = target;
 		this.direction = direction;
@@ -97,7 +99,7 @@ final class DefaultRelationshipDescription extends Association<Neo4jPersistentPr
 
 	@Override
 	public NodeDescription<?> getSource() {
-		return source;
+		return source.get();
 	}
 
 	@Override
@@ -150,8 +152,9 @@ final class DefaultRelationshipDescription extends Association<Neo4jPersistentPr
 			return false;
 		}
 		DefaultRelationshipDescription that = (DefaultRelationshipDescription) o;
-		return (isDynamic() ? getFieldName().equals(that.getFieldName()) : getType().equals(that.getType())) && getTarget().equals(that.getTarget())
-				&& getSource().equals(that.getSource()) && getDirection().equals(that.getDirection());
+		return (isDynamic() ? getFieldName().equals(that.getFieldName()) : getType().equals(that.getType()))
+				&& getTarget().equals(that.getTarget()) && getSource().equals(that.getSource())
+				&& getDirection().equals(that.getDirection());
 	}
 
 	@Override
