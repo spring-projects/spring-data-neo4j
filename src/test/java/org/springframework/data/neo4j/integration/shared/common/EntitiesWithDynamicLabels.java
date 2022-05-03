@@ -178,5 +178,37 @@ public final class EntitiesWithDynamicLabels {
 		@DynamicLabels public Set<String> myLabels;
 	}
 
+	/**
+	 * Base entity for the multi-level abstraction
+	 */
+	@Node
+	public static abstract class BaseEntityWithoutDynamicLabels {
+		@Id public String id;
+	}
+
+	/**
+	 * adds the labels
+	 */
+	@Node
+	public static abstract class AbstractBaseEntityWithDynamicLabels extends BaseEntityWithoutDynamicLabels {
+		@DynamicLabels public Set<String> labels;
+	}
+
+	/**
+	 * This might be the wrong most concrete class to be found
+	 */
+	@Node
+	public static abstract class AbstractEntityWithDynamicLabels extends AbstractBaseEntityWithDynamicLabels {
+
+	}
+
+	/**
+	 * ...but this is the right one
+	 */
+	@Node
+	public static class EntityWithMultilevelInheritanceAndDynamicLabels extends AbstractEntityWithDynamicLabels {
+		public String name;
+	}
+
 	private EntitiesWithDynamicLabels() {}
 }
