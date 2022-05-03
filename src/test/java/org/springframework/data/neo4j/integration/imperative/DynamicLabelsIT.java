@@ -41,6 +41,8 @@ import org.neo4j.driver.Value;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.neo4j.repository.Neo4jRepository;
+import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.data.neo4j.test.Neo4jImperativeTestConfiguration;
 import org.springframework.data.neo4j.config.Neo4jEntityScanner;
 import org.springframework.data.neo4j.core.DatabaseSelectionProvider;
@@ -433,6 +435,34 @@ public class DynamicLabelsIT {
 		}
 	}
 
+	@Nested
+	class ClassesWithInheritanceAndDynamicLabels extends SpringTestBase {
+
+		@Override
+		Long createTestEntity(Transaction t) {
+			return null;
+		}
+
+		@Test
+		void instantiateConcreteEntityType(@Autowired AbstractBaseEntityWithDynamicLabelsRepository repository) {
+			EntitiesWithDynamicLabels.EntityWithMultilevelInheritanceAndDynamicLabels entity =
+					new EntitiesWithDynamicLabels.EntityWithMultilevelInheritanceAndDynamicLabels();
+			entity.labels = Collections.singleton("AdditionalLabel");
+			entity.name = "Name";
+			entity.id = "ID1";
+
+			repository.save(entity);
+
+			EntitiesWithDynamicLabels.EntityWithMultilevelInheritanceAndDynamicLabels loadedEntity =
+					(EntitiesWithDynamicLabels.EntityWithMultilevelInheritanceAndDynamicLabels) repository.findById("ID1").get();
+
+			assertThat(loadedEntity.labels).contains("AdditionalLabel");
+		}
+
+	}
+
+	interface AbstractBaseEntityWithDynamicLabelsRepository extends Neo4jRepository<EntitiesWithDynamicLabels.AbstractBaseEntityWithDynamicLabels, String> {}
+
 	@ExtendWith(SpringExtension.class)
 	@ContextConfiguration(classes = SpringTestBase.Config.class)
 	@DirtiesContext
@@ -485,6 +515,7 @@ public class DynamicLabelsIT {
 
 		@Configuration
 		@EnableTransactionManagement
+		@EnableNeo4jRepositories(considerNestedRepositories = true)
 		static class Config extends Neo4jImperativeTestConfiguration {
 
 			@Bean

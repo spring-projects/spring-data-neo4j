@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.BiFunction;
+import java.util.function.Function;
 
 import org.springframework.data.mapping.context.AbstractMappingContext;
 import org.springframework.lang.Nullable;
@@ -122,10 +123,10 @@ final class NodeDescriptionStore {
 			List<String> mostMatchingStaticLabels = null;
 
 			// Remove is faster than "stream, filter, count".
-			BiFunction<NodeDescription<?>, List<String>,  Integer> unmatchedLabelsCount =
-					(nodeDescription, staticLabels) -> {
-						Set<String> staticLabelsClone = new HashSet<>(staticLabels);
-						labels.forEach(staticLabelsClone::remove);
+			Function<NodeDescription<?>, Integer> unmatchedLabelsCount =
+					(nodeDescription) -> {
+						Set<String> staticLabelsClone = new HashSet<>(labels);
+						nodeDescription.getStaticLabels().forEach(staticLabelsClone::remove);
 						return staticLabelsClone.size();
 					};
 
@@ -138,14 +139,16 @@ final class NodeDescriptionStore {
 					return new NodeDescriptionAndLabels(nd, surplusLabels);
 				}
 
-				unmatchedLabelsCache.put(nd, unmatchedLabelsCount.apply(nd, staticLabels));
+				unmatchedLabelsCache.put(nd, unmatchedLabelsCount.apply(nd));
 				if (mostMatchingNodeDescription == null) {
 					mostMatchingNodeDescription = nd;
 					mostMatchingStaticLabels = staticLabels;
 					continue;
 				}
 
-				if (unmatchedLabelsCache.get(nd) < unmatchedLabelsCache.get(mostMatchingNodeDescription)) {
+				Integer newUnmatchedLabelCount = unmatchedLabelsCache.get(nd);
+				Integer existingUnmatchedLabelCount = unmatchedLabelsCache.get(mostMatchingNodeDescription);
+				if (newUnmatchedLabelCount < existingUnmatchedLabelCount) {
 					mostMatchingNodeDescription = nd;
 				}
 			}
