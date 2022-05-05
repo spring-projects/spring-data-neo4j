@@ -79,13 +79,13 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 
 	private final Set<NodeDescription<?>> childNodeDescriptions = new HashSet<>();
 
-	private NodeDescription<?> parentNodeDescription;
-
 	private final Lazy<Neo4jPersistentProperty> dynamicLabelsProperty;
 
 	private final Lazy<Boolean> isRelationshipPropertiesEntity;
 
-	private final Lazy<List<NodeDescription<?>>> childNodeDescriptionsInHierarchy;
+	private NodeDescription<?> parentNodeDescription;
+
+	private List<NodeDescription<?>> childNodeDescriptionsInHierarchy;
 
 	DefaultNeo4jPersistentEntity(TypeInformation<T> information) {
 		super(information);
@@ -97,7 +97,7 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 				.filter(Neo4jPersistentProperty::isDynamicLabels).findFirst().orElse(null));
 		this.isRelationshipPropertiesEntity = Lazy.of(() -> isAnnotationPresent(RelationshipProperties.class));
 		this.idDescription = Lazy.of(this::computeIdDescription);
-		this.childNodeDescriptionsInHierarchy = Lazy.of(this::computeChildNodeDescriptionInHierarchy);
+		this.childNodeDescriptionsInHierarchy = computeChildNodeDescriptionInHierarchy();
 	}
 
 	/*
@@ -512,11 +512,19 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 	@Override
 	public void addChildNodeDescription(NodeDescription<?> child) {
 		this.childNodeDescriptions.add(child);
+		updateChildNodeDescriptionCache();
+		if (this.parentNodeDescription != null) {
+			((DefaultNeo4jPersistentEntity<?>) this.parentNodeDescription).updateChildNodeDescriptionCache();
+		}
+	}
+
+	private void updateChildNodeDescriptionCache() {
+		this.childNodeDescriptionsInHierarchy = computeChildNodeDescriptionInHierarchy();
 	}
 
 	@Override
 	public List<NodeDescription<?>> getChildNodeDescriptionsInHierarchy() {
-		return childNodeDescriptionsInHierarchy.get();
+		return childNodeDescriptionsInHierarchy;
 	}
 
 	private List<NodeDescription<?>> computeChildNodeDescriptionInHierarchy() {
