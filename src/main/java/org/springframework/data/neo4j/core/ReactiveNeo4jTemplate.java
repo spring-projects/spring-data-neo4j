@@ -865,8 +865,8 @@ public final class ReactiveNeo4jTemplate implements
 			RelationshipDescription relationshipDescription = relationshipContext.getRelationship();
 
 			PropertyFilter.RelaxedPropertyPath currentPropertyPath = previousPath.append(relationshipDescription.getFieldName());
-			boolean dynamicRelationship = relationshipDescription.isDynamic();
-			if (!includeProperty.isNotFiltering() && !dynamicRelationship && !includeProperty.contains(currentPropertyPath)) {
+
+			if (!includeProperty.isNotFiltering() && !includeProperty.contains(currentPropertyPath)) {
 				return;
 			}
 			Neo4jPersistentProperty idProperty;
@@ -1003,7 +1003,7 @@ public final class ReactiveNeo4jTemplate implements
 
 												Mono<Object> nestedRelationshipsSignal = null;
 												if (processState != ProcessState.PROCESSED_ALL_VALUES) {
-													nestedRelationshipsSignal = processNestedRelations(targetEntity, targetPropertyAccessor, targetEntity.isNew(newRelatedObject), stateMachine, dynamicRelationship ? PropertyFilter.acceptAll() : includeProperty, currentPropertyPath);
+													nestedRelationshipsSignal = processNestedRelations(targetEntity, targetPropertyAccessor, targetEntity.isNew(newRelatedObject), stateMachine, includeProperty, currentPropertyPath);
 												}
 
 												Mono<Object> getRelationshipOrRelationshipPropertiesObject = Mono.fromSupplier(() -> MappingSupport.getRelationshipOrRelationshipPropertiesObject(
