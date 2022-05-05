@@ -709,8 +709,8 @@ public final class Neo4jTemplate implements
 			RelationshipDescription relationshipDescription = relationshipContext.getRelationship();
 
 			PropertyFilter.RelaxedPropertyPath currentPropertyPath = previousPath.append(relationshipDescription.getFieldName());
-			boolean dynamicRelationship = relationshipDescription.isDynamic();
-			if (!includeProperty.isNotFiltering() && !dynamicRelationship && !includeProperty.contains(currentPropertyPath)) {
+
+			if (!includeProperty.isNotFiltering() && !includeProperty.contains(currentPropertyPath)) {
 				return;
 			}
 			Neo4jPersistentProperty idProperty;
@@ -839,7 +839,7 @@ public final class Neo4jTemplate implements
 				}
 
 				if (processState != ProcessState.PROCESSED_ALL_VALUES) {
-					processNestedRelations(targetEntity, targetPropertyAccessor, isEntityNew, stateMachine, dynamicRelationship ? PropertyFilter.acceptAll() : includeProperty, currentPropertyPath);
+					processNestedRelations(targetEntity, targetPropertyAccessor, isEntityNew, stateMachine, includeProperty, currentPropertyPath);
 				}
 
 				Object potentiallyRecreatedNewRelatedObject = MappingSupport.getRelationshipOrRelationshipPropertiesObject(neo4jMappingContext,
