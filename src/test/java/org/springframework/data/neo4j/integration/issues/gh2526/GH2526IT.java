@@ -53,6 +53,8 @@ public class GH2526IT {
 			session.run("MATCH (n) DETACH DELETE n").consume();
 			session.run("CREATE (o1:Measurand {measurandId: 'o1'})"
 					+ "CREATE (acc1:AccountingMeasurementMeta:BaseNodeEntity {nodeId: 'acc1'})"
+					+ "CREATE (m1:MeasurementMeta:BaseNodeEntity {nodeId: 'm1'})"
+					+ "CREATE (acc1)-[:USES{variable: 'A'}]->(m1)"
 					+ "CREATE (o1)-[:IS_MEASURED_BY{ manual: true }]->(acc1)").consume();
 			bookmarkCapture.seedWith(session.lastBookmark());
 		}
@@ -61,16 +63,24 @@ public class GH2526IT {
 	@Test
 	// GH-2526
 	void testRichRelationWithInheritance(@Autowired BaseNodeRepository repository) {
-		Projection m = repository.findByNodeId("acc1", Projection.class);
+		MeasurementProjection m = repository.findByNodeId("acc1", MeasurementProjection.class);
 		assertThat(m).isNotNull();
-		assertThat(m).extracting(Projection::getDataPoints, collection(DataPoint.class))
+		assertThat(m).extracting(MeasurementProjection::getDataPoints, collection(DataPoint.class))
 				.extracting(DataPoint::isManual, DataPoint::getMeasurand).contains(tuple(true, new Measurand("o1")));
 	}
 
-	interface Projection {
+	interface BaseNodeFieldsProjection{
 		String getNodeId();
+	}
 
+	interface MeasurementProjection extends BaseNodeFieldsProjection {
 		Set<DataPoint> getDataPoints();
+		Set<VariableProjection> getVariables();
+	}
+
+	interface VariableProjection {
+		BaseNodeFieldsProjection getMeasurement();
+		String getVariable();
 	}
 
 	@Configuration

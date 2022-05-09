@@ -28,6 +28,8 @@ import lombok.experimental.SuperBuilder;
 import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Relationship;
 
+import java.util.Set;
+
 /**
  * @author Andreas Berger
  */
@@ -43,4 +45,7 @@ public class AccountingMeasurementMeta extends MeasurementMeta {
 	private String formula;
 
 	@Relationship(type = "WEIGHTS", direction = OUTGOING) private MeasurementMeta baseMeasurement;
+
+	@Relationship(type = "USES", direction = OUTGOING)
+	private Set<Variable> variables;
 }
