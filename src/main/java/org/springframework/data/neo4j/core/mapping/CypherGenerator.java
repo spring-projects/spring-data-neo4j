@@ -638,7 +638,7 @@ public enum CypherGenerator {
 
 		String relationshipType = relationshipDescription.getType();
 		String relationshipTargetName = relationshipDescription.generateRelatedNodesCollectionName(nodeDescription);
-		String sourcePrimaryLabel = relationshipDescription.getSource().getMostAbstractParentLabel(relationshipDescription.getSource());
+		String sourcePrimaryLabel = relationshipDescription.getSource().getMostAbstractParentLabel(nodeDescription);
 		String targetPrimaryLabel = relationshipDescription.getTarget().getPrimaryLabel();
 		List<String> targetAdditionalLabels = relationshipDescription.getTarget().getAdditionalLabels();
 		String relationshipSymbolicName = sourcePrimaryLabel + RelationshipDescription.NAME_OF_RELATIONSHIP + targetPrimaryLabel;
