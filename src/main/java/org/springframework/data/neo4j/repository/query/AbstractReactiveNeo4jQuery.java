@@ -15,20 +15,20 @@
  */
 package org.springframework.data.neo4j.repository.query;
 
-import java.util.Map;
+import java.util.Collection;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
 
 import org.neo4j.driver.types.MapAccessor;
 import org.neo4j.driver.types.TypeSystem;
 import org.springframework.core.convert.converter.Converter;
-import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.neo4j.core.PreparedQuery;
 import org.springframework.data.neo4j.core.PropertyFilterSupport;
 import org.springframework.data.neo4j.core.ReactiveNeo4jOperations;
 import org.springframework.data.neo4j.core.mapping.DtoInstantiatingConverter;
 import org.springframework.data.neo4j.core.mapping.EntityInstanceWithSource;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
+import org.springframework.data.neo4j.core.mapping.PropertyFilter;
 import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.data.repository.query.RepositoryQuery;
@@ -91,6 +91,6 @@ abstract class AbstractReactiveNeo4jQuery extends Neo4jQuerySupport implements R
 	}
 
 	protected abstract <T extends Object> PreparedQuery<T> prepareQuery(Class<T> returnedType,
-				Map<PropertyPath, Boolean> includedProperties, Neo4jParameterAccessor parameterAccessor,
+				Collection<PropertyFilter.ProjectedPath> includedProperties, Neo4jParameterAccessor parameterAccessor,
 				@Nullable Neo4jQueryType queryType, @Nullable Supplier<BiFunction<TypeSystem, MapAccessor, ?>> mappingFunction);
 }

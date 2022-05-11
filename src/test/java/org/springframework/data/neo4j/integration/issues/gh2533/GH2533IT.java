@@ -71,15 +71,27 @@ public class GH2533IT {
 
 		rootEntity = repository.findByIdWithLevelOneLinks(rootEntity.id).get();
 
-		// this would cause the rootEntity -> child -X-> child relationship to get removed (X).
+		// this had caused the rootEntity -> child -X-> child relationship to get removed (X).
 		neo4jTemplate.saveAs(rootEntity, EntitiesAndProjections.GH2533EntityNodeWithOneLevelLinks.class);
 
-		EntitiesAndProjections.GH2533Entity savedEntity = neo4jTemplate.findById(rootEntity.id, EntitiesAndProjections.GH2533Entity.class).get();
+		EntitiesAndProjections.GH2533Entity entity = neo4jTemplate.findById(rootEntity.id, EntitiesAndProjections.GH2533Entity.class).get();
 
-		assertThat(savedEntity.relationships).isNotEmpty();
-		assertThat(savedEntity.relationships.get("has_relationship_with")).isNotEmpty();
-		assertThat(savedEntity.relationships.get("has_relationship_with").get(0).target).isNotNull();
-		assertThat(savedEntity.relationships.get("has_relationship_with").get(0).target.relationships).isNotEmpty();
+		assertThat(entity.relationships).isNotEmpty();
+		assertThat(entity.relationships.get("has_relationship_with")).isNotEmpty();
+		assertThat(entity.relationships.get("has_relationship_with").get(0).target).isNotNull();
+		assertThat(entity.relationships.get("has_relationship_with").get(0).target.relationships).isNotEmpty();
+	}
+
+	@Test // GH-2533
+	void saveRelatedEntityWithRelationships() {
+		EntitiesAndProjections.GH2533Entity rootEntity = createData();
+
+		neo4jTemplate.saveAs(rootEntity, EntitiesAndProjections.GH2533EntityWithRelationshipToEntity.class);
+
+		EntitiesAndProjections.GH2533Entity entity = neo4jTemplate.findById(rootEntity.id, EntitiesAndProjections.GH2533Entity.class).get();
+
+		assertThat(entity.relationships.get("has_relationship_with").get(0).target.name).isEqualTo("n2");
+		assertThat(entity.relationships.get("has_relationship_with").get(0).target.relationships.get("has_relationship_with").get(0).target.name).isEqualTo("n3");
 	}
 
 	private EntitiesAndProjections.GH2533Entity createData() {
@@ -90,10 +102,13 @@ public class GH2533IT {
 		EntitiesAndProjections.GH2533Relationship r1 = new EntitiesAndProjections.GH2533Relationship();
 		EntitiesAndProjections.GH2533Relationship r2 = new EntitiesAndProjections.GH2533Relationship();
 
+		n1.name = "n1";
+		n2.name = "n2";
+		n3.name = "n3";
+
 		r1.target = n2;
 		r2.target = n3;
 
-		// Add relationships
 		n1.relationships = Collections.singletonMap("has_relationship_with", Arrays.asList(r1));
 		n2.relationships = Collections.singletonMap("has_relationship_with", Arrays.asList(r2));
 

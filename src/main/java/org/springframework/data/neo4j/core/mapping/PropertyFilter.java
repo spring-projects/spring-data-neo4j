@@ -15,14 +15,12 @@
  */
 package org.springframework.data.neo4j.core.mapping;
 
+import java.util.Collection;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 import org.apiguardian.api.API;
-import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.neo4j.core.schema.Property;
 import org.springframework.lang.Nullable;
 import org.springframework.util.StringUtils;
@@ -33,8 +31,8 @@ import org.springframework.util.StringUtils;
 @API(status = API.Status.INTERNAL)
 public abstract class PropertyFilter {
 
-	public static PropertyFilter from(Map<PropertyPath, Boolean> properties, NodeDescription<?> nodeDescription) {
-		return new FilteringPropertyFilter(properties, nodeDescription);
+	public static PropertyFilter from(Collection<ProjectedPath> projectedPaths, NodeDescription<?> nodeDescription) {
+		return new FilteringPropertyFilter(projectedPaths, nodeDescription);
 	}
 
 	public static PropertyFilter acceptAll() {
@@ -47,37 +45,26 @@ public abstract class PropertyFilter {
 
 	public abstract boolean isNotFiltering();
 
-	static String toDotPath(PropertyPath propertyPath, @Nullable String lastSegment) {
+	static String toDotPath(RelaxedPropertyPath propertyPath, @Nullable String lastSegment) {
 
 		if (lastSegment == null) {
 			return propertyPath.toDotPath();
 		}
-		StringBuilder dotPath = new StringBuilder();
-		while (propertyPath != null) {
-			if (propertyPath.hasNext()) {
-				dotPath.append(propertyPath.getSegment()).append(".");
-				propertyPath = propertyPath.next();
-			} else {
-				break;
-			}
-		}
-		dotPath.append(lastSegment);
-		return dotPath.toString();
+		return propertyPath.replaceLastSegment(lastSegment).toDotPath();
 	}
 
 	private static class FilteringPropertyFilter extends PropertyFilter {
 		private final Set<Class<?>> rootClasses;
-		private final Map<String, Boolean> projectingPropertyPaths;
+		private final Collection<ProjectedPath> projectingPropertyPaths;
 
-		private FilteringPropertyFilter(Map<PropertyPath, Boolean> propertiesMap, NodeDescription<?> nodeDescription) {
+		private FilteringPropertyFilter(Collection<ProjectedPath> projectedPaths, NodeDescription<?> nodeDescription) {
 			Class<?> domainClass = nodeDescription.getUnderlyingClass();
 
 			rootClasses = new HashSet<>();
 			rootClasses.add(domainClass);
 
 			// supported projection based classes
-			Set<PropertyPath> properties = propertiesMap.keySet();
-			properties.stream().map(property -> property.getOwningType().getType()).forEach(rootClasses::add);
+			projectedPaths.stream().map(property -> property.propertyPath.getType()).forEach(rootClasses::add);
 
 			// supported inheriting classes
 			nodeDescription.getChildNodeDescriptionsInHierarchy().stream()
@@ -85,20 +72,19 @@ public abstract class PropertyFilter {
 					.forEach(rootClasses::add);
 
 			Neo4jPersistentEntity<?> entity = (Neo4jPersistentEntity<?>) nodeDescription;
-			projectingPropertyPaths = new ConcurrentHashMap<>();
-			propertiesMap.keySet()
+			projectingPropertyPaths = new HashSet<>();
+			projectedPaths
 					.forEach(propertyPath -> {
 						String lastSegment = null;
-						if (!propertyPath.hasNext()) {
-							Neo4jPersistentProperty property = entity.getPersistentProperty(
-									propertyPath.getLeafProperty().getSegment());
-							if (property != null && property.findAnnotation(Property.class) != null) {
-								lastSegment = property.getPropertyName();
-							}
+
+						Neo4jPersistentProperty property = entity.getPersistentProperty(propertyPath.propertyPath.dotPath);
+						if (property != null && property.findAnnotation(Property.class) != null) {
+							lastSegment = property.getPropertyName();
 						}
-						projectingPropertyPaths.put(
-								PropertyFilter.toDotPath(propertyPath, lastSegment),
-								propertiesMap.get(propertyPath)
+
+						projectingPropertyPaths.add(new ProjectedPath(
+								propertyPath.propertyPath.replaceLastSegment(lastSegment),
+								propertyPath.isEntity)
 						);
 					});
 		}
@@ -114,7 +100,7 @@ public abstract class PropertyFilter {
 			}
 
 			// create a sorted list of the deepest paths first
-			Optional<String> candidate = projectingPropertyPaths.keySet().stream().sorted((o1, o2) -> {
+			Optional<String> candidate = projectingPropertyPaths.stream().map(pp -> pp.propertyPath.toDotPath()).sorted((o1, o2) -> {
 						int depth1 = StringUtils.countOccurrencesOf(o1, ".");
 						int depth2 = StringUtils.countOccurrencesOf(o2, ".");
 
@@ -123,8 +109,12 @@ public abstract class PropertyFilter {
 					.filter(d -> dotPath.contains(d) && dotPath.startsWith(d))
 					.findFirst();
 
-			return projectingPropertyPaths.containsKey(dotPath)
-					|| (dotPath.contains(".") && candidate.isPresent() && projectingPropertyPaths.get(candidate.get()));
+			//noinspection OptionalGetWithoutIsPresent
+			return projectingPropertyPaths.stream().map(pp -> pp.propertyPath.toDotPath())
+						.anyMatch(ppDotPath -> ppDotPath.contains(dotPath))
+					|| (dotPath.contains(".") && candidate.isPresent() &&
+						projectingPropertyPaths.stream()
+						.filter(pp -> pp.propertyPath.toDotPath().equals(candidate.get())).findFirst().get().isEntity);
 		}
 
 		@Override
@@ -230,6 +220,26 @@ public abstract class PropertyFilter {
 			}
 
 			return new RelaxedPropertyPath(dotPath.substring(idx + 1), this.type);
+		}
+
+		public RelaxedPropertyPath replaceLastSegment(@Nullable String lastSegment) {
+			if (lastSegment == null) {
+				return this;
+			}
+			return new RelaxedPropertyPath(getSegment().equals(dotPath) ? lastSegment : getSegment() + "." + lastSegment, type);
+		}
+	}
+
+	/**
+	 * Wrapper class for property paths and information if they point to an entity.
+	 */
+	public static class ProjectedPath {
+		final RelaxedPropertyPath propertyPath;
+		final boolean isEntity;
+
+		public ProjectedPath(RelaxedPropertyPath propertyPath, boolean isEntity) {
+			this.propertyPath = propertyPath;
+			this.isEntity = isEntity;
 		}
 	}
 }
