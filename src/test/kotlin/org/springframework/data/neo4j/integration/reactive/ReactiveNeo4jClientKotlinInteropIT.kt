@@ -29,12 +29,13 @@ import org.neo4j.driver.types.TypeSystem
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.data.neo4j.config.AbstractReactiveNeo4jConfig
 import org.springframework.data.neo4j.core.*
 import org.springframework.data.neo4j.core.cypher.asParam
+import org.springframework.data.neo4j.integration.issues.gh2526.GH2526IT
 import org.springframework.data.neo4j.test.Neo4jExtension
 import org.springframework.data.neo4j.test.Neo4jExtension.NEEDS_REACTIVE_SUPPORT
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest
+import org.springframework.data.neo4j.test.Neo4jReactiveTestConfiguration
 import org.springframework.transaction.annotation.EnableTransactionManagement
 import reactor.test.StepVerifier
 
@@ -133,11 +134,15 @@ class ReactiveNeo4jClientKotlinInteropIT @Autowired constructor(
 
     @Configuration
     @EnableTransactionManagement
-    open class Config : AbstractReactiveNeo4jConfig() {
+    open class Config : Neo4jReactiveTestConfiguration() {
 
         @Bean
         override fun driver(): Driver {
             return neo4jConnectionSupport.driver
+        }
+
+        override fun isCypher5Compatible(): Boolean {
+            return neo4jConnectionSupport.isCypher5SyntaxCompatible
         }
     }
 }
