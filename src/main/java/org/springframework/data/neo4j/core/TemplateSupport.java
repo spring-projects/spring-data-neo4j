@@ -120,7 +120,7 @@ public final class TemplateSupport {
 		return candidate;
 	}
 
-	static PropertyFilter computeIncludePropertyPredicate(Map<PropertyPath, Boolean> includedProperties,
+	static PropertyFilter computeIncludePropertyPredicate(Collection<PropertyFilter.ProjectedPath> includedProperties,
 														  NodeDescription<?> nodeDescription) {
 
 		return PropertyFilter.from(includedProperties, nodeDescription);
@@ -259,7 +259,7 @@ public final class TemplateSupport {
 	 * @return A new binder function that only works on the included properties.
 	 */
 	static <T> FilteredBinderFunction<T> createAndApplyPropertyFilter(
-			Map<PropertyPath, Boolean> includedProperties, Neo4jPersistentEntity<?> entityMetaData,
+			Collection<PropertyFilter.ProjectedPath> includedProperties, Neo4jPersistentEntity<?> entityMetaData,
 			Function<T, Map<String, Object>> binderFunction) {
 
 		PropertyFilter includeProperty = TemplateSupport.computeIncludePropertyPredicate(includedProperties, entityMetaData);
@@ -285,15 +285,15 @@ public final class TemplateSupport {
 	 * @param <T>            Type of the domain type
 	 * @return A map as expected by the property filter.
 	 */
-	static <T> Map<PropertyPath, Boolean> computeIncludedPropertiesFromPredicate(Neo4jMappingContext mappingContext,
+	static <T> Collection<PropertyFilter.ProjectedPath> computeIncludedPropertiesFromPredicate(Neo4jMappingContext mappingContext,
 			Class<T> domainType, @Nullable BiPredicate<PropertyPath, Neo4jPersistentProperty> predicate) {
 		if (predicate == null) {
-			return Collections.emptyMap();
+			return Collections.emptySet();
 		}
-		Map<PropertyPath, Boolean> pps = new HashMap<>();
+		Collection<PropertyFilter.ProjectedPath> pps = new HashSet<>();
 		PropertyTraverser traverser = new PropertyTraverser(mappingContext);
-		traverser.traverse(domainType, predicate, (path, property) -> pps.put(path, false));
-		return Collections.unmodifiableMap(pps);
+		traverser.traverse(domainType, predicate, (path, property) -> pps.add(new PropertyFilter.ProjectedPath(PropertyFilter.RelaxedPropertyPath.withRootType(domainType).append(path.toDotPath()), false)));
+		return pps;
 	}
 
 	/**

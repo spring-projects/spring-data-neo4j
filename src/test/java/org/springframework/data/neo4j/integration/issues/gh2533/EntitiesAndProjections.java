@@ -40,6 +40,8 @@ public class EntitiesAndProjections {
 		@GeneratedValue
 		public Long id;
 
+		public String name;
+
 		@Relationship
 		public Map<String, List<GH2533Relationship>> relationships;
 	}
@@ -85,5 +87,16 @@ public class EntitiesAndProjections {
 		boolean isActive();
 
 		GH2533EntityWithoutRelationship getTarget();
+	}
+
+	/**
+	 * Projection to entity
+	 */
+	public interface GH2533EntityWithRelationshipToEntity {
+		Long getId();
+
+		String getName();
+
+		Map<String, List<GH2533Relationship>> getRelationships();
 	}
 }

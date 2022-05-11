@@ -18,6 +18,7 @@ package org.springframework.data.neo4j.repository.query;
 import static org.neo4j.cypherdsl.core.Functions.point;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -54,7 +55,6 @@ import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.Polygon;
 import org.springframework.data.mapping.PersistentProperty;
 import org.springframework.data.mapping.PersistentPropertyPath;
-import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.neo4j.core.convert.Neo4jPersistentPropertyConverter;
 import org.springframework.data.neo4j.core.mapping.Constants;
 import org.springframework.data.neo4j.core.mapping.CypherGenerator;
@@ -62,6 +62,7 @@ import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.core.mapping.NodeDescription;
+import org.springframework.data.neo4j.core.mapping.PropertyFilter;
 import org.springframework.data.neo4j.core.mapping.RelationshipDescription;
 import org.springframework.data.neo4j.core.schema.TargetNode;
 import org.springframework.data.repository.query.parser.AbstractQueryCreator;
@@ -109,7 +110,7 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndPar
 	 */
 	private final List<SortItem> sortItems = new ArrayList<>();
 
-	private final Map<PropertyPath, Boolean> includedProperties;
+	private final Collection<PropertyFilter.ProjectedPath> includedProperties;
 
 	private final List<PropertyPathWrapper> propertyPathWrappers;
 
@@ -119,7 +120,7 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndPar
 	private final UnaryOperator<Integer> limitModifier;
 
 	CypherQueryCreator(Neo4jMappingContext mappingContext, Class<?> domainType, Neo4jQueryType queryType, PartTree tree,
-			Neo4jParameterAccessor actualParameters, Map<PropertyPath, Boolean> includedProperties,
+			Neo4jParameterAccessor actualParameters, Collection<PropertyFilter.ProjectedPath> includedProperties,
 			BiFunction<Object, Neo4jPersistentPropertyConverter<?>, Object> parameterConversion,
 			UnaryOperator<Integer> limitModifier) {
 

@@ -19,7 +19,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import org.apiguardian.api.API;
@@ -31,7 +30,6 @@ import org.neo4j.cypherdsl.core.PatternElement;
 import org.neo4j.cypherdsl.core.SortItem;
 import org.neo4j.cypherdsl.core.Statement;
 import org.neo4j.cypherdsl.core.StatementBuilder;
-import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.neo4j.core.mapping.CypherGenerator;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.core.mapping.PropertyFilter;
@@ -103,7 +101,7 @@ public final class QueryFragments {
 		this.skip = skip;
 	}
 
-	public void setReturnBasedOn(NodeDescription<?> nodeDescription, Map<PropertyPath, Boolean> includedProperties,
+	public void setReturnBasedOn(NodeDescription<?> nodeDescription, Collection<PropertyFilter.ProjectedPath> includedProperties,
 			boolean isDistinct) {
 		this.returnTuple = new ReturnTuple(nodeDescription, includedProperties, isDistinct);
 	}
@@ -174,7 +172,7 @@ public final class QueryFragments {
 		final PropertyFilter filteredProperties;
 		final boolean isDistinct;
 
-		private ReturnTuple(NodeDescription<?> nodeDescription, Map<PropertyPath, Boolean> filteredProperties, boolean isDistinct) {
+		private ReturnTuple(NodeDescription<?> nodeDescription, Collection<PropertyFilter.ProjectedPath> filteredProperties, boolean isDistinct) {
 			this.nodeDescription = nodeDescription;
 			this.filteredProperties = PropertyFilter.from(filteredProperties, nodeDescription);
 			this.isDistinct = isDistinct;
