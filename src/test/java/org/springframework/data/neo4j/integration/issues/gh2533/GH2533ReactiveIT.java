@@ -68,11 +68,25 @@ public class GH2533ReactiveIT {
 				.flatMap(rootEntity -> neo4jTemplate.saveAs(rootEntity, EntitiesAndProjections.GH2533EntityNodeWithOneLevelLinks.class))
 				.flatMap(rootEntity -> neo4jTemplate.findById(rootEntity.getId(), EntitiesAndProjections.GH2533Entity.class))
 				.as(StepVerifier::create)
-				.assertNext(savedEntity -> {
-					assertThat(savedEntity.relationships).isNotEmpty();
-					assertThat(savedEntity.relationships.get("has_relationship_with")).isNotEmpty();
-					assertThat(savedEntity.relationships.get("has_relationship_with").get(0).target).isNotNull();
-					assertThat(savedEntity.relationships.get("has_relationship_with").get(0).target.relationships).isNotEmpty();
+				.assertNext(entity -> {
+					assertThat(entity.relationships).isNotEmpty();
+					assertThat(entity.relationships.get("has_relationship_with")).isNotEmpty();
+					assertThat(entity.relationships.get("has_relationship_with").get(0).target).isNotNull();
+					assertThat(entity.relationships.get("has_relationship_with").get(0).target.relationships).isNotEmpty();
+				})
+				.verifyComplete();
+	}
+
+	@Test // GH-2533
+	void saveRelatedEntityWithRelationships() {
+		createData()
+				.flatMap(rootEntity -> repository.findByIdWithLevelOneLinks(rootEntity.id))
+				.flatMap(rootEntity -> neo4jTemplate.saveAs(rootEntity, EntitiesAndProjections.GH2533EntityNodeWithOneLevelLinks.class))
+				.flatMap(rootEntity -> neo4jTemplate.findById(rootEntity.getId(), EntitiesAndProjections.GH2533Entity.class))
+				.as(StepVerifier::create)
+				.assertNext(entity -> {
+					assertThat(entity.relationships.get("has_relationship_with").get(0).target.name).isEqualTo("n2");
+					assertThat(entity.relationships.get("has_relationship_with").get(0).target.relationships.get("has_relationship_with").get(0).target.name).isEqualTo("n3");
 				})
 				.verifyComplete();
 	}
@@ -85,10 +99,13 @@ public class GH2533ReactiveIT {
 		EntitiesAndProjections.GH2533Relationship r1 = new EntitiesAndProjections.GH2533Relationship();
 		EntitiesAndProjections.GH2533Relationship r2 = new EntitiesAndProjections.GH2533Relationship();
 
+		n1.name = "n1";
+		n2.name = "n2";
+		n3.name = "n3";
+
 		r1.target = n2;
 		r2.target = n3;
 
-		// Add relationships
 		n1.relationships = Collections.singletonMap("has_relationship_with", Arrays.asList(r1));
 		n2.relationships = Collections.singletonMap("has_relationship_with", Arrays.asList(r2));
 

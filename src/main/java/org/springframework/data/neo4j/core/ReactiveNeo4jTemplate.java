@@ -313,7 +313,7 @@ public final class ReactiveNeo4jTemplate implements
 	@Override
 	public <T> Mono<T> save(T instance) {
 
-		return saveImpl(instance, Collections.emptyMap(), null);
+		return saveImpl(instance, Collections.emptySet(), null);
 	}
 
 	@Override
@@ -340,7 +340,7 @@ public final class ReactiveNeo4jTemplate implements
 		}
 
 		ProjectionInformation projectionInformation = projectionFactory.getProjectionInformation(resultType);
-		Map<PropertyPath, Boolean> pps = PropertyFilterSupport.addPropertiesFrom(instance.getClass(), resultType,
+		Collection<PropertyFilter.ProjectedPath> pps = PropertyFilterSupport.addPropertiesFrom(instance.getClass(), resultType,
 				projectionFactory, neo4jMappingContext);
 
 		Mono<T> savingPublisher = saveImpl(instance, pps, null);
@@ -366,7 +366,7 @@ public final class ReactiveNeo4jTemplate implements
 
 		Class<?> resultType = TemplateSupport.findCommonElementType(instances);
 
-		Map<PropertyPath, Boolean> pps = PropertyFilterSupport.addPropertiesFrom(domainType, resultType,
+		Collection<PropertyFilter.ProjectedPath> pps = PropertyFilterSupport.addPropertiesFrom(domainType, resultType,
 				projectionFactory, neo4jMappingContext);
 
 		NestedRelationshipProcessingStateMachine stateMachine = new NestedRelationshipProcessingStateMachine(neo4jMappingContext);
@@ -382,7 +382,7 @@ public final class ReactiveNeo4jTemplate implements
 			});
 	}
 
-	private <T> Mono<T> saveImpl(T instance, @Nullable Map<PropertyPath, Boolean> includedProperties, @Nullable NestedRelationshipProcessingStateMachine stateMachine) {
+	private <T> Mono<T> saveImpl(T instance, @Nullable Collection<PropertyFilter.ProjectedPath> includedProperties, @Nullable NestedRelationshipProcessingStateMachine stateMachine) {
 
 		if (stateMachine != null && stateMachine.hasProcessedValue(instance)) {
 			return Mono.just(instance);
@@ -462,7 +462,7 @@ public final class ReactiveNeo4jTemplate implements
 
 	@Override
 	public <T> Flux<T> saveAll(Iterable<T> instances) {
-		return saveAllImpl(instances, Collections.emptyMap(), null);
+		return saveAllImpl(instances, Collections.emptySet(), null);
 	}
 
 	@Override
@@ -483,7 +483,7 @@ public final class ReactiveNeo4jTemplate implements
 		}
 
 		ProjectionInformation projectionInformation = projectionFactory.getProjectionInformation(resultType);
-		Map<PropertyPath, Boolean> pps = PropertyFilterSupport.addPropertiesFrom(commonElementType, resultType,
+		Collection<PropertyFilter.ProjectedPath> pps = PropertyFilterSupport.addPropertiesFrom(commonElementType, resultType,
 				projectionFactory, neo4jMappingContext);
 
 		Flux<T> savedInstances = saveAllImpl(instances, pps, null);
@@ -500,7 +500,7 @@ public final class ReactiveNeo4jTemplate implements
 		}).map(instance -> projectionFactory.createProjection(resultType, instance));
 	}
 
-	private <T> Flux<T> saveAllImpl(Iterable<T> instances, @Nullable Map<PropertyPath, Boolean> includedProperties, @Nullable BiPredicate<PropertyPath, Neo4jPersistentProperty> includeProperty) {
+	private <T> Flux<T> saveAllImpl(Iterable<T> instances, @Nullable Collection<PropertyFilter.ProjectedPath> includedProperties, @Nullable BiPredicate<PropertyPath, Neo4jPersistentProperty> includeProperty) {
 
 		Set<Class<?>> types = new HashSet<>();
 		List<T> entities = new ArrayList<>();
@@ -516,7 +516,7 @@ public final class ReactiveNeo4jTemplate implements
 		boolean heterogeneousCollection = types.size() > 1;
 		Class<?> domainClass = types.iterator().next();
 
-		Map<PropertyPath, Boolean> pps = includeProperty == null ?
+		Collection<PropertyFilter.ProjectedPath> pps = includeProperty == null ?
 				includedProperties :
 				TemplateSupport.computeIncludedPropertiesFromPredicate(this.neo4jMappingContext, domainClass,
 						includeProperty);

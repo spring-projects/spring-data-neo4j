@@ -15,7 +15,7 @@
  */
 package org.springframework.data.neo4j.repository.query;
 
-import java.util.Map;
+import java.util.Collection;
 import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
@@ -23,10 +23,10 @@ import java.util.function.UnaryOperator;
 
 import org.neo4j.driver.types.MapAccessor;
 import org.neo4j.driver.types.TypeSystem;
-import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.neo4j.core.PreparedQuery;
 import org.springframework.data.neo4j.core.ReactiveNeo4jOperations;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
+import org.springframework.data.neo4j.core.mapping.PropertyFilter;
 import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.data.repository.query.parser.PartTree;
@@ -61,7 +61,7 @@ final class ReactivePartTreeNeo4jQuery extends AbstractReactiveNeo4jQuery {
 	}
 
 	@Override
-	protected <T extends Object> PreparedQuery<T> prepareQuery(Class<T> returnedType, Map<PropertyPath, Boolean> includedProperties,
+	protected <T extends Object> PreparedQuery<T> prepareQuery(Class<T> returnedType, Collection<PropertyFilter.ProjectedPath> includedProperties,
 			Neo4jParameterAccessor parameterAccessor, @Nullable Neo4jQueryType queryType,
 			@Nullable Supplier<BiFunction<TypeSystem, MapAccessor, ?>> mappingFunction) {
 

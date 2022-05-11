@@ -21,7 +21,6 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.neo4j.integration.shared.common.PersonWithRelationship;
 
 /**
@@ -33,7 +32,7 @@ class PropertyFilterTest {
 	@CsvSource({ "id, foo", "hobbies, foo", "hobbies.name, hobbies.foo" })
 	void toDotPathShouldWork(String value, String newDotPath) {
 
-		PropertyPath path = PropertyPath.from(value, PersonWithRelationship.class);
+		PropertyFilter.RelaxedPropertyPath path = PropertyFilter.RelaxedPropertyPath.withRootType(PersonWithRelationship.class).append(value);
 		String dotPath;
 		dotPath = PropertyFilter.toDotPath(path, null);
 		assertThat(dotPath).isEqualTo(path.toDotPath());
