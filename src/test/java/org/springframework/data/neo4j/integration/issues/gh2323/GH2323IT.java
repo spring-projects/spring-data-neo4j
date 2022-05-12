@@ -19,10 +19,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.RepeatedTest;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Session;
@@ -69,6 +71,21 @@ class GH2323IT {
 		}
 	}
 
+	@BeforeEach
+	protected void removeRelationships(@Autowired BookmarkCapture bookmarkCapture) {
+		try (Session session = neo4jConnectionSupport.getDriver().session(bookmarkCapture.createSessionConfig());
+				Transaction transaction = session.beginTransaction();
+		) {
+			transaction.run("MATCH ()- [r:KNOWS]-() DELETE r").consume();
+			transaction.run("MATCH (n:Language) DELETE n").consume();
+			transaction.run("MATCH (n:Person {name: 'Gerrit'}) DETACH DELETE n").consume();
+			transaction.run("unwind ['German', 'English'] as name create (n:Language {name: name}) return name")
+					.consume();
+			transaction.commit();
+			bookmarkCapture.seedWith(session.lastBookmark());
+		}
+	}
+
 	@Test // GH-2323
 	void listOfRelationshipPropertiesShouldBeUnwindable(@Autowired PersonService personService) {
 		Person person = personService.updateRel(personId, Arrays.asList("German"));
@@ -84,10 +101,14 @@ class GH2323IT {
 	void dontMixRelatedNodes(@Autowired PersonRepository repository, @Autowired BookmarkCapture bookmarkCapture) {
 		String id;
 		try (Session session = neo4jConnectionSupport.getDriver().session(bookmarkCapture.createSessionConfig());
-			 Transaction transaction = session.beginTransaction();
+				Transaction transaction = session.beginTransaction();
 		) {
-			id = transaction.run("CREATE (n:Person {id:randomUUID(), name: 'Gerrit'})-[:KNOWS]->(:Language{name:'English'}) return n.id").single().get(0).asString();
-			transaction.run("MATCH (n:Person {name: 'Gerrit'}) MERGE (n)-[:MOTHER_TONGUE_IS]->(:Language{name:'German'})").consume();
+			id = transaction.run(
+							"CREATE (n:Person {id:randomUUID(), name: 'Gerrit'})-[:KNOWS]->(:Language{name:'English'}) return n.id")
+					.single().get(0).asString();
+			transaction.run(
+							"MATCH (n:Person {name: 'Gerrit'}) MERGE (n)-[:MOTHER_TONGUE_IS]->(:Language{name:'German'})")
+					.consume();
 			transaction.commit();
 			bookmarkCapture.seedWith(session.lastBookmark());
 
@@ -101,14 +122,40 @@ class GH2323IT {
 		}
 	}
 
+	@Test // GH-2537
+	void ensureRelationshipsAreSerialized(@Autowired PersonService personService) {
+
+		Optional<Person> optionalPerson = personService.updateRel2(personId, Arrays.asList("German"));
+		assertThat(optionalPerson).isPresent().hasValueSatisfying(person -> {
+			assertThat(person.getKnownLanguages()).hasSize(1);
+			assertThat(person.getKnownLanguages()).first().satisfies(knows -> {
+				assertThat(knows.getDescription()).isEqualTo("Some description");
+				assertThat(knows.getLanguage()).extracting(Language::getName).isEqualTo("German");
+			});
+		});
+	}
+
 	@Repository
 	public interface PersonRepository extends Neo4jRepository<Person, String> {
 
-		@Query("UNWIND $relations As rel WITH rel " +
-			   "CREATE (f:Person {id: $from}) - [r:KNOWS {description: rel.__properties__.description}] -> (t:Language {name: rel.__properties__.__target__.__id__}) "
-			   +
-			   "RETURN f, collect(r), collect(t)")
+		// Using separate id and than relationships on top level
+		@Query(""
+			   + "UNWIND $relations As rel WITH rel "
+			   + "MATCH (f:Person {id: $from}) "
+			   + "MATCH (t:Language {name: rel.__target__.__id__}) "
+			   + "CREATE (f)- [r:KNOWS {description: rel.__properties__.description}] -> (t) "
+			   + "RETURN f, collect(r), collect(t)"
+		)
 		Person updateRel(@Param("from") String from, @Param("relations") List<Knows> relations);
+
+		// Using the whole person object
+		@Query(""
+			   + "UNWIND $person.__properties__.KNOWS As rel WITH rel "
+			   + "MATCH (f:Person {id: $person.__id__}) "
+			   + "MATCH  (t:Language {name: rel.__target__.__id__}) "
+			   + "CREATE (f) - [r:KNOWS {description: rel.__properties__.description}] -> (t) "
+			   + "RETURN f, collect(r), collect(t)")
+		Person updateRel2(@Param("person") Person person);
 	}
 
 	@Service
@@ -126,6 +173,21 @@ class GH2323IT {
 					.map(language -> new Knows("Some description", language))
 					.collect(Collectors.toList());
 			return personRepository.updateRel(from, knownLanguages);
+		}
+
+		public Optional<Person> updateRel2(String id, List<String> languageNames) {
+
+			Optional<Person> original = personRepository.findById(id);
+			if (original.isPresent()) {
+				Person person = original.get();
+				List<Knows> knownLanguages = languageNames.stream().map(Language::new)
+						.map(language -> new Knows("Some description", language))
+						.collect(Collectors.toList());
+				person.setKnownLanguages(knownLanguages);
+				return Optional.of(personRepository.updateRel2(person));
+			}
+
+			return original;
 		}
 	}
 

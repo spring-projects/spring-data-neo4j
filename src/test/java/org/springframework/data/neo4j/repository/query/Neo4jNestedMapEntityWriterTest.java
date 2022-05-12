@@ -145,10 +145,10 @@ class Neo4jNestedMapEntityWriterTest {
 		Map<String, Value> properties = (Map<String, Value>) result.get("__properties__");
 		assertThat(properties).containsEntry("description", Values.value("Some description"));
 
-		assertThat(properties).hasEntrySatisfying("__target__", isAMapValue);
-		properties = properties.get("__target__").asMap(Function.identity());
-		assertThat(properties).containsEntry("__id__", Values.value("German"));
-		assertThat(properties).hasEntrySatisfying("__properties__", isAMapValue);
+		assertThat(result).hasEntrySatisfying("__target__", isAMapValue);
+		Map<String, Value> target = ((Value) result.get("__target__")).asMap(Function.identity());
+		assertThat(target).containsEntry("__id__", Values.value("German"));
+		assertThat(target).hasEntrySatisfying("__properties__", isAMapValue);
 	}
 
 	@Test // DATAGRAPH-1452

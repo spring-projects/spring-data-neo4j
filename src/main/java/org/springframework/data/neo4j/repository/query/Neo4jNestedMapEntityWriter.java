@@ -114,12 +114,10 @@ final class Neo4jNestedMapEntityWriter implements EntityWriter<Object, Map<Strin
 		addLabels(sink, entity, propertyAccessor);
 		addRelations(sink, entity, propertyAccessor, seenObjects);
 		if (initialObject && entity.isRelationshipPropertiesEntity()) {
-			Map<String, Object> propertyMap = (Map<String, Object>) sink.get(Constants.NAME_OF_PROPERTIES_PARAM);
 			entity.doWithProperties((PropertyHandler<Neo4jPersistentProperty>) p -> {
 				if (p.isAnnotationPresent(TargetNode.class)) {
-					Map<String, Object> target = this.writeImpl(propertyAccessor.getProperty(p), new HashMap<>(), seenObjects, false);
-					propertyMap.put("__target__", Values.value(target));
-					return;
+					Value target = Values.value(this.writeImpl(propertyAccessor.getProperty(p), new HashMap<>(), seenObjects, false));
+					sink.put("__target__", target);
 				}
 			});
 		}

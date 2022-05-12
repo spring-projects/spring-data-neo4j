@@ -61,4 +61,8 @@ public class Person {
 	public KnowsMtEntity getMotherTongue() {
 		return motherTongue;
 	}
+
+	public void setKnownLanguages(List<Knows> knownLanguages) {
+		this.knownLanguages = knownLanguages;
+	}
 }
