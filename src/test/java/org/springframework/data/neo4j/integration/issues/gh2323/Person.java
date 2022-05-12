@@ -52,4 +52,8 @@ public class Person {
 	public List<Knows> getKnownLanguages() {
 		return knownLanguages;
 	}
+
+	public void setKnownLanguages(List<Knows> knownLanguages) {
+		this.knownLanguages = knownLanguages;
+	}
 }
