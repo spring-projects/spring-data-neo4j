@@ -211,12 +211,12 @@ class StringlyTypedDynamicRelationshipsIT extends DynamicRelationshipsITBase<Per
 
 		try (Transaction transaction = driver.session(bookmarkCapture.createSessionConfig()).beginTransaction()) {
 			long numberOfRelations = transaction
-					.run("" + "MATCH (t:" + labelOfTestSubject + ") WHERE id(t) = $id " + "RETURN size((t)-->(:Person))"
+					.run("" + "MATCH (t:" + labelOfTestSubject + ")-[r]->(:Person) WHERE id(t) = $id " + "RETURN count(r)"
 							+ " as numberOfRelations", Values.parameters("id", newPerson.getId()))
 					.single().get("numberOfRelations").asLong();
 			assertThat(numberOfRelations).isEqualTo(2L);
 			numberOfRelations = transaction
-					.run("" + "MATCH (t:" + labelOfTestSubject + ") WHERE id(t) = $id " + "RETURN size((t)-->(:Club))"
+					.run("" + "MATCH (t:" + labelOfTestSubject + ")-[r]->(:Club) WHERE id(t) = $id " + "RETURN count(r)"
 							+ " as numberOfRelations", Values.parameters("id", newPerson.getId()))
 					.single().get("numberOfRelations").asLong();
 			assertThat(numberOfRelations).isEqualTo(2L);
@@ -257,12 +257,12 @@ class StringlyTypedDynamicRelationshipsIT extends DynamicRelationshipsITBase<Per
 
 		try (Transaction transaction = driver.session(bookmarkCapture.createSessionConfig()).beginTransaction()) {
 			long numberOfRelations = transaction
-					.run("" + "MATCH (t:" + labelOfTestSubject + ") WHERE id(t) = $id " + "RETURN size((t)-->(:Pet))"
+					.run("" + "MATCH (t:" + labelOfTestSubject + ")-[r]->(:Pet) WHERE id(t) = $id RETURN count(r)"
 							+ " as numberOfRelations", Values.parameters("id", newPerson.getId()))
 					.single().get("numberOfRelations").asLong();
 			assertThat(numberOfRelations).isEqualTo(3L);
 			numberOfRelations = transaction
-					.run("" + "MATCH (t:" + labelOfTestSubject + ") WHERE id(t) = $id " + "RETURN size((t)-->(:Hobby))"
+					.run("" + "MATCH (t:" + labelOfTestSubject + ")-[r]->(:Hobby) WHERE id(t) = $id RETURN count(r)"
 							+ " as numberOfRelations", Values.parameters("id", newPerson.getId()))
 					.single().get("numberOfRelations").asLong();
 			assertThat(numberOfRelations).isEqualTo(2L);
