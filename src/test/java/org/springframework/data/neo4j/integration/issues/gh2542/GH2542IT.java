@@ -52,7 +52,11 @@ class GH2542IT {
 
 		try (Session session = neo4jConnectionSupport.getDriver().session()) {
 			session.run("MATCH (n) DETACH DELETE n");
-			session.run("CREATE CONSTRAINT TNC IF NOT EXISTS ON (tn:TestNode) ASSERT tn.name IS UNIQUE").consume();
+			if (neo4jConnectionSupport.isCypher5SyntaxCompatible()) {
+				session.run("CREATE CONSTRAINT TNC IF NOT EXISTS FOR (tn:TestNode) REQUIRE tn.name IS UNIQUE").consume();
+			} else {
+				session.run("CREATE CONSTRAINT TNC IF NOT EXISTS ON (tn:TestNode) ASSERT tn.name IS UNIQUE").consume();
+			}
 		}
 	}
 

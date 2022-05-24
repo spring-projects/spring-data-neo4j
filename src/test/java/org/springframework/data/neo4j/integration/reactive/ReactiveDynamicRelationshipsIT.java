@@ -220,13 +220,13 @@ class ReactiveDynamicRelationshipsIT extends DynamicRelationshipsITBase<PersonWi
 					assertThat(relatives).containsOnlyKeys(TypeOfRelative.RELATIVE_1, TypeOfRelative.RELATIVE_2);
 				}).verifyComplete();
 
-		try (Transaction transaction = driver.session().beginTransaction()) {
+		try (Transaction transaction = driver.session(bookmarkCapture.createSessionConfig()).beginTransaction()) {
 			long numberOfRelations = transaction
-					.run("MATCH (t:%s) WHERE id(t) = $id RETURN size((t)-->(:Person)) as numberOfRelations".formatted(labelOfTestSubject), Values.parameters("id", recorded.get(0).getId()))
+					.run(("MATCH (t:%s)-[r]->(:Person) WHERE id(t) = $id RETURN count(r) as numberOfRelations").formatted(labelOfTestSubject), Values.parameters("id", newPerson.getId()))
 					.single().get("numberOfRelations").asLong();
 			assertThat(numberOfRelations).isEqualTo(2L);
 			numberOfRelations = transaction
-					.run("MATCH (t:%s) WHERE id(t) = $id RETURN size((t)-->(:Club)) as numberOfRelations".formatted(labelOfTestSubject), Values.parameters("id", newPerson.getId()))
+					.run(("MATCH (t:%s)-[r]->(:Club) WHERE id(t) = $id RETURN count(r) as numberOfRelations").formatted(labelOfTestSubject), Values.parameters("id", newPerson.getId()))
 					.single().get("numberOfRelations").asLong();
 			assertThat(numberOfRelations).isEqualTo(2L);
 		}
@@ -270,13 +270,15 @@ class ReactiveDynamicRelationshipsIT extends DynamicRelationshipsITBase<PersonWi
 			assertThat(writtenPets).containsOnlyKeys(TypeOfPet.MONSTERS, TypeOfPet.FISH);
 		}).verifyComplete();
 
-		try (Transaction transaction = driver.session().beginTransaction()) {
+		try (Transaction transaction = driver.session(bookmarkCapture.createSessionConfig()).beginTransaction()) {
 			long numberOfRelations = transaction
-					.run("MATCH (t:%s) WHERE id(t) = $id RETURN size((t)-->(:Pet)) as numberOfRelations".formatted(labelOfTestSubject), Values.parameters("id", recorded.get(0).getId()))
+					.run(("MATCH (t:%s)-[r]->(:Pet) WHERE id(t) = $id RETURN count(r) as numberOfRelations").formatted(labelOfTestSubject),
+							Values.parameters("id", newPerson.getId()))
 					.single().get("numberOfRelations").asLong();
 			assertThat(numberOfRelations).isEqualTo(3L);
 			numberOfRelations = transaction
-					.run("MATCH (t:%s) WHERE id(t) = $id RETURN size((t)-->(:Hobby)) as numberOfRelations".formatted(labelOfTestSubject), Values.parameters("id", newPerson.getId()))
+					.run(("MATCH (t:%s)-[r]->(:Hobby) WHERE id(t) = $id RETURN count(r) as numberOfRelations").formatted(labelOfTestSubject),
+							Values.parameters("id", newPerson.getId()))
 					.single().get("numberOfRelations").asLong();
 			assertThat(numberOfRelations).isEqualTo(2L);
 		}
