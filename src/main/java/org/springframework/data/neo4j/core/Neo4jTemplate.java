@@ -99,6 +99,7 @@ import org.springframework.util.Assert;
  * @author Michael J. Simons
  * @author Philipp Tölle
  * @author Gerrit Meier
+ * @author Corey Beres
  * @soundtrack Motörhead - We Are Motörhead
  * @since 6.0
  */
@@ -519,6 +520,10 @@ public final class Neo4jTemplate implements
 	public <T, R> List<R> saveAllAs(Iterable<T> instances, Class<R> resultType) {
 
 		Assert.notNull(resultType, "ResultType must not be null!");
+
+		if (!instances.iterator().hasNext()) {
+			return Collections.emptyList();
+		}
 
 		Class<?> commonElementType = TemplateSupport.findCommonElementType(instances);
 

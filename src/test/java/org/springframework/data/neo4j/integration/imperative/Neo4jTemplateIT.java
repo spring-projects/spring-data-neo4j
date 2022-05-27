@@ -76,6 +76,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
  * @author Gerrit Meier
  * @author Michael J. Simons
  * @author Rosetta Roberts
+ * @author Corey Beres
  */
 @Neo4jIntegrationTest
 class Neo4jTemplateIT {
@@ -793,6 +794,13 @@ class Neo4jTemplateIT {
 		assertThat(people).extracting(Person::getFirstName).containsExactlyInAnyOrder("Michael", "Helge");
 		assertThat(people).extracting(Person::getLastName).containsExactlyInAnyOrder("Simons", "Schneider");
 		assertThat(people).allMatch(p -> p.getAddress() != null);
+	}
+
+	@Test // GH-2544
+	void saveAllAsWithEmptyList() {
+		List<ClosedProjection> projections = neo4jTemplate.saveAllAs(Collections.emptyList(), ClosedProjection.class);
+
+		assertThat(projections).isEmpty();
 	}
 
 	@Test
