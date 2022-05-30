@@ -697,12 +697,18 @@ class ReactiveNeo4jTemplateIT {
 				.verifyComplete();
 	}
 
+	static class X {
+	}
+
+	static class Y {
+	}
+
 	@Test // GH-2544
 	void saveWeirdHierarchy(@Autowired ReactiveNeo4jTemplate template) {
 
 		List<Object> things = new ArrayList<>();
-		things.add(1);
-		things.add("eins");
+		things.add(new X());
+		things.add(new Y());
 
 		template.saveAllAs(things, ClosedProjection.class)
 				.as(StepVerifier::create)
