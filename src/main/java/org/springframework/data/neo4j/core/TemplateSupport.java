@@ -64,6 +64,14 @@ import org.springframework.util.Assert;
 @API(status = API.Status.INTERNAL, since = "6.0.9")
 public final class TemplateSupport {
 
+	/**
+	 * Indicator for an empty collection
+	 */
+	public static final class EmptyIterable {
+		private EmptyIterable() {
+		}
+	}
+
 	enum FetchType {
 
 		ONE,
@@ -80,6 +88,10 @@ public final class TemplateSupport {
 		Collection<Class<?>> allClasses = StreamSupport.stream(collection.spliterator(), true)
 				.filter(o -> o != null)
 				.map(Object::getClass).collect(Collectors.toSet());
+
+		if (allClasses.isEmpty()) {
+			return EmptyIterable.class;
+		}
 
 		Class<?> candidate = null;
 		for (Class<?> type : allClasses) {

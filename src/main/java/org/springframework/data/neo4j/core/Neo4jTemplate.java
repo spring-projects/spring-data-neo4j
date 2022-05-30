@@ -98,6 +98,7 @@ import org.springframework.util.Assert;
  * @author Michael J. Simons
  * @author Philipp Tölle
  * @author Gerrit Meier
+ * @author Corey Beres
  * @soundtrack Motörhead - We Are Motörhead
  * @since 6.0
  */
@@ -548,6 +549,14 @@ public final class Neo4jTemplate implements
 		Assert.notNull(resultType, "ResultType must not be null!");
 
 		Class<?> commonElementType = TemplateSupport.findCommonElementType(instances);
+
+		if (commonElementType == null) {
+			throw new IllegalArgumentException("Could not determine a common element of an heterogeneous collection.");
+		}
+
+		if (commonElementType == TemplateSupport.EmptyIterable.class) {
+			return Collections.emptyList();
+		}
 
 		if (resultType.isAssignableFrom(commonElementType)) {
 			@SuppressWarnings("unchecked") // Nicer to live with this than streaming, mapping and collecting to avoid the cast. It's easier on the reactive side.

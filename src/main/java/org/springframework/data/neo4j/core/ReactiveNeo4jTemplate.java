@@ -491,6 +491,15 @@ public final class ReactiveNeo4jTemplate implements
 
 		Class<?> commonElementType = TemplateSupport.findCommonElementType(instances);
 
+		if (commonElementType == null) {
+			return Flux.error(() -> new IllegalArgumentException(
+					"Could not determine a common element of an heterogeneous collection."));
+		}
+
+		if (commonElementType == TemplateSupport.EmptyIterable.class) {
+			return Flux.empty();
+		}
+
 		if (resultType.isAssignableFrom(commonElementType)) {
 			return saveAll(instances).map(resultType::cast);
 		}

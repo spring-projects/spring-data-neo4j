@@ -17,9 +17,11 @@ package org.springframework.data.neo4j.integration.imperative;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
 import lombok.Data;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -76,6 +78,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
  * @author Gerrit Meier
  * @author Michael J. Simons
  * @author Rosetta Roberts
+ * @author Corey Beres
  */
 @Neo4jIntegrationTest
 class Neo4jTemplateIT {
@@ -793,6 +796,24 @@ class Neo4jTemplateIT {
 		assertThat(people).extracting(Person::getFirstName).containsExactlyInAnyOrder("Michael", "Helge");
 		assertThat(people).extracting(Person::getLastName).containsExactlyInAnyOrder("Simons", "Schneider");
 		assertThat(people).allMatch(p -> p.getAddress() != null);
+	}
+
+	@Test // GH-2544
+	void saveAllAsWithEmptyList() {
+		List<ClosedProjection> projections = neo4jTemplate.saveAllAs(Collections.emptyList(), ClosedProjection.class);
+
+		assertThat(projections).isEmpty();
+	}
+
+	@Test // GH-2544
+	void saveWeirdHierarchy() {
+
+		List<Object> things = new ArrayList<>();
+		things.add(1);
+		things.add("eins");
+
+		assertThatIllegalArgumentException().isThrownBy(() -> neo4jTemplate.saveAllAs(things, ClosedProjection.class))
+				.withMessage("Could not determine a common element of an heterogeneous collection.");
 	}
 
 	@Test
