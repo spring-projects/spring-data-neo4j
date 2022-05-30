@@ -521,11 +521,15 @@ public final class Neo4jTemplate implements
 
 		Assert.notNull(resultType, "ResultType must not be null!");
 
-		if (!instances.iterator().hasNext()) {
-			return Collections.emptyList();
+		Class<?> commonElementType = TemplateSupport.findCommonElementType(instances);
+
+		if (commonElementType == null) {
+			throw new IllegalArgumentException("Could not determine a common element of an heterogeneous collection.");
 		}
 
-		Class<?> commonElementType = TemplateSupport.findCommonElementType(instances);
+		if (commonElementType == TemplateSupport.EmptyIterable.class) {
+			return Collections.emptyList();
+		}
 
 		if (resultType.isAssignableFrom(commonElementType)) {
 			@SuppressWarnings("unchecked") // Nicer to live with this than streaming, mapping and collecting to avoid the cast. It's easier on the reactive side.

@@ -19,10 +19,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.neo4j.cypherdsl.core.Cypher.parameter;
 
 import lombok.Data;
-import org.springframework.data.neo4j.test.Neo4jReactiveTestConfiguration;
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -71,6 +71,7 @@ import org.springframework.data.neo4j.test.BookmarkCapture;
 import org.springframework.data.neo4j.test.Neo4jExtension;
 import org.springframework.data.neo4j.test.Neo4jExtension.Neo4jConnectionSupport;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
+import org.springframework.data.neo4j.test.Neo4jReactiveTestConfiguration;
 import org.springframework.transaction.ReactiveTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
@@ -686,6 +687,26 @@ class ReactiveNeo4jTemplateIT {
 					assertThat(savedCountry.getName()).isEqualTo("Germany");
 				})
 				.verifyComplete();
+	}
+
+	@Test // GH-2544
+	void saveAllAsWithEmptyList(@Autowired ReactiveNeo4jTemplate template) {
+
+		template.saveAllAs(Collections.emptyList(), ClosedProjection.class)
+				.as(StepVerifier::create)
+				.verifyComplete();
+	}
+
+	@Test // GH-2544
+	void saveWeirdHierarchy(@Autowired ReactiveNeo4jTemplate template) {
+
+		List<Object> things = new ArrayList<>();
+		things.add(1);
+		things.add("eins");
+
+		template.saveAllAs(things, ClosedProjection.class)
+				.as(StepVerifier::create)
+				.verifyErrorMatches(t -> t instanceof IllegalArgumentException && t.getMessage().equals("Could not determine a common element of an heterogeneous collection."));
 	}
 
 	@Test

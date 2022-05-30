@@ -88,7 +88,7 @@ class TemplateSupportTest {
 	void shouldNotFailWithEmptyInput() {
 
 		Class<?> type = TemplateSupport.findCommonElementType(Collections.emptyList());
-		assertThat(type).isNull();
+		assertThat(type).isEqualTo(TemplateSupport.EmptyIterable.class);
 	}
 
 	@Test

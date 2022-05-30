@@ -17,9 +17,11 @@ package org.springframework.data.neo4j.integration.imperative;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
 import lombok.Data;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -801,6 +803,17 @@ class Neo4jTemplateIT {
 		List<ClosedProjection> projections = neo4jTemplate.saveAllAs(Collections.emptyList(), ClosedProjection.class);
 
 		assertThat(projections).isEmpty();
+	}
+
+	@Test // GH-2544
+	void saveWeirdHierarchy() {
+
+		List<Object> things = new ArrayList<>();
+		things.add(1);
+		things.add("eins");
+
+		assertThatIllegalArgumentException().isThrownBy(() -> neo4jTemplate.saveAllAs(things, ClosedProjection.class))
+				.withMessage("Could not determine a common element of an heterogeneous collection.");
 	}
 
 	@Test
