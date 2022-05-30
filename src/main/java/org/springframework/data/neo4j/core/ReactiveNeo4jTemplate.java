@@ -19,11 +19,6 @@ import static org.neo4j.cypherdsl.core.Cypher.anyNode;
 import static org.neo4j.cypherdsl.core.Cypher.asterisk;
 import static org.neo4j.cypherdsl.core.Cypher.parameter;
 
-import org.neo4j.cypherdsl.core.renderer.Configuration;
-import org.springframework.data.mapping.Association;
-import org.springframework.data.neo4j.core.TemplateSupport.FilteredBinderFunction;
-import org.springframework.data.neo4j.core.mapping.AssociationHandlerSupport;
-import org.springframework.data.neo4j.core.schema.TargetNode;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.util.function.Tuple2;
@@ -55,6 +50,7 @@ import org.neo4j.cypherdsl.core.Cypher;
 import org.neo4j.cypherdsl.core.Functions;
 import org.neo4j.cypherdsl.core.Node;
 import org.neo4j.cypherdsl.core.Statement;
+import org.neo4j.cypherdsl.core.renderer.Configuration;
 import org.neo4j.cypherdsl.core.renderer.Renderer;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.types.Entity;
@@ -68,10 +64,13 @@ import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.dao.OptimisticLockingFailureException;
+import org.springframework.data.mapping.Association;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
 import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.mapping.callback.ReactiveEntityCallbacks;
+import org.springframework.data.neo4j.core.TemplateSupport.FilteredBinderFunction;
 import org.springframework.data.neo4j.core.TemplateSupport.NodesAndRelationshipsByIdStatementProvider;
+import org.springframework.data.neo4j.core.mapping.AssociationHandlerSupport;
 import org.springframework.data.neo4j.core.mapping.Constants;
 import org.springframework.data.neo4j.core.mapping.CreateRelationshipStatementHolder;
 import org.springframework.data.neo4j.core.mapping.CypherGenerator;
@@ -89,6 +88,7 @@ import org.springframework.data.neo4j.core.mapping.NodeDescription;
 import org.springframework.data.neo4j.core.mapping.PropertyFilter;
 import org.springframework.data.neo4j.core.mapping.RelationshipDescription;
 import org.springframework.data.neo4j.core.mapping.callback.ReactiveEventSupport;
+import org.springframework.data.neo4j.core.schema.TargetNode;
 import org.springframework.data.neo4j.repository.query.QueryFragments;
 import org.springframework.data.neo4j.repository.query.QueryFragmentsAndParameters;
 import org.springframework.data.projection.ProjectionFactory;
@@ -492,6 +492,15 @@ public final class ReactiveNeo4jTemplate implements
 		Assert.notNull(resultType, "ResultType must not be null!");
 
 		Class<?> commonElementType = TemplateSupport.findCommonElementType(instances);
+
+		if (commonElementType == null) {
+			return Flux.error(() -> new IllegalArgumentException(
+					"Could not determine a common element of an heterogeneous collection."));
+		}
+
+		if (commonElementType == TemplateSupport.EmptyIterable.class) {
+			return Flux.empty();
+		}
 
 		if (resultType.isAssignableFrom(commonElementType)) {
 			return saveAll(instances).map(resultType::cast);
