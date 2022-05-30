@@ -805,12 +805,18 @@ class Neo4jTemplateIT {
 		assertThat(projections).isEmpty();
 	}
 
+	static class X {
+	}
+
+	static class Y {
+	}
+
 	@Test // GH-2544
 	void saveWeirdHierarchy() {
 
 		List<Object> things = new ArrayList<>();
-		things.add(1);
-		things.add("eins");
+		things.add(new X());
+		things.add(new Y());
 
 		assertThatIllegalArgumentException().isThrownBy(() -> neo4jTemplate.saveAllAs(things, ClosedProjection.class))
 				.withMessage("Could not determine a common element of an heterogeneous collection.");
