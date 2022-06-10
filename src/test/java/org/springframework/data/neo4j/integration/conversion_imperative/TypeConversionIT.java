@@ -117,7 +117,7 @@ class TypeConversionIT extends Neo4jConversionsITBase {
 				.isThrownBy(() -> template.findById(id, AllArgsCtorNoBuilder.class))
 				.withMessageMatching("Error mapping Record<\\{.+: .*>")
 				.withRootCauseInstanceOf(IllegalArgumentException.class)
-				.withStackTraceContaining("Parameter aBoolean must not be null!");
+				.withStackTraceContaining("Parameter aBoolean must not be null");
 	}
 
 	@TestFactory
