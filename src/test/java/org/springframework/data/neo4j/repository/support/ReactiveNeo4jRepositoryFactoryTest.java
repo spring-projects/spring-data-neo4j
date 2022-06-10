@@ -63,7 +63,7 @@ class ReactiveNeo4jRepositoryFactoryTest {
 			when(metadata.getIdType()).thenReturn(repositoryIdentifierClass);
 
 			assertThatThrownBy(() -> neo4jRepositoryFactory.getTargetRepository(metadata))
-					.hasMessage("Target type must not be null!").isInstanceOf(IllegalArgumentException.class);
+					.hasMessageContaining("Target type must not be null").isInstanceOf(IllegalArgumentException.class);
 		}
 
 		@Test
