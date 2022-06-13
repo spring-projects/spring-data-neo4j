@@ -57,8 +57,8 @@ public final class EntityFromDtoInstantiatingConverter<T> implements Converter<O
 	 */
 	public EntityFromDtoInstantiatingConverter(Class<T> entityType, Neo4jMappingContext context) {
 
-		Assert.notNull(entityType, "Entity type must not be null!");
-		Assert.notNull(context, "MappingContext must not be null!");
+		Assert.notNull(entityType, "Entity type must not be null");
+		Assert.notNull(context, "MappingContext must not be null");
 
 		this.targetEntityType = entityType;
 		this.context = context;

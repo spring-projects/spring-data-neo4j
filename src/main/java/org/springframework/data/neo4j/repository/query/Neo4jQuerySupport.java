@@ -90,11 +90,11 @@ abstract class Neo4jQuerySupport {
 
 	Neo4jQuerySupport(Neo4jMappingContext mappingContext, Neo4jQueryMethod queryMethod, Neo4jQueryType queryType) {
 
-		Assert.notNull(mappingContext, "The mapping context is required.");
-		Assert.notNull(queryMethod, "Query method must not be null!");
-		Assert.notNull(queryType, "Query type must not be null!");
+		Assert.notNull(mappingContext, "The mapping context is required");
+		Assert.notNull(queryMethod, "Query method must not be null");
+		Assert.notNull(queryType, "Query type must not be null");
 		Assert.isTrue(queryType != Neo4jQueryType.DELETE || hasValidReturnTypeForDelete(queryMethod),
-				"A derived delete query can only return the number of deleted nodes as a long or void."
+				"A derived delete query can only return the number of deleted nodes as a long or void"
 		);
 
 		this.mappingContext = mappingContext;

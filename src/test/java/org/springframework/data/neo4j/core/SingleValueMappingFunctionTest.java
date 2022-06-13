@@ -68,7 +68,7 @@ class SingleValueMappingFunctionTest {
 			SingleValueMappingFunction<String> mappingFunction = new SingleValueMappingFunction<>(conversionService,
 					String.class);
 			assertThatIllegalArgumentException().isThrownBy(() -> mappingFunction.apply(typeSystem, record))
-					.withMessage("Record has no elements, cannot map nothing.");
+					.withMessage("Record has no elements, cannot map nothing");
 		}
 
 		@Test
@@ -79,7 +79,7 @@ class SingleValueMappingFunctionTest {
 			SingleValueMappingFunction<String> mappingFunction = new SingleValueMappingFunction<>(conversionService,
 					String.class);
 			assertThatIllegalArgumentException().isThrownBy(() -> mappingFunction.apply(typeSystem, record))
-					.withMessage("Records with more than one value cannot be converted without a mapper.");
+					.withMessage("Records with more than one value cannot be converted without a mapper");
 		}
 	}
 

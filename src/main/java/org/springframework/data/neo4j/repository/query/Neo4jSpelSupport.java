@@ -67,7 +67,7 @@ public final class Neo4jSpelSupport {
 		} else if (arg instanceof Sort v) {
 			sort = v;
 		} else if (arg != null) {
-			throw new IllegalArgumentException(arg.getClass() + " is not a valid order criteria.");
+			throw new IllegalArgumentException(arg.getClass() + " is not a valid order criteria");
 		}
 		return StringBasedLiteralReplacement.withTargetAndValue(LiteralReplacement.Target.SORT,
 				CypherGenerator.INSTANCE.createOrderByFragment(sort));
@@ -198,9 +198,9 @@ public final class Neo4jSpelSupport {
 	public static String renderQueryIfExpressionOrReturnQuery(String query, Neo4jMappingContext mappingContext, EntityMetadata<?> metadata,
 			SpelExpressionParser parser) {
 
-		Assert.notNull(query, "query must not be null!");
-		Assert.notNull(metadata, "metadata must not be null!");
-		Assert.notNull(parser, "parser must not be null!");
+		Assert.notNull(query, "query must not be null");
+		Assert.notNull(metadata, "metadata must not be null");
+		Assert.notNull(parser, "parser must not be null");
 
 		if (!containsExpression(query)) {
 			return query;

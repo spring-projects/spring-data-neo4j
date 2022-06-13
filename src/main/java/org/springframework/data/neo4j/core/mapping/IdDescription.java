@@ -57,7 +57,7 @@ public final class IdDescription {
 
 	public static IdDescription forAssignedIds(SymbolicName symbolicName, String graphPropertyName) {
 
-		Assert.notNull(graphPropertyName, "Graph property name is required.");
+		Assert.notNull(graphPropertyName, "Graph property name is required");
 		return new IdDescription(symbolicName, null, null, graphPropertyName);
 	}
 
@@ -69,15 +69,15 @@ public final class IdDescription {
 		    @Nullable Class<? extends IdGenerator<?>> idGeneratorClass,
 			@Nullable String idGeneratorRef, String graphPropertyName) {
 
-		Assert.notNull(graphPropertyName, "Graph property name is required.");
+		Assert.notNull(graphPropertyName, "Graph property name is required");
 		try {
-			Assert.hasText(idGeneratorRef, "Reference to an ID generator has precedence.");
+			Assert.hasText(idGeneratorRef, "Reference to an ID generator has precedence");
 
 			return new IdDescription(symbolicName, null, idGeneratorRef, graphPropertyName);
 		} catch (IllegalArgumentException e) {
-			Assert.notNull(idGeneratorClass, "Class of id generator is required.");
+			Assert.notNull(idGeneratorClass, "Class of id generator is required");
 			Assert.isTrue(idGeneratorClass != GeneratedValue.InternalIdGenerator.class,
-					"Cannot use InternalIdGenerator for externally generated ids.");
+					"Cannot use InternalIdGenerator for externally generated ids");
 
 			return new IdDescription(symbolicName, idGeneratorClass, null, graphPropertyName);
 		}

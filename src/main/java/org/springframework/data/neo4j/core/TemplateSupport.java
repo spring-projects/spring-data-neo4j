@@ -249,7 +249,7 @@ public final class TemplateSupport {
 	static <T> Supplier<BiFunction<TypeSystem, MapAccessor, ?>> getAndDecorateMappingFunction(
 			Neo4jMappingContext mappingContext, Class<T> domainType, @Nullable Class<?> resultType) {
 
-		Assert.notNull(mappingContext.getPersistentEntity(domainType), "Cannot get or create persistent entity.");
+		Assert.notNull(mappingContext.getPersistentEntity(domainType), "Cannot get or create persistent entity");
 		return () -> {
 			BiFunction<TypeSystem, MapAccessor, ?> mappingFunction = mappingContext.getRequiredMappingFunctionFor(
 					domainType);

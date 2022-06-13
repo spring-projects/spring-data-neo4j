@@ -111,7 +111,7 @@ class DefaultNeo4jIsNewStrategyTest {
 
 			assertThatIllegalArgumentException().isThrownBy(() -> DefaultNeo4jIsNewStrategy.basedOn(entityMetaData))
 					.withMessage(
-							"Cannot use org.springframework.data.neo4j.core.mapping.DefaultNeo4jIsNewStrategy with externally generated, primitive ids.");
+							"Cannot use org.springframework.data.neo4j.core.mapping.DefaultNeo4jIsNewStrategy with externally generated, primitive ids");
 		}
 	}
 

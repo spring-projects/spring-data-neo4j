@@ -52,7 +52,7 @@ public class CustomReactiveBaseRepositoryIT {
 	public void customBaseRepositoryShouldBeInUse(@Autowired MyPersonRepository repository) {
 
 		StepVerifier.create(repository.findAll()).expectErrorMatches(e -> e instanceof UnsupportedOperationException
-				&& e.getMessage().equals("This implementation does not support `findAll`."));
+				&& e.getMessage().equals("This implementation does not support `findAll`"));
 	}
 
 	interface MyPersonRepository extends ReactiveNeo4jRepository<PersonWithAllConstructor, Long> {}
@@ -70,7 +70,7 @@ public class CustomReactiveBaseRepositoryIT {
 
 		@Override
 		public Flux<T> findAll() {
-			throw new UnsupportedOperationException("This implementation does not support `findAll`.");
+			throw new UnsupportedOperationException("This implementation does not support `findAll`");
 		}
 	}
 

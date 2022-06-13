@@ -252,7 +252,7 @@ public final class ReactiveNeo4jTransactionManager extends AbstractReactiveTrans
 	private static ReactiveNeo4jTransactionObject extractNeo4jTransaction(Object transaction) {
 
 		Assert.isInstanceOf(ReactiveNeo4jTransactionObject.class, transaction,
-				() -> String.format("Expected to find a %s but it turned out to be %s.", ReactiveNeo4jTransactionObject.class,
+				() -> String.format("Expected to find a %s but it turned out to be %s", ReactiveNeo4jTransactionObject.class,
 						transaction.getClass()));
 
 		return (ReactiveNeo4jTransactionObject) transaction;

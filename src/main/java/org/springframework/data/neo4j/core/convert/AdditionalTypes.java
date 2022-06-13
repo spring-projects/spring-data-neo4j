@@ -203,7 +203,7 @@ final class AdditionalTypes {
 
 	static Byte asByte(Value value) {
 		byte[] bytes = value.asByteArray();
-		Assert.isTrue(bytes.length == 1, "Expected a byte array with exactly 1 element.");
+		Assert.isTrue(bytes.length == 1, "Expected a byte array with exactly 1 element");
 		return bytes[0];
 	}
 
@@ -217,7 +217,7 @@ final class AdditionalTypes {
 
 	static Character asCharacter(Value value) {
 		char[] chars = value.asString().toCharArray();
-		Assert.isTrue(chars.length == 1, "Expected a char array with exactly 1 element.");
+		Assert.isTrue(chars.length == 1, "Expected a char array with exactly 1 element");
 		return chars[0];
 	}
 

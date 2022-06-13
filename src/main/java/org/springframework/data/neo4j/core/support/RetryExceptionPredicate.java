@@ -39,16 +39,16 @@ import org.springframework.dao.TransientDataAccessResourceException;
 @API(status = API.Status.STABLE, since = "6.0")
 public final class RetryExceptionPredicate implements Predicate<Throwable> {
 
-	private static final Set<String> RETRYABLE_ILLEGAL_STATE_MESSAGES = Collections.unmodifiableSet(new HashSet<>(
-			Arrays.asList("Transaction must be open, but has already been closed.",
-					"Session must be open, but has already been closed.")));
+	private static final Set<String> RETRYABLE_ILLEGAL_STATE_MESSAGES = Set.of(
+			"Transaction must be open, but has already been closed.",
+			"Session must be open, but has already been closed.");
 
 	@Override
 	public boolean test(Throwable throwable) {
 
 		if (throwable instanceof IllegalStateException) {
 			String msg = throwable.getMessage();
-			return RETRYABLE_ILLEGAL_STATE_MESSAGES.contains(msg);
+			return msg != null && RETRYABLE_ILLEGAL_STATE_MESSAGES.contains(msg);
 		}
 
 		Throwable ex = throwable;

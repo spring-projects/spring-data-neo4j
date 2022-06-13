@@ -52,7 +52,7 @@ public class CustomBaseRepositoryIT {
 	public void customBaseRepositoryShouldBeInUse(@Autowired MyPersonRepository repository) {
 
 		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> repository.findAll())
-				.withMessage("This implementation does not support `findAll`.");
+				.withMessage("This implementation does not support `findAll`");
 	}
 
 	interface MyPersonRepository extends Neo4jRepository<PersonWithAllConstructor, Long> {}
@@ -81,7 +81,7 @@ public class CustomBaseRepositoryIT {
 
 		@Override
 		public List<T> findAll() {
-			throw new UnsupportedOperationException("This implementation does not support `findAll`.");
+			throw new UnsupportedOperationException("This implementation does not support `findAll`");
 		}
 	}
 	// end::custom-base-repository[]

@@ -85,7 +85,7 @@ class Neo4jSpelSupportTest {
 		assertThat(literalReplacement.getValue()).isEqualTo("");
 
 		assertThatIllegalArgumentException().isThrownBy(() -> Neo4jSpelSupport.orderBy("a lizard"))
-				.withMessageMatching(".+is not a valid order criteria.");
+				.withMessageMatching(".+is not a valid order criteria");
 	}
 
 	private Map<?, ?> getCacheInstance() throws ClassNotFoundException, IllegalAccessException {

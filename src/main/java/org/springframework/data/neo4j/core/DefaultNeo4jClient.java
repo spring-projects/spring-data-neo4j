@@ -340,7 +340,7 @@ final class DefaultNeo4jClient implements Neo4jClient {
 			@Override
 			public RunnableSpec with(Function<T, Map<String, Object>> binder) {
 
-				Assert.notNull(binder, "Binder is required.");
+				Assert.notNull(binder, "Binder is required");
 
 				return bindAll(binder.apply(value));
 			}

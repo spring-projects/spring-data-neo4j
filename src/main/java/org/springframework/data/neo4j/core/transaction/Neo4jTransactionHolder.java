@@ -69,8 +69,8 @@ final class Neo4jTransactionHolder extends ResourceHolderSupport {
 	@Nullable
 	Bookmark commit() {
 
-		Assert.state(hasActiveTransaction(), "Transaction must be open, but has already been closed.");
-		Assert.state(!isRollbackOnly(), "Resource must not be marked as rollback only.");
+		Assert.state(hasActiveTransaction(), "Transaction must be open, but has already been closed");
+		Assert.state(!isRollbackOnly(), "Resource must not be marked as rollback only");
 
 		transaction.commit();
 		transaction.close();
@@ -80,7 +80,7 @@ final class Neo4jTransactionHolder extends ResourceHolderSupport {
 
 	void rollback() {
 
-		Assert.state(hasActiveTransaction(), "Transaction must be open, but has already been closed.");
+		Assert.state(hasActiveTransaction(), "Transaction must be open, but has already been closed");
 
 		transaction.rollback();
 		transaction.close();
@@ -88,7 +88,7 @@ final class Neo4jTransactionHolder extends ResourceHolderSupport {
 
 	void close() {
 
-		Assert.state(hasActiveSession(), "Session must be open, but has already been closed.");
+		Assert.state(hasActiveSession(), "Session must be open, but has already been closed");
 
 		if (hasActiveTransaction()) {
 			transaction.close();

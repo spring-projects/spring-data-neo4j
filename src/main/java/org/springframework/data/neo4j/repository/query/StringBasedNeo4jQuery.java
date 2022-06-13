@@ -103,7 +103,7 @@ final class StringBasedNeo4jQuery extends AbstractNeo4jQuery {
 						ProjectionFactory factory) {
 
 		Query queryAnnotation = queryMethod.getQueryAnnotation()
-				.orElseThrow(() -> new MappingException("Expected @Query annotation on the query method!"));
+				.orElseThrow(() -> new MappingException("Expected @Query annotation on the query method"));
 
 		boolean requiresCount = queryMethod.isPageQuery();
 		boolean supportsCount = queryMethod.isSliceQuery();
@@ -112,7 +112,7 @@ final class StringBasedNeo4jQuery extends AbstractNeo4jQuery {
 
 		if (!countQueryPresent) {
 			if (requiresCount) {
-				throw new MappingException("Expected paging query method to have a count query!");
+				throw new MappingException("Expected paging query method to have a count query");
 			}
 			if (supportsCount) {
 				Neo4jQuerySupport.REPOSITORY_QUERY_LOG.debug(() -> String.format(
@@ -123,7 +123,7 @@ final class StringBasedNeo4jQuery extends AbstractNeo4jQuery {
 		}
 
 		String cypherTemplate = Optional.ofNullable(queryAnnotation.value()).filter(StringUtils::hasText)
-				.orElseThrow(() -> new MappingException("Expected @Query annotation to have a value, but it did not."));
+				.orElseThrow(() -> new MappingException("Expected @Query annotation to have a value, but it did not"));
 
 		if (requiresSkipAndLimit && !hasSkipAndLimitKeywordsAndPlaceholders(cypherTemplate)) {
 			Neo4jQuerySupport.REPOSITORY_QUERY_LOG.warn(() ->
@@ -152,7 +152,7 @@ final class StringBasedNeo4jQuery extends AbstractNeo4jQuery {
 			QueryMethodEvaluationContextProvider evaluationContextProvider, Neo4jQueryMethod queryMethod,
 			String cypherTemplate, ProjectionFactory factory) {
 
-		Assert.hasText(cypherTemplate, "Cannot create String based Neo4j query without a cypher template.");
+		Assert.hasText(cypherTemplate, "Cannot create String based Neo4j query without a cypher template");
 
 		return new StringBasedNeo4jQuery(neo4jOperations, mappingContext, evaluationContextProvider, queryMethod,
 				cypherTemplate, Neo4jQueryType.DEFAULT, factory);

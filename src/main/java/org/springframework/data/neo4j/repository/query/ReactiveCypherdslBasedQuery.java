@@ -58,9 +58,9 @@ final class ReactiveCypherdslBasedQuery extends AbstractReactiveNeo4jQuery {
 
 		Object[] parameters = parameterAccessor.getValues();
 
-		Assert.notEmpty(parameters, "Cypher based query methods must provide at least a statement parameter.");
+		Assert.notEmpty(parameters, "Cypher based query methods must provide at least a statement parameter");
 		Assert.isInstanceOf(Statement.class, parameters[0],
-				"The first parameter to a Cypher based method must be a statement.");
+				"The first parameter to a Cypher based method must be a statement");
 		Statement statement = (Statement) parameters[0];
 
 		Map<String, Object> boundParameters = statement.getParameters();

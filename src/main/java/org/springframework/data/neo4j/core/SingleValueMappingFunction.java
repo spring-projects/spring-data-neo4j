@@ -47,11 +47,11 @@ final class SingleValueMappingFunction<T> implements BiFunction<TypeSystem, Reco
 	public T apply(TypeSystem typeSystem, Record record) {
 
 		if (record.size() == 0) {
-			throw new IllegalArgumentException("Record has no elements, cannot map nothing.");
+			throw new IllegalArgumentException("Record has no elements, cannot map nothing");
 		}
 
 		if (record.size() > 1) {
-			throw new IllegalArgumentException("Records with more than one value cannot be converted without a mapper.");
+			throw new IllegalArgumentException("Records with more than one value cannot be converted without a mapper");
 		}
 
 		Value source = record.get(0);

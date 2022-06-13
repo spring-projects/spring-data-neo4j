@@ -80,7 +80,7 @@ final class DateStringConverterFactory implements Neo4jPersistentPropertyConvert
 			return new DateStringConverter(config.value());
 		} else {
 			throw new UnsupportedOperationException(
-					"Other types than java.util.Date are not yet supported. Please file a ticket.");
+					"Other types than java.util.Date are not yet supported; please file a ticket");
 		}
 	}
 }

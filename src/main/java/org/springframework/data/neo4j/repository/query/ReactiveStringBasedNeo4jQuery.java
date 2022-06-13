@@ -85,10 +85,10 @@ final class ReactiveStringBasedNeo4jQuery extends AbstractReactiveNeo4jQuery {
 			Neo4jQueryMethod queryMethod, ProjectionFactory factory) {
 
 		Query queryAnnotation = queryMethod.getQueryAnnotation()
-				.orElseThrow(() -> new MappingException("Expected @Query annotation on the query method!"));
+				.orElseThrow(() -> new MappingException("Expected @Query annotation on the query method"));
 
 		String cypherTemplate = Optional.ofNullable(queryAnnotation.value()).filter(StringUtils::hasText)
-				.orElseThrow(() -> new MappingException("Expected @Query annotation to have a value, but it did not."));
+				.orElseThrow(() -> new MappingException("Expected @Query annotation to have a value, but it did not"));
 
 		return new ReactiveStringBasedNeo4jQuery(neo4jOperations, mappingContext, evaluationContextProvider, queryMethod,
 				cypherTemplate, Neo4jQueryType.fromDefinition(queryAnnotation), factory);
@@ -108,7 +108,7 @@ final class ReactiveStringBasedNeo4jQuery extends AbstractReactiveNeo4jQuery {
 			Neo4jMappingContext mappingContext, QueryMethodEvaluationContextProvider evaluationContextProvider,
 			Neo4jQueryMethod queryMethod, String cypherTemplate, ProjectionFactory factory) {
 
-		Assert.hasText(cypherTemplate, "Cannot create String based Neo4j query without a cypher template.");
+		Assert.hasText(cypherTemplate, "Cannot create String based Neo4j query without a cypher template");
 
 		return new ReactiveStringBasedNeo4jQuery(neo4jOperations, mappingContext, evaluationContextProvider, queryMethod,
 				cypherTemplate, Neo4jQueryType.DEFAULT, factory);

@@ -139,6 +139,6 @@ public final class QuerydslNeo4jPredicateExecutor<T> implements QuerydslPredicat
 			return queryFunction.apply(fluentQuery);
 		}
 		throw new UnsupportedOperationException(
-				"Fluent find by predicate not supported with standard Neo4jOperations. Must support fluent queries too.");
+				"Fluent find by predicate not supported with standard Neo4jOperations, must support fluent queries too");
 	}
 }

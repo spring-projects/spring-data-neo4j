@@ -51,13 +51,13 @@ final class DefaultNeo4jIsNewStrategy implements IsNewStrategy {
 
 	static IsNewStrategy basedOn(Neo4jPersistentEntity<?> entityMetaData) {
 
-		Assert.notNull(entityMetaData, "Entity meta data must not be null.");
+		Assert.notNull(entityMetaData, "Entity meta data must not be null");
 
 		IdDescription idDescription = entityMetaData.getIdDescription();
 		Class<?> valueType = entityMetaData.getRequiredIdProperty().getType();
 
 		if (idDescription.isExternallyGeneratedId() && valueType.isPrimitive()) {
-			throw new IllegalArgumentException(String.format("Cannot use %s with externally generated, primitive ids.",
+			throw new IllegalArgumentException(String.format("Cannot use %s with externally generated, primitive ids",
 					DefaultNeo4jIsNewStrategy.class.getName()));
 		}
 
@@ -66,7 +66,7 @@ final class DefaultNeo4jIsNewStrategy implements IsNewStrategy {
 		if (idDescription.isAssignedId()) {
 			if (versionProperty == null) {
 				log.warn(() -> "Instances of " + entityMetaData.getType()
-						+ " with an assigned id will always be treated as new without version property!");
+						+ " with an assigned id will always be treated as new without version property");
 				valueType = Void.class;
 				valueLookup = source -> null;
 			} else {
@@ -124,7 +124,7 @@ final class DefaultNeo4jIsNewStrategy implements IsNewStrategy {
 		}
 
 		throw new IllegalArgumentException(
-				String.format("Could not determine whether %s is new! Unsupported identifier or version property!", entity));
+				String.format("Could not determine whether %s is new! Unsupported identifier or version property", entity));
 
 	}
 }

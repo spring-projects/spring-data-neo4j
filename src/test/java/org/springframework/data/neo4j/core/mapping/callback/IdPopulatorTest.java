@@ -45,14 +45,14 @@ class IdPopulatorTest {
 	@Test
 	void shouldRejectNullMappingContext() {
 		Assertions.assertThatIllegalArgumentException().isThrownBy(() -> new IdPopulator(null))
-				.withMessage("A mapping context is required.");
+				.withMessage("A mapping context is required");
 	}
 
 	@Test
 	void shouldRejectNullEntity() {
 		IdPopulator idPopulator = new IdPopulator(neo4jMappingContext);
 		Assertions.assertThatIllegalArgumentException().isThrownBy(() -> idPopulator.populateIfNecessary(null))
-				.withMessage("Entity may not be null!");
+				.withMessage("Entity may not be null");
 	}
 
 	@Test
@@ -101,7 +101,7 @@ class IdPopulatorTest {
 
 		IdPopulator idPopulator = new IdPopulator(new Neo4jMappingContext());
 		assertThatIllegalStateException().isThrownBy(() -> idPopulator.populateIfNecessary(new ImplicitEntityWithoutId()))
-				.withMessage("Cannot persist implicit entity due to missing id property on " + ImplicitEntityWithoutId.class + ".");
+				.withMessage("Cannot persist implicit entity due to missing id property on " + ImplicitEntityWithoutId.class);
 	}
 
 	@Node

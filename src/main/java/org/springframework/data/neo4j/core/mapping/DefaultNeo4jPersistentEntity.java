@@ -213,7 +213,7 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 		if (this.getIdDescription() == null
 			&& (this.isAnnotationPresent(Node.class) || this.isAnnotationPresent(Persistent.class))) {
 
-			throw new IllegalStateException("Missing id property on " + this.getUnderlyingClass() + ".");
+			throw new IllegalStateException("Missing id property on " + this.getUnderlyingClass() + "");
 		}
 	}
 
@@ -233,7 +233,7 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 			}
 		});
 
-		Assert.state(duplicates.isEmpty(), () -> String.format("Duplicate definition of propert%s %s in entity %s.",
+		Assert.state(duplicates.isEmpty(), () -> String.format("Duplicate definition of propert%s %s in entity %s",
 				duplicates.size() == 1 ? "y" : "ies", duplicates, getUnderlyingClass()));
 	}
 
@@ -245,14 +245,14 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 			if (inverse.isDynamicAssociation()) {
 				Relationship relationship = inverse.findAnnotation(Relationship.class);
 				Assert.state(relationship == null || relationship.type().isEmpty(),
-						() -> "Dynamic relationships cannot be used with a fixed type. Omit @Relationship or use @Relationship(direction = "
+						() -> "Dynamic relationships cannot be used with a fixed type; omit @Relationship or use @Relationship(direction = "
 								+ relationship.direction().name() + ") without a type in " + this.getUnderlyingClass() + " on field "
-								+ inverse.getFieldName() + ".");
+								+ inverse.getFieldName());
 
 				Assert.state(!targetEntities.contains(inverse.getAssociationTargetType()),
 						() -> this.getUnderlyingClass() + " already contains a dynamic relationship to "
 								+ inverse.getAssociationTargetType()
-								+ ". Only one dynamic relationship between to entities is permitted.");
+								+ "; only one dynamic relationship between to entities is permitted");
 				targetEntities.add(inverse.getAssociationTargetType());
 			}
 		});
@@ -264,7 +264,7 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 			Supplier<String> messageSupplier = () -> String.format(
 					"The class `%s` for the properties of a relationship "
 							+ "is missing a property for the generated, internal ID (`@Id @GeneratedValue Long id`) "
-							+ "which is needed for safely updating properties.",
+							+ "which is needed for safely updating properties",
 					this.getUnderlyingClass().getName());
 			Assert.state(this.getIdDescription() != null && this.getIdDescription().isInternallyGeneratedId(), messageSupplier);
 		}
@@ -281,12 +281,12 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 			String propertyName = persistentProperty.getPropertyName();
 			namesOfPropertiesWithDynamicLabels.add(propertyName);
 
-			Assert.state(persistentProperty.isCollectionLike(), () -> String.format("Property %s on %s must extends %s.",
+			Assert.state(persistentProperty.isCollectionLike(), () -> String.format("Property %s on %s must extends %s",
 					persistentProperty.getFieldName(), persistentProperty.getOwner().getType(), Collection.class.getName()));
 		});
 
 		Assert.state(namesOfPropertiesWithDynamicLabels.size() <= 1,
-				() -> String.format("Multiple properties in entity %s are annotated with @%s: %s.", getUnderlyingClass(),
+				() -> String.format("Multiple properties in entity %s are annotated with @%s: %s", getUnderlyingClass(),
 						DynamicLabels.class.getSimpleName(), namesOfPropertiesWithDynamicLabels));
 	}
 

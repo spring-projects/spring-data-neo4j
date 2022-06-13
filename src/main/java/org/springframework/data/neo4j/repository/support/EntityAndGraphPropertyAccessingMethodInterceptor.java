@@ -59,7 +59,7 @@ final class EntityAndGraphPropertyAccessingMethodInterceptor implements MethodIn
 
 	private EntityAndGraphPropertyAccessingMethodInterceptor(Object target, Neo4jMappingContext ctx) {
 
-		Assert.notNull(target, "Proxy target must not be null!");
+		Assert.notNull(target, "Proxy target must not be null");
 		this.target = new GraphPropertyAndDirectFieldAccessFallbackBeanWrapper(target, ctx);
 	}
 
@@ -76,7 +76,7 @@ final class EntityAndGraphPropertyAccessingMethodInterceptor implements MethodIn
 		PropertyDescriptor descriptor = BeanUtils.findPropertyForMethod(method);
 
 		if (descriptor == null) {
-			throw new IllegalStateException("Invoked method is not a property accessor!");
+			throw new IllegalStateException("Invoked method is not a property accessor");
 		}
 
 		if (!isSetterMethod(method, descriptor)) {
@@ -84,7 +84,7 @@ final class EntityAndGraphPropertyAccessingMethodInterceptor implements MethodIn
 		}
 
 		if (invocation.getArguments().length != 1) {
-			throw new IllegalStateException("Invoked setter method requires exactly one argument!");
+			throw new IllegalStateException("Invoked setter method requires exactly one argument");
 		}
 
 		target.setPropertyValue(descriptor.getName(), invocation.getArguments()[0]);

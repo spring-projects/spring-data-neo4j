@@ -1038,8 +1038,8 @@ class RepositoryIT {
 						.single().get("n").asNode().id());
 
 			assertThatThrownBy(() -> repository.findById(startId))
-					.hasRootCauseMessage("The node with id " + startId + " has a logical cyclic mapping dependency. " +
-							"Its creation caused the creation of another node that has a reference to this.")
+					.hasRootCauseMessage("The node with id " + startId + " has a logical cyclic mapping dependency; " +
+							"its creation caused the creation of another node that has a reference to this")
 					.hasRootCauseInstanceOf(MappingException.class);
 
 		}
@@ -3438,7 +3438,7 @@ class RepositoryIT {
 			assertThat(persons).hasSize(1).contains(person1);
 
 			assertThatIllegalArgumentException().isThrownBy(() -> repository.findAllByPlaceWithin(p)).withMessage(
-					"The WITHIN operation does not support a class org.springframework.data.geo.Polygon. You might want to pass a bounding box instead: class org.springframework.data.neo4j.repository.query.BoundingBox.of(polygon).");
+					"The WITHIN operation does not support a class org.springframework.data.geo.Polygon, you might want to pass a bounding box instead: class org.springframework.data.neo4j.repository.query.BoundingBox.of(polygon)");
 
 			persons = repository.findAllByPlaceNear(CLARION, distance);
 			assertThat(persons).isEmpty();

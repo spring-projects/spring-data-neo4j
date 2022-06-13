@@ -36,14 +36,14 @@ final class IdPopulator {
 
 	IdPopulator(Neo4jMappingContext neo4jMappingContext) {
 
-		Assert.notNull(neo4jMappingContext, "A mapping context is required.");
+		Assert.notNull(neo4jMappingContext, "A mapping context is required");
 
 		this.neo4jMappingContext = neo4jMappingContext;
 	}
 
 	Object populateIfNecessary(Object entity) {
 
-		Assert.notNull(entity, "Entity may not be null!");
+		Assert.notNull(entity, "Entity may not be null");
 
 		Neo4jPersistentEntity<?> nodeDescription = neo4jMappingContext.getRequiredPersistentEntity(entity.getClass());
 		IdDescription idDescription = nodeDescription.getIdDescription();
@@ -53,8 +53,7 @@ final class IdPopulator {
 				return entity;
 			} else {
 				throw new IllegalStateException(
-						"Cannot persist implicit entity due to missing id property on " + nodeDescription.getUnderlyingClass()
-								+ ".");
+						"Cannot persist implicit entity due to missing id property on " + nodeDescription.getUnderlyingClass());
 			}
 		}
 
@@ -79,11 +78,11 @@ final class IdPopulator {
 		if (optionalIdGeneratorRef.isPresent()) {
 
 			idGenerator = neo4jMappingContext.getIdGenerator(optionalIdGeneratorRef.get()).orElseThrow(
-					() -> new IllegalStateException("Id generator named " + optionalIdGeneratorRef.get() + " not found!"));
+					() -> new IllegalStateException("Id generator named " + optionalIdGeneratorRef.get() + " not found"));
 		} else {
 
 			idGenerator = neo4jMappingContext.getOrCreateIdGeneratorOfType(idDescription.getIdGeneratorClass().orElseThrow(
-					() -> new IllegalStateException("Neither generator reference nor generator class configured.")));
+					() -> new IllegalStateException("Neither generator reference nor generator class configured")));
 		}
 
 		propertyAccessor.setProperty(idProperty, idGenerator.generateId(nodeDescription.getPrimaryLabel(), entity));

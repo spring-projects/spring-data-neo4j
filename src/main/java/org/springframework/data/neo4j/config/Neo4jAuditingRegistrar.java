@@ -64,8 +64,8 @@ final class Neo4jAuditingRegistrar extends AuditingBeanDefinitionRegistrarSuppor
 	protected void registerAuditListenerBeanDefinition(BeanDefinition auditingHandlerDefinition,
 			BeanDefinitionRegistry registry) {
 
-		Assert.notNull(auditingHandlerDefinition, "BeanDefinition must not be null!");
-		Assert.notNull(registry, "BeanDefinitionRegistry must not be null!");
+		Assert.notNull(auditingHandlerDefinition, "BeanDefinition must not be null");
+		Assert.notNull(registry, "BeanDefinitionRegistry must not be null");
 
 		BeanDefinitionBuilder listenerBeanDefinitionBuilder = BeanDefinitionBuilder
 				.rootBeanDefinition(AuditingBeforeBindCallback.class);
@@ -82,7 +82,7 @@ final class Neo4jAuditingRegistrar extends AuditingBeanDefinitionRegistrarSuppor
 	@Override
 	protected BeanDefinitionBuilder getAuditHandlerBeanDefinitionBuilder(AuditingConfiguration configuration) {
 
-		Assert.notNull(configuration, "AuditingConfiguration must not be null!");
+		Assert.notNull(configuration, "AuditingConfiguration must not be null");
 
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(IsNewAwareAuditingHandler.class);
 

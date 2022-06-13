@@ -45,7 +45,7 @@ final class DefaultNeo4jPersistentPropertyConverterFactory implements Neo4jPersi
 		if (StringUtils.hasText(config.converterRef())) {
 			if (beanFactory == null) {
 				throw new IllegalStateException(
-						"The default converter factory has been configured without a bean factory and cannot use a converter from the application context.");
+						"The default converter factory has been configured without a bean factory and cannot use a converter from the application context");
 			}
 
 			return beanFactory.getBean(config.converterRef(), Neo4jPersistentPropertyConverter.class);

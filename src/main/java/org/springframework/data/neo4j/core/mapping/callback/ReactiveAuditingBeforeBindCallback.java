@@ -48,7 +48,7 @@ public final class ReactiveAuditingBeforeBindCallback implements ReactiveBeforeB
 	 */
 	public ReactiveAuditingBeforeBindCallback(ObjectFactory<ReactiveIsNewAwareAuditingHandler> auditingHandlerFactory) {
 
-		Assert.notNull(auditingHandlerFactory, "IsNewAwareAuditingHandler must not be null!");
+		Assert.notNull(auditingHandlerFactory, "IsNewAwareAuditingHandler must not be null");
 		this.auditingHandlerFactory = auditingHandlerFactory;
 	}
 

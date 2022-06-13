@@ -329,7 +329,7 @@ public final class ReactiveNeo4jTemplate implements
 	@Override
 	public <T, R> Mono<R> saveAs(T instance, Class<R> resultType) {
 
-		Assert.notNull(resultType, "ResultType must not be null!");
+		Assert.notNull(resultType, "ResultType must not be null");
 
 		if (instance == null) {
 			return null;
@@ -474,13 +474,13 @@ public final class ReactiveNeo4jTemplate implements
 	@Override
 	public <T, R> Flux<R> saveAllAs(Iterable<T> instances, Class<R> resultType) {
 
-		Assert.notNull(resultType, "ResultType must not be null!");
+		Assert.notNull(resultType, "ResultType must not be null");
 
 		Class<?> commonElementType = TemplateSupport.findCommonElementType(instances);
 
 		if (commonElementType == null) {
 			return Flux.error(() -> new IllegalArgumentException(
-					"Could not determine a common element of an heterogeneous collection."));
+					"Could not determine a common element of an heterogeneous collection"));
 		}
 
 		if (commonElementType == TemplateSupport.EmptyIterable.class) {
@@ -591,7 +591,7 @@ public final class ReactiveNeo4jTemplate implements
 	@Override
 	public <T> Mono<Void> deleteById(Object id, Class<T> domainType) {
 
-		Assert.notNull(id, "The given id must not be null!");
+		Assert.notNull(id, "The given id must not be null");
 
 		String nameOfParameter = "id";
 		Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getRequiredPersistentEntity(domainType);

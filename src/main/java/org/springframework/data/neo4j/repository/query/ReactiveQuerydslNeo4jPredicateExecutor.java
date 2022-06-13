@@ -137,6 +137,6 @@ public final class ReactiveQuerydslNeo4jPredicateExecutor<T> implements Reactive
 			return queryFunction.apply(fluentQuery);
 		}
 		throw new UnsupportedOperationException(
-				"Fluent find by example not supported with standard Neo4jOperations. Must support fluent queries too.");
+				"Fluent find by example not supported with standard Neo4jOperations, must support fluent queries too");
 	}
 }

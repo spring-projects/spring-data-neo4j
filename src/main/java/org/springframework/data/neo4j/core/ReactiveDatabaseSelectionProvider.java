@@ -46,8 +46,8 @@ public interface ReactiveDatabaseSelectionProvider {
 	 */
 	static ReactiveDatabaseSelectionProvider createStaticDatabaseSelectionProvider(String databaseName) {
 
-		Assert.notNull(databaseName, "The database name must not be null.");
-		Assert.hasText(databaseName, "The database name must not be empty.");
+		Assert.notNull(databaseName, "The database name must not be null");
+		Assert.hasText(databaseName, "The database name must not be empty");
 
 		return () -> Mono.just(DatabaseSelection.byName(databaseName));
 	}

@@ -124,7 +124,7 @@ final class ReactiveRepositoryQueryTest {
 			assertThatExceptionOfType(MappingException.class)
 					.isThrownBy(() -> ReactiveStringBasedNeo4jQuery
 							.create(neo4jOperations, neo4jMappingContext, ReactiveQueryMethodEvaluationContextProvider.DEFAULT, method, projectionFactory))
-					.withMessage("Expected @Query annotation to have a value, but it did not.");
+					.withMessage("Expected @Query annotation to have a value, but it did not");
 		}
 
 		@Test // DATAGRAPH-1440

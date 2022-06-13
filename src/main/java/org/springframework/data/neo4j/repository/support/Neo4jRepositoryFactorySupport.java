@@ -28,7 +28,7 @@ final class Neo4jRepositoryFactorySupport {
 			return;
 		}
 
-		String errorMessage = String.format("The repository id type %s differs from the entity id type %s.",
+		String errorMessage = String.format("The repository id type %s differs from the entity id type %s",
 				repositoryIdType, entityIdType);
 
 		throw new IllegalArgumentException(errorMessage);

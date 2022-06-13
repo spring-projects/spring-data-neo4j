@@ -88,7 +88,7 @@ class Neo4jRepositoryFactoryTest {
 
 			assertThatThrownBy(() -> neo4jRepositoryFactory.getTargetRepository(metadata))
 					.hasMessage(
-							"The repository id type class java.lang.String differs from the entity id type class java.lang.Long.")
+							"The repository id type class java.lang.String differs from the entity id type class java.lang.Long")
 					.isInstanceOf(IllegalArgumentException.class);
 		}
 	}
@@ -115,42 +115,42 @@ class Neo4jRepositoryFactoryTest {
 		void validateIgnoreCaseShouldWork() {
 
 			assertThatExceptionOfType(QueryCreationException.class).isThrownBy(() -> repositoryFactory.getRepository(InvalidIgnoreCase.class))
-					.withMessageMatching("Could not create query for .*: Only the case of String based properties can be ignored within the following keywords: \\[IsNotLike, NotLike, IsLike, Like, IsStartingWith, StartingWith, StartsWith, IsEndingWith, EndingWith, EndsWith, IsNotContaining, NotContaining, NotContains, IsContaining, Containing, Contains, IsNot, Not, Is, Equals\\].");
+					.withMessageMatching("Could not create query for .*: Only the case of String based properties can be ignored within the following keywords: \\[IsNotLike, NotLike, IsLike, Like, IsStartingWith, StartingWith, StartsWith, IsEndingWith, EndingWith, EndsWith, IsNotContaining, NotContaining, NotContains, IsContaining, Containing, Contains, IsNot, Not, Is, Equals]");
 		}
 
 		@Test
 		void validateTemporalShouldWork() {
 
 			assertThatExceptionOfType(QueryCreationException.class).isThrownBy(() -> repositoryFactory.getRepository(InvalidTemporal.class))
-					.withMessageMatching("Could not create query for .*: The keywords \\[IsAfter, After] work only with properties with one of the following types: \\[class java.time.Instant, class java.time.LocalDate, class java.time.LocalDateTime, class java.time.OffsetTime, class java.time.ZonedDateTime\\].");
+					.withMessageMatching("Could not create query for .*: The keywords \\[IsAfter, After] work only with properties with one of the following types: \\[class java.time.Instant, class java.time.LocalDate, class java.time.LocalDateTime, class java.time.OffsetTime, class java.time.ZonedDateTime]");
 		}
 
 		@Test
 		void validateCollectionShouldWork() {
 
 			assertThatExceptionOfType(QueryCreationException.class).isThrownBy(() -> repositoryFactory.getRepository(InvalidCollection.class))
-					.withMessageMatching("Could not create query for .*: The keywords \\[IsEmpty, Empty] work only with collection properties.");
+					.withMessageMatching("Could not create query for .*: The keywords \\[IsEmpty, Empty] work only with collection properties");
 		}
 
 		@Test
 		void validateSpatialShouldWork() {
 
 			assertThatExceptionOfType(QueryCreationException.class).isThrownBy(() -> repositoryFactory.getRepository(InvalidSpatial.class))
-					.withMessageMatching("Could not create query for .* \\[IsNear, Near] works only with spatial properties.");
+					.withMessageMatching("Could not create query for .* \\[IsNear, Near] works only with spatial properties");
 		}
 
 		@Test
 		void validateNotACompositePropertyShouldWork() {
 
 			assertThatExceptionOfType(QueryCreationException.class).isThrownBy(() -> repositoryFactory.getRepository(DerivedWithComposite.class))
-					.withMessageMatching("Could not create query for .*: Derived queries are not supported for composite properties.");
+					.withMessageMatching("Could not create query for .*: Derived queries are not supported for composite properties");
 		}
 
 		@Test // GH-2281
 		void validateDeleteReturnType() {
 
 			assertThatExceptionOfType(QueryCreationException.class).isThrownBy(() -> repositoryFactory.getRepository(InvalidDeleteBy.class))
-					.withMessageMatching("Could not create query for .*: A derived delete query can only return the number of deleted nodes as a long or void.");
+					.withMessageMatching("Could not create query for .*: A derived delete query can only return the number of deleted nodes as a long or void");
 		}
 	}
 

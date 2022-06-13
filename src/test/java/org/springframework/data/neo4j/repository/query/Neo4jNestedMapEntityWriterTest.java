@@ -99,7 +99,7 @@ class Neo4jNestedMapEntityWriterTest {
 		EntityWriter<Object, Map<String, Object>> writer = Neo4jNestedMapEntityWriter.forContext(new Neo4jMappingContext());
 		assertThatExceptionOfType(MappingException.class)
 				.isThrownBy(() -> writer.write(entity, new HashMap<>()))
-				.withMessageMatching("Cannot write unknown entity of type '.+' into a map\\.");
+				.withMessageMatching("Cannot write unknown entity of type '.+' into a map");
 	}
 
 	@Test // GH-2323

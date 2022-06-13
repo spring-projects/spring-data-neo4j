@@ -42,7 +42,7 @@ class DatabaseSelectionProviderTest {
 
 			assertThatIllegalArgumentException()
 					.isThrownBy(() -> DatabaseSelectionProvider.createStaticDatabaseSelectionProvider(null))
-					.withMessage("The database name must not be null.");
+					.withMessage("The database name must not be null");
 		}
 
 		@Test
@@ -50,7 +50,7 @@ class DatabaseSelectionProviderTest {
 
 			assertThatIllegalArgumentException()
 					.isThrownBy(() -> DatabaseSelectionProvider.createStaticDatabaseSelectionProvider(" \t"))
-					.withMessage("The database name must not be empty.");
+					.withMessage("The database name must not be empty");
 		}
 
 		@Test

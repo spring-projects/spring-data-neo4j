@@ -712,7 +712,7 @@ class ReactiveNeo4jTemplateIT {
 
 		template.saveAllAs(things, ClosedProjection.class)
 				.as(StepVerifier::create)
-				.verifyErrorMatches(t -> t instanceof IllegalArgumentException && t.getMessage().equals("Could not determine a common element of an heterogeneous collection."));
+				.verifyErrorMatches(t -> t instanceof IllegalArgumentException && t.getMessage().equals("Could not determine a common element of an heterogeneous collection"));
 	}
 
 	@Test

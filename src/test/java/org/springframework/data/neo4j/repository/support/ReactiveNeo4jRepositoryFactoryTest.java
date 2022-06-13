@@ -74,7 +74,7 @@ class ReactiveNeo4jRepositoryFactoryTest {
 
 			assertThatThrownBy(() -> neo4jRepositoryFactory.getTargetRepository(metadata))
 					.hasMessage(
-							"The repository id type class java.lang.String differs from the entity id type class java.lang.Long.")
+							"The repository id type class java.lang.String differs from the entity id type class java.lang.Long")
 					.isInstanceOf(IllegalArgumentException.class);
 		}
 	}

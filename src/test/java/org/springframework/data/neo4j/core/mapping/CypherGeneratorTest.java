@@ -166,14 +166,14 @@ class CypherGeneratorTest {
 	void shouldFailOnInvalidPath() {
 
 		assertThatIllegalArgumentException().isThrownBy(() -> CypherGenerator.INSTANCE.createOrderByFragment(Sort.by("n.")))
-				.withMessageMatching("Cannot handle order property `.*`, it must be a simple property or one-hop path\\.");
+				.withMessageMatching("Cannot handle order property `.*`, it must be a simple property or one-hop path");
 	}
 
 	@Test
 	void shouldFailOnInvalidPathWithMultipleHops() {
 
 		assertThatIllegalArgumentException().isThrownBy(() -> CypherGenerator.INSTANCE.createOrderByFragment(Sort.by("n.n.n")))
-				.withMessageMatching("Cannot handle order property `.*`, it must be a simple property or one-hop path\\.");
+				.withMessageMatching("Cannot handle order property `.*`, it must be a simple property or one-hop path");
 	}
 
 	@Test // GH-2474
@@ -206,7 +206,7 @@ class CypherGeneratorTest {
 	void shouldFailOnInvalidSymbolicNames() {
 
 		assertThatIllegalArgumentException().isThrownBy(() -> CypherGenerator.INSTANCE.createOrderByFragment(Sort.by("()")))
-				.withMessage("Name must be a valid identifier.");
+				.withMessage("Name must be a valid identifier");
 	}
 
 	@Test

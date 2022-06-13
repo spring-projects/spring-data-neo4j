@@ -82,8 +82,8 @@ public final class NestedRelationshipProcessingStateMachine {
 	public NestedRelationshipProcessingStateMachine(final Neo4jMappingContext mappingContext, Object initialObject, Long internalId) {
 		this(mappingContext);
 
-		Assert.notNull(initialObject, "Initial object must not be null.");
-		Assert.notNull(internalId, "The initial objects internal ID must not be null.");
+		Assert.notNull(initialObject, "Initial object must not be null");
+		Assert.notNull(internalId, "The initial objects internal ID must not be null");
 
 		processedObjects.add(initialObject);
 		processedObjectsIds.put(initialObject, internalId);

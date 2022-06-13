@@ -95,14 +95,14 @@ public final class Neo4jTransactionUtils {
 
 		if (definition.getIsolationLevel() != TransactionDefinition.ISOLATION_DEFAULT) {
 			throw new InvalidIsolationLevelException(
-					"Neo4jTransactionManager is not allowed to support custom isolation levels.");
+					"Neo4jTransactionManager is not allowed to support custom isolation levels");
 		}
 
 		int propagationBehavior = definition.getPropagationBehavior();
 		if (!(propagationBehavior == TransactionDefinition.PROPAGATION_REQUIRED
 				|| propagationBehavior == TransactionDefinition.PROPAGATION_REQUIRES_NEW)) {
 			throw new IllegalTransactionStateException(
-					"Neo4jTransactionManager only supports 'required' or 'requires new' propagation.");
+					"Neo4jTransactionManager only supports 'required' or 'requires new' propagation");
 		}
 
 		TransactionConfig.Builder builder = TransactionConfig.builder();

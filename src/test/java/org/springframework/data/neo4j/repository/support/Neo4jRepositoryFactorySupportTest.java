@@ -34,7 +34,7 @@ class Neo4jRepositoryFactorySupportTest {
 
 			assertThatIllegalArgumentException()
 					.isThrownBy(() -> Neo4jRepositoryFactorySupport.assertIdentifierType(String.class, Long.class)).withMessage(
-							"The repository id type class java.lang.String differs from the entity id type class java.lang.Long.");
+							"The repository id type class java.lang.String differs from the entity id type class java.lang.Long");
 		}
 
 		@Test
@@ -42,7 +42,7 @@ class Neo4jRepositoryFactorySupportTest {
 
 			assertThatIllegalArgumentException()
 					.isThrownBy(() -> Neo4jRepositoryFactorySupport.assertIdentifierType(int.class, long.class))
-					.withMessage("The repository id type int differs from the entity id type long.");
+					.withMessage("The repository id type int differs from the entity id type long");
 		}
 
 		@Test
@@ -50,7 +50,7 @@ class Neo4jRepositoryFactorySupportTest {
 
 			assertThatIllegalArgumentException()
 					.isThrownBy(() -> Neo4jRepositoryFactorySupport.assertIdentifierType(Integer.class, long.class))
-					.withMessage("The repository id type class java.lang.Integer differs from the entity id type long.");
+					.withMessage("The repository id type class java.lang.Integer differs from the entity id type long");
 		}
 
 		@Test

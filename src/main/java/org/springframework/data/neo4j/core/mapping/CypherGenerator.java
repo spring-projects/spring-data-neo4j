@@ -210,7 +210,7 @@ public enum CypherGenerator {
 	public Statement createStatementReturningDynamicLabels(NodeDescription<?> nodeDescription) {
 
 		IdDescription idDescription = nodeDescription.getIdDescription();
-		Assert.notNull(idDescription, "Cannot load specific nodes by id without a corresponding attribute.");
+		Assert.notNull(idDescription, "Cannot load specific nodes by id without a corresponding attribute");
 
 		final Node rootNode = createRootNode(nodeDescription);
 
@@ -259,12 +259,12 @@ public enum CypherGenerator {
 
 		Node rootNode = node(primaryLabel, additionalLabels).named(Constants.NAME_OF_TYPED_ROOT_NODE.apply(nodeDescription));
 		IdDescription idDescription = nodeDescription.getIdDescription();
-		Assert.notNull(idDescription, "Cannot save individual nodes without an id attribute.");
+		Assert.notNull(idDescription, "Cannot save individual nodes without an id attribute");
 		Parameter<?> idParameter = parameter(Constants.NAME_OF_ID);
 
 		if (!idDescription.isInternallyGeneratedId()) {
 			String nameOfIdProperty = idDescription.getOptionalGraphPropertyName()
-					.orElseThrow(() -> new MappingException("External id does not correspond to a graph property!"));
+					.orElseThrow(() -> new MappingException("External id does not correspond to a graph property"));
 
 			if (((Neo4jPersistentEntity<?>) nodeDescription).hasVersionProperty()) {
 				Property versionProperty = rootNode.property(((Neo4jPersistentEntity<?>) nodeDescription).getRequiredVersionProperty().getName());
@@ -343,7 +343,7 @@ public enum CypherGenerator {
 	public Statement prepareSaveOfMultipleInstancesOf(NodeDescription<?> nodeDescription) {
 
 		Assert.isTrue(!nodeDescription.isUsingInternalIds(),
-				"Only entities that use external IDs can be saved in a batch.");
+				"Only entities that use external IDs can be saved in a batch");
 
 		Node rootNode = node(nodeDescription.getPrimaryLabel(), nodeDescription.getAdditionalLabels())
 				.named(Constants.NAME_OF_TYPED_ROOT_NODE.apply(nodeDescription));
@@ -351,7 +351,7 @@ public enum CypherGenerator {
 
 		@SuppressWarnings("ConstantConditions") // We now already that the node is using internal ids, and as such, an IdDescription must be present
 		String nameOfIdProperty = idDescription.getOptionalGraphPropertyName()
-				.orElseThrow(() -> new MappingException("External id does not correspond to a graph property!"));
+				.orElseThrow(() -> new MappingException("External id does not correspond to a graph property"));
 
 		String row = "entity";
 		return Cypher.unwind(parameter(Constants.NAME_OF_ENTITY_LIST_PARAM)).as(row)
@@ -490,13 +490,21 @@ public enum CypherGenerator {
 								tail = tail.replaceFirst("`(.+)`", "$1");
 							} else {
 								throw new IllegalArgumentException(String.format(
-										"Cannot handle order property `%s`, it must be a simple property or one-hop path.",
+										"Cannot handle order property `%s`, it must be a simple property or one-hop path",
 										property));
 							}
 						}
 						expression = Cypher.property(property.substring(0, firstDot), tail);
 					} else {
-						expression = Cypher.name(property);
+						try {
+							expression = Cypher.name(property);
+						} catch (IllegalArgumentException e) {
+							if (e.getMessage().endsWith(".")) {
+								throw new IllegalArgumentException(
+										e.getMessage().substring(0, e.getMessage().length() - 1));
+							}
+							throw e;
+						}
 					}
 					if (order.isIgnoreCase()) {
 						expression = Functions.toLower(expression);

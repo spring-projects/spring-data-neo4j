@@ -977,8 +977,8 @@ class ReactiveRepositoryIT {
 					.verifyErrorMatches(error -> {
 						Throwable cause = error.getCause();
 						return cause instanceof MappingException && cause.getMessage().equals(
-								"The node with id " + startId + " has a logical cyclic mapping dependency. " +
-							"Its creation caused the creation of another node that has a reference to this.");
+								"The node with id " + startId + " has a logical cyclic mapping dependency; " +
+							"its creation caused the creation of another node that has a reference to this");
 					});
 
 		}

@@ -64,15 +64,15 @@ final class CypherdslBasedQuery extends AbstractNeo4jQuery {
 
 		Object[] parameters = parameterAccessor.getValues();
 
-		Assert.notEmpty(parameters, "Cypher based query methods must provide at least a statement parameter.");
+		Assert.notEmpty(parameters, "Cypher based query methods must provide at least a statement parameter");
 		Statement statement;
 		if (queryMethod.isPageQuery()) {
 			Assert.isInstanceOf(OngoingReadingAndReturn.class, parameters[0],
-					"The first parameter to a Cypher based method must be an ongoing reading with a defined return clause.");
+					"The first parameter to a Cypher based method must be an ongoing reading with a defined return clause");
 			Assert.isInstanceOf(Statement.class, parameters[1],
-					"The second parameter to a Cypher based method must be a statement.");
+					"The second parameter to a Cypher based method must be a statement");
 			Assert.isInstanceOf(Pageable.class, parameters[2],
-					"The third parameter to a Cypher based method must be a page request.");
+					"The third parameter to a Cypher based method must be a page request");
 			Pageable pageable = (Pageable) parameters[2];
 			statement = ((OngoingReadingAndReturn) parameters[0])
 					.orderBy(CypherAdapterUtils.toSortItems(mappingContext.getNodeDescription(getDomainType(queryMethod)), pageable.getSort()))
@@ -80,7 +80,7 @@ final class CypherdslBasedQuery extends AbstractNeo4jQuery {
 					.limit(limitModifier.apply(pageable.getPageSize()))
 					.build();
 		} else {
-			Assert.isInstanceOf(Statement.class, parameters[0], "The first parameter to a Cypher based method must be a statement.");
+			Assert.isInstanceOf(Statement.class, parameters[0], "The first parameter to a Cypher based method must be a statement");
 			statement = (Statement) parameters[0];
 		}
 

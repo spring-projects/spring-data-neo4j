@@ -139,7 +139,7 @@ public class SimpleNeo4jRepository<T, ID> implements PagingAndSortingRepository<
 	public void delete(T entity) {
 
 		ID id = this.entityInformation.getId(entity);
-		Assert.notNull(id, "Cannot delete individual nodes without an id.");
+		Assert.notNull(id, "Cannot delete individual nodes without an id");
 		if (entityMetaData.hasVersionProperty()) {
 			Neo4jPersistentProperty versionProperty = entityMetaData.getRequiredVersionProperty();
 			Object versionValue = entityMetaData.getPropertyAccessor(entity).getProperty(versionProperty);

@@ -67,7 +67,7 @@ final class ReactiveNeo4jQueryMethod extends Neo4jQueryMethod {
 
 			if (singleWrapperWithWrappedPageableResult) {
 				throw new InvalidDataAccessApiUsageException(
-						String.format("'%s.%s' must not use sliced or paged execution. Please use Flux.buffer(size, skip).",
+						String.format("'%s.%s' must not use sliced or paged execution, please use Flux.buffer(size, skip)",
 								ClassUtils.getShortName(method.getDeclaringClass()), method.getName()));
 			}
 

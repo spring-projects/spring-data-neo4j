@@ -412,7 +412,7 @@ public interface Neo4jClient {
 		private final String illegalDatabaseName;
 
 		private IllegalDatabaseNameException(String illegalDatabaseName) {
-			super("Either use null to indicate the default database or a valid database name. The empty string is not permitted.");
+			super("Either use null to indicate the default database or a valid database name, the empty string is not permitted");
 			this.illegalDatabaseName = illegalDatabaseName;
 		}
 

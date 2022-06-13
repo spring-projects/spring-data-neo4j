@@ -819,7 +819,7 @@ class Neo4jTemplateIT {
 		things.add(new Y());
 
 		assertThatIllegalArgumentException().isThrownBy(() -> neo4jTemplate.saveAllAs(things, ClosedProjection.class))
-				.withMessage("Could not determine a common element of an heterogeneous collection.");
+				.withMessage("Could not determine a common element of an heterogeneous collection");
 	}
 
 	@Test

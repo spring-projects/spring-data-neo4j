@@ -42,7 +42,7 @@ final class ReactiveFluentOperationSupport implements ReactiveFluentFindOperatio
 	@Override
 	public <T> ExecutableFind<T> find(Class<T> domainType) {
 
-		Assert.notNull(domainType, "DomainType must not be null!");
+		Assert.notNull(domainType, "DomainType must not be null");
 
 		return new ExecutableFindSupport<>(template, domainType, domainType, null, Collections.emptyMap());
 	}
@@ -80,7 +80,7 @@ final class ReactiveFluentOperationSupport implements ReactiveFluentFindOperatio
 		@SuppressWarnings("HiddenField")
 		public <T1> FindWithQuery<T1> as(Class<T1> returnType) {
 
-			Assert.notNull(returnType, "ReturnType must not be null!");
+			Assert.notNull(returnType, "ReturnType must not be null");
 
 			return new ExecutableFindSupport<>(template, domainType, returnType, query, parameters);
 		}
@@ -89,7 +89,7 @@ final class ReactiveFluentOperationSupport implements ReactiveFluentFindOperatio
 		@SuppressWarnings("HiddenField")
 		public TerminatingFind<T> matching(String query, Map<String, Object> parameters) {
 
-			Assert.notNull(query, "Query must not be null!");
+			Assert.notNull(query, "Query must not be null");
 
 			return new ExecutableFindSupport<>(template, domainType, returnType, query, parameters);
 		}
@@ -118,7 +118,7 @@ final class ReactiveFluentOperationSupport implements ReactiveFluentFindOperatio
 
 	@Override
 	public <T> ExecutableSave<T> save(Class<T> domainType) {
-		Assert.notNull(domainType, "DomainType must not be null!");
+		Assert.notNull(domainType, "DomainType must not be null");
 
 		return new ExecutableSaveSupport<>(this.template, domainType);
 	}

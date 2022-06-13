@@ -39,7 +39,7 @@ final class FluentOperationSupport implements FluentFindOperation, FluentSaveOpe
 	@Override
 	public <T> ExecutableFind<T> find(Class<T> domainType) {
 
-		Assert.notNull(domainType, "DomainType must not be null!");
+		Assert.notNull(domainType, "DomainType must not be null");
 
 		return new ExecutableFindSupport<>(template, domainType, domainType, null, Collections.emptyMap());
 	}
@@ -77,7 +77,7 @@ final class FluentOperationSupport implements FluentFindOperation, FluentSaveOpe
 		@SuppressWarnings("HiddenField")
 		public <T1> FindWithQuery<T1> as(Class<T1> returnType) {
 
-			Assert.notNull(returnType, "ReturnType must not be null!");
+			Assert.notNull(returnType, "ReturnType must not be null");
 
 			return new ExecutableFindSupport<>(template, domainType, returnType, query, parameters);
 		}
@@ -86,7 +86,7 @@ final class FluentOperationSupport implements FluentFindOperation, FluentSaveOpe
 		@SuppressWarnings("HiddenField")
 		public TerminatingFind<T> matching(String query, Map<String, Object> parameters) {
 
-			Assert.notNull(query, "Query must not be null!");
+			Assert.notNull(query, "Query must not be null");
 
 			return new ExecutableFindSupport<>(template, domainType, returnType, query, parameters);
 		}
@@ -95,7 +95,7 @@ final class FluentOperationSupport implements FluentFindOperation, FluentSaveOpe
 		@SuppressWarnings("HiddenField")
 		public TerminatingFind<T> matching(QueryFragmentsAndParameters queryFragmentsAndParameters) {
 
-			Assert.notNull(queryFragmentsAndParameters, "Query fragments must not be null!");
+			Assert.notNull(queryFragmentsAndParameters, "Query fragments must not be null");
 
 			return new ExecutableFindSupport<>(template, domainType, returnType, queryFragmentsAndParameters);
 		}
@@ -123,7 +123,7 @@ final class FluentOperationSupport implements FluentFindOperation, FluentSaveOpe
 	@Override
 	public <T> ExecutableSave<T> save(Class<T> domainType) {
 
-		Assert.notNull(domainType, "DomainType must not be null!");
+		Assert.notNull(domainType, "DomainType must not be null");
 
 		return new ExecutableSaveSupport<>(this.template, domainType);
 	}

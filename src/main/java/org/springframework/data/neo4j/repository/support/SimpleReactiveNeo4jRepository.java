@@ -157,7 +157,7 @@ public class SimpleReactiveNeo4jRepository<T, ID> implements ReactiveSortingRepo
 	@Transactional
 	public Mono<Void> deleteById(Publisher<ID> idPublisher) {
 
-		Assert.notNull(idPublisher, "The given Publisher of an id must not be null!");
+		Assert.notNull(idPublisher, "The given Publisher of an id must not be null");
 		return Mono.from(idPublisher).flatMap(this::deleteById);
 	}
 
@@ -168,10 +168,10 @@ public class SimpleReactiveNeo4jRepository<T, ID> implements ReactiveSortingRepo
 	@Override
 	@Transactional
 	public Mono<Void> delete(T entity) {
-		Assert.notNull(entity, "The given entity must not be null!");
+		Assert.notNull(entity, "The given entity must not be null");
 
 		ID id = this.entityInformation.getId(entity);
-		Assert.notNull(id, "Cannot delete individual nodes without an id.");
+		Assert.notNull(id, "Cannot delete individual nodes without an id");
 		if (entityMetaData.hasVersionProperty()) {
 			Neo4jPersistentProperty versionProperty = entityMetaData.getRequiredVersionProperty();
 			Object versionValue = entityMetaData.getPropertyAccessor(entity).getProperty(versionProperty);
@@ -189,7 +189,7 @@ public class SimpleReactiveNeo4jRepository<T, ID> implements ReactiveSortingRepo
 	@Transactional
 	public Mono<Void> deleteAllById(Iterable<? extends ID> ids) {
 
-		Assert.notNull(ids, "The given Iterable of ids must not be null!");
+		Assert.notNull(ids, "The given Iterable of ids must not be null");
 
 		return this.neo4jOperations.deleteAllById(ids, this.entityInformation.getJavaType());
 	}
@@ -202,7 +202,7 @@ public class SimpleReactiveNeo4jRepository<T, ID> implements ReactiveSortingRepo
 	@Transactional
 	public Mono<Void> deleteAll(Iterable<? extends T> entities) {
 
-		Assert.notNull(entities, "The given Iterable of entities must not be null!");
+		Assert.notNull(entities, "The given Iterable of entities must not be null");
 
 		List<ID> ids = StreamSupport.stream(entities.spliterator(), false).map(this.entityInformation::getId)
 				.collect(Collectors.toList());
@@ -217,7 +217,7 @@ public class SimpleReactiveNeo4jRepository<T, ID> implements ReactiveSortingRepo
 	@Transactional
 	public Mono<Void> deleteAll(Publisher<? extends T> entitiesPublisher) {
 
-		Assert.notNull(entitiesPublisher, "The given Publisher of entities must not be null!");
+		Assert.notNull(entitiesPublisher, "The given Publisher of entities must not be null");
 		return Flux.from(entitiesPublisher).flatMap(this::delete).then();
 	}
 

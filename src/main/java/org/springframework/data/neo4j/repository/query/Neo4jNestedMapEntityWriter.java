@@ -94,7 +94,7 @@ final class Neo4jNestedMapEntityWriter implements EntityWriter<Object, Map<Strin
 		}
 		Class<?> sourceType = source.getClass();
 		if (!this.mappingContext.hasPersistentEntityFor(sourceType)) {
-			throw new MappingException("Cannot write unknown entity of type '" + sourceType.getName() + "' into a map.");
+			throw new MappingException("Cannot write unknown entity of type '" + sourceType.getName() + "' into a map");
 		}
 
 		Neo4jPersistentEntity<?> entity = this.mappingContext.getRequiredPersistentEntity(sourceType);

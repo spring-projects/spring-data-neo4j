@@ -87,10 +87,10 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 	DefaultNeo4jEntityConverter(EntityInstantiators entityInstantiators, NodeDescriptionStore nodeDescriptionStore,
 			Neo4jConversionService conversionService, EventSupport eventSupport, TypeSystem typeSystem) {
 
-		Assert.notNull(entityInstantiators, "EntityInstantiators must not be null!");
-		Assert.notNull(conversionService, "Neo4jConversionService must not be null!");
-		Assert.notNull(nodeDescriptionStore, "NodeDescriptionStore must not be null!");
-		Assert.notNull(typeSystem, "TypeSystem must not be null!");
+		Assert.notNull(entityInstantiators, "EntityInstantiators must not be null");
+		Assert.notNull(conversionService, "Neo4jConversionService must not be null");
+		Assert.notNull(nodeDescriptionStore, "NodeDescriptionStore must not be null");
+		Assert.notNull(typeSystem, "TypeSystem must not be null");
 
 		this.entityInstantiators = entityInstantiators;
 		this.conversionService = conversionService;
@@ -160,7 +160,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 		MapAccessor queryRoot = null;
 
 		if (finalCandidates.size() > 1) {
-			throw new MappingException("More than one matching node in the record.");
+			throw new MappingException("More than one matching node in the record");
 		} else if (!finalCandidates.isEmpty()) {
 			if (mapAccessor.size() > 1) {
 				queryRoot = mergeRootNodeWithRecord(finalCandidates.get(0), mapAccessor);
@@ -269,8 +269,8 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 			if (knownObjects.isInCreation(internalId)) {
 				throw new MappingException(
 						String.format(
-								"The node with id %s has a logical cyclic mapping dependency. " +
-								"Its creation caused the creation of another node that has a reference to this.",
+								"The node with id %s has a logical cyclic mapping dependency; " +
+								"its creation caused the creation of another node that has a reference to this",
 								internalId)
 				);
 			}
@@ -510,7 +510,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 				// avoid multiple instances of the "same" object
 				boolean willCreateNewInstance = persistentProperty.getWither() != null;
 				if (willCreateNewInstance) {
-					throw new MappingException("Cannot create a new instance of an already existing object.");
+					throw new MappingException("Cannot create a new instance of an already existing object");
 				}
 			}
 

@@ -54,7 +54,7 @@ abstract class AbstractReactiveNeo4jQuery extends Neo4jQuerySupport implements R
 
 		super(mappingContext, queryMethod, queryType);
 
-		Assert.notNull(neo4jOperations, "The Neo4j operations are required.");
+		Assert.notNull(neo4jOperations, "The Neo4j operations are required");
 		this.neo4jOperations = neo4jOperations;
 		this.factory = factory;
 	}

@@ -68,7 +68,7 @@ abstract class AbstractNeo4jQuery extends Neo4jQuerySupport implements Repositor
 		super(mappingContext, queryMethod, queryType);
 		this.factory = factory;
 
-		Assert.notNull(neo4jOperations, "The Neo4j operations are required.");
+		Assert.notNull(neo4jOperations, "The Neo4j operations are required");
 		this.neo4jOperations = neo4jOperations;
 	}
 

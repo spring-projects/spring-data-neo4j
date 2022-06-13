@@ -118,7 +118,7 @@ final class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProp
 		} else {
 			Class<?> associationTargetType = this.getAssociationTargetType();
 			obverseOwner = this.mappingContext.addPersistentEntity(TypeInformation.of(associationTargetType)).orElse(null);
-			Assert.notNull(obverseOwner, "Obverse owner could not be added.");
+			Assert.notNull(obverseOwner, "Obverse owner could not be added");
 			if (dynamicAssociation) {
 
 				TypeInformation<?> mapValueType = this.getTypeInformation().getMapValueType();
@@ -254,7 +254,7 @@ final class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProp
 
 		String propertyName = this.graphPropertyName.getNullable();
 		if (propertyName == null) {
-			throw new MappingException("The attribute '" + this.getFieldName() + "' is not mapped to a Graph property!");
+			throw new MappingException("The attribute '" + this.getFieldName() + "' is not mapped to a Graph property");
 		}
 
 		return propertyName;
@@ -280,7 +280,7 @@ final class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProp
 
 	static String deriveRelationshipType(String name) {
 
-		Assert.hasText(name, "The name to derive the type from is required.");
+		Assert.hasText(name, "The name to derive the type from is required");
 
 		StringBuilder sb = new StringBuilder();
 

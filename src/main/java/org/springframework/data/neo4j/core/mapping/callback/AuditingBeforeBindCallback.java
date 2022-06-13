@@ -47,7 +47,7 @@ public final class AuditingBeforeBindCallback implements BeforeBindCallback<Obje
 	 */
 	public AuditingBeforeBindCallback(ObjectFactory<IsNewAwareAuditingHandler> auditingHandlerFactory) {
 
-		Assert.notNull(auditingHandlerFactory, "IsNewAwareAuditingHandler must not be null!");
+		Assert.notNull(auditingHandlerFactory, "IsNewAwareAuditingHandler must not be null");
 		this.auditingHandlerFactory = auditingHandlerFactory;
 	}
 

@@ -272,7 +272,7 @@ final class RepositoryQueryTest {
 					.isThrownBy(() -> StringBasedNeo4jQuery
 							.create(neo4jOperations, neo4jMappingContext,
 									QueryMethodEvaluationContextProvider.DEFAULT, method, projectionFactory))
-					.withMessage("Expected @Query annotation to have a value, but it did not.");
+					.withMessage("Expected @Query annotation to have a value, but it did not");
 		}
 
 		@Test // DATAGRAPH-1409
@@ -283,7 +283,7 @@ final class RepositoryQueryTest {
 					.isThrownBy(() -> StringBasedNeo4jQuery
 							.create(neo4jOperations, neo4jMappingContext,
 									QueryMethodEvaluationContextProvider.DEFAULT, method, projectionFactory))
-					.withMessage("Expected paging query method to have a count query!");
+					.withMessage("Expected paging query method to have a count query");
 		}
 
 		@Test // DATAGRAPH-1409

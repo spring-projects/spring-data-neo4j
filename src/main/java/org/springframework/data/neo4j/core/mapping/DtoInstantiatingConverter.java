@@ -62,8 +62,8 @@ public final class DtoInstantiatingConverter implements Converter<EntityInstance
 	 */
 	public DtoInstantiatingConverter(Class<?> dtoType, Neo4jMappingContext context) {
 
-		Assert.notNull(dtoType, "DTO type must not be null!");
-		Assert.notNull(context, "MappingContext must not be null!");
+		Assert.notNull(dtoType, "DTO type must not be null");
+		Assert.notNull(context, "MappingContext must not be null");
 
 		this.targetType = dtoType;
 		this.context = context;
@@ -129,7 +129,7 @@ public final class DtoInstantiatingConverter implements Converter<EntityInstance
 
 		Neo4jPersistentEntity<?> targetEntity = context.addPersistentEntity(TypeInformation.of(targetType))
 				.orElseThrow(() -> new MappingException(
-						"Could not add a persistent entity for the projection target type '" + targetType.getName() + "'."));
+						"Could not add a persistent entity for the projection target type '" + targetType.getName() + "'"));
 		InstanceCreatorMetadata<? extends PersistentProperty<?>> creator = targetEntity.getInstanceCreatorMetadata();
 
 		Object dto = context.getInstantiatorFor(targetEntity)
@@ -157,7 +157,7 @@ public final class DtoInstantiatingConverter implements Converter<EntityInstance
 				String parameterName = parameter.getName();
 				if (parameterName == null) {
 					throw new MappingException(
-							"Constructor parameter names aren't available, please recompile your domain.");
+							"Constructor parameter names aren't available, please recompile your domain");
 				}
 				Neo4jPersistentProperty targetProperty = targetEntity.getPersistentProperty(parameterName);
 				if (targetProperty == null) {

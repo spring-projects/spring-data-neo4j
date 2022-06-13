@@ -259,7 +259,7 @@ public final class Neo4jTransactionManager extends AbstractPlatformTransactionMa
 	private static Neo4jTransactionObject extractNeo4jTransaction(Object transaction) {
 
 		Assert.isInstanceOf(Neo4jTransactionObject.class, transaction,
-				() -> String.format("Expected to find a %s but it turned out to be %s.", Neo4jTransactionObject.class,
+				() -> String.format("Expected to find a %s but it turned out to be %s", Neo4jTransactionObject.class,
 						transaction.getClass()));
 
 		return (Neo4jTransactionObject) transaction;

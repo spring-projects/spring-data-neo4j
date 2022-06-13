@@ -330,7 +330,7 @@ public final class Neo4jTemplate implements
 	@Override
 	public <T, R> R saveAs(T instance, Class<R> resultType) {
 
-		Assert.notNull(resultType, "ResultType must not be null!");
+		Assert.notNull(resultType, "ResultType must not be null");
 
 		if (instance == null) {
 			return null;
@@ -386,7 +386,7 @@ public final class Neo4jTemplate implements
 				throw new OptimisticLockingFailureException(OPTIMISTIC_LOCKING_ERROR_MESSAGE);
 			}
 			// defensive exception throwing
-			throw new IllegalStateException("Could not retrieve an internal id while saving.");
+			throw new IllegalStateException("Could not retrieve an internal id while saving");
 		}
 
 		Long internalId = newOrUpdatedNode.get().id();
@@ -518,12 +518,12 @@ public final class Neo4jTemplate implements
 	@Override
 	public <T, R> List<R> saveAllAs(Iterable<T> instances, Class<R> resultType) {
 
-		Assert.notNull(resultType, "ResultType must not be null!");
+		Assert.notNull(resultType, "ResultType must not be null");
 
 		Class<?> commonElementType = TemplateSupport.findCommonElementType(instances);
 
 		if (commonElementType == null) {
-			throw new IllegalArgumentException("Could not determine a common element of an heterogeneous collection.");
+			throw new IllegalArgumentException("Could not determine a common element of an heterogeneous collection");
 		}
 
 		if (commonElementType == TemplateSupport.EmptyIterable.class) {

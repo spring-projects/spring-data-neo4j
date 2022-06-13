@@ -265,7 +265,7 @@ final class CompositePropertyConverterFactory implements Neo4jPersistentProperty
 		if (StringUtils.hasText(config.converterRef())) {
 			if (beanFactory == null) {
 				throw new IllegalStateException(
-						"The default composite converter factory has been configured without a bean factory and cannot use a converter from the application context.");
+						"The default composite converter factory has been configured without a bean factory and cannot use a converter from the application context");
 			}
 
 			delegate = beanFactory.getBean(config.converterRef(), Neo4jPersistentPropertyToMapConverter.class);
@@ -309,7 +309,7 @@ final class CompositePropertyConverterFactory implements Neo4jPersistentProperty
 				throw new IllegalArgumentException(
 						"The property type `" + typeVariableMap.get(PROPERTY_TYPE_KEY).getTypeName() + "` created by `"
 								+ delegateClass.getName() + "` " + generateLocation(persistentProperty)
-								+ " doesn't match the actual property type.");
+								+ " doesn't match the actual property type");
 			}
 			componentType = (Class<?>) typeVariableMap.get(KEY_TYPE_KEY);
 		}

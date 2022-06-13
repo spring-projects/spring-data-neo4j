@@ -54,8 +54,8 @@ public interface DatabaseSelectionProvider {
 	 */
 	static DatabaseSelectionProvider createStaticDatabaseSelectionProvider(String databaseName) {
 
-		Assert.notNull(databaseName, "The database name must not be null.");
-		Assert.hasText(databaseName, "The database name must not be empty.");
+		Assert.notNull(databaseName, "The database name must not be null");
+		Assert.hasText(databaseName, "The database name must not be empty");
 
 		return () -> DatabaseSelection.byName(databaseName);
 	}
