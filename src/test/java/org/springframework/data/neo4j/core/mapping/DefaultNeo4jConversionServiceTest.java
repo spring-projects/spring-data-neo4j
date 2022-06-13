@@ -35,7 +35,7 @@ import org.springframework.core.convert.ConverterNotFoundException;
 import org.springframework.dao.TypeMismatchDataAccessException;
 import org.springframework.data.neo4j.core.ReactiveNeo4jClient;
 import org.springframework.data.neo4j.core.convert.Neo4jConversions;
-import org.springframework.data.util.ClassTypeInformation;
+import org.springframework.data.util.TypeInformation;
 
 /**
  * @author Michael J. Simons
@@ -52,7 +52,7 @@ class DefaultNeo4jConversionServiceTest {
 		void shouldDealWith0IsoDurationsAsPeriods() {
 			Value zeroDuration = Values.isoDuration(0, 0, 0, 0);
 
-			Period period = (Period) defaultNeo4jEntityAccessor.readValue(zeroDuration, ClassTypeInformation.from(Period.class), null);
+			Period period = (Period) defaultNeo4jEntityAccessor.readValue(zeroDuration, TypeInformation.of(Period.class), null);
 			assertThat(period.isZero()).isTrue();
 		}
 
@@ -60,19 +60,19 @@ class DefaultNeo4jConversionServiceTest {
 		void shouldDealWith0IsoDurationsAsDurations() {
 			Value zeroDuration = Values.isoDuration(0, 0, 0, 0);
 
-			Duration duration = (Duration) defaultNeo4jEntityAccessor.readValue(zeroDuration, ClassTypeInformation.from(Duration.class), null);
+			Duration duration = (Duration) defaultNeo4jEntityAccessor.readValue(zeroDuration, TypeInformation.of(Duration.class), null);
 			assertThat(duration).isZero();
 		}
 
 		@Test // GH-2324
 		void shouldDealWithNullTemporalValueOnRead() {
-			Duration duration = (Duration) defaultNeo4jEntityAccessor.readValue(null, ClassTypeInformation.from(Duration.class), null);
+			Duration duration = (Duration) defaultNeo4jEntityAccessor.readValue(null, TypeInformation.of(Duration.class), null);
 			assertThat(duration).isNull();
 		}
 
 		@Test // GH-2324
 		void shouldDealWithNullTemporalValueOnWrite() {
-			Value value = defaultNeo4jEntityAccessor.writeValue(null, ClassTypeInformation.from(TemporalAmount.class), null);
+			Value value = defaultNeo4jEntityAccessor.writeValue(null, TypeInformation.of(TemporalAmount.class), null);
 			assertThat(value).isNull();
 		}
 
@@ -81,7 +81,7 @@ class DefaultNeo4jConversionServiceTest {
 			Value value = Values.value("Das funktioniert nicht.");
 
 			assertThatExceptionOfType(TypeMismatchDataAccessException.class)
-					.isThrownBy(() -> defaultNeo4jEntityAccessor.readValue(value, ClassTypeInformation.from(Date.class), null))
+					.isThrownBy(() -> defaultNeo4jEntityAccessor.readValue(value, TypeInformation.of(Date.class), null))
 					.withMessageStartingWith("Could not convert \"Das funktioniert nicht.\" into java.util.Date;")
 					.withCauseInstanceOf(ConversionFailedException.class).withRootCauseInstanceOf(DateTimeParseException.class);
 		}
@@ -92,7 +92,7 @@ class DefaultNeo4jConversionServiceTest {
 
 			assertThatExceptionOfType(TypeMismatchDataAccessException.class)
 					.isThrownBy(
-							() -> defaultNeo4jEntityAccessor.readValue(value, ClassTypeInformation.from(LocalDate.class), null))
+							() -> defaultNeo4jEntityAccessor.readValue(value, TypeInformation.of(LocalDate.class), null))
 					.withMessageStartingWith("Could not convert \"Das funktioniert nicht.\" into java.time.LocalDate;")
 					.withCauseInstanceOf(ConversionFailedException.class).withRootCauseInstanceOf(Uncoercible.class);
 		}
@@ -102,7 +102,7 @@ class DefaultNeo4jConversionServiceTest {
 			Value value = Values.value("Das funktioniert nicht.");
 
 			assertThatExceptionOfType(TypeMismatchDataAccessException.class).isThrownBy(
-					() -> defaultNeo4jEntityAccessor.readValue(value, ClassTypeInformation.from(ReactiveNeo4jClient.class), null))
+					() -> defaultNeo4jEntityAccessor.readValue(value, TypeInformation.of(ReactiveNeo4jClient.class), null))
 					.withMessageStartingWith(
 							"Could not convert \"Das funktioniert nicht.\" into org.springframework.data.neo4j.core.ReactiveNeo4jClient;")
 					.withRootCauseInstanceOf(ConverterNotFoundException.class);

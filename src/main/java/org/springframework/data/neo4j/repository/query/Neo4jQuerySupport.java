@@ -48,7 +48,7 @@ import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.data.repository.query.ResultProcessor;
 import org.springframework.data.repository.query.ReturnedType;
-import org.springframework.data.util.ClassTypeInformation;
+import org.springframework.data.util.TypeInformation;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
@@ -202,7 +202,7 @@ abstract class Neo4jQuerySupport {
 		}
 
 		return mappingContext.getConversionService().writeValue(parameter,
-				ClassTypeInformation.from(parameter.getClass()), conversionOverride);
+				TypeInformation.of(parameter.getClass()), conversionOverride);
 	}
 
 	static class QueryContext {

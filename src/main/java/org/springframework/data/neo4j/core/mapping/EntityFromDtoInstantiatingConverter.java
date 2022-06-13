@@ -31,8 +31,8 @@ import org.springframework.data.mapping.PersistentPropertyAccessor;
 import org.springframework.data.mapping.model.ParameterValueProvider;
 import org.springframework.data.neo4j.core.convert.Neo4jConversionService;
 import org.springframework.data.neo4j.core.schema.TargetNode;
-import org.springframework.data.util.ClassTypeInformation;
 import org.springframework.data.util.ReflectionUtils;
+import org.springframework.data.util.TypeInformation;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
@@ -71,8 +71,8 @@ public final class EntityFromDtoInstantiatingConverter<T> implements Converter<O
 			return null;
 		}
 
-		PersistentEntity<?, ?> sourceEntity = context.addPersistentEntity(
-				ClassTypeInformation.from(dtoInstance.getClass())).get();
+		PersistentEntity<?, ?> sourceEntity = context.addPersistentEntity(TypeInformation.of(dtoInstance.getClass()))
+				.get();
 		PersistentPropertyAccessor<Object> sourceAccessor = sourceEntity.getPropertyAccessor(dtoInstance);
 
 		PersistentEntity<?, ?> targetEntity = context.getPersistentEntity(targetEntityType);

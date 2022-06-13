@@ -34,7 +34,7 @@ import org.springframework.data.mapping.PersistentPropertyPath;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentProperty;
 import org.springframework.data.repository.query.parser.Part;
-import org.springframework.data.util.ClassTypeInformation;
+import org.springframework.data.util.TypeInformation;
 import org.springframework.util.Assert;
 
 /**
@@ -115,7 +115,7 @@ class PartValidator {
 	private void validatePointProperty(Part part) {
 
 		Assert.isTrue(
-				ClassTypeInformation.from(Point.class)
+				TypeInformation.of(Point.class)
 						.isAssignableFrom(part.getProperty().getLeafProperty().getTypeInformation()),
 				() -> String.format("Can not derive query for '%s': %s works only with spatial properties.", queryMethod,
 						part.getType()));

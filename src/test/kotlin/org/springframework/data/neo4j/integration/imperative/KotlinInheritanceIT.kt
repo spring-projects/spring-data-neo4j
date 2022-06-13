@@ -229,7 +229,7 @@ class KotlinInheritanceIT @Autowired constructor(
 			return BookmarkCapture()
 		}
 
-		override fun getMappingBasePackages(): Collection<String?>? {
+		override fun getMappingBasePackages(): Collection<String>? {
 			return setOf(Inheritance::class.java.getPackage().name)
 		}
 

@@ -93,7 +93,7 @@ import org.springframework.data.neo4j.repository.query.QueryFragmentsAndParamete
 import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.projection.ProjectionInformation;
 import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
-import org.springframework.data.util.ClassTypeInformation;
+import org.springframework.data.util.TypeInformation;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
@@ -307,7 +307,7 @@ public final class ReactiveNeo4jTemplate implements
 		}
 
 		return neo4jMappingContext.getConversionService().writeValue(idValues,
-				ClassTypeInformation.from(idValues.getClass()), idProperty == null ? null : idProperty.getOptionalConverter());
+				TypeInformation.of(idValues.getClass()), idProperty == null ? null : idProperty.getOptionalConverter());
 	}
 
 	@Override

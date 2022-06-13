@@ -34,7 +34,7 @@ import org.springframework.data.mapping.PersistentEntity;
 import org.springframework.data.mapping.PersistentProperty;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
 import org.springframework.data.mapping.model.ParameterValueProvider;
-import org.springframework.data.util.ClassTypeInformation;
+import org.springframework.data.util.TypeInformation;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
@@ -73,7 +73,7 @@ public final class DtoInstantiatingConverter implements Converter<EntityInstance
 		Neo4jPersistentEntity<?> sourceEntity = context.getRequiredPersistentEntity(entityInstance.getClass());
 		PersistentPropertyAccessor<Object> sourceAccessor = sourceEntity.getPropertyAccessor(entityInstance);
 
-		Neo4jPersistentEntity<?> targetEntity = context.addPersistentEntity(ClassTypeInformation.from(targetType)).orElse(null);
+		Neo4jPersistentEntity<?> targetEntity = context.addPersistentEntity(TypeInformation.of(targetType)).orElse(null);
 		Assert.notNull(targetEntity, "Target entity could not be created for a DTO");
 		InstanceCreatorMetadata<?> creator = targetEntity.getInstanceCreatorMetadata();
 
@@ -127,7 +127,7 @@ public final class DtoInstantiatingConverter implements Converter<EntityInstance
 		Neo4jPersistentEntity<?> sourceEntity = context.getRequiredPersistentEntity(entityInstance.getClass());
 		PersistentPropertyAccessor<Object> sourceAccessor = sourceEntity.getPropertyAccessor(entityInstance);
 
-		Neo4jPersistentEntity<?> targetEntity = context.addPersistentEntity(ClassTypeInformation.from(targetType))
+		Neo4jPersistentEntity<?> targetEntity = context.addPersistentEntity(TypeInformation.of(targetType))
 				.orElseThrow(() -> new MappingException(
 						"Could not add a persistent entity for the projection target type '" + targetType.getName() + "'."));
 		InstanceCreatorMetadata<? extends PersistentProperty<?>> creator = targetEntity.getInstanceCreatorMetadata();
@@ -150,7 +150,7 @@ public final class DtoInstantiatingConverter implements Converter<EntityInstance
 			Neo4jPersistentEntity<?> targetEntity,
 			Function<Neo4jPersistentProperty, Object> extractFromSource
 	) {
-		return new ParameterValueProvider<Neo4jPersistentProperty>() {
+		return new ParameterValueProvider<>() {
 			@SuppressWarnings("unchecked") // Needed for the last cast. It's easier that way than using the parameter type info and checking for primitives
 			@Override
 			public <T> T getParameterValue(Parameter<T, Neo4jPersistentProperty> parameter) {
@@ -223,7 +223,7 @@ public final class DtoInstantiatingConverter implements Converter<EntityInstance
 				if (context.hasPersistentEntityFor(actualType)) {
 					singleValue = p -> context.getEntityConverter().read(actualType, p);
 				} else {
-					ClassTypeInformation<?> actualTargetType = ClassTypeInformation.from(actualType);
+					TypeInformation<?> actualTargetType = TypeInformation.of(actualType);
 					singleValue = p -> context.getConversionService().readValue(p, actualTargetType, targetProperty.getOptionalConverter());
 				}
 

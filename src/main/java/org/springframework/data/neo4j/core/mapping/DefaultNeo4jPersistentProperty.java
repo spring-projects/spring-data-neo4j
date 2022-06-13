@@ -31,7 +31,6 @@ import org.springframework.data.neo4j.core.schema.CompositeProperty;
 import org.springframework.data.neo4j.core.schema.Relationship;
 import org.springframework.data.neo4j.core.schema.RelationshipProperties;
 import org.springframework.data.neo4j.core.schema.TargetNode;
-import org.springframework.data.util.ClassTypeInformation;
 import org.springframework.data.util.Lazy;
 import org.springframework.data.util.ReflectionUtils;
 import org.springframework.data.util.TypeInformation;
@@ -114,11 +113,11 @@ final class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProp
 
 		if (this.hasActualTypeAnnotation(RelationshipProperties.class)) {
 			Class<?> type = getRelationshipPropertiesTargetType(getActualType());
-			obverseOwner = this.mappingContext.addPersistentEntity(ClassTypeInformation.from(type)).get();
-			relationshipPropertiesClass = this.mappingContext.addPersistentEntity(ClassTypeInformation.from(getActualType())).get();
+			obverseOwner = this.mappingContext.addPersistentEntity(TypeInformation.of(type)).get();
+			relationshipPropertiesClass = this.mappingContext.addPersistentEntity(TypeInformation.of(getActualType())).get();
 		} else {
 			Class<?> associationTargetType = this.getAssociationTargetType();
-			obverseOwner = this.mappingContext.addPersistentEntity(ClassTypeInformation.from(associationTargetType)).orElse(null);
+			obverseOwner = this.mappingContext.addPersistentEntity(TypeInformation.of(associationTargetType)).orElse(null);
 			Assert.notNull(obverseOwner, "Obverse owner could not be added.");
 			if (dynamicAssociation) {
 
@@ -133,7 +132,7 @@ final class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProp
 
 				if (relationshipPropertiesCollection) {
 					Class<?> type = getRelationshipPropertiesTargetType(mapValueType.getActualType().getType());
-					obverseOwner = this.mappingContext.addPersistentEntity(ClassTypeInformation.from(type)).get();
+					obverseOwner = this.mappingContext.addPersistentEntity(TypeInformation.of(type)).get();
 					relationshipPropertiesClass = this.mappingContext
 							.addPersistentEntity(mapValueType.getComponentType()).get();
 
@@ -183,7 +182,7 @@ final class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProp
 		if (targetNodeField == null) {
 			throw new MappingException("Missing @TargetNode declaration in " + relationshipPropertiesType);
 		}
-		ClassTypeInformation<?> relationshipPropertiesTypeInformation = ClassTypeInformation.from(relationshipPropertiesType);
+		TypeInformation<?> relationshipPropertiesTypeInformation = TypeInformation.of(relationshipPropertiesType);
 		return relationshipPropertiesTypeInformation.getProperty(targetNodeField.getName()).getType();
 	}
 

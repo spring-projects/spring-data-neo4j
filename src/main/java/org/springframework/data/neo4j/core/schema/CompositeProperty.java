@@ -44,7 +44,6 @@ import org.springframework.data.neo4j.core.convert.Neo4jPersistentPropertyConver
 import org.springframework.data.neo4j.core.convert.Neo4jPersistentPropertyToMapConverter;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.core.schema.CompositeProperty.Phase;
-import org.springframework.data.util.ClassTypeInformation;
 import org.springframework.data.util.TypeInformation;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
@@ -336,7 +335,7 @@ final class CompositePropertyConverterFactory implements Neo4jPersistentProperty
 
 		if (delegate == null) {
 			if (delegateClass == CompositeProperty.DefaultToMapConverter.class) {
-				delegate = new CompositeProperty.DefaultToMapConverter(ClassTypeInformation.from(persistentProperty.getActualType()));
+				delegate = new CompositeProperty.DefaultToMapConverter(TypeInformation.of(persistentProperty.getActualType()));
 			} else {
 				delegate = BeanUtils.instantiateClass(delegateClass);
 			}

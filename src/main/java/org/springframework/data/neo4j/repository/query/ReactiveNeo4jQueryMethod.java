@@ -25,7 +25,6 @@ import org.springframework.data.neo4j.repository.support.ReactiveCypherdslStatem
 import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.util.ReactiveWrappers;
-import org.springframework.data.util.ClassTypeInformation;
 import org.springframework.data.util.Lazy;
 import org.springframework.data.util.TypeInformation;
 import org.springframework.util.ClassUtils;
@@ -42,8 +41,8 @@ import org.springframework.util.ClassUtils;
  */
 final class ReactiveNeo4jQueryMethod extends Neo4jQueryMethod {
 
-	private static final ClassTypeInformation<Page> PAGE_TYPE = ClassTypeInformation.from(Page.class);
-	private static final ClassTypeInformation<Slice> SLICE_TYPE = ClassTypeInformation.from(Slice.class);
+	private static final TypeInformation<Page> PAGE_TYPE = TypeInformation.of(Page.class);
+	private static final TypeInformation<Slice> SLICE_TYPE = TypeInformation.of(Slice.class);
 
 	private final Lazy<Boolean> isCollectionQuery;
 
@@ -59,7 +58,7 @@ final class ReactiveNeo4jQueryMethod extends Neo4jQueryMethod {
 
 		if (org.springframework.data.repository.util.ClassUtils.hasParameterOfType(method, Pageable.class)) {
 
-			TypeInformation<?> returnType = ClassTypeInformation.fromReturnTypeOf(method);
+			TypeInformation<?> returnType = TypeInformation.fromReturnTypeOf(method);
 
 			boolean multiWrapper = ReactiveWrappers.isMultiValueType(returnType.getType());
 			boolean singleWrapperWithWrappedPageableResult = ReactiveWrappers.isSingleValueType(returnType.getType())
