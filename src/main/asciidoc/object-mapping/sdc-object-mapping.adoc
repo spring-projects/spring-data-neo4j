@@ -132,7 +132,7 @@ This is, to enable mutations of otherwise immutable properties.
 <.> By default, Spring Data uses field-access to read and write property values.
 As per visibility rules of `private` fields, `MethodHandles` are used to interact with fields.
 <.> The class exposes a `withId(…)` method that's used to set the identifier, e.g. when an instance is inserted into the datastore and an identifier has been generated.
-Calling `withId(…)` creates a new `Person` object.
+Calling `withId(…)` creates a new `Vertex` object.
 All subsequent mutations will take place in the new instance leaving the previous untouched.
 <.> Using property-access allows direct method invocations without using `MethodHandles`.
 ====
@@ -192,7 +192,7 @@ class Person {
 ====
 <.> The identifier property is final but set to `null` in the constructor.
 The class exposes a `withId(…)` method that's used to set the identifier, e.g. when an instance is inserted into the datastore and an identifier has been generated.
-The original `Person` instance stays unchanged as a new one is created.
+The original `Vertex` instance stays unchanged as a new one is created.
 The same pattern is usually applied for other properties that are store managed but might have to be changed for persistence operations.
 <.> The `firstname` and `lastname` properties are ordinary immutable properties potentially exposed through getters.
 <.> The `age` property is an immutable but derived one from the `birthday` property.
@@ -241,7 +241,7 @@ Spring Data adapts specifics of Kotlin to allow object creation and mutation.
 === Kotlin object creation
 
 Kotlin classes are supported to be instantiated , all classes are immutable by default and require explicit property declarations to define mutable properties.
-Consider the following `data` class `Person`:
+Consider the following `data` class `Vertex`:
 
 ====
 [source,java]
@@ -281,7 +281,7 @@ Every time the `name` parameter is either not part of the result or its value is
 === Property population of Kotlin data classes
 
 In Kotlin, all classes are immutable by default and require explicit property declarations to define mutable properties.
-Consider the following `data` class `Person`:
+Consider the following `data` class `Vertex`:
 
 ====
 [source,java]

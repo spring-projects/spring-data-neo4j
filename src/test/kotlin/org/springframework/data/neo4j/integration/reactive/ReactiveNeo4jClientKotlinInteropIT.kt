@@ -31,7 +31,6 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.data.neo4j.core.*
 import org.springframework.data.neo4j.core.cypher.asParam
-import org.springframework.data.neo4j.integration.issues.gh2526.GH2526IT
 import org.springframework.data.neo4j.test.Neo4jExtension
 import org.springframework.data.neo4j.test.Neo4jExtension.NEEDS_REACTIVE_SUPPORT
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest

@@ -53,21 +53,14 @@ import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.neo4j.test.Neo4jImperativeTestConfiguration;
 import org.springframework.data.neo4j.core.DatabaseSelectionProvider;
 import org.springframework.data.neo4j.core.Neo4jTemplate;
-import org.springframework.data.neo4j.core.mapping.Constants;
-import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
-import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
 import org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager;
-import org.springframework.data.neo4j.integration.issues.gh2415.BaseNodeEntity;
-import org.springframework.data.neo4j.integration.issues.gh2415.NodeEntity;
-import org.springframework.data.neo4j.integration.issues.gh2415.NodeWithDefinedCredentials;
 import org.springframework.data.neo4j.integration.shared.common.EntityWithPrimitiveConstructorArguments;
 import org.springframework.data.neo4j.integration.shared.common.Person;
 import org.springframework.data.neo4j.integration.shared.common.PersonWithAllConstructor;
 import org.springframework.data.neo4j.integration.shared.common.PersonWithAssignedId;
 import org.springframework.data.neo4j.integration.shared.common.ThingWithGeneratedId;
-import org.springframework.data.neo4j.repository.query.QueryFragmentsAndParameters;
 import org.springframework.data.neo4j.test.BookmarkCapture;
 import org.springframework.data.neo4j.test.Neo4jExtension.Neo4jConnectionSupport;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
@@ -124,14 +117,6 @@ class Neo4jTemplateIT {
 					"CREATE (p:Person{firstName: 'Helge', lastName: 'Schnitzel'}) -[:LIVES_AT]-> (a:Address {city: 'Mülheim an der Ruhr'}) RETURN id(p)");
 			transaction.run("CREATE (p:Person{firstName: 'Bela', lastName: 'B.'})");
 			transaction.run("CREATE (p:PersonWithAssignedId{id: 'x', firstName: 'John', lastName: 'Doe'})");
-
-			transaction.run(
-					"CREATE (root:NodeEntity:BaseNodeEntity{nodeId: 'root'}) " +
-					"CREATE (company:NodeEntity:BaseNodeEntity{nodeId: 'comp'}) " +
-					"CREATE (cred:Credential{id: 'uuid-1', name: 'Creds'}) " +
-					"CREATE (company)-[:CHILD_OF]->(root) " +
-					"CREATE (root)-[:HAS_CREDENTIAL]->(cred) " +
-					"CREATE (company)-[:WITH_CREDENTIAL]->(cred)");
 
 			transaction.commit();
 			bookmarkCapture.seedWith(session.lastBookmark());
@@ -921,21 +906,6 @@ class Neo4jTemplateIT {
 				.returning(person).build(), Collections.singletonMap("lastName", "Schnitzel"))
 				.all();
 		assertThat(people).extracting(Person::getLastName).containsExactly("Schnitzel");
-	}
-
-	@Test // GH-2415
-	void saveWithProjectionImplementedByEntity(@Autowired Neo4jMappingContext mappingContext) {
-
-		Neo4jPersistentEntity<?> metaData = mappingContext.getPersistentEntity(BaseNodeEntity.class);
-		NodeEntity nodeEntity = neo4jTemplate
-				.find(BaseNodeEntity.class)
-				.as(NodeEntity.class)
-				.matching(QueryFragmentsAndParameters.forCondition(metaData, Constants.NAME_OF_TYPED_ROOT_NODE.apply(metaData).property("nodeId").isEqualTo(Cypher.literalOf("root"))))
-				.one().get();
-		neo4jTemplate.saveAs(nodeEntity, NodeWithDefinedCredentials.class);
-
-		nodeEntity = neo4jTemplate.findById(nodeEntity.getNodeId(), NodeEntity.class).get();
-		assertThat(nodeEntity.getChildren()).hasSize(1);
 	}
 
 	@Configuration

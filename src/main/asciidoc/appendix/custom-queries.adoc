@@ -140,7 +140,9 @@ and a domain model as shown in the <<custom-query.paths.dm,mapping>> (Constructo
 [source,java,indent=0,tabsize=4]
 .Domain model for a <<custom-query.paths.g>>.
 ----
-include::../../../../src/test/java/org/springframework/data/neo4j/integration/issues/gh2210/GH2210IT.java[tag=custom-query.paths.dm]
+include::../../../../src/test/java/org/springframework/data/neo4j/integration/issues/gh2210/SomeEntity.java[tag=custom-query.paths.dm]
+
+include::../../../../src/test/java/org/springframework/data/neo4j/integration/issues/gh2210/SomeRelation.java[tag=custom-query.paths.dm]
 ----
 
 As you see, the relationships are only outgoing. Generated finder methods (including `findById`) will always try to match
@@ -194,7 +196,7 @@ Mapped entities (everything with a `@Node`) passed as parameter to a function th
 a custom query will be turned into a nested map.
 The following example represents the structure as Neo4j parameters.
 
-Given are a `Movie`, `Person` and `Actor` classes annotated as shown in <<movie-model, the movie model>>:
+Given are a `Movie`, `Vertex` and `Actor` classes annotated as shown in <<movie-model, the movie model>>:
 
 [[movie-model]]
 [source,java]

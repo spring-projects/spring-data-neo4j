@@ -744,8 +744,8 @@ Which looks like this:
 
 image::bacon-distance.png[]
 
-We find 3 nodes labeled `Person` and 2 nodes labeled `Movie`. Both can be mapped with a custom query.
-Assume there's a node entity for both `Person` and `Movie` as well as `Actor` taking care of the relationship:
+We find 3 nodes labeled `Vertex` and 2 nodes labeled `Movie`. Both can be mapped with a custom query.
+Assume there's a node entity for both `Vertex` and `Movie` as well as `Actor` taking care of the relationship:
 
 
 [source,java]
@@ -791,7 +791,7 @@ public final class Movie {
 }
 ----
 
-When using a query as shown in <<bacon-distance>> for a domain class of type `Person` like this
+When using a query as shown in <<bacon-distance>> for a domain class of type `Vertex` like this
 
 [source,java]
 ----

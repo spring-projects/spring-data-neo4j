@@ -59,7 +59,7 @@ public class EntitiesAndProjections {
 	}
 
 	/**
-	 * Projection breaking the infinite lopp
+	 * Projection breaking the infinite loop
 	 */
 	public interface GH2533EntityWithoutRelationship {
 		Long getId();
