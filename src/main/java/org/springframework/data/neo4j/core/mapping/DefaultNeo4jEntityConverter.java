@@ -690,12 +690,10 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 				.flatMap(entry -> MappingSupport.extractNodesFromCollection(listType, entry).stream())
 				.forEach(allNodesInResult::add);
 
-		if (allNodesInResult.isEmpty()) {
-			StreamSupport.stream(allValues.values().spliterator(), false)
-					.filter(this.nodeType::isTypeOf)
-					.map(Value::asNode)
-					.forEach(allNodesInResult::add);
-		}
+		StreamSupport.stream(allValues.values().spliterator(), false)
+				.filter(this.nodeType::isTypeOf)
+				.map(Value::asNode)
+				.forEach(allNodesInResult::add);
 
 		return allNodesInResult;
 	}
@@ -717,12 +715,10 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 				.flatMap(entry -> MappingSupport.extractRelationshipsFromCollection(listType, entry).stream())
 				.forEach(allRelationshipsInResult::add);
 
-		if (allRelationshipsInResult.isEmpty()) {
-			StreamSupport.stream(allValues.values().spliterator(), false)
-					.filter(this.relationshipType::isTypeOf)
-					.map(Value::asRelationship)
-					.forEach(allRelationshipsInResult::add);
-		}
+		StreamSupport.stream(allValues.values().spliterator(), false)
+				.filter(this.relationshipType::isTypeOf)
+				.map(Value::asRelationship)
+				.forEach(allRelationshipsInResult::add);
 
 		return allRelationshipsInResult;
 	}
