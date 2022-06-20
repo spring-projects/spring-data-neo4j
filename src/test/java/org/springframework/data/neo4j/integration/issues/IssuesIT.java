@@ -186,11 +186,15 @@ class IssuesIT extends TestBase {
 	}
 
 	private static void setupGH2323(QueryRunner queryRunner) {
-		personId = queryRunner.run("CREATE (n:Person {id: randomUUID(), name: 'Helge'}) return n.id").single()
-				.get(0)
-				.asString();
 		queryRunner.run("unwind ['German', 'English'] as name create (n:Language {name: name}) return name")
 				.consume();
+		personId = queryRunner.run("""
+						MATCH (l:Language {name: 'German'})
+						CREATE (n:Person {id: randomUUID(), name: 'Helge'}) -[:HAS_MOTHER_TONGUE]-> (l)
+						return n.id"""
+				).single()
+				.get(0)
+				.asString();
 	}
 
 	private static void setupGH2459(QueryRunner queryRunner) {
@@ -434,6 +438,21 @@ class IssuesIT extends TestBase {
 			assertThat(person.getKnownLanguages()).hasSize(1);
 			assertThat(person.getKnownLanguages()).first().satisfies(knows -> {
 				assertThat(knows.getDescription()).isEqualTo("Some description");
+				assertThat(knows.getLanguage()).extracting(Language::getName).isEqualTo("German");
+			});
+		});
+	}
+
+	@Test
+	@Tag("GH-2537")
+	void ensure1To1RelationshipsAreSerialized(@Autowired PersonService personService) {
+
+		Optional<Person> optionalPerson = personService.updateRel3(personId);
+		assertThat(optionalPerson).isPresent().hasValueSatisfying(person -> {
+
+			assertThat(person.getKnownLanguages()).hasSize(1);
+			assertThat(person.getKnownLanguages()).first().satisfies(knows -> {
+				assertThat(knows.getDescription()).isEqualTo("Whatever");
 				assertThat(knows.getLanguage()).extracting(Language::getName).isEqualTo("German");
 			});
 		});

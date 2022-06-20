@@ -49,4 +49,15 @@ public interface PersonRepository extends Neo4jRepository<Person, String> {
 			"""
 	)
 	Person updateRel2(@Param("person") Person person);
+
+	@Query("""
+			MATCH (f:Person {id: $person.__id__})
+			MATCH (mt:Language {name: $person.__properties__.HAS_MOTHER_TONGUE[0].__target__.__id__})
+			MATCH (f)-[frl:HAS_MOTHER_TONGUE]->(mt) WITH f, frl, mt
+			UNWIND $person.__properties__.KNOWS As rel WITH f, frl, mt, rel
+			MATCH (t:Language {name: rel.__target__.__id__})
+			MERGE (f)- [r:KNOWS {description: rel.__properties__.description}] -> (t)
+			RETURN f, frl, mt, collect(r), collect(t)
+			""")
+	Person updateRelWith11(@Param("person") Person person);
 }

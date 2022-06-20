@@ -55,4 +55,15 @@ public class PersonService {
 
 		return original;
 	}
+
+	public Optional<Person> updateRel3(String id) {
+		Optional<Person> original = personRepository.findById(id);
+		if (original.isPresent()) {
+			Person person = original.get();
+			person.setKnownLanguages(List.of(new Knows("Whatever", new Language("German"))));
+			return Optional.of(personRepository.updateRelWith11(person));
+		}
+
+		return original;
+	}
 }
