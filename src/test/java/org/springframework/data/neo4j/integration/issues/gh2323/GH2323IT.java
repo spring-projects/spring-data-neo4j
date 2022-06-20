@@ -18,6 +18,7 @@ package org.springframework.data.neo4j.integration.issues.gh2323;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -65,6 +66,9 @@ class GH2323IT {
 					.asString();
 			transaction.run("unwind ['German', 'English'] as name create (n:Language {name: name}) return name")
 					.consume();
+			personId = transaction.run("MATCH (l:Language {name: 'German'}) CREATE (n:Person {id: randomUUID(), name: 'Helge'}) -[:HAS_MOTHER_TONGUE]-> (l) return n.id").single()
+					.get(0)
+					.asString();
 			transaction.commit();
 			bookmarkCapture.seedWith(session.lastBookmark());
 		}
@@ -105,6 +109,20 @@ class GH2323IT {
 		});
 	}
 
+	@Test // "GH-2537"
+	void ensure1To1RelationshipsAreSerialized(@Autowired PersonService personService) {
+
+		Optional<Person> optionalPerson = personService.updateRel3(personId);
+		assertThat(optionalPerson).isPresent().hasValueSatisfying(person -> {
+
+			assertThat(person.getKnownLanguages()).hasSize(1);
+			assertThat(person.getKnownLanguages()).first().satisfies(knows -> {
+				assertThat(knows.getDescription()).isEqualTo("Whatever");
+				assertThat(knows.getLanguage()).extracting(Language::getName).isEqualTo("German");
+			});
+		});
+	}
+
 	@Repository
 	public interface PersonRepository extends Neo4jRepository<Person, String> {
 
@@ -126,6 +144,16 @@ class GH2323IT {
 			   + "CREATE (f) - [r:KNOWS {description: rel.__properties__.description}] -> (t) "
 			   + "RETURN f, collect(r), collect(t)")
 		Person updateRel2(@Param("person") Person person);
+
+		@Query(""
+			   + "MATCH (f:Person {id: $person.__id__}) "
+			   + "MATCH (mt:Language {name: $person.__properties__.HAS_MOTHER_TONGUE[0].__target__.__id__}) "
+			   + "MATCH (f)-[frl:HAS_MOTHER_TONGUE]->(mt) WITH f, frl, mt "
+			   + "UNWIND $person.__properties__.KNOWS As rel WITH f, frl, mt, rel "
+			   + "MATCH (t:Language {name: rel.__target__.__id__}) "
+			   + "MERGE (f)- [r:KNOWS {description: rel.__properties__.description}] -> (t) "
+			   + "RETURN f, frl, mt, collect(r), collect(t)")
+		Person updateRelWith11(@Param("person") Person person);
 	}
 
 	@Service
@@ -155,6 +183,17 @@ class GH2323IT {
 						.collect(Collectors.toList());
 				person.setKnownLanguages(knownLanguages);
 				return Optional.of(personRepository.updateRel2(person));
+			}
+
+			return original;
+		}
+
+		public Optional<Person> updateRel3(String id) {
+			Optional<Person> original = personRepository.findById(id);
+			if (original.isPresent()) {
+				Person person = original.get();
+				person.setKnownLanguages(Collections.singletonList(new Knows("Whatever", new Language("German"))));
+				return Optional.of(personRepository.updateRelWith11(person));
 			}
 
 			return original;
