@@ -37,6 +37,9 @@ public class Person {
 	@Relationship("KNOWS")
 	private List<Knows> knownLanguages = new ArrayList<>();
 
+	@Relationship("HAS_MOTHER_TONGUE")
+	private Knows motherTongue;
+
 	public Person(String name) {
 		this.name = name;
 	}

@@ -357,7 +357,10 @@ All properties - and type of relationships - appear in those maps as they would 
 have been written by SDN.
 Values will have the correct Cypher type and won't need further conversion.
 
-All relationships are lists of maps. Dynamic relationships will be resolved accordingly.
+TIP: All relationships are lists of maps. Dynamic relationships will be resolved accordingly.
+     One-to-one relationships will also be serialized as singleton lists. So to access a one-to-one mapping
+     between people, you would write this das `$person.\\__properties__.BEST_FRIEND[0].\\__target__.\\__id__`.
+
 If an entity has a relationship with the same type to different types of others nodes, they will all appear in the same list.
 If you need such a mapping and also have the need to work with those custom parameters, you have to unroll it accordingly.
 One way to do this are correlated subqueries (Neo4j 4.1+ required).
