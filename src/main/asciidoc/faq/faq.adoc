@@ -451,15 +451,167 @@ public class CustomConfig {
 }
 ----
 
+[[faq.cluster]]
+== Using a Neo4j cluster instance from Spring Data Neo4j
+
+The following questions apply to Neo4j AuraDB as well as to Neo4j on-premise cluster instances.
+
 [[faq.transactions.cluster]]
-== Do I need specific configuration so that transactions work seamless with a Neo4j Causal Cluster?
+=== Do I need specific configuration so that transactions work seamless with a Neo4j Causal Cluster?
 
 No, you don't.
 SDN uses Neo4j Causal Cluster bookmarks internally without any configuration on your side required.
 Transactions in the same thread or the same reactive stream following each other will be able to read their previously changed values as you would expect.
 
+[[faq.transactions.cluster.rw]]
+=== Is it important to use read-only transactions for Neo4j cluster?
+
+Yes, it is.
+The Neo4j cluster architecture is a causal clustering architecture, and it distinguishes between primary and secondary servers.
+Primary server either are single instances or core instances. Both of them can answer to read and write operations.
+Write operations are propagated from the core instances to read replicas inside the cluster.
+Those read replicas are secondary servers.
+Secondary servers don't answer to write operations.
+
+In a standard deployment scenario you'll have some core instances and many read replicas inside a cluster.
+Therefor it is important to mark operations or queries as read-only to scale your cluster in such a way that leaders are
+never overwhelmed and queries are propagated as much as possible to read replicas.
+
+Neither Spring Data Neo4j nor the underlying Java driver do Cypher parsing and both building blocks assume
+write operations by default. This decision has been made to support all operations out of the box. If something in the
+stack would assume read-only by default, the stack might end up sending write queries to read replicas and fail
+on executing them.
+
+NOTE: All `findById`, `findAllById`, `findAll` and predefined existential methods are marked as read-only by default.
+
+Some options are described below:
+
+.Making a whole repository read-only
+[source,java]
+----
+import org.springframework.data.neo4j.repository.Neo4jRepository;
+import org.springframework.transaction.annotation.Transactional;
+
+@Transactional(readOnly = true)
+interface PersonRepository extends Neo4jRepository<Person, Long> {
+}
+----
+
+.Making selected repository methods read-only
+[source,java]
+----
+import org.springframework.data.neo4j.repository.Neo4jRepository;
+import org.springframework.data.neo4j.repository.query.Query;
+import org.springframework.transaction.annotation.Transactional;
+
+interface PersonRepository extends Neo4jRepository<Person, Long> {
+
+  @Transactional(readOnly = true)
+  Person findOneByName(String name); // <.>
+
+  @Transactional(readOnly = true)
+  @Query("""
+    CALL apoc.search.nodeAll('{Person: "name",Movie: ["title","tagline"]}','contains','her')
+    YIELD node AS n RETURN n""")
+  Person findByCustomQuery(); // <.>
+}
+----
+<.> Why isn't this read-only be default? While it would work for the derived finder above (which we actually know to be read-only),
+    we often have seen cases in which user add a custom `@Query` and implement it via a `MERGE` construct,
+    which of course is a write operation.
+<.> Custom procedures can do all kinds of things, there's no way at the moment to check for read-only vs write here for us.
+
+.Orchestrate calls to a repository from a service
+[source,java]
+----
+import java.util.Optional;
+
+import org.springframework.data.neo4j.repository.Neo4jRepository;
+import org.springframework.transaction.annotation.Transactional;
+
+interface PersonRepository extends Neo4jRepository<Person, Long> {
+}
+
+interface MovieRepository extends Neo4jRepository<Movie, Long> {
+  List<Movie> findByLikedByPersonName(String name);
+}
+
+public class PersonService {
+
+  private final PersonRepository personRepository;
+  private final MovieRepository movieRepository;
+
+  public PersonService(PersonRepository personRepository,
+        MovieRepository movieRepository) {
+    this.personRepository = personRepository;
+    this.movieRepository = movieRepository;
+  }
+
+  @Transactional(readOnly = true)
+  public Optional<PersonDetails> getPerson(Long id) { // <.>
+    return this.repository.findById(id)
+      .map(person -> {
+        var movies = this.movieRepository
+          .findByLikedByPersonName(person.getName());
+        return new PersonDetails(person, movies);
+            });
+    }
+}
+----
+<.> Here, several calls to multiple repositories are wrapped in one single, read-only transaction.
+
+
+.Using Springs `TransactionTemplate` inside private service methods and / or with the Neo4j client
+[source,java]
+----
+import java.util.Collection;
+
+import org.neo4j.driver.types.Node;
+import org.springframework.data.neo4j.core.Neo4jClient;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.support.TransactionTemplate;
+
+public class PersonService {
+
+  private final TransactionTemplate readOnlyTx;
+
+  private final Neo4jClient neo4jClient;
+
+  public PersonService(PlatformTransactionManager transactionManager, Neo4jClient neo4jClient) {
+
+    this.readOnlyTx = new TransactionTemplate(transactionManager, // <.>
+        new TransactionDefinition() {
+          @Override public boolean isReadOnly() {
+            return true;
+          }
+        }
+    );
+    this.neo4jClient = neo4jClient;
+  }
+
+  void internalOperation() { // <.>
+
+    Collection<Node> nodes = this.readOnlyTx.execute(state -> {
+      return neo4jClient.query("MATCH (n) RETURN n").fetchAs(Node.class) // <.>
+          .mappedBy((types, record) -> record.get(0).asNode())
+          .all();
+    });
+  }
+}
+----
+<.> Create an instance of the `TransactionTemplate` with the characteristics you need.
+    Of course, this can be a global bean, too.
+<.> Reason number one for using the transaction template: Declarative transactions don't work
+    in package private or private methods and also not in inner method calls (imagine another method
+    in this service calling `internalOperation`) due to their nature being implemented with Aspects
+    and proxies.
+<.> The `Neo4jClient` is a fixed utility provided by SDN. It cannot be annotated, but it integrates with Spring.
+    So it gives you everything you would do with the pure driver and without automatic mapping and with
+    transactions. It also obeys declarative transactions.
+
 [[faq.bookmarks.seeding]]
-== Can I retrieve the latest Bookmarks or seed the transaction manager?
+=== Can I retrieve the latest Bookmarks or seed the transaction manager?
 
 As mentioned briefly in <<migrating.bookmarks>>, there is no need to configure anything with regard to bookmarks.
 It may however be useful to retrieve the latest bookmark the SDN transaction system received from a database.
@@ -531,7 +683,7 @@ WARNING: There is *no* need to do any of these things above, unless your applica
          this data. If in doubt, don't do either.
 
 [[faq.bookmarks.noop]]
-== Can I disable bookmark management?
+=== Can I disable bookmark management?
 
 We provide a Noop bookmark manager that effectively disables bookmark management.
 
