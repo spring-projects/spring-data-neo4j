@@ -47,7 +47,8 @@ import org.springframework.data.repository.core.RepositoryMetadata;
 @API(status = API.Status.INTERNAL, since = "6.0")
 public final class Neo4jRepositoryConfigurationExtension extends RepositoryConfigurationExtensionSupport {
 
-	private static final String MODULE_PREFIX = "neo4j";
+	static final String MODULE_NAME = "Neo4j";
+	static final String MODULE_PREFIX_ERROR_MSG = "This method has been deprecated and should not have been called";
 
 	/**
 	 * See {@link AbstractBeanDefinition#INFER_METHOD}.
@@ -77,13 +78,15 @@ public final class Neo4jRepositoryConfigurationExtension extends RepositoryConfi
 		return Neo4jRepositoryFactoryBean.class.getName();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.config.RepositoryConfigurationExtensionSupport#getModulePrefix()
-	 */
+	@Override
+	public String getModuleName() {
+		return MODULE_NAME;
+	}
+
+	@SuppressWarnings("deprecation")
 	@Override
 	protected String getModulePrefix() {
-		return MODULE_PREFIX;
+		throw new UnsupportedOperationException(MODULE_PREFIX_ERROR_MSG);
 	}
 
 	@Override

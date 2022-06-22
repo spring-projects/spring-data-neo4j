@@ -77,13 +77,15 @@ public final class ReactiveNeo4jRepositoryConfigurationExtension extends Reposit
 		return ReactiveNeo4jRepositoryFactoryBean.class.getName();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.config.RepositoryConfigurationExtensionSupport#getModulePrefix()
-	 */
+	@Override
+	public String getModuleName() {
+		return Neo4jRepositoryConfigurationExtension.MODULE_NAME;
+	}
+
+	@SuppressWarnings("deprecation")
 	@Override
 	protected String getModulePrefix() {
-		return MODULE_PREFIX;
+		throw new UnsupportedOperationException(Neo4jRepositoryConfigurationExtension.MODULE_PREFIX_ERROR_MSG);
 	}
 
 	@Override
