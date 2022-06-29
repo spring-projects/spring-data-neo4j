@@ -127,7 +127,7 @@ internal class KotlinProjectionIT {
 		/**
 		 * Make sure that particular entity is know. This is essential to all tests GH-2349
 		 */
-		override fun getMappingBasePackages(): Collection<String>? {
+		override fun getMappingBasePackages(): Collection<String> {
 			return listOf(DepartmentEntity::class.java.getPackage().name)
 		}
 
