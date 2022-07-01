@@ -62,12 +62,16 @@ include::testing/index.adoc[]
 
 include::{spring-data-commons-docs}/auditing.adoc[leveloffset=+1]
 
-include::faq/index.adoc[]
+[[faq]]
+= Frequently Asked Questions
 
-include::appendix/index.adoc[]
+:numbered!:
+include::faq/index.adoc[]
 
 [[appendix]]
 = Appendix
+
 :numbered!:
+include::appendix/index.adoc[leveloffset=+1]
 include::{spring-data-commons-docs}/repository-query-keywords-reference.adoc[leveloffset=+1]
 include::{spring-data-commons-docs}/repository-query-return-types-reference.adoc[leveloffset=+1]

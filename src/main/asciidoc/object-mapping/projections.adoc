@@ -1,4 +1,4 @@
-[[projections.sdn]]
+[[projections]]
 = Projections
 
 [[projections.sdn.general-remarks]]

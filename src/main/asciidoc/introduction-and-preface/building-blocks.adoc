@@ -1,5 +1,5 @@
 [[building-blocks]]
-= Building blocks
+= Building blocks of Spring Data Neo4j
 
 == Overview
 

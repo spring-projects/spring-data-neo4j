@@ -1,9 +1,7 @@
-:leveloffset: +1
-
 [[sdn-appendix]]
-= Spring Data Neo4j Appendix
+[appendix]
+= Spring Data Neo4j
 
-:numbered!:
 :leveloffset: +1
 
 include::conversions.adoc[]
@@ -20,5 +18,4 @@ include::migrating.adoc[]
 
 include::build.adoc[]
 
-:leveloffset: -1
 :leveloffset: -1

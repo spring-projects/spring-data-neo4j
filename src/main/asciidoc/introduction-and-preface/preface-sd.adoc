@@ -1,0 +1,17 @@
+[[preface.spring-data]]
+= Introducing Spring Data
+
+Spring Data uses Spring Framework's {spring-framework-ref}/core.html[core] functionality, such as the {spring-framework-ref}/core.html#beans[IoC] container,
+{spring-framework-ref}/core.html#core-convert[type conversion system],
+{spring-framework-ref}/core.html#expressions[expression language],
+{spring-framework-ref}/integration.html#jmx[JMX integration], and portable {spring-framework-ref}/data-access.html#dao-exceptions[DAO exception hierarchy].
+While it is not necessary to know all the Spring APIs, understanding the concepts behind them is.
+At a minimum, the idea behind IoC should be familiar.
+
+To learn more about Spring, you can refer to the comprehensive documentation that explains in detail the Spring Framework.
+There are a lot of articles, blog entries and books on the matter - take a look at the Spring Framework https://spring.io/docs[home page ] for more information.
+
+The beauty of Spring Data is that it applies the same programming model to a variety of different stores, such as JPA, JDBC
+Mongo and others. For that reason, parts of the general Spring Data documentations are included in this document, especially the
+general chapter about <<repositories, working with Spring Data repositories>>. Make sure to have a look at that if you haven't
+worked with a Spring Data module in the past.
