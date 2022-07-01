@@ -125,7 +125,7 @@ You're then ready to replace annotations:
 |No replacement, not needed
 
 |`org.springframework.data.neo4j.annotation.QueryResult`
-|Use <<projections.sdn, projections>>; arbitrary result mapping not supported anymore
+|Use <<projections, projections>>; arbitrary result mapping not supported anymore
 
 |===
 

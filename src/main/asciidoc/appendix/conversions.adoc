@@ -1,6 +1,9 @@
 [[conversions]]
 = Conversions
 
+[[build-in.conversions]]
+== Built-in conversions
+
 We support a broad range of conversions out of the box.
 Find the list of supported cypher types in the official drivers manual: https://neo4j.com/docs/driver-manual/current/cypher-values/[Working with Cypher values].
 
