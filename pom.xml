@@ -744,25 +744,13 @@
 								<version>${asciidoctorj-diagram.version}</version>
 							</dependency>
 						</dependencies>
-						<configuration>
-							<backend>html</backend>
-							<doctype>book</doctype>
-							<imagesDir>img</imagesDir>
-							<sourceDirectory>${project.basedir}/src/main/asciidoc</sourceDirectory>
-							<sourceDocumentName>index.adoc</sourceDocumentName>
-							<sourceHighlighter>coderay</sourceHighlighter>
+						<configuration combine.self="append">
 							<attributes>
-								<icons>font</icons>
-								<toc>left</toc>
-								<setanchors/>
-								<idprefix/>
-								<idseparator/>
 								<spring-data-commons-docs>${spring-data-commons-docs.dir}</spring-data-commons-docs>
 							</attributes>
 							<requires>
 								<require>asciidoctor-diagram</require>
 							</requires>
-							<outputDirectory>${project.build.docs}</outputDirectory>
 						</configuration>
 					</plugin>
 					<plugin>
