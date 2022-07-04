@@ -82,7 +82,7 @@ class DefaultNeo4jConversionServiceTest {
 
 			assertThatExceptionOfType(TypeMismatchDataAccessException.class)
 					.isThrownBy(() -> defaultNeo4jEntityAccessor.readValue(value, TypeInformation.of(Date.class), null))
-					.withMessageStartingWith("Could not convert \"Das funktioniert nicht.\" into java.util.Date;")
+					.withMessageStartingWith("Could not convert \"Das funktioniert nicht.\" into java.util.Date")
 					.withCauseInstanceOf(ConversionFailedException.class).withRootCauseInstanceOf(DateTimeParseException.class);
 		}
 
@@ -93,7 +93,7 @@ class DefaultNeo4jConversionServiceTest {
 			assertThatExceptionOfType(TypeMismatchDataAccessException.class)
 					.isThrownBy(
 							() -> defaultNeo4jEntityAccessor.readValue(value, TypeInformation.of(LocalDate.class), null))
-					.withMessageStartingWith("Could not convert \"Das funktioniert nicht.\" into java.time.LocalDate;")
+					.withMessageStartingWith("Could not convert \"Das funktioniert nicht.\" into java.time.LocalDate")
 					.withCauseInstanceOf(ConversionFailedException.class).withRootCauseInstanceOf(Uncoercible.class);
 		}
 
@@ -104,7 +104,7 @@ class DefaultNeo4jConversionServiceTest {
 			assertThatExceptionOfType(TypeMismatchDataAccessException.class).isThrownBy(
 					() -> defaultNeo4jEntityAccessor.readValue(value, TypeInformation.of(ReactiveNeo4jClient.class), null))
 					.withMessageStartingWith(
-							"Could not convert \"Das funktioniert nicht.\" into org.springframework.data.neo4j.core.ReactiveNeo4jClient;")
+							"Could not convert \"Das funktioniert nicht.\" into org.springframework.data.neo4j.core.ReactiveNeo4jClient")
 					.withRootCauseInstanceOf(ConverterNotFoundException.class);
 		}
 	}
