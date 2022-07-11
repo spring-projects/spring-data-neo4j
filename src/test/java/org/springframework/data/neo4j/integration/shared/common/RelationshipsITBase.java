@@ -44,7 +44,7 @@ public abstract class RelationshipsITBase {
 		try (Session session = driver.session(bookmarkCapture.createSessionConfig()); Transaction transaction = session.beginTransaction()) {
 			transaction.run("MATCH (n) detach delete n").consume();
 			transaction.commit();
-			bookmarkCapture.seedWith(session.lastBookmark());
+			bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 	}
 }

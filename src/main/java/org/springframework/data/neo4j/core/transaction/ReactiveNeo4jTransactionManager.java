@@ -15,14 +15,15 @@
  */
 package org.springframework.data.neo4j.core.transaction;
 
+import reactor.adapter.JdkFlowAdapter;
 import reactor.core.publisher.Mono;
 import reactor.util.function.Tuples;
 
 import org.apiguardian.api.API;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.TransactionConfig;
-import org.neo4j.driver.reactive.RxSession;
-import org.neo4j.driver.reactive.RxTransaction;
+import org.neo4j.driver.reactive.ReactiveSession;
+import org.neo4j.driver.reactive.ReactiveTransaction;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -40,7 +41,6 @@ import org.springframework.transaction.reactive.TransactionSynchronizationManage
 import org.springframework.transaction.support.SmartTransactionObject;
 import org.springframework.transaction.support.TransactionSynchronizationUtils;
 import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
 
 /**
  * @author Gerrit Meier
@@ -194,16 +194,8 @@ public final class ReactiveNeo4jTransactionManager extends AbstractReactiveTrans
 	 * @param targetDatabase The target database
 	 * @return An optional managed transaction or {@literal null} if the method hasn't been called inside an ongoing
 	 *         Spring transaction
-	 * @see #retrieveReactiveTransaction(Driver, DatabaseSelection, UserSelection)
-	 * @deprecated since 6.2, use #retrieveReactiveTransaction(Driver, DatabaseSelection, UserSelection)
 	 */
-	@Deprecated
-	public static Mono<RxTransaction> retrieveReactiveTransaction(final Driver driver, @Nullable final String targetDatabase) {
-
-		return retrieveReactiveTransaction(driver, StringUtils.hasText(targetDatabase) ? DatabaseSelection.byName(targetDatabase) : DatabaseSelection.undecided(), UserSelection.connectedUser());
-	}
-
-	public static Mono<RxTransaction> retrieveReactiveTransaction(
+	public static Mono<ReactiveTransaction> retrieveReactiveTransaction(
 			final Driver driver,
 			final DatabaseSelection targetDatabase,
 			final UserSelection asUser
@@ -222,8 +214,8 @@ public final class ReactiveNeo4jTransactionManager extends AbstractReactiveTrans
 
 					// Otherwise open up a new native transaction
 					return Mono.defer(() -> {
-						RxSession session = driver.rxSession(Neo4jTransactionUtils.defaultSessionConfig(targetDatabase, asUser));
-						return Mono.from(session.beginTransaction(TransactionConfig.empty())).map(tx -> {
+						ReactiveSession session = driver.reactiveSession(Neo4jTransactionUtils.defaultSessionConfig(targetDatabase, asUser));
+						return JdkFlowAdapter.flowPublisherToFlux(session.beginTransaction(TransactionConfig.empty())).single().map(tx -> {
 
 							ReactiveNeo4jTransactionHolder newConnectionHolder = new ReactiveNeo4jTransactionHolder(
 									new Neo4jTransactionContext(targetDatabase, asUser), session, tx);
@@ -236,7 +228,7 @@ public final class ReactiveNeo4jTransactionManager extends AbstractReactiveTrans
 						});
 					});
 				}).map(connectionHolder -> {
-					RxTransaction transaction = connectionHolder.getTransaction(targetDatabase, asUser);
+					ReactiveTransaction transaction = connectionHolder.getTransaction(targetDatabase, asUser);
 					if (transaction == null) {
 						throw new IllegalStateException(
 								Neo4jTransactionUtils.formatOngoingTxInAnotherDbErrorMessage(
@@ -301,8 +293,8 @@ public final class ReactiveNeo4jTransactionManager extends AbstractReactiveTrans
 									.getUserSelection()
 									.switchIfEmpty(Mono.just(UserSelection.connectedUser())),
 							(databaseSelection, userSelection) -> new Neo4jTransactionContext(databaseSelection, userSelection, bookmarkManager.getBookmarks()))
-					.map(context -> Tuples.of(context, this.driver.rxSession(Neo4jTransactionUtils.sessionConfig(readOnly, context.getBookmarks(), context.getDatabaseSelection(), context.getUserSelection()))))
-					.flatMap(contextAndSession -> Mono.from(contextAndSession.getT2().beginTransaction(transactionConfig))
+					.map(context -> Tuples.of(context, this.driver.reactiveSession(Neo4jTransactionUtils.sessionConfig(readOnly, context.getBookmarks(), context.getDatabaseSelection(), context.getUserSelection()))))
+					.flatMap(contextAndSession -> JdkFlowAdapter.flowPublisherToFlux(contextAndSession.getT2().beginTransaction(transactionConfig)).single()
 							.map(nativeTransaction -> new ReactiveNeo4jTransactionHolder(contextAndSession.getT1(),
 									contextAndSession.getT2(), nativeTransaction)))
 					.doOnNext(transactionHolder -> {
@@ -332,7 +324,8 @@ public final class ReactiveNeo4jTransactionManager extends AbstractReactiveTrans
 
 		ReactiveNeo4jTransactionHolder holder = extractNeo4jTransaction(genericReactiveTransaction)
 				.getRequiredResourceHolder();
-		return holder.commit().doOnNext(bookmark -> bookmarkManager.updateBookmarks(holder.getBookmarks(), bookmark))
+		return holder.commit()
+				.doOnNext(bookmark -> bookmarkManager.updateBookmarks(holder.getBookmarks(), bookmark))
 				.then();
 	}
 

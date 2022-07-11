@@ -96,7 +96,7 @@ class ImperativeCompositePropertiesIT extends CompositePropertiesITBase {
 		repository.save(thing);
 
 		try (Session session = driver.session()) {
-			Record r = session.readTransaction(tx -> tx.run("MATCH (t:CompositeProperties) WHERE id(t) = $id RETURN t",
+			Record r = session.executeRead(tx -> tx.run("MATCH (t:CompositeProperties) WHERE id(t) = $id RETURN t",
 					Collections.singletonMap("id", id)).single());
 			Node n = r.get("t").asNode();
 			assertThat(n.asMap()).doesNotContainKeys(
@@ -123,7 +123,7 @@ class ImperativeCompositePropertiesIT extends CompositePropertiesITBase {
 		template.saveAs(thing, ThingProjection.class);
 
 		try (Session session = driver.session()) {
-			Record r = session.readTransaction(tx -> tx.run("MATCH (t:CompositeProperties) WHERE id(t) = $id RETURN t",
+			Record r = session.executeRead(tx -> tx.run("MATCH (t:CompositeProperties) WHERE id(t) = $id RETURN t",
 					Collections.singletonMap("id", id)).single());
 			Node n = r.get("t").asNode();
 			assertThat(n.asMap())

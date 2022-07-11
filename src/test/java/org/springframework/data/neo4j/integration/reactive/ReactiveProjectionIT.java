@@ -118,7 +118,7 @@ class ReactiveProjectionIT {
 		projectionTest1O1Id = result.get(2).asLong();
 		transaction.commit();
 		transaction.close();
-		bookmarkCapture.seedWith(session.lastBookmark());
+		bookmarkCapture.seedWith(session.lastBookmarks());
 		session.close();
 	}
 

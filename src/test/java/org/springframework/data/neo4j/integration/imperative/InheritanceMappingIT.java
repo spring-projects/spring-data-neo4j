@@ -35,6 +35,7 @@ import org.neo4j.driver.types.Node;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.neo4j.core.mapping.IdentitySupport;
 import org.springframework.data.neo4j.test.Neo4jImperativeTestConfiguration;
 import org.springframework.data.neo4j.core.DatabaseSelectionProvider;
 import org.springframework.data.neo4j.core.Neo4jTemplate;
@@ -84,7 +85,7 @@ public class InheritanceMappingIT {
 	void deleteData() {
 		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
 			session.run("MATCH (n) DETACH DELETE n").consume();
-			bookmarkCapture.seedWith(session.lastBookmark());
+			bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 	}
 
@@ -95,7 +96,7 @@ public class InheritanceMappingIT {
 		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
 			buildingId = session.run("CREATE (b:Building:Entity{name:'b'})-[:IS_CHILD]->(:Site:Entity{name:'s'})-[:IS_CHILD]->(:Company:Entity{name:'c'}) return id(b) as id").single()
 					.get(0).asLong();
-			bookmarkCapture.seedWith(session.lastBookmark());
+			bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 
 		Inheritance.Building building = repository.findById(buildingId).get();
@@ -157,7 +158,7 @@ public class InheritanceMappingIT {
 			transaction.run("CREATE (:Cat{name:'a'})");
 			transaction.run("CREATE (:Dog{name:'a'})");
 			transaction.commit();
-			bookmarkCapture.seedWith(session.lastBookmark());
+			bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 
 		List<AbstractPet> pets = petsRepository.findPets("a");
@@ -174,7 +175,7 @@ public class InheritanceMappingIT {
 		try (Session session = driver.session(bookmarkCapture.createSessionConfig()); Transaction transaction = session.beginTransaction()) {
 			id = transaction.run("CREATE (s:SomeInterface{name:'s'}) -[:RELATED]-> (:SomeInterface {name:'e'}) RETURN id(s)").single().get(0).asLong();
 			transaction.commit();
-			bookmarkCapture.seedWith(session.lastBookmark());
+			bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 
 		Optional<Inheritance.SomeInterfaceEntity> optionalEntity = template.findById(id, Inheritance.SomeInterfaceEntity.class);
@@ -207,7 +208,7 @@ public class InheritanceMappingIT {
 		try (Session session = driver.session(bookmarkCapture.createSessionConfig()); Transaction transaction = session.beginTransaction()) {
 			id = transaction.run("CREATE (s:PrimaryLabelWN{name:'s'}) -[:RELATED]-> (:PrimaryLabelWN {name:'e'}) RETURN id(s)").single().get(0).asLong();
 			transaction.commit();
-			bookmarkCapture.seedWith(session.lastBookmark());
+			bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 
 		Optional<Inheritance.SomeInterfaceEntity2> optionalEntity = transactionTemplate.execute(tx -> template.findById(id, Inheritance.SomeInterfaceEntity2.class));
@@ -244,7 +245,7 @@ public class InheritanceMappingIT {
 					"-[:RELATED]-> (:SomeInterface3:SomeInterface3a {name:'e'}) RETURN id(s)")
 					.single().get(0).asLong();
 			transaction.commit();
-			bookmarkCapture.seedWith(session.lastBookmark());
+			bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 
 		Optional<Inheritance.SomeInterfaceImpl3a> optionalEntity = transactionTemplate.execute(tx -> template.findById(id, Inheritance.SomeInterfaceImpl3a.class));
@@ -272,7 +273,7 @@ public class InheritanceMappingIT {
 				.single().get(0).asLong();
 			transaction.commit();
 			// end::interface3[]
-			bookmarkCapture.seedWith(session.lastBookmark());
+			bookmarkCapture.seedWith(session.lastBookmarks());
 			// tag::interface3[]
 		}
 
@@ -370,7 +371,8 @@ public class InheritanceMappingIT {
 
 		Record record = createRelationsToDifferentImplementations();
 
-		Optional<Inheritance.ParentModel2> optionalDivision = repository.findById(record.get(0).asNode().id());
+		Optional<Inheritance.ParentModel2> optionalDivision = repository.findById(
+				IdentitySupport.getInternalId(record.get(0).asNode()));
 		assertThat(optionalDivision).isPresent();
 		assertThat(optionalDivision).hasValueSatisfying(twoDifferentInterfacesHaveBeenLoaded());
 	}
@@ -392,7 +394,7 @@ public class InheritanceMappingIT {
 			transaction.run("CREATE (:KotlinMovie:KotlinAnimationMovie {id: 'movie001', name: 'movie-001', studio: 'Pixar'})<-[:Plays]-(c:KotlinCinema {id:'cine-01', name: 'GrandRex'}) RETURN id(c) AS id")
 					.single().get(0).asLong();
 			transaction.commit();
-			bookmarkCapture.seedWith(session.lastBookmark());
+			bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 
 		List<KotlinCinema> divisions = repository.findAll();
@@ -413,7 +415,7 @@ public class InheritanceMappingIT {
 			childId = session
 					.run("CREATE (c:CCWR:PCWR{name:'child'})-[:LIVES_IN]->(:Continent:BaseTerritory:BaseEntity{nameEn:'continent', continentProperty:'small'}) return id(c) as id")
 					.single().get(0).asLong();
-			bookmarkCapture.seedWith(session.lastBookmark());
+			bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 
 		Inheritance.ParentClassWithRelationship potentialChildClass = repository.findById(childId).get();
@@ -450,7 +452,7 @@ public class InheritanceMappingIT {
 								 "CREATE (d) -[:IS_ACTIVE_IN] -> (ca)" +
 								 "CREATE (d) -[:IS_ACTIVE_IN] -> (cb)" +
 								 "RETURN id(d) as divisionId, id(c) as territoryId").single();
-			bookmarkCapture.seedWith(session.lastBookmark());
+			bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 		return result;
 	}
@@ -463,7 +465,7 @@ public class InheritanceMappingIT {
 								 "CREATE (p)-[:IS_RELATED_TO]->(:SomeInterface3:SomeInterface3a {name: '3a'}) " +
 								 "CREATE (p)-[:IS_RELATED_TO]->(:SomeInterface3:SomeInterface3b {name: '3b'}) " +
 								 "RETURN p").single();
-			bookmarkCapture.seedWith(session.lastBookmark());
+			bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 		return result;
 	}

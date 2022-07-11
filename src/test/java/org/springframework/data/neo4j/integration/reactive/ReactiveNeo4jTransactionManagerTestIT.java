@@ -55,8 +55,8 @@ class ReactiveNeo4jTransactionManagerTestIT {
 	@BeforeAll
 	static void clearDatabase(@Autowired BookmarkCapture bookmarkCapture) {
 		try (Session session = neo4jConnectionSupport.getDriver().session(bookmarkCapture.createSessionConfig())) {
-			session.writeTransaction(tx -> tx.run("MATCH (n) DETACH DELETE n").consume());
-			bookmarkCapture.seedWith(session.lastBookmark());
+			session.executeWrite(tx -> tx.run("MATCH (n) DETACH DELETE n").consume());
+			bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 	}
 
@@ -74,7 +74,7 @@ class ReactiveNeo4jTransactionManagerTestIT {
 
 		try (Session session = neo4jConnectionSupport.getDriver().session()) {
 			long cnt = session
-					.readTransaction(tx -> tx.run("MATCH (n:ShouldNotBeThere) RETURN count(n)").single().get(0))
+					.executeRead(tx -> tx.run("MATCH (n:ShouldNotBeThere) RETURN count(n)").single().get(0))
 					.asLong();
 			assertThat(cnt).isEqualTo(0L);
 		}

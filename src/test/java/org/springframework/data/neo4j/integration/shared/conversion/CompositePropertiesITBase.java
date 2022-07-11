@@ -92,23 +92,23 @@ public abstract class CompositePropertiesITBase {
 
 	protected long createNodeWithCompositeProperties() {
 		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
-			long id = session.writeTransaction(
+			long id = session.executeWrite(
 					tx -> tx.run("CREATE (t:CompositeProperties) SET t = $properties RETURN id(t)",
 							Collections.singletonMap("properties", nodeProperties)).single().get(0)
 							.asLong());
-			bookmarkCapture.seedWith(session.lastBookmark());
+			bookmarkCapture.seedWith(session.lastBookmarks());
 			return id;
 		}
 	}
 
 	protected long createRelationshipWithCompositeProperties() {
 		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
-			long id = session.writeTransaction(
+			long id = session.executeWrite(
 					tx -> tx.run(
 							"CREATE (t:CompositeProperties) -[r:IRRELEVANT_TYPE] -> (:Club) SET r = $properties RETURN id(t)",
 							Collections.singletonMap("properties", relationshipProperties)).single().get(0)
 							.asLong());
-			bookmarkCapture.seedWith(session.lastBookmark());
+			bookmarkCapture.seedWith(session.lastBookmarks());
 			return id;
 		}
 	}
@@ -201,11 +201,11 @@ public abstract class CompositePropertiesITBase {
 	protected void assertNodePropertiesInGraph(long id) {
 
 		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
-			Record r = session.readTransaction(tx -> tx.run("MATCH (t:CompositeProperties) WHERE id(t) = $id RETURN t",
+			Record r = session.executeRead(tx -> tx.run("MATCH (t:CompositeProperties) WHERE id(t) = $id RETURN t",
 					Collections.singletonMap("id", id)).single());
 			Node n = r.get("t").asNode();
 			assertThat(n.asMap()).containsExactlyInAnyOrderEntriesOf(nodeProperties);
-			bookmarkCapture.seedWith(session.lastBookmark());
+			bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 	}
 
@@ -227,12 +227,12 @@ public abstract class CompositePropertiesITBase {
 	protected void assertRelationshipPropertiesInGraph(long id) {
 
 		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
-			Record r = session.readTransaction(
+			Record r = session.executeRead(
 					tx -> tx.run("MATCH (t:CompositeProperties) - [r:IRRELEVANT_TYPE] -> () WHERE id(t) = $id RETURN r",
 							Collections.singletonMap("id", id)).single());
 			Relationship rel = r.get("r").asRelationship();
 			assertThat(rel.asMap()).containsExactlyInAnyOrderEntriesOf(relationshipProperties);
-			bookmarkCapture.seedWith(session.lastBookmark());
+			bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 	}
 }

@@ -78,7 +78,7 @@ class ReactivePropertyIT {
 			session.run(
 					"CREATE (m:SimplePropertyContainer {id: 'id1', knownProperty: 'A', unknownProperty: 'Mr. X'}) RETURN id(m)")
 					.consume();
-			bookmarkCapture.seedWith(session.lastBookmark());
+			bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 
 		updateKnownAndAssertUnknownProperty(DomainClasses.SimplePropertyContainer.class, "id1");
@@ -91,7 +91,7 @@ class ReactivePropertyIT {
 			session.run(
 					"CREATE (m:SimplePropertyContainer:SimplePropertyContainerWithVersion {id: 'id1', version: 1, knownProperty: 'A', unknownProperty: 'Mr. X'}) RETURN id(m)")
 					.consume();
-			bookmarkCapture.seedWith(session.lastBookmark());
+			bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 
 		updateKnownAndAssertUnknownProperty(DomainClasses.SimplePropertyContainerWithVersion.class, "id1");
@@ -105,7 +105,7 @@ class ReactivePropertyIT {
 			id = session
 					.run("CREATE (m:SimpleGeneratedIDPropertyContainer {knownProperty: 'A', unknownProperty: 'Mr. X'}) RETURN id(m)")
 					.single().get(0).asLong();
-			bookmarkCapture.seedWith(session.lastBookmark());
+			bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 
 		updateKnownAndAssertUnknownProperty(DomainClasses.SimpleGeneratedIDPropertyContainer.class, id);
@@ -119,7 +119,7 @@ class ReactivePropertyIT {
 			id = session
 					.run("CREATE (m:SimpleGeneratedIDPropertyContainer:SimpleGeneratedIDPropertyContainerWithVersion {version: 1, knownProperty: 'A', unknownProperty: 'Mr. X'}) RETURN id(m)")
 					.single().get(0).asLong();
-			bookmarkCapture.seedWith(session.lastBookmark());
+			bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 
 		updateKnownAndAssertUnknownProperty(DomainClasses.SimpleGeneratedIDPropertyContainerWithVersion.class, id);
@@ -156,7 +156,7 @@ class ReactivePropertyIT {
 			session.run(
 					"CREATE (m:SimplePropertyContainer {id: 'b', knownProperty: 'B', unknownProperty: 'Foxy'}) RETURN id(m)")
 					.consume();
-			bookmarkCapture.seedWith(session.lastBookmark());
+			bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 
 		template.findById("a", DomainClasses.SimplePropertyContainer.class)
@@ -186,7 +186,7 @@ class ReactivePropertyIT {
 			id = session
 					.run("CREATE (a:IrrelevantSourceContainer) - [:RELATIONSHIP_PROPERTY_CONTAINER {knownProperty: 'A', unknownProperty: 'Mr. X'}] -> (:IrrelevantTargetContainer) RETURN id(a)")
 					.single().get(0).asLong();
-			bookmarkCapture.seedWith(session.lastBookmark());
+			bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 
 		template.findById(id, DomainClasses.IrrelevantSourceContainer.class)

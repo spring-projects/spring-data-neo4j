@@ -132,7 +132,7 @@ class ReactiveCompositePropertiesIT extends CompositePropertiesITBase {
 				.verifyComplete();
 
 		try (Session session = driver.session()) {
-			Record r = session.readTransaction(tx -> tx.run("MATCH (t:CompositeProperties) WHERE id(t) = $id RETURN t",
+			Record r = session.executeRead(tx -> tx.run("MATCH (t:CompositeProperties) WHERE id(t) = $id RETURN t",
 					Collections.singletonMap("id", id)).single());
 			Node n = r.get("t").asNode();
 			assertThat(n.asMap())

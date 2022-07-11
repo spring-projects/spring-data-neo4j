@@ -15,8 +15,10 @@
  */
 package org.springframework.data.neo4j.test;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -68,9 +70,14 @@ public final class BookmarkCapture implements Supplier<Set<Bookmark>>, Applicati
 
 	public void seedWith(Bookmark bookmark) {
 
+		seedWith(List.of(bookmark));
+	}
+
+	public void seedWith(Collection<Bookmark> bookmarks) {
+
 		try {
 			write.lock();
-			nextBookmarks.add(bookmark);
+			nextBookmarks.addAll(bookmarks);
 		} finally {
 			write.unlock();
 		}

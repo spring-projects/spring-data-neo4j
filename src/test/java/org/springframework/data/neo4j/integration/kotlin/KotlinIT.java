@@ -75,7 +75,7 @@ class KotlinIT {
 							+ "CREATE (p1)-[:MEMBER_OF]->(d)\n"
 							+ "CREATE (p2)-[:MEMBER_OF]->(d)\n").consume();
 			transaction.commit();
-			bookmarkCapture.seedWith(session.lastBookmark());
+			bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 	}
 

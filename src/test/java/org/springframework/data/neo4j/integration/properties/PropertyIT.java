@@ -58,7 +58,7 @@ class PropertyIT {
 
 		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
 			session.run("MATCH (n) DETACH DELETE n").consume();
-			bookmarkCapture.seedWith(session.lastBookmark());
+			bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 	}
 
@@ -76,7 +76,7 @@ class PropertyIT {
 			session.run(
 					"CREATE (m:SimplePropertyContainer {id: 'id1', knownProperty: 'A', unknownProperty: 'Mr. X'}) RETURN id(m)")
 					.consume();
-			bookmarkCapture.seedWith(session.lastBookmark());
+			bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 
 		updateKnownAndAssertUnknownProperty(DomainClasses.SimplePropertyContainer.class, "id1");
@@ -89,7 +89,7 @@ class PropertyIT {
 			session.run(
 					"CREATE (m:SimplePropertyContainerWithVersion:SimplePropertyContainer {id: 'id1', version: 1, knownProperty: 'A', unknownProperty: 'Mr. X'}) RETURN id(m)")
 					.consume();
-			bookmarkCapture.seedWith(session.lastBookmark());
+			bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 
 		updateKnownAndAssertUnknownProperty(DomainClasses.SimplePropertyContainerWithVersion.class, "id1");
@@ -103,7 +103,7 @@ class PropertyIT {
 			id = session
 					.run("CREATE (m:SimpleGeneratedIDPropertyContainer {knownProperty: 'A', unknownProperty: 'Mr. X'}) RETURN id(m)")
 					.single().get(0).asLong();
-			bookmarkCapture.seedWith(session.lastBookmark());
+			bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 
 		updateKnownAndAssertUnknownProperty(DomainClasses.SimpleGeneratedIDPropertyContainer.class, id);
@@ -117,7 +117,7 @@ class PropertyIT {
 			id = session
 					.run("CREATE (m:SimpleGeneratedIDPropertyContainerWithVersion:SimpleGeneratedIDPropertyContainer {version: 1, knownProperty: 'A', unknownProperty: 'Mr. X'}) RETURN id(m)")
 					.single().get(0).asLong();
-			bookmarkCapture.seedWith(session.lastBookmark());
+			bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 
 		updateKnownAndAssertUnknownProperty(DomainClasses.SimpleGeneratedIDPropertyContainerWithVersion.class, id);
@@ -151,7 +151,7 @@ class PropertyIT {
 			session.run(
 					"CREATE (m:SimplePropertyContainer {id: 'b', knownProperty: 'B', unknownProperty: 'Foxy'}) RETURN id(m)")
 					.consume();
-			bookmarkCapture.seedWith(session.lastBookmark());
+			bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 
 		DomainClasses.SimplePropertyContainer optionalContainerA = template
@@ -168,7 +168,7 @@ class PropertyIT {
 					.run("MATCH (m:SimplePropertyContainer) WHERE m.id in $ids AND m.unknownProperty IS NOT NULL RETURN count(m)",
 							Collections.singletonMap("ids", Arrays.asList("a", "b"))).single().get(0).asLong();
 			assertThat(cnt).isEqualTo(2L);
-			bookmarkCapture.seedWith(session.lastBookmark());
+			bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 	}
 
@@ -180,7 +180,7 @@ class PropertyIT {
 			id = session
 					.run("CREATE (a:IrrelevantSourceContainer) - [:RELATIONSHIP_PROPERTY_CONTAINER {knownProperty: 'A', unknownProperty: 'Mr. X'}] -> (:IrrelevantTargetContainer) RETURN id(a)")
 					.single().get(0).asLong();
-			bookmarkCapture.seedWith(session.lastBookmark());
+			bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 
 		Optional<DomainClasses.IrrelevantSourceContainer> optionalContainer = template

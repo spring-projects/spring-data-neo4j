@@ -36,6 +36,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -91,7 +92,7 @@ class Neo4jClientTest {
 		when(driver.session(any(SessionConfig.class))).thenReturn(session);
 		when(driver.defaultTypeSystem()).thenReturn(typeSystem);
 
-		when(session.lastBookmark()).thenReturn(Mockito.mock(Bookmark.class));
+		when(session.lastBookmarks()).thenReturn(Set.of(Mockito.mock(Bookmark.class)));
 	}
 
 	@AfterEach

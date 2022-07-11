@@ -74,7 +74,7 @@ class ReactiveAdvancedMappingIT {
 		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
 			session.run("MATCH (n) DETACH DELETE n").consume();
 			CypherUtils.loadCypherFromResource("/data/movies.cypher", session);
-			bookmarkCapture.seedWith(session.lastBookmark());
+			bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 	}
 

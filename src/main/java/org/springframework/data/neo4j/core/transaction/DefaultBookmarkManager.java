@@ -65,12 +65,12 @@ final class DefaultBookmarkManager extends AbstractBookmarkManager {
 	}
 
 	@Override
-	public void updateBookmarks(Collection<Bookmark> usedBookmarks, Bookmark lastBookmark) {
+	public void updateBookmarks(Collection<Bookmark> usedBookmarks, Collection<Bookmark> newBookmarks) {
 
 		try {
 			write.lock();
 			bookmarks.removeAll(usedBookmarks);
-			bookmarks.add(lastBookmark);
+			bookmarks.addAll(newBookmarks);
 			if (applicationEventPublisher != null) {
 				applicationEventPublisher.publishEvent(new Neo4jBookmarksUpdatedEvent(new HashSet<>(bookmarks)));
 			}

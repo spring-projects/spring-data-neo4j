@@ -55,9 +55,9 @@ import org.neo4j.driver.Driver;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.Transaction;
+import org.neo4j.driver.TransactionContext;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
-import org.neo4j.driver.internal.util.ServerVersion;
 import org.neo4j.driver.types.Node;
 import org.neo4j.driver.types.Point;
 import org.neo4j.driver.types.Relationship;
@@ -81,6 +81,7 @@ import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.Metrics;
 import org.springframework.data.geo.Polygon;
 import org.springframework.data.mapping.MappingException;
+import org.springframework.data.neo4j.core.mapping.IdentitySupport;
 import org.springframework.data.neo4j.test.Neo4jImperativeTestConfiguration;
 import org.springframework.data.neo4j.core.DatabaseSelection;
 import org.springframework.data.neo4j.core.DatabaseSelectionProvider;
@@ -149,6 +150,7 @@ import org.springframework.data.neo4j.repository.query.BoundingBox;
 import org.springframework.data.neo4j.repository.query.Query;
 import org.springframework.data.neo4j.test.BookmarkCapture;
 import org.springframework.data.neo4j.test.Neo4jExtension;
+import org.springframework.data.neo4j.test.ServerVersion;
 import org.springframework.data.neo4j.types.CartesianPoint2d;
 import org.springframework.data.neo4j.types.GeographicPoint2d;
 import org.springframework.data.repository.query.FluentQuery;
@@ -200,7 +202,7 @@ class RepositoryIT {
 	class Find extends IntegrationTestBase {
 
 		@Override
-		void setupData(Transaction transaction) {
+		void setupData(TransactionContext transaction) {
 			ZonedDateTime createdAt = LocalDateTime.of(2019, 1, 1, 23, 23, 42, 0).atZone(ZoneOffset.UTC.normalized());
 			id1 = transaction.run("""
 				CREATE (n:PersonWithAllConstructor)
@@ -372,7 +374,7 @@ class RepositoryIT {
 		void findAllWithSortWithCaseIgnored(@Autowired PersonRepository repository) {
 
 			doWithSession(session ->
-					session.writeTransaction(tx -> {
+					session.executeWrite(tx -> {
 						tx.run("CREATE (n:PersonWithAllConstructor {name: 'Ab', firstName: 'n/a'})");
 						tx.run("CREATE (n:PersonWithAllConstructor {name: 'aa', firstName: 'n/a'})");
 						return null;
@@ -388,7 +390,7 @@ class RepositoryIT {
 		void findAllWithSortWithCaseIgnoredSpelBased(@Autowired PersonRepository repository) {
 
 			doWithSession(session ->
-					session.writeTransaction(tx -> {
+					session.executeWrite(tx -> {
 						tx.run("CREATE (n:PersonWithAllConstructor {name: 'Ab', firstName: 'n/a'})");
 						tx.run("CREATE (n:PersonWithAllConstructor {name: 'aa', firstName: 'n/a'})");
 						return null;
@@ -701,9 +703,9 @@ class RepositoryIT {
 			Record record = doWithSession(session -> session.run(
 					"CREATE (p1:Pet{name: 'Pet1'})-[:Has]->(p2:Pet{name: 'Pet2'}), (p2)-[:Has]->(p3:Pet{name: 'Pet3'}) RETURN p1, p2, p3").single());
 
-			long petNode1Id = record.get("p1").asNode().id();
-			long petNode2Id = record.get("p2").asNode().id();
-			long petNode3Id = record.get("p3").asNode().id();
+			long petNode1Id = IdentitySupport.getInternalId(record.get("p1").asNode());
+			long petNode2Id = IdentitySupport.getInternalId(record.get("p2").asNode());
+			long petNode3Id = IdentitySupport.getInternalId(record.get("p3").asNode());
 
 			Pet loadedPet = repository.customQueryWithDeepRelationshipMapping(petNode1Id);
 
@@ -875,12 +877,12 @@ class RepositoryIT {
 			Node petNode1 = record.get("p1").asNode();
 			Node petNode2 = record.get("p2").asNode();
 
-			long personId = personNode.id();
-			long clubId = clubNode.id();
-			long hobbyNode1Id = hobbyNode1.id();
-			long hobbyNode2Id = hobbyNode2.id();
-			long petNode1Id = petNode1.id();
-			long petNode2Id = petNode2.id();
+			long personId = IdentitySupport.getInternalId(personNode);
+			long clubId = IdentitySupport.getInternalId(clubNode);
+			long hobbyNode1Id = IdentitySupport.getInternalId(hobbyNode1);
+			long hobbyNode2Id = IdentitySupport.getInternalId(hobbyNode2);
+			long petNode1Id = IdentitySupport.getInternalId(petNode1);
+			long petNode2Id = IdentitySupport.getInternalId(petNode2);
 
 			PersonWithRelationship loadedPerson = repository.findById(personId).get();
 			assertThat(loadedPerson.getName()).isEqualTo("Freddie");
@@ -915,9 +917,9 @@ class RepositoryIT {
 			Record record = doWithSession(session -> session.run(
 					"CREATE (p1:Pet{name: 'Pet1'})-[:Has]->(p2:Pet{name: 'Pet2'}), (p2)-[:Has]->(p3:Pet{name: 'Pet3'}) RETURN p1, p2, p3").single());
 
-			long petNode1Id = record.get("p1").asNode().id();
-			long petNode2Id = record.get("p2").asNode().id();
-			long petNode3Id = record.get("p3").asNode().id();
+			long petNode1Id = IdentitySupport.getInternalId(record.get("p1").asNode());
+			long petNode2Id = IdentitySupport.getInternalId(record.get("p2").asNode());
+			long petNode3Id = IdentitySupport.getInternalId(record.get("p3").asNode());
 
 			Pet loadedPet = repository.findById(petNode1Id).get();
 			Pet comparisonPet2 = new Pet(petNode2Id, "Pet2");
@@ -951,7 +953,7 @@ class RepositoryIT {
 		@Test
 		void findLoopingDeepRelationships(@Autowired LoopingRelationshipRepository loopingRelationshipRepository) {
 
-			long type1Id = doWithSession(session -> session.run("""
+			long type1Id = IdentitySupport.getInternalId(doWithSession(session -> session.run("""
 				CREATE (t1:LoopingType1)-[:NEXT_TYPE]->(:LoopingType2)-[:NEXT_TYPE]->(:LoopingType3)-[:NEXT_TYPE]->
 				(:LoopingType1)-[:NEXT_TYPE]->(:LoopingType2)-[:NEXT_TYPE]->(:LoopingType3)-[:NEXT_TYPE]->
 				(:LoopingType1)-[:NEXT_TYPE]->(:LoopingType2)-[:NEXT_TYPE]->(:LoopingType3)-[:NEXT_TYPE]->
@@ -964,7 +966,7 @@ class RepositoryIT {
 				(:LoopingType1)-[:NEXT_TYPE]->(:LoopingType2)-[:NEXT_TYPE]->(:LoopingType3)-[:NEXT_TYPE]->
 				(:LoopingType1)RETURN t1
 				"""
-			).single().get("t1").asNode().id());
+			).single().get("t1").asNode()));
 
 			DeepRelationships.LoopingType1 type1 = loopingRelationshipRepository.findById(type1Id).get();
 
@@ -1002,9 +1004,9 @@ class RepositoryIT {
 			Node hobbyNode1 = record.get("h1").asNode();
 			Node petNode1 = record.get("p1").asNode();
 
-			long personId = personNode.id();
-			long hobbyNode1Id = hobbyNode1.id();
-			long petNode1Id = petNode1.id();
+			long personId = IdentitySupport.getInternalId(personNode);
+			long hobbyNode1Id = IdentitySupport.getInternalId(hobbyNode1);
+			long petNode1Id = IdentitySupport.getInternalId(petNode1);
 
 			PersonWithRelationship loadedPerson = repository.findById(personId).get();
 			assertThat(loadedPerson.getName()).isEqualTo("Freddie");
@@ -1028,14 +1030,14 @@ class RepositoryIT {
 		@Test
 		void findEntityWithBidirectionalRelationshipInConstructorThrowsException(@Autowired BidirectionalStartRepository repository) {
 
-			long startId = doWithSession(session ->  session
+			long startId = IdentitySupport.getInternalId(doWithSession(session ->  session
 						.run("""
 							CREATE
       							(n:BidirectionalStart{name:'Ernie'})-[:CONNECTED]->(e:BidirectionalEnd{name:'Bert'}),
 								(e)<-[:ANOTHER_CONNECTION]-(anotherStart:BidirectionalStart{name:'Elmo'})
       						RETURN n"""
 						)
-						.single().get("n").asNode().id());
+						.single().get("n").asNode()));
 
 			assertThatThrownBy(() -> repository.findById(startId))
 					.hasRootCauseMessage("The node with id " + startId + " has a logical cyclic mapping dependency; " +
@@ -1086,9 +1088,9 @@ class RepositoryIT {
 		@Test
 		void findEntityWithBidirectionalRelationshipFromIncomingSide(@Autowired BidirectionalEndRepository repository) {
 
-			long endId = doWithSession(session -> session.run(
+			long endId = IdentitySupport.getInternalId(doWithSession(session -> session.run(
 							"CREATE (n:BidirectionalStart{name:'Ernie'})-[:CONNECTED]->(e:BidirectionalEnd{name:'Bert'}) RETURN e")
-						.single().get("e").asNode().id());
+						.single().get("e").asNode()));
 
 			Optional<BidirectionalEnd> entityOptional = repository.findById(endId);
 			assertThat(entityOptional).isPresent();
@@ -1104,14 +1106,14 @@ class RepositoryIT {
 					.run("CREATE (n:PersonWithRelationship{name:'Freddie'})-[:Has]->(h:Hobby{name:'Music'}), (n)-[:Has]->(p:Pet{name: 'Jerry'}) RETURN n, h, p")
 					.single());
 
-			long hobbyNode1Id = record.get("h").asNode().id();
-			long petNode1Id = record.get("p").asNode().id();
+			long hobbyNode1Id = IdentitySupport.getInternalId(record.get("h").asNode());
+			long petNode1Id = IdentitySupport.getInternalId(record.get("p").asNode());
 
 			record = doWithSession(session -> session.run(
 					"CREATE (n:PersonWithRelationship{name:'SomeoneElse'})-[:Has]->(h:Hobby{name:'Music2'}), (n)-[:Has]->(p:Pet{name: 'Jerry2'}) RETURN n, h, p").single());
 
-			long hobbyNode2Id = record.get("h").asNode().id();
-			long petNode2Id = record.get("p").asNode().id();
+			long hobbyNode2Id = IdentitySupport.getInternalId(record.get("h").asNode());
+			long petNode2Id = IdentitySupport.getInternalId(record.get("p").asNode());
 
 			List<PersonWithRelationship> loadedPersons = repository.findAll();
 
@@ -1143,10 +1145,10 @@ class RepositoryIT {
 			Node petNode1 = record.get("p1").asNode();
 			Node petNode2 = record.get("p2").asNode();
 
-			long personId = personNode.id();
-			long hobbyNodeId = hobbyNode1.id();
-			long petNode1Id = petNode1.id();
-			long petNode2Id = petNode2.id();
+			long personId = IdentitySupport.getInternalId(personNode);
+			long hobbyNodeId = IdentitySupport.getInternalId(hobbyNode1);
+			long petNode1Id = IdentitySupport.getInternalId(petNode1);
+			long petNode2Id = IdentitySupport.getInternalId(petNode2);
 
 			PersonWithRelationship loadedPerson = repository.getPersonWithRelationshipsViaQuery();
 			assertThat(loadedPerson.getName()).isEqualTo("Freddie");
@@ -1181,10 +1183,10 @@ class RepositoryIT {
 			Node petNode1 = record.get("p1").asNode();
 			Node petNode2 = record.get("p2").asNode();
 
-			long personId = personNode.id();
-			long hobbyNodeId = hobbyNode1.id();
-			long petNode1Id = petNode1.id();
-			long petNode2Id = petNode2.id();
+			long personId = IdentitySupport.getInternalId(personNode);
+			long hobbyNodeId = IdentitySupport.getInternalId(hobbyNode1);
+			long petNode1Id = IdentitySupport.getInternalId(petNode1);
+			long petNode2Id = IdentitySupport.getInternalId(petNode2);
 
 			PersonWithRelationship loadedPerson = repository.getPersonWithRelationshipsViaPathQuery();
 			assertThat(loadedPerson.getName()).isEqualTo("Freddie");
@@ -1204,9 +1206,9 @@ class RepositoryIT {
 		@Test
 		void findEntityWithRelationshipWithAssignedId(@Autowired PetRepository repository) {
 
-			long petNodeId = doWithSession(session -> session
+			long petNodeId = IdentitySupport.getInternalId(doWithSession(session -> session
 						.run("CREATE (p:Pet{name:'Jerry'})-[:Has]->(t:Thing{theId:'t1', name:'Thing1'}) RETURN p, t").single()
-						.get("p").asNode().id());
+						.get("p").asNode()));
 
 			Pet pet = repository.findById(petNodeId).get();
 			ThingWithAssignedId relatedThing = pet.getThings().get(0);
@@ -1216,7 +1218,7 @@ class RepositoryIT {
 
 		@Test // DATAGRAPH-1431
 		void findAndMapMultipleLevelsOfSimpleRelationships(@Autowired SimpleEntityWithRelationshipARepository repository) {
-			Long aId = doWithSession(session -> session.writeTransaction(tx -> tx.run("""
+			Long aId = doWithSession(session -> session.executeWrite(tx -> tx.run("""
 					CREATE (a:SimpleEntityWithRelationshipA)-[:TO_B]->(:SimpleEntityWithRelationshipB)-[:TO_C]->(:SimpleEntityWithRelationshipC)
 					RETURN id(a) as aId
 					""").single().get("aId").asLong()));
@@ -1383,15 +1385,15 @@ class RepositoryIT {
 		void shouldBeStorableOnSets(
 				@Autowired Neo4jTemplate template) {
 
-			long personId = doWithSession(session -> session.run("CREATE (n:PersonWithRelationshipWithProperties2{name:'Freddie'}),"
+			var hlp = doWithSession(session -> session.run("CREATE (n:PersonWithRelationshipWithProperties2{name:'Freddie'}),"
 										+ " (n)-[l1:LIKES "
 										+ "{since: 1995, active: true, localDate: date('1995-02-26'), myEnum: 'SOMETHING', point: point({x: 0, y: 1})}"
 										+ "]->(h1:Hobby{name:'Music'}), "
 										+ "(n)-[l2:LIKES "
 										+ "{since: 2000, active: false, localDate: date('2000-06-28'), myEnum: 'SOMETHING_DIFFERENT', point: point({x: 2, y: 3})}"
 										+ "]->(h2:Hobby{name:'Something else'})"
-										+ "RETURN n, h1, h2").single().get("n").asNode().id());
-
+										+ "RETURN n, h1, h2").single().get("n").asNode());
+			long personId = IdentitySupport.getInternalId(hlp);
 			Optional<PersonWithRelationshipWithProperties2> optionalPerson = template.findById(personId, PersonWithRelationshipWithProperties2.class);
 			assertThat(optionalPerson).hasValueSatisfying(person -> {
 				assertThat(person.getName()).isEqualTo("Freddie");
@@ -1419,9 +1421,9 @@ class RepositoryIT {
 			Node hobbyNode1 = record.get("h1").asNode();
 			Node hobbyNode2 = record.get("h2").asNode();
 
-			long personId = personNode.id();
-			long hobbyNode1Id = hobbyNode1.id();
-			long hobbyNode2Id = hobbyNode2.id();
+			long personId = IdentitySupport.getInternalId(personNode);
+			long hobbyNode1Id = IdentitySupport.getInternalId(hobbyNode1);
+			long hobbyNode2Id = IdentitySupport.getInternalId(hobbyNode2);
 
 			Optional<PersonWithRelationshipWithProperties> optionalPerson = repository.findById(personId);
 			assertThat(optionalPerson).isPresent();
@@ -1460,11 +1462,11 @@ class RepositoryIT {
 		@Test
 		void findEntityWithRelationshipWithPropertiesScalar(@Autowired PersonWithRelationshipWithPropertiesRepository repository) {
 
-			long personId = doWithSession(session -> session.run("CREATE (n:PersonWithRelationshipWithProperties{name:'Freddie'}),"
+			long personId = IdentitySupport.getInternalId(doWithSession(session -> session.run("CREATE (n:PersonWithRelationshipWithProperties{name:'Freddie'}),"
 											+ " (n)-[:WORKS_IN{since: 1995}]->(:Club{name:'Blubb'}),"
 											+ "(n) - [:OWNS {place: 'The place to be'}] -> (c1:Club {name: 'Berlin Mitte'}), "
 											+ "(n) - [:OWNS {place: 'Whatever'}] -> (c2:Club {name: 'Schachklub'}) "
-											+ "RETURN n").single().get("n").asNode().id());
+											+ "RETURN n").single().get("n").asNode()));
 
 			PersonWithRelationshipWithProperties person = repository.findById(personId).get();
 
@@ -1477,9 +1479,9 @@ class RepositoryIT {
 		void findEntityWithRelationshipWithPropertiesSameLabel(
 				@Autowired FriendRepository repository) {
 
-			long friendId = doWithSession(session -> session.run("CREATE (n:Friend{name:'Freddie'}),"
+			long friendId = IdentitySupport.getInternalId(doWithSession(session -> session.run("CREATE (n:Friend{name:'Freddie'}),"
 											+ " (n)-[:KNOWS{since: 1995}]->(:Friend{name:'Frank'})"
-											+ "RETURN n").single().get("n").asNode().id());
+											+ "RETURN n").single().get("n").asNode()));
 
 			Friend person = repository.findById(friendId).get();
 
@@ -1587,9 +1589,9 @@ class RepositoryIT {
 			Node hobbyNode1 = record.get("h1").asNode();
 			Node hobbyNode2 = record.get("h2").asNode();
 
-			long personId = personNode.id();
-			long hobbyNode1Id = hobbyNode1.id();
-			long hobbyNode2Id = hobbyNode2.id();
+			long personId = IdentitySupport.getInternalId(personNode);
+			long hobbyNode1Id = IdentitySupport.getInternalId(hobbyNode1);
+			long hobbyNode2Id = IdentitySupport.getInternalId(hobbyNode2);
 
 			PersonWithRelationshipWithProperties person = repository.loadFromCustomQuery(personId);
 			assertThat(person.getName()).isEqualTo("Freddie");
@@ -1624,8 +1626,8 @@ class RepositoryIT {
 		void loadEntityWithRelationshipWithPropertiesFromCustomQueryIncoming(
 				@Autowired HobbyWithRelationshipWithPropertiesRepository repository) {
 
-			long personId = doWithSession(
-					session -> session.run("CREATE (n:AltPerson{name:'Freddie'}), (n)-[l1:LIKES {rating: 5}]->(h1:AltHobby{name:'Music'}) RETURN n, h1").single().get("n").asNode().id());
+			long personId = IdentitySupport.getInternalId(doWithSession(
+					session -> session.run("CREATE (n:AltPerson{name:'Freddie'}), (n)-[l1:LIKES {rating: 5}]->(h1:AltHobby{name:'Music'}) RETURN n, h1").single().get("n").asNode()));
 
 			AltHobby hobby = repository.loadFromCustomQuery(personId);
 			assertThat(hobby.getName()).isEqualTo("Music");
@@ -1639,10 +1641,10 @@ class RepositoryIT {
 		@Test
 		void loadSameNodeWithDoubleRelationship(@Autowired HobbyWithRelationshipWithPropertiesRepository repository) {
 
-			long personId = doWithSession(session -> session.run("CREATE (n:AltPerson{name:'Freddie'})," +
+			long personId = IdentitySupport.getInternalId(doWithSession(session -> session.run("CREATE (n:AltPerson{name:'Freddie'})," +
 											" (n)-[l1:LIKES {rating: 5}]->(h1:AltHobby{name:'Music'})," +
 											" (n)-[l2:LIKES {rating: 1}]->(h1)" +
-											" RETURN n, h1").single().get("n").asNode().id());
+											" RETURN n, h1").single().get("n").asNode()));
 
 			AltHobby hobby = repository.loadFromCustomQuery(personId);
 			assertThat(hobby.getName()).isEqualTo("Music");
@@ -1712,7 +1714,7 @@ class RepositoryIT {
 	class Save extends IntegrationTestBase {
 
 		@Override
-		void setupData(Transaction transaction) {
+		void setupData(TransactionContext transaction) {
 			ZonedDateTime createdAt = LocalDateTime.of(2019, 1, 1, 23, 23, 42, 0).atZone(ZoneOffset.UTC.normalized());
 			id1 = transaction.run("""
 				CREATE (n:PersonWithAllConstructor)
@@ -1744,7 +1746,7 @@ class RepositoryIT {
 
 				assertThat(record.containsKey("n")).isTrue();
 				Node node = record.get("n").asNode();
-				assertThat(savedPerson.getId()).isEqualTo(node.id());
+				assertThat(savedPerson.getId()).isEqualTo(IdentitySupport.getInternalId(node));
 				assertThat(node.get("things").asList()).containsExactly("b", "a");
 			});
 		}
@@ -1754,7 +1756,7 @@ class RepositoryIT {
 				@Autowired ThingWithFixedGeneratedIdRepository repository) {
 
 			doWithSession(session ->
-					session.writeTransaction(tx ->
+					session.executeWrite(tx ->
 						tx.run("CREATE (:ThingWithFixedGeneratedId{theId:'ThingWithFixedGeneratedId'})-[r:KNOWS]->(:SimplePerson) return id(r) as rId").consume()));
 
 			ThingWithFixedGeneratedId thing = new ThingWithFixedGeneratedId("name");
@@ -1764,7 +1766,7 @@ class RepositoryIT {
 
 			// ensure that no relationship got deleted upfront
 			assertWithSession(session -> {
-				Long relCount = session.readTransaction(tx ->
+				Long relCount = session.executeRead(tx ->
 						tx.run("MATCH (:ThingWithFixedGeneratedId{theId:'ThingWithFixedGeneratedId'})" +
 							   "-[r:KNOWS]-(:SimplePerson) return count(r) as rCount")
 								.next().get("rCount").asLong());
@@ -1777,7 +1779,7 @@ class RepositoryIT {
 		void updateEntityWithGeneratedIdShouldIssueRelationshipDeleteStatement(
 				@Autowired ThingWithFixedGeneratedIdRepository repository) {
 
-			Long rId = doWithSession(session -> session.writeTransaction(tx ->
+			Long rId = doWithSession(session -> session.executeWrite(tx ->
 						tx.run("CREATE (:ThingWithFixedGeneratedId{theId:'ThingWithFixedGeneratedId'})" +
 							   "-[r:KNOWS]->(:SimplePerson) return id(r) as rId")
 								.next().get("rId").asLong()));
@@ -1786,7 +1788,7 @@ class RepositoryIT {
 			repository.save(loadedThing);
 
 			assertWithSession(session -> {
-				Long newRid = session.readTransaction(tx ->
+				Long newRid = session.executeRead(tx ->
 						tx.run("MATCH (:ThingWithFixedGeneratedId{theId:'ThingWithFixedGeneratedId'})" +
 							   "-[r:KNOWS]-(:SimplePerson) return id(r) as rId")
 								.next().get("rId").asLong());
@@ -1800,7 +1802,7 @@ class RepositoryIT {
 				@Autowired ThingWithFixedGeneratedIdRepository repository) {
 
 			doWithSession(session ->
-					session.writeTransaction(tx ->
+					session.executeWrite(tx ->
 						tx.run("CREATE (:ThingWithFixedGeneratedId{theId:'ThingWithFixedGeneratedId'})" +
 							   "-[r:KNOWS]->(:SimplePerson) return id(r) as rId").consume()));
 
@@ -1811,7 +1813,7 @@ class RepositoryIT {
 
 			// ensure that no relationship got deleted upfront
 			assertWithSession(session -> {
-				Long relCount = session.readTransaction(tx ->
+				Long relCount = session.executeRead(tx ->
 						tx.run("MATCH (:ThingWithFixedGeneratedId{theId:'ThingWithFixedGeneratedId'})" +
 							   "-[r:KNOWS]-(:SimplePerson) return count(r) as rCount")
 								.next().get("rCount").asLong());
@@ -1824,7 +1826,7 @@ class RepositoryIT {
 		void updateAllEntityWithGeneratedIdShouldIssueRelationshipDeleteStatement(
 				@Autowired ThingWithFixedGeneratedIdRepository repository) {
 
-			Long rId = doWithSession(session -> session.writeTransaction(tx ->
+			Long rId = doWithSession(session -> session.executeWrite(tx ->
 						tx.run("CREATE (:ThingWithFixedGeneratedId{theId:'ThingWithFixedGeneratedId'})" +
 							   "-[r:KNOWS]->(:SimplePerson) return id(r) as rId")
 								.next().get("rId").asLong()));
@@ -1833,7 +1835,7 @@ class RepositoryIT {
 			repository.saveAll(Collections.singletonList(loadedThing));
 
 			assertWithSession(session -> {
-				Long newRid = session.readTransaction(tx ->
+				Long newRid = session.executeRead(tx ->
 						tx.run("MATCH (:ThingWithFixedGeneratedId{theId:'ThingWithFixedGeneratedId'})" +
 							   "-[r:KNOWS]-(:SimplePerson) return id(r) as rId")
 								.next().get("rId").asLong());
@@ -1883,7 +1885,7 @@ class RepositoryIT {
 
 			PersonWithAllConstructor savedPerson = repository.save(originalPerson);
 			assertWithSession(session -> {
-				session.readTransaction(tx -> {
+				session.executeRead(tx -> {
 					Record record = tx
 							.run("MATCH (n:PersonWithAllConstructor) WHERE id(n) = $id RETURN n", Values.parameters("id", id1))
 							.single();
@@ -1891,7 +1893,7 @@ class RepositoryIT {
 					assertThat(record.containsKey("n")).isTrue();
 					Node node = record.get("n").asNode();
 
-					assertThat(node.id()).isEqualTo(savedPerson.getId());
+					assertThat(IdentitySupport.getInternalId(node)).isEqualTo(savedPerson.getId());
 					assertThat(node.get("first_name").asString()).isEqualTo(savedPerson.getFirstName());
 					assertThat(node.get("nullable").asString()).isEqualTo(savedPerson.getNullable());
 					assertThat(node.get("things").asList()).isEmpty();
@@ -2013,9 +2015,9 @@ class RepositoryIT {
 	class SaveWithRelationships extends IntegrationTestBase {
 
 		@Test // DATAGRAPH-1452
-		void createWithCustomQueryShouldWorkWithNestedObjects(@Autowired Driver driver, @Autowired RelationshipRepository repository) {
+		void createWithCustomQueryShouldWorkWithNestedObjects(@Autowired RelationshipRepository repository) {
 
-			Assumptions.assumeTrue(ServerVersion.version(driver).greaterThanOrEqual(ServerVersion.v4_1_0));
+			Assumptions.assumeTrue(neo4jConnectionSupport.getServerVersion().greaterThanOrEqual(ServerVersion.v4_1_0));
 
 			PersonWithRelationship p = createNewPerson("A Person", createNewClub("C27"));
 
@@ -2047,9 +2049,9 @@ class RepositoryIT {
 		}
 
 		@Test // DATAGRAPH-2292
-		void createWithCustomQueryShouldWorkWithCollectionsOfNestedObjects(@Autowired Driver driver, @Autowired RelationshipRepository repository) {
+		void createWithCustomQueryShouldWorkWithCollectionsOfNestedObjects(@Autowired RelationshipRepository repository) {
 
-			Assumptions.assumeTrue(ServerVersion.version(driver).greaterThanOrEqual(ServerVersion.v4_1_0));
+			Assumptions.assumeTrue(neo4jConnectionSupport.getServerVersion().greaterThanOrEqual(ServerVersion.v4_1_0));
 
 			Club c27 = createNewClub("C27");
 			Set<PersonWithRelationship> people = new HashSet<>();
@@ -2097,7 +2099,7 @@ class RepositoryIT {
 
 				assertThat(record.containsKey("n")).isTrue();
 				Node rootNode = record.get("n").asNode();
-				assertThat(savedPerson.getId()).isEqualTo(rootNode.id());
+				assertThat(savedPerson.getId()).isEqualTo(IdentitySupport.getInternalId(rootNode));
 				assertThat(savedPerson.getName()).isEqualTo("Freddie");
 
 				List<List<Object>> petsWithHobbies = record.get("petsWithHobbies").asList(Value::asList);
@@ -2158,7 +2160,7 @@ class RepositoryIT {
 
 				assertThat(record.containsKey("n")).isTrue();
 				Node rootNode = record.get("n").asNode();
-				assertThat(savedPerson.getId()).isEqualTo(rootNode.id());
+				assertThat(savedPerson.getId()).isEqualTo(IdentitySupport.getInternalId(rootNode));
 				assertThat(savedPerson.getName()).isEqualTo("Freddie");
 
 				List<List<Object>> petsWithHobbies = record.get("petsWithHobbies").asList(Value::asList);
@@ -2216,7 +2218,7 @@ class RepositoryIT {
 
 				assertThat(record.containsKey("n")).isTrue();
 				Node rootNode = record.get("n").asNode();
-				assertThat(savedPerson.getId()).isEqualTo(rootNode.id());
+				assertThat(savedPerson.getId()).isEqualTo(IdentitySupport.getInternalId(rootNode));
 				assertThat(savedPerson.getName()).isEqualTo("Freddie");
 
 				assertThat(record.get("hobbies").asList(entry -> entry.asNode().get("name").asString()))
@@ -2259,7 +2261,7 @@ class RepositoryIT {
 
 				assertThat(record.containsKey("n")).isTrue();
 				Node rootNode = record.get("n").asNode();
-				assertThat(savedPerson.getId()).isEqualTo(rootNode.id());
+				assertThat(savedPerson.getId()).isEqualTo(IdentitySupport.getInternalId(rootNode));
 				assertThat(savedPerson.getName()).isEqualTo("Freddie");
 
 				assertThat(record.get("hobbies").asList(entry -> entry.asNode().get("name").asString()))
@@ -2601,7 +2603,7 @@ class RepositoryIT {
 	class Delete extends IntegrationTestBase {
 
 		@Override
-		void setupData(Transaction transaction) {
+		void setupData(TransactionContext transaction) {
 			id1 = transaction.run("CREATE (n:PersonWithAllConstructor {name: $name}) RETURN id(n)", Collections.singletonMap("name", TEST_PERSON1_NAME)).next().get(0).asLong();
 			id2 = transaction.run("CREATE (n:PersonWithAllConstructor {name: $name}) RETURN id(n)", Collections.singletonMap("name", TEST_PERSON2_NAME)).next().get(0).asLong();
 
@@ -2708,7 +2710,7 @@ class RepositoryIT {
 	class ByExample extends IntegrationTestBase {
 
 		@Override
-		void setupData(Transaction transaction) {
+		void setupData(TransactionContext transaction) {
 			ZonedDateTime createdAt = LocalDateTime.of(2019, 1, 1, 23, 23, 42, 0).atZone(ZoneOffset.UTC.normalized());
 			id1 = transaction.run("""
 					CREATE (n:PersonWithAllConstructor)
@@ -2965,10 +2967,10 @@ class RepositoryIT {
 			Node petNode1 = record.get("p1").asNode();
 			Node petNode2 = record.get("p2").asNode();
 
-			long personId = personNode.id();
-			long hobbyNodeId = hobbyNode1.id();
-			long petNode1Id = petNode1.id();
-			long petNode2Id = petNode2.id();
+			long personId = IdentitySupport.getInternalId(personNode);
+			long hobbyNodeId = IdentitySupport.getInternalId(hobbyNode1);
+			long petNode1Id = IdentitySupport.getInternalId(petNode1);
+			long petNode2Id = IdentitySupport.getInternalId(petNode2);
 
 			PersonWithRelationship probe = new PersonWithRelationship();
 			probe.setName("Freddie");
@@ -3004,10 +3006,10 @@ class RepositoryIT {
 			Node petNode1 = record.get("p1").asNode();
 			Node petNode2 = record.get("p2").asNode();
 
-			long personId = personNode.id();
-			long hobbyNodeId = hobbyNode1.id();
-			long petNode1Id = petNode1.id();
-			long petNode2Id = petNode2.id();
+			long personId = IdentitySupport.getInternalId(personNode);
+			long hobbyNodeId = IdentitySupport.getInternalId(hobbyNode1);
+			long petNode1Id = IdentitySupport.getInternalId(petNode1);
+			long petNode2Id = IdentitySupport.getInternalId(petNode2);
 
 			PersonWithRelationship probe = new PersonWithRelationship();
 			probe.setName("Freddie");
@@ -3043,10 +3045,10 @@ class RepositoryIT {
 			Node petNode1 = record.get("p1").asNode();
 			Node petNode2 = record.get("p2").asNode();
 
-			long personId = personNode.id();
-			long hobbyNodeId = hobbyNode1.id();
-			long petNode1Id = petNode1.id();
-			long petNode2Id = petNode2.id();
+			long personId = IdentitySupport.getInternalId(personNode);
+			long hobbyNodeId = IdentitySupport.getInternalId(hobbyNode1);
+			long petNode1Id = IdentitySupport.getInternalId(petNode1);
+			long petNode2Id = IdentitySupport.getInternalId(petNode2);
 
 			PersonWithRelationship probe = new PersonWithRelationship();
 			probe.setName("Freddie");
@@ -3082,10 +3084,10 @@ class RepositoryIT {
 			Node petNode1 = record.get("p1").asNode();
 			Node petNode2 = record.get("p2").asNode();
 
-			long personId = personNode.id();
-			long hobbyNodeId = hobbyNode1.id();
-			long petNode1Id = petNode1.id();
-			long petNode2Id = petNode2.id();
+			long personId = IdentitySupport.getInternalId(personNode);
+			long hobbyNodeId = IdentitySupport.getInternalId(hobbyNode1);
+			long petNode1Id = IdentitySupport.getInternalId(petNode1);
+			long petNode2Id = IdentitySupport.getInternalId(petNode2);
 
 			PersonWithRelationship probe = new PersonWithRelationship();
 			probe.setName("Freddie");
@@ -3110,7 +3112,7 @@ class RepositoryIT {
 	class FinderMethodKeywords extends IntegrationTestBase {
 
 		@Override
-		void setupData(Transaction transaction) {
+		void setupData(TransactionContext transaction) {
 			ZonedDateTime createdAt = LocalDateTime.of(2019, 1, 1, 23, 23, 42, 0).atZone(ZoneOffset.UTC.normalized());
 			id1 = transaction.run("""
 					CREATE (n:PersonWithAllConstructor)
@@ -3523,7 +3525,7 @@ class RepositoryIT {
 	class Projection extends IntegrationTestBase {
 
 		@Override
-		void setupData(Transaction transaction) {
+		void setupData(TransactionContext transaction) {
 			id1 = transaction.run("CREATE (n:PersonWithAllConstructor) SET n.name = $name, n.sameValue = $sameValue, n.nullable = 'something', n.first_name = $firstName RETURN id(n)",
 					Values.parameters("name", TEST_PERSON1_NAME, "sameValue", TEST_PERSON_SAMEVALUE, "firstName",
 							TEST_PERSON1_FIRST_NAME))
@@ -3619,7 +3621,7 @@ class RepositoryIT {
 	class ReturnTypes extends IntegrationTestBase {
 
 		@Override
-		void setupData(Transaction transaction) {
+		void setupData(TransactionContext transaction) {
 			transaction.run(
 					"CREATE (:PersonWithAllConstructor{name: '%s', first_name: '%s'}), (:PersonWithAllConstructor{name: '%s'})".formatted(TEST_PERSON1_NAME, TEST_PERSON1_FIRST_NAME, TEST_PERSON2_NAME)
 			);
@@ -3674,9 +3676,9 @@ class RepositoryIT {
 		void findNodeWithMultipleLabels(@Autowired MultipleLabelRepository multipleLabelRepository) {
 
 			Record record = doWithSession(session -> session.run("CREATE (n1:A:B:C), (n2:B:C), (n3:A) return n1, n2, n3").single());
-			long n1Id = record.get("n1").asNode().id();
-			long n2Id = record.get("n2").asNode().id();
-			long n3Id = record.get("n3").asNode().id();
+			long n1Id = IdentitySupport.getInternalId(record.get("n1").asNode());
+			long n2Id = IdentitySupport.getInternalId(record.get("n2").asNode());
+			long n3Id = IdentitySupport.getInternalId(record.get("n3").asNode());
 
 			Assertions.assertThat(multipleLabelRepository.findById(n1Id)).isPresent();
 			Assertions.assertThat(multipleLabelRepository.findById(n2Id)).isNotPresent();
@@ -3687,9 +3689,9 @@ class RepositoryIT {
 		void deleteNodeWithMultipleLabels(@Autowired MultipleLabelRepository multipleLabelRepository) {
 
 			Record record = doWithSession(session -> session.run("CREATE (n1:A:B:C), (n2:B:C), (n3:A) return n1, n2, n3").single());
-			long n1Id = record.get("n1").asNode().id();
-			long n2Id = record.get("n2").asNode().id();
-			long n3Id = record.get("n3").asNode().id();
+			long n1Id = IdentitySupport.getInternalId(record.get("n1").asNode());
+			long n2Id = IdentitySupport.getInternalId(record.get("n2").asNode());
+			long n3Id = IdentitySupport.getInternalId(record.get("n3").asNode());
 
 			multipleLabelRepository.deleteById(n1Id);
 			multipleLabelRepository.deleteById(n2Id);
@@ -4262,7 +4264,7 @@ class RepositoryIT {
 	class DtoVsInheritance extends IntegrationTestBase {
 
 		@Override
-		void setupData(Transaction transaction) {
+		void setupData(TransactionContext transaction) {
 			transaction.run(""
 							+ "create (p:ParentNode:ExtendedParentNode {someAttribute: 'Foo', someOtherAttribute: 'Bar'})"
 							+ "create (p) -[:CONNECTED_TO]-> (:PersonWithAllConstructor {name: 'Bazbar'})");
@@ -4584,13 +4586,13 @@ class RepositoryIT {
 
 		@Autowired private BookmarkCapture bookmarkCapture;
 
-		void setupData(Transaction transaction) {
+		void setupData(TransactionContext transaction) {
 		}
 
 		@BeforeEach
 		void before() {
 			doWithSession(session ->
-					session.writeTransaction(tx -> {
+					session.executeWrite(tx -> {
 						tx.run("MATCH (n) detach delete n").consume();
 						setupData(tx);
 						return null;
@@ -4600,7 +4602,7 @@ class RepositoryIT {
 		<T> T doWithSession(Function<Session, T> sessionConsumer) {
 			try (Session session = driver.session(bookmarkCapture.createSessionConfig(databaseSelection.get().getValue(), userSelection.get().getValue()))) {
 				T result = sessionConsumer.apply(session);
-				bookmarkCapture.seedWith(session.lastBookmark());
+				bookmarkCapture.seedWith(session.lastBookmarks());
 				return result;
 			}
 		}

@@ -137,7 +137,7 @@ class ReactiveNeo4jTemplateIT {
 
 			transaction.commit();
 
-			bookmarkCapture.seedWith(session.lastBookmark());
+			bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 	}
 

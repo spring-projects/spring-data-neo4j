@@ -112,8 +112,8 @@ class TypeConversionIT extends Neo4jConversionsITBase {
 		Long id;
 		try (Session session = neo4jConnectionSupport.getDriver().session(bookmarkCapture.createSessionConfig())) {
 
-			id = session.writeTransaction(tx -> tx.run("CREATE (n:AllArgsCtorNoBuilder) RETURN id(n)").single().get(0).asLong());
-			bookmarkCapture.seedWith(session.lastBookmark());
+			id = session.executeWrite(tx -> tx.run("CREATE (n:AllArgsCtorNoBuilder) RETURN id(n)").single().get(0).asLong());
+			bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 
 		assertThatExceptionOfType(MappingException.class)
@@ -255,8 +255,8 @@ class TypeConversionIT extends Neo4jConversionsITBase {
 		Long id;
 		try (Session session = neo4jConnectionSupport.getDriver().session(bookmarkCapture.createSessionConfig())) {
 
-			id = session.writeTransaction(tx -> tx.run("CREATE (n:ThingWithAllCypherTypes2) RETURN id(n)").single().get(0).asLong());
-			bookmarkCapture.seedWith(session.lastBookmark());
+			id = session.executeWrite(tx -> tx.run("CREATE (n:ThingWithAllCypherTypes2) RETURN id(n)").single().get(0).asLong());
+			bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 
 		Optional<ThingWithAllCypherTypes2> optionalResult = template.findById(id, ThingWithAllCypherTypes2.class);

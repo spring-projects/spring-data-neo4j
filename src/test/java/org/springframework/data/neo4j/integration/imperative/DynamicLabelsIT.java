@@ -31,12 +31,13 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.neo4j.cypherdsl.core.Condition;
 import org.neo4j.cypherdsl.core.Cypher;
+import org.neo4j.cypherdsl.core.Functions;
 import org.neo4j.cypherdsl.core.Node;
 import org.neo4j.cypherdsl.core.renderer.Renderer;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Session;
-import org.neo4j.driver.Transaction;
+import org.neo4j.driver.TransactionContext;
 import org.neo4j.driver.Value;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -85,12 +86,10 @@ public class DynamicLabelsIT {
 	class EntityWithSingleStaticLabelAndGeneratedId extends SpringTestBase {
 
 		@Override
-		Long createTestEntity(Transaction transaction) {
+		Long createTestEntity(TransactionContext transaction) {
 			Record r = transaction
 					.run("CREATE (e:InheritedSimpleDynamicLabels:SimpleDynamicLabels:Foo:Bar:Baz:Foobar) RETURN id(e) as existingEntityId").single();
-			long newId = r.get("existingEntityId").asLong();
-			transaction.commit();
-			return newId;
+			return r.get("existingEntityId").asLong();
 		}
 
 		@Test
@@ -153,13 +152,11 @@ public class DynamicLabelsIT {
 	class EntityWithInheritedDynamicLabels extends SpringTestBase {
 
 		@Override
-		Long createTestEntity(Transaction transaction) {
+		Long createTestEntity(TransactionContext transaction) {
 			Record r = transaction
 					.run("CREATE (e:InheritedSimpleDynamicLabels:SimpleDynamicLabels:Foo:Bar:Baz:Foobar) RETURN id(e) as existingEntityId")
 					.single();
-			long newId = r.get("existingEntityId").asLong();
-			transaction.commit();
-			return newId;
+			return r.get("existingEntityId").asLong();
 		}
 
 		@Test
@@ -207,14 +204,12 @@ public class DynamicLabelsIT {
 	class EntityWithSingleStaticLabelAndAssignedId extends SpringTestBase {
 
 		@Override
-		Long createTestEntity(Transaction transaction) {
+		Long createTestEntity(TransactionContext transaction) {
 			Record r = transaction.run("""
 				CREATE (e:SimpleDynamicLabelsWithBusinessId:Foo:Bar:Baz:Foobar {id: 'E1'})
-   				RETURN id(e) as existingEntityId
+				RETURN id(e) as existingEntityId
    				""").single();
-			long newId = r.get("existingEntityId").asLong();
-			transaction.commit();
-			return newId;
+			return r.get("existingEntityId").asLong();
 		}
 
 		@Test
@@ -254,12 +249,10 @@ public class DynamicLabelsIT {
 	class EntityWithSingleStaticLabelGeneratedIdAndVersion extends SpringTestBase {
 
 		@Override
-		Long createTestEntity(Transaction transaction) {
+		Long createTestEntity(TransactionContext transaction) {
 			Record r = transaction.run("CREATE (e:SimpleDynamicLabelsWithVersion:Foo:Bar:Baz:Foobar {myVersion: 0}) "
 					+ "RETURN id(e) as existingEntityId").single();
-			long newId = r.get("existingEntityId").asLong();
-			transaction.commit();
-			return newId;
+			return r.get("existingEntityId").asLong();
 		}
 
 		@Test
@@ -301,12 +294,10 @@ public class DynamicLabelsIT {
 	class EntityWithSingleStaticLabelAssignedIdAndVersion extends SpringTestBase {
 
 		@Override
-		Long createTestEntity(Transaction transaction) {
+		Long createTestEntity(TransactionContext transaction) {
 			Record r = transaction.run("CREATE (e:SimpleDynamicLabelsWithBusinessIdAndVersion:Foo:Bar:Baz:Foobar {id: 'E2', myVersion: 0}) RETURN id(e) as existingEntityId")
 					.single();
-			long newId = r.get("existingEntityId").asLong();
-			transaction.commit();
-			return newId;
+			return r.get("existingEntityId").asLong();
 		}
 
 		@Test
@@ -350,13 +341,11 @@ public class DynamicLabelsIT {
 	class ConstructorInitializedEntity extends SpringTestBase {
 
 		@Override
-		Long createTestEntity(Transaction transaction) {
+		Long createTestEntity(TransactionContext transaction) {
 			Record r = transaction
 					.run("CREATE (e:SimpleDynamicLabelsCtor:Foo:Bar:Baz:Foobar) RETURN id(e) as existingEntityId")
 					.single();
-			long newId = r.get("existingEntityId").asLong();
-			transaction.commit();
-			return newId;
+			return r.get("existingEntityId").asLong();
 		}
 
 		@Test
@@ -373,12 +362,10 @@ public class DynamicLabelsIT {
 	class ClassesWithAdditionalLabels extends SpringTestBase {
 
 		@Override
-		Long createTestEntity(Transaction transaction) {
+		Long createTestEntity(TransactionContext transaction) {
 			Record r = transaction
 					.run("CREATE (e:SimpleDynamicLabels:Foo:Bar:Baz:Foobar) RETURN id(e) as existingEntityId").single();
-			long newId = r.get("existingEntityId").asLong();
-			transaction.commit();
-			return newId;
+			return r.get("existingEntityId").asLong();
 		}
 
 		@Test
@@ -418,12 +405,10 @@ public class DynamicLabelsIT {
 	class ClassesWithAdditionalLabelsInInheritanceTree extends SpringTestBase {
 
 		@Override
-		Long createTestEntity(Transaction transaction) {
+		Long createTestEntity(TransactionContext transaction) {
 			Record r = transaction.run("CREATE (e:DynamicLabelsBaseClass:ExtendedBaseClass1:D1:D2:D3) RETURN id(e) as existingEntityId")
 					.single();
-			long newId = r.get("existingEntityId").asLong();
-			transaction.commit();
-			return newId;
+			return r.get("existingEntityId").asLong();
 		}
 
 		@Test
@@ -439,7 +424,7 @@ public class DynamicLabelsIT {
 	class ClassesWithInheritanceAndDynamicLabels extends SpringTestBase {
 
 		@Override
-		Long createTestEntity(Transaction t) {
+		Long createTestEntity(TransactionContext t) {
 			return null;
 		}
 
@@ -476,7 +461,7 @@ public class DynamicLabelsIT {
 
 		protected Long existingEntityId;
 
-		abstract Long createTestEntity(Transaction t);
+		abstract Long createTestEntity(TransactionContext ctx);
 
 		<T> T executeInTransaction(Callable<T> runnable) {
 			return transactionTemplate.execute(tx -> {
@@ -491,14 +476,14 @@ public class DynamicLabelsIT {
 		@BeforeEach
 		void setupData() {
 			try (Session session = driver.session()) {
-				session.writeTransaction(tx -> tx.run("MATCH (n) DETACH DELETE n").consume());
-				existingEntityId = session.writeTransaction(this::createTestEntity);
-				bookmarkCapture.seedWith(session.lastBookmark());
+				session.executeWrite(tx -> tx.run("MATCH (n) DETACH DELETE n").consume());
+				existingEntityId = session.executeWrite(this::createTestEntity);
+				bookmarkCapture.seedWith(session.lastBookmarks());
 			}
 		}
 
 		protected final List<String> getLabels(Long id) {
-			return getLabels(Cypher.anyNode().named("n").internalId().isEqualTo(parameter("id")), id);
+			return getLabels(Functions.id(Cypher.anyNode().named("n")).isEqualTo(parameter("id")), id);
 		}
 
 		protected final List<String> getLabels(Condition idCondition, Object id) {
@@ -508,7 +493,7 @@ public class DynamicLabelsIT {
 					.and(n.property("moreLabels").isNull()).returning(n.labels().as("labels")).build());
 
 			try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
-				return session.readTransaction(
+				return session.executeRead(
 						tx -> tx.run(cypher, Collections.singletonMap("id", id)).single().get("labels").asList(Value::asString));
 			}
 		}

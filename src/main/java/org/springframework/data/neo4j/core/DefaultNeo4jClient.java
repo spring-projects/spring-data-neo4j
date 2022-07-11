@@ -99,13 +99,13 @@ final class DefaultNeo4jClient implements Neo4jClient {
 			}
 		}
 
-		return new DelegatingQueryRunner(queryRunner, lastBookmarks, (usedBookmarks, newBookmark) -> {
+		return new DelegatingQueryRunner(queryRunner, lastBookmarks, (usedBookmarks, newBookmarks) -> {
 
 			ReentrantReadWriteLock.WriteLock lock = bookmarksLock.writeLock();
 			try {
 				lock.lock();
 				bookmarks.removeAll(usedBookmarks);
-				bookmarks.add(newBookmark);
+				bookmarks.addAll(newBookmarks);
 			} finally {
 				lock.unlock();
 			}
@@ -116,24 +116,23 @@ final class DefaultNeo4jClient implements Neo4jClient {
 
 		private final QueryRunner delegate;
 		private final Collection<Bookmark> usedBookmarks;
-		private final BiConsumer<Collection<Bookmark>, Bookmark> newBookmarkConsumer;
+		private final BiConsumer<Collection<Bookmark>, Collection<Bookmark>> newBookmarkConsumer;
 
-		private DelegatingQueryRunner(QueryRunner delegate, Collection<Bookmark> lastBookmarks, BiConsumer<Collection<Bookmark>, Bookmark> newBookmarkConsumer) {
+		private DelegatingQueryRunner(QueryRunner delegate, Collection<Bookmark> lastBookmarks, BiConsumer<Collection<Bookmark>, Collection<Bookmark>> newBookmarkConsumer) {
 			this.delegate = delegate;
 			this.usedBookmarks = lastBookmarks;
 			this.newBookmarkConsumer = newBookmarkConsumer;
 		}
 
 		@Override
-		public void close() throws Exception {
+		public void close() {
 
 			// We're only going to close sessions we have acquired inside the client, not something that
 			// has been retrieved from the tx manager.
-			if (this.delegate instanceof Session) {
+			if (this.delegate instanceof Session session) {
 
-				Session session = (Session) this.delegate;
 				session.close();
-				this.newBookmarkConsumer.accept(usedBookmarks, session.lastBookmark());
+				this.newBookmarkConsumer.accept(usedBookmarks, session.lastBookmarks());
 			}
 		}
 

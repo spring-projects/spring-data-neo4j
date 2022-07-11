@@ -36,7 +36,6 @@ import org.neo4j.driver.Config;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.GraphDatabase;
 import org.neo4j.driver.Session;
-import org.neo4j.driver.internal.util.ServerVersion;
 import org.neo4j.junit.jupiter.causal_cluster.CausalCluster;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,6 +48,7 @@ import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.data.neo4j.test.CausalClusterIntegrationTest;
 import org.springframework.data.neo4j.test.Neo4jExtension;
+import org.springframework.data.neo4j.test.ServerVersion;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -73,9 +73,7 @@ class CausalClusterLoadTestIT {
 		Callable<ThingWithSequence> createAndRead = () -> {
 			ThingWithSequence newThing = thingService.newThing(sequence.incrementAndGet());
 			Optional<ThingWithSequence> optionalThing = thingService.findOneBySequenceNumber(newThing.getSequenceNumber());
-			ThingWithSequence readThing = optionalThing
-					.orElseThrow(() -> new RuntimeException("Did not read my own write :("));
-			return readThing;
+			return optionalThing.orElseThrow(() -> new RuntimeException("Did not read my own write :("));
 		};
 
 		ExecutorService executor = Executors.newCachedThreadPool();

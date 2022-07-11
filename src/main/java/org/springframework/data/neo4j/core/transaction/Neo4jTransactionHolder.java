@@ -66,8 +66,7 @@ final class Neo4jTransactionHolder extends ResourceHolderSupport {
 		return this.context.isForDatabaseAndUser(inDatabase, asUser) ? transaction : null;
 	}
 
-	@Nullable
-	Bookmark commit() {
+	Collection<Bookmark> commit() {
 
 		Assert.state(hasActiveTransaction(), "Transaction must be open, but has already been closed");
 		Assert.state(!isRollbackOnly(), "Resource must not be marked as rollback only");
@@ -75,7 +74,7 @@ final class Neo4jTransactionHolder extends ResourceHolderSupport {
 		transaction.commit();
 		transaction.close();
 
-		return session.lastBookmark();
+		return session.lastBookmarks();
 	}
 
 	void rollback() {

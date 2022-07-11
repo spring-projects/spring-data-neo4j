@@ -42,6 +42,8 @@ public final class Constants {
 	public static final SymbolicName NAME_OF_ROOT_NODE = NAME_OF_TYPED_ROOT_NODE.apply(null);
 
 	public static final String NAME_OF_INTERNAL_ID = "__internalNeo4jId__";
+	public static final String NAME_OF_ELEMENT_ID = "__elementId__";
+
 	/**
 	 * Indicates the list of dynamic labels.
 	 */

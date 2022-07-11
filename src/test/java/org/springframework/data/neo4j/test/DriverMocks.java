@@ -19,6 +19,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import reactor.adapter.JdkFlowAdapter;
 import reactor.core.publisher.Mono;
 
 import org.neo4j.driver.Driver;
@@ -26,8 +27,8 @@ import org.neo4j.driver.Session;
 import org.neo4j.driver.SessionConfig;
 import org.neo4j.driver.Transaction;
 import org.neo4j.driver.TransactionConfig;
-import org.neo4j.driver.reactive.RxSession;
-import org.neo4j.driver.reactive.RxTransaction;
+import org.neo4j.driver.reactive.ReactiveSession;
+import org.neo4j.driver.reactive.ReactiveTransaction;
 
 /**
  * Some preconfigured driver mocks, mainly used to for Spring Integration tests where the behaviour of configuration and
@@ -58,13 +59,13 @@ public final class DriverMocks {
 
 	public static Driver withOpenReactiveSessionAndTransaction() {
 
-		RxTransaction transaction = mock(RxTransaction.class);
+		ReactiveTransaction transaction = mock(ReactiveTransaction.class);
 
-		RxSession session = mock(RxSession.class);
-		when(session.beginTransaction(any(TransactionConfig.class))).thenReturn(Mono.just(transaction));
+		ReactiveSession session = mock(ReactiveSession.class);
+		when(session.beginTransaction(any(TransactionConfig.class))).thenReturn(JdkFlowAdapter.publisherToFlowPublisher(Mono.just(transaction)));
 
 		Driver driver = mock(Driver.class);
-		when(driver.rxSession(any(SessionConfig.class))).thenReturn(session);
+		when(driver.reactiveSession(any(SessionConfig.class))).thenReturn(session);
 		return driver;
 	}
 

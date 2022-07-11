@@ -148,7 +148,7 @@ class ProjectionIT {
 			transaction.run("create (w:Widget {code: 'Window1', label: 'yyy'})").consume();
 
 			transaction.commit();
-			bookmarkCapture.seedWith(session.lastBookmark());
+			bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 	}
 

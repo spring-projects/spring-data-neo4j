@@ -15,24 +15,24 @@
  */
 package org.springframework.data.neo4j.integration.reactive;
 
-import static org.assertj.core.api.Assumptions.assumeThat;
-
+import org.junit.jupiter.api.AfterAll;
+import org.neo4j.driver.reactive.ReactiveSession;
 import org.springframework.data.neo4j.test.Neo4jReactiveTestConfiguration;
+
+import ac.simons.neo4j.migrations.core.Migrations;
+import ac.simons.neo4j.migrations.core.MigrationsConfig;
+import reactor.adapter.JdkFlowAdapter;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.util.function.Predicate;
 
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.neo4j.driver.Driver;
-import org.neo4j.driver.internal.util.ServerVersion;
-import org.neo4j.driver.reactive.RxResult;
-import org.neo4j.driver.reactive.RxSession;
 import org.neo4j.driver.summary.ResultSummary;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -50,6 +50,10 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 /**
+ * In case you are wondering about the class naming: It is indeed an integration test. But if we name it `IT`, it will
+ * be run the SDN Jar and only that, our migration scripts won't be included in that Jar, and migrations can't be found.
+ * This is likely due to the parent build and it's not worth investigating much here unless we decide to have more tests
+ * based on migrations.
  * @author Michael J. Simons
  */
 @Neo4jIntegrationTest
@@ -57,49 +61,46 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 // Not actually incompatible, but not worth the effort adding additional complexity for handling bookmarks
 // between fixture and test
 @Tag(Neo4jExtension.INCOMPATIBLE_WITH_CLUSTERS)
-class ReactiveExceptionTranslationIT {
+class ReactiveExceptionTranslationTest {
 
 	protected static Neo4jExtension.Neo4jConnectionSupport neo4jConnectionSupport;
 
 	// @formatter:off
-	private final Predicate<Throwable> aTranslatedException = ex -> ex instanceof DataIntegrityViolationException && //
+	private final Predicate<Throwable> aTranslatedException = ex -> ex instanceof DataIntegrityViolationException && (
 			ex.getMessage().matches(
-					"Node\\(\\d+\\) already exists with label `SimplePerson` and property `name` = '[\\w\\s]+'; Error code 'Neo.ClientError.Schema.ConstraintValidationFailed';.*");
+					"Node\\(\\d+\\) already exists with label `SimplePerson` and property `name` = '[\\w\\s]+'; Error code 'Neo\\.ClientError\\.Schema\\.ConstraintValidationFailed'.*") ||
+			ex.getMessage().matches(
+					"New data does not satisfy Constraint\\( id=\\d+, name='simple_person__unique_name', type='UNIQUENESS', schema=\\(:SimplePerson \\{name}\\), ownedIndex=\\d+ \\): Both node \\d+ and node -?\\d+ share the property value \\( String\\(\"Tom\"\\) \\); Error code 'Neo\\.ClientError\\.Schema\\.ConstraintValidationFailed'")
+	);
 	// @formatter:on
 
 	@BeforeAll
-	static void createConstraints(@Autowired Driver driver) {
-		assumeNeo4jLowerThan44();
-		Flux.using(driver::rxSession,
-				session -> session.run("CREATE CONSTRAINT ON (person:SimplePerson) ASSERT person.name IS UNIQUE").consume(),
-				RxSession::close).then().as(StepVerifier::create).verifyComplete();
+	static void createConstraints(@Autowired Driver driver, @Autowired Migrations migrations) {
+		try (var session = driver.session()) {
+			session.run("MATCH (l:`__Neo4jMigrationsLock`) delete l").consume();
+		}
+		migrations.apply();
 	}
 
 	@AfterAll
-	static void dropConstraints(@Autowired Driver driver) {
-		assumeNeo4jLowerThan44();
-		Flux.using(driver::rxSession,
-				session -> session.run("DROP CONSTRAINT ON (person:SimplePerson) ASSERT person.name IS UNIQUE").consume(),
-				RxSession::close).then().as(StepVerifier::create).verifyComplete();
+	static void cleanMigrations(@Autowired Migrations migrations) {
+		migrations.clean(true);
 	}
 
 	@BeforeEach
 	void clearDatabase(@Autowired Driver driver) {
 
-		Flux.using(driver::rxSession, session -> session.run("MATCH (n) DETACH DELETE n").consume(), RxSession::close)
+		Flux.using(driver::reactiveSession,
+						session -> JdkFlowAdapter.flowPublisherToFlux(session.run("MATCH (n:SimplePerson) DETACH DELETE n"))
+								.flatMap(rs -> JdkFlowAdapter.flowPublisherToFlux(rs.consume())),
+						ReactiveSession::close)
 				.then().as(StepVerifier::create).verifyComplete();
-	}
-
-	private static void assumeNeo4jLowerThan44() {
-
-		assumeThat(neo4jConnectionSupport.getServerVersion()
-				.lessThan(ServerVersion.version("Neo4j/4.4.0"))).isTrue();
 	}
 
 	@Test
 	void exceptionsFromClientShouldBeTranslated(@Autowired ReactiveNeo4jClient neo4jClient) {
-
-		neo4jClient.query("CREATE (:SimplePerson {name: 'Tom'})").run().then().as(StepVerifier::create).verifyComplete();
+		neo4jClient.query("CREATE (:SimplePerson {name: 'Tom'})").run().then().as(StepVerifier::create)
+				.verifyComplete();
 
 		neo4jClient.query("CREATE (:SimplePerson {name: 'Tom'})").run().as(StepVerifier::create)
 				.verifyErrorMatches(aTranslatedException);
@@ -146,13 +147,21 @@ class ReactiveExceptionTranslationIT {
 			return new ReactivePersistenceExceptionTranslationPostProcessor();
 		}
 
+		@Bean
+		public Migrations migrations(@Autowired Driver driver) {
+			return new Migrations(
+					MigrationsConfig.builder().withLocationsToScan("classpath:/data/migrations")
+							.build(), driver);
+		}
+
 		@Override
 		public boolean isCypher5Compatible() {
 			return neo4jConnectionSupport.isCypher5SyntaxCompatible();
 		}
 	}
 
-	interface SimplePersonRepository extends ReactiveNeo4jRepository<SimplePerson, Long> {}
+	interface SimplePersonRepository extends ReactiveNeo4jRepository<SimplePerson, Long> {
+	}
 
 	@Repository
 	static class CustomDAO {
@@ -164,10 +173,10 @@ class ReactiveExceptionTranslationIT {
 		}
 
 		public Mono<ResultSummary> createPerson() {
-			return neo4jClient.delegateTo(rxQueryRunner -> {
-				RxResult rxResult = rxQueryRunner.run("CREATE (:SimplePerson {name: 'Tom'})");
-				return Flux.from(rxResult.records()).then(Mono.from(rxResult.consume()));
-			}).run();
+			return neo4jClient.delegateTo(
+					rxQueryRunner ->
+							JdkFlowAdapter.flowPublisherToFlux(rxQueryRunner.run("CREATE (:SimplePerson {name: 'Tom'})"))
+							.flatMap(result -> JdkFlowAdapter.flowPublisherToFlux(result.consume())).single()).run();
 		}
 	}
 }

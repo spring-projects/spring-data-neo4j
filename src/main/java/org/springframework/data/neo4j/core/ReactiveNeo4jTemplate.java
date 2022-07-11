@@ -77,6 +77,7 @@ import org.springframework.data.neo4j.core.mapping.CypherGenerator;
 import org.springframework.data.neo4j.core.mapping.DtoInstantiatingConverter;
 import org.springframework.data.neo4j.core.mapping.EntityFromDtoInstantiatingConverter;
 import org.springframework.data.neo4j.core.mapping.EntityInstanceWithSource;
+import org.springframework.data.neo4j.core.mapping.IdentitySupport;
 import org.springframework.data.neo4j.core.mapping.MappingSupport;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
@@ -424,12 +425,10 @@ public final class ReactiveNeo4jTemplate implements
 
 					PersistentPropertyAccessor<T> propertyAccessor = entityMetaData.getPropertyAccessor(entityToBeSaved);
 					return idMono.doOnNext(newOrUpdatedNode -> {
-						if (entityMetaData.isUsingInternalIds()) {
-							propertyAccessor.setProperty(entityMetaData.getRequiredIdProperty(), newOrUpdatedNode.id());
-						}
+						IdentitySupport.updateInternalId(entityMetaData, propertyAccessor, newOrUpdatedNode);
 						TemplateSupport.updateVersionPropertyIfPossible(entityMetaData, propertyAccessor, newOrUpdatedNode);
-						finalStateMachine.markValueAsProcessed(instance, newOrUpdatedNode.id());
-					}).map(Entity::id)
+						finalStateMachine.markValueAsProcessed(instance, IdentitySupport.getInternalId(newOrUpdatedNode));
+					}).map(IdentitySupport::getInternalId)
 							.flatMap(internalId -> processRelations(entityMetaData,  propertyAccessor, isNewEntity, finalStateMachine, binderFunction.filter));
 				});
 	}
@@ -872,16 +871,16 @@ public final class ReactiveNeo4jTemplate implements
 				idProperty = relationshipPropertiesEntity.getIdProperty();
 			}
 
-				// break recursive procession and deletion of previously created relationships
-				ProcessState processState = stateMachine.getStateOf(fromId, relationshipDescription, relatedValuesToStore);
-				if (processState == ProcessState.PROCESSED_ALL_RELATIONSHIPS || processState == ProcessState.PROCESSED_BOTH) {
-					return;
-				}
+			// break recursive procession and deletion of previously created relationships
+			ProcessState processState = stateMachine.getStateOf(fromId, relationshipDescription, relatedValuesToStore);
+			if (processState == ProcessState.PROCESSED_ALL_RELATIONSHIPS || processState == ProcessState.PROCESSED_BOTH) {
+				return;
+			}
 
-				// Remove all relationships before creating all new if the entity is not new and the relationship
-				// has not been processed before.
-				// This avoids the usage of cache but might have significant impact on overall performance
-				if (!isParentObjectNew && !stateMachine.hasProcessedRelationship(fromId, relationshipDescription)) {
+			// Remove all relationships before creating all new if the entity is not new and the relationship
+			// has not been processed before.
+			// This avoids the usage of cache but might have significant impact on overall performance
+			if (!isParentObjectNew && !stateMachine.hasProcessedRelationship(fromId, relationshipDescription)) {
 
 				List<Long> knownRelationshipsIds = new ArrayList<>();
 				if (idProperty != null) {
@@ -939,14 +938,14 @@ public final class ReactiveNeo4jTemplate implements
 								queryOrSave = Mono.just(Tuples.of(relatedInternalId, new AtomicReference<>()));
 							} else {
 								queryOrSave = saveRelatedNode(newRelatedObject, targetEntity, includeProperty, currentPropertyPath)
+										.map(entity -> Tuples.of(new AtomicReference<>(IdentitySupport.getInternalId(entity)), new AtomicReference<>(entity)))
 										.doOnNext(entity -> {
-											stateMachine.markValueAsProcessed(relatedValueToStore, entity.id());
+											stateMachine.markValueAsProcessed(relatedValueToStore, entity.getT1().get());
 											if (relatedValueToStore instanceof MappingSupport.RelationshipPropertiesWithEntityHolder) {
 												Object value = ((MappingSupport.RelationshipPropertiesWithEntityHolder) relatedValueToStore).getRelatedEntity();
-												stateMachine.markValueAsProcessedAs(value, entity.id());
+												stateMachine.markValueAsProcessedAs(value, entity.getT1().get());
 											}
-										})
-										.map(entity -> Tuples.of(new AtomicReference<>(entity.id()), new AtomicReference<>(entity)));
+										});
 							}
 							return queryOrSave.flatMap(idAndEntity -> {
 									Long relatedInternalId = idAndEntity.getT1().get();
@@ -995,7 +994,9 @@ public final class ReactiveNeo4jTemplate implements
 											.bind(idValue) //
 													.to(Constants.NAME_OF_KNOWN_RELATIONSHIP_PARAM) //
 											.bindAll(statementHolder.getProperties())
-											.fetchAs(Long.class).one()
+											.fetchAs(Long.class)
+											.mappedBy(IdentitySupport::getInternalId)
+											.one()
 											.flatMap(relationshipInternalId -> {
 												if (idProperty != null && isNewRelationship) {
 													relationshipContext

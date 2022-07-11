@@ -71,7 +71,7 @@ public abstract class DynamicRelationshipsITBase<T> {
 			idOfExistingPerson = transaction.run(cypher)
 					.single().get("id").asLong();
 			transaction.commit();
-			bookmarkCapture.seedWith(session.lastBookmark());
+			bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 	}
 }

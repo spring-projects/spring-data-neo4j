@@ -116,7 +116,7 @@ public class MultipleContextsIT {
 
 	private static void verifyExistenceAndVersion(long id1, Session session) {
 		Long version = session
-				.readTransaction(tx -> tx.run("MATCH (n) WHERE id(n) = $id RETURN n.version", Collections
+				.executeRead(tx -> tx.run("MATCH (n) WHERE id(n) = $id RETURN n.version", Collections
 						.singletonMap("id", id1)).single().get(0).asLong());
 		assertThat(version).isOne();
 	}

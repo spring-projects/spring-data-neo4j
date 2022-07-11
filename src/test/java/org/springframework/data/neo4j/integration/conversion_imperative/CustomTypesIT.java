@@ -32,7 +32,7 @@ import org.junit.jupiter.api.Test;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Result;
 import org.neo4j.driver.Session;
-import org.neo4j.driver.TransactionWork;
+import org.neo4j.driver.TransactionCallback;
 import org.neo4j.driver.Values;
 import org.neo4j.driver.summary.ResultSummary;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -81,7 +81,7 @@ public class CustomTypesIT {
 		this.bookmarkCapture = bookmarkCapture;
 	}
 
-	TransactionWork<ResultSummary> createPersonWithCustomId(PersonWithCustomId.PersonId assignedId) {
+	TransactionCallback<ResultSummary> createPersonWithCustomId(PersonWithCustomId.PersonId assignedId) {
 
 		return tx -> tx.run("CREATE (n:PersonWithCustomId) SET n.id = $id ",
 				Values.parameters("id", assignedId.getId())).consume();
@@ -90,13 +90,13 @@ public class CustomTypesIT {
 	@BeforeEach
 	void setupData() {
 		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
-			session.writeTransaction(transaction -> {
+			session.executeWrite(transaction -> {
 				transaction.run("MATCH (n) detach delete n").consume();
 				transaction.run("CREATE (:CustomTypes{customType:'XYZ', dateAsLong: 1630311077418})").consume();
 				transaction.run("CREATE (:CustomTypes{customType:'ABC'})").consume();
 				return null;
 			});
-			bookmarkCapture.seedWith(session.lastBookmark());
+			bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 	}
 
@@ -105,8 +105,8 @@ public class CustomTypesIT {
 
 		PersonWithCustomId.PersonId id = new PersonWithCustomId.PersonId(customIdValueGenerator.incrementAndGet());
 		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
-			session.writeTransaction(createPersonWithCustomId(id));
-			bookmarkCapture.seedWith(session.lastBookmark());
+			session.executeWrite(createPersonWithCustomId(id));
+			bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 
 		assertThat(neo4jOperations.count(PersonWithCustomId.class)).isEqualTo(1L);
@@ -115,7 +115,7 @@ public class CustomTypesIT {
 		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
 			Result result = session.run("MATCH (p:PersonWithCustomId) return count(p) as count");
 			assertThat(result.single().get("count").asLong()).isEqualTo(0);
-			bookmarkCapture.seedWith(session.lastBookmark());
+			bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 	}
 
@@ -129,8 +129,8 @@ public class CustomTypesIT {
 		try (
 				Session session = driver.session(bookmarkCapture.createSessionConfig())
 		) {
-			ids.forEach(id -> session.writeTransaction(createPersonWithCustomId(id)));
-			bookmarkCapture.seedWith(session.lastBookmark());
+			ids.forEach(id -> session.executeWrite(createPersonWithCustomId(id)));
+			bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 
 		assertThat(neo4jOperations.count(PersonWithCustomId.class)).isEqualTo(2L);
@@ -139,7 +139,7 @@ public class CustomTypesIT {
 		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
 			Result result = session.run("MATCH (p:PersonWithCustomId) return count(p) as count");
 			assertThat(result.single().get("count").asLong()).isEqualTo(0);
-			bookmarkCapture.seedWith(session.lastBookmark());
+			bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 	}
 
