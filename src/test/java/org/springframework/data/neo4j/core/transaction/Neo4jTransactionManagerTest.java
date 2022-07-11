@@ -27,7 +27,6 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.lang.reflect.Field;
-import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -126,18 +125,8 @@ class Neo4jTransactionManagerTest {
 		when(driver.defaultTypeSystem()).thenReturn(typeSystem);
 		when(driver.session(any(SessionConfig.class))).thenReturn(session);
 		when(session.beginTransaction(any(TransactionConfig.class))).thenReturn(transaction);
-		Bookmark bookmark = new Bookmark() {
-			@Override
-			public Set<String> values() {
-				return Collections.singleton("blubb");
-			}
-
-			@Override
-			public boolean isEmpty() {
-				return false;
-			}
-		};
-		when(session.lastBookmark()).thenReturn(bookmark);
+		Set<Bookmark> bookmark = Set.of(new BookmarkForTesting("blubb"));
+		when(session.lastBookmarks()).thenReturn(bookmark);
 		when(transaction.run(anyString(), anyMap())).thenReturn(statementResult);
 		when(session.isOpen()).thenReturn(true);
 		when(transaction.isOpen()).thenReturn(true, false);

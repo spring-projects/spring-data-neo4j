@@ -57,7 +57,7 @@ public abstract class IdGeneratorsITBase {
 			transaction.run("CREATE (t:ThingWithGeneratedId {name: $name, theId: $theId}) RETURN id(t) as id",
 					Values.parameters("name", EXISTING_THING_NAME, "theId", ID_OF_EXISTING_THING));
 			transaction.commit();
-			bookmarkCapture.seedWith(session.lastBookmark());
+			bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 	}
 

@@ -80,13 +80,14 @@ public sealed interface Neo4jBookmarkManager permits AbstractBookmarkManager, No
 	Collection<Bookmark> getBookmarks();
 
 	/**
-	 * Refreshes the bookmark manager with the {@code lastBookmark} received after the last transaction committed. The
-	 * collection of {@code usedBookmarks} should be removed from the list of known bookmarks.
+	 * Refreshes the bookmark manager with the {@code newBookmarks new bookmarks} received after the last transaction
+	 * committed. The collection of {@code usedBookmarks} should be removed from the list of known bookmarks.
 	 *
 	 * @param usedBookmarks The collection of bookmarks known prior to the end of a transaction
-	 * @param lastBookmark  The bookmark received after the end of a transaction
+	 * @param newBookmarks The bookmarks received after the end of a transaction
+	 * @see #updateBookmarks(Collection, Collection)
 	 */
-	void updateBookmarks(Collection<Bookmark> usedBookmarks, Bookmark lastBookmark);
+	void updateBookmarks(Collection<Bookmark> usedBookmarks, Collection<Bookmark> newBookmarks);
 
 	/**
 	 * A hook for bookmark managers supporting events.

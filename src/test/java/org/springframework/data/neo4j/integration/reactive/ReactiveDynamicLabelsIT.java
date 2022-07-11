@@ -17,7 +17,11 @@ package org.springframework.data.neo4j.integration.reactive;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import org.neo4j.cypherdsl.core.Functions;
+import org.neo4j.driver.TransactionContext;
 import org.springframework.data.neo4j.test.Neo4jReactiveTestConfiguration;
+
+import reactor.adapter.JdkFlowAdapter;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -40,8 +44,6 @@ import org.neo4j.cypherdsl.core.renderer.Renderer;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Session;
-import org.neo4j.driver.Transaction;
-import org.neo4j.driver.reactive.RxSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -82,12 +84,10 @@ public class ReactiveDynamicLabelsIT {
 	class EntityWithSingleStaticLabelAndGeneratedId extends SpringTestBase {
 
 		@Override
-		Long createTestEntity(Transaction transaction) {
+		Long createTestEntity(TransactionContext transaction) {
 			Record r = transaction
 					.run("CREATE (e:SimpleDynamicLabels:Foo:Bar:Baz:Foobar) RETURN id(e) as existingEntityId").single();
-			long newId = r.get("existingEntityId").asLong();
-			transaction.commit();
-			return newId;
+			return r.get("existingEntityId").asLong();
 		}
 
 		@Test
@@ -147,13 +147,11 @@ public class ReactiveDynamicLabelsIT {
 	class EntityWithInheritedDynamicLabels extends SpringTestBase {
 
 		@Override
-		Long createTestEntity(Transaction transaction) {
+		Long createTestEntity(TransactionContext transaction) {
 			Record r = transaction
 					.run("CREATE (e:SimpleDynamicLabels:InheritedSimpleDynamicLabels:Foo:Bar:Baz:Foobar) RETURN id(e) as existingEntityId")
 					.single();
-			long newId = r.get("existingEntityId").asLong();
-			transaction.commit();
-			return newId;
+			return r.get("existingEntityId").asLong();
 		}
 
 		@Test
@@ -196,14 +194,12 @@ public class ReactiveDynamicLabelsIT {
 	class EntityWithSingleStaticLabelAndAssignedId extends SpringTestBase {
 
 		@Override
-		Long createTestEntity(Transaction transaction) {
+		Long createTestEntity(TransactionContext transaction) {
 			Record r = transaction.run("""
 				CREATE (e:SimpleDynamicLabelsWithBusinessId:Foo:Bar:Baz:Foobar {id: 'E1'})
 				RETURN id(e) as existingEntityId
 				""").single();
-			long newId = r.get("existingEntityId").asLong();
-			transaction.commit();
-			return newId;
+			return r.get("existingEntityId").asLong();
 		}
 
 		@Test
@@ -239,12 +235,10 @@ public class ReactiveDynamicLabelsIT {
 	class EntityWithSingleStaticLabelGeneratedIdAndVersion extends SpringTestBase {
 
 		@Override
-		Long createTestEntity(Transaction transaction) {
+		Long createTestEntity(TransactionContext transaction) {
 			Record r = transaction.run(
 					"CREATE (e:SimpleDynamicLabelsWithVersion:Foo:Bar:Baz:Foobar {myVersion: 0}) RETURN id(e) as existingEntityId").single();
-			long newId = r.get("existingEntityId").asLong();
-			transaction.commit();
-			return newId;
+			return r.get("existingEntityId").asLong();
 		}
 
 		@Test
@@ -282,11 +276,9 @@ public class ReactiveDynamicLabelsIT {
 	class EntityWithSingleStaticLabelAssignedIdAndVersion extends SpringTestBase {
 
 		@Override
-		Long createTestEntity(Transaction transaction) {
+		Long createTestEntity(TransactionContext transaction) {
 			Record r = transaction.run("CREATE (e:SimpleDynamicLabelsWithBusinessIdAndVersion:Foo:Bar:Baz:Foobar {id: 'E2', myVersion: 0}) RETURN id(e) as existingEntityId").single();
-			long newId = r.get("existingEntityId").asLong();
-			transaction.commit();
-			return newId;
+			return r.get("existingEntityId").asLong();
 		}
 
 		@Test
@@ -327,13 +319,11 @@ public class ReactiveDynamicLabelsIT {
 	class ConstructorInitializedEntity extends SpringTestBase {
 
 		@Override
-		Long createTestEntity(Transaction transaction) {
+		Long createTestEntity(TransactionContext transaction) {
 			Record r = transaction
 					.run("CREATE (e:SimpleDynamicLabelsCtor:Foo:Bar:Baz:Foobar) RETURN id(e) as existingEntityId")
 					.single();
-			long newId = r.get("existingEntityId").asLong();
-			transaction.commit();
-			return newId;
+			return r.get("existingEntityId").asLong();
 		}
 
 		@Test
@@ -349,11 +339,9 @@ public class ReactiveDynamicLabelsIT {
 	class ClassesWithAdditionalLabels extends SpringTestBase {
 
 		@Override
-		Long createTestEntity(Transaction transaction) {
+		Long createTestEntity(TransactionContext transaction) {
 			Record r = transaction.run("CREATE (e:SimpleDynamicLabels:Foo:Bar:Baz:Foobar) RETURN id(e) as existingEntityId").single();
-			long newId = r.get("existingEntityId").asLong();
-			transaction.commit();
-			return newId;
+			return r.get("existingEntityId").asLong();
 		}
 
 		@Test
@@ -361,7 +349,8 @@ public class ReactiveDynamicLabelsIT {
 
 			template.findById(existingEntityId, DynamicLabelsWithNodeLabel.class)
 					.flatMapMany(entity -> Flux.fromIterable(entity.moreLabels)).sort().as(StepVerifier::create)
-					.expectNext("Bar", "Foo", "Foobar", "SimpleDynamicLabels");
+					.expectNext("Bar", "Foo", "Foobar", "SimpleDynamicLabels")
+					.verifyComplete();
 		}
 
 		@Test
@@ -369,7 +358,8 @@ public class ReactiveDynamicLabelsIT {
 
 			template.findById(existingEntityId, DynamicLabelsWithMultipleNodeLabels.class)
 					.flatMapMany(entity -> Flux.fromIterable(entity.moreLabels)).sort().as(StepVerifier::create)
-					.expectNext("Baz", "Foobar", "SimpleDynamicLabels");
+					.expectNext("Baz", "Foobar", "SimpleDynamicLabels")
+					.verifyComplete();
 		}
 
 		@Test // GH-2296
@@ -398,11 +388,9 @@ public class ReactiveDynamicLabelsIT {
 	class ClassesWithAdditionalLabelsInInheritanceTree extends SpringTestBase {
 
 		@Override
-		Long createTestEntity(Transaction transaction) {
+		Long createTestEntity(TransactionContext transaction) {
 			Record r = transaction.run("CREATE (e:DynamicLabelsBaseClass:ExtendedBaseClass1:D1:D2:D3) RETURN id(e) as existingEntityId").single();
-			long newId = r.get("existingEntityId").asLong();
-			transaction.commit();
-			return newId;
+			return r.get("existingEntityId").asLong();
 		}
 
 		@Test
@@ -410,7 +398,8 @@ public class ReactiveDynamicLabelsIT {
 
 			template.findById(existingEntityId, ExtendedBaseClass1.class)
 					.flatMapMany(entity -> Flux.fromIterable(entity.moreLabels)).sort().as(StepVerifier::create)
-					.expectNext("D1", "D2", "D3");
+					.expectNext("D1", "D2", "D3")
+					.verifyComplete();
 		}
 	}
 
@@ -427,19 +416,19 @@ public class ReactiveDynamicLabelsIT {
 
 		protected Long existingEntityId;
 
-		abstract Long createTestEntity(Transaction t);
+		abstract Long createTestEntity(TransactionContext t);
 
 		@BeforeEach
 		void setupData() {
 			try (Session session = driver.session();) {
-				session.writeTransaction(tx -> tx.run("MATCH (n) DETACH DELETE n").consume());
-				existingEntityId = session.writeTransaction(this::createTestEntity);
-				bookmarkCapture.seedWith(session.lastBookmark());
+				session.executeWrite(tx -> tx.run("MATCH (n) DETACH DELETE n").consume());
+				existingEntityId = session.executeWrite(this::createTestEntity);
+				bookmarkCapture.seedWith(session.lastBookmarks());
 			}
 		}
 
 		protected final Flux<String> getLabels(Long id) {
-			return getLabels(Cypher.anyNode().named("n").internalId().isEqualTo(Cypher.parameter("id")), id);
+			return getLabels(Functions.id(Cypher.anyNode().named("n")).isEqualTo(Cypher.parameter("id")), id);
 		}
 
 		protected final Flux<String> getLabels(Condition idCondition, Object id) {
@@ -448,8 +437,8 @@ public class ReactiveDynamicLabelsIT {
 			String cypher = Renderer.getDefaultRenderer().render(Cypher.match(n).where(idCondition)
 					.and(n.property("moreLabels").isNull()).unwind(n.labels()).as("label").returning("label").build());
 			return Flux
-					.usingWhen(Mono.fromSupplier(() -> driver.rxSession(bookmarkCapture.createSessionConfig())),
-							s -> s.run(cypher, Collections.singletonMap("id", id)).records(), RxSession::close)
+					.usingWhen(Mono.fromSupplier(() -> driver.reactiveSession(bookmarkCapture.createSessionConfig())),
+							s -> JdkFlowAdapter.flowPublisherToFlux(s.run(cypher, Collections.singletonMap("id", id))).flatMap(r -> JdkFlowAdapter.flowPublisherToFlux(r.records())), rs -> JdkFlowAdapter.flowPublisherToFlux(rs.close()))
 					.map(r -> r.get("label").asString());
 		}
 

@@ -15,31 +15,29 @@
  */
 package org.springframework.data.neo4j.core.transaction;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 
 import org.neo4j.driver.Bookmark;
 
 /**
- * Avoids mocking / spying the thing.
- *
  * @author Michael J. Simons
  */
-final class AssertableBookmarkManager extends AbstractBookmarkManager {
+record BookmarkForTesting(String value) implements Bookmark {
 
-	boolean getBookmarksCalled = false;
-	final Map<Collection<Bookmark>, Boolean> updateBookmarksCalled = new HashMap<>();
-
-	@Override
-	public Collection<Bookmark> getBookmarks() {
-		getBookmarksCalled = true;
-		return Collections.emptyList();
+	BookmarkForTesting {
+		value = Objects.requireNonNull(value);
 	}
 
 	@Override
-	public void updateBookmarks(Collection<Bookmark> usedBookmarks, Collection<Bookmark> newBookmarks) {
-		updateBookmarksCalled.put(newBookmarks, true);
+	@SuppressWarnings({ "deprecation", "RedundantSuppression" })
+	public Set<String> values() {
+		return Set.of(value);
+	}
+
+	@Override
+	@SuppressWarnings({ "deprecation", "RedundantSuppression" })
+	public boolean isEmpty() {
+		return value.isBlank();
 	}
 }

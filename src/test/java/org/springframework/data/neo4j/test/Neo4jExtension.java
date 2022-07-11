@@ -45,7 +45,6 @@ import org.neo4j.driver.Logging;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.SessionConfig;
-import org.neo4j.driver.internal.util.ServerVersion;
 import org.springframework.core.log.LogMessage;
 import org.springframework.lang.Nullable;
 import org.testcontainers.containers.Neo4jContainer;
@@ -240,7 +239,7 @@ public class Neo4jExtension implements BeforeAllCallback, BeforeEachCallback {
 							Record result = session.run("CALL dbms.components() YIELD versions RETURN 'Neo4j/' + versions[0] as version").single();
 							this.cachedServerVersion = ServerVersion.version(result.get("version").asString());
 						} catch (Exception e) {
-							this.cachedServerVersion = ServerVersion.version(getDriver());
+							throw new RuntimeException("Could not determine server version", e);
 						}
 						serverVersion = this.cachedServerVersion;
 					}
@@ -270,7 +269,7 @@ public class Neo4jExtension implements BeforeAllCallback, BeforeEachCallback {
 		}
 
 		public boolean isCypher5SyntaxCompatible() {
-			return getServerVersion().greaterThanOrEqual(ServerVersion.v4_4_0);
+			return getServerVersion().greaterThanOrEqual(ServerVersion.v5_0_0);
 		}
 
 		@Override

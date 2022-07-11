@@ -74,7 +74,7 @@ public class ReactiveImmutableAssignedIdsIT {
 	void cleanUp(@Autowired BookmarkCapture bookmarkCapture) {
 		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
 			session.run("MATCH (n) DETACH DELETE n").consume();
-			bookmarkCapture.seedWith(session.lastBookmark());
+			bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 	}
 

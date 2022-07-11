@@ -76,7 +76,7 @@ class ReactiveOptimisticLockingIT {
 				Transaction transaction = session.beginTransaction()) {
 			transaction.run("MATCH (n) detach delete n");
 			transaction.commit();
-			bookmarkCapture.seedWith(session.lastBookmark());
+			bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 	}
 
@@ -230,7 +230,7 @@ class ReactiveOptimisticLockingIT {
 	void shouldNotFailOnDeleteByIdWithNullVersion(@Autowired VersionedThingWithAssignedIdRepository repository) {
 		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
 			session.run("CREATE (v:VersionedThingWithAssignedId {id:1})").consume();
-			bookmarkCapture.seedWith(session.lastBookmark());
+			bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 
 		StepVerifier.create(repository.deleteById(1L))
@@ -248,7 +248,7 @@ class ReactiveOptimisticLockingIT {
 	void shouldNotFailOnDeleteByEntityWithNullVersion(@Autowired VersionedThingWithAssignedIdRepository repository) {
 		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
 			session.run("CREATE (v:VersionedThingWithAssignedId {id:1})").consume();
-			bookmarkCapture.seedWith(session.lastBookmark());
+			bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 
 		StepVerifier.create(repository.findById(1L).map(thing -> repository.deleteById(1L)))
@@ -261,7 +261,7 @@ class ReactiveOptimisticLockingIT {
 	void shouldNotFailOnDeleteByIdWithAnyVersion(@Autowired VersionedThingWithAssignedIdRepository repository) {
 		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
 			session.run("CREATE (v:VersionedThingWithAssignedId {id:1, myVersion:3})").consume();
-			bookmarkCapture.seedWith(session.lastBookmark());
+			bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 
 		StepVerifier.create(repository.deleteById(1L))
@@ -279,7 +279,7 @@ class ReactiveOptimisticLockingIT {
 	void shouldFailOnDeleteByEntityWithWrongVersion(@Autowired VersionedThingWithAssignedIdRepository repository) {
 		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
 			session.run("CREATE (v:VersionedThingWithAssignedId {id:1, myVersion:2})").consume();
-			bookmarkCapture.seedWith(session.lastBookmark());
+			bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 
 		StepVerifier.create(repository.findById(1L)

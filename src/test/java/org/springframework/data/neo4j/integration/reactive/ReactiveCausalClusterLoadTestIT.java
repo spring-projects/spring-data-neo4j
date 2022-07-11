@@ -16,7 +16,6 @@
 package org.springframework.data.neo4j.integration.reactive;
 
 import org.neo4j.driver.Session;
-import org.neo4j.driver.internal.util.ServerVersion;
 import org.springframework.data.neo4j.test.Neo4jReactiveTestConfiguration;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -52,6 +51,7 @@ import org.springframework.data.neo4j.repository.ReactiveNeo4jRepository;
 import org.springframework.data.neo4j.repository.config.EnableReactiveNeo4jRepositories;
 import org.springframework.data.neo4j.test.CausalClusterIntegrationTest;
 import org.springframework.data.neo4j.test.Neo4jExtension;
+import org.springframework.data.neo4j.test.ServerVersion;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.annotation.Transactional;
 

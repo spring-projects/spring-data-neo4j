@@ -19,7 +19,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.tuple;
 
+import org.neo4j.driver.TransactionContext;
+import org.neo4j.driver.reactive.ReactiveSession;
+import org.springframework.data.neo4j.core.mapping.IdentitySupport;
 import org.springframework.data.neo4j.test.Neo4jReactiveTestConfiguration;
+
+import reactor.adapter.JdkFlowAdapter;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -49,10 +54,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Session;
-import org.neo4j.driver.Transaction;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
-import org.neo4j.driver.reactive.RxSession;
 import org.neo4j.driver.types.Node;
 import org.neo4j.driver.types.Point;
 import org.neo4j.driver.types.Relationship;
@@ -159,7 +162,7 @@ class ReactiveRepositoryIT {
 	class Find extends ReactiveIntegrationTestBase {
 
 		@Override
-		void setupData(Transaction transaction) {
+		void setupData(TransactionContext transaction) {
 
 			id1 = transaction.run("""
 					CREATE (n:PersonWithAllConstructor)
@@ -437,10 +440,10 @@ class ReactiveRepositoryIT {
 			Node petNode1 = record.get("p1").asNode();
 			Node petNode2 = record.get("p2").asNode();
 
-			long personId = personNode.id();
-			long hobbyNodeId = hobbyNode1.id();
-			long petNode1Id = petNode1.id();
-			long petNode2Id = petNode2.id();
+			long personId = IdentitySupport.getInternalId(personNode);
+			long hobbyNodeId = IdentitySupport.getInternalId(hobbyNode1);
+			long petNode1Id = IdentitySupport.getInternalId(petNode1);
+			long petNode2Id = IdentitySupport.getInternalId(petNode2);
 
 			PersonWithRelationship probe = new PersonWithRelationship();
 			probe.setName("Freddie");
@@ -478,10 +481,10 @@ class ReactiveRepositoryIT {
 			Node petNode1 = record.get("p1").asNode();
 			Node petNode2 = record.get("p2").asNode();
 
-			long personId = personNode.id();
-			long hobbyNodeId = hobbyNode1.id();
-			long petNode1Id = petNode1.id();
-			long petNode2Id = petNode2.id();
+			long personId = IdentitySupport.getInternalId(personNode);
+			long hobbyNodeId = IdentitySupport.getInternalId(hobbyNode1);
+			long petNode1Id = IdentitySupport.getInternalId(petNode1);
+			long petNode2Id = IdentitySupport.getInternalId(petNode2);
 
 			PersonWithRelationship probe = new PersonWithRelationship();
 			probe.setName("Freddie");
@@ -519,10 +522,10 @@ class ReactiveRepositoryIT {
 			Node petNode1 = record.get("p1").asNode();
 			Node petNode2 = record.get("p2").asNode();
 
-			long personId = personNode.id();
-			long hobbyNodeId = hobbyNode1.id();
-			long petNode1Id = petNode1.id();
-			long petNode2Id = petNode2.id();
+			long personId    = IdentitySupport.getInternalId(personNode);
+			long hobbyNodeId = IdentitySupport.getInternalId(hobbyNode1);
+			long petNode1Id  = IdentitySupport.getInternalId(petNode1);
+			long petNode2Id  = IdentitySupport.getInternalId(petNode2);
 
 			PersonWithRelationship probe = new PersonWithRelationship();
 			probe.setName("Freddie");
@@ -788,7 +791,7 @@ class ReactiveRepositoryIT {
 	class FindWithRelationships extends ReactiveIntegrationTestBase {
 
 		@Override
-		void setupData(Transaction transaction) {
+		void setupData(TransactionContext transaction) {
 
 			transaction.run("MATCH (n) detach delete n");
 
@@ -841,12 +844,12 @@ class ReactiveRepositoryIT {
 			Node petNode1 = record.get("p1").asNode();
 			Node petNode2 = record.get("p2").asNode();
 
-			long personId = personNode.id();
-			long clubId = clubNode.id();
-			long hobbyNode1Id = hobbyNode1.id();
-			long hobbyNode2Id = hobbyNode2.id();
-			long petNode1Id = petNode1.id();
-			long petNode2Id = petNode2.id();
+			long personId = IdentitySupport.getInternalId(personNode);
+			long clubId = IdentitySupport.getInternalId(clubNode);
+			long hobbyNode1Id = IdentitySupport.getInternalId(hobbyNode1);
+			long hobbyNode2Id = IdentitySupport.getInternalId(hobbyNode2);
+			long petNode1Id = IdentitySupport.getInternalId(petNode1);
+			long petNode2Id = IdentitySupport.getInternalId(petNode2);
 
 			StepVerifier.create(repository.findById(personId)).assertNext(loadedPerson -> {
 
@@ -892,9 +895,9 @@ class ReactiveRepositoryIT {
 			Node hobbyNode1 = record.get("h1").asNode();
 			Node petNode1 = record.get("p1").asNode();
 
-			long personId = personNode.id();
-			long hobbyNode1Id = hobbyNode1.id();
-			long petNode1Id = petNode1.id();
+			long personId     = IdentitySupport.getInternalId(personNode);
+			long hobbyNode1Id = IdentitySupport.getInternalId(hobbyNode1);
+			long petNode1Id   = IdentitySupport.getInternalId(petNode1);
 
 			StepVerifier.create(repository.findById(personId)).assertNext(loadedPerson -> {
 
@@ -935,7 +938,7 @@ class ReactiveRepositoryIT {
 						RETURN t1
 					""").single();
 
-				return record.get("t1").asNode().id();
+				return IdentitySupport.getInternalId(record.get("t1").asNode());
 			});
 
 			StepVerifier.create(loopingRelationshipRepository.findById(type1Id)).assertNext(type1 -> {
@@ -970,7 +973,7 @@ class ReactiveRepositoryIT {
 				Record record = session.run("CREATE (n:BidirectionalStart{name:'Ernie'})-[:CONNECTED]->(e:BidirectionalEnd{name:'Bert'}) RETURN n").single();
 
 				Node startNode = record.get("n").asNode();
-				return startNode.id();
+				return IdentitySupport.getInternalId(startNode);
 			});
 
 			StepVerifier.create(repository.findById(startId))
@@ -990,7 +993,7 @@ class ReactiveRepositoryIT {
 				Record record = session.run("CREATE (n:BidirectionalStart{name:'Ernie'})-[:CONNECTED]->(e:BidirectionalEnd{name:'Bert'}) RETURN e").single();
 
 				Node endNode = record.get("e").asNode();
-				return endNode.id();
+				return IdentitySupport.getInternalId(endNode);
 			});
 
 			StepVerifier.create(repository.findById(endId)).assertNext(entity -> {
@@ -1005,8 +1008,8 @@ class ReactiveRepositoryIT {
 						.run("CREATE (n:PersonWithRelationship{name:'Freddie'})-[:Has]->(h:Hobby{name:'Music'}), (n)-[:Has]->(p:Pet{name: 'Jerry'}) RETURN n, h, p")
 						.single());
 
-			long hobbyNode1Id = record.get("h").asNode().id();
-			long petNode1Id = record.get("p").asNode().id();
+			long hobbyNode1Id = IdentitySupport.getInternalId(record.get("h").asNode());
+			long petNode1Id = IdentitySupport.getInternalId(record.get("p").asNode());
 
 			record = doWithSession(session -> session.run("""
    				CREATE
@@ -1015,8 +1018,8 @@ class ReactiveRepositoryIT {
 				RETURN n, h, p
 				""").single());
 
-			long hobbyNode2Id = record.get("h").asNode().id();
-			long petNode2Id = record.get("p").asNode().id();
+			long hobbyNode2Id = IdentitySupport.getInternalId(record.get("h").asNode());
+			long petNode2Id = IdentitySupport.getInternalId(record.get("p").asNode());
 
 			StepVerifier.create(repository.findAll()).recordWith(ArrayList::new).expectNextCount(2)
 					.consumeRecordedWith(loadedPersons -> {
@@ -1055,10 +1058,10 @@ class ReactiveRepositoryIT {
 			Node petNode1 = record.get("p1").asNode();
 			Node petNode2 = record.get("p2").asNode();
 
-			long personId = personNode.id();
-			long hobbyNodeId = hobbyNode1.id();
-			long petNode1Id = petNode1.id();
-			long petNode2Id = petNode2.id();
+			long personId = IdentitySupport.getInternalId(personNode);
+			long hobbyNodeId = IdentitySupport.getInternalId(hobbyNode1);
+			long petNode1Id = IdentitySupport.getInternalId(petNode1);
+			long petNode2Id = IdentitySupport.getInternalId(petNode2);
 
 			StepVerifier.create(repository.getPersonWithRelationshipsViaQuery()).assertNext(loadedPerson -> {
 				assertThat(loadedPerson.getName()).isEqualTo("Freddie");
@@ -1082,7 +1085,7 @@ class ReactiveRepositoryIT {
 				Record record = session.run("CREATE (p:Pet{name:'Jerry'})-[:Has]->(t:Thing{theId:'t1', name:'Thing1'}) RETURN p, t").single();
 
 				Node petNode = record.get("p").asNode();
-				return petNode.id();
+				return IdentitySupport.getInternalId(petNode);
 			});
 
 			StepVerifier.create(repository.findById(petNodeId)).assertNext(pet -> {
@@ -1179,9 +1182,9 @@ class ReactiveRepositoryIT {
 			Node hobbyNode1 = record.get("h1").asNode();
 			Node hobbyNode2 = record.get("h2").asNode();
 
-			long personId = personNode.id();
-			long hobbyNode1Id = hobbyNode1.id();
-			long hobbyNode2Id = hobbyNode2.id();
+			long personId = IdentitySupport.getInternalId(personNode);
+			long hobbyNode1Id = IdentitySupport.getInternalId(hobbyNode1);
+			long hobbyNode2Id = IdentitySupport.getInternalId(hobbyNode2);
 
 			StepVerifier.create(repository.findById(personId)).assertNext(person -> {
 				assertThat(person.getName()).isEqualTo("Freddie");
@@ -1279,10 +1282,10 @@ class ReactiveRepositoryIT {
 
 			// check content of db
 			String matchQuery = """
-   				MATCH (n:PersonWithRelationshipWithProperties {name:'Freddie clone'})
-   				RETURN n, [(n) -[:LIKES]->(h:Hobby) |h] as Hobbies, [(n) -[r:LIKES]->(:Hobby) |r] as rels
+				MATCH (n:PersonWithRelationshipWithProperties {name:'Freddie clone'})
+  				RETURN n, [(n) -[:LIKES]->(h:Hobby) |h] as Hobbies, [(n) -[r:LIKES]->(:Hobby) |r] as rels
    				""";
-			Flux.usingWhen(Mono.fromSupplier(() -> createRxSession()), s -> s.run(matchQuery).records(), RxSession::close)
+			Flux.usingWhen(Mono.fromSupplier(this::createRxSession), s -> JdkFlowAdapter.flowPublisherToFlux(s.run(matchQuery)).flatMap(rs -> JdkFlowAdapter.flowPublisherToFlux(rs.records())), s -> JdkFlowAdapter.flowPublisherToFlux(s.close()))
 					.as(StepVerifier::create).assertNext(record -> {
 
 						assertThat(record.containsKey("n")).isTrue();
@@ -1321,9 +1324,9 @@ class ReactiveRepositoryIT {
 			Node hobbyNode1 = record.get("h1").asNode();
 			Node hobbyNode2 = record.get("h2").asNode();
 
-			long personId = personNode.id();
-			long hobbyNode1Id = hobbyNode1.id();
-			long hobbyNode2Id = hobbyNode2.id();
+			long personId = IdentitySupport.getInternalId(personNode);
+			long hobbyNode1Id = IdentitySupport.getInternalId(hobbyNode1);
+			long hobbyNode2Id = IdentitySupport.getInternalId(hobbyNode2);
 
 			StepVerifier.create(repository.loadFromCustomQuery(personId)).assertNext(person -> {
 				assertThat(person.getName()).isEqualTo("Freddie");
@@ -1362,7 +1365,7 @@ class ReactiveRepositoryIT {
 
 			long personId = doWithSession(session -> {
 				Record record = session.run("CREATE (n:AltPerson{name:'Freddie'}), (n)-[l1:LIKES {rating: 5}]->(h1:AltHobby{name:'Music'}) RETURN n, h1").single();
-				return record.get("n").asNode().id();
+				return IdentitySupport.getInternalId(record.get("n").asNode());
 			});
 
 			StepVerifier.create(repository.loadFromCustomQuery(personId)).assertNext(hobby -> {
@@ -1383,7 +1386,7 @@ class ReactiveRepositoryIT {
 						" (n)-[l1:LIKES {rating: 5}]->(h1:AltHobby{name:'Music'})," +
 						" (n)-[l2:LIKES {rating: 1}]->(h1)" +
 						" RETURN n, h1").single();
-				return record.get("n").asNode().id();
+				return IdentitySupport.getInternalId(record.get("n").asNode());
 			});
 
 			StepVerifier.create(repository.loadFromCustomQuery(personId)).assertNext(hobby -> {
@@ -1531,7 +1534,7 @@ class ReactiveRepositoryIT {
 	class Save extends ReactiveIntegrationTestBase {
 
 		@Override
-		void setupData(Transaction transaction) {
+		void setupData(TransactionContext transaction) {
 
 			transaction.run("MATCH (n) detach delete n");
 
@@ -1576,11 +1579,11 @@ class ReactiveRepositoryIT {
 			getTransactionalOperator().execute(t -> operationUnderTest).as(StepVerifier::create).recordWith(() -> ids)
 					.expectNextCount(1L).verifyComplete();
 
-			Flux.usingWhen(Mono.fromSupplier(() -> createRxSession()),
-					s -> s.run("MATCH (n:PersonWithAllConstructor) WHERE id(n) in $ids RETURN n", Values
-							.parameters("ids", ids))
-							.records(),
-					RxSession::close).map(r -> r.get("n").asNode().get("first_name").asString()).as(StepVerifier::create)
+			Flux.usingWhen(Mono.fromSupplier(this::createRxSession),
+					s -> JdkFlowAdapter.flowPublisherToFlux(s.run("MATCH (n:PersonWithAllConstructor) WHERE id(n) in $ids RETURN n", Values
+							.parameters("ids", ids))).flatMap(rs -> JdkFlowAdapter.flowPublisherToFlux(rs.records())),
+					s -> JdkFlowAdapter.flowPublisherToFlux(s.close()))
+					.map(r -> r.get("n").asNode().get("first_name").asString()).as(StepVerifier::create)
 					.expectNext("Freddie").verifyComplete();
 		}
 
@@ -1603,10 +1606,11 @@ class ReactiveRepositoryIT {
 			getTransactionalOperator().execute(t -> operationUnderTest).as(StepVerifier::create).recordWith(() -> ids)
 					.expectNextCount(2L).verifyComplete();
 
-			Flux.usingWhen(Mono.fromSupplier(() -> createRxSession()),
-					s -> s.run("MATCH (n:PersonWithAllConstructor) WHERE id(n) in $ids RETURN n ORDER BY n.name ASC",
-							Values.parameters("ids", ids)).records(),
-					RxSession::close).map(r -> r.get("n").asNode().get("name").asString()).as(StepVerifier::create)
+			Flux.usingWhen(Mono.fromSupplier(this::createRxSession),
+					s -> JdkFlowAdapter.flowPublisherToFlux(s.run("MATCH (n:PersonWithAllConstructor) WHERE id(n) in $ids RETURN n ORDER BY n.name ASC",
+							Values.parameters("ids", ids))).flatMap(rs -> JdkFlowAdapter.flowPublisherToFlux(rs.records())),
+					s -> JdkFlowAdapter.flowPublisherToFlux(s.close()))
+					.map(r -> r.get("n").asNode().get("name").asString()).as(StepVerifier::create)
 					.expectNext("Mercury").expectNext(TEST_PERSON1_NAME).verifyComplete();
 		}
 
@@ -1616,16 +1620,16 @@ class ReactiveRepositoryIT {
 			PersonWithAllConstructor newPerson = new PersonWithAllConstructor(null, "Mercury", "Freddie", "Queen", true,
 					1509L, LocalDate.of(1946, 9, 15), null, Collections.emptyList(), null, null);
 
-			Flux<Long> operationUnderTest = repository.saveAll(Arrays.asList(newPerson)).map(PersonWithAllConstructor::getId);
+			Flux<Long> operationUnderTest = repository.saveAll(List.of(newPerson)).map(PersonWithAllConstructor::getId);
 
 			List<Long> ids = new ArrayList<>();
 			getTransactionalOperator().execute(t -> operationUnderTest).as(StepVerifier::create).recordWith(() -> ids)
 					.expectNextCount(1L).verifyComplete();
 
-			Flux.usingWhen(Mono.fromSupplier(() -> createRxSession()),
-					s -> s.run("MATCH (n:PersonWithAllConstructor) WHERE id(n) in $ids RETURN n ORDER BY n.name ASC",
-							Values.parameters("ids", ids)).records(),
-					RxSession::close).map(r -> r.get("n").asNode().get("name").asString()).as(StepVerifier::create)
+			Flux.usingWhen(Mono.fromSupplier(this::createRxSession),
+					s -> JdkFlowAdapter.flowPublisherToFlux(s.run("MATCH (n:PersonWithAllConstructor) WHERE id(n) in $ids RETURN n ORDER BY n.name ASC",
+							Values.parameters("ids", ids))).flatMap(rs -> JdkFlowAdapter.flowPublisherToFlux(rs.records())),
+					s -> JdkFlowAdapter.flowPublisherToFlux(s.close())).map(r -> r.get("n").asNode().get("name").asString()).as(StepVerifier::create)
 					.expectNext("Mercury").verifyComplete();
 		}
 
@@ -1641,10 +1645,10 @@ class ReactiveRepositoryIT {
 			getTransactionalOperator().execute(t -> operationUnderTest).as(StepVerifier::create).expectNextCount(1L)
 					.verifyComplete();
 
-			Flux.usingWhen(Mono.fromSupplier(() -> createRxSession()), s -> {
+			Flux.usingWhen(Mono.fromSupplier(this::createRxSession), s -> {
 				Value parameters = Values.parameters("id", id1);
-				return s.run("MATCH (n:PersonWithAllConstructor) WHERE id(n) = $id RETURN n", parameters).records();
-			}, RxSession::close).map(r -> r.get("n").asNode()).as(StepVerifier::create)
+				return JdkFlowAdapter.flowPublisherToFlux(s.run("MATCH (n:PersonWithAllConstructor) WHERE id(n) = $id RETURN n", parameters)).flatMap(rs -> JdkFlowAdapter.flowPublisherToFlux(rs.records()));
+			}, s ->  JdkFlowAdapter.flowPublisherToFlux(s.close())).map(r -> r.get("n").asNode()).as(StepVerifier::create)
 					.expectNextMatches(node -> node.get("first_name").asString().equals("Updated first name")
 							&& node.get("nullable").asString().equals("Updated nullable field"))
 					.verifyComplete();
@@ -1653,17 +1657,15 @@ class ReactiveRepositoryIT {
 		@Test
 		void saveWithAssignedId(@Autowired ReactiveThingRepository repository) {
 
-			Mono<ThingWithAssignedId> operationUnderTest = Mono.fromSupplier(() -> {
-				ThingWithAssignedId thing = new ThingWithAssignedId("aaBB", "That's the thing.");
-				return thing;
-			}).flatMap(repository::save);
+			Mono<ThingWithAssignedId> operationUnderTest = Mono.fromSupplier(() -> new ThingWithAssignedId("aaBB", "That's the thing.")).flatMap(repository::save);
 
 			getTransactionalOperator().execute(t -> operationUnderTest).as(StepVerifier::create).expectNextCount(1L)
 					.verifyComplete();
 
-			Flux.usingWhen(Mono.fromSupplier(() -> createRxSession()),
-					s -> s.run("MATCH (n:Thing) WHERE n.theId = $id RETURN n", Values.parameters("id", "aaBB")).records(),
-					RxSession::close).map(r -> r.get("n").asNode().get("name").asString()).as(StepVerifier::create)
+			Flux.usingWhen(Mono.fromSupplier(this::createRxSession),
+							s -> JdkFlowAdapter.flowPublisherToFlux(s.run("MATCH (n:Thing) WHERE n.theId = $id RETURN n", Values.parameters("id", "aaBB"))).flatMap(rs -> JdkFlowAdapter.flowPublisherToFlux(rs.records())),
+							s -> JdkFlowAdapter.flowPublisherToFlux(s.close()))
+					.map(r -> r.get("n").asNode().get("name").asString()).as(StepVerifier::create)
 					.expectNext("That's the thing.").verifyComplete();
 
 			repository.count().as(StepVerifier::create).expectNext(22L).verifyComplete();
@@ -1675,21 +1677,17 @@ class ReactiveRepositoryIT {
 			Flux<ThingWithAssignedId> things = repository.findById("anId").map(existingThing -> {
 				existingThing.setName("Updated name.");
 				return existingThing;
-			}).concatWith(Mono.fromSupplier(() -> {
-				ThingWithAssignedId newThing = new ThingWithAssignedId("aaBB", "That's the thing.");
-				return newThing;
-			}));
+			}).concatWith(Mono.fromSupplier(() -> new ThingWithAssignedId("aaBB", "That's the thing.")));
 
 			Flux<ThingWithAssignedId> operationUnderTest = repository.saveAll(things);
 
 			getTransactionalOperator().execute(t -> operationUnderTest).as(StepVerifier::create).expectNextCount(2L)
 					.verifyComplete();
 
-			Flux.usingWhen(Mono.fromSupplier(() -> createRxSession()), s -> {
+			Flux.usingWhen(Mono.fromSupplier(this::createRxSession), s -> {
 				Value parameters = Values.parameters("ids", Arrays.asList("anId", "aaBB"));
-				return s.run("MATCH (n:Thing) WHERE n.theId IN ($ids) RETURN n.name as name ORDER BY n.name ASC", parameters)
-						.records();
-			}, RxSession::close).map(r -> r.get("name").asString()).as(StepVerifier::create).expectNext("That's the thing.")
+				return Flux.from(JdkFlowAdapter.flowPublisherToFlux(s.run("MATCH (n:Thing) WHERE n.theId IN ($ids) RETURN n.name as name ORDER BY n.name ASC", parameters)).flatMap(rs -> JdkFlowAdapter.flowPublisherToFlux(rs.records())));
+			}, s -> JdkFlowAdapter.flowPublisherToFlux(s.close())).map(r -> r.get("name").asString()).as(StepVerifier::create).expectNext("That's the thing.")
 					.expectNext("Updated name.").verifyComplete();
 
 			// Make sure we triggered on insert, one update
@@ -1709,11 +1707,10 @@ class ReactiveRepositoryIT {
 			getTransactionalOperator().execute(t -> operationUnderTest).as(StepVerifier::create).expectNextCount(2L)
 					.verifyComplete();
 
-			Flux.usingWhen(Mono.fromSupplier(() -> createRxSession()), s -> {
+			Flux.usingWhen(Mono.fromSupplier(this::createRxSession), s -> {
 				Value parameters = Values.parameters("ids", Arrays.asList("anId", "aaBB"));
-				return s.run("MATCH (n:Thing) WHERE n.theId IN ($ids) RETURN n.name as name ORDER BY n.name ASC", parameters)
-						.records();
-			}, RxSession::close).map(r -> r.get("name").asString()).as(StepVerifier::create).expectNext("That's the thing.")
+				return Flux.from(JdkFlowAdapter.flowPublisherToFlux(s.run("MATCH (n:Thing) WHERE n.theId IN ($ids) RETURN n.name as name ORDER BY n.name ASC", parameters))).flatMap(rs -> JdkFlowAdapter.flowPublisherToFlux(rs.records()));
+			}, s -> JdkFlowAdapter.flowPublisherToFlux(s.close())).map(r -> r.get("name").asString()).as(StepVerifier::create).expectNext("That's the thing.")
 					.expectNext("Updated name.").verifyComplete();
 
 			// Make sure we triggered on insert, one update
@@ -1725,10 +1722,7 @@ class ReactiveRepositoryIT {
 
 			Flux<ThingWithAssignedId> operationUnderTest = Flux.concat(
 					// Without prior selection
-					Mono.fromSupplier(() -> {
-						ThingWithAssignedId thing = new ThingWithAssignedId("id07", "An updated thing");
-						return thing;
-					}).flatMap(repository::save),
+					Mono.fromSupplier(() -> new ThingWithAssignedId("id07", "An updated thing")).flatMap(repository::save),
 
 					// With prior selection
 					repository.findById("id15").flatMap(thing -> {
@@ -1739,11 +1733,10 @@ class ReactiveRepositoryIT {
 			getTransactionalOperator().execute(t -> operationUnderTest).as(StepVerifier::create).expectNextCount(2L)
 					.verifyComplete();
 
-			Flux.usingWhen(Mono.fromSupplier(() -> createRxSession()), s -> {
+			Flux.usingWhen(Mono.fromSupplier(this::createRxSession), s -> {
 				Value parameters = Values.parameters("ids", Arrays.asList("id07", "id15"));
-				return s.run("MATCH (n:Thing) WHERE n.theId IN ($ids) RETURN n.name as name ORDER BY n.name ASC", parameters)
-						.records();
-			}, RxSession::close).map(r -> r.get("name").asString()).as(StepVerifier::create)
+				return Flux.from(JdkFlowAdapter.flowPublisherToFlux(s.run("MATCH (n:Thing) WHERE n.theId IN ($ids) RETURN n.name as name ORDER BY n.name ASC", parameters))).flatMap(rs -> JdkFlowAdapter.flowPublisherToFlux(rs.records()));
+			}, s -> JdkFlowAdapter.flowPublisherToFlux(s.close())).map(r -> r.get("name").asString()).as(StepVerifier::create)
 					.expectNext("An updated thing", "Another updated thing").verifyComplete();
 
 			repository.count().as(StepVerifier::create).expectNext(21L).verifyComplete();
@@ -1754,7 +1747,7 @@ class ReactiveRepositoryIT {
 				@Autowired ThingWithFixedGeneratedIdRepository repository) {
 
 			doWithSession(session ->
-				session.writeTransaction(tx ->
+				session.executeWrite(tx ->
 						tx.run("CREATE (:ThingWithFixedGeneratedId{theId:'ThingWithFixedGeneratedId'})" +
 								"-[r:KNOWS]->(:SimplePerson) return id(r) as rId").consume())
 			);
@@ -1766,7 +1759,7 @@ class ReactiveRepositoryIT {
 
 			// ensure that no relationship got deleted upfront
 			assertInSession(session -> {
-				Long relCount = session.readTransaction(tx ->
+				Long relCount = session.executeRead(tx ->
 						tx.run("MATCH (:ThingWithFixedGeneratedId{theId:'ThingWithFixedGeneratedId'})" +
 								"-[r:KNOWS]-(:SimplePerson) return count(r) as rCount")
 								.next().get("rCount").asLong());
@@ -1779,7 +1772,7 @@ class ReactiveRepositoryIT {
 		void updateEntityWithGeneratedIdShouldIssueRelationshipDeleteStatement(
 				@Autowired ThingWithFixedGeneratedIdRepository repository) {
 
-			Long rId = doWithSession(session -> session.writeTransaction(tx ->
+			Long rId = doWithSession(session -> session.executeWrite(tx ->
 						tx.run("CREATE (:ThingWithFixedGeneratedId{theId:'ThingWithFixedGeneratedId'})" +
 								"-[r:KNOWS]->(:SimplePerson) return id(r) as rId")
 								.next().get("rId").asLong())
@@ -1789,7 +1782,7 @@ class ReactiveRepositoryIT {
 					.expectNextCount(1L).verifyComplete();
 
 			assertInSession(session -> {
-				Long newRid = session.readTransaction(tx ->
+				Long newRid = session.executeRead(tx ->
 						tx.run("MATCH (:ThingWithFixedGeneratedId{theId:'ThingWithFixedGeneratedId'})" +
 								"-[r:KNOWS]-(:SimplePerson) return id(r) as rId")
 								.next().get("rId").asLong());
@@ -1803,7 +1796,7 @@ class ReactiveRepositoryIT {
 				@Autowired ThingWithFixedGeneratedIdRepository repository) {
 
 			doWithSession(session ->
-				session.writeTransaction(tx ->
+				session.executeWrite(tx ->
 						tx.run("CREATE (:ThingWithFixedGeneratedId{theId:'ThingWithFixedGeneratedId'})" +
 								"-[r:KNOWS]->(:SimplePerson) return id(r) as rId").consume())
 			);
@@ -1815,7 +1808,7 @@ class ReactiveRepositoryIT {
 
 			// ensure that no relationship got deleted upfront
 			assertInSession(session -> {
-				Long relCount = session.readTransaction(tx ->
+				Long relCount = session.executeRead(tx ->
 						tx.run("MATCH (:ThingWithFixedGeneratedId{theId:'ThingWithFixedGeneratedId'})" +
 								"-[r:KNOWS]-(:SimplePerson) return count(r) as rCount")
 								.next().get("rCount").asLong());
@@ -1829,7 +1822,7 @@ class ReactiveRepositoryIT {
 				@Autowired ThingWithFixedGeneratedIdRepository repository) {
 
 			Long rId = doWithSession(session ->
-				session.writeTransaction(tx ->
+				session.executeWrite(tx ->
 						tx.run("CREATE (:ThingWithFixedGeneratedId{theId:'ThingWithFixedGeneratedId'})" +
 								"-[r:KNOWS]->(:SimplePerson) return id(r) as rId")
 								.next().get("rId").asLong())
@@ -1840,7 +1833,7 @@ class ReactiveRepositoryIT {
 					.block();
 
 			assertInSession(session -> {
-				Long newRid = session.readTransaction(tx ->
+				Long newRid = session.executeRead(tx ->
 						tx.run("MATCH (:ThingWithFixedGeneratedId{theId:'ThingWithFixedGeneratedId'})" +
 								"-[r:KNOWS]-(:SimplePerson) return id(r) as rId")
 								.next().get("rId").asLong());
@@ -1914,7 +1907,7 @@ class ReactiveRepositoryIT {
 
 				assertThat(record.containsKey("n")).isTrue();
 				Node rootNode = record.get("n").asNode();
-				assertThat(ids.get(0)).isEqualTo(rootNode.id());
+				assertThat(ids.get(0)).isEqualTo(IdentitySupport.getInternalId(rootNode));
 				assertThat(rootNode.get("name").asString()).isEqualTo("Freddie");
 
 				List<List<Object>> petsWithHobbies = record.get("petsWithHobbies").asList(Value::asList);
@@ -1984,7 +1977,7 @@ class ReactiveRepositoryIT {
 
 				assertThat(record.containsKey("n")).isTrue();
 				Node rootNode = record.get("n").asNode();
-				assertThat(ids.get(0)).isEqualTo(rootNode.id());
+				assertThat(ids.get(0)).isEqualTo(IdentitySupport.getInternalId(rootNode));
 				assertThat(rootNode.get("name").asString()).isEqualTo("Freddie");
 
 				List<List<Object>> petsWithHobbies = record.get("petsWithHobbies").asList(Value::asList);
@@ -2045,7 +2038,7 @@ class ReactiveRepositoryIT {
 
 				assertThat(record.containsKey("n")).isTrue();
 				Node rootNode = record.get("n").asNode();
-				assertThat(ids.get(0)).isEqualTo(rootNode.id());
+				assertThat(ids.get(0)).isEqualTo(IdentitySupport.getInternalId(rootNode));
 				assertThat(rootNode.get("name").asString()).isEqualTo("Freddie");
 
 				assertThat(record.get("hobbies").asList(entry -> entry.asNode().get("name").asString()))
@@ -2237,7 +2230,7 @@ class ReactiveRepositoryIT {
 	class Delete extends ReactiveIntegrationTestBase {
 
 		@Override
-		void setupData(Transaction transaction) {
+		void setupData(TransactionContext transaction) {
 
 			transaction.run("MATCH (n) detach delete n");
 
@@ -2377,7 +2370,7 @@ class ReactiveRepositoryIT {
 	class Projection extends ReactiveIntegrationTestBase {
 
 		@Override
-		void setupData(Transaction transaction) {
+		void setupData(TransactionContext transaction) {
 
 			transaction.run("MATCH (n) detach delete n");
 
@@ -2511,9 +2504,9 @@ class ReactiveRepositoryIT {
 			long n3Id;
 
 			Record record = doWithSession(session -> session.run("CREATE (n1:A:B:C), (n2:B:C), (n3:A) return n1, n2, n3").single());
-			n1Id = record.get("n1").asNode().id();
-			n2Id = record.get("n2").asNode().id();
-			n3Id = record.get("n3").asNode().id();
+			n1Id = IdentitySupport.getInternalId(record.get("n1").asNode());
+			n2Id = IdentitySupport.getInternalId(record.get("n2").asNode());
+			n3Id = IdentitySupport.getInternalId(record.get("n3").asNode());
 
 			StepVerifier.create(repository.findById(n1Id)).expectNextCount(1).verifyComplete();
 			StepVerifier.create(repository.findById(n2Id)).verifyComplete();
@@ -2528,9 +2521,9 @@ class ReactiveRepositoryIT {
 			long n3Id;
 
 			Record record = doWithSession(session -> session.run("CREATE (n1:A:B:C), (n2:B:C), (n3:A) return n1, n2, n3").single());
-			n1Id = record.get("n1").asNode().id();
-			n2Id = record.get("n2").asNode().id();
-			n3Id = record.get("n3").asNode().id();
+			n1Id = IdentitySupport.getInternalId(record.get("n1").asNode());
+			n2Id = IdentitySupport.getInternalId(record.get("n2").asNode());
+			n3Id = IdentitySupport.getInternalId(record.get("n3").asNode());
 
 			repository.deleteById(n1Id).block();
 			repository.deleteById(n2Id).block();
@@ -2751,13 +2744,13 @@ class ReactiveRepositoryIT {
 
 		@Autowired private BookmarkCapture bookmarkCapture;
 
-		void setupData(Transaction transaction) {
+		void setupData(TransactionContext transaction) {
 		}
 
 		@BeforeEach
 		void before() {
 			doWithSession(session ->
-					session.writeTransaction(tx -> {
+					session.executeWrite(tx -> {
 						tx.run("MATCH (n) detach delete n").consume();
 						setupData(tx);
 						return null;
@@ -2767,7 +2760,7 @@ class ReactiveRepositoryIT {
 		<T> T doWithSession(Function<Session, T> sessionConsumer) {
 			try (Session session = driver.session(bookmarkCapture.createSessionConfig(databaseSelection.get().getValue(), userSelection.get().getValue()))) {
 				T result = sessionConsumer.apply(session);
-				bookmarkCapture.seedWith(session.lastBookmark());
+				bookmarkCapture.seedWith(session.lastBookmarks());
 				return result;
 			}
 		}
@@ -2779,9 +2772,9 @@ class ReactiveRepositoryIT {
 			}
 		}
 
-		RxSession createRxSession() {
+		ReactiveSession createRxSession() {
 
-			return driver.rxSession(bookmarkCapture.createSessionConfig(databaseSelection.get().getValue(), userSelection.get().getValue()));
+			return driver.reactiveSession(bookmarkCapture.createSessionConfig(databaseSelection.get().getValue(), userSelection.get().getValue()));
 		}
 
 		TransactionalOperator getTransactionalOperator() {

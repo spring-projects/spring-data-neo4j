@@ -27,7 +27,7 @@ import org.apache.commons.logging.LogFactory;
 import org.apiguardian.api.API;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Record;
-import org.neo4j.driver.reactive.RxQueryRunner;
+import org.neo4j.driver.reactive.ReactiveQueryRunner;
 import org.neo4j.driver.summary.ResultSummary;
 import org.neo4j.driver.types.TypeSystem;
 import org.springframework.core.log.LogAccessor;
@@ -134,7 +134,7 @@ public interface ReactiveNeo4jClient {
 	 * @see #getQueryRunner(Mono)
 	 * @since 6.2
 	 */
-	default Mono<RxQueryRunner> getQueryRunner() {
+	default Mono<ReactiveQueryRunner> getQueryRunner() {
 		return getQueryRunner(Mono.just(DatabaseSelection.undecided()));
 	}
 
@@ -143,7 +143,7 @@ public interface ReactiveNeo4jClient {
 	 * @see #getQueryRunner(Mono, Mono)
 	 * @since 6.2
 	 */
-	default Mono<RxQueryRunner> getQueryRunner(Mono<DatabaseSelection> databaseSelection) {
+	default Mono<ReactiveQueryRunner> getQueryRunner(Mono<DatabaseSelection> databaseSelection) {
 		return getQueryRunner(databaseSelection, Mono.just(UserSelection.connectedUser()));
 	}
 
@@ -158,7 +158,7 @@ public interface ReactiveNeo4jClient {
 	 * @return A managed query runner
 	 * @since 6.2
 	 */
-	Mono<RxQueryRunner> getQueryRunner(Mono<DatabaseSelection> databaseSelection, Mono<UserSelection> userSelection);
+	Mono<ReactiveQueryRunner> getQueryRunner(Mono<DatabaseSelection> databaseSelection, Mono<UserSelection> userSelection);
 
 	/**
 	 * Entrypoint for creating a new Cypher query. Doesn't matter at this point whether it's a match, merge, create or
@@ -187,7 +187,7 @@ public interface ReactiveNeo4jClient {
 	 * @param <T> The type of the result being produced
 	 * @return A single publisher containing none or exactly one element that will be produced by the callback
 	 */
-	<T> OngoingDelegation<T> delegateTo(Function<RxQueryRunner, Mono<T>> callback);
+	<T> OngoingDelegation<T> delegateTo(Function<ReactiveQueryRunner, Mono<T>> callback);
 
 	/**
 	 * Returns the assigned database selection provider.

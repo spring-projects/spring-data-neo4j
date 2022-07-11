@@ -163,7 +163,7 @@ class Neo4jConversionsIT extends Neo4jConversionsITBase {
 				Object converted = DEFAULT_CONVERSION_SERVICE.convert(v, typeDescriptor.getType());
 				assertThat(converted).isEqualTo(t);
 			}
-			bookmarkCapture.seedWith(session.lastBookmark());
+			bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 	}
 
@@ -189,7 +189,7 @@ class Neo4jConversionsIT extends Neo4jConversionsITBase {
 					.run("MATCH (n) WHERE labels(n) = [$label]  AND n[$attribute] = $v RETURN COUNT(n) AS cnt", parameters)
 					.single().get("cnt").asLong();
 			assertThat(cnt).isEqualTo(1L);
-			bookmarkCapture.seedWith(session.lastBookmark());
+			bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 	}
 }

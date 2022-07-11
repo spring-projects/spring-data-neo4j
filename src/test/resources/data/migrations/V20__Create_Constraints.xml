@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<migration xmlns="https://michael-simons.github.io/neo4j-migrations">
+	<catalog>
+		<constraints>
+			<constraint name="simple_person__unique_name" type="unique">
+				<label>SimplePerson</label>
+				<properties>
+					<property>name</property>
+				</properties>
+			</constraint>
+		</constraints>
+	</catalog>
+	<create item="simple_person__unique_name" />
+</migration>

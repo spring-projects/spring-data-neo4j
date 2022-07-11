@@ -74,7 +74,7 @@ public class CollectionsIT {
 			id = session.run(
 					"CREATE (c:CollectionChildNodeA {name: 'The Child'}) <- [:CHILDREN_WITH_PROPERTIES {prop: 'The Property'}] - (p:CollectionParentNode {name: 'The Parent'}) RETURN id(p)"
 			).single().get(0).asLong();
-			bookmarkCapture.seedWith(session.lastBookmark());
+			bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 
 		Optional<CollectionParentNode> optionalParent = repository.findById(id, CollectionParentNode.class);
@@ -113,7 +113,7 @@ public class CollectionsIT {
 					Collections.singletonMap("id", parent.id)
 			).single().get(0).asLong();
 			assertThat(cnt).isEqualTo(1L);
-			bookmarkCapture.seedWith(session.lastBookmark());
+			bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 	}
 

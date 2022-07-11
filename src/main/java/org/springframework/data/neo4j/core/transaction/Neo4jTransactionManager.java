@@ -15,6 +15,8 @@
  */
 package org.springframework.data.neo4j.core.transaction;
 
+import java.util.Collection;
+
 import org.apiguardian.api.API;
 import org.neo4j.driver.Bookmark;
 import org.neo4j.driver.Driver;
@@ -338,8 +340,8 @@ public final class Neo4jTransactionManager extends AbstractPlatformTransactionMa
 
 		Neo4jTransactionObject transactionObject = extractNeo4jTransaction(status);
 		Neo4jTransactionHolder transactionHolder = transactionObject.getRequiredResourceHolder();
-		Bookmark lastBookmark = transactionHolder.commit();
-		this.bookmarkManager.updateBookmarks(transactionHolder.getBookmarks(), lastBookmark);
+		Collection<Bookmark> newBookmarks = transactionHolder.commit();
+		this.bookmarkManager.updateBookmarks(transactionHolder.getBookmarks(), newBookmarks);
 	}
 
 	@Override

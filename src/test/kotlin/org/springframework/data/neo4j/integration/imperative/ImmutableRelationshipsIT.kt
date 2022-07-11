@@ -64,7 +64,7 @@ class ImmutableRelationshipsIT @Autowired constructor(
         driver.session(bookmarkCapture.createSessionConfig()).use { session ->
             session.run("MATCH (n) DETACH DELETE n").consume()
             session.run("CREATE (n:DeviceEntity {deviceId:'123', phoneNumber:'some number'})-[:LATEST_LOCATION]->(l1: LocationEntity{latitude: 20.0, longitude: 20.0})").consume()
-            bookmarkCapture.seedWith(session.lastBookmark())
+            bookmarkCapture.seedWith(session.lastBookmarks())
         }
 
         val device = repository.findById("123").get()
@@ -85,7 +85,7 @@ class ImmutableRelationshipsIT @Autowired constructor(
                     "(l1: LocationEntity{latitude: 10.0, longitude: 20.0})" +
                     "-[:PREVIOUS_LOCATION]->" +
                     "(l2: LocationEntity{latitude: 30.0, longitude: 40.0})").consume()
-            bookmarkCapture.seedWith(session.lastBookmark())
+            bookmarkCapture.seedWith(session.lastBookmarks())
         }
         val device = repository.findById("123").get()
         assertThat(device.deviceId).isEqualTo("123")
@@ -102,7 +102,7 @@ class ImmutableRelationshipsIT @Autowired constructor(
 
         driver.session(bookmarkCapture.createSessionConfig()).use { session ->
             session.run("MATCH (n) DETACH DELETE n").consume()
-            bookmarkCapture.seedWith(session.lastBookmark())
+            bookmarkCapture.seedWith(session.lastBookmarks())
         }
 
         val p1 = ImmutableKotlinPerson("Person1", emptyList())

@@ -76,7 +76,7 @@
 		<cdi>3.0.1</cdi>
 		<checkstyle.skip>${skipTests}</checkstyle.skip>
 		<checkstyle.version>8.40</checkstyle.version>
-		<cypher-dsl.version>2022.4.0</cypher-dsl.version>
+		<cypher-dsl.version>2022.6.0</cypher-dsl.version>
 		<dist.id>spring-data-neo4j</dist.id>
 		<dist.key>SDNEO4J</dist.key>
 		<flatten-maven-plugin.version>1.2.5</flatten-maven-plugin.version>
@@ -104,8 +104,9 @@
 		<maven.compiler.release>${java.version}</maven.compiler.release>
 		<mockito>${mockito.version}</mockito>
 		<mockito.version>4.4.0</mockito.version>
-		<neo4j-java-driver.version>4.4.9</neo4j-java-driver.version>
-		<neo4j.version>4.3.6</neo4j.version>
+		<neo4j-java-driver.version>5.0.0</neo4j-java-driver.version>
+		<neo4j-migrations.version>1.8.1</neo4j-migrations.version>
+		<neo4j.version>4.4.8</neo4j.version>
 		<objenesis.version>3.0.1</objenesis.version>
 		<project.build.docs>${project.build.directory}/docs</project.build.docs>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -239,6 +240,16 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
+			<!-- Including this explicitly in test scope makes
+			[WARNING] unknown enum constant When.MAYBE
+			[WARNING]   reason: class file for javax.annotation.meta.When not found
+			go away
+			-->
+			<groupId>com.google.code.findbugs</groupId>
+			<artifactId>jsr305</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
 			<groupId>com.querydsl</groupId>
 			<artifactId>querydsl-core</artifactId>
 			<version>${querydsl}</version>
@@ -253,6 +264,12 @@
 		<dependency>
 			<groupId>eu.michael-simons.neo4j</groupId>
 			<artifactId>junit-jupiter-causal-cluster-testcontainer-extension</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>eu.michael-simons.neo4j</groupId>
+			<artifactId>neo4j-migrations</artifactId>
+			<version>${neo4j-migrations.version}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -739,14 +756,23 @@
 				<artifactId>maven-compiler-plugin</artifactId>
 				<executions>
 					<execution>
-						<goals>
-							<goal>compile</goal>
-						</goals>
+						<id>java-compile</id>
 						<configuration combine.self="append">
 							<compilerArgs>
 								<arg>-Xlint:all,-options,-path</arg>
 								<arg>-Werror</arg>
 							</compilerArgs>
+						</configuration>
+					</execution>
+					<execution>
+						<!-- You would think that applying above configuration to java-test-compile would have the same result.
+						     Alas, it doesn't. The build just fails, -e -X doesn't show anything sane.
+						     So, showDeprecation is just warnings, if set to errors, than it fails hard (which is nice for
+						     deprecation, but it also fails during missing When.MAYBE whateever Jakarta annotation
+						     and there's just no motiviation to deal with Spring Data Commons build setup in this project -->
+						<id>java-test-compile</id>
+						<configuration combine.self="append">
+							<showDeprecation>true</showDeprecation>
 						</configuration>
 					</execution>
 				</executions>

@@ -61,7 +61,7 @@ class KotlinInheritanceIT @Autowired constructor(
 		fun clearDatabase(@Autowired driver: Driver, @Autowired bookmarkCapture: BookmarkCapture) {
 			driver.session().use { session ->
 				session.run("MATCH (n) DETACH DELETE n").consume()
-				bookmarkCapture.seedWith(session.lastBookmark())
+				bookmarkCapture.seedWith(session.lastBookmarks())
 			}
 		}
 	}
@@ -76,7 +76,7 @@ class KotlinInheritanceIT @Autowired constructor(
 						.single()["id"].asLong()
 				tx.commit()
 			}
-			bookmarkCapture.seedWith(session.lastBookmark())
+			bookmarkCapture.seedWith(session.lastBookmarks())
 		}
 
 		val existingThing = transactionTemplate.execute { template.findById<ConcreteNodeWithAbstractKotlinBase>(existingId!!) }!!
@@ -90,7 +90,7 @@ class KotlinInheritanceIT @Autowired constructor(
 		assertThat(thing.anotherProperty).isEqualTo("onDependent")
 
 		val cnt = driver.session(bookmarkCapture.createSessionConfig()).use { session ->
-			session.readTransaction { tx ->
+			session.executeRead() { tx ->
 				tx.run("MATCH (t:AbstractKotlinBase:ConcreteNodeWithAbstractKotlinBase) WHERE id(t) = \$id RETURN count(t)", mapOf("id" to thing.id)).single()[0].asLong()
 			}
 		}
@@ -107,7 +107,7 @@ class KotlinInheritanceIT @Autowired constructor(
 						.single()["id"].asLong()
 				tx.commit()
 			}
-			bookmarkCapture.seedWith(session.lastBookmark())
+			bookmarkCapture.seedWith(session.lastBookmarks())
 		}
 
 		val existingThing = transactionTemplate.execute { template.findById<ConcreteDataNodeWithAbstractKotlinBase>(existingId!!) }!!
@@ -121,7 +121,7 @@ class KotlinInheritanceIT @Autowired constructor(
 		assertThat(thing.anotherProperty).isEqualTo("onDependent")
 
 		val cnt = driver.session(bookmarkCapture.createSessionConfig()).use { session ->
-			session.readTransaction { tx ->
+			session.executeRead { tx ->
 				tx.run("MATCH (t:AbstractKotlinBase:ConcreteDataNodeWithAbstractKotlinBase) WHERE id(t) = \$id RETURN count(t)", mapOf("id" to thing.id)).single()[0].asLong()
 			}
 		}
@@ -133,11 +133,11 @@ class KotlinInheritanceIT @Autowired constructor(
 
 		var existingId: Long =
 				driver.session(bookmarkCapture.createSessionConfig()).use { session ->
-					val result = session.writeTransaction { tx ->
+					val result = session.executeWrite { tx ->
 						tx.run("CREATE (t:OpenKotlinBase:ConcreteNodeWithOpenKotlinBase {name: 'Foo', anotherProperty: 'Bar'}) RETURN id(t) AS id")
 								.single()["id"].asLong()
 					}
-					bookmarkCapture.seedWith(session.lastBookmark())
+					bookmarkCapture.seedWith(session.lastBookmarks())
 					result
 				}
 
@@ -151,9 +151,9 @@ class KotlinInheritanceIT @Autowired constructor(
 		assertThat(thing.name).isEqualTo("onBase")
 		assertThat(thing.anotherProperty).isEqualTo("onDependent")
 
-		// Note: The open base class used here is not abstract, there fore labels are not inherited
+		// Note: The open base class used here is not abstract, therefore labels are not inherited
 		val cnt = driver.session(bookmarkCapture.createSessionConfig()).use { session ->
-			session.readTransaction { tx ->
+			session.executeRead { tx ->
 				tx.run("MATCH (t:ConcreteNodeWithOpenKotlinBase:OpenKotlinBase) WHERE id(t) = \$id RETURN count(t)", mapOf("id" to thing.id)).single()[0].asLong()
 			}
 		}
@@ -165,11 +165,11 @@ class KotlinInheritanceIT @Autowired constructor(
 
 		var existingId: Long =
 				driver.session(bookmarkCapture.createSessionConfig()).use { session ->
-					val result = session.writeTransaction { tx ->
+					val result = session.executeWrite { tx ->
 						tx.run("CREATE (t:OpenKotlinBase:ConcreteDataNodeWithOpenKotlinBase {name: 'Foo', anotherProperty: 'Bar'}) RETURN id(t) AS id")
 								.single()["id"].asLong()
 					}
-					bookmarkCapture.seedWith(session.lastBookmark())
+					bookmarkCapture.seedWith(session.lastBookmarks())
 					result
 				}
 
@@ -185,7 +185,7 @@ class KotlinInheritanceIT @Autowired constructor(
 
 		// Note: The open base class used here is not abstract, there fore labels are not inherited
 		val cnt = driver.session(bookmarkCapture.createSessionConfig()).use { session ->
-			session.readTransaction { tx ->
+			session.executeRead { tx ->
 				tx.run("MATCH (t:ConcreteDataNodeWithOpenKotlinBase) WHERE id(t) = \$id RETURN count(t)", mapOf("id" to thing.id)).single()[0].asLong()
 			}
 		}
@@ -196,11 +196,11 @@ class KotlinInheritanceIT @Autowired constructor(
 	fun shouldMatchPolymorphicInterfacesWhenFetchingAll(@Autowired cinemaRepository: KotlinCinemaRepository) {
 
 		driver.session(bookmarkCapture.createSessionConfig()).use { session ->
-			session.writeTransaction { tx ->
+			session.executeWrite { tx ->
 				tx.run("CREATE (:KotlinMovie:KotlinAnimationMovie {id: 'movie001', name: 'movie-001', studio: 'Pixar'})<-[:Plays]-(c:KotlinCinema {id:'cine-01', name: 'GrandRex'}) RETURN id(c) AS id")
 						.single()["id"].asLong()
 			}
-			bookmarkCapture.seedWith(session.lastBookmark())
+			bookmarkCapture.seedWith(session.lastBookmarks())
 		}
 
 		val cinemas = cinemaRepository.findAll()

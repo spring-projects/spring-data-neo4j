@@ -31,6 +31,7 @@ import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.params.provider.Arguments;
 import org.neo4j.cypherdsl.core.Cypher;
+import org.neo4j.cypherdsl.core.Functions;
 import org.neo4j.cypherdsl.core.Node;
 import org.neo4j.cypherdsl.core.ResultStatement;
 import org.neo4j.cypherdsl.core.executables.ExecutableStatement;
@@ -52,7 +53,7 @@ abstract class TestBase {
 
 	protected static Neo4jExtension.Neo4jConnectionSupport neo4jConnectionSupport;
 
-	private static final Supplier<Long> sequenceGenerator = new Supplier<Long>() {
+	private static final Supplier<Long> sequenceGenerator = new Supplier<>() {
 
 		private final AtomicLong source = new AtomicLong(0L);
 
@@ -73,7 +74,7 @@ abstract class TestBase {
 
 		try (Session session = neo4jConnectionSupport.getDriver().session(bookmarkCapture.createSessionConfig())) {
 			session.run("MATCH (n) DETACH DELETE n");
-			bookmarkCapture.seedWith(session.lastBookmark());
+			bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 	}
 
@@ -135,7 +136,7 @@ abstract class TestBase {
 			if (isExternal) {
 				statement = Cypher.create(nodeTemplate).returning(nodeTemplate.property("id")).build();
 			} else {
-				statement = Cypher.create(nodeTemplate).returning(nodeTemplate.internalId()).build();
+				statement = Cypher.create(nodeTemplate).returning(Functions.id(nodeTemplate)).build();
 			}
 
 			long id = ExecutableStatement.makeExecutable(statement).fetchWith(tx).get(0).get(0).asLong();
@@ -175,7 +176,7 @@ abstract class TestBase {
 				statement = Cypher.create(n1).create(n2)
 						.merge(n1.relationshipTo(n2, "RELATED"))
 						.merge(n2.relationshipTo(n1, "RELATED"))
-						.returning(n1.internalId(), n2.internalId())
+						.returning(Functions.id(n1), Functions.id(n2))
 						.build();
 			}
 
@@ -258,7 +259,7 @@ abstract class TestBase {
 		Node n2 = nodeTemplate.named("n2");
 		ResultStatement statement =
 				Cypher.match(n1.relationshipTo(n2, "RELATED"))
-						.where(n1.internalId().isEqualTo(Cypher.anonParameter(id))
+						.where(Functions.id(n1).isEqualTo(Cypher.anonParameter(id))
 								.and(n2.relationshipTo(n1, "RELATED")))
 						.returning(n1.property("version")).build();
 

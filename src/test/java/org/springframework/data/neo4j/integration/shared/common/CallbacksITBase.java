@@ -60,7 +60,7 @@ public abstract class CallbacksITBase {
 				transaction.run("UNWIND ['E1', 'E2'] AS id WITH id CREATE (t:Thing {theId: id, name: 'Egal'})");
 				transaction.commit();
 			}
-			bookmarkCapture.seedWith(session.lastBookmark());
+			bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 	}
 
@@ -78,7 +78,7 @@ public abstract class CallbacksITBase {
 			List<Node> nodes = record.get("things").asList(Value::asNode);
 			assertThat(nodes).extracting(n -> n.get("theId").asString()).containsAll(ids);
 			assertThat(nodes).extracting(n -> n.get("name").asString()).containsAll(names);
-			bookmarkCapture.seedWith(session.lastBookmark());
+			bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 	}
 }

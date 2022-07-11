@@ -74,7 +74,7 @@ public abstract class AuditingITBase {
 							EXISTING_THING_CREATED_AT, "id", idOfExistingThingWithGeneratedId));
 
 			transaction.commit();
-			bookmarkCapture.seedWith(session.lastBookmark());
+			bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 	}
 

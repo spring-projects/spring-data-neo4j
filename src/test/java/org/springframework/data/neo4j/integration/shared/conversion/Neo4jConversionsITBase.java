@@ -196,7 +196,7 @@ public abstract class Neo4jConversionsITBase {
 	static void prepareData() {
 
 		try (Session session = neo4jConnectionSupport.getDriver().session(bookmarkCapture.createSessionConfig())) {
-			session.writeTransaction(w -> {
+			session.executeWriteWithoutResult(w -> {
 				Map<String, Object> parameters;
 
 				w.run("MATCH (n) detach delete n");
@@ -264,10 +264,8 @@ public abstract class Neo4jConversionsITBase {
 				ID_OF_CUSTOM_TYPE_NODE = w
 						.run("CREATE (n:CustomTypes) SET n.customType = $customType, n.dateAsLong = $dateAsLong, n.dateAsString = $dateAsString RETURN id(n) AS id", parameters)
 						.single().get("id").asLong();
-				w.commit();
-				return null;
 			});
-			bookmarkCapture.seedWith(session.lastBookmark());
+			bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 	}
 }

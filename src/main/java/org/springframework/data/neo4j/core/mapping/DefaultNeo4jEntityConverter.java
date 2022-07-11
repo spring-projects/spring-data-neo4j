@@ -37,7 +37,6 @@ import java.util.stream.StreamSupport;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
 import org.neo4j.driver.internal.value.NullValue;
-import org.neo4j.driver.types.Entity;
 import org.neo4j.driver.types.MapAccessor;
 import org.neo4j.driver.types.Node;
 import org.neo4j.driver.types.Relationship;
@@ -54,6 +53,7 @@ import org.springframework.data.mapping.model.EntityInstantiators;
 import org.springframework.data.mapping.model.ParameterValueProvider;
 import org.springframework.data.neo4j.core.convert.Neo4jConversionService;
 import org.springframework.data.neo4j.core.mapping.callback.EventSupport;
+import org.springframework.data.neo4j.core.schema.ElementId;
 import org.springframework.data.neo4j.core.schema.TargetNode;
 import org.springframework.data.util.ReflectionUtils;
 import org.springframework.data.util.TypeInformation;
@@ -144,7 +144,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 				Node node = value.asNode();
 				if (primaryLabels.stream().anyMatch(node::hasLabel)) { // it has a matching label
 					// We haven't seen this node yet, so we take it
-					if (knownObjects.getObject(node.id()) == null) {
+					if (!knownObjects.containsNode(node)) {
 						matchingNodes.add(node);
 					} else {
 						seenMatchingNodes.add(node);
@@ -245,7 +245,8 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 	private static MapAccessor mergeRootNodeWithRecord(Node node, MapAccessor record) {
 		Map<String, Object> mergedAttributes = new HashMap<>(node.size() + record.size() + 1);
 
-		mergedAttributes.put(Constants.NAME_OF_INTERNAL_ID, node.id());
+		mergedAttributes.put(Constants.NAME_OF_INTERNAL_ID, IdentitySupport.getInternalId(node));
+		mergedAttributes.put(Constants.NAME_OF_ELEMENT_ID, ElementId.of(node).value());
 		mergedAttributes.put(Constants.NAME_OF_LABELS, node.labels());
 		mergedAttributes.putAll(node.asMap(Function.identity()));
 		mergedAttributes.putAll(record.asMap(Function.identity()));
@@ -269,8 +270,11 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 	private <ET> ET map(MapAccessor queryResult, Neo4jPersistentEntity<ET> nodeDescription,
 			@Nullable Object lastMappedEntity, Collection<Relationship> relationshipsFromResult, Collection<Node> nodesFromResult) {
 
-		// if the given result does not contain an identifier to the mapped object cannot get temporarily saved
-		Long internalId = getInternalId(queryResult);
+		// prior to SDN 7 local `getInternalId` didn't check relationships, so in that case, they have never been a known
+		// object. The centralized methods checks those too now. The condition is to recreate the old behaviour without
+		// losing the central access. The behaviour of knowObjects should take different sources of ids into account,
+		// as relationships and nodes might have overlapping values
+		Long internalId = queryResult instanceof Relationship ? null : IdentitySupport.getInternalId(queryResult);
 
 		Supplier<ET> mappedObjectSupplier = () -> {
 			if (knownObjects.isInCreation(internalId)) {
@@ -361,15 +365,6 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 
 		AssociationHandlerSupport.of(concreteNodeDescription).doWithAssociations(
 				populateFrom(queryResult, nodeDescription, propertyAccessor, isConstructorParameter, objectAlreadyMapped, relationshipsFromResult, nodesFromResult));
-	}
-
-	@Nullable
-	private Long getInternalId(@NonNull MapAccessor queryResult) {
-		return queryResult instanceof Node
-				? (Long) ((Node) queryResult).id()
-				: queryResult.get(Constants.NAME_OF_INTERNAL_ID) == null || queryResult.get(Constants.NAME_OF_INTERNAL_ID).isNull()
-				? null
-				: queryResult.get(Constants.NAME_OF_INTERNAL_ID).asLong();
 	}
 
 	@NonNull
@@ -592,10 +587,10 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 		List<Object> relationshipsAndProperties = new ArrayList<>();
 
 		if (Values.NULL.equals(list)) {
-			Long sourceNodeId = getInternalId(values);
+			Long sourceNodeId = IdentitySupport.getInternalId(values);
 
-			Function<Relationship, Long> sourceIdSelector = relationshipDescription.isIncoming() ? Relationship::endNodeId : Relationship::startNodeId;
-			Function<Relationship, Long> targetIdSelector = relationshipDescription.isIncoming() ? Relationship::startNodeId : Relationship::endNodeId;
+			Function<Relationship, Long> sourceIdSelector = relationshipDescription.isIncoming() ? IdentitySupport::getEndId : IdentitySupport::getStartId;
+			Function<Relationship, Long> targetIdSelector = relationshipDescription.isIncoming() ? IdentitySupport::getStartId : IdentitySupport::getEndId;
 
 			// Retrieve all matching relationships from the result's list(s)
 			Collection<Relationship> allMatchingTypeRelationshipsInResult =
@@ -606,7 +601,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 			Collection<Node> allNodesWithMatchingLabelInResult = extractMatchingNodes(nodesFromResult, targetLabel);
 
 			for (Node possibleValueNode : allNodesWithMatchingLabelInResult) {
-				long targetNodeId = possibleValueNode.id();
+				long targetNodeId = IdentitySupport.getInternalId(possibleValueNode);
 
 				Neo4jPersistentEntity<?> concreteTargetNodeDescription =
 						getMostConcreteTargetNodeDescription(genericTargetNodeDescription, possibleValueNode);
@@ -619,7 +614,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 						// If this relationship got processed twice (OUTGOING, INCOMING), it is never needed again
 						// and therefor should not be in the list.
 						// Otherwise, for highly linked data it could potentially cause a StackOverflowError.
-						if (knownObjects.hasProcessedRelationshipCompletely(possibleRelationship.id())) {
+						if (knownObjects.hasProcessedRelationshipCompletely(IdentitySupport.getInternalId(possibleRelationship))) {
 							relationshipsFromResult.remove(possibleRelationship);
 						}
 						// If the target is the same(equal) node, get the related object from the cache.
@@ -741,8 +736,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 
 	private static Value extractValueOf(Neo4jPersistentProperty property, MapAccessor propertyContainer) {
 		if (property.isInternalIdProperty()) {
-			return propertyContainer instanceof Entity ? Values.value(((Entity) propertyContainer).id())
-					: propertyContainer.get(Constants.NAME_OF_INTERNAL_ID);
+			return Values.value(IdentitySupport.getInternalId(propertyContainer));
 		} else if (property.isComposite()) {
 			String prefix = property.computePrefixWithDelimiter();
 
@@ -824,25 +818,28 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 			}
 		}
 
+		private boolean containsNode(Node node) {
+
+			try {
+				read.lock();
+				return internalIdStore.containsKey(IdentitySupport.getInternalId(node));
+			} finally {
+				read.unlock();
+			}
+		}
+
 		@Nullable
 		private Object getObject(@Nullable Long internalId) {
+
 			if (internalId == null) {
 				return null;
 			}
 			try {
-
 				read.lock();
-
-				Object knownEntity = internalIdStore.get(internalId);
-
-				if (knownEntity != null) {
-					return knownEntity;
-				}
-
+				return internalIdStore.get(internalId);
 			} finally {
 				read.unlock();
 			}
-			return null;
 		}
 
 		private void removeFromInCreation(@Nullable Long internalId) {

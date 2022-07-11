@@ -60,7 +60,7 @@ internal class KotlinProjectionIT {
 					CREATE (p:PersonEntity {id: 'p1', email: 'p1@dep1.org'}) -[:MEMBER_OF]->(department:DepartmentEntity {id: 'd1', name: 'Dep1'})
 					RETURN p					
 				""".trimIndent()).consume();
-				bookmarkCapture.seedWith(session.lastBookmark())
+				bookmarkCapture.seedWith(session.lastBookmarks())
 			}
 		}
 	}
@@ -72,7 +72,7 @@ internal class KotlinProjectionIT {
 		assertThat(results)
 				.hasSize(1)
 				.first()
-				.satisfies(Consumer<PersonDepartmentQueryResult> {
+				.satisfies(Consumer {
 					projectedEntities(it)
 				})
 	}
@@ -86,7 +86,7 @@ internal class KotlinProjectionIT {
 		assertThat(results)
 				.hasSize(1)
 				.first()
-				.satisfies(Consumer<PersonDepartmentQueryResult> {
+				.satisfies(Consumer {
 					projectedEntities(it)
 				})
 	}

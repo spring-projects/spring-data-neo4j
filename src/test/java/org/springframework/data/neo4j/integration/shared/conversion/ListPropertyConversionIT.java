@@ -81,7 +81,7 @@ class ListPropertyConversionIT {
 										 + "anotherSet: '1;2,3;4'"
 										 + "}) RETURN id(n)")
 					.single().get(0).asLong();
-			bookmarkCapture.seedWith(session.lastBookmark());
+			bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 	}
 

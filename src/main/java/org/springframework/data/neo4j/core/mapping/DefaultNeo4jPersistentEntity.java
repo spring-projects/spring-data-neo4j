@@ -31,11 +31,14 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.apache.commons.logging.LogFactory;
 import org.springframework.core.annotation.AnnotatedElementUtils;
+import org.springframework.core.log.LogAccessor;
 import org.springframework.data.annotation.Persistent;
 import org.springframework.data.mapping.Association;
 import org.springframework.data.mapping.model.BasicPersistentEntity;
 import org.springframework.data.neo4j.core.schema.DynamicLabels;
+import org.springframework.data.neo4j.core.schema.ElementId;
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.IdGenerator;
 import org.springframework.data.neo4j.core.schema.Node;
@@ -59,8 +62,9 @@ import org.springframework.util.StringUtils;
 final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo4jPersistentProperty>
 		implements Neo4jPersistentEntity<T> {
 
-	private static final Set<Class<?>> VALID_GENERATED_ID_TYPES = Collections
-			.unmodifiableSet(new HashSet<>(Arrays.asList(Long.class, long.class)));
+	private static final Set<Class<?>> DEPRECATED_GENERATED_ID_TYPES = Set.of(Long.class, long.class);
+	private static final Set<Class<?>> VALID_GENERATED_ID_TYPES = Stream.concat(Stream.of(ElementId.class), DEPRECATED_GENERATED_ID_TYPES.stream()).collect(Collectors.toUnmodifiableSet());
+	private static final LogAccessor log = new LogAccessor(LogFactory.getLog(Neo4jPersistentEntity.class));
 
 	/**
 	 * The label that describes the label most concrete.
@@ -438,6 +442,14 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 			if (!VALID_GENERATED_ID_TYPES.contains(idProperty.getActualType())) {
 				throw new IllegalArgumentException(
 						"Internally generated ids can only be assigned to one of " + VALID_GENERATED_ID_TYPES);
+			}
+
+			if (DEPRECATED_GENERATED_ID_TYPES.contains(idProperty.getActualType())) {
+				Supplier<CharSequence> messageSupplier = () -> String.format(""
+						+ "The entity %s is using a Long value for storing internally generated Neo4j ids. "
+						+ "The Neo4j internal Long Ids are deprecated, please consider using an external ID generator.",
+						this.getUnderlyingClass().getName());
+				log.warn(messageSupplier);
 			}
 
 			return IdDescription.forInternallyGeneratedIds(Constants.NAME_OF_TYPED_ROOT_NODE.apply(this));

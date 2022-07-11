@@ -15,6 +15,7 @@
  */
 package org.springframework.data.neo4j.core.transaction;
 
+import reactor.adapter.JdkFlowAdapter;
 import reactor.core.publisher.Mono;
 
 import org.neo4j.driver.Driver;
@@ -78,6 +79,6 @@ final class ReactiveNeo4jSessionSynchronization
 	 */
 	@Override
 	protected Mono<Void> releaseResource(ReactiveNeo4jTransactionHolder resourceHolder, Object resourceKey) {
-		return Mono.defer(() -> Mono.from(resourceHolder.getSession().close()));
+		return Mono.defer(() -> JdkFlowAdapter.flowPublisherToFlux(resourceHolder.getSession().close()).then());
 	}
 }

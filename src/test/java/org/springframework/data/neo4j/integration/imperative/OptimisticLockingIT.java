@@ -83,7 +83,7 @@ class OptimisticLockingIT {
 				Transaction tx = session.beginTransaction()) {
 			tx.run("MATCH (n) detach delete n");
 			tx.commit();
-			bookmarkCapture.seedWith(session.lastBookmark());
+			bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 	}
 
@@ -231,7 +231,7 @@ class OptimisticLockingIT {
 	void shouldNotFailOnDeleteByIdWithNullVersion(@Autowired VersionedThingWithAssignedIdRepository repository) {
 		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
 			session.run("CREATE (v:VersionedThingWithAssignedId {id:1})").consume();
-			bookmarkCapture.seedWith(session.lastBookmark());
+			bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 
 		repository.deleteById(1L);
@@ -248,7 +248,7 @@ class OptimisticLockingIT {
 	void shouldNotFailOnDeleteByEntityWithNullVersion(@Autowired VersionedThingWithAssignedIdRepository repository) {
 		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
 			session.run("CREATE (v:VersionedThingWithAssignedId {id:1})").consume();
-			bookmarkCapture.seedWith(session.lastBookmark());
+			bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 
 		VersionedThingWithAssignedId thing = repository.findById(1L).get();
@@ -266,7 +266,7 @@ class OptimisticLockingIT {
 	void shouldNotFailOnDeleteByIdWithAnyVersion(@Autowired VersionedThingWithAssignedIdRepository repository) {
 		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
 			session.run("CREATE (v:VersionedThingWithAssignedId {id:1, myVersion:3})").consume();
-			bookmarkCapture.seedWith(session.lastBookmark());
+			bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 
 		repository.deleteById(1L);
@@ -283,7 +283,7 @@ class OptimisticLockingIT {
 	void shouldFailOnDeleteByEntityWithWrongVersion(@Autowired VersionedThingWithAssignedIdRepository repository) {
 		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
 			session.run("CREATE (v:VersionedThingWithAssignedId {id:1, myVersion:2})").consume();
-			bookmarkCapture.seedWith(session.lastBookmark());
+			bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 
 		VersionedThingWithAssignedId thing = repository.findById(1L).get();
@@ -410,7 +410,7 @@ class OptimisticLockingIT {
 		try {
 			executorService.submit(() -> {
 				try (Session session = driver.session()) {
-					return session.writeTransaction(tx -> tx.run(blockedUpdate).single().get(0).asNode().id());
+					return session.executeWrite(tx -> tx.run(blockedUpdate).single().get(0).asNode().elementId());
 				}
 			}).get(sleep / 2, TimeUnit.MILLISECONDS);
 		} catch (TimeoutException e) {

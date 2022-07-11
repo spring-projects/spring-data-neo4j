@@ -176,7 +176,7 @@ class LowlevelInteractionsImpl implements LowlevelInteractions {
 
 		try (Session session = driver.session()) {
 			SummaryCounters counters = session
-					.writeTransaction(tx -> tx.run("MATCH (n) DETACH DELETE n").consume()) // <.>
+					.executeWrite(tx -> tx.run("MATCH (n) DETACH DELETE n").consume()) // <.>
 					.counters();
 			return counters.nodesDeleted() + counters.relationshipsDeleted();
 		}

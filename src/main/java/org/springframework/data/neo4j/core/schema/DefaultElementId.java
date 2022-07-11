@@ -13,30 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.core.transaction;
-
-import java.util.Collection;
-import java.util.Collections;
-
-import org.neo4j.driver.Bookmark;
+package org.springframework.data.neo4j.core.schema;
 
 /**
- * A bookmark manager that drops all bookmarks and never provides any bookmarks.
+ * Default representation of an element id.
  *
  * @author Michael J. Simons
- * @soundtrack Helge Schneider - The Last Jazz
- * @since 7.0
+ * @param value The ids value
+ * @soundtrack GötterDÄmmerung - Tribut an die beste Band der Welt
+ * @since 7.0.0
  */
-enum NoopBookmarkManager implements Neo4jBookmarkManager {
-
-	INSTANCE;
-
-	@Override
-	public Collection<Bookmark> getBookmarks() {
-		return Collections.emptyList();
-	}
-
-	@Override
-	public void updateBookmarks(Collection<Bookmark> usedBookmarks, Collection<Bookmark> newBookmarks) {
-	}
+record DefaultElementId(String value) implements ElementId {
 }

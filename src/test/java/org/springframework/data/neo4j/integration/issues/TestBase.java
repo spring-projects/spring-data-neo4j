@@ -48,7 +48,7 @@ abstract class TestBase {
 	@BeforeEach
 	protected final void beforeEach(@Autowired BookmarkCapture bookmarkCapture) {
 		try (Session session = neo4jConnectionSupport.getDriver().session(bookmarkCapture.createSessionConfig());
-				Transaction transaction = session.beginTransaction();
+				Transaction transaction = session.beginTransaction()
 		) {
 			List<String> labelsToDelete = List.of("AbstractBase", "AccountingMeasurementMeta", "Application",
 					"BaseNodeEntity", "CityModel", "ConcreteImplementationOne", "ConcreteImplementationTwo",
@@ -95,7 +95,7 @@ abstract class TestBase {
 					""");
 
 			transaction.commit();
-			bookmarkCapture.seedWith(session.lastBookmark());
+			bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 	}
 
@@ -121,7 +121,7 @@ abstract class TestBase {
 	protected static void assertLabels(BookmarkCapture bookmarkCapture, List<String> ids) {
 		try (Session session = neo4jConnectionSupport.getDriver().session(bookmarkCapture.createSessionConfig())) {
 			for (String id : ids) {
-				List<String> labels = session.readTransaction(
+				List<String> labels = session.executeRead(
 						tx -> tx.run("MATCH (n) WHERE n.id = $id RETURN labels(n)", Collections.singletonMap("id", id))
 								.single().get(0).asList(
 										Value::asString));
@@ -173,7 +173,7 @@ abstract class TestBase {
 			BookmarkCapture bookmarkCapture) {
 
 		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
-			Record record = session.readTransaction(
+			Record record = session.executeRead(
 					tx -> tx.run("MATCH (a:Application)-->(w) RETURN a, collect(w) as workflows").single());
 			assertThat(record.get("a").asNode().get("id").asString()).isEqualTo("app-1");
 			assertThat(record.get("workflows").asList(v -> v.asNode().get("id").asString())).containsExactlyInAnyOrder(
@@ -185,7 +185,7 @@ abstract class TestBase {
 			BookmarkCapture bookmarkCapture) {
 
 		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
-			List<Record> records = session.readTransaction(
+			List<Record> records = session.executeRead(
 					tx -> tx.run("MATCH (a:Application)-->(w) RETURN a, collect(w) as workflows ORDER by a.id ASC")
 							.list());
 			assertThat(records).hasSize(2);

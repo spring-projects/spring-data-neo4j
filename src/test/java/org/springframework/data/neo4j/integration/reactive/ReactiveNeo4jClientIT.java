@@ -17,20 +17,37 @@ package org.springframework.data.neo4j.integration.reactive;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import org.neo4j.cypherdsl.core.Statement;
+import org.neo4j.cypherdsl.core.executables.ExecutableResultStatement;
+import org.neo4j.driver.Query;
+import org.neo4j.driver.QueryRunner;
+import org.neo4j.driver.Record;
+import org.neo4j.driver.async.AsyncQueryRunner;
+import org.neo4j.driver.reactive.ReactiveQueryRunner;
+import org.neo4j.driver.summary.ResultSummary;
+import org.reactivestreams.Publisher;
+import org.springframework.data.neo4j.core.mapping.IdentitySupport;
 import org.springframework.data.neo4j.test.Neo4jReactiveTestConfiguration;
+
+import reactor.adapter.JdkFlowAdapter;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.neo4j.cypherdsl.core.Cypher;
 import org.neo4j.cypherdsl.core.Node;
-import org.neo4j.cypherdsl.core.executables.ReactiveExecutableResultStatement;
-import org.neo4j.cypherdsl.core.executables.ReactiveExecutableStatement;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.Transaction;
@@ -76,16 +93,13 @@ class ReactiveNeo4jClientIT {
 
 		Node namedAnswer = Cypher.node("TheAnswer", Cypher.mapOf("value",
 				Cypher.literalOf(23).multiply(Cypher.literalOf(2)).subtract(Cypher.literalOf(4)))).named("n");
-		ReactiveExecutableResultStatement statement = ReactiveExecutableStatement.makeExecutable(
-				Cypher.create(namedAnswer)
-						.returning(namedAnswer)
-						.build());
+		NewReactiveExecutableResultStatement statement = new NewReactiveExecutableResultStatement(namedAnswer);
 
 		AtomicLong vanishedId = new AtomicLong();
 		transactionalOperator.execute(transaction -> {
 					Flux<Long> inner = client.getQueryRunner()
 							.flatMapMany(statement::fetchWith)
-							.doOnNext(r -> vanishedId.set(r.get("n").asNode().id()))
+							.doOnNext(r -> vanishedId.set(IdentitySupport.getInternalId(r.get("n").asNode())))
 							.map(record -> record.get("n").get("value").asLong());
 
 					transaction.setRollbackOnly();
@@ -138,6 +152,71 @@ class ReactiveNeo4jClientIT {
 		@Override
 		public boolean isCypher5Compatible() {
 			return neo4jConnectionSupport.isCypher5SyntaxCompatible();
+		}
+	}
+
+	private static class NewReactiveExecutableResultStatement implements ExecutableResultStatement {
+
+		private final Statement delegate;
+
+		NewReactiveExecutableResultStatement(Node namedAnswer) {
+			delegate = Cypher.create(namedAnswer)
+					.returning(namedAnswer)
+					.build();
+		}
+
+		/**
+		 * This method should move into a future Cypher-DSL version.
+		 * @param reactiveQueryRunner The runner to run the statement with
+		 * @return a publisher of records
+		 */
+		public Publisher<Record> fetchWith(ReactiveQueryRunner reactiveQueryRunner) {
+			return Mono.fromCallable(this::createQuery).flatMapMany(q -> JdkFlowAdapter.flowPublisherToFlux(reactiveQueryRunner.run(q)))
+					.flatMap(rs -> JdkFlowAdapter.flowPublisherToFlux(rs.records()));
+		}
+
+		@Override
+		public <T> List<T> fetchWith(QueryRunner queryRunner, Function<Record, T> function) {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override public <T> CompletableFuture<List<T>> fetchWith(AsyncQueryRunner asyncQueryRunner,
+				Function<Record, T> function) {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public ResultSummary streamWith(QueryRunner queryRunner, Consumer<Stream<Record>> consumer) {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public ResultSummary executeWith(QueryRunner queryRunner) {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public CompletableFuture<ResultSummary> executeWith(AsyncQueryRunner queryRunner) {
+			throw new UnsupportedOperationException();
+		}
+
+		Query createQuery() {
+			return new Query(this.delegate.getCypher(), this.delegate.getParameters());
+		}
+
+		@Override
+		public Map<String, Object> getParameters() {
+			return this.delegate.getParameters();
+		}
+
+		@Override
+		public Collection<String> getParameterNames() {
+			return this.delegate.getParameterNames();
+		}
+
+		@Override
+		public String getCypher() {
+			return this.delegate.getCypher();
 		}
 	}
 }

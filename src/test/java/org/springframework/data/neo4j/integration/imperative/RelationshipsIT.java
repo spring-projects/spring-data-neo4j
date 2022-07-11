@@ -245,7 +245,7 @@ class RelationshipsIT extends RelationshipsITBase {
 				   + "CREATE (m2) - [:REL_1] -> (p1)\n"
 				   + "CREATE (m2) - [:REL_2] -> (p3)");
 			tx.commit();
-			bookmarkCapture.seedWith(session.lastBookmark());
+			bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 
 		List<Multiple1O1Relationships> objects = repository.findAllByPerson1NameAndPerson2Name("val1", "val2");

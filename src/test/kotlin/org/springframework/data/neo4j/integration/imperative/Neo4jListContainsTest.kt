@@ -49,7 +49,7 @@ class Neo4jListContainsTest {
 			driver.session().use { session ->
 				session.run("MATCH (n) DETACH DELETE n").consume()
 				session.run("CREATE (testNode:GH2444{id: 1, items: ['item 1', 'item 2', 'item 3'], description: 'desc 1'})").consume();
-				bookmarkCapture.seedWith(session.lastBookmark())
+				bookmarkCapture.seedWith(session.lastBookmarks())
 			}
 		}
 	}

@@ -83,7 +83,7 @@ class CustomQueriesIT {
 			session.run("MATCH (n) DETACH DELETE n").consume();
 			session.run("MATCH (n) DETACH DELETE n").consume();
 			CypherUtils.loadCypherFromResource("/data/movies.cypher", session);
-			bookmarkCapture.seedWith(session.lastBookmark());
+			bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 	}
 
