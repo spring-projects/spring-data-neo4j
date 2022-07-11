@@ -135,4 +135,5 @@ public final class Neo4jRepositoryConfigurationExtension extends RepositoryConfi
 		builder.addPropertyReference("neo4jMappingContext",
 				source.getAttribute("neo4jMappingContextRef").orElse(DEFAULT_MAPPING_CONTEXT_BEAN_NAME));
 	}
+
 }

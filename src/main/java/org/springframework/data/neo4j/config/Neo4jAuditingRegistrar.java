@@ -15,8 +15,6 @@
  */
 package org.springframework.data.neo4j.config;
 
-import java.lang.annotation.Annotation;
-
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
@@ -24,9 +22,10 @@ import org.springframework.data.auditing.IsNewAwareAuditingHandler;
 import org.springframework.data.auditing.config.AuditingBeanDefinitionRegistrarSupport;
 import org.springframework.data.auditing.config.AuditingConfiguration;
 import org.springframework.data.config.ParsingUtils;
-import org.springframework.data.mapping.context.PersistentEntities;
 import org.springframework.data.neo4j.core.mapping.callback.AuditingBeforeBindCallback;
 import org.springframework.util.Assert;
+
+import java.lang.annotation.Annotation;
 
 /**
  * @author Michael J. Simons
@@ -62,7 +61,7 @@ final class Neo4jAuditingRegistrar extends AuditingBeanDefinitionRegistrarSuppor
 	 */
 	@Override
 	protected void registerAuditListenerBeanDefinition(BeanDefinition auditingHandlerDefinition,
-			BeanDefinitionRegistry registry) {
+													   BeanDefinitionRegistry registry) {
 
 		Assert.notNull(auditingHandlerDefinition, "BeanDefinition must not be null");
 		Assert.notNull(registry, "BeanDefinitionRegistry must not be null");
@@ -86,11 +85,11 @@ final class Neo4jAuditingRegistrar extends AuditingBeanDefinitionRegistrarSuppor
 
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(IsNewAwareAuditingHandler.class);
 
-		BeanDefinitionBuilder persistentEntities = BeanDefinitionBuilder.genericBeanDefinition(PersistentEntities.class)
-				.setFactoryMethod("of");
-		persistentEntities.addConstructorArgReference(MAPPING_CONTEXT_BEAN_NAME);
-
-		builder.addConstructorArgValue(persistentEntities.getBeanDefinition());
 		return configureDefaultAuditHandlerAttributes(configuration, builder);
+	}
+
+	@Override
+	public void postProcess(BeanDefinitionBuilder builder, AuditingConfiguration configuration, BeanDefinitionRegistry registry) {
+		builder.setFactoryMethod("from").addConstructorArgReference("neo4jMappingContext");
 	}
 }
