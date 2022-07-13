@@ -481,8 +481,10 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 				}
 			} else {
 				Object value = conversionService.readValue(extractValueOf(property, queryResult), typeInformation, property.getOptionalConverter());
-				Class<?> rawType = typeInformation.getType();
-				propertyAccessor.setProperty(property, getValueOrDefault(ownerIsKotlinType, rawType, value));
+				if (value != null) {
+					Class<?> rawType = typeInformation.getType();
+					propertyAccessor.setProperty(property, getValueOrDefault(ownerIsKotlinType, rawType, value));
+				}
 			}
 		};
 	}
