@@ -105,7 +105,7 @@
 		<maven.compiler.release>${java.version}</maven.compiler.release>
 		<mockito>${mockito.version}</mockito>
 		<mockito.version>4.4.0</mockito.version>
-		<neo4j-java-driver.version>4.4.6</neo4j-java-driver.version>
+		<neo4j-java-driver.version>4.4.9</neo4j-java-driver.version>
 		<neo4j.version>4.3.6</neo4j.version>
 		<objenesis.version>3.0.1</objenesis.version>
 		<project.build.docs>${project.build.directory}/docs</project.build.docs>
