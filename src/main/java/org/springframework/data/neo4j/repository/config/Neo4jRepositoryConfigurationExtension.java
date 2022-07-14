@@ -21,12 +21,10 @@ import java.util.Collection;
 import java.util.Collections;
 
 import org.apiguardian.api.API;
-import org.springframework.beans.factory.aot.BeanRegistrationAotProcessor;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
-import org.springframework.data.neo4j.aot.AotNeo4jRepositoryPostProcessor;
 import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.RelationshipProperties;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
@@ -138,8 +136,4 @@ public final class Neo4jRepositoryConfigurationExtension extends RepositoryConfi
 				source.getAttribute("neo4jMappingContextRef").orElse(DEFAULT_MAPPING_CONTEXT_BEAN_NAME));
 	}
 
-	@Override
-	public Class<? extends BeanRegistrationAotProcessor> getRepositoryAotProcessor() {
-		return AotNeo4jRepositoryPostProcessor.class;
-	}
 }
