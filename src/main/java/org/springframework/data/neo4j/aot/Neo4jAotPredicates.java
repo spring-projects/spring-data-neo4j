@@ -21,6 +21,7 @@ import java.util.function.Predicate;
 
 /**
  * @author Gerrit Meier
+ * @since 7.0.0
  */
 public class Neo4jAotPredicates {
 	static final Predicate<Class<?>> IS_SIMPLE_TYPE = Neo4jSimpleTypes.HOLDER::isSimpleType;

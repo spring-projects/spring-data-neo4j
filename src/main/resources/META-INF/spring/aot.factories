@@ -1,4 +1,4 @@
 org.springframework.aot.hint.RuntimeHintsRegistrar=\
- 	org.springframework.data.neo4j.aot.DataNeo4jRuntimeHints
+ 	org.springframework.data.neo4j.aot.Neo4jRuntimeHints
  org.springframework.beans.factory.aot.BeanRegistrationAotProcessor=\
  	org.springframework.data.neo4j.aot.Neo4jManagedTypesBeanRegistrationAotProcessor

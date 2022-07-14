@@ -24,6 +24,7 @@ import org.springframework.util.ClassUtils;
 
 /**
  * @author Gerrit Meier
+ * @since 7.0.0
  */
 public class Neo4jManagedTypesBeanRegistrationAotProcessor extends ManagedTypesBeanRegistrationAotProcessor {
 

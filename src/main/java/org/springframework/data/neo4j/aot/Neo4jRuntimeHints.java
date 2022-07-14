@@ -31,8 +31,9 @@ import java.util.Arrays;
 
 /**
  * @author Gerrit Meier
+ * @since 7.0.0
  */
-public class DataNeo4jRuntimeHints implements RuntimeHintsRegistrar {
+public class Neo4jRuntimeHints implements RuntimeHintsRegistrar {
 
 	@Override
 	public void registerHints(RuntimeHints hints, @Nullable ClassLoader classLoader) {

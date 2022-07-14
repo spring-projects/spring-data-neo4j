@@ -22,6 +22,7 @@ import java.util.function.Consumer;
 
 /**
  * @author Gerrit Meier
+ * @since 7.0.0
  */
 public final class Neo4jManagedTypes implements ManagedTypes {
 

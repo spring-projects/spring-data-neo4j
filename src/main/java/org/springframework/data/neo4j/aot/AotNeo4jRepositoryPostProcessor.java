@@ -22,6 +22,7 @@ import org.springframework.data.aot.TypeContributor;
 
 /**
  * @author Gerrit Meier
+ * @since 7.0.0
  */
 public class AotNeo4jRepositoryPostProcessor extends RepositoryRegistrationAotProcessor {
 
