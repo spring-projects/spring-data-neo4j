@@ -728,15 +728,6 @@
 						<groupId>org.asciidoctor</groupId>
 						<artifactId>asciidoctor-maven-plugin</artifactId>
 						<version>${asciidoctor-maven-plugin.version}</version>
-						<executions>
-							<execution>
-								<id>generate-docs</id>
-								<phase>prepare-package</phase>
-								<goals>
-									<goal>process-asciidoc</goal>
-								</goals>
-							</execution>
-						</executions>
 						<dependencies>
 							<dependency>
 								<groupId>org.asciidoctor</groupId>
