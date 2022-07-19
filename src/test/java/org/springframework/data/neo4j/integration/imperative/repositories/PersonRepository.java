@@ -292,8 +292,9 @@ public interface PersonRepository extends Neo4jRepository<PersonWithAllConstruct
 
 	@Query(""
 		   + "MATCH (n:PersonWithAllConstructor) where n.name = $name "
-		   + "WITH n MATCH(m:PersonWithAllConstructor) WHERE id(n) <> id(m) "
-		   + "RETURN [{n: n, otherPeople: collect(m), someLongValue: 4711, someDoubles: [21.42, 42.21]}]")
+		   + "WITH n MATCH(m:PersonWithAllConstructor) WHERE id(n) <> id(m)" +
+			" WITH n, collect(m) as ms "
+		   + "RETURN [{n: n, otherPeople: ms, someLongValue: 4711, someDoubles: [21.42, 42.21]}]")
 	CustomAggregationOfDto findAllDtoProjectionsWithAdditionalPropertiesAsCustomAggregation(@Param("name") String name);
 
 	@Query("MATCH (n:PersonWithAllConstructor) where n.name = $name return n{.name}")
