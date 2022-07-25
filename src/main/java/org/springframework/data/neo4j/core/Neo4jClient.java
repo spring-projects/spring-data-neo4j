@@ -43,6 +43,7 @@ import org.springframework.lang.Nullable;
 public interface Neo4jClient {
 
 	LogAccessor cypherLog = new LogAccessor(LogFactory.getLog("org.springframework.data.neo4j.cypher"));
+	LogAccessor log = new LogAccessor(LogFactory.getLog(Neo4jClient.class));
 
 	static Neo4jClient create(Driver driver) {
 

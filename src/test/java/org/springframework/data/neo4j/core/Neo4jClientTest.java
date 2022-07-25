@@ -17,7 +17,6 @@ package org.springframework.data.neo4j.core;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
-import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import static org.assertj.core.api.Assumptions.assumeThat;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyMap;
@@ -438,23 +437,27 @@ class Neo4jClientTest {
 
 			when(session.run(anyString(), anyMap())).thenReturn(result);
 			when(result.stream()).thenReturn(Stream.of(record1, record2));
+			when(result.consume()).thenReturn(resultSummary);
 			when(record1.get("name")).thenReturn(Values.value("michael"));
 
 			Neo4jClient client = Neo4jClient.create(driver);
 
-			assertThatIllegalStateException()
-					.isThrownBy(() -> client.query("MATCH (n) RETURN n").fetchAs(BikeOwner.class).mappedBy((t, r) -> {
+			Collection<BikeOwner> owners = client.query("MATCH (n) RETURN n").fetchAs(BikeOwner.class)
+					.mappedBy((t, r) -> {
 						if (r == record1) {
 							return new BikeOwner(r.get("name").asString(), Collections.emptyList());
 						} else {
 							return null;
 						}
-					}).all());
-
+					}).all();
+			assertThat(owners).hasSize(1);
 			verifyDatabaseSelection(null);
 
 			verify(session).run(eq("MATCH (n) RETURN n"), MockitoHamcrest.argThat(new MapAssertionMatcher(Collections.emptyMap())));
 			verify(result).stream();
+			verify(result).consume();
+			verify(resultSummary).notifications();
+			verify(resultSummary).hasPlan();
 			verify(record1).get("name");
 			verify(session).close();
 		}

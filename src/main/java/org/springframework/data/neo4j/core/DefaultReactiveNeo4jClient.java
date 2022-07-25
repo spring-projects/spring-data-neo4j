@@ -398,7 +398,7 @@ final class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 		@Override
 		public RecordFetchSpec<T> mappedBy(@SuppressWarnings("HiddenField") BiFunction<TypeSystem, Record, T> mappingFunction) {
 
-			this.mappingFunction = new DelegatingMappingFunctionWithNullCheck<>(mappingFunction);
+			this.mappingFunction = mappingFunction;
 			return this;
 		}
 

@@ -112,6 +112,11 @@ abstract class TestBase {
 						.get(0).asString());
 	}
 
+	protected static void setupGH2572(QueryRunner queryRunner) {
+		queryRunner.run("CREATE (p:GH2572Parent {id: 'GH2572Parent-1', name:'no-pets'})");
+		queryRunner.run("CREATE (p:GH2572Parent {id: 'GH2572Parent-2', name:'one-pet'}) <-[:IS_PET]- (:GH2572Child {id: 'GH2572Child-3', name: 'a-pet'})");
+		queryRunner.run("MATCH (p:GH2572Parent {id: 'GH2572Parent-2'}) CREATE (p) <-[:IS_PET]- (:GH2572Child {id: 'GH2572Child-4', name: 'another-pet'})");
+	}
 
 	protected static void assertLabels(BookmarkCapture bookmarkCapture, List<String> ids) {
 		try (Session session = neo4jConnectionSupport.getDriver().session(bookmarkCapture.createSessionConfig())) {

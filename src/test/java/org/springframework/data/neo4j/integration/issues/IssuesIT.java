@@ -113,6 +113,8 @@ import org.springframework.data.neo4j.integration.issues.gh2533.EntitiesAndProje
 import org.springframework.data.neo4j.integration.issues.gh2533.GH2533Repository;
 import org.springframework.data.neo4j.integration.issues.gh2542.TestNode;
 import org.springframework.data.neo4j.integration.issues.gh2542.TestNodeRepository;
+import org.springframework.data.neo4j.integration.issues.gh2572.GH2572Repository;
+import org.springframework.data.neo4j.integration.issues.gh2572.GH2572Child;
 import org.springframework.data.neo4j.integration.misc.ConcreteImplementationTwo;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.data.neo4j.repository.query.QueryFragmentsAndParameters;
@@ -158,6 +160,7 @@ class IssuesIT extends TestBase {
 				setupGH2323(transaction);
 				setupGH2328(transaction);
 				setupGH2459(transaction);
+				setupGH2572(transaction);
 
 				transaction.commit();
 			}
@@ -787,6 +790,48 @@ class IssuesIT extends TestBase {
 		var secondNode = new TestNode("Bob");
 		assertThatExceptionOfType(DataIntegrityViolationException.class)
 				.isThrownBy(() -> repository.save(secondNode));
+	}
+
+	@Test
+	@Tag("GH-2572")
+	void allShouldFetchCorrectNumberOfChildNodes(@Autowired GH2572Repository GH2572Repository) {
+		List<GH2572Child> dogsForPerson = GH2572Repository.getDogsForPerson("GH2572Parent-2");
+		assertThat(dogsForPerson).hasSize(2);
+	}
+
+	@Test
+	@Tag("GH-2572")
+	void allShouldNotFailWithoutMatchingRootNodes(@Autowired GH2572Repository GH2572Repository) {
+		List<GH2572Child> dogsForPerson = GH2572Repository.getDogsForPerson("GH2572Parent-1");
+		assertThat(dogsForPerson).isEmpty();
+	}
+
+	@Test
+	@Tag("GH-2572")
+	void oneShouldFetchCorrectNumberOfChildNodes(@Autowired GH2572Repository GH2572Repository) {
+		Optional<GH2572Child> optionalChild = GH2572Repository.findOneDogForPerson("GH2572Parent-2");
+		assertThat(optionalChild).map(GH2572Child::getName).hasValue("a-pet");
+	}
+
+	@Test
+	@Tag("GH-2572")
+	void oneShouldNotFailWithoutMatchingRootNodes(@Autowired GH2572Repository GH2572Repository) {
+		Optional<GH2572Child> optionalChild = GH2572Repository.findOneDogForPerson("GH2572Parent-1");
+		assertThat(optionalChild).isEmpty();
+	}
+
+	@Test
+	@Tag("GH-2572")
+	void getOneShouldFetchCorrectNumberOfChildNodes(@Autowired GH2572Repository GH2572Repository) {
+		GH2572Child gh2572Child = GH2572Repository.getOneDogForPerson("GH2572Parent-2");
+		assertThat(gh2572Child.getName()).isEqualTo("a-pet");
+	}
+
+	@Test
+	@Tag("GH-2572")
+	void getOneShouldNotFailWithoutMatchingRootNodes(@Autowired GH2572Repository GH2572Repository) {
+		GH2572Child gh2572Child = GH2572Repository.getOneDogForPerson("GH2572Parent-1");
+		assertThat(gh2572Child).isNull();
 	}
 
 	@Configuration

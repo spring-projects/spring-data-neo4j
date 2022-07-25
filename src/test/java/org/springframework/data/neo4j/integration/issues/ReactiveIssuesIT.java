@@ -62,6 +62,8 @@ import org.springframework.data.neo4j.integration.issues.gh2500.Device;
 import org.springframework.data.neo4j.integration.issues.gh2500.Group;
 import org.springframework.data.neo4j.integration.issues.gh2533.EntitiesAndProjections;
 import org.springframework.data.neo4j.integration.issues.gh2533.ReactiveGH2533Repository;
+import org.springframework.data.neo4j.integration.issues.gh2572.GH2572Child;
+import org.springframework.data.neo4j.integration.issues.gh2572.ReactiveGH2572Repository;
 import org.springframework.data.neo4j.repository.config.EnableReactiveNeo4jRepositories;
 import org.springframework.data.neo4j.test.BookmarkCapture;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
@@ -86,6 +88,7 @@ class ReactiveIssuesIT extends TestBase {
 
 				setupGH2289(transaction);
 				setupGH2328(transaction);
+				setupGH2572(transaction);
 
 				transaction.commit();
 			}
@@ -371,6 +374,43 @@ class ReactiveIssuesIT extends TestBase {
 					assertThat(entity.relationships.get("has_relationship_with").get(0).target.relationships.get(
 							"has_relationship_with").get(0).target.name).isEqualTo("n3");
 				})
+				.verifyComplete();
+	}
+
+	@Test
+	@Tag("GH-2572")
+	void allShouldFetchCorrectNumberOfChildNodes(@Autowired ReactiveGH2572Repository reactiveGH2572Repository) {
+		reactiveGH2572Repository.getDogsForPerson("GH2572Parent-2")
+				.as(StepVerifier::create)
+				.expectNextCount(2L)
+				.verifyComplete();
+	}
+
+	@Test
+	@Tag("GH-2572")
+	void allShouldNotFailWithoutMatchingRootNodes(@Autowired ReactiveGH2572Repository reactiveGH2572Repository) {
+		reactiveGH2572Repository.getDogsForPerson("GH2572Parent-1")
+				.as(StepVerifier::create)
+				.expectNextCount(0L)
+				.verifyComplete();
+	}
+
+	@Test
+	@Tag("GH-2572")
+	void oneShouldFetchCorrectNumberOfChildNodes(@Autowired ReactiveGH2572Repository reactiveGH2572Repository) {
+		reactiveGH2572Repository.findOneDogForPerson("GH2572Parent-2")
+				.map(GH2572Child::getName)
+				.as(StepVerifier::create)
+				.expectNext("a-pet")
+				.verifyComplete();
+	}
+
+	@Test
+	@Tag("GH-2572")
+	void oneShouldNotFailWithoutMatchingRootNodes(@Autowired ReactiveGH2572Repository reactiveGH2572Repository) {
+		reactiveGH2572Repository.findOneDogForPerson("GH2572Parent-1")
+				.as(StepVerifier::create)
+				.expectNextCount(0L)
 				.verifyComplete();
 	}
 

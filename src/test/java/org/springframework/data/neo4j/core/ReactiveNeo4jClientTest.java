@@ -453,7 +453,7 @@ class ReactiveNeo4jClientTest {
 						}
 					}).all();
 
-			StepVerifier.create(bikeOwners).expectNextCount(1).verifyError();
+			StepVerifier.create(bikeOwners).expectNextCount(1).verifyComplete();
 
 			verifyDatabaseSelection(null);
 
