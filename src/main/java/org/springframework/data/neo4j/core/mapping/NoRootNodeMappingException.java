@@ -15,7 +15,12 @@
  */
 package org.springframework.data.neo4j.core.mapping;
 
+import java.util.Formattable;
+import java.util.Formatter;
+import java.util.Locale;
+
 import org.apiguardian.api.API;
+import org.neo4j.driver.types.MapAccessor;
 import org.springframework.data.mapping.MappingException;
 
 /**
@@ -29,9 +34,22 @@ import org.springframework.data.mapping.MappingException;
  * @since 6.0.2
  */
 @API(status = API.Status.INTERNAL, since = "6.0.2")
-public final class NoRootNodeMappingException extends MappingException {
+public final class NoRootNodeMappingException extends MappingException implements Formattable {
 
-	public NoRootNodeMappingException(String s) {
-		super(s);
+	private MapAccessor mapAccessor;
+	private Neo4jPersistentEntity<?> entity;
+
+	public NoRootNodeMappingException(MapAccessor mapAccessor, Neo4jPersistentEntity<?> entity) {
+		super(String.format("Could not find mappable nodes or relationships inside %s for %s", mapAccessor, entity));
+		this.mapAccessor = mapAccessor;
+		this.entity = entity;
+	}
+
+	@Override
+	public void formatTo(Formatter formatter, int flags, int width, int precision) {
+		String className = entity.getUnderlyingClass().getSimpleName();
+		formatter.format("Could not find mappable nodes or relationships inside %s for %s:%s", mapAccessor,
+				className.substring(0, 1).toLowerCase(
+						Locale.ROOT), String.join(":", entity.getStaticLabels()));
 	}
 }

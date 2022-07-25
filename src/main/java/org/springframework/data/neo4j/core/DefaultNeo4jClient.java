@@ -19,6 +19,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -442,7 +443,7 @@ class DefaultNeo4jClient implements Neo4jClient {
 		public RecordFetchSpec<T> mappedBy(
 				@SuppressWarnings("HiddenField") BiFunction<TypeSystem, Record, T> mappingFunction) {
 
-			this.mappingFunction = new DelegatingMappingFunctionWithNullCheck<>(mappingFunction);
+			this.mappingFunction = mappingFunction;
 			return this;
 		}
 
@@ -468,7 +469,7 @@ class DefaultNeo4jClient implements Neo4jClient {
 
 			try (QueryRunner statementRunner = getQueryRunner(this.databaseSelection, this.impersonatedUser)) {
 				Result result = runnableStatement.runWith(statementRunner);
-				Optional<T> optionalValue = result.stream().map(partialMappingFunction(typeSystem)).findFirst();
+				Optional<T> optionalValue = result.stream().map(partialMappingFunction(typeSystem)).filter(Objects::nonNull).findFirst();
 				ResultSummaries.process(result.consume());
 				return optionalValue;
 			} catch (RuntimeException e) {
@@ -483,7 +484,7 @@ class DefaultNeo4jClient implements Neo4jClient {
 
 			try (QueryRunner statementRunner = getQueryRunner(this.databaseSelection, this.impersonatedUser)) {
 				Result result = runnableStatement.runWith(statementRunner);
-				Collection<T> values = result.stream().map(partialMappingFunction(typeSystem)).collect(Collectors.toList());
+				Collection<T> values = result.stream().map(partialMappingFunction(typeSystem)).filter(Objects::nonNull).collect(Collectors.toList());
 				ResultSummaries.process(result.consume());
 				return values;
 			} catch (RuntimeException e) {

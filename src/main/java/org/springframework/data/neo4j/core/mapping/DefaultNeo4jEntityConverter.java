@@ -104,6 +104,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 	}
 
 	@Override
+	@Nullable
 	public <R> R read(Class<R> targetType, MapAccessor mapAccessor) {
 
 		knownObjects.nextRecord();
@@ -112,12 +113,9 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 		@SuppressWarnings("unchecked") // ¯\_(ツ)_/¯
 		Neo4jPersistentEntity<R> rootNodeDescription = (Neo4jPersistentEntity<R>) nodeDescriptionStore.getNodeDescription(targetType);
 		MapAccessor queryRoot = determineQueryRoot(mapAccessor, rootNodeDescription);
-		if (queryRoot == null) {
-			throw new NoRootNodeMappingException(String.format("Could not find mappable nodes or relationships inside %s for %s", mapAccessor, rootNodeDescription));
-		}
 
 		try {
-			return map(queryRoot, queryRoot, rootNodeDescription);
+			return queryRoot == null ? null : map(queryRoot, queryRoot, rootNodeDescription);
 		} catch (Exception e) {
 			throw new MappingException("Error mapping " + mapAccessor, e);
 		}
@@ -157,26 +155,35 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 
 		// Prefer the candidates over candidates previously seen
 		List<Node> finalCandidates = matchingNodes.isEmpty() ? seenMatchingNodes : matchingNodes;
-		MapAccessor queryRoot = null;
 
 		if (finalCandidates.size() > 1) {
 			throw new MappingException("More than one matching node in the record.");
 		} else if (!finalCandidates.isEmpty()) {
 			if (mapAccessor.size() > 1) {
-				queryRoot = mergeRootNodeWithRecord(finalCandidates.get(0), mapAccessor);
+				return mergeRootNodeWithRecord(finalCandidates.get(0), mapAccessor);
 			} else {
-				queryRoot = finalCandidates.get(0);
+				return finalCandidates.get(0);
 			}
 		} else {
+			int cnt = 0;
+			Value firstValue = Values.NULL;
 			for (Value value : recordValues) {
-				if (value.hasType(mapType) && !(value.hasType(nodeType) || value.hasType(
-						relationshipType))) {
-					queryRoot = value;
-					break;
+				if (cnt == 0) {
+					firstValue = value;
 				}
+				if (value.hasType(mapType) && !(value.hasType(nodeType) || value.hasType(relationshipType))) {
+					return value;
+				}
+				++cnt;
+			}
+
+			// Cater for results that have one single, null column. This is the case for MATCH (x) OPTIONAL MATCH (something) RETURN something
+			if (cnt == 1 && firstValue.isNull()) {
+				return null;
 			}
 		}
-		return queryRoot;
+
+		throw new NoRootNodeMappingException(mapAccessor, rootNodeDescription);
 	}
 
 	private Collection<String> createDynamicLabelsProperty(TypeInformation<?> type, Collection<String> dynamicLabels) {
