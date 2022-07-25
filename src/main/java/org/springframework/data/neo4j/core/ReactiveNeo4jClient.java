@@ -46,6 +46,7 @@ import org.springframework.lang.Nullable;
 public interface ReactiveNeo4jClient {
 
 	LogAccessor cypherLog = new LogAccessor(LogFactory.getLog("org.springframework.data.neo4j.cypher"));
+	LogAccessor log = new LogAccessor(LogFactory.getLog(ReactiveNeo4jClient.class));
 
 	static ReactiveNeo4jClient create(Driver driver) {
 
