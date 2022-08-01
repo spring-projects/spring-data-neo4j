@@ -515,13 +515,13 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 	public void addChildNodeDescription(NodeDescription<?> child) {
 		this.childNodeDescriptions.add(child);
 		updateChildNodeDescriptionCache();
-		if (this.parentNodeDescription != null) {
-			((DefaultNeo4jPersistentEntity<?>) this.parentNodeDescription).updateChildNodeDescriptionCache();
-		}
 	}
 
 	private void updateChildNodeDescriptionCache() {
 		this.childNodeDescriptionsInHierarchy = computeChildNodeDescriptionInHierarchy();
+		if (this.parentNodeDescription != null) {
+			((DefaultNeo4jPersistentEntity<?>) this.parentNodeDescription).updateChildNodeDescriptionCache();
+		}
 	}
 
 	@Override
