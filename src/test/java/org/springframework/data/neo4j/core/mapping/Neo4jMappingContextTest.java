@@ -25,13 +25,18 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -54,6 +59,7 @@ import org.springframework.data.neo4j.core.mapping.datagraph1446.R1;
 import org.springframework.data.neo4j.core.mapping.datagraph1446.R2;
 import org.springframework.data.neo4j.core.mapping.datagraph1448.A_S3;
 import org.springframework.data.neo4j.core.mapping.datagraph1448.RelatedThing;
+import org.springframework.data.neo4j.core.mapping.gh2574.Model;
 import org.springframework.data.neo4j.core.schema.CompositeProperty;
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
@@ -530,6 +536,60 @@ class Neo4jMappingContextTest {
 		Neo4jPersistentEntity<?> persistentEntity = context.getPersistentEntity(ARelationship.class);
 		assertThat(persistentEntity.isRelationshipPropertiesEntity()).isTrue();
 		assertThat(persistentEntity.getGraphProperties()).hasSize(3);
+	}
+
+	private static Set<Class<?>> scanAndShuffle(String basePackage) throws ClassNotFoundException {
+
+		Comparator<Class<?>> pseudoRandomComparator = new Comparator<Class<?>>() {
+			private final Map<Object, UUID> uniqueIds = new IdentityHashMap<>();
+
+			@Override
+			public int compare(Class<?> o1, Class<?> o2) {
+				UUID e1 = uniqueIds.computeIfAbsent(o1, k -> UUID.randomUUID());
+				UUID e2 = uniqueIds.computeIfAbsent(o2, k -> UUID.randomUUID());
+				return e1.compareTo(e2);
+			}
+		};
+
+		Set<Class<?>> scanResult = Neo4jEntityScanner.get().scan(basePackage);
+		Set<Class<?>> initialEntities = new TreeSet<>(pseudoRandomComparator);
+		initialEntities.addAll(scanResult);
+		return initialEntities;
+	}
+
+
+	@RepeatedTest(10) // GH-2574
+	void hierarchyMustBeConsistentlyReportedWithIntermediateConcreteClasses() throws ClassNotFoundException {
+
+		Neo4jMappingContext neo4jMappingContext = new Neo4jMappingContext();
+		neo4jMappingContext.setStrict(true);
+		neo4jMappingContext.setInitialEntitySet(scanAndShuffle("org.springframework.data.neo4j.core.mapping.gh2574"));
+		neo4jMappingContext.initialize();
+
+		Neo4jPersistentEntity<?> b1 = Objects.requireNonNull(neo4jMappingContext.getPersistentEntity(Model.B1.class));
+		List<String> children = b1.getChildNodeDescriptionsInHierarchy()
+				.stream().map(NodeDescription::getPrimaryLabel)
+				.sorted()
+				.collect(Collectors.toList());
+
+		assertThat(children).containsExactly("B2", "B2a", "B3", "B3a");
+	}
+
+	@Test // GH-2574
+	void hierarchyMustBeConsistentlyReported() throws ClassNotFoundException {
+
+		Neo4jMappingContext neo4jMappingContext = new Neo4jMappingContext();
+		neo4jMappingContext.setStrict(true);
+		neo4jMappingContext.setInitialEntitySet(scanAndShuffle("org.springframework.data.neo4j.core.mapping.gh2574"));
+		neo4jMappingContext.initialize();
+
+		Neo4jPersistentEntity<?> a1 = Objects.requireNonNull(neo4jMappingContext.getPersistentEntity(Model.A1.class));
+		List<String> children = a1.getChildNodeDescriptionsInHierarchy()
+				.stream().map(NodeDescription::getPrimaryLabel)
+				.sorted()
+				.collect(Collectors.toList());
+
+		assertThat(children).containsExactly("A2", "A3", "A4");
 	}
 
 	static class DummyIdGenerator implements IdGenerator<Void> {
