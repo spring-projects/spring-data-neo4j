@@ -27,6 +27,7 @@ import org.springframework.data.neo4j.repository.ReactiveNeo4jRepository;
 import org.springframework.data.neo4j.repository.query.ReactiveNeo4jQueryLookupStrategy;
 import org.springframework.data.neo4j.repository.query.ReactiveQuerydslNeo4jPredicateExecutor;
 import org.springframework.data.neo4j.repository.query.SimpleReactiveQueryByExampleExecutor;
+import org.springframework.data.neo4j.repository.query.ReactiveCypherdslConditionExecutorImpl;
 import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
 import org.springframework.data.querydsl.QuerydslUtils;
@@ -91,6 +92,11 @@ final class ReactiveNeo4jRepositoryFactory extends ReactiveRepositoryFactorySupp
 		if (isQueryDslRepository) {
 
 			fragments = fragments.append(createDSLExecutorFragment(metadata, ReactiveQuerydslNeo4jPredicateExecutor.class));
+		}
+
+		if (ReactiveCypherdslConditionExecutor.class.isAssignableFrom(metadata.getRepositoryInterface())) {
+
+			fragments = fragments.append(createDSLExecutorFragment(metadata, ReactiveCypherdslConditionExecutorImpl.class));
 		}
 
 		return fragments;
