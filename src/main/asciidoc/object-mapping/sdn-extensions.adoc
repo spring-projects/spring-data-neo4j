@@ -19,6 +19,8 @@ Additional mixins provided are:
 * `QuerydslPredicateExecutor`
 * `CypherdslConditionExecutor`
 * `CypherdslStatementExecutor`
+* `ReactiveQuerydslPredicateExecutor`
+* `ReactiveCypherdslConditionExecutor`
 * `ReactiveCypherdslStatementExecutor`
 
 [[sdn-mixins.dynamic-conditions]]
