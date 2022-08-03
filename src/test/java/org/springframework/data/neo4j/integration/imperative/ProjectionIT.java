@@ -21,9 +21,11 @@ import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -46,6 +48,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.config.AbstractNeo4jConfig;
+import org.springframework.data.neo4j.core.Neo4jOperations;
+import org.springframework.data.neo4j.integration.shared.common.DoritoEatingPerson;
 import org.springframework.data.neo4j.core.DatabaseSelectionProvider;
 import org.springframework.data.neo4j.core.Neo4jTemplate;
 import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
@@ -421,6 +425,38 @@ class ProjectionIT {
 			assertThat(p.get("first_name").asString()).isEqualTo("Michael");
 			assertThat(p.get("mittlererName").asString()).isEqualTo("foo");
 		}
+	}
+
+	@Test // GH-2578
+	public void projectionRespectedWithInexactPropertyNameMatch(@Autowired Neo4jOperations neo4jOperations) {
+		final DoritoEatingPerson person = new DoritoEatingPerson("Bob");
+		person.setEatsDoritos(true);
+		person.setFriendsAlsoEatDoritos(true);
+		Set<DoritoEatingPerson> friends = new HashSet<>();
+		friends.add(new DoritoEatingPerson("Alice"));
+		friends.add(new DoritoEatingPerson("Zoey"));
+		person.setFriends(friends);
+
+		neo4jOperations.saveAs(person, DoritoEatingPerson.PropertiesProjection1.class);
+
+		final Optional<DoritoEatingPerson> saved = neo4jOperations.findById(person.getId(), DoritoEatingPerson.class);
+		assertThat(saved).hasValueSatisfying(it -> assertThat(it.getFriends()).isEmpty());
+	}
+
+	@Test // GH-2578
+	public void projectionRespected(@Autowired Neo4jOperations neo4jOperations) {
+		final DoritoEatingPerson person = new DoritoEatingPerson("Ben");
+		person.setEatsDoritos(true);
+		person.setFriendsAlsoEatDoritos(true);
+		Set<DoritoEatingPerson> friends = new HashSet<>();
+		friends.add(new DoritoEatingPerson("Kid"));
+		friends.add(new DoritoEatingPerson("Jeremias"));
+		person.setFriends(friends);
+
+		neo4jOperations.saveAs(person, DoritoEatingPerson.PropertiesProjection2.class);
+
+		final Optional<DoritoEatingPerson> saved = neo4jOperations.findById(person.getId(), DoritoEatingPerson.class);
+		assertThat(saved).hasValueSatisfying(it -> assertThat(it.getFriends()).isEmpty());
 	}
 
 	private static void projectedEntities(PersonDepartmentQueryResult personAndDepartment) {
