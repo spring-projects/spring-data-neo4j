@@ -18,10 +18,6 @@ package org.springframework.data.neo4j.repository.query;
 import static org.neo4j.cypherdsl.core.Cypher.asterisk;
 
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
-import java.util.function.LongSupplier;
 
 import org.apiguardian.api.API;
 import org.neo4j.cypherdsl.core.Condition;
@@ -29,32 +25,33 @@ import org.neo4j.cypherdsl.core.Conditions;
 import org.neo4j.cypherdsl.core.Functions;
 import org.neo4j.cypherdsl.core.SortItem;
 import org.neo4j.cypherdsl.core.Statement;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.neo4j.core.Neo4jOperations;
+import org.springframework.data.neo4j.core.ReactiveNeo4jOperations;
 import org.springframework.data.neo4j.core.mapping.CypherGenerator;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
-import org.springframework.data.neo4j.repository.support.CypherdslConditionExecutor;
+import org.springframework.data.neo4j.repository.support.ReactiveCypherdslConditionExecutor;
 import org.springframework.data.neo4j.repository.support.Neo4jEntityInformation;
-import org.springframework.data.support.PageableExecutionUtils;
+
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 /**
+ * @author Niklas Krieger
  * @author Michael J. Simons
  * @param <T> The returned domain type.
- * @since 6.1
+ * @since 6.3.3
  */
-@API(status = API.Status.INTERNAL, since = "6.1")
-public final class CypherdslConditionExecutorImpl<T> implements CypherdslConditionExecutor<T> {
+@API(status = API.Status.INTERNAL, since = "6.3.3")
+public final class ReactiveCypherdslConditionExecutorImpl<T> implements ReactiveCypherdslConditionExecutor<T> {
 
 	private final Neo4jEntityInformation<T, Object> entityInformation;
 
-	private final Neo4jOperations neo4jOperations;
+	private final ReactiveNeo4jOperations neo4jOperations;
 
 	private final Neo4jPersistentEntity<T> metaData;
 
-	public CypherdslConditionExecutorImpl(Neo4jEntityInformation<T, Object> entityInformation,
-			Neo4jOperations neo4jOperations) {
+	public ReactiveCypherdslConditionExecutorImpl(Neo4jEntityInformation<T, Object> entityInformation,
+			ReactiveNeo4jOperations neo4jOperations) {
 
 		this.entityInformation = entityInformation;
 		this.neo4jOperations = neo4jOperations;
@@ -62,67 +59,57 @@ public final class CypherdslConditionExecutorImpl<T> implements CypherdslConditi
 	}
 
 	@Override
-	public Optional<T> findOne(Condition condition) {
+	public Mono<T> findOne(Condition condition) {
 
 		return this.neo4jOperations.toExecutableQuery(
 				this.metaData.getType(),
 				QueryFragmentsAndParameters.forCondition(this.metaData, condition, null, null)
-		).getSingleResult();
+		).flatMap(ReactiveNeo4jOperations.ExecutableQuery::getSingleResult);
 	}
 
 	@Override
-	public Collection<T> findAll(Condition condition) {
+	public Flux<T> findAll(Condition condition) {
 
 		return this.neo4jOperations.toExecutableQuery(
 				this.metaData.getType(),
 				QueryFragmentsAndParameters.forCondition(this.metaData, condition, null, null)
-		).getResults();
+		).flatMapMany(ReactiveNeo4jOperations.ExecutableQuery::getResults);
 	}
 
 	@Override
-	public Collection<T> findAll(Condition condition, Sort sort) {
+	public Flux<T> findAll(Condition condition, Sort sort) {
 
 		return this.neo4jOperations.toExecutableQuery(
 				metaData.getType(),
 				QueryFragmentsAndParameters.forCondition(
 						this.metaData, condition, null, CypherAdapterUtils.toSortItems(this.metaData, sort)
 				)
-		).getResults();
+		).flatMapMany(ReactiveNeo4jOperations.ExecutableQuery::getResults);
 	}
 
 	@Override
-	public Collection<T> findAll(Condition condition, SortItem... sortItems) {
+	public Flux<T> findAll(Condition condition, SortItem... sortItems) {
 
 		return this.neo4jOperations.toExecutableQuery(
 				this.metaData.getType(),
 				QueryFragmentsAndParameters.forCondition(
 						this.metaData, condition, null, Arrays.asList(sortItems)
 				)
-		).getResults();
+		).flatMapMany(ReactiveNeo4jOperations.ExecutableQuery::getResults);
 	}
 
 	@Override
-	public Collection<T> findAll(SortItem... sortItems) {
+	public Flux<T> findAll(SortItem... sortItems) {
 
 		return this.neo4jOperations.toExecutableQuery(
 				this.metaData.getType(),
-				QueryFragmentsAndParameters.forCondition(this.metaData, Conditions.noCondition(), null, Arrays.asList(sortItems))
-		).getResults();
+				QueryFragmentsAndParameters.forCondition(this.metaData, Conditions.noCondition(), null,
+						Arrays.asList(sortItems))
+		).flatMapMany(ReactiveNeo4jOperations.ExecutableQuery::getResults);
 	}
 
 	@Override
-	public Page<T> findAll(Condition condition, Pageable pageable) {
-
-		List<T> page = this.neo4jOperations.toExecutableQuery(
-				this.metaData.getType(),
-				QueryFragmentsAndParameters.forCondition(this.metaData, condition, pageable, null)
-		).getResults();
-		LongSupplier totalCountSupplier = () -> this.count(condition);
-		return PageableExecutionUtils.getPage(page, pageable, totalCountSupplier);
-	}
-
-	@Override
-	public long count(Condition condition) {
+	public Mono<Long> count(Condition condition) {
 
 		Statement statement = CypherGenerator.INSTANCE.prepareMatchOf(this.metaData, condition)
 				.returning(Functions.count(asterisk())).build();
@@ -130,7 +117,7 @@ public final class CypherdslConditionExecutorImpl<T> implements CypherdslConditi
 	}
 
 	@Override
-	public boolean exists(Condition condition) {
-		return count(condition) > 0;
+	public Mono<Boolean> exists(Condition condition) {
+		return count(condition).map(count -> count > 0);
 	}
 }
