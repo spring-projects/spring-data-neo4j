@@ -111,7 +111,7 @@ public abstract class PropertyFilter {
 
 			//noinspection OptionalGetWithoutIsPresent
 			return projectingPropertyPaths.stream().map(pp -> pp.propertyPath.toDotPath())
-						.anyMatch(ppDotPath -> ppDotPath.contains(dotPath))
+						.anyMatch(ppDotPath -> ppDotPath.equals(dotPath))
 					|| (dotPath.contains(".") && candidate.isPresent() &&
 						projectingPropertyPaths.stream()
 						.filter(pp -> pp.propertyPath.toDotPath().equals(candidate.get())).findFirst().get().isEntity);
