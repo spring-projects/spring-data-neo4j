@@ -36,6 +36,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 /**
+ * @author Niklas Krieger
  * @author Michael J. Simons
  * @param <T> The returned domain type.
  * @since 6.3.3
@@ -50,7 +51,7 @@ public final class ReactiveCypherdslConditionExecutorImpl<T> implements Reactive
 	private final Neo4jPersistentEntity<T> metaData;
 
 	public ReactiveCypherdslConditionExecutorImpl(Neo4jEntityInformation<T, Object> entityInformation,
-    ReactiveNeo4jOperations neo4jOperations) {
+			ReactiveNeo4jOperations neo4jOperations) {
 
 		this.entityInformation = entityInformation;
 		this.neo4jOperations = neo4jOperations;
@@ -102,7 +103,8 @@ public final class ReactiveCypherdslConditionExecutorImpl<T> implements Reactive
 
 		return this.neo4jOperations.toExecutableQuery(
 				this.metaData.getType(),
-				QueryFragmentsAndParameters.forCondition(this.metaData, Conditions.noCondition(), null, Arrays.asList(sortItems))
+				QueryFragmentsAndParameters.forCondition(this.metaData, Conditions.noCondition(), null,
+						Arrays.asList(sortItems))
 		).flatMapMany(ReactiveNeo4jOperations.ExecutableQuery::getResults);
 	}
 
@@ -116,8 +118,6 @@ public final class ReactiveCypherdslConditionExecutorImpl<T> implements Reactive
 
 	@Override
 	public Mono<Boolean> exists(Condition condition) {
-		Statement statement = CypherGenerator.INSTANCE.prepareMatchOf(this.metaData, condition)
-				.returning(Functions.count(asterisk())).build();
-		return this.neo4jOperations.count(statement, statement.getParameters()).map(count -> count > 0);
+		return count(condition).map(count -> count > 0);
 	}
 }

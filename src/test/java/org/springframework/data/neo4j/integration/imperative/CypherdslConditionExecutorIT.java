@@ -58,17 +58,11 @@ class CypherdslConditionExecutorIT {
 
 	protected static Neo4jExtension.Neo4jConnectionSupport neo4jConnectionSupport;
 
-	private final Driver driver;
-	private final BookmarkCapture bookmarkCapture;
-	private final Node person;
 	private final Property firstName;
 	private final Property lastName;
 
 	@Autowired
-	CypherdslConditionExecutorIT(Driver driver, BookmarkCapture bookmarkCapture) {
-
-		this.driver = driver;
-		this.bookmarkCapture = bookmarkCapture;
+	CypherdslConditionExecutorIT() {
 
 		//CHECKSTYLE:OFF
 		// tag::sdn-mixins.dynamic-conditions.usage[]
@@ -78,7 +72,6 @@ class CypherdslConditionExecutorIT {
 		// end::sdn-mixins.dynamic-conditions.usage[]
 		//CHECKSTYLE:ON
 
-		this.person = person;
 		this.firstName = firstName;
 		this.lastName = lastName;
 	}

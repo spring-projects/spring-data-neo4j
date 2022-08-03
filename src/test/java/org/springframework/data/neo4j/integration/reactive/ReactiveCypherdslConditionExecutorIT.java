@@ -44,6 +44,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 import reactor.test.StepVerifier;
 
 /**
+ * @author Niklas Krieger
  * @author Michael J. Simons
  */
 @Tag(Neo4jExtension.NEEDS_REACTIVE_SUPPORT)
@@ -52,19 +53,9 @@ class ReactiveCypherdslConditionExecutorIT {
 
 	protected static Neo4jExtension.Neo4jConnectionSupport neo4jConnectionSupport;
 
-	private final Driver driver;
-	private final Node person;
-	private final Property firstName;
-	private final Property lastName;
-
-	ReactiveCypherdslConditionExecutorIT(@Autowired Driver driver) {
-
-		this.driver = driver;
-
-		this.person = Cypher.node("Person").named("person");
-		this.firstName = person.property("firstName");
-		this.lastName = person.property("lastName");
-	}
+	private final Node person = Cypher.node("Person").named("person");
+	private final Property firstName = person.property("firstName");
+	private final Property lastName = person.property("lastName");
 
 	@BeforeAll
 	protected static void setupData(@Autowired BookmarkCapture bookmarkCapture) {

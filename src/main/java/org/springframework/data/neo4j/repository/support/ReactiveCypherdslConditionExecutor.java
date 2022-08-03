@@ -27,6 +27,7 @@ import reactor.core.publisher.Mono;
  * An interface that can be added to any repository so that queries can be enriched by {@link Condition conditions} of the
  * Cypher-DSL. This interface behaves the same as the {@link org.springframework.data.querydsl.ReactiveQuerydslPredicateExecutor}.
  *
+ * @author Niklas Krieger
  * @author Michael J. Simons
  * @param <T> Type of the domain
  * @since 6.3.3
