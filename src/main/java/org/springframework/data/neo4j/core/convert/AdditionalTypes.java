@@ -32,6 +32,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.UUID;
@@ -102,8 +103,13 @@ final class AdditionalTypes {
 		hlp.add(ConverterBuilder.reading(Value.class, Entity.class, Value::asEntity));
 		hlp.add(ConverterBuilder.reading(Value.class, Node.class, Value::asNode));
 		hlp.add(ConverterBuilder.reading(Value.class, Relationship.class, Value::asRelationship));
+		hlp.add(ConverterBuilder.reading(Value.class, Map.class, Value::asMap).andWriting(AdditionalTypes::value));
 
 		CONVERTERS = Collections.unmodifiableList(hlp);
+	}
+
+	static Value value(Map<?, ?> map) {
+		return Values.value(map);
 	}
 
 	static TimeZone asTimeZone(Value value) {
