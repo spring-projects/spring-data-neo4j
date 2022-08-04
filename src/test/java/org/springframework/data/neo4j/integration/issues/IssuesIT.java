@@ -47,6 +47,7 @@ import org.neo4j.driver.Driver;
 import org.neo4j.driver.QueryRunner;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.Transaction;
+import org.neo4j.driver.Values;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -115,6 +116,9 @@ import org.springframework.data.neo4j.integration.issues.gh2542.TestNode;
 import org.springframework.data.neo4j.integration.issues.gh2542.TestNodeRepository;
 import org.springframework.data.neo4j.integration.issues.gh2572.GH2572Repository;
 import org.springframework.data.neo4j.integration.issues.gh2572.GH2572Child;
+import org.springframework.data.neo4j.integration.issues.gh2576.College;
+import org.springframework.data.neo4j.integration.issues.gh2576.CollegeRepository;
+import org.springframework.data.neo4j.integration.issues.gh2576.Student;
 import org.springframework.data.neo4j.integration.misc.ConcreteImplementationTwo;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.data.neo4j.repository.query.QueryFragmentsAndParameters;
@@ -832,6 +836,34 @@ class IssuesIT extends TestBase {
 	void getOneShouldNotFailWithoutMatchingRootNodes(@Autowired GH2572Repository GH2572Repository) {
 		GH2572Child gh2572Child = GH2572Repository.getOneDogForPerson("GH2572Parent-1");
 		assertThat(gh2572Child).isNull();
+	}
+
+	@Test
+	@Tag("GH-2576")
+	void listOfMapsShouldBeUsableAsArguments(@Autowired Neo4jTemplate template,  @Autowired CollegeRepository collegeRepository) {
+
+		var student = template.save(new Student("S1"));
+		var college = template.save(new College("C1"));
+
+		var pair = Map.of("stuGuid", student.getGuid(), "collegeGuid", college.getGuid());
+		var listOfPairs = List.of(pair);
+
+		var uuids = collegeRepository.addStudentToCollege(listOfPairs);
+		assertThat(uuids).containsExactly(student.getGuid());
+	}
+
+	@Test
+	@Tag("GH-2576")
+	void listOfMapsShouldBeUsableAsArgumentsWithWorkaround(@Autowired Neo4jTemplate template,  @Autowired CollegeRepository collegeRepository) {
+
+		var student = template.save(new Student("S1"));
+		var college = template.save(new College("C1"));
+
+		var pair = Map.of("stuGuid", student.getGuid(), "collegeGuid", college.getGuid());
+		var listOfPairs = List.of(Values.value(pair));
+
+		var uuids = collegeRepository.addStudentToCollegeWorkaround(listOfPairs);
+		assertThat(uuids).containsExactly(student.getGuid());
 	}
 
 	@Configuration
