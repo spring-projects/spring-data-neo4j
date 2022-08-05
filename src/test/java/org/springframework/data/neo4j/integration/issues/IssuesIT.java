@@ -119,6 +119,10 @@ import org.springframework.data.neo4j.integration.issues.gh2572.GH2572Child;
 import org.springframework.data.neo4j.integration.issues.gh2576.College;
 import org.springframework.data.neo4j.integration.issues.gh2576.CollegeRepository;
 import org.springframework.data.neo4j.integration.issues.gh2576.Student;
+import org.springframework.data.neo4j.integration.issues.gh2579.ColumnNode;
+import org.springframework.data.neo4j.integration.issues.gh2579.TableAndColumnRelation;
+import org.springframework.data.neo4j.integration.issues.gh2579.TableNode;
+import org.springframework.data.neo4j.integration.issues.gh2579.TableRepository;
 import org.springframework.data.neo4j.integration.misc.ConcreteImplementationTwo;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.data.neo4j.repository.query.QueryFragmentsAndParameters;
@@ -864,6 +868,43 @@ class IssuesIT extends TestBase {
 
 		var uuids = collegeRepository.addStudentToCollegeWorkaround(listOfPairs);
 		assertThat(uuids).containsExactly(student.getGuid());
+	}
+
+	@Test
+	@Tag("GH-2579")
+	void unwindWithMergeShouldWork(@Autowired Neo4jTemplate template, @Autowired TableRepository tableRepository) {
+
+		TableNode tableNode = new TableNode();
+		tableNode.setName("t1");
+		tableNode.setSchemaName("a");
+		tableNode.setSourceName("source1");
+		tableNode = template.save(tableNode);
+
+		ColumnNode c1 = new ColumnNode();
+		c1.setName("c1");
+		c1.setSchemaName("a");
+		c1.setSourceName("source1");
+		c1.setTableName(tableNode.getName());
+		long c1Id = template.save(c1).getId();
+
+		ColumnNode c2 = new ColumnNode();
+		c2.setName("c2");
+		c2.setSchemaName("a");
+		c2.setSourceName("source2");
+		c2.setTableName(tableNode.getName());
+		long c2Id = template.save(c2).getId();
+
+		tableRepository.mergeTableAndColumnRelations(List.of(c1, c2), tableNode);
+
+		Optional<TableNode> resolvedTableNode = tableRepository.findById(tableNode.getId());
+		assertThat(resolvedTableNode)
+				.map(TableNode::getTableAndColumnRelation)
+				.hasValueSatisfying(l -> {
+					assertThat(l)
+							.map(TableAndColumnRelation::getColumnNode)
+							.map(ColumnNode::getId)
+							.containsExactlyInAnyOrder(c1Id, c2Id);
+				});
 	}
 
 	@Configuration
