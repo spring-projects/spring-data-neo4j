@@ -615,6 +615,13 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 				for (Relationship possibleRelationship : allMatchingTypeRelationshipsInResult) {
 					if (targetIdSelector.apply(possibleRelationship) == targetNodeId) {
 
+						// Reduce the amount of relationships in the candidate list.
+						// If this relationship got processed twice (OUTGOING, INCOMING), it is never needed again
+						// and therefor should not be in the list.
+						// Otherwise, for highly linked data it could potentially cause a StackOverflowError.
+						if (knownObjects.hasProcessedRelationshipCompletely(possibleRelationship.id())) {
+							relationshipsFromResult.remove(possibleRelationship);
+						}
 						// If the target is the same(equal) node, get the related object from the cache.
 						// Avoiding the call to the map method also breaks an endless cycle of trying to finish
 						// the property population of _this_ object.
@@ -777,6 +784,8 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 		private final Set<Long> previousRecords = new HashSet<>();
 		private final Set<Long> idsInCreation = new HashSet<>();
 
+		private final Map<Long, Integer> processedRelationships = new HashMap<>();
+
 		private void storeObject(@Nullable Long internalId, Object object) {
 			if (internalId == null) {
 				return;
@@ -859,6 +868,25 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 				return previousRecords.contains(internalId) || internalCurrentRecord.get(internalId);
 
 			} finally {
+				read.unlock();
+			}
+		}
+
+		private boolean hasProcessedRelationshipCompletely(Long relationshipId) {
+			try {
+				write.lock();
+				read.lock();
+
+				int amount = processedRelationships.computeIfAbsent(relationshipId, s -> 0);
+				if (amount == 2) {
+					return true;
+				}
+
+				processedRelationships.put(relationshipId, amount + 1);
+				return false;
+
+			} finally {
+				write.unlock();
 				read.unlock();
 			}
 		}

@@ -53,6 +53,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
 import org.springframework.data.neo4j.core.DatabaseSelectionProvider;
@@ -123,6 +125,8 @@ import org.springframework.data.neo4j.integration.issues.gh2579.ColumnNode;
 import org.springframework.data.neo4j.integration.issues.gh2579.TableAndColumnRelation;
 import org.springframework.data.neo4j.integration.issues.gh2579.TableNode;
 import org.springframework.data.neo4j.integration.issues.gh2579.TableRepository;
+import org.springframework.data.neo4j.integration.issues.gh2583.GH2583Node;
+import org.springframework.data.neo4j.integration.issues.gh2583.GH2583Repository;
 import org.springframework.data.neo4j.integration.misc.ConcreteImplementationTwo;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.data.neo4j.repository.query.QueryFragmentsAndParameters;
@@ -169,6 +173,7 @@ class IssuesIT extends TestBase {
 				setupGH2328(transaction);
 				setupGH2459(transaction);
 				setupGH2572(transaction);
+				setupGH2583(transaction);
 
 				transaction.commit();
 			}
@@ -215,6 +220,21 @@ class IssuesIT extends TestBase {
 				CREATE (po1)-[:hasPet]->(a1)
 				CREATE(a3:Cat:Animal {name: 'Cat1',uuid: '12'})
 				CREATE (po1)-[:hasPet]->(a3)""").consume();
+	}
+
+	private static void setupGH2583(QueryRunner queryRunner) {
+		queryRunner.run("""
+				CREATE (n:GH2583Node)-[:LINKED]->(m:GH2583Node)-[:LINKED]->(n)-[:LINKED]->(m)
+				-[:LINKED]->(n)-[:LINKED]->(m)-[:LINKED]->(n)-[:LINKED]->(m)
+				-[:LINKED]->(n)-[:LINKED]->(m)-[:LINKED]->(n)-[:LINKED]->(m)
+				-[:LINKED]->(n)-[:LINKED]->(m)-[:LINKED]->(n)-[:LINKED]->(m)
+				-[:LINKED]->(n)-[:LINKED]->(m)-[:LINKED]->(n)-[:LINKED]->(m)
+				-[:LINKED]->(n)-[:LINKED]->(m)-[:LINKED]->(n)-[:LINKED]->(m)
+				-[:LINKED]->(n)-[:LINKED]->(m)-[:LINKED]->(n)-[:LINKED]->(m)
+				-[:LINKED]->(n)-[:LINKED]->(m)-[:LINKED]->(n)-[:LINKED]->(m)
+				-[:LINKED]->(n)-[:LINKED]->(m)-[:LINKED]->(n)-[:LINKED]->(m)
+				-[:LINKED]->(n)-[:LINKED]->(m)-[:LINKED]->(n)-[:LINKED]->(m)
+				-[:LINKED]->(n)-[:LINKED]->(m)-[:LINKED]->(n)-[:LINKED]->(m)""").consume();
 	}
 
 	@BeforeEach
@@ -905,6 +925,15 @@ class IssuesIT extends TestBase {
 							.map(ColumnNode::getId)
 							.containsExactlyInAnyOrder(c1Id, c2Id);
 				});
+	}
+
+	@Test
+	@Tag("GH-2583")
+	void mapStandardCustomQueryWithLotsOfRelationshipsProperly(@Autowired GH2583Repository repository) {
+		Page<GH2583Node> nodePage = repository.getNodesByCustomQuery(PageRequest.of(0, 300));
+
+		List<GH2583Node> nodes = nodePage.getContent();
+		assertThat(nodes).hasSize(2);
 	}
 
 	@Configuration
