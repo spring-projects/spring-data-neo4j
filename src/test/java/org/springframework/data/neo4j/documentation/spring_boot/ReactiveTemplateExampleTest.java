@@ -48,7 +48,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 // tag::faq.template-reactive-pt2[]
 class ReactiveTemplateExampleTest {
 
-	@Container private static Neo4jContainer<?> neo4jContainer = new Neo4jContainer<>("neo4j:4.0");
+	@Container private static Neo4jContainer<?> neo4jContainer = new Neo4jContainer<>("neo4j:4.4");
 
 	@DynamicPropertySource
 	static void neo4jProperties(DynamicPropertyRegistry registry) {
