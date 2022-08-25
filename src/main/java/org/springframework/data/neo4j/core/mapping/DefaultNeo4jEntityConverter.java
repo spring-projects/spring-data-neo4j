@@ -872,22 +872,25 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 			}
 		}
 
+		/**
+		 * This method has an intended side effect.
+		 * It increases the process count of relationships (mapped by their ids)
+		 * AND checks if it was already processed twice (INCOMING/OUTGOING).
+		 */
 		private boolean hasProcessedRelationshipCompletely(Long relationshipId) {
 			try {
 				write.lock();
-				read.lock();
 
-				int amount = processedRelationships.computeIfAbsent(relationshipId, s -> 0);
-				if (amount == 2) {
+				int processedAmount = processedRelationships.computeIfAbsent(relationshipId, s -> 0);
+				if (processedAmount == 2) {
 					return true;
 				}
 
-				processedRelationships.put(relationshipId, amount + 1);
+				processedRelationships.put(relationshipId, processedAmount + 1);
 				return false;
 
 			} finally {
 				write.unlock();
-				read.unlock();
 			}
 		}
 
