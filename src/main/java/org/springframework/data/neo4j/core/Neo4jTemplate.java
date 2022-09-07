@@ -968,17 +968,24 @@ public final class Neo4jTemplate implements
 
 	private Entity saveRelatedNode(Object entity, NodeDescription<?> targetNodeDescription, PropertyFilter includeProperty, PropertyFilter.RelaxedPropertyPath currentPropertyPath) {
 
-		DynamicLabels dynamicLabels = determineDynamicLabels(entity, (Neo4jPersistentEntity<?>) targetNodeDescription);
+		Neo4jPersistentEntity<?> targetPersistentEntity = (Neo4jPersistentEntity<?>) targetNodeDescription;
+		DynamicLabels dynamicLabels = determineDynamicLabels(entity, targetPersistentEntity);
 		@SuppressWarnings("rawtypes")
-		Class entityType = ((Neo4jPersistentEntity<?>) targetNodeDescription).getType();
+		Class entityType = targetPersistentEntity.getType();
 		@SuppressWarnings("unchecked")
 		Function<Object, Map<String, Object>> binderFunction = neo4jMappingContext.getRequiredBinderFunctionFor(entityType);
 		binderFunction = binderFunction.andThen(tree -> {
 			@SuppressWarnings("unchecked")
 			Map<String, Object> properties = (Map<String, Object>) tree.get(Constants.NAME_OF_PROPERTIES_PARAM);
-
+			String idPropertyName = targetPersistentEntity.getIdProperty().getPropertyName();
+			boolean assignedId = targetPersistentEntity.getIdDescription().isAssignedId();
 			if (!includeProperty.isNotFiltering()) {
-				properties.entrySet().removeIf(e -> !includeProperty.contains(currentPropertyPath.append(e.getKey())));
+				properties.entrySet()
+						.removeIf(e -> {
+							// we cannot skip the id property if it is an assigned id
+							boolean isIdProperty = e.getKey().equals(idPropertyName);
+							return !(assignedId && isIdProperty) && !includeProperty.contains(currentPropertyPath.append(e.getKey()));
+						});
 			}
 			return tree;
 		});
@@ -988,7 +995,7 @@ public final class Neo4jTemplate implements
 				.fetchAs(Entity.class)
 				.one();
 
-		if (((Neo4jPersistentEntity<?>) targetNodeDescription).hasVersionProperty() && !optionalSavedNode.isPresent()) {
+		if (targetPersistentEntity.hasVersionProperty() && !optionalSavedNode.isPresent()) {
 			throw new OptimisticLockingFailureException(OPTIMISTIC_LOCKING_ERROR_MESSAGE);
 		}
 

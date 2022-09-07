@@ -279,9 +279,15 @@ public final class TemplateSupport {
 			@SuppressWarnings("unchecked")
 			Map<String, Object> properties = (Map<String, Object>) tree.get(Constants.NAME_OF_PROPERTIES_PARAM);
 
+			String idPropertyName = entityMetaData.getIdProperty().getPropertyName();
+			boolean assignedId = entityMetaData.getIdDescription().isAssignedId();
 			if (!includeProperty.isNotFiltering()) {
 				properties.entrySet()
-						.removeIf(e -> !includeProperty.contains(e.getKey(), entityMetaData.getUnderlyingClass()));
+						.removeIf(e -> {
+							// we cannot skip the id property if it is an assigned id
+							boolean isIdProperty = e.getKey().equals(idPropertyName);
+							return !(assignedId && isIdProperty) && !includeProperty.contains(e.getKey(), entityMetaData.getUnderlyingClass());
+						});
 			}
 			return tree;
 		}));

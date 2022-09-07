@@ -39,7 +39,7 @@ public class Person {
 	 */
 	@Node
 	public static class Address {
-		@Id @GeneratedValue private Long id;
+		@Id private Long id;
 		private String zipCode;
 		private String city;
 		private String street;
