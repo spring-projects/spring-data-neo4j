@@ -140,6 +140,18 @@ class DynamicRelationshipsIT extends DynamicRelationshipsITBase<PersonWithRelati
 				.extracting(Club::getName).isEqualTo("Red Sox");
 	}
 
+	@Test
+	void shouldUpdateDynamicRelationshipsProperties(@Autowired PersonWithRelativesRepository repository) {
+		PersonWithRelatives person = repository.findById(idOfExistingPerson).get();
+		person.getClubs().get(TypeOfClub.FOOTBALL).setPlace("Braunschweig");
+		repository.save(person);
+
+		person = repository.findById(idOfExistingPerson).get();
+		Map<TypeOfClub, ClubRelationship> clubs = person.getClubs();
+		assertThat(clubs).containsOnlyKeys(TypeOfClub.FOOTBALL);
+		assertThat(clubs.get(TypeOfClub.FOOTBALL).getPlace()).isEqualTo("Braunschweig");
+	}
+
 	@Test // GH-216 // DATAGRAPH-1449
 	void shouldUpdateDynamicCollectionRelationships(@Autowired PersonWithRelativesRepository repository) {
 
