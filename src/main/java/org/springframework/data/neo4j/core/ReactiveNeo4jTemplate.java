@@ -989,9 +989,16 @@ public final class ReactiveNeo4jTemplate implements
 											: null;
 
 									boolean isNewRelationship = idValue == null;
-									CreateRelationshipStatementHolder statementHolder = neo4jMappingContext.createStatement(
-											sourceEntity, relationshipContext, relatedValueToStore, isNewRelationship);
+									CreateRelationshipStatementHolder statementHolder = neo4jMappingContext.createStatementForSingleRelationship(
+											sourceEntity, relationshipDescription, relatedValueToStore, isNewRelationship);
 
+									Map<String, Object> properties = new HashMap<>();
+									properties.put(Constants.FROM_ID_PARAMETER_NAME, convertIdValues(sourceEntity.getRequiredIdProperty(), fromId));
+									properties.put(Constants.TO_ID_PARAMETER_NAME, relatedInternalId);
+									properties.put(Constants.NAME_OF_KNOWN_RELATIONSHIP_PARAM, idValue);
+									List<Object> rows = new ArrayList<>();
+									rows.add(properties);
+									statementHolder = statementHolder.addProperty(Constants.NAME_OF_RELATIONSHIP_LIST_PARAM, rows);
 									// in case of no properties the bind will just return an empty map
 									return neo4jClient
 											.query(renderer.render(statementHolder.getStatement()))

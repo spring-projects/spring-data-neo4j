@@ -394,6 +394,36 @@ public enum CypherGenerator {
 				.returning(Functions.id(relationshipFragment))
 				.build();
 	}
+	@NonNull
+	public Statement prepareSaveOfRelationships(Neo4jPersistentEntity<?> neo4jPersistentEntity,
+			RelationshipDescription relationship, @Nullable String dynamicRelationshipType) {
+
+		final Node startNode = neo4jPersistentEntity.isUsingInternalIds()
+				? anyNode(START_NODE_NAME)
+				: node(neo4jPersistentEntity.getPrimaryLabel(), neo4jPersistentEntity.getAdditionalLabels())
+						.named(START_NODE_NAME);
+
+		final Node endNode = anyNode(END_NODE_NAME);
+		String idPropertyName = neo4jPersistentEntity.getRequiredIdProperty().getPropertyName();
+
+		String type = relationship.isDynamic() ? dynamicRelationshipType : relationship.getType();
+		Relationship relationshipFragment = (relationship.isOutgoing() ?
+				startNode.relationshipTo(endNode, type) :
+				startNode.relationshipFrom(endNode, type)).named(RELATIONSHIP_NAME);
+
+		String row = "relationship";
+		Property idProperty = Cypher.property(row, Constants.FROM_ID_PARAMETER_NAME);
+		return Cypher.unwind(parameter(Constants.NAME_OF_RELATIONSHIP_LIST_PARAM)).as(row)
+				.with(row)
+				.match(startNode)
+				.where(neo4jPersistentEntity.isUsingInternalIds()
+						? startNode.internalId().isEqualTo(idProperty)
+						: startNode.property(idPropertyName).isEqualTo(idProperty))
+				.match(endNode).where(endNode.internalId().isEqualTo(Cypher.property(row, Constants.TO_ID_PARAMETER_NAME)))
+				.merge(relationshipFragment)
+				.returning(Functions.id(relationshipFragment))
+				.build();
+	}
 
 	@NonNull
 	public Statement prepareSaveOfRelationshipWithProperties(Neo4jPersistentEntity<?> neo4jPersistentEntity,
@@ -431,6 +461,48 @@ public enum CypherGenerator {
 				.mutate(RELATIONSHIP_NAME, relationshipProperties)
 				.returning(Functions.id(relationshipFragment))
 				.build();
+	}
+
+	@NonNull
+	public Statement prepareUpdateOfRelationshipsWithProperties(Neo4jPersistentEntity<?> neo4jPersistentEntity,
+			RelationshipDescription relationship, boolean isNew) {
+
+		Assert.isTrue(relationship.hasRelationshipProperties(),
+				"Properties required to create a relationship with properties");
+
+		Node startNode = node(neo4jPersistentEntity.getPrimaryLabel(), neo4jPersistentEntity.getAdditionalLabels()).named(START_NODE_NAME);
+		Node endNode = anyNode(END_NODE_NAME);
+		String idPropertyName = neo4jPersistentEntity.getRequiredIdProperty().getPropertyName();
+
+		String type = relationship.getType();
+
+		Relationship relationshipFragment = (
+				relationship.isOutgoing() ?
+						startNode.relationshipTo(endNode, type) :
+						startNode.relationshipFrom(endNode, type))
+				.named(RELATIONSHIP_NAME);
+
+		String row = "row";
+		Property relationshipProperties = Cypher.property(row, Constants.NAME_OF_PROPERTIES_PARAM);
+		Property idProperty = Cypher.property(row, Constants.FROM_ID_PARAMETER_NAME);
+		StatementBuilder.OngoingReadingWithWhere matchStartAndEndNode =
+				Cypher.unwind(parameter(Constants.NAME_OF_RELATIONSHIP_LIST_PARAM)).as(row)
+				.with(row)
+				.match(startNode)
+				.where(neo4jPersistentEntity.isUsingInternalIds() ? startNode.internalId().isEqualTo(idProperty)
+						: startNode.property(idPropertyName).isEqualTo(idProperty))
+				.match(endNode).where(endNode.internalId().isEqualTo(Cypher.property(row, Constants.TO_ID_PARAMETER_NAME)));
+
+		StatementBuilder.ExposesSet createOrUpdateRelationship = isNew
+				? matchStartAndEndNode.create(relationshipFragment)
+				: matchStartAndEndNode.match(relationshipFragment)
+				.where(Functions.id(relationshipFragment).isEqualTo(Cypher.property(row, Constants.NAME_OF_KNOWN_RELATIONSHIP_PARAM)));
+
+		if (isNew) {
+			return createOrUpdateRelationship.mutate(RELATIONSHIP_NAME, relationshipProperties).returning(Functions.id(relationshipFragment)).build();
+		}
+
+		return createOrUpdateRelationship.mutate(RELATIONSHIP_NAME, relationshipProperties).build();
 	}
 
 	@NonNull

@@ -799,6 +799,11 @@ public final class Neo4jTemplate implements
 			Neo4jPersistentProperty relationshipProperty = association.getInverse();
 
 			RelationshipHandler relationshipHandler = RelationshipHandler.forProperty(relationshipProperty, rawValue);
+			List<Object> plainRelationshipRows = new ArrayList<>();
+			List<Map<String, Object>> relationshipPropertiesRows = new ArrayList<>();
+			List<Map<String, Object>> newRelationshipPropertiesRows = new ArrayList<>();
+			List<Object> updateRelatedValuesToStore = new ArrayList<>();
+			List<Object> newRelatedValuesToStore = new ArrayList<>();
 
 			for (Object relatedValueToStore : relatedValuesToStore) {
 
@@ -847,28 +852,60 @@ public final class Neo4jTemplate implements
 
 				Object idValue = idProperty != null
 						? relationshipContext
-							.getRelationshipPropertiesPropertyAccessor(relatedValueToStore).getProperty(idProperty)
+						.getRelationshipPropertiesPropertyAccessor(relatedValueToStore).getProperty(idProperty)
 						: null;
 
+				Map<String, Object> properties = new HashMap<>();
+				properties.put(Constants.FROM_ID_PARAMETER_NAME, convertIdValues(sourceEntity.getRequiredIdProperty(), fromId));
+				properties.put(Constants.TO_ID_PARAMETER_NAME, relatedInternalId);
+				properties.put(Constants.NAME_OF_KNOWN_RELATIONSHIP_PARAM, idValue);
 				boolean isNewRelationship = idValue == null;
+				if (relationshipDescription.isDynamic()) {
+					// create new dynamic relationship properties
+					 if (relationshipDescription.hasRelationshipProperties() && isNewRelationship && idProperty != null) {
+							CreateRelationshipStatementHolder statementHolder = neo4jMappingContext.createStatementForSingleRelationship(
+									sourceEntity, relationshipDescription, relatedValueToStore, true);
 
-				CreateRelationshipStatementHolder statementHolder = neo4jMappingContext.createStatement(
-						sourceEntity, relationshipContext, relatedValueToStore, isNewRelationship);
+							List<Object> row = Collections.singletonList(properties);
+							statementHolder = statementHolder.addProperty(Constants.NAME_OF_RELATIONSHIP_LIST_PARAM, row);
+							Optional<Long> relationshipInternalId = neo4jClient.query(renderer.render(statementHolder.getStatement()))
+									.bind(convertIdValues(sourceEntity.getRequiredIdProperty(), fromId)) //
+									.to(Constants.FROM_ID_PARAMETER_NAME) //
+									.bind(relatedInternalId) //
+									.to(Constants.TO_ID_PARAMETER_NAME) //
+									.bind(idValue) // always null
+									.to(Constants.NAME_OF_KNOWN_RELATIONSHIP_PARAM) //
+									.bindAll(statementHolder.getProperties())
+									.fetchAs(Long.class).one();
+							assignIdToRelationshipProperties(relationshipContext, relatedValueToStore, idProperty, relationshipInternalId.get());
+						} else { // plain (new or to update) dynamic relationship or dynamic relationships with properties to update
+							 CreateRelationshipStatementHolder statementHolder = neo4jMappingContext.createStatementForSingleRelationship(
+									 sourceEntity, relationshipDescription, relatedValueToStore, false);
 
-				Optional<Long> relationshipInternalId = neo4jClient.query(renderer.render(statementHolder.getStatement()))
-						.bind(convertIdValues(sourceEntity.getRequiredIdProperty(), fromId)) //
-							.to(Constants.FROM_ID_PARAMETER_NAME) //
-						.bind(relatedInternalId) //
-							.to(Constants.TO_ID_PARAMETER_NAME) //
-						.bind(idValue) //
-							.to(Constants.NAME_OF_KNOWN_RELATIONSHIP_PARAM) //
-						.bindAll(statementHolder.getProperties())
-						.fetchAs(Long.class).one();
+							 List<Object> row = Collections.singletonList(properties);
+							 statementHolder = statementHolder.addProperty(Constants.NAME_OF_RELATIONSHIP_LIST_PARAM, row);
+							 neo4jClient.query(renderer.render(statementHolder.getStatement()))
+									 .bind(convertIdValues(sourceEntity.getRequiredIdProperty(), fromId)) //
+									 .to(Constants.FROM_ID_PARAMETER_NAME) //
+									 .bind(relatedInternalId) //
+									 .to(Constants.TO_ID_PARAMETER_NAME) //
+									 .bind(idValue)
+									 .to(Constants.NAME_OF_KNOWN_RELATIONSHIP_PARAM) //
+									 .bindAll(statementHolder.getProperties())
+									 .run();
+						}
+				} else if (relationshipDescription.hasRelationshipProperties() && isNewRelationship && idProperty != null) {
+					newRelationshipPropertiesRows.add(properties);
+					newRelatedValuesToStore.add(relatedValueToStore);
+				} else if (relationshipDescription.hasRelationshipProperties()) {
+					neo4jMappingContext.getEntityConverter().write(
+							((MappingSupport.RelationshipPropertiesWithEntityHolder) relatedValueToStore).getRelationshipProperties(),
+							properties);
 
-				if (idProperty != null && isNewRelationship) {
-					relationshipContext
-							.getRelationshipPropertiesPropertyAccessor(relatedValueToStore)
-							.setProperty(idProperty, relationshipInternalId.get());
+					relationshipPropertiesRows.add(properties);
+				} else {
+					// non-dynamic relationship or relationship with properties
+					plainRelationshipRows.add(properties);
 				}
 
 				if (processState != ProcessState.PROCESSED_ALL_VALUES) {
@@ -883,6 +920,37 @@ public final class Neo4jTemplate implements
 
 				relationshipHandler.handle(relatedValueToStore, relatedObjectBeforeCallbacksApplied, potentiallyRecreatedNewRelatedObject);
 			}
+			// batch operations
+			if (!(relationshipDescription.hasRelationshipProperties() || relationshipDescription.isDynamic() || plainRelationshipRows.isEmpty())) {
+				CreateRelationshipStatementHolder statementHolder = neo4jMappingContext.createStatementForImperativeSimpleRelationshipBatch(
+						sourceEntity, relationshipDescription, plainRelationshipRows);
+				statementHolder = statementHolder.addProperty(Constants.NAME_OF_RELATIONSHIP_LIST_PARAM, plainRelationshipRows);
+				neo4jClient.query(renderer.render(statementHolder.getStatement()))
+						.bindAll(statementHolder.getProperties())
+						.run();
+			} else if (relationshipDescription.hasRelationshipProperties()) {
+				if (!relationshipPropertiesRows.isEmpty()) {
+					CreateRelationshipStatementHolder statementHolder = neo4jMappingContext.createStatementForImperativeRelationshipsWithPropertiesBatch(false,
+							sourceEntity, relationshipDescription, updateRelatedValuesToStore, relationshipPropertiesRows);
+					statementHolder = statementHolder.addProperty(Constants.NAME_OF_RELATIONSHIP_LIST_PARAM, relationshipPropertiesRows);
+
+					neo4jClient.query(renderer.render(statementHolder.getStatement()))
+							.bindAll(statementHolder.getProperties())
+							.run();
+				} else if (!newRelatedValuesToStore.isEmpty()) {
+					CreateRelationshipStatementHolder statementHolder = neo4jMappingContext.createStatementForImperativeRelationshipsWithPropertiesBatch(true,
+							sourceEntity, relationshipDescription, newRelatedValuesToStore, newRelationshipPropertiesRows);
+
+					List<Long> all = new ArrayList<>(neo4jClient.query(renderer.render(statementHolder.getStatement()))
+							.bindAll(statementHolder.getProperties())
+							.fetchAs(Long.class).all());
+					// assign new ids
+					for (int i = 0; i < all.size(); i++) {
+						Long aLong = all.get(i);
+						assignIdToRelationshipProperties(relationshipContext, newRelatedValuesToStore.get(i), idProperty, aLong);
+					}
+				}
+			}
 
 			relationshipHandler.applyFinalResultToOwner(propertyAccessor);
 		});
@@ -890,6 +958,12 @@ public final class Neo4jTemplate implements
 		@SuppressWarnings("unchecked")
 		T finalSubgraphRoot = (T) propertyAccessor.getBean();
 		return finalSubgraphRoot;
+	}
+
+	private void assignIdToRelationshipProperties(NestedRelationshipContext relationshipContext, Object relatedValueToStore, Neo4jPersistentProperty idProperty, Long relationshipInternalId) {
+		relationshipContext
+				.getRelationshipPropertiesPropertyAccessor(relatedValueToStore)
+				.setProperty(idProperty, relationshipInternalId);
 	}
 
 	private Entity saveRelatedNode(Object entity, NodeDescription<?> targetNodeDescription, PropertyFilter includeProperty, PropertyFilter.RelaxedPropertyPath currentPropertyPath) {

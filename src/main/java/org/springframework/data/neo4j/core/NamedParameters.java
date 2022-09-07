@@ -70,6 +70,8 @@ final class NamedParameters {
 
 		if (Constants.NAME_OF_PROPERTIES_PARAM.equals(name) && value != null) {
 			this.parameters.put(name, unwrapMapValueWrapper((Map<String, Object>) value));
+		} else if (Constants.NAME_OF_RELATIONSHIP_LIST_PARAM.equals(name) && value != null) {
+			this.parameters.put(name, unwrapMapValueWrapperInListOfEntities((List<Map<String, Object>>) value));
 		} else if (Constants.NAME_OF_ENTITY_LIST_PARAM.equals(name) && value != null) {
 			this.parameters.put(name, unwrapMapValueWrapperInListOfEntities((List<Map<String, Object>>) value));
 		} else {

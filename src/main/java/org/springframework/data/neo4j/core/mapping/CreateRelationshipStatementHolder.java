@@ -15,7 +15,7 @@
  */
 package org.springframework.data.neo4j.core.mapping;
 
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.apiguardian.api.API;
@@ -40,10 +40,6 @@ public final class CreateRelationshipStatementHolder {
 	private final Statement statement;
 	private final Map<String, Object> properties;
 
-	CreateRelationshipStatementHolder(@NonNull Statement statement) {
-		this(statement, Collections.emptyMap());
-	}
-
 	CreateRelationshipStatementHolder(@NonNull Statement statement, @NonNull Map<String, Object> properties) {
 		this.statement = statement;
 		this.properties = properties;
@@ -55,5 +51,11 @@ public final class CreateRelationshipStatementHolder {
 
 	public Map<String, Object> getProperties() {
 		return properties;
+	}
+
+	public CreateRelationshipStatementHolder addProperty(String key, Object property) {
+		Map<String, Object> newProperties = new HashMap<>(this.properties);
+		newProperties.put(key, property);
+		return new CreateRelationshipStatementHolder(this.statement, newProperties);
 	}
 }

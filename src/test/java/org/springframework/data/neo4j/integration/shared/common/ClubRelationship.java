@@ -41,6 +41,10 @@ public class ClubRelationship {
 		return place;
 	}
 
+	public void setPlace(String place) {
+		this.place = place;
+	}
+
 	public void setClub(Club club) {
 		this.club = club;
 	}
