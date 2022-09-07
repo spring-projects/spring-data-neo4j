@@ -117,7 +117,7 @@ class ReactiveNeo4jTemplateIT {
 			transaction.run("CREATE (p:Person{firstName: 'A', lastName: 'LA'})");
 			simonsId = transaction
 					.run("CREATE (p:Person{firstName: 'Michael', lastName: 'Siemons'})" +
-							"-[:LIVES_AT]->(a:Address {city: 'Aachen'})" +
+							"-[:LIVES_AT]->(a:Address {city: 'Aachen', id: 1})" +
 							"-[:BASED_IN]->(c:YetAnotherCountryEntity{name: 'Gemany', countryCode: 'DE'})" +
 							"RETURN id(p)")
 					.single().get(0).asLong();

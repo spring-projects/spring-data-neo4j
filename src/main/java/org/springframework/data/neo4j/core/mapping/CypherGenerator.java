@@ -293,8 +293,28 @@ public enum CypherGenerator {
 				return Cypher.union(createIfNew, updateIfExists);
 
 			} else {
-				return updateDecorator.apply(Cypher.merge(rootNode.withProperties(nameOfIdProperty, idParameter)).mutate(rootNode,
-						parameter(Constants.NAME_OF_PROPERTIES_PARAM))).returning(rootNode).build();
+//				if (1==1)
+//				return updateDecorator.apply(Cypher.merge(rootNode.withProperties(nameOfIdProperty, idParameter)).mutate(rootNode,
+//						parameter(Constants.NAME_OF_PROPERTIES_PARAM))).returning(rootNode).build();
+				String nameOfPossibleExistingNode = "hlp";
+				Node possibleExistingNode = node(primaryLabel, additionalLabels).named(nameOfPossibleExistingNode);
+
+				Statement createIfNew = updateDecorator.apply(optionalMatch(possibleExistingNode)
+								.where(possibleExistingNode.property(nameOfIdProperty).isEqualTo(idParameter))
+								.with(possibleExistingNode)
+								.where(possibleExistingNode.isNull())
+								.create(rootNode)
+								.with(rootNode)
+								.mutate(rootNode, parameter(Constants.NAME_OF_PROPERTIES_PARAM))).returning(rootNode)
+						.build();
+
+				Statement updateIfExists = updateDecorator.apply(match(rootNode)
+								.where(rootNode.property(nameOfIdProperty).isEqualTo(idParameter))
+								.with(rootNode)
+								.mutate(rootNode, parameter(Constants.NAME_OF_PROPERTIES_PARAM)))
+						.returning(rootNode)
+						.build();
+				return Cypher.union(createIfNew, updateIfExists);
 			}
 		} else {
 			String nameOfPossibleExistingNode = "hlp";

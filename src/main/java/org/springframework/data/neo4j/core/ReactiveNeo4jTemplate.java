@@ -1052,12 +1052,18 @@ public final class ReactiveNeo4jTemplate implements
 					DynamicLabels dynamicLabels = t.getT2();
 					@SuppressWarnings("unchecked")
 					Function<Object, Map<String, Object>> binderFunction = neo4jMappingContext.getRequiredBinderFunctionFor(entityType);
+					String idPropertyName = targetNodeDescription.getIdProperty().getPropertyName();
+					boolean assignedId = targetNodeDescription.getIdDescription().isAssignedId();
 					binderFunction = binderFunction.andThen(tree -> {
 						@SuppressWarnings("unchecked")
 						Map<String, Object> properties = (Map<String, Object>) tree.get(Constants.NAME_OF_PROPERTIES_PARAM);
 
 						if (!includeProperty.isNotFiltering()) {
-							properties.entrySet().removeIf(e -> !includeProperty.contains(currentPropertyPath.append(e.getKey())));
+							properties.entrySet().removeIf(e -> {
+								// we cannot skip the id property if it is an assigned id
+								boolean isIdProperty = e.getKey().equals(idPropertyName);
+								return !(assignedId && isIdProperty) && !includeProperty.contains(currentPropertyPath.append(e.getKey()));
+							});
 						}
 						return tree;
 					});
