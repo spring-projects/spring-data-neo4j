@@ -132,6 +132,12 @@ class AdvancedMappingIT {
 		Movie getSequel();
 	}
 
+	interface MovieWithMovieList {
+		String getTitle();
+
+		List<MovieWithMovieList> getSequel();
+	}
+
 	interface MovieRepository extends Neo4jRepository<Movie, String> {
 
 		MovieProjection findProjectionByTitle(String title);
@@ -494,6 +500,19 @@ class AdvancedMappingIT {
 		List<Movie> movies = repository.findMultipleSameTypeRelationshipsWithPath();
 		assertThat(movies).hasSize(1);
 		assertThat(movies.get(0).getActors()).hasSize(6);
+	}
+
+	@Test // GH-2591
+	void createPropertyFilterPathCorrectly(@Autowired Neo4jTemplate neo4jTemplate) {
+		Movie movie = new Movie("Test", "Movie");
+		neo4jTemplate.saveAs(movie, MovieWithMovieList.class);
+
+		Movie foundMovie = neo4jTemplate.findOne("MATCH (m:Movie{title:'Test'}) return m", Collections.emptyMap(), Movie.class).get();
+		assertThat(foundMovie.getTitle()).isEqualTo("Test");
+		assertThat(foundMovie.getDescription()).isNull();
+
+		// clean up to keep the other tests healthy
+		neo4jTemplate.deleteById("Test", Movie.class);
 	}
 
 	@Configuration

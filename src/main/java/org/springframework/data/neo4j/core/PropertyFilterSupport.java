@@ -146,8 +146,10 @@ public final class PropertyFilterSupport {
 					TypeInformation<?> typeInformation = currentTypeInformation.getProperty(nestedInputProperty.getName());
 					ProjectionPathProcessor nextProjectionPathProcessor = projectionPathProcessor.next(nestedInputProperty, typeInformation);
 
-					if (projectionPathProcessor.isChildLevel() && (domainType.equals(nextProjectionPathProcessor.typeInformation.getType())
-					|| returnedType.equals(nextProjectionPathProcessor.typeInformation.getType()))) {
+					if (projectionPathProcessor.isChildLevel() &&
+							(domainType.equals(nextProjectionPathProcessor.typeInformation.getType())
+							|| returnedType.equals(nextProjectionPathProcessor.typeInformation.getActualType().getType())
+							|| returnedType.equals(nextProjectionPathProcessor.typeInformation.getType()))) {
 						break;
 					}
 

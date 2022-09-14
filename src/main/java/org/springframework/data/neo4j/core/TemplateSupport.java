@@ -44,6 +44,7 @@ import org.springframework.data.mapping.PersistentPropertyAccessor;
 import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.neo4j.core.mapping.Constants;
 import org.springframework.data.neo4j.core.mapping.EntityInstanceWithSource;
+import org.springframework.data.neo4j.core.mapping.IdDescription;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentProperty;
@@ -280,7 +281,8 @@ public final class TemplateSupport {
 			Map<String, Object> properties = (Map<String, Object>) tree.get(Constants.NAME_OF_PROPERTIES_PARAM);
 
 			String idPropertyName = entityMetaData.getIdProperty().getPropertyName();
-			boolean assignedId = entityMetaData.getIdDescription().isAssignedId();
+			IdDescription idDescription = entityMetaData.getIdDescription();
+			boolean assignedId = idDescription.isAssignedId() || idDescription.isExternallyGeneratedId();
 			if (!includeProperty.isNotFiltering()) {
 				properties.entrySet()
 						.removeIf(e -> {
