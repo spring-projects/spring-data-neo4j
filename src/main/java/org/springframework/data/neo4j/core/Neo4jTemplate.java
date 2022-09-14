@@ -72,6 +72,7 @@ import org.springframework.data.neo4j.core.mapping.CypherGenerator;
 import org.springframework.data.neo4j.core.mapping.DtoInstantiatingConverter;
 import org.springframework.data.neo4j.core.mapping.EntityFromDtoInstantiatingConverter;
 import org.springframework.data.neo4j.core.mapping.EntityInstanceWithSource;
+import org.springframework.data.neo4j.core.mapping.IdDescription;
 import org.springframework.data.neo4j.core.mapping.MappingSupport;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
@@ -949,7 +950,8 @@ public final class Neo4jTemplate implements
 			@SuppressWarnings("unchecked")
 			Map<String, Object> properties = (Map<String, Object>) tree.get(Constants.NAME_OF_PROPERTIES_PARAM);
 			String idPropertyName = targetPersistentEntity.getIdProperty().getPropertyName();
-			boolean assignedId = targetPersistentEntity.getIdDescription().isAssignedId();
+			IdDescription idDescription = targetPersistentEntity.getIdDescription();
+			boolean assignedId = idDescription.isAssignedId() || idDescription.isExternallyGeneratedId();
 			if (!includeProperty.isNotFiltering()) {
 				properties.entrySet()
 						.removeIf(e -> {

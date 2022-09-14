@@ -19,6 +19,7 @@ import static org.neo4j.cypherdsl.core.Cypher.anyNode;
 import static org.neo4j.cypherdsl.core.Cypher.asterisk;
 import static org.neo4j.cypherdsl.core.Cypher.parameter;
 
+import org.springframework.data.neo4j.core.mapping.IdDescription;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.util.function.Tuple2;
@@ -1053,7 +1054,8 @@ public final class ReactiveNeo4jTemplate implements
 					@SuppressWarnings("unchecked")
 					Function<Object, Map<String, Object>> binderFunction = neo4jMappingContext.getRequiredBinderFunctionFor(entityType);
 					String idPropertyName = targetNodeDescription.getIdProperty().getPropertyName();
-					boolean assignedId = targetNodeDescription.getIdDescription().isAssignedId();
+					IdDescription idDescription = targetNodeDescription.getIdDescription();
+					boolean assignedId = idDescription.isAssignedId() || idDescription.isExternallyGeneratedId();
 					binderFunction = binderFunction.andThen(tree -> {
 						@SuppressWarnings("unchecked")
 						Map<String, Object> properties = (Map<String, Object>) tree.get(Constants.NAME_OF_PROPERTIES_PARAM);
