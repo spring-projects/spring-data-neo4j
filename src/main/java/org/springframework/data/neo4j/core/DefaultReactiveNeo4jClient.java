@@ -45,6 +45,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.BiConsumer;
@@ -81,7 +82,7 @@ class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 		this.userSelectionProvider = builder.impersonatedUserProvider;
 
 		this.conversionService = new DefaultConversionService();
-		new Neo4jConversions().registerConvertersIn((ConverterRegistry) conversionService);
+		Optional.ofNullable(builder.neo4jConversions).orElseGet(Neo4jConversions::new).registerConvertersIn((ConverterRegistry) conversionService);
 	}
 
 	@Override

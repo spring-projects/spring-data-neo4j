@@ -30,6 +30,7 @@ import org.neo4j.driver.Record;
 import org.neo4j.driver.summary.ResultSummary;
 import org.neo4j.driver.types.TypeSystem;
 import org.springframework.core.log.LogAccessor;
+import org.springframework.data.neo4j.core.convert.Neo4jConversions;
 import org.springframework.lang.Nullable;
 
 /**
@@ -75,6 +76,9 @@ public interface Neo4jClient {
 		@Nullable
 		UserSelectionProvider userSelectionProvider;
 
+		@Nullable
+		Neo4jConversions neo4jConversions;
+
 		private Builder(Driver driver) {
 			this.driver = driver;
 		}
@@ -102,6 +106,18 @@ public interface Neo4jClient {
 		 */
 		public Builder withUserSelectionProvider(@Nullable UserSelectionProvider userSelectionProvider) {
 			this.userSelectionProvider = userSelectionProvider;
+			return this;
+		}
+
+		/**
+		 * Configures the set of {@link Neo4jConversions} to use.
+		 *
+		 * @param neo4jConversions the set of conversions to use, can be {@literal null}, in this case the default set is used.
+		 * @return The builder
+		 * @since 6.3.3
+		 */
+		public Builder withNeo4jConversions(Neo4jConversions neo4jConversions) {
+			this.neo4jConversions = neo4jConversions;
 			return this;
 		}
 
