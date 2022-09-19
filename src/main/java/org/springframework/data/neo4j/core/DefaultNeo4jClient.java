@@ -80,7 +80,7 @@ final class DefaultNeo4jClient implements Neo4jClient {
 		this.userSelectionProvider = builder.userSelectionProvider;
 
 		this.conversionService = new DefaultConversionService();
-		new Neo4jConversions().registerConvertersIn((ConverterRegistry) conversionService);
+		Optional.ofNullable(builder.neo4jConversions).orElseGet(Neo4jConversions::new).registerConvertersIn((ConverterRegistry) conversionService);
 	}
 
 	@Override

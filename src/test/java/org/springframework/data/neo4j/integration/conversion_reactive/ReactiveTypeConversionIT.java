@@ -17,6 +17,10 @@ package org.springframework.data.neo4j.integration.conversion_reactive;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.data.neo4j.core.ReactiveDatabaseSelectionProvider;
+import org.springframework.data.neo4j.core.ReactiveNeo4jClient;
+import org.springframework.data.neo4j.core.ReactiveUserSelectionProvider;
 import org.springframework.data.neo4j.test.Neo4jReactiveTestConfiguration;
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
@@ -79,12 +83,27 @@ class ReactiveTypeConversionIT {
 				.expectNextCount(2L).verifyComplete();
 	}
 
+	@Test // GH-2594
+	void clientShouldUseCustomType(@Autowired ReactiveNeo4jClient client) {
+
+		client.query("RETURN 'whatever'")
+				.fetchAs(ThingWithCustomTypes.CustomType.class)
+				.first()
+				.map(ThingWithCustomTypes.CustomType::getValue)
+				.as(StepVerifier::create)
+				.expectNext("whatever")
+				.verifyComplete();
+	}
+
 	public interface ConvertedIDsRepository extends ReactiveNeo4jRepository<ThingWithUUIDID, UUID> {}
 
 	@Configuration
 	@EnableReactiveNeo4jRepositories(considerNestedRepositories = true)
 	@EnableTransactionManagement
 	static class Config extends Neo4jReactiveTestConfiguration {
+
+		@Autowired
+		private ObjectProvider<ReactiveUserSelectionProvider> userSelectionProviders;
 
 		@Bean
 		public Driver driver() {
@@ -99,6 +118,16 @@ class ReactiveTypeConversionIT {
 		@Override
 		public boolean isCypher5Compatible() {
 			return neo4jConnectionSupport.isCypher5SyntaxCompatible();
+		}
+
+		@Override
+		public ReactiveNeo4jClient neo4jClient(Driver driver, ReactiveDatabaseSelectionProvider databaseSelectionProvider) {
+
+			return ReactiveNeo4jClient.with(driver)
+					.withDatabaseSelectionProvider(databaseSelectionProvider)
+					.withUserSelectionProvider(userSelectionProviders.getIfUnique())
+					.withNeo4jConversions(neo4jConversions())
+					.build();
 		}
 	}
 }

@@ -45,6 +45,7 @@ import org.neo4j.driver.Driver;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -52,7 +53,9 @@ import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.data.mapping.MappingException;
 import org.springframework.data.neo4j.core.DatabaseSelectionProvider;
+import org.springframework.data.neo4j.core.Neo4jClient;
 import org.springframework.data.neo4j.core.Neo4jTemplate;
+import org.springframework.data.neo4j.core.UserSelectionProvider;
 import org.springframework.data.neo4j.core.convert.Neo4jConversions;
 import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
 import org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager;
@@ -276,6 +279,14 @@ class TypeConversionIT extends Neo4jConversionsITBase {
 		});
 	}
 
+	@Test // GH-2594
+	void clientShouldUseCustomType(@Autowired Neo4jClient client) {
+
+		Optional<ThingWithCustomTypes.CustomType> value = client.query("RETURN 'whatever'")
+				.fetchAs(ThingWithCustomTypes.CustomType.class).first();
+		assertThat(value).map(ThingWithCustomTypes.CustomType::getValue).hasValue("whatever");
+	}
+
 	public interface ConvertedIDsRepository extends Neo4jRepository<ThingWithUUIDID, UUID> {
 	}
 
@@ -298,6 +309,9 @@ class TypeConversionIT extends Neo4jConversionsITBase {
 	@EnableTransactionManagement
 	static class Config extends Neo4jImperativeTestConfiguration {
 
+		@Autowired
+		private ObjectProvider<UserSelectionProvider> userSelectionProviders;
+
 		@Bean
 		public Driver driver() {
 			return neo4jConnectionSupport.getDriver();
@@ -306,6 +320,16 @@ class TypeConversionIT extends Neo4jConversionsITBase {
 		@Override
 		public Neo4jConversions neo4jConversions() {
 			return new Neo4jConversions(Collections.singleton(new ThingWithCustomTypes.CustomTypeConverter()));
+		}
+
+		@Override
+		public Neo4jClient neo4jClient(Driver driver, DatabaseSelectionProvider databaseSelectionProvider) {
+
+			return Neo4jClient.with(driver)
+					.withDatabaseSelectionProvider(databaseSelectionProvider)
+					.withUserSelectionProvider(userSelectionProviders.getIfUnique())
+					.withNeo4jConversions(neo4jConversions())
+					.build();
 		}
 
 		@Bean
