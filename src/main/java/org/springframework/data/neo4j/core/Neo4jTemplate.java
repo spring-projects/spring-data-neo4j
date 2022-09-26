@@ -938,7 +938,8 @@ public final class Neo4jTemplate implements
 					neo4jClient.query(renderer.render(statementHolder.getStatement()))
 							.bindAll(statementHolder.getProperties())
 							.run();
-				} else if (!newRelatedValuesToStore.isEmpty()) {
+				}
+				if (!newRelatedValuesToStore.isEmpty()) {
 					CreateRelationshipStatementHolder statementHolder = neo4jMappingContext.createStatementForImperativeRelationshipsWithPropertiesBatch(true,
 							sourceEntity, relationshipDescription, newRelatedValuesToStore, newRelationshipPropertiesRows);
 

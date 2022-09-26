@@ -1666,6 +1666,26 @@ class RepositoryIT {
 			assertThat(entity.getRelationshipA().getEntityA().getRelationshipB().getEntityB()).isNotNull();
 		}
 
+		@Test
+		void updateAndCreateRelationshipProperties(@Autowired HobbyWithRelationshipWithPropertiesRepository repository) {
+
+			long hobbyId = doWithSession(
+					session -> session.run("CREATE (n:AltPerson{name:'Freddie'}), (n)-[l1:LIKES {rating: 5}]->(h1:AltHobby{name:'Music'}) RETURN n, h1").single().get("h1").asNode().id());
+
+			AltHobby hobby = repository.findById(hobbyId).get();
+			assertThat(hobby.getName()).isEqualTo("Music");
+			assertThat(hobby.getLikedBy()).hasSize(1);
+
+			AltLikedByPersonRelationship liked = new AltLikedByPersonRelationship();
+			liked.setAltPerson(new AltPerson("SomethingElse"));
+			hobby.getLikedBy().add(liked);
+
+			repository.save(hobby);
+
+			AltHobby savedHobby = repository.findById(hobbyId).get();
+			assertThat(savedHobby.getLikedBy()).hasSize(2);
+
+		}
 	}
 
 	@Nested
