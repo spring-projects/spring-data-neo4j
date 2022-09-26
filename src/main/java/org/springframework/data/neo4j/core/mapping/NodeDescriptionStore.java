@@ -23,6 +23,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
@@ -42,15 +43,15 @@ final class NodeDescriptionStore {
 	 * A lookup of entities based on their primary label. We depend on the locking mechanism provided by the
 	 * {@link AbstractMappingContext}, so this lookup is not synchronized further.
 	 */
-	private final Map<String, NodeDescription<?>> nodeDescriptionsByPrimaryLabel = new HashMap<>();
+	private final Map<String, NodeDescription<?>> nodeDescriptionsByPrimaryLabel = new ConcurrentHashMap<>();
 
-	private final Map<NodeDescription<?>, Map<List<String>, NodeDescriptionAndLabels>> nodeDescriptionAndLabelsCache = new HashMap<>();
+	private final Map<NodeDescription<?>, Map<List<String>, NodeDescriptionAndLabels>> nodeDescriptionAndLabelsCache = new ConcurrentHashMap<>();
 
 	private final BiFunction<NodeDescription<?>, List<String>, NodeDescriptionAndLabels> nodeDescriptionAndLabels =
 			(nodeDescription, labels) -> {
 				Map<List<String>, NodeDescriptionAndLabels> listNodeDescriptionAndLabelsMap = nodeDescriptionAndLabelsCache.get(nodeDescription);
 				if (listNodeDescriptionAndLabelsMap == null) {
-					nodeDescriptionAndLabelsCache.put(nodeDescription, new HashMap<>());
+					nodeDescriptionAndLabelsCache.put(nodeDescription, new ConcurrentHashMap<>());
 					listNodeDescriptionAndLabelsMap = nodeDescriptionAndLabelsCache.get(nodeDescription);
 				}
 
