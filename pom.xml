@@ -69,9 +69,9 @@
 
 	<properties>
 		<apiguardian.version>1.1.1</apiguardian.version>
+		<archunit.version>0.23.1</archunit.version>
 		<asciidoctor-maven-plugin.version>2.1.0</asciidoctor-maven-plugin.version>
 		<asciidoctorj-diagram.version>2.1.0</asciidoctorj-diagram.version>
-
 		<byte-buddy.version>1.11.0</byte-buddy.version>
 		<cdi>3.0.1</cdi>
 		<checkstyle.skip>${skipTests}</checkstyle.skip>
@@ -86,10 +86,6 @@
 		<java-module-name>spring.data.neo4j</java-module-name>
 		<java.version>17</java.version>
 		<jaxb.version>2.3.1</jaxb.version>
-		<jqassistant-dashboard-plugin.version>1.10.0</jqassistant-dashboard-plugin.version>
-		<jqassistant.plugin.git.version>1.8.0</jqassistant.plugin.git.version>
-		<jqassistant.plugin.version>1.10.1</jqassistant.plugin.version>
-		<jqassistant.version>1.10.1</jqassistant.version>
 		<junit-cc-testcontainer>2021.0.1</junit-cc-testcontainer>
 		<maven-checkstyle-plugin.version>3.1.2</maven-checkstyle-plugin.version>
 		<maven-deploy-plugin.version>3.0.0-M1</maven-deploy-plugin.version>
@@ -229,6 +225,11 @@
 				<version>${testcontainers}</version>
 				<type>pom</type>
 				<scope>import</scope>
+			</dependency>
+			<dependency>
+				<groupId>com.tngtech.archunit</groupId>
+				<artifactId>archunit</artifactId>
+				<version>${archunit.version}</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
@@ -437,6 +438,11 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
+		<dependency>
+			<groupId>com.tngtech.archunit</groupId>
+			<artifactId>archunit</artifactId>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 
 	<repositories>
@@ -480,27 +486,6 @@
 						<sortDependencies>groupId,artifactId</sortDependencies>
 						<createBackupFile>false</createBackupFile>
 						<expandEmptyElements>false</expandEmptyElements>
-					</configuration>
-				</plugin>
-				<plugin>
-					<groupId>com.buschmais.jqassistant</groupId>
-					<artifactId>jqassistant-maven-plugin</artifactId>
-					<version>${jqassistant.version}</version>
-					<dependencies>
-						<dependency>
-							<groupId>de.kontext-e.jqassistant.plugin</groupId>
-							<artifactId>jqassistant.plugin.git</artifactId>
-							<version>${jqassistant.plugin.git.version}</version>
-						</dependency>
-						<dependency>
-							<groupId>org.jqassistant.contrib.plugin</groupId>
-							<artifactId>jqassistant-dashboard-plugin</artifactId>
-							<version>${jqassistant-dashboard-plugin.version}</version>
-						</dependency>
-					</dependencies>
-					<configuration>
-						<rulesDirectory>etc/jqassistant</rulesDirectory>
-						<skip>${skipArchitectureTests}</skip>
 					</configuration>
 				</plugin>
 				<plugin>
@@ -711,45 +696,6 @@
 						</manifestEntries>
 					</archive>
 				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>com.buschmais.jqassistant</groupId>
-				<artifactId>jqassistant-maven-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>jqassistant-scan</id>
-						<phase>verify</phase>
-						<goals>
-							<goal>scan</goal>
-						</goals>
-						<configuration>
-							<scanProperties>
-								<jqassistant.plugin.jacoco.filename>jacoco.xml</jqassistant.plugin.jacoco.filename>
-							</scanProperties>
-							<scanIncludes>
-								<scanInclude>
-									<path>${project.basedir}/.git</path>
-								</scanInclude>
-								<scanInclude>
-									<path>${project.reporting.outputDirectory}/jacoco</path>
-								</scanInclude>
-							</scanIncludes>
-						</configuration>
-					</execution>
-					<execution>
-						<id>jqassistant-analyze</id>
-						<goals>
-							<goal>analyze</goal>
-						</goals>
-						<configuration>
-							<failOnSeverity>MINOR</failOnSeverity>
-							<groups>
-								<group>default</group>
-								<group>jqassistant-dashboard:Default</group>
-							</groups>
-						</configuration>
-					</execution>
-				</executions>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>

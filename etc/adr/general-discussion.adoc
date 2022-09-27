@@ -238,16 +238,8 @@ core-[hidden]--->repository
 |===
 
 === Architecture validation
-The structure of this project can be explored as a Graph.
-We use https://jqassistant.org[jQAssistant] to verify our architecture during the build.
-Run the following two commands
-
-```
-./mvnw clean compile jqassistant:scan
-./mvnw jqassistant:server
-```
-
-and point your browser to http://localhost:7474.
+In favour of lightweight builds and JDK restriction of Neo4j, we moved away from https://jqassistant.org[jQAssistant] (still a great tool) and
+have now https://www.archunit.org[ArchUnit] in place.
 
 === `SimpleNeo4jRepository` initialization
 . `@EnableNeo4jRepositories` defines
