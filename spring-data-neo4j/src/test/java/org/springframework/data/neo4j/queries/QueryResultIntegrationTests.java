@@ -104,7 +104,6 @@ public class QueryResultIntegrationTests {
 				String expectedPerson = pet instanceof Cat ? "Sally" : "Billy";
 				assertThat(pet).extracting(Pet::getName).isEqualTo(expectedName);
 				assertThat(pet.getPerson()).isNotNull().extracting(Person::getName).isEqualTo(expectedPerson);
-				System.out.println("what?");
 			});
 		}
 	}
