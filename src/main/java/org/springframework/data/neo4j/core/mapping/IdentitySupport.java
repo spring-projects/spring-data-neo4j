@@ -21,6 +21,7 @@ import org.apiguardian.api.API;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.types.Entity;
 import org.neo4j.driver.types.MapAccessor;
+import org.neo4j.driver.types.Node;
 import org.neo4j.driver.types.Relationship;
 import org.neo4j.driver.types.TypeSystem;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
@@ -88,6 +89,19 @@ public final class IdentitySupport {
 		}
 
 		return row.get(columnToUse).asLong();
+	}
+
+	@Nullable
+	public static String getInternalId(@NonNull MapAccessor queryResult, @Nullable String seed) {
+		if (queryResult instanceof Node) {
+			return "N" + getInternalId(queryResult);
+		} else if (queryResult instanceof Relationship) {
+			return "R" + seed + getInternalId(queryResult);
+		} else if (!(queryResult.get(Constants.NAME_OF_INTERNAL_ID) == null || queryResult.get(Constants.NAME_OF_INTERNAL_ID).isNull())) {
+			return "N" + queryResult.get(Constants.NAME_OF_INTERNAL_ID).asLong();
+		}
+
+		return null;
 	}
 
 	/**

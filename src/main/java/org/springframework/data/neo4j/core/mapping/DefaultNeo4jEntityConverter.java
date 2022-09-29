@@ -144,7 +144,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 				Node node = value.asNode();
 				if (primaryLabels.stream().anyMatch(node::hasLabel)) { // it has a matching label
 					// We haven't seen this node yet, so we take it
-					if (!knownObjects.containsNode(node)) {
+					if (knownObjects.getObject("N" + IdentitySupport.getInternalId(node)) == null) {
 						matchingNodes.add(node);
 					} else {
 						seenMatchingNodes.add(node);
@@ -264,17 +264,18 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 	private <ET> ET map(MapAccessor queryResult, MapAccessor allValues, Neo4jPersistentEntity<ET> nodeDescription) {
 		Collection<Relationship> relationshipsFromResult = extractRelationships(allValues);
 		Collection<Node> nodesFromResult = extractNodes(allValues);
-		return map(queryResult, nodeDescription, null, relationshipsFromResult, nodesFromResult);
+		return map(queryResult, nodeDescription, null, null, relationshipsFromResult, nodesFromResult);
 	}
 
 	private <ET> ET map(MapAccessor queryResult, Neo4jPersistentEntity<ET> nodeDescription,
-			@Nullable Object lastMappedEntity, Collection<Relationship> relationshipsFromResult, Collection<Node> nodesFromResult) {
+			@Nullable Object lastMappedEntity, @Nullable RelationshipDescription relationshipDescription, Collection<Relationship> relationshipsFromResult, Collection<Node> nodesFromResult) {
 
 		// prior to SDN 7 local `getInternalId` didn't check relationships, so in that case, they have never been a known
 		// object. The centralized methods checks those too now. The condition is to recreate the old behaviour without
 		// losing the central access. The behaviour of knowObjects should take different sources of ids into account,
 		// as relationships and nodes might have overlapping values
-		Long internalId = queryResult instanceof Relationship ? null : IdentitySupport.getInternalId(queryResult);
+		String direction = relationshipDescription != null ? relationshipDescription.getDirection().name() : null;
+		String internalId = IdentitySupport.getInternalId(queryResult, direction);
 
 		Supplier<ET> mappedObjectSupplier = () -> {
 			if (knownObjects.isInCreation(internalId)) {
@@ -282,7 +283,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 						String.format(
 								"The node with id %s has a logical cyclic mapping dependency; " +
 								"its creation caused the creation of another node that has a reference to this",
-								internalId)
+								internalId.substring(1))
 				);
 			}
 			knownObjects.setInCreation(internalId);
@@ -330,7 +331,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 	}
 
 
-	private <ET> void populateProperties(MapAccessor queryResult, Neo4jPersistentEntity<ET> nodeDescription, Long internalId,
+	private <ET> void populateProperties(MapAccessor queryResult, Neo4jPersistentEntity<ET> nodeDescription, String internalId,
 										 ET mappedObject, @Nullable Object lastMappedEntity,
 										 Collection<Relationship> relationshipsFromResult, Collection<Node> nodesFromResult, boolean objectAlreadyMapped) {
 
@@ -533,6 +534,23 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 			boolean populatedScalarValue = !persistentProperty.isCollectionLike() && !persistentProperty.isMap()
 					&& propertyValueNotNull;
 
+			if (populatedCollection) {
+				createInstanceOfRelationships(persistentProperty, queryResult, (RelationshipDescription) association, baseDescription, relationshipsFromResult, nodesFromResult, false)
+						.ifPresent(value -> {
+							Collection<?> providedCollection = (Collection<?>) value;
+							Collection<?> existingValue = (Collection<?>) propertyValue;
+							Collection<Object> newValue = CollectionFactory.createCollection(existingValue.getClass(), providedCollection.size() + existingValue.size());
+
+							RelationshipDescription relationshipDescription = (RelationshipDescription) association;
+							Map<Object, Object> mergedValues = new HashMap<>();
+							mergeCollections(relationshipDescription, existingValue, mergedValues);
+							mergeCollections(relationshipDescription, providedCollection, mergedValues);
+
+							newValue.addAll(mergedValues.values());
+							propertyAccessor.setProperty(persistentProperty, newValue);
+						});
+			}
+
 			boolean propertyAlreadyPopulated = populatedCollection || populatedMap || populatedScalarValue;
 
 			// avoid unnecessary re-assignment of values
@@ -545,9 +563,33 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 		};
 	}
 
+	private void mergeCollections(RelationshipDescription relationshipDescription, Collection<?> values, Map<Object, Object> mergedValues) {
+		for (Object existingValueInCollection : values) {
+			if (relationshipDescription.hasRelationshipProperties()) {
+				Object existingIdPropertyValue = ((Neo4jPersistentEntity<?>) relationshipDescription.getRelationshipPropertiesEntity())
+						.getPropertyAccessor(existingValueInCollection)
+						.getProperty(((Neo4jPersistentEntity<?>) relationshipDescription.getRelationshipPropertiesEntity()).getIdProperty());
+
+				mergedValues.put(existingIdPropertyValue, existingValueInCollection);
+			} else if (!relationshipDescription.isDynamic()) { // should not happen because this is all inside populatedCollection (but better safe than sorry)
+				Object existingIdPropertyValue = ((Neo4jPersistentEntity<?>) relationshipDescription.getTarget())
+						.getPropertyAccessor(existingValueInCollection)
+						.getProperty(((Neo4jPersistentEntity<?>) relationshipDescription.getTarget()).getIdProperty());
+
+				mergedValues.put(existingIdPropertyValue, existingValueInCollection);
+			}
+		}
+	}
+
+	private Optional<Object> createInstanceOfRelationships(Neo4jPersistentProperty persistentProperty, MapAccessor values,
+														   RelationshipDescription relationshipDescription, NodeDescription<?> baseDescription, Collection<Relationship> relationshipsFromResult,
+														   Collection<Node> nodesFromResult) {
+		return createInstanceOfRelationships(persistentProperty, values, relationshipDescription, baseDescription, relationshipsFromResult, nodesFromResult, true);
+	}
+
 	private Optional<Object> createInstanceOfRelationships(Neo4jPersistentProperty persistentProperty, MapAccessor values,
 		   RelationshipDescription relationshipDescription, NodeDescription<?> baseDescription, Collection<Relationship> relationshipsFromResult,
-		   Collection<Node> nodesFromResult) {
+		   Collection<Node> nodesFromResult, boolean fetchMore) {
 
 		String typeOfRelationship = relationshipDescription.getType();
 		String targetLabel = relationshipDescription.getTarget().getPrimaryLabel();
@@ -588,6 +630,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 
 		if (Values.NULL.equals(list)) {
 			Long sourceNodeId = IdentitySupport.getInternalId(values);
+			//Long sourceNodeId = getInternalIdAsLong(values);
 
 			Function<Relationship, Long> sourceIdSelector = relationshipDescription.isIncoming() ? IdentitySupport::getEndId : IdentitySupport::getStartId;
 			Function<Relationship, Long> targetIdSelector = relationshipDescription.isIncoming() ? IdentitySupport::getStartId : IdentitySupport::getEndId;
@@ -614,7 +657,8 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 						// If this relationship got processed twice (OUTGOING, INCOMING), it is never needed again
 						// and therefor should not be in the list.
 						// Otherwise, for highly linked data it could potentially cause a StackOverflowError.
-						if (knownObjects.hasProcessedRelationshipCompletely(IdentitySupport.getInternalId(possibleRelationship))) {
+						String direction = relationshipDescription.getDirection().name();
+						if (knownObjects.hasProcessedRelationshipCompletely("R" + direction + IdentitySupport.getInternalId(possibleRelationship))) {
 							relationshipsFromResult.remove(possibleRelationship);
 						}
 						// If the target is the same(equal) node, get the related object from the cache.
@@ -622,14 +666,28 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 						// the property population of _this_ object.
 						// The initial population will happen at the end of this mapping. This is sufficient because
 						// it only affects properties not changing the instance of the object.
-						Object mappedObject = sourceNodeId != null && sourceNodeId.equals(targetNodeId)
-								? knownObjects.getObject(sourceNodeId)
-								: map(possibleValueNode, concreteTargetNodeDescription, null, relationshipsFromResult, nodesFromResult);
-						if (relationshipDescription.hasRelationshipProperties()) {
+						Object mappedObject;
+						if (fetchMore) {
+							mappedObject = sourceNodeId != null && sourceNodeId.equals(targetNodeId)
+									? knownObjects.getObject("N" + sourceNodeId)
+									: map(possibleValueNode, concreteTargetNodeDescription, null, null, relationshipsFromResult, nodesFromResult);
+						} else {
+							Object objectFromStore = knownObjects.getObject("N" + targetNodeId);
+							mappedObject = objectFromStore != null
+								? objectFromStore
+								: map(possibleValueNode, concreteTargetNodeDescription, null, null, relationshipsFromResult, nodesFromResult);
+						}
 
-							Object relationshipProperties = map(possibleRelationship,
-									(Neo4jPersistentEntity<?>) relationshipDescription.getRelationshipPropertiesEntity(),
-									mappedObject, relationshipsFromResult, nodesFromResult);
+						if (relationshipDescription.hasRelationshipProperties()) {
+							Object relationshipProperties;
+							if (fetchMore) {
+								relationshipProperties = map(possibleRelationship, (Neo4jPersistentEntity<?>) relationshipDescription.getRelationshipPropertiesEntity(), mappedObject, relationshipDescription, relationshipsFromResult, nodesFromResult);
+							} else {
+								Object objectFromStore = knownObjects.getObject(IdentitySupport.getInternalId(possibleRelationship, relationshipDescription.getDirection().name()));
+								relationshipProperties = objectFromStore != null
+									? objectFromStore
+									: map(possibleRelationship, (Neo4jPersistentEntity<?>) relationshipDescription.getRelationshipPropertiesEntity(), mappedObject, relationshipDescription, relationshipsFromResult, nodesFromResult);
+							}
 							relationshipsAndProperties.add(relationshipProperties);
 							mappedObjectHandler.accept(possibleRelationship.type(), relationshipProperties);
 						} else {
@@ -646,7 +704,15 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 				Neo4jPersistentEntity<?> concreteTargetNodeDescription =
 						getMostConcreteTargetNodeDescription(genericTargetNodeDescription, relatedEntity);
 
-				Object valueEntry = map(relatedEntity, concreteTargetNodeDescription, null, relationshipsFromResult, nodesFromResult);
+				Object valueEntry;
+				if (fetchMore) {
+					valueEntry = map(relatedEntity, concreteTargetNodeDescription, null, null, relationshipsFromResult, nodesFromResult);
+				} else {
+					Object objectFromStore = knownObjects.getObject(IdentitySupport.getInternalId(relatedEntity, null));
+					valueEntry = objectFromStore != null
+						? objectFromStore
+						: map(relatedEntity, concreteTargetNodeDescription, null, null, relationshipsFromResult, nodesFromResult);
+				}
 
 				if (relationshipDescription.hasRelationshipProperties()) {
 					String sourceLabel = relationshipDescription.getSource().getMostAbstractParentLabel(baseDescription);
@@ -655,9 +721,16 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 					Relationship relatedEntityRelationship = relatedEntity.get(relationshipSymbolicName)
 							.asRelationship();
 
-					Object relationshipProperties = map(relatedEntityRelationship,
-							(Neo4jPersistentEntity<?>) relationshipDescription.getRelationshipPropertiesEntity(),
-							valueEntry, relationshipsFromResult, nodesFromResult);
+					Object relationshipProperties;
+					if (fetchMore) {
+						relationshipProperties = map(relatedEntityRelationship, (Neo4jPersistentEntity<?>) relationshipDescription.getRelationshipPropertiesEntity(), valueEntry, relationshipDescription, relationshipsFromResult, nodesFromResult);
+					} else {
+						Object objectFromStore = knownObjects.getObject(IdentitySupport.getInternalId(relatedEntityRelationship, relationshipDescription.getDirection().name()));
+						relationshipProperties = objectFromStore != null
+							? objectFromStore
+							: map(relatedEntityRelationship, (Neo4jPersistentEntity<?>) relationshipDescription.getRelationshipPropertiesEntity(), valueEntry, relationshipDescription, relationshipsFromResult, nodesFromResult);
+					}
+
 					relationshipsAndProperties.add(relationshipProperties);
 					mappedObjectHandler.accept(relatedEntity.get(RelationshipDescription.NAME_OF_RELATIONSHIP_TYPE).asString(), relationshipProperties);
 				} else {
@@ -773,14 +846,14 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 		private final Lock read = lock.readLock();
 		private final Lock write = lock.writeLock();
 
-		private final Map<Long, Object> internalIdStore = new HashMap<>();
-		private final Map<Long, Boolean> internalCurrentRecord = new HashMap<>();
-		private final Set<Long> previousRecords = new HashSet<>();
-		private final Set<Long> idsInCreation = new HashSet<>();
+		private final Map<String, Object> internalIdStore = new HashMap<>();
+		private final Map<String, Boolean> internalCurrentRecord = new HashMap<>();
+		private final Set<String> previousRecords = new HashSet<>();
+		private final Set<String> idsInCreation = new HashSet<>();
 
-		private final Map<Long, Integer> processedRelationships = new HashMap<>();
+		private final Map<String, Integer> processedRelationships = new HashMap<>();
 
-		private void storeObject(@Nullable Long internalId, Object object) {
+		private void storeObject(@Nullable String internalId, Object object) {
 			if (internalId == null) {
 				return;
 			}
@@ -794,7 +867,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 			}
 		}
 
-		private void setInCreation(@Nullable Long internalId) {
+		private void setInCreation(@Nullable String internalId) {
 			if (internalId == null) {
 				return;
 			}
@@ -806,7 +879,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 			}
 		}
 
-		private boolean isInCreation(@Nullable Long internalId) {
+		private boolean isInCreation(@Nullable String internalId) {
 			if (internalId == null) {
 				return false;
 			}
@@ -829,8 +902,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 		}
 
 		@Nullable
-		private Object getObject(@Nullable Long internalId) {
-
+		private Object getObject(@Nullable String internalId) {
 			if (internalId == null) {
 				return null;
 			}
@@ -842,7 +914,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 			}
 		}
 
-		private void removeFromInCreation(@Nullable Long internalId) {
+		private void removeFromInCreation(@Nullable String internalId) {
 			if (internalId == null) {
 				return;
 			}
@@ -854,7 +926,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 			}
 		}
 
-		private boolean alreadyMappedInPreviousRecord(@Nullable Long internalId) {
+		private boolean alreadyMappedInPreviousRecord(@Nullable String internalId) {
 			if (internalId == null) {
 				return false;
 			}
@@ -874,7 +946,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 		 * It increases the process count of relationships (mapped by their ids)
 		 * AND checks if it was already processed twice (INCOMING/OUTGOING).
 		 */
-		private boolean hasProcessedRelationshipCompletely(Long relationshipId) {
+		private boolean hasProcessedRelationshipCompletely(String relationshipId) {
 			try {
 				write.lock();
 
