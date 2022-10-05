@@ -18,7 +18,6 @@ package org.springframework.data.neo4j.aot;
 import org.springframework.aot.generate.GenerationContext;
 import org.springframework.core.ResolvableType;
 import org.springframework.data.aot.ManagedTypesBeanRegistrationAotProcessor;
-import org.springframework.data.domain.ManagedTypes;
 import org.springframework.lang.Nullable;
 import org.springframework.util.ClassUtils;
 
@@ -38,7 +37,7 @@ public class Neo4jManagedTypesBeanRegistrationAotProcessor extends ManagedTypesB
 	}
 
 	protected boolean isNeo4jManagedTypes(@Nullable Class<?> beanType) {
-		return beanType != null && ClassUtils.isAssignable(ManagedTypes.class, beanType);
+		return beanType != null && ClassUtils.isAssignable(Neo4jManagedTypes.class, beanType);
 	}
 
 	@Override

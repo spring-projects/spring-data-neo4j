@@ -44,7 +44,7 @@ public class Neo4jRuntimeHints implements RuntimeHintsRegistrar {
 						TypeReference.of(SimpleQueryByExampleExecutor.class),
 						TypeReference.of(BeforeBindCallback.class),
 						TypeReference.of(AfterConvertCallback.class),
-						// todo "temporary" fix, should get resolved when defined in @GeneratedValue
+						// todo "temporary" fix, should get resolved when class parameters in annotations getting discovered
 						TypeReference.of(UUIDStringGenerator.class),
 						TypeReference.of(GeneratedValue.InternalIdGenerator.class),
 						TypeReference.of(GeneratedValue.UUIDGenerator.class)
