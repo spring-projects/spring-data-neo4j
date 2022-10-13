@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
  | Copyright 2011-2022 the original author or authors.
  |
@@ -13,7 +13,8 @@
  | WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  | See the License for the specific language governing permissions and
  | limitations under the License.
---><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
@@ -76,6 +77,7 @@
 		<cdi>3.0.1</cdi>
 		<checkstyle.skip>${skipTests}</checkstyle.skip>
 		<checkstyle.version>8.40</checkstyle.version>
+		<classgraph.version>4.8.149</classgraph.version>
 		<cypher-dsl.version>2022.6.0</cypher-dsl.version>
 		<dist.id>spring-data-neo4j</dist.id>
 		<dist.key>SDNEO4J</dist.key>
@@ -101,7 +103,7 @@
 		<mockito>${mockito.version}</mockito>
 		<mockito.version>4.4.0</mockito.version>
 		<neo4j-java-driver.version>5.1.0</neo4j-java-driver.version>
-		<neo4j-migrations.version>1.8.1</neo4j-migrations.version>
+		<neo4j-migrations.version>1.13.1</neo4j-migrations.version>
 		<neo4j.version>4.4.8</neo4j.version>
 		<objenesis.version>3.0.1</objenesis.version>
 		<project.build.docs>${project.build.directory}/docs</project.build.docs>
@@ -125,10 +127,20 @@
 				<version>3.0.2</version>
 			</dependency>
 			<dependency>
+				<groupId>com.tngtech.archunit</groupId>
+				<artifactId>archunit</artifactId>
+				<version>${archunit.version}</version>
+			</dependency>
+			<dependency>
 				<groupId>eu.michael-simons.neo4j</groupId>
 				<artifactId>junit-jupiter-causal-cluster-testcontainer-extension</artifactId>
 				<version>${junit-cc-testcontainer}</version>
 				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>io.github.classgraph</groupId>
+				<artifactId>classgraph</artifactId>
+				<version>${classgraph.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>io.r2dbc</groupId>
@@ -226,11 +238,6 @@
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
-			<dependency>
-				<groupId>com.tngtech.archunit</groupId>
-				<artifactId>archunit</artifactId>
-				<version>${archunit.version}</version>
-			</dependency>
 		</dependencies>
 	</dependencyManagement>
 
@@ -261,6 +268,11 @@
 					<groupId>org.jetbrains</groupId>
 				</exclusion>
 			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>com.tngtech.archunit</groupId>
+			<artifactId>archunit</artifactId>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>eu.michael-simons.neo4j</groupId>
@@ -437,11 +449,6 @@
 					<groupId>org.projectlombok</groupId>
 				</exclusion>
 			</exclusions>
-		</dependency>
-		<dependency>
-			<groupId>com.tngtech.archunit</groupId>
-			<artifactId>archunit</artifactId>
-			<scope>test</scope>
 		</dependency>
 	</dependencies>
 
@@ -620,6 +627,7 @@
 						</goals>
 						<configuration>
 							<rules>
+								<DependencyConvergence />
 								<requireMavenVersion>
 									<version>3.8.3</version>
 								</requireMavenVersion>
