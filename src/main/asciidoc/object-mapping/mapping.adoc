@@ -185,6 +185,9 @@ The second operation will fail with a `OptimisticLockingFailureException` becaus
 that does not exist anymore in the database.
 In such cases the operation needs to get retried, beginning with a fresh fetch of the object with the current version from the database.
 
+The `@Version` attribute is also mandatory if <<mapping.id-handling.business-key, business ids>> are used.
+Spring Data Neo4j will check this field to determine if the entity is new or has already been persisted before.
+
 [[mapping.annotations.property]]
 === Mapping properties: `@Property`
 
@@ -479,7 +482,11 @@ The name of the person is assigned at construction time, both by your applicatio
 This is only possible, if you find a stable, unique business key, but makes great immutable domain objects.
 
 * Advantages: Using a business or natural key as primary key is natural.
-The entity in question is clearly identified and it feels most of the time just right in the further modelling of your domain.
+The entity in question is clearly identified, and it feels most of the time just right in the further modelling of your domain.
 * Disadvantages: Business keys as primary keys will be hard to update once you realise that the key you found is not as stable as you thought.
 Often it turns out that it can change, even when promised otherwise.
 Apart from that, finding identifier that are truly unique for a thing is hard.
+
+Please keep in mind that a business key is always set on the domain entity before Spring Data Neo4j processes it.
+This means that it cannot determine if the entity was new or not (it always assumes that the entity is new),
+unless also a <<mapping.annotations.version, `@Version` field>> is provided.
