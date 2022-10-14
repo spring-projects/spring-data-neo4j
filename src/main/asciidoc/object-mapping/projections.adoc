@@ -62,6 +62,14 @@ the projection logic will not follow those cycles but only create cycle-free que
 Multi-level projections are bounded to the entities they should project.
 `RelationshipProperties` fall into the category of entities in this case and needs to get respected if projections get applied.
 
+[[projections.sdn.manipulation]]
+== Data manipulation of projections
+
+If you have fetched the projection as a DTO, you can modify its values.
+But in case you are using the interface-based projection, you cannot just update the interface.
+A typical pattern that can be used is to provide a method in your domain entity class that consumes the interface and creates a domain entity with the copied values from the interface.
+This way, you can then update the entity and persist it again with the projection blueprint/mask as described in the next section.
+
 [[projections.sdn.persistence]]
 == Persistence of projections
 
