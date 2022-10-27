@@ -16,6 +16,7 @@
 package org.springframework.data.neo4j.core.mapping;
 
 import java.lang.reflect.Modifier;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -24,7 +25,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.BiFunction;
-import java.util.function.Function;
 
 import org.springframework.data.mapping.context.AbstractMappingContext;
 import org.springframework.lang.Nullable;
@@ -122,15 +122,12 @@ final class NodeDescriptionStore {
 			Map<NodeDescription<?>, Integer> unmatchedLabelsCache = new HashMap<>();
 			List<String> mostMatchingStaticLabels = null;
 
-			// Remove is faster than "stream, filter, count".
-			Function<NodeDescription<?>, Integer> unmatchedLabelsCount =
-					(nodeDescription) -> {
-						Set<String> staticLabelsClone = new HashSet<>(labels);
-						nodeDescription.getStaticLabels().forEach(staticLabelsClone::remove);
-						return staticLabelsClone.size();
-					};
-
 			for (NodeDescription<?> nd : haystack) {
+
+				if (Modifier.isAbstract(nd.getUnderlyingClass().getModifiers())) {
+					continue;
+				}
+
 				List<String> staticLabels = nd.getStaticLabels();
 
 				if (staticLabels.containsAll(labels)) {
@@ -139,17 +136,20 @@ final class NodeDescriptionStore {
 					return new NodeDescriptionAndLabels(nd, surplusLabels);
 				}
 
-				unmatchedLabelsCache.put(nd, unmatchedLabelsCount.apply(nd));
-				if (mostMatchingNodeDescription == null) {
-					mostMatchingNodeDescription = nd;
-					mostMatchingStaticLabels = staticLabels;
-					continue;
+				int unmatchedLabelsCount = 0;
+				List<String> matchingLabels = new ArrayList<>();
+				for (String staticLabel : staticLabels) {
+					if (labels.contains(staticLabel)) {
+						matchingLabels.add(staticLabel);
+					} else {
+						unmatchedLabelsCount++;
+					}
 				}
 
-				Integer newUnmatchedLabelCount = unmatchedLabelsCache.get(nd);
-				Integer existingUnmatchedLabelCount = unmatchedLabelsCache.get(mostMatchingNodeDescription);
-				if (newUnmatchedLabelCount < existingUnmatchedLabelCount) {
+				unmatchedLabelsCache.put(nd, unmatchedLabelsCount);
+				if (mostMatchingNodeDescription == null || unmatchedLabelsCount < unmatchedLabelsCache.get(mostMatchingNodeDescription)) {
 					mostMatchingNodeDescription = nd;
+					mostMatchingStaticLabels = matchingLabels;
 				}
 			}
 
