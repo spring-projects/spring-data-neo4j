@@ -19,12 +19,23 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.neo4j.cypherdsl.core.Conditions.not;
 import static org.neo4j.cypherdsl.core.Predicates.exists;
 
+import org.junit.jupiter.api.RepeatedTest;
+import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
+import org.springframework.data.neo4j.integration.shared.common.CounterMetric;
+import org.springframework.data.neo4j.integration.shared.common.GaugeMetric;
+import org.springframework.data.neo4j.integration.shared.common.HistogramMetric;
+import org.springframework.data.neo4j.integration.shared.common.Metric;
+import org.springframework.data.neo4j.integration.shared.common.SummaryMetric;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
@@ -79,6 +90,38 @@ import org.springframework.transaction.reactive.TransactionalOperator;
 public class ReactiveDynamicLabelsIT {
 
 	protected static Neo4jExtension.Neo4jConnectionSupport neo4jConnectionSupport;
+
+
+	@Nested
+	class DynamicLabelsAndOrderOfClassesBeingLoaded extends SpringTestBase {
+
+		@Override
+		Long createTestEntity(Transaction t) {
+			return t.run("CREATE (m:Metric:Counter:A:B:C:D {timestamp: datetime()}) RETURN id(m)").single().get(0).asLong();
+
+		}
+
+		@RepeatedTest(100) // GH-2619
+		void ownLabelsShouldNotEndUpWithDynamicLabels(@Autowired Neo4jMappingContext mappingContext, @Autowired ReactiveNeo4jTemplate template) {
+
+			List<Class<? extends Metric>> metrics = Arrays.asList(GaugeMetric.class, SummaryMetric.class, HistogramMetric.class, CounterMetric.class);
+			Collections.shuffle(metrics);
+			for (Class<?> type : metrics) {
+				assertThat(mappingContext.getPersistentEntity(type)).isNotNull();
+			}
+
+			Map<String, Object> args = new HashMap<>();
+			args.put("agentIdLabel", "B");
+			template.findAll("MATCH (m:Metric) WHERE $agentIdLabel in labels(m) RETURN m ORDER BY m.timestamp DESC", args, Metric.class)
+					.as(StepVerifier::create)
+					.assertNext(cm -> {
+						assertThat(cm).isInstanceOf(CounterMetric.class);
+						assertThat(cm.getId()).isEqualTo(existingEntityId);
+						assertThat(cm.getDynamicLabels()).containsExactlyInAnyOrder("A", "B", "C", "D");
+					})
+					.verifyComplete();
+		}
+	}
 
 	@Nested
 	class EntityWithSingleStaticLabelAndGeneratedId extends SpringTestBase {
