@@ -63,6 +63,8 @@ class PartValidator {
 			Part.Type.ENDING_WITH, Part.Type.LIKE, Part.Type.NEGATING_SIMPLE_PROPERTY, Part.Type.NOT_CONTAINING,
 			Part.Type.NOT_LIKE, Part.Type.SIMPLE_PROPERTY, Part.Type.STARTING_WITH);
 
+	private static final EnumSet<Part.Type> TYPES_SUPPORTED_FOR_COMPOSITES = EnumSet.of(Part.Type.SIMPLE_PROPERTY, Part.Type.NEGATING_SIMPLE_PROPERTY);
+
 	private final Neo4jMappingContext mappingContext;
 	private final Neo4jQueryMethod queryMethod;
 
@@ -89,7 +91,9 @@ class PartValidator {
 				break;
 		}
 
-		validateNotACompositeProperty(part);
+		if (!TYPES_SUPPORTED_FOR_COMPOSITES.contains(part.getType())) {
+			validateNotACompositeProperty(part);
+		}
 	}
 
 	private void validateNotACompositeProperty(Part part) {
@@ -138,7 +142,7 @@ class PartValidator {
 	 * Checks whether the given part can be queried without case sensitivity.
 	 *
 	 * @param part query part to check if ignoring case sensitivity is possible
-	 * @return True when {@code part} can be queried case insensitive.
+	 * @return True when {@code part} can be queried case-insensitive.
 	 */
 	static boolean canIgnoreCase(Part part) {
 		return part.getProperty().getLeafType() == String.class

@@ -17,13 +17,17 @@ package org.springframework.data.neo4j.repository.query;
 
 import static org.neo4j.cypherdsl.core.Cypher.parameter;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 import org.apiguardian.api.API;
 import org.neo4j.cypherdsl.core.Condition;
 import org.neo4j.cypherdsl.core.Conditions;
+import org.neo4j.cypherdsl.core.Cypher;
+import org.neo4j.cypherdsl.core.Node;
 import org.neo4j.cypherdsl.core.SortItem;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Pageable;
@@ -94,9 +98,16 @@ public final class QueryFragmentsAndParameters {
 	public static QueryFragmentsAndParameters forFindById(Neo4jPersistentEntity<?> entityMetaData, Object idValues) {
 		Map<String, Object> parameters = Collections.singletonMap(Constants.NAME_OF_ID, idValues);
 
-		Condition condition = entityMetaData.getIdExpression().isEqualTo(parameter(Constants.NAME_OF_ID));
+		Node container = cypherGenerator.createRootNode(entityMetaData);
+		Condition condition;
+		if (entityMetaData.getIdProperty().isComposite()) {
+			condition = CypherGenerator.INSTANCE.createCompositePropertyCondition(entityMetaData.getIdProperty(), container.getRequiredSymbolicName(), parameter(Constants.NAME_OF_ID));
+		} else {
+			condition = entityMetaData.getIdExpression().isEqualTo(parameter(Constants.NAME_OF_ID));
+		}
+
 		QueryFragments queryFragments = new QueryFragments();
-		queryFragments.addMatchOn(cypherGenerator.createRootNode(entityMetaData));
+		queryFragments.addMatchOn(container);
 		queryFragments.setCondition(condition);
 		queryFragments.setReturnExpressions(cypherGenerator.createReturnStatementForMatch(entityMetaData));
 		return new QueryFragmentsAndParameters(entityMetaData, queryFragments, parameters);
@@ -105,9 +116,21 @@ public final class QueryFragmentsAndParameters {
 	public static QueryFragmentsAndParameters forFindByAllId(Neo4jPersistentEntity<?> entityMetaData, Object idValues) {
 		Map<String, Object> parameters = Collections.singletonMap(Constants.NAME_OF_IDS, idValues);
 
-		Condition condition = entityMetaData.getIdExpression().in((parameter(Constants.NAME_OF_IDS)));
+		Node container = cypherGenerator.createRootNode(entityMetaData);
+		Condition condition;
+		if (entityMetaData.getIdProperty().isComposite()) {
+			List<Object> args = new ArrayList<>();
+			for (String key : entityMetaData.getIdProperty().getOptionalConverter().write(null).keys()) {
+				args.add(key);
+				args.add(container.property(key));
+			}
+			condition = Cypher.mapOf(args.toArray()).in(parameter(Constants.NAME_OF_IDS));
+		} else {
+			condition = entityMetaData.getIdExpression().in(parameter(Constants.NAME_OF_IDS));
+		}
+
 		QueryFragments queryFragments = new QueryFragments();
-		queryFragments.addMatchOn(cypherGenerator.createRootNode(entityMetaData));
+		queryFragments.addMatchOn(container);
 		queryFragments.setCondition(condition);
 		queryFragments.setReturnExpressions(cypherGenerator.createReturnStatementForMatch(entityMetaData));
 		return new QueryFragmentsAndParameters(entityMetaData, queryFragments, parameters);
@@ -124,9 +147,16 @@ public final class QueryFragmentsAndParameters {
 	public static QueryFragmentsAndParameters forExistsById(Neo4jPersistentEntity<?> entityMetaData, Object idValues) {
 		Map<String, Object> parameters = Collections.singletonMap(Constants.NAME_OF_ID, idValues);
 
-		Condition condition = entityMetaData.getIdExpression().isEqualTo(parameter(Constants.NAME_OF_ID));
+		Node container = cypherGenerator.createRootNode(entityMetaData);
+		Condition condition;
+		if (entityMetaData.getIdProperty().isComposite()) {
+			condition = CypherGenerator.INSTANCE.createCompositePropertyCondition(entityMetaData.getIdProperty(), container.getRequiredSymbolicName(), parameter(Constants.NAME_OF_ID));
+		} else {
+			condition = entityMetaData.getIdExpression().isEqualTo(parameter(Constants.NAME_OF_ID));
+		}
+
 		QueryFragments queryFragments = new QueryFragments();
-		queryFragments.addMatchOn(cypherGenerator.createRootNode(entityMetaData));
+		queryFragments.addMatchOn(container);
 		queryFragments.setCondition(condition);
 		queryFragments.setReturnExpressions(cypherGenerator.createReturnStatementForExists(entityMetaData));
 		return new QueryFragmentsAndParameters(entityMetaData, queryFragments, parameters);
