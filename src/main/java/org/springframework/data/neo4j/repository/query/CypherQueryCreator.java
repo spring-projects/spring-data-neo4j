@@ -324,6 +324,19 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndPar
 		Neo4jPersistentProperty property = path.getRequiredLeafProperty();
 
 		boolean ignoreCase = ignoreCase(part);
+
+		if (property.isComposite()) {
+
+			Condition compositePropertyCondition = CypherGenerator.INSTANCE.createCompositePropertyCondition(
+					property,
+					Cypher.name(getContainerName(path, (Neo4jPersistentEntity<?>) property.getOwner())),
+					toCypherParameter(nextRequiredParameter(actualParameters, property), ignoreCase));
+			if (part.getType() == Part.Type.NEGATING_SIMPLE_PROPERTY) {
+				compositePropertyCondition = Conditions.not(compositePropertyCondition);
+			}
+			return compositePropertyCondition;
+		}
+
 		return switch (part.getType()) {
 			case AFTER, GREATER_THAN -> toCypherProperty(path, ignoreCase)
 					.gt(toCypherParameter(nextRequiredParameter(actualParameters, property), ignoreCase));
@@ -517,25 +530,15 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndPar
 		Neo4jPersistentEntity<?> owner = (Neo4jPersistentEntity<?>) leafProperty.getOwner();
 		Expression expression;
 
+		String containerName = getContainerName(path, owner);
 		if (owner.equals(this.nodeDescription) && path.getLength() == 1) {
 			expression = leafProperty.isInternalIdProperty() ?
 					Cypher.call("id").withArgs(Constants.NAME_OF_TYPED_ROOT_NODE.apply(nodeDescription)).asFunction() :
-					Cypher.property(Constants.NAME_OF_TYPED_ROOT_NODE.apply(nodeDescription), leafProperty.getPropertyName());
+					Cypher.property(containerName, leafProperty.getPropertyName());
+		} else if (leafProperty.isInternalIdProperty()) {
+			expression = Cypher.call("id").withArgs(Cypher.name(containerName)).asFunction();
 		} else {
-			PropertyPathWrapper propertyPathWrapper = propertyPathWrappers.stream()
-					.filter(rp -> rp.getPropertyPath().equals(path)).findFirst().get();
-			String cypherElementName;
-			// this "entity" is a representation of a relationship with properties
-			if (owner.isRelationshipPropertiesEntity()) {
-				cypherElementName = propertyPathWrapper.getRelationshipName();
-			} else {
-				cypherElementName = propertyPathWrapper.getNodeName();
-			}
-			if (leafProperty.isInternalIdProperty()) {
-				expression = Cypher.call("id").withArgs(Cypher.name(cypherElementName)).asFunction();
-			} else {
-				expression = Cypher.property(cypherElementName, leafProperty.getPropertyName());
-			}
+			expression = Cypher.property(containerName, leafProperty.getPropertyName());
 		}
 
 		if (addToLower) {
@@ -543,6 +546,24 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndPar
 		}
 
 		return expression;
+	}
+
+	private String getContainerName(PersistentPropertyPath<Neo4jPersistentProperty> path, Neo4jPersistentEntity<?> owner) {
+
+		if (owner.equals(this.nodeDescription) && path.getLength() == 1) {
+			return Constants.NAME_OF_TYPED_ROOT_NODE.apply(this.nodeDescription).getValue();
+		}
+
+		PropertyPathWrapper propertyPathWrapper = propertyPathWrappers.stream()
+				.filter(rp -> rp.getPropertyPath().equals(path)).findFirst().get();
+		String cypherElementName;
+		// this "entity" is a representation of a relationship with properties
+		if (owner.isRelationshipPropertiesEntity()) {
+			cypherElementName = propertyPathWrapper.getRelationshipName();
+		} else {
+			cypherElementName = propertyPathWrapper.getNodeName();
+		}
+		return cypherElementName;
 	}
 
 	private Expression toCypherParameter(Parameter parameter, boolean addToLower) {

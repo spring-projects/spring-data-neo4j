@@ -139,6 +139,13 @@ public interface NodeDescription<T> {
 	 */
 	default Expression getIdExpression() {
 
+		if (this.getIdDescription().getOptionalGraphPropertyName()
+				.flatMap(this::getGraphProperty)
+				.filter(GraphPropertyDescription::isComposite)
+				.isPresent()) {
+			throw new IllegalStateException("A composite id property cannot be used as ID expression.");
+		}
+
 		return this.getIdDescription().asIdExpression();
 	}
 

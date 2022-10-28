@@ -253,6 +253,22 @@ public enum CypherGenerator {
 		return ongoingUpdate.build();
 	}
 
+	public Condition createCompositePropertyCondition(GraphPropertyDescription idProperty, SymbolicName containerName, Expression actualParameter) {
+
+		if (!idProperty.isComposite()) {
+			return Cypher.property(containerName, idProperty.getPropertyName()).isEqualTo(actualParameter);
+		}
+
+		Neo4jPersistentProperty property = (Neo4jPersistentProperty) idProperty;
+
+		Condition result = Conditions.noCondition();
+		for (String key : property.getOptionalConverter().write(null).keys()) {
+			Property expression = Cypher.property(containerName, key);
+			result = result.and(expression.isEqualTo(actualParameter.property(key)));
+		}
+		return result;
+	}
+
 	public Statement prepareSaveOf(NodeDescription<?> nodeDescription,
 			UnaryOperator<OngoingMatchAndUpdate> updateDecorator) {
 
@@ -265,8 +281,7 @@ public enum CypherGenerator {
 		Parameter<?> idParameter = parameter(Constants.NAME_OF_ID);
 
 		if (!idDescription.isInternallyGeneratedId()) {
-			String nameOfIdProperty = idDescription.getOptionalGraphPropertyName()
-					.orElseThrow(() -> new MappingException("External id does not correspond to a graph property"));
+			GraphPropertyDescription idPropertyDescription = ((Neo4jPersistentEntity<?>) nodeDescription).getRequiredIdProperty();
 
 			if (((Neo4jPersistentEntity<?>) nodeDescription).hasVersionProperty()) {
 				Property versionProperty = rootNode.property(((Neo4jPersistentEntity<?>) nodeDescription).getRequiredVersionProperty().getName());
@@ -274,7 +289,7 @@ public enum CypherGenerator {
 				Node possibleExistingNode = node(primaryLabel, additionalLabels).named(nameOfPossibleExistingNode);
 
 				Statement createIfNew = updateDecorator.apply(optionalMatch(possibleExistingNode)
-						.where(possibleExistingNode.property(nameOfIdProperty).isEqualTo(idParameter))
+						.where(createCompositePropertyCondition(idPropertyDescription, possibleExistingNode.getRequiredSymbolicName(), idParameter))
 						.with(possibleExistingNode)
 						.where(possibleExistingNode.isNull())
 						.create(rootNode.withProperties(versionProperty, literalOf(0)))
@@ -283,7 +298,7 @@ public enum CypherGenerator {
 						.build();
 
 				Statement updateIfExists = updateDecorator.apply(match(rootNode)
-						.where(rootNode.property(nameOfIdProperty).isEqualTo(idParameter))
+						.where(createCompositePropertyCondition(idPropertyDescription, rootNode.getRequiredSymbolicName(), idParameter))
 						.and(versionProperty.isEqualTo(parameter(Constants.NAME_OF_VERSION_PARAM))) // Initial check
 						.set(versionProperty.to(versionProperty.add(literalOf(1)))) // Acquire lock
 						.with(rootNode)
@@ -299,7 +314,7 @@ public enum CypherGenerator {
 				Node possibleExistingNode = node(primaryLabel, additionalLabels).named(nameOfPossibleExistingNode);
 
 				Statement createIfNew = updateDecorator.apply(optionalMatch(possibleExistingNode)
-								.where(possibleExistingNode.property(nameOfIdProperty).isEqualTo(idParameter))
+								.where(createCompositePropertyCondition(idPropertyDescription, possibleExistingNode.getRequiredSymbolicName(), idParameter))
 								.with(possibleExistingNode)
 								.where(possibleExistingNode.isNull())
 								.create(rootNode)
@@ -308,7 +323,7 @@ public enum CypherGenerator {
 						.build();
 
 				Statement updateIfExists = updateDecorator.apply(match(rootNode)
-								.where(rootNode.property(nameOfIdProperty).isEqualTo(idParameter))
+								.where(createCompositePropertyCondition(idPropertyDescription, rootNode.getRequiredSymbolicName(), idParameter))
 								.with(rootNode)
 								.mutate(rootNode, parameter(Constants.NAME_OF_PROPERTIES_PARAM)))
 						.returning(rootNode)
