@@ -18,6 +18,7 @@ package org.springframework.data.neo4j.core;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -25,7 +26,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
-import reactor.adapter.JdkFlowAdapter;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
@@ -45,8 +45,8 @@ import org.neo4j.driver.Session;
 import org.neo4j.driver.SessionConfig;
 import org.neo4j.driver.Transaction;
 import org.neo4j.driver.TransactionConfig;
-import org.neo4j.driver.reactive.ReactiveSession;
-import org.neo4j.driver.reactive.ReactiveTransaction;
+import org.neo4j.driver.reactivestreams.ReactiveSession;
+import org.neo4j.driver.reactivestreams.ReactiveTransaction;
 import org.neo4j.driver.types.TypeSystem;
 import org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -164,15 +164,15 @@ class TransactionHandlingTest {
 			DefaultReactiveNeo4jClient neo4jClient = new DefaultReactiveNeo4jClient(ReactiveNeo4jClient.with(driver));
 			neo4jClient.query("RETURN 1").in("aDatabase").fetch().one();
 
-			verify(driver, never()).reactiveSession(any(SessionConfig.class));
+			verify(driver, never()).session(eq(ReactiveSession.class), any(SessionConfig.class));
 			verifyNoMoreInteractions(driver, session);
 		}
 
 		@Test
 		void shouldCloseUnmanagedSessionOnComplete() {
 
-			when(driver.reactiveSession(any(SessionConfig.class))).thenReturn(session);
-			when(session.close()).thenReturn(JdkFlowAdapter.publisherToFlowPublisher(Mono.empty()));
+			when(driver.session(eq(ReactiveSession.class), any(SessionConfig.class))).thenReturn(session);
+			when(session.close()).thenReturn(Mono.empty());
 
 			DefaultReactiveNeo4jClient neo4jClient = new DefaultReactiveNeo4jClient(ReactiveNeo4jClient.with(driver));
 
@@ -180,7 +180,7 @@ class TransactionHandlingTest {
 
 			StepVerifier.create(sequence).expectNext("1").verifyComplete();
 
-			verify(driver).reactiveSession(any(SessionConfig.class));
+			verify(driver).session(eq(ReactiveSession.class), any(SessionConfig.class));
 			verify(session).lastBookmarks();
 			verify(session).close();
 			verifyNoMoreInteractions(driver, session, transaction);
@@ -189,8 +189,8 @@ class TransactionHandlingTest {
 		@Test
 		void shouldCloseUnmanagedSessionOnError() {
 
-			when(driver.reactiveSession(any(SessionConfig.class))).thenReturn(session);
-			when(session.close()).thenReturn(JdkFlowAdapter.publisherToFlowPublisher(Mono.empty()));
+			when(driver.session(eq(ReactiveSession.class), any(SessionConfig.class))).thenReturn(session);
+			when(session.close()).thenReturn(Mono.empty());
 
 			DefaultReactiveNeo4jClient neo4jClient = new DefaultReactiveNeo4jClient(ReactiveNeo4jClient.with(driver));
 
@@ -198,7 +198,7 @@ class TransactionHandlingTest {
 
 			StepVerifier.create(sequence).expectError(SomeException.class).verify();
 
-			verify(driver).reactiveSession(any(SessionConfig.class));
+			verify(driver).session(eq(ReactiveSession.class), any(SessionConfig.class));
 			verify(session).lastBookmarks();
 			verify(session).close();
 			verifyNoMoreInteractions(driver, session, transaction);

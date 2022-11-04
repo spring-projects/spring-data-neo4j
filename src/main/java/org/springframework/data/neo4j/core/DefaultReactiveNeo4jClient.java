@@ -20,11 +20,12 @@ import org.neo4j.driver.Driver;
 import org.neo4j.driver.Query;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Value;
-import org.neo4j.driver.reactive.ReactiveQueryRunner;
-import org.neo4j.driver.reactive.ReactiveResult;
-import org.neo4j.driver.reactive.ReactiveSession;
+import org.neo4j.driver.reactivestreams.ReactiveQueryRunner;
+import org.neo4j.driver.reactivestreams.ReactiveResult;
+import org.neo4j.driver.reactivestreams.ReactiveSession;
 import org.neo4j.driver.summary.ResultSummary;
 import org.neo4j.driver.types.TypeSystem;
+import org.reactivestreams.Publisher;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.converter.ConverterRegistry;
 import org.springframework.core.convert.support.DefaultConversionService;
@@ -36,7 +37,6 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
-import reactor.adapter.JdkFlowAdapter;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.util.function.Tuple2;
@@ -48,7 +48,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.Flow.Publisher;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
@@ -100,7 +99,7 @@ final class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 									try {
 										lock.lock();
 										Set<Bookmark> lastBookmarks = new HashSet<>(bookmarks);
-										return Tuples.of(driver.reactiveSession(Neo4jTransactionUtils.sessionConfig(false, lastBookmarks, targetDatabaseAndUser.getT1(), targetDatabaseAndUser.getT2())), lastBookmarks);
+										return Tuples.of(driver.session(ReactiveSession.class, Neo4jTransactionUtils.sessionConfig(false, lastBookmarks, targetDatabaseAndUser.getT1(), targetDatabaseAndUser.getT2())), lastBookmarks);
 									} finally {
 										lock.unlock();
 									}
@@ -134,7 +133,7 @@ final class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 			// We're only going to close sessions we have acquired inside the client, not something that
 			// has been retrieved from the tx manager.
 			if (this.delegate instanceof ReactiveSession session) {
-				return JdkFlowAdapter.flowPublisherToFlux(session.close()).then().doOnSuccess(signal ->
+				return Mono.fromDirect(session.close()).then().doOnSuccess(signal ->
 						this.newBookmarkConsumer.accept(usedBookmarks, session.lastBookmarks()));
 			}
 
@@ -418,9 +417,9 @@ final class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 
 		Flux<T> executeWith(Tuple2<String, Map<String, Object>> t, ReactiveQueryRunner runner) {
 
-			return Flux.usingWhen(JdkFlowAdapter.flowPublisherToFlux(runner.run(t.getT1(), t.getT2())),
-					result -> JdkFlowAdapter.flowPublisherToFlux(result.records()).mapNotNull(r -> mappingFunction.apply(typeSystem, r)),
-					result -> JdkFlowAdapter.flowPublisherToFlux(result.consume()).doOnNext(ResultSummaries::process));
+			return Flux.usingWhen(Flux.from(runner.run(t.getT1(), t.getT2())),
+					result -> Flux.from(result.records()).mapNotNull(r -> mappingFunction.apply(typeSystem, r)),
+					result -> Flux.from(result.consume()).doOnNext(ResultSummaries::process));
 		}
 
 		@Override
@@ -450,8 +449,8 @@ final class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 		Mono<ResultSummary> run() {
 
 			return doInQueryRunnerForMono(databaseSelection, userSelection, runner -> prepareStatement()
-					.flatMap(t -> JdkFlowAdapter.flowPublisherToFlux(runner.run(t.getT1(), t.getT2())).single())
-					.flatMap(rxResult -> JdkFlowAdapter.flowPublisherToFlux(rxResult.consume()).single().map(ResultSummaries::process)))
+					.flatMap(t -> Flux.from(runner.run(t.getT1(), t.getT2())).single())
+					.flatMap(rxResult -> Flux.from(rxResult.consume()).single().map(ResultSummaries::process)))
 					.onErrorMap(RuntimeException.class, DefaultReactiveNeo4jClient.this::potentiallyConvertRuntimeException);
 		}
 	}

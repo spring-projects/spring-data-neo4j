@@ -17,13 +17,13 @@ package org.springframework.data.neo4j.core.transaction;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.r2dbc.h2.H2ConnectionConfiguration;
 import io.r2dbc.h2.H2ConnectionFactory;
-import reactor.adapter.JdkFlowAdapter;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
@@ -42,8 +42,8 @@ import org.neo4j.driver.Bookmark;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.SessionConfig;
 import org.neo4j.driver.TransactionConfig;
-import org.neo4j.driver.reactive.ReactiveSession;
-import org.neo4j.driver.reactive.ReactiveTransaction;
+import org.neo4j.driver.reactivestreams.ReactiveSession;
+import org.neo4j.driver.reactivestreams.ReactiveTransaction;
 import org.springframework.data.neo4j.core.DatabaseSelection;
 import org.springframework.data.neo4j.core.UserSelection;
 import org.springframework.data.r2dbc.connectionfactory.R2dbcTransactionManager;
@@ -69,11 +69,11 @@ class ReactiveNeo4jTransactionManagerTest {
 	@BeforeEach
 	void setUp() {
 
-		when(driver.reactiveSession(any(SessionConfig.class))).thenReturn(session);
-		when(session.beginTransaction(any(TransactionConfig.class))).thenReturn(JdkFlowAdapter.publisherToFlowPublisher(Mono.just(transaction)));
-		when(transaction.rollback()).thenReturn(JdkFlowAdapter.publisherToFlowPublisher(Mono.empty()));
-		when(transaction.commit()).thenReturn(JdkFlowAdapter.publisherToFlowPublisher(Mono.empty()));
-		when(session.close()).thenReturn(JdkFlowAdapter.publisherToFlowPublisher(Mono.empty()));
+		when(driver.session(eq(ReactiveSession.class), any(SessionConfig.class))).thenReturn(session);
+		when(session.beginTransaction(any(TransactionConfig.class))).thenReturn(Mono.just(transaction));
+		when(transaction.rollback()).thenReturn(Mono.empty());
+		when(transaction.commit()).thenReturn(Mono.empty());
+		when(session.close()).thenReturn(Mono.empty());
 	}
 
 	@Test
@@ -102,7 +102,7 @@ class ReactiveNeo4jTransactionManagerTest {
 					}).then(ReactiveNeo4jTransactionManager.retrieveReactiveTransaction(driver, databaseSelection, userSelection)))
 					.as(StepVerifier::create).expectNextCount(1L).verifyComplete();
 
-			verify(driver).reactiveSession(any(SessionConfig.class));
+			verify(driver).session(eq(ReactiveSession.class), any(SessionConfig.class));
 
 			verify(session).beginTransaction(any(TransactionConfig.class));
 			verify(session).close();
@@ -127,7 +127,7 @@ class ReactiveNeo4jTransactionManagerTest {
 				}).then(ReactiveNeo4jTransactionManager.retrieveReactiveTransaction(driver, databaseSelection, userSelection));
 			}).as(StepVerifier::create).expectNextCount(1L).verifyComplete();
 
-			verify(driver).reactiveSession(any(SessionConfig.class));
+			verify(driver).session(eq(ReactiveSession.class), any(SessionConfig.class));
 
 			verify(session).beginTransaction(any(TransactionConfig.class));
 			verify(session).close();
@@ -156,7 +156,7 @@ class ReactiveNeo4jTransactionManagerTest {
 							.then(ReactiveNeo4jTransactionManager.retrieveReactiveTransaction(driver, databaseSelection, userSelection)))
 					.as(StepVerifier::create).expectNextCount(1L).verifyComplete();
 
-			verify(driver).reactiveSession(any(SessionConfig.class));
+			verify(driver).session(eq(ReactiveSession.class), any(SessionConfig.class));
 			verify(session).beginTransaction(any(TransactionConfig.class));
 			assertThat(bookmarkManager.getBookmarksCalled).isTrue();
 			verify(session).close();
@@ -192,7 +192,7 @@ class ReactiveNeo4jTransactionManagerTest {
 									.doOnNext(tsm -> assertThat(tsm.hasResource(driver)).isTrue())))
 					.as(StepVerifier::create).expectNextCount(1L).verifyComplete();
 
-			verify(driver).reactiveSession(any(SessionConfig.class));
+			verify(driver).session(eq(ReactiveSession.class), any(SessionConfig.class));
 
 			verify(session).beginTransaction(any(TransactionConfig.class));
 			verify(session).close();
@@ -217,7 +217,7 @@ class ReactiveNeo4jTransactionManagerTest {
 									.doOnNext(tsm -> assertThat(tsm.hasResource(driver)).isTrue())))
 					.as(StepVerifier::create).expectNextCount(1L).verifyComplete();
 
-			verify(driver).reactiveSession(any(SessionConfig.class));
+			verify(driver).session(eq(ReactiveSession.class), any(SessionConfig.class));
 
 			verify(session).beginTransaction(any(TransactionConfig.class));
 			verify(session).close();

@@ -20,11 +20,11 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.tuple;
 
 import org.neo4j.driver.TransactionContext;
-import org.neo4j.driver.reactive.ReactiveSession;
+import org.neo4j.driver.reactivestreams.ReactiveResult;
+import org.neo4j.driver.reactivestreams.ReactiveSession;
 import org.springframework.data.neo4j.core.mapping.IdentitySupport;
 import org.springframework.data.neo4j.test.Neo4jReactiveTestConfiguration;
 
-import reactor.adapter.JdkFlowAdapter;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -1285,7 +1285,7 @@ class ReactiveRepositoryIT {
 				MATCH (n:PersonWithRelationshipWithProperties {name:'Freddie clone'})
   				RETURN n, [(n) -[:LIKES]->(h:Hobby) |h] as Hobbies, [(n) -[r:LIKES]->(:Hobby) |r] as rels
    				""";
-			Flux.usingWhen(Mono.fromSupplier(this::createRxSession), s -> JdkFlowAdapter.flowPublisherToFlux(s.run(matchQuery)).flatMap(rs -> JdkFlowAdapter.flowPublisherToFlux(rs.records())), s -> JdkFlowAdapter.flowPublisherToFlux(s.close()))
+			Flux.usingWhen(Mono.fromSupplier(this::createRxSession), s -> Flux.from(s.run(matchQuery)).flatMap(rs -> Flux.from(rs.records())), s -> Mono.fromDirect(s.close()))
 					.as(StepVerifier::create).assertNext(record -> {
 
 						assertThat(record.containsKey("n")).isTrue();
@@ -1580,9 +1580,9 @@ class ReactiveRepositoryIT {
 					.expectNextCount(1L).verifyComplete();
 
 			Flux.usingWhen(Mono.fromSupplier(this::createRxSession),
-					s -> JdkFlowAdapter.flowPublisherToFlux(s.run("MATCH (n:PersonWithAllConstructor) WHERE id(n) in $ids RETURN n", Values
-							.parameters("ids", ids))).flatMap(rs -> JdkFlowAdapter.flowPublisherToFlux(rs.records())),
-					s -> JdkFlowAdapter.flowPublisherToFlux(s.close()))
+					s -> Flux.from(s.run("MATCH (n:PersonWithAllConstructor) WHERE id(n) in $ids RETURN n", Values
+							.parameters("ids", ids))).flatMap(ReactiveResult::records),
+					s -> Mono.fromDirect(s.close()))
 					.map(r -> r.get("n").asNode().get("first_name").asString()).as(StepVerifier::create)
 					.expectNext("Freddie").verifyComplete();
 		}
@@ -1607,9 +1607,9 @@ class ReactiveRepositoryIT {
 					.expectNextCount(2L).verifyComplete();
 
 			Flux.usingWhen(Mono.fromSupplier(this::createRxSession),
-					s -> JdkFlowAdapter.flowPublisherToFlux(s.run("MATCH (n:PersonWithAllConstructor) WHERE id(n) in $ids RETURN n ORDER BY n.name ASC",
-							Values.parameters("ids", ids))).flatMap(rs -> JdkFlowAdapter.flowPublisherToFlux(rs.records())),
-					s -> JdkFlowAdapter.flowPublisherToFlux(s.close()))
+					s -> Flux.from(s.run("MATCH (n:PersonWithAllConstructor) WHERE id(n) in $ids RETURN n ORDER BY n.name ASC",
+							Values.parameters("ids", ids))).flatMap(ReactiveResult::records),
+					s -> Mono.fromDirect(s.close()))
 					.map(r -> r.get("n").asNode().get("name").asString()).as(StepVerifier::create)
 					.expectNext("Mercury").expectNext(TEST_PERSON1_NAME).verifyComplete();
 		}
@@ -1627,9 +1627,9 @@ class ReactiveRepositoryIT {
 					.expectNextCount(1L).verifyComplete();
 
 			Flux.usingWhen(Mono.fromSupplier(this::createRxSession),
-					s -> JdkFlowAdapter.flowPublisherToFlux(s.run("MATCH (n:PersonWithAllConstructor) WHERE id(n) in $ids RETURN n ORDER BY n.name ASC",
-							Values.parameters("ids", ids))).flatMap(rs -> JdkFlowAdapter.flowPublisherToFlux(rs.records())),
-					s -> JdkFlowAdapter.flowPublisherToFlux(s.close())).map(r -> r.get("n").asNode().get("name").asString()).as(StepVerifier::create)
+					s -> Flux.from(s.run("MATCH (n:PersonWithAllConstructor) WHERE id(n) in $ids RETURN n ORDER BY n.name ASC",
+							Values.parameters("ids", ids))).flatMap(ReactiveResult::records),
+					s -> Mono.fromDirect(s.close())).map(r -> r.get("n").asNode().get("name").asString()).as(StepVerifier::create)
 					.expectNext("Mercury").verifyComplete();
 		}
 
@@ -1647,8 +1647,8 @@ class ReactiveRepositoryIT {
 
 			Flux.usingWhen(Mono.fromSupplier(this::createRxSession), s -> {
 				Value parameters = Values.parameters("id", id1);
-				return JdkFlowAdapter.flowPublisherToFlux(s.run("MATCH (n:PersonWithAllConstructor) WHERE id(n) = $id RETURN n", parameters)).flatMap(rs -> JdkFlowAdapter.flowPublisherToFlux(rs.records()));
-			}, s ->  JdkFlowAdapter.flowPublisherToFlux(s.close())).map(r -> r.get("n").asNode()).as(StepVerifier::create)
+				return Flux.from(s.run("MATCH (n:PersonWithAllConstructor) WHERE id(n) = $id RETURN n", parameters)).flatMap(ReactiveResult::records);
+			}, s -> Mono.fromDirect(s.close())).map(r -> r.get("n").asNode()).as(StepVerifier::create)
 					.expectNextMatches(node -> node.get("first_name").asString().equals("Updated first name")
 							&& node.get("nullable").asString().equals("Updated nullable field"))
 					.verifyComplete();
@@ -1663,8 +1663,8 @@ class ReactiveRepositoryIT {
 					.verifyComplete();
 
 			Flux.usingWhen(Mono.fromSupplier(this::createRxSession),
-							s -> JdkFlowAdapter.flowPublisherToFlux(s.run("MATCH (n:Thing) WHERE n.theId = $id RETURN n", Values.parameters("id", "aaBB"))).flatMap(rs -> JdkFlowAdapter.flowPublisherToFlux(rs.records())),
-							s -> JdkFlowAdapter.flowPublisherToFlux(s.close()))
+							s -> Flux.from(s.run("MATCH (n:Thing) WHERE n.theId = $id RETURN n", Values.parameters("id", "aaBB"))).flatMap(ReactiveResult::records),
+							s -> Mono.fromDirect(s.close()))
 					.map(r -> r.get("n").asNode().get("name").asString()).as(StepVerifier::create)
 					.expectNext("That's the thing.").verifyComplete();
 
@@ -1686,8 +1686,8 @@ class ReactiveRepositoryIT {
 
 			Flux.usingWhen(Mono.fromSupplier(this::createRxSession), s -> {
 				Value parameters = Values.parameters("ids", Arrays.asList("anId", "aaBB"));
-				return Flux.from(JdkFlowAdapter.flowPublisherToFlux(s.run("MATCH (n:Thing) WHERE n.theId IN ($ids) RETURN n.name as name ORDER BY n.name ASC", parameters)).flatMap(rs -> JdkFlowAdapter.flowPublisherToFlux(rs.records())));
-			}, s -> JdkFlowAdapter.flowPublisherToFlux(s.close())).map(r -> r.get("name").asString()).as(StepVerifier::create).expectNext("That's the thing.")
+				return Flux.from(s.run("MATCH (n:Thing) WHERE n.theId IN ($ids) RETURN n.name as name ORDER BY n.name ASC", parameters)).flatMap(ReactiveResult::records);
+			}, s -> Mono.fromDirect(s.close())).map(r -> r.get("name").asString()).as(StepVerifier::create).expectNext("That's the thing.")
 					.expectNext("Updated name.").verifyComplete();
 
 			// Make sure we triggered on insert, one update
@@ -1709,8 +1709,8 @@ class ReactiveRepositoryIT {
 
 			Flux.usingWhen(Mono.fromSupplier(this::createRxSession), s -> {
 				Value parameters = Values.parameters("ids", Arrays.asList("anId", "aaBB"));
-				return Flux.from(JdkFlowAdapter.flowPublisherToFlux(s.run("MATCH (n:Thing) WHERE n.theId IN ($ids) RETURN n.name as name ORDER BY n.name ASC", parameters))).flatMap(rs -> JdkFlowAdapter.flowPublisherToFlux(rs.records()));
-			}, s -> JdkFlowAdapter.flowPublisherToFlux(s.close())).map(r -> r.get("name").asString()).as(StepVerifier::create).expectNext("That's the thing.")
+				return Flux.from(s.run("MATCH (n:Thing) WHERE n.theId IN ($ids) RETURN n.name as name ORDER BY n.name ASC", parameters)).flatMap(ReactiveResult::records);
+			}, s -> Mono.fromDirect(s.close())).map(r -> r.get("name").asString()).as(StepVerifier::create).expectNext("That's the thing.")
 					.expectNext("Updated name.").verifyComplete();
 
 			// Make sure we triggered on insert, one update
@@ -1735,8 +1735,8 @@ class ReactiveRepositoryIT {
 
 			Flux.usingWhen(Mono.fromSupplier(this::createRxSession), s -> {
 				Value parameters = Values.parameters("ids", Arrays.asList("id07", "id15"));
-				return Flux.from(JdkFlowAdapter.flowPublisherToFlux(s.run("MATCH (n:Thing) WHERE n.theId IN ($ids) RETURN n.name as name ORDER BY n.name ASC", parameters))).flatMap(rs -> JdkFlowAdapter.flowPublisherToFlux(rs.records()));
-			}, s -> JdkFlowAdapter.flowPublisherToFlux(s.close())).map(r -> r.get("name").asString()).as(StepVerifier::create)
+				return Flux.from(s.run("MATCH (n:Thing) WHERE n.theId IN ($ids) RETURN n.name as name ORDER BY n.name ASC", parameters)).flatMap(ReactiveResult::records);
+			}, s -> Mono.fromDirect(s.close())).map(r -> r.get("name").asString()).as(StepVerifier::create)
 					.expectNext("An updated thing", "Another updated thing").verifyComplete();
 
 			repository.count().as(StepVerifier::create).expectNext(21L).verifyComplete();
@@ -2774,7 +2774,7 @@ class ReactiveRepositoryIT {
 
 		ReactiveSession createRxSession() {
 
-			return driver.reactiveSession(bookmarkCapture.createSessionConfig(databaseSelection.get().getValue(), userSelection.get().getValue()));
+			return driver.session(ReactiveSession.class, bookmarkCapture.createSessionConfig(databaseSelection.get().getValue(), userSelection.get().getValue()));
 		}
 
 		TransactionalOperator getTransactionalOperator() {

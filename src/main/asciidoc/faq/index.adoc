@@ -295,8 +295,8 @@ import reactor.util.function.Tuple2;
 
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.SessionConfig;
-import org.neo4j.driver.reactive.RxResult;
-import org.neo4j.driver.reactive.RxSession;
+import org.neo4j.driver.reactivestreams.RxResult;
+import org.neo4j.driver.reactivestreams.RxSession;
 import org.neo4j.driver.summary.DatabaseInfo;
 import org.neo4j.driver.summary.ResultSummary;
 import org.neo4j.driver.summary.ServerInfo;

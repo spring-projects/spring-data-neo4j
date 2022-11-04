@@ -20,7 +20,6 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import reactor.adapter.JdkFlowAdapter;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
@@ -35,9 +34,9 @@ import org.neo4j.driver.Record;
 import org.neo4j.driver.SessionConfig;
 import org.neo4j.driver.TransactionConfig;
 import org.neo4j.driver.Values;
-import org.neo4j.driver.reactive.ReactiveResult;
-import org.neo4j.driver.reactive.ReactiveSession;
-import org.neo4j.driver.reactive.ReactiveTransaction;
+import org.neo4j.driver.reactivestreams.ReactiveResult;
+import org.neo4j.driver.reactivestreams.ReactiveSession;
+import org.neo4j.driver.reactivestreams.ReactiveTransaction;
 import org.neo4j.driver.summary.ResultSummary;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -187,39 +186,39 @@ class ReactiveTransactionManagerMixedDatabasesTest {
 			when(defaultRecord.get(0)).thenReturn(Values.value(0L));
 
 			ReactiveResult boomResult = mock(ReactiveResult.class);
-			when(boomResult.records()).thenReturn(JdkFlowAdapter.publisherToFlowPublisher(Mono.just(boomRecord)));
-			when(boomResult.consume()).thenReturn(JdkFlowAdapter.publisherToFlowPublisher(Mono.just(mock(ResultSummary.class))));
+			when(boomResult.records()).thenReturn(Mono.just(boomRecord));
+			when(boomResult.consume()).thenReturn(Mono.just(mock(ResultSummary.class)));
 
 			ReactiveResult defaultResult = mock(ReactiveResult.class);
-			when(defaultResult.records()).thenReturn(JdkFlowAdapter.publisherToFlowPublisher(Mono.just(defaultRecord)));
-			when(defaultResult.consume()).thenReturn(JdkFlowAdapter.publisherToFlowPublisher(Mono.just(mock(ResultSummary.class))));
+			when(defaultResult.records()).thenReturn(Mono.just(defaultRecord));
+			when(defaultResult.consume()).thenReturn(Mono.just(mock(ResultSummary.class)));
 
 			ReactiveTransaction boomTransaction = mock(ReactiveTransaction.class);
-			when(boomTransaction.run(eq(TEST_QUERY), any(Map.class))).thenReturn(JdkFlowAdapter.publisherToFlowPublisher(Mono.just(boomResult)));
-			when(boomTransaction.commit()).thenReturn(JdkFlowAdapter.publisherToFlowPublisher(Mono.empty()));
-			when(boomTransaction.rollback()).thenReturn(JdkFlowAdapter.publisherToFlowPublisher(Mono.empty()));
+			when(boomTransaction.run(eq(TEST_QUERY), any(Map.class))).thenReturn(Mono.just(boomResult));
+			when(boomTransaction.commit()).thenReturn(Mono.empty());
+			when(boomTransaction.rollback()).thenReturn(Mono.empty());
 
 			ReactiveTransaction defaultTransaction = mock(ReactiveTransaction.class);
-			when(defaultTransaction.run(eq(TEST_QUERY), any(Map.class))).thenReturn(JdkFlowAdapter.publisherToFlowPublisher(Mono.just(defaultResult)));
-			when(defaultTransaction.commit()).thenReturn(JdkFlowAdapter.publisherToFlowPublisher(Mono.empty()));
-			when(defaultTransaction.rollback()).thenReturn(JdkFlowAdapter.publisherToFlowPublisher(Mono.empty()));
+			when(defaultTransaction.run(eq(TEST_QUERY), any(Map.class))).thenReturn(Mono.just(defaultResult));
+			when(defaultTransaction.commit()).thenReturn(Mono.empty());
+			when(defaultTransaction.rollback()).thenReturn(Mono.empty());
 
 			ReactiveSession boomSession = mock(ReactiveSession.class);
-			when(boomSession.run(eq(TEST_QUERY), any(Map.class))).thenReturn(JdkFlowAdapter.publisherToFlowPublisher(Mono.just(boomResult)));
-			when(boomSession.beginTransaction()).thenReturn(JdkFlowAdapter.publisherToFlowPublisher(Mono.just(boomTransaction)));
-			when(boomSession.beginTransaction(any(TransactionConfig.class))).thenReturn(JdkFlowAdapter.publisherToFlowPublisher(Mono.just(boomTransaction)));
-			when(boomSession.close()).thenReturn(JdkFlowAdapter.publisherToFlowPublisher(Mono.empty()));
+			when(boomSession.run(eq(TEST_QUERY), any(Map.class))).thenReturn(Mono.just(boomResult));
+			when(boomSession.beginTransaction()).thenReturn(Mono.just(boomTransaction));
+			when(boomSession.beginTransaction(any(TransactionConfig.class))).thenReturn(Mono.just(boomTransaction));
+			when(boomSession.close()).thenReturn(Mono.empty());
 
 			ReactiveSession defaultSession = mock(ReactiveSession.class);
-			when(defaultSession.run(eq(TEST_QUERY), any(Map.class))).thenReturn(JdkFlowAdapter.publisherToFlowPublisher(Mono.just(defaultResult)));
-			when(defaultSession.beginTransaction()).thenReturn(JdkFlowAdapter.publisherToFlowPublisher(Mono.just(defaultTransaction)));
-			when(defaultSession.beginTransaction(any(TransactionConfig.class))).thenReturn(JdkFlowAdapter.publisherToFlowPublisher(Mono.just(defaultTransaction)));
-			when(defaultSession.close()).thenReturn(JdkFlowAdapter.publisherToFlowPublisher(Mono.empty()));
+			when(defaultSession.run(eq(TEST_QUERY), any(Map.class))).thenReturn(Mono.just(defaultResult));
+			when(defaultSession.beginTransaction()).thenReturn(Mono.just(defaultTransaction));
+			when(defaultSession.beginTransaction(any(TransactionConfig.class))).thenReturn(Mono.just(defaultTransaction));
+			when(defaultSession.close()).thenReturn(Mono.empty());
 
 			Driver driver = mock(Driver.class);
-			when(driver.reactiveSession()).thenReturn(defaultSession);
-			when(driver.reactiveSession(any(SessionConfig.class))).then(invocation -> {
-				SessionConfig sessionConfig = invocation.getArgument(0);
+			when(driver.session(ReactiveSession.class)).thenReturn(defaultSession);
+			when(driver.session(eq(ReactiveSession.class), any(SessionConfig.class))).then(invocation -> {
+				SessionConfig sessionConfig = invocation.getArgument(1);
 				return sessionConfig.database().filter(n -> n.equals(DATABASE_NAME)).map(n -> boomSession)
 						.orElse(defaultSession);
 			});

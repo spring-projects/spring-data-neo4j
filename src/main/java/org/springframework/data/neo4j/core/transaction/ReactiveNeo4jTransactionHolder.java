@@ -15,15 +15,14 @@
  */
 package org.springframework.data.neo4j.core.transaction;
 
-import reactor.adapter.JdkFlowAdapter;
 import reactor.core.publisher.Mono;
 
 import java.util.Collection;
 import java.util.Set;
 
 import org.neo4j.driver.Bookmark;
-import org.neo4j.driver.reactive.ReactiveSession;
-import org.neo4j.driver.reactive.ReactiveTransaction;
+import org.neo4j.driver.reactivestreams.ReactiveSession;
+import org.neo4j.driver.reactivestreams.ReactiveTransaction;
 import org.springframework.data.neo4j.core.DatabaseSelection;
 import org.springframework.data.neo4j.core.UserSelection;
 import org.springframework.lang.Nullable;
@@ -58,15 +57,15 @@ final class ReactiveNeo4jTransactionHolder extends ResourceHolderSupport {
 	}
 
 	Mono<Set<Bookmark>> commit() {
-		return JdkFlowAdapter.flowPublisherToFlux(transaction.commit()).then(Mono.fromSupplier(session::lastBookmarks));
+		return Mono.fromDirect(transaction.commit()).then(Mono.fromSupplier(session::lastBookmarks));
 	}
 
 	Mono<Void> rollback() {
-		return JdkFlowAdapter.flowPublisherToFlux(transaction.rollback()).then();
+		return Mono.fromDirect(transaction.rollback()).then();
 	}
 
 	Mono<Void> close() {
-		return JdkFlowAdapter.flowPublisherToFlux(session.close()).then();
+		return Mono.fromDirect(session.close()).then();
 	}
 
 	DatabaseSelection getDatabaseSelection() {

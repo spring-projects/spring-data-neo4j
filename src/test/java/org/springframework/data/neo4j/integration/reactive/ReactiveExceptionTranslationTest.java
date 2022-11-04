@@ -16,12 +16,12 @@
 package org.springframework.data.neo4j.integration.reactive;
 
 import org.junit.jupiter.api.AfterAll;
-import org.neo4j.driver.reactive.ReactiveSession;
+import org.neo4j.driver.reactivestreams.ReactiveResult;
+import org.neo4j.driver.reactivestreams.ReactiveSession;
 import org.springframework.data.neo4j.test.Neo4jReactiveTestConfiguration;
 
 import ac.simons.neo4j.migrations.core.Migrations;
 import ac.simons.neo4j.migrations.core.MigrationsConfig;
-import reactor.adapter.JdkFlowAdapter;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -90,9 +90,9 @@ class ReactiveExceptionTranslationTest {
 	@BeforeEach
 	void clearDatabase(@Autowired Driver driver) {
 
-		Flux.using(driver::reactiveSession,
-						session -> JdkFlowAdapter.flowPublisherToFlux(session.run("MATCH (n:SimplePerson) DETACH DELETE n"))
-								.flatMap(rs -> JdkFlowAdapter.flowPublisherToFlux(rs.consume())),
+		Flux.using(() -> driver.session(ReactiveSession.class),
+						session -> Flux.from(session.run("MATCH (n:SimplePerson) DETACH DELETE n"))
+								.flatMap(ReactiveResult::records),
 						ReactiveSession::close)
 				.then().as(StepVerifier::create).verifyComplete();
 	}
@@ -175,8 +175,8 @@ class ReactiveExceptionTranslationTest {
 		public Mono<ResultSummary> createPerson() {
 			return neo4jClient.delegateTo(
 					rxQueryRunner ->
-							JdkFlowAdapter.flowPublisherToFlux(rxQueryRunner.run("CREATE (:SimplePerson {name: 'Tom'})"))
-							.flatMap(result -> JdkFlowAdapter.flowPublisherToFlux(result.consume())).single()).run();
+							Flux.from(rxQueryRunner.run("CREATE (:SimplePerson {name: 'Tom'})"))
+							.flatMap(ReactiveResult::consume).single()).run();
 		}
 	}
 }

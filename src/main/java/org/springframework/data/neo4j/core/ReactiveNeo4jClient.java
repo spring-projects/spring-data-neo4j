@@ -27,7 +27,7 @@ import org.apache.commons.logging.LogFactory;
 import org.apiguardian.api.API;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Record;
-import org.neo4j.driver.reactive.ReactiveQueryRunner;
+import org.neo4j.driver.reactivestreams.ReactiveQueryRunner;
 import org.neo4j.driver.summary.ResultSummary;
 import org.neo4j.driver.types.TypeSystem;
 import org.springframework.core.log.LogAccessor;
