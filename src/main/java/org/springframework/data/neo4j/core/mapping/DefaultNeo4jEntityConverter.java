@@ -34,6 +34,7 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
+import org.neo4j.driver.Record;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
 import org.neo4j.driver.internal.value.NullValue;
@@ -79,6 +80,8 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 	private final Type relationshipType;
 	private final Type mapType;
 	private final Type listType;
+	private final Type pathType;
+
 	private final Map<String, Collection<Node>> labelNodeCache = new HashMap<>();
 
 	DefaultNeo4jEntityConverter(EntityInstantiators entityInstantiators, Neo4jConversionService conversionService,
@@ -97,6 +100,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 		this.relationshipType = typeSystem.RELATIONSHIP();
 		this.mapType = typeSystem.MAP();
 		this.listType = typeSystem.LIST();
+		this.pathType = typeSystem.PATH();
 	}
 
 	@Override
@@ -108,7 +112,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 
 		@SuppressWarnings("unchecked") // ¯\_(ツ)_/¯
 		Neo4jPersistentEntity<R> rootNodeDescription = (Neo4jPersistentEntity<R>) nodeDescriptionStore.getNodeDescription(targetType);
-		MapAccessor queryRoot = determineQueryRoot(mapAccessor, rootNodeDescription);
+		MapAccessor queryRoot = determineQueryRoot(mapAccessor, rootNodeDescription, true);
 
 		try {
 			return queryRoot == null ? null : map(queryRoot, queryRoot, rootNodeDescription);
@@ -118,7 +122,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 	}
 
 	@Nullable
-	private <R> MapAccessor determineQueryRoot(MapAccessor mapAccessor, @Nullable Neo4jPersistentEntity<R> rootNodeDescription) {
+	private <R> MapAccessor determineQueryRoot(MapAccessor mapAccessor, @Nullable Neo4jPersistentEntity<R> rootNodeDescription, boolean firstTry) {
 
 		if (rootNodeDescription == null) {
 			return null;
@@ -179,7 +183,39 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 			}
 		}
 
+		// The aggregating mapping function synthesizes a bunch of things and we must not interfere with those
+		boolean isSynthesized = isSynthesized(mapAccessor);
+		if (!isSynthesized) {
+			// Check if the original record has been a map. Would have been probably sane to do this right from the start,
+			// but this would change original SDN 6.0 behaviour to much
+			if (mapAccessor instanceof Value && ((Value) mapAccessor).hasType(mapType)) {
+				return mapAccessor;
+			}
+
+			// This is also due the aggregating mapping function: It will check on a NoRootNodeMappingException
+			// whether there's a nested, aggregatable path
+			if (firstTry && !canBeAggregated(mapAccessor)) {
+				Value value = Values.value(Collections.singletonMap("_", mapAccessor.asMap(Function.identity())));
+				return determineQueryRoot(value, rootNodeDescription, false);
+			}
+		}
+
 		throw new NoRootNodeMappingException(mapAccessor, rootNodeDescription);
+	}
+
+	private boolean canBeAggregated(MapAccessor mapAccessor) {
+
+		if (mapAccessor instanceof Record) {
+			Record r = ((Record) mapAccessor);
+			return r.values().stream().anyMatch(pathType::isTypeOf);
+		}
+		return false;
+	}
+
+	private boolean isSynthesized(MapAccessor mapAccessor) {
+		return mapAccessor.containsKey(Constants.NAME_OF_SYNTHESIZED_ROOT_NODE) &&
+			mapAccessor.containsKey(Constants.NAME_OF_SYNTHESIZED_RELATIONS) &&
+			mapAccessor.containsKey(Constants.NAME_OF_SYNTHESIZED_RELATED_NODES);
 	}
 
 	private Collection<String> createDynamicLabelsProperty(TypeInformation<?> type, Collection<String> dynamicLabels) {
