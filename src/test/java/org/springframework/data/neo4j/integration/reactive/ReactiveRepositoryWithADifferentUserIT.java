@@ -47,7 +47,7 @@ class ReactiveRepositoryWithADifferentUserIT extends ReactiveRepositoryIT {
 
 			session.run("CREATE DATABASE $db", Values.parameters("db", TEST_DATABASE_NAME)).consume();
 			session.run("CREATE USER $user SET PASSWORD $password CHANGE NOT REQUIRED SET HOME DATABASE $database",
-							Values.parameters("user", TEST_USER, "password", TEST_USER, "database", TEST_DATABASE_NAME))
+							Values.parameters("user", TEST_USER, "password", TEST_USER + "_password", "database", TEST_DATABASE_NAME))
 					.consume();
 			session.run("GRANT ROLE publisher TO $user", Values.parameters("user", TEST_USER)).consume();
 			session.run("GRANT IMPERSONATE ($targetUser) ON DBMS TO admin", Values.parameters("targetUser", TEST_USER))
