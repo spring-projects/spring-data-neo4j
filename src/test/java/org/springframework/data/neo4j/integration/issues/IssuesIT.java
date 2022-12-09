@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.tuple;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -127,6 +128,15 @@ import org.springframework.data.neo4j.integration.issues.gh2579.TableNode;
 import org.springframework.data.neo4j.integration.issues.gh2579.TableRepository;
 import org.springframework.data.neo4j.integration.issues.gh2583.GH2583Node;
 import org.springframework.data.neo4j.integration.issues.gh2583.GH2583Repository;
+import org.springframework.data.neo4j.integration.issues.gh2639.Company;
+import org.springframework.data.neo4j.integration.issues.gh2639.CompanyPerson;
+import org.springframework.data.neo4j.integration.issues.gh2639.CompanyRepository;
+import org.springframework.data.neo4j.integration.issues.gh2639.Developer;
+import org.springframework.data.neo4j.integration.issues.gh2639.Enterprise;
+import org.springframework.data.neo4j.integration.issues.gh2639.Individual;
+import org.springframework.data.neo4j.integration.issues.gh2639.LanguageRelationship;
+import org.springframework.data.neo4j.integration.issues.gh2639.ProgrammingLanguage;
+import org.springframework.data.neo4j.integration.issues.gh2639.Sales;
 import org.springframework.data.neo4j.integration.misc.ConcreteImplementationTwo;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.data.neo4j.repository.query.QueryFragmentsAndParameters;
@@ -934,6 +944,51 @@ class IssuesIT extends TestBase {
 
 		List<GH2583Node> nodes = nodePage.getContent();
 		assertThat(nodes).hasSize(2);
+	}
+
+	@Test
+	@Tag("GH-2639")
+	void relationshipsOfGenericRelationshipsGetResolvedCorrectly(@Autowired CompanyRepository companyRepository) {
+		CompanyPerson greg = new Sales("Greg");
+		CompanyPerson roy = new Sales("Roy");
+		CompanyPerson craig = new Sales("Craig");
+
+		ProgrammingLanguage java = new ProgrammingLanguage("java", "1.5");
+		java.inventor = new Enterprise("Sun", ";(");
+		ProgrammingLanguage perl = new ProgrammingLanguage("perl", "6.0");
+		perl.inventor = new Individual("Larry Wall", "larryW");
+
+		List<LanguageRelationship> languageRelationships = new ArrayList<>();
+		LanguageRelationship javaRelationship = new LanguageRelationship(5, java);
+		LanguageRelationship perlRelationship = new LanguageRelationship(2, perl);
+		languageRelationships.add(javaRelationship);
+		languageRelationships.add(perlRelationship);
+
+		Developer harry = new Developer("Harry", languageRelationships);
+		List<CompanyPerson> team = Arrays.asList(greg,	roy, craig,	harry);
+		Company acme = new Company("ACME", team);
+		companyRepository.save(acme);
+
+		Company loadedAcme = companyRepository.findByName("ACME");
+
+		Developer loadedHarry = loadedAcme.getEmployees().stream()
+				.filter(e -> e instanceof Developer)
+				.map(e -> (Developer) e)
+				.filter(developer -> developer.getName().equals("Harry"))
+				.findFirst().get();
+
+		List<LanguageRelationship> programmingLanguages = loadedHarry.getProgrammingLanguages();
+		assertThat(programmingLanguages)
+				.isNotEmpty()
+				.extracting("score")
+				.containsExactlyInAnyOrder(5, 2);
+
+		assertThat(programmingLanguages)
+				.extracting("language")
+				.extracting("inventor")
+				.containsExactlyInAnyOrder(
+						new Individual("Larry Wall", "larryW"), new Enterprise("Sun", ";(")
+				);
 	}
 
 	@Configuration

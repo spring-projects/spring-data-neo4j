@@ -46,7 +46,7 @@ class Neo4jListContainsTest {
 		@BeforeAll
 		@JvmStatic
 		fun prepareDatabase(@Autowired driver: Driver, @Autowired bookmarkCapture: BookmarkCapture) {
-			driver.session().use { session ->
+			driver.session(bookmarkCapture.createSessionConfig()).use { session ->
 				session.run("MATCH (n) DETACH DELETE n").consume()
 				session.run("CREATE (testNode:GH2444{id: 1, items: ['item 1', 'item 2', 'item 3'], description: 'desc 1'})").consume();
 				bookmarkCapture.seedWith(session.lastBookmarks())
