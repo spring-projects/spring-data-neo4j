@@ -42,6 +42,7 @@ import org.neo4j.driver.Value;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.neo4j.integration.shared.common.Port;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.data.neo4j.test.Neo4jImperativeTestConfiguration;
@@ -444,6 +445,30 @@ public class DynamicLabelsIT {
 			assertThat(loadedEntity.labels).contains("AdditionalLabel");
 		}
 
+	}
+
+	@Nested
+	class FindByLabelsContaining extends SpringTestBase {
+
+		@Override
+		Long createTestEntity(TransactionContext t) {
+			t.run("CREATE (p:Port:A:B {id: randomUUID()})");
+			t.run("CREATE (p:Port {id: randomUUID()})");
+			t.run("CREATE (p:Port:C:B {id: randomUUID()})");
+			t.run("CREATE (p:Port:D:A {id: randomUUID()})");
+			return null;
+		}
+
+		@Test // GH-2638
+		void findByDynamicLabelsContainingShouldWork(@Autowired PortRepository portRepository) {
+
+			List<Port> ports = portRepository.findByLabelsContaining("A");
+			assertThat(ports).hasSize(2);
+		}
+	}
+
+	interface PortRepository extends Neo4jRepository<Port, UUID> {
+		List<Port> findByLabelsContaining(String label);
 	}
 
 	interface AbstractBaseEntityWithDynamicLabelsRepository extends Neo4jRepository<EntitiesWithDynamicLabels.AbstractBaseEntityWithDynamicLabels, String> {}
