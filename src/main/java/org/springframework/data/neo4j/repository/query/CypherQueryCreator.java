@@ -382,6 +382,14 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndPar
 			Neo4jPersistentProperty property, Iterator<Object> actualParameters, boolean ignoreCase) {
 
 		Expression cypherProperty = toCypherProperty(path, ignoreCase);
+
+		if (property.isDynamicLabels()) {
+			Neo4jPersistentProperty leafProperty = path.getRequiredLeafProperty();
+			Neo4jPersistentEntity<?> owner = (Neo4jPersistentEntity<?>) leafProperty.getOwner();
+			String containerName = getContainerName(path, owner);
+			return toCypherParameter(nextRequiredParameter(actualParameters, property), ignoreCase)
+					.in(Functions.labels(Cypher.anyNode(containerName)));
+		}
 		if (property.isCollectionLike()) {
 			return toCypherParameter(nextRequiredParameter(actualParameters, property), ignoreCase).in(cypherProperty);
 		}
