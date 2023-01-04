@@ -66,6 +66,7 @@ import org.springframework.data.neo4j.core.mapping.callback.EventSupport;
 import org.springframework.data.neo4j.core.schema.IdGenerator;
 import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.PostLoad;
+import org.springframework.data.util.Lazy;
 import org.springframework.data.util.TypeInformation;
 import org.springframework.lang.Nullable;
 import org.springframework.util.ReflectionUtils;
@@ -117,14 +118,92 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 
 	private boolean strict = false;
 
+	private final Lazy<PersistentPropertyCharacteristicsProvider> propertyCharacteristicsProvider;
+
+	/**
+	 * A builder for creating custom instances of a {@link Neo4jMappingContext}.
+	 * @since 6.3.7
+	 */
+	public static class Builder {
+
+		private Neo4jConversions neo4jConversions;
+
+		@Nullable
+		private TypeSystem typeSystem;
+
+		@Nullable
+		private PersistentPropertyCharacteristicsProvider persistentPropertyCharacteristicsProvider;
+
+		private Builder() {
+			this(new Neo4jConversions(), null, null);
+		}
+
+		private Builder(Neo4jConversions neo4jConversions, @Nullable TypeSystem typeSystem, @Nullable PersistentPropertyCharacteristicsProvider persistentPropertyCharacteristicsProvider) {
+			this.neo4jConversions = neo4jConversions;
+			this.typeSystem = typeSystem;
+			this.persistentPropertyCharacteristicsProvider = persistentPropertyCharacteristicsProvider;
+		}
+
+		@SuppressWarnings("HiddenField")
+		public Builder withNeo4jConversions(@Nullable Neo4jConversions neo4jConversions) {
+			this.neo4jConversions = neo4jConversions;
+			return this;
+		}
+
+		@SuppressWarnings("HiddenField")
+		public Builder withPersistentPropertyCharacteristicsProvider(@Nullable PersistentPropertyCharacteristicsProvider persistentPropertyCharacteristicsProvider) {
+			this.persistentPropertyCharacteristicsProvider = persistentPropertyCharacteristicsProvider;
+			return this;
+		}
+
+		@SuppressWarnings("HiddenField")
+		public Builder withTypeSystem(@Nullable TypeSystem typeSystem) {
+			this.typeSystem = typeSystem;
+			return this;
+		}
+
+		public Neo4jMappingContext build() {
+			return new Neo4jMappingContext(this);
+		}
+	}
+
+	public static Builder builder() {
+		return new Builder();
+	}
+
 	public Neo4jMappingContext() {
 
-		this(new Neo4jConversions());
+		this(new Builder());
 	}
 
 	public Neo4jMappingContext(Neo4jConversions neo4jConversions) {
 
-		this(neo4jConversions, null);
+		this(new Builder(neo4jConversions, null, null));
+	}
+
+	/**
+	 * This API is primarily used from inside the CDI extension to configure the type system. This is necessary as
+	 * we don't get notified of the context via {@link #setApplicationContext(ApplicationContext applicationContext)}.
+	 *
+	 * @param neo4jConversions The conversions to be used
+	 * @param typeSystem       The current drivers type system. If this is null, we use the default one without accessing the driver.
+	 */
+	@API(status = API.Status.INTERNAL, since = "6.0")
+	public Neo4jMappingContext(Neo4jConversions neo4jConversions, @Nullable TypeSystem typeSystem) {
+		this(new Builder(neo4jConversions, typeSystem, null));
+	}
+
+	private Neo4jMappingContext(Builder builder) {
+
+		this.conversionService = new DefaultNeo4jConversionService(builder.neo4jConversions);
+		this.typeSystem = builder.typeSystem == null ? InternalTypeSystem.TYPE_SYSTEM : builder.typeSystem;
+		this.eventSupport = EventSupport.useExistingCallbacks(this, EntityCallbacks.create());
+
+		super.setSimpleTypeHolder(builder.neo4jConversions.getSimpleTypeHolder());
+
+		PersistentPropertyCharacteristicsProvider characteristicsProvider = builder.persistentPropertyCharacteristicsProvider;
+		this.propertyCharacteristicsProvider = Lazy.of(() -> characteristicsProvider != null || this.beanFactory == null ?
+				characteristicsProvider : this.beanFactory.getBeanProvider(PersistentPropertyCharacteristicsProvider.class).getIfUnique());
 	}
 
 	/**
@@ -139,22 +218,6 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 		this.strict = strict;
 	}
 
-	/**
-	 * This API is primarily used from inside the CDI extension to configure the type system. This is necessary as
-	 * we don't get notified of the context via {@link #setApplicationContext(ApplicationContext applicationContext)}.
-	 *
-	 * @param neo4jConversions The conversions to be used
-	 * @param typeSystem       The current drivers type system. If this is null, we use the default one without accessing the driver.
-	 */
-	@API(status = API.Status.INTERNAL, since = "6.0")
-	public Neo4jMappingContext(Neo4jConversions neo4jConversions, @Nullable TypeSystem typeSystem) {
-
-		this.conversionService = new DefaultNeo4jConversionService(neo4jConversions);
-		this.typeSystem = typeSystem == null ? InternalTypeSystem.TYPE_SYSTEM : typeSystem;
-		this.eventSupport = EventSupport.useExistingCallbacks(this, EntityCallbacks.create());
-
-		super.setSimpleTypeHolder(neo4jConversions.getSimpleTypeHolder());
-	}
 
 	public Neo4jEntityConverter getEntityConverter() {
 		return new DefaultNeo4jEntityConverter(INSTANTIATORS, nodeDescriptionStore, conversionService, eventSupport,
@@ -260,7 +323,12 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 	protected Neo4jPersistentProperty createPersistentProperty(Property property, Neo4jPersistentEntity<?> owner,
 			SimpleTypeHolder simpleTypeHolder) {
 
-		return new DefaultNeo4jPersistentProperty(property, owner, this, simpleTypeHolder);
+		PersistentPropertyCharacteristics optionalCharacteristics = this.propertyCharacteristicsProvider
+				.getOptional()
+				.flatMap(provider -> Optional.ofNullable(provider.apply(property, owner)))
+				.orElse(null);
+
+		return new DefaultNeo4jPersistentProperty(property, owner, this, simpleTypeHolder, optionalCharacteristics);
 	}
 
 	@Override
@@ -278,9 +346,9 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 	@Nullable
 	public Neo4jPersistentEntity<?> getPersistentEntity(TypeInformation<?> typeInformation) {
 
-		NodeDescription<?> existingDescription = this.doGetPersistentEntity(typeInformation);
+		Neo4jPersistentEntity<?> existingDescription = this.doGetPersistentEntity(typeInformation);
 		if (existingDescription != null) {
-			return (Neo4jPersistentEntity<?>) existingDescription;
+			return existingDescription;
 		}
 		return super.getPersistentEntity(typeInformation);
 	}

@@ -634,6 +634,37 @@ class Neo4jMappingContextTest {
 		assertThat(children).containsExactly("B2", "B2a", "B3", "B3a");
 	}
 
+	@Test
+	void characteristicsShouldBeApplied() {
+
+		Neo4jMappingContext neo4jMappingContext1 = Neo4jMappingContext.builder().withPersistentPropertyCharacteristicsProvider((property, owner) -> {
+			if (owner.getUnderlyingClass().equals(UserNode.class)) {
+				if (property.getName().equals("name")) {
+					return PersistentPropertyCharacteristics.treatAsTransient();
+				} else if (property.getName().equals("first_name")) {
+					return PersistentPropertyCharacteristics.treatAsReadOnly();
+				}
+			}
+			if (property.getType().equals(ConvertibleType.class)) {
+				return PersistentPropertyCharacteristics.treatAsTransient();
+			}
+
+			return PersistentPropertyCharacteristics.useDefaults();
+		}).build();
+		Neo4jMappingContext neo4jMappingContext2 = Neo4jMappingContext.builder().build();
+
+		Neo4jPersistentEntity<?> userEntity = neo4jMappingContext1.getPersistentEntity(UserNode.class);
+		assertThat(userEntity.getPersistentProperty("name")).isNull(); // Transient properties won't materialize
+		assertThat(userEntity.getRequiredPersistentProperty("first_name").isTransient()).isFalse();
+		assertThat(userEntity.getRequiredPersistentProperty("first_name").isReadOnly()).isTrue();
+
+		Neo4jPersistentEntity<?> entityWithConvertible = neo4jMappingContext1.getPersistentEntity(EntityWithConvertibleProperty.class);
+		assertThat(entityWithConvertible.getPersistentProperty("convertibleType")).isNull();
+
+		entityWithConvertible = neo4jMappingContext2.getPersistentEntity(EntityWithConvertibleProperty.class);
+		assertThat(entityWithConvertible.getPersistentProperty("convertibleType")).isNotNull();
+	}
+
 	@Test // GH-2574
 	void hierarchyMustBeConsistentlyReported() throws ClassNotFoundException {
 
