@@ -78,6 +78,9 @@ public abstract class CallbacksITBase {
 			List<Node> nodes = record.get("things").asList(Value::asNode);
 			assertThat(nodes).extracting(n -> n.get("theId").asString()).containsAll(ids);
 			assertThat(nodes).extracting(n -> n.get("name").asString()).containsAll(names);
+			assertThat(nodes).allMatch(n -> n.get("randomValue").isNull());
+			assertThat(nodes).allMatch(n -> n.get("anotherRandomValue").isNull());
+
 			bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 	}

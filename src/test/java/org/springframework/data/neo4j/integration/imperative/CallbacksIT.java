@@ -24,6 +24,7 @@ import java.util.Objects;
 import java.util.Optional;
 // tag::faq.entities.auditing.callbacks[]
 import java.util.UUID;
+import java.util.stream.StreamSupport;
 
 // end::faq.entities.auditing.callbacks[]
 import org.junit.jupiter.api.Test;
@@ -102,13 +103,23 @@ class CallbacksIT extends CallbacksITBase {
 		thing1.setRandomValue("a");
 		ThingWithAssignedId thing2 = new ThingWithAssignedId("id2", "Another name");
 		thing2.setRandomValue("b");
-		Iterable<ThingWithAssignedId> savedThings = repository.saveAll(Arrays.asList(thing1, thing2));
+
+		var unsaved = Arrays.asList(thing1, thing2);
+		Iterable<ThingWithAssignedId> savedThings = repository.saveAll(unsaved);
+
+		assertThat(unsaved).allMatch(v -> v.getRandomValue() != null);
+		assertThat(unsaved).noneMatch(v -> v.getAnotherRandomValue() != null);
 
 		assertThat(savedThings).extracting(ThingWithAssignedId::getName).containsExactlyInAnyOrder("A name (Edited)",
 				"Another name (Edited)");
 		assertThat(savedThings).hasSize(2)
 				.extracting(ThingWithAssignedId::getRandomValue)
 				.allMatch(Objects::isNull);
+
+		// Assert the onAfterConvert
+		var ids = StreamSupport.stream(savedThings.spliterator(), false).map(ThingWithAssignedId::getTheId).toList();
+		var reloaded = repository.findAllById(ids);
+		assertThat(reloaded).allMatch(v -> v.getRandomValue() != null);
 
 		verifyDatabase(savedThings);
 	}
