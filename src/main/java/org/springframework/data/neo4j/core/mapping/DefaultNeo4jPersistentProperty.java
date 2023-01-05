@@ -60,6 +60,8 @@ final class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProp
 
 	private final Lazy<Neo4jPersistentPropertyConverter<?>> customConversion;
 
+	private final @Nullable PersistentPropertyCharacteristics optionalCharacteristics;
+
 	/**
 	 * Creates a new {@link AnnotationBasedPersistentProperty}.
 	 *
@@ -68,7 +70,7 @@ final class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProp
 	 * @param simpleTypeHolder type holder
 	 */
 	DefaultNeo4jPersistentProperty(Property property, PersistentEntity<?, Neo4jPersistentProperty> owner,
-			Neo4jMappingContext mappingContext, SimpleTypeHolder simpleTypeHolder) {
+			Neo4jMappingContext mappingContext, SimpleTypeHolder simpleTypeHolder, @Nullable PersistentPropertyCharacteristics optionalCharacteristics) {
 
 		super(property, owner, simpleTypeHolder);
 		this.mappingContext = mappingContext;
@@ -100,6 +102,8 @@ final class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProp
 
 			return this.mappingContext.getOptionalCustomConversionsFor(this);
 		});
+
+		this.optionalCharacteristics = optionalCharacteristics;
 	}
 
 	@Override
@@ -307,7 +311,17 @@ final class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProp
 	@Override
 	public boolean isReadOnly() {
 
+		if (optionalCharacteristics != null && optionalCharacteristics.isReadOnly() != null) {
+			return Boolean.TRUE.equals(optionalCharacteristics.isReadOnly());
+		}
+
 		Class<org.springframework.data.neo4j.core.schema.Property> typeOfAnnotation = org.springframework.data.neo4j.core.schema.Property.class;
 		return isAnnotationPresent(ReadOnlyProperty.class) || (isAnnotationPresent(typeOfAnnotation) && getRequiredAnnotation(typeOfAnnotation).readOnly());
+	}
+
+	@Override
+	public boolean isTransient() {
+		return this.optionalCharacteristics == null || optionalCharacteristics.isTransient() == null ?
+				super.isTransient() : Boolean.TRUE.equals(optionalCharacteristics.isTransient());
 	}
 }

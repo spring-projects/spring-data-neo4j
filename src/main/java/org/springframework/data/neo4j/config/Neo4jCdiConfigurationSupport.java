@@ -89,7 +89,7 @@ class Neo4jCdiConfigurationSupport {
 	@Produces @Singleton
 	public Neo4jMappingContext neo4jMappingContext(@SuppressWarnings("CdiInjectionPointsInspection") Driver driver, @Any Instance<Neo4jConversions> neo4JConversions) {
 
-		return new Neo4jMappingContext(resolve(neo4JConversions), driver.defaultTypeSystem());
+		return Neo4jMappingContext.builder().withNeo4jConversions(resolve(neo4JConversions)).withTypeSystem(driver.defaultTypeSystem()).build();
 	}
 
 	@Produces @Singleton
