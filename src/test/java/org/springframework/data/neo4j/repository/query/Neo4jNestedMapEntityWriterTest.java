@@ -75,7 +75,7 @@ class Neo4jNestedMapEntityWriterTest {
 
 	Neo4jNestedMapEntityWriterTest() {
 
-		this.mappingContext = new Neo4jMappingContext(new Neo4jConversions(), InternalTypeSystem.TYPE_SYSTEM);
+		this.mappingContext = Neo4jMappingContext.builder().withNeo4jConversions(new Neo4jConversions()).build();
 		this.mappingContext.setInitialEntitySet(new HashSet<>(
 				Arrays.asList(
 						FlatEntity.class,
