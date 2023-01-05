@@ -187,8 +187,10 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 	 *
 	 * @param neo4jConversions The conversions to be used
 	 * @param typeSystem       The current drivers type system. If this is null, we use the default one without accessing the driver.
+	 * @deprecated Use {@link Neo4jMappingContext#builder()}
 	 */
 	@API(status = API.Status.INTERNAL, since = "6.0")
+	@Deprecated
 	public Neo4jMappingContext(Neo4jConversions neo4jConversions, @Nullable TypeSystem typeSystem) {
 		this(new Builder(neo4jConversions, typeSystem, null));
 	}
