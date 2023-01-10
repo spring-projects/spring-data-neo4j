@@ -29,7 +29,7 @@ import org.springframework.data.neo4j.core.mapping.callback.EventSupport;
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
-import org.springframework.data.util.ClassTypeInformation;
+import org.springframework.data.util.TypeInformation;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -49,7 +49,7 @@ class DefaultNeo4jEntityConverterTest {
 		NodeDescriptionStore nodeDescriptionStore = new NodeDescriptionStore();
 		DefaultNeo4jConversionService conversionService = new DefaultNeo4jConversionService(new Neo4jConversions());
 		Neo4jMappingContext context = new Neo4jMappingContext();
-		context.addPersistentEntity(ClassTypeInformation.from(EntityWithDefaultValues.class));
+		context.addPersistentEntity(TypeInformation.of(EntityWithDefaultValues.class));
 		nodeDescriptionStore.put("User", (DefaultNeo4jPersistentEntity<?>) context.getNodeDescription(EntityWithDefaultValues.class));
 		EventSupport eventSupport = EventSupport.useExistingCallbacks(context, EntityCallbacks.create());
 		TypeSystem typeSystem = InternalTypeSystem.TYPE_SYSTEM;
