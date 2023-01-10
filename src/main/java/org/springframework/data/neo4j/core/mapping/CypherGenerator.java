@@ -34,6 +34,8 @@ import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
 import java.util.regex.Pattern;
 
+import javax.lang.model.SourceVersion;
+
 import org.apiguardian.api.API;
 import org.neo4j.cypherdsl.core.Condition;
 import org.neo4j.cypherdsl.core.Conditions;
@@ -55,6 +57,7 @@ import org.neo4j.cypherdsl.core.StatementBuilder.OngoingUpdate;
 import org.neo4j.cypherdsl.core.SymbolicName;
 import org.neo4j.cypherdsl.core.renderer.Configuration;
 import org.neo4j.cypherdsl.core.renderer.Renderer;
+import org.neo4j.cypherdsl.core.utils.Assertions;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mapping.MappingException;
 import org.springframework.data.mapping.PersistentProperty;
@@ -619,6 +622,7 @@ public enum CypherGenerator {
 						expression = Cypher.property(property.substring(0, firstDot), tail);
 					} else {
 						try {
+							Assertions.isTrue(SourceVersion.isIdentifier(property), "Name must be a valid identifier.");
 							expression = Cypher.name(property);
 						} catch (IllegalArgumentException e) {
 							if (e.getMessage().endsWith(".")) {
