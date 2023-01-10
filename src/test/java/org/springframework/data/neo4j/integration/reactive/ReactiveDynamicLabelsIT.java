@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.neo4j.cypherdsl.core.Functions;
 import org.neo4j.driver.TransactionContext;
 import org.junit.jupiter.api.RepeatedTest;
+import org.neo4j.driver.reactive.ReactiveSession;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.integration.shared.common.CounterMetric;
 import org.springframework.data.neo4j.integration.shared.common.GaugeMetric;
@@ -480,7 +481,7 @@ public class ReactiveDynamicLabelsIT {
 			String cypher = Renderer.getDefaultRenderer().render(Cypher.match(n).where(idCondition)
 					.and(n.property("moreLabels").isNull()).unwind(n.labels()).as("label").returning("label").build());
 			return Flux
-					.usingWhen(Mono.fromSupplier(() -> driver.reactiveSession(bookmarkCapture.createSessionConfig())),
+					.usingWhen(Mono.fromSupplier(() -> driver.session(ReactiveSession.class, bookmarkCapture.createSessionConfig())),
 							s -> JdkFlowAdapter.flowPublisherToFlux(s.run(cypher, Collections.singletonMap("id", id))).flatMap(r -> JdkFlowAdapter.flowPublisherToFlux(r.records())), rs -> JdkFlowAdapter.flowPublisherToFlux(rs.close()))
 					.map(r -> r.get("label").asString());
 		}

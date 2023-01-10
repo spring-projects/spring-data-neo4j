@@ -65,7 +65,7 @@ class EventsPublisherIT {
 
 		try (Session session = driver.session()) {
 			session.run("MATCH (n) DETACH DELETE n").consume();
-			bookmarkCapture.seedWith(session.lastBookmark());
+			bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 	}
 

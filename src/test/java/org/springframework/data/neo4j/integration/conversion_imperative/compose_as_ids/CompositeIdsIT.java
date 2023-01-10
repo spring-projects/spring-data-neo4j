@@ -69,7 +69,7 @@ class CompositeIdsIT {
 		try (Session session = driver.session()) {
 			session.run("MATCH (n:ThingWithCompositeProperty) DETACH DELETE n").consume();
 			session.run("MATCH (n:ThingWithCompositeId) DETACH DELETE n").consume();
-			bookmarkCapture.seedWith(session.lastBookmark());
+			bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 	}
 

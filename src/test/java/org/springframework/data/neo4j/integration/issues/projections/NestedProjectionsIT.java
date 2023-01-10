@@ -57,7 +57,7 @@ class NestedProjectionsIT {
 		try (Session session = driver.session()) {
 			session.run("MATCH (n) DETACH DELETE n").consume();
 			session.run("CREATE (l:SourceNodeA {id: 'L-l1', version: 1})-[:A_TO_CENTRAL]->(e:CentralNode {id: 'E-l1', version: 1})<-[:B_TO_CENTRAL]-(c:SourceNodeB {id: 'C-l1', version: 1}) RETURN id(l)").consume();
-			bookmarkCapture.seedWith(session.lastBookmark());
+			bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 	}
 
@@ -66,7 +66,7 @@ class NestedProjectionsIT {
 		try (Session session = driver.session()) {
 			session.run("MATCH (n:SourceNodeA) SET n.value = null").consume();
 			session.run("MATCH (n:CentralNode) SET n.name = null").consume();
-			bookmarkCapture.seedWith(session.lastBookmark());
+			bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 	}
 
