@@ -1691,6 +1691,7 @@ class RepositoryIT {
 		@Test
 		void updateAndCreateRelationshipProperties(@Autowired HobbyWithRelationshipWithPropertiesRepository repository) {
 
+			@SuppressWarnings("deprecation")
 			long hobbyId = doWithSession(
 					session -> session.run("CREATE (n:AltPerson{name:'Freddie'}), (n)-[l1:LIKES {rating: 5}]->(h1:AltHobby{name:'Music'}) RETURN n, h1").single().get("h1").asNode().id());
 
