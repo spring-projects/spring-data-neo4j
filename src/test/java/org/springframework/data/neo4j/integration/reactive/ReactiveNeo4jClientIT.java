@@ -20,8 +20,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.neo4j.cypherdsl.core.Statement;
 import org.neo4j.cypherdsl.core.executables.ExecutableResultStatement;
 import org.neo4j.driver.Query;
-import org.neo4j.driver.QueryRunner;
 import org.neo4j.driver.Record;
+import org.neo4j.driver.SimpleQueryRunner;
 import org.neo4j.driver.async.AsyncQueryRunner;
 import org.neo4j.driver.reactivestreams.ReactiveQueryRunner;
 import org.neo4j.driver.reactivestreams.ReactiveResult;
@@ -176,7 +176,7 @@ class ReactiveNeo4jClientIT {
 		}
 
 		@Override
-		public <T> List<T> fetchWith(QueryRunner queryRunner, Function<Record, T> function) {
+		public <T> List<T> fetchWith(SimpleQueryRunner queryRunner, Function<Record, T> function) {
 			throw new UnsupportedOperationException();
 		}
 
@@ -186,12 +186,12 @@ class ReactiveNeo4jClientIT {
 		}
 
 		@Override
-		public ResultSummary streamWith(QueryRunner queryRunner, Consumer<Stream<Record>> consumer) {
+		public ResultSummary streamWith(SimpleQueryRunner queryRunner, Consumer<Stream<Record>> consumer) {
 			throw new UnsupportedOperationException();
 		}
 
 		@Override
-		public ResultSummary executeWith(QueryRunner queryRunner) {
+		public ResultSummary executeWith(SimpleQueryRunner queryRunner) {
 			throw new UnsupportedOperationException();
 		}
 

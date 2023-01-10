@@ -31,11 +31,7 @@ import java.util.Map;
 
 // tag::domain-results-impl[]
 import org.neo4j.cypherdsl.core.Cypher;
-import org.neo4j.cypherdsl.core.Expression;
 import org.neo4j.cypherdsl.core.Functions;
-import org.neo4j.cypherdsl.core.NamedPath;
-import org.neo4j.cypherdsl.core.Node;
-import org.neo4j.cypherdsl.core.Statement;
 
 // end::domain-results-impl[]
 
@@ -85,13 +81,13 @@ class DomainResultsImpl implements DomainResults {
 	@Override
 	public List<MovieEntity> findMoviesAlongShortestPath(PersonEntity from, PersonEntity to) {
 
-		Node p1 = node("Person").withProperties("name", parameter("person1"));
-		Node p2 = node("Person").withProperties("name", parameter("person2"));
-		NamedPath shortestPath = shortestPath("p").definedBy(
+		var p1 = node("Person").withProperties("name", parameter("person1"));
+		var p2 = node("Person").withProperties("name", parameter("person2"));
+		var shortestPath = shortestPath("p").definedBy(
 				p1.relationshipBetween(p2).unbounded()
 		);
-		Expression p = shortestPath.getRequiredSymbolicName();
-		Statement statement = Cypher.match(shortestPath)
+		var p = shortestPath.getRequiredSymbolicName();
+		var statement = Cypher.match(shortestPath)
 				.with(p, listWith(name("n"))
 						.in(Functions.nodes(shortestPath))
 						.where(anyNode().named("n").hasLabels("Movie")).returning().as("mn")

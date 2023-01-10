@@ -211,17 +211,17 @@ public final class TemplateSupport {
 					.with(Functions.collect(rootNodes).as(Constants.NAME_OF_ROOT_NODE))
 					.optionalMatch(relationships)
 					.where(Functions.id(relationships).in(Cypher.parameter(relationshipIds)))
-					.with(Constants.NAME_OF_ROOT_NODE, Functions.collectDistinct(relationships).as(Constants.NAME_OF_SYNTHESIZED_RELATIONS).asExpression())
+					.with(Constants.NAME_OF_ROOT_NODE, Functions.collectDistinct(relationships).as(Constants.NAME_OF_SYNTHESIZED_RELATIONS))
 					.optionalMatch(relatedNodes)
 					.where(Functions.id(relatedNodes).in(Cypher.parameter(relatedNodeIds)))
 					.with(
 							Constants.NAME_OF_ROOT_NODE,
 							Cypher.name(Constants.NAME_OF_SYNTHESIZED_RELATIONS).as(Constants.NAME_OF_SYNTHESIZED_RELATIONS),
-							Functions.collectDistinct(relatedNodes).as(Constants.NAME_OF_SYNTHESIZED_RELATED_NODES).asExpression()
+							Functions.collectDistinct(relatedNodes).as(Constants.NAME_OF_SYNTHESIZED_RELATED_NODES)
 					)
 					.unwind(Constants.NAME_OF_ROOT_NODE).as(rootNodeIds)
 					.with(
-							Cypher.name(rootNodeIds).as(Constants.NAME_OF_TYPED_ROOT_NODE.apply(nodeDescription).getValue()).asExpression(),
+							Cypher.name(rootNodeIds).as(Constants.NAME_OF_TYPED_ROOT_NODE.apply(nodeDescription).getValue()),
 							Cypher.name(Constants.NAME_OF_SYNTHESIZED_RELATIONS),
 							Cypher.name(Constants.NAME_OF_SYNTHESIZED_RELATED_NODES))
 					.orderBy(queryFragments.getOrderBy())

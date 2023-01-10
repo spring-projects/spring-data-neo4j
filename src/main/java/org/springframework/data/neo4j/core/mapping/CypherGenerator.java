@@ -34,6 +34,8 @@ import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
 import java.util.regex.Pattern;
 
+import javax.lang.model.SourceVersion;
+
 import org.apiguardian.api.API;
 import org.neo4j.cypherdsl.core.Condition;
 import org.neo4j.cypherdsl.core.Conditions;
@@ -41,6 +43,7 @@ import org.neo4j.cypherdsl.core.Cypher;
 import org.neo4j.cypherdsl.core.Expression;
 import org.neo4j.cypherdsl.core.FunctionInvocation;
 import org.neo4j.cypherdsl.core.Functions;
+import org.neo4j.cypherdsl.core.IdentifiableElement;
 import org.neo4j.cypherdsl.core.MapProjection;
 import org.neo4j.cypherdsl.core.Node;
 import org.neo4j.cypherdsl.core.Parameter;
@@ -55,6 +58,7 @@ import org.neo4j.cypherdsl.core.StatementBuilder.OngoingUpdate;
 import org.neo4j.cypherdsl.core.SymbolicName;
 import org.neo4j.cypherdsl.core.renderer.Configuration;
 import org.neo4j.cypherdsl.core.renderer.Renderer;
+import org.neo4j.cypherdsl.core.utils.Assertions;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mapping.MappingException;
 import org.springframework.data.mapping.PersistentProperty;
@@ -111,12 +115,12 @@ public enum CypherGenerator {
 
 		Node rootNode = createRootNode(nodeDescription);
 
-		List<Expression> expressions = new ArrayList<>();
+		List<IdentifiableElement> expressions = new ArrayList<>();
 		expressions.add(rootNode.getRequiredSymbolicName());
 		expressions.add(Functions.id(rootNode).as(Constants.NAME_OF_INTERNAL_ID));
 		expressions.add(Functions.elementId(rootNode).as(Constants.NAME_OF_ELEMENT_ID));
 
-		return match(rootNode).where(conditionOrNoCondition(condition)).with(expressions.toArray(new Expression[] {}));
+		return match(rootNode).where(conditionOrNoCondition(condition)).with(expressions.toArray(IdentifiableElement[]::new));
 	}
 
 	public StatementBuilder.OngoingReading prepareMatchOf(NodeDescription<?> nodeDescription,
@@ -126,12 +130,12 @@ public enum CypherGenerator {
 
 		StatementBuilder.OngoingReadingWithoutWhere match = prepareMatchOfRootNode(rootNode, initialMatchOn);
 
-		List<Expression> expressions = new ArrayList<>();
+		List<IdentifiableElement> expressions = new ArrayList<>();
 		expressions.add(Functions.collect(Functions.id(rootNode)).as(Constants.NAME_OF_SYNTHESIZED_ROOT_NODE));
 
 		return match
 				.where(conditionOrNoCondition(condition))
-				.with(expressions.toArray(new Expression[]{}));
+				.with(expressions.toArray(IdentifiableElement[]::new));
 	}
 
 	public StatementBuilder.OngoingReading prepareMatchOf(NodeDescription<?> nodeDescription,
@@ -163,7 +167,7 @@ public enum CypherGenerator {
 		};
 
 		relationship = relationship.named(Constants.NAME_OF_SYNTHESIZED_RELATIONS);
-		List<Expression> expressions = new ArrayList<>();
+		List<IdentifiableElement> expressions = new ArrayList<>();
 		expressions.add(Functions.collect(Functions.id(rootNode)).as(Constants.NAME_OF_SYNTHESIZED_ROOT_NODE));
 		expressions.add(Functions.collect(Functions.id(targetNode)).as(Constants.NAME_OF_SYNTHESIZED_RELATED_NODES));
 		expressions.add(Functions.collect(Functions.id(relationship)).as(Constants.NAME_OF_SYNTHESIZED_RELATIONS));
@@ -171,7 +175,7 @@ public enum CypherGenerator {
 		return match
 				.where(conditionOrNoCondition(condition))
 				.optionalMatch(relationship)
-				.with(expressions.toArray(new Expression[]{}));
+				.with(expressions.toArray(IdentifiableElement[]::new));
 	}
 
 	@NonNull
@@ -619,6 +623,7 @@ public enum CypherGenerator {
 						expression = Cypher.property(property.substring(0, firstDot), tail);
 					} else {
 						try {
+							Assertions.isTrue(SourceVersion.isIdentifier(property), "Name must be a valid identifier.");
 							expression = Cypher.name(property);
 						} catch (IllegalArgumentException e) {
 							if (e.getMessage().endsWith(".")) {
