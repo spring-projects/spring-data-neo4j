@@ -26,7 +26,7 @@ If you don't have a running database but Docker installed, please run:
 [[start-docker-neo4j]]
 .Start a local Neo4j instance inside Docker.
 ----
-docker run --publish=7474:7474 --publish=7687:7687 -e 'NEO4J_AUTH=neo4j/secret' neo4j:{neo4j-version}
+docker run --publish=7474:7474 --publish=7687:7687 -e 'NEO4J_AUTH=neo4j/secret' neo4j:{docs-neo4j-docker-version}
 ----
 
 You can now access http://localhost:7474/browser/?cmd=play&arg=movies[http://localhost:7474].
@@ -113,7 +113,7 @@ Find `application.properties` and configure your Neo4j credentials:
 ----
 spring.neo4j.uri=bolt://localhost:7687
 spring.neo4j.authentication.username=neo4j
-spring.neo4j.authentication.password=secret
+spring.neo4j.authentication.password=verysecret
 ----
 
 This is the bare minimum of what you need to connect to a Neo4j instance.
@@ -122,7 +122,7 @@ NOTE: It is not necessary to add any programmatic configuration of the driver wh
 SDN repositories will be automatically enabled by this starter.
 
 [[running-on-the-module-path]]
-== Running on the Module-Path (Java 9+)
+== Running on the Module-Path
 
 Spring Data Neo4j can run on the module path. It's automatic module name is `spring.data.neo4j`.
 It does not provide a module itself due to restrictions in the current Spring Data build setup.
