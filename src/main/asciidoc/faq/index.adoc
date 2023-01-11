@@ -45,13 +45,14 @@ Have a look at the corresponding module `org.neo4j.driver:neo4j-java-driver-test
 [[faq.change-driver-version]]
 == Which Neo4j Java Driver can be used and how?
 
-SDN6 relies on the Neo4j Java Driver version 4.x.
-Each SDN6 release uses a Neo4j Java Driver version compatible with the latest Neo4j available at the time of its
+SDN relies on the Neo4j Java Driver.
+Each SDN release uses a Neo4j Java Driver version compatible with the latest Neo4j available at the time of its
 release.
-While patch versions of the Neo4j Java Driver are usually drop-in replacements, SDN6 makes sure that even minor versions
+While patch versions of the Neo4j Java Driver are usually drop-in replacements, SDN makes sure that even minor versions
 are interchangeable as it checks for the presence or absence of methods or interface changes if necessary.
 
-Therefore, you are able to use any 4.x Neo4j Java Driver with any SDN 6.x version.
+Therefore, you are able to use any 4.x Neo4j Java Driver with any SDN 6.x version,
+and any 5.x Neo4j Driver with any SDN 7.x version.
 
 === With Spring Boot
 
@@ -62,7 +63,7 @@ Spring Boots dependency management to change the driver version like this:
 [source,xml]
 ----
 <properties>
-  <neo4j-java-driver.version>4.4.2</neo4j-java-driver.version>
+  <neo4j-java-driver.version>5.4.0</neo4j-java-driver.version>
 </properties>
 ----
 
@@ -71,7 +72,7 @@ Or
 .Change the driver version from Gradle (gradle.properties)
 [source,properties]
 ----
-neo4j-java-driver.version = 4.4.2
+neo4j-java-driver.version = 5.4.0
 ----
 
 === Without Spring Boot
@@ -85,13 +86,13 @@ section like this:
     <dependency>
         <groupId>org.neo4j.driver</groupId>
         <artifactId>neo4j-java-driver</artifactId>
-        <version>4.4.2</version>
+        <version>5.4.0</version>
     </dependency>
 </dependencyManagement>
 ----
 
 [[faq.multidatabase]]
-== Neo4j 4.0 supports multiple databases - How can I use them?
+== Neo4j 4 supports multiple databases - How can I use them?
 
 You can either statically configure the database name or run your own database name provider.
 Bear in mind that SDN will not create the databases for you.
@@ -414,7 +415,7 @@ public class Neo4jHealthConfig {
 ----
 
 [[faq.impersonation]]
-== Neo4j 4.4 supports impersonation of different users - How can I use them?
+== Neo4j 4.4+ supports impersonation of different users - How can I use them?
 
 User impersonation is especially interesting in big multi-tenant settings, in which one physically connected (or technical)
 user can impersonate many tenants. Depending on your setup this will drastically reduce the number of physical driver instances needed.
@@ -1035,7 +1036,7 @@ TIP: Named paths can be used efficiently to populate and return more than just a
 
 No, `@Query` is *not* the only way to run custom queries.
 The annotation is comfortable in situations in which your custom query fills your domain completely.
-Please remember that SDN 6 assumes your mapped domain model to be the truth.
+Please remember that SDN assumes your mapped domain model to be the truth.
 That means if you use a custom query via `@Query` that only fills a model partially, you are in danger of using the same
 object to write the data back which will eventually erase or overwrite data you didn't consider in your query.
 
@@ -1060,7 +1061,7 @@ If you think that you can solve your problem with a partially dynamic query or a
 please jump back now to the chapter <<sdn-mixins, about Spring Data Neo4j Mixins>>.
 
 Otherwise, please read up on two things: <<repositories.custom-implementations,custom repository fragments>>
-the <<sdn-building-blocks,levels of abstractions>> we offer in SDN 6.
+the <<sdn-building-blocks,levels of abstractions>> we offer in SDN.
 
 Why speaking about custom repository fragments now?
 
@@ -1123,9 +1124,9 @@ The important takeaway here is:
 Often times a custom query indicates custom results.
 Should all of those results be mapped as `@Node`? Of course not! Many times those objects represents read commands
 and are not meant to be used as write commands.
-It is also not unlikely that SDN 6 cannot or want not map everything that is possible with Cypher.
+It is also not unlikely that SDN cannot or want not map everything that is possible with Cypher.
 It does however offer several hooks to run your own mapping: On the `Neo4jClient`.
-The benefit of using the SDN 6 `Neo4jClient` over the driver:
+The benefit of using the SDN `Neo4jClient` over the driver:
 
 * The `Neo4jClient` is integrated with Springs transaction management
 * It has a fluent API for binding parameters

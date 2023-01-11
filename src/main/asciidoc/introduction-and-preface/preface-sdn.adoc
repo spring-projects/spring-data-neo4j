@@ -35,11 +35,11 @@ All of them provide integration with Spring's application level transactions.
 On a lower level, you can grab the Bolt driver instance, but than you have to manage your own transactions in these cases.
 
 NOTE: You still can use Neo4j-OGM, even in modern Spring Boot applications.
-      But you *cannot* use it with SDN 6.
+      But you *cannot* use it with SDN 6+.
       If you tried you would have two different sets of entities in two different - and unrelated - persistence context.
       Hence, if you want to stick to Neo4j-OGM 3.2.x, you would use the Java driver instantiated by Spring Boot and pass it onto a Neo4j-OGM session.
       Neo4j-OGM 3.2.x is still supported, and we recommend its use in frameworks such as Quarkus.
-      In a Spring Boot application however your primary choice should be SDN 6.
+      In a Spring Boot application however your primary choice should be SDN.
 
 Please make sure you read the <<faq, Frequently Asked Questions>> where we address many reoccurring questions about our mapping decisions but also how interaction with Neo4j cluster instances such as https://neo4j.com/cloud/platform/aura-graph-database/[Neo4j AuraDB] and on-premise cluster deployments can be significantly improved.
 

@@ -4,21 +4,20 @@
 [[building-SDN.requirements]]
 == Requirements
 
-* JDK 8+ (Can be https://openjdk.java.net[OpenJDK] or https://www.oracle.com/technetwork/java/index.html[Oracle JDK])
-* Maven 3.6.2 (We provide the Maven wrapper, see `mvnw` respectively `mvnw.cmd` in the project root; the wrapper downloads the appropriate Maven version automatically)
-* A Neo4j 3.5.+ database, either
+* JDK 17+ (Can be https://openjdk.java.net[OpenJDK] or https://www.oracle.com/technetwork/java/index.html[Oracle JDK])
+* Maven 3.8.5 (We provide the Maven wrapper, see `mvnw` respectively `mvnw.cmd` in the project root; the wrapper downloads the appropriate Maven version automatically)
+* A Neo4j 5.+ database, either
 ** running locally
 ** or indirectly via https://www.testcontainers.org[Testcontainers] and https://www.docker.com[Docker]
 
 [[building-SDN.jdk.version]]
 === About the JDK version
 
-Choosing JDK 8 is a decision influenced by various aspects
+Choosing JDK 17 is a decision influenced by various aspects
 
 * SDN is a Spring Data project.
-Spring Data commons baseline is still JDK 8 and so is Spring Framework's baseline.
-Thus, it is only natural to keep the JDK 8 baseline.
-* While there is an increase of projects started with JDK 11 (which is Oracle's current LTS release of Java), many existing projects are still on JDK 8. We don't want to lose them as users right from the start.
+Spring Data commons baseline is JDK 17 and so is Spring Framework's baseline.
+Thus, it is only natural to keep the JDK 17 baseline.
 
 [[building-SDN.running-the-build]]
 == Running the build
@@ -42,9 +41,9 @@ The output should be similar:
 .Verify your JDK
 ----
 $ java -version
-java version "12.0.1" 2019-04-16
-Java(TM) SE Runtime Environment (build 12.0.1+12)
-Java HotSpot(TM) 64-Bit Server VM (build 12.0.1+12, mixed mode, sharing)
+java version "18.0.1" 2022-04-19
+Java(TM) SE Runtime Environment (build 18.0.1+10-24)
+Java HotSpot(TM) 64-Bit Server VM (build 18.0.1+10-24, mixed mode, sharing)
 ----
 
 [[building-SDN.docker]]
@@ -85,10 +84,10 @@ The image version to use can be configured through an environmental variable lik
 [[build-other-image]]
 .Build using a different Neo4j Docker image
 ----
-$ SDN_NEO4J_VERSION=3.5.11-enterprise SDN_NEO4J_ACCEPT_COMMERCIAL_EDITION=yes ./mvnw clean verify
+$ SDN_NEO4J_VERSION=5.3.0-enterprise SDN_NEO4J_ACCEPT_COMMERCIAL_EDITION=yes ./mvnw clean verify
 ----
 
-Here we are using 3.5.11 enterprise and also accept the license agreement.
+Here we are using 5.3.0 enterprise and also accept the license agreement.
 
 Consult your operating system or shell manual on how to define environment variables if specifying them inline does not work for you.
 
@@ -111,7 +110,7 @@ After that, you can run a complete build by specifying the local `bolt` URL:
 [[build-using-locally-running-database]]
 .Build using a locally running database
 ----
-$ SDN_NEO4J_URL=bolt://localhost:7687 SDN_NEO4J_PASSWORD=secret ./mvnw clean verify
+$ SDN_NEO4J_URL=bolt://localhost:7687 SDN_NEO4J_PASSWORD=verysecret ./mvnw clean verify
 ----
 
 [[building-SDN.environment-variables]]
@@ -122,7 +121,7 @@ $ SDN_NEO4J_URL=bolt://localhost:7687 SDN_NEO4J_PASSWORD=secret ./mvnw clean ver
 |Name|Default value|Meaning
 
 |`SDN_NEO4J_VERSION`
-|3.5.6
+|5.3.0
 |Version of the Neo4j docker image to use, see https://hub.docker.com/_/neo4j[Neo4j Docker Official Images]
 
 |`SDN_NEO4J_ACCEPT_COMMERCIAL_EDITION`

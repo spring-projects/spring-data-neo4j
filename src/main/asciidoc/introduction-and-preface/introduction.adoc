@@ -31,7 +31,7 @@ Apart from the paging mechanism, all the features of standard repositories are a
 If you come from older versions of Spring Data Neo4j - which are usually abbreviated SDN+OGM or SDN5 -
 you will most likely be interested in the <<preface.sdn, introduction to SDN>> and especially in the relationship
 <<faq.sdn-related-to-ogm, between SDN+OGM and the current SDN>>. In the same chapter, you will find out about the
-<<building-blocks, building blocks>> of SDN6.
+<<building-blocks, building blocks>> of SDN.
 
 To learn more about the general concepts of repositories, head over to <<repositories>>.
 
