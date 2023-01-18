@@ -470,8 +470,9 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 			childDescription.getRelationships().forEach(concreteRelationship -> {
 
 				String fieldName = concreteRelationship.getFieldName();
+				NodeDescription<?> target = concreteRelationship.getTarget();
 
-				if (relationships.stream().noneMatch(relationship -> relationship.getFieldName().equals(fieldName))) {
+				if (relationships.stream().noneMatch(relationship -> relationship.getFieldName().equals(fieldName) && relationship.getTarget().equals(target))) {
 					relationships.add(concreteRelationship);
 				}
 			});
