@@ -600,19 +600,24 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 	private boolean calculatePossibleCircles(NodeDescription<?> nodeDescription, Set<NodeDescription<?>> visitedNodes, Predicate<PropertyFilter.RelaxedPropertyPath> includeField, PropertyFilter.RelaxedPropertyPath path) {
 		Collection<RelationshipDescription> relationships = ((DefaultNeo4jPersistentEntity<?>) nodeDescription).getRelationshipsInHierarchy(includeField, path);
 
+		Collection<NodeDescription<?>> visitedTargetNodes = new HashSet<>();
 		for (RelationshipDescription relationship : relationships) {
 			NodeDescription<?> targetNode = relationship.getTarget();
 			if (visitedNodes.contains(targetNode)) {
 				return true;
 			}
-			visitedNodes.add(targetNode);
-
+			visitedTargetNodes.add(targetNode);
 			// Branch out again for the sub-tree with all previously visited nodes
 			Set<NodeDescription<?>> branchedVisitedNodes = new HashSet<>(visitedNodes);
+			// Add the already visited target nodes for the next level,
+			// but don't (!) add them to the visitedNodes yet.
+			// Otherwise, the same "parallel" defined target nodes will report a false circle.
+			branchedVisitedNodes.addAll(visitedTargetNodes);
 			if (calculatePossibleCircles(targetNode, branchedVisitedNodes, includeField, path.append(relationship.getFieldName()))) {
 				return true;
 			}
 		}
+		visitedNodes.addAll(visitedTargetNodes);
 		return false;
 	}
 }
