@@ -23,7 +23,7 @@ As there is always a Spring Data version corresponding to Neo4j-OGM, you would h
 Spring Data however depends on Spring Framework and then the arguments from the first bullet apply.
 Being unsure about which building blocks to include::
 It's not easy to get the terms right.
-We wrote the building blocks of an SDN+OGM setting https://michael-simons.github.io/neo4j-sdn-ogm-tips/what_are_the_building_blocks_of_sdn_and_ogm.html[here].
+We wrote the building blocks of an SDN+OGM setting https://michael-simons.github.io/neo4j-examples-and-tips/what_are_the_building_blocks_of_sdn_and_ogm.html[here].
 It may be so that all of them have been added by coincidence and you're dealing with a lot of conflicting dependencies.
 
 TIP: Backed by those observations, we recommend to make sure you're using only the Bolt or http transport in your current application before switching from SDN+OGM to SDN.
