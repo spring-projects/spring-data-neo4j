@@ -15,6 +15,7 @@
  */
 package org.springframework.data.neo4j.integration.issues;
 
+import static org.assertj.core.api.Assertions.as;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.tuple;
@@ -57,6 +58,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.mapping.MappingException;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
 import org.springframework.data.neo4j.core.DatabaseSelectionProvider;
 import org.springframework.data.neo4j.core.Neo4jTemplate;
@@ -128,6 +130,8 @@ import org.springframework.data.neo4j.integration.issues.gh2579.TableNode;
 import org.springframework.data.neo4j.integration.issues.gh2579.TableRepository;
 import org.springframework.data.neo4j.integration.issues.gh2583.GH2583Node;
 import org.springframework.data.neo4j.integration.issues.gh2583.GH2583Repository;
+import org.springframework.data.neo4j.integration.issues.gh2622.GH2622Repository;
+import org.springframework.data.neo4j.integration.issues.gh2622.MePointingTowardsMe;
 import org.springframework.data.neo4j.integration.issues.gh2639.Company;
 import org.springframework.data.neo4j.integration.issues.gh2639.CompanyPerson;
 import org.springframework.data.neo4j.integration.issues.gh2639.CompanyRepository;
@@ -989,6 +993,20 @@ class IssuesIT extends TestBase {
 				.containsExactlyInAnyOrder(
 						new Individual("Larry Wall", "larryW"), new Enterprise("Sun", ";(")
 				);
+	}
+
+	@Test
+	@Tag("GH-2622")
+	void throwCyclicMappingDependencyExceptionOnSelfReference(@Autowired GH2622Repository repository) {
+		MePointingTowardsMe entity = new MePointingTowardsMe("me", new ArrayList<>());
+		entity.others.add(entity);
+		repository.save(entity);
+
+		assertThatExceptionOfType(MappingException.class).isThrownBy(repository::findAll)
+				.withRootCauseInstanceOf(MappingException.class)
+				.extracting(Throwable::getCause, as(InstanceOfAssertFactories.THROWABLE))
+				.hasMessageContaining("has a logical cyclic mapping dependency");
+
 	}
 
 	@Configuration
