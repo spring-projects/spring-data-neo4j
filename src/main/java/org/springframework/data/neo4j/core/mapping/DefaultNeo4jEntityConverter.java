@@ -313,14 +313,6 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 		String internalId = IdentitySupport.getInternalId(queryResult, direction);
 
 		Supplier<ET> mappedObjectSupplier = () -> {
-			if (knownObjects.isInCreation(internalId)) {
-				throw new MappingException(
-						String.format(
-								"The node with id %s has a logical cyclic mapping dependency; " +
-								"its creation caused the creation of another node that has a reference to this",
-								internalId.substring(1))
-				);
-			}
 			knownObjects.setInCreation(internalId);
 
 			List<String> allLabels = getLabels(queryResult, nodeDescription);
@@ -945,6 +937,14 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 			}
 			try {
 				read.lock();
+				if (isInCreation(internalId)) {
+					throw new MappingException(
+							String.format(
+									"The node with id %s has a logical cyclic mapping dependency; " +
+											"its creation caused the creation of another node that has a reference to this",
+									internalId.substring(1))
+					);
+				}
 				return internalIdStore.get(internalId);
 			} finally {
 				read.unlock();
