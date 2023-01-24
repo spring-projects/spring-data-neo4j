@@ -100,7 +100,9 @@ public abstract class PropertyFilter {
 			}
 
 			// create a sorted list of the deepest paths first
-			Optional<String> candidate = projectingPropertyPaths.stream().map(pp -> pp.propertyPath.toDotPath()).sorted((o1, o2) -> {
+			Optional<String> candidate = projectingPropertyPaths.stream()
+						.filter(pp -> pp.isEntity)
+						.map(pp -> pp.propertyPath.toDotPath()).sorted((o1, o2) -> {
 						int depth1 = StringUtils.countOccurrencesOf(o1, ".");
 						int depth2 = StringUtils.countOccurrencesOf(o2, ".");
 
@@ -109,12 +111,9 @@ public abstract class PropertyFilter {
 					.filter(d -> dotPath.contains(d) && dotPath.startsWith(d))
 					.findFirst();
 
-			//noinspection OptionalGetWithoutIsPresent
 			return projectingPropertyPaths.stream().map(pp -> pp.propertyPath.toDotPath())
 						.anyMatch(ppDotPath -> ppDotPath.equals(dotPath))
-					|| (dotPath.contains(".") && candidate.isPresent() &&
-						projectingPropertyPaths.stream()
-						.filter(pp -> pp.propertyPath.toDotPath().equals(candidate.get())).findFirst().get().isEntity);
+					|| (dotPath.contains(".") && candidate.isPresent());
 		}
 
 		@Override
