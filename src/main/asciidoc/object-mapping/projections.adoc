@@ -181,9 +181,9 @@ interface TestRepository extends CrudRepository<TestEntity, Long> { // <.>
 
     List<ExtendedTestEntity> findAllExtendedEntities(); // <.>
 
-    List<TestEntityInterfaceProjection> findAllInterfaceProjections(); // <.>
+    List<TestEntityInterfaceProjection> findAllInterfaceProjectionsBy(); // <.>
 
-    List<TestEntityDTOProjection> findAllDTOProjections(); // <.>
+    List<TestEntityDTOProjection> findAllDTOProjectionsBy(); // <.>
 
     @Query("MATCH (t:TestEntity) - [r:RELATED_TO] -> () RETURN t, COUNT(r) AS numberOfRelations") // <.>
     List<TestEntityDTOProjection> findAllDTOProjectionsWithCustomQuery();
@@ -195,13 +195,15 @@ interface TestRepository extends CrudRepository<TestEntity, Long> { // <.>
     of the extending class. The domain type of the method in question will be the extended class, which
     still satisfies the domain type of the repository itself
 <.> This method returns an interface projection, the return type of the method is therefore different
-    from the repository's domain type. The interface can only access properties defined in the domain type
+    from the repository's domain type. The interface can only access properties defined in the domain type.
+    The suffix `By` is needed to make SDN not look for a property called `InterfaceProjections` in the `TestEntity`
 <.> This method returns a DTO projection. Executing it will cause SDN to issue a warning, as the DTO defines
     `numberOfRelations` as additional attribute, which is not in the contract of the domain type.
     The annotated attribute `aProperty` in `TestEntity` will be correctly translated to `a_property` in the query.
     As above, the return type is different from the repositories' domain type.
+    The suffix `By` is needed to make SDN not look for a property called `DTOProjections` in the `TestEntity`
 <.> This method also returns a DTO projection. However, no warning will be issued, as the query contains a fitting
-    value for the additional attributes defined in the projection.
+    value for the additional attributes defined in the projection
 
 TIP: While the repository in <<projections.simple-entity-repository,the listing above>> uses a concrete return type to
      define the projection, another variant is the use of <<projection.dynamic,dynamic projections>> as explained in the

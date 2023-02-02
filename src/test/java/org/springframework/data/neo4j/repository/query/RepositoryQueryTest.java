@@ -490,13 +490,13 @@ final class RepositoryQueryTest {
 							TestEntity.class
 					),
 					Arguments.of(
-							"findAllInterfaceProjections",
+							"findAllInterfaceProjectionsBy",
 							true,
 							TestEntityInterfaceProjection.class,
 							TestEntity.class
 					),
 					Arguments.of(
-							"findAllDTOProjections",
+							"findAllDTOProjectionsBy",
 							true,
 							TestEntityDTOProjection.class,
 							TestEntity.class
@@ -602,9 +602,9 @@ final class RepositoryQueryTest {
 
 		Mono<Slice<TestEntity>> findAllByNameStartingWith(String name, Pageable pageable);
 
-		List<TestEntityInterfaceProjection> findAllInterfaceProjections();
+		List<TestEntityInterfaceProjection> findAllInterfaceProjectionsBy();
 
-		List<TestEntityDTOProjection> findAllDTOProjections();
+		List<TestEntityDTOProjection> findAllDTOProjectionsBy();
 
 		List<ExtendedTestEntity> findAllExtendedEntities();
 
