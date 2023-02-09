@@ -109,7 +109,12 @@ public final class DtoInstantiatingConverter implements Converter<EntityInstance
 		if (sourceProperty == null) {
 			return null;
 		}
-		return sourceAccessor.getProperty(sourceProperty);
+
+		Object result = sourceAccessor.getProperty(sourceProperty);
+		if (targetProperty.isEntity() && !targetProperty.getTypeInformation().isAssignableFrom(sourceProperty.getTypeInformation())) {
+			return new DtoInstantiatingConverter(targetProperty.getType(), this.context).convertDirectly(result);
+		}
+		return result;
 	}
 
 	@Override
