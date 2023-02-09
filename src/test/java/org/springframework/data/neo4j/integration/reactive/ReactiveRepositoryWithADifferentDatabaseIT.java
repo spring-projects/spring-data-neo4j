@@ -38,7 +38,7 @@ class ReactiveRepositoryWithADifferentDatabaseIT extends ReactiveRepositoryIT {
 
 		try (Session session = neo4jConnectionSupport.getDriver().session(SessionConfig.forDatabase("system"))) {
 
-			session.run("CREATE DATABASE " + TEST_DATABASE_NAME).consume();
+			session.run("CREATE DATABASE " + TEST_DATABASE_NAME + " IF NOT EXISTS").consume();
 		}
 
 		databaseSelection.set(DatabaseSelection.byName(TEST_DATABASE_NAME));
@@ -49,7 +49,7 @@ class ReactiveRepositoryWithADifferentDatabaseIT extends ReactiveRepositoryIT {
 
 		try (Session session = neo4jConnectionSupport.getDriver().session(SessionConfig.forDatabase("system"))) {
 
-			session.run("DROP DATABASE " + TEST_DATABASE_NAME).consume();
+			session.run("DROP DATABASE " + TEST_DATABASE_NAME + " IF EXISTS").consume();
 		}
 
 		databaseSelection.set(DatabaseSelection.undecided());

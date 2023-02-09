@@ -518,24 +518,28 @@ public enum CypherGenerator {
 		String row = "row";
 		Property relationshipProperties = Cypher.property(row, Constants.NAME_OF_PROPERTIES_PARAM);
 		Property idProperty = Cypher.property(row, Constants.FROM_ID_PARAMETER_NAME);
-		StatementBuilder.OngoingReadingWithWhere matchStartAndEndNode =
-				Cypher.unwind(parameter(Constants.NAME_OF_RELATIONSHIP_LIST_PARAM)).as(row)
-				.with(row)
-				.match(startNode)
-				.where(neo4jPersistentEntity.isUsingInternalIds() ? startNode.internalId().isEqualTo(idProperty)
-						: startNode.property(idPropertyName).isEqualTo(idProperty))
-				.match(endNode).where(endNode.internalId().isEqualTo(Cypher.property(row, Constants.TO_ID_PARAMETER_NAME)));
 
-		StatementBuilder.ExposesSet createOrUpdateRelationship = isNew
-				? matchStartAndEndNode.create(relationshipFragment)
-				: matchStartAndEndNode.match(relationshipFragment)
-				.where(Functions.id(relationshipFragment).isEqualTo(Cypher.property(row, Constants.NAME_OF_KNOWN_RELATIONSHIP_PARAM)));
+		StatementBuilder.OrderableOngoingReadingAndWithWithoutWhere relationshipUnwind = Cypher.unwind(parameter(Constants.NAME_OF_RELATIONSHIP_LIST_PARAM))
+				.as(row).with(row);
 
 		if (isNew) {
-			return createOrUpdateRelationship.mutate(RELATIONSHIP_NAME, relationshipProperties).returning(Functions.id(relationshipFragment)).build();
+			return relationshipUnwind
+					.match(startNode)
+					.where(
+							neo4jPersistentEntity.isUsingInternalIds()
+									? startNode.internalId().isEqualTo(idProperty)
+									: startNode.property(idPropertyName).isEqualTo(idProperty)
+					)
+					.match(endNode).where(endNode.internalId().isEqualTo(Cypher.property(row, Constants.TO_ID_PARAMETER_NAME)))
+					.create(relationshipFragment)
+					.mutate(RELATIONSHIP_NAME, relationshipProperties)
+					.returning(Functions.id(relationshipFragment)).build();
+		} else {
+			return relationshipUnwind
+					.match(relationshipFragment)
+					.where(Functions.id(relationshipFragment).isEqualTo(Cypher.property(row, Constants.NAME_OF_KNOWN_RELATIONSHIP_PARAM)))
+					.mutate(RELATIONSHIP_NAME, relationshipProperties).build();
 		}
-
-		return createOrUpdateRelationship.mutate(RELATIONSHIP_NAME, relationshipProperties).build();
 	}
 
 	@NonNull
