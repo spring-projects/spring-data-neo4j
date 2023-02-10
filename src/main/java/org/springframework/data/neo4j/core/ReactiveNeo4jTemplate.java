@@ -360,6 +360,14 @@ public final class ReactiveNeo4jTemplate implements
 				projectionFactory, neo4jMappingContext);
 
 		Mono<T> savingPublisher = saveImpl(instance, pps, null);
+
+		if (!resultType.isInterface()) {
+			return savingPublisher.map(savedInstance -> {
+				@SuppressWarnings("unchecked")
+				R result = (R) (new DtoInstantiatingConverter(resultType, neo4jMappingContext).convertDirectly(savedInstance));
+				return result;
+			});
+		}
 		if (projectionInformation.isClosed()) {
 			return savingPublisher.map(savedInstance -> projectionFactory.createProjection(resultType, savedInstance));
 		}
