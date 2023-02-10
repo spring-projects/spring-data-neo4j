@@ -527,27 +527,29 @@ public enum CypherGenerator {
 		String row = "row";
 		Property relationshipProperties = Cypher.property(row, Constants.NAME_OF_PROPERTIES_PARAM);
 		Property idProperty = Cypher.property(row, Constants.FROM_ID_PARAMETER_NAME);
-		StatementBuilder.OngoingReadingWithWhere matchStartAndEndNode =
-				Cypher.unwind(parameter(Constants.NAME_OF_RELATIONSHIP_LIST_PARAM)).as(row)
-				.with(row)
-				.match(startNode)
-				.where(neo4jPersistentEntity.isUsingInternalIds() ? internalId(startNode).isEqualTo(idProperty)
-						: startNode.property(idPropertyName).isEqualTo(idProperty))
-				.match(endNode).where(internalId(endNode).isEqualTo(Cypher.property(row, Constants.TO_ID_PARAMETER_NAME)));
+		StatementBuilder.OrderableOngoingReadingAndWithWithoutWhere cypherUnwind = Cypher.unwind(parameter(Constants.NAME_OF_RELATIONSHIP_LIST_PARAM))
+				.as(row)
+				.with(row);
 
-		StatementBuilder.ExposesSet createOrUpdateRelationship = isNew
-				? matchStartAndEndNode.create(relationshipFragment)
-				: matchStartAndEndNode.match(relationshipFragment)
-				.where(Functions.id(relationshipFragment).isEqualTo(Cypher.property(row, Constants.NAME_OF_KNOWN_RELATIONSHIP_PARAM)));
-
+		// we only need start and end node querying if we have to create a new relationship...
 		if (isNew) {
-			return createOrUpdateRelationship.mutate(RELATIONSHIP_NAME, relationshipProperties).returning(
-					Functions.id(relationshipFragment).as(Constants.NAME_OF_INTERNAL_ID),
-					Functions.elementId(relationshipFragment).as(Constants.NAME_OF_ELEMENT_ID)
-			).build();
+			return cypherUnwind
+					.match(startNode)
+					.where(neo4jPersistentEntity.isUsingInternalIds() ? internalId(startNode).isEqualTo(idProperty)
+							: startNode.property(idPropertyName).isEqualTo(idProperty))
+					.match(endNode).where(internalId(endNode).isEqualTo(Cypher.property(row, Constants.TO_ID_PARAMETER_NAME)))
+					.create(relationshipFragment)
+					.mutate(RELATIONSHIP_NAME, relationshipProperties).returning(
+							Functions.id(relationshipFragment).as(Constants.NAME_OF_INTERNAL_ID),
+							Functions.elementId(relationshipFragment).as(Constants.NAME_OF_ELEMENT_ID)
+					).build();
+
 		}
 
-		return createOrUpdateRelationship.mutate(RELATIONSHIP_NAME, relationshipProperties).build();
+		// ... otherwise we can just fetch the existing relationship by known id
+		return cypherUnwind.match(relationshipFragment)
+			.where(Functions.id(relationshipFragment).isEqualTo(Cypher.property(row, Constants.NAME_OF_KNOWN_RELATIONSHIP_PARAM)))
+			.mutate(RELATIONSHIP_NAME, relationshipProperties).build();
 	}
 
 	@NonNull
