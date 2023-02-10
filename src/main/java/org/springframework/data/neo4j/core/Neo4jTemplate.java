@@ -347,6 +347,10 @@ public final class Neo4jTemplate implements
 				projectionFactory, neo4jMappingContext);
 
 		T savedInstance = saveImpl(instance, pps, null);
+		if (!resultType.isInterface()) {
+			@SuppressWarnings("unchecked") R result = (R) new DtoInstantiatingConverter(resultType, neo4jMappingContext).convertDirectly(savedInstance);
+			return result;
+		}
 		if (projectionInformation.isClosed()) {
 			return projectionFactory.createProjection(resultType, savedInstance);
 		}

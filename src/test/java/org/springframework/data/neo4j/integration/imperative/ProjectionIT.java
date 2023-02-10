@@ -49,6 +49,7 @@ import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.core.Neo4jOperations;
 import org.springframework.data.neo4j.integration.shared.common.DoritoEatingPerson;
+import org.springframework.data.neo4j.integration.shared.common.GH2621Domain;
 import org.springframework.data.neo4j.test.Neo4jImperativeTestConfiguration;
 import org.springframework.data.neo4j.core.DatabaseSelectionProvider;
 import org.springframework.data.neo4j.core.Neo4jTemplate;
@@ -79,6 +80,7 @@ import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * @author Gerrit Meier
@@ -459,6 +461,57 @@ class ProjectionIT {
 		assertThat(saved).hasValueSatisfying(it -> assertThat(it.getFriends()).isEmpty());
 	}
 
+	@Test // GH-2621
+	public void nestedProjectWithFluentOpsShouldWork(@Autowired TransactionTemplate transactionTemplate, @Autowired Neo4jTemplate neo4jTemplate) {
+
+		GH2621Domain.FooProjection fooProjection = transactionTemplate.execute(tx -> {
+			final GH2621Domain.BarBarProjection barBarProjection = new GH2621Domain.BarBarProjection("v1", "v2");
+			return neo4jTemplate.save(GH2621Domain.Foo.class).one(new GH2621Domain.FooProjection(barBarProjection));
+		});
+
+		assertThat(fooProjection.getBar()).isNotNull();
+		assertThat(fooProjection.getBar().getValue1()).isEqualTo("v1");
+		// There is no way to deduce from a `BarProjection` field the correlation from `BarBarProjection to `BarBar`
+		// without throwing a dice and we are not going to try this
+		assertThat(fooProjection.getBar()).isInstanceOf(GH2621Domain.BarProjection.class);
+
+		// The result above is reflected in the graph
+		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
+			Record result = session.run("MATCH (n:GH2621Bar) RETURN n").single();
+			assertThat(result.get("n").asNode().get("value1").asString()).isEqualTo("v1");
+		}
+	}
+
+	@Test // GH-2621
+	public void nestedProjectWithFluentOpsShouldWork2(@Autowired TransactionTemplate transactionTemplate, @Autowired Neo4jTemplate neo4jTemplate) {
+
+		GH2621Domain.FooProjection fooProjection = transactionTemplate.execute(tx -> {
+			GH2621Domain.Foo foo = new GH2621Domain.Foo(new GH2621Domain.BarBar("v1", "v2"));
+			return neo4jTemplate.saveAs(foo, GH2621Domain.FooProjection.class);
+		});
+
+		assertThat(fooProjection.getBar()).isNotNull();
+		assertThat(fooProjection.getBar().getValue1()).isEqualTo("v1");
+		// There is no way to deduce from a `BarProjection` field the correlation from `BarBarProjection to `BarBar`
+		// without throwing a dice and we are not going to try this
+		assertThat(fooProjection.getBar()).isInstanceOf(GH2621Domain.BarProjection.class);
+
+		// This is a different here as the concrete dto was used during save ops, so the
+		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
+			Record result = session.run("MATCH (n:GH2621Bar:GH2621BarBar) RETURN n").single();
+			org.neo4j.driver.types.Node node = result.get("n").asNode();
+			assertThat(node.get("value1").asString()).isEqualTo("v1");
+			// This is a limitation of the Spring Data Commons support for the DTO projections
+			// when we reach org/springframework/data/neo4j/core/PropertyFilterSupport.java:141 we call
+			// org.springframework.data.projection.ProjectionFactory.getProjectionInformation and we only
+			// have the concrete type information at hand, in the domain example FooProjection#bar, which points
+			// to BarProjection, without any clue that we do want a BarBarProjection being used during saving.
+			// So with the example in the ticket, saving value2 (or anything on the BarBarProjection) won't
+			// be possible
+			assertThat(node.get("value2").isNull()).isTrue();
+		}
+	}
+
 	private static void projectedEntities(PersonDepartmentQueryResult personAndDepartment) {
 		assertThat(personAndDepartment.getPerson()).extracting(PersonEntity::getId).isEqualTo("p1");
 		assertThat(personAndDepartment.getPerson()).extracting(PersonEntity::getEmail).isEqualTo("p1@dep1.org");
@@ -620,6 +673,11 @@ class ProjectionIT {
 		@Override
 		public boolean isCypher5Compatible() {
 			return neo4jConnectionSupport.isCypher5SyntaxCompatible();
+		}
+
+		@Bean
+		TransactionTemplate transactionTemplate(PlatformTransactionManager transactionManager) {
+			return new TransactionTemplate(transactionManager);
 		}
 	}
 }
