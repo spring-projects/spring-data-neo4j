@@ -734,6 +734,10 @@ public enum CypherGenerator {
 				continue;
 			}
 
+			// ignore internally generated id fields
+			if (graphProperty.isIdProperty() && (nodeDescription.getIdDescription() != null && nodeDescription.getIdDescription().isInternallyGeneratedId())) {
+				continue;
+			}
 			nodePropertiesProjection.add(graphProperty.getPropertyName());
 		}
 
