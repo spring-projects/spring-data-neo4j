@@ -15,6 +15,10 @@
  */
 package org.springframework.data.neo4j.repository.query;
 
+import java.lang.reflect.Method;
+import java.util.List;
+import java.util.Optional;
+
 import org.springframework.core.MethodParameter;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.data.neo4j.repository.support.CypherdslStatementExecutor;
@@ -23,12 +27,9 @@ import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.QueryMethod;
+import org.springframework.data.util.TypeInformation;
 import org.springframework.lang.Nullable;
 import org.springframework.util.ClassUtils;
-
-import java.lang.reflect.Method;
-import java.util.List;
-import java.util.Optional;
 
 /**
  * Neo4j specific implementation of {@link QueryMethod}. It contains a custom implementation of {@link Parameter} which
@@ -72,7 +73,8 @@ class Neo4jQueryMethod extends QueryMethod {
 	 * @param factory must not be {@literal null}.
 	 * @param cypherBasedProjection True if this points to a Cypher-DSL based projection.
 	 */
-	Neo4jQueryMethod(Method method, RepositoryMetadata metadata, ProjectionFactory factory, boolean cypherBasedProjection) {
+	Neo4jQueryMethod(Method method, RepositoryMetadata metadata, ProjectionFactory factory,
+			boolean cypherBasedProjection) {
 		super(method, metadata, factory);
 
 		Class<?> declaringClass = method.getDeclaringClass();
@@ -108,23 +110,18 @@ class Neo4jQueryMethod extends QueryMethod {
 	}
 
 	@Override
-	protected Parameters<Neo4jParameters, Neo4jParameter> createParameters(Method method) {
-		return new Neo4jParameters(method);
+	protected Parameters<Neo4jParameters, Neo4jParameter> createParameters(Method method, TypeInformation<?> domainType) {
+		return new Neo4jParameters(method, domainType);
 	}
 
 	static class Neo4jParameters extends Parameters<Neo4jParameters, Neo4jParameter> {
 
-		Neo4jParameters(Method method) {
-			super(method);
+		Neo4jParameters(Method method, TypeInformation<?> domainType) {
+			super(method, it -> new Neo4jParameter(it, domainType));
 		}
 
 		private Neo4jParameters(List<Neo4jParameter> originals) {
 			super(originals);
-		}
-
-		@Override
-		protected Neo4jParameter createParameter(MethodParameter parameter) {
-			return new Neo4jParameter(parameter);
 		}
 
 		@Override
@@ -139,12 +136,13 @@ class Neo4jQueryMethod extends QueryMethod {
 		private static final String POSITION_PARAMETER_TEMPLATE = "$%d";
 
 		/**
-		 * Creates a new {@link Parameter} for the given {@link MethodParameter}.
+		 * Creates a new {@link Parameter} for the given {@link MethodParameter} and {@link TypeInformation}.
 		 *
 		 * @param parameter must not be {@literal null}.
+		 * @param domainType must not be {@literal null}.
 		 */
-		Neo4jParameter(MethodParameter parameter) {
-			super(parameter);
+		Neo4jParameter(MethodParameter parameter, TypeInformation<?> domainType) {
+			super(parameter, domainType);
 		}
 
 		public String getPlaceholder() {
