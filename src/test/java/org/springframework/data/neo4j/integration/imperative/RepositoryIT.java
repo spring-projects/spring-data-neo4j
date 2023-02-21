@@ -3799,6 +3799,29 @@ class RepositoryIT {
 					.first().isInstanceOf(Inheritance.ConcreteClassB.class)
 					.extracting(Inheritance.BaseClass::getName)
 					.isEqualTo("cc2");
+
+			List<String> labels = new ArrayList<>();
+			labels.add("ConcreteClassA");
+			labels.add("ConcreteClassB");
+
+			assertThat(baseClassRepository.findByOrLabels(labels)).hasSize(2)
+					.hasOnlyElementsOfTypes(Inheritance.ConcreteClassA.class, Inheritance.ConcreteClassB.class)
+					.extracting(Inheritance.BaseClass::getName)
+					.containsExactlyInAnyOrder("cc1", "cc2");
+
+			assertThat(baseClassRepository.findByAndLabels(labels)).hasSize(0);
+
+			String labelsString = "ConcreteClassA";
+			assertThat(baseClassRepository.findByAndLabels(labelsString)).hasSize(1)
+					.first().isInstanceOf(Inheritance.ConcreteClassA.class)
+					.extracting(Inheritance.BaseClass::getName)
+					.isEqualTo("cc1");
+
+			assertThatExceptionOfType(RuntimeException.class).isThrownBy(() -> baseClassRepository.findByAndLabels(1))
+					.havingRootCause()
+					.isInstanceOf(IllegalArgumentException.class)
+					.withMessageContaining("Cannot process argument");
+
 		}
 
 		@Test
@@ -4442,6 +4465,12 @@ class RepositoryIT {
 
 		@Query("MATCH (n::#{literal(#label)}) RETURN n")
 		List<Inheritance.BaseClass> findByLabel(@Param("label") String label);
+
+		@Query("MATCH (n::#{anyOf(#label)}) RETURN n")
+		List<Inheritance.BaseClass> findByOrLabels(@Param("label") List<String> labels);
+
+		@Query("MATCH (n::#{allOf(#label)}) RETURN n")
+		List<Inheritance.BaseClass> findByAndLabels(@Param("label") Object labels);
 	}
 
 	interface SuperBaseClassRepository extends Neo4jRepository<Inheritance.SuperBaseClass, Long> {
