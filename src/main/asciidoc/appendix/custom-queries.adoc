@@ -420,11 +420,16 @@ public interface MyPersonRepository extends Neo4jRepository<Person, Long> {
 <.> A `Pageable` has always the name `pageable` inside the SpEL context.
 <.> A `Sort` has always the name `sort` inside the SpEL context.
 
+[[spel-extensions]]
+=== Spring Expression Language extensions
+
+[[literal-extension]]
+==== Literal extension
+
 The `literal` extension can be used to make things like labels or relationship-types "dynamic" in custom queries.
 Neither labels nor relationship types can be parameterized in Cypher, so they must be given literal.
 
 [source,java]
-[[literal-extension]]
 .literal-Extension
 ----
 interface BaseClassRepository extends Neo4jRepository<Inheritance.BaseClass, Long> {
@@ -439,6 +444,25 @@ Here, the `literal` value has been used to match dynamically on a Label.
 If you pass in `SomeLabel` as a parameter to the method, `MATCH (n:``SomeLabel``) RETURN n`
 will be generated. Ticks have been added to correctly escape values. SDN won't do this
 for you as this is probably not what you want in all cases.
+
+[[list-extensions]]
+==== List extensions
+
+For more than one value there are `allOf` and `anyOf` in place that would render
+either a `&` or `|` concatenated list of all values.
+
+[source,java]
+.List extensions
+----
+interface BaseClassRepository extends Neo4jRepository<Inheritance.BaseClass, Long> {
+
+    @Query("MATCH (n:`:#{allOf(#label)}`) RETURN n")
+    List<Inheritance.BaseClass> findByLabels(List<String> labels);
+
+    @Query("MATCH (n:`:#{anyOf(#label)}`) RETURN n")
+    List<Inheritance.BaseClass> findByLabels(List<String> labels);
+}
+----
 
 === Referring to Labels
 
