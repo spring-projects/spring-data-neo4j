@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.StringJoiner;
 import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -3799,6 +3800,18 @@ class RepositoryIT {
 					.first().isInstanceOf(Inheritance.ConcreteClassB.class)
 					.extracting(Inheritance.BaseClass::getName)
 					.isEqualTo("cc2");
+
+			List<String> labels = new ArrayList<>();
+			labels.add("ConcreteClassA");
+			labels.add("ConcreteClassB");
+
+			assertThat(baseClassRepository.findByOrLabels(labels)).hasSize(2)
+					.hasExactlyElementsOfTypes(Inheritance.ConcreteClassA.class, Inheritance.ConcreteClassB.class)
+					.extracting(Inheritance.BaseClass::getName)
+					.containsExactlyInAnyOrder("cc1", "cc2");
+
+			assertThat(baseClassRepository.findByAndLabels(labels)).hasSize(0);
+
 		}
 
 		@Test
@@ -4442,6 +4455,12 @@ class RepositoryIT {
 
 		@Query("MATCH (n::#{literal(#label)}) RETURN n")
 		List<Inheritance.BaseClass> findByLabel(@Param("label") String label);
+
+		@Query("MATCH (n::#{anyOf(#label)}) RETURN n")
+		List<Inheritance.BaseClass> findByOrLabels(@Param("label") List<String> labels);
+
+		@Query("MATCH (n::#{allOf(#label)}) RETURN n")
+		List<Inheritance.BaseClass> findByAndLabels(@Param("label") List<String> labels);
 	}
 
 	interface SuperBaseClassRepository extends Neo4jRepository<Inheritance.SuperBaseClass, Long> {

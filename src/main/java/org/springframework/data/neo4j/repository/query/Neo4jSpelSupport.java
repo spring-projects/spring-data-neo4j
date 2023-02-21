@@ -15,6 +15,7 @@
  */
 package org.springframework.data.neo4j.repository.query;
 
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -23,7 +24,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import org.apache.commons.logging.LogFactory;
 import org.apiguardian.api.API;
+import org.springframework.core.log.LogAccessor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.core.mapping.CypherGenerator;
@@ -49,7 +52,11 @@ import org.springframework.util.Assert;
 public final class Neo4jSpelSupport {
 
 	public static String FUNCTION_LITERAL = "literal";
+	public static String FUNCTION_ANY_OF = "anyOf";
+	public static String FUNCTION_ALL_OF = "allOf";
 	public static String FUNCTION_ORDER_BY = "orderBy";
+
+	private static final LogAccessor LOG = new LogAccessor(LogFactory.getLog(Neo4jSpelSupport.class));
 
 	/**
 	 * Takes {@code arg} and tries to either extract a {@link Sort sort} from it or cast it to a sort.  That sort is
@@ -87,6 +94,36 @@ public final class Neo4jSpelSupport {
 		return literalReplacement;
 	}
 
+	public static LiteralReplacement anyOf(@Nullable Object arg) {
+		return labels(arg, "|");
+	}
+
+	public static LiteralReplacement allOf(@Nullable Object arg) {
+		return labels(arg, "&");
+	}
+
+	private static LiteralReplacement labels(@Nullable Object arg, String joinOn) {
+		return StringBasedLiteralReplacement
+				.withTargetAndValue(LiteralReplacement.Target.UNSPECIFIED,
+						arg == null ? "" : joinStrings(arg, joinOn)
+				);
+	}
+
+	@SuppressWarnings("unchecked")
+	private static String joinStrings(Object arg, String joinOn) {
+		if (arg instanceof Collection) {
+			try {
+				Collection<CharSequence> stringCollection = (Collection<CharSequence>) arg;
+				return String.join(joinOn, stringCollection);
+			} catch (ClassCastException e) {
+				LOG.warn("The provided type in the collection is not inferable as CharSequence. Will default to an empty string (\"\").");
+			}
+
+		}
+
+		// fall back to empty string if there is nothing parseable
+		return "";
+	}
 	/**
 	 * A marker interface that indicates a literal replacement in a query instead of a parameter replacement. This
 	 * comes in handy in places where non-parameterizable things should be created dynamic, for example matching on
