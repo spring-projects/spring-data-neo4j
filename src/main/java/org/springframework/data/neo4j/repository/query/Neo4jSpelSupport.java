@@ -109,20 +109,19 @@ public final class Neo4jSpelSupport {
 				);
 	}
 
-	@SuppressWarnings("unchecked")
 	private static String joinStrings(Object arg, String joinOn) {
 		if (arg instanceof Collection) {
-			try {
-				Collection<CharSequence> stringCollection = (Collection<CharSequence>) arg;
-				return String.join(joinOn, stringCollection);
-			} catch (ClassCastException e) {
-				LOG.warn("The provided type in the collection is not inferable as CharSequence. Will default to an empty string (\"\").");
-			}
-
+			Collection<CharSequence> stringCollection = ((Collection<?>) arg).stream().map(Object::toString).collect(Collectors.toList());
+			return String.join(joinOn, stringCollection);
 		}
 
-		// fall back to empty string if there is nothing parseable
-		return "";
+		// we are so kind and also accept plain strings instead of collection<string>
+		if (arg instanceof String) {
+			return (String) arg;
+		}
+
+		throw new IllegalArgumentException(
+				String.format("Cannot process argument %s. Please note that only Collection<String> and String are supported types.", arg));
 	}
 	/**
 	 * A marker interface that indicates a literal replacement in a query instead of a parameter replacement. This

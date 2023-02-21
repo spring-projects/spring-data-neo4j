@@ -3812,6 +3812,17 @@ class RepositoryIT {
 
 			assertThat(baseClassRepository.findByAndLabels(labels)).hasSize(0);
 
+			String labelsString = "ConcreteClassA";
+			assertThat(baseClassRepository.findByAndLabels(labelsString)).hasSize(1)
+					.first().isInstanceOf(Inheritance.ConcreteClassA.class)
+					.extracting(Inheritance.BaseClass::getName)
+					.isEqualTo("cc1");
+
+			assertThatExceptionOfType(RuntimeException.class).isThrownBy(() -> baseClassRepository.findByAndLabels(1))
+					.havingRootCause()
+					.isInstanceOf(IllegalArgumentException.class)
+					.withMessageContaining("Cannot process argument");
+
 		}
 
 		@Test
@@ -4460,7 +4471,7 @@ class RepositoryIT {
 		List<Inheritance.BaseClass> findByOrLabels(@Param("label") List<String> labels);
 
 		@Query("MATCH (n::#{allOf(#label)}) RETURN n")
-		List<Inheritance.BaseClass> findByAndLabels(@Param("label") List<String> labels);
+		List<Inheritance.BaseClass> findByAndLabels(@Param("label") Object labels);
 	}
 
 	interface SuperBaseClassRepository extends Neo4jRepository<Inheritance.SuperBaseClass, Long> {
