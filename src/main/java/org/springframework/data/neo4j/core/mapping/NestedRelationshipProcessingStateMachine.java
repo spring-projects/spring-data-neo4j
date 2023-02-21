@@ -23,6 +23,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.locks.StampedLock;
+import java.util.stream.Collectors;
 
 import org.apiguardian.api.API;
 import org.springframework.lang.NonNull;
@@ -56,21 +57,16 @@ public final class NestedRelationshipProcessingStateMachine {
 	private final Set<RelationshipDescriptionWithSourceId> processedRelationshipDescriptions = new HashSet<>();
 
 	/**
-	 * The set of already processed related objects.
-	 */
-	private final Set<Object> processedObjects = new HashSet<>();
-
-	/**
 	 * A map of processed objects pointing towards a possible new instance of themselves.
 	 * This will happen for immutable entities.
 	 */
-	private final Map<Object, Object> processedObjectsAlias = new HashMap<>();
+	private final Map<Integer, Object> processedObjectsAlias = new HashMap<>();
 
 	/**
 	 * A map pointing from a processed object to the internal id.
 	 * This will be useful during the persistence to avoid another DB network round-trip.
 	 */
-	private final Map<Object, Long> processedObjectsIds = new HashMap<>();
+	private final Map<Integer, Long> processedObjectsIds = new HashMap<>();
 
 	public NestedRelationshipProcessingStateMachine(final Neo4jMappingContext mappingContext) {
 
@@ -85,8 +81,7 @@ public final class NestedRelationshipProcessingStateMachine {
 		Assert.notNull(initialObject, "Initial object must not be null.");
 		Assert.notNull(internalId, "The initial objects internal ID must not be null.");
 
-		processedObjects.add(initialObject);
-		processedObjectsIds.put(initialObject, internalId);
+		storeHashedVersionInProcessedObjectsIds(initialObject, internalId);
 	}
 
 	/**
@@ -172,11 +167,12 @@ public final class NestedRelationshipProcessingStateMachine {
 	 * @param valueToStore If not {@literal null}, all non-null values will be marked as processed
 	 * @param internalId The internal id of the value processed
 	 */
-	public void markValueAsProcessed(Object valueToStore, @Nullable Long internalId) {
+	public void markValueAsProcessed(Object valueToStore, Long internalId) {
 
 		final long stamp = lock.writeLock();
 		try {
 			doMarkValueAsProcessed(valueToStore, internalId);
+			storeProcessedInAlias(valueToStore, valueToStore);
 		} finally {
 			lock.unlock(stamp);
 		}
@@ -185,12 +181,8 @@ public final class NestedRelationshipProcessingStateMachine {
 	private void doMarkValueAsProcessed(Object valueToStore, Long internalId) {
 
 		Object value = extractRelatedValueFromRelationshipProperties(valueToStore);
-		this.processedObjects.add(valueToStore);
-		this.processedObjects.add(value);
-		if (internalId != null) {
-			this.processedObjectsIds.put(valueToStore, internalId);
-			this.processedObjectsIds.put(value, internalId);
-		}
+		storeHashedVersionInProcessedObjectsIds(valueToStore, internalId);
+		storeHashedVersionInProcessedObjectsIds(value, internalId);
 	}
 
 	/**
@@ -204,7 +196,7 @@ public final class NestedRelationshipProcessingStateMachine {
 		long stamp = lock.readLock();
 		try {
 			Object valueToCheck = extractRelatedValueFromRelationshipProperties(value);
-			boolean processed = processedObjects.contains(valueToCheck) || processedObjectsAlias.containsKey(valueToCheck);
+			boolean processed = hasProcessed(valueToCheck);
 			// This can be the case the object has been loaded via an additional findXXX call
 			// We can enforce sets and so on, but this is more user-friendly
 			Class<?> typeOfValue = valueToCheck.getClass();
@@ -212,15 +204,21 @@ public final class NestedRelationshipProcessingStateMachine {
 				Neo4jPersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(typeOfValue);
 				Neo4jPersistentProperty idProperty = entity.getIdProperty();
 				Object id = idProperty == null ? null : entity.getPropertyAccessor(valueToCheck).getProperty(idProperty);
-				Optional<Object> alreadyProcessedObject = id == null ? Optional.empty() : processedObjects.stream()
+				// After the lookup by system.identityHashCode failed for a processed object alias,
+				// we must traverse or iterate over all value with the matching type and compare the domain ids
+				// to figure out if the logical object has already been processed through a different object instance.
+				// The type check is needed to avoid relationship ids <> node id conflicts.
+				Optional<Object> alreadyProcessedObject = id == null ? Optional.empty() : processedObjectsAlias.values().stream()
 						.filter(typeOfValue::isInstance)
 						.filter(processedObject -> id.equals(entity.getPropertyAccessor(processedObject).getProperty(idProperty)))
 						.findAny();
 				if (alreadyProcessedObject.isPresent()) { // Skip the show the next time around.
 					processed = true;
-					Long internalId = this.getInternalId(alreadyProcessedObject.get());
-					stamp = lock.tryConvertToWriteLock(stamp);
-					doMarkValueAsProcessed(valueToCheck, internalId);
+					Long internalId = getInternalId(alreadyProcessedObject.get());
+					if (internalId != null) {
+						stamp = lock.tryConvertToWriteLock(stamp);
+						doMarkValueAsProcessed(valueToCheck, internalId);
+					}
 				}
 			}
 			return processed;
@@ -250,7 +248,7 @@ public final class NestedRelationshipProcessingStateMachine {
 	public void markValueAsProcessedAs(Object valueToStore, Object bean) {
 		final long stamp = lock.writeLock();
 		try {
-			processedObjectsAlias.put(valueToStore, bean);
+			storeProcessedInAlias(valueToStore, bean);
 		} finally {
 			lock.unlock(stamp);
 		}
@@ -261,8 +259,8 @@ public final class NestedRelationshipProcessingStateMachine {
 		final long stamp = lock.readLock();
 		try {
 			Object valueToCheck = extractRelatedValueFromRelationshipProperties(object);
-			Long possibleId = processedObjectsIds.get(valueToCheck);
-			return possibleId != null ? possibleId : processedObjectsIds.get(processedObjectsAlias.get(valueToCheck));
+			Long possibleId = getProcessedObjectIds(valueToCheck);
+			return possibleId != null ? possibleId : getProcessedObjectIds(getProcessedAs(valueToCheck));
 		} finally {
 			lock.unlock(stamp);
 		}
@@ -273,18 +271,18 @@ public final class NestedRelationshipProcessingStateMachine {
 
 		final long stamp = lock.readLock();
 		try {
-			return processedObjectsAlias.getOrDefault(entity, entity);
+			return getProcessedAsWithDefaults(entity);
 		} finally {
 			lock.unlock(stamp);
 		}
 	}
 
-	private boolean hasProcessedAllOf(@Nullable Collection<?> valuesToStore) {
-		// there can be null elements in the unified collection of values to store.
-		if (valuesToStore == null) {
-			return false;
+	@Nullable
+	private Long getProcessedObjectIds(@Nullable Object entity) {
+		if (entity == null) {
+			return null;
 		}
-		return processedObjects.containsAll(valuesToStore);
+		return processedObjectsIds.get(System.identityHashCode(entity));
 	}
 
 	@NonNull
@@ -296,5 +294,32 @@ public final class NestedRelationshipProcessingStateMachine {
 			value = valueToStore;
 		}
 		return value;
+	}
+
+	/*
+	 * Convenience wrapper functions to avoid exposing the System.identityHashCode "everywhere" in this class.
+	 */
+	private void storeHashedVersionInProcessedObjectsIds(Object initialObject, Long internalId) {
+		processedObjectsIds.put(System.identityHashCode(initialObject), internalId);
+	}
+
+	private void storeProcessedInAlias(Object valueToStore, Object bean) {
+		processedObjectsAlias.put(System.identityHashCode(valueToStore), bean);
+	}
+
+	private Object getProcessedAsWithDefaults(Object entity) {
+		return processedObjectsAlias.getOrDefault(System.identityHashCode(entity), entity);
+	}
+
+	private boolean hasProcessed(Object valueToCheck) {
+		return processedObjectsAlias.containsKey(System.identityHashCode(valueToCheck));
+	}
+
+	private boolean hasProcessedAllOf(@Nullable Collection<?> valuesToStore) {
+		// there can be null elements in the unified collection of values to store.
+		if (valuesToStore == null) {
+			return false;
+		}
+		return processedObjectsIds.keySet().containsAll(valuesToStore.stream().map(System::identityHashCode).collect(Collectors.toList()));
 	}
 }
