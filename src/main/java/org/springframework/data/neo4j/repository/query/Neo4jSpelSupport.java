@@ -111,8 +111,7 @@ public final class Neo4jSpelSupport {
 
 	private static String joinStrings(Object arg, String joinOn) {
 		if (arg instanceof Collection) {
-			Collection<CharSequence> stringCollection = ((Collection<?>) arg).stream().map(Object::toString).collect(Collectors.toList());
-			return String.join(joinOn, stringCollection);
+			return ((Collection<?>) arg).stream().map(Object::toString).collect(Collectors.joining(joinOn));
 		}
 
 		// we are so kind and also accept plain strings instead of collection<string>
