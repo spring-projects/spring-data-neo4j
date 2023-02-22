@@ -3805,7 +3805,7 @@ class RepositoryIT {
 			labels.add("ConcreteClassB");
 
 			assertThat(baseClassRepository.findByOrLabels(labels)).hasSize(2)
-					.hasExactlyElementsOfTypes(Inheritance.ConcreteClassA.class, Inheritance.ConcreteClassB.class)
+					.hasOnlyElementsOfTypes(Inheritance.ConcreteClassA.class, Inheritance.ConcreteClassB.class)
 					.extracting(Inheritance.BaseClass::getName)
 					.containsExactlyInAnyOrder("cc1", "cc2");
 
