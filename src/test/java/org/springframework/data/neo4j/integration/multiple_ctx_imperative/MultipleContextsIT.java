@@ -54,20 +54,20 @@ public class MultipleContextsIT {
 
 	@Container
 	private static Neo4jContainer container1 = new Neo4jContainer<>("neo4j:5")
-			.withAdminPassword("secret1");
+			.withAdminPassword("verysecret1");
 
 	@Container
 	private static Neo4jContainer container2 = new Neo4jContainer<>("neo4j:5")
-			.withAdminPassword("secret2");
+			.withAdminPassword("verysecret2");
 
 	@DynamicPropertySource
 	static void neo4jSettings(DynamicPropertyRegistry registry) {
 
 		registry.add("database1.url", container1::getBoltUrl);
-		registry.add("database1.password", () -> "secret1");
+		registry.add("database1.password", () -> "verysecret1");
 
 		registry.add("database2.url", container2::getBoltUrl);
-		registry.add("database2.password", () -> "secret2");
+		registry.add("database2.password", () -> "verysecret2");
 	}
 
 	@Test // DATAGRAPH-1441
