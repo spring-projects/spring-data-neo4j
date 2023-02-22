@@ -53,11 +53,11 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 public class MultipleContextsIT {
 
 	@Container
-	private static Neo4jContainer container1 = new Neo4jContainer<>("neo4j:4.4")
+	private static Neo4jContainer container1 = new Neo4jContainer<>("neo4j:5")
 			.withAdminPassword("secret1");
 
 	@Container
-	private static Neo4jContainer container2 = new Neo4jContainer<>("neo4j:4.4")
+	private static Neo4jContainer container2 = new Neo4jContainer<>("neo4j:5")
 			.withAdminPassword("secret2");
 
 	@DynamicPropertySource
