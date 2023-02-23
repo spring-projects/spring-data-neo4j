@@ -124,7 +124,7 @@ public final class Neo4jTemplate implements
 
 	private EventSupport eventSupport;
 
-	private ProjectionFactory projectionFactory;
+	private ProjectionFactory projectionFactoryf;
 
 	private Renderer renderer;
 
@@ -146,6 +146,11 @@ public final class Neo4jTemplate implements
 		this.neo4jMappingContext = neo4jMappingContext;
 		this.cypherGenerator = CypherGenerator.INSTANCE;
 		this.eventSupport = EventSupport.useExistingCallbacks(neo4jMappingContext, entityCallbacks);
+		this.renderer = Renderer.getDefaultRenderer();
+	}
+
+	ProjectionFactory getProjectionFactory() {
+		return Objects.requireNonNull(this.projectionFactoryf, "Projection support for the Neo4j template is only available when the template is a proper and fully initialized Spring bean.");
 	}
 
 	@Override
@@ -256,7 +261,7 @@ public final class Neo4jTemplate implements
 
 		if (resultType.isInterface()) {
 			return intermediaResults.stream()
-					.map(instance -> projectionFactory.createProjection(resultType, instance))
+					.map(instance -> getProjectionFactory().createProjection(resultType, instance))
 					.collect(Collectors.toList());
 		}
 
@@ -342,9 +347,10 @@ public final class Neo4jTemplate implements
 			return resultType.cast(save(instance));
 		}
 
-		ProjectionInformation projectionInformation = projectionFactory.getProjectionInformation(resultType);
+		ProjectionFactory localProjectionFactory = getProjectionFactory();
+		ProjectionInformation projectionInformation = localProjectionFactory.getProjectionInformation(resultType);
 		Collection<PropertyFilter.ProjectedPath> pps = PropertyFilterSupport.addPropertiesFrom(instance.getClass(), resultType,
-				projectionFactory, neo4jMappingContext);
+				localProjectionFactory, neo4jMappingContext);
 
 		T savedInstance = saveImpl(instance, pps, null);
 		if (!resultType.isInterface()) {
@@ -352,13 +358,13 @@ public final class Neo4jTemplate implements
 			return result;
 		}
 		if (projectionInformation.isClosed()) {
-			return projectionFactory.createProjection(resultType, savedInstance);
+			return localProjectionFactory.createProjection(resultType, savedInstance);
 		}
 
 		Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getRequiredPersistentEntity(savedInstance.getClass());
 		Neo4jPersistentProperty idProperty = entityMetaData.getIdProperty();
 		PersistentPropertyAccessor<T> propertyAccessor = entityMetaData.getPropertyAccessor(savedInstance);
-		return projectionFactory.createProjection(resultType,
+		return localProjectionFactory.createProjection(resultType,
 				this.findById(propertyAccessor.getProperty(idProperty), savedInstance.getClass()).get());
 	}
 
@@ -542,15 +548,16 @@ public final class Neo4jTemplate implements
 			return saveElements;
 		}
 
-		ProjectionInformation projectionInformation = projectionFactory.getProjectionInformation(resultType);
+		ProjectionFactory localProjectionFactory = getProjectionFactory();
+		ProjectionInformation projectionInformation = localProjectionFactory.getProjectionInformation(resultType);
 
 		Collection<PropertyFilter.ProjectedPath> pps = PropertyFilterSupport.addPropertiesFrom(commonElementType, resultType,
-				projectionFactory, neo4jMappingContext);
+				localProjectionFactory, neo4jMappingContext);
 
 		List<T> savedInstances = saveAllImpl(instances, pps, null);
 
 		if (projectionInformation.isClosed()) {
-			return savedInstances.stream().map(instance -> projectionFactory.createProjection(resultType, instance))
+			return savedInstances.stream().map(instance -> localProjectionFactory.createProjection(resultType, instance))
 					.collect(Collectors.toList());
 		}
 
@@ -563,7 +570,7 @@ public final class Neo4jTemplate implements
 		}).collect(Collectors.toList());
 
 		return findAllById(ids, commonElementType)
-				.stream().map(instance -> projectionFactory.createProjection(resultType, instance))
+				.stream().map(instance -> localProjectionFactory.createProjection(resultType, instance))
 				.collect(Collectors.toList());
 	}
 
@@ -1000,7 +1007,7 @@ public final class Neo4jTemplate implements
 		SpelAwareProxyProjectionFactory spelAwareProxyProjectionFactory = new SpelAwareProxyProjectionFactory();
 		spelAwareProxyProjectionFactory.setBeanClassLoader(beanClassLoader);
 		spelAwareProxyProjectionFactory.setBeanFactory(beanFactory);
-		this.projectionFactory = spelAwareProxyProjectionFactory;
+		this.projectionFactoryf = spelAwareProxyProjectionFactory;
 
 		Configuration cypherDslConfiguration = beanFactory
 				.getBeanProvider(Configuration.class)
@@ -1054,7 +1061,7 @@ public final class Neo4jTemplate implements
 		Class<?> resultType = TemplateSupport.findCommonElementType(instances);
 
 		Collection<PropertyFilter.ProjectedPath> pps = PropertyFilterSupport.addPropertiesFrom(domainType, resultType,
-				projectionFactory, neo4jMappingContext);
+				getProjectionFactory(), neo4jMappingContext);
 
 		NestedRelationshipProcessingStateMachine stateMachine = new NestedRelationshipProcessingStateMachine(neo4jMappingContext);
 		List<R> results = new ArrayList<>();

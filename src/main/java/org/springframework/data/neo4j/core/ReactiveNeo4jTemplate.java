@@ -34,6 +34,7 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
@@ -140,6 +141,11 @@ public final class ReactiveNeo4jTemplate implements
 		this.neo4jMappingContext = neo4jMappingContext;
 		this.cypherGenerator = CypherGenerator.INSTANCE;
 		this.eventSupport = ReactiveEventSupport.useExistingCallbacks(neo4jMappingContext, ReactiveEntityCallbacks.create());
+		this.renderer = Renderer.getDefaultRenderer();
+	}
+
+	ProjectionFactory getProjectionFactory() {
+		return Objects.requireNonNull(this.projectionFactory, "Projection support for the Neo4j template is only available when the template is a proper and fully initialized Spring bean.");
 	}
 
 	@Override
@@ -250,7 +256,7 @@ public final class ReactiveNeo4jTemplate implements
 		}
 
 		if (resultType.isInterface()) {
-			return intermediaResults.map(instance -> projectionFactory.createProjection(resultType, instance));
+			return intermediaResults.map(instance -> getProjectionFactory().createProjection(resultType, instance));
 		}
 
 		DtoInstantiatingConverter converter = new DtoInstantiatingConverter(resultType, neo4jMappingContext);
@@ -341,9 +347,10 @@ public final class ReactiveNeo4jTemplate implements
 			return save(instance).map(resultType::cast);
 		}
 
-		ProjectionInformation projectionInformation = projectionFactory.getProjectionInformation(resultType);
+		ProjectionFactory localProjectionFactory = getProjectionFactory();
+		ProjectionInformation projectionInformation = localProjectionFactory.getProjectionInformation(resultType);
 		Collection<PropertyFilter.ProjectedPath> pps = PropertyFilterSupport.addPropertiesFrom(instance.getClass(), resultType,
-				projectionFactory, neo4jMappingContext);
+				localProjectionFactory, neo4jMappingContext);
 
 		Mono<T> savingPublisher = saveImpl(instance, pps, null);
 
@@ -355,7 +362,7 @@ public final class ReactiveNeo4jTemplate implements
 			});
 		}
 		if (projectionInformation.isClosed()) {
-			return savingPublisher.map(savedInstance -> projectionFactory.createProjection(resultType, savedInstance));
+			return savingPublisher.map(savedInstance -> localProjectionFactory.createProjection(resultType, savedInstance));
 		}
 
 		return savingPublisher.flatMap(savedInstance -> {
@@ -364,7 +371,7 @@ public final class ReactiveNeo4jTemplate implements
 			Neo4jPersistentProperty idProperty = entityMetaData.getIdProperty();
 			PersistentPropertyAccessor<T> propertyAccessor = entityMetaData.getPropertyAccessor(savedInstance);
 			return this.findById(propertyAccessor.getProperty(idProperty), savedInstance.getClass())
-					.map(loadedValue -> projectionFactory.createProjection(resultType, loadedValue));
+					.map(loadedValue -> localProjectionFactory.createProjection(resultType, loadedValue));
 		});
 	}
 
@@ -377,7 +384,7 @@ public final class ReactiveNeo4jTemplate implements
 		Class<?> resultType = TemplateSupport.findCommonElementType(instances);
 
 		Collection<PropertyFilter.ProjectedPath> pps = PropertyFilterSupport.addPropertiesFrom(domainType, resultType,
-				projectionFactory, neo4jMappingContext);
+				getProjectionFactory(), neo4jMappingContext);
 
 		NestedRelationshipProcessingStateMachine stateMachine = new NestedRelationshipProcessingStateMachine(neo4jMappingContext);
 		EntityFromDtoInstantiatingConverter<T> converter = new EntityFromDtoInstantiatingConverter<>(domainType, neo4jMappingContext);
@@ -499,13 +506,14 @@ public final class ReactiveNeo4jTemplate implements
 			return saveAll(instances).map(resultType::cast);
 		}
 
-		ProjectionInformation projectionInformation = projectionFactory.getProjectionInformation(resultType);
+		ProjectionFactory localProjectionFactory = getProjectionFactory();
+		ProjectionInformation projectionInformation = localProjectionFactory.getProjectionInformation(resultType);
 		Collection<PropertyFilter.ProjectedPath> pps = PropertyFilterSupport.addPropertiesFrom(commonElementType, resultType,
-				projectionFactory, neo4jMappingContext);
+				localProjectionFactory, neo4jMappingContext);
 
 		Flux<T> savedInstances = saveAllImpl(instances, pps, null);
 		if (projectionInformation.isClosed()) {
-			return savedInstances.map(instance -> projectionFactory.createProjection(resultType, instance));
+			return savedInstances.map(instance -> localProjectionFactory.createProjection(resultType, instance));
 		}
 
 		Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getRequiredPersistentEntity(commonElementType);
@@ -514,7 +522,7 @@ public final class ReactiveNeo4jTemplate implements
 		return savedInstances.flatMap(savedInstance -> {
 			PersistentPropertyAccessor<T> propertyAccessor = entityMetaData.getPropertyAccessor(savedInstance);
 			return findById(propertyAccessor.getProperty(idProperty), commonElementType);
-		}).map(instance -> projectionFactory.createProjection(resultType, instance));
+		}).map(instance -> localProjectionFactory.createProjection(resultType, instance));
 	}
 
 	private <T> Flux<T> saveAllImpl(Iterable<T> instances, @Nullable Collection<PropertyFilter.ProjectedPath> includedProperties, @Nullable BiPredicate<PropertyPath, Neo4jPersistentProperty> includeProperty) {
