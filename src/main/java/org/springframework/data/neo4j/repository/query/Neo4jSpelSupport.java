@@ -26,6 +26,7 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.logging.LogFactory;
 import org.apiguardian.api.API;
+import org.neo4j.cypherdsl.core.internal.SchemaNames;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -111,7 +112,9 @@ public final class Neo4jSpelSupport {
 
 	private static String joinStrings(Object arg, String joinOn) {
 		if (arg instanceof Collection) {
-			return ((Collection<?>) arg).stream().map(Object::toString).collect(Collectors.joining(joinOn));
+			return ((Collection<?>) arg).stream()
+					.map(o -> SchemaNames.sanitize(o.toString()).get())
+					.collect(Collectors.joining(joinOn));
 		}
 
 		// we are so kind and also accept plain strings instead of collection<string>
