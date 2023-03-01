@@ -44,7 +44,6 @@ import org.neo4j.cypherdsl.core.Predicates;
 import org.neo4j.cypherdsl.core.Property;
 import org.neo4j.cypherdsl.core.RelationshipPattern;
 import org.neo4j.cypherdsl.core.SortItem;
-import org.neo4j.cypherdsl.core.Statement;
 import org.neo4j.driver.types.Point;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Range;
@@ -260,13 +259,8 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndPar
 				.peek(p -> Neo4jQuerySupport.logParameterIfNull(p.nameOrIndex, p.value))
 				.collect(Collectors.toMap(p -> p.nameOrIndex, p -> parameterConversion.apply(p.value, p.conversionOverride)));
 
-		if (queryType == Neo4jQueryType.DELETE) {
-			Statement statement = CypherGenerator.INSTANCE.prepareDeleteOf(nodeDescription, condition, true);
-			return new QueryFragmentsAndParameters(statement.getCypher(), convertedParameters);
-		} else {
-			QueryFragments queryFragments = createQueryFragments(condition, sort);
-			return new QueryFragmentsAndParameters(nodeDescription, queryFragments, convertedParameters);
-		}
+		QueryFragments queryFragments = createQueryFragments(condition, sort);
+		return new QueryFragmentsAndParameters(nodeDescription, queryFragments, convertedParameters);
 	}
 
 	@NonNull
@@ -300,6 +294,9 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndPar
 			queryFragments.setReturnExpression(Functions.count(Cypher.asterisk()), true);
 		} else if (queryType == Neo4jQueryType.EXISTS) {
 			queryFragments.setReturnExpression(Functions.count(Constants.NAME_OF_TYPED_ROOT_NODE.apply(nodeDescription)).gt(Cypher.literalOf(0)), true);
+		} else if (queryType == Neo4jQueryType.DELETE) {
+			queryFragments.setDeleteExpression(Constants.NAME_OF_TYPED_ROOT_NODE.apply(nodeDescription));
+			queryFragments.setReturnExpression(Functions.count(Constants.NAME_OF_TYPED_ROOT_NODE.apply(nodeDescription)), true);
 		} else {
 			queryFragments.setReturnBasedOn(nodeDescription, includedProperties, isDistinct);
 			queryFragments.setOrderBy(Stream

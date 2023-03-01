@@ -941,6 +941,18 @@ class RepositoryIT {
 		}
 
 		@Test
+		void deleteByOwnPropertyAndRelationshipsProperty(@Autowired PetRepository repository) {
+
+			doWithSession(session -> session.run("CREATE (p1:Pet{name: 'Pet1'})-[:Has]->(p2:Pet{name: 'Pet2'})").consume());
+
+			repository.deleteByNameAndFriendsName("Pet1", "Pet2");
+			doWithSession(session -> {
+				assertThat(session.run("MATCH (p1:Pet{name: 'Pet'}) return p1").list()).hasSize(0);
+				return null;
+			});
+		}
+
+		@Test
 		void findBySameLabelRelationshipPropertyMultipleLevels(@Autowired PetRepository repository) {
 			doWithSession(session -> session.run("CREATE (p1:Pet{name: 'Pet1'})-[:Has]->(p2:Pet{name: 'Pet2'})-[:Has]->(p3:Pet{name: 'Pet3'})").consume());
 
@@ -4363,6 +4375,8 @@ class RepositoryIT {
 		Page<Pet> pagedPetsWithParameter(@Param("petName") String petName, Pageable pageable);
 
 		Pet findByFriendsName(String friendName);
+
+		Long deleteByNameAndFriendsName(String name, String friendsName);
 
 		Pet findByFriendsFriendsName(String friendName);
 
