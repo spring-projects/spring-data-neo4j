@@ -55,6 +55,7 @@ public final class QueryFragments {
 	private ReturnTuple returnTuple;
 	private boolean scalarValueReturn = false;
 	private boolean renderConstantsAsParameters = false;
+	private Expression deleteExpression;
 
 	public void addMatchOn(PatternElement match) {
 		this.matchOn.add(match);
@@ -78,6 +79,10 @@ public final class QueryFragments {
 
 	public void setReturnExpressions(Collection<Expression> expression) {
 		this.returnExpressions = expression;
+	}
+
+	public void setDeleteExpression(Expression expression) {
+		this.deleteExpression = expression;
 	}
 
 	public void setReturnExpression(Expression returnExpression, boolean isScalarValue) {
@@ -127,6 +132,10 @@ public final class QueryFragments {
 		}
 
 		StatementBuilder.OngoingReadingWithWhere matchWithWhere = match.where(condition);
+
+		if (deleteExpression != null) {
+			matchWithWhere = (StatementBuilder.OngoingReadingWithWhere) matchWithWhere.detachDelete(deleteExpression);
+		}
 
 		StatementBuilder.OngoingReadingAndReturn returnPart = isDistinctReturn()
 				? matchWithWhere.returningDistinct(getReturnExpressions())
