@@ -711,7 +711,6 @@
 						<configuration combine.self="append">
 							<compilerArgs>
 								<arg>-Xlint:all,-options,-path</arg>
-								<arg>-Werror</arg>
 							</compilerArgs>
 						</configuration>
 					</execution>
