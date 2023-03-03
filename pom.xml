@@ -19,7 +19,7 @@
 	<parent>
 		<groupId>org.springframework.data.build</groupId>
 		<artifactId>spring-data-parent</artifactId>
-		<version>3.0.3</version>
+		<version>3.0.4-SNAPSHOT</version>
 	</parent>
 
 	<groupId>org.springframework.data</groupId>
@@ -115,7 +115,7 @@
 		<skipUnitTests>${skipTests}</skipUnitTests>
 
 		<spring-data-commons-docs.dir>../../../../spring-data-commons/src/main/asciidoc</spring-data-commons-docs.dir>
-		<springdata.commons>3.0.3</springdata.commons>
+		<springdata.commons>3.0.4-SNAPSHOT</springdata.commons>
 	</properties>
 
 	<dependencyManagement>
@@ -453,8 +453,8 @@
 
 	<repositories>
 		<repository>
-			<id>spring-libs-release</id>
-			<url>https://repo.spring.io/libs-release</url>
+			<id>spring-libs-snapshot</id>
+			<url>https://repo.spring.io/libs-snapshot</url>
 		</repository>
 	</repositories>
 
