@@ -35,7 +35,6 @@ import java.util.stream.Stream;
 import org.neo4j.cypherdsl.core.Condition;
 import org.neo4j.cypherdsl.core.Conditions;
 import org.neo4j.cypherdsl.core.Cypher;
-import org.neo4j.cypherdsl.core.ExposesRelationships;
 import org.neo4j.cypherdsl.core.Expression;
 import org.neo4j.cypherdsl.core.Functions;
 import org.neo4j.cypherdsl.core.Node;
@@ -55,7 +54,6 @@ import org.springframework.data.geo.Box;
 import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.Polygon;
-import org.springframework.data.mapping.PersistentProperty;
 import org.springframework.data.mapping.PersistentPropertyPath;
 import org.springframework.data.neo4j.core.convert.Neo4jPersistentPropertyConverter;
 import org.springframework.data.neo4j.core.mapping.Constants;
@@ -65,8 +63,6 @@ import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.core.mapping.NodeDescription;
 import org.springframework.data.neo4j.core.mapping.PropertyFilter;
-import org.springframework.data.neo4j.core.mapping.RelationshipDescription;
-import org.springframework.data.neo4j.core.schema.TargetNode;
 import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.data.repository.query.parser.AbstractQueryCreator;
 import org.springframework.data.repository.query.parser.Part;
@@ -160,88 +156,6 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndPar
 				.collect(Collectors.toList());
 
 		this.keysetRequiresSort = queryMethod.isScrollQuery() && actualParameters.getScrollPosition() instanceof KeysetScrollPosition;
-	}
-
-	private class PropertyPathWrapper {
-		private static final String NAME_OF_RELATED_FILTER_ENTITY = "m";
-		private static final String NAME_OF_RELATED_FILTER_RELATIONSHIP = "r";
-
-		private final int index;
-		private final PersistentPropertyPath<?> propertyPath;
-
-		PropertyPathWrapper(int index, PersistentPropertyPath<?> propertyPath) {
-			this.index = index;
-			this.propertyPath = propertyPath;
-		}
-
-		public PersistentPropertyPath<?> getPropertyPath() {
-			return propertyPath;
-		}
-
-		private String getNodeName() {
-			return NAME_OF_RELATED_FILTER_ENTITY + "_" + index;
-		}
-
-		private String getRelationshipName() {
-			return NAME_OF_RELATED_FILTER_RELATIONSHIP + "_" + index;
-		}
-
-		private ExposesRelationships<?> createRelationshipChain(ExposesRelationships<?> existingRelationshipChain) {
-
-			ExposesRelationships<?> cypherRelationship = existingRelationshipChain;
-			int cnt = 0;
-			for (PersistentProperty<?> persistentProperty : propertyPath) {
-
-				if (persistentProperty.isAssociation() && persistentProperty.isAnnotationPresent(TargetNode.class)) {
-					break;
-				}
-
-				RelationshipDescription relationshipDescription = (RelationshipDescription) persistentProperty.getAssociation();
-
-				if (relationshipDescription == null) {
-					break;
-				}
-
-				NodeDescription<?> relationshipPropertiesEntity = relationshipDescription.getRelationshipPropertiesEntity();
-				boolean hasTargetNode = hasTargetNode(relationshipPropertiesEntity);
-
-				NodeDescription<?> targetEntity = relationshipDescription.getTarget();
-				Node relatedNode = Cypher.node(targetEntity.getPrimaryLabel(), targetEntity.getAdditionalLabels());
-
-				// length - 1 = last index
-				// length - 2 = property on last node
-				// length - 3 = last node itself
-				boolean lastNode = cnt++ > (propertyPath.getLength() - 3);
-				if (lastNode || hasTargetNode) {
-					relatedNode = relatedNode.named(getNodeName());
-				}
-
-				cypherRelationship = switch (relationshipDescription.getDirection()) {
-					case OUTGOING -> cypherRelationship
-							.relationshipTo(relatedNode, relationshipDescription.getType());
-					case INCOMING -> cypherRelationship
-							.relationshipFrom(relatedNode, relationshipDescription.getType());
-				};
-
-				if (lastNode || hasTargetNode) {
-					cypherRelationship = ((RelationshipPattern) cypherRelationship).named(getRelationshipName());
-				}
-			}
-
-			return cypherRelationship;
-		}
-
-		private boolean hasTargetNode(@Nullable NodeDescription<?> relationshipPropertiesEntity) {
-			return relationshipPropertiesEntity != null
-					&& ((Neo4jPersistentEntity<?>) relationshipPropertiesEntity)
-						.getPersistentProperty(TargetNode.class) != null;
-		}
-
-		// if there is no direct property access, the list size is greater than 1 and as a consequence has to contain
-		// relationships.
-		private boolean hasRelationships() {
-			return this.propertyPath.getLength() > 1;
-		}
 	}
 
 	@Override
@@ -592,7 +506,7 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndPar
 		}
 
 		PropertyPathWrapper propertyPathWrapper = propertyPathWrappers.stream()
-				.filter(rp -> rp.getPropertyPath().equals(path)).findFirst().get();
+				.filter(rp -> rp.getPersistentPropertyPath().equals(path)).findFirst().get();
 		String cypherElementName;
 		// this "entity" is a representation of a relationship with properties
 		if (owner.isRelationshipPropertiesEntity()) {

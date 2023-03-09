@@ -22,8 +22,11 @@ import static org.neo4j.cypherdsl.core.Cypher.property;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiFunction;
 
 import org.neo4j.cypherdsl.core.Condition;
@@ -33,6 +36,7 @@ import org.neo4j.cypherdsl.core.Functions;
 import org.neo4j.cypherdsl.core.StatementBuilder;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
+import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.neo4j.core.convert.Neo4jConversionService;
 import org.springframework.data.neo4j.core.mapping.Constants;
 import org.springframework.data.neo4j.core.mapping.GraphPropertyDescription;
@@ -40,8 +44,10 @@ import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.core.mapping.NodeDescription;
+import org.springframework.data.neo4j.core.mapping.RelationshipDescription;
 import org.springframework.data.support.ExampleMatcherAccessor;
 import org.springframework.data.util.DirectFieldAccessFallbackBeanWrapper;
+import org.springframework.lang.Nullable;
 
 /**
  * Support class for "query by example" executors.
@@ -56,80 +62,142 @@ final class Predicate {
 
 	static <S> Predicate create(Neo4jMappingContext mappingContext, Example<S> example) {
 
-		Neo4jPersistentEntity<?> probeNodeDescription = mappingContext.getRequiredPersistentEntity(example.getProbeType());
+		Neo4jPersistentEntity<?> nodeDescription = mappingContext.getRequiredPersistentEntity(example.getProbeType());
 
-		Collection<GraphPropertyDescription> graphProperties = probeNodeDescription.getGraphProperties();
+		Collection<GraphPropertyDescription> graphProperties = nodeDescription.getGraphProperties();
 		DirectFieldAccessFallbackBeanWrapper beanWrapper = new DirectFieldAccessFallbackBeanWrapper(example.getProbe());
 		ExampleMatcher matcher = example.getMatcher();
 		ExampleMatcher.MatchMode mode = matcher.getMatchMode();
 		ExampleMatcherAccessor matcherAccessor = new ExampleMatcherAccessor(matcher);
+		AtomicInteger relationshipPatternCount = new AtomicInteger();
 
-		Predicate predicate = new Predicate(probeNodeDescription);
+		Predicate predicate = new Predicate(nodeDescription);
 		for (GraphPropertyDescription graphProperty : graphProperties) {
+			PropertyPath propertyPath = PropertyPath.from(graphProperty.getFieldName(), nodeDescription.getTypeInformation());
+			// create condition for every defined property
+			PropertyPathWrapper propertyPathWrapper = new PropertyPathWrapper(relationshipPatternCount.incrementAndGet(), mappingContext.getPersistentPropertyPath(propertyPath), true);
+			addConditionAndParameters(mappingContext, nodeDescription, beanWrapper, mode, matcherAccessor, predicate, graphProperty, propertyPathWrapper);
+		}
 
-			// TODO Relationships are not traversed.
+		processRelationships(mappingContext, example, nodeDescription, beanWrapper, mode, relationshipPatternCount, null, predicate);
 
-			String currentPath = graphProperty.getFieldName();
-			if (matcherAccessor.isIgnoredPath(currentPath)) {
+		return predicate;
+	}
+
+	private static <S> void processRelationships(Neo4jMappingContext mappingContext, Example<S> example, NodeDescription<?> currentNodeDescription,
+												 DirectFieldAccessFallbackBeanWrapper beanWrapper, ExampleMatcher.MatchMode mode, AtomicInteger relationshipPatternCount,
+												 @Nullable PropertyPath propertyPath, Predicate predicate) {
+
+		for (RelationshipDescription relationship : currentNodeDescription.getRelationships()) {
+			String relationshipFieldName = relationship.getFieldName();
+			Object relationshipObject = beanWrapper.getPropertyValue(relationshipFieldName);
+
+			if (relationshipObject == null) {
 				continue;
 			}
 
-			boolean internalId = graphProperty.isIdProperty() && probeNodeDescription.isUsingInternalIds();
-			String propertyName = graphProperty.getPropertyName();
-
-			ExampleMatcher.PropertyValueTransformer transformer = matcherAccessor
-					.getValueTransformerForPath(currentPath);
-			Optional<Object> optionalValue = transformer
-					.apply(Optional.ofNullable(beanWrapper.getPropertyValue(currentPath)));
-
-			if (optionalValue.isEmpty()) {
-				if (!internalId && matcherAccessor.getNullHandler().equals(ExampleMatcher.NullHandler.INCLUDE)) {
-					predicate.add(mode, property(Constants.NAME_OF_TYPED_ROOT_NODE.apply(probeNodeDescription), propertyName).isNull());
+			// Right now we are only accepting the first element of a collection as a filter entry.
+			// Maybe combining multiple entities with AND might make sense.
+			if (relationshipObject instanceof Collection collection) {
+				int collectionSize = collection.size();
+				if (collectionSize > 1) {
+					throw new IllegalArgumentException("Cannot have more than one related node per collection.");
 				}
-				continue;
+				if (collectionSize == 0) {
+					continue;
+				}
+				relationshipObject = collection.iterator().next();
+
+			}
+			NodeDescription<?> relatedNodeDescription = mappingContext.getNodeDescription(relationshipObject.getClass());
+
+			// if we come from the root object, the path is probably _null_,
+			// and it needs to get initialized with the property name of the relationship
+			PropertyPath nestedPropertyPath = propertyPath == null
+					? PropertyPath.from(relationshipFieldName, currentNodeDescription.getUnderlyingClass())
+					: propertyPath.nested(relationshipFieldName);
+
+			PropertyPathWrapper nestedPropertyPathWrapper = new PropertyPathWrapper(relationshipPatternCount.incrementAndGet(), mappingContext.getPersistentPropertyPath(nestedPropertyPath), false);
+			predicate.addRelationship(nestedPropertyPathWrapper);
+
+			for (GraphPropertyDescription graphProperty : relatedNodeDescription.getGraphProperties()) {
+				addConditionAndParameters(mappingContext, (Neo4jPersistentEntity<?>) relatedNodeDescription, new DirectFieldAccessFallbackBeanWrapper(relationshipObject), mode,
+						new ExampleMatcherAccessor(example.getMatcher()), predicate,
+						graphProperty, nestedPropertyPathWrapper);
 			}
 
-			Neo4jConversionService conversionService = mappingContext.getConversionService();
+			processRelationships(mappingContext, example, relatedNodeDescription, new DirectFieldAccessFallbackBeanWrapper(relationshipObject), mode, relationshipPatternCount,
+					nestedPropertyPath, predicate);
 
-			if (graphProperty.isRelationship()) {
-				Neo4jQuerySupport.REPOSITORY_QUERY_LOG.error("Querying by example does not support traversing of relationships.");
-			} else if (graphProperty.isIdProperty() && probeNodeDescription.isUsingInternalIds()) {
+		}
+	}
+
+	private static void addConditionAndParameters(Neo4jMappingContext mappingContext, Neo4jPersistentEntity<?> nodeDescription, DirectFieldAccessFallbackBeanWrapper beanWrapper,
+												  ExampleMatcher.MatchMode mode, ExampleMatcherAccessor matcherAccessor, Predicate predicate, GraphPropertyDescription graphProperty,
+												  PropertyPathWrapper wrapper) {
+
+		String currentPath = graphProperty.getFieldName();
+		if (matcherAccessor.isIgnoredPath(currentPath)) {
+			return;
+		}
+
+		boolean internalId = graphProperty.isIdProperty() && nodeDescription.isUsingInternalIds();
+		String propertyName = graphProperty.getPropertyName();
+
+		ExampleMatcher.PropertyValueTransformer transformer = matcherAccessor
+				.getValueTransformerForPath(currentPath);
+		Optional<Object> optionalValue = transformer
+				.apply(Optional.ofNullable(beanWrapper.getPropertyValue(currentPath)));
+
+		if (optionalValue.isEmpty()) {
+			if (!internalId && matcherAccessor.getNullHandler().equals(ExampleMatcher.NullHandler.INCLUDE)) {
+				predicate.add(mode, property(Constants.NAME_OF_TYPED_ROOT_NODE.apply(nodeDescription), propertyName).isNull());
+			}
+			return;
+		}
+
+		Neo4jConversionService conversionService = mappingContext.getConversionService();
+		boolean isRootNode = predicate.neo4jPersistentEntity.equals(nodeDescription);
+
+		if (graphProperty.isIdProperty() && nodeDescription.isUsingInternalIds()) {
+			if (isRootNode) {
 				predicate.add(mode,
 						predicate.neo4jPersistentEntity.getIdExpression().isEqualTo(literalOf(optionalValue.get())));
 			} else {
-				Expression property = property(Constants.NAME_OF_TYPED_ROOT_NODE.apply(probeNodeDescription), propertyName);
-				Expression parameter = parameter(propertyName);
-				Condition condition = property.isEqualTo(parameter);
-
-				if (String.class.equals(graphProperty.getActualType())) {
-
-					if (matcherAccessor.isIgnoreCaseForPath(currentPath)) {
-						property = Functions.toLower(property);
-						parameter = Functions.toLower(parameter);
-					}
-
-					condition = switch (matcherAccessor.getStringMatcherForPath(currentPath)) {
-						case DEFAULT, EXACT ->
-								// This needs to be recreated as both property and parameter might have changed above
-								property.isEqualTo(parameter);
-						case CONTAINING -> property.contains(parameter);
-						case STARTING -> property.startsWith(parameter);
-						case ENDING -> property.endsWith(parameter);
-						case REGEX -> property.matches(parameter);
-					};
-				}
-				predicate.add(mode, condition);
-				predicate.parameters.put(propertyName, optionalValue.map(
-						v -> {
-							Neo4jPersistentProperty neo4jPersistentProperty = (Neo4jPersistentProperty) graphProperty;
-							return conversionService.writeValue(v, neo4jPersistentProperty.getTypeInformation(),
-											neo4jPersistentProperty.getOptionalConverter());
-						})
-						.get());
+				predicate.add(mode,
+						nodeDescription.getIdExpression().isEqualTo(literalOf(optionalValue.get())));
 			}
-		}
+		} else {
+			Expression property =  !isRootNode ? property(wrapper.getNodeName(), propertyName) : property(Constants.NAME_OF_TYPED_ROOT_NODE.apply(nodeDescription), propertyName);
+			Expression parameter = parameter(wrapper.getNodeName() + propertyName);
+			Condition condition = property.isEqualTo(parameter);
 
-		return predicate;
+			if (String.class.equals(graphProperty.getActualType())) {
+
+				if (matcherAccessor.isIgnoreCaseForPath(currentPath)) {
+					property = Functions.toLower(property);
+					parameter = Functions.toLower(parameter);
+				}
+
+				condition = switch (matcherAccessor.getStringMatcherForPath(currentPath)) {
+					case DEFAULT, EXACT ->
+							// This needs to be recreated as both property and parameter might have changed above
+							property.isEqualTo(parameter);
+					case CONTAINING -> property.contains(parameter);
+					case STARTING -> property.startsWith(parameter);
+					case ENDING -> property.endsWith(parameter);
+					case REGEX -> property.matches(parameter);
+				};
+			}
+			predicate.add(mode, condition);
+			predicate.parameters.put(wrapper.getNodeName() + propertyName, optionalValue.map(
+					v -> {
+						Neo4jPersistentProperty neo4jPersistentProperty = (Neo4jPersistentProperty) graphProperty;
+						return conversionService.writeValue(v, neo4jPersistentProperty.getTypeInformation(),
+										neo4jPersistentProperty.getOptionalConverter());
+					})
+					.get());
+		}
 	}
 
 	private final Neo4jPersistentEntity neo4jPersistentEntity;
@@ -137,6 +205,8 @@ final class Predicate {
 	private Condition condition = Conditions.noCondition();
 
 	private final Map<String, Object> parameters = new HashMap<>();
+
+	private final Set<PropertyPathWrapper> relationshipFields = new HashSet<>();
 
 	private Predicate(Neo4jPersistentEntity neo4jPersistentEntity) {
 		this.neo4jPersistentEntity = neo4jPersistentEntity;
@@ -159,11 +229,19 @@ final class Predicate {
 		};
 	}
 
+	private void addRelationship(PropertyPathWrapper propertyPathWrapper) {
+		this.relationshipFields.add(propertyPathWrapper);
+	}
+
 	public NodeDescription<?> getNeo4jPersistentEntity() {
 		return neo4jPersistentEntity;
 	}
 
 	public Map<String, Object> getParameters() {
 		return Collections.unmodifiableMap(parameters);
+	}
+
+	public Set<PropertyPathWrapper> getPropertyPathWrappers() {
+		return relationshipFields;
 	}
 }
