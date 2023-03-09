@@ -3038,7 +3038,8 @@ class RepositoryIT {
      					CREATE
      						(n:PersonWithRelationship{name:'Freddie'})-[:Has]->(h1:Hobby{name:'Music'}),
      						(n)-[:Has]->(p1:Pet{name: 'Jerry'}),
-     						(n)-[:Has]->(p2:Pet{name: 'Tom'})
+     						(n)-[:Has]->(p2:Pet{name: 'Tom'}),
+     						(p1)-[:Has]->(p3:Pet{name: 'Silvester'})-[:Has]->(h2:Hobby{name: 'Hunt Tweety'})
 						RETURN n, h1, p1, p2
 						""").single());
 
@@ -3054,6 +3055,17 @@ class RepositoryIT {
 
 			PersonWithRelationship probe = new PersonWithRelationship();
 			probe.setName("Freddie");
+			Hobby hobbies = new Hobby();
+			hobbies.setName("Music");
+			probe.setHobbies(hobbies);
+			Pet jerry = new Pet("Jerry");
+			// yes, now we bring multiple universes together
+			Pet silvester = new Pet("Silvester");
+			Hobby silvesterHobby = new Hobby();
+			silvesterHobby.setName("Hunt Tweety");
+			silvester.setHobbies(Set.of(silvesterHobby));
+			jerry.setFriends(List.of(silvester));
+			probe.setPets(List.of(jerry));
 			PersonWithRelationship loadedPerson = repository.findAll(Example.of(probe)).get(0);
 			assertThat(loadedPerson.getName()).isEqualTo("Freddie");
 			assertThat(loadedPerson.getId()).isEqualTo(personId);
