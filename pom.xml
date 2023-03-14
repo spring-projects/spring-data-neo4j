@@ -115,7 +115,7 @@
 		<skipUnitTests>${skipTests}</skipUnitTests>
 
 		<spring-data-commons-docs.dir>../../../../spring-data-commons/src/main/asciidoc</spring-data-commons-docs.dir>
-		<springdata.commons>3.1.0-GH-2151-SNAPSHOT</springdata.commons>
+		<springdata.commons>3.1.0-SNAPSHOT</springdata.commons>
 	</properties>
 
 	<dependencyManagement>

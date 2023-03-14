@@ -30,6 +30,7 @@ import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.data.util.TypeInformation;
 import org.springframework.lang.Nullable;
 import org.springframework.util.ClassUtils;
+import org.springframework.util.StringUtils;
 
 /**
  * Neo4j specific implementation of {@link QueryMethod}. It contains a custom implementation of {@link Parameter} which
@@ -157,5 +158,13 @@ class Neo4jQueryMethod extends QueryMethod {
 		public String getNameOrIndex() {
 			return this.getName().orElseGet(() -> Integer.toString(this.getIndex()));
 		}
+	}
+
+	boolean incrementLimit() {
+		return (this.isSliceQuery() && this.getQueryAnnotation().map(Query::countQuery).filter(StringUtils::hasText).isEmpty()) || this.isScrollQuery();
+	}
+
+	boolean asCollectionQuery() {
+		return this.isCollectionLikeQuery() || this.isPageQuery() || this.isSliceQuery() || this.isScrollQuery();
 	}
 }

@@ -23,6 +23,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.BiFunction;
@@ -30,18 +32,23 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import org.apache.commons.logging.LogFactory;
+import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
 import org.neo4j.driver.types.MapAccessor;
 import org.neo4j.driver.types.TypeSystem;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.data.convert.EntityWriter;
+import org.springframework.data.domain.KeysetScrollPosition;
+import org.springframework.data.domain.OffsetScrollPosition;
 import org.springframework.data.domain.Range;
+import org.springframework.data.domain.Window;
 import org.springframework.data.geo.Box;
 import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.Metrics;
 import org.springframework.data.neo4j.core.TemplateSupport;
 import org.springframework.data.neo4j.core.convert.Neo4jPersistentPropertyConverter;
+import org.springframework.data.neo4j.core.mapping.Constants;
 import org.springframework.data.neo4j.core.mapping.CypherGenerator;
 import org.springframework.data.neo4j.core.mapping.EntityInstanceWithSource;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
@@ -265,6 +272,49 @@ abstract class Neo4jQuerySupport {
 								fragment));
 			}
 		}
+	}
+
+	final Window<?> createWindow(ResultProcessor resultProcessor, boolean incrementLimit, Neo4jParameterAccessor parameterAccessor, List<?> rawResult, QueryFragmentsAndParameters orderBy) {
+
+		var domainType = resultProcessor.getReturnedType().getDomainType();
+		var neo4jPersistentEntity = mappingContext.getPersistentEntity(domainType);
+		var limit = orderBy.getQueryFragments().getLimit().intValue() - (incrementLimit ? 1 : 0);
+		var conversionService = mappingContext.getConversionService();
+		var scrollPosition = parameterAccessor.getScrollPosition();
+
+		var scrollDirection = scrollPosition instanceof KeysetScrollPosition keysetScrollPosition ? keysetScrollPosition.getDirection() : KeysetScrollPosition.Direction.Forward;
+		if (scrollDirection == KeysetScrollPosition.Direction.Backward) {
+			Collections.reverse(rawResult);
+		}
+
+		return Window.from(getSubList(rawResult, limit, scrollDirection), v -> {
+			if (scrollPosition instanceof OffsetScrollPosition offsetScrollPosition) {
+				return OffsetScrollPosition.of(offsetScrollPosition.getOffset() + v + limit);
+			} else  {
+				var accessor = neo4jPersistentEntity.getPropertyAccessor(rawResult.get(v));
+				var keys = new LinkedHashMap<String, Object>();
+				orderBy.getSort().forEach(o -> {
+					// Storing the graph property name here
+					var persistentProperty = neo4jPersistentEntity.getRequiredPersistentProperty(o.getProperty());
+					keys.put(persistentProperty.getPropertyName(), conversionService.convert(accessor.getProperty(persistentProperty), Value.class));
+				});
+				keys.put(Constants.NAME_OF_ADDITIONAL_SORT, conversionService.convert(accessor.getProperty(neo4jPersistentEntity.getRequiredIdProperty()), Value.class));
+				return KeysetScrollPosition.of(keys);
+			}
+		}, hasMoreElements(rawResult, limit));
+	}
+
+	private static boolean hasMoreElements(List<?> result, int limit) {
+		return !result.isEmpty() && result.size() > limit;
+	}
+
+	private static <T> List<T> getSubList(List<T> result, int limit, KeysetScrollPosition.Direction scrollDirection) {
+
+		if (limit > 0 && result.size() > limit) {
+			return scrollDirection == KeysetScrollPosition.Direction.Forward ? result.subList(0, limit) : result.subList(1, limit + 1);
+		}
+
+		return result;
 	}
 
 	private Map<String, Object> convertRange(Range<?> range) {

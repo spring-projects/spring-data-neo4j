@@ -51,6 +51,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Session;
@@ -68,21 +71,23 @@ import org.springframework.core.convert.ConverterNotFoundException;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.data.domain.ExampleMatcher.StringMatcher;
+import org.springframework.data.domain.KeysetScrollPosition;
+import org.springframework.data.domain.OffsetScrollPosition;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Range;
 import org.springframework.data.domain.Range.Bound;
+import org.springframework.data.domain.ScrollPosition;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.WindowIterator;
 import org.springframework.data.geo.Box;
 import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.Metrics;
 import org.springframework.data.geo.Polygon;
 import org.springframework.data.mapping.MappingException;
-import org.springframework.data.neo4j.core.mapping.IdentitySupport;
-import org.springframework.data.neo4j.test.Neo4jImperativeTestConfiguration;
 import org.springframework.data.neo4j.core.DatabaseSelection;
 import org.springframework.data.neo4j.core.DatabaseSelectionProvider;
 import org.springframework.data.neo4j.core.Neo4jClient;
@@ -90,6 +95,7 @@ import org.springframework.data.neo4j.core.Neo4jTemplate;
 import org.springframework.data.neo4j.core.UserSelection;
 import org.springframework.data.neo4j.core.UserSelectionProvider;
 import org.springframework.data.neo4j.core.convert.Neo4jConversions;
+import org.springframework.data.neo4j.core.mapping.IdentitySupport;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
 import org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager;
@@ -150,6 +156,7 @@ import org.springframework.data.neo4j.repository.query.BoundingBox;
 import org.springframework.data.neo4j.repository.query.Query;
 import org.springframework.data.neo4j.test.BookmarkCapture;
 import org.springframework.data.neo4j.test.Neo4jExtension;
+import org.springframework.data.neo4j.test.Neo4jImperativeTestConfiguration;
 import org.springframework.data.neo4j.test.ServerVersion;
 import org.springframework.data.neo4j.types.CartesianPoint2d;
 import org.springframework.data.neo4j.types.GeographicPoint2d;
@@ -256,6 +263,27 @@ class RepositoryIT {
 			List<PersonWithAllConstructor> people = repository.findAll();
 			assertThat(people).hasSize(2);
 			assertThat(people).extracting("name").containsExactlyInAnyOrder(TEST_PERSON1_NAME, TEST_PERSON2_NAME);
+		}
+
+		static Stream<Arguments> basicScrollSupportFor(@Autowired PersonRepository repository) {
+			return Stream.of(Arguments.of(repository, KeysetScrollPosition.initial()), Arguments.of(repository, OffsetScrollPosition.initial()));
+		}
+
+		@ParameterizedTest(name = "basicScrollSupportFor {1}")
+		@MethodSource
+		void basicScrollSupportFor(PersonRepository repository, ScrollPosition initialPosition) {
+
+			var it = WindowIterator.of(repository::findTop1ByOrderByName)
+					.startingAt(initialPosition);
+			var content = new ArrayList<PersonWithAllConstructor>();
+			while (it.hasNext()) {
+				var next = it.next();
+				content.add(next);
+			}
+			assertThat(content)
+					.hasSize(2)
+					.extracting(PersonWithAllConstructor::getName)
+					.containsExactly("Test", "Test2");
 		}
 
 		@Test
