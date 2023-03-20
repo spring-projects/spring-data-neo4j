@@ -28,8 +28,10 @@ import org.neo4j.driver.types.Point;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Range;
+import org.springframework.data.domain.ScrollPosition;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Window;
 import org.springframework.data.geo.Box;
 import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.Distance;
@@ -112,6 +114,8 @@ public interface PersonRepository extends Neo4jRepository<PersonWithAllConstruct
 	Page<PersonWithAllConstructor> findAllByNameOrName(String aName, String anotherName, Pageable pageable);
 
 	Slice<PersonWithAllConstructor> findSliceByNameOrName(String aName, String anotherName, Pageable pageable);
+
+	Window<PersonWithAllConstructor> findTop1ByOrderByName(ScrollPosition scrollPosition);
 
 	@Query("MATCH (n:PersonWithAllConstructor) WHERE n.name = $aName OR n.name = $anotherName RETURN n ORDER BY n.name DESC SKIP $skip LIMIT $limit")
 	Slice<PersonWithAllConstructor> findSliceByCustomQueryWithoutCount(@Param("aName") String aName, @Param("anotherName") String anotherName, Pageable pageable);

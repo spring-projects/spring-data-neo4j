@@ -18,6 +18,7 @@ package org.springframework.data.neo4j.repository.query;
 import java.util.Collection;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
+import java.util.function.UnaryOperator;
 
 import org.neo4j.driver.types.MapAccessor;
 import org.neo4j.driver.types.TypeSystem;
@@ -36,6 +37,8 @@ import org.springframework.data.repository.query.ResultProcessor;
 import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+
+import reactor.core.publisher.Flux;
 
 /**
  * Base class for {@link RepositoryQuery} implementations for Neo4j.
@@ -67,16 +70,17 @@ abstract class AbstractReactiveNeo4jQuery extends Neo4jQuerySupport implements R
 	@Override
 	public final Object execute(Object[] parameters) {
 
+		boolean incrementLimit = queryMethod.incrementLimit();
 		Neo4jParameterAccessor parameterAccessor = new Neo4jParameterAccessor((Neo4jQueryMethod.Neo4jParameters) this.queryMethod.getParameters(), parameters);
 		ResultProcessor resultProcessor = queryMethod.getResultProcessor().withDynamicProjection(parameterAccessor);
 
 		ReturnedType returnedType = resultProcessor.getReturnedType();
 		PreparedQuery<?> preparedQuery = prepareQuery(returnedType.getReturnedType(),
 				PropertyFilterSupport.getInputProperties(resultProcessor, factory, mappingContext), parameterAccessor,
-				null, getMappingFunction(resultProcessor));
+				null, getMappingFunction(resultProcessor), incrementLimit ? l -> l + 1 : UnaryOperator.identity());
 
 		Object rawResult = new Neo4jQueryExecution.ReactiveQueryExecution(neo4jOperations).execute(preparedQuery,
-				queryMethod.isCollectionLikeQuery());
+				queryMethod.asCollectionQuery());
 
 		Converter<Object, Object> preparingConverter = OptionalUnwrappingConverter.INSTANCE;
 		if (returnedType.isProjecting()) {
@@ -87,10 +91,16 @@ abstract class AbstractReactiveNeo4jQuery extends Neo4jQuerySupport implements R
 					(EntityInstanceWithSource) OptionalUnwrappingConverter.INSTANCE.convert(source));
 		}
 
+		if (queryMethod.isScrollQuery()) {
+			rawResult = ((Flux<?>) rawResult).collectList().map(rawResultList ->
+					createWindow(resultProcessor, incrementLimit, parameterAccessor, rawResultList, preparedQuery.getQueryFragmentsAndParameters()));
+		}
+
 		return resultProcessor.processResult(rawResult, preparingConverter);
 	}
 
 	protected abstract <T extends Object> PreparedQuery<T> prepareQuery(Class<T> returnedType,
 				Collection<PropertyFilter.ProjectedPath> includedProperties, Neo4jParameterAccessor parameterAccessor,
-				@Nullable Neo4jQueryType queryType, @Nullable Supplier<BiFunction<TypeSystem, MapAccessor, ?>> mappingFunction);
+				@Nullable Neo4jQueryType queryType, @Nullable Supplier<BiFunction<TypeSystem, MapAccessor, ?>> mappingFunction,
+				@Nullable UnaryOperator<Integer> limitModifier);
 }

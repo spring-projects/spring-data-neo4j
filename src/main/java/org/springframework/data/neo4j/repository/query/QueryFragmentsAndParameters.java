@@ -53,23 +53,26 @@ public final class QueryFragmentsAndParameters {
 	private NodeDescription<?> nodeDescription;
 	private final QueryFragments queryFragments;
 	private final String cypherQuery;
+	private final Sort sort;
 
 	public QueryFragmentsAndParameters(NodeDescription<?> nodeDescription, QueryFragments queryFragments,
-									   @Nullable Map<String, Object> parameters) {
+									   @Nullable Map<String, Object> parameters, @Nullable Sort sort) {
 		this.nodeDescription = nodeDescription;
 		this.queryFragments = queryFragments;
 		this.parameters = parameters;
 		this.cypherQuery = null;
+		this.sort = sort == null ? Sort.unsorted() : sort;
 	}
 
 	public QueryFragmentsAndParameters(String cypherQuery) {
 		this(cypherQuery, null);
 	}
 
-	public QueryFragmentsAndParameters(String cypherQuery, Map<String, Object> parameters) {
+	public QueryFragmentsAndParameters(String cypherQuery, @Nullable Map<String, Object> parameters) {
 		this.cypherQuery = cypherQuery;
 		this.queryFragments = new QueryFragments();
 		this.parameters = parameters;
+		this.sort = Sort.unsorted();
 	}
 
 	public Map<String, Object> getParameters() {
@@ -92,6 +95,10 @@ public final class QueryFragmentsAndParameters {
 		this.parameters = newParameters;
 	}
 
+	public Sort getSort() {
+		return sort;
+	}
+
 	/*
 	 * Convenience methods that are used by the (Reactive)Neo4jTemplate
 	 */
@@ -110,7 +117,7 @@ public final class QueryFragmentsAndParameters {
 		queryFragments.addMatchOn(container);
 		queryFragments.setCondition(condition);
 		queryFragments.setReturnExpressions(cypherGenerator.createReturnStatementForMatch(entityMetaData));
-		return new QueryFragmentsAndParameters(entityMetaData, queryFragments, parameters);
+		return new QueryFragmentsAndParameters(entityMetaData, queryFragments, parameters, null);
 	}
 
 	public static QueryFragmentsAndParameters forFindByAllId(Neo4jPersistentEntity<?> entityMetaData, Object idValues) {
@@ -133,7 +140,7 @@ public final class QueryFragmentsAndParameters {
 		queryFragments.addMatchOn(container);
 		queryFragments.setCondition(condition);
 		queryFragments.setReturnExpressions(cypherGenerator.createReturnStatementForMatch(entityMetaData));
-		return new QueryFragmentsAndParameters(entityMetaData, queryFragments, parameters);
+		return new QueryFragmentsAndParameters(entityMetaData, queryFragments, parameters, null);
 	}
 
 	public static QueryFragmentsAndParameters forFindAll(Neo4jPersistentEntity<?> entityMetaData) {
@@ -141,7 +148,7 @@ public final class QueryFragmentsAndParameters {
 		queryFragments.addMatchOn(cypherGenerator.createRootNode(entityMetaData));
 		queryFragments.setCondition(Conditions.noCondition());
 		queryFragments.setReturnExpressions(cypherGenerator.createReturnStatementForMatch(entityMetaData));
-		return new QueryFragmentsAndParameters(entityMetaData, queryFragments, Collections.emptyMap());
+		return new QueryFragmentsAndParameters(entityMetaData, queryFragments, Collections.emptyMap(), null);
 	}
 
 	public static QueryFragmentsAndParameters forExistsById(Neo4jPersistentEntity<?> entityMetaData, Object idValues) {
@@ -159,7 +166,7 @@ public final class QueryFragmentsAndParameters {
 		queryFragments.addMatchOn(container);
 		queryFragments.setCondition(condition);
 		queryFragments.setReturnExpressions(cypherGenerator.createReturnStatementForExists(entityMetaData));
-		return new QueryFragmentsAndParameters(entityMetaData, queryFragments, parameters);
+		return new QueryFragmentsAndParameters(entityMetaData, queryFragments, parameters, null);
 	}
 
 	/*
@@ -234,7 +241,7 @@ public final class QueryFragmentsAndParameters {
 			queryFragments.setOrderBy(sortItems);
 		}
 
-		return new QueryFragmentsAndParameters(entityMetaData, queryFragments, Collections.emptyMap());
+		return new QueryFragmentsAndParameters(entityMetaData, queryFragments, Collections.emptyMap(), null);
 	}
 
 	private static void adaptPageable(
@@ -286,7 +293,7 @@ public final class QueryFragmentsAndParameters {
 			queryFragments.setOrderBy(CypherAdapterUtils.toSortItems(entityMetaData, sort));
 		}
 
-		return new QueryFragmentsAndParameters(entityMetaData, queryFragments, parameters);
+		return new QueryFragmentsAndParameters(entityMetaData, queryFragments, parameters, sort);
 	}
 
 }

@@ -65,7 +65,7 @@ final class PartTreeNeo4jQuery extends AbstractNeo4jQuery {
 			Neo4jParameterAccessor parameterAccessor, @Nullable Neo4jQueryType queryType,
 			@Nullable Supplier<BiFunction<TypeSystem, MapAccessor, ?>> mappingFunction, UnaryOperator<Integer> limitModifier) {
 
-		CypherQueryCreator queryCreator = new CypherQueryCreator(mappingContext, getDomainType(queryMethod),
+		CypherQueryCreator queryCreator = new CypherQueryCreator(mappingContext, queryMethod, getDomainType(queryMethod),
 				Optional.ofNullable(queryType).orElseGet(() -> Neo4jQueryType.fromPartTree(tree)), tree, parameterAccessor,
 				includedProperties, this::convertParameter, limitModifier);
 

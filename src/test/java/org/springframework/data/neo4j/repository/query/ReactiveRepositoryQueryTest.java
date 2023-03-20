@@ -21,13 +21,11 @@ import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.spy;
 
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
-
 import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.function.UnaryOperator;
 import java.util.regex.Pattern;
 
 import org.junit.jupiter.api.Nested;
@@ -60,6 +58,9 @@ import org.springframework.data.repository.query.ReactiveQueryMethodEvaluationCo
 import org.springframework.data.repository.query.SpelQueryContext;
 import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 import org.springframework.util.ReflectionUtils;
+
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 /**
  * Unit tests for
@@ -145,7 +146,8 @@ final class ReactiveRepositoryQueryTest {
 					Collections.emptySet(),
 					parameterAccessor,
 					Neo4jQueryType.DEFAULT,
-					() -> (typeSystem, mapAccessor) -> new TestEntity()
+					() -> (typeSystem, mapAccessor) -> new TestEntity(),
+					UnaryOperator.identity()
 			);
 			assertThat(logbackCapture.getFormattedMessages())
 					.anyMatch(s -> s.matches(
@@ -179,7 +181,8 @@ final class ReactiveRepositoryQueryTest {
 					Collections.emptySet(),
 					parameterAccessor,
 					Neo4jQueryType.DEFAULT,
-					() -> (typeSystem, mapAccessor) -> new TestEntity()
+					() -> (typeSystem, mapAccessor) -> new TestEntity(),
+					UnaryOperator.identity()
 			);
 			assertThat(pq.getQueryFragmentsAndParameters().getCypherQuery())
 					.isEqualTo("MATCH (n:Test) RETURN n ORDER BY name ASC SKIP $skip LIMIT $limit");
@@ -215,7 +218,8 @@ final class ReactiveRepositoryQueryTest {
 						Collections.emptySet(),
 						parameterAccessor,
 						Neo4jQueryType.DEFAULT,
-						() -> (typeSystem, mapAccessor) -> new TestEntity()
+						() -> (typeSystem, mapAccessor) -> new TestEntity(),
+						UnaryOperator.identity()
 				);
 				return pq.getQueryFragmentsAndParameters().getCypherQuery();
 			}).block();

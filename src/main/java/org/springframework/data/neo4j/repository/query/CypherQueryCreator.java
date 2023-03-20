@@ -45,8 +45,11 @@ import org.neo4j.cypherdsl.core.Property;
 import org.neo4j.cypherdsl.core.RelationshipPattern;
 import org.neo4j.cypherdsl.core.SortItem;
 import org.neo4j.driver.types.Point;
+import org.springframework.data.domain.KeysetScrollPosition;
+import org.springframework.data.domain.OffsetScrollPosition;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Range;
+import org.springframework.data.domain.ScrollPosition;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.geo.Box;
 import org.springframework.data.geo.Circle;
@@ -64,6 +67,7 @@ import org.springframework.data.neo4j.core.mapping.NodeDescription;
 import org.springframework.data.neo4j.core.mapping.PropertyFilter;
 import org.springframework.data.neo4j.core.mapping.RelationshipDescription;
 import org.springframework.data.neo4j.core.schema.TargetNode;
+import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.data.repository.query.parser.AbstractQueryCreator;
 import org.springframework.data.repository.query.parser.Part;
 import org.springframework.data.repository.query.parser.PartTree;
@@ -82,6 +86,7 @@ import org.springframework.lang.Nullable;
 final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndParameters, Condition> {
 
 	private final Neo4jMappingContext mappingContext;
+	private final QueryMethod queryMethod;
 
 	private final Class<?> domainType;
 	private final NodeDescription<?> nodeDescription;
@@ -99,6 +104,8 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndPar
 
 	private final Pageable pagingParameter;
 
+	private final ScrollPosition scrollPosition;
+
 	/**
 	 * Stores the number of max results, if the {@link PartTree tree} is limiting.
 	 */
@@ -113,18 +120,21 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndPar
 
 	private final List<PropertyPathWrapper> propertyPathWrappers;
 
+	private final boolean keysetRequiresSort;
+
 	/**
 	 * Can be used to modify the limit of a paged or sliced query.
 	 */
 	private final UnaryOperator<Integer> limitModifier;
 
-	CypherQueryCreator(Neo4jMappingContext mappingContext, Class<?> domainType, Neo4jQueryType queryType, PartTree tree,
+	CypherQueryCreator(Neo4jMappingContext mappingContext, QueryMethod queryMethod, Class<?> domainType, Neo4jQueryType queryType, PartTree tree,
 			Neo4jParameterAccessor actualParameters, Collection<PropertyFilter.ProjectedPath> includedProperties,
 			BiFunction<Object, Neo4jPersistentPropertyConverter<?>, Object> parameterConversion,
 			UnaryOperator<Integer> limitModifier) {
 
 		super(tree, actualParameters);
 		this.mappingContext = mappingContext;
+		this.queryMethod = queryMethod;
 
 		this.domainType = domainType;
 		this.nodeDescription = this.mappingContext.getRequiredNodeDescription(this.domainType);
@@ -139,6 +149,7 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndPar
 		this.parameterConversion = parameterConversion;
 
 		this.pagingParameter = actualParameters.getPageable();
+		this.scrollPosition = actualParameters.getScrollPosition();
 		this.limitModifier = limitModifier;
 
 		AtomicInteger symbolicNameIndex = new AtomicInteger();
@@ -148,6 +159,7 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndPar
 						mappingContext.getPersistentPropertyPath(part.getProperty())))
 				.collect(Collectors.toList());
 
+		this.keysetRequiresSort = queryMethod.isScrollQuery() && actualParameters.getScrollPosition() instanceof KeysetScrollPosition;
 	}
 
 	private class PropertyPathWrapper {
@@ -260,7 +272,12 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndPar
 				.collect(Collectors.toMap(p -> p.nameOrIndex, p -> parameterConversion.apply(p.value, p.conversionOverride)));
 
 		QueryFragments queryFragments = createQueryFragments(condition, sort);
-		return new QueryFragmentsAndParameters(nodeDescription, queryFragments, convertedParameters);
+
+		var theSort = pagingParameter.getSort().and(sort);
+		if (keysetRequiresSort && theSort.isUnsorted()) {
+			throw new UnsupportedOperationException("Unsorted keyset based scrolling is not supported.");
+		}
+		return new QueryFragmentsAndParameters(nodeDescription, queryFragments, convertedParameters, theSort);
 	}
 
 	@NonNull
@@ -280,15 +297,12 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndPar
 			}
 		}
 
-		// closing action: add the condition and path match
-		queryFragments.setCondition(conditionFragment);
-
 		if (!relationshipChain.isEmpty()) {
 			queryFragments.setMatchOn(relationshipChain);
 		} else {
 			queryFragments.addMatchOn(startNode);
 		}
-		/// end of initial filter query creation
+		// end of initial filter query creation
 
 		if (queryType == Neo4jQueryType.COUNT) {
 			queryFragments.setReturnExpression(Functions.count(Cypher.asterisk()), true);
@@ -298,20 +312,38 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndPar
 			queryFragments.setDeleteExpression(Constants.NAME_OF_TYPED_ROOT_NODE.apply(nodeDescription));
 			queryFragments.setReturnExpression(Functions.count(Constants.NAME_OF_TYPED_ROOT_NODE.apply(nodeDescription)), true);
 		} else {
+
+			var theSort = pagingParameter.getSort().and(sort);
+
+			if (pagingParameter.isUnpaged() && scrollPosition == null && maxResults != null) {
+				queryFragments.setLimit(limitModifier.apply(maxResults.intValue()));
+			} else if (scrollPosition instanceof KeysetScrollPosition keysetScrollPosition) {
+
+				Neo4jPersistentEntity<?> entity = (Neo4jPersistentEntity<?>) nodeDescription;
+				// Enforce sorting by something that is hopefully stable comparable (looking at Neo4j's id() with tears in my eyes).
+				theSort = theSort.and(Sort.by(entity.getRequiredIdProperty().getName()).ascending());
+
+				queryFragments.setLimit(limitModifier.apply(maxResults.intValue()));
+				if (!keysetScrollPosition.isInitial()) {
+					conditionFragment = conditionFragment.and(CypherAdapterUtils.combineKeysetIntoCondition(entity, keysetScrollPosition, theSort));
+				}
+
+				queryFragments.setRequiresReverseSort(keysetScrollPosition.getDirection() == KeysetScrollPosition.Direction.Backward);
+			} else if (scrollPosition instanceof OffsetScrollPosition offsetScrollPosition) {
+				queryFragments.setSkip(offsetScrollPosition.getOffset());
+				queryFragments.setLimit(limitModifier.apply(pagingParameter.isUnpaged() ? maxResults.intValue() : pagingParameter.getPageSize()));
+			}
+
 			queryFragments.setReturnBasedOn(nodeDescription, includedProperties, isDistinct);
 			queryFragments.setOrderBy(Stream
 					.concat(sortItems.stream(),
-							pagingParameter.getSort().and(sort).stream().map(CypherAdapterUtils.sortAdapterFor(nodeDescription)))
+							theSort.stream().map(CypherAdapterUtils.sortAdapterFor(nodeDescription)))
 					.collect(Collectors.toList()));
-			if (pagingParameter.isUnpaged()) {
-				queryFragments.setLimit(maxResults);
-			} else {
-				long skip = pagingParameter.getOffset();
-				int pageSize = pagingParameter.getPageSize();
-				queryFragments.setSkip(skip);
-				queryFragments.setLimit(limitModifier.apply(pageSize));
-			}
 		}
+
+		// closing action: add the condition and path match
+		queryFragments.setCondition(conditionFragment);
+
 		return queryFragments;
 	}
 

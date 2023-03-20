@@ -47,7 +47,6 @@ import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
 
 /**
  * Base class for {@link RepositoryQuery} implementations for Neo4j.
@@ -80,7 +79,7 @@ abstract class AbstractNeo4jQuery extends Neo4jQuerySupport implements Repositor
 	@Override
 	public final Object execute(Object[] parameters) {
 
-		boolean incrementLimit = queryMethod.isSliceQuery() && !queryMethod.getQueryAnnotation().map(q -> q.countQuery()).filter(StringUtils::hasText).isPresent();
+		boolean incrementLimit = queryMethod.incrementLimit();
 		Neo4jParameterAccessor parameterAccessor = new Neo4jParameterAccessor(
 				(Neo4jQueryMethod.Neo4jParameters) this.queryMethod.getParameters(),
 				parameters);
@@ -91,8 +90,7 @@ abstract class AbstractNeo4jQuery extends Neo4jQuerySupport implements Repositor
 				PropertyFilterSupport.getInputProperties(resultProcessor, factory, mappingContext), parameterAccessor,
 				null, getMappingFunction(resultProcessor), incrementLimit ? l -> l + 1 : UnaryOperator.identity());
 
-		Object rawResult = new Neo4jQueryExecution.DefaultQueryExecution(neo4jOperations).execute(preparedQuery,
-				queryMethod.isCollectionLikeQuery() || queryMethod.isPageQuery() || queryMethod.isSliceQuery());
+		Object rawResult = new Neo4jQueryExecution.DefaultQueryExecution(neo4jOperations).execute(preparedQuery, queryMethod.asCollectionQuery());
 
 		Converter<Object, Object> preparingConverter = OptionalUnwrappingConverter.INSTANCE;
 		if (returnedType.isProjecting()) {
@@ -107,6 +105,8 @@ abstract class AbstractNeo4jQuery extends Neo4jQuerySupport implements Repositor
 			rawResult = createPage(parameterAccessor, (List<?>) rawResult);
 		} else if (queryMethod.isSliceQuery()) {
 			rawResult = createSlice(incrementLimit, parameterAccessor, (List<?>) rawResult);
+		} else if (queryMethod.isScrollQuery()) {
+			rawResult = createWindow(resultProcessor, incrementLimit, parameterAccessor, (List<?>) rawResult, preparedQuery.getQueryFragmentsAndParameters());
 		}
 		return resultProcessor.processResult(rawResult, preparingConverter);
 	}

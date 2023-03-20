@@ -20,6 +20,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.apiguardian.api.API;
 import org.neo4j.cypherdsl.core.Condition;
@@ -56,6 +57,10 @@ public final class QueryFragments {
 	private boolean scalarValueReturn = false;
 	private boolean renderConstantsAsParameters = false;
 	private Expression deleteExpression;
+	/**
+	 * This flag becomes {@literal true} for backward scrolling keyset pagination. Any {@code AbstractNeo4jQuery} will in turn reverse the result list.
+	 */
+	private boolean requiresReverseSort = false;
 
 	public void addMatchOn(PatternElement match) {
 		this.matchOn.add(match);
@@ -115,6 +120,14 @@ public final class QueryFragments {
 		return scalarValueReturn;
 	}
 
+	public boolean requiresReverseSort() {
+		return requiresReverseSort;
+	}
+
+	public void setRequiresReverseSort(boolean requiresReverseSort) {
+		this.requiresReverseSort = requiresReverseSort;
+	}
+
 	public void setRenderConstantsAsParameters(boolean renderConstantsAsParameters) {
 		this.renderConstantsAsParameters = renderConstantsAsParameters;
 	}
@@ -162,7 +175,33 @@ public final class QueryFragments {
 	}
 
 	public Collection<SortItem> getOrderBy() {
-		return orderBy != null ? orderBy : Collections.emptySet();
+
+		if (orderBy == null) {
+			return List.of();
+		} else if (!requiresReverseSort) {
+			return orderBy;
+		} else {
+			return orderBy.stream().map(QueryFragments::reverse).toList();
+		}
+	}
+
+	// Yeah, would be kinda nice having a simple method in Cypher-DSL ;)
+	private static SortItem reverse(SortItem sortItem) {
+
+		var sortedExpression = new AtomicReference<Expression>();
+		var sortDirection = new AtomicReference<SortItem.Direction>();
+
+		sortItem.accept(segment -> {
+			if (segment instanceof SortItem.Direction direction) {
+				sortDirection.compareAndSet(null, direction == SortItem.Direction.UNDEFINED || direction == SortItem.Direction.ASC ? SortItem.Direction.DESC : SortItem.Direction.ASC);
+			} else if (segment instanceof Expression expression) {
+				sortedExpression.compareAndSet(null, expression);
+			}
+		});
+
+		// Default might not explicitly set.
+		sortDirection.compareAndSet(null, SortItem.Direction.DESC);
+		return Cypher.sort(sortedExpression.get(), sortDirection.get());
 	}
 
 	public Number getLimit() {

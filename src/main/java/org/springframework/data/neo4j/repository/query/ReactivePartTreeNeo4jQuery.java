@@ -63,11 +63,11 @@ final class ReactivePartTreeNeo4jQuery extends AbstractReactiveNeo4jQuery {
 	@Override
 	protected <T extends Object> PreparedQuery<T> prepareQuery(Class<T> returnedType, Collection<PropertyFilter.ProjectedPath> includedProperties,
 			Neo4jParameterAccessor parameterAccessor, @Nullable Neo4jQueryType queryType,
-			@Nullable Supplier<BiFunction<TypeSystem, MapAccessor, ?>> mappingFunction) {
+			@Nullable Supplier<BiFunction<TypeSystem, MapAccessor, ?>> mappingFunction, @Nullable UnaryOperator<Integer> limitModifier) {
 
-		CypherQueryCreator queryCreator = new CypherQueryCreator(mappingContext, getDomainType(queryMethod),
+		CypherQueryCreator queryCreator = new CypherQueryCreator(mappingContext, queryMethod, getDomainType(queryMethod),
 				Optional.ofNullable(queryType).orElseGet(() -> Neo4jQueryType.fromPartTree(tree)), tree, parameterAccessor,
-				includedProperties, this::convertParameter, UnaryOperator.identity());
+				includedProperties, this::convertParameter, limitModifier);
 
 		QueryFragmentsAndParameters queryAndParameters = queryCreator.createQuery();
 

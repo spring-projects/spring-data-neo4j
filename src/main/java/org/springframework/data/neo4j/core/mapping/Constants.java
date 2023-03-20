@@ -44,6 +44,8 @@ public final class Constants {
 	public static final String NAME_OF_INTERNAL_ID = "__internalNeo4jId__";
 	public static final String NAME_OF_ELEMENT_ID = "__elementId__";
 
+	public static final String NAME_OF_ADDITIONAL_SORT = "__stable_uniq_sort__";
+
 	/**
 	 * Indicates the list of dynamic labels.
 	 */
