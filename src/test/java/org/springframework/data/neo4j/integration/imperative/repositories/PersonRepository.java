@@ -116,7 +116,6 @@ public interface PersonRepository extends Neo4jRepository<PersonWithAllConstruct
 	Slice<PersonWithAllConstructor> findSliceByNameOrName(String aName, String anotherName, Pageable pageable);
 
 	Window<PersonWithAllConstructor> findTop1ByOrderByName(ScrollPosition scrollPosition);
-	// Scroll<PersonWithAllConstructor> findTop1ByOrderByName(KeysetScrollPosition scrollPosition, Sort sort);
 
 	@Query("MATCH (n:PersonWithAllConstructor) WHERE n.name = $aName OR n.name = $anotherName RETURN n ORDER BY n.name DESC SKIP $skip LIMIT $limit")
 	Slice<PersonWithAllConstructor> findSliceByCustomQueryWithoutCount(@Param("aName") String aName, @Param("anotherName") String anotherName, Pageable pageable);
