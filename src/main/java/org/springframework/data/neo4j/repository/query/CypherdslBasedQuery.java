@@ -84,7 +84,7 @@ final class CypherdslBasedQuery extends AbstractNeo4jQuery {
 			statement = (Statement) parameters[0];
 		}
 
-		Map<String, Object> boundParameters = statement.getParameters();
+		Map<String, Object> boundParameters = statement.getCatalog().getParameters();
 		return PreparedQuery.queryFor(returnedType)
 				.withCypherQuery(statement.getCypher())
 				.withParameters(boundParameters)
@@ -99,6 +99,6 @@ final class CypherdslBasedQuery extends AbstractNeo4jQuery {
 		Statement countStatement = (Statement) parameterAccessor.getValues()[1];
 		return Optional.of(PreparedQuery.queryFor(Long.class)
 				.withCypherQuery(countStatement.getCypher())
-				.withParameters(countStatement.getParameters()).build());
+				.withParameters(countStatement.getCatalog().getParameters()).build());
 	}
 }

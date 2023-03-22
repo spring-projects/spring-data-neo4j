@@ -119,7 +119,7 @@ public final class ReactiveQuerydslNeo4jPredicateExecutor<T> implements Reactive
 		Statement statement = CypherGenerator.INSTANCE.prepareMatchOf(this.metaData,
 						Cypher.adapt(predicate).asCondition())
 				.returning(Functions.count(asterisk())).build();
-		return this.neo4jOperations.count(statement, statement.getParameters());
+		return this.neo4jOperations.count(statement, statement.getCatalog().getParameters());
 	}
 
 	@Override

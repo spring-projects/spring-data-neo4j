@@ -159,7 +159,7 @@ public final class TemplateSupport {
 	 */
 	static Map<String, Object> mergeParameters(Statement statement, @Nullable Map<String, Object> parameters) {
 
-		Map<String, Object> mergedParameters = new HashMap<>(statement.getParameters());
+		Map<String, Object> mergedParameters = new HashMap<>(statement.getCatalog().getParameters());
 		if (parameters != null) {
 			mergedParameters.putAll(parameters);
 		}

@@ -1161,7 +1161,7 @@ public final class Neo4jTemplate implements
 					.returning(Constants.NAME_OF_SYNTHESIZED_ROOT_NODE).build();
 
 			Map<String, Object> usedParameters = new HashMap<>(parameters);
-			usedParameters.putAll(rootNodesStatement.getParameters());
+			usedParameters.putAll(rootNodesStatement.getCatalog().getParameters());
 
 			final Collection<Long> rootNodeIds = new HashSet<>(neo4jClient
 					.query(renderer.render(rootNodesStatement))
@@ -1186,7 +1186,7 @@ public final class Neo4jTemplate implements
 						.returning(cypherGenerator.createReturnStatementForMatch(entityMetaData)).build();
 
 				usedParameters = new HashMap<>(parameters);
-				usedParameters.putAll(statement.getParameters());
+				usedParameters.putAll(statement.getCatalog().getParameters());
 				neo4jClient.query(renderer.render(statement))
 						.bindAll(usedParameters)
 						.fetch()

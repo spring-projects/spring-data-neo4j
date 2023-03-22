@@ -714,7 +714,7 @@ public final class ReactiveNeo4jTemplate implements
 									.returning(cypherGenerator.createReturnStatementForMatch(entityMetaData)).build();
 
 							Map<String, Object> usedParameters = new HashMap<>(parameters);
-							usedParameters.putAll(statement.getParameters());
+							usedParameters.putAll(statement.getCatalog().getParameters());
 							return neo4jClient.query(renderer.render(statement))
 									.bindAll(usedParameters)
 									.fetchAs(TupleOfLongsHolder.class)

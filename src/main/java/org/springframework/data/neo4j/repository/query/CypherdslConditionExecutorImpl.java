@@ -126,7 +126,7 @@ public final class CypherdslConditionExecutorImpl<T> implements CypherdslConditi
 
 		Statement statement = CypherGenerator.INSTANCE.prepareMatchOf(this.metaData, condition)
 				.returning(Functions.count(asterisk())).build();
-		return this.neo4jOperations.count(statement, statement.getParameters());
+		return this.neo4jOperations.count(statement, statement.getCatalog().getParameters());
 	}
 
 	@Override
