@@ -91,7 +91,6 @@ class Neo4jTransactionManagerTest {
 	@Test
 	void triggerCommitCorrectly() {
 
-		when(driver.defaultTypeSystem()).thenReturn(typeSystem);
 		when(driver.session(any(SessionConfig.class))).thenReturn(session);
 		when(session.beginTransaction(any(TransactionConfig.class))).thenReturn(transaction);
 		when(transaction.run(anyString(), anyMap())).thenReturn(statementResult);
@@ -122,7 +121,6 @@ class Neo4jTransactionManagerTest {
 	@Test
 	void usesBookmarksCorrectly() throws Exception {
 
-		when(driver.defaultTypeSystem()).thenReturn(typeSystem);
 		when(driver.session(any(SessionConfig.class))).thenReturn(session);
 		when(session.beginTransaction(any(TransactionConfig.class))).thenReturn(transaction);
 		Set<Bookmark> bookmark = Set.of(new BookmarkForTesting("blubb"));

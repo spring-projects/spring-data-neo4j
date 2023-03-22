@@ -62,7 +62,6 @@ import org.springframework.util.StringUtils;
 final class DefaultNeo4jClient implements Neo4jClient {
 
 	private final Driver driver;
-	private final TypeSystem typeSystem;
 	private @Nullable final DatabaseSelectionProvider databaseSelectionProvider;
 	private @Nullable final UserSelectionProvider userSelectionProvider;
 	private final ConversionService conversionService;
@@ -75,7 +74,6 @@ final class DefaultNeo4jClient implements Neo4jClient {
 	DefaultNeo4jClient(Builder builder) {
 
 		this.driver = builder.driver;
-		this.typeSystem = driver.defaultTypeSystem();
 		this.databaseSelectionProvider = builder.databaseSelectionProvider;
 		this.userSelectionProvider = builder.userSelectionProvider;
 
@@ -452,7 +450,7 @@ final class DefaultNeo4jClient implements Neo4jClient {
 			try (QueryRunner statementRunner = getQueryRunner(this.databaseSelection, this.impersonatedUser)) {
 				Result result = runnableStatement.runWith(statementRunner);
 				Optional<T> optionalValue = result.hasNext() ?
-						Optional.ofNullable(mappingFunction.apply(typeSystem, result.single())) :
+						Optional.ofNullable(mappingFunction.apply(TypeSystem.getDefault(), result.single())) :
 						Optional.empty();
 				ResultSummaries.process(result.consume());
 				return optionalValue;
@@ -468,7 +466,7 @@ final class DefaultNeo4jClient implements Neo4jClient {
 
 			try (QueryRunner statementRunner = getQueryRunner(this.databaseSelection, this.impersonatedUser)) {
 				Result result = runnableStatement.runWith(statementRunner);
-				Optional<T> optionalValue = result.stream().map(partialMappingFunction(typeSystem)).filter(Objects::nonNull).findFirst();
+				Optional<T> optionalValue = result.stream().map(partialMappingFunction(TypeSystem.getDefault())).filter(Objects::nonNull).findFirst();
 				ResultSummaries.process(result.consume());
 				return optionalValue;
 			} catch (RuntimeException e) {
@@ -483,7 +481,7 @@ final class DefaultNeo4jClient implements Neo4jClient {
 
 			try (QueryRunner statementRunner = getQueryRunner(this.databaseSelection, this.impersonatedUser)) {
 				Result result = runnableStatement.runWith(statementRunner);
-				Collection<T> values = result.stream().map(partialMappingFunction(typeSystem)).filter(Objects::nonNull).collect(Collectors.toList());
+				Collection<T> values = result.stream().map(partialMappingFunction(TypeSystem.getDefault())).filter(Objects::nonNull).collect(Collectors.toList());
 				ResultSummaries.process(result.consume());
 				return values;
 			} catch (RuntimeException e) {

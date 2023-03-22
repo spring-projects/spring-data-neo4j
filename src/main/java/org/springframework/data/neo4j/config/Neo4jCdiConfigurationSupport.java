@@ -19,6 +19,7 @@ import org.apiguardian.api.API;
 import org.neo4j.cypherdsl.core.renderer.Configuration;
 import org.neo4j.cypherdsl.core.renderer.Renderer;
 import org.neo4j.driver.Driver;
+import org.neo4j.driver.types.TypeSystem;
 import org.springframework.data.neo4j.core.DatabaseSelectionProvider;
 import org.springframework.data.neo4j.core.Neo4jClient;
 import org.springframework.data.neo4j.core.Neo4jOperations;
@@ -89,7 +90,7 @@ class Neo4jCdiConfigurationSupport {
 	@Produces @Singleton
 	public Neo4jMappingContext neo4jMappingContext(@SuppressWarnings("CdiInjectionPointsInspection") Driver driver, @Any Instance<Neo4jConversions> neo4JConversions) {
 
-		return Neo4jMappingContext.builder().withNeo4jConversions(resolve(neo4JConversions)).withTypeSystem(driver.defaultTypeSystem()).build();
+		return Neo4jMappingContext.builder().withNeo4jConversions(resolve(neo4JConversions)).withTypeSystem(TypeSystem.getDefault()).build();
 	}
 
 	@Produces @Singleton

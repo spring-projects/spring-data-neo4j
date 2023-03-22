@@ -33,7 +33,6 @@ import org.neo4j.driver.Values;
 import org.neo4j.driver.reactivestreams.ReactiveResult;
 import org.neo4j.driver.reactivestreams.ReactiveSession;
 import org.neo4j.driver.summary.ResultSummary;
-import org.neo4j.driver.types.TypeSystem;
 import org.springframework.data.neo4j.core.transaction.Neo4jTransactionUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.util.ReflectionUtils;
@@ -70,8 +69,6 @@ class ReactiveNeo4jClientTest {
 
 	@Mock private Driver driver;
 
-	@Mock private TypeSystem typeSystem;
-
 	private ArgumentCaptor<SessionConfig> configArgumentCaptor = ArgumentCaptor.forClass(SessionConfig.class);
 
 	@Mock private ReactiveSession session;
@@ -85,8 +82,6 @@ class ReactiveNeo4jClientTest {
 	@Mock private Record record2;
 
 	void prepareMocks() {
-
-		when(driver.defaultTypeSystem()).thenReturn(typeSystem);
 
 		when(driver.session(eq(ReactiveSession.class), any(SessionConfig.class))).thenReturn(session);
 
@@ -308,8 +303,6 @@ class ReactiveNeo4jClientTest {
 		for (String invalidDatabaseName : invalidDatabaseNames) {
 			assertThatIllegalArgumentException().isThrownBy(() -> client.query("RETURN 1").in(invalidDatabaseName));
 		}
-
-		verify(driver).defaultTypeSystem();
 	}
 
 	@Test // GH-2159
