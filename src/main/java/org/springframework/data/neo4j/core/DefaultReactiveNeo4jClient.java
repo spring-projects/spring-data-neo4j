@@ -65,7 +65,6 @@ import java.util.function.Supplier;
 final class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 
 	private final Driver driver;
-	private final TypeSystem typeSystem;
 	private @Nullable final ReactiveDatabaseSelectionProvider databaseSelectionProvider;
 	private @Nullable final ReactiveUserSelectionProvider userSelectionProvider;
 	private final ConversionService conversionService;
@@ -78,7 +77,6 @@ final class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 	DefaultReactiveNeo4jClient(Builder builder) {
 
 		this.driver = builder.driver;
-		this.typeSystem = driver.defaultTypeSystem();
 		this.databaseSelectionProvider = builder.databaseSelectionProvider;
 		this.userSelectionProvider = builder.impersonatedUserProvider;
 
@@ -418,7 +416,7 @@ final class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 		Flux<T> executeWith(Tuple2<String, Map<String, Object>> t, ReactiveQueryRunner runner) {
 
 			return Flux.usingWhen(Flux.from(runner.run(t.getT1(), t.getT2())),
-					result -> Flux.from(result.records()).mapNotNull(r -> mappingFunction.apply(typeSystem, r)),
+					result -> Flux.from(result.records()).mapNotNull(r -> mappingFunction.apply(TypeSystem.getDefault(), r)),
 					result -> Flux.from(result.consume()).doOnNext(ResultSummaries::process));
 		}
 

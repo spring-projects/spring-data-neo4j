@@ -26,13 +26,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
-import reactor.core.publisher.Mono;
-import reactor.test.StepVerifier;
-
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -47,9 +42,11 @@ import org.neo4j.driver.Transaction;
 import org.neo4j.driver.TransactionConfig;
 import org.neo4j.driver.reactivestreams.ReactiveSession;
 import org.neo4j.driver.reactivestreams.ReactiveTransaction;
-import org.neo4j.driver.types.TypeSystem;
 import org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
+
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
 /**
  * Ensure correct behaviour of both imperative and reactive clients in and outside Springs transaction management.
@@ -62,20 +59,6 @@ class TransactionHandlingTest {
 	@Mock private Driver driver;
 
 	@Mock private Session session;
-
-	@Mock private TypeSystem typeSystem;
-
-	@BeforeEach
-	void prepareMocks() {
-
-		when(driver.defaultTypeSystem()).thenReturn(typeSystem);
-	}
-
-	@AfterEach
-	void verifyTypeSystemOnSession() {
-
-		verify(driver).defaultTypeSystem();
-	}
 
 	@Nested
 	class Neo4jClientTest {

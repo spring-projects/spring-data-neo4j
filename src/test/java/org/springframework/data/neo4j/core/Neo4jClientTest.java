@@ -90,7 +90,6 @@ class Neo4jClientTest {
 	void prepareMocks() {
 
 		when(driver.session(any(SessionConfig.class))).thenReturn(session);
-		when(driver.defaultTypeSystem()).thenReturn(typeSystem);
 
 		when(session.lastBookmarks()).thenReturn(Set.of(Mockito.mock(Bookmark.class)));
 	}
@@ -308,8 +307,6 @@ class Neo4jClientTest {
 		for (String invalidDatabaseName : invalidDatabaseNames) {
 			assertThatIllegalArgumentException().isThrownBy(() -> client.query("RETURN 1").in(invalidDatabaseName));
 		}
-
-		verify(driver).defaultTypeSystem();
 	}
 
 	@Test // GH-2159
