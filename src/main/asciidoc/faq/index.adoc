@@ -1277,15 +1277,35 @@ Example<MovieEntity> movieExample = Example.of(new MovieEntity("The Matrix", nul
 Flux<MovieEntity> movies = this.movieRepository.findAll(movieExample);
 
 movieExample = Example.of(
-	new MovieEntity("Matrix", null),
-	ExampleMatcher
-	    .matchingAny()
+    new MovieEntity("Matrix", null),
+    ExampleMatcher
+        .matchingAny()
         .withMatcher(
-        	"title",
-        	ExampleMatcher.GenericPropertyMatcher.of(ExampleMatcher.StringMatcher.CONTAINING)
+            "title",
+            ExampleMatcher.GenericPropertyMatcher.of(ExampleMatcher.StringMatcher.CONTAINING)
         )
 );
 movies = this.movieRepository.findAll(movieExample);
+----
+
+You can also negate individual properties. This will add an appropriate `NOT` operation, thus turning an `=` into a `<>`.
+All scalar datatypes and all string operators are supported:
+
+[source,java,indent=0,tabsize=4]
+[[find-by-example-example-with-negated-properties]]
+.findByExample with negated values
+----
+Example<MovieEntity> movieExample = Example.of(
+    new MovieEntity("Matrix", null),
+    ExampleMatcher
+        .matchingAny()
+        .withMatcher(
+            "title",
+            ExampleMatcher.GenericPropertyMatcher.of(ExampleMatcher.StringMatcher.CONTAINING)
+        )
+       .withTransformer("title", Neo4jPropertyValueTransformers.notMatching())
+);
+Flux<MovieEntity> allMoviesThatNotContainMatrix = this.movieRepository.findAll(movieExample);
 ----
 
 [[faq.spring-boot.sdn]]

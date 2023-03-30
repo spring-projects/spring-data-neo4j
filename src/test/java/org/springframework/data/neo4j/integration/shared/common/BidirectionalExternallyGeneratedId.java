@@ -35,4 +35,11 @@ public class BidirectionalExternallyGeneratedId {
 	@Relationship("OTHER")
 	public BidirectionalExternallyGeneratedId otter;
 
+	public UUID getUuid() {
+		return uuid;
+	}
+
+	public BidirectionalExternallyGeneratedId getOtter() {
+		return otter;
+	}
 }

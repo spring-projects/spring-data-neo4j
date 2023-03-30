@@ -91,6 +91,7 @@ import org.springframework.data.mapping.MappingException;
 import org.springframework.data.neo4j.core.DatabaseSelection;
 import org.springframework.data.neo4j.core.DatabaseSelectionProvider;
 import org.springframework.data.neo4j.core.Neo4jClient;
+import org.springframework.data.neo4j.core.Neo4jPropertyValueTransformers;
 import org.springframework.data.neo4j.core.Neo4jTemplate;
 import org.springframework.data.neo4j.core.UserSelection;
 import org.springframework.data.neo4j.core.UserSelectionProvider;
@@ -2994,6 +2995,45 @@ class RepositoryIT {
 			long count = repository.findBy(example, q -> q.count());
 
 			assertThat(count).isEqualTo(1);
+		}
+
+		@Test // GH-2703
+		void negatedProperties(@Autowired PersonRepository repository) {
+
+			var example = Example.of(new PersonWithAllConstructor(null, person1.getName(), null, null, null, null, null, null, null, null, null),
+					ExampleMatcher.matchingAll().withTransformer("name", Neo4jPropertyValueTransformers.notMatching()));
+
+			var optionalPerson = repository.findOne(example);
+			assertThat(optionalPerson)
+					.map(PersonWithAllConstructor::getName)
+					.hasValue(person2.getName());
+		}
+
+		@Test // GH-2703
+		void negatedInternalIdProperty(@Autowired PersonRepository repository) {
+
+			var example = Example.of(new PersonWithAllConstructor(person1.getId(), null, null, null, null, null, null, null, null, null, null),
+					ExampleMatcher.matchingAll().withTransformer("id", Neo4jPropertyValueTransformers.notMatching()));
+
+			var optionalPerson = repository.findOne(example);
+			assertThat(optionalPerson)
+					.map(PersonWithAllConstructor::getName)
+					.hasValue(person2.getName());
+		}
+
+		@Test // GH-2240
+		void negatedWithExternallyGeneratedId(@Autowired BidirectionalExternallyGeneratedIdRepository repository) {
+
+			BidirectionalExternallyGeneratedId a = repository.save(new BidirectionalExternallyGeneratedId());
+			BidirectionalExternallyGeneratedId b = repository.save(new BidirectionalExternallyGeneratedId());
+
+			var example = Example.of(a,
+					ExampleMatcher.matchingAll().withTransformer("uuid", Neo4jPropertyValueTransformers.notMatching()));
+
+			var optionalResult = repository.findOne(example);
+			assertThat(optionalResult)
+					.map(BidirectionalExternallyGeneratedId::getUuid)
+					.hasValue(b.getUuid());
 		}
 
 		@Test
