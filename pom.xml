@@ -72,7 +72,7 @@
 		<archunit.version>0.23.1</archunit.version>
 		<asciidoctor-maven-plugin.version>2.1.0</asciidoctor-maven-plugin.version>
 		<asciidoctorj-diagram.version>2.1.0</asciidoctorj-diagram.version>
-		<byte-buddy.version>1.11.0</byte-buddy.version>
+		<byte-buddy.version>1.14.3</byte-buddy.version>
 		<cdi>3.0.1</cdi>
 		<checkstyle.skip>${skipTests}</checkstyle.skip>
 		<checkstyle.version>8.40</checkstyle.version>
