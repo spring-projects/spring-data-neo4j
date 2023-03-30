@@ -33,6 +33,7 @@ import org.neo4j.cypherdsl.core.Functions;
 import org.neo4j.cypherdsl.core.StatementBuilder;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
+import org.springframework.data.neo4j.core.Neo4jPropertyValueTransformers;
 import org.springframework.data.neo4j.core.convert.Neo4jConversionService;
 import org.springframework.data.neo4j.core.mapping.Constants;
 import org.springframework.data.neo4j.core.mapping.GraphPropertyDescription;
@@ -91,15 +92,17 @@ final class Predicate {
 
 			Neo4jConversionService conversionService = mappingContext.getConversionService();
 
+			var theValue = optionalValue.map(v -> v instanceof Neo4jPropertyValueTransformers.NegatedValue negatedValue ? negatedValue.value() : v).get();
+			Condition condition = null;
+
 			if (graphProperty.isRelationship()) {
 				Neo4jQuerySupport.REPOSITORY_QUERY_LOG.error("Querying by example does not support traversing of relationships.");
 			} else if (graphProperty.isIdProperty() && probeNodeDescription.isUsingInternalIds()) {
-				predicate.add(mode,
-						predicate.neo4jPersistentEntity.getIdExpression().isEqualTo(literalOf(optionalValue.get())));
+				condition = predicate.neo4jPersistentEntity.getIdExpression().isEqualTo(literalOf(theValue));
 			} else {
 				Expression property = property(Constants.NAME_OF_TYPED_ROOT_NODE.apply(probeNodeDescription), propertyName);
 				Expression parameter = parameter(propertyName);
-				Condition condition = property.isEqualTo(parameter);
+				condition = property.isEqualTo(parameter);
 
 				if (String.class.equals(graphProperty.getActualType())) {
 
@@ -109,27 +112,31 @@ final class Predicate {
 					}
 
 					condition = switch (matcherAccessor.getStringMatcherForPath(currentPath)) {
-						case DEFAULT, EXACT ->
-								// This needs to be recreated as both property and parameter might have changed above
-								property.isEqualTo(parameter);
+						case DEFAULT, EXACT -> property.isEqualTo(parameter);
 						case CONTAINING -> property.contains(parameter);
 						case STARTING -> property.startsWith(parameter);
 						case ENDING -> property.endsWith(parameter);
 						case REGEX -> property.matches(parameter);
 					};
 				}
-				predicate.add(mode, condition);
-				predicate.parameters.put(propertyName, optionalValue.map(
-						v -> {
-							Neo4jPersistentProperty neo4jPersistentProperty = (Neo4jPersistentProperty) graphProperty;
-							return conversionService.writeValue(v, neo4jPersistentProperty.getTypeInformation(),
-											neo4jPersistentProperty.getOptionalConverter());
-						})
-						.get());
+
+				Neo4jPersistentProperty neo4jPersistentProperty = (Neo4jPersistentProperty) graphProperty;
+				predicate.parameters.put(propertyName, conversionService.writeValue(theValue,
+						neo4jPersistentProperty.getTypeInformation(), neo4jPersistentProperty.getOptionalConverter()));
+			}
+			if (condition != null) {
+				predicate.add(mode, postProcess(condition, optionalValue.get()));
 			}
 		}
 
 		return predicate;
+	}
+
+	private static Condition postProcess(Condition condition, Object transformedValue) {
+		if (transformedValue instanceof Neo4jPropertyValueTransformers.NegatedValue) {
+			return condition.not();
+		}
+		return condition;
 	}
 
 	private final Neo4jPersistentEntity neo4jPersistentEntity;
