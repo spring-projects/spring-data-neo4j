@@ -614,8 +614,8 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 				getEntityConverter().write(relatedValue.getRelationshipProperties(), propMap);
 				relationshipRows.add(propMap);
 			}
-			relationshipPropertiesEntries.put(Constants.NAME_OF_RELATIONSHIP_LIST_PARAM, relationshipRows);
 		}
+		relationshipPropertiesEntries.put(Constants.NAME_OF_RELATIONSHIP_LIST_PARAM, relationshipRows);
 		return new CreateRelationshipStatementHolder(relationshipCreationQuery, relationshipPropertiesEntries);
 	}
 
