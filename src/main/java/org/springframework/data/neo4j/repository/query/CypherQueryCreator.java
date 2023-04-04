@@ -264,7 +264,7 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndPar
 	private Condition createImpl(Part part, Iterator<Object> actualParameters) {
 
 		PersistentPropertyPath<Neo4jPersistentProperty> path = mappingContext.getPersistentPropertyPath(part.getProperty());
-		Neo4jPersistentProperty property = path.getRequiredLeafProperty();
+		Neo4jPersistentProperty property = path.getLeafProperty();
 
 		boolean ignoreCase = ignoreCase(part);
 
@@ -327,7 +327,7 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndPar
 		Expression cypherProperty = toCypherProperty(path, ignoreCase);
 
 		if (property.isDynamicLabels()) {
-			Neo4jPersistentProperty leafProperty = path.getRequiredLeafProperty();
+			Neo4jPersistentProperty leafProperty = path.getLeafProperty();
 			Neo4jPersistentEntity<?> owner = (Neo4jPersistentEntity<?>) leafProperty.getOwner();
 			String containerName = getContainerName(path, owner);
 			return toCypherParameter(nextRequiredParameter(actualParameters, property), ignoreCase)
@@ -381,7 +381,7 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndPar
 
 	private Condition createNearCondition(PersistentPropertyPath<Neo4jPersistentProperty> path, Iterator<Object> actualParameters) {
 
-		Neo4jPersistentProperty leafProperty = path.getRequiredLeafProperty();
+		Neo4jPersistentProperty leafProperty = path.getLeafProperty();
 		Parameter p1 = nextRequiredParameter(actualParameters, leafProperty);
 		Optional<Parameter> p2 = nextOptionalParameter(actualParameters, leafProperty);
 
@@ -418,7 +418,7 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndPar
 
 	private Condition createWithinCondition(PersistentPropertyPath<Neo4jPersistentProperty> path, Iterator<Object> actualParameters) {
 
-		Neo4jPersistentProperty leafProperty = path.getRequiredLeafProperty();
+		Neo4jPersistentProperty leafProperty = path.getLeafProperty();
 		Parameter area = nextRequiredParameter(actualParameters, leafProperty);
 		if (area.hasValueOfType(Circle.class)) {
 			// We don't know the CRS of the point, so we assume the same as the reference toCypherProperty
@@ -477,7 +477,7 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndPar
 
 	private Expression toCypherProperty(PersistentPropertyPath<Neo4jPersistentProperty> path, boolean addToLower) {
 
-		Neo4jPersistentProperty leafProperty = path.getRequiredLeafProperty();
+		Neo4jPersistentProperty leafProperty = path.getLeafProperty();
 		Neo4jPersistentEntity<?> owner = (Neo4jPersistentEntity<?>) leafProperty.getOwner();
 		Expression expression;
 

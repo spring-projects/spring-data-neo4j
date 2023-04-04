@@ -91,7 +91,7 @@ class PartValidator {
 
 		PersistentPropertyPath<Neo4jPersistentProperty> path = mappingContext
 				.getPersistentPropertyPath(part.getProperty());
-		Neo4jPersistentProperty property = path.getRequiredLeafProperty();
+		Neo4jPersistentProperty property = path.getLeafProperty();
 		Assert.isTrue(!property.isComposite(), "Can not derive query for '%s': Derived queries are not supported for composite properties");
 	}
 
