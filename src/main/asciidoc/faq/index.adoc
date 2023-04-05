@@ -39,7 +39,7 @@ No.
 An embedded database is usually represented by an instance of `org.neo4j.graphdb.GraphDatabaseService` and has no Bolt connector out of the box.
 
 SDN can however work very much with Neo4j's test harness, the test harness is specially meant to be a drop-in replacement for the real database.
-Support for both Neo4j 3.5 and 4.x test harness is implemented via link:{java-driver-starter-href}[the Spring Boot starter for the driver].
+Support for Neo4j 3.5, 4.x and 5.x test harness is implemented via link:{java-driver-starter-href}[the Spring Boot starter for the driver].
 Have a look at the corresponding module `org.neo4j.driver:neo4j-java-driver-test-harness-spring-boot-autoconfigure`.
 
 [[faq.change-driver-version]]

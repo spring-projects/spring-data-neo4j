@@ -95,8 +95,8 @@ It is an embedded instance that is especially useful when testing stored procedu
 The test harness can however be used to test an application as well.
 As it brings up a database inside the same JVM as your application, performance and timings may not resemble your production setup.
 
-For your convenience we provide three possible scenarios, Neo4j test harness 3.5 and 4.0 as well as Testcontainers Neo4j.
-We provide different examples for 3.5 and 4.0 as the test harness changed between those versions.
+For your convenience we provide three possible scenarios, Neo4j test harness 3.5 and 4.x/5.x as well as Testcontainers Neo4j.
+We provide different examples for 3.5 and 4.x/5.x as the test harness changed between those versions.
 Also, 4.0 requires JDK 11.
 
 [[dataneo4jtest-harness35]]
@@ -179,7 +179,7 @@ application properties. We overwrite the corresponding Neo4j settings.
 <.> Shutdown Neo4j after all tests.
 
 [[dataneo4jtest-harness40]]
-=== `@DataNeo4jTest` with Neo4j test harness 4.x
+=== `@DataNeo4jTest` with Neo4j test harness 4.x/5.x
 
 You need the following dependencies to run <<dataneo4jtest-harness40-example>>:
 
@@ -200,12 +200,12 @@ You need the following dependencies to run <<dataneo4jtest-harness40-example>>:
 </dependency>
 ----
 
-The dependencies for the enterprise version of Neo4j 4.x are available under the `com.neo4j.test:neo4j-harness-enterprise` and
+The dependencies for the enterprise version of Neo4j 4.x/5.x are available under the `com.neo4j.test:neo4j-harness-enterprise` and
 an appropriate repository configuration.
 
 [[dataneo4jtest-harness40-example]]
 [source,java]
-.Using Neo4j 4.x test harness
+.Using Neo4j 4.x/5.x test harness
 ----
 import static org.assertj.core.api.Assertions.assertThat;
 
