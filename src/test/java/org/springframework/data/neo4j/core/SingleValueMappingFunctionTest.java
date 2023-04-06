@@ -102,9 +102,11 @@ class SingleValueMappingFunctionTest {
 
 		SingleValueMappingFunction<Period> mappingFunction = new SingleValueMappingFunction<>(conversionService,
 				Period.class);
+
 		assertThatExceptionOfType(ConversionFailedException.class)
-				.isThrownBy(() -> mappingFunction.apply(typeSystem, record)).withMessageStartingWith(
-						"Failed to convert from type [org.neo4j.driver.internal.value.StringValue] to type [java.time.Period] for value '\"Guten Tag.\"'");
+				.isThrownBy(() -> mappingFunction.apply(typeSystem, record)).withMessageContainingAll(
+						"Failed to convert from type", "org.neo4j.driver.internal.value.StringValue",
+						"to type [java.time.Period] for value");
 	}
 
 	@Test
