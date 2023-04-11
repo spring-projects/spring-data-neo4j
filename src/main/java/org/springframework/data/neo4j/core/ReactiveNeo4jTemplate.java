@@ -19,6 +19,7 @@ import static org.neo4j.cypherdsl.core.Cypher.anyNode;
 import static org.neo4j.cypherdsl.core.Cypher.asterisk;
 import static org.neo4j.cypherdsl.core.Cypher.parameter;
 
+import org.neo4j.driver.Values;
 import org.springframework.data.neo4j.core.mapping.IdDescription;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -307,15 +308,20 @@ public final class ReactiveNeo4jTemplate implements
 		return createExecutableQuery(domainType, null, queryFragmentsAndParameters);
 	}
 
+	private Object convertIdValues(@Nullable Neo4jPersistentProperty idProperty, @Nullable Object idValues) {
 
-	private Object convertIdValues(@Nullable Neo4jPersistentProperty idProperty, Object idValues) {
-
-		if (((Neo4jPersistentEntity<?>) idProperty.getOwner()).isUsingInternalIds()) {
+		if (idProperty != null && ((Neo4jPersistentEntity<?>) idProperty.getOwner()).isUsingInternalIds()) {
 			return idValues;
 		}
 
-		return neo4jMappingContext.getConversionService().writeValue(idValues,
-				TypeInformation.of(idValues.getClass()), idProperty == null ? null : idProperty.getOptionalConverter());
+		if (idValues != null) {
+			return neo4jMappingContext.getConversionService().writeValue(idValues, TypeInformation.of(idValues.getClass()), idProperty == null ? null : idProperty.getOptionalConverter());
+		} else if (idProperty != null) {
+			return neo4jMappingContext.getConversionService().writeValue(idValues, idProperty.getTypeInformation(), idProperty.getOptionalConverter());
+		} else {
+			// Not much we can convert here
+			return Values.NULL;
+		}
 	}
 
 	@Override
