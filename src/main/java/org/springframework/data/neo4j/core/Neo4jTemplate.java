@@ -48,6 +48,7 @@ import org.neo4j.cypherdsl.core.Statement;
 import org.neo4j.cypherdsl.core.renderer.Configuration;
 import org.neo4j.cypherdsl.core.renderer.Renderer;
 import org.neo4j.driver.Value;
+import org.neo4j.driver.Values;
 import org.neo4j.driver.exceptions.NoSuchRecordException;
 import org.neo4j.driver.summary.ResultSummary;
 import org.neo4j.driver.types.Entity;
@@ -308,15 +309,22 @@ public final class Neo4jTemplate implements
 				.getResults();
 	}
 
-	private Object convertIdValues(@Nullable Neo4jPersistentProperty idProperty, Object idValues) {
+	private Object convertIdValues(@Nullable Neo4jPersistentProperty idProperty, @Nullable Object idValues) {
 
 		if (idProperty != null && ((Neo4jPersistentEntity<?>) idProperty.getOwner()).isUsingInternalIds()) {
 			return idValues;
 		}
 
-		return neo4jMappingContext.getConversionService().writeValue(idValues, TypeInformation.of(idValues.getClass()),
-				idProperty == null ? null : idProperty.getOptionalConverter());
+		if (idValues != null) {
+			return neo4jMappingContext.getConversionService().writeValue(idValues, TypeInformation.of(idValues.getClass()), idProperty == null ? null : idProperty.getOptionalConverter());
+		} else if (idProperty != null) {
+			return neo4jMappingContext.getConversionService().writeValue(idValues, idProperty.getTypeInformation(), idProperty.getOptionalConverter());
+		} else {
+			// Not much we can convert here
+			return Values.NULL;
+		}
 	}
+
 
 	@Override
 	public <T> T save(T instance) {
