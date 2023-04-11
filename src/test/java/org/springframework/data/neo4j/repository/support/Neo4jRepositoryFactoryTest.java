@@ -122,7 +122,7 @@ class Neo4jRepositoryFactoryTest {
 		void validateTemporalShouldWork() {
 
 			assertThatExceptionOfType(QueryCreationException.class).isThrownBy(() -> repositoryFactory.getRepository(InvalidTemporal.class))
-					.withMessageMatching("Could not create query for .*: The keywords \\[IsAfter, After] work only with properties with one of the following types: \\[class java.time.Instant, class java.time.LocalDate, class java.time.LocalDateTime, class java.time.OffsetTime, class java.time.ZonedDateTime]");
+					.withMessageMatching("Could not create query for .*: The keywords \\[IsAfter, After] work only with properties with one of the following types: \\[class java.time.Instant, class java.time.LocalDate, class java.time.LocalDateTime, class java.time.LocalTime, class java.time.OffsetDateTime, class java.time.OffsetTime, class java.time.ZonedDateTime]");
 		}
 
 		@Test

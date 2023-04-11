@@ -18,6 +18,8 @@ package org.springframework.data.neo4j.repository.query;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.OffsetDateTime;
 import java.time.OffsetTime;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
@@ -50,12 +52,12 @@ class PartValidator {
 	/**
 	 * A set of the temporal types that are directly passable to the driver and support a meaningful comparison in a
 	 * temporal sense (after, before). See
-	 * <a href="See https://neo4j.com/docs/driver-manual/1.7/cypher-values/#driver-neo4j-type-system" />
+	 * <a href="https://neo4j.com/docs/driver-manual/1.7/cypher-values/#driver-neo4j-type-system" />
 	 */
 	private static final Set<Class<?>> COMPARABLE_TEMPORAL_TYPES;
 	static {
 		Set<Class<?>> hlp = new TreeSet<>(Comparator.comparing(Class::getName));
-		hlp.addAll(Arrays.asList(LocalDate.class, OffsetTime.class, ZonedDateTime.class, LocalDateTime.class, Instant.class));
+		hlp.addAll(Arrays.asList(LocalDate.class, OffsetTime.class, OffsetDateTime.class, LocalTime.class, ZonedDateTime.class, LocalDateTime.class, Instant.class));
 		COMPARABLE_TEMPORAL_TYPES = Collections.unmodifiableSet(hlp);
 	}
 

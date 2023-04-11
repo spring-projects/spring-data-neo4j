@@ -24,6 +24,9 @@ import static org.assertj.core.api.Assertions.tuple;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -36,6 +39,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.TimeZone;
 import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -127,6 +131,7 @@ import org.springframework.data.neo4j.integration.shared.common.Inheritance;
 import org.springframework.data.neo4j.integration.shared.common.KotlinPerson;
 import org.springframework.data.neo4j.integration.shared.common.LikesHobbyRelationship;
 import org.springframework.data.neo4j.integration.shared.common.MultipleLabels;
+import org.springframework.data.neo4j.integration.shared.common.OffsetTemporalEntity;
 import org.springframework.data.neo4j.integration.shared.common.OneToOneSource;
 import org.springframework.data.neo4j.integration.shared.common.OneToOneTarget;
 import org.springframework.data.neo4j.integration.shared.common.ParentNode;
@@ -4332,6 +4337,26 @@ class RepositoryIT {
 		}
 	}
 
+	@Test // GH-2706
+	void findByOffsetDateTimeShouldWork(@Autowired TemporalRepository temporalRepository) {
+
+		temporalRepository.deleteAll();
+
+		LocalDateTime fixedDateTime = LocalDateTime.of(2023, 1, 1, 21, 21, 0);
+		ZoneId europeBerlin = TimeZone.getTimeZone("Europe/Berlin").toZoneId();
+		OffsetDateTime v1 = OffsetDateTime.of(fixedDateTime, europeBerlin.getRules().getOffset(fixedDateTime));
+		LocalTime v2 = fixedDateTime.toLocalTime();
+
+		temporalRepository.save(new OffsetTemporalEntity(v1, v2));
+		temporalRepository.save(new OffsetTemporalEntity(v1.minusDays(2), v2.minusMinutes(2)));
+
+		assertThat(temporalRepository.findAllByProperty1After(v1)).isEmpty();
+		assertThat(temporalRepository.findAllByProperty2After(v2)).isEmpty();
+
+		assertThat(temporalRepository.findAllByProperty1After(v1.minusDays(1))).hasSize(1);
+		assertThat(temporalRepository.findAllByProperty2After(v2.minusMinutes(1))).hasSize(1);
+	}
+
 	/**
 	 * The tests in this class ensure that in case of an inheritance scenario no DTO is projected but the extending class
 	 * is used. If it wasn't the case, we wouldn't find the relationship nor the other attribute.
@@ -4660,6 +4685,15 @@ class RepositoryIT {
 
 	interface EntityWithCustomIdAndDynamicLabelsRepository
 			extends Neo4jRepository<EntitiesWithDynamicLabels.EntityWithCustomIdAndDynamicLabels, String> {}
+
+	interface TemporalRepository extends
+			Neo4jRepository<OffsetTemporalEntity, UUID> {
+
+		List<OffsetTemporalEntity> findAllByProperty1After(OffsetDateTime aValue);
+
+		List<OffsetTemporalEntity> findAllByProperty2After(LocalTime aValue);
+
+	}
 
 	@SpringJUnitConfig(Config.class)
 	static abstract class IntegrationTestBase {
