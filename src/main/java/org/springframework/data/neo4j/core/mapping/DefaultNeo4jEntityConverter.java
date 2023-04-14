@@ -54,7 +54,6 @@ import org.springframework.data.mapping.model.EntityInstantiators;
 import org.springframework.data.mapping.model.ParameterValueProvider;
 import org.springframework.data.neo4j.core.convert.Neo4jConversionService;
 import org.springframework.data.neo4j.core.mapping.callback.EventSupport;
-import org.springframework.data.neo4j.core.schema.ElementId;
 import org.springframework.data.neo4j.core.schema.TargetNode;
 import org.springframework.data.util.ReflectionUtils;
 import org.springframework.data.util.TypeInformation;
@@ -281,7 +280,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 		Map<String, Object> mergedAttributes = new HashMap<>(node.size() + record.size() + 1);
 
 		mergedAttributes.put(Constants.NAME_OF_INTERNAL_ID, IdentitySupport.getInternalId(node));
-		mergedAttributes.put(Constants.NAME_OF_ELEMENT_ID, ElementId.of(node).value());
+		mergedAttributes.put(Constants.NAME_OF_ELEMENT_ID, node.elementId());
 		mergedAttributes.put(Constants.NAME_OF_LABELS, node.labels());
 		mergedAttributes.putAll(node.asMap(Function.identity()));
 		mergedAttributes.putAll(record.asMap(Function.identity()));

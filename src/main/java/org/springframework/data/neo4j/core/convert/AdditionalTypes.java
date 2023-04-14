@@ -51,7 +51,6 @@ import org.springframework.data.convert.ConverterBuilder;
 import org.springframework.data.convert.ReadingConverter;
 import org.springframework.data.convert.WritingConverter;
 import org.springframework.data.mapping.MappingException;
-import org.springframework.data.neo4j.core.schema.ElementId;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -104,22 +103,9 @@ final class AdditionalTypes {
 		hlp.add(ConverterBuilder.reading(Value.class, Entity.class, Value::asEntity));
 		hlp.add(ConverterBuilder.reading(Value.class, Node.class, Value::asNode));
 		hlp.add(ConverterBuilder.reading(Value.class, Relationship.class, Value::asRelationship));
-		hlp.add(ConverterBuilder.reading(Value.class, ElementId.class, AdditionalTypes::asElementId).andWriting(AdditionalTypes::value));
 		hlp.add(ConverterBuilder.reading(Value.class, Map.class, Value::asMap).andWriting(AdditionalTypes::value));
 
 		CONVERTERS = Collections.unmodifiableList(hlp);
-	}
-
-	static ElementId asElementId(Value value) {
-		return ElementId.of(value.asString());
-	}
-
-	static Value value(ElementId elementId) {
-		if (elementId == null) {
-			return Values.NULL;
-		}
-
-		return Values.value(elementId.value());
 	}
 
 	static Value value(Map<?, ?> map) {

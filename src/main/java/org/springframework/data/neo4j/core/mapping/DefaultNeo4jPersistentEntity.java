@@ -38,7 +38,6 @@ import org.springframework.data.annotation.Persistent;
 import org.springframework.data.mapping.Association;
 import org.springframework.data.mapping.model.BasicPersistentEntity;
 import org.springframework.data.neo4j.core.schema.DynamicLabels;
-import org.springframework.data.neo4j.core.schema.ElementId;
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.IdGenerator;
 import org.springframework.data.neo4j.core.schema.Node;
@@ -63,7 +62,7 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 		implements Neo4jPersistentEntity<T> {
 
 	private static final Set<Class<?>> DEPRECATED_GENERATED_ID_TYPES = Set.of(Long.class, long.class);
-	private static final Set<Class<?>> VALID_GENERATED_ID_TYPES = Stream.concat(Stream.of(ElementId.class), DEPRECATED_GENERATED_ID_TYPES.stream()).collect(Collectors.toUnmodifiableSet());
+	private static final Set<Class<?>> VALID_GENERATED_ID_TYPES = Stream.concat(Stream.of(String.class), DEPRECATED_GENERATED_ID_TYPES.stream()).collect(Collectors.toUnmodifiableSet());
 	private static final LogAccessor log = new LogAccessor(LogFactory.getLog(Neo4jPersistentEntity.class));
 
 	/**
