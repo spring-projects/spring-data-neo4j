@@ -17,6 +17,8 @@ package org.springframework.data.neo4j.core.mapping;
 
 import static org.apiguardian.api.API.Status.INTERNAL;
 
+import java.util.function.Function;
+
 import org.apiguardian.api.API;
 import org.neo4j.driver.types.Entity;
 import org.neo4j.driver.types.MapAccessor;
@@ -99,7 +101,7 @@ public final class IdentitySupport {
 		if (row.get(columnToUse) == null || row.get(columnToUse).isNull()) {
 			return null;
 		}
-		System.out.println(row);
+
 		return row.get(columnToUse).asLong();
 	}
 
@@ -134,5 +136,10 @@ public final class IdentitySupport {
 	 */
 	public static String getEndId(Relationship relationship) {
 		return relationship.endNodeElementId();
+	}
+
+	public static Function<MapAccessor, Object> mapperForRelatedIdValues(Neo4jPersistentProperty idProperty) {
+		boolean deprecatedHolder = Neo4jPersistentEntity.DEPRECATED_GENERATED_ID_TYPES.contains(idProperty.getType());
+		return deprecatedHolder ? IdentitySupport::getInternalId : IdentitySupport::getElementId;
 	}
 }

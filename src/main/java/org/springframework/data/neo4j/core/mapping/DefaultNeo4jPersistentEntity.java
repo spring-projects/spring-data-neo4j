@@ -442,7 +442,8 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 						"Internally generated ids can only be assigned to one of " + VALID_GENERATED_ID_TYPES);
 			}
 
-			if (DEPRECATED_GENERATED_ID_TYPES.contains(idProperty.getActualType())) {
+			var isDeprecated = DEPRECATED_GENERATED_ID_TYPES.contains(idProperty.getActualType());
+			if (isDeprecated) {
 				Supplier<CharSequence> messageSupplier = () -> String.format(""
 						+ "The entity %s is using a Long value for storing internally generated Neo4j ids. "
 						+ "The Neo4j internal Long Ids are deprecated, please consider using an external ID generator.",
@@ -450,7 +451,7 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 				log.warn(messageSupplier);
 			}
 
-			return IdDescription.forInternallyGeneratedIds(Constants.NAME_OF_TYPED_ROOT_NODE.apply(this));
+			return IdDescription.forInternallyGeneratedIds(Constants.NAME_OF_TYPED_ROOT_NODE.apply(this), isDeprecated);
 		}
 
 		// Externally generated ids.

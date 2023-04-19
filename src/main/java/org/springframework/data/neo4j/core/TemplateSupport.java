@@ -179,10 +179,10 @@ public final class TemplateSupport {
 		final static NodesAndRelationshipsByIdStatementProvider EMPTY =
 				new NodesAndRelationshipsByIdStatementProvider(Collections.emptySet(), Collections.emptySet(), Collections.emptySet(), new QueryFragments());
 
-		private final Map<String, Collection<Long>> parameters = new HashMap<>(3);
+		private final Map<String, Collection<String>> parameters = new HashMap<>(3);
 		private final QueryFragments queryFragments;
 
-		NodesAndRelationshipsByIdStatementProvider(Collection<Long> rootNodeIds, Collection<Long> relationshipsIds, Collection<Long> relatedNodeIds, QueryFragments queryFragments) {
+		NodesAndRelationshipsByIdStatementProvider(Collection<String> rootNodeIds, Collection<String> relationshipsIds, Collection<String> relatedNodeIds, QueryFragments queryFragments) {
 
 			this.parameters.put(ROOT_NODE_IDS, rootNodeIds);
 			this.parameters.put(RELATIONSHIP_IDS, relationshipsIds);
@@ -207,13 +207,13 @@ public final class TemplateSupport {
 			Node relatedNodes = Cypher.anyNode(relatedNodeIds);
 			Relationship relationships = Cypher.anyNode().relationshipBetween(Cypher.anyNode()).named(relationshipIds);
 			return Cypher.match(rootNodes)
-					.where(Functions.id(rootNodes).in(Cypher.parameter(rootNodeIds)))
+					.where(Functions.elementId(rootNodes).in(Cypher.parameter(rootNodeIds)))
 					.with(Functions.collect(rootNodes).as(Constants.NAME_OF_ROOT_NODE))
 					.optionalMatch(relationships)
-					.where(Functions.id(relationships).in(Cypher.parameter(relationshipIds)))
+					.where(Functions.elementId(relationships).in(Cypher.parameter(relationshipIds)))
 					.with(Constants.NAME_OF_ROOT_NODE, Functions.collectDistinct(relationships).as(Constants.NAME_OF_SYNTHESIZED_RELATIONS))
 					.optionalMatch(relatedNodes)
-					.where(Functions.id(relatedNodes).in(Cypher.parameter(relatedNodeIds)))
+					.where(Functions.elementId(relatedNodes).in(Cypher.parameter(relatedNodeIds)))
 					.with(
 							Constants.NAME_OF_ROOT_NODE,
 							Cypher.name(Constants.NAME_OF_SYNTHESIZED_RELATIONS).as(Constants.NAME_OF_SYNTHESIZED_RELATIONS),

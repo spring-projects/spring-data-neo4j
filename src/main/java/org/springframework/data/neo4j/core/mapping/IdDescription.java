@@ -58,11 +58,15 @@ public final class IdDescription {
 	public static IdDescription forAssignedIds(SymbolicName symbolicName, String graphPropertyName) {
 
 		Assert.notNull(graphPropertyName, "Graph property name is required");
-		return new IdDescription(symbolicName, null, null, graphPropertyName);
+		return new IdDescription(symbolicName, null, null, graphPropertyName, false);
 	}
 
 	public static IdDescription forInternallyGeneratedIds(SymbolicName symbolicName) {
-		return new IdDescription(symbolicName, GeneratedValue.InternalIdGenerator.class, null, null);
+		return forInternallyGeneratedIds(symbolicName, false);
+	}
+
+	public static IdDescription forInternallyGeneratedIds(SymbolicName symbolicName, boolean isDeprecated) {
+		return new IdDescription(symbolicName, GeneratedValue.InternalIdGenerator.class, null, null, isDeprecated);
 	}
 
 	public static IdDescription forExternallyGeneratedIds(SymbolicName symbolicName,
@@ -73,18 +77,18 @@ public final class IdDescription {
 		try {
 			Assert.hasText(idGeneratorRef, "Reference to an ID generator has precedence");
 
-			return new IdDescription(symbolicName, null, idGeneratorRef, graphPropertyName);
+			return new IdDescription(symbolicName, null, idGeneratorRef, graphPropertyName, false);
 		} catch (IllegalArgumentException e) {
 			Assert.notNull(idGeneratorClass, "Class of id generator is required");
 			Assert.isTrue(idGeneratorClass != GeneratedValue.InternalIdGenerator.class,
 					"Cannot use InternalIdGenerator for externally generated ids");
 
-			return new IdDescription(symbolicName, idGeneratorClass, null, graphPropertyName);
+			return new IdDescription(symbolicName, idGeneratorClass, null, graphPropertyName, false);
 		}
 	}
 
 	private IdDescription(SymbolicName symbolicName, @Nullable Class<? extends IdGenerator<?>> idGeneratorClass,
-		    @Nullable String idGeneratorRef, @Nullable String graphPropertyName) {
+		    @Nullable String idGeneratorRef, @Nullable String graphPropertyName, boolean isDeprecated) {
 
 		this.idGeneratorClass = idGeneratorClass;
 		this.idGeneratorRef = idGeneratorRef != null && idGeneratorRef.isEmpty() ? null : idGeneratorRef;
@@ -93,7 +97,7 @@ public final class IdDescription {
 		this.idExpression = Lazy.of(() -> {
 			final Node rootNode = Cypher.anyNode(symbolicName);
 			if (this.isInternallyGeneratedId()) {
-				return Functions.id(rootNode);
+				return isDeprecated ? Functions.id(rootNode) : Functions.elementId(rootNode);
 			} else {
 				return this.getOptionalGraphPropertyName()
 						.map(propertyName -> Cypher.property(symbolicName, propertyName)).get();

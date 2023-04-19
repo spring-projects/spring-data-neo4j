@@ -1076,17 +1076,17 @@ class RepositoryIT {
 		@Test
 		void findEntityWithBidirectionalRelationshipInConstructorThrowsException(@Autowired BidirectionalStartRepository repository) {
 
-			long startId = TestIdentitySupport.getInternalId(doWithSession(session ->  session
+			var node = doWithSession(session ->  session
 						.run("""
 							CREATE
       							(n:BidirectionalStart{name:'Ernie'})-[:CONNECTED]->(e:BidirectionalEnd{name:'Bert'}),
 								(e)<-[:ANOTHER_CONNECTION]-(anotherStart:BidirectionalStart{name:'Elmo'})
       						RETURN n"""
 						)
-						.single().get("n").asNode()));
+						.single().get("n").asNode());
 
-			assertThatThrownBy(() -> repository.findById(startId))
-					.hasRootCauseMessage("The node with id " + startId + " has a logical cyclic mapping dependency; " +
+			assertThatThrownBy(() -> repository.findById(TestIdentitySupport.getInternalId(node)))
+					.hasRootCauseMessage("The node with id " + node.elementId() + " has a logical cyclic mapping dependency; " +
 							"its creation caused the creation of another node that has a reference to this")
 					.hasRootCauseInstanceOf(MappingException.class);
 

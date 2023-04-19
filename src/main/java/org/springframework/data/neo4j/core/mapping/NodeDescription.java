@@ -134,6 +134,7 @@ public interface NodeDescription<T> {
 
 	@Nullable
 	NodeDescription<?> getParentNodeDescription();
+
 	/**
 	 * @return An expression that represents the right identifier type.
 	 */

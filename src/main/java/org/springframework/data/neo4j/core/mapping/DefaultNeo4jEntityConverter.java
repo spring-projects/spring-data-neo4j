@@ -676,7 +676,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 
 				Set<Relationship> relationshipsProcessed = new HashSet<>();
 				for (Relationship possibleRelationship : allMatchingTypeRelationshipsInResult) {
-					if (targetIdSelector.apply(possibleRelationship) == targetNodeId) {
+					if (targetIdSelector.apply(possibleRelationship).equals(targetNodeId)) {
 
 						// Reduce the amount of relationships in the candidate list.
 						// If this relationship got processed twice (OUTGOING, INCOMING), it is never needed again
@@ -830,7 +830,6 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 				.filter(this.relationshipType::isTypeOf)
 				.map(Value::asRelationship)
 				.forEach(allRelationshipsInResult::add);
-
 		return allRelationshipsInResult;
 	}
 

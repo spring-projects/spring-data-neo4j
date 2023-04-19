@@ -709,9 +709,9 @@ public final class ReactiveNeo4jTemplate implements
 			return Mono.deferContextual(ctx -> {
 				Class<?> rootClass = entityMetaData.getUnderlyingClass();
 
-				Set<Long> rootNodeIds = ctx.get("rootNodes");
-				Set<Long> processedRelationshipIds = ctx.get("processedRelationships");
-				Set<Long> processedNodeIds = ctx.get("processedNodes");
+				Set<String> rootNodeIds = ctx.get("rootNodes");
+				Set<String> processedRelationshipIds = ctx.get("processedRelationships");
+				Set<String> processedNodeIds = ctx.get("processedNodes");
 				return Flux.fromIterable(entityMetaData.getRelationshipsInHierarchy(queryFragments::includeField))
 						.flatMap(relationshipDescription -> {
 
@@ -725,7 +725,7 @@ public final class ReactiveNeo4jTemplate implements
 									.bindAll(usedParameters)
 									.fetchAs(TupleOfLongsHolder.class)
 									.mappedBy((t, r) -> {
-										Collection<Long> rootIds =  r.get(Constants.NAME_OF_SYNTHESIZED_ROOT_NODE).asList(Value::asLong);
+										Collection<String> rootIds = r.get(Constants.NAME_OF_SYNTHESIZED_ROOT_NODE).asList(Value::asString);
 										rootNodeIds.addAll(rootIds);
 										Collection<Long> newRelationshipIds = r.get(Constants.NAME_OF_SYNTHESIZED_RELATIONS).asList(Value::asLong);
 										Collection<Long> newRelatedNodeIds = r.get(Constants.NAME_OF_SYNTHESIZED_RELATED_NODES).asList(Value::asLong);
