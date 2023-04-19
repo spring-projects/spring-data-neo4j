@@ -18,12 +18,10 @@ package org.springframework.data.neo4j.core.mapping;
 import static org.apiguardian.api.API.Status.INTERNAL;
 
 import org.apiguardian.api.API;
-import org.neo4j.driver.Record;
 import org.neo4j.driver.types.Entity;
 import org.neo4j.driver.types.MapAccessor;
 import org.neo4j.driver.types.Node;
 import org.neo4j.driver.types.Relationship;
-import org.neo4j.driver.types.TypeSystem;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
@@ -52,23 +50,22 @@ public final class IdentitySupport {
 	 * @param propertyAccessor An accessor to the entity
 	 * @param entity           As received via the driver
 	 */
-	public static void updateInternalId(Neo4jPersistentEntity<?> entityMetaData,
+	public static void updateElementId(Neo4jPersistentEntity<?> entityMetaData,
 			PersistentPropertyAccessor<?> propertyAccessor, Entity entity) {
 
 		if (!entityMetaData.isUsingInternalIds()) {
 			return;
 		}
 
-		propertyAccessor.setProperty(entityMetaData.getRequiredIdProperty(), getInternalId(entity));
+		propertyAccessor.setProperty(entityMetaData.getRequiredIdProperty(), getElementId(entity));
 	}
 
 	/**
 	 * @param entity The entity container as received from the server.
 	 * @return The internal id
 	 */
-	@SuppressWarnings("deprecation")
-	public static Long getInternalId(Entity entity) {
-		return entity.id();
+	public static String getElementId(Entity entity) {
+		return entity.elementId();
 	}
 
 	/**
@@ -78,27 +75,42 @@ public final class IdentitySupport {
 	 * @return An internal id
 	 */
 	@Nullable
+	public static String getElementId(@NonNull MapAccessor row) {
+		if (row instanceof Entity entity) {
+			return getElementId(entity);
+		}
+
+		var columnToUse = Constants.NAME_OF_ELEMENT_ID;
+		if (row.get(columnToUse) == null || row.get(columnToUse).isNull()) {
+			return null;
+		}
+
+		return row.get(columnToUse).asString();
+	}
+
+	@Nullable
+	@Deprecated
 	public static Long getInternalId(@NonNull MapAccessor row) {
 		if (row instanceof Entity entity) {
-			return getInternalId(entity);
+			return entity.id();
 		}
 
 		var columnToUse = Constants.NAME_OF_INTERNAL_ID;
 		if (row.get(columnToUse) == null || row.get(columnToUse).isNull()) {
 			return null;
 		}
-
+		System.out.println(row);
 		return row.get(columnToUse).asLong();
 	}
 
 	@Nullable
-	public static String getInternalId(@NonNull MapAccessor queryResult, @Nullable String seed) {
+	public static String getPrefixedElementId(@NonNull MapAccessor queryResult, @Nullable String seed) {
 		if (queryResult instanceof Node) {
-			return "N" + getInternalId(queryResult);
+			return "N" + getElementId(queryResult);
 		} else if (queryResult instanceof Relationship) {
-			return "R" + seed + getInternalId(queryResult);
-		} else if (!(queryResult.get(Constants.NAME_OF_INTERNAL_ID) == null || queryResult.get(Constants.NAME_OF_INTERNAL_ID).isNull())) {
-			return "N" + queryResult.get(Constants.NAME_OF_INTERNAL_ID).asLong();
+			return "R" + seed + getElementId(queryResult);
+		} else if (!(queryResult.get(Constants.NAME_OF_ELEMENT_ID) == null || queryResult.get(Constants.NAME_OF_ELEMENT_ID).isNull())) {
+			return "N" + queryResult.get(Constants.NAME_OF_ELEMENT_ID).asString();
 		}
 
 		return null;
@@ -110,9 +122,8 @@ public final class IdentitySupport {
 	 * @param relationship A relationship to retrieve the start identity
 	 * @return An internal id
 	 */
-	@SuppressWarnings("deprecation")
-	public static Long getStartId(Relationship relationship) {
-		return relationship.startNodeId();
+	public static String getStartId(Relationship relationship) {
+		return relationship.startNodeElementId();
 	}
 
 	/**
@@ -121,12 +132,7 @@ public final class IdentitySupport {
 	 * @param relationship A relationship to retrieve the end identity
 	 * @return An internal id
 	 */
-	@SuppressWarnings("deprecation")
-	public static Long getEndId(Relationship relationship) {
-		return relationship.endNodeId();
-	}
-
-	public static Long getInternalId(TypeSystem typeSystem, Record row) {
-		return getInternalId(row);
+	public static String getEndId(Relationship relationship) {
+		return relationship.endNodeElementId();
 	}
 }

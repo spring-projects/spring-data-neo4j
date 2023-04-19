@@ -23,6 +23,7 @@ import static org.neo4j.cypherdsl.core.Cypher.node;
 import static org.neo4j.cypherdsl.core.Cypher.optionalMatch;
 import static org.neo4j.cypherdsl.core.Cypher.parameter;
 import static org.neo4j.cypherdsl.core.Functions.coalesce;
+import static org.neo4j.cypherdsl.core.Functions.nodes;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -30,6 +31,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
 import java.util.regex.Pattern;
@@ -420,10 +422,20 @@ public enum CypherGenerator {
 				startNode.relationshipTo(endNode, type) :
 				startNode.relationshipFrom(endNode, type)).named(RELATIONSHIP_NAME);
 
+		Function<Node, Expression> startNodeIdFunction = null;
+		if(neo4jPersistentEntity.isUsingInternalIds()) {
+			if (Neo4jPersistentEntity.DEPRECATED_GENERATED_ID_TYPES.contains(neo4jPersistentEntity.getRequiredIdProperty().getType())) {
+				startNodeIdFunction = Functions::id;
+			} else {
+				startNodeIdFunction = Functions::elementId;
+			}
+		} else {
+			startNodeIdFunction = node -> node.property(idPropertyName);
+		}
+
 		return match(startNode)
-				.where(neo4jPersistentEntity.isUsingInternalIds() ? Functions.id(startNode).isEqualTo(idParameter)
-						: startNode.property(idPropertyName).isEqualTo(idParameter))
-				.match(endNode).where(Functions.id(endNode).isEqualTo(parameter(Constants.TO_ID_PARAMETER_NAME)))
+				.where(startNodeIdFunction.apply(startNode).isEqualTo(idParameter))
+				.match(endNode).where(Functions.elementId(endNode).isEqualTo(parameter(Constants.TO_ID_PARAMETER_NAME)))
 				.merge(relationshipFragment)
 				.returning(
 						Functions.id(relationshipFragment).as(Constants.NAME_OF_INTERNAL_ID),
@@ -454,9 +466,9 @@ public enum CypherGenerator {
 				.with(row)
 				.match(startNode)
 				.where(neo4jPersistentEntity.isUsingInternalIds()
-						? internalId(startNode).isEqualTo(idProperty)
+						? Functions.elementId(startNode).isEqualTo(idProperty)
 						: startNode.property(idPropertyName).isEqualTo(idProperty))
-				.match(endNode).where(internalId(endNode).isEqualTo(Cypher.property(row, Constants.TO_ID_PARAMETER_NAME)))
+				.match(endNode).where(Functions.elementId(endNode).isEqualTo(Cypher.property(row, Constants.TO_ID_PARAMETER_NAME)))
 				.merge(relationshipFragment)
 				.returning(
 						Functions.id(relationshipFragment).as(Constants.NAME_OF_INTERNAL_ID),

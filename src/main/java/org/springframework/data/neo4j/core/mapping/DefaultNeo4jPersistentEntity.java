@@ -61,7 +61,6 @@ import org.springframework.util.StringUtils;
 final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo4jPersistentProperty>
 		implements Neo4jPersistentEntity<T> {
 
-	private static final Set<Class<?>> DEPRECATED_GENERATED_ID_TYPES = Set.of(Long.class, long.class);
 	private static final Set<Class<?>> VALID_GENERATED_ID_TYPES = Stream.concat(Stream.of(String.class), DEPRECATED_GENERATED_ID_TYPES.stream()).collect(Collectors.toUnmodifiableSet());
 	private static final LogAccessor log = new LogAccessor(LogFactory.getLog(Neo4jPersistentEntity.class));
 

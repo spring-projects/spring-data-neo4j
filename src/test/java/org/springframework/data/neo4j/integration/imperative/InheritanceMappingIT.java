@@ -371,8 +371,8 @@ public class InheritanceMappingIT {
 
 		Record record = createRelationsToDifferentImplementations();
 
-		Optional<Inheritance.ParentModel2> optionalDivision = repository.findById(
-				IdentitySupport.getInternalId(record.get(0).asNode()));
+		@SuppressWarnings("deprecation")
+		Optional<Inheritance.ParentModel2> optionalDivision = repository.findById(record.get(0).asNode().id());
 		assertThat(optionalDivision).isPresent();
 		assertThat(optionalDivision).hasValueSatisfying(twoDifferentInterfacesHaveBeenLoaded());
 	}

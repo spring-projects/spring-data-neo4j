@@ -111,6 +111,7 @@ import org.springframework.data.neo4j.repository.config.EnableReactiveNeo4jRepos
 import org.springframework.data.neo4j.repository.query.Query;
 import org.springframework.data.neo4j.test.BookmarkCapture;
 import org.springframework.data.neo4j.test.Neo4jExtension;
+import org.springframework.data.neo4j.test.TestIdentitySupport;
 import org.springframework.data.neo4j.types.CartesianPoint2d;
 import org.springframework.data.neo4j.types.GeographicPoint2d;
 import org.springframework.data.repository.query.FluentQuery;
@@ -440,10 +441,10 @@ class ReactiveRepositoryIT {
 			Node petNode1 = record.get("p1").asNode();
 			Node petNode2 = record.get("p2").asNode();
 
-			long personId = IdentitySupport.getInternalId(personNode);
-			long hobbyNodeId = IdentitySupport.getInternalId(hobbyNode1);
-			long petNode1Id = IdentitySupport.getInternalId(petNode1);
-			long petNode2Id = IdentitySupport.getInternalId(petNode2);
+			long personId = TestIdentitySupport.getInternalId(personNode);
+			long hobbyNodeId = TestIdentitySupport.getInternalId(hobbyNode1);
+			long petNode1Id = TestIdentitySupport.getInternalId(petNode1);
+			long petNode2Id = TestIdentitySupport.getInternalId(petNode2);
 
 			PersonWithRelationship probe = new PersonWithRelationship();
 			probe.setName("Freddie");
@@ -481,10 +482,10 @@ class ReactiveRepositoryIT {
 			Node petNode1 = record.get("p1").asNode();
 			Node petNode2 = record.get("p2").asNode();
 
-			long personId = IdentitySupport.getInternalId(personNode);
-			long hobbyNodeId = IdentitySupport.getInternalId(hobbyNode1);
-			long petNode1Id = IdentitySupport.getInternalId(petNode1);
-			long petNode2Id = IdentitySupport.getInternalId(petNode2);
+			long personId = TestIdentitySupport.getInternalId(personNode);
+			long hobbyNodeId = TestIdentitySupport.getInternalId(hobbyNode1);
+			long petNode1Id = TestIdentitySupport.getInternalId(petNode1);
+			long petNode2Id = TestIdentitySupport.getInternalId(petNode2);
 
 			PersonWithRelationship probe = new PersonWithRelationship();
 			probe.setName("Freddie");
@@ -522,10 +523,10 @@ class ReactiveRepositoryIT {
 			Node petNode1 = record.get("p1").asNode();
 			Node petNode2 = record.get("p2").asNode();
 
-			long personId    = IdentitySupport.getInternalId(personNode);
-			long hobbyNodeId = IdentitySupport.getInternalId(hobbyNode1);
-			long petNode1Id  = IdentitySupport.getInternalId(petNode1);
-			long petNode2Id  = IdentitySupport.getInternalId(petNode2);
+			long personId    = TestIdentitySupport.getInternalId(personNode);
+			long hobbyNodeId = TestIdentitySupport.getInternalId(hobbyNode1);
+			long petNode1Id  = TestIdentitySupport.getInternalId(petNode1);
+			long petNode2Id  = TestIdentitySupport.getInternalId(petNode2);
 
 			PersonWithRelationship probe = new PersonWithRelationship();
 			probe.setName("Freddie");
@@ -844,12 +845,12 @@ class ReactiveRepositoryIT {
 			Node petNode1 = record.get("p1").asNode();
 			Node petNode2 = record.get("p2").asNode();
 
-			long personId = IdentitySupport.getInternalId(personNode);
-			long clubId = IdentitySupport.getInternalId(clubNode);
-			long hobbyNode1Id = IdentitySupport.getInternalId(hobbyNode1);
-			long hobbyNode2Id = IdentitySupport.getInternalId(hobbyNode2);
-			long petNode1Id = IdentitySupport.getInternalId(petNode1);
-			long petNode2Id = IdentitySupport.getInternalId(petNode2);
+			long personId = TestIdentitySupport.getInternalId(personNode);
+			long clubId = TestIdentitySupport.getInternalId(clubNode);
+			long hobbyNode1Id = TestIdentitySupport.getInternalId(hobbyNode1);
+			long hobbyNode2Id = TestIdentitySupport.getInternalId(hobbyNode2);
+			long petNode1Id = TestIdentitySupport.getInternalId(petNode1);
+			long petNode2Id = TestIdentitySupport.getInternalId(petNode2);
 
 			StepVerifier.create(repository.findById(personId)).assertNext(loadedPerson -> {
 
@@ -895,9 +896,9 @@ class ReactiveRepositoryIT {
 			Node hobbyNode1 = record.get("h1").asNode();
 			Node petNode1 = record.get("p1").asNode();
 
-			long personId     = IdentitySupport.getInternalId(personNode);
-			long hobbyNode1Id = IdentitySupport.getInternalId(hobbyNode1);
-			long petNode1Id   = IdentitySupport.getInternalId(petNode1);
+			long personId     = TestIdentitySupport.getInternalId(personNode);
+			long hobbyNode1Id = TestIdentitySupport.getInternalId(hobbyNode1);
+			long petNode1Id   = TestIdentitySupport.getInternalId(petNode1);
 
 			StepVerifier.create(repository.findById(personId)).assertNext(loadedPerson -> {
 
@@ -938,7 +939,7 @@ class ReactiveRepositoryIT {
 						RETURN t1
 					""").single();
 
-				return IdentitySupport.getInternalId(record.get("t1").asNode());
+				return TestIdentitySupport.getInternalId(record.get("t1").asNode());
 			});
 
 			StepVerifier.create(loopingRelationshipRepository.findById(type1Id)).assertNext(type1 -> {
@@ -973,7 +974,7 @@ class ReactiveRepositoryIT {
 				Record record = session.run("CREATE (n:BidirectionalStart{name:'Ernie'})-[:CONNECTED]->(e:BidirectionalEnd{name:'Bert'}) RETURN n").single();
 
 				Node startNode = record.get("n").asNode();
-				return IdentitySupport.getInternalId(startNode);
+				return TestIdentitySupport.getInternalId(startNode);
 			});
 
 			StepVerifier.create(repository.findById(startId))
@@ -993,7 +994,7 @@ class ReactiveRepositoryIT {
 				Record record = session.run("CREATE (n:BidirectionalStart{name:'Ernie'})-[:CONNECTED]->(e:BidirectionalEnd{name:'Bert'}) RETURN e").single();
 
 				Node endNode = record.get("e").asNode();
-				return IdentitySupport.getInternalId(endNode);
+				return TestIdentitySupport.getInternalId(endNode);
 			});
 
 			StepVerifier.create(repository.findById(endId)).assertNext(entity -> {
@@ -1008,8 +1009,8 @@ class ReactiveRepositoryIT {
 						.run("CREATE (n:PersonWithRelationship{name:'Freddie'})-[:Has]->(h:Hobby{name:'Music'}), (n)-[:Has]->(p:Pet{name: 'Jerry'}) RETURN n, h, p")
 						.single());
 
-			long hobbyNode1Id = IdentitySupport.getInternalId(record.get("h").asNode());
-			long petNode1Id = IdentitySupport.getInternalId(record.get("p").asNode());
+			long hobbyNode1Id = TestIdentitySupport.getInternalId(record.get("h").asNode());
+			long petNode1Id = TestIdentitySupport.getInternalId(record.get("p").asNode());
 
 			record = doWithSession(session -> session.run("""
    				CREATE
@@ -1018,8 +1019,8 @@ class ReactiveRepositoryIT {
 				RETURN n, h, p
 				""").single());
 
-			long hobbyNode2Id = IdentitySupport.getInternalId(record.get("h").asNode());
-			long petNode2Id = IdentitySupport.getInternalId(record.get("p").asNode());
+			long hobbyNode2Id = TestIdentitySupport.getInternalId(record.get("h").asNode());
+			long petNode2Id = TestIdentitySupport.getInternalId(record.get("p").asNode());
 
 			StepVerifier.create(repository.findAll()).recordWith(ArrayList::new).expectNextCount(2)
 					.consumeRecordedWith(loadedPersons -> {
@@ -1058,10 +1059,10 @@ class ReactiveRepositoryIT {
 			Node petNode1 = record.get("p1").asNode();
 			Node petNode2 = record.get("p2").asNode();
 
-			long personId = IdentitySupport.getInternalId(personNode);
-			long hobbyNodeId = IdentitySupport.getInternalId(hobbyNode1);
-			long petNode1Id = IdentitySupport.getInternalId(petNode1);
-			long petNode2Id = IdentitySupport.getInternalId(petNode2);
+			long personId = TestIdentitySupport.getInternalId(personNode);
+			long hobbyNodeId = TestIdentitySupport.getInternalId(hobbyNode1);
+			long petNode1Id = TestIdentitySupport.getInternalId(petNode1);
+			long petNode2Id = TestIdentitySupport.getInternalId(petNode2);
 
 			StepVerifier.create(repository.getPersonWithRelationshipsViaQuery()).assertNext(loadedPerson -> {
 				assertThat(loadedPerson.getName()).isEqualTo("Freddie");
@@ -1085,7 +1086,7 @@ class ReactiveRepositoryIT {
 				Record record = session.run("CREATE (p:Pet{name:'Jerry'})-[:Has]->(t:Thing{theId:'t1', name:'Thing1'}) RETURN p, t").single();
 
 				Node petNode = record.get("p").asNode();
-				return IdentitySupport.getInternalId(petNode);
+				return TestIdentitySupport.getInternalId(petNode);
 			});
 
 			StepVerifier.create(repository.findById(petNodeId)).assertNext(pet -> {
@@ -1182,9 +1183,9 @@ class ReactiveRepositoryIT {
 			Node hobbyNode1 = record.get("h1").asNode();
 			Node hobbyNode2 = record.get("h2").asNode();
 
-			long personId = IdentitySupport.getInternalId(personNode);
-			long hobbyNode1Id = IdentitySupport.getInternalId(hobbyNode1);
-			long hobbyNode2Id = IdentitySupport.getInternalId(hobbyNode2);
+			long personId = TestIdentitySupport.getInternalId(personNode);
+			long hobbyNode1Id = TestIdentitySupport.getInternalId(hobbyNode1);
+			long hobbyNode2Id = TestIdentitySupport.getInternalId(hobbyNode2);
 
 			StepVerifier.create(repository.findById(personId)).assertNext(person -> {
 				assertThat(person.getName()).isEqualTo("Freddie");
@@ -1324,9 +1325,9 @@ class ReactiveRepositoryIT {
 			Node hobbyNode1 = record.get("h1").asNode();
 			Node hobbyNode2 = record.get("h2").asNode();
 
-			long personId = IdentitySupport.getInternalId(personNode);
-			long hobbyNode1Id = IdentitySupport.getInternalId(hobbyNode1);
-			long hobbyNode2Id = IdentitySupport.getInternalId(hobbyNode2);
+			long personId = TestIdentitySupport.getInternalId(personNode);
+			long hobbyNode1Id = TestIdentitySupport.getInternalId(hobbyNode1);
+			long hobbyNode2Id = TestIdentitySupport.getInternalId(hobbyNode2);
 
 			StepVerifier.create(repository.loadFromCustomQuery(personId)).assertNext(person -> {
 				assertThat(person.getName()).isEqualTo("Freddie");
@@ -1365,7 +1366,7 @@ class ReactiveRepositoryIT {
 
 			long personId = doWithSession(session -> {
 				Record record = session.run("CREATE (n:AltPerson{name:'Freddie'}), (n)-[l1:LIKES {rating: 5}]->(h1:AltHobby{name:'Music'}) RETURN n, h1").single();
-				return IdentitySupport.getInternalId(record.get("n").asNode());
+				return TestIdentitySupport.getInternalId(record.get("n").asNode());
 			});
 
 			StepVerifier.create(repository.loadFromCustomQuery(personId)).assertNext(hobby -> {
@@ -1386,7 +1387,7 @@ class ReactiveRepositoryIT {
 						" (n)-[l1:LIKES {rating: 5}]->(h1:AltHobby{name:'Music'})," +
 						" (n)-[l2:LIKES {rating: 1}]->(h1)" +
 						" RETURN n, h1").single();
-				return IdentitySupport.getInternalId(record.get("n").asNode());
+				return TestIdentitySupport.getInternalId(record.get("n").asNode());
 			});
 
 			StepVerifier.create(repository.loadFromCustomQuery(personId)).assertNext(hobby -> {
@@ -1907,7 +1908,7 @@ class ReactiveRepositoryIT {
 
 				assertThat(record.containsKey("n")).isTrue();
 				Node rootNode = record.get("n").asNode();
-				assertThat(ids.get(0)).isEqualTo(IdentitySupport.getInternalId(rootNode));
+				assertThat(ids.get(0)).isEqualTo(IdentitySupport.getElementId(rootNode));
 				assertThat(rootNode.get("name").asString()).isEqualTo("Freddie");
 
 				List<List<Object>> petsWithHobbies = record.get("petsWithHobbies").asList(Value::asList);
@@ -1977,7 +1978,7 @@ class ReactiveRepositoryIT {
 
 				assertThat(record.containsKey("n")).isTrue();
 				Node rootNode = record.get("n").asNode();
-				assertThat(ids.get(0)).isEqualTo(IdentitySupport.getInternalId(rootNode));
+				assertThat(ids.get(0)).isEqualTo(IdentitySupport.getElementId(rootNode));
 				assertThat(rootNode.get("name").asString()).isEqualTo("Freddie");
 
 				List<List<Object>> petsWithHobbies = record.get("petsWithHobbies").asList(Value::asList);
@@ -2038,7 +2039,7 @@ class ReactiveRepositoryIT {
 
 				assertThat(record.containsKey("n")).isTrue();
 				Node rootNode = record.get("n").asNode();
-				assertThat(ids.get(0)).isEqualTo(IdentitySupport.getInternalId(rootNode));
+				assertThat(ids.get(0)).isEqualTo(IdentitySupport.getElementId(rootNode));
 				assertThat(rootNode.get("name").asString()).isEqualTo("Freddie");
 
 				assertThat(record.get("hobbies").asList(entry -> entry.asNode().get("name").asString()))
@@ -2504,9 +2505,9 @@ class ReactiveRepositoryIT {
 			long n3Id;
 
 			Record record = doWithSession(session -> session.run("CREATE (n1:A:B:C), (n2:B:C), (n3:A) return n1, n2, n3").single());
-			n1Id = IdentitySupport.getInternalId(record.get("n1").asNode());
-			n2Id = IdentitySupport.getInternalId(record.get("n2").asNode());
-			n3Id = IdentitySupport.getInternalId(record.get("n3").asNode());
+			n1Id = TestIdentitySupport.getInternalId(record.get("n1").asNode());
+			n2Id = TestIdentitySupport.getInternalId(record.get("n2").asNode());
+			n3Id = TestIdentitySupport.getInternalId(record.get("n3").asNode());
 
 			StepVerifier.create(repository.findById(n1Id)).expectNextCount(1).verifyComplete();
 			StepVerifier.create(repository.findById(n2Id)).verifyComplete();
@@ -2521,9 +2522,9 @@ class ReactiveRepositoryIT {
 			long n3Id;
 
 			Record record = doWithSession(session -> session.run("CREATE (n1:A:B:C), (n2:B:C), (n3:A) return n1, n2, n3").single());
-			n1Id = IdentitySupport.getInternalId(record.get("n1").asNode());
-			n2Id = IdentitySupport.getInternalId(record.get("n2").asNode());
-			n3Id = IdentitySupport.getInternalId(record.get("n3").asNode());
+			n1Id = TestIdentitySupport.getInternalId(record.get("n1").asNode());
+			n2Id = TestIdentitySupport.getInternalId(record.get("n2").asNode());
+			n3Id = TestIdentitySupport.getInternalId(record.get("n3").asNode());
 
 			repository.deleteById(n1Id).block();
 			repository.deleteById(n2Id).block();

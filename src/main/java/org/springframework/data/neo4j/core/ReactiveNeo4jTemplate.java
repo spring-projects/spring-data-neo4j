@@ -446,10 +446,10 @@ public final class ReactiveNeo4jTemplate implements
 
 					PersistentPropertyAccessor<T> propertyAccessor = entityMetaData.getPropertyAccessor(entityToBeSaved);
 					return idMono.doOnNext(newOrUpdatedNode -> {
-						IdentitySupport.updateInternalId(entityMetaData, propertyAccessor, newOrUpdatedNode);
+						IdentitySupport.updateElementId(entityMetaData, propertyAccessor, newOrUpdatedNode);
 						TemplateSupport.updateVersionPropertyIfPossible(entityMetaData, propertyAccessor, newOrUpdatedNode);
-						finalStateMachine.markValueAsProcessed(instance, IdentitySupport.getInternalId(newOrUpdatedNode));
-					}).map(IdentitySupport::getInternalId)
+						finalStateMachine.markValueAsProcessed(instance, IdentitySupport.getElementId(newOrUpdatedNode));
+					}).map(IdentitySupport::getElementId)
 							.flatMap(internalId -> processRelations(entityMetaData,  propertyAccessor, isNewEntity, finalStateMachine, binderFunction.filter));
 				});
 	}
@@ -582,15 +582,15 @@ public final class ReactiveNeo4jTemplate implements
 							.query(() -> renderer.render(cypherGenerator.prepareSaveOfMultipleInstancesOf(entityMetaData)))
 							.bind(boundedEntityList).to(Constants.NAME_OF_ENTITY_LIST_PARAM)
 							.fetchAs(Tuple2.class)
-							.mappedBy((t, r) -> Tuples.of(r.get(Constants.NAME_OF_ID), r.get(Constants.NAME_OF_INTERNAL_ID).asLong()))
+							.mappedBy((t, r) -> Tuples.of(r.get(Constants.NAME_OF_ID), r.get(Constants.NAME_OF_ELEMENT_ID).asString()))
 							.all()
-							.collectMap(m -> (Value) m.getT1(), m -> (Long) m.getT2());
+							.collectMap(m -> (Value) m.getT1(), m -> (String) m.getT2());
 				}).flatMapMany(idToInternalIdMapping -> Flux.fromIterable(entitiesToBeSaved)
 						.flatMap(t -> {
 							PersistentPropertyAccessor<T> propertyAccessor = entityMetaData.getPropertyAccessor(t.getT3());
 							Neo4jPersistentProperty idProperty = entityMetaData.getRequiredIdProperty();
 							Object id = convertIdValues(idProperty, propertyAccessor.getProperty(idProperty));
-							Long internalId = idToInternalIdMapping.get(id);
+							String internalId = idToInternalIdMapping.get(id);
 							return processRelations(entityMetaData, propertyAccessor, t.getT2(), new NestedRelationshipProcessingStateMachine(neo4jMappingContext, t.getT1(), internalId),
 								TemplateSupport.computeIncludePropertyPredicate(pps, entityMetaData));
 						}))
@@ -950,17 +950,17 @@ public final class ReactiveNeo4jTemplate implements
 						.flatMap(newRelatedObject -> {
 							Neo4jPersistentEntity<?> targetEntity = neo4jMappingContext.getRequiredPersistentEntity(relatedObjectBeforeCallbacksApplied.getClass());
 
-							Mono<Tuple2<AtomicReference<Long>, AtomicReference<Entity>>> queryOrSave;
+							Mono<Tuple2<AtomicReference<String>, AtomicReference<Entity>>> queryOrSave;
 							if (stateMachine.hasProcessedValue(relatedValueToStore)) {
-								AtomicReference<Long> relatedInternalId = new AtomicReference<>();
-								Long possibleValue = stateMachine.getInternalId(relatedValueToStore);
+								AtomicReference<String> relatedInternalId = new AtomicReference<>();
+								String possibleValue = stateMachine.getInternalId(relatedValueToStore);
 								if (possibleValue != null) {
 									relatedInternalId.set(possibleValue);
 								}
 								queryOrSave = Mono.just(Tuples.of(relatedInternalId, new AtomicReference<>()));
 							} else {
 								queryOrSave = saveRelatedNode(newRelatedObject, targetEntity, includeProperty, currentPropertyPath)
-										.map(entity -> Tuples.of(new AtomicReference<>(IdentitySupport.getInternalId(entity)), new AtomicReference<>(entity)))
+										.map(entity -> Tuples.of(new AtomicReference<>(IdentitySupport.getElementId(entity)), new AtomicReference<>(entity)))
 										.doOnNext(entity -> {
 											stateMachine.markValueAsProcessed(relatedValueToStore, entity.getT1().get());
 											if (relatedValueToStore instanceof MappingSupport.RelationshipPropertiesWithEntityHolder) {
@@ -970,15 +970,16 @@ public final class ReactiveNeo4jTemplate implements
 										});
 							}
 							return queryOrSave.flatMap(idAndEntity -> {
-									Long relatedInternalId = idAndEntity.getT1().get();
+									String relatedInternalId = idAndEntity.getT1().get();
 									Entity savedEntity = idAndEntity.getT2().get();
 									Neo4jPersistentProperty requiredIdProperty = targetEntity.getRequiredIdProperty();
 									PersistentPropertyAccessor<?> targetPropertyAccessor = targetEntity.getPropertyAccessor(newRelatedObject);
 									Object actualRelatedId = targetPropertyAccessor.getProperty(requiredIdProperty);
 									// if an internal id is used this must be set to link this entity in the next iteration
+									// TODO This is most likely the place that we need to work on to still support long generated ids
 									if (targetEntity.isUsingInternalIds()) {
 										if (relatedInternalId == null && actualRelatedId != null) {
-											relatedInternalId = (Long) targetPropertyAccessor.getProperty(requiredIdProperty);
+											relatedInternalId = (String) targetPropertyAccessor.getProperty(requiredIdProperty);
 										} else if (actualRelatedId == null) {
 											targetPropertyAccessor.setProperty(requiredIdProperty, relatedInternalId);
 										}
@@ -1016,8 +1017,8 @@ public final class ReactiveNeo4jTemplate implements
 											.bind(idValue) //
 													.to(Constants.NAME_OF_KNOWN_RELATIONSHIP_PARAM) //
 											.bindAll(statementHolder.getProperties())
-											.fetchAs(Long.class)
-											.mappedBy(IdentitySupport::getInternalId)
+											.fetchAs(String.class)
+											.mappedBy((t,r) -> IdentitySupport.getElementId(r))
 											.one()
 											.flatMap(relationshipInternalId -> {
 												if (idProperty != null && isNewRelationship) {

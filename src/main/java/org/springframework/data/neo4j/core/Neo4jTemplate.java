@@ -409,12 +409,10 @@ public final class Neo4jTemplate implements
 			throw new IllegalStateException("Could not retrieve an internal id while saving");
 		}
 
-		Long internalId = newOrUpdatedNode.map(IdentitySupport::getInternalId).get();
+		String internalId = newOrUpdatedNode.map(IdentitySupport::getElementId).get();
 
 		PersistentPropertyAccessor<T> propertyAccessor = entityMetaData.getPropertyAccessor(entityToBeSaved);
-		if (entityMetaData.isUsingInternalIds()) {
-			propertyAccessor.setProperty(entityMetaData.getRequiredIdProperty(), internalId);
-		}
+		setGeneratedIdIfNecessary(entityMetaData, propertyAccessor, newOrUpdatedNode, internalId);
 		TemplateSupport.updateVersionPropertyIfPossible(entityMetaData, propertyAccessor, newOrUpdatedNode.get());
 
 		if (stateMachine == null) {
@@ -427,6 +425,59 @@ public final class Neo4jTemplate implements
 		T bean = propertyAccessor.getBean();
 		stateMachine.markValueAsProcessedAs(instance, bean);
 		return bean;
+	}
+
+	private static <T> void setGeneratedIdIfNecessary(
+			Neo4jPersistentEntity<?> entityMetaData,
+			PersistentPropertyAccessor<T> propertyAccessor,
+			Optional<Entity> databaseEntity,
+			String elementId
+	) {
+		if (!entityMetaData.isUsingInternalIds()) {
+			return;
+		}
+		var requiredIdProperty = entityMetaData.getRequiredIdProperty();
+		var idPropertyType = requiredIdProperty.getType();
+		if (Neo4jPersistentEntity.DEPRECATED_GENERATED_ID_TYPES.contains(idPropertyType)) {
+			propertyAccessor.setProperty(requiredIdProperty, databaseEntity.map(Entity::id).orElseThrow());
+		} else if (idPropertyType.equals(String.class)) {
+			propertyAccessor.setProperty(requiredIdProperty, elementId);
+		} else {
+			throw new IllegalArgumentException("Unsupported generated id property " + idPropertyType);
+		}
+	}
+
+	private static <T> String notAGoodNameSoFar(
+			Neo4jPersistentEntity<?> entityMetadata,
+			PersistentPropertyAccessor<T> propertyAccessor,
+			Optional<Entity> databaseEntity,
+			String relatedInternalId,
+			Object actualRelatedId
+	) {
+
+		if(!entityMetadata.isUsingInternalIds()) {
+			return relatedInternalId;
+		}
+
+		var requiredIdProperty = entityMetadata.getRequiredIdProperty();
+		var idPropertyType = requiredIdProperty.getType();
+
+		if (Neo4jPersistentEntity.DEPRECATED_GENERATED_ID_TYPES.contains(idPropertyType)) {
+			if (relatedInternalId == null && actualRelatedId != null) {
+				relatedInternalId = propertyAccessor.getProperty(requiredIdProperty).toString();
+			} else if (actualRelatedId == null) {
+				long internalId = databaseEntity.map(Entity::id).orElseThrow();
+				propertyAccessor.setProperty(requiredIdProperty, internalId);
+			//	relatedInternalId = Long.toString(internalId);
+			}
+		} else {
+			if (relatedInternalId == null && actualRelatedId != null) {
+				relatedInternalId = (String) propertyAccessor.getProperty(requiredIdProperty);
+			} else if (actualRelatedId == null) {
+				propertyAccessor.setProperty(requiredIdProperty, relatedInternalId);
+			}
+		}
+		return relatedInternalId;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -510,21 +561,21 @@ public final class Neo4jTemplate implements
 		binderFunction = TemplateSupport.createAndApplyPropertyFilter(pps, entityMetaData, binderFunction);
 		List<Map<String, Object>> entityList = entitiesToBeSaved.stream().map(h -> h.modifiedInstance).map(binderFunction)
 				.collect(Collectors.toList());
-		Map<Value, Long> idToInternalIdMapping = neo4jClient
+		Map<Value, String> idToInternalIdMapping = neo4jClient
 				.query(() -> renderer.render(cypherGenerator.prepareSaveOfMultipleInstancesOf(entityMetaData)))
 				.bind(entityList).to(Constants.NAME_OF_ENTITY_LIST_PARAM)
 				.fetchAs(Map.Entry.class)
-				.mappedBy((t, r) -> new AbstractMap.SimpleEntry<>(r.get(Constants.NAME_OF_ID), r.get(Constants.NAME_OF_INTERNAL_ID).asLong()))
+				.mappedBy((t, r) -> new AbstractMap.SimpleEntry<>(r.get(Constants.NAME_OF_ID), r.get(Constants.NAME_OF_ELEMENT_ID).asString()))
 				.all()
 				.stream()
-				.collect(Collectors.toMap(m -> (Value) m.getKey(), m -> (Long) m.getValue()));
+				.collect(Collectors.toMap(m -> (Value) m.getKey(), m -> (String) m.getValue()));
 
 		// Save related
 		return entitiesToBeSaved.stream().map(t -> {
 			PersistentPropertyAccessor<T> propertyAccessor = entityMetaData.getPropertyAccessor(t.modifiedInstance);
 			Neo4jPersistentProperty idProperty = entityMetaData.getRequiredIdProperty();
 			Object id = convertIdValues(idProperty, propertyAccessor.getProperty(idProperty));
-			Long internalId = idToInternalIdMapping.get(id);
+			String internalId = idToInternalIdMapping.get(id);
 			return this.<T>processRelations(entityMetaData, propertyAccessor, t.wasNew, new NestedRelationshipProcessingStateMachine(neo4jMappingContext, t.originalInstance, internalId), TemplateSupport.computeIncludePropertyPredicate(pps, entityMetaData));
 		}).collect(Collectors.toList());
 	}
@@ -809,14 +860,16 @@ public final class Neo4jTemplate implements
 						? stateMachine.getProcessedAs(relatedObjectBeforeCallbacksApplied)
 						: eventSupport.maybeCallBeforeBind(relatedObjectBeforeCallbacksApplied);
 
-				Long relatedInternalId;
+				String relatedInternalId;
 				Entity savedEntity = null;
 				// No need to save values if processed
 				if (stateMachine.hasProcessedValue(relatedValueToStore)) {
+					System.out.println("old");
 					relatedInternalId = stateMachine.getInternalId(relatedValueToStore);
 				} else {
+					System.out.println("new");
 					savedEntity = saveRelatedNode(newRelatedObject, targetEntity, includeProperty, currentPropertyPath);
-					relatedInternalId = IdentitySupport.getInternalId(savedEntity);
+					relatedInternalId = IdentitySupport.getElementId(savedEntity);
 					stateMachine.markValueAsProcessed(relatedValueToStore, relatedInternalId);
 					if (relatedValueToStore instanceof MappingSupport.RelationshipPropertiesWithEntityHolder) {
 						Object entity = ((MappingSupport.RelationshipPropertiesWithEntityHolder) relatedValueToStore).getRelatedEntity();
@@ -827,14 +880,7 @@ public final class Neo4jTemplate implements
 				Neo4jPersistentProperty requiredIdProperty = targetEntity.getRequiredIdProperty();
 				PersistentPropertyAccessor<?> targetPropertyAccessor = targetEntity.getPropertyAccessor(newRelatedObject);
 				Object actualRelatedId = targetPropertyAccessor.getProperty(requiredIdProperty);
-				// if an internal id is used this must be set to link this entity in the next iteration
-				if (targetEntity.isUsingInternalIds()) {
-					if (relatedInternalId == null && actualRelatedId != null) {
-						relatedInternalId = (Long) targetPropertyAccessor.getProperty(requiredIdProperty);
-					} else if (actualRelatedId == null) {
-						targetPropertyAccessor.setProperty(requiredIdProperty, relatedInternalId);
-					}
-				}
+				relatedInternalId = notAGoodNameSoFar(targetEntity, targetPropertyAccessor, Optional.of(savedEntity), relatedInternalId, actualRelatedId);
 				if (savedEntity != null) {
 					TemplateSupport.updateVersionPropertyIfPossible(targetEntity, targetPropertyAccessor, savedEntity);
 				}
@@ -861,7 +907,7 @@ public final class Neo4jTemplate implements
 						 List<Object> row = Collections.singletonList(properties);
 						 statementHolder = statementHolder.addProperty(Constants.NAME_OF_RELATIONSHIP_LIST_PARAM, row);
 
-				Optional<Long> relationshipInternalId = neo4jClient.query(renderer.render(statementHolder.getStatement()))
+				Optional<String> relationshipInternalId = neo4jClient.query(renderer.render(statementHolder.getStatement()))
 						.bind(convertIdValues(sourceEntity.getRequiredIdProperty(), fromId)) //
 							.to(Constants.FROM_ID_PARAMETER_NAME) //
 						.bind(relatedInternalId) //
@@ -869,8 +915,8 @@ public final class Neo4jTemplate implements
 						.bind(idValue) //
 							.to(Constants.NAME_OF_KNOWN_RELATIONSHIP_PARAM) //
 						.bindAll(statementHolder.getProperties())
-						.fetchAs(Long.class)
-						.mappedBy(IdentitySupport::getInternalId)
+						.fetchAs(String.class)
+						.mappedBy((t,r) -> IdentitySupport.getElementId(r))
 						.one();
 
 						 assignIdToRelationshipProperties(relationshipContext, relatedValueToStore, idProperty, relationshipInternalId.get());
@@ -938,12 +984,14 @@ public final class Neo4jTemplate implements
 					CreateRelationshipStatementHolder statementHolder = neo4jMappingContext.createStatementForImperativeRelationshipsWithPropertiesBatch(true,
 							sourceEntity, relationshipDescription, newRelatedValuesToStore, newRelationshipPropertiesRows);
 
-					List<Long> all = new ArrayList<>(neo4jClient.query(renderer.render(statementHolder.getStatement()))
+					List<String> all = new ArrayList<>(neo4jClient.query(renderer.render(statementHolder.getStatement()))
 							.bindAll(statementHolder.getProperties())
-							.fetchAs(Long.class).mappedBy(IdentitySupport::getInternalId).all());
+							.fetchAs(String.class)
+							.mappedBy((t,r) -> IdentitySupport.getElementId(r))
+							.all());
 					// assign new ids
 					for (int i = 0; i < all.size(); i++) {
-						Long aLong = all.get(i);
+						String aLong = all.get(i);
 						assignIdToRelationshipProperties(relationshipContext, newRelatedValuesToStore.get(i), idProperty, aLong);
 					}
 				}
@@ -957,7 +1005,7 @@ public final class Neo4jTemplate implements
 		return finalSubgraphRoot;
 	}
 
-	private void assignIdToRelationshipProperties(NestedRelationshipContext relationshipContext, Object relatedValueToStore, Neo4jPersistentProperty idProperty, Long relationshipInternalId) {
+	private void assignIdToRelationshipProperties(NestedRelationshipContext relationshipContext, Object relatedValueToStore, Neo4jPersistentProperty idProperty, String relationshipInternalId) {
 		relationshipContext
 				.getRelationshipPropertiesPropertyAccessor(relatedValueToStore)
 				.setProperty(idProperty, relationshipInternalId);

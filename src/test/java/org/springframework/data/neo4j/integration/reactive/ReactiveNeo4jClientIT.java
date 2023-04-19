@@ -62,6 +62,7 @@ import org.springframework.data.neo4j.integration.shared.common.PersonWithAllCon
 import org.springframework.data.neo4j.test.BookmarkCapture;
 import org.springframework.data.neo4j.test.Neo4jExtension.Neo4jConnectionSupport;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
+import org.springframework.data.neo4j.test.TestIdentitySupport;
 import org.springframework.transaction.ReactiveTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.reactive.TransactionalOperator;
@@ -99,7 +100,7 @@ class ReactiveNeo4jClientIT {
 		transactionalOperator.execute(transaction -> {
 					Flux<Long> inner = client.getQueryRunner()
 							.flatMapMany(statement::fetchWith)
-							.doOnNext(r -> vanishedId.set(IdentitySupport.getInternalId(r.get("n").asNode())))
+							.doOnNext(r -> vanishedId.set(TestIdentitySupport.getInternalId(r.get("n").asNode())))
 							.map(record -> record.get("n").get("value").asLong());
 
 					transaction.setRollbackOnly();

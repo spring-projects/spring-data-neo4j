@@ -44,6 +44,7 @@ import org.springframework.data.neo4j.integration.shared.common.PersonWithAllCon
 import org.springframework.data.neo4j.test.BookmarkCapture;
 import org.springframework.data.neo4j.test.Neo4jExtension.Neo4jConnectionSupport;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
+import org.springframework.data.neo4j.test.TestIdentitySupport;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -85,7 +86,7 @@ class Neo4jClientIT {
 					.first().extracting(r -> r.get("n").get("value").asLong()).isEqualTo(42L);
 
 			transactionStatus.setRollbackOnly();
-			return IdentitySupport.getInternalId(records.get(0).get("n").asNode());
+			return TestIdentitySupport.getInternalId(records.get(0).get("n").asNode());
 		});
 
 		// Make sure we actually interacted with the managed transaction (that had been rolled back)
