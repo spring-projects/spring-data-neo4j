@@ -242,7 +242,7 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndPar
 					conditionFragment = conditionFragment.and(CypherAdapterUtils.combineKeysetIntoCondition(entity, keysetScrollPosition, theSort));
 				}
 
-				queryFragments.setRequiresReverseSort(keysetScrollPosition.getDirection() == KeysetScrollPosition.Direction.Backward);
+				queryFragments.setRequiresReverseSort(keysetScrollPosition.scrollsBackward());
 			} else if (scrollPosition instanceof OffsetScrollPosition offsetScrollPosition) {
 				queryFragments.setSkip(offsetScrollPosition.getOffset());
 				queryFragments.setLimit(limitModifier.apply(pagingParameter.isUnpaged() ? maxResults.intValue() : pagingParameter.getPageSize()));

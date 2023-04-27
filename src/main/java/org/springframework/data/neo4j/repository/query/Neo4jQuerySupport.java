@@ -41,6 +41,8 @@ import org.springframework.data.convert.EntityWriter;
 import org.springframework.data.domain.KeysetScrollPosition;
 import org.springframework.data.domain.OffsetScrollPosition;
 import org.springframework.data.domain.Range;
+import org.springframework.data.domain.ScrollPosition;
+import org.springframework.data.domain.ScrollPosition.Direction;
 import org.springframework.data.domain.Window;
 import org.springframework.data.geo.Box;
 import org.springframework.data.geo.Circle;
@@ -282,14 +284,14 @@ abstract class Neo4jQuerySupport {
 		var conversionService = mappingContext.getConversionService();
 		var scrollPosition = parameterAccessor.getScrollPosition();
 
-		var scrollDirection = scrollPosition instanceof KeysetScrollPosition keysetScrollPosition ? keysetScrollPosition.getDirection() : KeysetScrollPosition.Direction.Forward;
-		if (scrollDirection == KeysetScrollPosition.Direction.Backward) {
+		var scrollDirection = scrollPosition instanceof KeysetScrollPosition keysetScrollPosition ? keysetScrollPosition.getDirection() : Direction.FORWARD;
+		if (scrollDirection == Direction.BACKWARD) {
 			Collections.reverse(rawResult);
 		}
 
 		return Window.from(getSubList(rawResult, limit, scrollDirection), v -> {
 			if (scrollPosition instanceof OffsetScrollPosition offsetScrollPosition) {
-				return OffsetScrollPosition.of(offsetScrollPosition.getOffset() + v + limit);
+				return offsetScrollPosition.advanceBy(v + limit);
 			} else  {
 				var accessor = neo4jPersistentEntity.getPropertyAccessor(rawResult.get(v));
 				var keys = new LinkedHashMap<String, Object>();
@@ -299,7 +301,7 @@ abstract class Neo4jQuerySupport {
 					keys.put(persistentProperty.getPropertyName(), conversionService.convert(accessor.getProperty(persistentProperty), Value.class));
 				});
 				keys.put(Constants.NAME_OF_ADDITIONAL_SORT, conversionService.convert(accessor.getProperty(neo4jPersistentEntity.getRequiredIdProperty()), Value.class));
-				return KeysetScrollPosition.of(keys);
+				return ScrollPosition.forward(keys);
 			}
 		}, hasMoreElements(rawResult, limit));
 	}
@@ -308,10 +310,10 @@ abstract class Neo4jQuerySupport {
 		return !result.isEmpty() && result.size() > limit;
 	}
 
-	private static <T> List<T> getSubList(List<T> result, int limit, KeysetScrollPosition.Direction scrollDirection) {
+	private static <T> List<T> getSubList(List<T> result, int limit, Direction scrollDirection) {
 
 		if (limit > 0 && result.size() > limit) {
-			return scrollDirection == KeysetScrollPosition.Direction.Forward ? result.subList(0, limit) : result.subList(1, limit + 1);
+			return scrollDirection == Direction.FORWARD ? result.subList(0, limit) : result.subList(1, limit + 1);
 		}
 
 		return result;

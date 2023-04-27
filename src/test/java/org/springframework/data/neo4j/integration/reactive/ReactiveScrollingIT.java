@@ -31,6 +31,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.domain.KeysetScrollPosition;
+import org.springframework.data.domain.ScrollPosition;
 import org.springframework.data.domain.Window;
 import org.springframework.data.neo4j.core.ReactiveDatabaseSelectionProvider;
 import org.springframework.data.neo4j.core.mapping.Constants;
@@ -88,7 +89,7 @@ class ReactiveScrollingIT {
 				.verifyComplete();
 
 		var windowContainer = new AtomicReference<Window<ScrollingEntity>>();
-		repository.findTop4By(ScrollingEntity.SORT_BY_B_AND_A, KeysetScrollPosition.initial())
+		repository.findTop4By(ScrollingEntity.SORT_BY_B_AND_A, ScrollPosition.keyset())
 				.as(StepVerifier::create)
 				.consumeNextWith(windowContainer::set)
 				.verifyComplete();
@@ -142,7 +143,7 @@ class ReactiveScrollingIT {
 				.verifyComplete();
 
 		var windowContainer = new AtomicReference<Window<ScrollingEntity>>();
-		repository.findTop4By(ScrollingEntity.SORT_BY_B_AND_A, KeysetScrollPosition.of(keys, KeysetScrollPosition.Direction.Backward))
+		repository.findTop4By(ScrollingEntity.SORT_BY_B_AND_A, ScrollPosition.backward(keys))
 				.as(StepVerifier::create)
 				.consumeNextWith(windowContainer::set)
 				.verifyComplete();
@@ -154,7 +155,7 @@ class ReactiveScrollingIT {
 				.containsExactly("F0", "G0", "H0", "I0");
 
 		var pos = ((KeysetScrollPosition) window.positionAt(0));
-		pos = KeysetScrollPosition.of(pos.getKeys(), KeysetScrollPosition.Direction.Backward);
+		pos = ScrollPosition.backward(pos.getKeys());
 		repository.findTop4By(ScrollingEntity.SORT_BY_B_AND_A, pos)
 				.as(StepVerifier::create)
 				.consumeNextWith(windowContainer::set)
@@ -168,7 +169,7 @@ class ReactiveScrollingIT {
 				.containsExactly("C0", "D0", "D0", "E0");
 
 		pos = ((KeysetScrollPosition) window.positionAt(0));
-		pos = KeysetScrollPosition.of(pos.getKeys(), KeysetScrollPosition.Direction.Backward);
+		pos = ScrollPosition.backward(pos.getKeys());
 		repository.findTop4By(ScrollingEntity.SORT_BY_B_AND_A, pos)
 				.as(StepVerifier::create)
 				.consumeNextWith(windowContainer::set)

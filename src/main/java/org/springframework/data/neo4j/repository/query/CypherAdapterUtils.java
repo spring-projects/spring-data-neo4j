@@ -37,6 +37,7 @@ import org.neo4j.cypherdsl.core.SymbolicName;
 import org.neo4j.driver.Value;
 import org.springframework.data.domain.KeysetScrollPosition;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.ScrollPosition.Direction;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.core.mapping.Constants;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
@@ -141,7 +142,7 @@ public final class CypherAdapterUtils {
 			var scrollDirection = scrollPosition.getDirection();
 			if (Constants.NAME_OF_ADDITIONAL_SORT.equals(k)) {
 				expression = entity.getIdExpression();
-				var comparatorFunction = getComparatorFunction(scrollDirection == KeysetScrollPosition.Direction.Forward ? Sort.Direction.ASC : Sort.Direction.DESC, scrollDirection);
+				var comparatorFunction = getComparatorFunction(scrollPosition.scrollsForward() ? Sort.Direction.ASC : Sort.Direction.DESC, scrollDirection);
 				allEqualsWithArtificialSort = allEqualsWithArtificialSort.and(comparatorFunction.apply(expression, parameter));
 			} else {
 				var p = propertyAndDirection.get(k);
@@ -157,7 +158,7 @@ public final class CypherAdapterUtils {
 	}
 
 	private static BiFunction<Expression, Expression, Condition> getComparatorFunction(Sort.Direction sortDirection, KeysetScrollPosition.Direction scrollDirection) {
-		if (scrollDirection == KeysetScrollPosition.Direction.Backward) {
+		if (scrollDirection == Direction.BACKWARD) {
 			return sortDirection.isAscending() ? Expression::lte : Expression::gte;
 		}
 		return sortDirection.isAscending() ? Expression::gt : Expression::lt;

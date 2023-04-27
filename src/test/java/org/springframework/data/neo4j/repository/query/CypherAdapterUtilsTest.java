@@ -24,7 +24,7 @@ import org.junit.jupiter.api.Test;
 import org.neo4j.cypherdsl.core.Cypher;
 import org.neo4j.cypherdsl.core.renderer.Configuration;
 import org.neo4j.cypherdsl.core.renderer.Renderer;
-import org.springframework.data.domain.KeysetScrollPosition;
+import org.springframework.data.domain.ScrollPosition;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.core.mapping.Constants;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
@@ -43,7 +43,7 @@ class CypherAdapterUtilsTest {
 		var n = Constants.NAME_OF_TYPED_ROOT_NODE.apply(entity);
 
 		var condition = CypherAdapterUtils.combineKeysetIntoCondition(entity,
-				KeysetScrollPosition.of(Map.of("foobar", "D0", "b", 3, "c", LocalDateTime.of(2023, 3, 19, 14, 21, 8, 716))),
+				ScrollPosition.forward(Map.of("foobar", "D0", "b", 3, "c", LocalDateTime.of(2023, 3, 19, 14, 21, 8, 716))),
 				Sort.by(Sort.Order.asc("b"), Sort.Order.desc("a"), Sort.Order.asc("c"))
 		);
 

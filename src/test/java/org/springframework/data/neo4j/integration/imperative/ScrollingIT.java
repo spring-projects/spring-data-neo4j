@@ -30,7 +30,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.domain.KeysetScrollPosition;
-import org.springframework.data.domain.WindowIterator;
+import org.springframework.data.domain.ScrollPosition;
 import org.springframework.data.neo4j.core.DatabaseSelectionProvider;
 import org.springframework.data.neo4j.core.mapping.Constants;
 import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
@@ -42,6 +42,7 @@ import org.springframework.data.neo4j.test.BookmarkCapture;
 import org.springframework.data.neo4j.test.Neo4jExtension;
 import org.springframework.data.neo4j.test.Neo4jImperativeTestConfiguration;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
+import org.springframework.data.support.WindowIterator;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
@@ -82,7 +83,7 @@ class ScrollingIT {
 		var duplicates = repository.findAllByAOrderById("D0");
 		assertThat(duplicates).hasSize(2);
 
-		var window = repository.findTop4By(ScrollingEntity.SORT_BY_B_AND_A, KeysetScrollPosition.initial());
+		var window = repository.findTop4By(ScrollingEntity.SORT_BY_B_AND_A, ScrollPosition.keyset());
 		assertThat(window.hasNext()).isTrue();
 		assertThat(window)
 				.hasSize(4)
@@ -110,7 +111,7 @@ class ScrollingIT {
 	void forwardWithDuplicatesIteratorIteration(@Autowired ScrollingRepository repository) {
 
 		var it = WindowIterator.of(pos -> repository.findTop4By(ScrollingEntity.SORT_BY_B_AND_A, pos))
-				.startingAt(KeysetScrollPosition.initial());
+				.startingAt(ScrollPosition.keyset());
 		var content = new ArrayList<ScrollingEntity>();
 		while (it.hasNext()) {
 			var next = it.next();
@@ -136,7 +137,7 @@ class ScrollingIT {
 		var duplicates = repository.findAllByAOrderById("D0");
 		assertThat(duplicates).hasSize(2);
 
-		var window = repository.findTop4By(ScrollingEntity.SORT_BY_B_AND_A, KeysetScrollPosition.of(keys, KeysetScrollPosition.Direction.Backward));
+		var window = repository.findTop4By(ScrollingEntity.SORT_BY_B_AND_A, ScrollPosition.backward(keys));
 		assertThat(window.hasNext()).isTrue();
 		assertThat(window)
 				.hasSize(4)
@@ -144,7 +145,7 @@ class ScrollingIT {
 				.containsExactly("F0", "G0", "H0", "I0");
 
 		var pos = ((KeysetScrollPosition) window.positionAt(0));
-		pos = KeysetScrollPosition.of(pos.getKeys(), KeysetScrollPosition.Direction.Backward);
+		pos = ScrollPosition.backward(pos.getKeys());
 		window = repository.findTop4By(ScrollingEntity.SORT_BY_B_AND_A, pos);
 		assertThat(window.hasNext()).isTrue();
 		assertThat(window)
@@ -154,7 +155,7 @@ class ScrollingIT {
 				.containsExactly("C0", "D0", "D0", "E0");
 
 		pos = ((KeysetScrollPosition) window.positionAt(0));
-		pos = KeysetScrollPosition.of(pos.getKeys(), KeysetScrollPosition.Direction.Backward);
+		pos = ScrollPosition.backward(pos.getKeys());
 		window = repository.findTop4By(ScrollingEntity.SORT_BY_B_AND_A, pos);
 		assertThat(window.isLast()).isTrue();
 		assertThat(window).extracting(ScrollingEntity::getA)

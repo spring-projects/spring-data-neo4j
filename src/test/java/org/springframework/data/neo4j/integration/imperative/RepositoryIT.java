@@ -75,8 +75,6 @@ import org.springframework.core.convert.ConverterNotFoundException;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.data.domain.ExampleMatcher.StringMatcher;
-import org.springframework.data.domain.KeysetScrollPosition;
-import org.springframework.data.domain.OffsetScrollPosition;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -85,7 +83,6 @@ import org.springframework.data.domain.Range.Bound;
 import org.springframework.data.domain.ScrollPosition;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.domain.WindowIterator;
 import org.springframework.data.geo.Box;
 import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.Distance;
@@ -168,6 +165,7 @@ import org.springframework.data.neo4j.types.CartesianPoint2d;
 import org.springframework.data.neo4j.types.GeographicPoint2d;
 import org.springframework.data.repository.query.FluentQuery;
 import org.springframework.data.repository.query.Param;
+import org.springframework.data.support.WindowIterator;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -272,7 +270,7 @@ class RepositoryIT {
 		}
 
 		static Stream<Arguments> basicScrollSupportFor(@Autowired PersonRepository repository) {
-			return Stream.of(Arguments.of(repository, KeysetScrollPosition.initial()), Arguments.of(repository, OffsetScrollPosition.initial()));
+			return Stream.of(Arguments.of(repository, ScrollPosition.keyset()), Arguments.of(repository, ScrollPosition.offset()));
 		}
 
 		@ParameterizedTest(name = "basicScrollSupportFor {1}")
