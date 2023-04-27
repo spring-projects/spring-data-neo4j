@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
@@ -45,6 +46,7 @@ import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.neo4j.core.mapping.Constants;
 import org.springframework.data.neo4j.core.mapping.EntityInstanceWithSource;
 import org.springframework.data.neo4j.core.mapping.IdDescription;
+import org.springframework.data.neo4j.core.mapping.IdentitySupport;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentProperty;
@@ -335,6 +337,68 @@ public final class TemplateSupport {
 		public Map<String, Object> apply(T t) {
 			return binderFunction.apply(t);
 		}
+	}
+
+	/**
+	 * Uses the given {@link PersistentPropertyAccessor propertyAccessor} to set the value of the generated id.
+	 *
+	 * @param entityMetaData
+	 * @param propertyAccessor
+	 * @param elementId The element id to store
+	 * @param databaseEntity A fallback entity to retrieve the deprecated internal long id
+	 * @param <T> The type of the entity
+	 */
+	static <T> void setGeneratedIdIfNecessary(
+			Neo4jPersistentEntity<?> entityMetaData,
+			PersistentPropertyAccessor<T> propertyAccessor,
+			String elementId,
+			Optional<Entity> databaseEntity
+	) {
+		if (!entityMetaData.isUsingInternalIds()) {
+			return;
+		}
+		var requiredIdProperty = entityMetaData.getRequiredIdProperty();
+		var idPropertyType = requiredIdProperty.getType();
+		if (Neo4jPersistentEntity.DEPRECATED_GENERATED_ID_TYPES.contains(idPropertyType)) {
+			propertyAccessor.setProperty(requiredIdProperty, databaseEntity.map(IdentitySupport::getInternalId).orElseThrow());
+		} else if (idPropertyType.equals(String.class)) {
+			propertyAccessor.setProperty(requiredIdProperty, elementId);
+		} else {
+			throw new IllegalArgumentException("Unsupported generated id property " + idPropertyType);
+		}
+	}
+
+	static <T> String notAGoodNameSoFar(
+			Neo4jPersistentEntity<?> entityMetadata,
+			PersistentPropertyAccessor<T> propertyAccessor,
+			Optional<Entity> databaseEntity,
+			String relatedInternalId,
+			Object actualRelatedId
+	) {
+
+		if(!entityMetadata.isUsingInternalIds()) {
+			return relatedInternalId;
+		}
+
+		var requiredIdProperty = entityMetadata.getRequiredIdProperty();
+		var idPropertyType = requiredIdProperty.getType();
+
+		if (Neo4jPersistentEntity.DEPRECATED_GENERATED_ID_TYPES.contains(idPropertyType)) {
+			if (relatedInternalId == null && actualRelatedId != null) {
+				relatedInternalId = propertyAccessor.getProperty(requiredIdProperty).toString();
+			} else if (actualRelatedId == null) {
+				long internalId = databaseEntity.map(Entity::id).orElseThrow();
+				propertyAccessor.setProperty(requiredIdProperty, internalId);
+				//	relatedInternalId = Long.toString(internalId);
+			}
+		} else {
+			if (relatedInternalId == null && actualRelatedId != null) {
+				relatedInternalId = (String) propertyAccessor.getProperty(requiredIdProperty);
+			} else if (actualRelatedId == null) {
+				propertyAccessor.setProperty(requiredIdProperty, relatedInternalId);
+			}
+		}
+		return relatedInternalId;
 	}
 
 	private TemplateSupport() {

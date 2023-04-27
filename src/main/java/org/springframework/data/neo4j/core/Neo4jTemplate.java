@@ -409,75 +409,22 @@ public final class Neo4jTemplate implements
 			throw new IllegalStateException("Could not retrieve an internal id while saving");
 		}
 
-		String internalId = newOrUpdatedNode.map(IdentitySupport::getElementId).get();
+		String elementId = newOrUpdatedNode.map(IdentitySupport::getElementId).get();
 
 		PersistentPropertyAccessor<T> propertyAccessor = entityMetaData.getPropertyAccessor(entityToBeSaved);
-		setGeneratedIdIfNecessary(entityMetaData, propertyAccessor, newOrUpdatedNode, internalId);
+		TemplateSupport.setGeneratedIdIfNecessary(entityMetaData, propertyAccessor, elementId, newOrUpdatedNode);
 		TemplateSupport.updateVersionPropertyIfPossible(entityMetaData, propertyAccessor, newOrUpdatedNode.get());
 
 		if (stateMachine == null) {
-			stateMachine = new NestedRelationshipProcessingStateMachine(neo4jMappingContext, instance, internalId);
+			stateMachine = new NestedRelationshipProcessingStateMachine(neo4jMappingContext, instance, elementId);
 		}
 
-		stateMachine.markValueAsProcessed(instance, internalId);
+		stateMachine.markValueAsProcessed(instance, elementId);
 		processRelations(entityMetaData, propertyAccessor, isEntityNew, stateMachine, binderFunction.filter);
 
 		T bean = propertyAccessor.getBean();
 		stateMachine.markValueAsProcessedAs(instance, bean);
 		return bean;
-	}
-
-	private static <T> void setGeneratedIdIfNecessary(
-			Neo4jPersistentEntity<?> entityMetaData,
-			PersistentPropertyAccessor<T> propertyAccessor,
-			Optional<Entity> databaseEntity,
-			String elementId
-	) {
-		if (!entityMetaData.isUsingInternalIds()) {
-			return;
-		}
-		var requiredIdProperty = entityMetaData.getRequiredIdProperty();
-		var idPropertyType = requiredIdProperty.getType();
-		if (Neo4jPersistentEntity.DEPRECATED_GENERATED_ID_TYPES.contains(idPropertyType)) {
-			propertyAccessor.setProperty(requiredIdProperty, databaseEntity.map(Entity::id).orElseThrow());
-		} else if (idPropertyType.equals(String.class)) {
-			propertyAccessor.setProperty(requiredIdProperty, elementId);
-		} else {
-			throw new IllegalArgumentException("Unsupported generated id property " + idPropertyType);
-		}
-	}
-
-	private static <T> String notAGoodNameSoFar(
-			Neo4jPersistentEntity<?> entityMetadata,
-			PersistentPropertyAccessor<T> propertyAccessor,
-			Optional<Entity> databaseEntity,
-			String relatedInternalId,
-			Object actualRelatedId
-	) {
-
-		if(!entityMetadata.isUsingInternalIds()) {
-			return relatedInternalId;
-		}
-
-		var requiredIdProperty = entityMetadata.getRequiredIdProperty();
-		var idPropertyType = requiredIdProperty.getType();
-
-		if (Neo4jPersistentEntity.DEPRECATED_GENERATED_ID_TYPES.contains(idPropertyType)) {
-			if (relatedInternalId == null && actualRelatedId != null) {
-				relatedInternalId = propertyAccessor.getProperty(requiredIdProperty).toString();
-			} else if (actualRelatedId == null) {
-				long internalId = databaseEntity.map(Entity::id).orElseThrow();
-				propertyAccessor.setProperty(requiredIdProperty, internalId);
-			//	relatedInternalId = Long.toString(internalId);
-			}
-		} else {
-			if (relatedInternalId == null && actualRelatedId != null) {
-				relatedInternalId = (String) propertyAccessor.getProperty(requiredIdProperty);
-			} else if (actualRelatedId == null) {
-				propertyAccessor.setProperty(requiredIdProperty, relatedInternalId);
-			}
-		}
-		return relatedInternalId;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -878,7 +825,7 @@ public final class Neo4jTemplate implements
 				Neo4jPersistentProperty requiredIdProperty = targetEntity.getRequiredIdProperty();
 				PersistentPropertyAccessor<?> targetPropertyAccessor = targetEntity.getPropertyAccessor(newRelatedObject);
 				Object actualRelatedId = targetPropertyAccessor.getProperty(requiredIdProperty);
-				relatedInternalId = notAGoodNameSoFar(targetEntity, targetPropertyAccessor, Optional.of(savedEntity), relatedInternalId, actualRelatedId);
+				relatedInternalId = TemplateSupport.notAGoodNameSoFar(targetEntity, targetPropertyAccessor, Optional.of(savedEntity), relatedInternalId, actualRelatedId);
 				if (savedEntity != null) {
 					TemplateSupport.updateVersionPropertyIfPossible(targetEntity, targetPropertyAccessor, savedEntity);
 				}

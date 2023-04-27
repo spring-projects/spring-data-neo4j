@@ -32,7 +32,7 @@ import org.springframework.lang.Nullable;
  * This class is <strong>not</strong> part of any public API and will be changed without further notice as needed. It's
  * primary goal is to mitigate the changes in Neo4j5, which introduces the notion of an {@literal element id} for both nodes
  * and relationships while deprecating {@literal id} at the same time. The identity support allows to isolate our calls
- * deprecated API in one central place and will exists for SDN 7 only to make SDN 7 work with both Neo4j 4.4 and Neo4j 5.x.
+ * deprecated API in one central place and will exist for SDN 7 only to make SDN 7 work with both Neo4j 4.4 and Neo4j 5.x.
  *
  * @author Michael J. Simons
  * @soundtrack Buckethead - SIGIL Soundtrack

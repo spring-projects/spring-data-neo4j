@@ -36,6 +36,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
@@ -446,9 +447,10 @@ public final class ReactiveNeo4jTemplate implements
 
 					PersistentPropertyAccessor<T> propertyAccessor = entityMetaData.getPropertyAccessor(entityToBeSaved);
 					return idMono.doOnNext(newOrUpdatedNode -> {
-						IdentitySupport.updateElementId(entityMetaData, propertyAccessor, newOrUpdatedNode);
+						var elementId = IdentitySupport.getElementId(newOrUpdatedNode);
+						TemplateSupport.setGeneratedIdIfNecessary(entityMetaData, propertyAccessor, elementId, Optional.of(newOrUpdatedNode));
 						TemplateSupport.updateVersionPropertyIfPossible(entityMetaData, propertyAccessor, newOrUpdatedNode);
-						finalStateMachine.markValueAsProcessed(instance, IdentitySupport.getElementId(newOrUpdatedNode));
+						finalStateMachine.markValueAsProcessed(instance, elementId);
 					}).map(IdentitySupport::getElementId)
 							.flatMap(internalId -> processRelations(entityMetaData,  propertyAccessor, isNewEntity, finalStateMachine, binderFunction.filter));
 				});
@@ -723,16 +725,19 @@ public final class ReactiveNeo4jTemplate implements
 							usedParameters.putAll(statement.getCatalog().getParameters());
 							return neo4jClient.query(renderer.render(statement))
 									.bindAll(usedParameters)
-									.fetchAs(TupleOfLongsHolder.class)
+									.fetchAs(Tuple2.class)
 									.mappedBy((t, r) -> {
 										Collection<String> rootIds = r.get(Constants.NAME_OF_SYNTHESIZED_ROOT_NODE).asList(Value::asString);
 										rootNodeIds.addAll(rootIds);
-										Collection<Long> newRelationshipIds = r.get(Constants.NAME_OF_SYNTHESIZED_RELATIONS).asList(Value::asLong);
-										Collection<Long> newRelatedNodeIds = r.get(Constants.NAME_OF_SYNTHESIZED_RELATED_NODES).asList(Value::asLong);
-										return TupleOfLongsHolder.with(Tuples.of(newRelationshipIds, newRelatedNodeIds));
+										Collection<String> newRelationshipIds = r.get(Constants.NAME_OF_SYNTHESIZED_RELATIONS).asList(Value::asString);
+										Collection<String> newRelatedNodeIds = r.get(Constants.NAME_OF_SYNTHESIZED_RELATED_NODES).asList(Value::asString);
+										return Tuples.of(newRelationshipIds, newRelatedNodeIds);
 									})
 									.one()
-									.map(TupleOfLongsHolder::get)
+									.map((t) -> {
+										//noinspection unchecked
+										return (Tuple2<Collection<String>, Collection<String>>)t;
+									})
 									.expand(iterateAndMapNextLevel(relationshipDescription, queryFragments, rootClass, PropertyPathWalkStep.empty()));
 						})
 						.then(Mono.fromSupplier(() -> new NodesAndRelationshipsByIdStatementProvider(rootNodeIds, processedRelationshipIds, processedNodeIds, queryFragments)));
@@ -744,23 +749,7 @@ public final class ReactiveNeo4jTemplate implements
 
 	}
 
-	static class TupleOfLongsHolder {
-		private final Tuple2<Collection<Long>, Collection<Long>> content;
-
-		static TupleOfLongsHolder with(Tuple2<Collection<Long>, Collection<Long>> content) {
-			return new TupleOfLongsHolder(content);
-		}
-
-		private TupleOfLongsHolder(Tuple2<Collection<Long>, Collection<Long>> content) {
-			this.content = content;
-		}
-
-		Tuple2<Collection<Long>, Collection<Long>> get() {
-			return content;
-		}
-	}
-
-	private Flux<Tuple2<Collection<Long>, Collection<Long>>> iterateNextLevel(Collection<Long> relatedNodeIds,
+	private Flux<Tuple2<Collection<String>, Collection<String>>> iterateNextLevel(Collection<String> relatedNodeIds,
 			  RelationshipDescription sourceRelationshipDescription, QueryFragments queryFragments,
 			  Class<?> rootClass, PropertyPathWalkStep currentPathStep) {
 
@@ -786,43 +775,46 @@ public final class ReactiveNeo4jTemplate implements
 
 				Statement statement = cypherGenerator
 						.prepareMatchOf(target, relDe, null,
-								Functions.id(node).in(Cypher.parameter(Constants.NAME_OF_ID)))
+								Functions.elementId(node).in(Cypher.parameter(Constants.NAME_OF_ID)))
 						.returning(cypherGenerator.createGenericReturnStatement()).build();
 
 				return neo4jClient.query(renderer.render(statement))
 						.bindAll(Collections.singletonMap(Constants.NAME_OF_ID, relatedNodeIds))
-						.fetchAs(TupleOfLongsHolder.class)
+						.fetchAs(Tuple2.class)
 						.mappedBy((t, r) -> {
-							Collection<Long> newRelationshipIds = r.get(Constants.NAME_OF_SYNTHESIZED_RELATIONS).asList(Value::asLong);
-							Collection<Long> newRelatedNodeIds = r.get(Constants.NAME_OF_SYNTHESIZED_RELATED_NODES).asList(Value::asLong);
+							Collection<String> newRelationshipIds = r.get(Constants.NAME_OF_SYNTHESIZED_RELATIONS).asList(Value::asString);
+							Collection<String> newRelatedNodeIds = r.get(Constants.NAME_OF_SYNTHESIZED_RELATED_NODES).asList(Value::asString);
 
-							return TupleOfLongsHolder.with(Tuples.of(newRelationshipIds, newRelatedNodeIds));
+							return Tuples.of(newRelationshipIds, newRelatedNodeIds);
 						})
 						.one()
-						.map(TupleOfLongsHolder::get)
+						.map((t) -> {
+							//noinspection unchecked
+							return (Tuple2<Collection<String>, Collection<String>>)t;
+						})
 						.expand(object -> iterateAndMapNextLevel(relDe, queryFragments, rootClass, nextPathStep).apply(object));
 			});
 
 	}
 
 	@NonNull
-	private Function<Tuple2<Collection<Long>, Collection<Long>>,
-			Publisher<Tuple2<Collection<Long>, Collection<Long>>>> iterateAndMapNextLevel(
+	private Function<Tuple2<Collection<String>, Collection<String>>,
+			Publisher<Tuple2<Collection<String>, Collection<String>>>> iterateAndMapNextLevel(
 			RelationshipDescription relationshipDescription, QueryFragments queryFragments, Class<?> rootClass, PropertyPathWalkStep currentPathStep) {
 
 		return newRelationshipAndRelatedNodeIds ->
 			Flux.deferContextual(ctx -> {
-				Set<Long> relationshipIds = ctx.get("processedRelationships");
-				Set<Long> processedNodeIds = ctx.get("processedNodes");
+				Set<String> relationshipIds = ctx.get("processedRelationships");
+				Set<String> processedNodeIds = ctx.get("processedNodes");
 
-				Collection<Long> newRelationshipIds = newRelationshipAndRelatedNodeIds.getT1();
-				Set<Long> tmpProcessedRels = ConcurrentHashMap.newKeySet(newRelationshipIds.size());
+				Collection<String> newRelationshipIds = newRelationshipAndRelatedNodeIds.getT1();
+				Set<String> tmpProcessedRels = ConcurrentHashMap.newKeySet(newRelationshipIds.size());
 				tmpProcessedRels.addAll(newRelationshipIds);
 				tmpProcessedRels.removeAll(relationshipIds);
 				relationshipIds.addAll(newRelationshipIds);
 
-				Collection<Long> newRelatedNodeIds = newRelationshipAndRelatedNodeIds.getT2();
-				Set<Long> tmpProcessedNodes = ConcurrentHashMap.newKeySet(newRelatedNodeIds.size());
+				Collection<String> newRelatedNodeIds = newRelationshipAndRelatedNodeIds.getT2();
+				Set<String> tmpProcessedNodes = ConcurrentHashMap.newKeySet(newRelatedNodeIds.size());
 				tmpProcessedNodes.addAll(newRelatedNodeIds);
 				tmpProcessedNodes.removeAll(processedNodeIds);
 				processedNodeIds.addAll(newRelatedNodeIds);
@@ -975,15 +967,7 @@ public final class ReactiveNeo4jTemplate implements
 									Neo4jPersistentProperty requiredIdProperty = targetEntity.getRequiredIdProperty();
 									PersistentPropertyAccessor<?> targetPropertyAccessor = targetEntity.getPropertyAccessor(newRelatedObject);
 									Object actualRelatedId = targetPropertyAccessor.getProperty(requiredIdProperty);
-									// if an internal id is used this must be set to link this entity in the next iteration
-									// TODO This is most likely the place that we need to work on to still support long generated ids
-									if (targetEntity.isUsingInternalIds()) {
-										if (relatedInternalId == null && actualRelatedId != null) {
-											relatedInternalId = (String) targetPropertyAccessor.getProperty(requiredIdProperty);
-										} else if (actualRelatedId == null) {
-											targetPropertyAccessor.setProperty(requiredIdProperty, relatedInternalId);
-										}
-									}
+									relatedInternalId = TemplateSupport.notAGoodNameSoFar(targetEntity, targetPropertyAccessor, Optional.of(savedEntity), relatedInternalId, actualRelatedId);
 									if (savedEntity != null) {
 										TemplateSupport.updateVersionPropertyIfPossible(targetEntity, targetPropertyAccessor, savedEntity);
 									}

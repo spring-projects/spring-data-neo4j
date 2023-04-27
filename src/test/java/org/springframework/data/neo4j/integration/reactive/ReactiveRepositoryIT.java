@@ -881,7 +881,7 @@ class ReactiveRepositoryIT {
 		}
 
 		@Test
-		void loadEntityWithRelationshipToTheSameNode(@Autowired ReactiveRelationshipRepository repository) {
+		void findEntityWithRelationshipToTheSameNode(@Autowired ReactiveRelationshipRepository repository) {
 
 			Record record = doWithSession(session -> session
 						.run("""
@@ -970,18 +970,17 @@ class ReactiveRepositoryIT {
 		@Test
 		void loadEntityWithBidirectionalRelationship(@Autowired BidirectionalStartRepository repository) {
 
-			long startId = doWithSession(session -> {
+			Node startNode = doWithSession(session -> {
 				Record record = session.run("CREATE (n:BidirectionalStart{name:'Ernie'})-[:CONNECTED]->(e:BidirectionalEnd{name:'Bert'}) RETURN n").single();
 
-				Node startNode = record.get("n").asNode();
-				return TestIdentitySupport.getInternalId(startNode);
+				return record.get("n").asNode();
 			});
 
-			StepVerifier.create(repository.findById(startId))
+			StepVerifier.create(repository.findById(TestIdentitySupport.getInternalId(startNode)))
 					.verifyErrorMatches(error -> {
 						Throwable cause = error.getCause();
 						return cause instanceof MappingException && cause.getMessage().equals(
-								"The node with id " + startId + " has a logical cyclic mapping dependency; " +
+								"The node with id " + startNode.elementId() + " has a logical cyclic mapping dependency; " +
 							"its creation caused the creation of another node that has a reference to this");
 					});
 
