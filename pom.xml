@@ -390,7 +390,7 @@
 	<repositories>
 		<repository>
 			<id>spring-libs-snapshot</id>
-			<url>https://repo.spring.io/libs-snapshot</url>
+			<url>https://repo.spring.io/snapshot</url>
 		</repository>
 	</repositories>
 
@@ -401,7 +401,7 @@
 		</pluginRepository>
 		<pluginRepository>
 			<id>spring-libs-milestone</id>
-			<url>https://repo.spring.io/libs-milestone</url>
+			<url>https://repo.spring.io/milestone</url>
 		</pluginRepository>
 	</pluginRepositories>
 
