@@ -54,6 +54,7 @@ import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIf;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -3921,7 +3922,12 @@ class RepositoryIT {
 			});
 		}
 
+		boolean supportsCypher5LabelExpressions() {
+			return neo4jConnectionSupport.isCypher5SyntaxCompatible();
+		}
+
 		@Test
+		@EnabledIf("supportsCypher5LabelExpressions")
 		void findByDynamicLabel(@Autowired BaseClassRepository baseClassRepository) {
 
 			Inheritance.ConcreteClassA ccA = new Inheritance.ConcreteClassA("cc1", "test");
