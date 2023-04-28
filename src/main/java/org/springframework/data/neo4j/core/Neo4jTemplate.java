@@ -845,42 +845,43 @@ public final class Neo4jTemplate implements
 				boolean isNewRelationship = idValue == null;
 				if (relationshipDescription.isDynamic()) {
 					// create new dynamic relationship properties
-					 if (relationshipDescription.hasRelationshipProperties() && isNewRelationship && idProperty != null) {
-							CreateRelationshipStatementHolder statementHolder = neo4jMappingContext.createStatementForSingleRelationship(
-									sourceEntity, relationshipDescription, relatedValueToStore, true);
+					if (relationshipDescription.hasRelationshipProperties() && isNewRelationship && idProperty != null) {
+						CreateRelationshipStatementHolder statementHolder = neo4jMappingContext.createStatementForSingleRelationship(
+								sourceEntity, relationshipDescription, relatedValueToStore, true);
 
-						 List<Object> row = Collections.singletonList(properties);
-						 statementHolder = statementHolder.addProperty(Constants.NAME_OF_RELATIONSHIP_LIST_PARAM, row);
+						List<Object> row = Collections.singletonList(properties);
+						statementHolder = statementHolder.addProperty(Constants.NAME_OF_RELATIONSHIP_LIST_PARAM, row);
 
 						Optional<Object> relationshipInternalId = neo4jClient.query(renderer.render(statementHolder.getStatement()))
-							.bind(convertIdValues(sourceEntity.getRequiredIdProperty(), fromId)) //
+								.bind(convertIdValues(sourceEntity.getRequiredIdProperty(), fromId)) //
 								.to(Constants.FROM_ID_PARAMETER_NAME) //
-							.bind(relatedInternalId) //
+								.bind(relatedInternalId) //
 								.to(Constants.TO_ID_PARAMETER_NAME) //
-							.bind(idValue) //
+								.bind(idValue) //
 								.to(Constants.NAME_OF_KNOWN_RELATIONSHIP_PARAM) //
-							.bindAll(statementHolder.getProperties())
-							.fetchAs(Object.class)
-							.mappedBy((t, r) -> IdentitySupport.mapperForRelatedIdValues(idProperty).apply(r))
-							.one();
+								.bindAll(statementHolder.getProperties())
+								.fetchAs(Object.class)
+								.mappedBy((t, r) -> IdentitySupport.mapperForRelatedIdValues(idProperty).apply(r))
+								.one();
 
-						 assignIdToRelationshipProperties(relationshipContext, relatedValueToStore, idProperty, relationshipInternalId.orElseThrow());
-					 } else { // plain (new or to update) dynamic relationship or dynamic relationships with properties to update
-						 CreateRelationshipStatementHolder statementHolder = neo4jMappingContext.createStatementForSingleRelationship(
-								 sourceEntity, relationshipDescription, relatedValueToStore, false);
+						assignIdToRelationshipProperties(relationshipContext, relatedValueToStore, idProperty, relationshipInternalId.orElseThrow());
+					} else { // plain (new or to update) dynamic relationship or dynamic relationships with properties to update
 
-						 List<Object> row = Collections.singletonList(properties);
-							 statementHolder = statementHolder.addProperty(Constants.NAME_OF_RELATIONSHIP_LIST_PARAM, row);
-							 neo4jClient.query(renderer.render(statementHolder.getStatement()))
-									 .bind(convertIdValues(sourceEntity.getRequiredIdProperty(), fromId)) //
-									 .to(Constants.FROM_ID_PARAMETER_NAME) //
-									 .bind(relatedInternalId) //
-									 .to(Constants.TO_ID_PARAMETER_NAME) //
-									 .bind(idValue)
-									 .to(Constants.NAME_OF_KNOWN_RELATIONSHIP_PARAM) //
-									 .bindAll(statementHolder.getProperties())
-									 .run();
-						}
+						CreateRelationshipStatementHolder statementHolder = neo4jMappingContext.createStatementForSingleRelationship(
+								sourceEntity, relationshipDescription, relatedValueToStore, false);
+
+						List<Object> row = Collections.singletonList(properties);
+						statementHolder = statementHolder.addProperty(Constants.NAME_OF_RELATIONSHIP_LIST_PARAM, row);
+						neo4jClient.query(renderer.render(statementHolder.getStatement()))
+								.bind(convertIdValues(sourceEntity.getRequiredIdProperty(), fromId)) //
+								.to(Constants.FROM_ID_PARAMETER_NAME) //
+								.bind(relatedInternalId) //
+								.to(Constants.TO_ID_PARAMETER_NAME) //
+								.bind(idValue)
+								.to(Constants.NAME_OF_KNOWN_RELATIONSHIP_PARAM) //
+								.bindAll(statementHolder.getProperties())
+								.run();
+					}
 				} else if (relationshipDescription.hasRelationshipProperties() && isNewRelationship && idProperty != null) {
 					newRelationshipPropertiesRows.add(properties);
 					newRelatedValuesToStore.add(relatedValueToStore);

@@ -118,26 +118,6 @@ public final class IdentitySupport {
 		return null;
 	}
 
-	/**
-	 * Returns the start id of the relationship
-	 *
-	 * @param relationship A relationship to retrieve the start identity
-	 * @return An internal id
-	 */
-	public static String getStartId(Relationship relationship) {
-		return relationship.startNodeElementId();
-	}
-
-	/**
-	 * Returns the end id of the relationship
-	 *
-	 * @param relationship A relationship to retrieve the end identity
-	 * @return An internal id
-	 */
-	public static String getEndId(Relationship relationship) {
-		return relationship.endNodeElementId();
-	}
-
 	public static Function<MapAccessor, Object> mapperForRelatedIdValues(@Nullable Neo4jPersistentProperty idProperty) {
 		boolean deprecatedHolder = idProperty != null && Neo4jPersistentEntity.DEPRECATED_GENERATED_ID_TYPES.contains(idProperty.getType());
 		return deprecatedHolder ? IdentitySupport::getInternalId : IdentitySupport::getElementId;

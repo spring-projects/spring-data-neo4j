@@ -655,10 +655,18 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 		List<Object> relationshipsAndProperties = new ArrayList<>();
 
 		if (Values.NULL.equals(list)) {
-			String sourceNodeId = IdentitySupport.getElementId(values);
-
-			Function<Relationship, String> sourceIdSelector = relationshipDescription.isIncoming() ? IdentitySupport::getEndId : IdentitySupport::getStartId;
-			Function<Relationship, String> targetIdSelector = relationshipDescription.isIncoming() ? IdentitySupport::getStartId : IdentitySupport::getEndId;
+			String sourceNodeId;
+			Function<Relationship, String> sourceIdSelector;
+			Function<Relationship, String> targetIdSelector = relationshipDescription.isIncoming() ? Relationship::startNodeElementId : Relationship::endNodeElementId;
+			if (IdentitySupport.getElementId(values) == null) {
+				// this can happen when someone used dto mapping and added the "classical" approach
+				sourceNodeId = Optional.ofNullable(IdentitySupport.getInternalId(values)).map(l -> Long.toString(l)).orElseThrow();
+				Function<Relationship, Long> hlp = relationshipDescription.isIncoming() ? Relationship::endNodeId : Relationship::startNodeId;
+				sourceIdSelector = hlp.andThen(l -> Long.toString(l));
+			} else {
+				sourceNodeId = IdentitySupport.getElementId(values);
+				sourceIdSelector = relationshipDescription.isIncoming() ? Relationship::endNodeElementId : Relationship::startNodeElementId;
+			}
 
 			// Retrieve all matching relationships from the result's list(s)
 			Collection<Relationship> allMatchingTypeRelationshipsInResult =

@@ -434,7 +434,7 @@ public enum CypherGenerator {
 				.build();
 	}
 
-	private static Function<Node, Expression> getNodeIdFunction(Neo4jPersistentEntity entity) {
+	private static Function<Node, Expression> getNodeIdFunction(Neo4jPersistentEntity<?> entity) {
 
 		Function<Node, Expression> startNodeIdFunction;
 		var idProperty = entity.getRequiredIdProperty();
@@ -445,7 +445,7 @@ public enum CypherGenerator {
 				startNodeIdFunction = Functions::elementId;
 			}
 		} else {
-			startNodeIdFunction = node -> node.property(idProperty.getName());
+			startNodeIdFunction = node -> node.property(idProperty.getPropertyName());
 		}
 		return startNodeIdFunction;
 	}
@@ -506,7 +506,6 @@ public enum CypherGenerator {
 
 		Node startNode = node(neo4jPersistentEntity.getPrimaryLabel(), neo4jPersistentEntity.getAdditionalLabels()).named(START_NODE_NAME);
 		Node endNode = anyNode(END_NODE_NAME);
-		String idPropertyName = neo4jPersistentEntity.getRequiredIdProperty().getPropertyName();
 
 		Parameter<?> idParameter = parameter(Constants.FROM_ID_PARAMETER_NAME);
 		Parameter<?> relationshipProperties = parameter(Constants.NAME_OF_PROPERTIES_PARAM);
@@ -519,6 +518,7 @@ public enum CypherGenerator {
 				.named(RELATIONSHIP_NAME);
 
 		var nodeIdFunction = getNodeIdFunction(neo4jPersistentEntity);
+		var relationshipIdFunction = getRelationshipIdFunction(relationship);
 
 		StatementBuilder.OngoingReadingWithWhere startAndEndNodeMatch = match(startNode)
 				.where(nodeIdFunction.apply(startNode).isEqualTo(idParameter))
@@ -527,7 +527,7 @@ public enum CypherGenerator {
 		StatementBuilder.ExposesSet createOrMatch = isNew
 				? startAndEndNodeMatch.create(relationshipFragment)
 				: startAndEndNodeMatch.match(relationshipFragment)
-					.where(Functions.elementId(relationshipFragment).isEqualTo(Cypher.parameter(Constants.NAME_OF_KNOWN_RELATIONSHIP_PARAM)));
+					.where(relationshipIdFunction.apply(relationshipFragment).isEqualTo(Cypher.parameter(Constants.NAME_OF_KNOWN_RELATIONSHIP_PARAM)));
 		return createOrMatch
 				.mutate(RELATIONSHIP_NAME, relationshipProperties)
 				.returning(
