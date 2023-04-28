@@ -19,11 +19,9 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.locks.StampedLock;
-import java.util.stream.Collectors;
 
 import org.apiguardian.api.API;
 import org.springframework.lang.NonNull;
@@ -150,7 +148,6 @@ public final class NestedRelationshipProcessingStateMachine {
 		try {
 			doMarkValueAsProcessed(valueToStore, elementId);
 			storeProcessedInAlias(valueToStore, valueToStore);
-			System.out.println(valueToStore + " bound to " + elementId);
 		} finally {
 			lock.unlock(stamp);
 		}
@@ -182,7 +179,7 @@ public final class NestedRelationshipProcessingStateMachine {
 				Neo4jPersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(typeOfValue);
 				Neo4jPersistentProperty idProperty = entity.getIdProperty();
 				Object id = idProperty == null ? null : entity.getPropertyAccessor(valueToCheck).getProperty(idProperty);
-				System.out.println("checking for " + id);
+
 				// After the lookup by system.identityHashCode failed for a processed object alias,
 				// we must traverse or iterate over all value with the matching type and compare the domain ids
 				// to figure out if the logical object has already been processed through a different object instance.
@@ -191,7 +188,6 @@ public final class NestedRelationshipProcessingStateMachine {
 						.filter(typeOfValue::isInstance)
 						.filter(processedObject -> id.equals(entity.getPropertyAccessor(processedObject).getProperty(idProperty)))
 						.findAny();
-				System.out.println(alreadyProcessedObject);
 				if (alreadyProcessedObject.isPresent()) { // Skip the show the next time around.
 					processed = true;
 					String internalId = getInternalId(alreadyProcessedObject.get());
@@ -217,10 +213,7 @@ public final class NestedRelationshipProcessingStateMachine {
 		if (relationshipDescription != null) {
 			final long stamp = lock.readLock();
 			try {
-				System.out.println("going into " + processedRelationshipDescriptions + " with  " + fromId);
-				var contains = processedRelationshipDescriptions.contains(new RelationshipDescriptionWithSourceId(fromId, relationshipDescription));
-				System.out.println("result " + contains);
-				return contains;
+				return processedRelationshipDescriptions.contains(new RelationshipDescriptionWithSourceId(fromId, relationshipDescription));
 			} finally {
 				lock.unlock(stamp);
 			}

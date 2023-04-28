@@ -98,7 +98,6 @@ import org.springframework.data.neo4j.core.Neo4jTemplate;
 import org.springframework.data.neo4j.core.UserSelection;
 import org.springframework.data.neo4j.core.UserSelectionProvider;
 import org.springframework.data.neo4j.core.convert.Neo4jConversions;
-import org.springframework.data.neo4j.core.mapping.IdentitySupport;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
 import org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager;
@@ -1752,9 +1751,7 @@ class RepositoryIT {
 			repository.save(hobby);
 
 			AltHobby savedHobby = repository.findById(hobbyId).get();
-			System.out.println(savedHobby.getLikedBy());
 			assertThat(savedHobby.getLikedBy()).hasSize(2);
-
 		}
 	}
 

@@ -420,7 +420,6 @@ public final class Neo4jTemplate implements
 		}
 
 		stateMachine.markEntityAsProcessed(instance, elementId);
-		System.out.println("marked as p " + instance + " under " + elementId);
 		processRelations(entityMetaData, propertyAccessor, isEntityNew, stateMachine, binderFunction.filter);
 
 		T bean = propertyAccessor.getBean();
@@ -731,8 +730,6 @@ public final class Neo4jTemplate implements
 					rawValue);
 
 			RelationshipDescription relationshipDescription = relationshipContext.getRelationship();
-			System.out.println(relationshipDescription.getType());
-			System.out.println("NEEDING TO STORE " + relatedValuesToStore);
 
 			PropertyFilter.RelaxedPropertyPath currentPropertyPath = previousPath.append(relationshipDescription.getFieldName());
 
@@ -745,16 +742,12 @@ public final class Neo4jTemplate implements
 			} else {
 				Neo4jPersistentEntity<?> relationshipPropertiesEntity = (Neo4jPersistentEntity<?>) relationshipDescription.getRelationshipPropertiesEntity();
 				idProperty = relationshipPropertiesEntity.getIdProperty();
-				System.out.println("id from rel prop");
 			}
 
 			// break recursive procession and deletion of previously created relationships
 			ProcessState processState = stateMachine.getStateOf(fromId, relationshipDescription, relatedValuesToStore);
 			if (processState == ProcessState.PROCESSED_ALL_RELATIONSHIPS || processState == ProcessState.PROCESSED_BOTH) {
-				System.out.println("bailed here");
 				return;
-			} else {
-				System.out.println("not exit");
 			}
 
 			// Remove all relationships before creating all new if the entity is not new and the relationship
@@ -868,7 +861,7 @@ public final class Neo4jTemplate implements
 								.to(Constants.NAME_OF_KNOWN_RELATIONSHIP_PARAM) //
 							.bindAll(statementHolder.getProperties())
 							.fetchAs(Object.class)
-							.mappedBy((t,r) -> IdentitySupport.mapperForRelatedIdValues(idProperty).apply(r))
+							.mappedBy((t, r) -> IdentitySupport.mapperForRelatedIdValues(idProperty).apply(r))
 							.one();
 
 						 assignIdToRelationshipProperties(relationshipContext, relatedValueToStore, idProperty, relationshipInternalId.orElseThrow());
@@ -911,7 +904,6 @@ public final class Neo4jTemplate implements
 								relationshipProperty.isDynamicAssociation(),
 								relatedValueToStore,
 								targetPropertyAccessor);
-				System.out.println(">>> new thing?" + potentiallyRecreatedNewRelatedObject);
 				relationshipHandler.handle(relatedValueToStore, relatedObjectBeforeCallbacksApplied, potentiallyRecreatedNewRelatedObject);
 			}
 			// batch operations
@@ -923,26 +915,22 @@ public final class Neo4jTemplate implements
 						.bindAll(statementHolder.getProperties())
 						.run();
 			} else if (relationshipDescription.hasRelationshipProperties()) {
-				System.out.println(relationshipPropertiesRows + " in new ");
 				if (!relationshipPropertiesRows.isEmpty()) {
 					CreateRelationshipStatementHolder statementHolder = neo4jMappingContext.createStatementForImperativeRelationshipsWithPropertiesBatch(false,
 							sourceEntity, relationshipDescription, updateRelatedValuesToStore, relationshipPropertiesRows);
 					statementHolder = statementHolder.addProperty(Constants.NAME_OF_RELATIONSHIP_LIST_PARAM, relationshipPropertiesRows);
 
-					System.out.println(">>>");
 					neo4jClient.query(renderer.render(statementHolder.getStatement()))
 							.bindAll(statementHolder.getProperties())
 							.run();
-					System.out.println("<<<");
 				}
 				if (!newRelatedValuesToStore.isEmpty()) {
 					CreateRelationshipStatementHolder statementHolder = neo4jMappingContext.createStatementForImperativeRelationshipsWithPropertiesBatch(true,
 							sourceEntity, relationshipDescription, newRelatedValuesToStore, newRelationshipPropertiesRows);
-					System.out.println("bum?");
 					List<Object> all = new ArrayList<>(neo4jClient.query(renderer.render(statementHolder.getStatement()))
 							.bindAll(statementHolder.getProperties())
 							.fetchAs(Object.class)
-							.mappedBy((t,r) -> IdentitySupport.mapperForRelatedIdValues(idProperty).apply(r))
+							.mappedBy((t, r) -> IdentitySupport.mapperForRelatedIdValues(idProperty).apply(r))
 							.all());
 					// assign new ids
 					for (int i = 0; i < all.size(); i++) {

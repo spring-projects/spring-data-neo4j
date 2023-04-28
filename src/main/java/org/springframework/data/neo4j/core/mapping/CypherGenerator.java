@@ -42,7 +42,6 @@ import org.neo4j.cypherdsl.core.Condition;
 import org.neo4j.cypherdsl.core.Conditions;
 import org.neo4j.cypherdsl.core.Cypher;
 import org.neo4j.cypherdsl.core.Expression;
-import org.neo4j.cypherdsl.core.FunctionInvocation;
 import org.neo4j.cypherdsl.core.Functions;
 import org.neo4j.cypherdsl.core.IdentifiableElement;
 import org.neo4j.cypherdsl.core.MapProjection;
@@ -416,7 +415,6 @@ public enum CypherGenerator {
 						.named(START_NODE_NAME);
 
 		final Node endNode = anyNode(END_NODE_NAME);
-		String idPropertyName = neo4jPersistentEntity.getRequiredIdProperty().getPropertyName();
 
 		Parameter<?> idParameter = parameter(Constants.FROM_ID_PARAMETER_NAME);
 		String type = relationship.isDynamic() ? dynamicRelationshipType : relationship.getType();
@@ -424,7 +422,7 @@ public enum CypherGenerator {
 				startNode.relationshipTo(endNode, type) :
 				startNode.relationshipFrom(endNode, type)).named(RELATIONSHIP_NAME);
 
-		Function<Node, Expression> startNodeIdFunction = getNodeIdFunction(neo4jPersistentEntity);
+		var startNodeIdFunction = getNodeIdFunction(neo4jPersistentEntity);
 		return match(startNode)
 				.where(startNodeIdFunction.apply(startNode).isEqualTo(idParameter))
 				.match(endNode).where(Functions.elementId(endNode).isEqualTo(parameter(Constants.TO_ID_PARAMETER_NAME)))
@@ -450,6 +448,20 @@ public enum CypherGenerator {
 			startNodeIdFunction = node -> node.property(idProperty.getName());
 		}
 		return startNodeIdFunction;
+	}
+
+	private static Function<Relationship, Expression> getRelationshipIdFunction(RelationshipDescription relationshipDescription) {
+
+		Function<Relationship, Expression> result = Functions::elementId;
+		if (relationshipDescription.hasRelationshipProperties()) {
+			Neo4jPersistentEntity<?> entity = (Neo4jPersistentEntity<?>) relationshipDescription.getRelationshipPropertiesEntity();
+			if (Neo4jPersistentEntity.DEPRECATED_GENERATED_ID_TYPES.contains(entity.getRequiredIdProperty().getType())) {
+				result = Functions::id;
+			} else {
+				result = Functions::elementId;
+			}
+		}
+		return result;
 	}
 
 	@NonNull
@@ -554,7 +566,6 @@ public enum CypherGenerator {
 
 		// we only need start and end node querying if we have to create a new relationship...
 		if (isNew) {
-			System.out.println("was new");
 			return cypherUnwind
 					.match(startNode)
 					.where(nodeIdFunction.apply(startNode).isEqualTo(idProperty))
@@ -597,7 +608,7 @@ public enum CypherGenerator {
 		Parameter<?> idParameter = parameter(Constants.FROM_ID_PARAMETER_NAME);
 		return match(relationship)
 				.where(getNodeIdFunction(neo4jPersistentEntity).apply(startNode).isEqualTo(idParameter))
-				.and(Functions.elementId(relationship).in(Cypher.parameter(Constants.NAME_OF_KNOWN_RELATIONSHIPS_PARAM)).not())
+				.and(getRelationshipIdFunction(relationshipDescription).apply(relationship).in(Cypher.parameter(Constants.NAME_OF_KNOWN_RELATIONSHIPS_PARAM)).not())
 				.delete(relationship.getRequiredSymbolicName())
 				.build();
 	}

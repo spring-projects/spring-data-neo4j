@@ -736,7 +736,7 @@ public final class ReactiveNeo4jTemplate implements
 									.one()
 									.map((t) -> {
 										//noinspection unchecked
-										return (Tuple2<Collection<String>, Collection<String>>)t;
+										return (Tuple2<Collection<String>, Collection<String>>) t;
 									})
 									.expand(iterateAndMapNextLevel(relationshipDescription, queryFragments, rootClass, PropertyPathWalkStep.empty()));
 						})
@@ -790,7 +790,7 @@ public final class ReactiveNeo4jTemplate implements
 						.one()
 						.map((t) -> {
 							//noinspection unchecked
-							return (Tuple2<Collection<String>, Collection<String>>)t;
+							return (Tuple2<Collection<String>, Collection<String>>) t;
 						})
 						.expand(object -> iterateAndMapNextLevel(relDe, queryFragments, rootClass, nextPathStep).apply(object));
 			});
@@ -1003,7 +1003,7 @@ public final class ReactiveNeo4jTemplate implements
 													.to(Constants.NAME_OF_KNOWN_RELATIONSHIP_PARAM) //
 											.bindAll(statementHolder.getProperties())
 											.fetchAs(Object.class)
-											.mappedBy((t,r) -> IdentitySupport.mapperForRelatedIdValues(idProperty).apply(r))
+											.mappedBy((t, r) -> IdentitySupport.mapperForRelatedIdValues(idProperty).apply(r))
 											.one()
 											.flatMap(relationshipInternalId -> {
 												if (idProperty != null && isNewRelationship) {

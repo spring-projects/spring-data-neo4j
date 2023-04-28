@@ -342,8 +342,8 @@ public final class TemplateSupport {
 	/**
 	 * Uses the given {@link PersistentPropertyAccessor propertyAccessor} to set the value of the generated id.
 	 *
-	 * @param entityMetaData
-	 * @param propertyAccessor
+	 * @param entityMetaData The type information from SDN
+	 * @param propertyAccessor An accessor tied to a concrete instance
 	 * @param elementId The element id to store
 	 * @param databaseEntity A fallback entity to retrieve the deprecated internal long id
 	 * @param <T> The type of the entity
@@ -376,7 +376,7 @@ public final class TemplateSupport {
 			Object actualRelatedId
 	) {
 
-		if(!entityMetadata.isUsingInternalIds()) {
+		if (!entityMetadata.isUsingInternalIds()) {
 			return relatedInternalId;
 		}
 
@@ -389,7 +389,6 @@ public final class TemplateSupport {
 			} else if (actualRelatedId == null) {
 				long internalId = databaseEntity.map(Entity::id).orElseThrow();
 				propertyAccessor.setProperty(requiredIdProperty, internalId);
-				System.out.println("that would change?");
 				//	relatedInternalId = Long.toString(internalId);
 			}
 		} else {
