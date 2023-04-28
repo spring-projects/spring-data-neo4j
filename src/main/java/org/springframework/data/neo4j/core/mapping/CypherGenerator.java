@@ -563,6 +563,7 @@ public enum CypherGenerator {
 				.with(row);
 
 		var nodeIdFunction = getNodeIdFunction(neo4jPersistentEntity);
+		var relationshipIdFunction = getRelationshipIdFunction(relationship);
 
 		// we only need start and end node querying if we have to create a new relationship...
 		if (isNew) {
@@ -580,7 +581,7 @@ public enum CypherGenerator {
 
 		// ... otherwise we can just fetch the existing relationship by known id
 		return cypherUnwind.match(relationshipFragment)
-			.where(Functions.elementId(relationshipFragment).isEqualTo(Cypher.property(row, Constants.NAME_OF_KNOWN_RELATIONSHIP_PARAM)))
+			.where(relationshipIdFunction.apply(relationshipFragment).isEqualTo(Cypher.property(row, Constants.NAME_OF_KNOWN_RELATIONSHIP_PARAM)))
 			.mutate(RELATIONSHIP_NAME, relationshipProperties).build();
 	}
 
