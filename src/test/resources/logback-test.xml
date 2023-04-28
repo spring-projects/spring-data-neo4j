@@ -30,7 +30,7 @@
     <logger name="OutboundMessageHandler" level="info"/>
     <logger name="InboundMessageDispatcher" level="info"/>
 
-    <logger name="org.springframework.data.neo4j.cypher" level="info"/>
+    <logger name="org.springframework.data.neo4j.cypher" level="trace"/>
     <logger name="org.springframework.data.neo4j" level="info"/>
     <logger name="org.springframework.data.neo4j.test" level="info"/>
     <logger name="org.springframework.data.neo4j.repository.query.Neo4jQuerySupport" level="debug" />

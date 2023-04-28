@@ -1907,7 +1907,7 @@ class ReactiveRepositoryIT {
 
 				assertThat(record.containsKey("n")).isTrue();
 				Node rootNode = record.get("n").asNode();
-				assertThat(ids.get(0)).isEqualTo(IdentitySupport.getElementId(rootNode));
+				assertThat(ids.get(0)).isEqualTo(TestIdentitySupport.getInternalId(rootNode));
 				assertThat(rootNode.get("name").asString()).isEqualTo("Freddie");
 
 				List<List<Object>> petsWithHobbies = record.get("petsWithHobbies").asList(Value::asList);
@@ -1977,7 +1977,7 @@ class ReactiveRepositoryIT {
 
 				assertThat(record.containsKey("n")).isTrue();
 				Node rootNode = record.get("n").asNode();
-				assertThat(ids.get(0)).isEqualTo(IdentitySupport.getElementId(rootNode));
+				assertThat(ids.get(0)).isEqualTo(TestIdentitySupport.getInternalId(rootNode));
 				assertThat(rootNode.get("name").asString()).isEqualTo("Freddie");
 
 				List<List<Object>> petsWithHobbies = record.get("petsWithHobbies").asList(Value::asList);
@@ -2038,7 +2038,7 @@ class ReactiveRepositoryIT {
 
 				assertThat(record.containsKey("n")).isTrue();
 				Node rootNode = record.get("n").asNode();
-				assertThat(ids.get(0)).isEqualTo(IdentitySupport.getElementId(rootNode));
+				assertThat(ids.get(0)).isEqualTo(TestIdentitySupport.getInternalId(rootNode));
 				assertThat(rootNode.get("name").asString()).isEqualTo("Freddie");
 
 				assertThat(record.get("hobbies").asList(entry -> entry.asNode().get("name").asString()))

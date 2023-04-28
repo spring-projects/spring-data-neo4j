@@ -554,16 +554,17 @@ public enum CypherGenerator {
 
 		// we only need start and end node querying if we have to create a new relationship...
 		if (isNew) {
+			System.out.println("was new");
 			return cypherUnwind
 					.match(startNode)
 					.where(nodeIdFunction.apply(startNode).isEqualTo(idProperty))
-					.match(endNode).where(endNode.elementId().isEqualTo(Cypher.property(row, Constants.TO_ID_PARAMETER_NAME)))
+					.match(endNode)
+					.where(endNode.elementId().isEqualTo(Cypher.property(row, Constants.TO_ID_PARAMETER_NAME)))
 					.create(relationshipFragment)
 					.mutate(RELATIONSHIP_NAME, relationshipProperties).returning(
 							Functions.id(relationshipFragment).as(Constants.NAME_OF_INTERNAL_ID),
 							Functions.elementId(relationshipFragment).as(Constants.NAME_OF_ELEMENT_ID)
 					).build();
-
 		}
 
 		// ... otherwise we can just fetch the existing relationship by known id

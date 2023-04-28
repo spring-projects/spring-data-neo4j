@@ -450,7 +450,7 @@ public final class ReactiveNeo4jTemplate implements
 						var elementId = IdentitySupport.getElementId(newOrUpdatedNode);
 						TemplateSupport.setGeneratedIdIfNecessary(entityMetaData, propertyAccessor, elementId, Optional.of(newOrUpdatedNode));
 						TemplateSupport.updateVersionPropertyIfPossible(entityMetaData, propertyAccessor, newOrUpdatedNode);
-						finalStateMachine.markValueAsProcessed(instance, elementId);
+						finalStateMachine.markEntityAsProcessed(instance, elementId);
 					}).map(IdentitySupport::getElementId)
 							.flatMap(internalId -> processRelations(entityMetaData,  propertyAccessor, isNewEntity, finalStateMachine, binderFunction.filter));
 				});
@@ -953,11 +953,12 @@ public final class ReactiveNeo4jTemplate implements
 							} else {
 								queryOrSave = saveRelatedNode(newRelatedObject, targetEntity, includeProperty, currentPropertyPath)
 										.map(entity -> Tuples.of(new AtomicReference<>(IdentitySupport.getElementId(entity)), new AtomicReference<>(entity)))
-										.doOnNext(entity -> {
-											stateMachine.markValueAsProcessed(relatedValueToStore, entity.getT1().get());
+										.doOnNext(t -> {
+											var relatedInternalId = t.getT1().get();
+											stateMachine.markEntityAsProcessed(relatedValueToStore, relatedInternalId);
 											if (relatedValueToStore instanceof MappingSupport.RelationshipPropertiesWithEntityHolder) {
-												Object value = ((MappingSupport.RelationshipPropertiesWithEntityHolder) relatedValueToStore).getRelatedEntity();
-												stateMachine.markValueAsProcessedAs(value, entity.getT1().get());
+												Object entity = ((MappingSupport.RelationshipPropertiesWithEntityHolder) relatedValueToStore).getRelatedEntity();
+												stateMachine.markAsAliased(entity, relatedInternalId);
 											}
 										});
 							}
@@ -967,11 +968,11 @@ public final class ReactiveNeo4jTemplate implements
 									Neo4jPersistentProperty requiredIdProperty = targetEntity.getRequiredIdProperty();
 									PersistentPropertyAccessor<?> targetPropertyAccessor = targetEntity.getPropertyAccessor(newRelatedObject);
 									Object actualRelatedId = targetPropertyAccessor.getProperty(requiredIdProperty);
-									relatedInternalId = TemplateSupport.notAGoodNameSoFar(targetEntity, targetPropertyAccessor, Optional.of(savedEntity), relatedInternalId, actualRelatedId);
+									relatedInternalId = TemplateSupport.notAGoodNameSoFar(targetEntity, targetPropertyAccessor, Optional.ofNullable(savedEntity), relatedInternalId, actualRelatedId);
 									if (savedEntity != null) {
 										TemplateSupport.updateVersionPropertyIfPossible(targetEntity, targetPropertyAccessor, savedEntity);
 									}
-									stateMachine.markValueAsProcessedAs(relatedObjectBeforeCallbacksApplied, targetPropertyAccessor.getBean());
+									stateMachine.markAsAliased(relatedObjectBeforeCallbacksApplied, targetPropertyAccessor.getBean());
 										stateMachine.markRelationshipAsProcessed(actualRelatedId == null ? relatedInternalId : actualRelatedId,
 												relationshipDescription.getRelationshipObverse());
 
@@ -1001,8 +1002,8 @@ public final class ReactiveNeo4jTemplate implements
 											.bind(idValue) //
 													.to(Constants.NAME_OF_KNOWN_RELATIONSHIP_PARAM) //
 											.bindAll(statementHolder.getProperties())
-											.fetchAs(String.class)
-											.mappedBy((t,r) -> IdentitySupport.getElementId(r))
+											.fetchAs(Object.class)
+											.mappedBy((t,r) -> IdentitySupport.mapperForRelatedIdValues(idProperty).apply(r))
 											.one()
 											.flatMap(relationshipInternalId -> {
 												if (idProperty != null && isNewRelationship) {

@@ -389,6 +389,7 @@ public final class TemplateSupport {
 			} else if (actualRelatedId == null) {
 				long internalId = databaseEntity.map(Entity::id).orElseThrow();
 				propertyAccessor.setProperty(requiredIdProperty, internalId);
+				System.out.println("that would change?");
 				//	relatedInternalId = Long.toString(internalId);
 			}
 		} else {

@@ -1737,9 +1737,8 @@ class RepositoryIT {
 		@Test
 		void updateAndCreateRelationshipProperties(@Autowired HobbyWithRelationshipWithPropertiesRepository repository) {
 
-			@SuppressWarnings("deprecation")
 			long hobbyId = doWithSession(
-					session -> session.run("CREATE (n:AltPerson{name:'Freddie'}), (n)-[l1:LIKES {rating: 5}]->(h1:AltHobby{name:'Music'}) RETURN n, h1").single().get("h1").asNode().id());
+					session -> TestIdentitySupport.getInternalId(session.run("CREATE (n:AltPerson{name:'Freddie'}), (n)-[l1:LIKES {rating: 5}]->(h1:AltHobby{name:'Music'}) RETURN n, h1").single().get("h1").asNode()));
 
 			AltHobby hobby = repository.findById(hobbyId).get();
 			assertThat(hobby.getName()).isEqualTo("Music");
@@ -1747,11 +1746,13 @@ class RepositoryIT {
 
 			AltLikedByPersonRelationship liked = new AltLikedByPersonRelationship();
 			liked.setAltPerson(new AltPerson("SomethingElse"));
+			liked.setRating(2);
 			hobby.getLikedBy().add(liked);
 
 			repository.save(hobby);
 
 			AltHobby savedHobby = repository.findById(hobbyId).get();
+			System.out.println(savedHobby.getLikedBy());
 			assertThat(savedHobby.getLikedBy()).hasSize(2);
 
 		}

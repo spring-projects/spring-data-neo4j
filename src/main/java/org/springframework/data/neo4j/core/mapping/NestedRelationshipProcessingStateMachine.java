@@ -89,8 +89,10 @@ public final class NestedRelationshipProcessingStateMachine {
 	 * @param valuesToStore Check whether all the values in the collection have been processed
 	 * @return The state of things processed
 	 */
-	public ProcessState getStateOf(Object fromId, RelationshipDescription relationshipDescription, @Nullable Collection<?> valuesToStore) {
-
+	public ProcessState getStateOf(@Nullable Object fromId, RelationshipDescription relationshipDescription, @Nullable Collection<?> valuesToStore) {
+		if (fromId == null) {
+			return ProcessState.PROCESSED_BOTH;
+		}
 		final long stamp = lock.readLock();
 		try {
 			boolean hasProcessedRelationship = hasProcessedRelationship(fromId, relationshipDescription);
@@ -116,32 +118,7 @@ public final class NestedRelationshipProcessingStateMachine {
 	 * can get processed for different objects of the same entity.
 	 * One could say that this is a Tuple but it has a nicer name.
 	 */
-	private static class RelationshipDescriptionWithSourceId {
-		private final Object id;
-		private final RelationshipDescription relationshipDescription;
-
-		RelationshipDescriptionWithSourceId(Object id, RelationshipDescription relationshipDescription) {
-			this.id = id;
-			this.relationshipDescription = relationshipDescription;
-		}
-
-		@Override
-		public boolean equals(Object o) {
-			if (this == o) {
-				return true;
-			}
-			if (o == null || getClass() != o.getClass()) {
-				return false;
-			}
-			RelationshipDescriptionWithSourceId that = (RelationshipDescriptionWithSourceId) o;
-			return id.equals(that.id) && relationshipDescription.equals(that.relationshipDescription);
-		}
-
-		@Override
-		public int hashCode() {
-			return Objects.hash(id, relationshipDescription);
-		}
-	}
+	private record RelationshipDescriptionWithSourceId(Object id, RelationshipDescription relationshipDescription) {}
 
 	/**
 	 * Marks the passed objects as processed
@@ -167,12 +144,13 @@ public final class NestedRelationshipProcessingStateMachine {
 	 * @param valueToStore If not {@literal null}, all non-null values will be marked as processed
 	 * @param elementId The internal id of the value processed
 	 */
-	public void markValueAsProcessed(Object valueToStore, String elementId) {
+	public void markEntityAsProcessed(Object valueToStore, String elementId) {
 
 		final long stamp = lock.writeLock();
 		try {
 			doMarkValueAsProcessed(valueToStore, elementId);
 			storeProcessedInAlias(valueToStore, valueToStore);
+			System.out.println(valueToStore + " bound to " + elementId);
 		} finally {
 			lock.unlock(stamp);
 		}
@@ -204,6 +182,7 @@ public final class NestedRelationshipProcessingStateMachine {
 				Neo4jPersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(typeOfValue);
 				Neo4jPersistentProperty idProperty = entity.getIdProperty();
 				Object id = idProperty == null ? null : entity.getPropertyAccessor(valueToCheck).getProperty(idProperty);
+				System.out.println("checking for " + id);
 				// After the lookup by system.identityHashCode failed for a processed object alias,
 				// we must traverse or iterate over all value with the matching type and compare the domain ids
 				// to figure out if the logical object has already been processed through a different object instance.
@@ -212,6 +191,7 @@ public final class NestedRelationshipProcessingStateMachine {
 						.filter(typeOfValue::isInstance)
 						.filter(processedObject -> id.equals(entity.getPropertyAccessor(processedObject).getProperty(idProperty)))
 						.findAny();
+				System.out.println(alreadyProcessedObject);
 				if (alreadyProcessedObject.isPresent()) { // Skip the show the next time around.
 					processed = true;
 					String internalId = getInternalId(alreadyProcessedObject.get());
@@ -237,7 +217,10 @@ public final class NestedRelationshipProcessingStateMachine {
 		if (relationshipDescription != null) {
 			final long stamp = lock.readLock();
 			try {
-				return processedRelationshipDescriptions.contains(new RelationshipDescriptionWithSourceId(fromId, relationshipDescription));
+				System.out.println("going into " + processedRelationshipDescriptions + " with  " + fromId);
+				var contains = processedRelationshipDescriptions.contains(new RelationshipDescriptionWithSourceId(fromId, relationshipDescription));
+				System.out.println("result " + contains);
+				return contains;
 			} finally {
 				lock.unlock(stamp);
 			}
@@ -245,10 +228,10 @@ public final class NestedRelationshipProcessingStateMachine {
 		return false;
 	}
 
-	public void markValueAsProcessedAs(Object valueToStore, Object bean) {
+	public void markAsAliased(Object aliasEntity, Object entityOrId) {
 		final long stamp = lock.writeLock();
 		try {
-			storeProcessedInAlias(valueToStore, bean);
+			storeProcessedInAlias(aliasEntity, entityOrId);
 		} finally {
 			lock.unlock(stamp);
 		}
@@ -303,23 +286,23 @@ public final class NestedRelationshipProcessingStateMachine {
 		processedObjectsIds.put(System.identityHashCode(initialObject), elementId);
 	}
 
-	private void storeProcessedInAlias(Object valueToStore, Object bean) {
-		processedObjectsAlias.put(System.identityHashCode(valueToStore), bean);
+	private void storeProcessedInAlias(Object aliasEntity, Object targetEntity) {
+		processedObjectsAlias.put(System.identityHashCode(aliasEntity), targetEntity);
 	}
 
 	private Object getProcessedAsWithDefaults(Object entity) {
 		return processedObjectsAlias.getOrDefault(System.identityHashCode(entity), entity);
 	}
 
-	private boolean hasProcessed(Object valueToCheck) {
-		return processedObjectsAlias.containsKey(System.identityHashCode(valueToCheck));
+	private boolean hasProcessed(Object entity) {
+		return processedObjectsAlias.containsKey(System.identityHashCode(entity));
 	}
 
-	private boolean hasProcessedAllOf(@Nullable Collection<?> valuesToStore) {
+	private boolean hasProcessedAllOf(@Nullable Collection<?> entities) {
 		// there can be null elements in the unified collection of values to store.
-		if (valuesToStore == null) {
+		if (entities == null) {
 			return false;
 		}
-		return processedObjectsIds.keySet().containsAll(valuesToStore.stream().map(System::identityHashCode).collect(Collectors.toList()));
+		return processedObjectsIds.keySet().containsAll(entities.stream().map(System::identityHashCode).toList());
 	}
 }

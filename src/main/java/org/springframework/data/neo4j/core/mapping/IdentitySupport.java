@@ -138,8 +138,8 @@ public final class IdentitySupport {
 		return relationship.endNodeElementId();
 	}
 
-	public static Function<MapAccessor, Object> mapperForRelatedIdValues(Neo4jPersistentProperty idProperty) {
-		boolean deprecatedHolder = Neo4jPersistentEntity.DEPRECATED_GENERATED_ID_TYPES.contains(idProperty.getType());
+	public static Function<MapAccessor, Object> mapperForRelatedIdValues(@Nullable Neo4jPersistentProperty idProperty) {
+		boolean deprecatedHolder = idProperty != null && Neo4jPersistentEntity.DEPRECATED_GENERATED_ID_TYPES.contains(idProperty.getType());
 		return deprecatedHolder ? IdentitySupport::getInternalId : IdentitySupport::getElementId;
 	}
 }
