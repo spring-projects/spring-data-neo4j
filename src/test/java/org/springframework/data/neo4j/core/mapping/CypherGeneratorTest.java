@@ -89,6 +89,7 @@ class CypherGeneratorTest {
 		when(relationshipDescription.isDynamic()).thenReturn(true);
 		when(persistentEntity.isUsingInternalIds()).thenReturn(true);
 		when(persistentEntity.getRequiredIdProperty()).thenReturn(persistentProperty);
+		when(persistentEntity.isUsingDeprecatedInternalId()).thenReturn(true);
 
 		Statement statement = CypherGenerator.INSTANCE.prepareSaveOfRelationship(persistentEntity,
 				relationshipDescription, "REL");
@@ -140,6 +141,7 @@ class CypherGeneratorTest {
 		when(relationshipDescription.isDynamic()).thenReturn(true);
 		when(persistentEntity.isUsingInternalIds()).thenReturn(true);
 		when(persistentEntity.getRequiredIdProperty()).thenReturn(persistentProperty);
+		when(persistentEntity.isUsingDeprecatedInternalId()).thenReturn(true);
 
 		Statement statement = CypherGenerator.INSTANCE.prepareDeleteOf(persistentEntity, relationshipDescription);
 

@@ -56,4 +56,10 @@ public interface Neo4jPersistentEntity<T>
 	 */
 	boolean isRelationshipPropertiesEntity();
 
+	/**
+	 * @return True if the underlying domain classes uses {@code id()} to compute internally generated ids.
+	 */
+	default boolean isUsingDeprecatedInternalId() {
+		return isUsingInternalIds() && Neo4jPersistentEntity.DEPRECATED_GENERATED_ID_TYPES.contains(getRequiredIdProperty().getType());
+	}
 }

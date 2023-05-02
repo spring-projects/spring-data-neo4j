@@ -359,7 +359,7 @@ public final class TemplateSupport {
 		}
 		var requiredIdProperty = entityMetaData.getRequiredIdProperty();
 		var idPropertyType = requiredIdProperty.getType();
-		if (Neo4jPersistentEntity.DEPRECATED_GENERATED_ID_TYPES.contains(idPropertyType)) {
+		if (entityMetaData.isUsingDeprecatedInternalId()) {
 			propertyAccessor.setProperty(requiredIdProperty, databaseEntity.map(IdentitySupport::getInternalId).orElseThrow());
 		} else if (idPropertyType.equals(String.class)) {
 			propertyAccessor.setProperty(requiredIdProperty, elementId);
@@ -381,9 +381,8 @@ public final class TemplateSupport {
 		}
 
 		var requiredIdProperty = entityMetadata.getRequiredIdProperty();
-		var idPropertyType = requiredIdProperty.getType();
 
-		if (Neo4jPersistentEntity.DEPRECATED_GENERATED_ID_TYPES.contains(idPropertyType)) {
+		if (entityMetadata.isUsingDeprecatedInternalId()) {
 			if (relatedInternalId == null && actualRelatedId != null) {
 				relatedInternalId = propertyAccessor.getProperty(requiredIdProperty).toString();
 			} else if (actualRelatedId == null) {
