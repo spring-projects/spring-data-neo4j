@@ -26,7 +26,7 @@ import java.util.Optional;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -59,8 +59,8 @@ class CypherGeneratorTest {
 				relationshipDescription, "REL");
 
 		String expectedQuery = "MATCH (startNode:`Entity1`) WHERE startNode.id = $fromId MATCH (endNode)"
-							   + " WHERE elementId(endNode) = $toId MERGE (startNode)<-[relProps:`REL`]-(endNode) RETURN id(relProps) AS __internalNeo4jId__, elementId(relProps) AS __elementId__";
-		Assert.assertEquals(expectedQuery, Renderer.getRenderer(Configuration.newConfig().withDialect(Dialect.NEO4J_5).build()).render(statement));
+							   + " WHERE elementId(endNode) = $toId MERGE (startNode)<-[relProps:`REL`]-(endNode) RETURN elementId(relProps) AS __elementId__";
+		Assertions.assertEquals(expectedQuery, Renderer.getRenderer(Configuration.newConfig().withDialect(Dialect.NEO4J_5).build()).render(statement));
 	}
 
 	@Test
@@ -75,8 +75,8 @@ class CypherGeneratorTest {
 
 		String expectedQuery =
 				"MATCH (startNode:`Entity1`:`MultipleLabel`) WHERE startNode.id = $fromId MATCH (endNode)"
-				+ " WHERE elementId(endNode) = $toId MERGE (startNode)<-[relProps:`REL`]-(endNode) RETURN id(relProps) AS __internalNeo4jId__, elementId(relProps) AS __elementId__";
-		Assert.assertEquals(expectedQuery, Renderer.getRenderer(Configuration.newConfig().withDialect(Dialect.NEO4J_5).build()).render(statement));
+				+ " WHERE elementId(endNode) = $toId MERGE (startNode)<-[relProps:`REL`]-(endNode) RETURN elementId(relProps) AS __elementId__";
+		Assertions.assertEquals(expectedQuery, Renderer.getRenderer(Configuration.newConfig().withDialect(Dialect.NEO4J_5).build()).render(statement));
 	}
 
 	@Test
@@ -95,8 +95,8 @@ class CypherGeneratorTest {
 				relationshipDescription, "REL");
 
 		String expectedQuery = "MATCH (startNode) WHERE id(startNode) = $fromId MATCH (endNode)"
-							   + " WHERE elementId(endNode) = $toId MERGE (startNode)<-[relProps:`REL`]-(endNode) RETURN id(relProps) AS __internalNeo4jId__, elementId(relProps) AS __elementId__";
-		Assert.assertEquals(expectedQuery, Renderer.getRenderer(Configuration.newConfig().withDialect(Dialect.NEO4J_5).build()).render(statement));
+							   + " WHERE elementId(endNode) = $toId MERGE (startNode)<-[relProps:`REL`]-(endNode) RETURN elementId(relProps) AS __elementId__";
+		Assertions.assertEquals(expectedQuery, Renderer.getRenderer(Configuration.newConfig().withDialect(Dialect.NEO4J_5).build()).render(statement));
 	}
 
 	@Test
@@ -109,7 +109,7 @@ class CypherGeneratorTest {
 		Statement statement = CypherGenerator.INSTANCE.prepareDeleteOf(persistentEntity, relationshipDescription);
 
 		String expectedQuery = "MATCH (startNode:`Entity1`)<-[rel]-(:`Entity2`) WHERE (startNode.id = $fromId AND NOT (elementId(rel) IN $__knownRelationShipIds__)) DELETE rel";
-		Assert.assertEquals(expectedQuery, Renderer.getRenderer(Configuration.newConfig().withDialect(Dialect.NEO4J_5).build()).render(statement));
+		Assertions.assertEquals(expectedQuery, Renderer.getRenderer(Configuration.newConfig().withDialect(Dialect.NEO4J_5).build()).render(statement));
 	}
 
 	@Test
@@ -124,7 +124,7 @@ class CypherGeneratorTest {
 		Statement statement = CypherGenerator.INSTANCE.prepareDeleteOf(persistentEntity, relationshipDescription);
 
 		String expectedQuery = "MATCH (startNode:`Entity1`:`MultipleLabel`)<-[rel]-(:`Entity2`:`MultipleLabel`) WHERE (startNode.id = $fromId AND NOT (elementId(rel) IN $__knownRelationShipIds__)) DELETE rel";
-		Assert.assertEquals(expectedQuery, Renderer.getRenderer(Configuration.newConfig().withDialect(Dialect.NEO4J_5).build()).render(statement));
+		Assertions.assertEquals(expectedQuery, Renderer.getRenderer(Configuration.newConfig().withDialect(Dialect.NEO4J_5).build()).render(statement));
 	}
 
 	@Test
@@ -146,7 +146,7 @@ class CypherGeneratorTest {
 		Statement statement = CypherGenerator.INSTANCE.prepareDeleteOf(persistentEntity, relationshipDescription);
 
 		String expectedQuery = "MATCH (startNode)<-[rel]-(:`Entity2`) WHERE (id(startNode) = $fromId AND NOT (elementId(rel) IN $__knownRelationShipIds__)) DELETE rel";
-		Assert.assertEquals(expectedQuery, Renderer.getRenderer(Configuration.newConfig().withDialect(Dialect.NEO4J_5).build()).render(statement));
+		Assertions.assertEquals(expectedQuery, Renderer.getRenderer(Configuration.newConfig().withDialect(Dialect.NEO4J_5).build()).render(statement));
 	}
 
 	private static Stream<Arguments> pageables() {

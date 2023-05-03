@@ -896,14 +896,14 @@ public final class ReactiveNeo4jTemplate implements
 			// This avoids the usage of cache but might have significant impact on overall performance
 			if (!isParentObjectNew && !stateMachine.hasProcessedRelationship(fromId, relationshipDescription)) {
 
-				List<Long> knownRelationshipsIds = new ArrayList<>();
+				List<Object> knownRelationshipsIds = new ArrayList<>();
 				if (idProperty != null) {
 					for (Object relatedValueToStore : relatedValuesToStore) {
 						if (relatedValueToStore == null) {
 							continue;
 						}
 
-						Long id = (Long) relationshipContext
+						Object id = relationshipContext
 								.getRelationshipPropertiesPropertyAccessor(relatedValueToStore)
 								.getProperty(idProperty);
 						if (id != null) {

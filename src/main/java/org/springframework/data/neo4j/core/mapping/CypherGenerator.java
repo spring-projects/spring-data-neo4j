@@ -396,16 +396,18 @@ public enum CypherGenerator {
 		String nameOfIdProperty = idDescription.getOptionalGraphPropertyName()
 				.orElseThrow(() -> new MappingException("External id does not correspond to a graph property"));
 
+		List<Expression> expressions = new ArrayList<>();
+		if (nodeDescription instanceof Neo4jPersistentEntity<?> entity && entity.isUsingDeprecatedInternalId()) {
+			Functions.id(rootNode).as(Constants.NAME_OF_INTERNAL_ID);
+		}
+		expressions.add(Functions.elementId(rootNode).as(Constants.NAME_OF_ELEMENT_ID));
+		expressions.add(rootNode.property(nameOfIdProperty).as(Constants.NAME_OF_ID));
+
 		String row = "entity";
 		return Cypher.unwind(parameter(Constants.NAME_OF_ENTITY_LIST_PARAM)).as(row)
 				.merge(rootNode.withProperties(nameOfIdProperty, Cypher.property(row, Constants.NAME_OF_ID)))
 				.mutate(rootNode, Cypher.property(row, Constants.NAME_OF_PROPERTIES_PARAM))
-				.returning(
-						// TODO this is not yet done vv
-						Functions.id(rootNode).as(Constants.NAME_OF_INTERNAL_ID),
-						Functions.elementId(rootNode).as(Constants.NAME_OF_ELEMENT_ID),
-						rootNode.property(nameOfIdProperty).as(Constants.NAME_OF_ID)
-				)
+				.returning(expressions)
 				.build();
 	}
 
@@ -430,10 +432,7 @@ public enum CypherGenerator {
 				.where(startNodeIdFunction.apply(startNode).isEqualTo(idParameter))
 				.match(endNode).where(Functions.elementId(endNode).isEqualTo(parameter(Constants.TO_ID_PARAMETER_NAME)))
 				.merge(relationshipFragment)
-				.returning(
-						Functions.id(relationshipFragment).as(Constants.NAME_OF_INTERNAL_ID),
-						Functions.elementId(relationshipFragment).as(Constants.NAME_OF_ELEMENT_ID)
-				)
+				.returning(getReturnedIdExpressionsForRelationship(relationship, relationshipFragment))
 				.build();
 	}
 
@@ -491,7 +490,7 @@ public enum CypherGenerator {
 				.where(getNodeIdFunction(neo4jPersistentEntity).apply(startNode).isEqualTo(idProperty))
 				.match(endNode).where(Functions.elementId(endNode).isEqualTo(Cypher.property(row, Constants.TO_ID_PARAMETER_NAME)))
 				.merge(relationshipFragment)
-				.returning(requiredIdExpressionsFor(relationship, relationshipFragment))
+				.returning(getReturnedIdExpressionsForRelationship(relationship, relationshipFragment))
 				.build();
 	}
 
@@ -530,10 +529,7 @@ public enum CypherGenerator {
 					.where(relationshipIdFunction.apply(relationshipFragment).isEqualTo(Cypher.parameter(Constants.NAME_OF_KNOWN_RELATIONSHIP_PARAM)));
 		return createOrMatch
 				.mutate(RELATIONSHIP_NAME, relationshipProperties)
-				.returning(
-						Functions.id(relationshipFragment).as(Constants.NAME_OF_INTERNAL_ID),
-						Functions.elementId(relationshipFragment).as(Constants.NAME_OF_ELEMENT_ID)
-				)
+				.returning(getReturnedIdExpressionsForRelationship(relationship, relationshipFragment))
 				.build();
 	}
 
@@ -574,7 +570,7 @@ public enum CypherGenerator {
 					.where(endNode.elementId().isEqualTo(Cypher.property(row, Constants.TO_ID_PARAMETER_NAME)))
 					.create(relationshipFragment)
 					.mutate(RELATIONSHIP_NAME, relationshipProperties)
-					.returning(requiredIdExpressionsFor(relationship, relationshipFragment))
+					.returning(getReturnedIdExpressionsForRelationship(relationship, relationshipFragment))
 					.build();
 		}
 
@@ -584,7 +580,7 @@ public enum CypherGenerator {
 			.mutate(RELATIONSHIP_NAME, relationshipProperties).build();
 	}
 
-	private static List<Expression> requiredIdExpressionsFor(RelationshipDescription relationship, Relationship relationshipFragment) {
+	private static List<Expression> getReturnedIdExpressionsForRelationship(RelationshipDescription relationship, Relationship relationshipFragment) {
 		List<Expression> result = new ArrayList<>();
 		if (relationship.hasRelationshipProperties() && relationship.getRelationshipPropertiesEntity() instanceof Neo4jPersistentEntity<?> entity && entity.isUsingDeprecatedInternalId()) {
 			result.add(Functions.id(relationshipFragment).as(Constants.NAME_OF_INTERNAL_ID));

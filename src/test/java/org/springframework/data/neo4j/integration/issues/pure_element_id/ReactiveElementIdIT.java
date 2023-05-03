@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -26,45 +27,51 @@ import org.neo4j.driver.Driver;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.neo4j.core.DatabaseSelectionProvider;
+import org.springframework.data.neo4j.core.ReactiveDatabaseSelectionProvider;
 import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
-import org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager;
-import org.springframework.data.neo4j.repository.Neo4jRepository;
-import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
+import org.springframework.data.neo4j.core.transaction.ReactiveNeo4jTransactionManager;
+import org.springframework.data.neo4j.repository.ReactiveNeo4jRepository;
+import org.springframework.data.neo4j.repository.config.EnableReactiveNeo4jRepositories;
 import org.springframework.data.neo4j.test.BookmarkCapture;
 import org.springframework.data.neo4j.test.LogbackCapture;
 import org.springframework.data.neo4j.test.LogbackCapturingExtension;
-import org.springframework.data.neo4j.test.Neo4jImperativeTestConfiguration;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
+import org.springframework.data.neo4j.test.Neo4jReactiveTestConfiguration;
 import org.springframework.lang.NonNull;
-import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.ReactiveTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 /**
- * Assertions that no {@code id()} calls are generated when no deprecated id types are present
+ * Assertions that no {@code id()} calls are generated when no deprecated id types are present.
+ * This test deliberately uses blocking calls into reactor because it's really not about the reactive flows but about
+ * catching all the code paths that might interact with ids on the reactive side of things. Yes, Reactors testing tools
+ * are known.
  *
  * @author Michael J. Simons
  */
 @Neo4jIntegrationTest
 @ExtendWith(LogbackCapturingExtension.class)
-public class ImperativeElementIdIT extends AbstractTestBase {
+public class ReactiveElementIdIT extends AbstractTestBase {
 
-	interface Repo1 extends Neo4jRepository<NodeWithGeneratedId1, String> {
+
+	interface Repo1 extends ReactiveNeo4jRepository<NodeWithGeneratedId1, String> {
 	}
 
-	interface Repo2 extends Neo4jRepository<NodeWithGeneratedId2, String> {
+	interface Repo2 extends ReactiveNeo4jRepository<NodeWithGeneratedId2, String> {
 	}
 
-	interface Repo3 extends Neo4jRepository<NodeWithGeneratedId3, String> {
+	interface Repo3 extends ReactiveNeo4jRepository<NodeWithGeneratedId3, String> {
 	}
 
-	interface Repo4 extends Neo4jRepository<NodeWithGeneratedId4, String> {
+	interface Repo4 extends ReactiveNeo4jRepository<NodeWithGeneratedId4, String> {
 	}
+
 
 	@Test
 	void simpleNodeCreationShouldFillIdAndNotUseIdFunction(LogbackCapture logbackCapture, @Autowired Repo1 repo1) {
 
-		var node = repo1.save(new NodeWithGeneratedId1("from-sdn-repo"));
+		var node = repo1.save(new NodeWithGeneratedId1("from-sdn-repo")).block();
+		assertThat(node).isNotNull();
 		assertThat(node.getId())
 				.matches(validIdForCurrentNeo4j());
 		assertThatLogMessageDoNotIndicateIDUsage(logbackCapture);
@@ -73,7 +80,7 @@ public class ImperativeElementIdIT extends AbstractTestBase {
 	@Test
 	void simpleNodeAllCreationShouldFillIdAndNotUseIdFunction(LogbackCapture logbackCapture, @Autowired Repo1 repo1) {
 
-		var nodes = repo1.saveAll(List.of(new NodeWithGeneratedId1("from-sdn-repo")));
+		var nodes = repo1.saveAll(List.of(new NodeWithGeneratedId1("from-sdn-repo"))).collectList().block();
 		assertThat(nodes).isNotEmpty()
 				.extracting(NodeWithGeneratedId1::getId)
 				.allMatch(validIdForCurrentNeo4j());
@@ -88,7 +95,7 @@ public class ImperativeElementIdIT extends AbstractTestBase {
 			id = session.run("CREATE (n:NodeWithGeneratedId1 {value: 'whatever'}) RETURN n").single().get("n").asNode().elementId();
 		}
 
-		var optionalNode = repo1.findById(id);
+		var optionalNode = Optional.ofNullable(repo1.findById(id).block());
 		assertThat(optionalNode).map(NodeWithGeneratedId1::getValue)
 				.hasValue("whatever");
 		assertThatLogMessageDoNotIndicateIDUsage(logbackCapture);
@@ -101,7 +108,7 @@ public class ImperativeElementIdIT extends AbstractTestBase {
 			session.run("CREATE (n:NodeWithGeneratedId1 {value: 'whatever'}) RETURN n").single().get("n").asNode().elementId();
 		}
 
-		var nodes = repo1.findAll();
+		var nodes = repo1.findAll().collectList().block();
 		assertThat(nodes).isNotEmpty()
 				.extracting(NodeWithGeneratedId1::getId)
 				.allMatch(validIdForCurrentNeo4j());
@@ -118,7 +125,7 @@ public class ImperativeElementIdIT extends AbstractTestBase {
 			node.setId(dbNode.elementId());
 		}
 
-		node = repo1.save(node);
+		node = repo1.save(node).block();
 		assertThat(node).extracting(NodeWithGeneratedId1::getValue)
 				.isEqualTo("whatever_edited");
 		assertThatLogMessageDoNotIndicateIDUsage(logbackCapture);
@@ -134,7 +141,7 @@ public class ImperativeElementIdIT extends AbstractTestBase {
 			node.setId(dbNode.elementId());
 		}
 
-		var nodes = repo1.saveAll(List.of(node));
+		var nodes = repo1.saveAll(List.of(node)).collectList().block();
 		assertThat(nodes).isNotEmpty()
 				.extracting(NodeWithGeneratedId1::getId)
 				.allMatch(validIdForCurrentNeo4j());
@@ -146,8 +153,9 @@ public class ImperativeElementIdIT extends AbstractTestBase {
 
 		var owner = new NodeWithGeneratedId2("owner");
 		owner.setRelatedNodes(List.of(new NodeWithGeneratedId1("child1"), new NodeWithGeneratedId1("child2")));
-		owner = repo2.save(owner);
+		owner = repo2.save(owner).block();
 
+		assertThat(owner).isNotNull();
 		assertThat(owner.getId()).isNotNull();
 		assertThat(owner.getRelatedNodes())
 				.allSatisfy(owned -> assertThat(owned.getId()).matches(validIdForCurrentNeo4j()));
@@ -165,7 +173,8 @@ public class ImperativeElementIdIT extends AbstractTestBase {
 			ownedId = row.get("m").asNode().elementId();
 		}
 
-		var owner = repo2.findById(ownerId).orElseThrow();
+		var owner = repo2.findById(ownerId).block();
+		assertThat(owner).isNotNull();
 		assertThat(owner.getRelatedNodes())
 				.hasSize(1)
 				.first()
@@ -176,7 +185,7 @@ public class ImperativeElementIdIT extends AbstractTestBase {
 		owner.getRelatedNodes().get(0).setValue("owned_changed");
 		owner.setValue("owner_changed");
 
-		repo2.save(owner);
+		repo2.save(owner).block();
 
 		assertThatLogMessageDoNotIndicateIDUsage(logbackCapture);
 
@@ -203,7 +212,8 @@ public class ImperativeElementIdIT extends AbstractTestBase {
 						new RelWithProps(target2, "vr2"))
 		);
 
-		owner = repo3.save(owner);
+		owner = repo3.save(owner).block();
+		assertThat(owner).isNotNull();
 		assertThat(owner.getId()).matches(validIdForCurrentNeo4j());
 		assertThat(owner.getRelatedNodes())
 				.hasSize(2)
@@ -235,13 +245,14 @@ public class ImperativeElementIdIT extends AbstractTestBase {
 			).single().get(0).asString();
 		}
 
-		var owner = repo3.findById(ownerId).orElseThrow();
+		var owner = repo3.findById(ownerId).block();
+		assertThat(owner).isNotNull();
 		owner.setValue("owner_updated");
 		var rel = owner.getRelatedNodes().get(0);
 		rel.setRelValue("whatever");
 		rel.getTarget().setValue("owned_updated");
 
-		repo3.save(owner);
+		repo3.save(owner).block();
 
 		assertThatLogMessageDoNotIndicateIDUsage(logbackCapture);
 
@@ -264,10 +275,11 @@ public class ImperativeElementIdIT extends AbstractTestBase {
 		intermediate.setEnd(new NodeWithGeneratedId4("end"));
 		owner.setIntermediate(intermediate);
 
-		owner = repo4.save(owner);
+		owner = repo4.save(owner).block();
 		assertThatLogMessageDoNotIndicateIDUsage(logbackCapture);
 
 		var validIdForCurrentNeo4j = validIdForCurrentNeo4j();
+		assertThat(owner).isNotNull();
 		assertThat(owner.getId()).matches(validIdForCurrentNeo4j);
 		assertThat(owner.getIntermediate().getId()).matches(validIdForCurrentNeo4j);
 		assertThat(owner.getIntermediate().getEnd().getId()).matches(validIdForCurrentNeo4j);
@@ -280,7 +292,7 @@ public class ImperativeElementIdIT extends AbstractTestBase {
 					  AND elementId(e) = $id3
 					RETURN count(*)""";
 			var count = session.run(adaptQueryTo44IfNecessary(query),
-					Map.of("v1", "owner", "v2", "end", "id1", owner.getId(), "id2", owner.getIntermediate().getId(), "id3", owner.getIntermediate().getEnd().getId()))
+							Map.of("v1", "owner", "v2", "end", "id1", owner.getId(), "id2", owner.getIntermediate().getId(), "id3", owner.getIntermediate().getEnd().getId()))
 					.single().get(0).asLong();
 			assertThat(count).isEqualTo(1L);
 		}
@@ -297,25 +309,27 @@ public class ImperativeElementIdIT extends AbstractTestBase {
 					.single().get(0).asString();
 		}
 
-		var owner = repo4.findAllById(List.of(ownerId)).get(0);
+		var owner = repo4.findAllById(List.of(ownerId)).blockFirst();
+		assertThat(owner).isNotNull();
 		owner.setValue("owner");
 		owner.getIntermediate().getEnd().setValue("end");
 
-		owner = repo4.save(owner);
+		owner = repo4.save(owner).block();
 		assertThatLogMessageDoNotIndicateIDUsage(logbackCapture);
 
 		var validIdForCurrentNeo4j = validIdForCurrentNeo4j();
+		assertThat(owner).isNotNull();
 		assertThat(owner.getId()).matches(validIdForCurrentNeo4j);
 		assertThat(owner.getIntermediate().getId()).matches(validIdForCurrentNeo4j);
 		assertThat(owner.getIntermediate().getEnd().getId()).matches(validIdForCurrentNeo4j);
 
 		try (var session = driver.session(bookmarkCapture.createSessionConfig())) {
 			var count = session.run(adaptQueryTo44IfNecessary("""
-							MATCH (n:NodeWithGeneratedId4 {value: $v1}) -[r:INTERMEDIATE]-> (i:Intermediate) -[:END]-> (e:NodeWithGeneratedId4 {value: $v2})
-							WHERE elementId(n) = $id1
-							  AND elementId(i) = $id2
-							  AND elementId(e) = $id3
-							RETURN count(*)"""),
+									MATCH (n:NodeWithGeneratedId4 {value: $v1}) -[r:INTERMEDIATE]-> (i:Intermediate) -[:END]-> (e:NodeWithGeneratedId4 {value: $v2})
+									WHERE elementId(n) = $id1
+									  AND elementId(i) = $id2
+									  AND elementId(e) = $id3
+									RETURN count(*)"""),
 							Map.of("v1", "owner", "v2", "end", "id1", owner.getId(), "id2", owner.getIntermediate().getId(), "id3", owner.getIntermediate().getEnd().getId()))
 					.single().get(0).asLong();
 			assertThat(count).isEqualTo(1L);
@@ -330,8 +344,8 @@ public class ImperativeElementIdIT extends AbstractTestBase {
 
 	@Configuration
 	@EnableTransactionManagement
-	@EnableNeo4jRepositories(considerNestedRepositories = true)
-	static class Config extends Neo4jImperativeTestConfiguration {
+	@EnableReactiveNeo4jRepositories(considerNestedRepositories = true)
+	static class Config extends Neo4jReactiveTestConfiguration {
 
 		@Bean
 		public BookmarkCapture bookmarkCapture() {
@@ -340,10 +354,10 @@ public class ImperativeElementIdIT extends AbstractTestBase {
 
 		@Override
 		@NonNull
-		public PlatformTransactionManager transactionManager(@NonNull Driver driver, @NonNull DatabaseSelectionProvider databaseNameProvider) {
+		public ReactiveTransactionManager reactiveTransactionManager(@NonNull Driver driver, @NonNull ReactiveDatabaseSelectionProvider databaseSelectionProvider) {
 
 			BookmarkCapture bookmarkCapture = bookmarkCapture();
-			return new Neo4jTransactionManager(driver, databaseNameProvider,
+			return new ReactiveNeo4jTransactionManager(driver, databaseSelectionProvider,
 					Neo4jBookmarkManager.create(bookmarkCapture));
 		}
 
