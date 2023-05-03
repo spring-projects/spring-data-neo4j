@@ -483,12 +483,6 @@ public enum CypherGenerator {
 				startNode.relationshipTo(endNode, type) :
 				startNode.relationshipFrom(endNode, type)).named(RELATIONSHIP_NAME);
 
-		List<Expression> expressions = new ArrayList<>();
-		if (relationship instanceof Neo4jPersistentEntity<?> entity && entity.isUsingDeprecatedInternalId()) {
-			expressions.add(Functions.id(relationshipFragment).as(Constants.NAME_OF_INTERNAL_ID));
-		}
-		expressions.add(Functions.elementId(relationshipFragment).as(Constants.NAME_OF_ELEMENT_ID));
-
 		String row = "relationship";
 		Property idProperty = Cypher.property(row, Constants.FROM_ID_PARAMETER_NAME);
 		return Cypher.unwind(parameter(Constants.NAME_OF_RELATIONSHIP_LIST_PARAM)).as(row)
@@ -497,7 +491,7 @@ public enum CypherGenerator {
 				.where(getNodeIdFunction(neo4jPersistentEntity).apply(startNode).isEqualTo(idProperty))
 				.match(endNode).where(Functions.elementId(endNode).isEqualTo(Cypher.property(row, Constants.TO_ID_PARAMETER_NAME)))
 				.merge(relationshipFragment)
-				.returning(expressions)
+				.returning(requiredIdExpressionsFor(relationship, relationshipFragment))
 				.build();
 	}
 
@@ -579,16 +573,24 @@ public enum CypherGenerator {
 					.match(endNode)
 					.where(endNode.elementId().isEqualTo(Cypher.property(row, Constants.TO_ID_PARAMETER_NAME)))
 					.create(relationshipFragment)
-					.mutate(RELATIONSHIP_NAME, relationshipProperties).returning(
-							Functions.id(relationshipFragment).as(Constants.NAME_OF_INTERNAL_ID),
-							Functions.elementId(relationshipFragment).as(Constants.NAME_OF_ELEMENT_ID)
-					).build();
+					.mutate(RELATIONSHIP_NAME, relationshipProperties)
+					.returning(requiredIdExpressionsFor(relationship, relationshipFragment))
+					.build();
 		}
 
 		// ... otherwise we can just fetch the existing relationship by known id
 		return cypherUnwind.match(relationshipFragment)
 			.where(relationshipIdFunction.apply(relationshipFragment).isEqualTo(Cypher.property(row, Constants.NAME_OF_KNOWN_RELATIONSHIP_PARAM)))
 			.mutate(RELATIONSHIP_NAME, relationshipProperties).build();
+	}
+
+	private static List<Expression> requiredIdExpressionsFor(RelationshipDescription relationship, Relationship relationshipFragment) {
+		List<Expression> result = new ArrayList<>();
+		if (relationship.hasRelationshipProperties() && relationship.getRelationshipPropertiesEntity() instanceof Neo4jPersistentEntity<?> entity && entity.isUsingDeprecatedInternalId()) {
+			result.add(Functions.id(relationshipFragment).as(Constants.NAME_OF_INTERNAL_ID));
+		}
+		result.add(Functions.elementId(relationshipFragment).as(Constants.NAME_OF_ELEMENT_ID));
+		return result;
 	}
 
 	@NonNull

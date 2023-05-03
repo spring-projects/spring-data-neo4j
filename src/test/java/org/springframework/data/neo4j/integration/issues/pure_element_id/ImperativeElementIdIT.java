@@ -19,6 +19,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.function.Predicate;
+import java.util.regex.Pattern;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -69,12 +72,39 @@ public class ImperativeElementIdIT {
 	interface Repo2 extends Neo4jRepository<NodeWithGeneratedId2, String> {
 	}
 
+	interface Repo3 extends Neo4jRepository<NodeWithGeneratedId3, String> {
+	}
+
+	interface Repo4 extends Neo4jRepository<NodeWithGeneratedId4, String> {
+	}
+
+
+	private static final Pattern NEO5J_ELEMENT_ID_PATTERN = Pattern.compile("\\d+:.+:\\d+");
+
+	Predicate<String> validIdForCurrentNeo4j() {
+		Predicate<String> nonNull = Objects::nonNull;
+
+		if (neo4jConnectionSupport.isCypher5SyntaxCompatible()) {
+			return nonNull.and(NEO5J_ELEMENT_ID_PATTERN.asMatchPredicate());
+		}
+
+		// Must be a valid long, and yes, I know how to write a pattern for that, too
+		return nonNull.and(v -> {
+			try {
+				Long.parseLong(v);
+			} catch (NumberFormatException e) {
+				return false;
+			}
+			return true;
+		});
+	}
+
 	@Test
 	void simpleNodeCreationShouldFillIdAndNotUseIdFunction(LogbackCapture logbackCapture, @Autowired Repo1 repo1) {
 
 		var node = repo1.save(new NodeWithGeneratedId1("from-sdn-repo"));
 		assertThat(node.getId())
-				.isNotNull();
+				.matches(validIdForCurrentNeo4j());
 		assertThatLogMessageDoNotIndicateIDUsage(logbackCapture);
 	}
 
@@ -83,8 +113,8 @@ public class ImperativeElementIdIT {
 
 		var nodes = repo1.saveAll(List.of(new NodeWithGeneratedId1("from-sdn-repo")));
 		assertThat(nodes).isNotEmpty()
-				.noneMatch(v -> v.getId() == null)
-				.isNotNull();
+				.extracting(NodeWithGeneratedId1::getId)
+				.allMatch(validIdForCurrentNeo4j());
 		assertThatLogMessageDoNotIndicateIDUsage(logbackCapture);
 	}
 
@@ -111,8 +141,8 @@ public class ImperativeElementIdIT {
 
 		var nodes = repo1.findAll();
 		assertThat(nodes).isNotEmpty()
-				.noneMatch(v -> v.getId() == null)
-				.isNotNull();
+				.extracting(NodeWithGeneratedId1::getId)
+				.allMatch(validIdForCurrentNeo4j());
 		assertThatLogMessageDoNotIndicateIDUsage(logbackCapture);
 	}
 
@@ -144,8 +174,8 @@ public class ImperativeElementIdIT {
 
 		var nodes = repo1.saveAll(List.of(node));
 		assertThat(nodes).isNotEmpty()
-				.noneMatch(v -> v.getId() == null)
-				.isNotNull();
+				.extracting(NodeWithGeneratedId1::getId)
+				.allMatch(validIdForCurrentNeo4j());
 		assertThatLogMessageDoNotIndicateIDUsage(logbackCapture);
 	}
 
@@ -158,7 +188,7 @@ public class ImperativeElementIdIT {
 
 		assertThat(owner.getId()).isNotNull();
 		assertThat(owner.getRelatedNodes())
-				.allSatisfy(owned -> assertThat(owned.getId()).isNotNull());
+				.allSatisfy(owned -> assertThat(owned.getId()).matches(validIdForCurrentNeo4j()));
 		assertThatLogMessageDoNotIndicateIDUsage(logbackCapture);
 	}
 
@@ -189,17 +219,153 @@ public class ImperativeElementIdIT {
 		assertThatLogMessageDoNotIndicateIDUsage(logbackCapture);
 
 		try (var session = driver.session(bookmarkCapture.createSessionConfig())) {
-			var count = session.run("""
+			var count = session.run(adaptQueryTo44IfNecessary("""
 							MATCH (n:NodeWithGeneratedId2 {value: $v1}) -[r:RELATED_NODES] -> (m:NodeWithGeneratedId1 {value: $v2})
 							WHERE elementId(n) = $id1 AND elementId(m) = $id2
-							RETURN count(*)""",
+							RETURN count(*)"""),
 					Map.of("v1", "owner_changed", "v2", "owned_changed", "id1", ownerId, "id2", ownedId)).single().get(0).asLong();
 			assertThat(count).isOne();
 		}
 	}
 
-	// TODO rels with cycles
-	// TODO rels withs props
+	@Test
+	void relsWithPropOnCreation(LogbackCapture logbackCapture, @Autowired Repo3 repo3, @Autowired BookmarkCapture bookmarkCapture, @Autowired Driver driver) {
+
+		var owner = new NodeWithGeneratedId3("owner");
+		var target1 = new NodeWithGeneratedId1("target1");
+		var target2 = new NodeWithGeneratedId1("target2");
+
+		owner.setRelatedNodes(
+				List.of(
+						new RelWithProps(target1, "vr1"),
+						new RelWithProps(target2, "vr2"))
+		);
+
+		owner = repo3.save(owner);
+		assertThat(owner.getId()).matches(validIdForCurrentNeo4j());
+		assertThat(owner.getRelatedNodes())
+				.hasSize(2)
+				.allSatisfy(r -> assertThat(r.getTarget().getId()).isNotNull())
+				.extracting(RelWithProps::getRelValue)
+				.containsExactlyInAnyOrder("vr1", "vr2");
+
+		assertThatLogMessageDoNotIndicateIDUsage(logbackCapture);
+
+		try (var session = driver.session(bookmarkCapture.createSessionConfig())) {
+			var count = session.run(adaptQueryTo44IfNecessary("""
+							MATCH (n:NodeWithGeneratedId3 {value: $v1}) -[r:RELATED_NODES] -> (m:NodeWithGeneratedId1)
+							WHERE elementId(n) = $id1
+							  AND r.relValue IN $rv
+							RETURN count(*)"""),
+					Map.of("v1", "owner", "id1", owner.getId(), "rv", List.of("vr1", "vr2"))).single().get(0).asLong();
+			assertThat(count).isEqualTo(2L);
+		}
+	}
+
+	@Test
+	void relsWithPropOnUpdate(LogbackCapture logbackCapture, @Autowired Repo3 repo3, @Autowired BookmarkCapture bookmarkCapture, @Autowired Driver driver) {
+
+		String ownerId;
+		try (var session = driver.session(bookmarkCapture.createSessionConfig())) {
+			ownerId = session.run(adaptQueryTo44IfNecessary("""
+					CREATE (n:NodeWithGeneratedId3 {value: 'owner'}) -[r:RELATED_NODES] -> (m:NodeWithGeneratedId1 {value: 'owned'})
+					RETURN elementId(n)""")
+			).single().get(0).asString();
+		}
+
+		var owner = repo3.findById(ownerId).orElseThrow();
+		owner.setValue("owner_updated");
+		var rel = owner.getRelatedNodes().get(0);
+		rel.setRelValue("whatever");
+		rel.getTarget().setValue("owned_updated");
+
+		repo3.save(owner);
+
+		assertThatLogMessageDoNotIndicateIDUsage(logbackCapture);
+
+		try (var session = driver.session(bookmarkCapture.createSessionConfig())) {
+			var count = session.run(adaptQueryTo44IfNecessary("""
+							MATCH (n:NodeWithGeneratedId3 {value: $v1}) -[r:RELATED_NODES] -> (m:NodeWithGeneratedId1 {value: $v2})
+							WHERE elementId(n) = $id1
+							  AND r.relValue IN $rv
+							RETURN count(*)"""),
+					Map.of("v1", "owner_updated", "v2", "owned_updated", "id1", owner.getId(), "rv", List.of("whatever"))).single().get(0).asLong();
+			assertThat(count).isEqualTo(1L);
+		}
+	}
+
+	@Test
+	void relsWithsCyclesOnCreation(LogbackCapture logbackCapture, @Autowired Repo4 repo4, @Autowired BookmarkCapture bookmarkCapture, @Autowired Driver driver) {
+
+		var owner = new NodeWithGeneratedId4("owner");
+		var intermediate = new NodeWithGeneratedId4.Intermediate();
+		intermediate.setEnd(new NodeWithGeneratedId4("end"));
+		owner.setIntermediate(intermediate);
+
+		owner = repo4.save(owner);
+		assertThatLogMessageDoNotIndicateIDUsage(logbackCapture);
+
+		var validIdForCurrentNeo4j = validIdForCurrentNeo4j();
+		assertThat(owner.getId()).matches(validIdForCurrentNeo4j);
+		assertThat(owner.getIntermediate().getId()).matches(validIdForCurrentNeo4j);
+		assertThat(owner.getIntermediate().getEnd().getId()).matches(validIdForCurrentNeo4j);
+
+		try (var session = driver.session(bookmarkCapture.createSessionConfig())) {
+			var query = """
+					MATCH (n:NodeWithGeneratedId4 {value: $v1}) -[r:INTERMEDIATE]-> (i:Intermediate) -[:END]-> (e:NodeWithGeneratedId4 {value: $v2})
+					WHERE elementId(n) = $id1
+					  AND elementId(i) = $id2
+					  AND elementId(e) = $id3
+					RETURN count(*)""";
+			var count = session.run(adaptQueryTo44IfNecessary(query),
+					Map.of("v1", "owner", "v2", "end", "id1", owner.getId(), "id2", owner.getIntermediate().getId(), "id3", owner.getIntermediate().getEnd().getId()))
+					.single().get(0).asLong();
+			assertThat(count).isEqualTo(1L);
+		}
+	}
+
+	private static String adaptQueryTo44IfNecessary(String query) {
+		if (!neo4jConnectionSupport.isCypher5SyntaxCompatible()) {
+			query = query.replaceAll("elementId\\((.+?)\\)", "toString(id($1))");
+		}
+		return query;
+	}
+
+	@Test
+	void relsWithsCyclesOnUpdate(LogbackCapture logbackCapture, @Autowired Repo4 repo4, @Autowired BookmarkCapture bookmarkCapture, @Autowired Driver driver) {
+
+		String ownerId;
+		try (var session = driver.session(bookmarkCapture.createSessionConfig())) {
+			ownerId = session.run(adaptQueryTo44IfNecessary("""
+							CREATE (n:NodeWithGeneratedId4 {value: 'a'}) -[r:INTERMEDIATE]-> (i:Intermediate) -[:END]-> (e:NodeWithGeneratedId4 {value: 'b'})
+							RETURN elementId(n)"""))
+					.single().get(0).asString();
+		}
+
+		var owner = repo4.findAllById(List.of(ownerId)).get(0);
+		owner.setValue("owner");
+		owner.getIntermediate().getEnd().setValue("end");
+
+		owner = repo4.save(owner);
+		assertThatLogMessageDoNotIndicateIDUsage(logbackCapture);
+
+		var validIdForCurrentNeo4j = validIdForCurrentNeo4j();
+		assertThat(owner.getId()).matches(validIdForCurrentNeo4j);
+		assertThat(owner.getIntermediate().getId()).matches(validIdForCurrentNeo4j);
+		assertThat(owner.getIntermediate().getEnd().getId()).matches(validIdForCurrentNeo4j);
+
+		try (var session = driver.session(bookmarkCapture.createSessionConfig())) {
+			var count = session.run(adaptQueryTo44IfNecessary("""
+							MATCH (n:NodeWithGeneratedId4 {value: $v1}) -[r:INTERMEDIATE]-> (i:Intermediate) -[:END]-> (e:NodeWithGeneratedId4 {value: $v2})
+							WHERE elementId(n) = $id1
+							  AND elementId(i) = $id2
+							  AND elementId(e) = $id3
+							RETURN count(*)"""),
+							Map.of("v1", "owner", "v2", "end", "id1", owner.getId(), "id2", owner.getIntermediate().getId(), "id3", owner.getIntermediate().getEnd().getId()))
+					.single().get(0).asLong();
+			assertThat(count).isEqualTo(1L);
+		}
+	}
 
 	private static void assertThatLogMessageDoNotIndicateIDUsage(LogbackCapture logbackCapture) {
 		assertThat(logbackCapture.getFormattedMessages())
