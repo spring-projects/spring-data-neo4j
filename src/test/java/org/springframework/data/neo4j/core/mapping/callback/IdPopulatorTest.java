@@ -58,7 +58,7 @@ class IdPopulatorTest {
 	@Test
 	void shouldIgnoreInternalIdGenerator() {
 
-		IdDescription toBeReturned = IdDescription.forInternallyGeneratedIds(Constants.NAME_OF_ROOT_NODE);
+		IdDescription toBeReturned = IdDescription.forInternallyGeneratedIds(Constants.NAME_OF_ROOT_NODE, true);
 		doReturn(toBeReturned).when(nodeDescription).getIdDescription();
 		doReturn(nodeDescription).when(neo4jMappingContext).getRequiredPersistentEntity(Sample.class);
 

@@ -67,4 +67,12 @@ public class AltLikedByPersonRelationship {
 	public int hashCode() {
 		return Objects.hash(rating, altPerson);
 	}
+
+	@Override
+	public String toString() {
+		return "AltLikedByPersonRelationship{" +
+				"rating=" + rating +
+				", altPerson=" + altPerson.getName() +
+				'}';
+	}
 }

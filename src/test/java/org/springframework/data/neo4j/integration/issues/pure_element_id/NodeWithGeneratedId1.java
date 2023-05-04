@@ -13,15 +13,41 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.core.schema;
+package org.springframework.data.neo4j.integration.issues.pure_element_id;
+
+import org.springframework.data.neo4j.core.schema.GeneratedValue;
+import org.springframework.data.neo4j.core.schema.Id;
+import org.springframework.data.neo4j.core.schema.Node;
 
 /**
- * Default representation of an element id.
- *
  * @author Michael J. Simons
- * @param value The ids value
- * @soundtrack GötterDÄmmerung - Tribut an die beste Band der Welt
- * @since 7.0.0
  */
-record DefaultElementId(String value) implements ElementId {
+@Node
+public class NodeWithGeneratedId1 {
+
+	@Id
+	@GeneratedValue
+	private String id;
+
+	private String value;
+
+	public NodeWithGeneratedId1(String value) {
+		this.value = value;
+	}
+
+	public void setId(String id) {
+		this.id = id;
+	}
+
+	public String getId() {
+		return id;
+	}
+
+	public String getValue() {
+		return value;
+	}
+
+	public void setValue(String value) {
+		this.value = value;
+	}
 }

@@ -904,7 +904,7 @@ class Neo4jMappingContextTest {
 	static class InvalidIdType {
 
 		@Id @GeneratedValue @SuppressWarnings("unused")
-		private String id;
+		private Double id;
 	}
 
 	@Node

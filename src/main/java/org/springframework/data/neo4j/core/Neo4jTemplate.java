@@ -409,23 +409,21 @@ public final class Neo4jTemplate implements
 			throw new IllegalStateException("Could not retrieve an internal id while saving");
 		}
 
-		Long internalId = newOrUpdatedNode.map(IdentitySupport::getInternalId).get();
+		String elementId = newOrUpdatedNode.map(IdentitySupport::getElementId).get();
 
 		PersistentPropertyAccessor<T> propertyAccessor = entityMetaData.getPropertyAccessor(entityToBeSaved);
-		if (entityMetaData.isUsingInternalIds()) {
-			propertyAccessor.setProperty(entityMetaData.getRequiredIdProperty(), internalId);
-		}
+		TemplateSupport.setGeneratedIdIfNecessary(entityMetaData, propertyAccessor, elementId, newOrUpdatedNode);
 		TemplateSupport.updateVersionPropertyIfPossible(entityMetaData, propertyAccessor, newOrUpdatedNode.get());
 
 		if (stateMachine == null) {
-			stateMachine = new NestedRelationshipProcessingStateMachine(neo4jMappingContext, instance, internalId);
+			stateMachine = new NestedRelationshipProcessingStateMachine(neo4jMappingContext, instance, elementId);
 		}
 
-		stateMachine.markValueAsProcessed(instance, internalId);
+		stateMachine.markEntityAsProcessed(instance, elementId);
 		processRelations(entityMetaData, propertyAccessor, isEntityNew, stateMachine, binderFunction.filter);
 
 		T bean = propertyAccessor.getBean();
-		stateMachine.markValueAsProcessedAs(instance, bean);
+		stateMachine.markAsAliased(instance, bean);
 		return bean;
 	}
 
@@ -510,21 +508,21 @@ public final class Neo4jTemplate implements
 		binderFunction = TemplateSupport.createAndApplyPropertyFilter(pps, entityMetaData, binderFunction);
 		List<Map<String, Object>> entityList = entitiesToBeSaved.stream().map(h -> h.modifiedInstance).map(binderFunction)
 				.collect(Collectors.toList());
-		Map<Value, Long> idToInternalIdMapping = neo4jClient
+		Map<Value, String> idToInternalIdMapping = neo4jClient
 				.query(() -> renderer.render(cypherGenerator.prepareSaveOfMultipleInstancesOf(entityMetaData)))
 				.bind(entityList).to(Constants.NAME_OF_ENTITY_LIST_PARAM)
 				.fetchAs(Map.Entry.class)
-				.mappedBy((t, r) -> new AbstractMap.SimpleEntry<>(r.get(Constants.NAME_OF_ID), r.get(Constants.NAME_OF_INTERNAL_ID).asLong()))
+				.mappedBy((t, r) -> new AbstractMap.SimpleEntry<>(r.get(Constants.NAME_OF_ID), r.get(Constants.NAME_OF_ELEMENT_ID).asString()))
 				.all()
 				.stream()
-				.collect(Collectors.toMap(m -> (Value) m.getKey(), m -> (Long) m.getValue()));
+				.collect(Collectors.toMap(m -> (Value) m.getKey(), m -> (String) m.getValue()));
 
 		// Save related
 		return entitiesToBeSaved.stream().map(t -> {
 			PersistentPropertyAccessor<T> propertyAccessor = entityMetaData.getPropertyAccessor(t.modifiedInstance);
 			Neo4jPersistentProperty idProperty = entityMetaData.getRequiredIdProperty();
 			Object id = convertIdValues(idProperty, propertyAccessor.getProperty(idProperty));
-			Long internalId = idToInternalIdMapping.get(id);
+			String internalId = idToInternalIdMapping.get(id);
 			return this.<T>processRelations(entityMetaData, propertyAccessor, t.wasNew, new NestedRelationshipProcessingStateMachine(neo4jMappingContext, t.originalInstance, internalId), TemplateSupport.computeIncludePropertyPredicate(pps, entityMetaData));
 		}).collect(Collectors.toList());
 	}
@@ -757,14 +755,14 @@ public final class Neo4jTemplate implements
 			// This avoids the usage of cache but might have significant impact on overall performance
 			if (!isParentObjectNew && !stateMachine.hasProcessedRelationship(fromId, relationshipDescription)) {
 
-				List<Long> knownRelationshipsIds = new ArrayList<>();
+				List<Object> knownRelationshipsIds = new ArrayList<>();
 				if (idProperty != null) {
 					for (Object relatedValueToStore : relatedValuesToStore) {
 						if (relatedValueToStore == null) {
 							continue;
 						}
 
-						Long id = (Long) relationshipContext.getRelationshipPropertiesPropertyAccessor(relatedValueToStore).getProperty(idProperty);
+						Object id = relationshipContext.getRelationshipPropertiesPropertyAccessor(relatedValueToStore).getProperty(idProperty);
 						if (id != null) {
 							knownRelationshipsIds.add(id);
 						}
@@ -809,37 +807,30 @@ public final class Neo4jTemplate implements
 						? stateMachine.getProcessedAs(relatedObjectBeforeCallbacksApplied)
 						: eventSupport.maybeCallBeforeBind(relatedObjectBeforeCallbacksApplied);
 
-				Long relatedInternalId;
+				String relatedInternalId;
 				Entity savedEntity = null;
 				// No need to save values if processed
 				if (stateMachine.hasProcessedValue(relatedValueToStore)) {
-					relatedInternalId = stateMachine.getInternalId(relatedValueToStore);
+					relatedInternalId = stateMachine.getObjectId(relatedValueToStore);
 				} else {
 					savedEntity = saveRelatedNode(newRelatedObject, targetEntity, includeProperty, currentPropertyPath);
-					relatedInternalId = IdentitySupport.getInternalId(savedEntity);
-					stateMachine.markValueAsProcessed(relatedValueToStore, relatedInternalId);
+					relatedInternalId = IdentitySupport.getElementId(savedEntity);
+					stateMachine.markEntityAsProcessed(relatedValueToStore, relatedInternalId);
 					if (relatedValueToStore instanceof MappingSupport.RelationshipPropertiesWithEntityHolder) {
 						Object entity = ((MappingSupport.RelationshipPropertiesWithEntityHolder) relatedValueToStore).getRelatedEntity();
-						stateMachine.markValueAsProcessedAs(entity, relatedInternalId);
+						stateMachine.markAsAliased(entity, relatedInternalId);
 					}
 				}
 
 				Neo4jPersistentProperty requiredIdProperty = targetEntity.getRequiredIdProperty();
 				PersistentPropertyAccessor<?> targetPropertyAccessor = targetEntity.getPropertyAccessor(newRelatedObject);
-				Object actualRelatedId = targetPropertyAccessor.getProperty(requiredIdProperty);
-				// if an internal id is used this must be set to link this entity in the next iteration
-				if (targetEntity.isUsingInternalIds()) {
-					if (relatedInternalId == null && actualRelatedId != null) {
-						relatedInternalId = (Long) targetPropertyAccessor.getProperty(requiredIdProperty);
-					} else if (actualRelatedId == null) {
-						targetPropertyAccessor.setProperty(requiredIdProperty, relatedInternalId);
-					}
-				}
+				Object possibleInternalLongId = targetPropertyAccessor.getProperty(requiredIdProperty);
+				relatedInternalId = TemplateSupport.retrieveOrSetRelatedId(targetEntity, targetPropertyAccessor, Optional.ofNullable(savedEntity), relatedInternalId);
 				if (savedEntity != null) {
 					TemplateSupport.updateVersionPropertyIfPossible(targetEntity, targetPropertyAccessor, savedEntity);
 				}
-				stateMachine.markValueAsProcessedAs(relatedObjectBeforeCallbacksApplied, targetPropertyAccessor.getBean());
-				stateMachine.markRelationshipAsProcessed(actualRelatedId == null ? relatedInternalId : actualRelatedId,
+				stateMachine.markAsAliased(relatedObjectBeforeCallbacksApplied, targetPropertyAccessor.getBean());
+				stateMachine.markRelationshipAsProcessed(possibleInternalLongId == null ? relatedInternalId : possibleInternalLongId,
 						relationshipDescription.getRelationshipObverse());
 
 				Object idValue = idProperty != null
@@ -854,42 +845,43 @@ public final class Neo4jTemplate implements
 				boolean isNewRelationship = idValue == null;
 				if (relationshipDescription.isDynamic()) {
 					// create new dynamic relationship properties
-					 if (relationshipDescription.hasRelationshipProperties() && isNewRelationship && idProperty != null) {
-							CreateRelationshipStatementHolder statementHolder = neo4jMappingContext.createStatementForSingleRelationship(
-									sourceEntity, relationshipDescription, relatedValueToStore, true);
+					if (relationshipDescription.hasRelationshipProperties() && isNewRelationship && idProperty != null) {
+						CreateRelationshipStatementHolder statementHolder = neo4jMappingContext.createStatementForSingleRelationship(
+								sourceEntity, relationshipDescription, relatedValueToStore, true);
 
-						 List<Object> row = Collections.singletonList(properties);
-						 statementHolder = statementHolder.addProperty(Constants.NAME_OF_RELATIONSHIP_LIST_PARAM, row);
+						List<Object> row = Collections.singletonList(properties);
+						statementHolder = statementHolder.addProperty(Constants.NAME_OF_RELATIONSHIP_LIST_PARAM, row);
 
-				Optional<Long> relationshipInternalId = neo4jClient.query(renderer.render(statementHolder.getStatement()))
-						.bind(convertIdValues(sourceEntity.getRequiredIdProperty(), fromId)) //
-							.to(Constants.FROM_ID_PARAMETER_NAME) //
-						.bind(relatedInternalId) //
-							.to(Constants.TO_ID_PARAMETER_NAME) //
-						.bind(idValue) //
-							.to(Constants.NAME_OF_KNOWN_RELATIONSHIP_PARAM) //
-						.bindAll(statementHolder.getProperties())
-						.fetchAs(Long.class)
-						.mappedBy(IdentitySupport::getInternalId)
-						.one();
+						Optional<Object> relationshipInternalId = neo4jClient.query(renderer.render(statementHolder.getStatement()))
+								.bind(convertIdValues(sourceEntity.getRequiredIdProperty(), fromId)) //
+								.to(Constants.FROM_ID_PARAMETER_NAME) //
+								.bind(relatedInternalId) //
+								.to(Constants.TO_ID_PARAMETER_NAME) //
+								.bind(idValue) //
+								.to(Constants.NAME_OF_KNOWN_RELATIONSHIP_PARAM) //
+								.bindAll(statementHolder.getProperties())
+								.fetchAs(Object.class)
+								.mappedBy((t, r) -> IdentitySupport.mapperForRelatedIdValues(idProperty).apply(r))
+								.one();
 
-						 assignIdToRelationshipProperties(relationshipContext, relatedValueToStore, idProperty, relationshipInternalId.get());
-					 } else { // plain (new or to update) dynamic relationship or dynamic relationships with properties to update
-						 CreateRelationshipStatementHolder statementHolder = neo4jMappingContext.createStatementForSingleRelationship(
-								 sourceEntity, relationshipDescription, relatedValueToStore, false);
+						assignIdToRelationshipProperties(relationshipContext, relatedValueToStore, idProperty, relationshipInternalId.orElseThrow());
+					} else { // plain (new or to update) dynamic relationship or dynamic relationships with properties to update
 
-						 List<Object> row = Collections.singletonList(properties);
-							 statementHolder = statementHolder.addProperty(Constants.NAME_OF_RELATIONSHIP_LIST_PARAM, row);
-							 neo4jClient.query(renderer.render(statementHolder.getStatement()))
-									 .bind(convertIdValues(sourceEntity.getRequiredIdProperty(), fromId)) //
-									 .to(Constants.FROM_ID_PARAMETER_NAME) //
-									 .bind(relatedInternalId) //
-									 .to(Constants.TO_ID_PARAMETER_NAME) //
-									 .bind(idValue)
-									 .to(Constants.NAME_OF_KNOWN_RELATIONSHIP_PARAM) //
-									 .bindAll(statementHolder.getProperties())
-									 .run();
-						}
+						CreateRelationshipStatementHolder statementHolder = neo4jMappingContext.createStatementForSingleRelationship(
+								sourceEntity, relationshipDescription, relatedValueToStore, false);
+
+						List<Object> row = Collections.singletonList(properties);
+						statementHolder = statementHolder.addProperty(Constants.NAME_OF_RELATIONSHIP_LIST_PARAM, row);
+						neo4jClient.query(renderer.render(statementHolder.getStatement()))
+								.bind(convertIdValues(sourceEntity.getRequiredIdProperty(), fromId)) //
+								.to(Constants.FROM_ID_PARAMETER_NAME) //
+								.bind(relatedInternalId) //
+								.to(Constants.TO_ID_PARAMETER_NAME) //
+								.bind(idValue)
+								.to(Constants.NAME_OF_KNOWN_RELATIONSHIP_PARAM) //
+								.bindAll(statementHolder.getProperties())
+								.run();
+					}
 				} else if (relationshipDescription.hasRelationshipProperties() && isNewRelationship && idProperty != null) {
 					newRelationshipPropertiesRows.add(properties);
 					newRelatedValuesToStore.add(relatedValueToStore);
@@ -913,7 +905,6 @@ public final class Neo4jTemplate implements
 								relationshipProperty.isDynamicAssociation(),
 								relatedValueToStore,
 								targetPropertyAccessor);
-
 				relationshipHandler.handle(relatedValueToStore, relatedObjectBeforeCallbacksApplied, potentiallyRecreatedNewRelatedObject);
 			}
 			// batch operations
@@ -937,14 +928,15 @@ public final class Neo4jTemplate implements
 				if (!newRelatedValuesToStore.isEmpty()) {
 					CreateRelationshipStatementHolder statementHolder = neo4jMappingContext.createStatementForImperativeRelationshipsWithPropertiesBatch(true,
 							sourceEntity, relationshipDescription, newRelatedValuesToStore, newRelationshipPropertiesRows);
-
-					List<Long> all = new ArrayList<>(neo4jClient.query(renderer.render(statementHolder.getStatement()))
+					List<Object> all = new ArrayList<>(neo4jClient.query(renderer.render(statementHolder.getStatement()))
 							.bindAll(statementHolder.getProperties())
-							.fetchAs(Long.class).mappedBy(IdentitySupport::getInternalId).all());
+							.fetchAs(Object.class)
+							.mappedBy((t, r) -> IdentitySupport.mapperForRelatedIdValues(idProperty).apply(r))
+							.all());
 					// assign new ids
 					for (int i = 0; i < all.size(); i++) {
-						Long aLong = all.get(i);
-						assignIdToRelationshipProperties(relationshipContext, newRelatedValuesToStore.get(i), idProperty, aLong);
+						Object anId = all.get(i);
+						assignIdToRelationshipProperties(relationshipContext, newRelatedValuesToStore.get(i), idProperty, anId);
 					}
 				}
 			}
@@ -957,7 +949,12 @@ public final class Neo4jTemplate implements
 		return finalSubgraphRoot;
 	}
 
-	private void assignIdToRelationshipProperties(NestedRelationshipContext relationshipContext, Object relatedValueToStore, Neo4jPersistentProperty idProperty, Long relationshipInternalId) {
+	private void assignIdToRelationshipProperties(
+			NestedRelationshipContext relationshipContext,
+			Object relatedValueToStore,
+			Neo4jPersistentProperty idProperty,
+			Object relationshipInternalId
+	) {
 		relationshipContext
 				.getRelationshipPropertiesPropertyAccessor(relatedValueToStore)
 				.setProperty(idProperty, relationshipInternalId);
@@ -1171,12 +1168,12 @@ public final class Neo4jTemplate implements
 			Map<String, Object> usedParameters = new HashMap<>(parameters);
 			usedParameters.putAll(rootNodesStatement.getCatalog().getParameters());
 
-			final Collection<Long> rootNodeIds = new HashSet<>(neo4jClient
+			final Collection<String> rootNodeIds = new HashSet<>(neo4jClient
 					.query(renderer.render(rootNodesStatement))
 					.bindAll(usedParameters)
 					.fetchAs(Value.class).mappedBy((t, r) -> r.get(Constants.NAME_OF_SYNTHESIZED_ROOT_NODE))
 					.one()
-					.map(value -> value.asList(Value::asLong))
+					.map(value -> value.asList(Value::asString))
 					.get());
 
 			if (rootNodeIds.isEmpty()) {
@@ -1184,8 +1181,8 @@ public final class Neo4jTemplate implements
 				return NodesAndRelationshipsByIdStatementProvider.EMPTY;
 			}
 			// load first level relationships
-			final Set<Long> relationshipIds = new HashSet<>();
-			final Set<Long> relatedNodeIds = new HashSet<>();
+			final Set<String> relationshipIds = new HashSet<>();
+			final Set<String> relatedNodeIds = new HashSet<>();
 
 			for (RelationshipDescription relationshipDescription : entityMetaData.getRelationshipsInHierarchy(queryFragments::includeField)) {
 
@@ -1205,8 +1202,8 @@ public final class Neo4jTemplate implements
 			return new NodesAndRelationshipsByIdStatementProvider(rootNodeIds, relationshipIds, relatedNodeIds, queryFragments);
 		}
 
-		private void iterateNextLevel(Collection<Long> nodeIds, RelationshipDescription sourceRelationshipDescription, Set<Long> relationshipIds,
-									  Set<Long> relatedNodeIds, PropertyPathWalkStep currentPathStep) {
+		private void iterateNextLevel(Collection<String> nodeIds, RelationshipDescription sourceRelationshipDescription, Set<String> relationshipIds,
+									  Set<String> relatedNodeIds, PropertyPathWalkStep currentPathStep) {
 
 			Neo4jPersistentEntity<?> target = (Neo4jPersistentEntity<?>) sourceRelationshipDescription.getTarget();
 
@@ -1233,7 +1230,7 @@ public final class Neo4jTemplate implements
 
 				Statement statement = cypherGenerator
 						.prepareMatchOf(target, relationshipDescription, null,
-								Functions.id(node).in(Cypher.parameter(Constants.NAME_OF_IDS)))
+								Functions.elementId(node).in(Cypher.parameter(Constants.NAME_OF_IDS)))
 						.returning(cypherGenerator.createGenericReturnStatement()).build();
 
 				neo4jClient.query(renderer.render(statement))
@@ -1245,20 +1242,20 @@ public final class Neo4jTemplate implements
 		}
 
 		@NonNull
-		private Consumer<Map<String, Object>> iterateAndMapNextLevel(Set<Long> relationshipIds,
-																	 Set<Long> relatedNodeIds,
+		private Consumer<Map<String, Object>> iterateAndMapNextLevel(Set<String> relationshipIds,
+																	 Set<String> relatedNodeIds,
 																	 RelationshipDescription relationshipDescription,
 																	 PropertyPathWalkStep currentPathStep) {
 
 			return record -> {
 				@SuppressWarnings("unchecked")
-				List<Long> newRelationshipIds = (List<Long>) record.get(Constants.NAME_OF_SYNTHESIZED_RELATIONS);
+				List<String> newRelationshipIds = (List<String>) record.get(Constants.NAME_OF_SYNTHESIZED_RELATIONS);
 				relationshipIds.addAll(newRelationshipIds);
 
 				@SuppressWarnings("unchecked")
-				List<Long> newRelatedNodeIds = (List<Long>) record.get(Constants.NAME_OF_SYNTHESIZED_RELATED_NODES);
+				List<String> newRelatedNodeIds = (List<String>) record.get(Constants.NAME_OF_SYNTHESIZED_RELATED_NODES);
 
-				Set<Long> relatedIds = new HashSet<>(newRelatedNodeIds);
+				Set<String> relatedIds = new HashSet<>(newRelatedNodeIds);
 				// use this list to get down the road
 				// 1. remove already visited ones;
 				relatedIds.removeAll(relatedNodeIds);

@@ -54,7 +54,6 @@ import org.springframework.data.mapping.model.EntityInstantiators;
 import org.springframework.data.mapping.model.ParameterValueProvider;
 import org.springframework.data.neo4j.core.convert.Neo4jConversionService;
 import org.springframework.data.neo4j.core.mapping.callback.EventSupport;
-import org.springframework.data.neo4j.core.schema.ElementId;
 import org.springframework.data.neo4j.core.schema.TargetNode;
 import org.springframework.data.util.ReflectionUtils;
 import org.springframework.data.util.TypeInformation;
@@ -148,7 +147,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 				Node node = value.asNode();
 				if (primaryLabels.stream().anyMatch(node::hasLabel)) { // it has a matching label
 					// We haven't seen this node yet, so we take it
-					if (knownObjects.getObject("N" + IdentitySupport.getInternalId(node)) == null) {
+					if (knownObjects.getObject("N" + IdentitySupport.getElementId(node)) == null) {
 						matchingNodes.add(node);
 					} else {
 						seenMatchingNodes.add(node);
@@ -281,7 +280,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 		Map<String, Object> mergedAttributes = new HashMap<>(node.size() + record.size() + 1);
 
 		mergedAttributes.put(Constants.NAME_OF_INTERNAL_ID, IdentitySupport.getInternalId(node));
-		mergedAttributes.put(Constants.NAME_OF_ELEMENT_ID, ElementId.of(node).value());
+		mergedAttributes.put(Constants.NAME_OF_ELEMENT_ID, node.elementId());
 		mergedAttributes.put(Constants.NAME_OF_LABELS, node.labels());
 		mergedAttributes.putAll(node.asMap(Function.identity()));
 		mergedAttributes.putAll(record.asMap(Function.identity()));
@@ -310,7 +309,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 		// losing the central access. The behaviour of knowObjects should take different sources of ids into account,
 		// as relationships and nodes might have overlapping values
 		String direction = relationshipDescription != null ? relationshipDescription.getDirection().name() : null;
-		String internalId = IdentitySupport.getInternalId(queryResult, direction);
+		String internalId = IdentitySupport.getPrefixedElementId(queryResult, direction);
 
 		Supplier<ET> mappedObjectSupplier = () -> {
 			knownObjects.setInCreation(internalId);
@@ -656,11 +655,18 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 		List<Object> relationshipsAndProperties = new ArrayList<>();
 
 		if (Values.NULL.equals(list)) {
-			Long sourceNodeId = IdentitySupport.getInternalId(values);
-			//Long sourceNodeId = getInternalIdAsLong(values);
-
-			Function<Relationship, Long> sourceIdSelector = relationshipDescription.isIncoming() ? IdentitySupport::getEndId : IdentitySupport::getStartId;
-			Function<Relationship, Long> targetIdSelector = relationshipDescription.isIncoming() ? IdentitySupport::getStartId : IdentitySupport::getEndId;
+			String sourceNodeId;
+			Function<Relationship, String> sourceIdSelector;
+			Function<Relationship, String> targetIdSelector = relationshipDescription.isIncoming() ? Relationship::startNodeElementId : Relationship::endNodeElementId;
+			if (IdentitySupport.getElementId(values) == null) {
+				// this can happen when someone used dto mapping and added the "classical" approach
+				sourceNodeId = Optional.ofNullable(IdentitySupport.getInternalId(values)).map(l -> Long.toString(l)).orElseThrow();
+				Function<Relationship, Long> hlp = relationshipDescription.isIncoming() ? Relationship::endNodeId : Relationship::startNodeId;
+				sourceIdSelector = hlp.andThen(l -> Long.toString(l));
+			} else {
+				sourceNodeId = IdentitySupport.getElementId(values);
+				sourceIdSelector = relationshipDescription.isIncoming() ? Relationship::endNodeElementId : Relationship::startNodeElementId;
+			}
 
 			// Retrieve all matching relationships from the result's list(s)
 			Collection<Relationship> allMatchingTypeRelationshipsInResult =
@@ -671,21 +677,21 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 			Collection<Node> allNodesWithMatchingLabelInResult = extractMatchingNodes(nodesFromResult, targetLabel);
 
 			for (Node possibleValueNode : allNodesWithMatchingLabelInResult) {
-				long targetNodeId = IdentitySupport.getInternalId(possibleValueNode);
+				String targetNodeId = IdentitySupport.getElementId(possibleValueNode);
 
 				Neo4jPersistentEntity<?> concreteTargetNodeDescription =
 						getMostConcreteTargetNodeDescription(genericTargetNodeDescription, possibleValueNode);
 
 				Set<Relationship> relationshipsProcessed = new HashSet<>();
 				for (Relationship possibleRelationship : allMatchingTypeRelationshipsInResult) {
-					if (targetIdSelector.apply(possibleRelationship) == targetNodeId) {
+					if (targetIdSelector.apply(possibleRelationship).equals(targetNodeId)) {
 
 						// Reduce the amount of relationships in the candidate list.
 						// If this relationship got processed twice (OUTGOING, INCOMING), it is never needed again
 						// and therefor should not be in the list.
 						// Otherwise, for highly linked data it could potentially cause a StackOverflowError.
 						String direction = relationshipDescription.getDirection().name();
-						if (knownObjects.hasProcessedRelationshipCompletely("R" + direction + IdentitySupport.getInternalId(possibleRelationship))) {
+						if (knownObjects.hasProcessedRelationshipCompletely("R" + direction + IdentitySupport.getElementId(possibleRelationship))) {
 							relationshipsFromResult.remove(possibleRelationship);
 						}
 						// If the target is the same(equal) node, get the related object from the cache.
@@ -711,7 +717,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 							if (fetchMore) {
 								relationshipProperties = map(possibleRelationship, relationshipPropertiesEntity, relationshipPropertiesEntity, mappedObject, relationshipDescription, relationshipsFromResult, nodesFromResult);
 							} else {
-								Object objectFromStore = knownObjects.getObject(IdentitySupport.getInternalId(possibleRelationship, relationshipDescription.getDirection().name()));
+								Object objectFromStore = knownObjects.getObject(IdentitySupport.getPrefixedElementId(possibleRelationship, relationshipDescription.getDirection().name()));
 								relationshipProperties = objectFromStore != null
 									? objectFromStore
 									: map(possibleRelationship, relationshipPropertiesEntity, relationshipPropertiesEntity, mappedObject, relationshipDescription, relationshipsFromResult, nodesFromResult);
@@ -736,7 +742,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 				if (fetchMore) {
 					valueEntry = map(relatedEntity, concreteTargetNodeDescription, genericNodeDescription, null, null, relationshipsFromResult, nodesFromResult);
 				} else {
-					Object objectFromStore = knownObjects.getObject(IdentitySupport.getInternalId(relatedEntity, null));
+					Object objectFromStore = knownObjects.getObject(IdentitySupport.getPrefixedElementId(relatedEntity, null));
 					valueEntry = objectFromStore != null
 						? objectFromStore
 						: map(relatedEntity, concreteTargetNodeDescription, genericNodeDescription, null, null, relationshipsFromResult, nodesFromResult);
@@ -754,7 +760,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 					if (fetchMore) {
 						relationshipProperties = map(relatedEntityRelationship, relationshipPropertiesEntity, relationshipPropertiesEntity, valueEntry, relationshipDescription, relationshipsFromResult, nodesFromResult);
 					} else {
-						Object objectFromStore = knownObjects.getObject(IdentitySupport.getInternalId(relatedEntityRelationship, relationshipDescription.getDirection().name()));
+						Object objectFromStore = knownObjects.getObject(IdentitySupport.getPrefixedElementId(relatedEntityRelationship, relationshipDescription.getDirection().name()));
 						relationshipProperties = objectFromStore != null
 							? objectFromStore
 							: map(relatedEntityRelationship, relationshipPropertiesEntity, relationshipPropertiesEntity, valueEntry, relationshipDescription, relationshipsFromResult, nodesFromResult);
@@ -832,13 +838,15 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 				.filter(this.relationshipType::isTypeOf)
 				.map(Value::asRelationship)
 				.forEach(allRelationshipsInResult::add);
-
 		return allRelationshipsInResult;
 	}
 
 	private static Value extractValueOf(Neo4jPersistentProperty property, MapAccessor propertyContainer) {
 		if (property.isInternalIdProperty()) {
-			return Values.value(IdentitySupport.getInternalId(propertyContainer));
+			if (Neo4jPersistentEntity.DEPRECATED_GENERATED_ID_TYPES.contains(property.getType())) {
+				return Values.value(IdentitySupport.getInternalId(propertyContainer));
+			}
+			return Values.value(IdentitySupport.getElementId(propertyContainer));
 		} else if (property.isComposite()) {
 			String prefix = property.computePrefixWithDelimiter();
 
@@ -924,7 +932,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 
 			try {
 				read.lock();
-				return internalIdStore.containsKey(IdentitySupport.getInternalId(node));
+				return internalIdStore.containsKey(IdentitySupport.getElementId(node));
 			} finally {
 				read.unlock();
 			}

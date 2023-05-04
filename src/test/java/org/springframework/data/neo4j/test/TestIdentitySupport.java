@@ -13,33 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.core.schema;
+package org.springframework.data.neo4j.test;
 
 import org.neo4j.driver.types.Entity;
 
 /**
- * A Neo4j element id.
- *
  * @author Michael J. Simons
- * @soundtrack GötterDÄmmerung - Tribut an die beste Band der Welt
- * @since 7.0.0
  */
-public interface ElementId {
-
-	static ElementId of(String value) {
-		return new DefaultElementId(value);
-	}
+public final class TestIdentitySupport {
 
 	/**
 	 * @param entity The entity container as received from the server.
-	 * @return The element id
+	 * @return The internal id
 	 */
-	static ElementId of(Entity entity) {
-		return of(entity.elementId());
+	@SuppressWarnings("deprecation")
+	public static Long getInternalId(Entity entity) {
+		return entity.id();
 	}
 
-	/**
-	 * @return A unique textual representation.
-	 */
-	String value();
+	private TestIdentitySupport() {
+	}
 }

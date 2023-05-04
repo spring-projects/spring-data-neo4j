@@ -16,6 +16,7 @@
 package org.springframework.data.neo4j.core.mapping;
 
 import java.util.Optional;
+import java.util.Set;
 
 import org.apiguardian.api.API;
 import org.springframework.data.mapping.AssociationHandler;
@@ -40,6 +41,8 @@ import org.springframework.data.mapping.model.MutablePersistentEntity;
 public interface Neo4jPersistentEntity<T>
 		extends MutablePersistentEntity<T, Neo4jPersistentProperty>, NodeDescription<T> {
 
+	Set<Class<?>> DEPRECATED_GENERATED_ID_TYPES = Set.of(Long.class, long.class);
+
 	/**
 	 * @return An optional property pointing to a {@link java.util.Collection Collection&lt;String&gt;} containing dynamic
 	 *         "runtime managed" labels.
@@ -53,4 +56,10 @@ public interface Neo4jPersistentEntity<T>
 	 */
 	boolean isRelationshipPropertiesEntity();
 
+	/**
+	 * @return True if the underlying domain classes uses {@code id()} to compute internally generated ids.
+	 */
+	default boolean isUsingDeprecatedInternalId() {
+		return isUsingInternalIds() && Neo4jPersistentEntity.DEPRECATED_GENERATED_ID_TYPES.contains(getRequiredIdProperty().getType());
+	}
 }

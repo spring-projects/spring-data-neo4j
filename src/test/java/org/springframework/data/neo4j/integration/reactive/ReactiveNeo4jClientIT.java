@@ -17,23 +17,6 @@ package org.springframework.data.neo4j.integration.reactive;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import org.neo4j.cypherdsl.core.Statement;
-import org.neo4j.cypherdsl.core.executables.ExecutableResultStatement;
-import org.neo4j.driver.Query;
-import org.neo4j.driver.Record;
-import org.neo4j.driver.SimpleQueryRunner;
-import org.neo4j.driver.async.AsyncQueryRunner;
-import org.neo4j.driver.reactivestreams.ReactiveQueryRunner;
-import org.neo4j.driver.reactivestreams.ReactiveResult;
-import org.neo4j.driver.summary.ResultSummary;
-import org.reactivestreams.Publisher;
-import org.springframework.data.neo4j.core.mapping.IdentitySupport;
-import org.springframework.data.neo4j.test.Neo4jReactiveTestConfiguration;
-
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
-import reactor.test.StepVerifier;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -48,9 +31,19 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.neo4j.cypherdsl.core.Cypher;
 import org.neo4j.cypherdsl.core.Node;
+import org.neo4j.cypherdsl.core.Statement;
+import org.neo4j.cypherdsl.core.executables.ExecutableResultStatement;
 import org.neo4j.driver.Driver;
+import org.neo4j.driver.Query;
+import org.neo4j.driver.Record;
 import org.neo4j.driver.Session;
+import org.neo4j.driver.SimpleQueryRunner;
 import org.neo4j.driver.Transaction;
+import org.neo4j.driver.async.AsyncQueryRunner;
+import org.neo4j.driver.reactivestreams.ReactiveQueryRunner;
+import org.neo4j.driver.reactivestreams.ReactiveResult;
+import org.neo4j.driver.summary.ResultSummary;
+import org.reactivestreams.Publisher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -62,9 +55,15 @@ import org.springframework.data.neo4j.integration.shared.common.PersonWithAllCon
 import org.springframework.data.neo4j.test.BookmarkCapture;
 import org.springframework.data.neo4j.test.Neo4jExtension.Neo4jConnectionSupport;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
+import org.springframework.data.neo4j.test.Neo4jReactiveTestConfiguration;
+import org.springframework.data.neo4j.test.TestIdentitySupport;
 import org.springframework.transaction.ReactiveTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.reactive.TransactionalOperator;
+
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
 /**
  * @author Michael J. Simons
@@ -99,7 +98,7 @@ class ReactiveNeo4jClientIT {
 		transactionalOperator.execute(transaction -> {
 					Flux<Long> inner = client.getQueryRunner()
 							.flatMapMany(statement::fetchWith)
-							.doOnNext(r -> vanishedId.set(IdentitySupport.getInternalId(r.get("n").asNode())))
+							.doOnNext(r -> vanishedId.set(TestIdentitySupport.getInternalId(r.get("n").asNode())))
 							.map(record -> record.get("n").get("value").asLong());
 
 					transaction.setRollbackOnly();

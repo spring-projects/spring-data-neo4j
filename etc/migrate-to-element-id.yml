@@ -1,0 +1,15 @@
+
+# Run with
+# ./mvnw org.openrewrite.maven:rewrite-maven-plugin:dryRun \
+#   -Drewrite.checkstyleDetectionEnabled=false \
+#   -Drewrite.configLocation=etc/migrate-to-element-id.yml \
+#   -Drewrite.activeRecipes=sdn.elementId.rewriteIdCalls
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: sdn.elementId.rewriteIdCalls
+displayName: Change calls to Functions.id to Functions.elemenetId
+recipeList:
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: org.neo4j.cypherdsl.core.Functions id(..)
+      newMethodName: elementId
+      ignoreDefinition: true

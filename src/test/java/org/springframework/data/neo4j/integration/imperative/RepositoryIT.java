@@ -98,7 +98,6 @@ import org.springframework.data.neo4j.core.Neo4jTemplate;
 import org.springframework.data.neo4j.core.UserSelection;
 import org.springframework.data.neo4j.core.UserSelectionProvider;
 import org.springframework.data.neo4j.core.convert.Neo4jConversions;
-import org.springframework.data.neo4j.core.mapping.IdentitySupport;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
 import org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager;
@@ -162,6 +161,7 @@ import org.springframework.data.neo4j.test.BookmarkCapture;
 import org.springframework.data.neo4j.test.Neo4jExtension;
 import org.springframework.data.neo4j.test.Neo4jImperativeTestConfiguration;
 import org.springframework.data.neo4j.test.ServerVersion;
+import org.springframework.data.neo4j.test.TestIdentitySupport;
 import org.springframework.data.neo4j.types.CartesianPoint2d;
 import org.springframework.data.neo4j.types.GeographicPoint2d;
 import org.springframework.data.repository.query.FluentQuery;
@@ -736,9 +736,9 @@ class RepositoryIT {
 			Record record = doWithSession(session -> session.run(
 					"CREATE (p1:Pet{name: 'Pet1'})-[:Has]->(p2:Pet{name: 'Pet2'}), (p2)-[:Has]->(p3:Pet{name: 'Pet3'}) RETURN p1, p2, p3").single());
 
-			long petNode1Id = IdentitySupport.getInternalId(record.get("p1").asNode());
-			long petNode2Id = IdentitySupport.getInternalId(record.get("p2").asNode());
-			long petNode3Id = IdentitySupport.getInternalId(record.get("p3").asNode());
+			long petNode1Id = TestIdentitySupport.getInternalId(record.get("p1").asNode());
+			long petNode2Id = TestIdentitySupport.getInternalId(record.get("p2").asNode());
+			long petNode3Id = TestIdentitySupport.getInternalId(record.get("p3").asNode());
 
 			Pet loadedPet = repository.customQueryWithDeepRelationshipMapping(petNode1Id);
 
@@ -910,12 +910,12 @@ class RepositoryIT {
 			Node petNode1 = record.get("p1").asNode();
 			Node petNode2 = record.get("p2").asNode();
 
-			long personId = IdentitySupport.getInternalId(personNode);
-			long clubId = IdentitySupport.getInternalId(clubNode);
-			long hobbyNode1Id = IdentitySupport.getInternalId(hobbyNode1);
-			long hobbyNode2Id = IdentitySupport.getInternalId(hobbyNode2);
-			long petNode1Id = IdentitySupport.getInternalId(petNode1);
-			long petNode2Id = IdentitySupport.getInternalId(petNode2);
+			long personId = TestIdentitySupport.getInternalId(personNode);
+			long clubId = TestIdentitySupport.getInternalId(clubNode);
+			long hobbyNode1Id = TestIdentitySupport.getInternalId(hobbyNode1);
+			long hobbyNode2Id = TestIdentitySupport.getInternalId(hobbyNode2);
+			long petNode1Id = TestIdentitySupport.getInternalId(petNode1);
+			long petNode2Id = TestIdentitySupport.getInternalId(petNode2);
 
 			PersonWithRelationship loadedPerson = repository.findById(personId).get();
 			assertThat(loadedPerson.getName()).isEqualTo("Freddie");
@@ -950,9 +950,9 @@ class RepositoryIT {
 			Record record = doWithSession(session -> session.run(
 					"CREATE (p1:Pet{name: 'Pet1'})-[:Has]->(p2:Pet{name: 'Pet2'}), (p2)-[:Has]->(p3:Pet{name: 'Pet3'}) RETURN p1, p2, p3").single());
 
-			long petNode1Id = IdentitySupport.getInternalId(record.get("p1").asNode());
-			long petNode2Id = IdentitySupport.getInternalId(record.get("p2").asNode());
-			long petNode3Id = IdentitySupport.getInternalId(record.get("p3").asNode());
+			long petNode1Id = TestIdentitySupport.getInternalId(record.get("p1").asNode());
+			long petNode2Id = TestIdentitySupport.getInternalId(record.get("p2").asNode());
+			long petNode3Id = TestIdentitySupport.getInternalId(record.get("p3").asNode());
 
 			Pet loadedPet = repository.findById(petNode1Id).get();
 			Pet comparisonPet2 = new Pet(petNode2Id, "Pet2");
@@ -998,7 +998,7 @@ class RepositoryIT {
 		@Test
 		void findLoopingDeepRelationships(@Autowired LoopingRelationshipRepository loopingRelationshipRepository) {
 
-			long type1Id = IdentitySupport.getInternalId(doWithSession(session -> session.run("""
+			long type1Id = TestIdentitySupport.getInternalId(doWithSession(session -> session.run("""
 				CREATE (t1:LoopingType1)-[:NEXT_TYPE]->(:LoopingType2)-[:NEXT_TYPE]->(:LoopingType3)-[:NEXT_TYPE]->
 				(:LoopingType1)-[:NEXT_TYPE]->(:LoopingType2)-[:NEXT_TYPE]->(:LoopingType3)-[:NEXT_TYPE]->
 				(:LoopingType1)-[:NEXT_TYPE]->(:LoopingType2)-[:NEXT_TYPE]->(:LoopingType3)-[:NEXT_TYPE]->
@@ -1049,9 +1049,9 @@ class RepositoryIT {
 			Node hobbyNode1 = record.get("h1").asNode();
 			Node petNode1 = record.get("p1").asNode();
 
-			long personId = IdentitySupport.getInternalId(personNode);
-			long hobbyNode1Id = IdentitySupport.getInternalId(hobbyNode1);
-			long petNode1Id = IdentitySupport.getInternalId(petNode1);
+			long personId = TestIdentitySupport.getInternalId(personNode);
+			long hobbyNode1Id = TestIdentitySupport.getInternalId(hobbyNode1);
+			long petNode1Id = TestIdentitySupport.getInternalId(petNode1);
 
 			PersonWithRelationship loadedPerson = repository.findById(personId).get();
 			assertThat(loadedPerson.getName()).isEqualTo("Freddie");
@@ -1075,17 +1075,17 @@ class RepositoryIT {
 		@Test
 		void findEntityWithBidirectionalRelationshipInConstructorThrowsException(@Autowired BidirectionalStartRepository repository) {
 
-			long startId = IdentitySupport.getInternalId(doWithSession(session ->  session
+			var node = doWithSession(session ->  session
 						.run("""
 							CREATE
       							(n:BidirectionalStart{name:'Ernie'})-[:CONNECTED]->(e:BidirectionalEnd{name:'Bert'}),
 								(e)<-[:ANOTHER_CONNECTION]-(anotherStart:BidirectionalStart{name:'Elmo'})
       						RETURN n"""
 						)
-						.single().get("n").asNode()));
+						.single().get("n").asNode());
 
-			assertThatThrownBy(() -> repository.findById(startId))
-					.hasRootCauseMessage("The node with id " + startId + " has a logical cyclic mapping dependency; " +
+			assertThatThrownBy(() -> repository.findById(TestIdentitySupport.getInternalId(node)))
+					.hasRootCauseMessage("The node with id " + node.elementId() + " has a logical cyclic mapping dependency; " +
 							"its creation caused the creation of another node that has a reference to this")
 					.hasRootCauseInstanceOf(MappingException.class);
 
@@ -1133,7 +1133,7 @@ class RepositoryIT {
 		@Test
 		void findEntityWithBidirectionalRelationshipFromIncomingSide(@Autowired BidirectionalEndRepository repository) {
 
-			long endId = IdentitySupport.getInternalId(doWithSession(session -> session.run(
+			long endId = TestIdentitySupport.getInternalId(doWithSession(session -> session.run(
 							"CREATE (n:BidirectionalStart{name:'Ernie'})-[:CONNECTED]->(e:BidirectionalEnd{name:'Bert'}) RETURN e")
 						.single().get("e").asNode()));
 
@@ -1151,14 +1151,14 @@ class RepositoryIT {
 					.run("CREATE (n:PersonWithRelationship{name:'Freddie'})-[:Has]->(h:Hobby{name:'Music'}), (n)-[:Has]->(p:Pet{name: 'Jerry'}) RETURN n, h, p")
 					.single());
 
-			long hobbyNode1Id = IdentitySupport.getInternalId(record.get("h").asNode());
-			long petNode1Id = IdentitySupport.getInternalId(record.get("p").asNode());
+			long hobbyNode1Id = TestIdentitySupport.getInternalId(record.get("h").asNode());
+			long petNode1Id = TestIdentitySupport.getInternalId(record.get("p").asNode());
 
 			record = doWithSession(session -> session.run(
 					"CREATE (n:PersonWithRelationship{name:'SomeoneElse'})-[:Has]->(h:Hobby{name:'Music2'}), (n)-[:Has]->(p:Pet{name: 'Jerry2'}) RETURN n, h, p").single());
 
-			long hobbyNode2Id = IdentitySupport.getInternalId(record.get("h").asNode());
-			long petNode2Id = IdentitySupport.getInternalId(record.get("p").asNode());
+			long hobbyNode2Id = TestIdentitySupport.getInternalId(record.get("h").asNode());
+			long petNode2Id = TestIdentitySupport.getInternalId(record.get("p").asNode());
 
 			List<PersonWithRelationship> loadedPersons = repository.findAll();
 
@@ -1190,10 +1190,10 @@ class RepositoryIT {
 			Node petNode1 = record.get("p1").asNode();
 			Node petNode2 = record.get("p2").asNode();
 
-			long personId = IdentitySupport.getInternalId(personNode);
-			long hobbyNodeId = IdentitySupport.getInternalId(hobbyNode1);
-			long petNode1Id = IdentitySupport.getInternalId(petNode1);
-			long petNode2Id = IdentitySupport.getInternalId(petNode2);
+			long personId = TestIdentitySupport.getInternalId(personNode);
+			long hobbyNodeId = TestIdentitySupport.getInternalId(hobbyNode1);
+			long petNode1Id = TestIdentitySupport.getInternalId(petNode1);
+			long petNode2Id = TestIdentitySupport.getInternalId(petNode2);
 
 			PersonWithRelationship loadedPerson = repository.getPersonWithRelationshipsViaQuery();
 			assertThat(loadedPerson.getName()).isEqualTo("Freddie");
@@ -1228,10 +1228,10 @@ class RepositoryIT {
 			Node petNode1 = record.get("p1").asNode();
 			Node petNode2 = record.get("p2").asNode();
 
-			long personId = IdentitySupport.getInternalId(personNode);
-			long hobbyNodeId = IdentitySupport.getInternalId(hobbyNode1);
-			long petNode1Id = IdentitySupport.getInternalId(petNode1);
-			long petNode2Id = IdentitySupport.getInternalId(petNode2);
+			long personId = TestIdentitySupport.getInternalId(personNode);
+			long hobbyNodeId = TestIdentitySupport.getInternalId(hobbyNode1);
+			long petNode1Id = TestIdentitySupport.getInternalId(petNode1);
+			long petNode2Id = TestIdentitySupport.getInternalId(petNode2);
 
 			PersonWithRelationship loadedPerson = repository.getPersonWithRelationshipsViaPathQuery();
 			assertThat(loadedPerson.getName()).isEqualTo("Freddie");
@@ -1251,7 +1251,7 @@ class RepositoryIT {
 		@Test
 		void findEntityWithRelationshipWithAssignedId(@Autowired PetRepository repository) {
 
-			long petNodeId = IdentitySupport.getInternalId(doWithSession(session -> session
+			long petNodeId = TestIdentitySupport.getInternalId(doWithSession(session -> session
 						.run("CREATE (p:Pet{name:'Jerry'})-[:Has]->(t:Thing{theId:'t1', name:'Thing1'}) RETURN p, t").single()
 						.get("p").asNode()));
 
@@ -1438,7 +1438,7 @@ class RepositoryIT {
 										+ "{since: 2000, active: false, localDate: date('2000-06-28'), myEnum: 'SOMETHING_DIFFERENT', point: point({x: 2, y: 3})}"
 										+ "]->(h2:Hobby{name:'Something else'})"
 										+ "RETURN n, h1, h2").single().get("n").asNode());
-			long personId = IdentitySupport.getInternalId(hlp);
+			long personId = TestIdentitySupport.getInternalId(hlp);
 			Optional<PersonWithRelationshipWithProperties2> optionalPerson = template.findById(personId, PersonWithRelationshipWithProperties2.class);
 			assertThat(optionalPerson).hasValueSatisfying(person -> {
 				assertThat(person.getName()).isEqualTo("Freddie");
@@ -1466,9 +1466,9 @@ class RepositoryIT {
 			Node hobbyNode1 = record.get("h1").asNode();
 			Node hobbyNode2 = record.get("h2").asNode();
 
-			long personId = IdentitySupport.getInternalId(personNode);
-			long hobbyNode1Id = IdentitySupport.getInternalId(hobbyNode1);
-			long hobbyNode2Id = IdentitySupport.getInternalId(hobbyNode2);
+			long personId = TestIdentitySupport.getInternalId(personNode);
+			long hobbyNode1Id = TestIdentitySupport.getInternalId(hobbyNode1);
+			long hobbyNode2Id = TestIdentitySupport.getInternalId(hobbyNode2);
 
 			Optional<PersonWithRelationshipWithProperties> optionalPerson = repository.findById(personId);
 			assertThat(optionalPerson).isPresent();
@@ -1507,7 +1507,7 @@ class RepositoryIT {
 		@Test
 		void findEntityWithRelationshipWithPropertiesScalar(@Autowired PersonWithRelationshipWithPropertiesRepository repository) {
 
-			long personId = IdentitySupport.getInternalId(doWithSession(session -> session.run("CREATE (n:PersonWithRelationshipWithProperties{name:'Freddie'}),"
+			long personId = TestIdentitySupport.getInternalId(doWithSession(session -> session.run("CREATE (n:PersonWithRelationshipWithProperties{name:'Freddie'}),"
 											+ " (n)-[:WORKS_IN{since: 1995}]->(:Club{name:'Blubb'}),"
 											+ "(n) - [:OWNS {place: 'The place to be'}] -> (c1:Club {name: 'Berlin Mitte'}), "
 											+ "(n) - [:OWNS {place: 'Whatever'}] -> (c2:Club {name: 'Schachklub'}) "
@@ -1524,7 +1524,7 @@ class RepositoryIT {
 		void findEntityWithRelationshipWithPropertiesSameLabel(
 				@Autowired FriendRepository repository) {
 
-			long friendId = IdentitySupport.getInternalId(doWithSession(session -> session.run("CREATE (n:Friend{name:'Freddie'}),"
+			long friendId = TestIdentitySupport.getInternalId(doWithSession(session -> session.run("CREATE (n:Friend{name:'Freddie'}),"
 											+ " (n)-[:KNOWS{since: 1995}]->(:Friend{name:'Frank'})"
 											+ "RETURN n").single().get("n").asNode()));
 
@@ -1634,9 +1634,9 @@ class RepositoryIT {
 			Node hobbyNode1 = record.get("h1").asNode();
 			Node hobbyNode2 = record.get("h2").asNode();
 
-			long personId = IdentitySupport.getInternalId(personNode);
-			long hobbyNode1Id = IdentitySupport.getInternalId(hobbyNode1);
-			long hobbyNode2Id = IdentitySupport.getInternalId(hobbyNode2);
+			long personId = TestIdentitySupport.getInternalId(personNode);
+			long hobbyNode1Id = TestIdentitySupport.getInternalId(hobbyNode1);
+			long hobbyNode2Id = TestIdentitySupport.getInternalId(hobbyNode2);
 
 			PersonWithRelationshipWithProperties person = repository.loadFromCustomQuery(personId);
 			assertThat(person.getName()).isEqualTo("Freddie");
@@ -1671,7 +1671,7 @@ class RepositoryIT {
 		void loadEntityWithRelationshipWithPropertiesFromCustomQueryIncoming(
 				@Autowired HobbyWithRelationshipWithPropertiesRepository repository) {
 
-			long personId = IdentitySupport.getInternalId(doWithSession(
+			long personId = TestIdentitySupport.getInternalId(doWithSession(
 					session -> session.run("CREATE (n:AltPerson{name:'Freddie'}), (n)-[l1:LIKES {rating: 5}]->(h1:AltHobby{name:'Music'}) RETURN n, h1").single().get("n").asNode()));
 
 			AltHobby hobby = repository.loadFromCustomQuery(personId);
@@ -1686,7 +1686,7 @@ class RepositoryIT {
 		@Test
 		void loadSameNodeWithDoubleRelationship(@Autowired HobbyWithRelationshipWithPropertiesRepository repository) {
 
-			long personId = IdentitySupport.getInternalId(doWithSession(session -> session.run("CREATE (n:AltPerson{name:'Freddie'})," +
+			long personId = TestIdentitySupport.getInternalId(doWithSession(session -> session.run("CREATE (n:AltPerson{name:'Freddie'})," +
 											" (n)-[l1:LIKES {rating: 5}]->(h1:AltHobby{name:'Music'})," +
 											" (n)-[l2:LIKES {rating: 1}]->(h1)" +
 											" RETURN n, h1").single().get("n").asNode()));
@@ -1736,9 +1736,8 @@ class RepositoryIT {
 		@Test
 		void updateAndCreateRelationshipProperties(@Autowired HobbyWithRelationshipWithPropertiesRepository repository) {
 
-			@SuppressWarnings("deprecation")
 			long hobbyId = doWithSession(
-					session -> session.run("CREATE (n:AltPerson{name:'Freddie'}), (n)-[l1:LIKES {rating: 5}]->(h1:AltHobby{name:'Music'}) RETURN n, h1").single().get("h1").asNode().id());
+					session -> TestIdentitySupport.getInternalId(session.run("CREATE (n:AltPerson{name:'Freddie'}), (n)-[l1:LIKES {rating: 5}]->(h1:AltHobby{name:'Music'}) RETURN n, h1").single().get("h1").asNode()));
 
 			AltHobby hobby = repository.findById(hobbyId).get();
 			assertThat(hobby.getName()).isEqualTo("Music");
@@ -1746,13 +1745,13 @@ class RepositoryIT {
 
 			AltLikedByPersonRelationship liked = new AltLikedByPersonRelationship();
 			liked.setAltPerson(new AltPerson("SomethingElse"));
+			liked.setRating(2);
 			hobby.getLikedBy().add(liked);
 
 			repository.save(hobby);
 
 			AltHobby savedHobby = repository.findById(hobbyId).get();
 			assertThat(savedHobby.getLikedBy()).hasSize(2);
-
 		}
 	}
 
@@ -1792,7 +1791,7 @@ class RepositoryIT {
 
 				assertThat(record.containsKey("n")).isTrue();
 				Node node = record.get("n").asNode();
-				assertThat(savedPerson.getId()).isEqualTo(IdentitySupport.getInternalId(node));
+				assertThat(savedPerson.getId()).isEqualTo(TestIdentitySupport.getInternalId(node));
 				assertThat(node.get("things").asList()).containsExactly("b", "a");
 			});
 		}
@@ -1939,7 +1938,7 @@ class RepositoryIT {
 					assertThat(record.containsKey("n")).isTrue();
 					Node node = record.get("n").asNode();
 
-					assertThat(IdentitySupport.getInternalId(node)).isEqualTo(savedPerson.getId());
+					assertThat(TestIdentitySupport.getInternalId(node)).isEqualTo(savedPerson.getId());
 					assertThat(node.get("first_name").asString()).isEqualTo(savedPerson.getFirstName());
 					assertThat(node.get("nullable").asString()).isEqualTo(savedPerson.getNullable());
 					assertThat(node.get("things").asList()).isEmpty();
@@ -2145,7 +2144,7 @@ class RepositoryIT {
 
 				assertThat(record.containsKey("n")).isTrue();
 				Node rootNode = record.get("n").asNode();
-				assertThat(savedPerson.getId()).isEqualTo(IdentitySupport.getInternalId(rootNode));
+				assertThat(savedPerson.getId()).isEqualTo(TestIdentitySupport.getInternalId(rootNode));
 				assertThat(savedPerson.getName()).isEqualTo("Freddie");
 
 				List<List<Object>> petsWithHobbies = record.get("petsWithHobbies").asList(Value::asList);
@@ -2206,7 +2205,7 @@ class RepositoryIT {
 
 				assertThat(record.containsKey("n")).isTrue();
 				Node rootNode = record.get("n").asNode();
-				assertThat(savedPerson.getId()).isEqualTo(IdentitySupport.getInternalId(rootNode));
+				assertThat(savedPerson.getId()).isEqualTo(TestIdentitySupport.getInternalId(rootNode));
 				assertThat(savedPerson.getName()).isEqualTo("Freddie");
 
 				List<List<Object>> petsWithHobbies = record.get("petsWithHobbies").asList(Value::asList);
@@ -2264,7 +2263,7 @@ class RepositoryIT {
 
 				assertThat(record.containsKey("n")).isTrue();
 				Node rootNode = record.get("n").asNode();
-				assertThat(savedPerson.getId()).isEqualTo(IdentitySupport.getInternalId(rootNode));
+				assertThat(savedPerson.getId()).isEqualTo(TestIdentitySupport.getInternalId(rootNode));
 				assertThat(savedPerson.getName()).isEqualTo("Freddie");
 
 				assertThat(record.get("hobbies").asList(entry -> entry.asNode().get("name").asString()))
@@ -2307,7 +2306,7 @@ class RepositoryIT {
 
 				assertThat(record.containsKey("n")).isTrue();
 				Node rootNode = record.get("n").asNode();
-				assertThat(savedPerson.getId()).isEqualTo(IdentitySupport.getInternalId(rootNode));
+				assertThat(savedPerson.getId()).isEqualTo(TestIdentitySupport.getInternalId(rootNode));
 				assertThat(savedPerson.getName()).isEqualTo("Freddie");
 
 				assertThat(record.get("hobbies").asList(entry -> entry.asNode().get("name").asString()))
@@ -3052,10 +3051,10 @@ class RepositoryIT {
 			Node petNode1 = record.get("p1").asNode();
 			Node petNode2 = record.get("p2").asNode();
 
-			long personId = IdentitySupport.getInternalId(personNode);
-			long hobbyNodeId = IdentitySupport.getInternalId(hobbyNode1);
-			long petNode1Id = IdentitySupport.getInternalId(petNode1);
-			long petNode2Id = IdentitySupport.getInternalId(petNode2);
+			long personId = TestIdentitySupport.getInternalId(personNode);
+			long hobbyNodeId = TestIdentitySupport.getInternalId(hobbyNode1);
+			long petNode1Id = TestIdentitySupport.getInternalId(petNode1);
+			long petNode2Id = TestIdentitySupport.getInternalId(petNode2);
 
 			PersonWithRelationship probe = new PersonWithRelationship();
 			probe.setName("Freddie");
@@ -3092,10 +3091,10 @@ class RepositoryIT {
 			Node petNode1 = record.get("p1").asNode();
 			Node petNode2 = record.get("p2").asNode();
 
-			long personId = IdentitySupport.getInternalId(personNode);
-			long hobbyNodeId = IdentitySupport.getInternalId(hobbyNode1);
-			long petNode1Id = IdentitySupport.getInternalId(petNode1);
-			long petNode2Id = IdentitySupport.getInternalId(petNode2);
+			long personId = TestIdentitySupport.getInternalId(personNode);
+			long hobbyNodeId = TestIdentitySupport.getInternalId(hobbyNode1);
+			long petNode1Id = TestIdentitySupport.getInternalId(petNode1);
+			long petNode2Id = TestIdentitySupport.getInternalId(petNode2);
 
 			PersonWithRelationship probe = new PersonWithRelationship();
 			probe.setName("Freddie");
@@ -3142,10 +3141,10 @@ class RepositoryIT {
 			Node petNode1 = record.get("p1").asNode();
 			Node petNode2 = record.get("p2").asNode();
 
-			long personId = IdentitySupport.getInternalId(personNode);
-			long hobbyNodeId = IdentitySupport.getInternalId(hobbyNode1);
-			long petNode1Id = IdentitySupport.getInternalId(petNode1);
-			long petNode2Id = IdentitySupport.getInternalId(petNode2);
+			long personId = TestIdentitySupport.getInternalId(personNode);
+			long hobbyNodeId = TestIdentitySupport.getInternalId(hobbyNode1);
+			long petNode1Id = TestIdentitySupport.getInternalId(petNode1);
+			long petNode2Id = TestIdentitySupport.getInternalId(petNode2);
 
 			PersonWithRelationship probe = new PersonWithRelationship();
 			probe.setName("Freddie");
@@ -3181,10 +3180,10 @@ class RepositoryIT {
 			Node petNode1 = record.get("p1").asNode();
 			Node petNode2 = record.get("p2").asNode();
 
-			long personId = IdentitySupport.getInternalId(personNode);
-			long hobbyNodeId = IdentitySupport.getInternalId(hobbyNode1);
-			long petNode1Id = IdentitySupport.getInternalId(petNode1);
-			long petNode2Id = IdentitySupport.getInternalId(petNode2);
+			long personId = TestIdentitySupport.getInternalId(personNode);
+			long hobbyNodeId = TestIdentitySupport.getInternalId(hobbyNode1);
+			long petNode1Id = TestIdentitySupport.getInternalId(petNode1);
+			long petNode2Id = TestIdentitySupport.getInternalId(petNode2);
 
 			PersonWithRelationship probe = new PersonWithRelationship();
 			probe.setName("Freddie");
@@ -3773,9 +3772,9 @@ class RepositoryIT {
 		void findNodeWithMultipleLabels(@Autowired MultipleLabelRepository multipleLabelRepository) {
 
 			Record record = doWithSession(session -> session.run("CREATE (n1:A:B:C), (n2:B:C), (n3:A) return n1, n2, n3").single());
-			long n1Id = IdentitySupport.getInternalId(record.get("n1").asNode());
-			long n2Id = IdentitySupport.getInternalId(record.get("n2").asNode());
-			long n3Id = IdentitySupport.getInternalId(record.get("n3").asNode());
+			long n1Id = TestIdentitySupport.getInternalId(record.get("n1").asNode());
+			long n2Id = TestIdentitySupport.getInternalId(record.get("n2").asNode());
+			long n3Id = TestIdentitySupport.getInternalId(record.get("n3").asNode());
 
 			Assertions.assertThat(multipleLabelRepository.findById(n1Id)).isPresent();
 			Assertions.assertThat(multipleLabelRepository.findById(n2Id)).isNotPresent();
@@ -3786,9 +3785,9 @@ class RepositoryIT {
 		void deleteNodeWithMultipleLabels(@Autowired MultipleLabelRepository multipleLabelRepository) {
 
 			Record record = doWithSession(session -> session.run("CREATE (n1:A:B:C), (n2:B:C), (n3:A) return n1, n2, n3").single());
-			long n1Id = IdentitySupport.getInternalId(record.get("n1").asNode());
-			long n2Id = IdentitySupport.getInternalId(record.get("n2").asNode());
-			long n3Id = IdentitySupport.getInternalId(record.get("n3").asNode());
+			long n1Id = TestIdentitySupport.getInternalId(record.get("n1").asNode());
+			long n2Id = TestIdentitySupport.getInternalId(record.get("n2").asNode());
+			long n3Id = TestIdentitySupport.getInternalId(record.get("n3").asNode());
 
 			multipleLabelRepository.deleteById(n1Id);
 			multipleLabelRepository.deleteById(n2Id);

@@ -22,6 +22,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
@@ -45,6 +47,7 @@ import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.neo4j.core.mapping.Constants;
 import org.springframework.data.neo4j.core.mapping.EntityInstanceWithSource;
 import org.springframework.data.neo4j.core.mapping.IdDescription;
+import org.springframework.data.neo4j.core.mapping.IdentitySupport;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentProperty;
@@ -179,10 +182,10 @@ public final class TemplateSupport {
 		final static NodesAndRelationshipsByIdStatementProvider EMPTY =
 				new NodesAndRelationshipsByIdStatementProvider(Collections.emptySet(), Collections.emptySet(), Collections.emptySet(), new QueryFragments());
 
-		private final Map<String, Collection<Long>> parameters = new HashMap<>(3);
+		private final Map<String, Collection<String>> parameters = new HashMap<>(3);
 		private final QueryFragments queryFragments;
 
-		NodesAndRelationshipsByIdStatementProvider(Collection<Long> rootNodeIds, Collection<Long> relationshipsIds, Collection<Long> relatedNodeIds, QueryFragments queryFragments) {
+		NodesAndRelationshipsByIdStatementProvider(Collection<String> rootNodeIds, Collection<String> relationshipsIds, Collection<String> relatedNodeIds, QueryFragments queryFragments) {
 
 			this.parameters.put(ROOT_NODE_IDS, rootNodeIds);
 			this.parameters.put(RELATIONSHIP_IDS, relationshipsIds);
@@ -207,13 +210,13 @@ public final class TemplateSupport {
 			Node relatedNodes = Cypher.anyNode(relatedNodeIds);
 			Relationship relationships = Cypher.anyNode().relationshipBetween(Cypher.anyNode()).named(relationshipIds);
 			return Cypher.match(rootNodes)
-					.where(Functions.id(rootNodes).in(Cypher.parameter(rootNodeIds)))
+					.where(Functions.elementId(rootNodes).in(Cypher.parameter(rootNodeIds)))
 					.with(Functions.collect(rootNodes).as(Constants.NAME_OF_ROOT_NODE))
 					.optionalMatch(relationships)
-					.where(Functions.id(relationships).in(Cypher.parameter(relationshipIds)))
+					.where(Functions.elementId(relationships).in(Cypher.parameter(relationshipIds)))
 					.with(Constants.NAME_OF_ROOT_NODE, Functions.collectDistinct(relationships).as(Constants.NAME_OF_SYNTHESIZED_RELATIONS))
 					.optionalMatch(relatedNodes)
-					.where(Functions.id(relatedNodes).in(Cypher.parameter(relatedNodeIds)))
+					.where(Functions.elementId(relatedNodes).in(Cypher.parameter(relatedNodeIds)))
 					.with(
 							Constants.NAME_OF_ROOT_NODE,
 							Cypher.name(Constants.NAME_OF_SYNTHESIZED_RELATIONS).as(Constants.NAME_OF_SYNTHESIZED_RELATIONS),
@@ -335,6 +338,76 @@ public final class TemplateSupport {
 		public Map<String, Object> apply(T t) {
 			return binderFunction.apply(t);
 		}
+	}
+
+	/**
+	 * Uses the given {@link PersistentPropertyAccessor propertyAccessor} to set the value of the generated id.
+	 *
+	 * @param entityMetaData The type information from SDN
+	 * @param propertyAccessor An accessor tied to a concrete instance
+	 * @param elementId The element id to store
+	 * @param databaseEntity A fallback entity to retrieve the deprecated internal long id
+	 * @param <T> The type of the entity
+	 */
+	static <T> void setGeneratedIdIfNecessary(
+			Neo4jPersistentEntity<?> entityMetaData,
+			PersistentPropertyAccessor<T> propertyAccessor,
+			String elementId,
+			Optional<Entity> databaseEntity
+	) {
+		if (!entityMetaData.isUsingInternalIds()) {
+			return;
+		}
+		var requiredIdProperty = entityMetaData.getRequiredIdProperty();
+		var idPropertyType = requiredIdProperty.getType();
+		if (entityMetaData.isUsingDeprecatedInternalId()) {
+			propertyAccessor.setProperty(requiredIdProperty, databaseEntity.map(IdentitySupport::getInternalId).orElseThrow());
+		} else if (idPropertyType.equals(String.class)) {
+			propertyAccessor.setProperty(requiredIdProperty, elementId);
+		} else {
+			throw new IllegalArgumentException("Unsupported generated id property " + idPropertyType);
+		}
+	}
+
+	/**
+	 * Retrieves the object id for a related object if no has been found so far or updates the object with the id of a previously
+	 * processed object.
+	 *
+	 * @param entityMetadata Needed for determining the type of ids
+	 * @param propertyAccessor Bound to the currently processed entity
+	 * @param databaseEntity Source for the old neo4j internal id
+	 * @param relatedInternalId The element id or the string version of the old id
+	 * @param <T> The type of the entity
+	 * @return The actual related internal id being used.
+	 */
+	static <T> String retrieveOrSetRelatedId(
+			Neo4jPersistentEntity<?> entityMetadata,
+			PersistentPropertyAccessor<T> propertyAccessor,
+			Optional<Entity> databaseEntity,
+			@Nullable String relatedInternalId
+	) {
+		if (!entityMetadata.isUsingInternalIds()) {
+			return Objects.requireNonNull(relatedInternalId);
+		}
+
+		var requiredIdProperty = entityMetadata.getRequiredIdProperty();
+		var current = propertyAccessor.getProperty(requiredIdProperty);
+
+		if (entityMetadata.isUsingDeprecatedInternalId()) {
+			if (relatedInternalId == null && current != null) {
+				relatedInternalId = current.toString();
+			} else if (current == null) {
+				long internalId = databaseEntity.map(Entity::id).orElseThrow();
+				propertyAccessor.setProperty(requiredIdProperty, internalId);
+			}
+		} else {
+			if (relatedInternalId == null && current != null) {
+				relatedInternalId = (String) current;
+			} else if (current == null) {
+				propertyAccessor.setProperty(requiredIdProperty, relatedInternalId);
+			}
+		}
+		return Objects.requireNonNull(relatedInternalId);
 	}
 
 	private TemplateSupport() {
