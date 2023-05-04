@@ -84,7 +84,7 @@ public final class NestedRelationshipProcessingStateMachine {
 
 	/**
 	 * @param relationshipDescription Check whether this relationship description has been processed
-	 * @param valuesToStore Check whether all the values in the collection have been processed
+	 * @param valuesToStore           Check whether all the values in the collection have been processed
 	 * @return The state of things processed
 	 */
 	public ProcessState getStateOf(@Nullable Object fromId, RelationshipDescription relationshipDescription, @Nullable Collection<?> valuesToStore) {
@@ -116,7 +116,8 @@ public final class NestedRelationshipProcessingStateMachine {
 	 * can get processed for different objects of the same entity.
 	 * One could say that this is a Tuple but it has a nicer name.
 	 */
-	private record RelationshipDescriptionWithSourceId(Object id, RelationshipDescription relationshipDescription) {}
+	private record RelationshipDescriptionWithSourceId(Object id, RelationshipDescription relationshipDescription) {
+	}
 
 	/**
 	 * Marks the passed objects as processed
@@ -140,7 +141,7 @@ public final class NestedRelationshipProcessingStateMachine {
 	 * Marks the passed objects as processed
 	 *
 	 * @param valueToStore If not {@literal null}, all non-null values will be marked as processed
-	 * @param elementId The internal id of the value processed
+	 * @param elementId    The internal id of the value processed
 	 */
 	public void markEntityAsProcessed(Object valueToStore, String elementId) {
 
@@ -190,7 +191,7 @@ public final class NestedRelationshipProcessingStateMachine {
 						.findAny();
 				if (alreadyProcessedObject.isPresent()) { // Skip the show the next time around.
 					processed = true;
-					String internalId = getInternalId(alreadyProcessedObject.get());
+					String internalId = getObjectId(alreadyProcessedObject.get());
 					if (internalId != null) {
 						stamp = lock.tryConvertToWriteLock(stamp);
 						doMarkValueAsProcessed(valueToCheck, internalId);
@@ -230,8 +231,15 @@ public final class NestedRelationshipProcessingStateMachine {
 		}
 	}
 
+	/**
+	 * This returns an id for the given object. We deliberate use the wording of a generic object id as that might either be
+	 * the Neo4j 5+ {@literal elementId()} or on older Neo4j versions or with older data modules {@code toString(id())}.
+	 *
+	 * @param object The object for which an id is requested
+	 * @return The objects id
+	 */
 	@Nullable
-	public String getInternalId(Object object) {
+	public String getObjectId(Object object) {
 		final long stamp = lock.readLock();
 		try {
 			Object valueToCheck = extractRelatedValueFromRelationshipProperties(object);
@@ -240,7 +248,6 @@ public final class NestedRelationshipProcessingStateMachine {
 		} finally {
 			lock.unlock(stamp);
 		}
-
 	}
 
 	public Object getProcessedAs(Object entity) {

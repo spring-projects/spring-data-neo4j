@@ -51,7 +51,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
  */
 @Neo4jIntegrationTest
 @ExtendWith(LogbackCapturingExtension.class)
-public class ReactiveElementIdIT extends AbstractTestBase {
+public class ReactiveElementIdIT extends AbstractElementIdTestBase {
 
 
 	interface Repo1 extends ReactiveNeo4jRepository<NodeWithGeneratedId1, String> {

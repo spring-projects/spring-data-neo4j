@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiFunction;
@@ -368,36 +369,45 @@ public final class TemplateSupport {
 		}
 	}
 
-	static <T> String notAGoodNameSoFar(
+	/**
+	 * Retrieves the object id for a related object if no has been found so far or updates the object with the id of a previously
+	 * processed object.
+	 *
+	 * @param entityMetadata Needed for determining the type of ids
+	 * @param propertyAccessor Bound to the currently processed entity
+	 * @param databaseEntity Source for the old neo4j internal id
+	 * @param relatedInternalId The element id or the string version of the old id
+	 * @param <T> The type of the entity
+	 * @return The actual related internal id being used.
+	 */
+	static <T> String retrieveOrSetRelatedId(
 			Neo4jPersistentEntity<?> entityMetadata,
 			PersistentPropertyAccessor<T> propertyAccessor,
 			Optional<Entity> databaseEntity,
-			String relatedInternalId,
-			Object actualRelatedId
+			@Nullable String relatedInternalId
 	) {
-
 		if (!entityMetadata.isUsingInternalIds()) {
-			return relatedInternalId;
+			return Objects.requireNonNull(relatedInternalId);
 		}
 
 		var requiredIdProperty = entityMetadata.getRequiredIdProperty();
+		var current = propertyAccessor.getProperty(requiredIdProperty);
 
 		if (entityMetadata.isUsingDeprecatedInternalId()) {
-			if (relatedInternalId == null && actualRelatedId != null) {
-				relatedInternalId = propertyAccessor.getProperty(requiredIdProperty).toString();
-			} else if (actualRelatedId == null) {
+			if (relatedInternalId == null && current != null) {
+				relatedInternalId = current.toString();
+			} else if (current == null) {
 				long internalId = databaseEntity.map(Entity::id).orElseThrow();
 				propertyAccessor.setProperty(requiredIdProperty, internalId);
-				//	relatedInternalId = Long.toString(internalId);
 			}
 		} else {
-			if (relatedInternalId == null && actualRelatedId != null) {
-				relatedInternalId = (String) propertyAccessor.getProperty(requiredIdProperty);
-			} else if (actualRelatedId == null) {
+			if (relatedInternalId == null && current != null) {
+				relatedInternalId = (String) current;
+			} else if (current == null) {
 				propertyAccessor.setProperty(requiredIdProperty, relatedInternalId);
 			}
 		}
-		return relatedInternalId;
+		return Objects.requireNonNull(relatedInternalId);
 	}
 
 	private TemplateSupport() {

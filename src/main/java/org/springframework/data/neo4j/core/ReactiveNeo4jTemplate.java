@@ -945,7 +945,7 @@ public final class ReactiveNeo4jTemplate implements
 							Mono<Tuple2<AtomicReference<String>, AtomicReference<Entity>>> queryOrSave;
 							if (stateMachine.hasProcessedValue(relatedValueToStore)) {
 								AtomicReference<String> relatedInternalId = new AtomicReference<>();
-								String possibleValue = stateMachine.getInternalId(relatedValueToStore);
+								String possibleValue = stateMachine.getObjectId(relatedValueToStore);
 								if (possibleValue != null) {
 									relatedInternalId.set(possibleValue);
 								}
@@ -967,13 +967,13 @@ public final class ReactiveNeo4jTemplate implements
 									Entity savedEntity = idAndEntity.getT2().get();
 									Neo4jPersistentProperty requiredIdProperty = targetEntity.getRequiredIdProperty();
 									PersistentPropertyAccessor<?> targetPropertyAccessor = targetEntity.getPropertyAccessor(newRelatedObject);
-									Object actualRelatedId = targetPropertyAccessor.getProperty(requiredIdProperty);
-									relatedInternalId = TemplateSupport.notAGoodNameSoFar(targetEntity, targetPropertyAccessor, Optional.ofNullable(savedEntity), relatedInternalId, actualRelatedId);
+									Object possibleInternalLongId = targetPropertyAccessor.getProperty(requiredIdProperty);
+									relatedInternalId = TemplateSupport.retrieveOrSetRelatedId(targetEntity, targetPropertyAccessor, Optional.ofNullable(savedEntity), relatedInternalId);
 									if (savedEntity != null) {
 										TemplateSupport.updateVersionPropertyIfPossible(targetEntity, targetPropertyAccessor, savedEntity);
 									}
 									stateMachine.markAsAliased(relatedObjectBeforeCallbacksApplied, targetPropertyAccessor.getBean());
-										stateMachine.markRelationshipAsProcessed(actualRelatedId == null ? relatedInternalId : actualRelatedId,
+										stateMachine.markRelationshipAsProcessed(possibleInternalLongId == null ? relatedInternalId : possibleInternalLongId,
 												relationshipDescription.getRelationshipObverse());
 
 									Object idValue = idProperty != null

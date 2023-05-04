@@ -28,7 +28,7 @@ public class TestLogFilter extends Filter<ILoggingEvent> {
 
 	private static final List<String> FILTER_MESSAGES = List.of(
 			"ClientNotification.Statement.UnknownRelationshipTypeWarning",
-			"ClientNotification.Statement.UnknownPropertyKeyWarning"
+			"ClientNotification.Statement.UnknownPropertyKeyWarning", "Neo.ClientNotification.Statement.FeatureDeprecationWarning"
 	);
 
 	@Override

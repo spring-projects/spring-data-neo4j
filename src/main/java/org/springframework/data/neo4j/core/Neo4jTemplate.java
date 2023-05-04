@@ -811,7 +811,7 @@ public final class Neo4jTemplate implements
 				Entity savedEntity = null;
 				// No need to save values if processed
 				if (stateMachine.hasProcessedValue(relatedValueToStore)) {
-					relatedInternalId = stateMachine.getInternalId(relatedValueToStore);
+					relatedInternalId = stateMachine.getObjectId(relatedValueToStore);
 				} else {
 					savedEntity = saveRelatedNode(newRelatedObject, targetEntity, includeProperty, currentPropertyPath);
 					relatedInternalId = IdentitySupport.getElementId(savedEntity);
@@ -824,13 +824,13 @@ public final class Neo4jTemplate implements
 
 				Neo4jPersistentProperty requiredIdProperty = targetEntity.getRequiredIdProperty();
 				PersistentPropertyAccessor<?> targetPropertyAccessor = targetEntity.getPropertyAccessor(newRelatedObject);
-				Object actualRelatedId = targetPropertyAccessor.getProperty(requiredIdProperty);
-				relatedInternalId = TemplateSupport.notAGoodNameSoFar(targetEntity, targetPropertyAccessor, Optional.ofNullable(savedEntity), relatedInternalId, actualRelatedId);
+				Object possibleInternalLongId = targetPropertyAccessor.getProperty(requiredIdProperty);
+				relatedInternalId = TemplateSupport.retrieveOrSetRelatedId(targetEntity, targetPropertyAccessor, Optional.ofNullable(savedEntity), relatedInternalId);
 				if (savedEntity != null) {
 					TemplateSupport.updateVersionPropertyIfPossible(targetEntity, targetPropertyAccessor, savedEntity);
 				}
 				stateMachine.markAsAliased(relatedObjectBeforeCallbacksApplied, targetPropertyAccessor.getBean());
-				stateMachine.markRelationshipAsProcessed(actualRelatedId == null ? relatedInternalId : actualRelatedId,
+				stateMachine.markRelationshipAsProcessed(possibleInternalLongId == null ? relatedInternalId : possibleInternalLongId,
 						relationshipDescription.getRelationshipObverse());
 
 				Object idValue = idProperty != null

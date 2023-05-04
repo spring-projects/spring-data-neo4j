@@ -47,7 +47,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
  */
 @Neo4jIntegrationTest
 @ExtendWith(LogbackCapturingExtension.class)
-public class ImperativeElementIdIT extends AbstractTestBase {
+public class ImperativeElementIdIT extends AbstractElementIdTestBase {
 
 	interface Repo1 extends Neo4jRepository<NodeWithGeneratedId1, String> {
 	}

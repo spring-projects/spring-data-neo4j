@@ -24,7 +24,6 @@ import org.neo4j.driver.types.Entity;
 import org.neo4j.driver.types.MapAccessor;
 import org.neo4j.driver.types.Node;
 import org.neo4j.driver.types.Relationship;
-import org.springframework.data.mapping.PersistentPropertyAccessor;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 
@@ -42,24 +41,6 @@ import org.springframework.lang.Nullable;
 public final class IdentitySupport {
 
 	private IdentitySupport() {
-	}
-
-	/**
-	 * Updates the internal id of a given client side entity from a server side entity using a property accessor.
-	 * Does nothing if the local entity does not use internally generated ids.
-	 *
-	 * @param entityMetaData   The entity's meta data
-	 * @param propertyAccessor An accessor to the entity
-	 * @param entity           As received via the driver
-	 */
-	public static void updateElementId(Neo4jPersistentEntity<?> entityMetaData,
-			PersistentPropertyAccessor<?> propertyAccessor, Entity entity) {
-
-		if (!entityMetaData.isUsingInternalIds()) {
-			return;
-		}
-
-		propertyAccessor.setProperty(entityMetaData.getRequiredIdProperty(), getElementId(entity));
 	}
 
 	/**
