@@ -1,6 +1,7 @@
 [[new-and-noteworthy]]
 = New & Noteworthy
 
+* https://github.com/spring-projects/spring-data-commons/wiki/Spring-Data-2023.0-(Ullman)-Release-Notes#spring-data-neo4j---71[Release notes for Spring Data Neo4j version 7.1]
 * https://github.com/spring-projects/spring-data-commons/wiki/Spring-Data-2022.0-(Turing)-Release-Notes#spring-data-neo4j--70[Release notes for Spring Data Neo4j version 7.0]
 * https://github.com/spring-projects/spring-data-commons/wiki/Spring-Data-2021.2-(Raj)-Release-Notes#spring-data-neo4j---63[Release notes for Spring Data Neo4j version 6.3]
 * https://github.com/spring-projects/spring-data-commons/wiki/Spring-Data-2021.1-(Q)-Release-Notes#spring-data-neo4j---62[Release notes for Spring Data Neo4j version 6.2]

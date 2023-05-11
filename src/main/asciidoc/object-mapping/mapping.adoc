@@ -160,8 +160,10 @@ Peoples names for example are seldom unique, change over time or worse, not ever
 
 We therefore support two different kind of _surrogate keys_.
 
-On an attribute of type `long` or `Long`, `@Id` can be used with `@GeneratedValue`.
-This maps the Neo4j internal id, which is *not* a property on a node or relationship and usually not visible, to the attribute and allows SDN to retrieve individual instances of the class.
+On an attribute of type `String`, `long` or `Long`, `@Id` can be used with `@GeneratedValue`.
+`Long` and `long` maps to the Neo4j internal id.
+`String` maps to the _elementId_ that is available since Neo4j 5.
+Both are *not* a property on a node or relationship and usually not visible, to the attribute and allows SDN to retrieve individual instances of the class.
 
 `@GeneratedValue` provides the attribute `generatorClass`.
 `generatorClass` can be used to specify a class implementing `IdGenerator`.
@@ -300,7 +302,7 @@ you can define a fine-grained description of the data that you want to fetch by 
 === Using the internal Neo4j id
 
 The easiest way to give your domain classes a unique identifier is the combination of `@Id` and `@GeneratedValue`
-on a field of type `Long` (preferable the object, not the scalar `long`, as literal `null` is the better indicator whether an instance is new or not):
+on a field of type `String` or `Long` (preferable the object, not the scalar `long`, as literal `null` is the better indicator whether an instance is new or not):
 
 .Mutable MovieEntity with internal Neo4j id
 ====
