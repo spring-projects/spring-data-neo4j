@@ -1,7 +1,7 @@
 def p = [:]
 node {
-    checkout scm
-    p = readProperties interpolate: true, file: 'ci/pipeline.properties'
+	checkout scm
+	p = readProperties interpolate: true, file: 'ci/pipeline.properties'
 }
 
 pipeline {
@@ -32,18 +32,15 @@ pipeline {
 			options { timeout(time: 60, unit: 'MINUTES') }
 
 			environment {
-				DOCKER_HUB = credentials("${p['docker.credentials']}")
 				ARTIFACTORY = credentials("${p['artifactory.credentials']}")
+				TESTCONTAINERS_IMAGE_SUBSTITUTOR = 'org.springframework.data.neo4j.support.ProxyImageNameSubstitutor'
 			}
 
 			steps {
 				script {
-					docker.withRegistry(p['docker.registry'], p['docker.credentials']) {
-						docker.image(p['docker.java.main.image']).inside(p['docker.java.inside.docker']) {
-							sh "docker login --username ${DOCKER_HUB_USR} --password ${DOCKER_HUB_PSW}"
-							sh "PROFILE=none ci/test.sh"
-							sh "ci/clean.sh"
-						}
+					docker.image(p['docker.java.main.image']).inside(p['docker.java.inside.docker']) {
+						sh "PROFILE=none ci/test.sh"
+						sh "ci/clean.sh"
 					}
 				}
 			}
@@ -52,7 +49,7 @@ pipeline {
 		stage("Test other configurations") {
 			when {
 				allOf {
-					branch 'main'
+					branch(pattern: "main|(\\d\\.\\d\\.x)", comparator: "REGEXP")
 					not { triggeredBy 'UpstreamCause' }
 				}
 			}
@@ -64,18 +61,15 @@ pipeline {
 					options { timeout(time: 60, unit: 'MINUTES') }
 
 					environment {
-						DOCKER_HUB = credentials("${p['docker.credentials']}")
 						ARTIFACTORY = credentials("${p['artifactory.credentials']}")
+						TESTCONTAINERS_IMAGE_SUBSTITUTOR = 'org.springframework.data.neo4j.support.ProxyImageNameSubstitutor'
 					}
 
 					steps {
 						script {
-							docker.withRegistry(p['docker.registry'], p['docker.credentials']) {
-								docker.image(p['docker.java.next.image']).inside(p['docker.java.inside.docker']) {
-									sh "docker login --username ${DOCKER_HUB_USR} --password ${DOCKER_HUB_PSW}"
-									sh "PROFILE=none ci/test.sh"
-									sh "ci/clean.sh"
-								}
+							docker.image(p['docker.java.next.image']).inside(p['docker.java.inside.docker']) {
+								sh "PROFILE=none ci/test.sh"
+								sh "ci/clean.sh"
 							}
 						}
 					}
@@ -88,18 +82,15 @@ pipeline {
 					options { timeout(time: 60, unit: 'MINUTES') }
 
 					environment {
-						DOCKER_HUB = credentials("${p['docker.credentials']}")
 						ARTIFACTORY = credentials("${p['artifactory.credentials']}")
+						TESTCONTAINERS_IMAGE_SUBSTITUTOR = 'org.springframework.data.neo4j.support.ProxyImageNameSubstitutor'
 					}
 
 					steps {
 						script {
-							docker.withRegistry(p['docker.registry'], p['docker.credentials']) {
-								docker.image(p['docker.java.lts.image']).inside(p['docker.java.inside.docker']) {
-									sh "docker login --username ${DOCKER_HUB_USR} --password ${DOCKER_HUB_PSW}"
-									sh "PROFILE=none ci/test.sh"
-									sh "ci/clean.sh"
-								}
+							docker.image(p['docker.java.lts.image']).inside(p['docker.java.inside.docker']) {
+								sh "PROFILE=none ci/test.sh"
+								sh "ci/clean.sh"
 							}
 						}
 					}
@@ -144,7 +135,7 @@ pipeline {
 
 		stage('Publish documentation') {
 			when {
-				branch 'main'
+				branch(pattern: "main|(\\d\\.\\d\\.x)", comparator: "REGEXP")
 			}
 			agent {
 				label 'data'
