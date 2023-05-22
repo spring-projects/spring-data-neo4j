@@ -25,7 +25,9 @@ import org.apiguardian.api.API;
 import org.neo4j.cypherdsl.core.Cypher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.ScrollPosition;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Window;
 import org.springframework.data.neo4j.core.FluentFindOperation;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
 import org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery;
@@ -66,7 +68,7 @@ final class FetchableFluentQueryByPredicate<S, R> extends FluentQuerySupport<R> 
 			Function<Predicate, Long> countOperation,
 			Function<Predicate, Boolean> existsOperation
 	) {
-		this(predicate, metaData, resultType, findOperation, countOperation, existsOperation, Sort.unsorted(), null);
+		this(predicate, metaData, resultType, findOperation, countOperation, existsOperation, Sort.unsorted(), null, null);
 	}
 
 	FetchableFluentQueryByPredicate(
@@ -77,9 +79,10 @@ final class FetchableFluentQueryByPredicate<S, R> extends FluentQuerySupport<R> 
 			Function<Predicate, Long> countOperation,
 			Function<Predicate, Boolean> existsOperation,
 			Sort sort,
+			@Nullable Integer limit,
 			@Nullable Collection<String> properties
 	) {
-		super(resultType, sort, properties);
+		super(resultType, sort, limit, properties);
 		this.predicate = predicate;
 		this.metaData = metaData;
 		this.findOperation = findOperation;
@@ -92,7 +95,14 @@ final class FetchableFluentQueryByPredicate<S, R> extends FluentQuerySupport<R> 
 	public FetchableFluentQuery<R> sortBy(Sort sort) {
 
 		return new FetchableFluentQueryByPredicate<>(this.predicate, this.metaData, this.resultType, this.findOperation,
-				this.countOperation, this.existsOperation, this.sort.and(sort), this.properties);
+				this.countOperation, this.existsOperation, this.sort.and(sort), this.limit, this.properties);
+	}
+
+	@Override
+	@SuppressWarnings("HiddenField")
+	public FetchableFluentQuery<R> limit(int limit) {
+		return new FetchableFluentQueryByPredicate<>(this.predicate, this.metaData, this.resultType, this.findOperation,
+				this.countOperation, this.existsOperation, this.sort, limit, this.properties);
 	}
 
 	@Override
@@ -108,7 +118,7 @@ final class FetchableFluentQueryByPredicate<S, R> extends FluentQuerySupport<R> 
 	public FetchableFluentQuery<R> project(Collection<String> properties) {
 
 		return new FetchableFluentQueryByPredicate<>(this.predicate, this.metaData, this.resultType, this.findOperation,
-				this.countOperation, this.existsOperation, sort, mergeProperties(properties));
+				this.countOperation, this.existsOperation, this.sort, this.limit, mergeProperties(properties));
 	}
 
 	@Override
@@ -119,8 +129,8 @@ final class FetchableFluentQueryByPredicate<S, R> extends FluentQuerySupport<R> 
 				.matching(
 						QueryFragmentsAndParameters.forCondition(metaData,
 								Cypher.adapt(predicate).asCondition(),
-								null,
-								CypherAdapterUtils.toSortItems(this.metaData, sort),
+								sort,
+								limit,
 								createIncludedFieldsPredicate()))
 				.oneValue();
 	}
@@ -140,8 +150,8 @@ final class FetchableFluentQueryByPredicate<S, R> extends FluentQuerySupport<R> 
 				.matching(
 						QueryFragmentsAndParameters.forCondition(metaData,
 								Cypher.adapt(predicate).asCondition(),
-								null,
-								CypherAdapterUtils.toSortItems(this.metaData, sort),
+								sort,
+								limit,
 								createIncludedFieldsPredicate()))
 				.all();
 	}
@@ -154,12 +164,29 @@ final class FetchableFluentQueryByPredicate<S, R> extends FluentQuerySupport<R> 
 				.matching(
 						QueryFragmentsAndParameters.forCondition(metaData,
 								Cypher.adapt(predicate).asCondition(),
-								pageable, null,
+								pageable,
 								createIncludedFieldsPredicate()))
 				.all();
 
 		LongSupplier totalCountSupplier = this::count;
 		return PageableExecutionUtils.getPage(page, pageable, totalCountSupplier);
+	}
+
+	@Override
+	public Window<R> scroll(ScrollPosition scrollPosition) {
+
+		QueryFragmentsAndParameters queryFragmentsAndParameters = QueryFragmentsAndParameters.forConditionWithScrollPosition(metaData,
+					Cypher.adapt(predicate).asCondition(),
+					scrollPosition, sort,
+					limit == null ? 1 : limit + 1,
+					createIncludedFieldsPredicate());
+
+		List<R> rawResult = findOperation.find(metaData.getType())
+				.as(resultType)
+				.matching(queryFragmentsAndParameters)
+				.all();
+
+		return scroll(scrollPosition, rawResult, metaData);
 	}
 
 	@Override

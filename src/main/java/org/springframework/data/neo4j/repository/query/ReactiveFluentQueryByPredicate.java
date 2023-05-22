@@ -15,6 +15,8 @@
  */
 package org.springframework.data.neo4j.repository.query;
 
+import org.springframework.data.domain.ScrollPosition;
+import org.springframework.data.domain.Window;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -65,7 +67,7 @@ import com.querydsl.core.types.Predicate;
 			Function<Predicate, Mono<Long>> countOperation,
 			Function<Predicate, Mono<Boolean>> existsOperation
 	) {
-		this(predicate, metaData, resultType, findOperation, countOperation, existsOperation, Sort.unsorted(), null);
+		this(predicate, metaData, resultType, findOperation, countOperation, existsOperation, Sort.unsorted(), null, null);
 	}
 
 	ReactiveFluentQueryByPredicate(
@@ -76,9 +78,10 @@ import com.querydsl.core.types.Predicate;
 			Function<Predicate, Mono<Long>> countOperation,
 			Function<Predicate, Mono<Boolean>> existsOperation,
 			Sort sort,
+			@Nullable Integer limit,
 			@Nullable Collection<String> properties
 	) {
-		super(resultType, sort, properties);
+		super(resultType, sort, limit, properties);
 		this.predicate = predicate;
 		this.metaData = metaData;
 		this.findOperation = findOperation;
@@ -91,7 +94,14 @@ import com.querydsl.core.types.Predicate;
 	public ReactiveFluentQuery<R> sortBy(Sort sort) {
 
 		return new ReactiveFluentQueryByPredicate<>(this.predicate, this.metaData, this.resultType, this.findOperation,
-				this.countOperation, this.existsOperation, this.sort.and(sort), this.properties);
+				this.countOperation, this.existsOperation, this.sort.and(sort), this.limit, this.properties);
+	}
+
+	@Override
+	@SuppressWarnings("HiddenField")
+	public ReactiveFluentQuery<R> limit(int limit) {
+		return new ReactiveFluentQueryByPredicate<>(this.predicate, this.metaData, this.resultType, this.findOperation,
+				this.countOperation, this.existsOperation, this.sort, limit, this.properties);
 	}
 
 	@Override
@@ -107,7 +117,7 @@ import com.querydsl.core.types.Predicate;
 	public ReactiveFluentQuery<R> project(Collection<String> properties) {
 
 		return new ReactiveFluentQueryByPredicate<>(this.predicate, this.metaData, resultType, this.findOperation,
-				this.countOperation, this.existsOperation, sort, mergeProperties(properties));
+				this.countOperation, this.existsOperation, this.sort, this.limit, mergeProperties(properties));
 	}
 
 	@Override
@@ -118,8 +128,7 @@ import com.querydsl.core.types.Predicate;
 				.matching(
 						QueryFragmentsAndParameters.forCondition(metaData,
 								Cypher.adapt(predicate).asCondition(),
-								null,
-								CypherAdapterUtils.toSortItems(this.metaData, sort),
+								sort,
 								createIncludedFieldsPredicate()))
 				.one();
 	}
@@ -138,8 +147,7 @@ import com.querydsl.core.types.Predicate;
 				.matching(
 						QueryFragmentsAndParameters.forCondition(metaData,
 								Cypher.adapt(predicate).asCondition(),
-								null,
-								CypherAdapterUtils.toSortItems(this.metaData, sort),
+								sort,
 								createIncludedFieldsPredicate()))
 				.all();
 	}
@@ -152,7 +160,7 @@ import com.querydsl.core.types.Predicate;
 				.matching(
 						QueryFragmentsAndParameters.forCondition(metaData,
 								Cypher.adapt(predicate).asCondition(),
-								pageable, null,
+								pageable,
 								createIncludedFieldsPredicate()))
 				.all();
 
@@ -160,6 +168,22 @@ import com.querydsl.core.types.Predicate;
 			Page<R> page = PageableExecutionUtils.getPage(tuple.getT1(), pageable, () -> tuple.getT2());
 			return page;
 		});
+	}
+
+	@Override
+	public Mono<Window<R>> scroll(ScrollPosition scrollPosition) {
+		QueryFragmentsAndParameters queryFragmentsAndParameters = QueryFragmentsAndParameters.forConditionWithScrollPosition(metaData,
+				Cypher.adapt(predicate).asCondition(),
+				scrollPosition, sort,
+				limit == null ? 1 : limit + 1,
+				createIncludedFieldsPredicate());
+
+		return findOperation.find(metaData.getType())
+				.as(resultType)
+				.matching(queryFragmentsAndParameters)
+				.all()
+				.collectList()
+				.map(rawResult -> scroll(scrollPosition, rawResult, metaData));
 	}
 
 	@Override

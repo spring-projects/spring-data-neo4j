@@ -84,6 +84,7 @@ import org.springframework.data.domain.Range.Bound;
 import org.springframework.data.domain.ScrollPosition;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Window;
 import org.springframework.data.geo.Box;
 import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.Distance;
@@ -2880,6 +2881,23 @@ class RepositoryIT {
 			assertThat(person).isEqualTo(person1);
 		}
 
+		@Test // GH-2726
+		void scrollByExample(@Autowired PersonRepository repository) {
+
+			PersonWithAllConstructor sameValuePerson = new PersonWithAllConstructor(null, null, null, TEST_PERSON_SAMEVALUE, null, null, null, null, null, null, null);
+
+			Example<PersonWithAllConstructor> example = Example.of(sameValuePerson,
+					ExampleMatcher.matchingAll().withIgnoreNullValues());
+			Window<PersonWithAllConstructor> person = repository.findBy(example, q -> q.sortBy(Sort.by("name")).limit(1).scroll(ScrollPosition.offset(0)));
+
+			assertThat(person).isNotNull();
+			assertThat(person.getContent().get(0)).isEqualTo(person1);
+
+			ScrollPosition currentPosition = person.positionAt(person1);
+			person = repository.findBy(example, q -> q.sortBy(Sort.by("name")).limit(1).scroll(currentPosition));
+			assertThat(person.getContent().get(0)).isEqualTo(person2);
+		}
+
 		@Test
 		void findAllByExampleWithDifferentMatchers(@Autowired PersonRepository repository) {
 
@@ -2962,6 +2980,16 @@ class RepositoryIT {
 			Iterable<PersonWithAllConstructor> persons = repository.findBy(example, q -> q.page(PageRequest.of(1, 1, Sort.by("name"))));
 
 			assertThat(persons).containsExactly(person2);
+		}
+
+		@Test // GH-2726
+		void findAllByExampleWithScrollFluent(@Autowired PersonRepository repository) {
+
+			Example<PersonWithAllConstructor> example = Example.of(personExample(TEST_PERSON_SAMEVALUE));
+			Window<PersonWithAllConstructor> persons = repository.findBy(example,
+					q -> q.sortBy(Sort.by("name")).limit(1).scroll(ScrollPosition.keyset().forward()));
+
+			assertThat(persons.getContent()).containsExactly(person1);
 		}
 
 		@Test

@@ -63,7 +63,7 @@ public final class ReactiveCypherdslConditionExecutorImpl<T> implements Reactive
 
 		return this.neo4jOperations.toExecutableQuery(
 				this.metaData.getType(),
-				QueryFragmentsAndParameters.forCondition(this.metaData, condition, null, null)
+				QueryFragmentsAndParameters.forCondition(this.metaData, condition)
 		).flatMap(ReactiveNeo4jOperations.ExecutableQuery::getSingleResult);
 	}
 
@@ -72,7 +72,7 @@ public final class ReactiveCypherdslConditionExecutorImpl<T> implements Reactive
 
 		return this.neo4jOperations.toExecutableQuery(
 				this.metaData.getType(),
-				QueryFragmentsAndParameters.forCondition(this.metaData, condition, null, null)
+				QueryFragmentsAndParameters.forCondition(this.metaData, condition)
 		).flatMapMany(ReactiveNeo4jOperations.ExecutableQuery::getResults);
 	}
 
@@ -82,7 +82,7 @@ public final class ReactiveCypherdslConditionExecutorImpl<T> implements Reactive
 		return this.neo4jOperations.toExecutableQuery(
 				metaData.getType(),
 				QueryFragmentsAndParameters.forCondition(
-						this.metaData, condition, null, CypherAdapterUtils.toSortItems(this.metaData, sort)
+						this.metaData, condition, sort
 				)
 		).flatMapMany(ReactiveNeo4jOperations.ExecutableQuery::getResults);
 	}
@@ -93,7 +93,7 @@ public final class ReactiveCypherdslConditionExecutorImpl<T> implements Reactive
 		return this.neo4jOperations.toExecutableQuery(
 				this.metaData.getType(),
 				QueryFragmentsAndParameters.forCondition(
-						this.metaData, condition, null, Arrays.asList(sortItems)
+						this.metaData, condition, Arrays.asList(sortItems)
 				)
 		).flatMapMany(ReactiveNeo4jOperations.ExecutableQuery::getResults);
 	}
@@ -103,7 +103,7 @@ public final class ReactiveCypherdslConditionExecutorImpl<T> implements Reactive
 
 		return this.neo4jOperations.toExecutableQuery(
 				this.metaData.getType(),
-				QueryFragmentsAndParameters.forCondition(this.metaData, Conditions.noCondition(), null,
+				QueryFragmentsAndParameters.forCondition(this.metaData, Conditions.noCondition(),
 						Arrays.asList(sortItems))
 		).flatMapMany(ReactiveNeo4jOperations.ExecutableQuery::getResults);
 	}

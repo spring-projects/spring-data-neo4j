@@ -17,6 +17,8 @@ package org.springframework.data.neo4j.integration.reactive;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import org.junit.jupiter.api.Tag;
+import org.springframework.data.domain.ScrollPosition;
 import org.springframework.data.neo4j.test.Neo4jReactiveTestConfiguration;
 import reactor.test.StepVerifier;
 
@@ -186,6 +188,70 @@ class ReactiveQuerydslNeo4jPredicateExecutorIT {
 					assertThat(people.hasNext()).isFalse();
 					return true;
 				}).verifyComplete();
+	}
+
+	@Test
+	@Tag("GH-2726")
+	void scrollByExampleWithNoOffset(@Autowired QueryDSLPersonRepository repository) {
+		Predicate predicate = Expressions.predicate(Ops.EQ, firstNamePath, Expressions.asString("Helge"))
+				.or(Expressions.predicate(Ops.EQ, lastNamePath, Expressions.asString("B.")));
+
+		repository.findBy(predicate, q -> q.limit(1).scroll(ScrollPosition.offset(0)))
+				.as(StepVerifier::create)
+				.expectNextMatches(peopleWindow -> {
+
+					assertThat(peopleWindow.getContent()).extracting(Person::getFirstName)
+							.containsExactlyInAnyOrder("Helge");
+
+					assertThat(peopleWindow.isLast()).isFalse();
+					assertThat(peopleWindow.hasNext()).isTrue();
+
+					assertThat(peopleWindow.positionAt(peopleWindow.getContent().get(0))).isEqualTo(ScrollPosition.offset(1));
+					return true;
+				}).verifyComplete();
+	}
+
+	@Test
+	@Tag("GH-2726")
+	void scrollByExampleWithOffset(@Autowired QueryDSLPersonRepository repository) {
+		Predicate predicate = Expressions.predicate(Ops.EQ, firstNamePath, Expressions.asString("Helge"))
+				.or(Expressions.predicate(Ops.EQ, lastNamePath, Expressions.asString("B.")));
+
+		repository.findBy(predicate, q -> q.limit(1).scroll(ScrollPosition.offset(1)))
+				.as(StepVerifier::create)
+				.expectNextMatches(peopleWindow -> {
+					assertThat(peopleWindow.getContent()).extracting(Person::getFirstName)
+							.containsExactlyInAnyOrder("Bela");
+
+					assertThat(peopleWindow.isLast()).isTrue();
+					assertThat(peopleWindow.positionAt(peopleWindow.getContent().get(0))).isEqualTo(ScrollPosition.offset(2));
+					return true;
+				}).verifyComplete();
+	}
+
+	@Test
+	@Tag("GH-2726")
+	void scrollByExampleWithContinuingOffset(@Autowired QueryDSLPersonRepository repository) {
+		Predicate predicate = Expressions.predicate(Ops.EQ, firstNamePath, Expressions.asString("Helge"))
+				.or(Expressions.predicate(Ops.EQ, lastNamePath, Expressions.asString("B.")));
+
+		repository.findBy(predicate, q -> q.limit(1).scroll(ScrollPosition.offset(0)))
+				.as(StepVerifier::create)
+				.expectNextMatches(peopleWindow -> {
+					ScrollPosition currentPosition = peopleWindow.positionAt(peopleWindow.getContent().get(0));
+					repository.findBy(predicate, q -> q.limit(1).scroll(currentPosition))
+							.as(StepVerifier::create)
+							.expectNextMatches(nextPeopleWindow -> {
+
+								assertThat(nextPeopleWindow.getContent()).extracting(Person::getFirstName)
+										.containsExactlyInAnyOrder("Bela");
+
+								assertThat(nextPeopleWindow.isLast()).isTrue();
+								return true;
+							});
+					return true;
+				});
+
 	}
 
 	@Test // GH-2361

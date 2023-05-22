@@ -292,7 +292,7 @@ abstract class Neo4jQuerySupport {
 		return Window.from(getSubList(rawResult, limit, scrollDirection), v -> {
 			if (scrollPosition instanceof OffsetScrollPosition offsetScrollPosition) {
 				return offsetScrollPosition.advanceBy(v + limit);
-			} else  {
+			} else {
 				var accessor = neo4jPersistentEntity.getPropertyAccessor(rawResult.get(v));
 				var keys = new LinkedHashMap<String, Object>();
 				orderBy.getSort().forEach(o -> {

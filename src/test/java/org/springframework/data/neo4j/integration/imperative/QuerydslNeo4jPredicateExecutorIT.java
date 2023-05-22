@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Session;
@@ -30,7 +31,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.ScrollPosition;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Window;
 import org.springframework.data.neo4j.test.Neo4jImperativeTestConfiguration;
 import org.springframework.data.neo4j.core.DatabaseSelectionProvider;
 import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
@@ -124,6 +127,55 @@ class QuerydslNeo4jPredicateExecutorIT {
 					assertThat(p.getLastName()).isNull();
 					assertThat(p.getAddress()).isNull();
 				});
+	}
+
+	@Test
+	@Tag("GH-2726")
+	void scrollByExampleWithNoOffset(@Autowired QueryDSLPersonRepository repository) {
+		Predicate predicate = Expressions.predicate(Ops.EQ, firstNamePath, Expressions.asString("Helge"))
+				.or(Expressions.predicate(Ops.EQ, lastNamePath, Expressions.asString("B.")));
+
+		Window<Person> peopleWindow = repository.findBy(predicate, q -> q.limit(1).scroll(ScrollPosition.offset(0)));
+
+		assertThat(peopleWindow.getContent()).extracting(Person::getFirstName)
+				.containsExactlyInAnyOrder("Helge");
+
+		assertThat(peopleWindow.isLast()).isFalse();
+		assertThat(peopleWindow.hasNext()).isTrue();
+
+		assertThat(peopleWindow.positionAt(peopleWindow.getContent().get(0))).isEqualTo(ScrollPosition.offset(1));
+	}
+
+	@Test
+	@Tag("GH-2726")
+	void scrollByExampleWithOffset(@Autowired QueryDSLPersonRepository repository) {
+		Predicate predicate = Expressions.predicate(Ops.EQ, firstNamePath, Expressions.asString("Helge"))
+				.or(Expressions.predicate(Ops.EQ, lastNamePath, Expressions.asString("B.")));
+
+		Window<Person> peopleWindow = repository.findBy(predicate, q -> q.limit(1).scroll(ScrollPosition.offset(1)));
+
+		assertThat(peopleWindow.getContent()).extracting(Person::getFirstName)
+				.containsExactlyInAnyOrder("Bela");
+
+		assertThat(peopleWindow.isLast()).isTrue();
+
+		assertThat(peopleWindow.positionAt(peopleWindow.getContent().get(0))).isEqualTo(ScrollPosition.offset(2));
+	}
+
+	@Test
+	@Tag("GH-2726")
+	void scrollByExampleWithContinuingOffset(@Autowired QueryDSLPersonRepository repository) {
+		Predicate predicate = Expressions.predicate(Ops.EQ, firstNamePath, Expressions.asString("Helge"))
+				.or(Expressions.predicate(Ops.EQ, lastNamePath, Expressions.asString("B.")));
+
+		Window<Person> peopleWindow = repository.findBy(predicate, q -> q.limit(1).scroll(ScrollPosition.offset(0)));
+		ScrollPosition currentPosition = peopleWindow.positionAt(peopleWindow.getContent().get(0));
+		peopleWindow = repository.findBy(predicate, q -> q.limit(1).scroll(currentPosition));
+
+		assertThat(peopleWindow.getContent()).extracting(Person::getFirstName)
+				.containsExactlyInAnyOrder("Bela");
+
+		assertThat(peopleWindow.isLast()).isTrue();
 	}
 
 	static class DtoPersonProjection {
@@ -220,6 +272,18 @@ class QuerydslNeo4jPredicateExecutorIT {
 		long count = repository.findBy(predicate, q -> q.count());
 
 		assertThat(count).isEqualTo(2);
+	}
+
+	@Test // GH-2726
+	void fluentFindAllWithLimitShouldWork(@Autowired QueryDSLPersonRepository repository) {
+
+		Predicate predicate = Expressions.predicate(Ops.EQ, firstNamePath, Expressions.asString("Helge"))
+				.or(Expressions.predicate(Ops.EQ, lastNamePath, Expressions.asString("B.")));
+		List<Person> people = repository.findBy(predicate,
+				q -> q.limit(1)).all();
+
+		assertThat(people).hasSize(1);
+		assertThat(people).extracting(Person::getFirstName).containsExactly("Helge");
 	}
 
 	@Test

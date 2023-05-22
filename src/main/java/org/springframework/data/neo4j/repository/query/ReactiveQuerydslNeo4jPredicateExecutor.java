@@ -76,8 +76,7 @@ public final class ReactiveQuerydslNeo4jPredicateExecutor<T> implements Reactive
 
 		return this.neo4jOperations.toExecutableQuery(
 				this.metaData.getType(),
-				QueryFragmentsAndParameters.forCondition(this.metaData, Cypher.adapt(predicate).asCondition(), null,
-						null)
+				QueryFragmentsAndParameters.forCondition(this.metaData, Cypher.adapt(predicate).asCondition())
 		).flatMap(ReactiveNeo4jOperations.ExecutableQuery::getSingleResult);
 	}
 
@@ -108,7 +107,7 @@ public final class ReactiveQuerydslNeo4jPredicateExecutor<T> implements Reactive
 	private Flux<T> doFindAll(Condition condition, Collection<SortItem> sortItems) {
 		return this.neo4jOperations.toExecutableQuery(
 				this.metaData.getType(),
-				QueryFragmentsAndParameters.forCondition(this.metaData, condition, null,
+				QueryFragmentsAndParameters.forCondition(this.metaData, condition,
 						sortItems)
 		).flatMapMany(ReactiveNeo4jOperations.ExecutableQuery::getResults);
 	}

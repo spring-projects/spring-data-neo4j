@@ -66,7 +66,7 @@ public final class CypherdslConditionExecutorImpl<T> implements CypherdslConditi
 
 		return this.neo4jOperations.toExecutableQuery(
 				this.metaData.getType(),
-				QueryFragmentsAndParameters.forCondition(this.metaData, condition, null, null)
+				QueryFragmentsAndParameters.forCondition(this.metaData, condition)
 		).getSingleResult();
 	}
 
@@ -75,7 +75,7 @@ public final class CypherdslConditionExecutorImpl<T> implements CypherdslConditi
 
 		return this.neo4jOperations.toExecutableQuery(
 				this.metaData.getType(),
-				QueryFragmentsAndParameters.forCondition(this.metaData, condition, null, null)
+				QueryFragmentsAndParameters.forCondition(this.metaData, condition)
 		).getResults();
 	}
 
@@ -85,7 +85,7 @@ public final class CypherdslConditionExecutorImpl<T> implements CypherdslConditi
 		return this.neo4jOperations.toExecutableQuery(
 				metaData.getType(),
 				QueryFragmentsAndParameters.forCondition(
-						this.metaData, condition, null, CypherAdapterUtils.toSortItems(this.metaData, sort)
+						this.metaData, condition, sort
 				)
 		).getResults();
 	}
@@ -96,7 +96,7 @@ public final class CypherdslConditionExecutorImpl<T> implements CypherdslConditi
 		return this.neo4jOperations.toExecutableQuery(
 				this.metaData.getType(),
 				QueryFragmentsAndParameters.forCondition(
-						this.metaData, condition, null, Arrays.asList(sortItems)
+						this.metaData, condition, Arrays.asList(sortItems)
 				)
 		).getResults();
 	}
@@ -106,7 +106,7 @@ public final class CypherdslConditionExecutorImpl<T> implements CypherdslConditi
 
 		return this.neo4jOperations.toExecutableQuery(
 				this.metaData.getType(),
-				QueryFragmentsAndParameters.forCondition(this.metaData, Conditions.noCondition(), null, Arrays.asList(sortItems))
+				QueryFragmentsAndParameters.forCondition(this.metaData, Conditions.noCondition(), Arrays.asList(sortItems))
 		).getResults();
 	}
 
@@ -115,7 +115,7 @@ public final class CypherdslConditionExecutorImpl<T> implements CypherdslConditi
 
 		List<T> page = this.neo4jOperations.toExecutableQuery(
 				this.metaData.getType(),
-				QueryFragmentsAndParameters.forCondition(this.metaData, condition, pageable, null)
+				QueryFragmentsAndParameters.forCondition(this.metaData, condition, pageable)
 		).getResults();
 		LongSupplier totalCountSupplier = () -> this.count(condition);
 		return PageableExecutionUtils.getPage(page, pageable, totalCountSupplier);
