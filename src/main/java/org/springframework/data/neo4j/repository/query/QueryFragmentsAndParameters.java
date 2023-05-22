@@ -24,7 +24,10 @@ import org.neo4j.cypherdsl.core.PatternElement;
 import org.neo4j.cypherdsl.core.RelationshipPattern;
 import org.neo4j.cypherdsl.core.SortItem;
 import org.springframework.data.domain.Example;
+import org.springframework.data.domain.KeysetScrollPosition;
+import org.springframework.data.domain.OffsetScrollPosition;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.ScrollPosition;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.core.mapping.Constants;
 import org.springframework.data.neo4j.core.mapping.CypherGenerator;
@@ -172,32 +175,58 @@ public final class QueryFragmentsAndParameters {
 		return new QueryFragmentsAndParameters(entityMetaData, queryFragments, parameters, null);
 	}
 
+	public static QueryFragmentsAndParameters forPageableAndSort(Neo4jPersistentEntity<?> neo4jPersistentEntity,
+																 @Nullable Pageable pageable, @Nullable Sort sort) {
+
+		return getQueryFragmentsAndParameters(neo4jPersistentEntity, pageable, sort, null, null, null, Collections.emptyMap(), null, null, null);
+	}
+
 	/*
 	 * Following methods are used by the Simple(Reactive)QueryByExampleExecutor
 	 */
 	static QueryFragmentsAndParameters forExample(Neo4jMappingContext mappingContext, Example<?> example) {
-		return QueryFragmentsAndParameters.forExample(mappingContext, example,
-				(java.util.function.Predicate<PropertyFilter.RelaxedPropertyPath>) null);
+		return forExample(mappingContext, example, null, null, null, null, null, null, null);
 	}
 
-	static QueryFragmentsAndParameters forExample(Neo4jMappingContext mappingContext, Example<?> example, @Nullable java.util.function.Predicate<PropertyFilter.RelaxedPropertyPath> includeField) {
-		return QueryFragmentsAndParameters.forExample(mappingContext, example, null, null, includeField);
+	static QueryFragmentsAndParameters forExampleWithPageable(Neo4jMappingContext mappingContext, Example<?> example, Pageable pageable, @Nullable java.util.function.Predicate<PropertyFilter.RelaxedPropertyPath> includeField) {
+		return forExample(mappingContext, example, null, pageable, null, null, null, null, includeField);
 	}
 
-	static QueryFragmentsAndParameters forExample(Neo4jMappingContext mappingContext, Example<?> example, Sort sort) {
-		return QueryFragmentsAndParameters.forExample(mappingContext, example, sort, null);
+	static QueryFragmentsAndParameters forExampleWithSort(Neo4jMappingContext mappingContext, Example<?> example, Sort sort, @Nullable Integer limit, @Nullable java.util.function.Predicate<PropertyFilter.RelaxedPropertyPath> includeField) {
+		return forExample(mappingContext, example, null, null, sort, limit, null, null, includeField);
 	}
 
-	static QueryFragmentsAndParameters forExample(Neo4jMappingContext mappingContext, Example<?> example, Sort sort, @Nullable java.util.function.Predicate<PropertyFilter.RelaxedPropertyPath> includeField) {
-		return QueryFragmentsAndParameters.forExample(mappingContext, example, null, sort, includeField);
+	static QueryFragmentsAndParameters forExampleWithScrollPosition(Neo4jMappingContext mappingContext, Example<?> example, @Nullable Condition keysetScrollPositionCondition, Sort sort, @Nullable Integer limit, @Nullable Long skip, ScrollPosition scrollPosition, @Nullable java.util.function.Predicate<PropertyFilter.RelaxedPropertyPath> includeField) {
+		return forExample(mappingContext, example, keysetScrollPositionCondition, null, sort, limit, skip, scrollPosition, includeField);
 	}
 
-	static QueryFragmentsAndParameters forExample(Neo4jMappingContext mappingContext, Example<?> example, Pageable pageable) {
-		return QueryFragmentsAndParameters.forExample(mappingContext, example, pageable, null);
-	}
+	private static QueryFragmentsAndParameters forExample(Neo4jMappingContext mappingContext, Example<?> example,
+														  @Nullable Condition keysetScrollPositionCondition,
+														  @Nullable Pageable pageable,
+														  @Nullable Sort sort,
+														  @Nullable Integer limit,
+														  @Nullable Long skip,
+														  @Nullable ScrollPosition scrollPosition,
+														  @Nullable java.util.function.Predicate<PropertyFilter.RelaxedPropertyPath> includeField) {
 
-	static QueryFragmentsAndParameters forExample(Neo4jMappingContext mappingContext, Example<?> example, Pageable pageable, @Nullable java.util.function.Predicate<PropertyFilter.RelaxedPropertyPath> includeField) {
-		return QueryFragmentsAndParameters.forExample(mappingContext, example, pageable, null, includeField);
+		Predicate predicate = Predicate.create(mappingContext, example);
+		Map<String, Object> parameters = predicate.getParameters();
+		Set<PropertyPathWrapper> propertyPathWrappers = predicate.getPropertyPathWrappers();
+		Condition condition = predicate.getCondition();
+		Neo4jPersistentEntity<?> persistentEntity = mappingContext.getPersistentEntity(example.getProbeType());
+		if (scrollPosition instanceof KeysetScrollPosition keysetScrollPosition) {
+
+			if (!keysetScrollPosition.isInitial()) {
+				condition = condition.and(keysetScrollPositionCondition);
+			}
+			QueryFragmentsAndParameters queryFragmentsAndParameters = getQueryFragmentsAndParameters(persistentEntity, pageable,
+					sort, null, limit, skip, parameters, condition, includeField, propertyPathWrappers);
+			queryFragmentsAndParameters.getQueryFragments().setRequiresReverseSort(keysetScrollPosition.scrollsBackward());
+			return queryFragmentsAndParameters;
+		}
+
+		return getQueryFragmentsAndParameters(persistentEntity, pageable,
+				sort, null, limit, skip, parameters, condition, includeField, propertyPathWrappers);
 	}
 
 	/**
@@ -208,78 +237,86 @@ public final class QueryFragmentsAndParameters {
 	 * @return Fully populated fragments and parameter
 	 */
 	@API(status = API.Status.EXPERIMENTAL, since = "6.1.7")
-	public static QueryFragmentsAndParameters forCondition(Neo4jPersistentEntity<?> entityMetaData, Condition condition) {
-		return forCondition(entityMetaData, condition, null, null);
+	public static QueryFragmentsAndParameters forCondition(Neo4jPersistentEntity<?> entityMetaData,
+														   Condition condition) {
+
+		return forCondition(entityMetaData, condition, null, null, null, null, null, null);
 	}
 
-	static QueryFragmentsAndParameters forCondition(Neo4jPersistentEntity<?> entityMetaData,
-													Condition condition,
-													@Nullable Pageable pageable,
-													@Nullable Collection<SortItem> sortItems
-	) {
-		return forCondition(entityMetaData, condition, pageable, sortItems, null);
+	static QueryFragmentsAndParameters forConditionAndPageable(Neo4jPersistentEntity<?> entityMetaData,
+															   Condition condition, Pageable pageable,
+															   java.util.function.Predicate<PropertyFilter.RelaxedPropertyPath> includeField) {
+
+		return forCondition(entityMetaData, condition, pageable, null, null, null, null, includeField);
 	}
 
-	static QueryFragmentsAndParameters forCondition(Neo4jPersistentEntity<?> entityMetaData,
+	static QueryFragmentsAndParameters forConditionAndSort(Neo4jPersistentEntity<?> entityMetaData, Condition condition, Sort sort, @Nullable Integer limit,
+														   @Nullable java.util.function.Predicate<PropertyFilter.RelaxedPropertyPath> includeField) {
+
+		return forCondition(entityMetaData, condition, null, sort, null, limit, null, includeField);
+	}
+
+	static QueryFragmentsAndParameters forConditionAndSortItems(Neo4jPersistentEntity<?> entityMetaData, Condition condition, @Nullable Collection<SortItem> sortItems) {
+		return forCondition(entityMetaData, condition, null, null, sortItems, null, null, null);
+	}
+
+	static QueryFragmentsAndParameters forConditionWithScrollPosition(Neo4jPersistentEntity<?> entityMetaData,
+																	  Condition condition,
+																	  @Nullable Condition keysetCondition,
+																	  ScrollPosition scrollPosition,
+																	  @Nullable Sort sort,
+																	  @Nullable Integer limit,
+																	  @Nullable java.util.function.Predicate<PropertyFilter.RelaxedPropertyPath> includeField) {
+
+		long skip = 0L;
+
+		if (scrollPosition instanceof OffsetScrollPosition offsetScrollPosition) {
+			skip = offsetScrollPosition.isInitial()
+					? 0
+					: offsetScrollPosition.getOffset();
+
+			return forCondition(entityMetaData, condition, null, sort, null, limit, skip, includeField);
+		}
+
+		if (scrollPosition instanceof KeysetScrollPosition keysetScrollPosition) {
+			if (!scrollPosition.isInitial()) {
+				condition = condition.and(keysetCondition);
+			}
+			QueryFragmentsAndParameters queryFragmentsAndParameters = getQueryFragmentsAndParameters(entityMetaData, null,
+					sort, null, limit, skip, Collections.emptyMap(), condition, includeField, null);
+			queryFragmentsAndParameters.getQueryFragments().setRequiresReverseSort(keysetScrollPosition.scrollsBackward());
+			return queryFragmentsAndParameters;
+		}
+
+		throw new IllegalArgumentException("ScrollPosition must be of type OffsetScrollPosition or KeysetScrollPosition. Unexpected type %s found.".formatted(scrollPosition.getClass()));
+
+	}
+
+	// Parameter re-ordering helper
+	private static QueryFragmentsAndParameters forCondition(Neo4jPersistentEntity<?> entityMetaData,
 													Condition condition,
 													@Nullable Pageable pageable,
+													@Nullable Sort sort,
 													@Nullable Collection<SortItem> sortItems,
+													@Nullable Integer limit,
+													@Nullable Long skip,
 													@Nullable java.util.function.Predicate<PropertyFilter.RelaxedPropertyPath> includeField
 	) {
 
-		QueryFragments queryFragments = new QueryFragments();
-		queryFragments.addMatchOn(cypherGenerator.createRootNode(entityMetaData));
-		queryFragments.setCondition(condition);
-		if (includeField == null) {
-			queryFragments.setReturnExpressions(cypherGenerator.createReturnStatementForMatch(entityMetaData));
-		} else {
-			queryFragments.setReturnExpressions(
-					cypherGenerator.createReturnStatementForMatch(entityMetaData, includeField));
-		}
-		queryFragments.setRenderConstantsAsParameters(true);
 
-		if (pageable != null) {
-			adaptPageable(entityMetaData, pageable, queryFragments);
-		} else if (sortItems != null) {
-			queryFragments.setOrderBy(sortItems);
-		}
-
-		return new QueryFragmentsAndParameters(entityMetaData, queryFragments, Collections.emptyMap(), null);
-	}
-
-	private static void adaptPageable(
-			Neo4jPersistentEntity<?> entityMetaData,
-			Pageable pageable,
-			QueryFragments queryFragments
-	) {
-		Sort pageableSort = pageable.getSort();
-		queryFragments.setSkip(pageable.getOffset());
-		queryFragments.setLimit(pageable.getPageSize());
-		queryFragments.setOrderBy(CypherAdapterUtils.toSortItems(entityMetaData, pageableSort));
-	}
-
-	static QueryFragmentsAndParameters forExample(Neo4jMappingContext mappingContext, Example<?> example,
-												  @Nullable Pageable pageable, @Nullable Sort sort, java.util.function.Predicate<PropertyFilter.RelaxedPropertyPath> includeField) {
-
-		Predicate predicate = Predicate.create(mappingContext, example);
-		Map<String, Object> parameters = predicate.getParameters();
-		Set<PropertyPathWrapper> propertyPathWrappers = predicate.getPropertyPathWrappers();
-		Condition condition = predicate.getCondition();
-
-		return getQueryFragmentsAndParameters(mappingContext.getPersistentEntity(example.getProbeType()), pageable,
-				sort, parameters, condition, includeField, propertyPathWrappers);
-	}
-
-	public static QueryFragmentsAndParameters forPageableAndSort(Neo4jPersistentEntity<?> neo4jPersistentEntity,
-																 @Nullable Pageable pageable, @Nullable Sort sort) {
-
-		return getQueryFragmentsAndParameters(neo4jPersistentEntity, pageable, sort, Collections.emptyMap(), null, null, null);
+		return getQueryFragmentsAndParameters(entityMetaData, pageable, sort, sortItems, limit, skip, Collections.emptyMap(), condition, includeField, null);
 	}
 
 	private static QueryFragmentsAndParameters getQueryFragmentsAndParameters(
-			Neo4jPersistentEntity<?> entityMetaData, @Nullable Pageable pageable, @Nullable Sort sort,
-			@Nullable Map<String, Object> parameters, @Nullable Condition condition, @Nullable
-			java.util.function.Predicate<PropertyFilter.RelaxedPropertyPath> includeField,
+			Neo4jPersistentEntity<?> entityMetaData,
+			@Nullable Pageable pageable,
+			@Nullable Sort sort,
+			@Nullable Collection<SortItem> sortItems,
+			@Nullable Integer limit,
+			@Nullable Long skip,
+			@Nullable Map<String, Object> parameters,
+			@Nullable Condition condition,
+			@Nullable java.util.function.Predicate<PropertyFilter.RelaxedPropertyPath> includeField,
 			@Nullable Set<PropertyPathWrapper> propertyPathWrappers) {
 
 		QueryFragments queryFragments = new QueryFragments();
@@ -305,11 +342,34 @@ public final class QueryFragmentsAndParameters {
 
 		if (pageable != null) {
 			adaptPageable(entityMetaData, pageable, queryFragments);
-		} else if (sort != null) {
-			queryFragments.setOrderBy(CypherAdapterUtils.toSortItems(entityMetaData, sort));
+		} else {
+			if (sort != null) {
+				queryFragments.setOrderBy(CypherAdapterUtils.toSortItems(entityMetaData, sort));
+			} else if (sortItems != null) {
+				queryFragments.setOrderBy(sortItems);
+			}
+			if (limit != null) {
+				// we don't need to additionally pass the limit to the constructor
+				// because it will get fetched from the QueryFragments later
+				queryFragments.setLimit(limit);
+			}
+			if (skip != null) {
+				queryFragments.setSkip(skip);
+			}
 		}
 
 		return new QueryFragmentsAndParameters(entityMetaData, queryFragments, parameters, sort);
+	}
+
+	private static void adaptPageable(
+			Neo4jPersistentEntity<?> entityMetaData,
+			Pageable pageable,
+			QueryFragments queryFragments
+	) {
+		Sort pageableSort = pageable.getSort();
+		queryFragments.setSkip(pageable.getOffset());
+		queryFragments.setLimit(pageable.getPageSize());
+		queryFragments.setOrderBy(CypherAdapterUtils.toSortItems(entityMetaData, pageableSort));
 	}
 
 }

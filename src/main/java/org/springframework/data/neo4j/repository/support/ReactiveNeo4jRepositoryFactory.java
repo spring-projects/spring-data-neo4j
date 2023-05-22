@@ -92,7 +92,7 @@ final class ReactiveNeo4jRepositoryFactory extends ReactiveRepositoryFactorySupp
 
 		if (isQueryDslRepository) {
 
-			fragments = fragments.append(createDSLExecutorFragment(metadata, ReactiveQuerydslNeo4jPredicateExecutor.class));
+			fragments = fragments.append(createDSLPredicateExecutorFragment(metadata, ReactiveQuerydslNeo4jPredicateExecutor.class));
 		}
 
 		if (ReactiveCypherdslConditionExecutor.class.isAssignableFrom(metadata.getRepositoryInterface())) {
@@ -101,6 +101,14 @@ final class ReactiveNeo4jRepositoryFactory extends ReactiveRepositoryFactorySupp
 		}
 
 		return fragments;
+	}
+
+	private RepositoryFragment<Object> createDSLPredicateExecutorFragment(RepositoryMetadata metadata, Class<?> implementor) {
+
+		Neo4jEntityInformation<?, Object> entityInformation = getEntityInformation(metadata.getDomainType());
+		Object querydslFragment = instantiateClass(implementor, mappingContext, entityInformation, neo4jOperations);
+
+		return RepositoryFragment.implemented(querydslFragment);
 	}
 
 	private RepositoryFragment<Object> createDSLExecutorFragment(RepositoryMetadata metadata, Class<?> implementor) {

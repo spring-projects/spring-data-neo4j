@@ -39,6 +39,7 @@ import org.springframework.data.domain.KeysetScrollPosition;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.ScrollPosition.Direction;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.neo4j.core.convert.Neo4jConversionService;
 import org.springframework.data.neo4j.core.mapping.Constants;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentProperty;
@@ -98,7 +99,7 @@ public final class CypherAdapterUtils {
 		};
 	}
 
-	public static Condition combineKeysetIntoCondition(Neo4jPersistentEntity<?> entity, KeysetScrollPosition scrollPosition, Sort sort) {
+	public static Condition combineKeysetIntoCondition(Neo4jPersistentEntity<?> entity, KeysetScrollPosition scrollPosition, Sort sort, Neo4jConversionService conversionService) {
 
 		var incomingKeys = scrollPosition.getKeys();
 		var orderedKeys = new LinkedHashMap<String, Object>();
@@ -135,7 +136,7 @@ public final class CypherAdapterUtils {
 			if (v == null || (v instanceof Value value && value.isNull())) {
 				throw new IllegalStateException("Cannot resume from KeysetScrollPosition. Offending key: '%s' is 'null'".formatted(k));
 			}
-			var parameter = Cypher.anonParameter(v);
+			var parameter = Cypher.anonParameter(conversionService.convert(v, Value.class));
 
 			Expression expression;
 
