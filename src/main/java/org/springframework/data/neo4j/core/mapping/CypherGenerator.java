@@ -624,7 +624,7 @@ public enum CypherGenerator {
 	}
 
 	public Collection<Expression> createReturnStatementForMatch(Neo4jPersistentEntity<?> nodeDescription) {
-		return createReturnStatementForMatch(nodeDescription, (pp -> true));
+		return createReturnStatementForMatch(nodeDescription, PropertyFilter.NO_FILTER);
 	}
 
 	/**

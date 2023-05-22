@@ -15,6 +15,12 @@
  */
 package org.springframework.data.neo4j.repository.query;
 
+import org.neo4j.cypherdsl.core.Condition;
+import org.springframework.data.domain.KeysetScrollPosition;
+import org.springframework.data.domain.OffsetScrollPosition;
+import org.springframework.data.domain.ScrollPosition;
+import org.springframework.data.domain.Window;
+import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -64,7 +70,7 @@ final class ReactiveFluentQueryByExample<S, R> extends FluentQuerySupport<R> imp
 			Function<Example<S>, Mono<Boolean>> existsOperation
 	) {
 		this(example, resultType, mappingContext, findOperation, countOperation, existsOperation, Sort.unsorted(),
-				null);
+				null, null);
 	}
 
 	ReactiveFluentQueryByExample(
@@ -75,9 +81,10 @@ final class ReactiveFluentQueryByExample<S, R> extends FluentQuerySupport<R> imp
 			Function<Example<S>, Mono<Long>> countOperation,
 			Function<Example<S>, Mono<Boolean>> existsOperation,
 			Sort sort,
+			@Nullable Integer limit,
 			@Nullable Collection<String> properties
 	) {
-		super(resultType, sort, properties);
+		super(resultType, sort, limit, properties);
 		this.mappingContext = mappingContext;
 		this.example = example;
 		this.findOperation = findOperation;
@@ -90,7 +97,15 @@ final class ReactiveFluentQueryByExample<S, R> extends FluentQuerySupport<R> imp
 	public ReactiveFluentQuery<R> sortBy(Sort sort) {
 
 		return new ReactiveFluentQueryByExample<>(this.example, this.resultType, this.mappingContext, this.findOperation,
-				this.countOperation, this.existsOperation, this.sort.and(sort), this.properties);
+				this.countOperation, this.existsOperation, this.sort.and(sort), this.limit, this.properties);
+	}
+
+	@Override
+	@SuppressWarnings("HiddenField")
+	public ReactiveFluentQuery<R> limit(int limit) {
+
+		return new ReactiveFluentQueryByExample<>(this.example, this.resultType, this.mappingContext, this.findOperation,
+				this.countOperation, this.existsOperation, this.sort, limit, this.properties);
 	}
 
 	@Override
@@ -106,7 +121,7 @@ final class ReactiveFluentQueryByExample<S, R> extends FluentQuerySupport<R> imp
 	public ReactiveFluentQuery<R> project(Collection<String> properties) {
 
 		return new ReactiveFluentQueryByExample<>(this.example, this.resultType, this.mappingContext, this.findOperation,
-				this.countOperation, this.existsOperation, sort, mergeProperties(properties));
+				this.countOperation, this.existsOperation, this.sort, this.limit, mergeProperties(properties));
 	}
 
 	@Override
@@ -114,7 +129,7 @@ final class ReactiveFluentQueryByExample<S, R> extends FluentQuerySupport<R> imp
 
 		return findOperation.find(example.getProbeType())
 				.as(resultType)
-				.matching(QueryFragmentsAndParameters.forExample(mappingContext, example, sort,
+				.matching(QueryFragmentsAndParameters.forExampleWithSort(mappingContext, example, sort, limit,
 						createIncludedFieldsPredicate()))
 				.one();
 	}
@@ -130,7 +145,7 @@ final class ReactiveFluentQueryByExample<S, R> extends FluentQuerySupport<R> imp
 
 		return findOperation.find(example.getProbeType())
 				.as(resultType)
-				.matching(QueryFragmentsAndParameters.forExample(mappingContext, example, sort,
+				.matching(QueryFragmentsAndParameters.forExampleWithSort(mappingContext, example, sort, limit,
 						createIncludedFieldsPredicate()))
 				.all();
 	}
@@ -140,13 +155,35 @@ final class ReactiveFluentQueryByExample<S, R> extends FluentQuerySupport<R> imp
 
 		Flux<R> results = findOperation.find(example.getProbeType())
 				.as(resultType)
-				.matching(QueryFragmentsAndParameters.forExample(mappingContext, example, pageable,
+				.matching(QueryFragmentsAndParameters.forExampleWithPageable(mappingContext, example, pageable,
 						createIncludedFieldsPredicate()))
 				.all();
 		return results.collectList().zipWith(countOperation.apply(example)).map(tuple -> {
 			Page<R> page = PageableExecutionUtils.getPage(tuple.getT1(), pageable, () -> tuple.getT2());
 			return page;
 		});
+	}
+
+	@Override
+	public Mono<Window<R>> scroll(ScrollPosition scrollPosition) {
+		Class<S> domainType = this.example.getProbeType();
+		Neo4jPersistentEntity<?> entity = mappingContext.getPersistentEntity(domainType);
+
+		var skip = scrollPosition.isInitial()
+				? 0
+				: (scrollPosition instanceof OffsetScrollPosition offsetScrollPosition) ? offsetScrollPosition.getOffset()
+				: 0;
+
+		Condition condition = scrollPosition instanceof KeysetScrollPosition keysetScrollPosition
+				? CypherAdapterUtils.combineKeysetIntoCondition(mappingContext.getPersistentEntity(example.getProbeType()), keysetScrollPosition, sort, mappingContext.getConversionService())
+				: null;
+
+		return findOperation.find(domainType)
+				.as(resultType)
+				.matching(QueryFragmentsAndParameters.forExampleWithScrollPosition(mappingContext, example, condition, sort, limit == null ? 1 : limit + 1, skip, scrollPosition, createIncludedFieldsPredicate()))
+				.all()
+				.collectList()
+				.map(rawResult -> scroll(scrollPosition, rawResult, entity));
 	}
 
 	@Override

@@ -15,22 +15,28 @@
  */
 package org.springframework.data.neo4j.repository.query;
 
+import org.apiguardian.api.API;
+import org.neo4j.cypherdsl.core.Condition;
+import org.springframework.data.domain.Example;
+import org.springframework.data.domain.KeysetScrollPosition;
+import org.springframework.data.domain.OffsetScrollPosition;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.ScrollPosition;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Window;
+import org.springframework.data.neo4j.core.FluentFindOperation;
+import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
+import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
+import org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery;
+import org.springframework.data.support.PageableExecutionUtils;
+import org.springframework.lang.Nullable;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.LongSupplier;
 import java.util.stream.Stream;
-
-import org.apiguardian.api.API;
-import org.springframework.data.domain.Example;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.neo4j.core.FluentFindOperation;
-import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
-import org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery;
-import org.springframework.data.support.PageableExecutionUtils;
-import org.springframework.lang.Nullable;
 
 /**
  * Immutable implementation of a {@link FetchableFluentQuery}. All
@@ -64,7 +70,7 @@ final class FetchableFluentQueryByExample<S, R> extends FluentQuerySupport<R> im
 			Function<Example<S>, Boolean> existsOperation
 	) {
 		this(example, resultType, mappingContext, findOperation, countOperation, existsOperation, Sort.unsorted(),
-				null);
+				null, null);
 	}
 
 	FetchableFluentQueryByExample(
@@ -75,9 +81,10 @@ final class FetchableFluentQueryByExample<S, R> extends FluentQuerySupport<R> im
 			Function<Example<S>, Long> countOperation,
 			Function<Example<S>, Boolean> existsOperation,
 			Sort sort,
+			@Nullable Integer limit,
 			@Nullable Collection<String> properties
 	) {
-		super(resultType, sort, properties);
+		super(resultType, sort, limit, properties);
 		this.mappingContext = mappingContext;
 		this.example = example;
 		this.findOperation = findOperation;
@@ -90,7 +97,14 @@ final class FetchableFluentQueryByExample<S, R> extends FluentQuerySupport<R> im
 	public FetchableFluentQuery<R> sortBy(Sort sort) {
 
 		return new FetchableFluentQueryByExample<>(this.example, this.resultType, this.mappingContext, this.findOperation,
-				this.countOperation, this.existsOperation, this.sort.and(sort), this.properties);
+				this.countOperation, this.existsOperation, this.sort.and(sort), this.limit, this.properties);
+	}
+
+	@Override
+	@SuppressWarnings("HiddenField")
+	public FetchableFluentQuery<R> limit(int limit) {
+		return new FetchableFluentQueryByExample<>(this.example, this.resultType, this.mappingContext, this.findOperation,
+				this.countOperation, this.existsOperation, this.sort, limit, this.properties);
 	}
 
 	@Override
@@ -106,7 +120,7 @@ final class FetchableFluentQueryByExample<S, R> extends FluentQuerySupport<R> im
 	public FetchableFluentQuery<R> project(Collection<String> properties) {
 
 		return new FetchableFluentQueryByExample<>(this.example, this.resultType, this.mappingContext, this.findOperation,
-				this.countOperation, this.existsOperation, this.sort, mergeProperties(properties));
+				this.countOperation, this.existsOperation, this.sort, this.limit, mergeProperties(properties));
 	}
 
 	@Override
@@ -114,7 +128,7 @@ final class FetchableFluentQueryByExample<S, R> extends FluentQuerySupport<R> im
 
 		return findOperation.find(example.getProbeType())
 				.as(resultType)
-				.matching(QueryFragmentsAndParameters.forExample(mappingContext, example, sort,
+				.matching(QueryFragmentsAndParameters.forExampleWithSort(mappingContext, example, sort, limit,
 						createIncludedFieldsPredicate()))
 				.oneValue();
 	}
@@ -131,7 +145,7 @@ final class FetchableFluentQueryByExample<S, R> extends FluentQuerySupport<R> im
 
 		return findOperation.find(example.getProbeType())
 				.as(resultType)
-				.matching(QueryFragmentsAndParameters.forExample(mappingContext, example, sort,
+				.matching(QueryFragmentsAndParameters.forExampleWithSort(mappingContext, example, sort, limit,
 						createIncludedFieldsPredicate()))
 				.all();
 	}
@@ -141,12 +155,34 @@ final class FetchableFluentQueryByExample<S, R> extends FluentQuerySupport<R> im
 
 		List<R> page = findOperation.find(example.getProbeType())
 				.as(resultType)
-				.matching(QueryFragmentsAndParameters.forExample(mappingContext, example, pageable,
+				.matching(QueryFragmentsAndParameters.forExampleWithPageable(mappingContext, example, pageable,
 						createIncludedFieldsPredicate()))
 				.all();
 
 		LongSupplier totalCountSupplier = this::count;
 		return PageableExecutionUtils.getPage(page, pageable, totalCountSupplier);
+	}
+
+	@Override
+	public Window<R> scroll(ScrollPosition scrollPosition) {
+		Class<S> domainType = this.example.getProbeType();
+		Neo4jPersistentEntity<?> entity = mappingContext.getPersistentEntity(domainType);
+
+		var skip = scrollPosition.isInitial()
+				? 0
+				: (scrollPosition instanceof OffsetScrollPosition offsetScrollPosition) ? offsetScrollPosition.getOffset()
+				: 0;
+
+		Condition condition = scrollPosition instanceof KeysetScrollPosition keysetScrollPosition
+				? CypherAdapterUtils.combineKeysetIntoCondition(mappingContext.getPersistentEntity(example.getProbeType()), keysetScrollPosition, sort, mappingContext.getConversionService())
+				: null;
+
+		List<R> rawResult = findOperation.find(domainType)
+				.as(resultType)
+				.matching(QueryFragmentsAndParameters.forExampleWithScrollPosition(mappingContext, example, condition, sort, limit == null ? 1 : limit + 1, skip, scrollPosition, createIncludedFieldsPredicate()))
+				.all();
+
+		return scroll(scrollPosition, rawResult, entity);
 	}
 
 	@Override

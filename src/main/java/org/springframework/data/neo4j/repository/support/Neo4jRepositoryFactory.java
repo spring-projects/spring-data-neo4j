@@ -90,7 +90,7 @@ final class Neo4jRepositoryFactory extends RepositoryFactorySupport {
 
 		if (isQueryDslRepository) {
 
-			fragments = fragments.append(createDSLExecutorFragment(metadata, QuerydslNeo4jPredicateExecutor.class));
+			fragments = fragments.append(createDSLPredicateExecutorFragment(metadata, QuerydslNeo4jPredicateExecutor.class));
 		}
 
 		if (CypherdslConditionExecutor.class.isAssignableFrom(metadata.getRepositoryInterface())) {
@@ -99,6 +99,14 @@ final class Neo4jRepositoryFactory extends RepositoryFactorySupport {
 		}
 
 		return fragments;
+	}
+
+	private RepositoryFragment<Object> createDSLPredicateExecutorFragment(RepositoryMetadata metadata, Class<?> implementor) {
+
+		Neo4jEntityInformation<?, Object> entityInformation = getEntityInformation(metadata.getDomainType());
+		Object querydslFragment = instantiateClass(implementor, mappingContext, entityInformation, neo4jOperations);
+
+		return RepositoryFragment.implemented(querydslFragment);
 	}
 
 	private RepositoryFragment<Object> createDSLExecutorFragment(RepositoryMetadata metadata, Class<?> implementor) {

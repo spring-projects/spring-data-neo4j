@@ -60,6 +60,7 @@ import org.springframework.core.convert.ConverterNotFoundException;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.ScrollPosition;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mapping.MappingException;
 import org.springframework.data.neo4j.core.DatabaseSelection;
@@ -358,6 +359,30 @@ class ReactiveRepositoryIT {
 					.as(StepVerifier::create)
 					.expectNext(person1)
 					.verifyComplete();
+		}
+
+		@Test // GH-2726
+		void scrollByExample(@Autowired ReactivePersonRepository repository) {
+
+			PersonWithAllConstructor sameValuePerson = new PersonWithAllConstructor(null, null, null, TEST_PERSON_SAMEVALUE, null, null, null, null, null, null, null);
+
+			Example<PersonWithAllConstructor> example = Example.of(sameValuePerson,
+					ExampleMatcher.matchingAll().withIgnoreNullValues());
+			repository.findBy(example, q -> q.sortBy(Sort.by("name")).limit(1).scroll(ScrollPosition.offset(0)))
+					.as(StepVerifier::create)
+					.expectNextMatches(person -> {
+						assertThat(person).isNotNull();
+						assertThat(person.getContent().get(0)).isEqualTo(person1);
+
+						ScrollPosition currentPosition = person.positionAt(person1);
+						repository.findBy(example, q -> q.sortBy(Sort.by("name")).limit(1).scroll(currentPosition))
+								.as(StepVerifier::create)
+								.expectNextMatches(nextPerson -> {
+									assertThat(nextPerson.getContent().get(0)).isEqualTo(person2);
+									return true;
+								});
+						return true;
+					});
 		}
 
 		@Test

@@ -19,6 +19,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Predicate;
 
 import org.apiguardian.api.API;
 import org.springframework.data.neo4j.core.schema.Property;
@@ -38,6 +39,8 @@ public abstract class PropertyFilter {
 	public static PropertyFilter acceptAll() {
 		return new NonFilteringPropertyFilter();
 	}
+
+	public static final Predicate<RelaxedPropertyPath> NO_FILTER = (pp) -> true;
 
 	public abstract boolean contains(String dotPath, Class<?> typeToCheck);
 

@@ -32,7 +32,6 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import org.apache.commons.logging.LogFactory;
-import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
 import org.neo4j.driver.types.MapAccessor;
 import org.neo4j.driver.types.TypeSystem;
@@ -292,15 +291,17 @@ abstract class Neo4jQuerySupport {
 		return Window.from(getSubList(rawResult, limit, scrollDirection), v -> {
 			if (scrollPosition instanceof OffsetScrollPosition offsetScrollPosition) {
 				return offsetScrollPosition.advanceBy(v + limit);
-			} else  {
+			} else {
 				var accessor = neo4jPersistentEntity.getPropertyAccessor(rawResult.get(v));
 				var keys = new LinkedHashMap<String, Object>();
 				orderBy.getSort().forEach(o -> {
 					// Storing the graph property name here
 					var persistentProperty = neo4jPersistentEntity.getRequiredPersistentProperty(o.getProperty());
-					keys.put(persistentProperty.getPropertyName(), conversionService.convert(accessor.getProperty(persistentProperty), Value.class));
+					keys.put(persistentProperty.getPropertyName(), accessor.getProperty(persistentProperty));
+					// keys.put(persistentProperty.getPropertyName(), conversionService.convert(accessor.getProperty(persistentProperty), Value.class));
 				});
-				keys.put(Constants.NAME_OF_ADDITIONAL_SORT, conversionService.convert(accessor.getProperty(neo4jPersistentEntity.getRequiredIdProperty()), Value.class));
+				keys.put(Constants.NAME_OF_ADDITIONAL_SORT, accessor.getProperty(neo4jPersistentEntity.getRequiredIdProperty()));
+				// keys.put(Constants.NAME_OF_ADDITIONAL_SORT, conversionService.convert(accessor.getProperty(neo4jPersistentEntity.getRequiredIdProperty()), Value.class));
 				return ScrollPosition.forward(keys);
 			}
 		}, hasMoreElements(rawResult, limit));

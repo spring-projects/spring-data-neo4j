@@ -25,6 +25,7 @@ import org.springframework.data.neo4j.core.ReactiveFluentFindOperation;
 import org.springframework.data.neo4j.core.ReactiveNeo4jOperations;
 import org.springframework.data.neo4j.core.mapping.CypherGenerator;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
+import org.springframework.data.neo4j.core.mapping.PropertyFilter;
 import org.springframework.data.repository.query.FluentQuery.ReactiveFluentQuery;
 import org.springframework.data.repository.query.ReactiveQueryByExampleExecutor;
 import reactor.core.publisher.Flux;
@@ -75,7 +76,7 @@ public final class SimpleReactiveQueryByExampleExecutor<T> implements ReactiveQu
 	@Override
 	public <S extends T> Flux<S> findAll(Example<S> example, Sort sort) {
 		return this.neo4jOperations
-				.toExecutableQuery(example.getProbeType(), QueryFragmentsAndParameters.forExample(mappingContext, example, sort))
+				.toExecutableQuery(example.getProbeType(), QueryFragmentsAndParameters.forExampleWithSort(mappingContext, example, sort, null, PropertyFilter.NO_FILTER))
 				.flatMapMany(ReactiveNeo4jOperations.ExecutableQuery::getResults);
 	}
 

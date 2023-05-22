@@ -18,10 +18,19 @@ package org.springframework.data.neo4j.repository.query;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Set;
+import java.util.function.IntFunction;
 import java.util.function.Predicate;
 
+import org.springframework.data.domain.KeysetScrollPosition;
+import org.springframework.data.domain.OffsetScrollPosition;
+import org.springframework.data.domain.ScrollPosition;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Window;
+import org.springframework.data.neo4j.core.mapping.Constants;
+import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.core.mapping.PropertyFilter;
 import org.springframework.lang.Nullable;
 
@@ -38,16 +47,20 @@ abstract class FluentQuerySupport<R> {
 
 	protected final Sort sort;
 
+	protected final Integer limit;
+
 	@Nullable
 	protected final Set<String> properties;
 
 	FluentQuerySupport(
 			Class<R> resultType,
 			Sort sort,
+			@Nullable Integer limit,
 			@Nullable Collection<String> properties
 	) {
 		this.resultType = resultType;
 		this.sort = sort;
+		this.limit = limit;
 		if (properties != null) {
 			this.properties = new HashSet<>(properties);
 		} else {
@@ -57,8 +70,8 @@ abstract class FluentQuerySupport<R> {
 
 	final Predicate<PropertyFilter.RelaxedPropertyPath> createIncludedFieldsPredicate() {
 
-		if (this.properties == null) {
-			return path -> true;
+		if (this.properties == null || this.properties.isEmpty()) {
+			return PropertyFilter.NO_FILTER;
 		}
 		return path -> this.properties.contains(path.toDotPath());
 	}
@@ -70,5 +83,50 @@ abstract class FluentQuerySupport<R> {
 		}
 		newProperties.addAll(additionalProperties);
 		return Collections.unmodifiableCollection(newProperties);
+	}
+
+	final Window<R> scroll(ScrollPosition scrollPosition, List<R> rawResult, Neo4jPersistentEntity<?> entity) {
+
+		var skip = scrollPosition.isInitial()
+				? 0
+				: (scrollPosition instanceof OffsetScrollPosition offsetScrollPosition) ? offsetScrollPosition.getOffset()
+				: 0;
+
+		var scrollDirection = scrollPosition instanceof KeysetScrollPosition keysetScrollPosition ? keysetScrollPosition.getDirection() : ScrollPosition.Direction.FORWARD;
+		if (scrollDirection == ScrollPosition.Direction.BACKWARD) {
+			Collections.reverse(rawResult);
+		}
+
+		IntFunction<? extends ScrollPosition> ding = null;
+
+		if (scrollPosition instanceof OffsetScrollPosition) {
+			ding = OffsetScrollPosition.positionFunction(skip);
+		} else {
+			ding = v -> {
+				var accessor = entity.getPropertyAccessor(rawResult.get(v));
+				var keys = new LinkedHashMap<String, Object>();
+				sort.forEach(o -> {
+					// Storing the graph property name here
+					var persistentProperty = entity.getRequiredPersistentProperty(o.getProperty());
+					keys.put(persistentProperty.getPropertyName(), accessor.getProperty(persistentProperty));
+				});
+				keys.put(Constants.NAME_OF_ADDITIONAL_SORT, accessor.getProperty(entity.getRequiredIdProperty()));
+				return ScrollPosition.forward(keys);
+			};
+		}
+		return Window.from(getSubList(rawResult, limit, scrollDirection), ding, hasMoreElements(rawResult, limit));
+	}
+
+	private static boolean hasMoreElements(List<?> result, @Nullable Integer limit) {
+		return !result.isEmpty() && result.size() > (limit != null ? limit : 0);
+	}
+
+	private static <T> List<T> getSubList(List<T> result, @Nullable Integer limit, ScrollPosition.Direction scrollDirection) {
+
+		if (limit != null && limit > 0 && result.size() > limit) {
+			return scrollDirection == ScrollPosition.Direction.FORWARD ? result.subList(0, limit) : result.subList(1, limit + 1);
+		}
+
+		return result;
 	}
 }

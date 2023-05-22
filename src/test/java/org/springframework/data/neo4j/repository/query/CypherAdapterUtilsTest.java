@@ -44,7 +44,7 @@ class CypherAdapterUtilsTest {
 
 		var condition = CypherAdapterUtils.combineKeysetIntoCondition(entity,
 				ScrollPosition.forward(Map.of("foobar", "D0", "b", 3, "c", LocalDateTime.of(2023, 3, 19, 14, 21, 8, 716))),
-				Sort.by(Sort.Order.asc("b"), Sort.Order.desc("a"), Sort.Order.asc("c"))
+				Sort.by(Sort.Order.asc("b"), Sort.Order.desc("a"), Sort.Order.asc("c")), mappingContext.getConversionService()
 		);
 
 		var expected = """

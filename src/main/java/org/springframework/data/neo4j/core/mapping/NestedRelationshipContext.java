@@ -125,7 +125,7 @@ public final class NestedRelationshipContext {
 		Object value = propertyAccessor.getProperty(inverse);
 		boolean inverseValueIsEmpty = value == null;
 
-		RelationshipDescription relationship = neo4jPersistentEntity.getRelationshipsInHierarchy((pp -> true)).stream()
+		RelationshipDescription relationship = neo4jPersistentEntity.getRelationshipsInHierarchy((PropertyFilter.NO_FILTER)).stream()
 				.filter(r -> r.getFieldName().equals(inverse.getName())).findFirst().orElseThrow(() -> new MappingException(
 						neo4jPersistentEntity.getName() + " does not define a relationship for " + inverse.getFieldName()));
 
