@@ -814,7 +814,7 @@ public final class Neo4jTemplate implements
 					relatedInternalId = stateMachine.getObjectId(relatedValueToStore);
 				} else {
 					savedEntity = saveRelatedNode(newRelatedObject, targetEntity, includeProperty, currentPropertyPath);
-					relatedInternalId = IdentitySupport.getElementId(savedEntity);
+					relatedInternalId = TemplateSupport.rendererCanUseElementIdIfPresent(renderer) ? savedEntity.elementId() : Long.toString(savedEntity.id());
 					stateMachine.markEntityAsProcessed(relatedValueToStore, relatedInternalId);
 					if (relatedValueToStore instanceof MappingSupport.RelationshipPropertiesWithEntityHolder) {
 						Object entity = ((MappingSupport.RelationshipPropertiesWithEntityHolder) relatedValueToStore).getRelatedEntity();
