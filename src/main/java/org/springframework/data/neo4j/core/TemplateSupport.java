@@ -39,6 +39,7 @@ import org.neo4j.cypherdsl.core.Functions;
 import org.neo4j.cypherdsl.core.Node;
 import org.neo4j.cypherdsl.core.Relationship;
 import org.neo4j.cypherdsl.core.Statement;
+import org.neo4j.cypherdsl.core.renderer.Renderer;
 import org.neo4j.driver.types.Entity;
 import org.neo4j.driver.types.MapAccessor;
 import org.neo4j.driver.types.TypeSystem;
@@ -408,6 +409,15 @@ public final class TemplateSupport {
 			}
 		}
 		return Objects.requireNonNull(relatedInternalId);
+	}
+
+	/**
+	 * Checks if the renderer is configured in such a way that it will use element id or apply toString(id(n)) workaround.
+	 * @return {@literal true} if renderer will use elementId
+	 */
+	static boolean rendererCanUseElementIdIfPresent(Renderer renderer) {
+		return renderer.render(Cypher.returning(Functions.elementId(Cypher.anyNode("n"))).build())
+				.equals("RETURN elementId(n)");
 	}
 
 	private TemplateSupport() {

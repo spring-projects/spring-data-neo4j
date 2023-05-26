@@ -952,7 +952,7 @@ public final class ReactiveNeo4jTemplate implements
 								queryOrSave = Mono.just(Tuples.of(relatedInternalId, new AtomicReference<>()));
 							} else {
 								queryOrSave = saveRelatedNode(newRelatedObject, targetEntity, includeProperty, currentPropertyPath)
-										.map(entity -> Tuples.of(new AtomicReference<>(IdentitySupport.getElementId(entity)), new AtomicReference<>(entity)))
+										.map(entity -> Tuples.of(new AtomicReference<>(TemplateSupport.rendererCanUseElementIdIfPresent(renderer) ? entity.elementId() : Long.toString(entity.id())), new AtomicReference<>(entity)))
 										.doOnNext(t -> {
 											var relatedInternalId = t.getT1().get();
 											stateMachine.markEntityAsProcessed(relatedValueToStore, relatedInternalId);
