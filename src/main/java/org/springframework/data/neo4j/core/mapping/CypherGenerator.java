@@ -744,21 +744,7 @@ public enum CypherGenerator {
 			if (property.isDynamicLabels() || property.isComposite()) {
 				continue;
 			}
-			PropertyFilter.RelaxedPropertyPath from;
-
-			if (relationshipDescription == null) {
-				from = parentPath.append(property.getFieldName());
-
-			} else if (relationshipDescription.hasRelationshipProperties()) {
-				@SuppressWarnings("ConstantConditions") // All prerequisites have been checked by the persistence context at this point.
-				String relationshipPropertyTargetNodeFieldName =
-						((Neo4jPersistentEntity<?>) relationshipDescription.getRelationshipPropertiesEntity())
-								.getPersistentProperty(TargetNode.class).getFieldName();
-
-				from = parentPath.append(relationshipPropertyTargetNodeFieldName + "." + property.getFieldName());
-			} else {
-				from = parentPath.append(property.getFieldName());
-			}
+			PropertyFilter.RelaxedPropertyPath from = parentPath.append(property.getFieldName());
 
 			if (!includeField.test(from)) {
 				continue;
@@ -828,7 +814,10 @@ public enum CypherGenerator {
 		Neo4jPersistentEntity<?> endNodeDescription = (Neo4jPersistentEntity<?>) relationshipDescription.getTarget();
 
 		processedRelationships.add(relationshipDescription);
-		PropertyFilter.RelaxedPropertyPath newParentPath = parentPath.append(relationshipDescription.getFieldName());
+		PropertyFilter.RelaxedPropertyPath newParentPath = relationshipDescription.hasRelationshipProperties()
+				? parentPath.append(relationshipDescription.getFieldName()).append(((Neo4jPersistentEntity<?>) relationshipDescription.getRelationshipPropertiesEntity())
+					.getPersistentProperty(TargetNode.class).getFieldName())
+				: parentPath.append(relationshipDescription.getFieldName());
 
 		if (relationshipDescription.isDynamic()) {
 			Relationship relationship = relationshipDescription.isOutgoing()
