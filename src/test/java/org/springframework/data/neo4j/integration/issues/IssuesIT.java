@@ -145,6 +145,13 @@ import org.springframework.data.neo4j.integration.issues.gh2639.Sales;
 import org.springframework.data.neo4j.integration.issues.qbe.A;
 import org.springframework.data.neo4j.integration.issues.qbe.ARepository;
 import org.springframework.data.neo4j.integration.issues.qbe.B;
+import org.springframework.data.neo4j.integration.issues.gh2727.FirstLevelEntity;
+import org.springframework.data.neo4j.integration.issues.gh2727.FirstLevelEntityRepository;
+import org.springframework.data.neo4j.integration.issues.gh2727.FirstLevelProjection;
+import org.springframework.data.neo4j.integration.issues.gh2727.SecondLevelEntity;
+import org.springframework.data.neo4j.integration.issues.gh2727.SecondLevelEntityRelationship;
+import org.springframework.data.neo4j.integration.issues.gh2727.ThirdLevelEntity;
+import org.springframework.data.neo4j.integration.issues.gh2727.ThirdLevelEntityRelationship;
 import org.springframework.data.neo4j.integration.misc.ConcreteImplementationTwo;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.data.neo4j.repository.query.QueryFragmentsAndParameters;
@@ -1028,6 +1035,59 @@ class IssuesIT extends TestBase {
 				.extracting(Throwable::getCause, as(InstanceOfAssertFactories.THROWABLE))
 				.hasMessageContaining("has a logical cyclic mapping dependency");
 
+	}
+
+	@Test
+	@Tag("GH-2727")
+	void mapsProjectionChainWithRelationshipProperties(@Autowired FirstLevelEntityRepository firstLevelEntityRepository) {
+
+		String secondLevelValue = "someSecondLevelValue";
+		String thirdLevelValue = "someThirdLevelValue";
+
+		final List<SecondLevelEntityRelationship> secondLevelEntityRelationships = new ArrayList<>();
+		for (int i = 0; i < 2; i++) {
+			final List<ThirdLevelEntityRelationship> thirdLevelEntityRelationships = new ArrayList<>();
+			for (int j = 0; j < 3; j++) {
+				final ThirdLevelEntity thirdLevelEntity = new ThirdLevelEntity();
+				thirdLevelEntity.setSomeValue(thirdLevelValue);
+				final ThirdLevelEntityRelationship thirdLevelRelationship = new ThirdLevelEntityRelationship();
+				thirdLevelRelationship.setTarget(thirdLevelEntity);
+				thirdLevelRelationship.setOrder(j + 1);
+				thirdLevelEntityRelationships.add(thirdLevelRelationship);
+			}
+
+			final SecondLevelEntity secondLevelEntity = SecondLevelEntity.builder()
+					.thirdLevelEntityRelationshipProperties(thirdLevelEntityRelationships)
+					.someValue(secondLevelValue)
+					.build();
+
+			final SecondLevelEntityRelationship secondLevelRelationship = new SecondLevelEntityRelationship();
+			secondLevelRelationship.setTarget(secondLevelEntity);
+			secondLevelRelationship.setOrder(i + 1);
+			secondLevelEntityRelationships.add(secondLevelRelationship);
+		}
+
+		final FirstLevelEntity firstLevelEntity = FirstLevelEntity.builder()
+				.secondLevelEntityRelationshipProperties(secondLevelEntityRelationships)
+				.name("Test")
+				.build();
+
+		firstLevelEntityRepository.save(firstLevelEntity);
+
+		FirstLevelProjection firstLevelProjection = firstLevelEntityRepository.findOneById(firstLevelEntity.getId());
+		assertThat(firstLevelProjection).isNotNull();
+		assertThat(firstLevelProjection.getSecondLevelEntityRelationshipProperties()).hasSize(2)
+				.allSatisfy(secondLevelRelationship -> {
+					assertThat(secondLevelRelationship.getTarget().getSomeValue().equals(secondLevelValue));
+					assertThat(secondLevelRelationship.getOrder()).isGreaterThan(0);
+					assertThat(secondLevelRelationship.getTarget().getThirdLevelEntityRelationshipProperties())
+							.isNotEmpty()
+							.allSatisfy(thirdLevel -> {
+								assertThat(thirdLevel.getOrder()).isGreaterThan(0);
+								assertThat(thirdLevel.getTarget()).isNotNull();
+								assertThat(thirdLevel.getTarget().getSomeValue()).isEqualTo(thirdLevelValue);
+							});
+				});
 	}
 
 	@Configuration
