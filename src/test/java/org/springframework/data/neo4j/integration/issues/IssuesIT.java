@@ -55,6 +55,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -141,6 +142,9 @@ import org.springframework.data.neo4j.integration.issues.gh2639.Individual;
 import org.springframework.data.neo4j.integration.issues.gh2639.LanguageRelationship;
 import org.springframework.data.neo4j.integration.issues.gh2639.ProgrammingLanguage;
 import org.springframework.data.neo4j.integration.issues.gh2639.Sales;
+import org.springframework.data.neo4j.integration.issues.qbe.A;
+import org.springframework.data.neo4j.integration.issues.qbe.ARepository;
+import org.springframework.data.neo4j.integration.issues.qbe.B;
 import org.springframework.data.neo4j.integration.misc.ConcreteImplementationTwo;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.data.neo4j.repository.query.QueryFragmentsAndParameters;
@@ -188,6 +192,8 @@ class IssuesIT extends TestBase {
 				setupGH2459(transaction);
 				setupGH2572(transaction);
 				setupGH2583(transaction);
+
+				transaction.run("CREATE (:A {name: 'A name', id: randomUUID()}) -[:HAS] ->(:B {anotherName: 'Whatever', id: randomUUID()})");
 
 				transaction.commit();
 			}
@@ -264,6 +270,21 @@ class IssuesIT extends TestBase {
 		utrecht.setExoticProperty("Bikes");
 
 		cityModelRepository.saveAll(List.of(aachen, utrecht));
+	}
+
+	@Test
+	void qbeWithRelationship(@Autowired ARepository repository) {
+
+		var probe = new A();
+		probe.setB(new B("Whatever"));
+		var optionalResult = repository.findOne(Example.of(probe));
+		assertThat(optionalResult).hasValueSatisfying(a -> {
+			assertThat(a.getName()).isEqualTo("A name");
+			assertThat(a.getId()).isNotNull();
+		});
+
+		var allResults = repository.findAll(Example.of(probe));
+		assertThat(allResults).hasSize(1);
 	}
 
 	@Test
