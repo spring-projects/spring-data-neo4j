@@ -121,6 +121,28 @@ This is the bare minimum of what you need to connect to a Neo4j instance.
 NOTE: It is not necessary to add any programmatic configuration of the driver when you use this starter.
 SDN repositories will be automatically enabled by this starter.
 
+[[configure-cypher-dsl-dialect]]
+=== Configure Neo4j Cypher-DSL
+
+Depending on the Neo4j version you are running your application with,
+it is advised to configure the dialect Neo4j Cypher-DSL runs with.
+The default dialect that is used is targeting Neo4j 4.4. as the LTS version of Neo4j.
+This can be changed by defining a Cypher-DSL `Configuration` bean.
+
+.Make Cypher-DSL use the Neo4j 5 dialect
+[source,java]
+----
+@Bean
+Configuration cypherDslConfiguration() {
+	return Configuration.newConfig()
+                .withDialect(Dialect.NEO4J_5).build();
+}
+----
+
+NOTE: Although Spring Data Neo4j tries it best to be compatible with also the combination of Neo4j 5 and a default dialect,
+it is always recommend to explicitly define the dialect.
+E.g. it will lead to more optimized queries and make use of `elementId()` for newer Neo4j versions.
+
 [[running-on-the-module-path]]
 == Running on the Module-Path
 
