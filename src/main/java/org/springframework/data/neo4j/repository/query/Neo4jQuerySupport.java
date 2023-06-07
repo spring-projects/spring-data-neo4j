@@ -298,9 +298,11 @@ abstract class Neo4jQuerySupport {
 				orderBy.getSort().forEach(o -> {
 					// Storing the graph property name here
 					var persistentProperty = neo4jPersistentEntity.getRequiredPersistentProperty(o.getProperty());
-					keys.put(persistentProperty.getPropertyName(), conversionService.convert(accessor.getProperty(persistentProperty), Value.class));
+					keys.put(persistentProperty.getPropertyName(), accessor.getProperty(persistentProperty));
+					// keys.put(persistentProperty.getPropertyName(), conversionService.convert(accessor.getProperty(persistentProperty), Value.class));
 				});
-				keys.put(Constants.NAME_OF_ADDITIONAL_SORT, conversionService.convert(accessor.getProperty(neo4jPersistentEntity.getRequiredIdProperty()), Value.class));
+				keys.put(Constants.NAME_OF_ADDITIONAL_SORT, accessor.getProperty(neo4jPersistentEntity.getRequiredIdProperty()));
+				// keys.put(Constants.NAME_OF_ADDITIONAL_SORT, conversionService.convert(accessor.getProperty(neo4jPersistentEntity.getRequiredIdProperty()), Value.class));
 				return ScrollPosition.forward(keys);
 			}
 		}, hasMoreElements(rawResult, limit));
