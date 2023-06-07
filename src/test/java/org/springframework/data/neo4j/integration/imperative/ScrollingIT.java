@@ -23,12 +23,15 @@ import java.util.function.Function;
 
 import org.assertj.core.data.Index;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Values;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.domain.Example;
+import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.data.domain.KeysetScrollPosition;
 import org.springframework.data.domain.ScrollPosition;
 import org.springframework.data.neo4j.core.DatabaseSelectionProvider;
@@ -108,6 +111,32 @@ class ScrollingIT {
 	}
 
 	@Test
+	@Tag("GH-2726")
+	void forwardWithFluentQueryByExample(@Autowired ScrollingRepository scrollingRepository) {
+		ScrollingEntity scrollingEntity = new ScrollingEntity();
+		Example<ScrollingEntity> example = Example.of(scrollingEntity, ExampleMatcher.matchingAll().withIgnoreNullValues());
+
+		var window = scrollingRepository.findBy(example, q -> q.sortBy(ScrollingEntity.SORT_BY_B_AND_A).limit(4).scroll(ScrollPosition.keyset()));
+		assertThat(window.hasNext()).isTrue();
+		assertThat(window)
+				.hasSize(4)
+				.extracting(ScrollingEntity::getA)
+				.containsExactly("A0", "B0", "C0", "D0");
+
+		ScrollPosition newPosition = ScrollPosition.forward(((KeysetScrollPosition) window.positionAt(window.size() - 1)).getKeys());
+		window = scrollingRepository.findBy(example, q -> q.sortBy(ScrollingEntity.SORT_BY_B_AND_A).limit(4).scroll(newPosition));
+		assertThat(window)
+				.hasSize(4)
+				.extracting(ScrollingEntity::getA)
+				.containsExactly("D0", "E0", "F0", "G0");
+
+		window = scrollingRepository.findTop4By(ScrollingEntity.SORT_BY_B_AND_A, window.positionAt(window.size() - 1));
+		assertThat(window.isLast()).isTrue();
+		assertThat(window).extracting(ScrollingEntity::getA)
+				.containsExactly("H0", "I0");
+	}
+
+	@Test
 	void forwardWithDuplicatesIteratorIteration(@Autowired ScrollingRepository repository) {
 
 		var it = WindowIterator.of(pos -> repository.findTop4By(ScrollingEntity.SORT_BY_B_AND_A, pos))
@@ -157,6 +186,44 @@ class ScrollingIT {
 		pos = ((KeysetScrollPosition) window.positionAt(0));
 		pos = ScrollPosition.backward(pos.getKeys());
 		window = repository.findTop4By(ScrollingEntity.SORT_BY_B_AND_A, pos);
+		assertThat(window.isLast()).isTrue();
+		assertThat(window).extracting(ScrollingEntity::getA)
+				.containsExactly("A0", "B0");
+	}
+
+	@Test
+	void backwardWithFluentQueryByExample(@Autowired ScrollingRepository repository) {
+
+		ScrollingEntity scrollingEntity = new ScrollingEntity();
+		Example<ScrollingEntity> example = Example.of(scrollingEntity, ExampleMatcher.matchingAll().withIgnoreNullValues());
+
+		var last = repository.findFirstByA("I0");
+		var keys = Map.of(
+				"foobar", last.getA(),
+				"b", last.getB(),
+				Constants.NAME_OF_ADDITIONAL_SORT, Values.value(last.getId().toString())
+		);
+
+		var window = repository.findBy(example, q -> q.sortBy(ScrollingEntity.SORT_BY_B_AND_A).limit(4).scroll(ScrollPosition.backward(keys)));
+		assertThat(window.hasNext()).isTrue();
+		assertThat(window)
+				.hasSize(4)
+				.extracting(ScrollingEntity::getA)
+				.containsExactly("F0", "G0", "H0", "I0");
+
+		var pos = ((KeysetScrollPosition) window.positionAt(0));
+		var nextPos = ScrollPosition.backward(pos.getKeys());
+		window = repository.findBy(example, q -> q.sortBy(ScrollingEntity.SORT_BY_B_AND_A).limit(4).scroll(nextPos));
+		assertThat(window.hasNext()).isTrue();
+		assertThat(window)
+				.hasSize(4)
+				.extracting(Function.identity())
+				.extracting(ScrollingEntity::getA)
+				.containsExactly("C0", "D0", "D0", "E0");
+
+		var nextPosWindow = ((KeysetScrollPosition) window.positionAt(0));
+		var nextNextPos = ScrollPosition.backward(nextPosWindow.getKeys());
+		window = repository.findBy(example, q -> q.sortBy(ScrollingEntity.SORT_BY_B_AND_A).limit(4).scroll(nextNextPos));
 		assertThat(window.isLast()).isTrue();
 		assertThat(window).extracting(ScrollingEntity::getA)
 				.containsExactly("A0", "B0");

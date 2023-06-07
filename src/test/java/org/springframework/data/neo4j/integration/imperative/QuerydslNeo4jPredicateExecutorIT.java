@@ -18,6 +18,7 @@ package org.springframework.data.neo4j.integration.imperative;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.BeforeAll;
@@ -29,6 +30,7 @@ import org.neo4j.driver.Transaction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.domain.KeysetScrollPosition;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.ScrollPosition;
@@ -176,6 +178,47 @@ class QuerydslNeo4jPredicateExecutorIT {
 				.containsExactlyInAnyOrder("Bela");
 
 		assertThat(peopleWindow.isLast()).isTrue();
+	}
+
+	@Test
+	@Tag("GH-2726")
+	void scrollByExampleWithKeysetOffset(@Autowired QueryDSLPersonRepository repository) {
+		Predicate predicate = Expressions.predicate(Ops.EQ, firstNamePath, Expressions.asString("Helge"))
+				.or(Expressions.predicate(Ops.EQ, lastNamePath, Expressions.asString("B.")));
+
+		Window<Person> peopleWindow = repository.findBy(predicate, q -> q.sortBy(Sort.by("firstName")).limit(1).scroll(ScrollPosition.keyset()));
+		assertThat(peopleWindow.getContent()).extracting(Person::getFirstName)
+				.containsExactly("Bela");
+
+		ScrollPosition currentPosition = peopleWindow.positionAt(peopleWindow.size() - 1);
+		peopleWindow = repository.findBy(predicate, q -> q.limit(1).scroll(currentPosition));
+
+		assertThat(peopleWindow.getContent()).extracting(Person::getFirstName)
+				.containsExactlyInAnyOrder("Helge");
+
+		assertThat(peopleWindow.isLast()).isTrue();
+	}
+
+	@Test
+	@Tag("GH-2726")
+	void scrollByExampleWithKeysetOffsetBackward(@Autowired QueryDSLPersonRepository repository) {
+		Predicate predicate = Expressions.predicate(Ops.EQ, firstNamePath, Expressions.asString("Helge"))
+				.or(Expressions.predicate(Ops.EQ, lastNamePath, Expressions.asString("B.")));
+
+		KeysetScrollPosition startPosition = ScrollPosition.backward(Map.of(
+				"lastName", "Schneider"
+		));
+		Window<Person> peopleWindow = repository.findBy(predicate, q -> q.sortBy(Sort.by("firstName")).limit(1).scroll(startPosition));
+		assertThat(peopleWindow.getContent()).extracting(Person::getFirstName)
+				.containsExactly("Helge");
+
+		var nextPos = ScrollPosition.backward(
+				((KeysetScrollPosition) peopleWindow.positionAt(0)).getKeys());
+
+		peopleWindow = repository.findBy(predicate, q -> q.limit(1).scroll(nextPos));
+
+		assertThat(peopleWindow.getContent()).extracting(Person::getFirstName)
+				.containsExactlyInAnyOrder("Bela");
 	}
 
 	static class DtoPersonProjection {

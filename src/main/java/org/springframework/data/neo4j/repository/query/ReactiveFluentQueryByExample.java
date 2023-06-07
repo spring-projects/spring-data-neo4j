@@ -15,6 +15,8 @@
  */
 package org.springframework.data.neo4j.repository.query;
 
+import org.neo4j.cypherdsl.core.Condition;
+import org.springframework.data.domain.KeysetScrollPosition;
 import org.springframework.data.domain.OffsetScrollPosition;
 import org.springframework.data.domain.ScrollPosition;
 import org.springframework.data.domain.Window;
@@ -172,9 +174,13 @@ final class ReactiveFluentQueryByExample<S, R> extends FluentQuerySupport<R> imp
 				: (scrollPosition instanceof OffsetScrollPosition offsetScrollPosition) ? offsetScrollPosition.getOffset()
 				: 0;
 
+		Condition condition = scrollPosition instanceof KeysetScrollPosition keysetScrollPosition
+				? CypherAdapterUtils.combineKeysetIntoCondition(mappingContext.getPersistentEntity(example.getProbeType()), keysetScrollPosition, sort, mappingContext.getConversionService())
+				: null;
+
 		return findOperation.find(domainType)
 				.as(resultType)
-				.matching(QueryFragmentsAndParameters.forExampleWithScroll(mappingContext, example, sort, limit == null ? 1 : limit + 1, skip, scrollPosition, createIncludedFieldsPredicate()))
+				.matching(QueryFragmentsAndParameters.forExampleWithScroll(mappingContext, example, condition, sort, limit == null ? 1 : limit + 1, skip, scrollPosition, createIncludedFieldsPredicate()))
 				.all()
 				.collectList()
 				.map(rawResult -> scroll(scrollPosition, rawResult, entity));

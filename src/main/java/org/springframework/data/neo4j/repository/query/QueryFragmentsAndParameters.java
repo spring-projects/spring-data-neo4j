@@ -192,15 +192,15 @@ public final class QueryFragmentsAndParameters {
 	}
 
 	static QueryFragmentsAndParameters forExample(Neo4jMappingContext mappingContext, Example<?> example, Sort sort, @Nullable Integer limit, @Nullable java.util.function.Predicate<PropertyFilter.RelaxedPropertyPath> includeField) {
-		return QueryFragmentsAndParameters.forExample(mappingContext, example, null, sort, limit, null, null, includeField);
+		return QueryFragmentsAndParameters.forExample(mappingContext, example, null, null, sort, limit, null, null, includeField);
 	}
 
 	static QueryFragmentsAndParameters forExample(Neo4jMappingContext mappingContext, Example<?> example, Sort sort, @Nullable Integer limit, @Nullable Long skip, @Nullable java.util.function.Predicate<PropertyFilter.RelaxedPropertyPath> includeField) {
-		return QueryFragmentsAndParameters.forExample(mappingContext, example, null, sort, limit, skip, null, includeField);
+		return QueryFragmentsAndParameters.forExample(mappingContext, example, null, null, sort, limit, skip, null, includeField);
 	}
 
-	static QueryFragmentsAndParameters forExampleWithScroll(Neo4jMappingContext mappingContext, Example<?> example, Sort sort, @Nullable Integer limit, @Nullable Long skip, ScrollPosition scrollPosition, @Nullable java.util.function.Predicate<PropertyFilter.RelaxedPropertyPath> includeField) {
-		return QueryFragmentsAndParameters.forExample(mappingContext, example, null, sort, limit, skip, scrollPosition, includeField);
+	static QueryFragmentsAndParameters forExampleWithScroll(Neo4jMappingContext mappingContext, Example<?> example, @Nullable Condition keysetScrollPositionCondition, Sort sort, @Nullable Integer limit, @Nullable Long skip, ScrollPosition scrollPosition, @Nullable java.util.function.Predicate<PropertyFilter.RelaxedPropertyPath> includeField) {
+		return QueryFragmentsAndParameters.forExample(mappingContext, example, keysetScrollPositionCondition, null, sort, limit, skip, scrollPosition, includeField);
 	}
 
 	static QueryFragmentsAndParameters forExample(Neo4jMappingContext mappingContext, Example<?> example, Pageable pageable) {
@@ -208,7 +208,7 @@ public final class QueryFragmentsAndParameters {
 	}
 
 	static QueryFragmentsAndParameters forExample(Neo4jMappingContext mappingContext, Example<?> example, Pageable pageable, @Nullable java.util.function.Predicate<PropertyFilter.RelaxedPropertyPath> includeField) {
-		return QueryFragmentsAndParameters.forExample(mappingContext, example, pageable, null, null, null, null, includeField);
+		return QueryFragmentsAndParameters.forExample(mappingContext, example, null, pageable, null, null, null, null, includeField);
 	}
 
 	/**
@@ -257,6 +257,7 @@ public final class QueryFragmentsAndParameters {
 
 	static QueryFragmentsAndParameters forConditionWithScrollPosition(Neo4jPersistentEntity<?> entityMetaData,
 																	  Condition condition,
+																	  @Nullable Condition keysetCondition,
 																	  ScrollPosition scrollPosition,
 																	  @Nullable Sort sort,
 																	  @Nullable Integer limit,
@@ -274,7 +275,7 @@ public final class QueryFragmentsAndParameters {
 
 		if (scrollPosition instanceof KeysetScrollPosition keysetScrollPosition) {
 			if (!scrollPosition.isInitial()) {
-				condition = condition.and(CypherAdapterUtils.combineKeysetIntoCondition(entityMetaData, keysetScrollPosition, sort));
+				condition = condition.and(keysetCondition);
 			}
 			QueryFragmentsAndParameters queryFragmentsAndParameters = getQueryFragmentsAndParameters(entityMetaData, null,
 					sort, limit, skip, Collections.emptyMap(), condition, includeField, null);
@@ -312,6 +313,7 @@ public final class QueryFragmentsAndParameters {
 	}
 
 	static QueryFragmentsAndParameters forExample(Neo4jMappingContext mappingContext, Example<?> example,
+												  @Nullable Condition keysetScrollPositionCondition,
 												  @Nullable Pageable pageable, @Nullable Sort sort, @Nullable Integer limit,
 												  @Nullable Long skip, @Nullable ScrollPosition scrollPosition,
 												  java.util.function.Predicate<PropertyFilter.RelaxedPropertyPath> includeField) {
@@ -324,7 +326,7 @@ public final class QueryFragmentsAndParameters {
 		if (scrollPosition instanceof KeysetScrollPosition keysetScrollPosition) {
 
 			if (!keysetScrollPosition.isInitial()) {
-				condition = condition.and(CypherAdapterUtils.combineKeysetIntoCondition(persistentEntity, keysetScrollPosition, sort));
+				condition = condition.and(keysetScrollPositionCondition);
 			}
 			QueryFragmentsAndParameters queryFragmentsAndParameters = getQueryFragmentsAndParameters(persistentEntity, pageable,
 					sort, limit, skip, parameters, condition, includeField, propertyPathWrappers);

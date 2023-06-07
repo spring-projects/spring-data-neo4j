@@ -17,6 +17,7 @@ package org.springframework.data.neo4j.repository.query;
 
 import static org.neo4j.cypherdsl.core.Cypher.asterisk;
 
+import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -63,9 +64,15 @@ public final class ReactiveQuerydslNeo4jPredicateExecutor<T> implements Reactive
 
 	private final Neo4jPersistentEntity<T> metaData;
 
-	public ReactiveQuerydslNeo4jPredicateExecutor(Neo4jEntityInformation<T, Object> entityInformation,
+	/**
+	 * Mapping context
+	 */
+	private final Neo4jMappingContext mappingContext;
+
+	public ReactiveQuerydslNeo4jPredicateExecutor(Neo4jMappingContext mappingContext, Neo4jEntityInformation<T, Object> entityInformation,
 			ReactiveNeo4jOperations neo4jOperations) {
 
+		this.mappingContext = mappingContext;
 		this.entityInformation = entityInformation;
 		this.neo4jOperations = neo4jOperations;
 		this.metaData = this.entityInformation.getEntityMetaData();
@@ -131,7 +138,7 @@ public final class ReactiveQuerydslNeo4jPredicateExecutor<T> implements Reactive
 
 		if (this.neo4jOperations instanceof ReactiveFluentFindOperation ops) {
 			@SuppressWarnings("unchecked") // defaultResultType will be a supertype of S and at this stage, the same.
-			ReactiveFluentQuery<S> fluentQuery = (ReactiveFluentQuery<S>) new ReactiveFluentQueryByPredicate<>(predicate, metaData, metaData.getType(),
+			ReactiveFluentQuery<S> fluentQuery = (ReactiveFluentQuery<S>) new ReactiveFluentQueryByPredicate<>(predicate, mappingContext, metaData, metaData.getType(),
 							ops, this::count, this::exists);
 			return queryFunction.apply(fluentQuery);
 		}

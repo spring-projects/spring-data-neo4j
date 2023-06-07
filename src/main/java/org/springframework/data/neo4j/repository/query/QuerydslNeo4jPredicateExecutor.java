@@ -27,6 +27,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.core.FluentFindOperation;
 import org.springframework.data.neo4j.core.Neo4jOperations;
+import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.repository.support.CypherdslConditionExecutor;
 import org.springframework.data.neo4j.repository.support.Neo4jEntityInformation;
@@ -65,9 +66,15 @@ public final class QuerydslNeo4jPredicateExecutor<T> implements QuerydslPredicat
 	 */
 	private final Neo4jPersistentEntity<T> metaData;
 
-	public QuerydslNeo4jPredicateExecutor(Neo4jEntityInformation<T, Object> entityInformation,
-			Neo4jOperations neo4jOperations) {
+	/**
+	 * Mapping context
+	 */
+	private final Neo4jMappingContext mappingContext;
 
+	public QuerydslNeo4jPredicateExecutor(Neo4jMappingContext mappingContext, Neo4jEntityInformation<T, Object> entityInformation,
+										  Neo4jOperations neo4jOperations) {
+
+		this.mappingContext = mappingContext;
 		this.delegate = new CypherdslConditionExecutorImpl<>(entityInformation, neo4jOperations);
 		this.neo4jOperations = neo4jOperations;
 		this.metaData = entityInformation.getEntityMetaData();
@@ -134,7 +141,7 @@ public final class QuerydslNeo4jPredicateExecutor<T> implements QuerydslPredicat
 		if (this.neo4jOperations instanceof FluentFindOperation ops) {
 			@SuppressWarnings("unchecked") // defaultResultType will be a supertype of S and at this stage, the same.
 			FetchableFluentQuery<S> fluentQuery =
-					(FetchableFluentQuery<S>) new FetchableFluentQueryByPredicate<>(predicate, metaData, metaData.getType(),
+					(FetchableFluentQuery<S>) new FetchableFluentQueryByPredicate<>(predicate, mappingContext, metaData, metaData.getType(),
 							ops, this::count, this::exists);
 			return queryFunction.apply(fluentQuery);
 		}

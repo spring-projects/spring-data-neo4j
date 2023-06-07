@@ -15,8 +15,10 @@
  */
 package org.springframework.data.neo4j.repository.query;
 
+import org.springframework.data.domain.KeysetScrollPosition;
 import org.springframework.data.domain.ScrollPosition;
 import org.springframework.data.domain.Window;
+import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -59,19 +61,23 @@ import com.querydsl.core.types.Predicate;
 
 	private final Function<Predicate, Mono<Boolean>> existsOperation;
 
+	private final Neo4jMappingContext mappingContext;
+
 	ReactiveFluentQueryByPredicate(
 			Predicate predicate,
+			Neo4jMappingContext mappingContext,
 			Neo4jPersistentEntity<S> metaData,
 			Class<R> resultType,
 			ReactiveFluentFindOperation findOperation,
 			Function<Predicate, Mono<Long>> countOperation,
 			Function<Predicate, Mono<Boolean>> existsOperation
 	) {
-		this(predicate, metaData, resultType, findOperation, countOperation, existsOperation, Sort.unsorted(), null, null);
+		this(predicate, mappingContext, metaData, resultType, findOperation, countOperation, existsOperation, Sort.unsorted(), null, null);
 	}
 
 	ReactiveFluentQueryByPredicate(
 			Predicate predicate,
+			Neo4jMappingContext mappingContext,
 			Neo4jPersistentEntity<S> metaData,
 			Class<R> resultType,
 			ReactiveFluentFindOperation findOperation,
@@ -83,6 +89,7 @@ import com.querydsl.core.types.Predicate;
 	) {
 		super(resultType, sort, limit, properties);
 		this.predicate = predicate;
+		this.mappingContext = mappingContext;
 		this.metaData = metaData;
 		this.findOperation = findOperation;
 		this.countOperation = countOperation;
@@ -93,14 +100,14 @@ import com.querydsl.core.types.Predicate;
 	@SuppressWarnings("HiddenField")
 	public ReactiveFluentQuery<R> sortBy(Sort sort) {
 
-		return new ReactiveFluentQueryByPredicate<>(this.predicate, this.metaData, this.resultType, this.findOperation,
+		return new ReactiveFluentQueryByPredicate<>(this.predicate, this.mappingContext, this.metaData, this.resultType, this.findOperation,
 				this.countOperation, this.existsOperation, this.sort.and(sort), this.limit, this.properties);
 	}
 
 	@Override
 	@SuppressWarnings("HiddenField")
 	public ReactiveFluentQuery<R> limit(int limit) {
-		return new ReactiveFluentQueryByPredicate<>(this.predicate, this.metaData, this.resultType, this.findOperation,
+		return new ReactiveFluentQueryByPredicate<>(this.predicate, this.mappingContext, this.metaData, this.resultType, this.findOperation,
 				this.countOperation, this.existsOperation, this.sort, limit, this.properties);
 	}
 
@@ -108,7 +115,7 @@ import com.querydsl.core.types.Predicate;
 	@SuppressWarnings("HiddenField")
 	public <NR> ReactiveFluentQuery<NR> as(Class<NR> resultType) {
 
-		return new ReactiveFluentQueryByPredicate<>(this.predicate, this.metaData, resultType, this.findOperation,
+		return new ReactiveFluentQueryByPredicate<>(this.predicate, this.mappingContext, this.metaData, resultType, this.findOperation,
 				this.countOperation, this.existsOperation);
 	}
 
@@ -116,7 +123,7 @@ import com.querydsl.core.types.Predicate;
 	@SuppressWarnings("HiddenField")
 	public ReactiveFluentQuery<R> project(Collection<String> properties) {
 
-		return new ReactiveFluentQueryByPredicate<>(this.predicate, this.metaData, resultType, this.findOperation,
+		return new ReactiveFluentQueryByPredicate<>(this.predicate, this.mappingContext, this.metaData, resultType, this.findOperation,
 				this.countOperation, this.existsOperation, this.sort, this.limit, mergeProperties(properties));
 	}
 
@@ -174,6 +181,9 @@ import com.querydsl.core.types.Predicate;
 	public Mono<Window<R>> scroll(ScrollPosition scrollPosition) {
 		QueryFragmentsAndParameters queryFragmentsAndParameters = QueryFragmentsAndParameters.forConditionWithScrollPosition(metaData,
 				Cypher.adapt(predicate).asCondition(),
+				(scrollPosition instanceof KeysetScrollPosition keysetScrollPosition
+						? CypherAdapterUtils.combineKeysetIntoCondition(metaData, keysetScrollPosition, sort, mappingContext.getConversionService())
+						: null),
 				scrollPosition, sort,
 				limit == null ? 1 : limit + 1,
 				createIncludedFieldsPredicate());
