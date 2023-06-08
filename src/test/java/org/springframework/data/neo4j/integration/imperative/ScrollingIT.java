@@ -221,8 +221,7 @@ class ScrollingIT {
 				.extracting(ScrollingEntity::getA)
 				.containsExactly("C0", "D0", "D0", "E0");
 
-		var nextPosWindow = ((KeysetScrollPosition) window.positionAt(0));
-		var nextNextPos = ScrollPosition.backward(nextPosWindow.getKeys());
+		var nextNextPos = ScrollPosition.backward(((KeysetScrollPosition) window.positionAt(0)).getKeys());
 		window = repository.findBy(example, q -> q.sortBy(ScrollingEntity.SORT_BY_B_AND_A).limit(4).scroll(nextNextPos));
 		assertThat(window.isLast()).isTrue();
 		assertThat(window).extracting(ScrollingEntity::getA)
