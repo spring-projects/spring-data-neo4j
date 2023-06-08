@@ -114,7 +114,7 @@ public final class ReactiveQuerydslNeo4jPredicateExecutor<T> implements Reactive
 	private Flux<T> doFindAll(Condition condition, Collection<SortItem> sortItems) {
 		return this.neo4jOperations.toExecutableQuery(
 				this.metaData.getType(),
-				QueryFragmentsAndParameters.forCondition(this.metaData, condition,
+				QueryFragmentsAndParameters.forConditionAndSortItems(this.metaData, condition,
 						sortItems)
 		).flatMapMany(ReactiveNeo4jOperations.ExecutableQuery::getResults);
 	}

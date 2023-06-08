@@ -37,6 +37,7 @@ public class ScrollingEntity {
 	 * Sorting by b and a will not be unique for 3 and D0, so this will trigger the additional condition based on the id
 	 */
 	public static final Sort SORT_BY_B_AND_A = Sort.by(Sort.Order.asc("b"), Sort.Order.desc("a"));
+	public static final Sort SORT_BY_C = Sort.by(Sort.Order.asc("c"));
 
 	public static void createTestData(QueryRunner queryRunner) {
 		queryRunner.run("MATCH (n) DETACH DELETE n");

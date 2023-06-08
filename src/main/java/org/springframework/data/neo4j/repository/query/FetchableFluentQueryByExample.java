@@ -128,7 +128,7 @@ final class FetchableFluentQueryByExample<S, R> extends FluentQuerySupport<R> im
 
 		return findOperation.find(example.getProbeType())
 				.as(resultType)
-				.matching(QueryFragmentsAndParameters.forExample(mappingContext, example, sort, limit,
+				.matching(QueryFragmentsAndParameters.forExampleWithSort(mappingContext, example, sort, limit,
 						createIncludedFieldsPredicate()))
 				.oneValue();
 	}
@@ -145,7 +145,7 @@ final class FetchableFluentQueryByExample<S, R> extends FluentQuerySupport<R> im
 
 		return findOperation.find(example.getProbeType())
 				.as(resultType)
-				.matching(QueryFragmentsAndParameters.forExample(mappingContext, example, sort, limit,
+				.matching(QueryFragmentsAndParameters.forExampleWithSort(mappingContext, example, sort, limit,
 						createIncludedFieldsPredicate()))
 				.all();
 	}
@@ -155,7 +155,7 @@ final class FetchableFluentQueryByExample<S, R> extends FluentQuerySupport<R> im
 
 		List<R> page = findOperation.find(example.getProbeType())
 				.as(resultType)
-				.matching(QueryFragmentsAndParameters.forExample(mappingContext, example, pageable,
+				.matching(QueryFragmentsAndParameters.forExampleWithPageable(mappingContext, example, pageable,
 						createIncludedFieldsPredicate()))
 				.all();
 
@@ -179,7 +179,7 @@ final class FetchableFluentQueryByExample<S, R> extends FluentQuerySupport<R> im
 
 		List<R> rawResult = findOperation.find(domainType)
 				.as(resultType)
-				.matching(QueryFragmentsAndParameters.forExampleWithScroll(mappingContext, example, condition, sort, limit == null ? 1 : limit + 1, skip, scrollPosition, createIncludedFieldsPredicate()))
+				.matching(QueryFragmentsAndParameters.forExampleWithScrollPosition(mappingContext, example, condition, sort, limit == null ? 1 : limit + 1, skip, scrollPosition, createIncludedFieldsPredicate()))
 				.all();
 
 		return scroll(scrollPosition, rawResult, entity);

@@ -129,7 +129,7 @@ final class ReactiveFluentQueryByExample<S, R> extends FluentQuerySupport<R> imp
 
 		return findOperation.find(example.getProbeType())
 				.as(resultType)
-				.matching(QueryFragmentsAndParameters.forExample(mappingContext, example, sort, limit,
+				.matching(QueryFragmentsAndParameters.forExampleWithSort(mappingContext, example, sort, limit,
 						createIncludedFieldsPredicate()))
 				.one();
 	}
@@ -145,7 +145,7 @@ final class ReactiveFluentQueryByExample<S, R> extends FluentQuerySupport<R> imp
 
 		return findOperation.find(example.getProbeType())
 				.as(resultType)
-				.matching(QueryFragmentsAndParameters.forExample(mappingContext, example, sort, limit,
+				.matching(QueryFragmentsAndParameters.forExampleWithSort(mappingContext, example, sort, limit,
 						createIncludedFieldsPredicate()))
 				.all();
 	}
@@ -155,7 +155,7 @@ final class ReactiveFluentQueryByExample<S, R> extends FluentQuerySupport<R> imp
 
 		Flux<R> results = findOperation.find(example.getProbeType())
 				.as(resultType)
-				.matching(QueryFragmentsAndParameters.forExample(mappingContext, example, pageable,
+				.matching(QueryFragmentsAndParameters.forExampleWithPageable(mappingContext, example, pageable,
 						createIncludedFieldsPredicate()))
 				.all();
 		return results.collectList().zipWith(countOperation.apply(example)).map(tuple -> {
@@ -180,7 +180,7 @@ final class ReactiveFluentQueryByExample<S, R> extends FluentQuerySupport<R> imp
 
 		return findOperation.find(domainType)
 				.as(resultType)
-				.matching(QueryFragmentsAndParameters.forExampleWithScroll(mappingContext, example, condition, sort, limit == null ? 1 : limit + 1, skip, scrollPosition, createIncludedFieldsPredicate()))
+				.matching(QueryFragmentsAndParameters.forExampleWithScrollPosition(mappingContext, example, condition, sort, limit == null ? 1 : limit + 1, skip, scrollPosition, createIncludedFieldsPredicate()))
 				.all()
 				.collectList()
 				.map(rawResult -> scroll(scrollPosition, rawResult, entity));

@@ -71,7 +71,7 @@ abstract class FluentQuerySupport<R> {
 	final Predicate<PropertyFilter.RelaxedPropertyPath> createIncludedFieldsPredicate() {
 
 		if (this.properties == null || this.properties.isEmpty()) {
-			return path -> true;
+			return PropertyFilter.NO_FILTER;
 		}
 		return path -> this.properties.contains(path.toDotPath());
 	}

@@ -116,7 +116,7 @@ class ScrollingIT {
 		ScrollingEntity scrollingEntity = new ScrollingEntity();
 		Example<ScrollingEntity> example = Example.of(scrollingEntity, ExampleMatcher.matchingAll().withIgnoreNullValues());
 
-		var window = scrollingRepository.findBy(example, q -> q.sortBy(ScrollingEntity.SORT_BY_B_AND_A).limit(4).scroll(ScrollPosition.keyset()));
+		var window = scrollingRepository.findBy(example, q -> q.sortBy(ScrollingEntity.SORT_BY_C).limit(4).scroll(ScrollPosition.keyset()));
 		assertThat(window.hasNext()).isTrue();
 		assertThat(window)
 				.hasSize(4)
@@ -124,13 +124,13 @@ class ScrollingIT {
 				.containsExactly("A0", "B0", "C0", "D0");
 
 		ScrollPosition newPosition = ScrollPosition.forward(((KeysetScrollPosition) window.positionAt(window.size() - 1)).getKeys());
-		window = scrollingRepository.findBy(example, q -> q.sortBy(ScrollingEntity.SORT_BY_B_AND_A).limit(4).scroll(newPosition));
+		window = scrollingRepository.findBy(example, q -> q.sortBy(ScrollingEntity.SORT_BY_C).limit(4).scroll(newPosition));
 		assertThat(window)
 				.hasSize(4)
 				.extracting(ScrollingEntity::getA)
 				.containsExactly("D0", "E0", "F0", "G0");
 
-		window = scrollingRepository.findTop4By(ScrollingEntity.SORT_BY_B_AND_A, window.positionAt(window.size() - 1));
+		window = scrollingRepository.findTop4By(ScrollingEntity.SORT_BY_C, window.positionAt(window.size() - 1));
 		assertThat(window.isLast()).isTrue();
 		assertThat(window).extracting(ScrollingEntity::getA)
 				.containsExactly("H0", "I0");
@@ -199,12 +199,11 @@ class ScrollingIT {
 
 		var last = repository.findFirstByA("I0");
 		var keys = Map.of(
-				"foobar", last.getA(),
-				"b", last.getB(),
+				"c", last.getC(),
 				Constants.NAME_OF_ADDITIONAL_SORT, Values.value(last.getId().toString())
 		);
 
-		var window = repository.findBy(example, q -> q.sortBy(ScrollingEntity.SORT_BY_B_AND_A).limit(4).scroll(ScrollPosition.backward(keys)));
+		var window = repository.findBy(example, q -> q.sortBy(ScrollingEntity.SORT_BY_C).limit(4).scroll(ScrollPosition.backward(keys)));
 		assertThat(window.hasNext()).isTrue();
 		assertThat(window)
 				.hasSize(4)
@@ -213,7 +212,7 @@ class ScrollingIT {
 
 		var pos = ((KeysetScrollPosition) window.positionAt(0));
 		var nextPos = ScrollPosition.backward(pos.getKeys());
-		window = repository.findBy(example, q -> q.sortBy(ScrollingEntity.SORT_BY_B_AND_A).limit(4).scroll(nextPos));
+		window = repository.findBy(example, q -> q.sortBy(ScrollingEntity.SORT_BY_C).limit(4).scroll(nextPos));
 		assertThat(window.hasNext()).isTrue();
 		assertThat(window)
 				.hasSize(4)
@@ -222,7 +221,7 @@ class ScrollingIT {
 				.containsExactly("C0", "D0", "D0", "E0");
 
 		var nextNextPos = ScrollPosition.backward(((KeysetScrollPosition) window.positionAt(0)).getKeys());
-		window = repository.findBy(example, q -> q.sortBy(ScrollingEntity.SORT_BY_B_AND_A).limit(4).scroll(nextNextPos));
+		window = repository.findBy(example, q -> q.sortBy(ScrollingEntity.SORT_BY_C).limit(4).scroll(nextNextPos));
 		assertThat(window.isLast()).isTrue();
 		assertThat(window).extracting(ScrollingEntity::getA)
 				.containsExactly("A0", "B0");

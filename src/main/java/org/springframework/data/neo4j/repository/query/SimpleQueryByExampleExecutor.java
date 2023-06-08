@@ -26,6 +26,7 @@ import org.springframework.data.neo4j.core.FluentFindOperation;
 import org.springframework.data.neo4j.core.Neo4jOperations;
 import org.springframework.data.neo4j.core.mapping.CypherGenerator;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
+import org.springframework.data.neo4j.core.mapping.PropertyFilter;
 import org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery;
 import org.springframework.data.repository.query.QueryByExampleExecutor;
 import org.springframework.data.support.PageableExecutionUtils;
@@ -76,14 +77,14 @@ public final class SimpleQueryByExampleExecutor<T> implements QueryByExampleExec
 	@Override
 	public <S extends T> List<S> findAll(Example<S> example, Sort sort) {
 		return this.neo4jOperations.toExecutableQuery(example.getProbeType(),
-				QueryFragmentsAndParameters.forExample(mappingContext, example, sort)).getResults();
+				QueryFragmentsAndParameters.forExampleWithSort(mappingContext, example, sort, null, PropertyFilter.NO_FILTER)).getResults();
 	}
 
 	@Override
 	public <S extends T> Page<S> findAll(Example<S> example, Pageable pageable) {
 
 		List<S> page = this.neo4jOperations.toExecutableQuery(example.getProbeType(),
-				QueryFragmentsAndParameters.forExample(mappingContext, example, pageable)).getResults();
+				QueryFragmentsAndParameters.forExampleWithPageable(mappingContext, example, pageable, PropertyFilter.NO_FILTER)).getResults();
 
 		LongSupplier totalCountSupplier = () -> this.count(example);
 		return PageableExecutionUtils.getPage(page, pageable, totalCountSupplier);

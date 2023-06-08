@@ -134,7 +134,7 @@ final class FetchableFluentQueryByPredicate<S, R> extends FluentQuerySupport<R> 
 		return findOperation.find(metaData.getType())
 				.as(resultType)
 				.matching(
-						QueryFragmentsAndParameters.forCondition(metaData,
+						QueryFragmentsAndParameters.forConditionAndSort(metaData,
 								Cypher.adapt(predicate).asCondition(),
 								sort,
 								limit,
@@ -155,7 +155,7 @@ final class FetchableFluentQueryByPredicate<S, R> extends FluentQuerySupport<R> 
 		return findOperation.find(metaData.getType())
 				.as(resultType)
 				.matching(
-						QueryFragmentsAndParameters.forCondition(metaData,
+						QueryFragmentsAndParameters.forConditionAndSort(metaData,
 								Cypher.adapt(predicate).asCondition(),
 								sort,
 								limit,
@@ -169,7 +169,7 @@ final class FetchableFluentQueryByPredicate<S, R> extends FluentQuerySupport<R> 
 		List<R> page = findOperation.find(metaData.getType())
 				.as(resultType)
 				.matching(
-						QueryFragmentsAndParameters.forCondition(metaData,
+						QueryFragmentsAndParameters.forConditionAndPageable(metaData,
 								Cypher.adapt(predicate).asCondition(),
 								pageable,
 								createIncludedFieldsPredicate()))

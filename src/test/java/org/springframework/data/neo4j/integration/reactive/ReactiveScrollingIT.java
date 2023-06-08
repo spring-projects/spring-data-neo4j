@@ -190,7 +190,7 @@ class ReactiveScrollingIT {
 		Example<ScrollingEntity> example = Example.of(scrollingEntity, ExampleMatcher.matchingAll().withIgnoreNullValues());
 
 		var windowContainer = new AtomicReference<Window<ScrollingEntity>>();
-		repository.findBy(example, q -> q.sortBy(ScrollingEntity.SORT_BY_B_AND_A).limit(4).scroll(ScrollPosition.keyset()))
+		repository.findBy(example, q -> q.sortBy(ScrollingEntity.SORT_BY_C).limit(4).scroll(ScrollPosition.keyset()))
 				.as(StepVerifier::create)
 				.consumeNextWith(windowContainer::set)
 				.verifyComplete();
@@ -202,7 +202,7 @@ class ReactiveScrollingIT {
 				.containsExactly("A0", "B0", "C0", "D0");
 
 		ScrollPosition nextScrollPosition = window.positionAt(window.size() - 1);
-		repository.findBy(example, q -> q.sortBy(ScrollingEntity.SORT_BY_B_AND_A).limit(4).scroll(nextScrollPosition))
+		repository.findBy(example, q -> q.sortBy(ScrollingEntity.SORT_BY_C).limit(4).scroll(nextScrollPosition))
 				.as(StepVerifier::create)
 				.consumeNextWith(windowContainer::set)
 				.verifyComplete();
@@ -214,7 +214,7 @@ class ReactiveScrollingIT {
 				.containsExactly("D0", "E0", "F0", "G0");
 
 		ScrollPosition nextNextScrollPosition = window.positionAt(window.size() - 1);
-		repository.findBy(example, q -> q.sortBy(ScrollingEntity.SORT_BY_B_AND_A).limit(4).scroll(nextNextScrollPosition))
+		repository.findBy(example, q -> q.sortBy(ScrollingEntity.SORT_BY_C).limit(4).scroll(nextNextScrollPosition))
 				.as(StepVerifier::create)
 				.consumeNextWith(windowContainer::set)
 				.verifyComplete();
@@ -233,13 +233,12 @@ class ReactiveScrollingIT {
 		// Recreate the last position
 		var last = repository.findFirstByA("I0").block();
 		var keys = Map.of(
-				"foobar", Values.value(last.getA()),
-				"b", Values.value(last.getB()),
+				"c", Values.value(last.getC()),
 				Constants.NAME_OF_ADDITIONAL_SORT, Values.value(last.getId().toString())
 		);
 
 		var windowContainer = new AtomicReference<Window<ScrollingEntity>>();
-		repository.findBy(example, q -> q.sortBy(ScrollingEntity.SORT_BY_B_AND_A).limit(4).scroll(ScrollPosition.backward(keys)))
+		repository.findBy(example, q -> q.sortBy(ScrollingEntity.SORT_BY_C).limit(4).scroll(ScrollPosition.backward(keys)))
 				.as(StepVerifier::create)
 				.consumeNextWith(windowContainer::set)
 				.verifyComplete();
@@ -251,7 +250,7 @@ class ReactiveScrollingIT {
 				.containsExactly("F0", "G0", "H0", "I0");
 
 		var nextPos = ScrollPosition.backward(((KeysetScrollPosition) window.positionAt(0)).getKeys());
-		repository.findBy(example, q -> q.sortBy(ScrollingEntity.SORT_BY_B_AND_A).limit(4).scroll(nextPos))
+		repository.findBy(example, q -> q.sortBy(ScrollingEntity.SORT_BY_C).limit(4).scroll(nextPos))
 				.as(StepVerifier::create)
 				.consumeNextWith(windowContainer::set)
 				.verifyComplete();
@@ -264,7 +263,7 @@ class ReactiveScrollingIT {
 				.containsExactly("C0", "D0", "D0", "E0");
 
 		var nextNextPos = ScrollPosition.backward(((KeysetScrollPosition) window.positionAt(0)).getKeys());
-		repository.findBy(example, q -> q.sortBy(ScrollingEntity.SORT_BY_B_AND_A).limit(4).scroll(nextNextPos))
+		repository.findBy(example, q -> q.sortBy(ScrollingEntity.SORT_BY_C).limit(4).scroll(nextNextPos))
 				.as(StepVerifier::create)
 				.consumeNextWith(windowContainer::set)
 				.verifyComplete();

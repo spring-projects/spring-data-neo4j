@@ -18,6 +18,7 @@ package org.springframework.data.neo4j.repository.query;
 import static org.neo4j.cypherdsl.core.Cypher.asterisk;
 
 import java.util.Arrays;
+import java.util.function.Predicate;
 
 import org.apiguardian.api.API;
 import org.neo4j.cypherdsl.core.Condition;
@@ -29,6 +30,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.core.ReactiveNeo4jOperations;
 import org.springframework.data.neo4j.core.mapping.CypherGenerator;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
+import org.springframework.data.neo4j.core.mapping.PropertyFilter;
 import org.springframework.data.neo4j.repository.support.ReactiveCypherdslConditionExecutor;
 import org.springframework.data.neo4j.repository.support.Neo4jEntityInformation;
 
@@ -79,10 +81,11 @@ public final class ReactiveCypherdslConditionExecutorImpl<T> implements Reactive
 	@Override
 	public Flux<T> findAll(Condition condition, Sort sort) {
 
+		Predicate<PropertyFilter.RelaxedPropertyPath> noFilter = PropertyFilter.NO_FILTER;
 		return this.neo4jOperations.toExecutableQuery(
 				metaData.getType(),
-				QueryFragmentsAndParameters.forCondition(
-						this.metaData, condition, sort
+				QueryFragmentsAndParameters.forConditionAndSort(
+						this.metaData, condition, sort, null, noFilter
 				)
 		).flatMapMany(ReactiveNeo4jOperations.ExecutableQuery::getResults);
 	}
@@ -92,7 +95,7 @@ public final class ReactiveCypherdslConditionExecutorImpl<T> implements Reactive
 
 		return this.neo4jOperations.toExecutableQuery(
 				this.metaData.getType(),
-				QueryFragmentsAndParameters.forCondition(
+				QueryFragmentsAndParameters.forConditionAndSortItems(
 						this.metaData, condition, Arrays.asList(sortItems)
 				)
 		).flatMapMany(ReactiveNeo4jOperations.ExecutableQuery::getResults);
@@ -103,7 +106,7 @@ public final class ReactiveCypherdslConditionExecutorImpl<T> implements Reactive
 
 		return this.neo4jOperations.toExecutableQuery(
 				this.metaData.getType(),
-				QueryFragmentsAndParameters.forCondition(this.metaData, Conditions.noCondition(),
+				QueryFragmentsAndParameters.forConditionAndSortItems(this.metaData, Conditions.noCondition(),
 						Arrays.asList(sortItems))
 		).flatMapMany(ReactiveNeo4jOperations.ExecutableQuery::getResults);
 	}

@@ -133,9 +133,10 @@ import com.querydsl.core.types.Predicate;
 		return findOperation.find(metaData.getType())
 				.as(resultType)
 				.matching(
-						QueryFragmentsAndParameters.forCondition(metaData,
+						QueryFragmentsAndParameters.forConditionAndSort(metaData,
 								Cypher.adapt(predicate).asCondition(),
 								sort,
+								limit,
 								createIncludedFieldsPredicate()))
 				.one();
 	}
@@ -152,9 +153,10 @@ import com.querydsl.core.types.Predicate;
 		return findOperation.find(metaData.getType())
 				.as(resultType)
 				.matching(
-						QueryFragmentsAndParameters.forCondition(metaData,
+						QueryFragmentsAndParameters.forConditionAndSort(metaData,
 								Cypher.adapt(predicate).asCondition(),
 								sort,
+								limit,
 								createIncludedFieldsPredicate()))
 				.all();
 	}
@@ -165,7 +167,7 @@ import com.querydsl.core.types.Predicate;
 		Flux<R> results = findOperation.find(metaData.getType())
 				.as(resultType)
 				.matching(
-						QueryFragmentsAndParameters.forCondition(metaData,
+						QueryFragmentsAndParameters.forConditionAndPageable(metaData,
 								Cypher.adapt(predicate).asCondition(),
 								pageable,
 								createIncludedFieldsPredicate()))
