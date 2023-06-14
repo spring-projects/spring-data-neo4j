@@ -121,7 +121,7 @@ final class ReactiveFluentQueryByExample<S, R> extends FluentQuerySupport<R> imp
 	public ReactiveFluentQuery<R> project(Collection<String> properties) {
 
 		return new ReactiveFluentQueryByExample<>(this.example, this.resultType, this.mappingContext, this.findOperation,
-				this.countOperation, this.existsOperation, this.sort, this.limit, mergeProperties(properties));
+				this.countOperation, this.existsOperation, this.sort, this.limit, mergeProperties(extractAllPaths(properties)));
 	}
 
 	@Override

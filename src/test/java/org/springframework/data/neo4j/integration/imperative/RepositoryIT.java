@@ -2777,6 +2777,21 @@ class RepositoryIT {
 					true, 1L, TEST_PERSON1_BORN_ON, "something", Arrays.asList("a", "b"), NEO4J_HQ, createdAt.toInstant());
 			person2 = new PersonWithAllConstructor(id2, TEST_PERSON2_NAME, TEST_PERSON2_FIRST_NAME, TEST_PERSON_SAMEVALUE,
 					false, 2L, TEST_PERSON2_BORN_ON, null, Collections.emptyList(), SFO, null);
+
+			transaction.run("""
+					CREATE (lhr:Airport {code: 'LHR', name: 'London Heathrow'})
+					CREATE (lax:Airport {code: 'LAX', name: 'Los Angeles'})
+					CREATE (cdg:Airport {code: 'CDG', name: 'Paris Charles de Gaulle'})
+					CREATE (f1:Flight {name: 'FL 001'})
+					CREATE (f2:Flight {name: 'FL 002'})
+					CREATE (f3:Flight {name: 'FL 003'})
+					CREATE (f1) -[:DEPARTS] ->(lhr)
+					CREATE (f1) -[:ARRIVES] ->(lax)
+					CREATE (f2) -[:DEPARTS] ->(lhr)
+					CREATE (f2) -[:ARRIVES] ->(cdg)
+					CREATE (f3) -[:DEPARTS] ->(lax)
+					CREATE (f3) -[:ARRIVES] ->(lhr)
+					""");
 		}
 
 		@Test
@@ -2844,6 +2859,24 @@ class RepositoryIT {
 						assertThat(p.getPlace()).isNull();
 						assertThat(p.getSameValue()).isNull();
 						assertThat(p.getThings()).isNull();
+					});
+		}
+
+		@Test
+		void findAllByExampleFluentProjectingRelationships(@Autowired FlightRepository repository) {
+			Example<Flight> example = Example.of(new Flight("FL 001", null, null),
+					ExampleMatcher.matchingAll().withIgnoreNullValues());
+			List<Flight> flights = repository.findBy(example,
+					q -> q.project("name", "departure.name").all());
+
+			assertThat(flights)
+					.hasSize(1)
+					.first().satisfies(p -> {
+						assertThat(p.getName()).isEqualTo("FL 001");
+						assertThat(p.getArrival()).isNull();
+						assertThat(p.getDeparture()).isNotNull();
+						assertThat(p.getDeparture().getName()).isEqualTo("London Heathrow");
+						assertThat(p.getDeparture().getCode()).isNull();
 					});
 		}
 

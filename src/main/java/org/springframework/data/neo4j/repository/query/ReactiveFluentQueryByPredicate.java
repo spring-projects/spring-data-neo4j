@@ -124,7 +124,7 @@ import com.querydsl.core.types.Predicate;
 	public ReactiveFluentQuery<R> project(Collection<String> properties) {
 
 		return new ReactiveFluentQueryByPredicate<>(this.predicate, this.mappingContext, this.metaData, resultType, this.findOperation,
-				this.countOperation, this.existsOperation, this.sort, this.limit, mergeProperties(properties));
+				this.countOperation, this.existsOperation, this.sort, this.limit, mergeProperties(extractAllPaths(properties)));
 	}
 
 	@Override

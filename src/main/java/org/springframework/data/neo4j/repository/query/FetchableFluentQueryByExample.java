@@ -120,7 +120,7 @@ final class FetchableFluentQueryByExample<S, R> extends FluentQuerySupport<R> im
 	public FetchableFluentQuery<R> project(Collection<String> properties) {
 
 		return new FetchableFluentQueryByExample<>(this.example, this.resultType, this.mappingContext, this.findOperation,
-				this.countOperation, this.existsOperation, this.sort, this.limit, mergeProperties(properties));
+				this.countOperation, this.existsOperation, this.sort, this.limit, mergeProperties(extractAllPaths(properties)));
 	}
 
 	@Override

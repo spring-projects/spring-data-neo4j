@@ -71,6 +71,7 @@ import org.springframework.data.neo4j.core.ReactiveUserSelectionProvider;
 import org.springframework.data.neo4j.core.UserSelection;
 import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
 import org.springframework.data.neo4j.core.transaction.ReactiveNeo4jTransactionManager;
+import org.springframework.data.neo4j.integration.reactive.repositories.ReactiveFlightRepository;
 import org.springframework.data.neo4j.integration.reactive.repositories.ReactivePersonRepository;
 import org.springframework.data.neo4j.integration.reactive.repositories.ReactiveThingRepository;
 import org.springframework.data.neo4j.integration.shared.common.AltHobby;
@@ -86,6 +87,7 @@ import org.springframework.data.neo4j.integration.shared.common.DeepRelationship
 import org.springframework.data.neo4j.integration.shared.common.DtoPersonProjection;
 import org.springframework.data.neo4j.integration.shared.common.EntitiesWithDynamicLabels;
 import org.springframework.data.neo4j.integration.shared.common.EntityWithConvertedId;
+import org.springframework.data.neo4j.integration.shared.common.Flight;
 import org.springframework.data.neo4j.integration.shared.common.Hobby;
 import org.springframework.data.neo4j.integration.shared.common.ImmutablePerson;
 import org.springframework.data.neo4j.integration.shared.common.LikesHobbyRelationship;
@@ -190,6 +192,21 @@ class ReactiveRepositoryIT {
 
 			person2 = new PersonWithAllConstructor(id2, TEST_PERSON2_NAME, TEST_PERSON2_FIRST_NAME, TEST_PERSON_SAMEVALUE,
 					false, 2L, TEST_PERSON2_BORN_ON, null, Collections.emptyList(), SFO, null);
+
+			transaction.run("""
+					CREATE (lhr:Airport {code: 'LHR', name: 'London Heathrow'})
+					CREATE (lax:Airport {code: 'LAX', name: 'Los Angeles'})
+					CREATE (cdg:Airport {code: 'CDG', name: 'Paris Charles de Gaulle'})
+					CREATE (f1:Flight {name: 'FL 001'})
+					CREATE (f2:Flight {name: 'FL 002'})
+					CREATE (f3:Flight {name: 'FL 003'})
+					CREATE (f1) -[:DEPARTS] ->(lhr)
+					CREATE (f1) -[:ARRIVES] ->(lax)
+					CREATE (f2) -[:DEPARTS] ->(lhr)
+					CREATE (f2) -[:ARRIVES] ->(cdg)
+					CREATE (f3) -[:DEPARTS] ->(lax)
+					CREATE (f3) -[:ARRIVES] ->(lhr)
+					""");
 		}
 
 		@Test
@@ -333,6 +350,25 @@ class ReactiveRepositoryIT {
 						assertThat(p.getPlace()).isNull();
 						assertThat(p.getSameValue()).isNull();
 						assertThat(p.getThings()).isNull();
+						return true;
+					}).verifyComplete();
+		}
+
+		@Test
+		void findAllByExampleFluentProjectingRelationships(@Autowired ReactiveFlightRepository repository) {
+
+			Example<Flight> example = Example.of(new Flight("FL 001", null, null),
+					ExampleMatcher.matchingAll().withIgnoreNullValues());
+
+			repository.findBy(example, q -> q.project("name", "departure.name").all())
+					.as(StepVerifier::create)
+					.expectNextMatches(p -> {
+						assertThat(p.getName()).isEqualTo("FL 001");
+						assertThat(p.getArrival()).isNull();
+						assertThat(p.getDeparture()).isNotNull();
+						assertThat(p.getDeparture().getName()).isEqualTo("London Heathrow");
+						assertThat(p.getDeparture().getCode()).isNull();
+
 						return true;
 					}).verifyComplete();
 		}

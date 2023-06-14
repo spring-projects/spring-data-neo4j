@@ -125,7 +125,7 @@ final class FetchableFluentQueryByPredicate<S, R> extends FluentQuerySupport<R> 
 	public FetchableFluentQuery<R> project(Collection<String> properties) {
 
 		return new FetchableFluentQueryByPredicate<>(this.predicate, this.mappingContext, this.metaData, this.resultType, this.findOperation,
-				this.countOperation, this.existsOperation, this.sort, this.limit, mergeProperties(properties));
+				this.countOperation, this.existsOperation, this.sort, this.limit, mergeProperties(extractAllPaths(properties)));
 	}
 
 	@Override

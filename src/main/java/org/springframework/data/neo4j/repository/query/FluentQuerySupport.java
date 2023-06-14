@@ -15,6 +15,7 @@
  */
 package org.springframework.data.neo4j.repository.query;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -97,12 +98,12 @@ abstract class FluentQuerySupport<R> {
 			Collections.reverse(rawResult);
 		}
 
-		IntFunction<? extends ScrollPosition> ding = null;
+		IntFunction<? extends ScrollPosition> positionFunction = null;
 
 		if (scrollPosition instanceof OffsetScrollPosition) {
-			ding = OffsetScrollPosition.positionFunction(skip);
+			positionFunction = OffsetScrollPosition.positionFunction(skip);
 		} else {
-			ding = v -> {
+			positionFunction = v -> {
 				var accessor = entity.getPropertyAccessor(rawResult.get(v));
 				var keys = new LinkedHashMap<String, Object>();
 				sort.forEach(o -> {
@@ -114,7 +115,22 @@ abstract class FluentQuerySupport<R> {
 				return ScrollPosition.forward(keys);
 			};
 		}
-		return Window.from(getSubList(rawResult, limit, scrollDirection), ding, hasMoreElements(rawResult, limit));
+		return Window.from(getSubList(rawResult, limit, scrollDirection), positionFunction, hasMoreElements(rawResult, limit));
+	}
+
+	final Collection<String> extractAllPaths(Collection<String> projectingProperties) {
+		if (projectingProperties.isEmpty()) {
+			return new HashSet<>();
+		}
+
+		Set<String> allPaths = new HashSet<>();
+		for (String property : projectingProperties) {
+			if (property.contains(".")) {
+				allPaths.addAll(Arrays.stream(property.split("\\.")).toList());
+			}
+			allPaths.add(property);
+		}
+		return allPaths;
 	}
 
 	private static boolean hasMoreElements(List<?> result, @Nullable Integer limit) {
