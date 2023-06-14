@@ -59,7 +59,7 @@ pipeline {
 					agent {
 						label 'data'
 					}
-					options { timeout(time: 30, unit: 'MINUTES') }
+					options { timeout(time: 60, unit: 'MINUTES') }
 					environment {
 						ARTIFACTORY = credentials("${p['artifactory.credentials']}")
 						TESTCONTAINERS_IMAGE_SUBSTITUTOR = 'org.springframework.data.neo4j.support.ProxyImageNameSubstitutor'
