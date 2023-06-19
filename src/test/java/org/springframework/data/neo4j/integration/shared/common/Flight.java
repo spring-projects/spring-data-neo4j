@@ -36,6 +36,9 @@ public class Flight {
 	@Relationship(type = "ARRIVES")
 	private final Airport arrival;
 
+	@Relationship("NEXT_FLIGHT")
+	private Flight nextFlight;
+
 	public Flight(String name, Airport departure, Airport arrival) {
 		this.name = name;
 		this.departure = departure;
