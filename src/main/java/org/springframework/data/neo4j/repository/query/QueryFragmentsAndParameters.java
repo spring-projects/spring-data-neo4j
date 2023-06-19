@@ -338,6 +338,7 @@ public final class QueryFragmentsAndParameters {
 		} else {
 			queryFragments.setReturnExpressions(
 					cypherGenerator.createReturnStatementForMatch(entityMetaData, includeField));
+			queryFragments.setProjectingPropertyFilter(includeField);
 		}
 
 		if (pageable != null) {

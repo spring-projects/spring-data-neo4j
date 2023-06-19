@@ -21,6 +21,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Predicate;
 
 import org.apiguardian.api.API;
 import org.neo4j.cypherdsl.core.Condition;
@@ -61,6 +62,7 @@ public final class QueryFragments {
 	 * This flag becomes {@literal true} for backward scrolling keyset pagination. Any {@code AbstractNeo4jQuery} will in turn reverse the result list.
 	 */
 	private boolean requiresReverseSort = false;
+	private Predicate<PropertyFilter.RelaxedPropertyPath> projectingPropertyFilter;
 
 	public void addMatchOn(PatternElement match) {
 		this.matchOn.add(match);
@@ -95,8 +97,13 @@ public final class QueryFragments {
 		this.scalarValueReturn = isScalarValue;
 	}
 
+	public void setProjectingPropertyFilter(Predicate<PropertyFilter.RelaxedPropertyPath> projectingPropertyFilter) {
+		this.projectingPropertyFilter = projectingPropertyFilter;
+	}
+
 	public boolean includeField(PropertyFilter.RelaxedPropertyPath fieldName) {
-		return this.returnTuple == null || this.returnTuple.include(fieldName);
+		return (projectingPropertyFilter == null || projectingPropertyFilter.test(fieldName))
+				&& (this.returnTuple == null || this.returnTuple.include(fieldName));
 	}
 
 	public void setOrderBy(Collection<SortItem> orderBy) {
