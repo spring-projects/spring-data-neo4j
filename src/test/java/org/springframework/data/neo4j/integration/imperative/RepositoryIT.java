@@ -4439,6 +4439,16 @@ class RepositoryIT {
 
 			assertThat(repository.findByHobbiesHobbyName("Bowling").getName()).isEqualTo("Freddie");
 		}
+
+		@Test
+		void findByCustomQueryOnlyWithPropertyReturn(
+				@Autowired PersonWithRelationshipWithPropertiesRepository repository) {
+			doWithSession(session ->
+					session.run(
+							"CREATE (:PersonWithRelationshipWithProperties{name:'Freddie'})-[:LIKES{since: 2020, active: true}]->(:Hobby{name: 'Bowling'})").consume());
+
+			assertThat(repository.justTheNames().getName()).isEqualTo("Freddie");
+		}
 	}
 
 	@Test // GH-2706
@@ -4526,6 +4536,9 @@ class RepositoryIT {
 		PersonWithRelationshipWithProperties findByHobbiesSinceAndHobbiesActive(int since1, boolean active);
 
 		PersonWithRelationshipWithProperties findByHobbiesHobbyName(String hobbyName);
+
+		@Query("MATCH (p:PersonWithRelationshipWithProperties) return p {.name}")
+		PersonWithRelationshipWithProperties justTheNames();
 	}
 
 	interface PetRepository extends Neo4jRepository<Pet, Long> {

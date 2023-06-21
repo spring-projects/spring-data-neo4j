@@ -1573,6 +1573,18 @@ class ReactiveRepositoryIT {
 		}
 
 		@Test
+		void findByCustomQueryOnlyWithPropertyReturn(
+				@Autowired ReactivePersonWithRelationshipWithPropertiesRepository repository) {
+			doWithSession(session ->
+					session.run(
+						"CREATE (:PersonWithRelationshipWithProperties{name:'Freddie'})-[:LIKES{since: 2020, active: true}]->(:Hobby{name: 'Bowling'})").consume()
+			);
+
+			StepVerifier.create(repository.justTheNames())
+					.assertNext(person -> assertThat(person.getName()).isEqualTo("Freddie")).verifyComplete();
+		}
+
+		@Test
 		void findByPropertyOnRelationshipWithPropertiesAnd(
 				@Autowired ReactivePersonWithRelationshipWithPropertiesRepository repository) {
 			doWithSession(session ->
@@ -2744,6 +2756,9 @@ class ReactiveRepositoryIT {
 		Mono<PersonWithRelationshipWithProperties> findByHobbiesSinceOrHobbiesActive(int since1, boolean active);
 
 		Mono<PersonWithRelationshipWithProperties> findByHobbiesSinceAndHobbiesActive(int since1, boolean active);
+
+		@Query("MATCH (p:PersonWithRelationshipWithProperties) return p {.name}")
+		Mono<PersonWithRelationshipWithProperties> justTheNames();
 	}
 
 	interface ReactiveHobbyWithRelationshipWithPropertiesRepository
