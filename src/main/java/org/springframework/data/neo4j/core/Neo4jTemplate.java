@@ -409,7 +409,12 @@ public final class Neo4jTemplate implements
 			throw new IllegalStateException("Could not retrieve an internal id while saving");
 		}
 
-		String elementId = newOrUpdatedNode.map(IdentitySupport::getElementId).get();
+		Object elementId = newOrUpdatedNode.map(node -> {
+			if (!entityMetaData.isUsingDeprecatedInternalId() && entityMetaData.isUsingInternalIds()) {
+				return IdentitySupport.getElementId(node);
+			}
+			return node.id();
+		}).get();
 
 		PersistentPropertyAccessor<T> propertyAccessor = entityMetaData.getPropertyAccessor(entityToBeSaved);
 		TemplateSupport.setGeneratedIdIfNecessary(entityMetaData, propertyAccessor, elementId, newOrUpdatedNode);
@@ -807,14 +812,14 @@ public final class Neo4jTemplate implements
 						? stateMachine.getProcessedAs(relatedObjectBeforeCallbacksApplied)
 						: eventSupport.maybeCallBeforeBind(relatedObjectBeforeCallbacksApplied);
 
-				String relatedInternalId;
+				Object relatedInternalId;
 				Entity savedEntity = null;
 				// No need to save values if processed
 				if (stateMachine.hasProcessedValue(relatedValueToStore)) {
 					relatedInternalId = stateMachine.getObjectId(relatedValueToStore);
 				} else {
 					savedEntity = saveRelatedNode(newRelatedObject, targetEntity, includeProperty, currentPropertyPath);
-					relatedInternalId = TemplateSupport.rendererCanUseElementIdIfPresent(renderer) ? savedEntity.elementId() : Long.toString(savedEntity.id());
+					relatedInternalId = TemplateSupport.rendererCanUseElementIdIfPresent(renderer, targetEntity) ? savedEntity.elementId() : savedEntity.id();
 					stateMachine.markEntityAsProcessed(relatedValueToStore, relatedInternalId);
 					if (relatedValueToStore instanceof MappingSupport.RelationshipPropertiesWithEntityHolder) {
 						Object entity = ((MappingSupport.RelationshipPropertiesWithEntityHolder) relatedValueToStore).getRelatedEntity();
