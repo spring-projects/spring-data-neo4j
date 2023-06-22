@@ -204,28 +204,26 @@ public final class TemplateSupport {
 
 		Statement toStatement(NodeDescription<?> nodeDescription) {
 
-			String rootNodeIds = "rootNodeIds";
-			String relationshipIds = "relationshipIds";
-			String relatedNodeIds = "relatedNodeIds";
-			Node rootNodes = Cypher.anyNode(rootNodeIds);
-			Node relatedNodes = Cypher.anyNode(relatedNodeIds);
-			Relationship relationships = Cypher.anyNode().relationshipBetween(Cypher.anyNode()).named(relationshipIds);
+			String primaryLabel = nodeDescription.getPrimaryLabel();
+			Node rootNodes = Cypher.node(primaryLabel).named(ROOT_NODE_IDS);
+			Node relatedNodes = Cypher.anyNode(RELATED_NODE_IDS);
+			Relationship relationships = Cypher.anyNode().relationshipBetween(Cypher.anyNode()).named(RELATIONSHIP_IDS);
 			return Cypher.match(rootNodes)
-					.where(Functions.elementId(rootNodes).in(Cypher.parameter(rootNodeIds)))
+					.where(Functions.elementId(rootNodes).in(Cypher.parameter(ROOT_NODE_IDS)))
 					.with(Functions.collect(rootNodes).as(Constants.NAME_OF_ROOT_NODE))
 					.optionalMatch(relationships)
-					.where(Functions.elementId(relationships).in(Cypher.parameter(relationshipIds)))
+					.where(Functions.elementId(relationships).in(Cypher.parameter(RELATIONSHIP_IDS)))
 					.with(Constants.NAME_OF_ROOT_NODE, Functions.collectDistinct(relationships).as(Constants.NAME_OF_SYNTHESIZED_RELATIONS))
 					.optionalMatch(relatedNodes)
-					.where(Functions.elementId(relatedNodes).in(Cypher.parameter(relatedNodeIds)))
+					.where(Functions.elementId(relatedNodes).in(Cypher.parameter(RELATED_NODE_IDS)))
 					.with(
 							Constants.NAME_OF_ROOT_NODE,
 							Cypher.name(Constants.NAME_OF_SYNTHESIZED_RELATIONS).as(Constants.NAME_OF_SYNTHESIZED_RELATIONS),
 							Functions.collectDistinct(relatedNodes).as(Constants.NAME_OF_SYNTHESIZED_RELATED_NODES)
 					)
-					.unwind(Constants.NAME_OF_ROOT_NODE).as(rootNodeIds)
+					.unwind(Constants.NAME_OF_ROOT_NODE).as(ROOT_NODE_IDS)
 					.with(
-							Cypher.name(rootNodeIds).as(Constants.NAME_OF_TYPED_ROOT_NODE.apply(nodeDescription).getValue()),
+							Cypher.name(ROOT_NODE_IDS).as(Constants.NAME_OF_TYPED_ROOT_NODE.apply(nodeDescription).getValue()),
 							Cypher.name(Constants.NAME_OF_SYNTHESIZED_RELATIONS),
 							Cypher.name(Constants.NAME_OF_SYNTHESIZED_RELATED_NODES))
 					.orderBy(queryFragments.getOrderBy())
@@ -353,7 +351,7 @@ public final class TemplateSupport {
 	static <T> void setGeneratedIdIfNecessary(
 			Neo4jPersistentEntity<?> entityMetaData,
 			PersistentPropertyAccessor<T> propertyAccessor,
-			String elementId,
+			Object elementId,
 			Optional<Entity> databaseEntity
 	) {
 		if (!entityMetaData.isUsingInternalIds()) {
@@ -381,11 +379,11 @@ public final class TemplateSupport {
 	 * @param <T> The type of the entity
 	 * @return The actual related internal id being used.
 	 */
-	static <T> String retrieveOrSetRelatedId(
+	static <T> Object retrieveOrSetRelatedId(
 			Neo4jPersistentEntity<?> entityMetadata,
 			PersistentPropertyAccessor<T> propertyAccessor,
 			Optional<Entity> databaseEntity,
-			@Nullable String relatedInternalId
+			@Nullable Object relatedInternalId
 	) {
 		if (!entityMetadata.isUsingInternalIds()) {
 			return Objects.requireNonNull(relatedInternalId);
@@ -403,7 +401,7 @@ public final class TemplateSupport {
 			}
 		} else {
 			if (relatedInternalId == null && current != null) {
-				relatedInternalId = (String) current;
+				relatedInternalId = current;
 			} else if (current == null) {
 				propertyAccessor.setProperty(requiredIdProperty, relatedInternalId);
 			}
@@ -415,8 +413,8 @@ public final class TemplateSupport {
 	 * Checks if the renderer is configured in such a way that it will use element id or apply toString(id(n)) workaround.
 	 * @return {@literal true} if renderer will use elementId
 	 */
-	static boolean rendererCanUseElementIdIfPresent(Renderer renderer) {
-		return renderer.render(Cypher.returning(Functions.elementId(Cypher.anyNode("n"))).build())
+	static boolean rendererCanUseElementIdIfPresent(Renderer renderer, Neo4jPersistentEntity<?> targetEntity) {
+		return !targetEntity.isUsingDeprecatedInternalId() && targetEntity.isUsingInternalIds() && renderer.render(Cypher.returning(Functions.elementId(Cypher.anyNode("n"))).build())
 				.equals("RETURN elementId(n)");
 	}
 

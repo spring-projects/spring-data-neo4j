@@ -447,7 +447,9 @@ public final class ReactiveNeo4jTemplate implements
 
 					PersistentPropertyAccessor<T> propertyAccessor = entityMetaData.getPropertyAccessor(entityToBeSaved);
 					return idMono.doOnNext(newOrUpdatedNode -> {
-						var elementId = IdentitySupport.getElementId(newOrUpdatedNode);
+						var elementId = !entityMetaData.isUsingDeprecatedInternalId() && entityMetaData.isUsingInternalIds()
+										? IdentitySupport.getElementId(newOrUpdatedNode)
+										: newOrUpdatedNode.id();
 						TemplateSupport.setGeneratedIdIfNecessary(entityMetaData, propertyAccessor, elementId, Optional.of(newOrUpdatedNode));
 						TemplateSupport.updateVersionPropertyIfPossible(entityMetaData, propertyAccessor, newOrUpdatedNode);
 						finalStateMachine.markEntityAsProcessed(instance, elementId);
@@ -942,17 +944,17 @@ public final class ReactiveNeo4jTemplate implements
 						.flatMap(newRelatedObject -> {
 							Neo4jPersistentEntity<?> targetEntity = neo4jMappingContext.getRequiredPersistentEntity(relatedObjectBeforeCallbacksApplied.getClass());
 
-							Mono<Tuple2<AtomicReference<String>, AtomicReference<Entity>>> queryOrSave;
+							Mono<Tuple2<AtomicReference<Object>, AtomicReference<Entity>>> queryOrSave;
 							if (stateMachine.hasProcessedValue(relatedValueToStore)) {
-								AtomicReference<String> relatedInternalId = new AtomicReference<>();
-								String possibleValue = stateMachine.getObjectId(relatedValueToStore);
+								AtomicReference<Object> relatedInternalId = new AtomicReference<>();
+								Object possibleValue = stateMachine.getObjectId(relatedValueToStore);
 								if (possibleValue != null) {
 									relatedInternalId.set(possibleValue);
 								}
 								queryOrSave = Mono.just(Tuples.of(relatedInternalId, new AtomicReference<>()));
 							} else {
 								queryOrSave = saveRelatedNode(newRelatedObject, targetEntity, includeProperty, currentPropertyPath)
-										.map(entity -> Tuples.of(new AtomicReference<>(TemplateSupport.rendererCanUseElementIdIfPresent(renderer) ? entity.elementId() : Long.toString(entity.id())), new AtomicReference<>(entity)))
+										.map(entity -> Tuples.of(new AtomicReference<>((Object) (TemplateSupport.rendererCanUseElementIdIfPresent(renderer, targetEntity) ? entity.elementId() : entity.id())), new AtomicReference<>(entity)))
 										.doOnNext(t -> {
 											var relatedInternalId = t.getT1().get();
 											stateMachine.markEntityAsProcessed(relatedValueToStore, relatedInternalId);
@@ -963,7 +965,7 @@ public final class ReactiveNeo4jTemplate implements
 										});
 							}
 							return queryOrSave.flatMap(idAndEntity -> {
-									String relatedInternalId = idAndEntity.getT1().get();
+									Object relatedInternalId = idAndEntity.getT1().get();
 									Entity savedEntity = idAndEntity.getT2().get();
 									Neo4jPersistentProperty requiredIdProperty = targetEntity.getRequiredIdProperty();
 									PersistentPropertyAccessor<?> targetPropertyAccessor = targetEntity.getPropertyAccessor(newRelatedObject);
