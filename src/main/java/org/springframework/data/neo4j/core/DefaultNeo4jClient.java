@@ -16,13 +16,9 @@
 package org.springframework.data.neo4j.core;
 
 import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -45,6 +41,7 @@ import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.support.PersistenceExceptionTranslator;
 import org.springframework.data.neo4j.core.convert.Neo4jConversions;
+import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
 import org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager;
 import org.springframework.data.neo4j.core.transaction.Neo4jTransactionUtils;
 import org.springframework.lang.Nullable;
@@ -67,9 +64,8 @@ final class DefaultNeo4jClient implements Neo4jClient {
 	private final ConversionService conversionService;
 	private final Neo4jPersistenceExceptionTranslator persistenceExceptionTranslator = new Neo4jPersistenceExceptionTranslator();
 
-	// Basically a local bookmark manager
-	private final Set<Bookmark> bookmarks = new HashSet<>();
-	private final ReentrantReadWriteLock bookmarksLock = new ReentrantReadWriteLock();
+	// Local bookmark manager when using outside managed transactions
+	private final Neo4jBookmarkManager bookmarkManager = Neo4jBookmarkManager.create();
 
 	DefaultNeo4jClient(Builder builder) {
 
@@ -85,29 +81,13 @@ final class DefaultNeo4jClient implements Neo4jClient {
 	public QueryRunner getQueryRunner(DatabaseSelection databaseSelection, UserSelection impersonatedUser) {
 
 		QueryRunner queryRunner = Neo4jTransactionManager.retrieveTransaction(driver, databaseSelection, impersonatedUser);
-		Collection<Bookmark> lastBookmarks = Collections.emptySet();
+		Collection<Bookmark> lastBookmarks = bookmarkManager.getBookmarks();
+
 		if (queryRunner == null) {
-			ReentrantReadWriteLock.ReadLock lock = bookmarksLock.readLock();
-			try {
-				lock.lock();
-				lastBookmarks = new HashSet<>(bookmarks);
-				queryRunner = driver.session(Neo4jTransactionUtils.sessionConfig(false, lastBookmarks, databaseSelection, impersonatedUser));
-			} finally {
-				lock.unlock();
-			}
+			queryRunner = driver.session(Neo4jTransactionUtils.sessionConfig(false, lastBookmarks, databaseSelection, impersonatedUser));
 		}
 
-		return new DelegatingQueryRunner(queryRunner, lastBookmarks, (usedBookmarks, newBookmarks) -> {
-
-			ReentrantReadWriteLock.WriteLock lock = bookmarksLock.writeLock();
-			try {
-				lock.lock();
-				bookmarks.removeAll(usedBookmarks);
-				bookmarks.addAll(newBookmarks);
-			} finally {
-				lock.unlock();
-			}
-		});
+		return new DelegatingQueryRunner(queryRunner, lastBookmarks, bookmarkManager::updateBookmarks);
 	}
 
 	private static class DelegatingQueryRunner implements QueryRunner {
