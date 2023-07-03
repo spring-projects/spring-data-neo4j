@@ -48,7 +48,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -71,8 +70,7 @@ final class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 	private final Neo4jPersistenceExceptionTranslator persistenceExceptionTranslator = new Neo4jPersistenceExceptionTranslator();
 
 	// Basically a local bookmark manager
-	private final Set<Bookmark> bookmarks = new HashSet<>();
-	private final ReentrantReadWriteLock bookmarksLock = new ReentrantReadWriteLock();
+	private final Set<Bookmark> bookmarks = Collections.synchronizedSet(new HashSet<>());
 
 	DefaultReactiveNeo4jClient(Builder builder) {
 
@@ -93,24 +91,12 @@ final class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 								.map(ReactiveQueryRunner.class::cast)
 								.zipWith(Mono.just(Collections.<Bookmark>emptySet()))
 								.switchIfEmpty(Mono.fromSupplier(() -> {
-									ReentrantReadWriteLock.ReadLock lock = bookmarksLock.readLock();
-									try {
-										lock.lock();
-										Set<Bookmark> lastBookmarks = new HashSet<>(bookmarks);
-										return Tuples.of(driver.session(ReactiveSession.class, Neo4jTransactionUtils.sessionConfig(false, lastBookmarks, targetDatabaseAndUser.getT1(), targetDatabaseAndUser.getT2())), lastBookmarks);
-									} finally {
-										lock.unlock();
-									}
+									Set<Bookmark> lastBookmarks = new HashSet<>(bookmarks);
+									return Tuples.of(driver.session(ReactiveSession.class, Neo4jTransactionUtils.sessionConfig(false, lastBookmarks, targetDatabaseAndUser.getT1(), targetDatabaseAndUser.getT2())), lastBookmarks);
 								})))
 				.map(t -> new DelegatingQueryRunner(t.getT1(), t.getT2(), (usedBookmarks, newBookmarks) -> {
-					ReentrantReadWriteLock.WriteLock lock = bookmarksLock.writeLock();
-					try {
-						lock.lock();
-						bookmarks.removeAll(usedBookmarks);
-						bookmarks.addAll(newBookmarks);
-					} finally {
-						lock.unlock();
-					}
+					bookmarks.removeAll(usedBookmarks);
+					bookmarks.addAll(newBookmarks);
 				}));
 	}
 
