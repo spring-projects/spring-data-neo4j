@@ -179,7 +179,7 @@ public final class ReactiveNeo4jTransactionManager extends AbstractReactiveTrans
 				ReactiveUserSelectionProvider.getDefaultSelectionProvider() :
 				builder.userSelectionProvider;
 		this.bookmarkManager =
-				builder.bookmarkManager == null ? Neo4jBookmarkManager.create() : builder.bookmarkManager;
+				builder.bookmarkManager == null ? Neo4jBookmarkManager.createReactive() : builder.bookmarkManager;
 	}
 
 	@Override

@@ -31,6 +31,7 @@ import org.springframework.core.convert.converter.ConverterRegistry;
 import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.neo4j.core.convert.Neo4jConversions;
+import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
 import org.springframework.data.neo4j.core.transaction.Neo4jTransactionUtils;
 import org.springframework.data.neo4j.core.transaction.ReactiveNeo4jTransactionManager;
 import org.springframework.lang.Nullable;
@@ -43,12 +44,8 @@ import reactor.util.function.Tuple2;
 import reactor.util.function.Tuples;
 
 import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -70,9 +67,8 @@ final class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 	private final ConversionService conversionService;
 	private final Neo4jPersistenceExceptionTranslator persistenceExceptionTranslator = new Neo4jPersistenceExceptionTranslator();
 
-	// Basically a local bookmark manager
-	private final Set<Bookmark> bookmarks = new HashSet<>();
-	private final ReentrantReadWriteLock bookmarksLock = new ReentrantReadWriteLock();
+	// Local bookmark manager when using outside managed transactions
+	private final Neo4jBookmarkManager bookmarkManager;
 
 	DefaultReactiveNeo4jClient(Builder builder) {
 
@@ -82,6 +78,7 @@ final class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 
 		this.conversionService = new DefaultConversionService();
 		Optional.ofNullable(builder.neo4jConversions).orElseGet(Neo4jConversions::new).registerConvertersIn((ConverterRegistry) conversionService);
+		this.bookmarkManager = builder.bookmarkManager != null ? builder.bookmarkManager : Neo4jBookmarkManager.createReactive();
 	}
 
 	@Override
@@ -91,27 +88,12 @@ final class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 				.flatMap(targetDatabaseAndUser ->
 						ReactiveNeo4jTransactionManager.retrieveReactiveTransaction(driver, targetDatabaseAndUser.getT1(), targetDatabaseAndUser.getT2())
 								.map(ReactiveQueryRunner.class::cast)
-								.zipWith(Mono.just(Collections.<Bookmark>emptySet()))
+								.zipWith(Mono.just(bookmarkManager.getBookmarks()))
 								.switchIfEmpty(Mono.fromSupplier(() -> {
-									ReentrantReadWriteLock.ReadLock lock = bookmarksLock.readLock();
-									try {
-										lock.lock();
-										Set<Bookmark> lastBookmarks = new HashSet<>(bookmarks);
-										return Tuples.of(driver.session(ReactiveSession.class, Neo4jTransactionUtils.sessionConfig(false, lastBookmarks, targetDatabaseAndUser.getT1(), targetDatabaseAndUser.getT2())), lastBookmarks);
-									} finally {
-										lock.unlock();
-									}
+									Collection<Bookmark> lastBookmarks = bookmarkManager.getBookmarks();
+									return Tuples.of(driver.session(ReactiveSession.class, Neo4jTransactionUtils.sessionConfig(false, lastBookmarks, targetDatabaseAndUser.getT1(), targetDatabaseAndUser.getT2())), lastBookmarks);
 								})))
-				.map(t -> new DelegatingQueryRunner(t.getT1(), t.getT2(), (usedBookmarks, newBookmarks) -> {
-					ReentrantReadWriteLock.WriteLock lock = bookmarksLock.writeLock();
-					try {
-						lock.lock();
-						bookmarks.removeAll(usedBookmarks);
-						bookmarks.addAll(newBookmarks);
-					} finally {
-						lock.unlock();
-					}
-				}));
+				.map(t -> new DelegatingQueryRunner(t.getT1(), t.getT2(), bookmarkManager::updateBookmarks));
 	}
 
 	private static class DelegatingQueryRunner implements ReactiveQueryRunner {
