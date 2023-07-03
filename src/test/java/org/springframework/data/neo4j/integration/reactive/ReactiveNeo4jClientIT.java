@@ -28,6 +28,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.neo4j.cypherdsl.core.Cypher;
@@ -41,7 +42,6 @@ import org.neo4j.driver.Session;
 import org.neo4j.driver.SimpleQueryRunner;
 import org.neo4j.driver.Transaction;
 import org.neo4j.driver.async.AsyncQueryRunner;
-import org.neo4j.driver.reactive.RxSession;
 import org.neo4j.driver.reactivestreams.ReactiveQueryRunner;
 import org.neo4j.driver.reactivestreams.ReactiveResult;
 import org.neo4j.driver.reactivestreams.ReactiveSession;
@@ -77,51 +77,49 @@ class ReactiveNeo4jClientIT {
 
 	protected static Neo4jConnectionSupport neo4jConnectionSupport;
 
+	@BeforeAll
+	static void setupBlockHound() {
+		BlockHound.install();
+	}
+
 	@BeforeEach
 	void setupData(@Autowired BookmarkCapture bookmarkCapture, @Autowired Driver driver) {
-BlockHound.install();
 		try (
 				Session session = driver.session(bookmarkCapture.createSessionConfig());
 				Transaction transaction = session.beginTransaction()
 		) {
-//			transaction.run("MATCH (n) detach delete n");
+			transaction.run("MATCH (n) detach delete n");
 			transaction.commit();
 		}
 	}
 
-	@Test
-	void testBlock() {
-		Mono.delay(Duration.ofMillis(1))
-				.doOnNext(it -> {
-					try {
-						Thread.sleep(10);
-					}
-					catch (InterruptedException e) {
-						throw new RuntimeException(e);
-					}
-				})
-				.block();
-	}
+	@Test // GH-2755
+	public void testQueryExecutionNeo4jClient(@Autowired ReactiveNeo4jClient neo4jClient, @Autowired Driver driver, @Autowired BookmarkCapture bookmarkCapture) {
 
-	@Test
-	public void testQueryExecutionclient(@Autowired ReactiveNeo4jClient neo4jClient) throws InterruptedException {
+		try (var session = driver.session(bookmarkCapture.createSessionConfig())) {
+			session.run("UNWIND range(1,10000) as count with count CREATE (u:VersionedExternalIdListBased) SET u.numberThing=count").consume();
+			bookmarkCapture.seedWith(session.lastBookmarks());
+		}
+
 		String cypher = "MATCH (n) RETURN elementId(n)";
 		String cypher2 = "MATCH (n) WHERE elementId(n) = $elementId RETURN elementId(n)";
 
 		StepVerifier.create(neo4jClient.query(cypher).fetchAs(String.class).all()
 				.flatMap(elementId ->
-				{
-					Mono<String> elementIdMono = neo4jClient.query(cypher2).bindAll(Map.of("elementId", elementId)).fetchAs(String.class).one();
-					return elementIdMono.doOnNext(returnedElementId -> System.out.println("elementId is " + returnedElementId));
-				}))
-				.expectNextCount(100)
+						neo4jClient.query(cypher2)
+								.bindAll(Map.of("elementId", elementId))
+								.fetchAs(String.class).one()))
+				.expectNextCount(10000)
 				.verifyComplete();
-
-
 	}
 
-	@Test
-	public void testQueryExecutiondriver(@Autowired Driver driver) throws InterruptedException {
+	@Test // GH-2755
+	public void testQueryExecutionPureDriver(@Autowired Driver driver, @Autowired BookmarkCapture bookmarkCapture) {
+
+		try (var session = driver.session(bookmarkCapture.createSessionConfig())) {
+			session.run("UNWIND range(1,10000) as count with count CREATE (u:VersionedExternalIdListBased) SET u.numberThing=count").consume();
+			bookmarkCapture.seedWith(session.lastBookmarks());
+		}
 
 		String cypher = "MATCH (n) RETURN elementId(n) as a";
 		String cypher2 = "MATCH (n) WHERE elementId(n) = $elementId RETURN elementId(n) as b";
@@ -131,21 +129,19 @@ BlockHound.install();
 								.just(driver.session(ReactiveSession.class)),
 				session ->
 						Flux.from(session.run(cypher))
-								.flatMap(a -> a.records())
+								.flatMap(ReactiveResult::records)
 								.map(a -> a.get(0).asString())
-						.flatMap(elementId -> {
-							return Flux.usingWhen(Mono.just(driver.session(ReactiveSession.class)),
-									innerSession -> {
-										return Flux.from(innerSession.run(cypher2, Map.of("elementId", elementId)))
-												.flatMap(result -> result.records())
-												.map(result -> result.get(0).asString())
-												.doOnNext(returnedElementId -> System.out.println("elementId is " + returnedElementId));
-									},
-									innerSession -> Mono.fromDirect(innerSession.close())
-							);
-						}),
+						.flatMap(elementId ->
+								Flux.usingWhen(
+										Mono.just(driver.session(ReactiveSession.class)),
+										innerSession ->
+												Flux.from(innerSession.run(cypher2, Map.of("elementId", elementId)))
+														.flatMap(ReactiveResult::records)
+														.map(result -> result.get(0).asString()),
+										innerSession -> Mono.fromDirect(innerSession.close())
+								)),
 				session -> Mono.fromDirect(session.close())))
-				.expectNextCount(100)
+				.expectNextCount(10000)
 				.verifyComplete();
 	}
 
