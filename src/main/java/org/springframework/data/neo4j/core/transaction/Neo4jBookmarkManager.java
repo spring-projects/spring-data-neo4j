@@ -42,6 +42,13 @@ public sealed interface Neo4jBookmarkManager permits AbstractBookmarkManager, No
 	}
 
 	/**
+	 * @return default reactive version of bookmark manager
+	 */
+	static Neo4jBookmarkManager createReactive() {
+		return new ReactiveDefaultBookmarkManager(null);
+	}
+
+	/**
 	 * Use this factory method to add supplier of initial "seeding" bookmarks to the transaction managers
 	 * <p>
 	 * While this class will make sure that the supplier will be accessed in a thread-safe manner,
@@ -53,6 +60,20 @@ public sealed interface Neo4jBookmarkManager permits AbstractBookmarkManager, No
 	 */
 	static Neo4jBookmarkManager create(@Nullable Supplier<Set<Bookmark>> bookmarksSupplier) {
 		return new DefaultBookmarkManager(bookmarksSupplier);
+	}
+
+	/**
+	 * Use this factory method to add supplier of initial "seeding" bookmarks to the transaction managers
+	 * <p>
+	 * While this class will make sure that the supplier will be accessed in a thread-safe manner,
+	 * it is the caller's duty to provide a thread safe supplier (not changing the seed during a call, etc.).
+	 *
+	 * @param bookmarksSupplier A supplier for seeding bookmarks, can be null. The supplier is free to provide different
+	 *                          bookmarks on each call.
+	 * @return A reactive bookmark manager
+	 */
+	static Neo4jBookmarkManager createReactive(@Nullable Supplier<Set<Bookmark>> bookmarksSupplier) {
+		return new ReactiveDefaultBookmarkManager(bookmarksSupplier);
 	}
 
 	/**

@@ -2882,7 +2882,7 @@ class ReactiveRepositoryIT {
 			return ReactiveNeo4jTransactionManager.with(driver)
 					.withDatabaseSelectionProvider(databaseSelectionProvider)
 					.withUserSelectionProvider(getUserSelectionProvider())
-					.withBookmarkManager(Neo4jBookmarkManager.create(bookmarkCapture()))
+					.withBookmarkManager(Neo4jBookmarkManager.createReactive(bookmarkCapture()))
 					.build();
 		}
 

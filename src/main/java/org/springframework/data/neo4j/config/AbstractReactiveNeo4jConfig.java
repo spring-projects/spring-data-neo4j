@@ -26,6 +26,7 @@ import org.springframework.data.neo4j.core.ReactiveNeo4jClient;
 import org.springframework.data.neo4j.core.ReactiveNeo4jTemplate;
 import org.springframework.data.neo4j.core.ReactiveUserSelectionProvider;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
+import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
 import org.springframework.data.neo4j.core.transaction.ReactiveNeo4jTransactionManager;
 import org.springframework.data.neo4j.repository.config.ReactiveNeo4jRepositoryConfigurationExtension;
 import org.springframework.lang.Nullable;
@@ -47,6 +48,9 @@ public abstract class AbstractReactiveNeo4jConfig extends Neo4jConfigurationSupp
 	@Autowired
 	private ObjectProvider<ReactiveUserSelectionProvider> userSelectionProviders;
 
+	@Autowired
+	private Neo4jBookmarkManager bookmarkManager;
+
 	/**
 	 * The driver to be used for interacting with Neo4j.
 	 *
@@ -66,6 +70,7 @@ public abstract class AbstractReactiveNeo4jConfig extends Neo4jConfigurationSupp
 		return ReactiveNeo4jClient.with(driver)
 				.withDatabaseSelectionProvider(databaseSelectionProvider)
 				.withUserSelectionProvider(getUserSelectionProvider())
+				.withNeo4jBookmarkManager(bookmarkManager)
 				.build();
 	}
 
@@ -94,7 +99,13 @@ public abstract class AbstractReactiveNeo4jConfig extends Neo4jConfigurationSupp
 		return ReactiveNeo4jTransactionManager.with(driver)
 				.withDatabaseSelectionProvider(databaseSelectionProvider)
 				.withUserSelectionProvider(getUserSelectionProvider())
+				.withBookmarkManager(bookmarkManager)
 				.build();
+	}
+
+	@Bean
+	public Neo4jBookmarkManager bookmarkManager() {
+		return Neo4jBookmarkManager.createReactive();
 	}
 
 	/**

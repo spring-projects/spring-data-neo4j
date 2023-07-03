@@ -27,7 +27,9 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.neo4j.cypherdsl.core.Cypher;
 import org.neo4j.cypherdsl.core.Node;
@@ -42,6 +44,7 @@ import org.neo4j.driver.Transaction;
 import org.neo4j.driver.async.AsyncQueryRunner;
 import org.neo4j.driver.reactivestreams.ReactiveQueryRunner;
 import org.neo4j.driver.reactivestreams.ReactiveResult;
+import org.neo4j.driver.reactivestreams.ReactiveSession;
 import org.neo4j.driver.summary.ResultSummary;
 import org.reactivestreams.Publisher;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,6 +64,7 @@ import org.springframework.transaction.ReactiveTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.reactive.TransactionalOperator;
 
+import reactor.blockhound.BlockHound;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -68,14 +72,19 @@ import reactor.test.StepVerifier;
 /**
  * @author Michael J. Simons
  */
+@Disabled // we cannot use BlockHound right now in the Maven build
 @Neo4jIntegrationTest
 class ReactiveNeo4jClientIT {
 
 	protected static Neo4jConnectionSupport neo4jConnectionSupport;
 
+	@BeforeAll
+	static void setupBlockHound() {
+		BlockHound.install();
+	}
+
 	@BeforeEach
 	void setupData(@Autowired BookmarkCapture bookmarkCapture, @Autowired Driver driver) {
-
 		try (
 				Session session = driver.session(bookmarkCapture.createSessionConfig());
 				Transaction transaction = session.beginTransaction()
@@ -83,6 +92,58 @@ class ReactiveNeo4jClientIT {
 			transaction.run("MATCH (n) detach delete n");
 			transaction.commit();
 		}
+	}
+
+	@Test // GH-2755
+	public void testQueryExecutionNeo4jClient(@Autowired ReactiveNeo4jClient neo4jClient, @Autowired Driver driver, @Autowired BookmarkCapture bookmarkCapture) {
+
+		try (var session = driver.session(bookmarkCapture.createSessionConfig())) {
+			session.run("UNWIND range(1,10000) as count with count CREATE (u:VersionedExternalIdListBased) SET u.numberThing=count").consume();
+			bookmarkCapture.seedWith(session.lastBookmarks());
+		}
+
+		String cypher = "MATCH (n) RETURN elementId(n)";
+		String cypher2 = "MATCH (n) WHERE elementId(n) = $elementId RETURN elementId(n)";
+
+		StepVerifier.create(neo4jClient.query(cypher).fetchAs(String.class).all()
+				.flatMap(elementId ->
+						neo4jClient.query(cypher2)
+								.bindAll(Map.of("elementId", elementId))
+								.fetchAs(String.class).one()))
+				.expectNextCount(10000)
+				.verifyComplete();
+	}
+
+	@Test // GH-2755
+	public void testQueryExecutionPureDriver(@Autowired Driver driver, @Autowired BookmarkCapture bookmarkCapture) {
+
+		try (var session = driver.session(bookmarkCapture.createSessionConfig())) {
+			session.run("UNWIND range(1,10000) as count with count CREATE (u:VersionedExternalIdListBased) SET u.numberThing=count").consume();
+			bookmarkCapture.seedWith(session.lastBookmarks());
+		}
+
+		String cypher = "MATCH (n) RETURN elementId(n) as a";
+		String cypher2 = "MATCH (n) WHERE elementId(n) = $elementId RETURN elementId(n) as b";
+
+		StepVerifier.create(Flux.usingWhen(
+						Mono
+								.just(driver.session(ReactiveSession.class)),
+				session ->
+						Flux.from(session.run(cypher))
+								.flatMap(ReactiveResult::records)
+								.map(a -> a.get(0).asString())
+						.flatMap(elementId ->
+								Flux.usingWhen(
+										Mono.just(driver.session(ReactiveSession.class)),
+										innerSession ->
+												Flux.from(innerSession.run(cypher2, Map.of("elementId", elementId)))
+														.flatMap(ReactiveResult::records)
+														.map(result -> result.get(0).asString()),
+										innerSession -> Mono.fromDirect(innerSession.close())
+								)),
+				session -> Mono.fromDirect(session.close())))
+				.expectNextCount(10000)
+				.verifyComplete();
 	}
 
 	@Test // GH-2238
@@ -140,7 +201,7 @@ class ReactiveNeo4jClientIT {
 
 			BookmarkCapture bookmarkCapture = bookmarkCapture();
 			return new ReactiveNeo4jTransactionManager(driver, databaseSelectionProvider,
-					Neo4jBookmarkManager.create(bookmarkCapture));
+					Neo4jBookmarkManager.createReactive(bookmarkCapture));
 		}
 
 		@Bean
