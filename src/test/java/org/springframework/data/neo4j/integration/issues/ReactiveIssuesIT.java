@@ -447,7 +447,7 @@ class ReactiveIssuesIT extends TestBase {
 
 			BookmarkCapture bookmarkCapture = bookmarkCapture();
 			return new ReactiveNeo4jTransactionManager(driver, databaseSelectionProvider,
-					Neo4jBookmarkManager.create(bookmarkCapture));
+					Neo4jBookmarkManager.createReactive(bookmarkCapture));
 		}
 
 		@Override

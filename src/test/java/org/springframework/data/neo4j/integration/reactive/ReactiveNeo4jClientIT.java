@@ -17,6 +17,7 @@ package org.springframework.data.neo4j.integration.reactive;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.time.Duration;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -40,8 +41,10 @@ import org.neo4j.driver.Session;
 import org.neo4j.driver.SimpleQueryRunner;
 import org.neo4j.driver.Transaction;
 import org.neo4j.driver.async.AsyncQueryRunner;
+import org.neo4j.driver.reactive.RxSession;
 import org.neo4j.driver.reactivestreams.ReactiveQueryRunner;
 import org.neo4j.driver.reactivestreams.ReactiveResult;
+import org.neo4j.driver.reactivestreams.ReactiveSession;
 import org.neo4j.driver.summary.ResultSummary;
 import org.reactivestreams.Publisher;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,6 +64,7 @@ import org.springframework.transaction.ReactiveTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.reactive.TransactionalOperator;
 
+import reactor.blockhound.BlockHound;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -75,14 +79,74 @@ class ReactiveNeo4jClientIT {
 
 	@BeforeEach
 	void setupData(@Autowired BookmarkCapture bookmarkCapture, @Autowired Driver driver) {
-
+BlockHound.install();
 		try (
 				Session session = driver.session(bookmarkCapture.createSessionConfig());
 				Transaction transaction = session.beginTransaction()
 		) {
-			transaction.run("MATCH (n) detach delete n");
+//			transaction.run("MATCH (n) detach delete n");
 			transaction.commit();
 		}
+	}
+
+	@Test
+	void testBlock() {
+		Mono.delay(Duration.ofMillis(1))
+				.doOnNext(it -> {
+					try {
+						Thread.sleep(10);
+					}
+					catch (InterruptedException e) {
+						throw new RuntimeException(e);
+					}
+				})
+				.block();
+	}
+
+	@Test
+	public void testQueryExecutionclient(@Autowired ReactiveNeo4jClient neo4jClient) throws InterruptedException {
+		String cypher = "MATCH (n) RETURN elementId(n)";
+		String cypher2 = "MATCH (n) WHERE elementId(n) = $elementId RETURN elementId(n)";
+
+		StepVerifier.create(neo4jClient.query(cypher).fetchAs(String.class).all()
+				.flatMap(elementId ->
+				{
+					Mono<String> elementIdMono = neo4jClient.query(cypher2).bindAll(Map.of("elementId", elementId)).fetchAs(String.class).one();
+					return elementIdMono.doOnNext(returnedElementId -> System.out.println("elementId is " + returnedElementId));
+				}))
+				.expectNextCount(100)
+				.verifyComplete();
+
+
+	}
+
+	@Test
+	public void testQueryExecutiondriver(@Autowired Driver driver) throws InterruptedException {
+
+		String cypher = "MATCH (n) RETURN elementId(n) as a";
+		String cypher2 = "MATCH (n) WHERE elementId(n) = $elementId RETURN elementId(n) as b";
+
+		StepVerifier.create(Flux.usingWhen(
+						Mono
+								.just(driver.session(ReactiveSession.class)),
+				session ->
+						Flux.from(session.run(cypher))
+								.flatMap(a -> a.records())
+								.map(a -> a.get(0).asString())
+						.flatMap(elementId -> {
+							return Flux.usingWhen(Mono.just(driver.session(ReactiveSession.class)),
+									innerSession -> {
+										return Flux.from(innerSession.run(cypher2, Map.of("elementId", elementId)))
+												.flatMap(result -> result.records())
+												.map(result -> result.get(0).asString())
+												.doOnNext(returnedElementId -> System.out.println("elementId is " + returnedElementId));
+									},
+									innerSession -> Mono.fromDirect(innerSession.close())
+							);
+						}),
+				session -> Mono.fromDirect(session.close())))
+				.expectNextCount(100)
+				.verifyComplete();
 	}
 
 	@Test // GH-2238
@@ -140,7 +204,7 @@ class ReactiveNeo4jClientIT {
 
 			BookmarkCapture bookmarkCapture = bookmarkCapture();
 			return new ReactiveNeo4jTransactionManager(driver, databaseSelectionProvider,
-					Neo4jBookmarkManager.create(bookmarkCapture));
+					Neo4jBookmarkManager.createReactive(bookmarkCapture));
 		}
 
 		@Bean
