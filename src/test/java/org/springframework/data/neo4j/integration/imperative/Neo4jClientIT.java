@@ -111,14 +111,7 @@ class Neo4jClientIT {
 		@Bean
 		@Override
 		public Driver driver() {
-			Map<Integer, String> asdf = Map.of(1, "verysecret", 2, "password");
-			var count = new AtomicInteger(1);
-return GraphDatabase.driver("bolt://localhost:7687", AuthTokenManagers.expirationBased(() -> {
-	System.out.println("new call");
-	var token = AuthTokens.basic("neo4j", asdf.get(count.getAndIncrement()));
-	var now = OffsetDateTime.now().plusYears(1).atZoneSameInstant(ZoneOffset.UTC);
-	return token.expiringAt(now.toInstant().toEpochMilli());
-}));
+			return neo4jConnectionSupport.getDriver();
 		}
 
 		@Override // needed here because there is no implicit registration of entities upfront some methods under test
