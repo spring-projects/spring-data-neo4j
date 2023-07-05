@@ -31,6 +31,7 @@ import org.neo4j.driver.summary.ResultSummary;
 import org.neo4j.driver.types.TypeSystem;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.data.neo4j.core.convert.Neo4jConversions;
+import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
 import org.springframework.lang.Nullable;
 
 /**
@@ -79,6 +80,9 @@ public interface Neo4jClient {
 		@Nullable
 		Neo4jConversions neo4jConversions;
 
+		@Nullable
+		Neo4jBookmarkManager bookmarkManager;
+
 		private Builder(Driver driver) {
 			this.driver = driver;
 		}
@@ -118,6 +122,20 @@ public interface Neo4jClient {
 		 */
 		public Builder withNeo4jConversions(Neo4jConversions neo4jConversions) {
 			this.neo4jConversions = neo4jConversions;
+			return this;
+		}
+
+		/**
+		 * Configures the {@link Neo4jBookmarkManager} to use.
+		 * This should be the same instance as provided for the {@link org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager}
+		 * respectively the {@link org.springframework.data.neo4j.core.transaction.ReactiveNeo4jTransactionManager}.
+		 *
+		 * @param bookmarkManager Neo4jBookmarkManager instance that is shared with the transaction manager.
+		 * @return The builder
+		 * @since 7.1.2
+		 */
+		public Builder withNeo4jBookmarkManager(Neo4jBookmarkManager bookmarkManager) {
+			this.bookmarkManager = bookmarkManager;
 			return this;
 		}
 

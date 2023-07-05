@@ -68,7 +68,7 @@ final class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 	private final Neo4jPersistenceExceptionTranslator persistenceExceptionTranslator = new Neo4jPersistenceExceptionTranslator();
 
 	// Local bookmark manager when using outside managed transactions
-	private final Neo4jBookmarkManager bookmarkManager = Neo4jBookmarkManager.createReactive();
+	private final Neo4jBookmarkManager bookmarkManager;
 
 	DefaultReactiveNeo4jClient(Builder builder) {
 
@@ -78,6 +78,7 @@ final class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 
 		this.conversionService = new DefaultConversionService();
 		Optional.ofNullable(builder.neo4jConversions).orElseGet(Neo4jConversions::new).registerConvertersIn((ConverterRegistry) conversionService);
+		this.bookmarkManager = builder.bookmarkManager != null ? builder.bookmarkManager : Neo4jBookmarkManager.createReactive();
 	}
 
 	@Override

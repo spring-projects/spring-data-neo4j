@@ -65,13 +65,14 @@ final class DefaultNeo4jClient implements Neo4jClient {
 	private final Neo4jPersistenceExceptionTranslator persistenceExceptionTranslator = new Neo4jPersistenceExceptionTranslator();
 
 	// Local bookmark manager when using outside managed transactions
-	private final Neo4jBookmarkManager bookmarkManager = Neo4jBookmarkManager.create();
+	private final Neo4jBookmarkManager bookmarkManager;
 
 	DefaultNeo4jClient(Builder builder) {
 
 		this.driver = builder.driver;
 		this.databaseSelectionProvider = builder.databaseSelectionProvider;
 		this.userSelectionProvider = builder.userSelectionProvider;
+		this.bookmarkManager = builder.bookmarkManager != null ? builder.bookmarkManager : Neo4jBookmarkManager.create();
 
 		this.conversionService = new DefaultConversionService();
 		Optional.ofNullable(builder.neo4jConversions).orElseGet(Neo4jConversions::new).registerConvertersIn((ConverterRegistry) conversionService);
