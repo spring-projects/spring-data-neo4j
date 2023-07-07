@@ -28,7 +28,9 @@ import java.util.List;
 @Node
 public class SimpleEntityWithRelationshipA {
 
-	@Id @GeneratedValue private Long id;
+	@Id
+	@GeneratedValue
+	private Long id;
 
 	@Relationship("TO_B")
 	private List<SimpleEntityWithRelationshipB> bs;

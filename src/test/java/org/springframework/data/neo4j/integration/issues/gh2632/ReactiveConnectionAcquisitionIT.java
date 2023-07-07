@@ -71,11 +71,11 @@ class ReactiveConnectionAcquisitionIT {
 	void connectionAcquisitionAfterErrorViaSDNTxManagerShouldWork(@Autowired MovieRepository movieRepository, @Autowired Driver driver) {
 		UUID id = UUID.randomUUID();
 		Flux
-			.range(1, 5)
-			.flatMap(i -> movieRepository.findById(id).switchIfEmpty(Mono.error(new RuntimeException())))
-			.then()
-			.as(StepVerifier::create)
-			.verifyError();
+				.range(1, 5)
+				.flatMap(i -> movieRepository.findById(id).switchIfEmpty(Mono.error(new RuntimeException())))
+				.then()
+				.as(StepVerifier::create)
+				.verifyError();
 
 		try (Session session = driver.session()) {
 			long aNumber = session.run("RETURN 1").single().get(0).asLong();
@@ -83,25 +83,26 @@ class ReactiveConnectionAcquisitionIT {
 		}
 	}
 
-	@Test // GH-2632
+	@Test
+		// GH-2632
 	void connectionAcquisitionAfterErrorViaImplicitTXShouldWork(@Autowired Driver driver) {
 		Flux
-			.range(1, 5)
-			.flatMap(
-				i -> {
-					Query query = new Query("MATCH (p:Product) WHERE p.id = $id RETURN p.title", Collections.singletonMap("id", 0));
-					return Flux.usingWhen(
-							Mono.fromSupplier(() -> driver.session(ReactiveSession.class)),
-							session -> Flux.from(session.run(query))
-									.flatMap(result -> Flux.from(result.records()))
-									.map(record -> record.get(0).asString()),
-							session -> Mono.fromDirect(session.close())
-						).switchIfEmpty(Mono.error(new RuntimeException()));
-				}
-			)
-			.then()
-			.as(StepVerifier::create)
-			.verifyError();
+				.range(1, 5)
+				.flatMap(
+						i -> {
+							Query query = new Query("MATCH (p:Product) WHERE p.id = $id RETURN p.title", Collections.singletonMap("id", 0));
+							return Flux.usingWhen(
+									Mono.fromSupplier(() -> driver.session(ReactiveSession.class)),
+									session -> Flux.from(session.run(query))
+											.flatMap(result -> Flux.from(result.records()))
+											.map(record -> record.get(0).asString()),
+									session -> Mono.fromDirect(session.close())
+							).switchIfEmpty(Mono.error(new RuntimeException()));
+						}
+				)
+				.then()
+				.as(StepVerifier::create)
+				.verifyError();
 
 		try (Session session = driver.session()) {
 			long aNumber = session.run("RETURN 1").single().get(0).asLong();
@@ -112,26 +113,27 @@ class ReactiveConnectionAcquisitionIT {
 	record SessionAndTx(ReactiveSession session, ReactiveTransaction tx) {
 	}
 
-	@Test // GH-2632
+	@Test
+		// GH-2632
 	void connectionAcquisitionAfterErrorViaExplicitTXShouldWork(@Autowired Driver driver) {
 		Flux
-			.range(1, 5)
-			.flatMap(
-				i -> {
-					Mono<SessionAndTx> f = Mono
-						.just(driver.session(ReactiveSession.class))
-						.flatMap(s -> Mono.fromDirect(s.beginTransaction()).map(tx -> new SessionAndTx(s, tx)));
-					return Flux.usingWhen(f,
-						h -> Flux.from(h.tx.run("MATCH (n) WHERE false = true RETURN n")).flatMap(ReactiveResult::records),
-						h -> Mono.from(h.tx.commit()).then(Mono.from(h.session.close())),
-						(h, e) -> Mono.from(h.tx.rollback()).then(Mono.from(h.session.close())),
-						h -> Mono.from(h.tx.rollback()).then(Mono.from(h.session.close()))
-					).switchIfEmpty(Mono.error(new RuntimeException()));
-				}
-			)
-			.then()
-			.as(StepVerifier::create)
-			.verifyError();
+				.range(1, 5)
+				.flatMap(
+						i -> {
+							Mono<SessionAndTx> f = Mono
+									.just(driver.session(ReactiveSession.class))
+									.flatMap(s -> Mono.fromDirect(s.beginTransaction()).map(tx -> new SessionAndTx(s, tx)));
+							return Flux.usingWhen(f,
+									h -> Flux.from(h.tx.run("MATCH (n) WHERE false = true RETURN n")).flatMap(ReactiveResult::records),
+									h -> Mono.from(h.tx.commit()).then(Mono.from(h.session.close())),
+									(h, e) -> Mono.from(h.tx.rollback()).then(Mono.from(h.session.close())),
+									h -> Mono.from(h.tx.rollback()).then(Mono.from(h.session.close()))
+							).switchIfEmpty(Mono.error(new RuntimeException()));
+						}
+				)
+				.then()
+				.as(StepVerifier::create)
+				.verifyError();
 
 		try (Session session = driver.session()) {
 			long aNumber = session.run("RETURN 1").single().get(0).asLong();
@@ -147,10 +149,10 @@ class ReactiveConnectionAcquisitionIT {
 		@Bean
 		public Driver driver() {
 			var config = org.neo4j.driver.Config.builder()
-				.withMaxConnectionPoolSize(2)
-				.withConnectionAcquisitionTimeout(2, TimeUnit.SECONDS)
-				.withLeakedSessionsLogging()
-				.build();
+					.withMaxConnectionPoolSize(2)
+					.withConnectionAcquisitionTimeout(2, TimeUnit.SECONDS)
+					.withLeakedSessionsLogging()
+					.build();
 			return GraphDatabase.driver(neo4jConnectionSupport.url, neo4jConnectionSupport.authToken, config);
 		}
 	}

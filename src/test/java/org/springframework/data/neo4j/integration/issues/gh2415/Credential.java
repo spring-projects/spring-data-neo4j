@@ -15,37 +15,113 @@
  */
 package org.springframework.data.neo4j.integration.issues.gh2415;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Value;
-import lombok.With;
-
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.springframework.data.annotation.Immutable;
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.support.UUIDStringGenerator;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
 /**
  * @author Andreas Berger
  */
+@SuppressWarnings("HiddenField")
 @Node
-@Value
-@With
-@AllArgsConstructor
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Immutable
-@Builder(toBuilder = true)
-public class Credential {
+public final class Credential {
 
 	@JsonIgnore
 	@Id
 	@GeneratedValue(UUIDStringGenerator.class)
-	@EqualsAndHashCode.Include
+	private final
 	String id;
 
-	String name;
+	private final String name;
+
+	public Credential(String id, String name) {
+		this.id = id;
+		this.name = name;
+	}
+
+	public static CredentialBuilder builder() {
+		return new CredentialBuilder();
+	}
+
+	public String getId() {
+		return this.id;
+	}
+
+	public String getName() {
+		return this.name;
+	}
+
+	public String toString() {
+		return "Credential(id=" + this.getId() + ", name=" + this.getName() + ")";
+	}
+
+	public Credential withId(String id) {
+		return this.id == id ? this : new Credential(id, this.name);
+	}
+
+	public Credential withName(String name) {
+		return this.name == name ? this : new Credential(this.id, name);
+	}
+
+	public boolean equals(final Object o) {
+		if (o == this) {
+			return true;
+		}
+		if (!(o instanceof Credential)) {
+			return false;
+		}
+		final Credential other = (Credential) o;
+		final Object this$id = this.getId();
+		final Object other$id = other.getId();
+		if (this$id == null ? other$id != null : !this$id.equals(other$id)) {
+			return false;
+		}
+		return true;
+	}
+
+	public int hashCode() {
+		final int PRIME = 59;
+		int result = 1;
+		final Object $id = this.getId();
+		result = result * PRIME + ($id == null ? 43 : $id.hashCode());
+		return result;
+	}
+
+	public CredentialBuilder toBuilder() {
+		return new CredentialBuilder().id(this.id).name(this.name);
+	}
+
+	/**
+	 * the builder
+	 */
+	public static class CredentialBuilder {
+		private String id;
+		private String name;
+
+		CredentialBuilder() {
+		}
+
+		@JsonIgnore
+		public CredentialBuilder id(String id) {
+			this.id = id;
+			return this;
+		}
+
+		public CredentialBuilder name(String name) {
+			this.name = name;
+			return this;
+		}
+
+		public Credential build() {
+			return new Credential(this.id, this.name);
+		}
+
+		public String toString() {
+			return "Credential.CredentialBuilder(id=" + this.id + ", name=" + this.name + ")";
+		}
+	}
 }

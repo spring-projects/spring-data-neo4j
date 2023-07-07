@@ -15,14 +15,9 @@
  */
 package org.springframework.data.neo4j.integration.issues.gh2493;
 
-import lombok.Getter;
-import lombok.Setter;
-
 /**
  * @author Michael J. Simons
  */
-@Getter
-@Setter
 public class TestData {
 
 	private int num;
@@ -34,6 +29,22 @@ public class TestData {
 
 	public TestData(int num, String string) {
 		this.num = num;
+		this.string = string;
+	}
+
+	public int getNum() {
+		return this.num;
+	}
+
+	public String getString() {
+		return this.string;
+	}
+
+	public void setNum(int num) {
+		this.num = num;
+	}
+
+	public void setString(String string) {
 		this.string = string;
 	}
 }

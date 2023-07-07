@@ -27,12 +27,12 @@ import org.springframework.data.neo4j.repository.query.Query;
 public interface ReactiveGH2572Repository extends ReactiveNeo4jRepository<GH2572Child, String> {
 
 	@Query("MATCH(person:GH2572Parent {id: $id}) "
-		   + "OPTIONAL MATCH (person)<-[:IS_PET]-(dog:GH2572Child) "
-		   + "RETURN dog")
+			+ "OPTIONAL MATCH (person)<-[:IS_PET]-(dog:GH2572Child) "
+			+ "RETURN dog")
 	Flux<GH2572Child> getDogsForPerson(String id);
 
 	@Query("MATCH(person:GH2572Parent {id: $id}) "
-		   + "OPTIONAL MATCH (person)<-[:IS_PET]-(dog:GH2572Child) "
-		   + "RETURN dog ORDER BY dog.name ASC LIMIT 1")
+			+ "OPTIONAL MATCH (person)<-[:IS_PET]-(dog:GH2572Child) "
+			+ "RETURN dog ORDER BY dog.name ASC LIMIT 1")
 	Mono<GH2572Child> findOneDogForPerson(String id);
 }

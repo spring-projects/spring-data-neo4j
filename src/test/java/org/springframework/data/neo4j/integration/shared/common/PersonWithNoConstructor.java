@@ -15,10 +15,6 @@
  */
 package org.springframework.data.neo4j.integration.shared.common;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
-
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
@@ -27,17 +23,54 @@ import org.springframework.data.neo4j.core.schema.Property;
 /**
  * Example domain object with default constructor.
  */
-@Getter
-@Setter
 @Node
-@ToString
 public class PersonWithNoConstructor {
 
-	@Id @GeneratedValue private Long id;
+	@Id
+	@GeneratedValue
+	private Long id;
 
 	private String name;
 
-	@Property("first_name") private String firstName;
+	@Property("first_name")
+	private String firstName;
 
-	@Property("mittlererName") private String middleName;
+	@Property("mittlererName")
+	private String middleName;
+
+	public Long getId() {
+		return this.id;
+	}
+
+	public String getName() {
+		return this.name;
+	}
+
+	public String getFirstName() {
+		return this.firstName;
+	}
+
+	public String getMiddleName() {
+		return this.middleName;
+	}
+
+	public void setId(Long id) {
+		this.id = id;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public void setFirstName(String firstName) {
+		this.firstName = firstName;
+	}
+
+	public void setMiddleName(String middleName) {
+		this.middleName = middleName;
+	}
+
+	public String toString() {
+		return "PersonWithNoConstructor(id=" + this.getId() + ", name=" + this.getName() + ", firstName=" + this.getFirstName() + ", middleName=" + this.getMiddleName() + ")";
+	}
 }

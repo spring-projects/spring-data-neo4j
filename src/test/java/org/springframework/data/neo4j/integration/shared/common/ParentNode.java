@@ -25,7 +25,8 @@ import org.springframework.data.neo4j.core.schema.Node;
  */
 @Node
 public class ParentNode {
-	@Id @GeneratedValue
+	@Id
+	@GeneratedValue
 	private Long id;
 
 	private String someAttribute;

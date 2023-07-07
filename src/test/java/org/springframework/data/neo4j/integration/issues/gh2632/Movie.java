@@ -27,7 +27,8 @@ import org.springframework.data.neo4j.core.schema.Node;
 @Node
 public class Movie {
 
-	@Id @GeneratedValue
+	@Id
+	@GeneratedValue
 	private UUID id;
 
 	private String title;

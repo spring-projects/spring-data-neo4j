@@ -59,15 +59,15 @@ public abstract class DynamicRelationshipsITBase<T> {
 		try (Session session = driver.session(); Transaction transaction = session.beginTransaction()) {
 			transaction.run("MATCH (n) detach delete n");
 			var cypher = """
-				CREATE (t:%s {name: 'A'}) WITH t\s
-				CREATE (t) - [:HAS_WIFE] -> (w:Person {firstName: 'B'})\s
-				CREATE (t) - [:ACTIVE{performance:'average'}] -> (:Hobby {name: 'Biking'})\s
-				CREATE (t) - [:FOOTBALL{place:'Brunswick'}] -> (:Club {name: 'BTSV'})\s
-				CREATE (t) - [:HAS_DAUGHTER] -> (d:Person {firstName: 'C'}) WITH t\s
-				UNWIND ['Tom', 'Garfield'] AS cat CREATE (t) - [:CATS] -> (w:Pet {name: cat})\s
-				WITH DISTINCT t UNWIND ['Benji', 'Lassie'] AS dog\s
-				CREATE (t) - [:DOGS] -> (w:Pet {name: dog}) RETURN DISTINCT id(t) as id
-				""".formatted(labelOfTestSubject);
+					CREATE (t:%s {name: 'A'}) WITH t\s
+					CREATE (t) - [:HAS_WIFE] -> (w:Person {firstName: 'B'})\s
+					CREATE (t) - [:ACTIVE{performance:'average'}] -> (:Hobby {name: 'Biking'})\s
+					CREATE (t) - [:FOOTBALL{place:'Brunswick'}] -> (:Club {name: 'BTSV'})\s
+					CREATE (t) - [:HAS_DAUGHTER] -> (d:Person {firstName: 'C'}) WITH t\s
+					UNWIND ['Tom', 'Garfield'] AS cat CREATE (t) - [:CATS] -> (w:Pet {name: cat})\s
+					WITH DISTINCT t UNWIND ['Benji', 'Lassie'] AS dog\s
+					CREATE (t) - [:DOGS] -> (w:Pet {name: dog}) RETURN DISTINCT id(t) as id
+					""".formatted(labelOfTestSubject);
 			idOfExistingPerson = transaction.run(cypher)
 					.single().get("id").asLong();
 			transaction.commit();

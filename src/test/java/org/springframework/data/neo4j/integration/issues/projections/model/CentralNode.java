@@ -15,26 +15,18 @@
  */
 package org.springframework.data.neo4j.integration.issues.projections.model;
 
-import java.util.Objects;
-
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-
 import org.springframework.data.annotation.Version;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Property;
 import org.springframework.data.neo4j.core.schema.Relationship;
 
+import java.util.Objects;
+
 /**
  * @author Michael J. Simons
  */
-@Getter
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
+@SuppressWarnings("HiddenField")
 @Node
 public class CentralNode {
 
@@ -42,14 +34,30 @@ public class CentralNode {
 	@Property(name = "id")
 	private String id;
 
-	@Version Long version;
+	@Version
+	Long version;
 
 	private String name;
 
 	@Relationship(value = "B_TO_CENTRAL", direction = Relationship.Direction.INCOMING)
 	private SourceNodeB sourceNodeB;
 
-	@Override public boolean equals(Object o) {
+	public CentralNode(String id, Long version, String name, SourceNodeB sourceNodeB) {
+		this.id = id;
+		this.version = version;
+		this.name = name;
+		this.sourceNodeB = sourceNodeB;
+	}
+
+	public CentralNode() {
+	}
+
+	public static CentralNodeBuilder builder() {
+		return new CentralNodeBuilder();
+	}
+
+	@Override
+	public boolean equals(Object o) {
 		if (this == o) {
 			return true;
 		}
@@ -71,5 +79,62 @@ public class CentralNode {
 
 	public void setName(String name) {
 		this.name = name;
+	}
+
+	public String getId() {
+		return this.id;
+	}
+
+	public Long getVersion() {
+		return this.version;
+	}
+
+	public String getName() {
+		return this.name;
+	}
+
+	public SourceNodeB getSourceNodeB() {
+		return this.sourceNodeB;
+	}
+
+	/**
+	 * the builder
+	 */
+	public static class CentralNodeBuilder {
+		private String id;
+		private Long version;
+		private String name;
+		private SourceNodeB sourceNodeB;
+
+		CentralNodeBuilder() {
+		}
+
+		public CentralNodeBuilder id(String id) {
+			this.id = id;
+			return this;
+		}
+
+		public CentralNodeBuilder version(Long version) {
+			this.version = version;
+			return this;
+		}
+
+		public CentralNodeBuilder name(String name) {
+			this.name = name;
+			return this;
+		}
+
+		public CentralNodeBuilder sourceNodeB(SourceNodeB sourceNodeB) {
+			this.sourceNodeB = sourceNodeB;
+			return this;
+		}
+
+		public CentralNode build() {
+			return new CentralNode(this.id, this.version, this.name, this.sourceNodeB);
+		}
+
+		public String toString() {
+			return "CentralNode.CentralNodeBuilder(id=" + this.id + ", version=" + this.version + ", name=" + this.name + ", sourceNodeB=" + this.sourceNodeB + ")";
+		}
 	}
 }

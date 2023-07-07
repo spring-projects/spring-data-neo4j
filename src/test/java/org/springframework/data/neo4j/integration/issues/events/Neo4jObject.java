@@ -15,10 +15,6 @@
  */
 package org.springframework.data.neo4j.integration.issues.events;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Property;
@@ -26,13 +22,60 @@ import org.springframework.data.neo4j.core.schema.Property;
 /**
  * @author Michael J. Simons
  */
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
 @Node(primaryLabel = "Neo4jObject")
 public class Neo4jObject {
 
-  @Id
-  @Property(name = "id")
-  private String id;
+	@Id
+	@Property(name = "id")
+	private String id;
+
+	public Neo4jObject(String id) {
+		this.id = id;
+	}
+
+	public Neo4jObject() {
+	}
+
+	public String getId() {
+		return this.id;
+	}
+
+	public void setId(String id) {
+		this.id = id;
+	}
+
+	public boolean equals(final Object o) {
+		if (o == this) {
+			return true;
+		}
+		if (!(o instanceof Neo4jObject)) {
+			return false;
+		}
+		final Neo4jObject other = (Neo4jObject) o;
+		if (!other.canEqual((Object) this)) {
+			return false;
+		}
+		final Object this$id = this.getId();
+		final Object other$id = other.getId();
+		if (this$id == null ? other$id != null : !this$id.equals(other$id)) {
+			return false;
+		}
+		return true;
+	}
+
+	protected boolean canEqual(final Object other) {
+		return other instanceof Neo4jObject;
+	}
+
+	public int hashCode() {
+		final int PRIME = 59;
+		int result = 1;
+		final Object $id = this.getId();
+		result = result * PRIME + ($id == null ? 43 : $id.hashCode());
+		return result;
+	}
+
+	public String toString() {
+		return "Neo4jObject(id=" + this.getId() + ")";
+	}
 }

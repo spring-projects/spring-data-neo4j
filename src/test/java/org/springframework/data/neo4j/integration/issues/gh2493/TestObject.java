@@ -15,9 +15,7 @@
  */
 package org.springframework.data.neo4j.integration.issues.gh2493;
 
-import lombok.Getter;
-import lombok.Setter;
-
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.springframework.data.neo4j.core.schema.CompositeProperty;
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
@@ -25,14 +23,10 @@ import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Property;
 import org.springframework.data.neo4j.core.support.UUIDStringGenerator;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
 /**
  * @author Michael J. Simons
  */
 @Node
-@Getter
-@Setter
 public class TestObject {
 
 	@Id
@@ -47,5 +41,22 @@ public class TestObject {
 	public TestObject(TestData aData) {
 		super();
 		data = aData;
+	}
+
+	public String getId() {
+		return this.id;
+	}
+
+	public TestData getData() {
+		return this.data;
+	}
+
+	public void setId(String id) {
+		this.id = id;
+	}
+
+	@JsonIgnore
+	public void setData(TestData data) {
+		this.data = data;
 	}
 }

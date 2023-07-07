@@ -27,7 +27,8 @@ import org.springframework.data.neo4j.core.support.UUIDStringGenerator;
 @Node
 public class Student {
 
-	@Id @GeneratedValue(UUIDStringGenerator.class)
+	@Id
+	@GeneratedValue(UUIDStringGenerator.class)
 	private String guid;
 
 	private String name;

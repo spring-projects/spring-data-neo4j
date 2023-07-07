@@ -59,13 +59,13 @@ public abstract class AuditingITBase {
 	@BeforeEach
 	protected void setupData() {
 		try (Session session = driver.session(bookmarkCapture.createSessionConfig());
-				Transaction transaction = session.beginTransaction()) {
+			 Transaction transaction = session.beginTransaction()) {
 			transaction.run("MATCH (n) detach delete n");
 
 			idOfExistingThing = transaction.run(
-					"CREATE (t:ImmutableAuditableThing {name: $name, createdBy: $createdBy, createdAt: $createdAt}) RETURN id(t) as id",
-					Values.parameters("name", EXISTING_THING_NAME, "createdBy", EXISTING_THING_CREATED_BY, "createdAt",
-							EXISTING_THING_CREATED_AT))
+							"CREATE (t:ImmutableAuditableThing {name: $name, createdBy: $createdBy, createdAt: $createdAt}) RETURN id(t) as id",
+							Values.parameters("name", EXISTING_THING_NAME, "createdBy", EXISTING_THING_CREATED_BY, "createdAt",
+									EXISTING_THING_CREATED_AT))
 					.single().get("id").asLong();
 
 			transaction.run(

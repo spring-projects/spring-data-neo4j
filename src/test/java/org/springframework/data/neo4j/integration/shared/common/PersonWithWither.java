@@ -15,10 +15,6 @@
  */
 package org.springframework.data.neo4j.integration.shared.common;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
-
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
@@ -27,13 +23,12 @@ import org.springframework.data.neo4j.core.schema.Node;
  * Example domain object that works with wither. Read more about this <a href=
  * "https://docs.spring.io/spring-data/commons/docs/current/reference/html/#mapping.property-population">here</a>.
  */
-@Getter
-@Setter
 @Node
-@ToString
 public class PersonWithWither {
 
-	@Id @GeneratedValue private final Long id;
+	@Id
+	@GeneratedValue
+	private final Long id;
 
 	private final String name;
 
@@ -48,5 +43,17 @@ public class PersonWithWither {
 
 	public PersonWithWither withName(String newName) {
 		return new PersonWithWither(this.id, newName);
+	}
+
+	public Long getId() {
+		return this.id;
+	}
+
+	public String getName() {
+		return this.name;
+	}
+
+	public String toString() {
+		return "PersonWithWither(id=" + this.getId() + ", name=" + this.getName() + ")";
 	}
 }

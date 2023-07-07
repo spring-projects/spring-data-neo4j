@@ -15,27 +15,23 @@
  */
 package org.springframework.data.neo4j.integration.issues.gh2289;
 
-import lombok.Getter;
-import lombok.Setter;
-
-import java.util.HashSet;
-import java.util.Set;
-
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Property;
 import org.springframework.data.neo4j.core.schema.Relationship;
 
+import java.util.HashSet;
+import java.util.Set;
+
 /**
  * @author Michael J. Simons
  */
 @Node("SKU")
-@Getter // lombok
-@Setter
 public class Sku {
 
-	@Id @GeneratedValue
+	@Id
+	@GeneratedValue
 	private Long id;
 
 	@Property("number")
@@ -70,5 +66,45 @@ public class Sku {
 				", number=" + number +
 				", name='" + name +
 				'}';
+	}
+
+	public Long getId() {
+		return this.id;
+	}
+
+	public Long getNumber() {
+		return this.number;
+	}
+
+	public String getName() {
+		return this.name;
+	}
+
+	public Set<RangeRelation> getRangeRelationsOut() {
+		return this.rangeRelationsOut;
+	}
+
+	public Set<RangeRelation> getRangeRelationsIn() {
+		return this.rangeRelationsIn;
+	}
+
+	public void setId(Long id) {
+		this.id = id;
+	}
+
+	public void setNumber(Long number) {
+		this.number = number;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public void setRangeRelationsOut(Set<RangeRelation> rangeRelationsOut) {
+		this.rangeRelationsOut = rangeRelationsOut;
+	}
+
+	public void setRangeRelationsIn(Set<RangeRelation> rangeRelationsIn) {
+		this.rangeRelationsIn = rangeRelationsIn;
 	}
 }

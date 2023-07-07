@@ -28,11 +28,14 @@ import java.util.List;
 @Node
 public class Friend {
 
-	@Id	@GeneratedValue	private Long id;
+	@Id
+	@GeneratedValue
+	private Long id;
 
 	private final String name;
 
-	@Relationship("KNOWS") private List<FriendshipRelationship> friends;
+	@Relationship("KNOWS")
+	private List<FriendshipRelationship> friends;
 
 	public Friend(String name) {
 		this.name = name;

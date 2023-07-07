@@ -52,7 +52,7 @@ public abstract class IdGeneratorsITBase {
 	protected void setupData() {
 
 		try (Session session = driver.session(bookmarkCapture.createSessionConfig());
-				Transaction transaction = session.beginTransaction()) {
+			 Transaction transaction = session.beginTransaction()) {
 			transaction.run("MATCH (n) detach delete n");
 			transaction.run("CREATE (t:ThingWithGeneratedId {name: $name, theId: $theId}) RETURN id(t) as id",
 					Values.parameters("name", EXISTING_THING_NAME, "theId", ID_OF_EXISTING_THING));

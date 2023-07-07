@@ -28,15 +28,20 @@ import org.springframework.data.neo4j.core.schema.Relationship;
 @Node
 public class PersonWithRelationship {
 
-	@Id @GeneratedValue private Long id;
+	@Id
+	@GeneratedValue
+	private Long id;
 
 	private String name;
 
-	@Relationship("Has") private Hobby hobbies;
+	@Relationship("Has")
+	private Hobby hobbies;
 
-	@Relationship("Has") private List<Pet> pets;
+	@Relationship("Has")
+	private List<Pet> pets;
 
-	@Relationship(type = "Has", direction = Relationship.Direction.INCOMING) private Club club;
+	@Relationship(type = "Has", direction = Relationship.Direction.INCOMING)
+	private Club club;
 
 	public Long getId() {
 		return id;
@@ -83,6 +88,7 @@ public class PersonWithRelationship {
 	 */
 	public interface PersonWithHobby {
 		String getName();
+
 		Hobby getHobbies();
 	}
 }

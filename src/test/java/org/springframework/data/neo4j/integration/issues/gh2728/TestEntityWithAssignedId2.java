@@ -25,14 +25,14 @@ import org.springframework.data.neo4j.core.schema.Property;
 @Node
 public class TestEntityWithAssignedId2 {
 
-    @Id
-    private String assignedId;
+	@Id
+	private String assignedId;
 
-    @Property("valueTwo")
-    private String valueTwo;
+	@Property("valueTwo")
+	private String valueTwo;
 
-    public TestEntityWithAssignedId2(String assignedId, String valueTwo) {
-        this.assignedId = assignedId;
-        this.valueTwo = valueTwo;
-    }
+	public TestEntityWithAssignedId2(String assignedId, String valueTwo) {
+		this.assignedId = assignedId;
+		this.valueTwo = valueTwo;
+	}
 }

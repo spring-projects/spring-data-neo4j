@@ -26,7 +26,9 @@ import org.springframework.data.neo4j.core.schema.Node;
  */
 @Node
 public class Hobby {
-	@Id @GeneratedValue private Long id;
+	@Id
+	@GeneratedValue
+	private Long id;
 
 	private String name;
 

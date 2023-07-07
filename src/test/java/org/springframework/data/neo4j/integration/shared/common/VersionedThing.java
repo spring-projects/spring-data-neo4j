@@ -30,15 +30,19 @@ import org.springframework.data.neo4j.core.schema.Relationship;
 @Node
 public class VersionedThing {
 
-	@Id @GeneratedValue private Long id;
+	@Id
+	@GeneratedValue
+	private Long id;
 
-	@Version private Long myVersion;
+	@Version
+	private Long myVersion;
 
 	private final String name;
 
 	private String mutableProperty;
 
-	@Relationship("HAS") private List<VersionedThing> otherVersionedThings;
+	@Relationship("HAS")
+	private List<VersionedThing> otherVersionedThings;
 
 	public VersionedThing(String name) {
 		this.name = name;

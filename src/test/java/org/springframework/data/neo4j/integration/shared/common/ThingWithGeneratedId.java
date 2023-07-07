@@ -25,7 +25,9 @@ import org.springframework.data.neo4j.core.schema.Node;
 @Node
 public class ThingWithGeneratedId extends AbstractNamedThing {
 
-	@Id @GeneratedValue(TestSequenceGenerator.class) private String theId;
+	@Id
+	@GeneratedValue(TestSequenceGenerator.class)
+	private String theId;
 
 	public ThingWithGeneratedId(String name) {
 		super.setName(name);

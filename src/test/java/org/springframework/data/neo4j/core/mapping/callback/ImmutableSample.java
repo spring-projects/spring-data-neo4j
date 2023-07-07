@@ -15,27 +15,99 @@
  */
 package org.springframework.data.neo4j.core.mapping.callback;
 
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
-import lombok.Value;
-import lombok.With;
-
-import java.util.Date;
-
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedDate;
 
+import java.util.Date;
+
 /**
  * @author Michael J. Simons
  */
-@Value
-@With
-@AllArgsConstructor
-@NoArgsConstructor(force = true)
-public class ImmutableSample {
+public final class ImmutableSample {
 
-	@Id String id;
-	@CreatedDate Date created;
-	@LastModifiedDate Date modified;
+	@Id
+	private final String id;
+	@CreatedDate
+	private final Date created;
+	@LastModifiedDate
+	private final Date modified;
+
+	public ImmutableSample(String id, Date created, Date modified) {
+		this.id = id;
+		this.created = created;
+		this.modified = modified;
+	}
+
+	public ImmutableSample() {
+		this.id = null;
+		this.created = null;
+		this.modified = null;
+	}
+
+	public String getId() {
+		return this.id;
+	}
+
+	public Date getCreated() {
+		return this.created;
+	}
+
+	public Date getModified() {
+		return this.modified;
+	}
+
+	public boolean equals(final Object o) {
+		if (o == this) {
+			return true;
+		}
+		if (!(o instanceof ImmutableSample)) {
+			return false;
+		}
+		final ImmutableSample other = (ImmutableSample) o;
+		final Object this$id = this.getId();
+		final Object other$id = other.getId();
+		if (this$id == null ? other$id != null : !this$id.equals(other$id)) {
+			return false;
+		}
+		final Object this$created = this.getCreated();
+		final Object other$created = other.getCreated();
+		if (this$created == null ? other$created != null : !this$created.equals(other$created)) {
+			return false;
+		}
+		final Object this$modified = this.getModified();
+		final Object other$modified = other.getModified();
+		if (this$modified == null ? other$modified != null : !this$modified.equals(other$modified)) {
+			return false;
+		}
+		return true;
+	}
+
+	public int hashCode() {
+		final int PRIME = 59;
+		int result = 1;
+		final Object $id = this.getId();
+		result = result * PRIME + ($id == null ? 43 : $id.hashCode());
+		final Object $created = this.getCreated();
+		result = result * PRIME + ($created == null ? 43 : $created.hashCode());
+		final Object $modified = this.getModified();
+		result = result * PRIME + ($modified == null ? 43 : $modified.hashCode());
+		return result;
+	}
+
+	public String toString() {
+		return "ImmutableSample(id=" + this.getId() + ", created=" + this.getCreated() + ", modified=" + this.getModified() + ")";
+	}
+
+	public ImmutableSample withId(String newId) {
+		return this.id == newId ? this : new ImmutableSample(newId, this.created, this.modified);
+	}
+
+	public ImmutableSample withCreated(Date newCreated) {
+		return this.created == newCreated ? this : new ImmutableSample(this.id, newCreated, this.modified);
+	}
+
+	public ImmutableSample withModified(Date newModified) {
+		return this.modified == newModified ? this : new ImmutableSample(this.id, this.created, newModified);
+	}
 }

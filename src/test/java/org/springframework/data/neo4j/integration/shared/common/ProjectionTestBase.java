@@ -23,7 +23,8 @@ import org.springframework.data.neo4j.core.schema.Id;
  */
 public abstract class ProjectionTestBase {
 
-	@Id @GeneratedValue
+	@Id
+	@GeneratedValue
 	private Long id;
 
 	private String name;

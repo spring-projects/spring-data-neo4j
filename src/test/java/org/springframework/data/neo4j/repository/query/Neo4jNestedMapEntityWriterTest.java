@@ -15,25 +15,6 @@
  */
 package org.springframework.data.neo4j.repository.query;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-
-import lombok.AllArgsConstructor;
-import lombok.RequiredArgsConstructor;
-import lombok.With;
-
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.function.Function;
-
 import org.assertj.core.api.Condition;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -59,6 +40,21 @@ import org.springframework.data.neo4j.integration.issues.gh2323.Knows;
 import org.springframework.data.neo4j.integration.issues.gh2323.Language;
 import org.springframework.data.neo4j.integration.issues.gh2323.Person;
 import org.springframework.util.ReflectionUtils;
+
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.function.Function;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 /**
  * @author Michael J. Simons
@@ -515,19 +511,24 @@ class Neo4jNestedMapEntityWriterTest {
 	}
 
 	@Node
-	@AllArgsConstructor
 	static class FlatEntity {
 
-		@Id @GeneratedValue
+		@Id
+		@GeneratedValue
 		private Long id;
 
 		private double aDouble;
 
 		private String aString;
+
+		FlatEntity(Long id, double aDouble, String aString) {
+			this.id = id;
+			this.aDouble = aDouble;
+			this.aString = aString;
+		}
 	}
 
 	@Node
-	@AllArgsConstructor
 	static class FlatEntityWithAdditionalTypes {
 
 		@Id
@@ -543,6 +544,15 @@ class Neo4jNestedMapEntityWriterTest {
 		private SomeEnum someEnum;
 
 		private List<Double> listOfDoubles;
+
+		FlatEntityWithAdditionalTypes(String id, Long version, Locale aLocale, URI aURI, SomeEnum someEnum, List<Double> listOfDoubles) {
+			this.id = id;
+			this.version = version;
+			this.aLocale = aLocale;
+			this.aURI = aURI;
+			this.someEnum = someEnum;
+			this.listOfDoubles = listOfDoubles;
+		}
 	}
 
 	enum SomeEnum { A, B }
@@ -556,18 +566,22 @@ class Neo4jNestedMapEntityWriterTest {
 	}
 
 	@Node
-	@AllArgsConstructor
 	static class FlatEntityWithDynamicLabels {
 
-		@Id @GeneratedValue(generatorClass = SomeIdGeneratory.class)
+		@Id
+		@GeneratedValue(generatorClass = SomeIdGeneratory.class)
 		private String id;
 
 		@DynamicLabels
 		private List<String> dynamicLabels;
+
+		FlatEntityWithDynamicLabels(String id, List<String> dynamicLabels) {
+			this.id = id;
+			this.dynamicLabels = dynamicLabels;
+		}
 	}
 
 	@Node
-	@AllArgsConstructor
 	static class GraphPropertyNamesShouldBeUsed {
 
 		@Id
@@ -576,10 +590,14 @@ class Neo4jNestedMapEntityWriterTest {
 
 		@Property("a_field")
 		private String aField;
+
+		GraphPropertyNamesShouldBeUsed(String id, String aField) {
+			this.id = id;
+			this.aField = aField;
+		}
 	}
 
 	@Node
-	@RequiredArgsConstructor
 	static class A {
 
 		@Id
@@ -589,28 +607,40 @@ class Neo4jNestedMapEntityWriterTest {
 
 		@Relationship("HAS_MORE_B")
 		private final List<B> hasMoreBs;
+
+		A(String id, B hasB, List<B> hasMoreBs) {
+			this.id = id;
+			this.hasB = hasB;
+			this.hasMoreBs = hasMoreBs;
+		}
 	}
 
 	@Node
-	@RequiredArgsConstructor
 	static class B {
 
 		@Id
 		private final String id;
+
+		B(String id) {
+			this.id = id;
+		}
 	}
 
 	@Node
-	@RequiredArgsConstructor
 	static class A2 {
 
 		@Id
 		private final String id;
 
 		private final B2 hasB;
+
+		A2(String id, B2 hasB) {
+			this.id = id;
+			this.hasB = hasB;
+		}
 	}
 
 	@Node
-	@RequiredArgsConstructor
 	static class B2 {
 
 		@Id
@@ -619,10 +649,13 @@ class Neo4jNestedMapEntityWriterTest {
 		private A2 belongsToA2;
 
 		private List<A2> knows;
+
+		B2(String id) {
+			this.id = id;
+		}
 	}
 
 	@Node
-	@RequiredArgsConstructor
 	static class A3 {
 
 		@Id
@@ -633,10 +666,15 @@ class Neo4jNestedMapEntityWriterTest {
 
 		@Relationship
 		private final Map<String, List<B2>> hasMoreBs;
+
+		A3(String id, Map<String, B> hasB, Map<String, List<B2>> hasMoreBs) {
+			this.id = id;
+			this.hasB = hasB;
+			this.hasMoreBs = hasMoreBs;
+		}
 	}
 
 	@Node
-	@RequiredArgsConstructor
 	static class A4 {
 
 		@Id
@@ -644,15 +682,16 @@ class Neo4jNestedMapEntityWriterTest {
 
 		@Relationship("HAS_P1")
 		private P1 p1;
+
+		A4(String id) {
+			this.id = id;
+		}
 	}
 
 	@RelationshipProperties
-	@RequiredArgsConstructor
-	@AllArgsConstructor
 	static class P1 {
 
 		@RelationshipId
-		@With
 		private Long id;
 
 		private final String prop1;
@@ -662,24 +701,44 @@ class Neo4jNestedMapEntityWriterTest {
 		@TargetNode
 		private final B3 b3;
 
-		@Override public String toString() {
+		P1(String prop1, String prop2, B3 b3) {
+			this.prop1 = prop1;
+			this.prop2 = prop2;
+			this.b3 = b3;
+		}
+
+		P1(Long id, String prop1, String prop2, B3 b3) {
+			this.id = id;
+			this.prop1 = prop1;
+			this.prop2 = prop2;
+			this.b3 = b3;
+		}
+
+		@Override
+		public String toString() {
 			return "P1{" +
-				   "prop1='" + prop1 + '\'' +
-				   ", prop2='" + prop2 + '\'' +
-				   '}';
+					"prop1='" + prop1 + '\'' +
+					", prop2='" + prop2 + '\'' +
+					'}';
+		}
+
+		P1 withId(Long newId) {
+			return this.id == newId ? this : new P1(newId, this.prop1, this.prop2, this.b3);
 		}
 	}
 
 	@Node
-	@RequiredArgsConstructor
 	static class B3 {
 
 		@Id
 		private final String id;
+
+		B3(String id) {
+			this.id = id;
+		}
 	}
 
 	@Node
-	@RequiredArgsConstructor
 	static class A5 {
 
 		@Id
@@ -687,10 +746,13 @@ class Neo4jNestedMapEntityWriterTest {
 
 		@Relationship("HAS_P1")
 		private List<P1> p1;
+
+		A5(String id) {
+			this.id = id;
+		}
 	}
 
 	@Node
-	@RequiredArgsConstructor
 	static class A6 {
 
 		@Id
@@ -698,10 +760,13 @@ class Neo4jNestedMapEntityWriterTest {
 
 		@Relationship
 		private Map<String, P1> p1;
+
+		A6(String id) {
+			this.id = id;
+		}
 	}
 
 	@Node
-	@RequiredArgsConstructor
 	static class A7 {
 
 		@Id
@@ -709,10 +774,13 @@ class Neo4jNestedMapEntityWriterTest {
 
 		@Relationship
 		private Map<String, List<P1>> p1;
+
+		A7(String id) {
+			this.id = id;
+		}
 	}
 
 	@Node
-	@RequiredArgsConstructor
 	static class A8 {
 
 		@Id
@@ -727,5 +795,8 @@ class Neo4jNestedMapEntityWriterTest {
 		@Relationship("HAS")
 		private List<B3> b3;
 
+		A8(String id) {
+			this.id = id;
+		}
 	}
 }

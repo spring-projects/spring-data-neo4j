@@ -280,7 +280,7 @@ public class ImperativeElementIdIT extends AbstractElementIdTestBase {
 					  AND elementId(e) = $id3
 					RETURN count(*)""";
 			var count = session.run(adaptQueryTo44IfNecessary(query),
-					Map.of("v1", "owner", "v2", "end", "id1", owner.getId(), "id2", owner.getIntermediate().getId(), "id3", owner.getIntermediate().getEnd().getId()))
+							Map.of("v1", "owner", "v2", "end", "id1", owner.getId(), "id2", owner.getIntermediate().getId(), "id3", owner.getIntermediate().getEnd().getId()))
 					.single().get(0).asLong();
 			assertThat(count).isEqualTo(1L);
 		}
@@ -311,11 +311,11 @@ public class ImperativeElementIdIT extends AbstractElementIdTestBase {
 
 		try (var session = driver.session(bookmarkCapture.createSessionConfig())) {
 			var count = session.run(adaptQueryTo44IfNecessary("""
-							MATCH (n:NodeWithGeneratedId4 {value: $v1}) -[r:INTERMEDIATE]-> (i:Intermediate) -[:END]-> (e:NodeWithGeneratedId4 {value: $v2})
-							WHERE elementId(n) = $id1
-							  AND elementId(i) = $id2
-							  AND elementId(e) = $id3
-							RETURN count(*)"""),
+									MATCH (n:NodeWithGeneratedId4 {value: $v1}) -[r:INTERMEDIATE]-> (i:Intermediate) -[:END]-> (e:NodeWithGeneratedId4 {value: $v2})
+									WHERE elementId(n) = $id1
+									  AND elementId(i) = $id2
+									  AND elementId(e) = $id3
+									RETURN count(*)"""),
 							Map.of("v1", "owner", "v2", "end", "id1", owner.getId(), "id2", owner.getIntermediate().getId(), "id3", owner.getIntermediate().getEnd().getId()))
 					.single().get(0).asLong();
 			assertThat(count).isEqualTo(1L);

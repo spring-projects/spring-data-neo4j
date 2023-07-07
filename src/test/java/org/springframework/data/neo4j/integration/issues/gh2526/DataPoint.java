@@ -15,11 +15,6 @@
  */
 package org.springframework.data.neo4j.integration.issues.gh2526;
 
-import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
-import lombok.Value;
-import lombok.With;
-
 import org.springframework.data.annotation.Immutable;
 import org.springframework.data.neo4j.core.schema.RelationshipId;
 import org.springframework.data.neo4j.core.schema.RelationshipProperties;
@@ -28,20 +23,76 @@ import org.springframework.data.neo4j.core.schema.TargetNode;
 /**
  * Relationship with properties between measurement and measurand
  */
+@SuppressWarnings("HiddenField")
 @RelationshipProperties
-@Value
-@With
-@AllArgsConstructor
 @Immutable
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public class DataPoint {
+public final class DataPoint {
 
 	@RelationshipId
+	private final
 	Long id;
 
-	boolean manual;
+	private final boolean manual;
 
 	@TargetNode
-	@EqualsAndHashCode.Include
+	private final
 	Measurand measurand;
+
+	public DataPoint(Long id, boolean manual, Measurand measurand) {
+		this.id = id;
+		this.manual = manual;
+		this.measurand = measurand;
+	}
+
+	public Long getId() {
+		return this.id;
+	}
+
+	public boolean isManual() {
+		return this.manual;
+	}
+
+	public Measurand getMeasurand() {
+		return this.measurand;
+	}
+
+	public String toString() {
+		return "DataPoint(id=" + this.getId() + ", manual=" + this.isManual() + ", measurand=" + this.getMeasurand() + ")";
+	}
+
+	public DataPoint withId(Long id) {
+		return this.id == id ? this : new DataPoint(id, this.manual, this.measurand);
+	}
+
+	public DataPoint withManual(boolean manual) {
+		return this.manual == manual ? this : new DataPoint(this.id, manual, this.measurand);
+	}
+
+	public DataPoint withMeasurand(Measurand measurand) {
+		return this.measurand == measurand ? this : new DataPoint(this.id, this.manual, measurand);
+	}
+
+	public boolean equals(final Object o) {
+		if (o == this) {
+			return true;
+		}
+		if (!(o instanceof DataPoint)) {
+			return false;
+		}
+		final DataPoint other = (DataPoint) o;
+		final Object this$measurand = this.getMeasurand();
+		final Object other$measurand = other.getMeasurand();
+		if (this$measurand == null ? other$measurand != null : !this$measurand.equals(other$measurand)) {
+			return false;
+		}
+		return true;
+	}
+
+	public int hashCode() {
+		final int PRIME = 59;
+		int result = 1;
+		final Object $measurand = this.getMeasurand();
+		result = result * PRIME + ($measurand == null ? 43 : $measurand.hashCode());
+		return result;
+	}
 }

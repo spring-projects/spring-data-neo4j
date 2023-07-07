@@ -21,12 +21,15 @@ import org.springframework.data.neo4j.core.schema.Node;
 
 /**
  * Must require ctor instantiation and must not have a builder.
+ *
  * @author Michael J. Simons
  */
 @Node
 public class AllArgsCtorNoBuilder {
 
-	@Id @GeneratedValue public Long id;
+	@Id
+	@GeneratedValue
+	public Long id;
 
 	private boolean aBoolean;
 

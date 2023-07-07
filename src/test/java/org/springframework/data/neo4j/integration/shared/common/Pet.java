@@ -15,29 +15,24 @@
  */
 package org.springframework.data.neo4j.integration.shared.common;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-
-import java.util.List;
-import java.util.Set;
-
 import org.springframework.data.annotation.PersistenceCreator;
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Relationship;
 
+import java.util.List;
+import java.util.Set;
+
 /**
  * @author Gerrit Meier
  */
-@RequiredArgsConstructor(onConstructor = @__(@PersistenceCreator))
-@Getter
-@EqualsAndHashCode(of = { "id", "name" })
 @Node
 public class Pet {
 
-	@Id @GeneratedValue private Long id;
+	@Id
+	@GeneratedValue
+	private Long id;
 
 	private final String name;
 
@@ -46,13 +41,22 @@ public class Pet {
 		this.id = id;
 	}
 
-	@Relationship("Has") private Set<Hobby> hobbies;
+	@Relationship("Has")
+	private Set<Hobby> hobbies;
 
-	@Relationship("Has") private List<Pet> friends;
+	@Relationship("Has")
+	private List<Pet> friends;
 
-	@Relationship(value = "Hated_by", direction = Relationship.Direction.INCOMING) private List<Pet> otherPets;
+	@Relationship(value = "Hated_by", direction = Relationship.Direction.INCOMING)
+	private List<Pet> otherPets;
 
-	@Relationship("Has") private List<ThingWithAssignedId> things;
+	@Relationship("Has")
+	private List<ThingWithAssignedId> things;
+
+	@PersistenceCreator
+	public Pet(String name) {
+		this.name = name;
+	}
 
 	public Set<Hobby> getHobbies() {
 		return hobbies;
@@ -72,5 +76,55 @@ public class Pet {
 
 	public Long getId() {
 		return id;
+	}
+
+	public String getName() {
+		return this.name;
+	}
+
+	public List<Pet> getOtherPets() {
+		return this.otherPets;
+	}
+
+	public List<ThingWithAssignedId> getThings() {
+		return this.things;
+	}
+
+	public boolean equals(final Object o) {
+		if (o == this) {
+			return true;
+		}
+		if (!(o instanceof Pet)) {
+			return false;
+		}
+		final Pet other = (Pet) o;
+		if (!other.canEqual((Object) this)) {
+			return false;
+		}
+		final Object this$id = this.getId();
+		final Object other$id = other.getId();
+		if (this$id == null ? other$id != null : !this$id.equals(other$id)) {
+			return false;
+		}
+		final Object this$name = this.getName();
+		final Object other$name = other.getName();
+		if (this$name == null ? other$name != null : !this$name.equals(other$name)) {
+			return false;
+		}
+		return true;
+	}
+
+	protected boolean canEqual(final Object other) {
+		return other instanceof Pet;
+	}
+
+	public int hashCode() {
+		final int PRIME = 59;
+		int result = 1;
+		final Object $id = this.getId();
+		result = result * PRIME + ($id == null ? 43 : $id.hashCode());
+		final Object $name = this.getName();
+		result = result * PRIME + ($name == null ? 43 : $name.hashCode());
+		return result;
 	}
 }

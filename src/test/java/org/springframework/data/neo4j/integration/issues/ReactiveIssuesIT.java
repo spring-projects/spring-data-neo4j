@@ -17,6 +17,7 @@ package org.springframework.data.neo4j.integration.issues;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import org.junit.jupiter.api.BeforeEach;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -86,10 +87,20 @@ class ReactiveIssuesIT extends TestBase {
 			try (Transaction transaction = session.beginTransaction()) {
 				transaction.run("MATCH (n) detach delete n");
 
-				setupGH2289(transaction);
 				setupGH2328(transaction);
 				setupGH2572(transaction);
 
+				transaction.commit();
+			}
+			bookmarkCapture.seedWith(session.lastBookmarks());
+		}
+	}
+
+	@BeforeEach
+	void setup(@Autowired BookmarkCapture bookmarkCapture) {
+		try (Session session = neo4jConnectionSupport.getDriver().session(bookmarkCapture.createSessionConfig())) {
+			try (Transaction transaction = session.beginTransaction()) {
+				setupGH2289(transaction);
 				transaction.commit();
 			}
 			bookmarkCapture.seedWith(session.lastBookmarks());
@@ -204,7 +215,7 @@ class ReactiveIssuesIT extends TestBase {
 	@Test
 	@Tag("GH-2326")
 	void saveShouldAddAllLabels(@Autowired ReactiveAnimalRepository animalRepository,
-			@Autowired BookmarkCapture bookmarkCapture) {
+								@Autowired BookmarkCapture bookmarkCapture) {
 
 		List<String> ids = new ArrayList<>();
 		List<AbstractLevel2> animals = Arrays.asList(new AbstractLevel2.AbstractLevel3.Concrete1(),
@@ -222,7 +233,7 @@ class ReactiveIssuesIT extends TestBase {
 	@Test
 	@Tag("GH-2326")
 	void saveAllShouldAddAllLabels(@Autowired ReactiveAnimalRepository animalRepository,
-			@Autowired BookmarkCapture bookmarkCapture) {
+								   @Autowired BookmarkCapture bookmarkCapture) {
 
 		List<String> ids = new ArrayList<>();
 		List<AbstractLevel2> animals = Arrays.asList(new AbstractLevel2.AbstractLevel3.Concrete1(),
@@ -314,7 +325,7 @@ class ReactiveIssuesIT extends TestBase {
 	@Test
 	@Tag("GH-2498")
 	void shouldNotDeleteFreshlyCreatedRelationships(@Autowired Driver driver, @Autowired
-			ReactiveNeo4jTemplate template) {
+	ReactiveNeo4jTemplate template) {
 
 		Group group = new Group();
 		group.setName("test");
@@ -432,7 +443,7 @@ class ReactiveIssuesIT extends TestBase {
 
 		@Override
 		public ReactiveTransactionManager reactiveTransactionManager(Driver driver,
-				ReactiveDatabaseSelectionProvider databaseSelectionProvider) {
+																	 ReactiveDatabaseSelectionProvider databaseSelectionProvider) {
 
 			BookmarkCapture bookmarkCapture = bookmarkCapture();
 			return new ReactiveNeo4jTransactionManager(driver, databaseSelectionProvider,

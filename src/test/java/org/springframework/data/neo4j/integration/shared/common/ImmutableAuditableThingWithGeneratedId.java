@@ -15,12 +15,6 @@
  */
 package org.springframework.data.neo4j.integration.shared.common;
 
-import lombok.AllArgsConstructor;
-import lombok.Value;
-import lombok.With;
-
-import java.time.LocalDateTime;
-
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
@@ -31,24 +25,151 @@ import org.springframework.data.annotation.Persistent;
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.support.UUIDStringGenerator;
 
+import java.time.LocalDateTime;
+
 /**
  * @author Michael J. Simons
  */
-@Value
-@With
-@AllArgsConstructor(onConstructor = @__(@PersistenceCreator))
+@SuppressWarnings("HiddenField")
 @Persistent
-public class ImmutableAuditableThingWithGeneratedId implements AuditableThing {
+public final class ImmutableAuditableThingWithGeneratedId implements AuditableThing {
 
-	@Id @GeneratedValue(UUIDStringGenerator.class) String id;
-	@CreatedDate LocalDateTime createdAt;
-	@CreatedBy String createdBy;
-	@LastModifiedDate LocalDateTime modifiedAt;
-	@LastModifiedBy String modifiedBy;
+	@Id
+	@GeneratedValue(UUIDStringGenerator.class)
+	private final String id;
+	@CreatedDate
+	private final LocalDateTime createdAt;
+	@CreatedBy
+	private final String createdBy;
+	@LastModifiedDate
+	private final LocalDateTime modifiedAt;
+	@LastModifiedBy
+	private final String modifiedBy;
 
-	String name;
+	private final String name;
 
 	public ImmutableAuditableThingWithGeneratedId(String name) {
 		this(null, null, null, null, null, name);
+	}
+
+	@PersistenceCreator
+	public ImmutableAuditableThingWithGeneratedId(String id, LocalDateTime createdAt, String createdBy, LocalDateTime modifiedAt, String modifiedBy, String name) {
+		this.id = id;
+		this.createdAt = createdAt;
+		this.createdBy = createdBy;
+		this.modifiedAt = modifiedAt;
+		this.modifiedBy = modifiedBy;
+		this.name = name;
+	}
+
+	public String getId() {
+		return this.id;
+	}
+
+	public LocalDateTime getCreatedAt() {
+		return this.createdAt;
+	}
+
+	public String getCreatedBy() {
+		return this.createdBy;
+	}
+
+	public LocalDateTime getModifiedAt() {
+		return this.modifiedAt;
+	}
+
+	public String getModifiedBy() {
+		return this.modifiedBy;
+	}
+
+	public String getName() {
+		return this.name;
+	}
+
+	public boolean equals(final Object o) {
+		if (o == this) {
+			return true;
+		}
+		if (!(o instanceof ImmutableAuditableThingWithGeneratedId)) {
+			return false;
+		}
+		final ImmutableAuditableThingWithGeneratedId other = (ImmutableAuditableThingWithGeneratedId) o;
+		final Object this$id = this.getId();
+		final Object other$id = other.getId();
+		if (this$id == null ? other$id != null : !this$id.equals(other$id)) {
+			return false;
+		}
+		final Object this$createdAt = this.getCreatedAt();
+		final Object other$createdAt = other.getCreatedAt();
+		if (this$createdAt == null ? other$createdAt != null : !this$createdAt.equals(other$createdAt)) {
+			return false;
+		}
+		final Object this$createdBy = this.getCreatedBy();
+		final Object other$createdBy = other.getCreatedBy();
+		if (this$createdBy == null ? other$createdBy != null : !this$createdBy.equals(other$createdBy)) {
+			return false;
+		}
+		final Object this$modifiedAt = this.getModifiedAt();
+		final Object other$modifiedAt = other.getModifiedAt();
+		if (this$modifiedAt == null ? other$modifiedAt != null : !this$modifiedAt.equals(other$modifiedAt)) {
+			return false;
+		}
+		final Object this$modifiedBy = this.getModifiedBy();
+		final Object other$modifiedBy = other.getModifiedBy();
+		if (this$modifiedBy == null ? other$modifiedBy != null : !this$modifiedBy.equals(other$modifiedBy)) {
+			return false;
+		}
+		final Object this$name = this.getName();
+		final Object other$name = other.getName();
+		if (this$name == null ? other$name != null : !this$name.equals(other$name)) {
+			return false;
+		}
+		return true;
+	}
+
+	public int hashCode() {
+		final int PRIME = 59;
+		int result = 1;
+		final Object $id = this.getId();
+		result = result * PRIME + ($id == null ? 43 : $id.hashCode());
+		final Object $createdAt = this.getCreatedAt();
+		result = result * PRIME + ($createdAt == null ? 43 : $createdAt.hashCode());
+		final Object $createdBy = this.getCreatedBy();
+		result = result * PRIME + ($createdBy == null ? 43 : $createdBy.hashCode());
+		final Object $modifiedAt = this.getModifiedAt();
+		result = result * PRIME + ($modifiedAt == null ? 43 : $modifiedAt.hashCode());
+		final Object $modifiedBy = this.getModifiedBy();
+		result = result * PRIME + ($modifiedBy == null ? 43 : $modifiedBy.hashCode());
+		final Object $name = this.getName();
+		result = result * PRIME + ($name == null ? 43 : $name.hashCode());
+		return result;
+	}
+
+	public String toString() {
+		return "ImmutableAuditableThingWithGeneratedId(id=" + this.getId() + ", createdAt=" + this.getCreatedAt() + ", createdBy=" + this.getCreatedBy() + ", modifiedAt=" + this.getModifiedAt() + ", modifiedBy=" + this.getModifiedBy() + ", name=" + this.getName() + ")";
+	}
+
+	public ImmutableAuditableThingWithGeneratedId withId(String id) {
+		return this.id == id ? this : new ImmutableAuditableThingWithGeneratedId(id, this.createdAt, this.createdBy, this.modifiedAt, this.modifiedBy, this.name);
+	}
+
+	public ImmutableAuditableThingWithGeneratedId withCreatedAt(LocalDateTime createdAt) {
+		return this.createdAt == createdAt ? this : new ImmutableAuditableThingWithGeneratedId(this.id, createdAt, this.createdBy, this.modifiedAt, this.modifiedBy, this.name);
+	}
+
+	public ImmutableAuditableThingWithGeneratedId withCreatedBy(String createdBy) {
+		return this.createdBy == createdBy ? this : new ImmutableAuditableThingWithGeneratedId(this.id, this.createdAt, createdBy, this.modifiedAt, this.modifiedBy, this.name);
+	}
+
+	public ImmutableAuditableThingWithGeneratedId withModifiedAt(LocalDateTime modifiedAt) {
+		return this.modifiedAt == modifiedAt ? this : new ImmutableAuditableThingWithGeneratedId(this.id, this.createdAt, this.createdBy, modifiedAt, this.modifiedBy, this.name);
+	}
+
+	public ImmutableAuditableThingWithGeneratedId withModifiedBy(String modifiedBy) {
+		return this.modifiedBy == modifiedBy ? this : new ImmutableAuditableThingWithGeneratedId(this.id, this.createdAt, this.createdBy, this.modifiedAt, modifiedBy, this.name);
+	}
+
+	public ImmutableAuditableThingWithGeneratedId withName(String name) {
+		return this.name == name ? this : new ImmutableAuditableThingWithGeneratedId(this.id, this.createdAt, this.createdBy, this.modifiedAt, this.modifiedBy, name);
 	}
 }

@@ -15,23 +15,6 @@
  */
 package org.springframework.data.neo4j.integration.imperative;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
-
-import lombok.Data;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.function.BiPredicate;
-import java.util.function.Function;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.neo4j.cypherdsl.core.Cypher;
@@ -50,7 +33,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.data.mapping.PropertyPath;
-import org.springframework.data.neo4j.test.Neo4jImperativeTestConfiguration;
 import org.springframework.data.neo4j.core.DatabaseSelectionProvider;
 import org.springframework.data.neo4j.core.Neo4jTemplate;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentProperty;
@@ -63,9 +45,25 @@ import org.springframework.data.neo4j.integration.shared.common.PersonWithAssign
 import org.springframework.data.neo4j.integration.shared.common.ThingWithGeneratedId;
 import org.springframework.data.neo4j.test.BookmarkCapture;
 import org.springframework.data.neo4j.test.Neo4jExtension.Neo4jConnectionSupport;
+import org.springframework.data.neo4j.test.Neo4jImperativeTestConfiguration;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.BiPredicate;
+import java.util.function.Function;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
 /**
  * @author Gerrit Meier
@@ -354,14 +352,88 @@ class Neo4jTemplateIT {
 		return predicate;
 	}
 
-	@Data
 	static class DtoPersonProjection {
 
-		/** The ID is required in a project that should be saved. */
+		/**
+		 * The ID is required in a project that should be saved.
+		 */
 		private final Long id;
 
 		private String lastName;
 		private String firstName;
+
+		DtoPersonProjection(Long id) {
+			this.id = id;
+		}
+
+		public Long getId() {
+			return this.id;
+		}
+
+		public String getLastName() {
+			return this.lastName;
+		}
+
+		public String getFirstName() {
+			return this.firstName;
+		}
+
+		public void setLastName(String lastName) {
+			this.lastName = lastName;
+		}
+
+		public void setFirstName(String firstName) {
+			this.firstName = firstName;
+		}
+
+		public boolean equals(final Object o) {
+			if (o == this) {
+				return true;
+			}
+			if (!(o instanceof DtoPersonProjection)) {
+				return false;
+			}
+			final DtoPersonProjection other = (DtoPersonProjection) o;
+			if (!other.canEqual((Object) this)) {
+				return false;
+			}
+			final Object this$id = this.getId();
+			final Object other$id = other.getId();
+			if (this$id == null ? other$id != null : !this$id.equals(other$id)) {
+				return false;
+			}
+			final Object this$lastName = this.getLastName();
+			final Object other$lastName = other.getLastName();
+			if (this$lastName == null ? other$lastName != null : !this$lastName.equals(other$lastName)) {
+				return false;
+			}
+			final Object this$firstName = this.getFirstName();
+			final Object other$firstName = other.getFirstName();
+			if (this$firstName == null ? other$firstName != null : !this$firstName.equals(other$firstName)) {
+				return false;
+			}
+			return true;
+		}
+
+		protected boolean canEqual(final Object other) {
+			return other instanceof DtoPersonProjection;
+		}
+
+		public int hashCode() {
+			final int PRIME = 59;
+			int result = 1;
+			final Object $id = this.getId();
+			result = result * PRIME + ($id == null ? 43 : $id.hashCode());
+			final Object $lastName = this.getLastName();
+			result = result * PRIME + ($lastName == null ? 43 : $lastName.hashCode());
+			final Object $firstName = this.getFirstName();
+			result = result * PRIME + ($firstName == null ? 43 : $firstName.hashCode());
+			return result;
+		}
+
+		public String toString() {
+			return "Neo4jTemplateIT.DtoPersonProjection(id=" + this.getId() + ", lastName=" + this.getLastName() + ", firstName=" + this.getFirstName() + ")";
+		}
 	}
 
 	@Test // GH-2215

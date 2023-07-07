@@ -24,7 +24,8 @@ import org.springframework.data.neo4j.core.support.UUIDStringGenerator;
  */
 public abstract class BaseEntity {
 
-	@Id @GeneratedValue(UUIDStringGenerator.class)
+	@Id
+	@GeneratedValue(UUIDStringGenerator.class)
 	private String id;
 
 	public String getId() {

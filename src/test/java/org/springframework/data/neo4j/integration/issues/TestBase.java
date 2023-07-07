@@ -48,7 +48,7 @@ abstract class TestBase {
 	@BeforeEach
 	protected final void beforeEach(@Autowired BookmarkCapture bookmarkCapture) {
 		try (Session session = neo4jConnectionSupport.getDriver().session(bookmarkCapture.createSessionConfig());
-				Transaction transaction = session.beginTransaction()
+			 Transaction transaction = session.beginTransaction()
 		) {
 			List<String> labelsToDelete = List.of("AbstractBase", "AccountingMeasurementMeta", "Application",
 					"BaseNodeEntity", "CityModel", "ConcreteImplementationOne", "ConcreteImplementationTwo",
@@ -100,9 +100,10 @@ abstract class TestBase {
 	}
 
 	protected static void setupGH2289(QueryRunner queryRunner) {
+		queryRunner.run("MATCH (s:SKU_RO) DETACH DELETE s").consume();
 		for (int i = 0; i < 4; ++i) {
 			queryRunner.run("CREATE (s:SKU_RO {number: $i, name: $n})",
-					Values.parameters("i", i, "n", new String(new char[] { (char) ('A' + i) }))).consume();
+					Values.parameters("i", i, "n", new String(new char[]{(char) ('A' + i)}))).consume();
 		}
 	}
 
@@ -170,7 +171,7 @@ abstract class TestBase {
 	}
 
 	protected static void assertSingleApplicationNodeWithMultipleWorkflows(Driver driver,
-			BookmarkCapture bookmarkCapture) {
+																		   BookmarkCapture bookmarkCapture) {
 
 		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
 			Record record = session.executeRead(
@@ -182,7 +183,7 @@ abstract class TestBase {
 	}
 
 	protected static void assertMultipleApplicationsNodeWithASingleWorkflow(Driver driver,
-			BookmarkCapture bookmarkCapture) {
+																			BookmarkCapture bookmarkCapture) {
 
 		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
 			List<Record> records = session.executeRead(

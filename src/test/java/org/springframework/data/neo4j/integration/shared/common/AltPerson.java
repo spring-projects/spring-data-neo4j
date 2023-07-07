@@ -27,7 +27,9 @@ import java.util.Objects;
 @Node
 public class AltPerson {
 
-	@Id @GeneratedValue private Long id;
+	@Id
+	@GeneratedValue
+	private Long id;
 
 	private final String name;
 

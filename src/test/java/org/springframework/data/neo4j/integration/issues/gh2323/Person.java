@@ -29,7 +29,8 @@ import org.springframework.data.neo4j.core.schema.Relationship;
 @Node
 public class Person {
 
-	@Id @GeneratedValue(GeneratedValue.UUIDGenerator.class)
+	@Id
+	@GeneratedValue(GeneratedValue.UUIDGenerator.class)
 	private String id;
 
 	private final String name;

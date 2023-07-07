@@ -26,7 +26,9 @@ import org.springframework.data.neo4j.core.schema.Relationship;
 @Node
 public class ThingWithFixedGeneratedId extends AbstractNamedThing {
 
-	@Id @GeneratedValue(AlwaysTheSameIdGenerator.class) private String theId;
+	@Id
+	@GeneratedValue(AlwaysTheSameIdGenerator.class)
+	private String theId;
 
 	@Relationship("KNOWS")
 	private SimplePerson person;

@@ -15,21 +15,7 @@
  */
 package org.springframework.data.neo4j.test;
 
-import static org.assertj.core.api.Assumptions.assumeThat;
-
-import lombok.extern.apachecommons.CommonsLog;
-
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Optional;
-import java.util.Set;
-
+import org.apache.commons.logging.Log;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.BeforeEachCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -50,6 +36,19 @@ import org.springframework.lang.Nullable;
 import org.testcontainers.containers.Neo4jContainer;
 import org.testcontainers.utility.TestcontainersConfiguration;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Optional;
+import java.util.Set;
+
+import static org.assertj.core.api.Assumptions.assumeThat;
+
 /**
  * This extension is for internal use only. It is meant to speed up development and keep test containers for normal
  * build. When both {@code SDN_NEO4J_URL} and {@code SDN_NEO4J_PASSWORD} are set as environment variables, the extension
@@ -59,7 +58,6 @@ import org.testcontainers.utility.TestcontainersConfiguration;
  * @author Michael J. Simons
  * @since 6.0
  */
-@CommonsLog
 public class Neo4jExtension implements BeforeAllCallback, BeforeEachCallback {
 
 	public final static String NEEDS_REACTIVE_SUPPORT = "reactive-test";
@@ -83,6 +81,7 @@ public class Neo4jExtension implements BeforeAllCallback, BeforeEachCallback {
 	private static final String SYS_PROPERTY_NEO4J_ACCEPT_COMMERCIAL_EDITION = "SDN_NEO4J_ACCEPT_COMMERCIAL_EDITION";
 	private static final String SYS_PROPERTY_NEO4J_REPOSITORY = "SDN_NEO4J_REPOSITORY";
 	private static final String SYS_PROPERTY_NEO4J_VERSION = "SDN_NEO4J_VERSION";
+	private static final Log log = org.apache.commons.logging.LogFactory.getLog(Neo4jExtension.class);
 
 	private static Set<String> COMMUNITY_EDITION_INDICATOR = Collections.singleton("community");
 

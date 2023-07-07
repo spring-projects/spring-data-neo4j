@@ -15,14 +15,10 @@
  */
 package org.springframework.data.neo4j.integration.issues.gh2168;
 
-import lombok.Getter;
-import lombok.Setter;
-
 /**
  * @author Michael J. Simons
  */
-@Getter
-@Setter
+@SuppressWarnings("HiddenField")
 public class UnrelatedObject {
 
 	private boolean aBooleanValue;
@@ -34,6 +30,22 @@ public class UnrelatedObject {
 
 	public UnrelatedObject(boolean aBooleanValue, Long aLongValue) {
 		this.aBooleanValue = aBooleanValue;
+		this.aLongValue = aLongValue;
+	}
+
+	public boolean isABooleanValue() {
+		return this.aBooleanValue;
+	}
+
+	public Long getALongValue() {
+		return this.aLongValue;
+	}
+
+	public void setABooleanValue(boolean aBooleanValue) {
+		this.aBooleanValue = aBooleanValue;
+	}
+
+	public void setALongValue(Long aLongValue) {
 		this.aLongValue = aLongValue;
 	}
 }

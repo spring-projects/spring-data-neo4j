@@ -15,9 +15,6 @@
  */
 package org.springframework.data.neo4j.integration.issues.gh2168;
 
-import lombok.Getter;
-import lombok.Setter;
-
 import org.springframework.data.neo4j.core.convert.ConvertWith;
 import org.springframework.data.neo4j.core.schema.CompositeProperty;
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
@@ -29,8 +26,6 @@ import org.springframework.data.neo4j.core.schema.Property;
  * @author Michael J. Simons
  */
 @Node
-@Getter
-@Setter
 public class DomainObject {
 
 	@Id
@@ -46,4 +41,36 @@ public class DomainObject {
 
 	@ConvertWith(converterRef = "converterBean")
 	private UnrelatedObject storedAsAnotherSingleProperty = new UnrelatedObject();
+
+	public String getId() {
+		return this.id;
+	}
+
+	public UnrelatedObject getStoredAsMultipleProperties() {
+		return this.storedAsMultipleProperties;
+	}
+
+	public UnrelatedObject getStoredAsSingleProperty() {
+		return this.storedAsSingleProperty;
+	}
+
+	public UnrelatedObject getStoredAsAnotherSingleProperty() {
+		return this.storedAsAnotherSingleProperty;
+	}
+
+	public void setId(String id) {
+		this.id = id;
+	}
+
+	public void setStoredAsMultipleProperties(UnrelatedObject storedAsMultipleProperties) {
+		this.storedAsMultipleProperties = storedAsMultipleProperties;
+	}
+
+	public void setStoredAsSingleProperty(UnrelatedObject storedAsSingleProperty) {
+		this.storedAsSingleProperty = storedAsSingleProperty;
+	}
+
+	public void setStoredAsAnotherSingleProperty(UnrelatedObject storedAsAnotherSingleProperty) {
+		this.storedAsAnotherSingleProperty = storedAsAnotherSingleProperty;
+	}
 }

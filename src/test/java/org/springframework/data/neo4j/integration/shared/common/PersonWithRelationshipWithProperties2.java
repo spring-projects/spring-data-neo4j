@@ -28,11 +28,14 @@ import org.springframework.data.neo4j.core.schema.Relationship;
 @Node
 public class PersonWithRelationshipWithProperties2 {
 
-	@Id @GeneratedValue private Long id;
+	@Id
+	@GeneratedValue
+	private Long id;
 
 	private final String name;
 
-	@Relationship("LIKES") private Set<LikesHobbyRelationship> hobbies;
+	@Relationship("LIKES")
+	private Set<LikesHobbyRelationship> hobbies;
 
 	public PersonWithRelationshipWithProperties2(String name) {
 		this.name = name;

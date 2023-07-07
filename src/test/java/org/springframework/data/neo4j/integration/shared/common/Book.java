@@ -33,7 +33,8 @@ import org.springframework.data.neo4j.core.schema.Relationship;
 @Node
 public class Book {
 
-	@Id @GeneratedValue
+	@Id
+	@GeneratedValue
 	private UUID id;
 
 	private String title;

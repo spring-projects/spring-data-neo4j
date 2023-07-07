@@ -32,7 +32,8 @@ import java.util.Set;
 @Node
 public class ImmutablePersonWithGeneratedId {
 
-	@Id @GeneratedValue
+	@Id
+	@GeneratedValue
 	public final Long id;
 
 	@Relationship("ONBOARDED_BY")
@@ -57,16 +58,16 @@ public class ImmutablePersonWithGeneratedId {
 
 	@PersistenceCreator
 	public ImmutablePersonWithGeneratedId(
-		Long id,
-		List<ImmutablePersonWithGeneratedId> wasOnboardedBy,
-		Set<ImmutablePersonWithGeneratedId> knownBy,
-		Map<String, ImmutablePersonWithGeneratedId> ratedBy,
-		Map<String, List<ImmutableSecondPersonWithGeneratedId>> ratedByCollection,
-		ImmutablePersonWithGeneratedId fallback,
-		ImmutablePersonWithGeneratedIdRelationshipProperties relationshipProperties,
-		List<ImmutablePersonWithGeneratedIdRelationshipProperties> relationshipPropertiesCollection,
-		Map<String, ImmutablePersonWithGeneratedIdRelationshipProperties> relationshipPropertiesDynamic,
-		Map<String, List<ImmutableSecondPersonWithGeneratedIdRelationshipProperties>> relationshipPropertiesDynamicCollection) {
+			Long id,
+			List<ImmutablePersonWithGeneratedId> wasOnboardedBy,
+			Set<ImmutablePersonWithGeneratedId> knownBy,
+			Map<String, ImmutablePersonWithGeneratedId> ratedBy,
+			Map<String, List<ImmutableSecondPersonWithGeneratedId>> ratedByCollection,
+			ImmutablePersonWithGeneratedId fallback,
+			ImmutablePersonWithGeneratedIdRelationshipProperties relationshipProperties,
+			List<ImmutablePersonWithGeneratedIdRelationshipProperties> relationshipPropertiesCollection,
+			Map<String, ImmutablePersonWithGeneratedIdRelationshipProperties> relationshipPropertiesDynamic,
+			Map<String, List<ImmutableSecondPersonWithGeneratedIdRelationshipProperties>> relationshipPropertiesDynamicCollection) {
 
 		this.id = id;
 		this.wasOnboardedBy = wasOnboardedBy;
@@ -217,7 +218,7 @@ public class ImmutablePersonWithGeneratedId {
 				Collections.emptyList(),
 				Collections.emptyMap(),
 				relationshipPropertiesDynamicCollection
-				);
+		);
 	}
 
 }

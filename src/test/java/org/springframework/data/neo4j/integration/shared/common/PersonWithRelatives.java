@@ -57,7 +57,9 @@ public class PersonWithRelatives {
 		FOOTBALL, BASEBALL
 	}
 
-	@Id @GeneratedValue private Long id;
+	@Id
+	@GeneratedValue
+	private Long id;
 
 	private final String name;
 

@@ -25,7 +25,8 @@ import org.springframework.data.neo4j.core.schema.Node;
 @Node
 public abstract class Step {
 
-	@Id @GeneratedValue
+	@Id
+	@GeneratedValue
 	private Long id;
 
 	public Long getId() {

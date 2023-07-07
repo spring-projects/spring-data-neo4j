@@ -15,29 +15,17 @@
  */
 package org.springframework.data.neo4j.integration.issues.gh2415;
 
-import lombok.AccessLevel;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.experimental.SuperBuilder;
-
-import java.util.Set;
-
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Relationship;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import java.util.Set;
 
 /**
  * @author Andreas Berger
  */
+@SuppressWarnings("HiddenField")
 @Node
-@Data
-@Setter(AccessLevel.PRIVATE)
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
-@EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
-@SuperBuilder(toBuilder = true)
 public class NodeEntity extends BaseNodeEntity implements NodeWithDefinedCredentials {
 
 	@JsonIgnore
@@ -47,8 +35,121 @@ public class NodeEntity extends BaseNodeEntity implements NodeWithDefinedCredent
 	@Relationship(type = "HAS_CREDENTIAL")
 	private Set<Credential> definedCredentials;
 
+	protected NodeEntity() {
+	}
+
+	protected NodeEntity(NodeEntityBuilder<?, ?> b) {
+		super(b);
+		this.children = b.children;
+		this.definedCredentials = b.definedCredentials;
+	}
+
+	public static NodeEntityBuilder<?, ?> builder() {
+		return new NodeEntityBuilderImpl();
+	}
+
 	@Override
 	public String toString() {
 		return super.toString();
+	}
+
+	public Set<BaseNodeEntity> getChildren() {
+		return this.children;
+	}
+
+	public Set<Credential> getDefinedCredentials() {
+		return this.definedCredentials;
+	}
+
+	@JsonIgnore
+	private void setChildren(Set<BaseNodeEntity> children) {
+		this.children = children;
+	}
+
+	private void setDefinedCredentials(Set<Credential> definedCredentials) {
+		this.definedCredentials = definedCredentials;
+	}
+
+	public boolean equals(final Object o) {
+		if (o == this) {
+			return true;
+		}
+		if (!(o instanceof NodeEntity)) {
+			return false;
+		}
+		final NodeEntity other = (NodeEntity) o;
+		if (!other.canEqual((Object) this)) {
+			return false;
+		}
+		if (!super.equals(o)) {
+			return false;
+		}
+		return true;
+	}
+
+	protected boolean canEqual(final Object other) {
+		return other instanceof NodeEntity;
+	}
+
+	public int hashCode() {
+		int result = super.hashCode();
+		return result;
+	}
+
+	public NodeEntityBuilder<?, ?> toBuilder() {
+		return new NodeEntityBuilderImpl().$fillValuesFrom(this);
+	}
+
+	/**
+	 * the builder
+	 * @param <C> needed c type
+	 * @param <B> needed b type
+	 */
+	public static abstract class NodeEntityBuilder<C extends NodeEntity, B extends NodeEntityBuilder<C, B>> extends BaseNodeEntityBuilder<C, B> {
+		private Set<BaseNodeEntity> children;
+		private Set<Credential> definedCredentials;
+
+		private static void $fillValuesFromInstanceIntoBuilder(NodeEntity instance, NodeEntityBuilder<?, ?> b) {
+			b.children(instance.children);
+			b.definedCredentials(instance.definedCredentials);
+		}
+
+		@JsonIgnore
+		public B children(Set<BaseNodeEntity> children) {
+			this.children = children;
+			return self();
+		}
+
+		public B definedCredentials(Set<Credential> definedCredentials) {
+			this.definedCredentials = definedCredentials;
+			return self();
+		}
+
+		protected B $fillValuesFrom(C instance) {
+			super.$fillValuesFrom(instance);
+			NodeEntityBuilder.$fillValuesFromInstanceIntoBuilder(instance, this);
+			return self();
+		}
+
+		protected abstract B self();
+
+		public abstract C build();
+
+		public String toString() {
+			return "NodeEntity.NodeEntityBuilder(super=" + super.toString() + ", children=" + this.children + ", definedCredentials=" + this.definedCredentials + ")";
+		}
+	}
+
+	private static final class NodeEntityBuilderImpl extends NodeEntityBuilder<NodeEntity, NodeEntityBuilderImpl> {
+		private NodeEntityBuilderImpl() {
+		}
+
+		protected NodeEntityBuilderImpl self() {
+			return this;
+		}
+
+		public NodeEntity build() {
+			return new NodeEntity(this);
+		}
 	}
 }

@@ -26,25 +26,26 @@ import org.springframework.data.neo4j.core.schema.Relationship;
 @Node
 public class TestEntityWithAssignedId1 {
 
-    @Id
-    private String assignedId;
+	@Id
+	private String assignedId;
 
-    @Property("value_one")
-    private String valueOne;
+	@Property("value_one")
+	private String valueOne;
 
-    @Relationship("related_to")
-    private TestEntityWithAssignedId2 relatedEntity;
+	@Relationship("related_to")
+	private TestEntityWithAssignedId2 relatedEntity;
 
-    public TestEntityWithAssignedId1(String assignedId, String valueOne, TestEntityWithAssignedId2 relatedEntity) {
-        this.assignedId = assignedId;
-        this.valueOne = valueOne;
-        this.relatedEntity = relatedEntity;
-    }
-    public String getAssignedId() {
-        return assignedId;
-    }
+	public TestEntityWithAssignedId1(String assignedId, String valueOne, TestEntityWithAssignedId2 relatedEntity) {
+		this.assignedId = assignedId;
+		this.valueOne = valueOne;
+		this.relatedEntity = relatedEntity;
+	}
 
-    public TestEntityWithAssignedId2 getRelatedEntity() {
-        return relatedEntity;
-    }
+	public String getAssignedId() {
+		return assignedId;
+	}
+
+	public TestEntityWithAssignedId2 getRelatedEntity() {
+		return relatedEntity;
+	}
 }

@@ -15,26 +15,34 @@
  */
 package org.springframework.data.neo4j.integration.issues.gh2328;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-
-import java.util.UUID;
-
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
+
+import java.util.UUID;
 
 /**
  * @author Michael J. Simons
  * @soundtrack Motörhead - Better Motörhead Than Dead - Live At Hammersmith
  */
 @Node
-@Getter
-@RequiredArgsConstructor
 public class Entity2328 {
 
-	@Id @GeneratedValue
+	@Id
+	@GeneratedValue
 	private UUID id;
 
 	private final String name;
+
+	public Entity2328(String name) {
+		this.name = name;
+	}
+
+	public UUID getId() {
+		return this.id;
+	}
+
+	public String getName() {
+		return this.name;
+	}
 }

@@ -160,6 +160,7 @@ import org.springframework.data.neo4j.test.Neo4jImperativeTestConfiguration;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Michael J. Simons
@@ -307,7 +308,7 @@ class IssuesIT extends TestBase {
 	@Test
 	@Tag("GH-2415")
 	void saveWithProjectionImplementedByEntity(@Autowired Neo4jMappingContext mappingContext,
-			@Autowired Neo4jTemplate neo4jTemplate) {
+											   @Autowired Neo4jTemplate neo4jTemplate) {
 
 		Neo4jPersistentEntity<?> metaData = mappingContext.getPersistentEntity(BaseNodeEntity.class);
 		NodeEntity nodeEntity = neo4jTemplate
@@ -461,6 +462,7 @@ class IssuesIT extends TestBase {
 		});
 	}
 
+	@Transactional // otherwise the relationships will add up
 	@RepeatedTest(5)
 	@Tag("GH-2289")
 	@Tag("GH-2294")
@@ -534,7 +536,7 @@ class IssuesIT extends TestBase {
 	@Test
 	@Tag("GH-2326")
 	void saveShouldAddAllLabels(@Autowired AnimalRepository animalRepository,
-			@Autowired BookmarkCapture bookmarkCapture) {
+								@Autowired BookmarkCapture bookmarkCapture) {
 
 		List<AbstractLevel2> animals = Arrays.asList(new AbstractLevel2.AbstractLevel3.Concrete1(),
 				new AbstractLevel2.AbstractLevel3.Concrete2());
@@ -547,7 +549,7 @@ class IssuesIT extends TestBase {
 	@Test
 	@Tag("GH-2326")
 	void saveAllShouldAddAllLabels(@Autowired AnimalRepository animalRepository,
-			@Autowired BookmarkCapture bookmarkCapture) {
+								   @Autowired BookmarkCapture bookmarkCapture) {
 
 		List<AbstractLevel2> animals = Arrays.asList(new AbstractLevel2.AbstractLevel3.Concrete1(),
 				new AbstractLevel2.AbstractLevel3.Concrete2());
@@ -718,7 +720,7 @@ class IssuesIT extends TestBase {
 	@Test
 	@Tag("GH-2493")
 	void saveOneShouldWork(@Autowired Driver driver, @Autowired BookmarkCapture bookmarkCapture,
-			@Autowired TestObjectRepository repository) {
+						   @Autowired TestObjectRepository repository) {
 
 		TestObject testObject = new TestObject(new TestData(4711, "Foobar"));
 		testObject = repository.save(testObject);
@@ -730,7 +732,7 @@ class IssuesIT extends TestBase {
 	@Test
 	@Tag("GH-2493")
 	void saveAllShouldWork(@Autowired Driver driver, @Autowired BookmarkCapture bookmarkCapture,
-			@Autowired TestObjectRepository repository) {
+						   @Autowired TestObjectRepository repository) {
 
 		TestObject testObject = new TestObject(new TestData(4711, "Foobar"));
 		testObject = repository.saveAll(Collections.singletonList(testObject)).get(0);
@@ -819,7 +821,7 @@ class IssuesIT extends TestBase {
 	@Test
 	@Tag("GH-2533")
 	void projectionWorksForDynamicRelationshipsOnSave(@Autowired GH2533Repository repository,
-			@Autowired Neo4jTemplate neo4jTemplate) {
+													  @Autowired Neo4jTemplate neo4jTemplate) {
 		EntitiesAndProjections.GH2533Entity rootEntity = createData(repository);
 
 		rootEntity = repository.findByIdWithLevelOneLinks(rootEntity.id).get();
@@ -839,7 +841,7 @@ class IssuesIT extends TestBase {
 	@Test
 	@Tag("GH-2533")
 	void saveRelatedEntityWithRelationships(@Autowired GH2533Repository repository,
-			@Autowired Neo4jTemplate neo4jTemplate) {
+											@Autowired Neo4jTemplate neo4jTemplate) {
 		EntitiesAndProjections.GH2533Entity rootEntity = createData(repository);
 
 		neo4jTemplate.saveAs(rootEntity, EntitiesAndProjections.GH2533EntityWithRelationshipToEntity.class);
@@ -906,7 +908,7 @@ class IssuesIT extends TestBase {
 
 	@Test
 	@Tag("GH-2576")
-	void listOfMapsShouldBeUsableAsArguments(@Autowired Neo4jTemplate template,  @Autowired CollegeRepository collegeRepository) {
+	void listOfMapsShouldBeUsableAsArguments(@Autowired Neo4jTemplate template, @Autowired CollegeRepository collegeRepository) {
 
 		var student = template.save(new Student("S1"));
 		var college = template.save(new College("C1"));
@@ -920,7 +922,7 @@ class IssuesIT extends TestBase {
 
 	@Test
 	@Tag("GH-2576")
-	void listOfMapsShouldBeUsableAsArgumentsWithWorkaround(@Autowired Neo4jTemplate template,  @Autowired CollegeRepository collegeRepository) {
+	void listOfMapsShouldBeUsableAsArgumentsWithWorkaround(@Autowired Neo4jTemplate template, @Autowired CollegeRepository collegeRepository) {
 
 		var student = template.save(new Student("S1"));
 		var college = template.save(new College("C1"));
@@ -997,7 +999,7 @@ class IssuesIT extends TestBase {
 		languageRelationships.add(perlRelationship);
 
 		Developer harry = new Developer("Harry", languageRelationships);
-		List<CompanyPerson> team = Arrays.asList(greg,	roy, craig,	harry);
+		List<CompanyPerson> team = Arrays.asList(greg, roy, craig, harry);
 		Company acme = new Company("ACME", team);
 		companyRepository.save(acme);
 
@@ -1114,7 +1116,7 @@ class IssuesIT extends TestBase {
 
 		@Override
 		public PlatformTransactionManager transactionManager(Driver driver,
-				DatabaseSelectionProvider databaseNameProvider) {
+															 DatabaseSelectionProvider databaseNameProvider) {
 
 			BookmarkCapture bookmarkCapture = bookmarkCapture();
 			return new Neo4jTransactionManager(driver, databaseNameProvider,
@@ -1213,7 +1215,7 @@ class IssuesIT extends TestBase {
 	}
 
 	private static void assertThatTestObjectHasBeenCreated(Driver driver, BookmarkCapture bookmarkCapture,
-			TestObject testObject) {
+														   TestObject testObject) {
 		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
 			Map<String, Object> arguments = new HashMap<>();
 			arguments.put("id", testObject.getId());

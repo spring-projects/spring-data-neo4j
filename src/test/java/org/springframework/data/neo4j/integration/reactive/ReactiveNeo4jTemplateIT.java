@@ -15,23 +15,6 @@
  */
 package org.springframework.data.neo4j.integration.reactive;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.neo4j.cypherdsl.core.Cypher.parameter;
-
-import lombok.Data;
-import reactor.core.publisher.Flux;
-import reactor.test.StepVerifier;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.function.BiPredicate;
-import java.util.function.Function;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -74,6 +57,21 @@ import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 import org.springframework.data.neo4j.test.Neo4jReactiveTestConfiguration;
 import org.springframework.transaction.ReactiveTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+import reactor.core.publisher.Flux;
+import reactor.test.StepVerifier;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.function.BiPredicate;
+import java.util.function.Function;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.neo4j.cypherdsl.core.Cypher.parameter;
 
 /**
  * @author Gerrit Meier
@@ -95,7 +93,8 @@ class ReactiveNeo4jTemplateIT {
 	private Long simonsId;
 	private Long nullNullSchneider;
 
-	@Autowired ReactiveNeo4jTemplateIT(Driver driver, ReactiveNeo4jTemplate neo4jTemplate) {
+	@Autowired
+	ReactiveNeo4jTemplateIT(Driver driver, ReactiveNeo4jTemplate neo4jTemplate) {
 		this.driver = driver;
 		this.neo4jTemplate = neo4jTemplate;
 	}
@@ -129,11 +128,11 @@ class ReactiveNeo4jTemplateIT {
 
 			transaction.run(
 					"CREATE (root:NodeEntity:BaseNodeEntity{nodeId: 'root'}) " +
-					"CREATE (company:NodeEntity:BaseNodeEntity{nodeId: 'comp'}) " +
-					"CREATE (cred:Credential{id: 'uuid-1', name: 'Creds'}) " +
-					"CREATE (company)-[:CHILD_OF]->(root) " +
-					"CREATE (root)-[:HAS_CREDENTIAL]->(cred) " +
-					"CREATE (company)-[:WITH_CREDENTIAL]->(cred)");
+							"CREATE (company:NodeEntity:BaseNodeEntity{nodeId: 'comp'}) " +
+							"CREATE (cred:Credential{id: 'uuid-1', name: 'Creds'}) " +
+							"CREATE (company)-[:CHILD_OF]->(root) " +
+							"CREATE (root)-[:HAS_CREDENTIAL]->(cred) " +
+							"CREATE (company)-[:WITH_CREDENTIAL]->(cred)");
 
 			transaction.commit();
 
@@ -294,7 +293,8 @@ class ReactiveNeo4jTemplateIT {
 		}
 	}
 
-	@Test // 2230
+	@Test
+		// 2230
 	void findAllWithStatementWithoutParameters() {
 		Node node = Cypher.node("PersonWithAllConstructor").named("n");
 		Statement statement = Cypher.match(node).where(node.property("name").isEqualTo(Cypher.parameter("name").withValue(TEST_PERSON1_NAME)))
@@ -365,20 +365,94 @@ class ReactiveNeo4jTemplateIT {
 		BiPredicate<PropertyPath, Neo4jPersistentProperty> predicate = (path, property) -> false;
 		predicate = predicate.or((path, property) -> property.getName().equals("lastName"));
 		predicate = predicate.or((path, property) -> property.getName().equals("address")
-													 || path.toDotPath().startsWith("address.") && property.getName().equals("street"));
+				|| path.toDotPath().startsWith("address.") && property.getName().equals("street"));
 		predicate = predicate.or((path, property) -> property.getName().equals("country")
-													 || path.toDotPath().contains("address.country.") && property.getName().equals("name"));
+				|| path.toDotPath().contains("address.country.") && property.getName().equals("name"));
 		return predicate;
 	}
 
-	@Data
 	static class DtoPersonProjection {
 
-		/** The ID is required in a project that should be saved. */
+		/**
+		 * The ID is required in a project that should be saved.
+		 */
 		private final Long id;
 
 		private String lastName;
 		private String firstName;
+
+		DtoPersonProjection(Long id) {
+			this.id = id;
+		}
+
+		public Long getId() {
+			return this.id;
+		}
+
+		public String getLastName() {
+			return this.lastName;
+		}
+
+		public String getFirstName() {
+			return this.firstName;
+		}
+
+		public void setLastName(String lastName) {
+			this.lastName = lastName;
+		}
+
+		public void setFirstName(String firstName) {
+			this.firstName = firstName;
+		}
+
+		public boolean equals(final Object o) {
+			if (o == this) {
+				return true;
+			}
+			if (!(o instanceof DtoPersonProjection)) {
+				return false;
+			}
+			final DtoPersonProjection other = (DtoPersonProjection) o;
+			if (!other.canEqual((Object) this)) {
+				return false;
+			}
+			final Object this$id = this.getId();
+			final Object other$id = other.getId();
+			if (this$id == null ? other$id != null : !this$id.equals(other$id)) {
+				return false;
+			}
+			final Object this$lastName = this.getLastName();
+			final Object other$lastName = other.getLastName();
+			if (this$lastName == null ? other$lastName != null : !this$lastName.equals(other$lastName)) {
+				return false;
+			}
+			final Object this$firstName = this.getFirstName();
+			final Object other$firstName = other.getFirstName();
+			if (this$firstName == null ? other$firstName != null : !this$firstName.equals(other$firstName)) {
+				return false;
+			}
+			return true;
+		}
+
+		protected boolean canEqual(final Object other) {
+			return other instanceof DtoPersonProjection;
+		}
+
+		public int hashCode() {
+			final int PRIME = 59;
+			int result = 1;
+			final Object $id = this.getId();
+			result = result * PRIME + ($id == null ? 43 : $id.hashCode());
+			final Object $lastName = this.getLastName();
+			result = result * PRIME + ($lastName == null ? 43 : $lastName.hashCode());
+			final Object $firstName = this.getFirstName();
+			result = result * PRIME + ($firstName == null ? 43 : $firstName.hashCode());
+			return result;
+		}
+
+		public String toString() {
+			return "ReactiveNeo4jTemplateIT.DtoPersonProjection(id=" + this.getId() + ", lastName=" + this.getLastName() + ", firstName=" + this.getFirstName() + ")";
+		}
 	}
 
 	@Test
@@ -386,7 +460,7 @@ class ReactiveNeo4jTemplateIT {
 
 		// Using a query on purpose so that the address is null
 		template.findOne("MATCH (p:Person {lastName: $lastName}) RETURN p",
-				Collections.singletonMap("lastName", "Siemons"), Person.class)
+						Collections.singletonMap("lastName", "Siemons"), Person.class)
 				.flatMap(p -> {
 					p.setFirstName("Micha");
 					p.setLastName("Simons");
@@ -406,7 +480,8 @@ class ReactiveNeo4jTemplateIT {
 				.verifyComplete();
 	}
 
-	@Test // GH-2215
+	@Test
+		// GH-2215
 	void saveProjectionShouldWork(@Autowired ReactiveNeo4jTemplate template) {
 
 		template
@@ -427,11 +502,12 @@ class ReactiveNeo4jTemplateIT {
 				.as(StepVerifier::create)
 				.expectNextMatches(
 						person -> person.getFirstName().equals("Micha") && person.getLastName().equals("Simons")
-								  && person.getAddress() != null)
+								&& person.getAddress() != null)
 				.verifyComplete();
 	}
 
-	@Test // GH-2215
+	@Test
+		// GH-2215
 	void saveAllProjectionShouldWork(@Autowired ReactiveNeo4jTemplate template) {
 
 		template
@@ -452,7 +528,7 @@ class ReactiveNeo4jTemplateIT {
 				.as(StepVerifier::create)
 				.expectNextMatches(
 						person -> person.getFirstName().equals("Micha") && person.getLastName().equals("Simons")
-								  && person.getAddress() != null)
+								&& person.getAddress() != null)
 				.verifyComplete();
 	}
 
@@ -461,7 +537,7 @@ class ReactiveNeo4jTemplateIT {
 
 		// Using a query on purpose so that the address is null
 		template.findOne("MATCH (p:Person {lastName: $lastName}) RETURN p",
-				Collections.singletonMap("lastName", "Siemons"), Person.class)
+						Collections.singletonMap("lastName", "Siemons"), Person.class)
 				.zipWith(template.findOne("MATCH (p:Person {lastName: $lastName}) RETURN p",
 						Collections.singletonMap("lastName", "Schnitzel"), Person.class))
 				.flatMapMany(t -> {
@@ -497,7 +573,7 @@ class ReactiveNeo4jTemplateIT {
 
 		// Using a query on purpose so that the address is null
 		template.findOne("MATCH (p:Person {lastName: $lastName}) RETURN p",
-				Collections.singletonMap("lastName", "Siemons"), Person.class)
+						Collections.singletonMap("lastName", "Siemons"), Person.class)
 				.flatMap(p -> {
 					p.setFirstName("Micha");
 					p.setLastName("Simons");
@@ -522,7 +598,7 @@ class ReactiveNeo4jTemplateIT {
 
 		// Using a query on purpose so that the address is null
 		template.findOne("MATCH (p:Person {lastName: $lastName}) RETURN p",
-				Collections.singletonMap("lastName", "Siemons"), Person.class)
+						Collections.singletonMap("lastName", "Siemons"), Person.class)
 				.zipWith(template.findOne("MATCH (p:Person {lastName: $lastName}) RETURN p",
 						Collections.singletonMap("lastName", "Schnitzel"), Person.class))
 				.flatMapMany(t -> {
@@ -558,7 +634,7 @@ class ReactiveNeo4jTemplateIT {
 
 		// Using a query on purpose so that the address is null
 		template.findOne("MATCH (p:Person {lastName: $lastName}) RETURN p",
-				Collections.singletonMap("lastName", "Siemons"), Person.class)
+						Collections.singletonMap("lastName", "Siemons"), Person.class)
 				.flatMap(p -> {
 					p.setFirstName("Micha");
 					p.setLastName("Simons");
@@ -582,7 +658,7 @@ class ReactiveNeo4jTemplateIT {
 	void saveAsWithClosedProjectionOnSecondLevelShouldWork(@Autowired ReactiveNeo4jTemplate template) {
 
 		template.findOne("MATCH (p:Person {lastName: $lastName})-[r:LIVES_AT]-(a:Address) RETURN p, collect(r), collect(a)",
-				Collections.singletonMap("lastName", "Siemons"), Person.class)
+						Collections.singletonMap("lastName", "Siemons"), Person.class)
 				.flatMapMany(p -> {
 
 					p.getAddress().setCity("Braunschweig");
@@ -603,7 +679,8 @@ class ReactiveNeo4jTemplateIT {
 				.verifyComplete();
 	}
 
-	@Test // GH-2420
+	@Test
+		// GH-2420
 	void saveAsWithDynamicProjectionOnSecondLevelShouldWork(@Autowired ReactiveNeo4jTemplate template) {
 
 		template.findOne("MATCH (p:Person {lastName: $lastName})-[r:LIVES_AT]-(a:Address) RETURN p, collect(r), collect(a)",
@@ -633,7 +710,8 @@ class ReactiveNeo4jTemplateIT {
 				.verifyComplete();
 	}
 
-	@Test // GH-2420
+	@Test
+		// GH-2420
 	void saveAllAsWithDynamicProjectionOnSecondLevelShouldWork(@Autowired ReactiveNeo4jTemplate template) {
 
 		template.findOne("MATCH (p:Person {lastName: $lastName})-[r:LIVES_AT]-(a:Address) RETURN p, collect(r), collect(a)",
@@ -667,7 +745,7 @@ class ReactiveNeo4jTemplateIT {
 	void saveAsWithClosedProjectionOnThreeLevelShouldWork(@Autowired ReactiveNeo4jTemplate template) {
 
 		template.findOne("MATCH (p:Person {lastName: $lastName})-[r:LIVES_AT]-(a:Address)-[r2:BASED_IN]->(c:YetAnotherCountryEntity) RETURN p, collect(r), collect(r2), collect(a), collect(c)",
-				Collections.singletonMap("lastName", "Siemons"), Person.class)
+						Collections.singletonMap("lastName", "Siemons"), Person.class)
 				.flatMapMany(p -> {
 
 					Person.Address.Country country = p.getAddress().getCountry();
@@ -689,7 +767,8 @@ class ReactiveNeo4jTemplateIT {
 				.verifyComplete();
 	}
 
-	@Test // GH-2544
+	@Test
+		// GH-2544
 	void saveAllAsWithEmptyList(@Autowired ReactiveNeo4jTemplate template) {
 
 		template.saveAllAs(Collections.emptyList(), ClosedProjection.class)
@@ -703,7 +782,8 @@ class ReactiveNeo4jTemplateIT {
 	static class Y {
 	}
 
-	@Test // GH-2544
+	@Test
+		// GH-2544
 	void saveWeirdHierarchy(@Autowired ReactiveNeo4jTemplate template) {
 
 		List<Object> things = new ArrayList<>();
@@ -720,7 +800,7 @@ class ReactiveNeo4jTemplateIT {
 
 		// Using a query on purpose so that the address is null
 		template.findOne("MATCH (p:Person {lastName: $lastName}) RETURN p",
-				Collections.singletonMap("lastName", "Siemons"), Person.class)
+						Collections.singletonMap("lastName", "Siemons"), Person.class)
 				.zipWith(template.findOne("MATCH (p:Person {lastName: $lastName}) RETURN p",
 						Collections.singletonMap("lastName", "Schnitzel"), Person.class))
 				.flatMapMany(t -> {
@@ -785,7 +865,8 @@ class ReactiveNeo4jTemplateIT {
 				.verifyComplete();
 	}
 
-	@Test // GH-2270
+	@Test
+		// GH-2270
 	void executableFindShouldWorkAllDomainObjectsProjectedDTOShouldWork() {
 
 		neo4jTemplate.find(Person.class).as(DtoPersonProjection.class).all()
@@ -796,7 +877,8 @@ class ReactiveNeo4jTemplateIT {
 				.verifyComplete();
 	}
 
-	@Test // GH-2270
+	@Test
+		// GH-2270
 	void executableFindShouldWorkOneDomainObjectsProjectedDTOShouldWork() {
 
 		neo4jTemplate.find(Person.class).as(DtoPersonProjection.class)
@@ -858,8 +940,8 @@ class ReactiveNeo4jTemplateIT {
 	void statementShouldWork() {
 		Node person = Cypher.node("Person");
 		Flux<Person> people = neo4jTemplate.find(Person.class).matching(Cypher.match(person)
-				.where(person.property("lastName").isEqualTo(Cypher.anonParameter("Siemons")))
-				.returning(person).build())
+						.where(person.property("lastName").isEqualTo(Cypher.anonParameter("Siemons")))
+						.returning(person).build())
 				.all();
 		people.map(Person::getLastName).as(StepVerifier::create).expectNext("Siemons").verifyComplete();
 	}
@@ -868,13 +950,14 @@ class ReactiveNeo4jTemplateIT {
 	void statementWithParamsShouldWork() {
 		Node person = Cypher.node("Person");
 		Flux<Person> people = neo4jTemplate.find(Person.class).matching(Cypher.match(person)
-				.where(person.property("lastName").isEqualTo(Cypher.parameter("lastName", "Siemons")))
-				.returning(person).build(), Collections.singletonMap("lastName", "Schnitzel"))
+						.where(person.property("lastName").isEqualTo(Cypher.parameter("lastName", "Siemons")))
+						.returning(person).build(), Collections.singletonMap("lastName", "Schnitzel"))
 				.all();
 		people.map(Person::getLastName).as(StepVerifier::create).expectNext("Schnitzel").verifyComplete();
 	}
 
-	@Test // GH-2407
+	@Test
+		// GH-2407
 	void shouldSaveAllAsWithAssignedIdProjected() {
 
 		neo4jTemplate.findById("x", PersonWithAssignedId.class)
@@ -896,7 +979,8 @@ class ReactiveNeo4jTemplateIT {
 				.verifyComplete();
 	}
 
-	@Test // GH-2407
+	@Test
+		// GH-2407
 	void shouldSaveAsWithAssignedIdProjected() {
 
 		neo4jTemplate.findById("x", PersonWithAssignedId.class)
@@ -918,7 +1002,8 @@ class ReactiveNeo4jTemplateIT {
 				.verifyComplete();
 	}
 
-	@Test // GH-2415
+	@Test
+		// GH-2415
 	void saveWithProjectionImplementedByEntity(@Autowired Neo4jMappingContext mappingContext) {
 
 		Neo4jPersistentEntity<?> metaData = mappingContext.getPersistentEntity(BaseNodeEntity.class);

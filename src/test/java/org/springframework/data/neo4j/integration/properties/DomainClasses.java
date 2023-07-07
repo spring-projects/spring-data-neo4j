@@ -15,16 +15,6 @@
  */
 package org.springframework.data.neo4j.integration.properties;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
-
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import org.springframework.data.annotation.Version;
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
@@ -36,6 +26,12 @@ import org.springframework.data.neo4j.core.schema.RelationshipProperties;
 import org.springframework.data.neo4j.core.schema.TargetNode;
 import org.springframework.data.neo4j.core.support.DateLong;
 
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 /**
  * @author Michael J. Simons
  * @soundtrack Metallica - Metallica
@@ -45,16 +41,23 @@ final class DomainClasses {
 	private DomainClasses() {
 	}
 
-	@Getter @Setter
 	abstract static class BaseClass {
 
 		private String knownProperty;
+
+		public String getKnownProperty() {
+			return this.knownProperty;
+		}
+
+		public void setKnownProperty(String knownProperty) {
+			this.knownProperty = knownProperty;
+		}
 	}
 
 	@Node
-	@Getter @Setter
 	static class IrrelevantSourceContainer {
-		@Id @GeneratedValue
+		@Id
+		@GeneratedValue
 		private Long id;
 
 		@Relationship(type = "RELATIONSHIP_PROPERTY_CONTAINER")
@@ -64,79 +67,170 @@ final class DomainClasses {
 				RelationshipPropertyContainer relationshipPropertyContainer) {
 			this.relationshipPropertyContainer = relationshipPropertyContainer;
 		}
+
+		public Long getId() {
+			return this.id;
+		}
+
+		public RelationshipPropertyContainer getRelationshipPropertyContainer() {
+			return this.relationshipPropertyContainer;
+		}
+
+		public void setId(Long id) {
+			this.id = id;
+		}
+
+		public void setRelationshipPropertyContainer(RelationshipPropertyContainer relationshipPropertyContainer) {
+			this.relationshipPropertyContainer = relationshipPropertyContainer;
+		}
 	}
 
 	@Node
-	@Getter @Setter
 	static class DynRelSourc1 {
-		@Id @GeneratedValue
+		@Id
+		@GeneratedValue
 		private Long id;
 
 		@Relationship
 		Map<String, List<RelationshipPropertyContainer>> rels = new HashMap<>();
+
+		public Long getId() {
+			return this.id;
+		}
+
+		public Map<String, List<RelationshipPropertyContainer>> getRels() {
+			return this.rels;
+		}
+
+		public void setId(Long id) {
+			this.id = id;
+		}
+
+		public void setRels(Map<String, List<RelationshipPropertyContainer>> rels) {
+			this.rels = rels;
+		}
 	}
 
 	@Node
-	@Getter @Setter
 	static class DynRelSourc2 {
-		@Id @GeneratedValue
+		@Id
+		@GeneratedValue
 		private Long id;
 
 		@Relationship
 		Map<String, RelationshipPropertyContainer> rels = new HashMap<>();
+
+		public Long getId() {
+			return this.id;
+		}
+
+		public Map<String, RelationshipPropertyContainer> getRels() {
+			return this.rels;
+		}
+
+		public void setId(Long id) {
+			this.id = id;
+		}
+
+		public void setRels(Map<String, RelationshipPropertyContainer> rels) {
+			this.rels = rels;
+		}
 	}
 
 	@Node
 	static class IrrelevantTargetContainer {
-		@Id @GeneratedValue
+		@Id
+		@GeneratedValue
 		private Long id;
 	}
 
 	@RelationshipProperties
-	@Getter @Setter
 	static class RelationshipPropertyContainer extends BaseClass {
 
-		private @RelationshipId	Long id;
+		private @RelationshipId Long id;
 
 		@TargetNode
 		private IrrelevantTargetContainer irrelevantTargetContainer;
+
+		public Long getId() {
+			return this.id;
+		}
+
+		public IrrelevantTargetContainer getIrrelevantTargetContainer() {
+			return this.irrelevantTargetContainer;
+		}
+
+		public void setId(Long id) {
+			this.id = id;
+		}
+
+		public void setIrrelevantTargetContainer(IrrelevantTargetContainer irrelevantTargetContainer) {
+			this.irrelevantTargetContainer = irrelevantTargetContainer;
+		}
 	}
 
 	@Node
-	@Getter @Setter
 	static class SimpleGeneratedIDPropertyContainer extends BaseClass {
 
-		@Id @GeneratedValue
+		@Id
+		@GeneratedValue
 		private Long id;
+
+		public Long getId() {
+			return this.id;
+		}
+
+		public void setId(Long id) {
+			this.id = id;
+		}
 	}
 
 	@Node
-	@Getter @Setter
 	static class SimpleGeneratedIDPropertyContainerWithVersion extends SimpleGeneratedIDPropertyContainer {
 
 		@Version
 		private Long version;
+
+		public Long getVersion() {
+			return this.version;
+		}
+
+		public void setVersion(Long version) {
+			this.version = version;
+		}
 	}
 
 	@Node
-	@Getter @Setter
 	static class SimplePropertyContainer extends BaseClass {
 
 		@Id
 		private String id;
+
+		public String getId() {
+			return this.id;
+		}
+
+		public void setId(String id) {
+			this.id = id;
+		}
 	}
 
 	@Node
-	@Getter @Setter
 	static class SimplePropertyContainerWithVersion extends SimplePropertyContainer {
 
 		@Version
 		private Long version;
+
+		public Long getVersion() {
+			return this.version;
+		}
+
+		public void setVersion(Long version) {
+			this.version = version;
+		}
 	}
 
 	@Node
-	@AllArgsConstructor
-	@Getter @Setter
 	static class WeirdSource {
 
 		@Id
@@ -146,12 +240,33 @@ final class DomainClasses {
 
 		@Relationship(type = "ITS_COMPLICATED")
 		IrrelevantTargetContainer irrelevantTargetContainer;
+
+		WeirdSource(Date myFineId, IrrelevantTargetContainer irrelevantTargetContainer) {
+			this.myFineId = myFineId;
+			this.irrelevantTargetContainer = irrelevantTargetContainer;
+		}
+
+		public Date getMyFineId() {
+			return this.myFineId;
+		}
+
+		public IrrelevantTargetContainer getIrrelevantTargetContainer() {
+			return this.irrelevantTargetContainer;
+		}
+
+		public void setMyFineId(Date myFineId) {
+			this.myFineId = myFineId;
+		}
+
+		public void setIrrelevantTargetContainer(IrrelevantTargetContainer irrelevantTargetContainer) {
+			this.irrelevantTargetContainer = irrelevantTargetContainer;
+		}
 	}
 
 	@Node
-	@Getter @Setter
 	static class LonelySourceContainer {
-		@Id @GeneratedValue
+		@Id
+		@GeneratedValue
 		private Long id;
 
 		@Relationship(type = "RELATIONSHIP_PROPERTY_CONTAINER")
@@ -174,5 +289,69 @@ final class DomainClasses {
 
 		@Relationship
 		Map<String, SimplePropertyContainer> dynEmptySingle = new HashMap<>();
+
+		public Long getId() {
+			return this.id;
+		}
+
+		public RelationshipPropertyContainer getSingle() {
+			return this.single;
+		}
+
+		public List<RelationshipPropertyContainer> getMultiNull() {
+			return this.multiNull;
+		}
+
+		public List<RelationshipPropertyContainer> getMultiEmpty() {
+			return this.multiEmpty;
+		}
+
+		public Map<String, List<IrrelevantTargetContainer>> getDynNullList() {
+			return this.dynNullList;
+		}
+
+		public Map<String, List<SimpleGeneratedIDPropertyContainer>> getDynEmptyList() {
+			return this.dynEmptyList;
+		}
+
+		public Map<String, SimpleGeneratedIDPropertyContainerWithVersion> getDynNullSingle() {
+			return this.dynNullSingle;
+		}
+
+		public Map<String, SimplePropertyContainer> getDynEmptySingle() {
+			return this.dynEmptySingle;
+		}
+
+		public void setId(Long id) {
+			this.id = id;
+		}
+
+		public void setSingle(RelationshipPropertyContainer single) {
+			this.single = single;
+		}
+
+		public void setMultiNull(List<RelationshipPropertyContainer> multiNull) {
+			this.multiNull = multiNull;
+		}
+
+		public void setMultiEmpty(List<RelationshipPropertyContainer> multiEmpty) {
+			this.multiEmpty = multiEmpty;
+		}
+
+		public void setDynNullList(Map<String, List<IrrelevantTargetContainer>> dynNullList) {
+			this.dynNullList = dynNullList;
+		}
+
+		public void setDynEmptyList(Map<String, List<SimpleGeneratedIDPropertyContainer>> dynEmptyList) {
+			this.dynEmptyList = dynEmptyList;
+		}
+
+		public void setDynNullSingle(Map<String, SimpleGeneratedIDPropertyContainerWithVersion> dynNullSingle) {
+			this.dynNullSingle = dynNullSingle;
+		}
+
+		public void setDynEmptySingle(Map<String, SimplePropertyContainer> dynEmptySingle) {
+			this.dynEmptySingle = dynEmptySingle;
+		}
 	}
 }

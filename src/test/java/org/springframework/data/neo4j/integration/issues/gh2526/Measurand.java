@@ -15,9 +15,6 @@
  */
 package org.springframework.data.neo4j.integration.issues.gh2526;
 
-import lombok.AllArgsConstructor;
-import lombok.Value;
-
 import org.springframework.data.annotation.Immutable;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
@@ -26,11 +23,46 @@ import org.springframework.data.neo4j.core.schema.Node;
  * Target node
  */
 @Node
-@Value
-@AllArgsConstructor
 @Immutable
-public class Measurand {
+public final class Measurand {
 
 	@Id
+	private final
 	String measurandId;
+
+	public Measurand(String measurandId) {
+		this.measurandId = measurandId;
+	}
+
+	public String getMeasurandId() {
+		return this.measurandId;
+	}
+
+	public boolean equals(final Object o) {
+		if (o == this) {
+			return true;
+		}
+		if (!(o instanceof Measurand)) {
+			return false;
+		}
+		final Measurand other = (Measurand) o;
+		final Object this$measurandId = this.getMeasurandId();
+		final Object other$measurandId = other.getMeasurandId();
+		if (this$measurandId == null ? other$measurandId != null : !this$measurandId.equals(other$measurandId)) {
+			return false;
+		}
+		return true;
+	}
+
+	public int hashCode() {
+		final int PRIME = 59;
+		int result = 1;
+		final Object $measurandId = this.getMeasurandId();
+		result = result * PRIME + ($measurandId == null ? 43 : $measurandId.hashCode());
+		return result;
+	}
+
+	public String toString() {
+		return "Measurand(measurandId=" + this.getMeasurandId() + ")";
+	}
 }

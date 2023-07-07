@@ -15,12 +15,6 @@
  */
 package org.springframework.data.neo4j.integration.issues.gh2498;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.RelationshipProperties;
@@ -29,16 +23,73 @@ import org.springframework.data.neo4j.core.schema.TargetNode;
 /**
  * @author Michael J. Simons
  */
+@SuppressWarnings("HiddenField")
 @RelationshipProperties
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder(toBuilder = true)
 public class Edge {
 	@Id
 	@GeneratedValue
 	Long id;
 	@TargetNode
 	Vertex vertex;
+
+	public Edge(Long id, Vertex vertex) {
+		this.id = id;
+		this.vertex = vertex;
+	}
+
+	public Edge() {
+	}
+
+	public static EdgeBuilder builder() {
+		return new EdgeBuilder();
+	}
+
+	public Long getId() {
+		return this.id;
+	}
+
+	public Vertex getVertex() {
+		return this.vertex;
+	}
+
+	public void setId(Long id) {
+		this.id = id;
+	}
+
+	public void setVertex(Vertex vertex) {
+		this.vertex = vertex;
+	}
+
+	public EdgeBuilder toBuilder() {
+		return new EdgeBuilder().id(this.id).vertex(this.vertex);
+	}
+
+	/**
+	 * the builder
+	 */
+	public static class EdgeBuilder {
+		private Long id;
+		private Vertex vertex;
+
+		EdgeBuilder() {
+		}
+
+		public EdgeBuilder id(Long id) {
+			this.id = id;
+			return this;
+		}
+
+		public EdgeBuilder vertex(Vertex vertex) {
+			this.vertex = vertex;
+			return this;
+		}
+
+		public Edge build() {
+			return new Edge(this.id, this.vertex);
+		}
+
+		public String toString() {
+			return "Edge.EdgeBuilder(id=" + this.id + ", vertex=" + this.vertex + ")";
+		}
+	}
 }

@@ -54,7 +54,9 @@ public class Inheritance {
 	@Node("SomeInterface") // <.>
 	public static class SomeInterfaceEntity implements SomeInterface {
 
-		@Id @GeneratedValue private Long id;
+		@Id
+		@GeneratedValue
+		private Long id;
 
 		private final String name;
 
@@ -109,7 +111,9 @@ public class Inheritance {
 
 		// Overrides omitted for brevity
 		// end::interface2[]
-		@Id @GeneratedValue private Long id;
+		@Id
+		@GeneratedValue
+		private Long id;
 
 		private final String name;
 
@@ -349,12 +353,15 @@ public class Inheritance {
 			return value;
 		}
 	}
+
 	/**
 	 * super base class
 	 */
 	@Node
 	public static abstract class SuperBaseClass {
-		@Id @GeneratedValue private Long id;
+		@Id
+		@GeneratedValue
+		private Long id;
 
 		public Long getId() {
 			return id;
@@ -450,16 +457,18 @@ public class Inheritance {
 	/**
 	 * Base class with explicit primary and additional labels.
 	 */
-	@Node({ "LabeledBaseClass", "And_another_one" })
+	@Node({"LabeledBaseClass", "And_another_one"})
 	public static abstract class BaseClassWithLabels {
 
-		@Id @GeneratedValue private Long id;
+		@Id
+		@GeneratedValue
+		private Long id;
 	}
 
 	/**
 	 * Class that also has explicit labels
 	 */
-	@Node({ "ExtendingClassA", "And_yet_more_labels" })
+	@Node({"ExtendingClassA", "And_yet_more_labels"})
 	public static class ExtendingClassWithLabelsA extends BaseClassWithLabels {
 
 		private final String name;
@@ -493,7 +502,7 @@ public class Inheritance {
 	/**
 	 * Another class that also has explicit labels
 	 */
-	@Node({ "ExtendingClassB", "And_other_labels" })
+	@Node({"ExtendingClassB", "And_other_labels"})
 	public static class ExtendingClassWithLabelsB extends BaseClassWithLabels {
 
 		private final String somethingElse;
@@ -530,9 +539,12 @@ public class Inheritance {
 	@Node
 	public static class RelationshipToAbstractClass {
 
-		@Id @GeneratedValue private Long id;
+		@Id
+		@GeneratedValue
+		private Long id;
 
-		@Relationship("HAS") private List<SuperBaseClass> things;
+		@Relationship("HAS")
+		private List<SuperBaseClass> things;
 
 		public void setThings(List<SuperBaseClass> things) {
 			this.things = things;
@@ -544,13 +556,16 @@ public class Inheritance {
 	}
 
 	/**
-	 *  Abstract super base class with relationships
+	 * Abstract super base class with relationships
 	 */
 	@Node("SuperBaseClassWithRelationship")
 	public static abstract class SuperBaseClassWithRelationship {
-		@Id @GeneratedValue private Long id;
+		@Id
+		@GeneratedValue
+		private Long id;
 
-		@Relationship("RELATED_TO") private List<ConcreteClassB> boing;
+		@Relationship("RELATED_TO")
+		private List<ConcreteClassB> boing;
 
 		public void setBoing(List<ConcreteClassB> boing) {
 			this.boing = boing;
@@ -562,12 +577,13 @@ public class Inheritance {
 	}
 
 	/**
-	 *  Abstract base class with relationships
+	 * Abstract base class with relationships
 	 */
 	@Node("BaseClassWithRelationship")
 	public static abstract class BaseClassWithRelationship extends SuperBaseClassWithRelationship {
 
-		@Relationship("HAS") private List<SuperBaseClass> things;
+		@Relationship("HAS")
+		private List<SuperBaseClass> things;
 
 		public void setThings(List<SuperBaseClass> things) {
 			this.things = things;
@@ -579,12 +595,13 @@ public class Inheritance {
 	}
 
 	/**
-	 *  Concrete implementation
+	 * Concrete implementation
 	 */
 	@Node
 	public static class ExtendingBaseClassWithRelationship extends BaseClassWithRelationship {
 
-		@Relationship("SOMETHING_ELSE") private List<ConcreteClassA> somethingConcrete;
+		@Relationship("SOMETHING_ELSE")
+		private List<ConcreteClassA> somethingConcrete;
 
 		public void setSomethingConcrete(List<ConcreteClassA> somethingConcrete) {
 			this.somethingConcrete = somethingConcrete;
@@ -596,14 +613,18 @@ public class Inheritance {
 	}
 
 	// Same as above but with relationship properties instead of direct relationship links.
+
 	/**
-	 *  Abstract super base class with relationship properties
+	 * Abstract super base class with relationship properties
 	 */
 	@Node("SuperBaseClassWithRelationshipProperties")
 	public static abstract class SuperBaseClassWithRelationshipProperties {
-		@Id @GeneratedValue private Long id;
+		@Id
+		@GeneratedValue
+		private Long id;
 
-		@Relationship("RELATED_TO") private List<ConcreteBRelationshipProperties> boing;
+		@Relationship("RELATED_TO")
+		private List<ConcreteBRelationshipProperties> boing;
 
 		public void setBoing(List<ConcreteBRelationshipProperties> boing) {
 			this.boing = boing;
@@ -615,12 +636,13 @@ public class Inheritance {
 	}
 
 	/**
-	 *  Abstract base class with relationship properties
+	 * Abstract base class with relationship properties
 	 */
 	@Node("BaseClassWithRelationshipProperties")
 	public static abstract class BaseClassWithRelationshipProperties extends SuperBaseClassWithRelationshipProperties {
 
-		@Relationship("HAS") private List<SuperBaseClassRelationshipProperties> things;
+		@Relationship("HAS")
+		private List<SuperBaseClassRelationshipProperties> things;
 
 		public void setThings(List<SuperBaseClassRelationshipProperties> things) {
 			this.things = things;
@@ -632,12 +654,13 @@ public class Inheritance {
 	}
 
 	/**
-	 *  Concrete implementation
+	 * Concrete implementation
 	 */
 	@Node
 	public static class ExtendingBaseClassWithRelationshipProperties extends BaseClassWithRelationshipProperties {
 
-		@Relationship("SOMETHING_ELSE") private List<ConcreteARelationshipProperties> somethingConcrete;
+		@Relationship("SOMETHING_ELSE")
+		private List<ConcreteARelationshipProperties> somethingConcrete;
 
 		public void setSomethingConcrete(List<ConcreteARelationshipProperties> somethingConcrete) {
 			this.somethingConcrete = somethingConcrete;
@@ -768,19 +791,22 @@ public class Inheritance {
 	 * company
 	 */
 	@Node("Company")
-	public static class Company extends Entity {}
+	public static class Company extends Entity {
+	}
 
 	/**
 	 * site
 	 */
 	@Node("Site")
-	public static class Site extends Entity {}
+	public static class Site extends Entity {
+	}
 
 	/**
 	 * building
 	 */
 	@Node("Building")
-	public static class Building extends Entity {}
+	public static class Building extends Entity {
+	}
 
 	/**
 	 * Base entity for GH-2138 generic relationship in child class tests
@@ -936,7 +962,7 @@ public class Inheritance {
 		public final Long id;
 
 		@Relationship("LIVES_IN")
- 		public final Continent continent;
+		public final Continent continent;
 
 		public ParentClassWithRelationship(Long id, Continent continent) {
 			this.id = id;

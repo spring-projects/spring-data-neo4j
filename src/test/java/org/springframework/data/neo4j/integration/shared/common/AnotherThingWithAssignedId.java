@@ -26,7 +26,8 @@ import org.springframework.data.neo4j.core.schema.Node;
 @Node("Thing2")
 public class AnotherThingWithAssignedId {
 
-	@Id private final Long theId;
+	@Id
+	private final Long theId;
 
 	private String name;
 

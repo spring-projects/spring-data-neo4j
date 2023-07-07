@@ -26,25 +26,30 @@ import org.springframework.data.neo4j.core.schema.Relationship;
 @Node
 public class Person {
 
-	@Id @GeneratedValue private Long id;
+	@Id
+	@GeneratedValue
+	private Long id;
 	private String firstName;
 	private String lastName;
 
 	private int primitiveValue; // never used but always null
 
-	@Relationship("LIVES_AT") private Address address;
+	@Relationship("LIVES_AT")
+	private Address address;
 
 	/**
 	 * Address of a person.
 	 */
 	@Node
 	public static class Address {
-		@Id private Long id;
+		@Id
+		private Long id;
 		private String zipCode;
 		private String city;
 		private String street;
 
-		@Relationship("BASED_IN") private Country country;
+		@Relationship("BASED_IN")
+		private Country country;
 
 		public Long getId() {
 			return id;
@@ -83,7 +88,9 @@ public class Person {
 		 */
 		@Node("YetAnotherCountryEntity")
 		public static class Country {
-			@Id @GeneratedValue private Long id;
+			@Id
+			@GeneratedValue
+			private Long id;
 			private String name;
 			private String countryCode;
 

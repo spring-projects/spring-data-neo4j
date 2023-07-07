@@ -59,16 +59,16 @@ public class ImmutablePersonWithAssignedId {
 
 	@PersistenceCreator
 	public ImmutablePersonWithAssignedId(
-		Long id,
-		List<ImmutablePersonWithAssignedId> wasOnboardedBy,
-		Set<ImmutablePersonWithAssignedId> knownBy,
-		Map<String, ImmutablePersonWithAssignedId> ratedBy,
-		Map<String, List<ImmutableSecondPersonWithAssignedId>> ratedByCollection,
-		ImmutablePersonWithAssignedId fallback,
-		ImmutablePersonWithAssignedIdRelationshipProperties relationshipProperties,
-		List<ImmutablePersonWithAssignedIdRelationshipProperties> relationshipPropertiesCollection,
-		Map<String, ImmutablePersonWithAssignedIdRelationshipProperties> relationshipPropertiesDynamic,
-		Map<String, List<ImmutableSecondPersonWithAssignedIdRelationshipProperties>> relationshipPropertiesDynamicCollection) {
+			Long id,
+			List<ImmutablePersonWithAssignedId> wasOnboardedBy,
+			Set<ImmutablePersonWithAssignedId> knownBy,
+			Map<String, ImmutablePersonWithAssignedId> ratedBy,
+			Map<String, List<ImmutableSecondPersonWithAssignedId>> ratedByCollection,
+			ImmutablePersonWithAssignedId fallback,
+			ImmutablePersonWithAssignedIdRelationshipProperties relationshipProperties,
+			List<ImmutablePersonWithAssignedIdRelationshipProperties> relationshipPropertiesCollection,
+			Map<String, ImmutablePersonWithAssignedIdRelationshipProperties> relationshipPropertiesDynamic,
+			Map<String, List<ImmutableSecondPersonWithAssignedIdRelationshipProperties>> relationshipPropertiesDynamicCollection) {
 
 		this.id = new Random().nextLong();
 		this.wasOnboardedBy = wasOnboardedBy;
@@ -219,7 +219,7 @@ public class ImmutablePersonWithAssignedId {
 				Collections.emptyList(),
 				Collections.emptyMap(),
 				relationshipPropertiesDynamicCollection
-				);
+		);
 	}
 
 }

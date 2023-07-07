@@ -32,17 +32,23 @@ import org.springframework.data.neo4j.core.schema.Relationship;
 @Node
 public class PersonWithRelationshipWithProperties {
 
-	@Id @GeneratedValue private Long id;
+	@Id
+	@GeneratedValue
+	private Long id;
 
 	private final String name;
 
-	@Relationship("LIKES") private final List<LikesHobbyRelationship> hobbies;
+	@Relationship("LIKES")
+	private final List<LikesHobbyRelationship> hobbies;
 
-	@Relationship("WORKS_IN") private final WorksInClubRelationship club;
+	@Relationship("WORKS_IN")
+	private final WorksInClubRelationship club;
 
-	@Relationship("OWNS") private Set<Pet> pets;
+	@Relationship("OWNS")
+	private Set<Pet> pets;
 
-	@Relationship("OWNS") private List<ClubRelationship> clubs;
+	@Relationship("OWNS")
+	private List<ClubRelationship> clubs;
 
 	@PersistenceCreator
 	public PersonWithRelationshipWithProperties(Long id, String name, List<LikesHobbyRelationship> hobbies, WorksInClubRelationship club) {

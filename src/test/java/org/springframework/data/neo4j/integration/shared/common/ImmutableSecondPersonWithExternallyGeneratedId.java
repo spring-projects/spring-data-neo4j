@@ -59,16 +59,16 @@ public class ImmutableSecondPersonWithExternallyGeneratedId {
 
 	@PersistenceCreator
 	public ImmutableSecondPersonWithExternallyGeneratedId(
-		UUID id,
-		List<ImmutableSecondPersonWithExternallyGeneratedId> wasOnboardedBy,
-		Set<ImmutableSecondPersonWithExternallyGeneratedId> knownBy,
-		Map<String, ImmutablePersonWithExternallyGeneratedId> ratedBy,
-		Map<String, List<ImmutableSecondPersonWithExternallyGeneratedId>> ratedByCollection,
-		ImmutableSecondPersonWithExternallyGeneratedId fallback,
-		ImmutablePersonWithExternallyGeneratedIdRelationshipProperties relationshipProperties,
-		List<ImmutablePersonWithExternallyGeneratedIdRelationshipProperties> relationshipPropertiesCollection,
-		Map<String, ImmutablePersonWithExternallyGeneratedIdRelationshipProperties> relationshipPropertiesDynamic,
-		Map<String, List<ImmutableSecondPersonWithExternallyGeneratedIdRelationshipProperties>> relationshipPropertiesDynamicCollection) {
+			UUID id,
+			List<ImmutableSecondPersonWithExternallyGeneratedId> wasOnboardedBy,
+			Set<ImmutableSecondPersonWithExternallyGeneratedId> knownBy,
+			Map<String, ImmutablePersonWithExternallyGeneratedId> ratedBy,
+			Map<String, List<ImmutableSecondPersonWithExternallyGeneratedId>> ratedByCollection,
+			ImmutableSecondPersonWithExternallyGeneratedId fallback,
+			ImmutablePersonWithExternallyGeneratedIdRelationshipProperties relationshipProperties,
+			List<ImmutablePersonWithExternallyGeneratedIdRelationshipProperties> relationshipPropertiesCollection,
+			Map<String, ImmutablePersonWithExternallyGeneratedIdRelationshipProperties> relationshipPropertiesDynamic,
+			Map<String, List<ImmutableSecondPersonWithExternallyGeneratedIdRelationshipProperties>> relationshipPropertiesDynamicCollection) {
 
 		this.id = id;
 		this.wasOnboardedBy = wasOnboardedBy;
@@ -219,7 +219,7 @@ public class ImmutableSecondPersonWithExternallyGeneratedId {
 				Collections.emptyList(),
 				Collections.emptyMap(),
 				relationshipPropertiesDynamicCollection
-				);
+		);
 	}
 
 }

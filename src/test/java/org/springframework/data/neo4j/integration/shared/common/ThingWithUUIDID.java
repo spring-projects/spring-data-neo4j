@@ -28,7 +28,9 @@ import org.springframework.data.neo4j.core.schema.Node;
 @Node
 public class ThingWithUUIDID {
 
-	@Id @GeneratedValue private UUID id;
+	@Id
+	@GeneratedValue
+	private UUID id;
 
 	private String name;
 

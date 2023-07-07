@@ -15,8 +15,6 @@
  */
 package org.springframework.data.neo4j.integration.issues.projections.repository;
 
-import lombok.AllArgsConstructor;
-
 import org.springframework.data.neo4j.core.Neo4jOperations;
 import org.springframework.data.neo4j.integration.issues.projections.model.SourceNodeA;
 import org.springframework.data.neo4j.integration.issues.projections.projection.SourceNodeAProjection;
@@ -24,13 +22,16 @@ import org.springframework.data.neo4j.integration.issues.projections.projection.
 /**
  * @author Michael J. Simons
  */
-@AllArgsConstructor
 class CustomRepositoryImpl implements CustomRepository {
 
-  private final Neo4jOperations neo4jOperations;
+	private final Neo4jOperations neo4jOperations;
 
-  @Override
-  public SourceNodeAProjection saveWithProjection(SourceNodeA sourceNodeA) {
-    return neo4jOperations.saveAs(sourceNodeA, SourceNodeAProjection.class);
-  }
+	CustomRepositoryImpl(Neo4jOperations neo4jOperations) {
+		this.neo4jOperations = neo4jOperations;
+	}
+
+	@Override
+	public SourceNodeAProjection saveWithProjection(SourceNodeA sourceNodeA) {
+		return neo4jOperations.saveAs(sourceNodeA, SourceNodeAProjection.class);
+	}
 }

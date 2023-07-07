@@ -31,7 +31,9 @@ public final class RelationshipsAsConstructorParametersEntities {
 	@Node
 	public static class NodeTypeA {
 
-		@Id @GeneratedValue private Long id;
+		@Id
+		@GeneratedValue
+		private Long id;
 
 		private final String name;
 
@@ -50,9 +52,12 @@ public final class RelationshipsAsConstructorParametersEntities {
 	@Node
 	public static class NodeTypeB {
 
-		@Id @GeneratedValue private Long id;
+		@Id
+		@GeneratedValue
+		private Long id;
 
-		@Relationship("BELONGS_TO") private final NodeTypeA nodeTypeA;
+		@Relationship("BELONGS_TO")
+		private final NodeTypeA nodeTypeA;
 
 		private final String name;
 
@@ -70,5 +75,6 @@ public final class RelationshipsAsConstructorParametersEntities {
 		}
 	}
 
-	private RelationshipsAsConstructorParametersEntities() {}
+	private RelationshipsAsConstructorParametersEntities() {
+	}
 }

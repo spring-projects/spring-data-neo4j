@@ -32,9 +32,11 @@ import org.springframework.data.neo4j.core.schema.Relationship;
 @Node("Thing")
 public class ThingWithAssignedId extends AbstractNamedThing {
 
-	@Id private final String theId;
+	@Id
+	private final String theId;
 
-	@Relationship("Has") private List<AnotherThingWithAssignedId> things;
+	@Relationship("Has")
+	private List<AnotherThingWithAssignedId> things;
 
 	@Transient
 	private String randomValue;

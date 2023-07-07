@@ -15,7 +15,17 @@
  */
 package org.springframework.data.neo4j.integration.shared.conversion;
 
-import lombok.Builder;
+import org.junit.jupiter.api.BeforeAll;
+import org.neo4j.driver.Session;
+import org.neo4j.driver.Values;
+import org.springframework.data.geo.Point;
+import org.springframework.data.neo4j.integration.shared.conversion.ThingWithAllAdditionalTypes.SomeEnum;
+import org.springframework.data.neo4j.test.BookmarkCapture;
+import org.springframework.data.neo4j.test.Neo4jExtension;
+import org.springframework.data.neo4j.types.CartesianPoint2d;
+import org.springframework.data.neo4j.types.CartesianPoint3d;
+import org.springframework.data.neo4j.types.GeographicPoint2d;
+import org.springframework.data.neo4j.types.GeographicPoint3d;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -43,18 +53,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
 import java.util.UUID;
-
-import org.junit.jupiter.api.BeforeAll;
-import org.neo4j.driver.Session;
-import org.neo4j.driver.Values;
-import org.springframework.data.geo.Point;
-import org.springframework.data.neo4j.integration.shared.conversion.ThingWithAllAdditionalTypes.SomeEnum;
-import org.springframework.data.neo4j.test.BookmarkCapture;
-import org.springframework.data.neo4j.test.Neo4jExtension;
-import org.springframework.data.neo4j.types.CartesianPoint2d;
-import org.springframework.data.neo4j.types.CartesianPoint3d;
-import org.springframework.data.neo4j.types.GeographicPoint2d;
-import org.springframework.data.neo4j.types.GeographicPoint3d;
 
 /**
  * Provides some nodes spotting properties of all types we support.
@@ -131,11 +129,20 @@ public abstract class Neo4jConversionsITBase {
 		ADDITIONAL_TYPES = Collections.unmodifiableMap(hlp);
 	}
 
-	@Builder
 	protected static class ParamHolder {
 		String name;
 		double latitude;
 		double longitude;
+
+		ParamHolder(String name, double latitude, double longitude) {
+			this.name = name;
+			this.latitude = latitude;
+			this.longitude = longitude;
+		}
+
+		public static ParamHolderBuilder builder() {
+			return new ParamHolderBuilder();
+		}
 
 		Map<String, Object> toParameterMap() {
 			Map<String, Object> parameters = new HashMap<>();
@@ -155,6 +162,39 @@ public abstract class Neo4jConversionsITBase {
 
 		GeographicPoint3d asGeo3d(double height) {
 			return new GeographicPoint3d(latitude, longitude, height);
+		}
+
+		@SuppressWarnings("HiddenField")
+		public static class ParamHolderBuilder {
+			private String name;
+			private double latitude;
+			private double longitude;
+
+			ParamHolderBuilder() {
+			}
+
+			public ParamHolderBuilder name(String name) {
+				this.name = name;
+				return this;
+			}
+
+			public ParamHolderBuilder latitude(double latitude) {
+				this.latitude = latitude;
+				return this;
+			}
+
+			public ParamHolderBuilder longitude(double longitude) {
+				this.longitude = longitude;
+				return this;
+			}
+
+			public ParamHolder build() {
+				return new ParamHolder(this.name, this.latitude, this.longitude);
+			}
+
+			public String toString() {
+				return "Neo4jConversionsITBase.ParamHolder.ParamHolderBuilder(name=" + this.name + ", latitude=" + this.latitude + ", longitude=" + this.longitude + ")";
+			}
 		}
 	}
 

@@ -27,7 +27,9 @@ import org.springframework.data.neo4j.core.schema.Relationship;
 @Node
 public class Multiple1O1Relationships {
 
-	@Id @GeneratedValue private Long id;
+	@Id
+	@GeneratedValue
+	private Long id;
 
 	private String name;
 

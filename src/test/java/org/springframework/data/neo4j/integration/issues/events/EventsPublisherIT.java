@@ -15,17 +15,6 @@
  */
 package org.springframework.data.neo4j.integration.issues.events;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import lombok.Data;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Optional;
-import java.util.concurrent.atomic.AtomicBoolean;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.neo4j.driver.Driver;
@@ -52,6 +41,13 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
 /**
  * @author Michael J. Simons
  */
@@ -73,7 +69,8 @@ class EventsPublisherIT {
 
 	static AtomicBoolean receivedAfterCommitEvent = new AtomicBoolean(false);
 
-	@Test // GH-2580
+	@Test
+		// GH-2580
 	void beforeAndAfterCommitEventsShouldWork(@Autowired Neo4jObjectService service) {
 
 		service.save("foobar");
@@ -81,12 +78,14 @@ class EventsPublisherIT {
 		assertThat(receivedAfterCommitEvent).isTrue();
 	}
 
-	@Slf4j
 	@Component
-	@RequiredArgsConstructor
 	static class Neo4jObjectListener {
 
 		private final Neo4jObjectService service;
+
+		Neo4jObjectListener(Neo4jObjectService service) {
+			this.service = service;
+		}
 
 		@TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
 		public void onBeforeCommit(Neo4jMessage message) {
@@ -139,9 +138,51 @@ class EventsPublisherIT {
 		}
 	}
 
-	@Data
 	static class Neo4jMessage {
 		private final String messageId;
+
+		Neo4jMessage(String messageId) {
+			this.messageId = messageId;
+		}
+
+		public String getMessageId() {
+			return this.messageId;
+		}
+
+		public boolean equals(final Object o) {
+			if (o == this) {
+				return true;
+			}
+			if (!(o instanceof Neo4jMessage)) {
+				return false;
+			}
+			final Neo4jMessage other = (Neo4jMessage) o;
+			if (!other.canEqual((Object) this)) {
+				return false;
+			}
+			final Object this$messageId = this.getMessageId();
+			final Object other$messageId = other.getMessageId();
+			if (this$messageId == null ? other$messageId != null : !this$messageId.equals(other$messageId)) {
+				return false;
+			}
+			return true;
+		}
+
+		protected boolean canEqual(final Object other) {
+			return other instanceof Neo4jMessage;
+		}
+
+		public int hashCode() {
+			final int PRIME = 59;
+			int result = 1;
+			final Object $messageId = this.getMessageId();
+			result = result * PRIME + ($messageId == null ? 43 : $messageId.hashCode());
+			return result;
+		}
+
+		public String toString() {
+			return "EventsPublisherIT.Neo4jMessage(messageId=" + this.getMessageId() + ")";
+		}
 	}
 
 	@Repository

@@ -70,7 +70,8 @@ class NestedProjectionsIT {
 		}
 	}
 
-	@RepeatedTest(20) // GH-2581
+	@RepeatedTest(20)
+		// GH-2581
 	void excludedHopMustNotVanish(@Autowired SourceNodeARepository repository) {
 
 		Optional<SourceNodeA> optionalSourceNode = repository.findById("L-l1");

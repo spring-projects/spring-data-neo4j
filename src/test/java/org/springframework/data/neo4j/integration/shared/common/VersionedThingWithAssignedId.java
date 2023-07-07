@@ -28,13 +28,16 @@ import org.springframework.data.neo4j.core.schema.Relationship;
 @Node
 public class VersionedThingWithAssignedId {
 
-	@Id private final Long id;
+	@Id
+	private final Long id;
 
-	@Version private Long myVersion;
+	@Version
+	private Long myVersion;
 
 	private final String name;
 
-	@Relationship("HAS") private List<VersionedThingWithAssignedId> otherVersionedThings;
+	@Relationship("HAS")
+	private List<VersionedThingWithAssignedId> otherVersionedThings;
 
 	public VersionedThingWithAssignedId(Long id, String name) {
 		this.id = id;

@@ -26,7 +26,8 @@ import org.springframework.data.neo4j.core.schema.Relationship;
 @Node
 public class Flight {
 
-	@Id @GeneratedValue
+	@Id
+	@GeneratedValue
 	private Long id;
 
 	private final String name;

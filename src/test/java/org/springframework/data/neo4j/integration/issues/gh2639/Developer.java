@@ -46,7 +46,7 @@ public class Developer extends CompanyPerson {
 	@Override
 	public String toString() {
 		return new StringJoiner(", ", Developer.class.getSimpleName() + "[", "]")
-        .add("name='" + name + "'")
+				.add("name='" + name + "'")
 				.add("programmingLanguages=" + programmingLanguages)
 				.toString();
 	}

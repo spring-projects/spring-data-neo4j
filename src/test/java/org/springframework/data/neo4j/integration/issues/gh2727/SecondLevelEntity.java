@@ -15,11 +15,6 @@
  */
 package org.springframework.data.neo4j.integration.issues.gh2727;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.experimental.SuperBuilder;
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
@@ -30,12 +25,8 @@ import java.util.List;
 /**
  * @author Gerrit Meier
  */
-@SuperBuilder
-@NoArgsConstructor
-@Getter
-@Setter
+@SuppressWarnings("HiddenField")
 @Node("SecondLevel")
-@EqualsAndHashCode(of = {"id"})
 public class SecondLevelEntity {
 	@Id
 	@GeneratedValue
@@ -45,4 +36,119 @@ public class SecondLevelEntity {
 
 	@Relationship("HasThirdLevel")
 	private List<ThirdLevelEntityRelationship> thirdLevelEntityRelationshipProperties;
+
+	public SecondLevelEntity() {
+	}
+
+	protected SecondLevelEntity(SecondLevelEntityBuilder<?, ?> b) {
+		this.id = b.id;
+		this.someValue = b.someValue;
+		this.thirdLevelEntityRelationshipProperties = b.thirdLevelEntityRelationshipProperties;
+	}
+
+	public static SecondLevelEntityBuilder<?, ?> builder() {
+		return new SecondLevelEntityBuilderImpl();
+	}
+
+	public Long getId() {
+		return this.id;
+	}
+
+	public String getSomeValue() {
+		return this.someValue;
+	}
+
+	public List<ThirdLevelEntityRelationship> getThirdLevelEntityRelationshipProperties() {
+		return this.thirdLevelEntityRelationshipProperties;
+	}
+
+	public void setId(Long id) {
+		this.id = id;
+	}
+
+	public void setSomeValue(String someValue) {
+		this.someValue = someValue;
+	}
+
+	public void setThirdLevelEntityRelationshipProperties(List<ThirdLevelEntityRelationship> thirdLevelEntityRelationshipProperties) {
+		this.thirdLevelEntityRelationshipProperties = thirdLevelEntityRelationshipProperties;
+	}
+
+	public boolean equals(final Object o) {
+		if (o == this) {
+			return true;
+		}
+		if (!(o instanceof SecondLevelEntity)) {
+			return false;
+		}
+		final SecondLevelEntity other = (SecondLevelEntity) o;
+		if (!other.canEqual((Object) this)) {
+			return false;
+		}
+		final Object this$id = this.getId();
+		final Object other$id = other.getId();
+		if (this$id == null ? other$id != null : !this$id.equals(other$id)) {
+			return false;
+		}
+		return true;
+	}
+
+	protected boolean canEqual(final Object other) {
+		return other instanceof SecondLevelEntity;
+	}
+
+	public int hashCode() {
+		final int PRIME = 59;
+		int result = 1;
+		final Object $id = this.getId();
+		result = result * PRIME + ($id == null ? 43 : $id.hashCode());
+		return result;
+	}
+
+	/**
+	 * the builder
+	 * @param <C> needed c type
+	 * @param <B> needed b type
+	 */
+	public static abstract class SecondLevelEntityBuilder<C extends SecondLevelEntity, B extends SecondLevelEntityBuilder<C, B>> {
+		private Long id;
+		private String someValue;
+		private List<ThirdLevelEntityRelationship> thirdLevelEntityRelationshipProperties;
+
+		public B id(Long id) {
+			this.id = id;
+			return self();
+		}
+
+		public B someValue(String someValue) {
+			this.someValue = someValue;
+			return self();
+		}
+
+		public B thirdLevelEntityRelationshipProperties(List<ThirdLevelEntityRelationship> thirdLevelEntityRelationshipProperties) {
+			this.thirdLevelEntityRelationshipProperties = thirdLevelEntityRelationshipProperties;
+			return self();
+		}
+
+		protected abstract B self();
+
+		public abstract C build();
+
+		public String toString() {
+			return "SecondLevelEntity.SecondLevelEntityBuilder(id=" + this.id + ", someValue=" + this.someValue + ", thirdLevelEntityRelationshipProperties=" + this.thirdLevelEntityRelationshipProperties + ")";
+		}
+	}
+
+	private static final class SecondLevelEntityBuilderImpl extends SecondLevelEntityBuilder<SecondLevelEntity, SecondLevelEntityBuilderImpl> {
+		private SecondLevelEntityBuilderImpl() {
+		}
+
+		protected SecondLevelEntityBuilderImpl self() {
+			return this;
+		}
+
+		public SecondLevelEntity build() {
+			return new SecondLevelEntity(this);
+		}
+	}
 }

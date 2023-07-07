@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package org.springframework.data.neo4j.integration.issues.gh2622;
+
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;

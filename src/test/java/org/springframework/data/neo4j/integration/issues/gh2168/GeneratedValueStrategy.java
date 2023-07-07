@@ -27,6 +27,6 @@ public final class GeneratedValueStrategy implements IdGenerator<String> {
 	@Override
 	public String generateId(String primaryLabel, Object entity) {
 		return "Please use something that one randomly create conflicting ids :) " +
-			   ThreadLocalRandom.current().nextLong();
+				ThreadLocalRandom.current().nextLong();
 	}
 }

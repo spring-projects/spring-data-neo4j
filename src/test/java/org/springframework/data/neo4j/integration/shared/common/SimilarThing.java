@@ -28,16 +28,21 @@ import org.springframework.data.neo4j.core.schema.Relationship;
  */
 @Node
 public class SimilarThing {
-	@Id @GeneratedValue private Long id;
+	@Id
+	@GeneratedValue
+	private Long id;
 
 	private String name;
 
-	@Relationship(type = "SimilarTo") private SimilarThing similar;
+	@Relationship(type = "SimilarTo")
+	private SimilarThing similar;
 
-	@Relationship(type = "SimilarTo", direction = Relationship.Direction.INCOMING) private SimilarThing similarOf;
+	@Relationship(type = "SimilarTo", direction = Relationship.Direction.INCOMING)
+	private SimilarThing similarOf;
 
 	// included to ensure empty relationships do not cause deletion
-	@Relationship("EmptyRelationship") private List<SimilarThing> noSimilarThings;
+	@Relationship("EmptyRelationship")
+	private List<SimilarThing> noSimilarThings;
 
 	public Long getId() {
 		return id;

@@ -15,12 +15,6 @@
  */
 package org.springframework.data.neo4j.integration.issues.gh2500;
 
-import lombok.Getter;
-import lombok.Setter;
-
-import java.util.LinkedHashSet;
-import java.util.Set;
-
 import org.springframework.data.annotation.Version;
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
@@ -29,12 +23,13 @@ import org.springframework.data.neo4j.core.schema.Relationship;
 import org.springframework.data.neo4j.core.support.UUIDStringGenerator;
 import org.springframework.lang.NonNull;
 
+import java.util.LinkedHashSet;
+import java.util.Set;
+
 /**
  * @author Michael J. Simons
  */
 @Node
-@Getter
-@Setter
 public class Group {
 
 	@Id
@@ -76,5 +71,46 @@ public class Group {
 		result = 31 * result + id.hashCode();
 		result = 31 * result + name.hashCode();
 		return result;
+	}
+
+	public String getId() {
+		return this.id;
+	}
+
+	public Long getVersion() {
+		return this.version;
+	}
+
+	@NonNull
+	public String getName() {
+		return this.name;
+	}
+
+	public Set<Device> getDevices() {
+		return this.devices;
+	}
+
+	public Set<Group> getGroups() {
+		return this.groups;
+	}
+
+	public void setId(String id) {
+		this.id = id;
+	}
+
+	public void setVersion(Long version) {
+		this.version = version;
+	}
+
+	public void setName(@NonNull String name) {
+		this.name = name;
+	}
+
+	public void setDevices(Set<Device> devices) {
+		this.devices = devices;
+	}
+
+	public void setGroups(Set<Group> groups) {
+		this.groups = groups;
 	}
 }

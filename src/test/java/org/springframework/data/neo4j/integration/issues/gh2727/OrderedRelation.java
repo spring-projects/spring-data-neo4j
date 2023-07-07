@@ -15,10 +15,6 @@
  */
 package org.springframework.data.neo4j.integration.issues.gh2727;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Property;
 import org.springframework.data.neo4j.core.schema.RelationshipId;
@@ -29,22 +25,51 @@ import org.springframework.data.neo4j.core.schema.TargetNode;
  * @author Gerrit Meier
  * @param <T> relationship properties type
  */
-@AllArgsConstructor
-@NoArgsConstructor
-@Getter
-@Setter
 @RelationshipProperties
 public class OrderedRelation<T> implements Comparable<OrderedRelation<T>> {
-    @RelationshipId
-    @GeneratedValue
-    private Long id;
-    @TargetNode
-    private T target;
-    @Property
-    private Integer order;
+	@RelationshipId
+	@GeneratedValue
+	private Long id;
+	@TargetNode
+	private T target;
+	@Property
+	private Integer order;
 
-    @Override
-    public int compareTo(final OrderedRelation<T> o) {
-        return order - o.order;
-    }
+	public OrderedRelation(Long id, T target, Integer order) {
+		this.id = id;
+		this.target = target;
+		this.order = order;
+	}
+
+	public OrderedRelation() {
+	}
+
+	@Override
+	public int compareTo(final OrderedRelation<T> o) {
+		return order - o.order;
+	}
+
+	public Long getId() {
+		return this.id;
+	}
+
+	public T getTarget() {
+		return this.target;
+	}
+
+	public Integer getOrder() {
+		return this.order;
+	}
+
+	public void setId(Long id) {
+		this.id = id;
+	}
+
+	public void setTarget(T target) {
+		this.target = target;
+	}
+
+	public void setOrder(Integer order) {
+		this.order = order;
+	}
 }

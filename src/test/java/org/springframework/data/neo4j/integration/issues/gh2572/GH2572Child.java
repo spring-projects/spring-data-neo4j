@@ -15,25 +15,40 @@
  */
 package org.springframework.data.neo4j.integration.issues.gh2572;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-
 import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Relationship;
 
 /**
  * @author Michael J. Simons
  */
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
 @Node
 public class GH2572Child extends GH2572BaseEntity<GH2572Child> {
 	private String name;
 
 	@Relationship(value = "IS_PET", direction = Relationship.Direction.OUTGOING)
 	private GH2572Parent owner;
+
+	public GH2572Child(String name, GH2572Parent owner) {
+		this.name = name;
+		this.owner = owner;
+	}
+
+	public GH2572Child() {
+	}
+
+	public String getName() {
+		return this.name;
+	}
+
+	public GH2572Parent getOwner() {
+		return this.owner;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public void setOwner(GH2572Parent owner) {
+		this.owner = owner;
+	}
 }

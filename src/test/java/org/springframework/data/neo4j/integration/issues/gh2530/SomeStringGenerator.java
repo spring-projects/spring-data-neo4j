@@ -24,8 +24,8 @@ import java.util.UUID;
  */
 public class SomeStringGenerator implements IdGenerator<String> {
 
-    @Override
-    public String generateId(String primaryLabel, Object entity) {
-        return primaryLabel + UUID.randomUUID();
-    }
+	@Override
+	public String generateId(String primaryLabel, Object entity) {
+		return primaryLabel + UUID.randomUUID();
+	}
 }

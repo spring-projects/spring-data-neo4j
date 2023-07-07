@@ -27,26 +27,27 @@ import org.springframework.data.neo4j.core.schema.Relationship;
 @Node
 public class TestEntityWithGeneratedDeprecatedId1 {
 
-    @Id
-    @GeneratedValue
-    private Long id;
+	@Id
+	@GeneratedValue
+	private Long id;
 
-    @Property("value_one")
-    private String valueOne;
+	@Property("value_one")
+	private String valueOne;
 
-    @Relationship("related_to")
-    private TestEntityWithGeneratedDeprecatedId2 relatedEntity;
+	@Relationship("related_to")
+	private TestEntityWithGeneratedDeprecatedId2 relatedEntity;
 
-    public TestEntityWithGeneratedDeprecatedId1(Long id, String valueOne, TestEntityWithGeneratedDeprecatedId2 relatedEntity) {
-        this.id = id;
-        this.valueOne = valueOne;
-        this.relatedEntity = relatedEntity;
-    }
-    public Long getId() {
-        return id;
-    }
+	public TestEntityWithGeneratedDeprecatedId1(Long id, String valueOne, TestEntityWithGeneratedDeprecatedId2 relatedEntity) {
+		this.id = id;
+		this.valueOne = valueOne;
+		this.relatedEntity = relatedEntity;
+	}
 
-    public TestEntityWithGeneratedDeprecatedId2 getRelatedEntity() {
-        return relatedEntity;
-    }
+	public Long getId() {
+		return id;
+	}
+
+	public TestEntityWithGeneratedDeprecatedId2 getRelatedEntity() {
+		return relatedEntity;
+	}
 }

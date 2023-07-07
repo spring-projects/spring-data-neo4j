@@ -15,33 +15,99 @@
  */
 package org.springframework.data.neo4j.integration.issues.gh2498;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-
-import java.util.List;
-
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Relationship;
 
+import java.util.List;
+
 /**
  * @author Michael J. Simons
  */
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
+@SuppressWarnings("HiddenField")
 @Node("Vertex")
-@Builder(toBuilder = true)
 public class Vertex {
-    @Id
-    @GeneratedValue
-    Long id;
-    String name;
-    @Relationship(type = "CONNECTED_TO", direction = Relationship.Direction.INCOMING)
+	@Id
+	@GeneratedValue
+	Long id;
+	String name;
+	@Relationship(type = "CONNECTED_TO", direction = Relationship.Direction.INCOMING)
 	List<Edge> edges;
+
+	public Vertex(Long id, String name, List<Edge> edges) {
+		this.id = id;
+		this.name = name;
+		this.edges = edges;
+	}
+
+	public Vertex() {
+	}
+
+	public static VertexBuilder builder() {
+		return new VertexBuilder();
+	}
+
+	public Long getId() {
+		return this.id;
+	}
+
+	public String getName() {
+		return this.name;
+	}
+
+	public List<Edge> getEdges() {
+		return this.edges;
+	}
+
+	public void setId(Long id) {
+		this.id = id;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public void setEdges(List<Edge> edges) {
+		this.edges = edges;
+	}
+
+	public VertexBuilder toBuilder() {
+		return new VertexBuilder().id(this.id).name(this.name).edges(this.edges);
+	}
+
+	/**
+	 * the builder
+	 */
+	public static class VertexBuilder {
+		private Long id;
+		private String name;
+		private List<Edge> edges;
+
+		VertexBuilder() {
+		}
+
+		public VertexBuilder id(Long id) {
+			this.id = id;
+			return this;
+		}
+
+		public VertexBuilder name(String name) {
+			this.name = name;
+			return this;
+		}
+
+		public VertexBuilder edges(List<Edge> edges) {
+			this.edges = edges;
+			return this;
+		}
+
+		public Vertex build() {
+			return new Vertex(this.id, this.name, this.edges);
+		}
+
+		public String toString() {
+			return "Vertex.VertexBuilder(id=" + this.id + ", name=" + this.name + ", edges=" + this.edges + ")";
+		}
+	}
 }

@@ -26,15 +26,15 @@ import org.springframework.data.neo4j.core.schema.Property;
 @Node
 public class TestEntityWithGeneratedDeprecatedId2 {
 
-    @Id
-    @GeneratedValue
-    private Long id;
+	@Id
+	@GeneratedValue
+	private Long id;
 
-    @Property("valueTwo")
-    private String valueTwo;
+	@Property("valueTwo")
+	private String valueTwo;
 
-    public TestEntityWithGeneratedDeprecatedId2(Long id, String valueTwo) {
-        this.id = id;
-        this.valueTwo = valueTwo;
-    }
+	public TestEntityWithGeneratedDeprecatedId2(Long id, String valueTwo) {
+		this.id = id;
+		this.valueTwo = valueTwo;
+	}
 }

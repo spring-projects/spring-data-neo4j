@@ -524,18 +524,6 @@
 					<version>${maven-jar-plugin.version}</version>
 				</plugin>
 				<plugin>
-					<groupId>org.projectlombok</groupId>
-					<artifactId>lombok-maven-plugin</artifactId>
-					<dependencies>
-						<dependency>
-							<!-- See https://github.com/awhitford/lombok.maven/issues/34 -->
-							<groupId>org.projectlombok</groupId>
-							<artifactId>lombok</artifactId>
-							<version>${lombok}</version>
-						</dependency>
-					</dependencies>
-				</plugin>
-				<plugin>
 					<groupId>org.codehaus.mojo</groupId>
 					<artifactId>flatten-maven-plugin</artifactId>
 					<version>${flatten-maven-plugin.version}</version>

@@ -28,7 +28,9 @@ import org.springframework.data.neo4j.core.schema.Relationship;
 @Node
 public class SimpleEntityWithRelationshipB {
 
-	@Id @GeneratedValue private Long id;
+	@Id
+	@GeneratedValue
+	private Long id;
 
 	@Relationship("TO_C")
 	private List<SimpleEntityWithRelationshipC> cs;

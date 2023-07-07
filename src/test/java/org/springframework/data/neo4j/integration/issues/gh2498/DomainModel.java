@@ -27,7 +27,9 @@ import org.springframework.data.neo4j.core.schema.Node;
 @Node
 public class DomainModel {
 
-	@Id @GeneratedValue UUID id;
+	@Id
+	@GeneratedValue
+	UUID id;
 
 	private final String name;
 

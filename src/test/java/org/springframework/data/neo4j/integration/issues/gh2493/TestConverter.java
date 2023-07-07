@@ -32,7 +32,7 @@ public class TestConverter implements Neo4jPersistentPropertyToMapConverter<Stri
 
 	@Override
 	public Map<String, Value> decompose(TestData property,
-			Neo4jConversionService neo4jConversionService) {
+										Neo4jConversionService neo4jConversionService) {
 
 		if (property == null) {
 			return Map.of();
@@ -43,7 +43,7 @@ public class TestConverter implements Neo4jPersistentPropertyToMapConverter<Stri
 
 	@Override
 	public TestData compose(Map<String, Value> source,
-			Neo4jConversionService neo4jConversionService) {
+							Neo4jConversionService neo4jConversionService) {
 		TestData data = new TestData();
 		if (source.get(NUM) != null) {
 			data.setNum(source.get(NUM).asInt());

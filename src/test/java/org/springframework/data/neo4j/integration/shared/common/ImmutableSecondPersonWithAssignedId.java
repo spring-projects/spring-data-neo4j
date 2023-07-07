@@ -217,7 +217,7 @@ public class ImmutableSecondPersonWithAssignedId {
 				Collections.emptyList(),
 				Collections.emptyMap(),
 				relationshipPropertiesDynamicCollection
-				);
+		);
 	}
 
 }

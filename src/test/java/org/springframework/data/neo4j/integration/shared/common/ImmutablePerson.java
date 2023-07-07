@@ -29,7 +29,8 @@ import org.springframework.data.neo4j.core.schema.Node;
  */
 @Node
 public class ImmutablePerson {
-	@Id private final String name;
+	@Id
+	private final String name;
 	private final List<ImmutablePerson> wasOnboardedBy;
 
 	public ImmutablePerson(String name, List<ImmutablePerson> wasOnboardedBy) {

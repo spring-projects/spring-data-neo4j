@@ -15,24 +15,39 @@
  */
 package org.springframework.data.neo4j.integration.issues.gh2572;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-
 import org.springframework.data.neo4j.core.schema.Node;
 
 /**
  * @author Michael J. Simons
  */
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
 @Node
 public class GH2572Parent extends GH2572BaseEntity<GH2572Parent> {
 
 	private String name;
 
 	private int age;
+
+	public GH2572Parent(String name, int age) {
+		this.name = name;
+		this.age = age;
+	}
+
+	public GH2572Parent() {
+	}
+
+	public String getName() {
+		return this.name;
+	}
+
+	public int getAge() {
+		return this.age;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public void setAge(int age) {
+		this.age = age;
+	}
 }
