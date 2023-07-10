@@ -17,7 +17,6 @@ package org.springframework.data.neo4j.integration.reactive;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.time.Duration;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -30,6 +29,7 @@ import java.util.stream.Stream;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.neo4j.cypherdsl.core.Cypher;
 import org.neo4j.cypherdsl.core.Node;
@@ -72,6 +72,7 @@ import reactor.test.StepVerifier;
 /**
  * @author Michael J. Simons
  */
+@Disabled // we cannot use BlockHound right now in the Maven build
 @Neo4jIntegrationTest
 class ReactiveNeo4jClientIT {
 

@@ -48,7 +48,7 @@ final class ReactiveDefaultBookmarkManager extends AbstractBookmarkManager {
 	@Override
 	public Collection<Bookmark> getBookmarks() {
 		this.bookmarks.addAll(bookmarksSupplier.get());
-		return Collections.unmodifiableSet(this.bookmarks);
+		return Collections.synchronizedSet(Collections.unmodifiableSet(this.bookmarks));
 	}
 
 	@Override
