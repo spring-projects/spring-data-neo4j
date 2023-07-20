@@ -29,6 +29,7 @@ import java.util.function.Supplier;
  * Default bookmark manager.
  *
  * @author Michael J. Simons
+ * @author Dmitriy Tverdiakov
  * @soundtrack Helge Schneider - The Last Jazz
  * @since 7.0
  */
@@ -48,7 +49,7 @@ final class ReactiveDefaultBookmarkManager extends AbstractBookmarkManager {
 	@Override
 	public Collection<Bookmark> getBookmarks() {
 		this.bookmarks.addAll(bookmarksSupplier.get());
-		return Collections.synchronizedSet(Collections.unmodifiableSet(this.bookmarks));
+		return Collections.synchronizedSet(Collections.unmodifiableSet(new HashSet<>(this.bookmarks)));
 	}
 
 	@Override
