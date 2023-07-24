@@ -18,6 +18,7 @@ package org.springframework.data.neo4j.core.transaction;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -70,7 +71,7 @@ final class DefaultBookmarkManager extends AbstractBookmarkManager {
 		try {
 			write.lock();
 			bookmarks.removeAll(usedBookmarks);
-			bookmarks.addAll(newBookmarks);
+			newBookmarks.stream().filter(Objects::nonNull).forEach(bookmarks::add);
 			if (applicationEventPublisher != null) {
 				applicationEventPublisher.publishEvent(new Neo4jBookmarksUpdatedEvent(new HashSet<>(bookmarks)));
 			}
