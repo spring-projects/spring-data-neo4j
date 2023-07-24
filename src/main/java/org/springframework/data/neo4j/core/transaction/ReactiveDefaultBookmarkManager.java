@@ -15,22 +15,24 @@
  */
 package org.springframework.data.neo4j.core.transaction;
 
-import org.neo4j.driver.Bookmark;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.lang.Nullable;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Supplier;
+
+import org.neo4j.driver.Bookmark;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.lang.Nullable;
 
 /**
  * Default bookmark manager.
  *
  * @author Michael J. Simons
- * @soundtrack Helge Schneider - The Last Jazz
- * @since 7.0
+ * @author Dmitriy Tverdiakov
+ * @author Gerrit Meier
+ * @since 7.1.2
  */
 final class ReactiveDefaultBookmarkManager extends AbstractBookmarkManager {
 
@@ -48,13 +50,13 @@ final class ReactiveDefaultBookmarkManager extends AbstractBookmarkManager {
 	@Override
 	public Collection<Bookmark> getBookmarks() {
 		this.bookmarks.addAll(bookmarksSupplier.get());
-		return Collections.synchronizedSet(Collections.unmodifiableSet(this.bookmarks));
+		return Set.copyOf(this.bookmarks);
 	}
 
 	@Override
 	public void updateBookmarks(Collection<Bookmark> usedBookmarks, Collection<Bookmark> newBookmarks) {
 		bookmarks.removeAll(usedBookmarks);
-		bookmarks.addAll(newBookmarks);
+		newBookmarks.stream().filter(Objects::nonNull).forEach(bookmarks::add);
 		if (applicationEventPublisher != null) {
 			applicationEventPublisher.publishEvent(new Neo4jBookmarksUpdatedEvent(new HashSet<>(bookmarks)));
 		}
