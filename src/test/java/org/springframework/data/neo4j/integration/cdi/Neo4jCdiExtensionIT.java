@@ -30,6 +30,8 @@ import jakarta.inject.Singleton;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
+import org.neo4j.cypherdsl.core.renderer.Configuration;
+import org.neo4j.cypherdsl.core.renderer.Dialect;
 import org.neo4j.driver.Driver;
 import org.springframework.data.neo4j.config.Neo4jCdiExtension;
 import org.springframework.data.neo4j.core.DatabaseSelectionProvider;
@@ -54,6 +56,16 @@ class Neo4jCdiExtensionIT {
 		@Singleton
 		public Driver driver() {
 			return connectionSupport.getDriver();
+		}
+
+		@Produces
+		@Singleton
+		public Configuration cypherDslConfiguration() {
+			if (connectionSupport.isCypher5SyntaxCompatible()) {
+				return Configuration.newConfig().withDialect(Dialect.NEO4J_5).build();
+			}
+
+			return Configuration.newConfig().withDialect(Dialect.DEFAULT).build();
 		}
 	}
 

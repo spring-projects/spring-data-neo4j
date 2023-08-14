@@ -19,8 +19,11 @@ import static org.neo4j.cypherdsl.core.Cypher.anyNode;
 import static org.neo4j.cypherdsl.core.Cypher.asterisk;
 import static org.neo4j.cypherdsl.core.Cypher.parameter;
 
+import org.neo4j.cypherdsl.core.FunctionInvocation;
+import org.neo4j.cypherdsl.core.Named;
 import org.neo4j.driver.Values;
 import org.springframework.data.neo4j.core.mapping.IdDescription;
+import org.springframework.data.neo4j.core.mapping.SpringDataCypherDsl;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.util.function.Tuple2;
@@ -133,6 +136,7 @@ public final class ReactiveNeo4jTemplate implements
 	private ProjectionFactory projectionFactory;
 
 	private Renderer renderer;
+	private Function<Named, FunctionInvocation> elementIdOrIdFunction;
 
 	public ReactiveNeo4jTemplate(ReactiveNeo4jClient neo4jClient, Neo4jMappingContext neo4jMappingContext) {
 
@@ -144,6 +148,7 @@ public final class ReactiveNeo4jTemplate implements
 		this.cypherGenerator = CypherGenerator.INSTANCE;
 		this.eventSupport = ReactiveEventSupport.useExistingCallbacks(neo4jMappingContext, ReactiveEntityCallbacks.create());
 		this.renderer = Renderer.getDefaultRenderer();
+		this.elementIdOrIdFunction = SpringDataCypherDsl.elementIdOrIdFunction.apply(null);
 	}
 
 	ProjectionFactory getProjectionFactory() {
@@ -586,7 +591,7 @@ public final class ReactiveNeo4jTemplate implements
 							.query(() -> renderer.render(cypherGenerator.prepareSaveOfMultipleInstancesOf(entityMetaData)))
 							.bind(boundedEntityList).to(Constants.NAME_OF_ENTITY_LIST_PARAM)
 							.fetchAs(Tuple2.class)
-							.mappedBy((t, r) -> Tuples.of(r.get(Constants.NAME_OF_ID), r.get(Constants.NAME_OF_ELEMENT_ID).asString()))
+							.mappedBy((t, r) -> Tuples.of(r.get(Constants.NAME_OF_ID), TemplateSupport.convertIdOrElementIdToString(r.get(Constants.NAME_OF_ELEMENT_ID))))
 							.all()
 							.collectMap(m -> (Value) m.getT1(), m -> (String) m.getT2());
 				}).flatMapMany(idToInternalIdMapping -> Flux.fromIterable(entitiesToBeSaved)
@@ -729,10 +734,10 @@ public final class ReactiveNeo4jTemplate implements
 									.bindAll(usedParameters)
 									.fetchAs(Tuple2.class)
 									.mappedBy((t, r) -> {
-										Collection<String> rootIds = r.get(Constants.NAME_OF_SYNTHESIZED_ROOT_NODE).asList(Value::asString);
+										Collection<String> rootIds = r.get(Constants.NAME_OF_SYNTHESIZED_ROOT_NODE).asList(TemplateSupport::convertIdOrElementIdToString);
 										rootNodeIds.addAll(rootIds);
-										Collection<String> newRelationshipIds = r.get(Constants.NAME_OF_SYNTHESIZED_RELATIONS).asList(Value::asString);
-										Collection<String> newRelatedNodeIds = r.get(Constants.NAME_OF_SYNTHESIZED_RELATED_NODES).asList(Value::asString);
+										Collection<String> newRelationshipIds = r.get(Constants.NAME_OF_SYNTHESIZED_RELATIONS).asList(TemplateSupport::convertIdOrElementIdToString);
+										Collection<String> newRelatedNodeIds = r.get(Constants.NAME_OF_SYNTHESIZED_RELATED_NODES).asList(TemplateSupport::convertIdOrElementIdToString);
 										return Tuples.of(newRelationshipIds, newRelatedNodeIds);
 									})
 									.one()
@@ -742,7 +747,7 @@ public final class ReactiveNeo4jTemplate implements
 									})
 									.expand(iterateAndMapNextLevel(relationshipDescription, queryFragments, rootClass, PropertyPathWalkStep.empty()));
 						})
-						.then(Mono.fromSupplier(() -> new NodesAndRelationshipsByIdStatementProvider(rootNodeIds, processedRelationshipIds, processedNodeIds, queryFragments)));
+						.then(Mono.fromSupplier(() -> new NodesAndRelationshipsByIdStatementProvider(rootNodeIds, processedRelationshipIds, processedNodeIds, queryFragments, elementIdOrIdFunction)));
 			})
 			.contextWrite(ctx -> ctx
 					.put("rootNodes", ConcurrentHashMap.newKeySet())
@@ -777,15 +782,15 @@ public final class ReactiveNeo4jTemplate implements
 
 				Statement statement = cypherGenerator
 						.prepareMatchOf(target, relDe, null,
-								Functions.elementId(node).in(Cypher.parameter(Constants.NAME_OF_ID)))
+								elementIdOrIdFunction.apply(node).in(Cypher.parameter(Constants.NAME_OF_ID)))
 						.returning(cypherGenerator.createGenericReturnStatement()).build();
 
 				return neo4jClient.query(renderer.render(statement))
-						.bindAll(Collections.singletonMap(Constants.NAME_OF_ID, relatedNodeIds))
+						.bindAll(Collections.singletonMap(Constants.NAME_OF_ID, TemplateSupport.convertToLongIdOrStringElementId(relatedNodeIds)))
 						.fetchAs(Tuple2.class)
 						.mappedBy((t, r) -> {
-							Collection<String> newRelationshipIds = r.get(Constants.NAME_OF_SYNTHESIZED_RELATIONS).asList(Value::asString);
-							Collection<String> newRelatedNodeIds = r.get(Constants.NAME_OF_SYNTHESIZED_RELATED_NODES).asList(Value::asString);
+							Collection<String> newRelationshipIds = r.get(Constants.NAME_OF_SYNTHESIZED_RELATIONS).asList(TemplateSupport::convertIdOrElementIdToString);
+							Collection<String> newRelatedNodeIds = r.get(Constants.NAME_OF_SYNTHESIZED_RELATED_NODES).asList(TemplateSupport::convertIdOrElementIdToString);
 
 							return Tuples.of(newRelationshipIds, newRelatedNodeIds);
 						})
@@ -1151,6 +1156,8 @@ public final class ReactiveNeo4jTemplate implements
 				.getBeanProvider(Configuration.class)
 				.getIfAvailable(Configuration::defaultConfig);
 		this.renderer = Renderer.getRenderer(cypherDslConfiguration);
+		this.elementIdOrIdFunction = SpringDataCypherDsl.elementIdOrIdFunction.apply(cypherDslConfiguration.getDialect());
+		this.cypherGenerator.setElementIdOrIdFunction(elementIdOrIdFunction);
 	}
 
 	@Override

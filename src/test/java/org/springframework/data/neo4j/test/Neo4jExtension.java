@@ -61,6 +61,7 @@ import static org.assertj.core.api.Assumptions.assumeThat;
 public class Neo4jExtension implements BeforeAllCallback, BeforeEachCallback {
 
 	public final static String NEEDS_REACTIVE_SUPPORT = "reactive-test";
+	public final static String NEEDS_VERSION_SUPPORTING_ELEMENT_ID = "elementid-test";
 	public final static String COMMUNITY_EDITION_ONLY = "community-edition";
 	public final static String COMMERCIAL_EDITION_ONLY = "commercial-edition";
 	/**
@@ -135,6 +136,10 @@ public class Neo4jExtension implements BeforeAllCallback, BeforeEachCallback {
 		if (tags.contains(NEEDS_REACTIVE_SUPPORT)) {
 			assumeThat(neo4jConnectionSupport.getServerVersion().greaterThanOrEqual(ServerVersion.v4_0_0))
 					.describedAs("This test requires at least Neo4j 4.0 for reactive database connectivity.").isTrue();
+		}
+		if (tags.contains(NEEDS_VERSION_SUPPORTING_ELEMENT_ID)) {
+			assumeThat(neo4jConnectionSupport.getServerVersion().greaterThan(ServerVersion.v5_3_0))
+					.describedAs("This test requires a version greater than Neo4j 5.3.0 for correct elementId handling.").isTrue();
 		}
 
 		if (tags.contains(COMMUNITY_EDITION_ONLY)) {

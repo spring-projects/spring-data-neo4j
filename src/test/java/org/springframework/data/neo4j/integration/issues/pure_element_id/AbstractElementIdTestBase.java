@@ -20,12 +20,14 @@ import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.test.BookmarkCapture;
 import org.springframework.data.neo4j.test.Neo4jExtension;
 
+@Tag(Neo4jExtension.NEEDS_VERSION_SUPPORTING_ELEMENT_ID)
 abstract class AbstractElementIdTestBase {
 
 	protected static Neo4jExtension.Neo4jConnectionSupport neo4jConnectionSupport;

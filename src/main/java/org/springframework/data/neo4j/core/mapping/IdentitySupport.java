@@ -20,10 +20,12 @@ import static org.apiguardian.api.API.Status.INTERNAL;
 import java.util.function.Function;
 
 import org.apiguardian.api.API;
+import org.neo4j.driver.Value;
 import org.neo4j.driver.types.Entity;
 import org.neo4j.driver.types.MapAccessor;
 import org.neo4j.driver.types.Node;
 import org.neo4j.driver.types.Relationship;
+import org.neo4j.driver.types.TypeSystem;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 
@@ -51,6 +53,7 @@ public final class IdentitySupport {
 		return entity.elementId();
 	}
 
+
 	/**
 	 * Retrieves an identity either from attributes inside the row or if it is an actual entity, with the dedicated accessors.
 	 *
@@ -64,11 +67,14 @@ public final class IdentitySupport {
 		}
 
 		var columnToUse = Constants.NAME_OF_ELEMENT_ID;
-		if (row.get(columnToUse) == null || row.get(columnToUse).isNull()) {
+		Value value = row.get(columnToUse);
+		if (value == null || value.isNull()) {
 			return null;
 		}
-
-		return row.get(columnToUse).asString();
+		if (value.hasType(TypeSystem.getDefault().NUMBER())) {
+			return value.asNumber().toString();
+		}
+		return value.asString();
 	}
 
 	@Nullable
@@ -93,7 +99,11 @@ public final class IdentitySupport {
 		} else if (queryResult instanceof Relationship) {
 			return "R" + seed + getElementId(queryResult);
 		} else if (!(queryResult.get(Constants.NAME_OF_ELEMENT_ID) == null || queryResult.get(Constants.NAME_OF_ELEMENT_ID).isNull())) {
-			return "N" + queryResult.get(Constants.NAME_OF_ELEMENT_ID).asString();
+			Value value = queryResult.get(Constants.NAME_OF_ELEMENT_ID);
+			if (value.hasType(TypeSystem.getDefault().NUMBER())) {
+				return "N" + value.asNumber();
+			}
+			return "N" + value.asString();
 		}
 
 		return null;
