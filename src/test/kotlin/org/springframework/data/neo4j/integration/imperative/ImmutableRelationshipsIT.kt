@@ -32,6 +32,7 @@ import org.springframework.data.neo4j.repository.Neo4jRepository
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories
 import org.springframework.data.neo4j.test.BookmarkCapture
 import org.springframework.data.neo4j.test.Neo4jExtension
+import org.springframework.data.neo4j.test.Neo4jImperativeTestConfiguration
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest
 import org.springframework.transaction.PlatformTransactionManager
 import org.springframework.transaction.annotation.EnableTransactionManagement
@@ -119,7 +120,7 @@ class ImmutableRelationshipsIT @Autowired constructor(
     @Configuration
     @EnableTransactionManagement
     @EnableNeo4jRepositories
-    open class MyConfig : AbstractNeo4jConfig() {
+    open class MyConfig : Neo4jImperativeTestConfiguration() {
         @Bean
         override fun driver(): Driver {
             return neo4jConnectionSupport.driver
@@ -134,6 +135,10 @@ class ImmutableRelationshipsIT @Autowired constructor(
         override fun transactionManager(driver: Driver, databaseNameProvider: DatabaseSelectionProvider): PlatformTransactionManager {
             val bookmarkCapture = bookmarkCapture()
             return Neo4jTransactionManager(driver, databaseNameProvider, Neo4jBookmarkManager.create(bookmarkCapture))
+        }
+
+        override fun isCypher5Compatible(): Boolean {
+            return neo4jConnectionSupport.isCypher5SyntaxCompatible
         }
     }
 

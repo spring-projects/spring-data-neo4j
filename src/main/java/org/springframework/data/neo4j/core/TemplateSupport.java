@@ -35,11 +35,15 @@ import java.util.stream.StreamSupport;
 
 import org.apiguardian.api.API;
 import org.neo4j.cypherdsl.core.Cypher;
+import org.neo4j.cypherdsl.core.FunctionInvocation;
 import org.neo4j.cypherdsl.core.Functions;
+import org.neo4j.cypherdsl.core.Named;
 import org.neo4j.cypherdsl.core.Node;
 import org.neo4j.cypherdsl.core.Relationship;
 import org.neo4j.cypherdsl.core.Statement;
+import org.neo4j.cypherdsl.core.renderer.Dialect;
 import org.neo4j.cypherdsl.core.renderer.Renderer;
+import org.neo4j.driver.Value;
 import org.neo4j.driver.types.Entity;
 import org.neo4j.driver.types.MapAccessor;
 import org.neo4j.driver.types.TypeSystem;
@@ -55,6 +59,7 @@ import org.springframework.data.neo4j.core.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.core.mapping.NodeDescription;
 import org.springframework.data.neo4j.core.mapping.PropertyFilter;
 import org.springframework.data.neo4j.core.mapping.PropertyTraverser;
+import org.springframework.data.neo4j.core.mapping.SpringDataCypherDsl;
 import org.springframework.data.neo4j.repository.query.QueryFragments;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
@@ -68,6 +73,7 @@ import org.springframework.util.Assert;
  */
 @API(status = API.Status.INTERNAL, since = "6.0.9")
 public final class TemplateSupport {
+
 
 	/**
 	 * Indicator for an empty collection
@@ -181,13 +187,15 @@ public final class TemplateSupport {
 		private final static String RELATED_NODE_IDS = "relatedNodeIds";
 
 		final static NodesAndRelationshipsByIdStatementProvider EMPTY =
-				new NodesAndRelationshipsByIdStatementProvider(Collections.emptySet(), Collections.emptySet(), Collections.emptySet(), new QueryFragments());
+				new NodesAndRelationshipsByIdStatementProvider(Collections.emptySet(), Collections.emptySet(), Collections.emptySet(), new QueryFragments(), SpringDataCypherDsl.elementIdOrIdFunction.apply(Dialect.DEFAULT));
 
 		private final Map<String, Collection<String>> parameters = new HashMap<>(3);
 		private final QueryFragments queryFragments;
+		private final Function<Named, FunctionInvocation> elementIdFunction;
 
-		NodesAndRelationshipsByIdStatementProvider(Collection<String> rootNodeIds, Collection<String> relationshipsIds, Collection<String> relatedNodeIds, QueryFragments queryFragments) {
+		NodesAndRelationshipsByIdStatementProvider(Collection<String> rootNodeIds, Collection<String> relationshipsIds, Collection<String> relatedNodeIds, QueryFragments queryFragments, Function<Named, FunctionInvocation> elementIdFunction) {
 
+			this.elementIdFunction = elementIdFunction;
 			this.parameters.put(ROOT_NODE_IDS, rootNodeIds);
 			this.parameters.put(RELATIONSHIP_IDS, relationshipsIds);
 			this.parameters.put(RELATED_NODE_IDS, relatedNodeIds);
@@ -195,7 +203,12 @@ public final class TemplateSupport {
 		}
 
 		Map<String, Object> getParameters() {
-			return Collections.unmodifiableMap(parameters);
+			Map<String, Object> result = new HashMap<>(3);
+			result.put(ROOT_NODE_IDS, convertToLongIdOrStringElementId(this.parameters.get(ROOT_NODE_IDS)));
+			result.put(RELATIONSHIP_IDS, convertToLongIdOrStringElementId(this.parameters.get(RELATIONSHIP_IDS)));
+			result.put(RELATED_NODE_IDS, convertToLongIdOrStringElementId(this.parameters.get(RELATED_NODE_IDS)));
+
+			return Collections.unmodifiableMap(result);
 		}
 
 		boolean hasRootNodeIds() {
@@ -209,13 +222,13 @@ public final class TemplateSupport {
 			Node relatedNodes = Cypher.anyNode(RELATED_NODE_IDS);
 			Relationship relationships = Cypher.anyNode().relationshipBetween(Cypher.anyNode()).named(RELATIONSHIP_IDS);
 			return Cypher.match(rootNodes)
-					.where(Functions.elementId(rootNodes).in(Cypher.parameter(ROOT_NODE_IDS)))
+					.where(elementIdFunction.apply(rootNodes).in(Cypher.parameter(ROOT_NODE_IDS)))
 					.with(Functions.collect(rootNodes).as(Constants.NAME_OF_ROOT_NODE))
 					.optionalMatch(relationships)
-					.where(Functions.elementId(relationships).in(Cypher.parameter(RELATIONSHIP_IDS)))
+					.where(elementIdFunction.apply(relationships).in(Cypher.parameter(RELATIONSHIP_IDS)))
 					.with(Constants.NAME_OF_ROOT_NODE, Functions.collectDistinct(relationships).as(Constants.NAME_OF_SYNTHESIZED_RELATIONS))
 					.optionalMatch(relatedNodes)
-					.where(Functions.elementId(relatedNodes).in(Cypher.parameter(RELATED_NODE_IDS)))
+					.where(elementIdFunction.apply(relatedNodes).in(Cypher.parameter(RELATED_NODE_IDS)))
 					.with(
 							Constants.NAME_OF_ROOT_NODE,
 							Cypher.name(Constants.NAME_OF_SYNTHESIZED_RELATIONS).as(Constants.NAME_OF_SYNTHESIZED_RELATIONS),
@@ -414,8 +427,33 @@ public final class TemplateSupport {
 	 * @return {@literal true} if renderer will use elementId
 	 */
 	static boolean rendererCanUseElementIdIfPresent(Renderer renderer, Neo4jPersistentEntity<?> targetEntity) {
-		return !targetEntity.isUsingDeprecatedInternalId() && targetEntity.isUsingInternalIds() && renderer.render(Cypher.returning(Functions.elementId(Cypher.anyNode("n"))).build())
+		return !targetEntity.isUsingDeprecatedInternalId() && targetEntity.isUsingInternalIds() && rendererRendersElementId(renderer);
+	}
+
+	private static boolean rendererRendersElementId(Renderer renderer) {
+		return renderer.render(Cypher.returning(Functions.elementId(Cypher.anyNode("n"))).build())
 				.equals("RETURN elementId(n)");
+	}
+
+	public static String convertIdOrElementIdToString(Object value) {
+		if (value instanceof Value driverValue) {
+			if (driverValue.hasType(TypeSystem.getDefault().NUMBER())) {
+				return driverValue.asNumber().toString();
+			}
+			return driverValue.asString();
+		}
+
+		return value.toString();
+	}
+
+	static Object convertToLongIdOrStringElementId(Collection<String> ids) {
+		try {
+			return ids.stream()
+					.map(Long::valueOf).collect(Collectors.toSet());
+
+		} catch (Exception e) {
+			return ids;
+		}
 	}
 
 	private TemplateSupport() {
