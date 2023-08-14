@@ -42,7 +42,9 @@ import org.apache.commons.logging.LogFactory;
 import org.apiguardian.api.API;
 import org.neo4j.cypherdsl.core.Condition;
 import org.neo4j.cypherdsl.core.Cypher;
+import org.neo4j.cypherdsl.core.FunctionInvocation;
 import org.neo4j.cypherdsl.core.Functions;
+import org.neo4j.cypherdsl.core.Named;
 import org.neo4j.cypherdsl.core.Node;
 import org.neo4j.cypherdsl.core.Statement;
 import org.neo4j.cypherdsl.core.renderer.Configuration;
@@ -85,6 +87,7 @@ import org.springframework.data.neo4j.core.mapping.NestedRelationshipProcessingS
 import org.springframework.data.neo4j.core.mapping.NodeDescription;
 import org.springframework.data.neo4j.core.mapping.PropertyFilter;
 import org.springframework.data.neo4j.core.mapping.RelationshipDescription;
+import org.springframework.data.neo4j.core.mapping.SpringDataCypherDsl;
 import org.springframework.data.neo4j.core.mapping.callback.EventSupport;
 import org.springframework.data.neo4j.core.schema.TargetNode;
 import org.springframework.data.neo4j.repository.NoResultException;
@@ -129,6 +132,8 @@ public final class Neo4jTemplate implements
 
 	private Renderer renderer;
 
+	private Function<Named, FunctionInvocation> elementIdOrIdFunction;
+
 	public Neo4jTemplate(Neo4jClient neo4jClient) {
 		this(neo4jClient, new Neo4jMappingContext());
 	}
@@ -148,6 +153,7 @@ public final class Neo4jTemplate implements
 		this.cypherGenerator = CypherGenerator.INSTANCE;
 		this.eventSupport = EventSupport.useExistingCallbacks(neo4jMappingContext, entityCallbacks);
 		this.renderer = Renderer.getDefaultRenderer();
+		this.elementIdOrIdFunction = SpringDataCypherDsl.elementIdOrIdFunction.apply(null);
 	}
 
 	ProjectionFactory getProjectionFactory() {
@@ -517,7 +523,7 @@ public final class Neo4jTemplate implements
 				.query(() -> renderer.render(cypherGenerator.prepareSaveOfMultipleInstancesOf(entityMetaData)))
 				.bind(entityList).to(Constants.NAME_OF_ENTITY_LIST_PARAM)
 				.fetchAs(Map.Entry.class)
-				.mappedBy((t, r) -> new AbstractMap.SimpleEntry<>(r.get(Constants.NAME_OF_ID), r.get(Constants.NAME_OF_ELEMENT_ID).asString()))
+				.mappedBy((t, r) -> new AbstractMap.SimpleEntry<>(r.get(Constants.NAME_OF_ID), TemplateSupport.convertIdOrElementIdToString(r.get(Constants.NAME_OF_ELEMENT_ID))))
 				.all()
 				.stream()
 				.collect(Collectors.toMap(m -> (Value) m.getKey(), m -> (String) m.getValue()));
@@ -746,7 +752,7 @@ public final class Neo4jTemplate implements
 				idProperty = null;
 			} else {
 				Neo4jPersistentEntity<?> relationshipPropertiesEntity = (Neo4jPersistentEntity<?>) relationshipDescription.getRelationshipPropertiesEntity();
-				idProperty = relationshipPropertiesEntity.getIdProperty();
+                idProperty = relationshipPropertiesEntity.getIdProperty();
 			}
 
 			// break recursive procession and deletion of previously created relationships
@@ -1023,6 +1029,8 @@ public final class Neo4jTemplate implements
 				.getBeanProvider(Configuration.class)
 				.getIfAvailable(Configuration::defaultConfig);
 		this.renderer = Renderer.getRenderer(cypherDslConfiguration);
+		this.elementIdOrIdFunction = SpringDataCypherDsl.elementIdOrIdFunction.apply(cypherDslConfiguration.getDialect());
+		this.cypherGenerator.setElementIdOrIdFunction(elementIdOrIdFunction);
 	}
 
 	// only used for the CDI configuration
@@ -1178,7 +1186,7 @@ public final class Neo4jTemplate implements
 					.bindAll(usedParameters)
 					.fetchAs(Value.class).mappedBy((t, r) -> r.get(Constants.NAME_OF_SYNTHESIZED_ROOT_NODE))
 					.one()
-					.map(value -> value.asList(Value::asString))
+					.map(value -> value.asList(TemplateSupport::convertIdOrElementIdToString))
 					.get());
 
 			if (rootNodeIds.isEmpty()) {
@@ -1204,7 +1212,7 @@ public final class Neo4jTemplate implements
 						.ifPresent(iterateAndMapNextLevel(relationshipIds, relatedNodeIds, relationshipDescription, PropertyPathWalkStep.empty()));
 			}
 
-			return new NodesAndRelationshipsByIdStatementProvider(rootNodeIds, relationshipIds, relatedNodeIds, queryFragments);
+			return new NodesAndRelationshipsByIdStatementProvider(rootNodeIds, relationshipIds, relatedNodeIds, queryFragments, elementIdOrIdFunction);
 		}
 
 		private void iterateNextLevel(Collection<String> nodeIds, RelationshipDescription sourceRelationshipDescription, Set<String> relationshipIds,
@@ -1235,11 +1243,11 @@ public final class Neo4jTemplate implements
 
 				Statement statement = cypherGenerator
 						.prepareMatchOf(target, relationshipDescription, null,
-								Functions.elementId(node).in(Cypher.parameter(Constants.NAME_OF_IDS)))
+								elementIdOrIdFunction.apply(node).in(Cypher.parameter(Constants.NAME_OF_IDS)))
 						.returning(cypherGenerator.createGenericReturnStatement()).build();
 
 				neo4jClient.query(renderer.render(statement))
-						.bindAll(Collections.singletonMap(Constants.NAME_OF_IDS, nodeIds))
+						.bindAll(Collections.singletonMap(Constants.NAME_OF_IDS, TemplateSupport.convertToLongIdOrStringElementId(nodeIds)))
 						.fetch()
 						.one()
 						.ifPresent(iterateAndMapNextLevel(relationshipIds, relatedNodeIds, relationshipDescription, nextPathStep));
@@ -1254,11 +1262,11 @@ public final class Neo4jTemplate implements
 
 			return record -> {
 				@SuppressWarnings("unchecked")
-				List<String> newRelationshipIds = (List<String>) record.get(Constants.NAME_OF_SYNTHESIZED_RELATIONS);
+				List<String> newRelationshipIds = ((List<Object>) record.get(Constants.NAME_OF_SYNTHESIZED_RELATIONS)).stream().map(TemplateSupport::convertIdOrElementIdToString).toList();
 				relationshipIds.addAll(newRelationshipIds);
 
 				@SuppressWarnings("unchecked")
-				List<String> newRelatedNodeIds = (List<String>) record.get(Constants.NAME_OF_SYNTHESIZED_RELATED_NODES);
+				List<String> newRelatedNodeIds = ((List<Object>) record.get(Constants.NAME_OF_SYNTHESIZED_RELATED_NODES)).stream().map(TemplateSupport::convertIdOrElementIdToString).toList();
 
 				Set<String> relatedIds = new HashSet<>(newRelatedNodeIds);
 				// use this list to get down the road

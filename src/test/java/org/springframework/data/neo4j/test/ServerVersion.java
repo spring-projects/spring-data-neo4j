@@ -27,6 +27,7 @@ import java.util.regex.Pattern;
 public final class ServerVersion {
 	public static final String NEO4J_PRODUCT = "Neo4j";
 
+	public static final ServerVersion v5_3_0 = new ServerVersion(NEO4J_PRODUCT, 5, 3, 0);
 	public static final ServerVersion v5_0_0 = new ServerVersion(NEO4J_PRODUCT, 5, 0, 0);
 	public static final ServerVersion v4_4_0 = new ServerVersion(NEO4J_PRODUCT, 4, 4, 0);
 	public static final ServerVersion v4_3_0 = new ServerVersion(NEO4J_PRODUCT, 4, 3, 0);
