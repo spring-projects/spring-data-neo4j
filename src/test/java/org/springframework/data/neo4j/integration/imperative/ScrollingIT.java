@@ -23,6 +23,8 @@ import java.util.function.Function;
 
 import org.assertj.core.data.Index;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.neo4j.driver.Driver;
@@ -46,6 +48,7 @@ import org.springframework.data.neo4j.test.Neo4jExtension;
 import org.springframework.data.neo4j.test.Neo4jImperativeTestConfiguration;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 import org.springframework.data.support.WindowIterator;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
@@ -57,174 +60,197 @@ class ScrollingIT {
 
 	@SuppressWarnings("unused")
 	private static Neo4jExtension.Neo4jConnectionSupport neo4jConnectionSupport;
+	@Nested
+	@SpringJUnitConfig(Config.class)
+	@DisplayName("Scroll with derived finder method")
+	class ScrollWithDerivedFinderMethod {
 
-	@BeforeAll
-	static void setupTestData(@Autowired Driver driver, @Autowired BookmarkCapture bookmarkCapture) {
-		try (
-				var session = driver.session(bookmarkCapture.createSessionConfig());
-				var transaction = session.beginTransaction()
-		) {
-			ScrollingEntity.createTestData(transaction);
-			transaction.commit();
-			bookmarkCapture.seedWith(session.lastBookmarks());
+		@BeforeAll
+		static void setupTestData(@Autowired Driver driver, @Autowired BookmarkCapture bookmarkCapture) {
+			try (
+					var session = driver.session(bookmarkCapture.createSessionConfig());
+					var transaction = session.beginTransaction()
+			) {
+				ScrollingEntity.createTestData(transaction);
+				transaction.commit();
+				bookmarkCapture.seedWith(session.lastBookmarks());
+			}
+		}
+
+		@Test
+		void oneColumnSortNoScroll(@Autowired ScrollingRepository repository) {
+
+			var topN = repository.findTop4ByOrderByB();
+			assertThat(topN)
+					.hasSize(4)
+					.extracting(ScrollingEntity::getA)
+					.containsExactly("A0", "B0", "C0", "D0");
+		}
+
+		@Test
+		void forwardWithDuplicatesManualIteration(@Autowired ScrollingRepository repository) {
+
+			var duplicates = repository.findAllByAOrderById("D0");
+			assertThat(duplicates).hasSize(2);
+
+			var window = repository.findTop4By(ScrollingEntity.SORT_BY_B_AND_A, ScrollPosition.keyset());
+			assertThat(window.hasNext()).isTrue();
+			assertThat(window)
+					.hasSize(4)
+					.extracting(Function.identity())
+					.satisfies(e -> assertThat(e.getId()).isEqualTo(duplicates.get(0).getId()), Index.atIndex(3))
+					.extracting(ScrollingEntity::getA)
+					.containsExactly("A0", "B0", "C0", "D0");
+
+			window = repository.findTop4By(ScrollingEntity.SORT_BY_B_AND_A, window.positionAt(window.size() - 1));
+			assertThat(window.hasNext()).isTrue();
+			assertThat(window)
+					.hasSize(4)
+					.extracting(Function.identity())
+					.satisfies(e -> assertThat(e.getId()).isEqualTo(duplicates.get(1).getId()), Index.atIndex(0))
+					.extracting(ScrollingEntity::getA)
+					.containsExactly("D0", "E0", "F0", "G0");
+
+			window = repository.findTop4By(ScrollingEntity.SORT_BY_B_AND_A, window.positionAt(window.size() - 1));
+			assertThat(window.isLast()).isTrue();
+			assertThat(window).extracting(ScrollingEntity::getA)
+					.containsExactly("H0", "I0");
+		}
+
+		@Test
+		void forwardWithDuplicatesIteratorIteration(@Autowired ScrollingRepository repository) {
+
+			var it = WindowIterator.of(pos -> repository.findTop4By(ScrollingEntity.SORT_BY_B_AND_A, pos))
+					.startingAt(ScrollPosition.keyset());
+			var content = new ArrayList<ScrollingEntity>();
+			while (it.hasNext()) {
+				var next = it.next();
+				content.add(next);
+			}
+
+			assertThat(content).hasSize(10);
+			assertThat(content.stream().map(ScrollingEntity::getId)
+					.distinct().toList()).hasSize(10);
+		}
+
+		@Test
+		void backwardWithDuplicatesManualIteration(@Autowired ScrollingRepository repository) {
+
+			// Recreate the last position
+			var last = repository.findFirstByA("I0");
+			var keys = Map.of(
+					"foobar", Values.value(last.getA()),
+					"b", Values.value(last.getB()),
+					Constants.NAME_OF_ADDITIONAL_SORT, Values.value(last.getId().toString())
+			);
+
+			var duplicates = repository.findAllByAOrderById("D0");
+			assertThat(duplicates).hasSize(2);
+
+			var window = repository.findTop4By(ScrollingEntity.SORT_BY_B_AND_A, ScrollPosition.backward(keys));
+			assertThat(window.hasNext()).isTrue();
+			assertThat(window)
+					.hasSize(4)
+					.extracting(ScrollingEntity::getA)
+					.containsExactly("F0", "G0", "H0", "I0");
+
+			var pos = ((KeysetScrollPosition) window.positionAt(0));
+			pos = ScrollPosition.backward(pos.getKeys());
+			window = repository.findTop4By(ScrollingEntity.SORT_BY_B_AND_A, pos);
+			assertThat(window.hasNext()).isTrue();
+			assertThat(window)
+					.hasSize(4)
+					.extracting(Function.identity())
+					.extracting(ScrollingEntity::getA)
+					.containsExactly("C0", "D0", "D0", "E0");
+
+			pos = ((KeysetScrollPosition) window.positionAt(0));
+			pos = ScrollPosition.backward(pos.getKeys());
+			window = repository.findTop4By(ScrollingEntity.SORT_BY_B_AND_A, pos);
+			assertThat(window.isLast()).isTrue();
+			assertThat(window).extracting(ScrollingEntity::getA)
+					.containsExactly("A0", "B0");
 		}
 	}
 
-	@Test
-	void oneColumnSortNoScroll(@Autowired ScrollingRepository repository) {
+	@Nested
+	@SpringJUnitConfig(Config.class)
+	@DisplayName("ScrollWithExampleApi")
+	class ScrollWithExampleApi {
 
-		var topN = repository.findTop4ByOrderByB();
-		assertThat(topN)
-				.hasSize(4)
-				.extracting(ScrollingEntity::getA)
-				.containsExactly("A0", "B0", "C0", "D0");
-	}
-
-	@Test
-	void forwardWithDuplicatesManualIteration(@Autowired ScrollingRepository repository) {
-
-		var duplicates = repository.findAllByAOrderById("D0");
-		assertThat(duplicates).hasSize(2);
-
-		var window = repository.findTop4By(ScrollingEntity.SORT_BY_B_AND_A, ScrollPosition.keyset());
-		assertThat(window.hasNext()).isTrue();
-		assertThat(window)
-				.hasSize(4)
-				.extracting(Function.identity())
-				.satisfies(e -> assertThat(e.getId()).isEqualTo(duplicates.get(0).getId()), Index.atIndex(3))
-				.extracting(ScrollingEntity::getA)
-				.containsExactly("A0", "B0", "C0", "D0");
-
-		window = repository.findTop4By(ScrollingEntity.SORT_BY_B_AND_A, window.positionAt(window.size() - 1));
-		assertThat(window.hasNext()).isTrue();
-		assertThat(window)
-				.hasSize(4)
-				.extracting(Function.identity())
-				.satisfies(e -> assertThat(e.getId()).isEqualTo(duplicates.get(1).getId()), Index.atIndex(0))
-				.extracting(ScrollingEntity::getA)
-				.containsExactly("D0", "E0", "F0", "G0");
-
-		window = repository.findTop4By(ScrollingEntity.SORT_BY_B_AND_A, window.positionAt(window.size() - 1));
-		assertThat(window.isLast()).isTrue();
-		assertThat(window).extracting(ScrollingEntity::getA)
-				.containsExactly("H0", "I0");
-	}
-
-	@Test
-	@Tag("GH-2726")
-	void forwardWithFluentQueryByExample(@Autowired ScrollingRepository scrollingRepository) {
-		ScrollingEntity scrollingEntity = new ScrollingEntity();
-		Example<ScrollingEntity> example = Example.of(scrollingEntity, ExampleMatcher.matchingAll().withIgnoreNullValues());
-
-		var window = scrollingRepository.findBy(example, q -> q.sortBy(ScrollingEntity.SORT_BY_C).limit(4).scroll(ScrollPosition.keyset()));
-		assertThat(window.hasNext()).isTrue();
-		assertThat(window)
-				.hasSize(4)
-				.extracting(ScrollingEntity::getA)
-				.containsExactly("A0", "B0", "C0", "D0");
-
-		ScrollPosition newPosition = ScrollPosition.forward(((KeysetScrollPosition) window.positionAt(window.size() - 1)).getKeys());
-		window = scrollingRepository.findBy(example, q -> q.sortBy(ScrollingEntity.SORT_BY_C).limit(4).scroll(newPosition));
-		assertThat(window)
-				.hasSize(4)
-				.extracting(ScrollingEntity::getA)
-				.containsExactly("D0", "E0", "F0", "G0");
-
-		window = scrollingRepository.findTop4By(ScrollingEntity.SORT_BY_C, window.positionAt(window.size() - 1));
-		assertThat(window.isLast()).isTrue();
-		assertThat(window).extracting(ScrollingEntity::getA)
-				.containsExactly("H0", "I0");
-	}
-
-	@Test
-	void forwardWithDuplicatesIteratorIteration(@Autowired ScrollingRepository repository) {
-
-		var it = WindowIterator.of(pos -> repository.findTop4By(ScrollingEntity.SORT_BY_B_AND_A, pos))
-				.startingAt(ScrollPosition.keyset());
-		var content = new ArrayList<ScrollingEntity>();
-		while (it.hasNext()) {
-			var next = it.next();
-			content.add(next);
+		@BeforeAll
+		static void setupTestData(@Autowired Driver driver, @Autowired BookmarkCapture bookmarkCapture) {
+			try (
+					var session = driver.session(bookmarkCapture.createSessionConfig());
+					var transaction = session.beginTransaction()
+			) {
+				ScrollingEntity.createTestDataWithoutDuplicates(transaction);
+				transaction.commit();
+				bookmarkCapture.seedWith(session.lastBookmarks());
+			}
 		}
 
-		assertThat(content).hasSize(10);
-		assertThat(content.stream().map(ScrollingEntity::getId)
-				.distinct().toList()).hasSize(10);
-	}
+		@Test
+		@Tag("GH-2726")
+		void forwardWithFluentQueryByExample(@Autowired ScrollingRepository scrollingRepository) {
+			ScrollingEntity scrollingEntity = new ScrollingEntity();
+			Example<ScrollingEntity> example = Example.of(scrollingEntity, ExampleMatcher.matchingAll().withIgnoreNullValues());
 
-	@Test
-	void backwardWithDuplicatesManualIteration(@Autowired ScrollingRepository repository) {
+			var window = scrollingRepository.findBy(example, q -> q.sortBy(ScrollingEntity.SORT_BY_C).limit(4).scroll(ScrollPosition.keyset()));
+			assertThat(window.hasNext()).isTrue();
+			assertThat(window)
+					.hasSize(4)
+					.extracting(ScrollingEntity::getA)
+					.containsExactly("A0", "B0", "C0", "D0");
 
-		// Recreate the last position
-		var last = repository.findFirstByA("I0");
-		var keys = Map.of(
-				"foobar", Values.value(last.getA()),
-				"b", Values.value(last.getB()),
-				Constants.NAME_OF_ADDITIONAL_SORT, Values.value(last.getId().toString())
-		);
+			ScrollPosition newPosition = ScrollPosition.forward(((KeysetScrollPosition) window.positionAt(window.size() - 1)).getKeys());
+			window = scrollingRepository.findBy(example, q -> q.sortBy(ScrollingEntity.SORT_BY_C).limit(4).scroll(newPosition));
+			assertThat(window)
+					.hasSize(4)
+					.extracting(ScrollingEntity::getA)
+					.containsExactly("E0", "F0", "G0", "H0");
 
-		var duplicates = repository.findAllByAOrderById("D0");
-		assertThat(duplicates).hasSize(2);
+			window = scrollingRepository.findTop4By(ScrollingEntity.SORT_BY_C, window.positionAt(window.size() - 1));
+			assertThat(window.isLast()).isTrue();
+			assertThat(window).extracting(ScrollingEntity::getA)
+					.containsExactly("I0");
+		}
 
-		var window = repository.findTop4By(ScrollingEntity.SORT_BY_B_AND_A, ScrollPosition.backward(keys));
-		assertThat(window.hasNext()).isTrue();
-		assertThat(window)
-				.hasSize(4)
-				.extracting(ScrollingEntity::getA)
-				.containsExactly("F0", "G0", "H0", "I0");
+		@Test
+		void backwardWithFluentQueryByExample(@Autowired ScrollingRepository repository) {
 
-		var pos = ((KeysetScrollPosition) window.positionAt(0));
-		pos = ScrollPosition.backward(pos.getKeys());
-		window = repository.findTop4By(ScrollingEntity.SORT_BY_B_AND_A, pos);
-		assertThat(window.hasNext()).isTrue();
-		assertThat(window)
-				.hasSize(4)
-				.extracting(Function.identity())
-				.extracting(ScrollingEntity::getA)
-				.containsExactly("C0", "D0", "D0", "E0");
+			ScrollingEntity scrollingEntity = new ScrollingEntity();
+			Example<ScrollingEntity> example = Example.of(scrollingEntity, ExampleMatcher.matchingAll().withIgnoreNullValues());
 
-		pos = ((KeysetScrollPosition) window.positionAt(0));
-		pos = ScrollPosition.backward(pos.getKeys());
-		window = repository.findTop4By(ScrollingEntity.SORT_BY_B_AND_A, pos);
-		assertThat(window.isLast()).isTrue();
-		assertThat(window).extracting(ScrollingEntity::getA)
-				.containsExactly("A0", "B0");
-	}
+			var last = repository.findFirstByA("I0");
+			var keys = Map.of(
+					"c", last.getC(),
+					Constants.NAME_OF_ADDITIONAL_SORT, Values.value(last.getId().toString())
+			);
 
-	@Test
-	void backwardWithFluentQueryByExample(@Autowired ScrollingRepository repository) {
+			var window = repository.findBy(example, q -> q.sortBy(ScrollingEntity.SORT_BY_C).limit(4).scroll(ScrollPosition.backward(keys)));
+			assertThat(window.hasNext()).isTrue();
+			assertThat(window)
+					.hasSize(4)
+					.extracting(ScrollingEntity::getA)
+					.containsExactly("F0", "G0", "H0", "I0");
 
-		ScrollingEntity scrollingEntity = new ScrollingEntity();
-		Example<ScrollingEntity> example = Example.of(scrollingEntity, ExampleMatcher.matchingAll().withIgnoreNullValues());
+			var pos = ((KeysetScrollPosition) window.positionAt(0));
+			var nextPos = ScrollPosition.backward(pos.getKeys());
+			window = repository.findBy(example, q -> q.sortBy(ScrollingEntity.SORT_BY_C).limit(4).scroll(nextPos));
+			assertThat(window.hasNext()).isTrue();
+			assertThat(window)
+					.hasSize(4)
+					.extracting(Function.identity())
+					.extracting(ScrollingEntity::getA)
+					.containsExactly("B0", "C0", "D0", "E0");
 
-		var last = repository.findFirstByA("I0");
-		var keys = Map.of(
-				"c", last.getC(),
-				Constants.NAME_OF_ADDITIONAL_SORT, Values.value(last.getId().toString())
-		);
-
-		var window = repository.findBy(example, q -> q.sortBy(ScrollingEntity.SORT_BY_C).limit(4).scroll(ScrollPosition.backward(keys)));
-		assertThat(window.hasNext()).isTrue();
-		assertThat(window)
-				.hasSize(4)
-				.extracting(ScrollingEntity::getA)
-				.containsExactly("F0", "G0", "H0", "I0");
-
-		var pos = ((KeysetScrollPosition) window.positionAt(0));
-		var nextPos = ScrollPosition.backward(pos.getKeys());
-		window = repository.findBy(example, q -> q.sortBy(ScrollingEntity.SORT_BY_C).limit(4).scroll(nextPos));
-		assertThat(window.hasNext()).isTrue();
-		assertThat(window)
-				.hasSize(4)
-				.extracting(Function.identity())
-				.extracting(ScrollingEntity::getA)
-				.containsExactly("C0", "D0", "D0", "E0");
-
-		var nextNextPos = ScrollPosition.backward(((KeysetScrollPosition) window.positionAt(0)).getKeys());
-		window = repository.findBy(example, q -> q.sortBy(ScrollingEntity.SORT_BY_C).limit(4).scroll(nextNextPos));
-		assertThat(window.isLast()).isTrue();
-		assertThat(window).extracting(ScrollingEntity::getA)
-				.containsExactly("A0", "B0");
+			var nextNextPos = ScrollPosition.backward(((KeysetScrollPosition) window.positionAt(0)).getKeys());
+			window = repository.findBy(example, q -> q.sortBy(ScrollingEntity.SORT_BY_C).limit(4).scroll(nextNextPos));
+			assertThat(window.isLast()).isTrue();
+			assertThat(window).extracting(ScrollingEntity::getA)
+					.containsExactly("A0");
+		}
 	}
 
 	@Configuration
