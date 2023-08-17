@@ -40,7 +40,7 @@ public class ScrollingEntity {
 	public static final Sort SORT_BY_C = Sort.by(Sort.Order.asc("c"));
 
 	public static void createTestData(QueryRunner queryRunner) {
-		queryRunner.run("MATCH (n) DETACH DELETE n");
+		queryRunner.run("MATCH (n) DETACH DELETE n").consume();
 		queryRunner.run("""
 				UNWIND (range(0, 8) + [3]) AS i WITH i, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' AS letters
 				CREATE (n:ScrollingEntity {
@@ -50,7 +50,21 @@ public class ScrollingEntity {
 					c: (localdatetime() + duration({ days: i }) + duration({ seconds: i * toInteger(rand()*10) }))
 				})
 				RETURN n
-				""");
+				""").consume();
+	}
+
+	public static void createTestDataWithoutDuplicates(QueryRunner queryRunner) {
+		queryRunner.run("MATCH (n) DETACH DELETE n").consume();
+		queryRunner.run("""
+				UNWIND (range(0, 8)) AS i WITH i, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' AS letters
+				CREATE (n:ScrollingEntity {
+					id: randomUUID(),
+					foobar: (substring(letters, (toInteger(i) % 26), 1) + (i / 26)),
+					b: i,
+					c: (localdatetime() + duration({ days: i }) + duration({ seconds: i * toInteger(rand()*10) }))
+				})
+				RETURN n
+				""").consume();
 	}
 
 	@Id

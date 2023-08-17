@@ -24,8 +24,13 @@ import java.util.function.Function;
 
 import org.assertj.core.data.Index;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
+import org.junit.jupiter.api.Nested;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Values;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,6 +53,7 @@ import org.springframework.data.neo4j.test.BookmarkCapture;
 import org.springframework.data.neo4j.test.Neo4jExtension;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 import org.springframework.data.neo4j.test.Neo4jReactiveTestConfiguration;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.transaction.ReactiveTransactionManager;
 
 import reactor.test.StepVerifier;
@@ -56,221 +62,252 @@ import reactor.test.StepVerifier;
  * @author Michael J. Simons
  */
 @Neo4jIntegrationTest
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class ReactiveScrollingIT {
 
 	@SuppressWarnings("unused")
 	private static Neo4jExtension.Neo4jConnectionSupport neo4jConnectionSupport;
 
-	@BeforeAll
-	static void setupTestData(@Autowired Driver driver, @Autowired BookmarkCapture bookmarkCapture) {
-		try (
-				var session = driver.session(bookmarkCapture.createSessionConfig());
-				var transaction = session.beginTransaction()
-		) {
-			ScrollingEntity.createTestData(transaction);
-			transaction.commit();
-			bookmarkCapture.seedWith(session.lastBookmarks());
+	@Nested
+	@SpringJUnitConfig(Config.class)
+	@DisplayName("Scroll with derived finder method")
+	class ScrollWithDerivedFinderMethod {
+
+		@BeforeAll
+		static void setupTestData(@Autowired Driver driver, @Autowired BookmarkCapture bookmarkCapture) {
+			try (
+					var session = driver.session(bookmarkCapture.createSessionConfig());
+					var transaction = session.beginTransaction()
+			) {
+				ScrollingEntity.createTestData(transaction);
+				transaction.commit();
+				bookmarkCapture.seedWith(session.lastBookmarks());
+			}
+		}
+
+		@Test
+		@Order(1)
+		void oneColumnSortNoScroll(@Autowired ReactiveScrollingRepository repository) {
+
+			repository.findTop4ByOrderByB()
+					.map(ScrollingEntity::getA)
+					.as(StepVerifier::create)
+					.expectNext("A0", "B0", "C0", "D0")
+					.verifyComplete();
+		}
+
+		@Order(2)
+		@Test
+		void forwardWithDuplicatesManualIteration(@Autowired ReactiveScrollingRepository repository) {
+
+			var duplicates = new ArrayList<ScrollingEntity>();
+			repository.findAllByAOrderById("D0").as(StepVerifier::create)
+					.recordWith(() -> duplicates)
+					.expectNextCount(2)
+					.verifyComplete();
+
+			var windowContainer = new AtomicReference<Window<ScrollingEntity>>();
+			repository.findTop4By(ScrollingEntity.SORT_BY_B_AND_A, ScrollPosition.keyset())
+					.as(StepVerifier::create)
+					.consumeNextWith(windowContainer::set)
+					.verifyComplete();
+			var window = windowContainer.get();
+			assertThat(window.hasNext()).isTrue();
+			assertThat(window)
+					.hasSize(4)
+					.extracting(Function.identity())
+					.satisfies(e -> assertThat(e.getId()).isEqualTo(duplicates.get(0).getId()), Index.atIndex(3))
+					.extracting(ScrollingEntity::getA)
+					.containsExactly("A0", "B0", "C0", "D0");
+
+			repository.findTop4By(ScrollingEntity.SORT_BY_B_AND_A, window.positionAt(window.size() - 1))
+					.as(StepVerifier::create)
+					.consumeNextWith(windowContainer::set)
+					.verifyComplete();
+			window = windowContainer.get();
+			assertThat(window.hasNext()).isTrue();
+			assertThat(window)
+					.hasSize(4)
+					.extracting(Function.identity())
+					.satisfies(e -> assertThat(e.getId()).isEqualTo(duplicates.get(1).getId()), Index.atIndex(0))
+					.extracting(ScrollingEntity::getA)
+					.containsExactly("D0", "E0", "F0", "G0");
+
+			repository.findTop4By(ScrollingEntity.SORT_BY_B_AND_A, window.positionAt(window.size() - 1))
+					.as(StepVerifier::create)
+					.consumeNextWith(windowContainer::set)
+					.verifyComplete();
+			window = windowContainer.get();
+			assertThat(window.isLast()).isTrue();
+			assertThat(window).extracting(ScrollingEntity::getA)
+					.containsExactly("H0", "I0");
+		}
+
+		@Test
+		@Order(3)
+		void backwardWithDuplicatesManualIteration(@Autowired ReactiveScrollingRepository repository) {
+
+			// Recreate the last position
+			var last = repository.findFirstByA("I0").block();
+			var keys = Map.of(
+					"foobar", Values.value(last.getA()),
+					"b", Values.value(last.getB()),
+					Constants.NAME_OF_ADDITIONAL_SORT, Values.value(last.getId().toString())
+			);
+
+			var duplicates = new ArrayList<ScrollingEntity>();
+			repository.findAllByAOrderById("D0").as(StepVerifier::create)
+					.recordWith(() -> duplicates)
+					.expectNextCount(2)
+					.verifyComplete();
+
+			var windowContainer = new AtomicReference<Window<ScrollingEntity>>();
+			repository.findTop4By(ScrollingEntity.SORT_BY_B_AND_A, ScrollPosition.backward(keys))
+					.as(StepVerifier::create)
+					.consumeNextWith(windowContainer::set)
+					.verifyComplete();
+			var window = windowContainer.get();
+			assertThat(window.hasNext()).isTrue();
+			assertThat(window)
+					.hasSize(4)
+					.extracting(ScrollingEntity::getA)
+					.containsExactly("F0", "G0", "H0", "I0");
+
+			var pos = ((KeysetScrollPosition) window.positionAt(0));
+			pos = ScrollPosition.backward(pos.getKeys());
+			repository.findTop4By(ScrollingEntity.SORT_BY_B_AND_A, pos)
+					.as(StepVerifier::create)
+					.consumeNextWith(windowContainer::set)
+					.verifyComplete();
+			window = windowContainer.get();
+			assertThat(window.hasNext()).isTrue();
+			assertThat(window)
+					.hasSize(4)
+					.extracting(Function.identity())
+					.extracting(ScrollingEntity::getA)
+					.containsExactly("C0", "D0", "D0", "E0");
+
+			pos = ((KeysetScrollPosition) window.positionAt(0));
+			pos = ScrollPosition.backward(pos.getKeys());
+			repository.findTop4By(ScrollingEntity.SORT_BY_B_AND_A, pos)
+					.as(StepVerifier::create)
+					.consumeNextWith(windowContainer::set)
+					.verifyComplete();
+			window = windowContainer.get();
+			assertThat(window.isLast()).isTrue();
+			assertThat(window).extracting(ScrollingEntity::getA)
+					.containsExactly("A0", "B0");
 		}
 	}
 
-	@Test
-	void oneColumnSortNoScroll(@Autowired ReactiveScrollingRepository repository) {
+	@Nested
+	@SpringJUnitConfig(Config.class)
+	@DisplayName("ScrollWithExampleApi")
+	class ScrollWithExampleApi {
 
-		repository.findTop4ByOrderByB()
-				.map(ScrollingEntity::getA)
-				.as(StepVerifier::create)
-				.expectNext("A0", "B0", "C0", "D0");
-	}
+		@BeforeAll
+		static void setupTestData(@Autowired Driver driver, @Autowired BookmarkCapture bookmarkCapture) {
+			try (
+					var session = driver.session(bookmarkCapture.createSessionConfig());
+					var transaction = session.beginTransaction()
+			) {
+				ScrollingEntity.createTestDataWithoutDuplicates(transaction);
+				transaction.commit();
+				bookmarkCapture.seedWith(session.lastBookmarks());
+			}
+		}
 
-	@Test
-	void forwardWithDuplicatesManualIteration(@Autowired ReactiveScrollingRepository repository) {
+		@Test
+		@Order(4)
+		@Tag("GH-2726")
+		void forwardWithFluentQueryByExample(@Autowired ReactiveScrollingRepository repository) {
+			ScrollingEntity scrollingEntity = new ScrollingEntity();
+			Example<ScrollingEntity> example = Example.of(scrollingEntity, ExampleMatcher.matchingAll().withIgnoreNullValues());
 
-		var duplicates = new ArrayList<ScrollingEntity>();
-		repository.findAllByAOrderById("D0").as(StepVerifier::create)
-				.recordWith(() -> duplicates)
-				.expectNextCount(2)
-				.verifyComplete();
+			var windowContainer = new AtomicReference<Window<ScrollingEntity>>();
+			repository.findBy(example, q -> q.sortBy(ScrollingEntity.SORT_BY_C).limit(4).scroll(ScrollPosition.keyset()))
+					.as(StepVerifier::create)
+					.consumeNextWith(windowContainer::set)
+					.verifyComplete();
+			var window = windowContainer.get();
+			assertThat(window.hasNext()).isTrue();
+			assertThat(window)
+					.hasSize(4)
+					.extracting(ScrollingEntity::getA)
+					.containsExactly("A0", "B0", "C0", "D0");
 
-		var windowContainer = new AtomicReference<Window<ScrollingEntity>>();
-		repository.findTop4By(ScrollingEntity.SORT_BY_B_AND_A, ScrollPosition.keyset())
-				.as(StepVerifier::create)
-				.consumeNextWith(windowContainer::set)
-				.verifyComplete();
-		var window = windowContainer.get();
-		assertThat(window.hasNext()).isTrue();
-		assertThat(window)
-				.hasSize(4)
-				.extracting(Function.identity())
-				.satisfies(e -> assertThat(e.getId()).isEqualTo(duplicates.get(0).getId()), Index.atIndex(3))
-				.extracting(ScrollingEntity::getA)
-				.containsExactly("A0", "B0", "C0", "D0");
+			ScrollPosition nextScrollPosition = window.positionAt(window.size() - 1);
+			repository.findBy(example, q -> q.sortBy(ScrollingEntity.SORT_BY_C).limit(4).scroll(nextScrollPosition))
+					.as(StepVerifier::create)
+					.consumeNextWith(windowContainer::set)
+					.verifyComplete();
+			window = windowContainer.get();
+			assertThat(window.hasNext()).isTrue();
+			assertThat(window)
+					.hasSize(4)
+					.extracting(ScrollingEntity::getA)
+					.containsExactly("E0", "F0", "G0", "H0");
 
-		repository.findTop4By(ScrollingEntity.SORT_BY_B_AND_A, window.positionAt(window.size() - 1))
-				.as(StepVerifier::create)
-				.consumeNextWith(windowContainer::set)
-				.verifyComplete();
-		window = windowContainer.get();
-		assertThat(window.hasNext()).isTrue();
-		assertThat(window)
-				.hasSize(4)
-				.extracting(Function.identity())
-				.satisfies(e -> assertThat(e.getId()).isEqualTo(duplicates.get(1).getId()), Index.atIndex(0))
-				.extracting(ScrollingEntity::getA)
-				.containsExactly("D0", "E0", "F0", "G0");
+			ScrollPosition nextNextScrollPosition = window.positionAt(window.size() - 1);
+			repository.findBy(example, q -> q.sortBy(ScrollingEntity.SORT_BY_C).limit(4).scroll(nextNextScrollPosition))
+					.as(StepVerifier::create)
+					.consumeNextWith(windowContainer::set)
+					.verifyComplete();
+			window = windowContainer.get();
+			assertThat(window.isLast()).isTrue();
+			assertThat(window).extracting(ScrollingEntity::getA)
+					.containsExactly("I0");
+		}
 
-		repository.findTop4By(ScrollingEntity.SORT_BY_B_AND_A, window.positionAt(window.size() - 1))
-				.as(StepVerifier::create)
-				.consumeNextWith(windowContainer::set)
-				.verifyComplete();
-		window = windowContainer.get();
-		assertThat(window.isLast()).isTrue();
-		assertThat(window).extracting(ScrollingEntity::getA)
-				.containsExactly("H0", "I0");
-	}
+		@Test
+		@Order(5)
+		@Tag("GH-2726")
+		void backwardWithFluentQueryByExample(@Autowired ReactiveScrollingRepository repository) {
 
-	@Test
-	void backwardWithDuplicatesManualIteration(@Autowired ReactiveScrollingRepository repository) {
+			Example<ScrollingEntity> example = Example.of(new ScrollingEntity(), ExampleMatcher.matchingAll().withIgnoreNullValues());
 
-		// Recreate the last position
-		var last = repository.findFirstByA("I0").block();
-		var keys = Map.of(
-				"foobar", Values.value(last.getA()),
-				"b", Values.value(last.getB()),
-				Constants.NAME_OF_ADDITIONAL_SORT, Values.value(last.getId().toString())
-		);
+			// Recreate the last position
+			var last = repository.findFirstByA("I0").block();
+			var keys = Map.of(
+					"c", Values.value(last.getC()),
+					Constants.NAME_OF_ADDITIONAL_SORT, Values.value(last.getId().toString())
+			);
 
-		var duplicates = new ArrayList<ScrollingEntity>();
-		repository.findAllByAOrderById("D0").as(StepVerifier::create)
-				.recordWith(() -> duplicates)
-				.expectNextCount(2)
-				.verifyComplete();
+			var windowContainer = new AtomicReference<Window<ScrollingEntity>>();
+			repository.findBy(example, q -> q.sortBy(ScrollingEntity.SORT_BY_C).limit(4).scroll(ScrollPosition.backward(keys)))
+					.as(StepVerifier::create)
+					.consumeNextWith(windowContainer::set)
+					.verifyComplete();
+			var window = windowContainer.get();
+			assertThat(window.hasNext()).isTrue();
+			assertThat(window)
+					.hasSize(4)
+					.extracting(ScrollingEntity::getA)
+					.containsExactly("F0", "G0", "H0", "I0");
 
-		var windowContainer = new AtomicReference<Window<ScrollingEntity>>();
-		repository.findTop4By(ScrollingEntity.SORT_BY_B_AND_A, ScrollPosition.backward(keys))
-				.as(StepVerifier::create)
-				.consumeNextWith(windowContainer::set)
-				.verifyComplete();
-		var window = windowContainer.get();
-		assertThat(window.hasNext()).isTrue();
-		assertThat(window)
-				.hasSize(4)
-				.extracting(ScrollingEntity::getA)
-				.containsExactly("F0", "G0", "H0", "I0");
+			var nextPos = ScrollPosition.backward(((KeysetScrollPosition) window.positionAt(0)).getKeys());
+			repository.findBy(example, q -> q.sortBy(ScrollingEntity.SORT_BY_C).limit(4).scroll(nextPos))
+					.as(StepVerifier::create)
+					.consumeNextWith(windowContainer::set)
+					.verifyComplete();
+			window = windowContainer.get();
+			assertThat(window.hasNext()).isTrue();
+			assertThat(window)
+					.hasSize(4)
+					.extracting(Function.identity())
+					.extracting(ScrollingEntity::getA)
+					.containsExactly("B0", "C0", "D0", "E0");
 
-		var pos = ((KeysetScrollPosition) window.positionAt(0));
-		pos = ScrollPosition.backward(pos.getKeys());
-		repository.findTop4By(ScrollingEntity.SORT_BY_B_AND_A, pos)
-				.as(StepVerifier::create)
-				.consumeNextWith(windowContainer::set)
-				.verifyComplete();
-		window = windowContainer.get();
-		assertThat(window.hasNext()).isTrue();
-		assertThat(window)
-				.hasSize(4)
-				.extracting(Function.identity())
-				.extracting(ScrollingEntity::getA)
-				.containsExactly("C0", "D0", "D0", "E0");
-
-		pos = ((KeysetScrollPosition) window.positionAt(0));
-		pos = ScrollPosition.backward(pos.getKeys());
-		repository.findTop4By(ScrollingEntity.SORT_BY_B_AND_A, pos)
-				.as(StepVerifier::create)
-				.consumeNextWith(windowContainer::set)
-				.verifyComplete();
-		window = windowContainer.get();
-		assertThat(window.isLast()).isTrue();
-		assertThat(window).extracting(ScrollingEntity::getA)
-				.containsExactly("A0", "B0");
-	}
-
-	@Test
-	@Tag("GH-2726")
-	void forwardWithFluentQueryByExample(@Autowired ReactiveScrollingRepository repository) {
-		ScrollingEntity scrollingEntity = new ScrollingEntity();
-		Example<ScrollingEntity> example = Example.of(scrollingEntity, ExampleMatcher.matchingAll().withIgnoreNullValues());
-
-		var windowContainer = new AtomicReference<Window<ScrollingEntity>>();
-		repository.findBy(example, q -> q.sortBy(ScrollingEntity.SORT_BY_C).limit(4).scroll(ScrollPosition.keyset()))
-				.as(StepVerifier::create)
-				.consumeNextWith(windowContainer::set)
-				.verifyComplete();
-		var window = windowContainer.get();
-		assertThat(window.hasNext()).isTrue();
-		assertThat(window)
-				.hasSize(4)
-				.extracting(ScrollingEntity::getA)
-				.containsExactly("A0", "B0", "C0", "D0");
-
-		ScrollPosition nextScrollPosition = window.positionAt(window.size() - 1);
-		repository.findBy(example, q -> q.sortBy(ScrollingEntity.SORT_BY_C).limit(4).scroll(nextScrollPosition))
-				.as(StepVerifier::create)
-				.consumeNextWith(windowContainer::set)
-				.verifyComplete();
-		window = windowContainer.get();
-		assertThat(window.hasNext()).isTrue();
-		assertThat(window)
-				.hasSize(4)
-				.extracting(ScrollingEntity::getA)
-				.containsExactly("D0", "E0", "F0", "G0");
-
-		ScrollPosition nextNextScrollPosition = window.positionAt(window.size() - 1);
-		repository.findBy(example, q -> q.sortBy(ScrollingEntity.SORT_BY_C).limit(4).scroll(nextNextScrollPosition))
-				.as(StepVerifier::create)
-				.consumeNextWith(windowContainer::set)
-				.verifyComplete();
-		window = windowContainer.get();
-		assertThat(window.isLast()).isTrue();
-		assertThat(window).extracting(ScrollingEntity::getA)
-				.containsExactly("H0", "I0");
-	}
-
-	@Test
-	@Tag("GH-2726")
-	void backwardWithFluentQueryByExample(@Autowired ReactiveScrollingRepository repository) {
-
-		Example<ScrollingEntity> example = Example.of(new ScrollingEntity(), ExampleMatcher.matchingAll().withIgnoreNullValues());
-
-		// Recreate the last position
-		var last = repository.findFirstByA("I0").block();
-		var keys = Map.of(
-				"c", Values.value(last.getC()),
-				Constants.NAME_OF_ADDITIONAL_SORT, Values.value(last.getId().toString())
-		);
-
-		var windowContainer = new AtomicReference<Window<ScrollingEntity>>();
-		repository.findBy(example, q -> q.sortBy(ScrollingEntity.SORT_BY_C).limit(4).scroll(ScrollPosition.backward(keys)))
-				.as(StepVerifier::create)
-				.consumeNextWith(windowContainer::set)
-				.verifyComplete();
-		var window = windowContainer.get();
-		assertThat(window.hasNext()).isTrue();
-		assertThat(window)
-				.hasSize(4)
-				.extracting(ScrollingEntity::getA)
-				.containsExactly("F0", "G0", "H0", "I0");
-
-		var nextPos = ScrollPosition.backward(((KeysetScrollPosition) window.positionAt(0)).getKeys());
-		repository.findBy(example, q -> q.sortBy(ScrollingEntity.SORT_BY_C).limit(4).scroll(nextPos))
-				.as(StepVerifier::create)
-				.consumeNextWith(windowContainer::set)
-				.verifyComplete();
-		window = windowContainer.get();
-		assertThat(window.hasNext()).isTrue();
-		assertThat(window)
-				.hasSize(4)
-				.extracting(Function.identity())
-				.extracting(ScrollingEntity::getA)
-				.containsExactly("C0", "D0", "D0", "E0");
-
-		var nextNextPos = ScrollPosition.backward(((KeysetScrollPosition) window.positionAt(0)).getKeys());
-		repository.findBy(example, q -> q.sortBy(ScrollingEntity.SORT_BY_C).limit(4).scroll(nextNextPos))
-				.as(StepVerifier::create)
-				.consumeNextWith(windowContainer::set)
-				.verifyComplete();
-		window = windowContainer.get();
-		assertThat(window.isLast()).isTrue();
-		assertThat(window).extracting(ScrollingEntity::getA)
-				.containsExactly("A0", "B0");
+			var nextNextPos = ScrollPosition.backward(((KeysetScrollPosition) window.positionAt(0)).getKeys());
+			repository.findBy(example, q -> q.sortBy(ScrollingEntity.SORT_BY_C).limit(4).scroll(nextNextPos))
+					.as(StepVerifier::create)
+					.consumeNextWith(windowContainer::set)
+					.verifyComplete();
+			window = windowContainer.get();
+			assertThat(window.isLast()).isTrue();
+			assertThat(window).extracting(ScrollingEntity::getA)
+					.containsExactly("A0");
+		}
 	}
 
 	@Configuration
