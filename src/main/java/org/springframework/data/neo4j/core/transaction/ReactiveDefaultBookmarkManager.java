@@ -36,7 +36,7 @@ import org.springframework.lang.Nullable;
  */
 final class ReactiveDefaultBookmarkManager extends AbstractBookmarkManager {
 
-	private final Set<Bookmark> bookmarks = Collections.synchronizedSet(new HashSet<>());
+	private final Set<Bookmark> bookmarks = new HashSet<>();
 
 	private final Supplier<Set<Bookmark>> bookmarksSupplier;
 
@@ -49,14 +49,18 @@ final class ReactiveDefaultBookmarkManager extends AbstractBookmarkManager {
 
 	@Override
 	public Collection<Bookmark> getBookmarks() {
-		this.bookmarks.addAll(bookmarksSupplier.get());
-		return Set.copyOf(this.bookmarks);
+		synchronized (this.bookmarks) {
+			this.bookmarks.addAll(bookmarksSupplier.get());
+			return Set.copyOf(this.bookmarks);
+		}
 	}
 
 	@Override
 	public void updateBookmarks(Collection<Bookmark> usedBookmarks, Collection<Bookmark> newBookmarks) {
-		bookmarks.removeAll(usedBookmarks);
-		newBookmarks.stream().filter(Objects::nonNull).forEach(bookmarks::add);
+		synchronized (this.bookmarks) {
+			usedBookmarks.stream().filter(Objects::nonNull).forEach(bookmarks::remove);
+			newBookmarks.stream().filter(Objects::nonNull).forEach(bookmarks::add);
+		}
 		if (applicationEventPublisher != null) {
 			applicationEventPublisher.publishEvent(new Neo4jBookmarksUpdatedEvent(new HashSet<>(bookmarks)));
 		}
