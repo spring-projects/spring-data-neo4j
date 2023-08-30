@@ -24,7 +24,6 @@ import org.springframework.data.auditing.ReactiveIsNewAwareAuditingHandler;
 import org.springframework.data.auditing.config.AuditingBeanDefinitionRegistrarSupport;
 import org.springframework.data.auditing.config.AuditingConfiguration;
 import org.springframework.data.config.ParsingUtils;
-import org.springframework.data.mapping.context.PersistentEntities;
 import org.springframework.data.neo4j.core.mapping.callback.ReactiveAuditingBeforeBindCallback;
 import org.springframework.util.Assert;
 
@@ -86,11 +85,11 @@ final class ReactiveNeo4jAuditingRegistrar extends AuditingBeanDefinitionRegistr
 
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(ReactiveIsNewAwareAuditingHandler.class);
 
-		BeanDefinitionBuilder persistentEntities = BeanDefinitionBuilder.genericBeanDefinition(PersistentEntities.class)
-				.setFactoryMethod("of");
-		persistentEntities.addConstructorArgReference(MAPPING_CONTEXT_BEAN_NAME);
-
-		builder.addConstructorArgValue(persistentEntities.getBeanDefinition());
 		return configureDefaultAuditHandlerAttributes(configuration, builder);
+	}
+
+	@Override
+	public void postProcess(BeanDefinitionBuilder builder, AuditingConfiguration configuration, BeanDefinitionRegistry registry) {
+		builder.setFactoryMethod("from").addConstructorArgReference(MAPPING_CONTEXT_BEAN_NAME);
 	}
 }
