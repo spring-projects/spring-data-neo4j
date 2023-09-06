@@ -1,0 +1,43 @@
+* xref:introduction-and-preface/index.adoc[Preface]
+** xref:introduction-and-preface/preface-neo4j.adoc[]
+** xref:introduction-and-preface/preface-sd.adoc[]
+** xref:introduction-and-preface/preface-sdn.adoc[]
+** xref:introduction-and-preface/building-blocks.adoc[]
+** xref:introduction-and-preface/new-and-noteworthy.adoc[]
+** xref:dependencies.adoc[]
+
+* xref:getting-started.adoc[]
+* xref:object-mapping.adoc[]
+** xref:object-mapping/metadata-based-mapping.adoc[]
+** xref:object-mapping/mapping-ids.adoc[]
+** xref:object-mapping/sdc-object-mapping.adoc[]
+
+* xref:repositories.adoc[]
+** xref:repositories/core-concepts.adoc[]
+** xref:repositories/query-methods.adoc[]
+** xref:repositories/definition.adoc[]
+** xref:repositories/query-methods-details.adoc[]
+** xref:repositories/create-instances.adoc[]
+** xref:repositories/custom-implementations.adoc[]
+** xref:repositories/core-domain-events.adoc[]
+** xref:repositories/core-extensions.adoc[]
+** xref:query-by-example.adoc[]
+** xref:repositories/scrolling.adoc[]
+** xref:repositories/sdn-extension.adoc[]
+** xref:repositories/query-keywords-reference.adoc
+** xref:repositories/query-return-types-reference.adoc
+
+* xref:repositories/projections.adoc[]
+** xref:projections/sdn-projections.adoc[]
+
+* xref:testing.adoc[]
+** xref:testing/testing-without-spring-boot.adoc[]
+** xref:testing/testing-with-spring-boot.adoc[]
+
+* xref:auditing.adoc[]
+
+* xref:faq.adoc[]
+
+* xref:appendix/index.adoc[]
+
+* https://github.com/spring-projects/spring-data-commons/wiki[Wiki]

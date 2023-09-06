@@ -1,0 +1,209 @@
+[[Migrating]]
+= Migrating from SDN+OGM to SDN
+
+[[migrating.known-issues]]
+== Known issues with past SDN+OGM migrations
+
+SDN+OGM has had quite a history over the years and we understand that migrating big application systems is neither fun nor something that provides immediate profit.
+The main issues we observed when migrating from older versions of Spring Data Neo4j to newer ones are roughly in order the following:
+
+Having skipped more than one major upgrade::
+While Neo4j-OGM can be used stand-alone, Spring Data Neo4j cannot.
+It depends to large extend on the Spring Data and therefore, on the Spring Framework itself, which eventually affects large parts of your application.
+Depending on how the application has been structured, that is, how much the any of the framework part leaked into your business code, the more you have to adapt your application.
+It gets worse when you have more than one Spring Data module in your application, if you accessed a relational database in the same service layer as your graph database.
+Updating two object mapping frameworks is not fun.
+Relying on an embedded database configured through Spring Data itself::
+The embedded database in a SDN+OGM project is configured by Neo4j-OGM.
+Say you want to upgrade from Neo4j 3.0 to 3.5, you can't without upgrading your whole application.
+Why is that?
+As you chose to embed a database into your application, you tied yourself into the modules that configure this embedded database.
+To have another, embedded database version, you have to upgrade the module that configured it, because the old one does not support the new database.
+As there is always a Spring Data version corresponding to Neo4j-OGM, you would have to upgrade that as well.
+Spring Data however depends on Spring Framework and then the arguments from the first bullet apply.
+Being unsure about which building blocks to include::
+It's not easy to get the terms right.
+We wrote the building blocks of an SDN+OGM setting https://michael-simons.github.io/neo4j-examples-and-tips/what_are_the_building_blocks_of_sdn_and_ogm.html[here].
+It may be so that all of them have been added by coincidence and you're dealing with a lot of conflicting dependencies.
+
+TIP: Backed by those observations, we recommend to make sure you're using only the Bolt or http transport in your current application before switching from SDN+OGM to SDN.
+Thus, your application and the access layer of your application is to a large extent independent of the database's version.
+From that state, consider moving from SDN+OGM to SDN.
+
+[[migrating.preparation]]
+== Prepare the migration from SDN+OGM Lovelace or SDN+OGM Moore to SDN
+
+NOTE: The _Lovelace_ release train corresponds to SDN 5.1.x and OGM 3.1.x, while the _Moore_ is SDN 5.2.x and OGM 3.2.x.
+
+First, you must make sure that your application runs against Neo4j in server mode over the Bolt protocol, which means work in two of three cases:
+
+[[migrating.embedded]]
+=== You're on embedded
+
+You have added `org.neo4j:neo4j-ogm-embedded-driver` and `org.neo4j:neo4j` to you project and starting the database via OGM facilities.
+This is no longer supported and you have to set up a standard Neo4j server (both standalone and cluster are supported).
+
+The above dependencies have to be removed.
+
+Migrating from the embedded solution is probably the toughest migration, as you need to set up a server, too.
+It is however the one that gives you much value in itself:
+In the future, you will be able to upgrade the database itself without having to consider your application framework, and your data access framework as well.
+
+[[migrating.http]]
+=== You're using the HTTP transport
+
+You have added `org.neo4j:neo4j-ogm-http-driver` and configured an url like `http://user:password@localhost:7474`.
+The dependency has to be replaced with `org.neo4j:neo4j-ogm-bolt-driver` and you need to configure a Bolt url like `bolt://localhost:7687` or use the new `neo4j://` scheme, which takes care of routing, too.
+
+[[migrating.bolt]]
+=== You're already using Bolt indirectly
+
+A default SDN+OGM project uses `org.neo4j:neo4j-ogm-bolt-driver` and thus indirectly, the pure Java Driver.
+You can keep your existing URL.
+
+[[migrating.migrating]]
+== Migrating
+
+Once you have made sure, that your SDN+OGM application works over Bolt as expected, you can start migrating to SDN.
+
+* Remove all `org.neo4j:neo4j-ogm-*` dependencies
+* Configuring SDN through a `org.neo4j.ogm.config.Configuration` bean is not supported, instead of, all configuration of the driver goes through our new Java driver starter.
+You will especially have to adapt the properties for the url and authentication, see <<migrating-auth>>
+
+TIP: You cannot configure SDN through XML.
+In case you did this with your SDN+OGM application, make sure you learn about annotation-driven or functional configuration of Spring Applications.
+The easiest choice these days is Spring Boot.
+With our starter in place, all the necessary bits apart from the connection URL and the authentication is already configured for you.
+
+[source,properties]
+[[migrating-auth]]
+.Old and new properties compared
+----
+# Old
+spring.data.neo4j.embedded.enabled=false # No longer supported
+spring.data.neo4j.uri=bolt://localhost:7687
+spring.data.neo4j.username=neo4j
+spring.data.neo4j.password=secret
+
+# New
+spring.neo4j.uri=bolt://localhost:7687
+spring.neo4j.authentication.username=neo4j
+spring.neo4j.authentication.password=secret
+----
+
+WARNING: Those new properties might change in the future again when SDN and the driver eventually fully replace the old setup.
+
+And finally, add the new dependency, see xref:getting-started.adoc[Getting started] for both Gradle and Maven.
+
+You're then ready to replace annotations:
+
+[cols="2*",options="header"]
+|===
+
+|Old
+|New
+
+|`org.neo4j.ogm.annotation.NodeEntity`
+|`org.springframework.data.neo4j.core.schema.Node`
+
+|`org.neo4j.ogm.annotation.GeneratedValue`
+|`org.springframework.data.neo4j.core.schema.GeneratedValue`
+
+|`org.neo4j.ogm.annotation.Id`
+|`org.springframework.data.neo4j.core.schema.Id`
+
+|`org.neo4j.ogm.annotation.Property`
+|`org.springframework.data.neo4j.core.schema.Property`
+
+|`org.neo4j.ogm.annotation.Relationship`
+|`org.springframework.data.neo4j.core.schema.Relationship`
+
+|`org.springframework.data.neo4j.annotation.EnableBookmarkManagement`
+|No replacement, not needed
+
+|`org.springframework.data.neo4j.annotation.UseBookmark`
+|No replacement, not needed
+
+|`org.springframework.data.neo4j.annotation.QueryResult`
+|Use xref:repositories/projections.adoc[projections]; arbitrary result mapping not supported anymore
+
+|===
+
+NOTE: Several Neo4j-OGM annotations have not yet a corresponding annotation in SDN, some will never have.
+We will add to the list above as we support additional features.
+
+[[migrating.bookmarks]]
+=== Bookmark management
+
+Both `@EnableBookmarkManagement` and `@UseBookmark` as well as the `org.springframework.data.neo4j.bookmark.BookmarkManager`
+interface and its only implementation `org.springframework.data.neo4j.bookmark.CaffeineBookmarkManager` are gone and are not needed anymore.
+
+SDN uses bookmarks for all transactions, without configuration.
+You can remove the bean declaration of `CaffeineBookmarkManager` as well as the dependency to `com.github.ben-manes.caffeine:caffeine`.
+
+If you absolutely must, you can disable the automatic bookmark management by following xref:faq.adoc#faq.bookmarks.noop[these instructions].
+
+[[migrating.autoindex]]
+=== Automatic creation of constraints and indexes
+
+SDN 5.3 and prior provided the "Automatic index manager" from Neo4j-OGM.
+
+`@Index`, `@CompositeIndex` and `@Required` have been removed without replacement.
+Why?
+We think that creating the schema - even for a schemaless database - is not part of the domain modelling.
+You could argue that an SDN model is the schema, but than we would answer that we even prefer a https://en.wikipedia.org/wiki/Command–query_separation[Command-query separation],
+meaning that we would rather define separate read and write models.
+Those come in very handy for writing "boring" things and reading graph-shaped answers.
+
+Apart from that, some of those annotations respectively their values are tied to specific Neo4j editions or versions, which makes them
+hard to maintain.
+
+The best argument however is going to production: While all tools that generate a schema are indeed helpful during development, even more so with databases that enforces a strict scheme,
+they tend to be not so nice in production: How do you handle different versions of your application running at the same time?
+Version A asserting the indexes that have been created by a newer version B?
+
+We think it's better to take control about this upfront and recommend using controlled database migrations, based on a tool like https://www.liquigraph.org[Liquigraph] or https://github.com/michael-simons/neo4j-migrations[Neo4j migrations].
+The latter has been seen in use with SDN inside the JHipster project.
+Both projects have in common that they store the current version of the schema within the database and make sure that a schema matches expectations before things are being updated.
+
+Migrating off from previous Neo4j-OGM annotations affects `@Index`, `@CompositeIndex` and `@Required` and an example for those is given here in <<indexed.class>>:
+
+[[indexed.class]]
+[source,java]
+.A class making use of Neo4j-OGM automatic index manager
+----
+import org.neo4j.ogm.annotation.CompositeIndex;
+import org.neo4j.ogm.annotation.GeneratedValue;
+import org.neo4j.ogm.annotation.Id;
+import org.neo4j.ogm.annotation.Index;
+import org.neo4j.ogm.annotation.Required;
+
+@CompositeIndex(properties = {"tagline", "released"})
+public class Movie {
+
+    @Id @GeneratedValue Long id;
+
+    @Index(unique = true)
+    private String title;
+
+    private String description;
+
+    private String tagline;
+
+    @Required
+    private Integer released;
+}
+----
+
+It's annotations are equivalent to the following scheme in Cypher (as of Neo4j 4.2):
+
+[source,cypher]
+.Example Cypher based migration
+----
+CREATE CONSTRAINT movies_unique_title ON (m:Movie) ASSERT m.title IS UNIQUE;
+CREATE CONSTRAINT movies_released_exists ON (m:Movie) ASSERT EXISTS (m.released);
+CREATE INDEX movies_tagline_released_idx FOR (m:Movie) ON (m.tagline, m.released);
+----
+
+Using `@Index` without `unique = true` is equivalent to `CREATE INDEX movie_title_index FOR (m:Movie) ON (m.title)`.
+Note that a unique index already implies an index.

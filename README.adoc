@@ -146,14 +146,14 @@ class MyService {
 
 === Building SDN
 
-Please have a look at the documentation: https://docs.spring.io/spring-data/neo4j/docs/current/reference/html/#building-sdn-rx[Building SDN].
+Please have a look at the documentation: https://docs.spring.io/spring-data/neo4j/reference/#building-sdn-rx[Building SDN].
 
 == Getting Help
 
 Having trouble with Spring Data? We’d love to help!
 
 * Check the
-https://docs.spring.io/spring-data/neo4j/docs/current/reference/html/[reference documentation], and https://docs.spring.io/spring-data/neo4j/docs/current/api/[Javadocs].
+https://docs.spring.io/spring-data/neo4j/reference/[reference documentation], and https://docs.spring.io/spring-data/neo4j/docs/current/api/[Javadocs].
 * Learn the Spring basics – Spring Data builds on Spring Framework, check the https://spring.io[spring.io] web-site for a wealth of reference documentation.
 If you are just starting out with Spring, try one of the https://spring.io/guides[guides].
 * If you are upgrading, check out the https://docs.spring.io/spring-data/neo4j/docs/current/changelog.txt[changelog] for "`new and noteworthy`" features.
@@ -166,7 +166,7 @@ Spring Data uses GitHub as issue tracking system to record bugs and feature requ
 
 * Before you log a bug, please search the
 https://github.com/spring-projects/spring-data-neo4j/issues[issue tracker] to see if someone has already reported the problem.
-* If the issue doesn’t already exist, https://github.com/spring-projects/spring-data-neo4j/issues/new[create a new issue].
+* If the issue doesn't already exist, https://github.com/spring-projects/spring-data-neo4j/issues/new[create a new issue].
 * Please provide as much information as possible with the issue report, we like to know the version of Spring Data Neo4j, the database version and the JVM version that you are using.
 * If you need to paste code, or include a stack trace use Markdown +++```+++ escapes before and after your text.
 * If possible try to create a test-case or project that replicates the issue. Attach a link to your code or a compressed file containing your code.

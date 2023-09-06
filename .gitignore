@@ -32,3 +32,10 @@ target/
 .flattened-pom.xml
 dependency-reduced-pom.xml
 .gradle
+
+build/
+node_modules
+node
+package.json
+package-lock.json
+
