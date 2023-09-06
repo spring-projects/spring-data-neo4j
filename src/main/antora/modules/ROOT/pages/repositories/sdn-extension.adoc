@@ -1,0 +1,100 @@
+[[sdn-mixins]]
+= Spring Data Neo4j Extensions
+
+== Available extensions for Spring Data Neo4j repositories
+
+Spring Data Neo4j offers a couple of extensions or "mixins" that can be added to repositories. What is a mixin? According to
+https://en.wikipedia.org/wiki/Mixin[Wikipedia] mixins are a language concept that allows a programmer to inject some code
+into a class. Mixin programming is a style of software development, in which units of functionality are created in a class
+and then mixed in with other classes.
+
+Java does not support that concept on the language level, but we do emulate it via a couple of interfaces and a runtime
+that adds appropriate implementations and interceptors for.
+
+Mixins added by default are `QueryByExampleExecutor` and `ReactiveQueryByExampleExecutor` respectively. Those interfaces are
+explained in detail in <<query-by-example>>.
+
+Additional mixins provided are:
+
+* `QuerydslPredicateExecutor`
+* `CypherdslConditionExecutor`
+* `CypherdslStatementExecutor`
+* `ReactiveQuerydslPredicateExecutor`
+* `ReactiveCypherdslConditionExecutor`
+* `ReactiveCypherdslStatementExecutor`
+
+[[sdn-mixins.dynamic-conditions]]
+=== Add dynamic conditions to generated queries
+
+Both the `QuerydslPredicateExecutor` and `CypherdslConditionExecutor` provide the same concept: SDN generates a query, you
+provide "predicates" (Query DSL) or "conditions" (Cypher DSL) that will be added. We recommend the Cypher DSL, as this is
+what SDN uses natively. You might even want to consider using the
+http://neo4j-contrib.github.io/cypher-dsl/2021.1.1/#thespringdataneo4j6annotationprocessor[annotation processor] that generates
+a static meta model for you.
+
+How does that work? Declare your repository as described above and add *one*  of the following interfaces:
+
+[source,java,indent=0,tabsize=4]
+----
+include::example$integration/imperative/QuerydslNeo4jPredicateExecutorIT.java[tags=sdn-mixins.dynamic-conditions.add-mixin]
+----
+<.> Standard repository declaration
+<.> The Query DSL mixin
+
+*OR*
+
+[source,java,indent=0,tabsize=4]
+----
+include::example$integration/imperative/CypherdslConditionExecutorIT.java[tags=sdn-mixins.dynamic-conditions.add-mixin]
+----
+<.> Standard repository declaration
+<.> The Cypher DSL mixin
+
+Exemplary usage is shown with the Cypher DSL condition executor:
+
+[source,java,indent=0,tabsize=4]
+----
+include::example$integration/imperative/CypherdslConditionExecutorIT.java[tags=sdn-mixins.dynamic-conditions.usage]
+----
+<.> Define a named `Node` object, targeting the root of the query
+<.> Derive some properties from it
+<.> Create an `or` condition. An anonymous parameter is used for the first name, a named parameter for
+the last name. This is how you define parameters in those fragments and one of the advantages over the Query-DSL
+mixin which can't do that.
+Literals can be expressed with `Cypher.literalOf`.
+<.> Define a `SortItem` from one of the properties
+
+The code looks pretty similar for the Query-DSL mixin. Reasons for the Query-DSL mixin can be familiarity of the API and
+that it works with other stores, too. Reasons against it are the fact that you need an additional library on the class path,
+it's missing support for traversing relationships and the above-mentioned fact that it doesn't support parameters in its
+predicates (it technically does, but there are no API methods to actually pass them to the query being executed).
+
+[[sdn-mixins.using-cypher-dsl-statements]]
+=== Using (dynamic) Cypher-DSL statements for entities and projections
+
+Adding the corresponding mixin is not different from using the <<sdn-mixins.dynamic-conditions, condition excecutor>>:
+
+[source,java,indent=0,tabsize=4]
+----
+include::example$integration/imperative/CypherdslStatementExecutorIT.java[tags=sdn-mixins.using-cypher-dsl-statements.add-mixin]
+----
+
+Please use the `ReactiveCypherdslStatementExecutor` when extending the `ReactiveNeo4jRepository`.
+
+The `CypherdslStatementExecutor` comes with several overloads for `findOne` and `findAll`. They all take a Cypher-DSL
+statement respectively an ongoing definition of that as a first parameter and in case of the projecting methods, a type.
+
+If a query requires parameters, they must be defined via the Cypher-DSL itself and also populated by it, as the following listing shows:
+
+[source,java,indent=0,tabsize=4]
+----
+include::example$integration/imperative/CypherdslStatementExecutorIT.java[tags=sdn-mixins.using-cypher-dsl-statements.using]
+----
+<.> The dynamic query is build in a type safe way in a helper method
+<.> We already saw this in <<sdn-mixins.dynamic-conditions,here>>, where we also defined some variables holding the model
+<.> We define an anonymous parameter, filled by the actual value of `name`, which was passed to the method
+<.> The statement returned from the helper method is used to find an entity
+<.> Or a projection.
+
+The `findAll` methods works similar.
+The imperative Cypher-DSL statement executor also provides an overload returning paged results.

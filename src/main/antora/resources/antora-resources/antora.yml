@@ -3,6 +3,8 @@ prerelease: ${antora-component.prerelease}
 
 asciidoc:
   attributes:
+    neo4jGroupId: ${project.groupId}
+    artifactId: ${project.artifactId}
     version: ${project.version}
     springversionshort: ${spring.short}
     springversion: ${spring}
@@ -18,4 +20,10 @@ asciidoc:
     springhateoasversion: ${spring-hateoas}
     releasetrainversion: ${releasetrain}
     store: Neo4j
+    groupIdStarter: org.springframework.boot
     artifactIdStarter: spring-boot-starter-data-neo4j
+    docs-neo4j-docker-version: 5
+    spring-boot-version: 3.2.0
+    docs-neo4j-4-version: 4.4.25
+    docs-neo4j-3-version: 3.5.33
+    java-driver-starter-href: https://github.com/neo4j/neo4j-java-driver-spring-boot-starter
