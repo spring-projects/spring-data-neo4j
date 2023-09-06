@@ -38,7 +38,8 @@
 * xref:faq.adoc[]
 
 * xref:appendix.adoc[]
-** xref:repositories/query-keywords-reference.adoc[]
-** xref:repositories/query-return-types-reference.adoc[]
+** xref:appendix/index.adoc[Appendix A: Spring Data Neo4j]
+** xref:repositories/query-keywords-reference.adoc[Appendix B: Repository query keywords]
+** xref:repositories/query-return-types-reference.adoc[Appendix C: Repository query return types]
 
 * https://github.com/spring-projects/spring-data-commons/wiki[Wiki]

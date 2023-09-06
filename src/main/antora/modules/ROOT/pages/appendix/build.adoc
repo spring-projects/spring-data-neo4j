@@ -1,0 +1,153 @@
+[[building-SDN]]
+= Building Spring Data Neo4j
+
+[[building-SDN.requirements]]
+== Requirements
+
+* JDK 17+ (Can be https://openjdk.java.net[OpenJDK] or https://www.oracle.com/technetwork/java/index.html[Oracle JDK])
+* Maven 3.8.5 (We provide the Maven wrapper, see `mvnw` respectively `mvnw.cmd` in the project root; the wrapper downloads the appropriate Maven version automatically)
+* A Neo4j 5.+ database, either
+** running locally
+** or indirectly via https://www.testcontainers.org[Testcontainers] and https://www.docker.com[Docker]
+
+[[building-SDN.jdk.version]]
+=== About the JDK version
+
+Choosing JDK 17 is a decision influenced by various aspects
+
+* SDN is a Spring Data project.
+Spring Data commons baseline is JDK 17 and so is Spring Framework's baseline.
+Thus, it is only natural to keep the JDK 17 baseline.
+
+[[building-SDN.running-the-build]]
+== Running the build
+
+The following sections are alternatives and roughly sorted by increased effort.
+
+All builds require a local copy of the project:
+
+[source,console,subs="verbatim,attributes"]
+[[checkout-SDN]]
+.Clone SDN
+----
+$ git clone git@github.com:spring-projects/spring-data-neo4j.git
+----
+
+Before you proceed, verify your locally installed JDK version.
+The output should be similar:
+
+[source,console,subs="verbatim,attributes"]
+[[verify-jdk]]
+.Verify your JDK
+----
+$ java -version
+java version "18.0.1" 2022-04-19
+Java(TM) SE Runtime Environment (build 18.0.1+10-24)
+Java HotSpot(TM) 64-Bit Server VM (build 18.0.1+10-24, mixed mode, sharing)
+----
+
+[[building-SDN.docker]]
+=== With Docker installed
+
+[[building-SDN.docker.default-image]]
+==== Using the default image
+
+If you don't have https://en.wikipedia.org/wiki/Docker_(software)[Docker] installed, head over to https://www.docker.com/products/docker-desktop[Docker Desktop].
+In short, Docker is a tool that helps you running lightweight software images using OS-level virtualization in so-called containers.
+
+Our build uses https://www.testcontainers.org/modules/databases/neo4j/[Testcontainers Neo4j] to bring up a database instance.
+
+[source,console,subs="verbatim,attributes"]
+[[build-default-bash]]
+.Build with default settings on Linux / macOS
+----
+$ ./mvnw clean verify
+----
+
+On a Windows machine, use
+
+[source,console,subs="verbatim,attributes"]
+[[build-default-windows]]
+.Build with default settings on Windows
+----
+$ mvnw.cmd clean verify
+----
+
+The output should be similar.
+
+[[building-SDN.docker.another-image]]
+==== Using another image
+
+The image version to use can be configured through an environmental variable like this:
+
+[source,console,subs="verbatim,attributes"]
+[[build-other-image]]
+.Build using a different Neo4j Docker image
+----
+$ SDN_NEO4J_VERSION=5.3.0-enterprise SDN_NEO4J_ACCEPT_COMMERCIAL_EDITION=yes ./mvnw clean verify
+----
+
+Here we are using 5.3.0 enterprise and also accept the license agreement.
+
+Consult your operating system or shell manual on how to define environment variables if specifying them inline does not work for you.
+
+[[building-SDN.local-database]]
+=== Against a locally running database
+
+WARNING: Running against a locally running database *will* erase its complete content.
+
+Building against a locally running database is faster, as it does not restart a container each time.
+We do this a lot during our development.
+
+You can get a copy of Neo4j at our https://neo4j.com/download-center/#enterprise[download center] free of charge.
+
+Please download the version applicable to your operating system and follow the instructions to start it.
+A required step is to open a browser and go to http://localhost:7474 after you started the database and change the default password from `neo4j` to something of your liking.
+
+After that, you can run a complete build by specifying the local `bolt` URL:
+
+[source,console,subs="verbatim,attributes"]
+[[build-using-locally-running-database]]
+.Build using a locally running database
+----
+$ SDN_NEO4J_URL=bolt://localhost:7687 SDN_NEO4J_PASSWORD=verysecret ./mvnw clean verify
+----
+
+[[building-SDN.environment-variables]]
+== Summary of environment variables controlling the build
+
+[cols="3,1,3",options="header"]
+|===
+|Name|Default value|Meaning
+
+|`SDN_NEO4J_VERSION`
+|5.3.0
+|Version of the Neo4j docker image to use, see https://hub.docker.com/_/neo4j[Neo4j Docker Official Images]
+
+|`SDN_NEO4J_ACCEPT_COMMERCIAL_EDITION`
+|no
+|Some tests may require the enterprise edition of Neo4j.
+We build and test against the enterprise edition internally, but we won't force you
+to accept the license if you don't want to.
+
+|`SDN_NEO4J_URL`
+|not set
+|Setting this environment allows connecting to a locally running Neo4j instance.
+We use this a lot during development.
+
+|`SDN_NEO4J_PASSWORD`
+|not set
+|Password for the `neo4j` user of the instance configured with `SDN_NEO4J_URL`.
+
+|===
+
+NOTE: You need to set both `SDN_NEO4J_URL` and `SDN_NEO4J_PASSWORD` to use a local instance.
+
+[[building-SDN.checkstyle-and-co]]
+== Checkstyle and friends
+
+There is no quality gate in place at the moment to ensure that the code/test ratio stays as is, but please consider adding tests to your contributions.
+
+We have some rather mild checkstyle rules in place, enforcing more or less default Java formatting rules.
+Your build will break on formatting errors or something like unused imports.
+
