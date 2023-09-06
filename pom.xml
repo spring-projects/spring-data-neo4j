@@ -68,10 +68,9 @@
 	</developers>
 
 	<properties>
+		<antora.playbook>${project.basedir}/src/main/antora/antora-playbook.yml</antora.playbook>
 		<apiguardian.version>1.1.1</apiguardian.version>
 		<archunit.version>0.23.1</archunit.version>
-		<asciidoctor-maven-plugin.version>2.1.0</asciidoctor-maven-plugin.version>
-		<asciidoctorj-diagram.version>2.1.0</asciidoctorj-diagram.version>
 		<blockhound.version>1.0.8.RELEASE</blockhound.version>
 		<byte-buddy.version>1.14.3</byte-buddy.version>
 		<cdi>3.0.1</cdi>
@@ -115,7 +114,6 @@
 
 		<skipUnitTests>${skipTests}</skipUnitTests>
 
-		<spring-data-commons-docs.dir>../../../../spring-data-commons/src/main/asciidoc</spring-data-commons-docs.dir>
 		<springdata.commons>3.2.0-SNAPSHOT</springdata.commons>
 	</properties>
 
@@ -725,34 +723,41 @@
 					</execution>
 				</executions>
 			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-resources-plugin</artifactId>
+				<executions>
+					<execution>
+						<goals>
+							<goal>resources</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
 
 	</build>
 
 	<profiles>
 		<profile>
-			<id>distribute</id>
+			<id>antora-process-resources</id>
+			<build>
+				<resources>
+					<resource>
+						<directory>src/main/antora/resources/antora-resources</directory>
+						<filtering>true</filtering>
+					</resource>
+				</resources>
+			</build>
+		</profile>
+
+		<profile>
+			<id>antora</id>
 			<build>
 				<plugins>
 					<plugin>
-						<groupId>org.asciidoctor</groupId>
-						<artifactId>asciidoctor-maven-plugin</artifactId>
-						<version>${asciidoctor-maven-plugin.version}</version>
-						<dependencies>
-							<dependency>
-								<groupId>org.asciidoctor</groupId>
-								<artifactId>asciidoctorj-diagram</artifactId>
-								<version>${asciidoctorj-diagram.version}</version>
-							</dependency>
-						</dependencies>
-						<configuration combine.self="append">
-							<attributes>
-								<spring-data-commons-docs>${spring-data-commons-docs.dir}</spring-data-commons-docs>
-							</attributes>
-							<requires>
-								<require>asciidoctor-diagram</require>
-							</requires>
-						</configuration>
+						<groupId>io.spring.maven.antora</groupId>
+						<artifactId>antora-maven-plugin</artifactId>
 					</plugin>
 				</plugins>
 			</build>

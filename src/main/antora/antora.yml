@@ -1,0 +1,12 @@
+name: data-neo4j
+version: true
+title: Spring Data Neo4j
+nav:
+  - modules/ROOT/nav.adoc
+ext:
+  collector:
+    - run:
+        command: ./mvnw validate process-resources -am -Pantora-process-resources
+        local: true
+      scan:
+        dir: target/classes/
