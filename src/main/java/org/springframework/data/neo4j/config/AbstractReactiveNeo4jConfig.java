@@ -49,7 +49,7 @@ public abstract class AbstractReactiveNeo4jConfig extends Neo4jConfigurationSupp
 	private ObjectProvider<ReactiveUserSelectionProvider> userSelectionProviders;
 
 	@Autowired
-	private Neo4jBookmarkManager bookmarkManager;
+	private ObjectProvider<Neo4jBookmarkManager> bookmarkManagerProviders;
 
 	/**
 	 * The driver to be used for interacting with Neo4j.
@@ -70,8 +70,12 @@ public abstract class AbstractReactiveNeo4jConfig extends Neo4jConfigurationSupp
 		return ReactiveNeo4jClient.with(driver)
 				.withDatabaseSelectionProvider(databaseSelectionProvider)
 				.withUserSelectionProvider(getUserSelectionProvider())
-				.withNeo4jBookmarkManager(bookmarkManager)
+				.withNeo4jBookmarkManager(getBootBookmarkManager())
 				.build();
+	}
+
+	private Neo4jBookmarkManager getBootBookmarkManager() {
+		return this.bookmarkManagerProviders.getIfAvailable(Neo4jBookmarkManager::createReactive);
 	}
 
 	@Nullable
@@ -99,7 +103,7 @@ public abstract class AbstractReactiveNeo4jConfig extends Neo4jConfigurationSupp
 		return ReactiveNeo4jTransactionManager.with(driver)
 				.withDatabaseSelectionProvider(databaseSelectionProvider)
 				.withUserSelectionProvider(getUserSelectionProvider())
-				.withBookmarkManager(bookmarkManager)
+				.withBookmarkManager(getBootBookmarkManager())
 				.build();
 	}
 
