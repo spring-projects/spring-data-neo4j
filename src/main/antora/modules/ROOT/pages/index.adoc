@@ -4,19 +4,23 @@
 :revdate: {localdate}
 :feature-scroll: true
 
-_Spring Data for Apache Cassandra provides repository support for the Apache Cassandra database.
-It eases development of applications with a consistent programming model that need to access Cassandra data sources._
+_Spring Data Neo4j provides repository support for the Neo4j graph database.
+It eases development of applications with a consistent programming model that need to access Neo4j data sources._
 
 [horizontal]
-// xref:cassandra.adoc[Cassandra] :: Apache Cassandra support and connectivity
-// xref:repositories.adoc[Repositories] :: Apache Cassandra Repositories
-// xref:observability.adoc[Observability] :: Observability Integration
-// xref:kotlin.adoc[Kotlin] :: Kotlin support
-// xref:migration-guides.adoc[Migration] :: Migration Guides
-https://github.com/spring-projects/spring-data-commons/wiki[Wiki] :: What's New, Upgrade Notes, Supported Versions, additional cross-version information.
+xref:introduction-and-preface/index.adoc[Preface] :: General information about Spring Data, Spring Data Neo4j and Neo4j
+xref:getting-started.adoc[Getting Started] :: Start with your first Spring Data Neo4j application
+xref:object-mapping.adoc[Object Mapping] :: Detailed information about entity definition
+xref:repositories.adoc[Repositories] :: Concepts and details about Spring Data (Neo4j) repositories
+xref:projections.adoc[Projections] :: General information about Spring Data projections and Spring Data Neo4j specifics
+xref:testing.adoc[Testing] :: Test support in Spring Data Neo4j
+xref:auditing.adoc[Auditing] :: Test support in Spring Data Neo4j
+xref:faq.adoc[FAQ] :: Collected questions and answers
+xref:appendix.adoc[Appendix] :: In depth information about Spring Data Neo4j details and supported Spring Data types
+https://github.com/spring-projects/spring-data-commons/wiki[Wiki] :: What's New, Upgrade Notes, Supported Versions, additional cross-version information
 
-David Webb, Matthew Adams, John Blum, Mark Paluch, Jay Bryant
+Michael Simons, Gerrit Meier
 
-(C) 2008-2023 VMware, Inc.
+(C) 2008-2023 The original authors.
 
 Copies of this document may be made for your own use and for distribution to others, provided that you do not charge any fee for such copies and further provided that each copy contains this Copyright Notice, whether distributed in print or electronically.

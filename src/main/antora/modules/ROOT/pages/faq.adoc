@@ -428,7 +428,7 @@ The feature requires Neo4j Enterprise 4.4+ on the server side and a 4.4+ driver 
 For both imperative and reactive versions you need to provide a `UserSelectionProvider` respectively a `ReactiveUserSelectionProvider`.
 The same instance needs to be passed along to the `Neo4Client` and `Neo4jTransactionManager` respectively their reactive variants.
 
-In <<bootless-imperative-configuration,Bootless imperative>> and <<bootless-reactive-configuration, and reactive>> configurations you just need to provide a bean of the
+In xref:#bootless-imperative-configuration[Bootless imperative] and xref:#bootless-reactive-configuration[reactive] configurations you just need to provide a bean of the
 type in question:
 
 [[faq.impersonation.userselectionbean]]
@@ -448,7 +448,7 @@ public class CustomConfig {
 ----
 
 In a typical Spring Boot scenario this feature requires a bit more work, as Boot supports also SDN versions without that feature.
-So given the bean in <<faq.impersonation.userselectionbean>>, you would need fully customize the client and transaction manager:
+So given the bean in xref:#faq.impersonation.userselectionbean[] you would need fully customize the client and transaction manager:
 
 [[faq.impersonation.boot]]
 .Necessary customization for Spring Boot
@@ -656,7 +656,7 @@ transactions. It also obeys declarative transactions.
 [[faq.bookmarks.seeding]]
 === Can I retrieve the latest Bookmarks or seed the transaction manager?
 
-As mentioned briefly in <<migrating.bookmarks>>, there is no need to configure anything with regard to bookmarks.
+As mentioned briefly in xref:appendix/migrating.adoc#migrating.bookmarks[Bookmark Management], there is no need to configure anything with regard to bookmarks.
 It may however be useful to retrieve the latest bookmark the SDN transaction system received from a database.
 You can add a `@Bean` like `BookmarkCapture` to do this:
 
@@ -837,7 +837,7 @@ NOTE: Setters are not required on non-final fields for the id.
 == Do I have to create repositories for each domain class?
 
 No.
-Have a look at the <<sdn-building-blocks, SDN building blocks>> and find the `Neo4jTemplate` or the `ReactiveNeo4jTemplate`.
+Have a look at the xref:introduction-and-preface/building-blocks.adoc#sdn-building-blocks[SDN building blocks] and find the `Neo4jTemplate` or the `ReactiveNeo4jTemplate`.
 
 Those templates know your domain and provide all necessary basic CRUD methods for retrieving, writing and counting entities.
 
@@ -1031,7 +1031,7 @@ The query returns the path plus all relationships and related nodes collected so
 
 The path mapping works for single paths as well for multiple records of paths (which are returned by the `allShortestPath` function.)
 
-TIP: Named paths can be used efficiently to populate and return more than just a root node, see <<custom-query.paths>>.
+TIP: Named paths can be used efficiently to populate and return more than just a root node, see xref:appendix/custom-queries.adoc#custom-query.paths[].
 
 
 [[faq.custom-queries-and-custom-mappings]]
@@ -1048,23 +1048,23 @@ model or you are sure you don't use a partially mapped model for write commands.
 
 What are the alternatives?
 
-* <<projections.sdn.general-remarks,Projections>> might be already enough to shape your *view* on the graph: They can be used to define
+* xref:projections/sdn-projections.adoc#projections.sdn.general-remarks[Projections] might be already enough to shape your *view* on the graph: They can be used to define
 the depth of fetching properties and related entities in an explicit way: By modelling them.
-* If your goal is to make only the conditions of your queries *dynamic*, then have a look at the <<core.extensions.querydsl, `QuerydslPredicateExecutor`>>
-but especially our own variant of it, the `CypherdslConditionExecutor`. Both <<sdn-mixins,mixins>> allow adding conditions to
+* If your goal is to make only the conditions of your queries *dynamic*, then have a look at the xref:repositories/core-extensions.adoc#core.extensions.querydsl[`QuerydslPredicateExecutor`]
+but especially our own variant of it, the `CypherdslConditionExecutor`. Both xref:repositories/sdn-extension.adoc#sdn-mixins[mixins] allow adding conditions to
 the full queries we create for you. Thus, you will have the domain fully populated together with custom conditions.
 Of course, your conditions must work with what we generate. Find the names of the root node, the related nodes and more
-<<custom-queries,here>>.
+xref:appendix/custom-queries.adoc#custom-queries[here].
 * Use the http://neo4j-contrib.github.io/cypher-dsl/current/[Cypher-DSL] via the `CypherdslStatementExecutor` or the `ReactiveCypherdslStatementExecutor`.
 The Cypher-DSL is predestined to create dynamic queries. In the end, it's what SDN uses under the hood anyway. The corresponding
-mixins work both with the domain type of a repository itself as well as with projections (something that the mixins for adding
+mixins work both with the domain type of repository itself and with projections (something that the mixins for adding
 conditions don't).
 
 If you think that you can solve your problem with a partially dynamic query or a full dynamic query together with a projection,
-please jump back now to the chapter <<sdn-mixins, about Spring Data Neo4j Mixins>>.
+please jump back now to the chapter xref:repositories/sdn-extension.adoc#sdn-mixins[about Spring Data Neo4j Mixins].
 
-Otherwise, please read up on two things: <<repositories.custom-implementations,custom repository fragments>>
-the <<sdn-building-blocks,levels of abstractions>> we offer in SDN.
+Otherwise, please read up on two things: xref:repositories/custom-implementations.adoc#repositories.custom-implementations[custom repository fragments]
+the xref:introduction-and-preface/building-blocks.adoc#sdn-building-blocks[levels of abstractions] we offer in SDN.
 
 Why speaking about custom repository fragments now?
 
@@ -1078,12 +1078,12 @@ Assume the following repository _declaration_ that basically aggregates one base
 
 [source,java,indent=0,tabsize=4]
 [[aggregating-repository]]
-.A repository composed from several fragments
+.A repository composed of several fragments
 ----
 include::example$documentation/repositories/custom_queries/MovieRepository.java[tags=aggregating-interface]
 ----
 
-The repository contains <<movie-entity, Movies>> as shown in <<example-node-spring-boot-project,the getting started section>>.
+The repository contains xref:getting-started.adoc#movie-entity[Movies] as shown in xref:getting-started.adoc#example-node-spring-boot-project[the getting started section].
 
 The additional interface from which the repository extends (`DomainResults`, `NonDomainResults` and `LowlevelInteractions`)
 are the fragments that addresses all the concerns above.
@@ -1270,7 +1270,7 @@ No additional configuration is required.
 "Find by example" is a new feature in SDN.
 You instantiate an entity or use an existing one.
 With this instance you create an `org.springframework.data.domain.Example`.
-If your repository extends `org.springframework.data.neo4j.repository.Neo4jRepository` or `org.springframework.data.neo4j.repository.ReactiveNeo4jRepository`, you can immediately use the available `findBy` methods taking in an example, like shown in <<find-by-example-example>>
+If your repository extends `org.springframework.data.neo4j.repository.Neo4jRepository` or `org.springframework.data.neo4j.repository.ReactiveNeo4jRepository`, you can immediately use the available `findBy` methods taking in an example, like shown in xref:#find-by-example-example[findByExample].
 
 [source,java]
 [[find-by-example-example]]
@@ -1343,7 +1343,7 @@ They are meant to be used with `@EnableNeo4jRepositories` and `@EnableReactiveNe
 See <<bootless-imperative-configuration>> and <<bootless-reactive-configuration>> for an example usage.
 Both classes require you to override `driver()` in which you are supposed to create the driver.
 
-To get the imperative version of the <<neo4j-client,Neo4j client>>, the template and support for imperative repositories, use something similar as shown here:
+To get the imperative version of the xref:appendix/neo4j-client.adoc#neo4j-client[Neo4j client], the template and support for imperative repositories, use something similar as shown here:
 
 [source,java]
 [[bootless-imperative-configuration]]

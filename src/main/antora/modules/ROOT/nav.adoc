@@ -5,6 +5,7 @@
 ** xref:introduction-and-preface/preface-sdn.adoc[]
 ** xref:introduction-and-preface/building-blocks.adoc[]
 ** xref:introduction-and-preface/new-and-noteworthy.adoc[]
+** xref:dependencies.adoc[]
 
 * xref:getting-started.adoc[]
 * xref:object-mapping.adoc[]
