@@ -13,5 +13,5 @@ There are a lot of articles, blog entries and books on the matter - take a look 
 
 The beauty of Spring Data is that it applies the same programming model to a variety of different stores, such as JPA, JDBC
 Mongo and others. For that reason, parts of the general Spring Data documentations are included in this document, especially the
-general chapter about <<repositories, working with Spring Data repositories>>. Make sure to have a look at that if you haven't
+general chapter about xref:repositories.adoc#repositories[working with Spring Data repositories]. Make sure to have a look at that if you haven't
 worked with a Spring Data module in the past.

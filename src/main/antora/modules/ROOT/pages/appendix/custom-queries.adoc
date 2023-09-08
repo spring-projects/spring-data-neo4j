@@ -7,7 +7,7 @@ Those come in handy if you cannot express the finder logic via derived query fun
 Because Spring Data Neo4j works heavily record-oriented under the hood, it is important to keep this in mind and not build up a result set with multiple records for the same "root node".
 
 TIP: Please have a look in the FAQ as well to learn about alternative forms of using custom queries from repositories, especially
-how to use custom queries with custom mappings: <<faq.custom-queries-and-custom-mappings>>.
+how to use custom queries with custom mappings: xref:faq.adoc#faq.custom-queries-and-custom-mappings[Custom queries and custom mappings].
 
 [[custom-queries.for-relationships]]
 == Queries with relationships
@@ -387,11 +387,11 @@ include::example$documentation/repositories/domain_events/ARepository.java[tags=
 
 The SpEL blocked starts with `:#{` and then refers to the given `String` parameters by name (`#pt1`).
 Don't confuse this with the above Cypher syntax!
-The SpEL expression concatenates both parameters into one single value that is eventually passed on to the <<neo4j-client>>.
+The SpEL expression concatenates both parameters into one single value that is eventually passed on to the xref:appendix/neo4j-client.adoc#neo4j-client[].
 The SpEL block ends with `}`.
 
 SpEL also solves two additional problems. We provide two extensions that allow to pass in a `Sort` object into custom queries.
-Remember <<custom-queries-with-page-and-slice-examples>> from <<faq.custom-queries-with-page-and-slice,custom queries>>?
+Remember xref:faq.adoc#custom-queries-with-page-and-slice-examples[] from xref:faq.adoc#faq.custom-queries-with-page-and-slice[custom queries]?
 With the `orderBy` extension you can pass in a `Pageable` with a dynamic sort to a custom query:
 
 [[custom-queries.spel.source]]

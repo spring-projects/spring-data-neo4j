@@ -1204,7 +1204,7 @@ If you have recurring methods for all repositories, you could swap out the defau
 [[faq.custom-base-repositories]]
 == How do I use custom Spring Data Neo4j base repositories?
 
-Basically the same ways as the shared Spring Data Commons documentation shows for Spring Data JPA in <<repositories.customize-base-repository>>.
+Basically the same ways as the shared Spring Data Commons documentation shows for Spring Data JPA in xref:repositories/custom-implementations.adoc#repositories.customize-base-repository[Customize the Base Repository].
 Only that in our case you would extend from
 
 [source,java,indent=0,tabsize=4]
@@ -1233,7 +1233,7 @@ Those are
 * `org.springframework.data.annotation.LastModifiedBy`
 * `org.springframework.data.annotation.LastModifiedDate`
 
-<<auditing>> gives you a general view how to use auditing in the bigger context of Spring Data Commons.
+xref:auditing.adoc[Auditing] gives you a general view how to use auditing in the bigger context of Spring Data Commons.
 The following listing presents every configuration option provided by Spring Data Neo4j:
 
 [source,java,indent=0,tabsize=4]

@@ -13,7 +13,7 @@ You can use all transaction methods the driver provides on that bean such as htt
 https://neo4j.com/docs/driver-manual/4.0/terminology/#term-transaction-function[transaction functions] and unmanaged transactions.
 Be aware that those transactions are not tight to an ongoing Spring transaction.
 
-Integration with Spring Data and Spring's platform or reactive transaction manager starts at the <<neo4j-client,Neo4j Client>>.
+Integration with Spring Data and Spring's platform or reactive transaction manager starts at the xref:appendix/neo4j-client.adoc#neo4j-client[Neo4j Client].
 The client is part of SDN is configured through a separate starter, `{artifactIdStarter}`.
 The configuration namespace of that starter is `spring.data.neo4j`.
 
@@ -70,9 +70,9 @@ The reactive infrastructure requires a Neo4j 4.0+ database.
 ----
 
 The template mechanism is similar to the templates of others stores.
-Find some more information about it in <<template-support,our FAQ>>.
+Find some more information about it in xref:faq.adoc#template-support[our FAQ].
 The Neo4j Client as such is unique to SDN.
-You will find its documentation in the <<neo4j-client,appendix>>.
+You will find its documentation in the xref:appendix/neo4j-client.adoc#neo4j-client[appendix].
 
 [[sdn-packages]]
 == On the package level

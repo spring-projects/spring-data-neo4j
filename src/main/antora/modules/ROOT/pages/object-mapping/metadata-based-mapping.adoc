@@ -15,7 +15,7 @@ If you do not use this annotation, your application takes a slight performance h
 * `@Id`: Applied at the field level to mark the field used for identity purpose.
 * `@GeneratedValue`: Applied at the field level together with `@Id` to specify how unique identifiers should be generated.
 * `@Property`: Applied at the field level to modify the mapping from attributes to properties.
-* `@CompositeProperty`: Applied at the field level on attributes of type Map that shall be read back as a composite. See <<custom.conversions.composite-properties>>.
+* `@CompositeProperty`: Applied at the field level on attributes of type Map that shall be read back as a composite. See xref:appendix/conversions.adoc#custom.conversions.composite-properties[Composite properties].
 * `@Relationship`: Applied at the field level to specify the details of a relationship.
 * `@DynamicLabels`: Applied at the field level to specify the source of dynamic labels.
 * `@RelationshipProperties`: Applied at the class level to indicate this class as the target for properties of a relationship.
@@ -27,7 +27,7 @@ The following annotations are used to specify conversions and ensure backwards c
 * `@DateString`
 * `@ConvertWith`
 
-See <<conversions>> for more information on that.
+See xref:appendix/conversions.adoc#conversions[] for more information on that.
 
 [[mapping.annotations.overview.from.commons]]
 === From Spring Data commons
@@ -45,7 +45,7 @@ The initial value is zero which is bumped automatically on every update.
 but not be subject to writes. When used on relationships be aware that no related entity in that collection will be persisted
 if not related otherwise.
 
-Have a look at <<auditing>> for all annotations regarding auditing support.
+Have a look at xref:auditing.adoc#auditing[] for all annotations regarding auditing support.
 
 [[mapping.annotations.node]]
 == The basic building block: `@Node`
@@ -164,7 +164,7 @@ We support `UUIDStringGenerator` as one implementation out of the box.
 You can also specify a Spring Bean from the application context on `@GeneratedValue` via `generatorRef`.
 That bean also needs to implement `IdGenerator`, but can make use of everything in the context, including the Neo4j client or template to interact with the database.
 
-NOTE: Don't skip the important notes about ID handling in <<mapping.id-handling>>
+NOTE: Don't skip the important notes about ID handling in xref:object-mapping/mapping-ids.adoc#mapping.id-handling[Handling and provisioning of unique IDs]
 
 [[mapping.annotations.version]]
 == Optimistic locking: `@Version`
@@ -178,7 +178,7 @@ The second operation will fail with a `OptimisticLockingFailureException` becaus
 that does not exist anymore in the database.
 In such cases the operation needs to get retried, beginning with a fresh fetch of the object with the current version from the database.
 
-The `@Version` attribute is also mandatory if <<mapping.id-handling.business-key, business ids>> are used.
+The `@Version` attribute is also mandatory if xref:object-mapping/mapping-ids.adoc#mapping.id-handling.business-key[business ids] are used.
 Spring Data Neo4j will check this field to determine if the entity is new or has already been persisted before.
 
 [[mapping.annotations.property]]
@@ -284,4 +284,4 @@ On the other hand, we want to be able to pull all people from the database witho
 Please consider your application's use case before you try to map every relationship in your database in every direction.
 While you can do this, you may end up rebuilding a graph database inside your object graph and this is not the intention of a mapping framework.
 If you have to model your circular or bidirectional domain and don't want to fetch the whole graph,
-you can define a fine-grained description of the data that you want to fetch by using <<projections, projections>>.
+you can define a fine-grained description of the data that you want to fetch by using xref:projections.adoc#projections[projections].

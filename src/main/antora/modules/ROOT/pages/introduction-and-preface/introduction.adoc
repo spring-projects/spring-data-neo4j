@@ -13,15 +13,15 @@ the query language (Cypher), transactional and clustering behaviour is different
 
 Here's how we address those different needs:
 
-A lot of Neo4j specific questions can be found in the <<faq, Frequently Asked Questions>>. These questions are
+A lot of Neo4j specific questions can be found in the xref:faq.adoc#faq[Frequently Asked Questions]. These questions are
 particular relevant for people who well aware of Neo4j specific requirements and want to know how to address them
 with Spring Data Neo4j.
 
-If you are already familiar with the core concepts of Spring Data, head straight to <<getting-started>>.
+If you are already familiar with the core concepts of Spring Data, head straight to xref:getting-started.adoc#getting-started[getting-started].
 This chapter will walk you through different options of configuring an application to connect to a Neo4j instance and how to model your domain.
 
 In most cases, you will need a domain.
-Go to <<mapping>> to learn about how to map nodes and relationships to your domain model.
+Go to xref:object-mapping/metadata-based-mapping.adoc#mapping.annotations[mapping] to learn about how to map nodes and relationships to your domain model.
 
 After that, you will need some means to query the domain.
 Choices are Neo4j repositories, the Neo4j Template or on a lower level, the Neo4j Client.
@@ -29,10 +29,10 @@ All of them are available in a reactive fashion as well.
 Apart from the paging mechanism, all the features of standard repositories are available in the reactive variant.
 
 If you come from older versions of Spring Data Neo4j - which are usually abbreviated SDN+OGM or SDN5 -
-you will most likely be interested in the <<preface.sdn, introduction to SDN>> and especially in the relationship
-<<faq.sdn-related-to-ogm, between SDN+OGM and the current SDN>>. In the same chapter, you will find out about the
-<<building-blocks, building blocks>> of SDN.
+you will most likely be interested in the xref:introduction-and-preface/preface-sdn.adoc#preface.sdn[introduction to SDN] and especially in the relationship
+xref:faq.adoc#faq.sdn-related-to-ogm[between SDN+OGM and the current SDN]. In the same chapter, you will find out about the
+xref:introduction-and-preface/building-blocks.adoc#building-blocks[building blocks] of SDN.
 
-To learn more about the general concepts of repositories, head over to <<repositories>>.
+To learn more about the general concepts of repositories, head over to xref:repositories.adoc#repositories[repositories].
 
 You can of course read on, continuing with the preface, and a gentle getting started guide.

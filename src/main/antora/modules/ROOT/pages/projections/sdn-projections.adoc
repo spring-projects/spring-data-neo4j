@@ -206,7 +206,7 @@ The suffix `By` is needed to make SDN not look for a property called `DTOProject
 value for the additional attributes defined in the projection
 
 TIP: While the repository in <<projections.simple-entity-repository,the listing above>> uses a concrete return type to
-define the projection, another variant is the use of <<projection.dynamic,dynamic projections>> as explained in the
+define the projection, another variant is the use of xref:repositories/projections.adoc#projection.dynamic[dynamic projections] as explained in the
 parts of the documentation Spring Data Neo4j shares with other Spring Data Projects. A dynamic projection can be
 applied to both closed and open interface projections as well as to class based DTO projections:
  +

@@ -41,6 +41,6 @@ NOTE: You still can use Neo4j-OGM, even in modern Spring Boot applications.
       Neo4j-OGM 3.2.x is still supported, and we recommend its use in frameworks such as Quarkus.
       In a Spring Boot application however your primary choice should be SDN.
 
-Please make sure you read the <<faq, Frequently Asked Questions>> where we address many reoccurring questions about our mapping decisions but also how interaction with Neo4j cluster instances such as https://neo4j.com/cloud/platform/aura-graph-database/[Neo4j AuraDB] and on-premise cluster deployments can be significantly improved.
+Please make sure you read the xref:faq.adoc#faq[Frequently Asked Questions] where we address many reoccurring questions about our mapping decisions but also how interaction with Neo4j cluster instances such as https://neo4j.com/cloud/platform/aura-graph-database/[Neo4j AuraDB] and on-premise cluster deployments can be significantly improved.
 
 Concepts that are important to understand are Neo4j Bookmarks, https://medium.com/neo4j/try-and-then-retry-there-can-be-failure-30bf336383da[the potential need] for incorporating a proper retry mechanism such as https://github.com/spring-projects/spring-retry[Spring Retry] or https://github.com/resilience4j/resilience4j[Resilience4j] (we recommend the latter, as this knowledge is applicable outside Spring, too) and the importance of read-only vs write queries in the context of Neo4j cluster.

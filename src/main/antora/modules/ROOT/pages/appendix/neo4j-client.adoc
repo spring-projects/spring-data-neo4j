@@ -16,7 +16,7 @@ The client has the following main goals
 
 SDN relies on all those features and uses them to fulfill its entity mapping features.
 
-Have a look at the <<sdn-building-blocks, SDN building blocks>> for where both the imperative and reactive Neo4 clients are positioned in our stack.
+Have a look at the xref:introduction-and-preface/building-blocks.adoc#sdn-building-blocks[SDN building blocks] for where both the imperative and reactive Neo4 clients are positioned in our stack.
 
 The Neo4j Client comes in two flavors:
 

@@ -93,7 +93,7 @@ spring.neo4j.authentication.password=secret
 
 WARNING: Those new properties might change in the future again when SDN and the driver eventually fully replace the old setup.
 
-And finally, add the new dependency, see <<getting-started>> for both Gradle and Maven.
+And finally, add the new dependency, see xref:getting-started.adoc[Getting started] for both Gradle and Maven.
 
 You're then ready to replace annotations:
 
@@ -125,7 +125,7 @@ You're then ready to replace annotations:
 |No replacement, not needed
 
 |`org.springframework.data.neo4j.annotation.QueryResult`
-|Use <<projections, projections>>; arbitrary result mapping not supported anymore
+|Use xref:projections.adoc#projections[projections]; arbitrary result mapping not supported anymore
 
 |===
 
@@ -141,7 +141,7 @@ interface and its only implementation `org.springframework.data.neo4j.bookmark.C
 SDN uses bookmarks for all transactions, without configuration.
 You can remove the bean declaration of `CaffeineBookmarkManager` as well as the dependency to `com.github.ben-manes.caffeine:caffeine`.
 
-If you absolutely must, you can disable the automatic bookmark management by following <<faq.bookmarks.noop, these instructions>>.
+If you absolutely must, you can disable the automatic bookmark management by following xref:faq.adoc#faq.bookmarks.noop[these instructions].
 
 [[migrating.autoindex]]
 === Automatic creation of constraints and indexes

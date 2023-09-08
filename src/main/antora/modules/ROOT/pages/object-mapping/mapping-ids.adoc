@@ -181,7 +181,7 @@ public class MovieEntity {
 [[mapping.id-handling.business-key]]
 == Using a business key
 
-We have been using a business key in the complete example's `MovieEntity` and <<mapping.complete-example.person,`PersonEntity`>>.
+We have been using a business key in the complete example's `MovieEntity` and xref:object-mapping/metadata-based-mapping.adoc#mapping.complete-example.person[`PersonEntity`].
 The name of the person is assigned at construction time, both by your application and while being loaded through Spring Data.
 
 This is only possible, if you find a stable, unique business key, but makes great immutable domain objects.
@@ -194,4 +194,4 @@ Apart from that, finding identifier that are truly unique for a thing is hard.
 
 Please keep in mind that a business key is always set on the domain entity before Spring Data Neo4j processes it.
 This means that it cannot determine if the entity was new or not (it always assumes that the entity is new),
-unless also a <<mapping.annotations.version, `@Version` field>> is provided.
+unless also a xref:object-mapping/metadata-based-mapping.adoc#mapping.annotations.version[`@Version` field] is provided.

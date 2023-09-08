@@ -12,7 +12,7 @@ Java does not support that concept on the language level, but we do emulate it v
 that adds appropriate implementations and interceptors for.
 
 Mixins added by default are `QueryByExampleExecutor` and `ReactiveQueryByExampleExecutor` respectively. Those interfaces are
-explained in detail in <<query-by-example>>.
+explained in detail in xref:query-by-example.adoc#query-by-example[Query by Example].
 
 Additional mixins provided are:
 
