@@ -1,3 +1,0 @@
-[[projections]]
-= Projections
-:page-section-summary-toc: 1

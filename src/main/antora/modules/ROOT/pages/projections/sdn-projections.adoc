@@ -1,9 +1,6 @@
 [[projections.sdn]]
 = Spring Data Neo4j Projections
 
-[[projections.sdn.general-remarks]]
-== General remarks
-
 As stated above, projections come in two flavors: Interface and DTO based projections.
 In Spring Data Neo4j both types of projections have a direct influence which properties and relationships are transferred
 over the wire.

@@ -12,11 +12,11 @@ xref:introduction-and-preface/index.adoc[Preface] :: General information about S
 xref:getting-started.adoc[Getting Started] :: Start with your first Spring Data Neo4j application
 xref:object-mapping.adoc[Object Mapping] :: Detailed information about entity definition
 xref:repositories.adoc[Repositories] :: Concepts and details about Spring Data (Neo4j) repositories
-xref:projections.adoc[Projections] :: General information about Spring Data projections and Spring Data Neo4j specifics
+xref:repositories/projections.adoc[Projections] :: General information about Spring Data projections and Spring Data Neo4j specifics
 xref:testing.adoc[Testing] :: Test support in Spring Data Neo4j
 xref:auditing.adoc[Auditing] :: Auditing support in Spring Data
 xref:faq.adoc[FAQ] :: Collected questions and answers
-xref:appendix.adoc[Appendix] :: In depth information about Spring Data Neo4j details and supported Spring Data types
+xref:appendix/index.adoc[Appendix] :: In depth information about Spring Data Neo4j details and supported Spring Data types
 https://github.com/spring-projects/spring-data-commons/wiki[Wiki] :: What's New, Upgrade Notes, Supported Versions, additional cross-version information
 
 Michael Simons, Gerrit Meier

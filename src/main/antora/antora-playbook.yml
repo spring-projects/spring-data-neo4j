@@ -8,7 +8,7 @@ antora:
       root_component_name: 'data-neo4j'
 site:
   title: Spring Data Neo4j
-  url: https://docs.spring.io/spring-data-neo4j/reference/
+  url: https://docs.spring.io/spring-data/neo4j/reference/
 content:
   sources:
     - url: ./../../..

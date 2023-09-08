@@ -37,7 +37,7 @@ Execute it to fill your database with some test data.
 [[create-spring-boot-project]]
 == Create a new Spring Boot project
 
-The easiest way to set up a Spring Boot project is https://start.spring.io[start.spring.io]
+The easiest way to set up a Spring Boot project is https://start.spring.io#!type=maven-project&dependencies=webflux,data-neo4j[start.spring.io]
 (which is integrated in the major IDEs as well, in case you don't want to use the website).
 
 Select the "Spring Web Starter" to get all the dependencies needed for creating a Spring based web application.

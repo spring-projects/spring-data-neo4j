@@ -1,1 +1,2 @@
+:page-section-summary-toc: 1
 include::{commons}@data-commons::page$repositories/projections.adoc[]

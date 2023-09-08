@@ -5,6 +5,195 @@ To take full advantage of the object mapping functionality inside SDN, you shoul
 Although it is not necessary for the mapping framework to have this annotation (your POJOs are mapped correctly, even without any annotations), it lets the classpath scanner find and pre-process your domain objects to extract the necessary metadata.
 If you do not use this annotation, your application takes a slight performance hit the first time you store a domain object, because the mapping framework needs to build up its internal metadata model so that it knows about the properties of your domain object and how to persist them.
 
+[[build-in.conversions]]
+== Convention-based Mapping
+
+The Neo4j Converter has a few conventions for mapping objects when no additional mapping metadata is provided.
+The conventions are:
+
+* The short Java class name is mapped to the primary label in the following manner:
+The class `com.bigbank.SavingsAccount` maps to the `savingsAccount` primary label.
+* The converter uses any<<custom.conversions,Spring Converter>> registered with it to override the default mapping of object properties to node fields and values.
+* The fields of an object are used to convert to and from fields in the graph.
+Public `JavaBean` properties are not used.
+* If you have a single non-zero-argument constructor whose constructor argument names match top-level property names of node, that constructor is used.
+Otherwise, the zero-argument constructor is used.
+If there is more than one non-zero-argument constructor, an exception will be thrown.
+
+We support a broad range of conversions out of the box.
+Find the list of supported cypher types in the official drivers manual: https://neo4j.com/docs/driver-manual/current/cypher-values/[Working with Cypher values].
+
+Primitive types of wrapper types are equally supported.
+
+[cols="3,3,1",options="header"]
+|===
+|Domain type|Cypher type|Maps directly to native type
+
+|`java.lang.Boolean`
+|Boolean
+|✔
+
+|`boolean[]`
+|List of Boolean
+|✔
+
+|`java.lang.Long`
+|Integer
+|✔
+
+|`long[]`
+|List of Integer
+|✔
+
+|`java.lang.Double`
+|Float
+|✔
+
+|`java.lang.String`
+|String
+|✔
+
+
+|`java.lang.String[]`
+|List of String
+|✔
+
+|`byte[]`
+|ByteArray
+|✔
+
+|`java.lang.Byte`
+|ByteArray with length 1
+|
+
+|`java.lang.Character`
+|String with length 1
+|
+
+|`char[]`
+|List of String with length 1
+|
+
+|`java.util.Date`
+|String formatted as ISO 8601 Date (`yyyy-MM-dd'T'HH:mm:ss.SSSZ`).
+Notice the `Z`: SDN will store all `java.util.Date` instances in `UTC`.
+If you require the time zone, use a type that supports it (i.e. `ZoneDateTime`) or store the zone as a separate property.
+|
+
+|`double[]`
+|List of Float
+|✔
+
+|`java.lang.Float`
+|String
+|
+
+|`float[]`
+|List of String
+|
+
+|`java.lang.Integer`
+|Integer
+|
+
+|`int[]`
+|List of Integer
+|
+
+|`java.util.Locale`
+|String formatted as BCP 47 language tag
+|
+
+|`java.lang.Short`
+|Integer
+|
+
+|`short[]`
+|List of Integer
+|
+
+|`java.math.BigDecimal`
+|String
+|
+
+|`java.math.BigInteger`
+|String
+|
+
+|`java.time.LocalDate`
+|Date
+|✔
+
+|`java.time.OffsetTime`
+|Time
+|✔
+
+|`java.time.LocalTime`
+|LocalTime
+|✔
+
+|`java.time.ZonedDateTime`
+|DateTime
+|✔
+
+|`java.time.LocalDateTime`
+|LocalDateTime
+|✔
+
+|`java.time.Period`
+|Duration
+|
+
+|`java.time.Duration`
+|Duration
+|
+
+|`org.neo4j.driver.types.IsoDuration`
+|Duration
+|✔
+
+|`org.neo4j.driver.types.Point`
+|Point
+|✔
+
+|`org.springframework.data.neo4j.types.GeographicPoint2d`
+|Point with CRS 4326
+|
+
+|`org.springframework.data.neo4j.types.GeographicPoint3d`
+|Point with CRS 4979
+|
+
+|`org.springframework.data.neo4j.types.CartesianPoint2d`
+|Point with CRS 7203
+|
+
+|`org.springframework.data.neo4j.types.CartesianPoint3d`
+|Point with CRS 9157
+|
+
+|`org.springframework.data.geo.Point`
+|Point with CRS 4326 and x/y corresponding to lat/long
+|
+
+|Instances of `Enum`
+|String (The name value of the enum)
+|
+
+|Instances of `Enum[]`
+|List of String (The name value of the enum)
+|
+
+|java.net.URL
+|String
+|
+
+|java.net.URI
+|String
+|
+
+|===
+
 [[mapping.annotations.overview]]
 == Mapping Annotation Overview
 
@@ -15,7 +204,7 @@ If you do not use this annotation, your application takes a slight performance h
 * `@Id`: Applied at the field level to mark the field used for identity purpose.
 * `@GeneratedValue`: Applied at the field level together with `@Id` to specify how unique identifiers should be generated.
 * `@Property`: Applied at the field level to modify the mapping from attributes to properties.
-* `@CompositeProperty`: Applied at the field level on attributes of type Map that shall be read back as a composite. See xref:appendix/conversions.adoc#custom.conversions.composite-properties[Composite properties].
+* `@CompositeProperty`: Applied at the field level on attributes of type Map that shall be read back as a composite. See <<custom.conversions.composite-properties,Composite properties>>.
 * `@Relationship`: Applied at the field level to specify the details of a relationship.
 * `@DynamicLabels`: Applied at the field level to specify the source of dynamic labels.
 * `@RelationshipProperties`: Applied at the class level to indicate this class as the target for properties of a relationship.
@@ -27,7 +216,7 @@ The following annotations are used to specify conversions and ensure backwards c
 * `@DateString`
 * `@ConvertWith`
 
-See xref:appendix/conversions.adoc#conversions[] for more information on that.
+See <<custom.conversions,conversions>> for more information on that.
 
 [[mapping.annotations.overview.from.commons]]
 === From Spring Data commons
@@ -45,7 +234,7 @@ The initial value is zero which is bumped automatically on every update.
 but not be subject to writes. When used on relationships be aware that no related entity in that collection will be persisted
 if not related otherwise.
 
-Have a look at xref:auditing.adoc#auditing[] for all annotations regarding auditing support.
+Have a look at xref:auditing.adoc[] for all annotations regarding auditing support.
 
 [[mapping.annotations.node]]
 == The basic building block: `@Node`
@@ -284,4 +473,58 @@ On the other hand, we want to be able to pull all people from the database witho
 Please consider your application's use case before you try to map every relationship in your database in every direction.
 While you can do this, you may end up rebuilding a graph database inside your object graph and this is not the intention of a mapping framework.
 If you have to model your circular or bidirectional domain and don't want to fetch the whole graph,
-you can define a fine-grained description of the data that you want to fetch by using xref:projections.adoc#projections[projections].
+you can define a fine-grained description of the data that you want to fetch by using xref:repositories/projections.adoc[projections].
+
+
+[[custom.conversions]]
+== Custom conversions
+
+[[custom.conversions.attribute.types]]
+=== For attributes of a given type
+
+If you prefer to work with your own types in the entities or as parameters for `@Query` annotated methods, you can define and provide a custom converter implementation.
+First you have to implement a `GenericConverter` and register the types your converter should handle.
+For entity property type converters you need to take care of converting your type to *and* from a Neo4j Java Driver `Value`.
+If your converter is supposed to work only with custom query methods in the repositories, it is sufficient to provide the one-way conversion to the `Value` type.
+
+.Example of a custom converter implementation
+[source,java,indent=0]
+----
+include::example$documentation/repositories/conversion/MyCustomTypeConverter.java[tag=custom-converter.implementation]
+----
+
+To make SDN aware of your converter, it has to be registered in the `Neo4jConversions`.
+To do this, you have to create a `@Bean` with the type `org.springframework.data.neo4j.core.convert.Neo4jConversions`.
+Otherwise, the `Neo4jConversions` will get created in the background with the internal default converters only.
+
+.Example of a custom converter implementation
+[source,java,indent=0]
+----
+include::example$documentation/repositories/conversion/MyCustomTypeConverter.java[tag=custom-converter.neo4jConversions]
+----
+
+If you need multiple converters in your application, you can add as many as you need in the `Neo4jConversions` constructor.
+
+[[custom.conversions.attribute.specific]]
+=== For specific attributes only
+
+If you need conversions only for some specific attributes, we provide `@ConvertWith`.
+This is an annotation that can be put on attributes of both entities (`@Node`) and relationship properties (`@RelationshipProperties`)
+It defines a `Neo4jPersistentPropertyConverter` via the `converter` attribute
+and an optional `Neo4jPersistentPropertyConverterFactory` to construct the former.
+With an implementation of `Neo4jPersistentPropertyConverter` all specific conversions for a given type can be addressed.
+In addition, `@ConvertWith` also provides `converterRef` for referencing any Spring bean in the application context implementing
+`Neo4jPersistentPropertyConverter`. The referenced bean will be preferred over constructing a new converter.
+
+We provide `@DateLong` and `@DateString` as meta-annotated annotations for backward compatibility with Neo4j-OGM schemes not using native types.
+Those are meta annotated annotations building on the concept above.
+
+[[custom.conversions.composite-properties]]
+==== Composite properties
+
+With `@CompositeProperty`, attributes of type `Map<String, Object>` or `Map<? extends Enum, Object>` can be stored as composite properties.
+All entries inside the map will be added as properties to the node or relationship containing the property.
+Either with a configured prefix or prefixed with the name of the property.
+While we only offer that feature for maps out of the box, you can `Neo4jPersistentPropertyToMapConverter` and configure it
+as the converter to use on `@CompositeProperty`. A `Neo4jPersistentPropertyToMapConverter` needs to know how a given type can
+be decomposed to and composed back from a map.
