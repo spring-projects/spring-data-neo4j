@@ -31,43 +31,8 @@ It is not recommended mixing both programming styles in the same application.
 The reactive infrastructure requires a Neo4j 4.0+ database.
 
 [[sdn-building-blocks]]
-[ditaa,sdn-buildingblocks,png]
 .SDN building blocks
-----
-+---------------------------------------------------------+
-|                                                         |
-|  SDN                   +----------------------------+   |
-|                        |                            |   |
-|                        |  Spring Data Repositories  |   |
-|                        |                            |   |
-|                        +-------------+--------------+   |
-|                                      |                  |
-|                                      |                  |
-|                                      v                  |
-|                        +-------------+--------------+   |                    +---------------------------------------+
-|                        |                            |   |    Provides        |                                       |
-|                        |    Neo4j Template          |   | <------------------+     sdn-spring-boot-starter           |
-|                        |                            |   |                    |                                       |
-|                        +-------------+--------------+   |                    +---------------------------------------+
-|                                      |                  |
-|                                      |                  |
-|                                      v                  |
-|                        +-------------+--------------+   |
-|  Integration with      |                            |   |
-|  Spring Transactions   |      Neo4j Client          |   |
-|  from here on          |                            |   |
-|                        +-------------+--------------+   |
-|                                      |                  |
-|                                      |                  |
-+--------------------------------------|------------------+
-                                       |
-                                       v
-                         +-------------+--------------+                        +---------------------------------------+
-                         |                            |        Provides        |                                       |
-                         |      Neo4j Java Driver     |      <-----------------+     spring-boot-starter               |
-                         |                            |                        |                                       |
-                         +----------------------------+                        +---------------------------------------+
-----
+image::image$sdn-buildingblocks.png[]
 
 The template mechanism is similar to the templates of others stores.
 Find some more information about it in xref:faq.adoc#template-support[our FAQ].
