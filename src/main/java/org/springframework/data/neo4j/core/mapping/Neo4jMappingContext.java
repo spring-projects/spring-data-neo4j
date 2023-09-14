@@ -289,7 +289,8 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 		}
 
 		// determine super class to create the node hierarchy
-		Class<? super T> superclass = typeInformation.getType().getSuperclass();
+		Class<T> type = typeInformation.getType();
+		Class<? super T> superclass = type.getSuperclass();
 
 		if (isValidParentNode(superclass)) {
 			synchronized (this) {
@@ -298,6 +299,17 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 				if (parentNodeDescription != null) {
 					parentNodeDescription.addChildNodeDescription(newEntity);
 					newEntity.setParentNodeDescription(parentNodeDescription);
+				}
+				this.setStrict(strict);
+			}
+		}
+
+		for (Class<?> typeInterface : type.getInterfaces()) {
+			if (isValidEntityInterface(typeInterface)) {
+				super.setStrict(false);
+				Neo4jPersistentEntity<?> parentNodeDescription = getPersistentEntity(typeInterface);
+				if (parentNodeDescription != null) {
+					parentNodeDescription.addChildNodeDescription(newEntity);
 				}
 				this.setStrict(strict);
 			}
@@ -314,6 +326,10 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 		// Either a concrete class explicitly annotated as Node or an abstract class
 		return Modifier.isAbstract(parentClass.getModifiers()) ||
 			   parentClass.isAnnotationPresent(Node.class);
+	}
+
+	private static boolean isValidEntityInterface(Class<?> typeInterface) {
+		return typeInterface.isAnnotationPresent(Node.class);
 	}
 
 	/*

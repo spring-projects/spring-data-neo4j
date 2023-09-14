@@ -957,5 +957,84 @@ public class Inheritance {
 		}
 	}
 
+	/**
+	 * Entity that has an interface-based relationship.
+	 * For testing that the properties and relationships of the implementing classes will also get fetched.
+	 */
+	@Node("GH-2788-Entity")
+	public static class Gh2788Entity {
+		@Id @GeneratedValue public String id;
+		public List<Gh2788Interface> relatedTo;
+	}
+
+	/**
+	 * Interface for relationship
+	 */
+	@Node("GH-2788-Interface")
+	public interface Gh2788Interface {
+		String getName();
+	}
+
+	/**
+	 * First implementation
+	 */
+	@Node("GH-2788-A")
+	public static class Gh2788A implements Gh2788Interface {
+		@Id @GeneratedValue String id;
+
+		public final String name;
+		public final String aValue;
+		public final List<Gh2788ArelatedEntity> relatedTo;
+
+		public Gh2788A(String name, String aValue, List<Gh2788ArelatedEntity> relatedTo) {
+			this.name = name;
+			this.aValue = aValue;
+			this.relatedTo = relatedTo;
+		}
+
+		@Override
+		public String getName() {
+			return name;
+		}
+	}
+
+	/**
+	 * Related entity for first implementation
+	 */
+	@Node
+	public static class Gh2788ArelatedEntity {
+		@Id @GeneratedValue String id;
+	}
+
+	/**
+	 * Second implementation
+	 */
+	@Node("GH-2788-B")
+	public static class Gh2788B implements Gh2788Interface {
+		@Id @GeneratedValue String id;
+
+		public final String name;
+		public final String bValue;
+		public final List<Gh2788BrelatedEntity> relatedTo;
+
+		public Gh2788B(String name, String bValue, List<Gh2788BrelatedEntity> relatedTo) {
+			this.name = name;
+			this.bValue = bValue;
+			this.relatedTo = relatedTo;
+		}
+
+		@Override
+		public String getName() {
+			return name;
+		}
+	}
+
+	/**
+	 * Related entity for second implementation
+	 */
+	@Node
+	public static class Gh2788BrelatedEntity {
+		@Id @GeneratedValue String id;
+	}
 
 }

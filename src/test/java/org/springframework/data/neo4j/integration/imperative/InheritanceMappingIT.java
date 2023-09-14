@@ -333,6 +333,44 @@ public class InheritanceMappingIT {
 		}
 	}
 
+	@Test // GH-2788
+	void detectPropertiesAndRelationshipsOfImplementingEntities(@Autowired Neo4jTemplate template) {
+		String id;
+		try (Session session = driver.session(bookmarkCapture.createSessionConfig()); Transaction transaction = session.beginTransaction()) {
+			id = transaction.run("" +
+							"CREATE (e:`GH-2788-Entity`) " +
+							"CREATE (e)-[:RELATED_TO]-> (a:`GH-2788-Interface`:`GH-2788-A` {name:'A'}) " +
+							"CREATE (e)-[:RELATED_TO]-> (b:`GH-2788-Interface`:`GH-2788-B` {name:'B'}) " +
+							"CREATE (a)-[:RELATED_TO]-> (:`Gh2788ArelatedEntity`) " +
+							"CREATE (b)-[:RELATED_TO]-> (:`Gh2788BrelatedEntity`) " +
+							"RETURN elementId(e)")
+					.single().get(0).asString();
+			transaction.commit();
+			bookmarkCapture.seedWith(session.lastBookmarks());
+		}
+
+		Optional<Inheritance.Gh2788Entity> gh2788Entity = transactionTemplate.execute(tx ->
+				template.findById(id, Inheritance.Gh2788Entity.class));
+
+		assertThat(gh2788Entity).hasValueSatisfying(v -> {
+			List<Inheritance.Gh2788Interface> relatedTo = v.relatedTo;
+			assertThat(relatedTo).allSatisfy(relatedElement -> {
+				if (relatedElement instanceof Inheritance.Gh2788A relatedAelement) {
+					assertThat(relatedAelement.name).isEqualTo("A");
+					assertThat(relatedAelement.relatedTo)
+							.hasSize(1)
+							.hasOnlyElementsOfType(Inheritance.Gh2788ArelatedEntity.class);
+				} else if (relatedElement instanceof Inheritance.Gh2788B relatedBelement) {
+					assertThat(relatedBelement.name).isEqualTo("B");
+					assertThat(relatedBelement.relatedTo)
+							.hasSize(1)
+							.hasOnlyElementsOfType(Inheritance.Gh2788BrelatedEntity.class);
+				}
+			});
+
+		});
+	}
+
 	@Test // GH-2262
 	void shouldMatchPolymorphicClassesWhenFetchedById(@Autowired DivisionRepository repository) {
 
