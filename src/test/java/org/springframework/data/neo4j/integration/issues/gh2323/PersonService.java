@@ -16,6 +16,7 @@
 package org.springframework.data.neo4j.integration.issues.gh2323;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -65,5 +66,9 @@ public class PersonService {
 		}
 
 		return original;
+	}
+
+	public Person queryWithMapOfRelationship(String key, Knows knows) {
+		return personRepository.queryWithMapOfRelationship(Map.of(key, List.of(knows)));
 	}
 }

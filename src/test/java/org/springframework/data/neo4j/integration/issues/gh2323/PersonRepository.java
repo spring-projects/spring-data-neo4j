@@ -16,6 +16,7 @@
 package org.springframework.data.neo4j.integration.issues.gh2323;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.repository.query.Query;
@@ -28,7 +29,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface PersonRepository extends Neo4jRepository<Person, String> {
 
-	// Using separate id and than relationships on top level
+	// Using separate id and then relationships on top level
 	@Query("""
 			UNWIND $relations As rel WITH rel
 			MATCH (f:Person {id: $from})
@@ -60,4 +61,12 @@ public interface PersonRepository extends Neo4jRepository<Person, String> {
 			RETURN f, frl, mt, collect(r), collect(t)
 			""")
 	Person updateRelWith11(@Param("person") Person person);
+
+	@Query("""
+			UNWIND keys($relationships) as relationshipKey
+			UNWIND $relationships[relationshipKey] as relationship
+			MATCH (p:Person)-[:HAS_MOTHER_TONGUE]->(:Language{name: relationship.__target__.__id__})
+			RETURN p
+			   """)
+	Person queryWithMapOfRelationship(@Param("relationships") Map<String, List<Knows>> relationshipList);
 }
