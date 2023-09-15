@@ -80,6 +80,7 @@ import org.springframework.data.neo4j.integration.issues.gh2289.Sku;
 import org.springframework.data.neo4j.integration.issues.gh2289.SkuRO;
 import org.springframework.data.neo4j.integration.issues.gh2289.SkuRORepository;
 import org.springframework.data.neo4j.integration.issues.gh2289.SkuRepository;
+import org.springframework.data.neo4j.integration.issues.gh2323.Knows;
 import org.springframework.data.neo4j.integration.issues.gh2323.Language;
 import org.springframework.data.neo4j.integration.issues.gh2323.Person;
 import org.springframework.data.neo4j.integration.issues.gh2323.PersonService;
@@ -531,6 +532,16 @@ class IssuesIT extends TestBase {
 				assertThat(knows.getLanguage()).extracting(Language::getName).isEqualTo("German");
 			});
 		});
+	}
+
+	@Test
+	@Tag("GH-2791")
+	void ensureMapOfRelationshipGetsSerialized(@Autowired PersonService personService) {
+		Knows knowsRelationship = new Knows("somedescription", new Language("German"));
+
+		Person person = personService.queryWithMapOfRelationship("someKey", knowsRelationship);
+
+		assertThat(person.getName()).isEqualTo("Helge");
 	}
 
 	@Test

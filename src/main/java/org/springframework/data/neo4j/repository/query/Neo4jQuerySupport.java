@@ -209,6 +209,11 @@ abstract class Neo4jQuerySupport {
 			return result;
 		}
 
+		if (parameter instanceof Map<?, ?> mapValue) {
+			return mapValue.entrySet().stream()
+					.collect(Collectors.toMap(Map.Entry::getKey, v -> convertParameter(v.getValue(), conversionOverride)));
+		}
+
 		return mappingContext.getConversionService().writeValue(parameter,
 				TypeInformation.of(parameter.getClass()), conversionOverride);
 	}
