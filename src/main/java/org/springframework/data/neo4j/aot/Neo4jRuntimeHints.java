@@ -21,6 +21,7 @@ import org.springframework.aot.hint.RuntimeHintsRegistrar;
 import org.springframework.aot.hint.TypeReference;
 import org.springframework.data.neo4j.core.mapping.callback.AfterConvertCallback;
 import org.springframework.data.neo4j.core.mapping.callback.BeforeBindCallback;
+import org.springframework.data.neo4j.core.mapping.callback.ReactiveBeforeBindCallback;
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.support.UUIDStringGenerator;
 import org.springframework.data.neo4j.repository.query.QuerydslNeo4jPredicateExecutor;
@@ -61,8 +62,9 @@ public class Neo4jRuntimeHints implements RuntimeHintsRegistrar {
 		if (ReactiveWrappers.isAvailable(ReactiveWrappers.ReactiveLibrary.PROJECT_REACTOR)) {
 			hints.reflection().registerTypes(
 					Arrays.asList(
+							TypeReference.of(SimpleReactiveNeo4jRepository.class),
 							TypeReference.of(SimpleReactiveQueryByExampleExecutor.class),
-							TypeReference.of(SimpleReactiveNeo4jRepository.class)
+							TypeReference.of(ReactiveBeforeBindCallback.class)
 					),
 					builder -> builder.withMembers(MemberCategory.INVOKE_DECLARED_CONSTRUCTORS, MemberCategory.INVOKE_PUBLIC_METHODS));
 		}
