@@ -328,7 +328,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 
 			populateProperties(queryResult, nodeDescription, internalId, instance, lastMappedEntity, relationshipsFromResult, nodesFromResult, false);
 
-			PersistentPropertyAccessor<ET> propertyAccessor = concreteNodeDescription.getPropertyAccessor(instance);
+			PersistentPropertyAccessor<ET> propertyAccessor = concreteNodeDescription.getPropertyAccessor(getMostCurrentInstance(internalId, instance));
 			ET bean = propertyAccessor.getBean();
 			bean = eventSupport.maybeCallAfterConvert(bean, concreteNodeDescription, queryResult);
 
@@ -353,7 +353,13 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 			// because we cannot just create new instances
 			populateProperties(queryResult, nodeDescription, internalId, mappedObject, lastMappedEntity, relationshipsFromResult, nodesFromResult, true);
 		}
-		return mappedObject;
+		// due to a needed side effect in `populateProperties`, the entity might have been changed
+		return getMostCurrentInstance(internalId, mappedObject);
+	}
+
+	@Nullable
+	private <ET> ET getMostCurrentInstance(String internalId, ET fallbackInstance) {
+		return (ET) (knownObjects.getObject(internalId) != null ? knownObjects.getObject(internalId) : fallbackInstance);
 	}
 
 
@@ -388,7 +394,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 		// in a cyclic graph / with bidirectional relationships, we could end up in a state in which we
 		// reference the start again. Because it is getting still constructed, it won't be in the knownObjects
 		// store unless we temporarily put it there.
-		knownObjects.storeObject(internalId, mappedObject);
+		knownObjects.storeObject(internalId, propertyAccessor.getBean());
 
 		AssociationHandlerSupport.of(concreteNodeDescription).doWithAssociations(
 				populateFrom(queryResult, nodeDescription, propertyAccessor, isConstructorParameter, objectAlreadyMapped, relationshipsFromResult, nodesFromResult));
