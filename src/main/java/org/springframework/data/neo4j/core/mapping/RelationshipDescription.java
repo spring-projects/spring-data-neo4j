@@ -60,6 +60,8 @@ public interface RelationshipDescription {
 
 	/**
 	 * The target of this relationship is described by the primary label of the node in question.
+	 * If the relationship description includes a relationship properties class, this will be the {@link NodeDescription}
+	 * of the {@link org.springframework.data.neo4j.core.schema.TargetNode}.
 	 *
 	 * @return The target of this relationship
 	 */
