@@ -24,7 +24,9 @@ import org.springframework.data.neo4j.core.mapping.callback.BeforeBindCallback;
 import org.springframework.data.neo4j.core.mapping.callback.ReactiveBeforeBindCallback;
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.support.UUIDStringGenerator;
+import org.springframework.data.neo4j.repository.query.CypherdslConditionExecutorImpl;
 import org.springframework.data.neo4j.repository.query.QuerydslNeo4jPredicateExecutor;
+import org.springframework.data.neo4j.repository.query.ReactiveCypherdslConditionExecutorImpl;
 import org.springframework.data.neo4j.repository.query.ReactiveQuerydslNeo4jPredicateExecutor;
 import org.springframework.data.neo4j.repository.query.SimpleQueryByExampleExecutor;
 import org.springframework.data.neo4j.repository.query.SimpleReactiveQueryByExampleExecutor;
@@ -49,6 +51,7 @@ public class Neo4jRuntimeHints implements RuntimeHintsRegistrar {
 				Arrays.asList(
 						TypeReference.of(SimpleNeo4jRepository.class),
 						TypeReference.of(SimpleQueryByExampleExecutor.class),
+						TypeReference.of(CypherdslConditionExecutorImpl.class),
 						TypeReference.of(BeforeBindCallback.class),
 						TypeReference.of(AfterConvertCallback.class),
 						// todo "temporary" fix, should get resolved when class parameters in annotations getting discovered
@@ -64,6 +67,7 @@ public class Neo4jRuntimeHints implements RuntimeHintsRegistrar {
 					Arrays.asList(
 							TypeReference.of(SimpleReactiveNeo4jRepository.class),
 							TypeReference.of(SimpleReactiveQueryByExampleExecutor.class),
+							TypeReference.of(ReactiveCypherdslConditionExecutorImpl.class),
 							TypeReference.of(ReactiveBeforeBindCallback.class)
 					),
 					builder -> builder.withMembers(MemberCategory.INVOKE_DECLARED_CONSTRUCTORS, MemberCategory.INVOKE_PUBLIC_METHODS));
