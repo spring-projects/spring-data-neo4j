@@ -570,9 +570,10 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 	}
 
 	private boolean calculatePossibleCircles(Predicate<PropertyFilter.RelaxedPropertyPath> includeField) {
-		Collection<RelationshipDescription> relationships = new HashSet<>(getRelationshipsInHierarchy(includeField));
+		Collection<RelationshipDescription> allRelationships = new HashSet<>(getRelationshipsInHierarchy(includeField));
 
-		for (RelationshipDescription relationship : relationships) {
+		Set<NodeDescription<?>> thisNodeVisited = Set.of(this);
+		for (RelationshipDescription relationship : allRelationships) {
 			PropertyFilter.RelaxedPropertyPath relaxedPropertyPath = PropertyFilter.RelaxedPropertyPath.withRootType(this.getUnderlyingClass());
 			if (!filterProperties(includeField, relationship, relaxedPropertyPath)) {
 				continue;
@@ -583,13 +584,17 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 			if (this.equals(targetNode)) {
 				return true;
 			}
-			String relationshipPropertiesPrefix = relationship.hasRelationshipProperties() ? "." + ((Neo4jPersistentEntity<?>) relationship.getRelationshipPropertiesEntity())
-					.getPersistentProperty(TargetNode.class).getFieldName() : "";
 
 			// Branch out with the nodes already visited before
-			Set<NodeDescription<?>> visitedNodes = new HashSet<>();
+			Set<NodeDescription<?>> visitedNodes = new HashSet<>(thisNodeVisited);
 			visitedNodes.add(targetNode);
-			if (calculatePossibleCircles(targetNode, visitedNodes, includeField, relaxedPropertyPath.append(relationship.getFieldName() + relationshipPropertiesPrefix))) {
+
+			// we don't care about the other content of relationship properties and jump straight into the `TargetNode`
+			String relationshipPropertiesPrefix = relationship.hasRelationshipProperties()
+					? "." + ((Neo4jPersistentEntity<?>) relationship.getRelationshipPropertiesEntity()).getPersistentProperty(TargetNode.class).getFieldName()
+					: "";
+			PropertyFilter.RelaxedPropertyPath nextPath = relaxedPropertyPath.append(relationship.getFieldName() + relationshipPropertiesPrefix);
+			if (calculatePossibleCircles(targetNode, visitedNodes, includeField, nextPath)) {
 				return true;
 			}
 		}
@@ -597,10 +602,10 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 	}
 
 	private boolean calculatePossibleCircles(NodeDescription<?> nodeDescription, Set<NodeDescription<?>> visitedNodes, Predicate<PropertyFilter.RelaxedPropertyPath> includeField, PropertyFilter.RelaxedPropertyPath path) {
-		Collection<RelationshipDescription> relationships = ((DefaultNeo4jPersistentEntity<?>) nodeDescription).getRelationshipsInHierarchy(includeField, path);
+		Collection<RelationshipDescription> allRelationships = new HashSet<>(((DefaultNeo4jPersistentEntity<?>) nodeDescription).getRelationshipsInHierarchy(includeField, path));
 
 		Collection<NodeDescription<?>> visitedTargetNodes = new HashSet<>();
-		for (RelationshipDescription relationship : relationships) {
+		for (RelationshipDescription relationship : allRelationships) {
 			NodeDescription<?> targetNode = relationship.getTarget();
 			if (visitedNodes.contains(targetNode)) {
 				return true;
@@ -611,8 +616,10 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 			// Add the already visited target nodes for the next level,
 			// but don't (!) add them to the visitedNodes yet.
 			// Otherwise, the same "parallel" defined target nodes will report a false circle.
-			branchedVisitedNodes.addAll(visitedTargetNodes);
-			if (calculatePossibleCircles(targetNode, branchedVisitedNodes, includeField, path.append(relationship.getFieldName()))) {
+			branchedVisitedNodes.add(targetNode);
+			String relationshipPropertiesPrefix = relationship.hasRelationshipProperties() ? "." + ((Neo4jPersistentEntity<?>) relationship.getRelationshipPropertiesEntity())
+					.getPersistentProperty(TargetNode.class).getFieldName() : "";
+			if (calculatePossibleCircles(targetNode, branchedVisitedNodes, includeField, path.append(relationship.getFieldName() + relationshipPropertiesPrefix))) {
 				return true;
 			}
 		}
