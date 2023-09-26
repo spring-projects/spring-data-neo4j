@@ -18,7 +18,6 @@
 <configuration>
 
     <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
-        <filter class="org.springframework.data.neo4j.test.TestLogFilter" />
         <encoder>
             <pattern>[%t] %d %5p %40.40c:%4L - %m%n</pattern>
         </encoder>
@@ -31,6 +30,7 @@
     <logger name="InboundMessageDispatcher" level="info"/>
 
     <logger name="org.springframework.data.neo4j.cypher" level="info"/>
+    <logger name="org.springframework.data.neo4j.cypher.notifications" level="error"/>
     <logger name="org.springframework.data.neo4j" level="info"/>
     <logger name="org.springframework.data.neo4j.test" level="info"/>
     <logger name="org.springframework.data.neo4j.repository.query.Neo4jQuerySupport" level="debug" />

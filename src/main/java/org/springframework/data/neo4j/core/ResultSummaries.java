@@ -57,12 +57,17 @@ final class ResultSummaries {
 		String query = resultSummary.query().text();
 		resultSummary.notifications()
 				.forEach(notification -> {
-					Consumer<String> log = switch (notification.severity()) {
-						case "WARNING" -> Neo4jClient.cypherLog::warn;
-						case "INFORMATION" -> Neo4jClient.cypherLog::info;
-						default -> Neo4jClient.cypherLog::debug;
-					};
-					log.accept(ResultSummaries.format(notification, query));
+					var log = Neo4jClient.cypherNotificationCategories.contains(notification.code())
+							? Neo4jClient.cypherNotificationLog
+							: Neo4jClient.cypherLog;
+
+					Consumer<String> logFunction =
+							switch (notification.severity()) {
+								case "WARNING" -> log::warn;
+								case "INFORMATION" -> log::info;
+								default -> log::debug;
+							};
+					logFunction.accept(ResultSummaries.format(notification, query));
 				});
 	}
 

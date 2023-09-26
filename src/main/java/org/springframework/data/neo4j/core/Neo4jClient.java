@@ -18,6 +18,7 @@ package org.springframework.data.neo4j.core;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -45,7 +46,14 @@ import org.springframework.lang.Nullable;
 public interface Neo4jClient {
 
 	LogAccessor cypherLog = new LogAccessor(LogFactory.getLog("org.springframework.data.neo4j.cypher"));
+	LogAccessor cypherNotificationLog = new LogAccessor(LogFactory.getLog("org.springframework.data.neo4j.cypher.notifications"));
 	LogAccessor log = new LogAccessor(LogFactory.getLog(Neo4jClient.class));
+
+	Set<String> cypherNotificationCategories = Set.of(
+			"Neo.ClientNotification.Statement.UnknownRelationshipTypeWarning",
+			"Neo.ClientNotification.Statement.UnknownLabelWarning",
+			"Neo.ClientNotification.Statement.UnknownPropertyKeyWarning",
+			"Neo.ClientNotification.Statement.FeatureDeprecationWarning");
 
 	static Neo4jClient create(Driver driver) {
 
