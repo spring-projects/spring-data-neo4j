@@ -19,10 +19,13 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.apache.commons.logging.LogFactory;
+import org.neo4j.driver.NotificationCategory;
 import org.neo4j.driver.summary.InputPosition;
 import org.neo4j.driver.summary.Notification;
 import org.neo4j.driver.summary.Plan;
 import org.neo4j.driver.summary.ResultSummary;
+import org.springframework.core.log.LogAccessor;
 
 /**
  * Utility class for dealing with result summaries.
@@ -34,6 +37,12 @@ import org.neo4j.driver.summary.ResultSummary;
 final class ResultSummaries {
 
 	private static final String LINE_SEPARATOR = System.lineSeparator();
+	private static final LogAccessor cypherPerformanceNotificationLog = new LogAccessor(LogFactory.getLog("org.springframework.data.neo4j.cypher.performance"));
+	private static final LogAccessor cypherHintNotificationLog = new LogAccessor(LogFactory.getLog("org.springframework.data.neo4j.cypher.hint"));
+	private static final LogAccessor cypherUnrecognizedNotificationLog = new LogAccessor(LogFactory.getLog("org.springframework.data.neo4j.cypher.unrecognized"));
+	private static final LogAccessor cypherUnsupportedNotificationLog = new LogAccessor(LogFactory.getLog("org.springframework.data.neo4j.cypher.unsupported"));
+	private static final LogAccessor cypherDeprecationNotificationLog = new LogAccessor(LogFactory.getLog("org.springframework.data.neo4j.cypher.deprecation"));
+	private static final LogAccessor cypherGenericNotificationLog = new LogAccessor(LogFactory.getLog("org.springframework.data.neo4j.cypher.generic"));
 
 	/**
 	 * Does some post-processing on the giving result summary, especially logging all notifications
@@ -57,13 +66,39 @@ final class ResultSummaries {
 		String query = resultSummary.query().text();
 		resultSummary.notifications()
 				.forEach(notification -> {
-					Consumer<String> log = switch (notification.severity()) {
-						case "WARNING" -> Neo4jClient.cypherLog::warn;
-						case "INFORMATION" -> Neo4jClient.cypherLog::info;
-						default -> Neo4jClient.cypherLog::debug;
-					};
-					log.accept(ResultSummaries.format(notification, query));
+					LogAccessor log = notification.category()
+							.map(ResultSummaries::getLogAccessor)
+							.orElse(Neo4jClient.cypherLog);
+					Consumer<String> logFunction =
+							switch (notification.severity()) {
+								case "WARNING" -> log::warn;
+								case "INFORMATION" -> log::info;
+								default -> log::debug;
+							};
+					logFunction.accept(ResultSummaries.format(notification, query));
 				});
+	}
+
+	private static LogAccessor getLogAccessor(NotificationCategory category) {
+		if (category == NotificationCategory.HINT) {
+			return cypherHintNotificationLog;
+		}
+		if (category == NotificationCategory.DEPRECATION) {
+			return cypherDeprecationNotificationLog;
+		}
+		if (category == NotificationCategory.PERFORMANCE) {
+			return cypherPerformanceNotificationLog;
+		}
+		if (category == NotificationCategory.GENERIC) {
+			return cypherGenericNotificationLog;
+		}
+		if (category == NotificationCategory.UNSUPPORTED) {
+			return cypherUnsupportedNotificationLog;
+		}
+		if (category == NotificationCategory.UNRECOGNIZED) {
+			return cypherUnrecognizedNotificationLog;
+		}
+		return Neo4jClient.cypherLog;
 	}
 
 	/**
