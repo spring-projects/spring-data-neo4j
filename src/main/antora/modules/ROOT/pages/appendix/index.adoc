@@ -12,6 +12,8 @@ include::custom-queries.adoc[]
 
 include::spatial-types.adoc[]
 
+include::logging.adoc[]
+
 include::migrating.adoc[]
 
 include::build.adoc[]
