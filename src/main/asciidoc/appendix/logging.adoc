@@ -1,0 +1,16 @@
+[[logging]]
+= Logging
+
+Spring Data Neo4j defines two named logger to log Cypher statements and warnings.
+
+== Cypher statements and statement related warnings/errors
+
+`org.springframework.data.neo4j.cypher` includes all statements that were invoked by Spring Data Neo4j and warnings/errors sent from the server
+
+== Cypher notifications
+
+`org.springframework.data.neo4j.cypher.notifications` is used to catch notifications regarding missing properties, labels and relationship types.
+Additionally, it also is responsible for the deprecation warnings, including usage of the deprecated `id()`.
+As we have experienced that those messages can be overwhelming when used in combination with Spring Data Neo4j, this logger catches all
+`Neo.ClientNotification.Statement.UnknownRelationshipTypeWarning`, `Neo.ClientNotification.Statement.UnknownLabelWarning`, `Neo.ClientNotification.Statement.UnknownPropertyKeyWarning`, `Neo.ClientNotification.Statement.FeatureDeprecationWarning`.
+If you rely purely on Spring Data Neo4j's generated statements or are confident with your custom Cypher statements, you can set this logger to `ERROR` level.
