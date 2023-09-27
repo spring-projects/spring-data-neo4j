@@ -46,14 +46,49 @@ import org.springframework.lang.Nullable;
 public interface Neo4jClient {
 
 	LogAccessor cypherLog = new LogAccessor(LogFactory.getLog("org.springframework.data.neo4j.cypher"));
-	LogAccessor cypherNotificationLog = new LogAccessor(LogFactory.getLog("org.springframework.data.neo4j.cypher.notifications"));
+	LogAccessor cypherPerformanceNotificationLog = new LogAccessor(LogFactory.getLog("org.springframework.data.neo4j.cypher.performance"));
+	LogAccessor cypherHintNotificationLog = new LogAccessor(LogFactory.getLog("org.springframework.data.neo4j.cypher.hint"));
+	LogAccessor cypherUnrecognizedNotificationLog = new LogAccessor(LogFactory.getLog("org.springframework.data.neo4j.cypher.unrecognized"));
+	LogAccessor cypherUnsupportedNotificationLog = new LogAccessor(LogFactory.getLog("org.springframework.data.neo4j.cypher.unsupported"));
+	LogAccessor cypherDeprecationNotificationLog = new LogAccessor(LogFactory.getLog("org.springframework.data.neo4j.cypher.deprecation"));
+	LogAccessor cypherGenericNotificationLog = new LogAccessor(LogFactory.getLog("org.springframework.data.neo4j.cypher.generic"));
 	LogAccessor log = new LogAccessor(LogFactory.getLog(Neo4jClient.class));
 
-	Set<String> cypherNotificationCategories = Set.of(
-			"Neo.ClientNotification.Statement.UnknownRelationshipTypeWarning",
+	// from https://neo4j.com/docs/status-codes/current/notifications/all-notifications/
+	Set<String> cypherPerformanceNotificationCodes = Set.of(
+			"Neo.ClientNotification.Statement.CartesianProduct",
+			"Neo.ClientNotification.Statement.UnboundedVariableLengthPattern",
+			"Neo.ClientNotification.Statement.ExhaustiveShortestPath",
+			"Neo.ClientNotification.Statement.NoApplicableIndex",
+			"Neo.ClientNotification.Statement.EagerOperator",
+			"Neo.ClientNotification.Statement.DynamicProperty",
+			"Neo.ClientNotification.Statement.CodeGenerationFailed");
+
+	Set<String> cypherHintNotificationCodes = Set.of(
+			"Neo.ClientNotification.Statement.JoinHintUnfulfillableWarning",
+			"Neo.ClientNotification.Schema.HintedIndexNotFound");
+
+	Set<String> cypherUnrecognizedNotificationCodes = Set.of(
+			"Neo.ClientNotification.Database.HomeDatabaseNotFound",
 			"Neo.ClientNotification.Statement.UnknownLabelWarning",
-			"Neo.ClientNotification.Statement.UnknownPropertyKeyWarning",
-			"Neo.ClientNotification.Statement.FeatureDeprecationWarning");
+			"Neo.ClientNotification.Statement.UnknownRelationshipTypeWarning",
+			"Neo.ClientNotification.Statement.UnknownPropertyKeyWarning");
+
+	Set<String> cypherUnsupportedNotificationCodes = Set.of(
+			"Neo.ClientNotification.Statement.RuntimeUnsupportedWarning",
+			"Neo.ClientNotification.Statement.RuntimeExperimental");
+
+	Set<String> cypherDeprecationNotificationCodes = Set.of(
+			"Neo.ClientNotification.Statement.FeatureDeprecationWarning",
+			"Neo.ClientNotification.Request.DeprecatedFormat");
+
+	Set<String> cypherGenericNotificationCodes = Set.of(
+			"Neo.ClientNotification.Statement.SubqueryVariableShadowing",
+			"Neo.ClientNotification.Statement.ParameterNotProvided",
+			"Neo.ClientNotification.Procedure.ProcedureWarning",
+			"Neo.ClientNotification.Statement.UnsatisfiableRelationshipTypeExpression",
+			"Neo.ClientNotification.Statement.RepeatedRelationshipReference");
+
 
 	static Neo4jClient create(Driver driver) {
 

@@ -23,6 +23,7 @@ import org.neo4j.driver.summary.InputPosition;
 import org.neo4j.driver.summary.Notification;
 import org.neo4j.driver.summary.Plan;
 import org.neo4j.driver.summary.ResultSummary;
+import org.springframework.core.log.LogAccessor;
 
 /**
  * Utility class for dealing with result summaries.
@@ -57,10 +58,7 @@ final class ResultSummaries {
 		String query = resultSummary.query().text();
 		resultSummary.notifications()
 				.forEach(notification -> {
-					var log = Neo4jClient.cypherNotificationCategories.contains(notification.code())
-							? Neo4jClient.cypherNotificationLog
-							: Neo4jClient.cypherLog;
-
+					LogAccessor log = getLogAccessor(notification.code());
 					Consumer<String> logFunction =
 							switch (notification.severity()) {
 								case "WARNING" -> log::warn;
@@ -69,6 +67,29 @@ final class ResultSummaries {
 							};
 					logFunction.accept(ResultSummaries.format(notification, query));
 				});
+	}
+
+	private static LogAccessor getLogAccessor(String cypherCode) {
+		if (Neo4jClient.cypherPerformanceNotificationCodes.contains(cypherCode)) {
+			return Neo4jClient.cypherPerformanceNotificationLog;
+		}
+		if (Neo4jClient.cypherHintNotificationCodes.contains(cypherCode)) {
+			return Neo4jClient.cypherHintNotificationLog;
+		}
+		if (Neo4jClient.cypherUnrecognizedNotificationCodes.contains(cypherCode)) {
+			return Neo4jClient.cypherUnrecognizedNotificationLog;
+		}
+		if (Neo4jClient.cypherUnsupportedNotificationCodes.contains(cypherCode)) {
+			return Neo4jClient.cypherUnsupportedNotificationLog;
+		}
+		if (Neo4jClient.cypherDeprecationNotificationCodes.contains(cypherCode)) {
+			return Neo4jClient.cypherDeprecationNotificationLog;
+		}
+		if (Neo4jClient.cypherGenericNotificationCodes.contains(cypherCode)) {
+			return Neo4jClient.cypherGenericNotificationLog;
+		}
+
+		return Neo4jClient.cypherLog;
 	}
 
 	/**
