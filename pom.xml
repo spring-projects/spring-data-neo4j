@@ -73,7 +73,6 @@
 		<archunit.version>0.23.1</archunit.version>
 		<blockhound.version>1.0.8.RELEASE</blockhound.version>
 		<byte-buddy.version>1.14.3</byte-buddy.version>
-		<cdi>3.0.1</cdi>
 		<checkstyle.skip>${skipTests}</checkstyle.skip>
 		<checkstyle.version>8.40</checkstyle.version>
 		<classgraph.version>4.8.149</classgraph.version>
@@ -319,7 +318,6 @@
 		<dependency>
 			<groupId>jakarta.enterprise</groupId>
 			<artifactId>jakarta.enterprise.cdi-api</artifactId>
-			<version>${cdi}</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
@@ -329,23 +327,8 @@
 		</dependency>
 		<dependency>
 			<groupId>org.apache.openwebbeans</groupId>
-			<artifactId>openwebbeans-impl</artifactId>
-			<version>${webbeans}</version>
-			<classifier>jakarta</classifier>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.openwebbeans</groupId>
 			<artifactId>openwebbeans-se</artifactId>
 			<version>${webbeans}</version>
-			<classifier>jakarta</classifier>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.openwebbeans</groupId>
-			<artifactId>openwebbeans-spi</artifactId>
-			<version>${webbeans}</version>
-			<classifier>jakarta</classifier>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
