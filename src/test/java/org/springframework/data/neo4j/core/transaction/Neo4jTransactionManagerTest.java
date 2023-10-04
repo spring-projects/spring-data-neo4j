@@ -52,6 +52,7 @@ import org.neo4j.driver.types.TypeSystem;
 import org.springframework.data.neo4j.core.DatabaseSelection;
 import org.springframework.data.neo4j.core.UserSelection;
 import org.springframework.data.neo4j.core.Neo4jClient;
+import org.springframework.data.neo4j.core.support.BookmarkManagerReference;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.jta.JtaTransactionManager;
@@ -152,7 +153,7 @@ class Neo4jTransactionManagerTest {
 			throws NoSuchFieldException, IllegalAccessException {
 		Field bookmarkManager = Neo4jTransactionManager.class.getDeclaredField("bookmarkManager");
 		bookmarkManager.setAccessible(true);
-		bookmarkManager.set(txManager, value);
+		bookmarkManager.set(txManager, new BookmarkManagerReference(Neo4jBookmarkManager::create, value));
 	}
 
 	@Nested

@@ -30,6 +30,7 @@ import org.springframework.data.neo4j.core.DatabaseSelection;
 import org.springframework.data.neo4j.core.ReactiveDatabaseSelectionProvider;
 import org.springframework.data.neo4j.core.ReactiveUserSelectionProvider;
 import org.springframework.data.neo4j.core.UserSelection;
+import org.springframework.data.neo4j.core.support.BookmarkManagerReference;
 import org.springframework.lang.Nullable;
 import org.springframework.transaction.NoTransactionException;
 import org.springframework.transaction.TransactionDefinition;
@@ -133,7 +134,7 @@ public final class ReactiveNeo4jTransactionManager extends AbstractReactiveTrans
 	 */
 	private final ReactiveUserSelectionProvider userSelectionProvider;
 
-	private final Neo4jBookmarkManager bookmarkManager;
+	private final BookmarkManagerReference bookmarkManager;
 
 	/**
 	 * This will create a transaction manager for the default database.
@@ -178,14 +179,13 @@ public final class ReactiveNeo4jTransactionManager extends AbstractReactiveTrans
 		this.userSelectionProvider = builder.userSelectionProvider == null ?
 				ReactiveUserSelectionProvider.getDefaultSelectionProvider() :
 				builder.userSelectionProvider;
-		this.bookmarkManager =
-				builder.bookmarkManager == null ? Neo4jBookmarkManager.create() : builder.bookmarkManager;
+		this.bookmarkManager =  new BookmarkManagerReference(Neo4jBookmarkManager::create, builder.bookmarkManager);
 	}
 
 	@Override
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
 
-		this.bookmarkManager.setApplicationEventPublisher(applicationContext);
+		this.bookmarkManager.setApplicationContext(applicationContext);
 	}
 
 	/**
@@ -292,7 +292,7 @@ public final class ReactiveNeo4jTransactionManager extends AbstractReactiveTrans
 							userSelectionProvider
 									.getUserSelection()
 									.switchIfEmpty(Mono.just(UserSelection.connectedUser())),
-							(databaseSelection, userSelection) -> new Neo4jTransactionContext(databaseSelection, userSelection, bookmarkManager.getBookmarks()))
+							(databaseSelection, userSelection) -> new Neo4jTransactionContext(databaseSelection, userSelection, bookmarkManager.resolve().getBookmarks()))
 					.map(context -> Tuples.of(context, this.driver.session(ReactiveSession.class, Neo4jTransactionUtils.sessionConfig(readOnly, context.getBookmarks(), context.getDatabaseSelection(), context.getUserSelection()))))
 					.flatMap(contextAndSession -> Mono.fromDirect(contextAndSession.getT2().beginTransaction(transactionConfig)).single()
 							.map(nativeTransaction -> new ReactiveNeo4jTransactionHolder(contextAndSession.getT1(),
@@ -325,7 +325,7 @@ public final class ReactiveNeo4jTransactionManager extends AbstractReactiveTrans
 		ReactiveNeo4jTransactionHolder holder = extractNeo4jTransaction(genericReactiveTransaction)
 				.getRequiredResourceHolder();
 		return holder.commit()
-				.doOnNext(bookmark -> bookmarkManager.updateBookmarks(holder.getBookmarks(), bookmark))
+				.doOnNext(bookmark -> bookmarkManager.resolve().updateBookmarks(holder.getBookmarks(), bookmark))
 				.then();
 	}
 
