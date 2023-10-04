@@ -35,12 +35,16 @@ import org.neo4j.driver.Session;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.summary.ResultSummary;
 import org.neo4j.driver.types.TypeSystem;
+import org.springframework.beans.BeansException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.converter.ConverterRegistry;
 import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.support.PersistenceExceptionTranslator;
 import org.springframework.data.neo4j.core.convert.Neo4jConversions;
+import org.springframework.data.neo4j.core.support.BookmarkManagerReference;
 import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
 import org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager;
 import org.springframework.data.neo4j.core.transaction.Neo4jTransactionUtils;
@@ -56,7 +60,7 @@ import org.springframework.util.StringUtils;
  * @author Michael J. Simons
  * @since 6.0
  */
-final class DefaultNeo4jClient implements Neo4jClient {
+final class DefaultNeo4jClient implements Neo4jClient, ApplicationContextAware {
 
 	private final Driver driver;
 	private @Nullable final DatabaseSelectionProvider databaseSelectionProvider;
@@ -65,14 +69,14 @@ final class DefaultNeo4jClient implements Neo4jClient {
 	private final Neo4jPersistenceExceptionTranslator persistenceExceptionTranslator = new Neo4jPersistenceExceptionTranslator();
 
 	// Local bookmark manager when using outside managed transactions
-	private final Neo4jBookmarkManager bookmarkManager;
+	private final BookmarkManagerReference bookmarkManager;
 
 	DefaultNeo4jClient(Builder builder) {
 
 		this.driver = builder.driver;
 		this.databaseSelectionProvider = builder.databaseSelectionProvider;
 		this.userSelectionProvider = builder.userSelectionProvider;
-		this.bookmarkManager = builder.bookmarkManager != null ? builder.bookmarkManager : Neo4jBookmarkManager.create();
+		this.bookmarkManager =  new BookmarkManagerReference(Neo4jBookmarkManager::create, builder.bookmarkManager);
 
 		this.conversionService = new DefaultConversionService();
 		Optional.ofNullable(builder.neo4jConversions).orElseGet(Neo4jConversions::new).registerConvertersIn((ConverterRegistry) conversionService);
@@ -82,13 +86,19 @@ final class DefaultNeo4jClient implements Neo4jClient {
 	public QueryRunner getQueryRunner(DatabaseSelection databaseSelection, UserSelection impersonatedUser) {
 
 		QueryRunner queryRunner = Neo4jTransactionManager.retrieveTransaction(driver, databaseSelection, impersonatedUser);
-		Collection<Bookmark> lastBookmarks = bookmarkManager.getBookmarks();
+		Collection<Bookmark> lastBookmarks = bookmarkManager.resolve().getBookmarks();
 
 		if (queryRunner == null) {
 			queryRunner = driver.session(Neo4jTransactionUtils.sessionConfig(false, lastBookmarks, databaseSelection, impersonatedUser));
 		}
 
-		return new DelegatingQueryRunner(queryRunner, lastBookmarks, bookmarkManager::updateBookmarks);
+		return new DelegatingQueryRunner(queryRunner, lastBookmarks, bookmarkManager.resolve()::updateBookmarks);
+	}
+
+	@Override
+	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+
+		this.bookmarkManager.setApplicationContext(applicationContext);
 	}
 
 	private static class DelegatingQueryRunner implements QueryRunner {
