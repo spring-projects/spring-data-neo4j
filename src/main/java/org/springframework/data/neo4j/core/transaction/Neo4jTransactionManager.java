@@ -30,6 +30,7 @@ import org.springframework.data.neo4j.core.DatabaseSelection;
 import org.springframework.data.neo4j.core.DatabaseSelectionProvider;
 import org.springframework.data.neo4j.core.UserSelection;
 import org.springframework.data.neo4j.core.UserSelectionProvider;
+import org.springframework.data.neo4j.core.support.BookmarkManagerReference;
 import org.springframework.lang.Nullable;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionException;
@@ -136,7 +137,7 @@ public final class Neo4jTransactionManager extends AbstractPlatformTransactionMa
 	 */
 	private final UserSelectionProvider userSelectionProvider;
 
-	private final Neo4jBookmarkManager bookmarkManager;
+	private final BookmarkManagerReference bookmarkManager;
 
 	/**
 	 * This will create a transaction manager for the default database.
@@ -181,14 +182,13 @@ public final class Neo4jTransactionManager extends AbstractPlatformTransactionMa
 		this.userSelectionProvider = builder.userSelectionProvider == null ?
 				UserSelectionProvider.getDefaultSelectionProvider() :
 				builder.userSelectionProvider;
-		this.bookmarkManager =
-				builder.bookmarkManager == null ? Neo4jBookmarkManager.create() : builder.bookmarkManager;
+		this.bookmarkManager =  new BookmarkManagerReference(Neo4jBookmarkManager::create, builder.bookmarkManager);
 	}
 
 	@Override
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
 
-		this.bookmarkManager.setApplicationEventPublisher(applicationContext);
+		this.bookmarkManager.setApplicationContext(applicationContext);
 	}
 
 	/**
@@ -298,7 +298,7 @@ public final class Neo4jTransactionManager extends AbstractPlatformTransactionMa
 		try {
 			// Prepare configuration data
 			Neo4jTransactionContext context = new Neo4jTransactionContext(
-					databaseSelectionProvider.getDatabaseSelection(), userSelectionProvider.getUserSelection(), bookmarkManager.getBookmarks());
+					databaseSelectionProvider.getDatabaseSelection(), userSelectionProvider.getUserSelection(), bookmarkManager.resolve().getBookmarks());
 
 			// Configure and open session together with a native transaction
 			Session session = this.driver.session(
@@ -341,7 +341,7 @@ public final class Neo4jTransactionManager extends AbstractPlatformTransactionMa
 		Neo4jTransactionObject transactionObject = extractNeo4jTransaction(status);
 		Neo4jTransactionHolder transactionHolder = transactionObject.getRequiredResourceHolder();
 		Collection<Bookmark> newBookmarks = transactionHolder.commit();
-		this.bookmarkManager.updateBookmarks(transactionHolder.getBookmarks(), newBookmarks);
+		this.bookmarkManager.resolve().updateBookmarks(transactionHolder.getBookmarks(), newBookmarks);
 	}
 
 	@Override

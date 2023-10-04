@@ -26,11 +26,15 @@ import org.neo4j.driver.reactivestreams.ReactiveSession;
 import org.neo4j.driver.summary.ResultSummary;
 import org.neo4j.driver.types.TypeSystem;
 import org.reactivestreams.Publisher;
+import org.springframework.beans.BeansException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.converter.ConverterRegistry;
 import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.neo4j.core.convert.Neo4jConversions;
+import org.springframework.data.neo4j.core.support.BookmarkManagerReference;
 import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
 import org.springframework.data.neo4j.core.transaction.Neo4jTransactionUtils;
 import org.springframework.data.neo4j.core.transaction.ReactiveNeo4jTransactionManager;
@@ -59,7 +63,7 @@ import java.util.function.Supplier;
  * @soundtrack Die Toten Hosen - Im Auftrag des Herrn
  * @since 6.0
  */
-final class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
+final class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient, ApplicationContextAware {
 
 	private final Driver driver;
 	private @Nullable final ReactiveDatabaseSelectionProvider databaseSelectionProvider;
@@ -68,7 +72,7 @@ final class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 	private final Neo4jPersistenceExceptionTranslator persistenceExceptionTranslator = new Neo4jPersistenceExceptionTranslator();
 
 	// Local bookmark manager when using outside managed transactions
-	private final Neo4jBookmarkManager bookmarkManager;
+	private final BookmarkManagerReference bookmarkManager;
 
 	DefaultReactiveNeo4jClient(Builder builder) {
 
@@ -78,7 +82,7 @@ final class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 
 		this.conversionService = new DefaultConversionService();
 		Optional.ofNullable(builder.neo4jConversions).orElseGet(Neo4jConversions::new).registerConvertersIn((ConverterRegistry) conversionService);
-		this.bookmarkManager = builder.bookmarkManager != null ? builder.bookmarkManager : Neo4jBookmarkManager.createReactive();
+		this.bookmarkManager = new BookmarkManagerReference(Neo4jBookmarkManager::createReactive, builder.bookmarkManager);
 	}
 
 	@Override
@@ -88,12 +92,18 @@ final class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient {
 				.flatMap(targetDatabaseAndUser ->
 						ReactiveNeo4jTransactionManager.retrieveReactiveTransaction(driver, targetDatabaseAndUser.getT1(), targetDatabaseAndUser.getT2())
 								.map(ReactiveQueryRunner.class::cast)
-								.zipWith(Mono.just(bookmarkManager.getBookmarks()))
+								.zipWith(Mono.just(bookmarkManager.resolve().getBookmarks()))
 								.switchIfEmpty(Mono.fromSupplier(() -> {
-									Collection<Bookmark> lastBookmarks = bookmarkManager.getBookmarks();
+									Collection<Bookmark> lastBookmarks = bookmarkManager.resolve().getBookmarks();
 									return Tuples.of(driver.session(ReactiveSession.class, Neo4jTransactionUtils.sessionConfig(false, lastBookmarks, targetDatabaseAndUser.getT1(), targetDatabaseAndUser.getT2())), lastBookmarks);
 								})))
-				.map(t -> new DelegatingQueryRunner(t.getT1(), t.getT2(), bookmarkManager::updateBookmarks));
+				.map(t -> new DelegatingQueryRunner(t.getT1(), t.getT2(), bookmarkManager.resolve()::updateBookmarks));
+	}
+
+	@Override
+	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+
+		bookmarkManager.setApplicationContext(applicationContext);
 	}
 
 	private static class DelegatingQueryRunner implements ReactiveQueryRunner {

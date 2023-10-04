@@ -737,7 +737,7 @@ instance it will most likely not make any difference.
 In a cluster this can be a sensible approach only and if only you can tolerate stale reads and are not in danger of
 overwriting old data.
 
-You need to provide the following configuration in your system and make sure that SDN uses the transaction manager:
+The following configuration creates a "noop" variant of the bookmark manager that will be picked up from relevant classes.
 
 [source,java,indent=0,tabsize=4]
 .BookmarksDisabledConfig.java
@@ -745,25 +745,20 @@ You need to provide the following configuration in your system and make sure tha
 import org.neo4j.driver.Driver;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.neo4j.core.DatabaseSelectionProvider;
 import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
-import org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager;
-import org.springframework.transaction.PlatformTransactionManager;
 
 @Configuration
 public class BookmarksDisabledConfig {
 
 	@Bean
-	public PlatformTransactionManager transactionManager(
-			Driver driver, DatabaseSelectionProvider databaseNameProvider) {
+	public Neo4jBookmarkManager neo4jBookmarkManager() {
 
-		Neo4jBookmarkManager bookmarkManager = Neo4jBookmarkManager.noop(); // <.>
-		return new Neo4jTransactionManager(
-			driver, databaseNameProvider, bookmarkManager);
+		return Neo4jBookmarkManager.noop();
 	}
 }
 ----
-<.> Get an instance of the Noop bookmark manager
+
+You can configure the pairs of `Neo4jTransactionManager/Neo4jClient` and `ReactiveNeo4jTransactionManager/ReactiveNeo4jClient` individually, but we recommend in doing so only when you already configuring them for specific database selection needs.
 
 [[faq.annotations.specific]]
 == Do I need to use Neo4j specific annotations?
