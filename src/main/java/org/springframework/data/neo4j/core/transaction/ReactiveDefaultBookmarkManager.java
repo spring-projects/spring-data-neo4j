@@ -60,9 +60,9 @@ final class ReactiveDefaultBookmarkManager extends AbstractBookmarkManager {
 		synchronized (this.bookmarks) {
 			usedBookmarks.stream().filter(Objects::nonNull).forEach(bookmarks::remove);
 			newBookmarks.stream().filter(Objects::nonNull).forEach(bookmarks::add);
-		}
-		if (applicationEventPublisher != null) {
-			applicationEventPublisher.publishEvent(new Neo4jBookmarksUpdatedEvent(new HashSet<>(bookmarks)));
+			if (applicationEventPublisher != null) {
+				applicationEventPublisher.publishEvent(new Neo4jBookmarksUpdatedEvent(new HashSet<>(bookmarks)));
+			}
 		}
 	}
 
