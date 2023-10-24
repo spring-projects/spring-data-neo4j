@@ -85,7 +85,7 @@ public class SimpleReactiveNeo4jRepository<T, ID> implements ReactiveSortingRepo
 
 	@Override
 	public Flux<T> findAllById(Publisher<ID> idStream) {
-		return Flux.from(idStream).buffer().flatMap(this::findAllById);
+		return Flux.from(idStream).buffer().concatMap(this::findAllById);
 	}
 
 	@Override
@@ -135,7 +135,7 @@ public class SimpleReactiveNeo4jRepository<T, ID> implements ReactiveSortingRepo
 	@Transactional
 	public <S extends T> Flux<S> saveAll(Publisher<S> entityStream) {
 
-		return Flux.from(entityStream).flatMap(this::save);
+		return Flux.from(entityStream).concatMap(this::save);
 	}
 
 	/*
@@ -218,7 +218,7 @@ public class SimpleReactiveNeo4jRepository<T, ID> implements ReactiveSortingRepo
 	public Mono<Void> deleteAll(Publisher<? extends T> entitiesPublisher) {
 
 		Assert.notNull(entitiesPublisher, "The given Publisher of entities must not be null");
-		return Flux.from(entitiesPublisher).flatMap(this::delete).then();
+		return Flux.from(entitiesPublisher).concatMap(this::delete).then();
 	}
 
 	/*

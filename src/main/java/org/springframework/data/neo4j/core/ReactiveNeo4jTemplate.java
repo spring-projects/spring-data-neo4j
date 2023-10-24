@@ -395,7 +395,7 @@ public final class ReactiveNeo4jTemplate implements
 		NestedRelationshipProcessingStateMachine stateMachine = new NestedRelationshipProcessingStateMachine(neo4jMappingContext);
 		EntityFromDtoInstantiatingConverter<T> converter = new EntityFromDtoInstantiatingConverter<>(domainType, neo4jMappingContext);
 		return Flux.fromIterable(instances)
-			.flatMap(instance -> {
+			.concatMap(instance -> {
 				T domainObject = converter.convert(instance);
 
 				@SuppressWarnings("unchecked")
@@ -525,7 +525,7 @@ public final class ReactiveNeo4jTemplate implements
 		Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getRequiredPersistentEntity(commonElementType);
 		Neo4jPersistentProperty idProperty = entityMetaData.getIdProperty();
 
-		return savedInstances.flatMap(savedInstance -> {
+		return savedInstances.concatMap(savedInstance -> {
 			PersistentPropertyAccessor<T> propertyAccessor = entityMetaData.getPropertyAccessor(savedInstance);
 			return findById(propertyAccessor.getProperty(idProperty), commonElementType);
 		}).map(instance -> localProjectionFactory.createProjection(resultType, instance));
@@ -586,7 +586,7 @@ public final class ReactiveNeo4jTemplate implements
 							.all()
 							.collectMap(m -> (Value) m.getT1(), m -> (Long) m.getT2());
 				}).flatMapMany(idToInternalIdMapping -> Flux.fromIterable(entitiesToBeSaved)
-						.flatMap(t -> {
+						.concatMap(t -> {
 							PersistentPropertyAccessor<T> propertyAccessor = entityMetaData.getPropertyAccessor(t.getT3());
 							Neo4jPersistentProperty idProperty = entityMetaData.getRequiredIdProperty();
 							Object id = convertIdValues(idProperty, propertyAccessor.getProperty(idProperty));
@@ -713,7 +713,7 @@ public final class ReactiveNeo4jTemplate implements
 				Set<Long> processedRelationshipIds = ctx.get("processedRelationships");
 				Set<Long> processedNodeIds = ctx.get("processedNodes");
 				return Flux.fromIterable(entityMetaData.getRelationshipsInHierarchy(queryFragments::includeField))
-						.flatMap(relationshipDescription -> {
+						.concatMap(relationshipDescription -> {
 
 							Statement statement = cypherGenerator.prepareMatchOf(entityMetaData, relationshipDescription,
 									queryFragments.getMatchOn(), queryFragments.getCondition())
@@ -781,7 +781,7 @@ public final class ReactiveNeo4jTemplate implements
 							return queryFragments.includeField(prepend);
 						}
 				))
-			.flatMap(relDe -> {
+			.concatMap(relDe -> {
 				Node node = anyNode(Constants.NAME_OF_TYPED_ROOT_NODE.apply(target));
 
 				Statement statement = cypherGenerator
@@ -1193,7 +1193,7 @@ public final class ReactiveNeo4jTemplate implements
 
 			return fetchSpec.all().switchOnFirst((signal, f) -> {
 				if (signal.hasValue() && preparedQuery.resultsHaveBeenAggregated()) {
-					return f.flatMap(nested -> Flux.fromIterable((Collection<T>) nested).distinct()).distinct();
+					return f.concatMap(nested -> Flux.fromIterable((Collection<T>) nested).distinct()).distinct();
 				}
 				return f;
 			});
