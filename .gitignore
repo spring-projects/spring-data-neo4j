@@ -32,3 +32,5 @@ target/
 .flattened-pom.xml
 dependency-reduced-pom.xml
 .gradle
+
+.mvn/.gradle-enterprise
