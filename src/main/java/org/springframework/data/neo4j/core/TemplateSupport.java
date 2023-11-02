@@ -427,10 +427,10 @@ public final class TemplateSupport {
 	 * @return {@literal true} if renderer will use elementId
 	 */
 	static boolean rendererCanUseElementIdIfPresent(Renderer renderer, Neo4jPersistentEntity<?> targetEntity) {
-		return !targetEntity.isUsingDeprecatedInternalId() && targetEntity.isUsingInternalIds() && rendererRendersElementId(renderer);
+		return !targetEntity.isUsingDeprecatedInternalId() && rendererRendersElementId(renderer);
 	}
 
-	private static boolean rendererRendersElementId(Renderer renderer) {
+	static boolean rendererRendersElementId(Renderer renderer) {
 		return renderer.render(Cypher.returning(Functions.elementId(Cypher.anyNode("n"))).build())
 				.equals("RETURN elementId(n)");
 	}

@@ -60,6 +60,12 @@ public interface Neo4jPersistentEntity<T>
 	 * @return True if the underlying domain classes uses {@code id()} to compute internally generated ids.
 	 */
 	default boolean isUsingDeprecatedInternalId() {
+		for (NodeDescription<?> nodeDescription : getChildNodeDescriptionsInHierarchy()) {
+			if (nodeDescription.isUsingInternalIds() && ((Neo4jPersistentEntity<?>) nodeDescription).getIdProperty() != null
+					&& Neo4jPersistentEntity.DEPRECATED_GENERATED_ID_TYPES.contains(((Neo4jPersistentEntity<?>) nodeDescription).getIdProperty().getType())) {
+				return true;
+			}
+		}
 		return isUsingInternalIds() && Neo4jPersistentEntity.DEPRECATED_GENERATED_ID_TYPES.contains(getRequiredIdProperty().getType());
 	}
 }
