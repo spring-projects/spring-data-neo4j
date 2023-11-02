@@ -538,29 +538,31 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 
 	public CreateRelationshipStatementHolder createStatementForImperativeSimpleRelationshipBatch(Neo4jPersistentEntity<?> neo4jPersistentEntity,
 			 RelationshipDescription relationshipDescription,
-			 List<Object> plainRelationshipRows) {
+			 List<Object> plainRelationshipRows, boolean canUseElementId) {
 
 		return createStatementForSingleRelationship(neo4jPersistentEntity, (DefaultRelationshipDescription) relationshipDescription,
-				plainRelationshipRows);
+				plainRelationshipRows, canUseElementId);
 	}
 
 	public CreateRelationshipStatementHolder createStatementForImperativeRelationshipsWithPropertiesBatch(boolean isNew,
 		  Neo4jPersistentEntity<?> neo4jPersistentEntity,
 		  RelationshipDescription relationshipDescription,
 		  Object relatedValues,
-		  List<Map<String, Object>> relationshipPropertiesRows) {
+		  List<Map<String, Object>> relationshipPropertiesRows,
+		  boolean canUseElementId) {
 
 		List<MappingSupport.RelationshipPropertiesWithEntityHolder> relationshipPropertyValues = ((Collection<?>) relatedValues).stream()
 				.map(MappingSupport.RelationshipPropertiesWithEntityHolder.class::cast).collect(Collectors.toList());
 
 		return createStatementForRelationshipWithPropertiesBatch(isNew, neo4jPersistentEntity, relationshipDescription,
-				relationshipPropertyValues, relationshipPropertiesRows);
+				relationshipPropertyValues, relationshipPropertiesRows, canUseElementId);
 	}
 
 	public CreateRelationshipStatementHolder createStatementForSingleRelationship(Neo4jPersistentEntity<?> neo4jPersistentEntity,
 																				  RelationshipDescription relationshipContext,
 																				  Object relatedValue,
-																				  boolean isNewRelationship) {
+																				  boolean isNewRelationship,
+																				  boolean canUseElementId) {
 
 		if (relationshipContext.hasRelationshipProperties()) {
 			MappingSupport.RelationshipPropertiesWithEntityHolder relatedValueEntityHolder =
@@ -586,22 +588,22 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 			}
 			return createStatementForRelationshipWithProperties(
 					neo4jPersistentEntity, relationshipContext,
-					dynamicRelationshipType, relatedValueEntityHolder, isNewRelationship
+					dynamicRelationshipType, relatedValueEntityHolder, isNewRelationship, canUseElementId
 			);
 		} else {
 			return createStatementForSingleRelationship(neo4jPersistentEntity, (DefaultRelationshipDescription) relationshipContext,
-					relatedValue);
+					relatedValue, canUseElementId);
 		}
 	}
 
 	private CreateRelationshipStatementHolder createStatementForRelationshipWithProperties(
 			Neo4jPersistentEntity<?> neo4jPersistentEntity,
 			RelationshipDescription relationshipDescription, @Nullable String dynamicRelationshipType,
-			MappingSupport.RelationshipPropertiesWithEntityHolder relatedValue, boolean isNewRelationship) {
+			MappingSupport.RelationshipPropertiesWithEntityHolder relatedValue, boolean isNewRelationship, boolean canUseElementId) {
 
 		Statement relationshipCreationQuery = CypherGenerator.INSTANCE.prepareSaveOfRelationshipWithProperties(
 				neo4jPersistentEntity, relationshipDescription, isNewRelationship,
-				dynamicRelationshipType);
+				dynamicRelationshipType, canUseElementId);
 
 		Map<String, Object> propMap = new HashMap<>();
 		// write relationship properties
@@ -615,10 +617,11 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 			Neo4jPersistentEntity<?> neo4jPersistentEntity,
 			RelationshipDescription relationshipDescription,
 			List<MappingSupport.RelationshipPropertiesWithEntityHolder> relatedValues,
-			List<Map<String, Object>> relationshipPropertiesRows) {
+			List<Map<String, Object>> relationshipPropertiesRows,
+			boolean canUseElementId) {
 
 		Statement relationshipCreationQuery = CypherGenerator.INSTANCE
-				.prepareUpdateOfRelationshipsWithProperties(neo4jPersistentEntity, relationshipDescription, isNew);
+				.prepareUpdateOfRelationshipsWithProperties(neo4jPersistentEntity, relationshipDescription, isNew, canUseElementId);
 		List<Object> relationshipRows = new ArrayList<>();
 		Map<String, Object> relationshipPropertiesEntries = new HashMap<>();
 		if (isNew) {
@@ -636,7 +639,7 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 
 	private CreateRelationshipStatementHolder createStatementForSingleRelationship(
 			Neo4jPersistentEntity<?> neo4jPersistentEntity,
-			DefaultRelationshipDescription relationshipDescription, Object relatedValue) {
+			DefaultRelationshipDescription relationshipDescription, Object relatedValue, boolean canUseElementId) {
 
 		String relationshipType;
 		if (!relationshipDescription.isDynamic()) {
@@ -649,7 +652,7 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 		}
 
 		Statement relationshipCreationQuery = CypherGenerator.INSTANCE.prepareSaveOfRelationships(
-				neo4jPersistentEntity, relationshipDescription, relationshipType);
+				neo4jPersistentEntity, relationshipDescription, relationshipType, canUseElementId);
 		return new CreateRelationshipStatementHolder(relationshipCreationQuery, Collections.emptyMap());
 	}
 
