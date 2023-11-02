@@ -438,7 +438,8 @@ public final class ReactiveNeo4jTemplate implements
 							includedProperties, entityMetaData,
 							neo4jMappingContext.getRequiredBinderFunctionFor((Class<T>) entityToBeSaved.getClass()));
 
-					Mono<Entity> idMono = this.neo4jClient.query(() -> renderer.render(cypherGenerator.prepareSaveOf(entityMetaData, dynamicLabels)))
+					boolean canUseElementId = TemplateSupport.rendererRendersElementId(renderer);
+					Mono<Entity> idMono = this.neo4jClient.query(() -> renderer.render(cypherGenerator.prepareSaveOf(entityMetaData, dynamicLabels, canUseElementId)))
 							.bind(entityToBeSaved)
 							.with(binderFunction)
 							.fetchAs(Entity.class)
@@ -452,7 +453,7 @@ public final class ReactiveNeo4jTemplate implements
 
 					PersistentPropertyAccessor<T> propertyAccessor = entityMetaData.getPropertyAccessor(entityToBeSaved);
 					return idMono.doOnNext(newOrUpdatedNode -> {
-						var elementId = !entityMetaData.isUsingDeprecatedInternalId() && entityMetaData.isUsingInternalIds()
+						var elementId = !entityMetaData.isUsingDeprecatedInternalId() && canUseElementId
 										? IdentitySupport.getElementId(newOrUpdatedNode)
 										: newOrUpdatedNode.id();
 						TemplateSupport.setGeneratedIdIfNecessary(entityMetaData, propertyAccessor, elementId, Optional.of(newOrUpdatedNode));
@@ -901,6 +902,7 @@ public final class ReactiveNeo4jTemplate implements
 			// Remove all relationships before creating all new if the entity is not new and the relationship
 			// has not been processed before.
 			// This avoids the usage of cache but might have significant impact on overall performance
+			boolean canUseElementId = TemplateSupport.rendererRendersElementId(renderer);
 			if (!isParentObjectNew && !stateMachine.hasProcessedRelationship(fromId, relationshipDescription)) {
 
 				List<Object> knownRelationshipsIds = new ArrayList<>();
@@ -919,7 +921,7 @@ public final class ReactiveNeo4jTemplate implements
 					}
 				}
 
-				Statement relationshipRemoveQuery = cypherGenerator.prepareDeleteOf(sourceEntity, relationshipDescription);
+				Statement relationshipRemoveQuery = cypherGenerator.prepareDeleteOf(sourceEntity, relationshipDescription, canUseElementId);
 
 				relationshipDeleteMonos.add(
 						neo4jClient.query(renderer.render(relationshipRemoveQuery))
@@ -990,7 +992,7 @@ public final class ReactiveNeo4jTemplate implements
 
 									boolean isNewRelationship = idValue == null;
 									CreateRelationshipStatementHolder statementHolder = neo4jMappingContext.createStatementForSingleRelationship(
-											sourceEntity, relationshipDescription, relatedValueToStore, isNewRelationship);
+											sourceEntity, relationshipDescription, relatedValueToStore, isNewRelationship, canUseElementId);
 
 									Map<String, Object> properties = new HashMap<>();
 									properties.put(Constants.FROM_ID_PARAMETER_NAME, convertIdValues(sourceEntity.getRequiredIdProperty(), fromId));
@@ -1086,7 +1088,7 @@ public final class ReactiveNeo4jTemplate implements
 						return tree;
 					});
 					return neo4jClient
-							.query(() -> renderer.render(cypherGenerator.prepareSaveOf(targetNodeDescription, dynamicLabels)))
+							.query(() -> renderer.render(cypherGenerator.prepareSaveOf(targetNodeDescription, dynamicLabels, TemplateSupport.rendererRendersElementId(renderer))))
 							.bind(entity).with(binderFunction)
 							.fetchAs(Entity.class)
 							.one();

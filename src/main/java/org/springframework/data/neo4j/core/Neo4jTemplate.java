@@ -401,7 +401,7 @@ public final class Neo4jTemplate implements
 				neo4jMappingContext.getRequiredBinderFunctionFor((Class<T>) entityToBeSaved.getClass())
 		);
 		Optional<Entity> newOrUpdatedNode = neo4jClient
-				.query(() -> renderer.render(cypherGenerator.prepareSaveOf(entityMetaData, dynamicLabels)))
+				.query(() -> renderer.render(cypherGenerator.prepareSaveOf(entityMetaData, dynamicLabels, TemplateSupport.rendererRendersElementId(renderer))))
 				.bind(entityToBeSaved)
 				.with(binderFunction)
 				.fetchAs(Entity.class)
@@ -416,7 +416,7 @@ public final class Neo4jTemplate implements
 		}
 
 		Object elementId = newOrUpdatedNode.map(node -> {
-			if (!entityMetaData.isUsingDeprecatedInternalId() && entityMetaData.isUsingInternalIds()) {
+			if (!entityMetaData.isUsingDeprecatedInternalId() && TemplateSupport.rendererRendersElementId(renderer)) {
 				return IdentitySupport.getElementId(node);
 			}
 			return node.id();
@@ -764,6 +764,7 @@ public final class Neo4jTemplate implements
 			// Remove all relationships before creating all new if the entity is not new and the relationship
 			// has not been processed before.
 			// This avoids the usage of cache but might have significant impact on overall performance
+			boolean canUseElementId = TemplateSupport.rendererRendersElementId(renderer);
 			if (!isParentObjectNew && !stateMachine.hasProcessedRelationship(fromId, relationshipDescription)) {
 
 				List<Object> knownRelationshipsIds = new ArrayList<>();
@@ -780,7 +781,7 @@ public final class Neo4jTemplate implements
 					}
 				}
 
-				Statement relationshipRemoveQuery = cypherGenerator.prepareDeleteOf(sourceEntity, relationshipDescription);
+				Statement relationshipRemoveQuery = cypherGenerator.prepareDeleteOf(sourceEntity, relationshipDescription, canUseElementId);
 
 				neo4jClient.query(renderer.render(relationshipRemoveQuery))
 						.bind(convertIdValues(sourceEntity.getIdProperty(), fromId)) //
@@ -858,7 +859,7 @@ public final class Neo4jTemplate implements
 					// create new dynamic relationship properties
 					if (relationshipDescription.hasRelationshipProperties() && isNewRelationship && idProperty != null) {
 						CreateRelationshipStatementHolder statementHolder = neo4jMappingContext.createStatementForSingleRelationship(
-								sourceEntity, relationshipDescription, relatedValueToStore, true);
+								sourceEntity, relationshipDescription, relatedValueToStore, true, canUseElementId);
 
 						List<Object> row = Collections.singletonList(properties);
 						statementHolder = statementHolder.addProperty(Constants.NAME_OF_RELATIONSHIP_LIST_PARAM, row);
@@ -879,7 +880,7 @@ public final class Neo4jTemplate implements
 					} else { // plain (new or to update) dynamic relationship or dynamic relationships with properties to update
 
 						CreateRelationshipStatementHolder statementHolder = neo4jMappingContext.createStatementForSingleRelationship(
-								sourceEntity, relationshipDescription, relatedValueToStore, false);
+								sourceEntity, relationshipDescription, relatedValueToStore, false, canUseElementId);
 
 						List<Object> row = Collections.singletonList(properties);
 						statementHolder = statementHolder.addProperty(Constants.NAME_OF_RELATIONSHIP_LIST_PARAM, row);
@@ -921,7 +922,7 @@ public final class Neo4jTemplate implements
 			// batch operations
 			if (!(relationshipDescription.hasRelationshipProperties() || relationshipDescription.isDynamic() || plainRelationshipRows.isEmpty())) {
 				CreateRelationshipStatementHolder statementHolder = neo4jMappingContext.createStatementForImperativeSimpleRelationshipBatch(
-						sourceEntity, relationshipDescription, plainRelationshipRows);
+						sourceEntity, relationshipDescription, plainRelationshipRows, canUseElementId);
 				statementHolder = statementHolder.addProperty(Constants.NAME_OF_RELATIONSHIP_LIST_PARAM, plainRelationshipRows);
 				neo4jClient.query(renderer.render(statementHolder.getStatement()))
 						.bindAll(statementHolder.getProperties())
@@ -929,7 +930,7 @@ public final class Neo4jTemplate implements
 			} else if (relationshipDescription.hasRelationshipProperties()) {
 				if (!relationshipPropertiesRows.isEmpty()) {
 					CreateRelationshipStatementHolder statementHolder = neo4jMappingContext.createStatementForImperativeRelationshipsWithPropertiesBatch(false,
-							sourceEntity, relationshipDescription, updateRelatedValuesToStore, relationshipPropertiesRows);
+							sourceEntity, relationshipDescription, updateRelatedValuesToStore, relationshipPropertiesRows, canUseElementId);
 					statementHolder = statementHolder.addProperty(Constants.NAME_OF_RELATIONSHIP_LIST_PARAM, relationshipPropertiesRows);
 
 					neo4jClient.query(renderer.render(statementHolder.getStatement()))
@@ -938,7 +939,7 @@ public final class Neo4jTemplate implements
 				}
 				if (!newRelatedValuesToStore.isEmpty()) {
 					CreateRelationshipStatementHolder statementHolder = neo4jMappingContext.createStatementForImperativeRelationshipsWithPropertiesBatch(true,
-							sourceEntity, relationshipDescription, newRelatedValuesToStore, newRelationshipPropertiesRows);
+							sourceEntity, relationshipDescription, newRelatedValuesToStore, newRelationshipPropertiesRows, canUseElementId);
 					List<Object> all = new ArrayList<>(neo4jClient.query(renderer.render(statementHolder.getStatement()))
 							.bindAll(statementHolder.getProperties())
 							.fetchAs(Object.class)
@@ -996,7 +997,7 @@ public final class Neo4jTemplate implements
 			return tree;
 		});
 		Optional<Entity> optionalSavedNode = neo4jClient
-				.query(() -> renderer.render(cypherGenerator.prepareSaveOf(targetNodeDescription, dynamicLabels)))
+				.query(() -> renderer.render(cypherGenerator.prepareSaveOf(targetNodeDescription, dynamicLabels, TemplateSupport.rendererRendersElementId(renderer))))
 				.bind(entity).with(binderFunction)
 				.fetchAs(Entity.class)
 				.one();
