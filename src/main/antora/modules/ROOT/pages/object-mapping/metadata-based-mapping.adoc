@@ -13,7 +13,7 @@ The conventions are:
 
 * The short Java class name is mapped to the primary label in the following manner:
 The class `com.bigbank.SavingsAccount` maps to the `savingsAccount` primary label.
-* The converter uses any<<custom.conversions,Spring Converter>> registered with it to override the default mapping of object properties to node fields and values.
+* The converter uses any <<custom.conversions,Spring Converter>> registered with it to override the default mapping of object properties to node fields and values.
 * The fields of an object are used to convert to and from fields in the graph.
 Public `JavaBean` properties are not used.
 * If you have a single non-zero-argument constructor whose constructor argument names match top-level property names of node, that constructor is used.
@@ -21,7 +21,7 @@ Otherwise, the zero-argument constructor is used.
 If there is more than one non-zero-argument constructor, an exception will be thrown.
 
 We support a broad range of conversions out of the box.
-Find the list of supported cypher types in the official drivers manual: https://neo4j.com/docs/driver-manual/current/cypher-values/[Working with Cypher values].
+Find the list of supported cypher types in the official drivers manual: https://neo4j.com/docs/java-manual/current/cypher-workflow/#java-driver-type-mapping[Type mapping].
 
 Primitive types of wrapper types are equally supported.
 
@@ -47,6 +47,10 @@ Primitive types of wrapper types are equally supported.
 
 |`java.lang.Double`
 |Float
+|✔
+
+|`double[]`
+|List of Float
 |✔
 
 |`java.lang.String`
@@ -79,10 +83,6 @@ Primitive types of wrapper types are equally supported.
 Notice the `Z`: SDN will store all `java.util.Date` instances in `UTC`.
 If you require the time zone, use a type that supports it (i.e. `ZoneDateTime`) or store the zone as a separate property.
 |
-
-|`double[]`
-|List of Float
-|✔
 
 |`java.lang.Float`
 |String
@@ -140,6 +140,22 @@ If you require the time zone, use a type that supports it (i.e. `ZoneDateTime`) 
 |LocalDateTime
 |✔
 
+|`java.time.OffsetDateTime`
+|DateTime
+|
+
+|`java.time.Instant`
+|DateTime
+|
+
+|`java.util.TimeZone`
+|String
+|
+
+|`java.time.ZoneId`
+|String
+|
+
 |`java.time.Period`
 |Duration
 |
@@ -184,11 +200,15 @@ If you require the time zone, use a type that supports it (i.e. `ZoneDateTime`) 
 |List of String (The name value of the enum)
 |
 
-|java.net.URL
+|`java.net.URL`
 |String
 |
 
-|java.net.URI
+|`java.net.URI`
+|String
+|
+
+|`java.util.UUID`
 |String
 |
 
