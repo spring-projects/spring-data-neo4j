@@ -111,13 +111,14 @@ final class ResultSummaries {
 	static String format(Notification notification, String forQuery) {
 
 		InputPosition position = notification.position();
+		boolean hasPosition = position != null;
 
 		StringBuilder queryHint = new StringBuilder();
 		String[] lines = forQuery.split("(\r\n|\n)");
 		for (int i = 0; i < lines.length; i++) {
 			String line = lines[i];
 			queryHint.append("\t").append(line).append(LINE_SEPARATOR);
-			if (i + 1 == position.line()) {
+			if (hasPosition && i + 1 == position.line()) {
 				queryHint.append("\t").append(Stream.generate(() -> " ").limit(position.column() - 1)
 						.collect(Collectors.joining())).append("^").append(System.lineSeparator());
 			}
