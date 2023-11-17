@@ -54,17 +54,24 @@ class ResultSummariesTest {
 						+ "\tmatch (n)                  " + LINE_SEPARATOR
 						+ "\t-        [r:FOO*] -> (m) " + LINE_SEPARATOR
 						+ "\t^" + LINE_SEPARATOR
-						+ "\tRETURN r" + LINE_SEPARATOR)
+						+ "\tRETURN r" + LINE_SEPARATOR),
+				Arguments.of("match (n) - [r] -> (m) RETURN r", null, null, ""
+						+ "\tmatch (n) - [r] -> (m) RETURN r" + LINE_SEPARATOR)
 		);
 	}
 
 	@ParameterizedTest(name = "{index}: Notifications for \"{0}\"")
 	@MethodSource("params")
-	void shouldFormatNotifications(String query, int line, int column, String expected) {
+	void shouldFormatNotifications(String query, Integer line, Integer column, String expected) {
 
-		InputPosition inputPosition = mock(InputPosition.class);
-		when(inputPosition.line()).thenReturn(line);
-		when(inputPosition.column()).thenReturn(column);
+		InputPosition inputPosition;
+		if (line == null || column == null) {
+			inputPosition = null;
+		} else {
+			inputPosition = mock(InputPosition.class);
+			when(inputPosition.line()).thenReturn(line);
+			when(inputPosition.column()).thenReturn(column);
+		}
 
 		Notification notification = mock(Notification.class);
 		when(notification.severity()).thenReturn("WARNING");
