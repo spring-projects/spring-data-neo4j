@@ -142,6 +142,8 @@ import org.springframework.data.neo4j.integration.issues.gh2639.Individual;
 import org.springframework.data.neo4j.integration.issues.gh2639.LanguageRelationship;
 import org.springframework.data.neo4j.integration.issues.gh2639.ProgrammingLanguage;
 import org.springframework.data.neo4j.integration.issues.gh2639.Sales;
+import org.springframework.data.neo4j.integration.issues.gh2819.GH2819Model;
+import org.springframework.data.neo4j.integration.issues.gh2819.GH2819Repository;
 import org.springframework.data.neo4j.integration.issues.qbe.A;
 import org.springframework.data.neo4j.integration.issues.qbe.ARepository;
 import org.springframework.data.neo4j.integration.issues.qbe.B;
@@ -1027,6 +1029,25 @@ class IssuesIT extends TestBase {
 				.withRootCauseInstanceOf(MappingException.class)
 				.extracting(Throwable::getCause, as(InstanceOfAssertFactories.THROWABLE))
 				.hasMessageContaining("has a logical cyclic mapping dependency");
+
+	}
+
+	@Test
+	@Tag("GH-2819")
+	void inheritanceAndProjectionShouldMapRelatedNodesCorrectly(@Autowired GH2819Repository repository, @Autowired Driver driver) {
+		try (var session = driver.session()) {
+			session.run("CREATE (a:ParentA:ChildA{name:'parentA', id:'a'})-[:HasBs]->(b:ParentB:ChildB{name:'parentB', id:'b'})-[:HasCs]->(c:ParentC:ChildC{name:'parentC', id:'c'})").consume();
+		}
+
+		var childAProjection = repository.findById("a", GH2819Model.ChildAProjection.class);
+
+		assertThat(childAProjection.getName()).isEqualTo("parentA");
+		var parentB = childAProjection.getParentB();
+		assertThat(parentB).isNotNull();
+		assertThat(parentB.getName()).isEqualTo("parentB");
+		var parentC = parentB.getParentC();
+		assertThat(parentC).isNotNull();
+		assertThat(parentC.getName()).isEqualTo("parentC");
 
 	}
 
