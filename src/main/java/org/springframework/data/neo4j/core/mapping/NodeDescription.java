@@ -136,6 +136,9 @@ public interface NodeDescription<T> {
 	NodeDescription<?> getParentNodeDescription();
 
 	/**
+	 * Creates the right identifier expression for this node entity.
+	 * Note: The expression gets cached and won't get recalculated at every invocation.
+	 *
 	 * @return An expression that represents the right identifier type.
 	 */
 	default Expression getIdExpression() {

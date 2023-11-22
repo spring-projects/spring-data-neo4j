@@ -52,6 +52,7 @@ public final class IdDescription {
 	 * The property that stores the id if applicable.
 	 */
 	private @Nullable final String graphPropertyName;
+	private final boolean isDeprecated;
 
 	private final Lazy<Expression> idExpression;
 
@@ -93,6 +94,7 @@ public final class IdDescription {
 		this.idGeneratorClass = idGeneratorClass;
 		this.idGeneratorRef = idGeneratorRef != null && idGeneratorRef.isEmpty() ? null : idGeneratorRef;
 		this.graphPropertyName = graphPropertyName;
+		this.isDeprecated = isDeprecated;
 
 		this.idExpression = Lazy.of(() -> {
 			final Node rootNode = Cypher.anyNode(symbolicName);
@@ -107,6 +109,23 @@ public final class IdDescription {
 
 	public Expression asIdExpression() {
 		return this.idExpression.get();
+	}
+
+	/**
+	 * Creates the right identifier expression for this node entity.
+	 * Note: This enforces a recalculation of the name on invoke.
+	 *
+	 * @param nodeName use this name as the symbolic name of the node in the query
+	 * @return An expression that represents the right identifier type.
+	 */
+	public Expression asIdExpression(String nodeName) {
+		final Node rootNode = Cypher.anyNode(nodeName);
+		if (this.isInternallyGeneratedId()) {
+			return isDeprecated ? Functions.id(rootNode) : Functions.elementId(rootNode);
+		} else {
+			return this.getOptionalGraphPropertyName()
+					.map(propertyName -> Cypher.property(nodeName, propertyName)).get();
+		}
 	}
 
 	public Optional<Class<? extends IdGenerator<?>>> getIdGeneratorClass() {
