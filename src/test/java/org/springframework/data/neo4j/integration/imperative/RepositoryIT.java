@@ -3118,7 +3118,10 @@ class RepositoryIT {
 			long petNode2Id = TestIdentitySupport.getInternalId(petNode2);
 
 			PersonWithRelationship probe = new PersonWithRelationship();
-			probe.setName("Freddie");
+			Hobby hobbies = new Hobby();
+			hobbies.setId(hobbyNodeId);
+			hobbies.setName("Music");
+			probe.setHobbies(hobbies);
 			PersonWithRelationship loadedPerson = repository.findOne(Example.of(probe)).get();
 			assertThat(loadedPerson.getName()).isEqualTo("Freddie");
 			assertThat(loadedPerson.getId()).isEqualTo(personId);
