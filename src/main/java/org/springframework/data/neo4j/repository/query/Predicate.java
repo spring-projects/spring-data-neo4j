@@ -167,7 +167,7 @@ final class Predicate {
 			if (isRootNode) {
 				condition = predicate.neo4jPersistentEntity.getIdExpression().isEqualTo(literalOf(theValue));
 			} else {
-				condition = nodeDescription.getIdExpression().isEqualTo(literalOf(theValue));
+				condition = nodeDescription.getIdDescription().asIdExpression(wrapper.getNodeName()).isEqualTo(literalOf(theValue));
 			}
 		} else {
 			Expression property =  !isRootNode ? property(wrapper.getNodeName(), propertyName) : property(Constants.NAME_OF_TYPED_ROOT_NODE.apply(nodeDescription), propertyName);
