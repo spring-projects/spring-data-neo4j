@@ -104,7 +104,12 @@ final class NodeDescriptionStore {
 
 	private NodeDescriptionAndLabels computeConcreteNodeDescription(NodeDescription<?> entityDescription, List<String> labels) {
 
-		boolean isConcreteClassThatFulfillsEverything = !Modifier.isAbstract(entityDescription.getUnderlyingClass().getModifiers()) && entityDescription.getStaticLabels().containsAll(labels);
+		int classModifiers = entityDescription.getUnderlyingClass().getModifiers();
+		boolean isAbstract = Modifier.isAbstract(classModifiers);
+
+		boolean containsAllLabels = entityDescription.getStaticLabels().containsAll(labels);
+
+		boolean isConcreteClassThatFulfillsEverything = !isAbstract && containsAllLabels;
 
 		if (labels == null || labels.isEmpty() || isConcreteClassThatFulfillsEverything) {
 			return new NodeDescriptionAndLabels(entityDescription, Collections.emptyList());
