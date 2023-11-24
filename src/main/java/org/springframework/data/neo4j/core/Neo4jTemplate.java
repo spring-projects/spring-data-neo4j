@@ -680,7 +680,7 @@ public final class Neo4jTemplate implements
 	}
 
 	private <T> ExecutableQuery<T> createExecutableQuery(Class<T> domainType, @Nullable Class<?> resultType,  @Nullable String cypherStatement,
-			Map<String, Object> parameters) {
+														 Map<String, Object> parameters) {
 
 		Supplier<BiFunction<TypeSystem, MapAccessor, ?>> mappingFunction = TemplateSupport
 				.getAndDecorateMappingFunction(neo4jMappingContext, domainType, resultType);
@@ -728,6 +728,68 @@ public final class Neo4jTemplate implements
 
 		Object fromId = propertyAccessor.getProperty(sourceEntity.getRequiredIdProperty());
 
+		assert fromId != null;
+		associationHandler(fromId,sourceEntity,propertyAccessor,includeProperty,previousPath,stateMachine,isParentObjectNew);
+
+		@SuppressWarnings("unchecked")
+		T finalSubgraphRoot = (T) propertyAccessor.getBean();
+		return finalSubgraphRoot;
+	}
+
+	private Object createIdValue(Neo4jPersistentProperty idProperty,NestedRelationshipContext relationshipContext,Object relatedValueToStore){
+		Object idValue = idProperty != null
+				? relationshipContext
+				.getRelationshipPropertiesPropertyAccessor(relatedValueToStore).getProperty(idProperty)
+				: null;
+		return idValue;
+	}
+
+	private void removeRelationshipsIfNeeded(
+			Object fromId,
+			NestedRelationshipContext relationshipContext,
+			Neo4jPersistentEntity<?> sourceEntity,
+			RelationshipDescription relationshipDescription,
+			boolean isParentObjectNew,
+			Collection<?> relatedValuesToStore,
+			boolean canUseElementId
+	) {
+		List<Object> knownRelationshipsIds = new ArrayList<>();
+		Neo4jPersistentProperty idProperty = relationshipDescription.hasInternalIdProperty() ?
+				((Neo4jPersistentEntity<?>) relationshipDescription.getRelationshipPropertiesEntity()).getIdProperty() : null;
+
+		if (idProperty != null) {
+			for (Object relatedValueToStore : relatedValuesToStore) {
+				if (relatedValueToStore != null) {
+					Object id = relationshipContext.getRelationshipPropertiesPropertyAccessor(relatedValueToStore).getProperty(idProperty);
+					if (id != null) {
+						knownRelationshipsIds.add(id);
+					}
+				}
+			}
+		}
+
+		if (!isParentObjectNew) {
+			Statement relationshipRemoveQuery = cypherGenerator.prepareDeleteOf(sourceEntity, relationshipDescription, canUseElementId);
+
+			neo4jClient.query(renderer.render(relationshipRemoveQuery))
+					.bind(convertIdValues(sourceEntity.getIdProperty(), fromId))
+					.to(Constants.FROM_ID_PARAMETER_NAME)
+					.bind(knownRelationshipsIds)
+					.to(Constants.NAME_OF_KNOWN_RELATIONSHIPS_PARAM)
+					.run();
+		}
+	}
+
+	private void associationHandler(
+			Object fromId,
+			Neo4jPersistentEntity<?> sourceEntity,
+			PersistentPropertyAccessor<?> propertyAccessor,
+			PropertyFilter includeProperty,
+			PropertyFilter.RelaxedPropertyPath previousPath,
+			NestedRelationshipProcessingStateMachine stateMachine,
+			boolean isParentObjectNew
+	) {
+
 		AssociationHandlerSupport.of(sourceEntity).doWithAssociations(association -> {
 
 			// create context to bundle parameters
@@ -752,7 +814,7 @@ public final class Neo4jTemplate implements
 				idProperty = null;
 			} else {
 				Neo4jPersistentEntity<?> relationshipPropertiesEntity = (Neo4jPersistentEntity<?>) relationshipDescription.getRelationshipPropertiesEntity();
-                idProperty = relationshipPropertiesEntity.getIdProperty();
+				idProperty = relationshipPropertiesEntity.getIdProperty();
 			}
 
 			// break recursive procession and deletion of previously created relationships
@@ -766,29 +828,7 @@ public final class Neo4jTemplate implements
 			// This avoids the usage of cache but might have significant impact on overall performance
 			boolean canUseElementId = TemplateSupport.rendererRendersElementId(renderer);
 			if (!isParentObjectNew && !stateMachine.hasProcessedRelationship(fromId, relationshipDescription)) {
-
-				List<Object> knownRelationshipsIds = new ArrayList<>();
-				if (idProperty != null) {
-					for (Object relatedValueToStore : relatedValuesToStore) {
-						if (relatedValueToStore == null) {
-							continue;
-						}
-
-						Object id = relationshipContext.getRelationshipPropertiesPropertyAccessor(relatedValueToStore).getProperty(idProperty);
-						if (id != null) {
-							knownRelationshipsIds.add(id);
-						}
-					}
-				}
-
-				Statement relationshipRemoveQuery = cypherGenerator.prepareDeleteOf(sourceEntity, relationshipDescription, canUseElementId);
-
-				neo4jClient.query(renderer.render(relationshipRemoveQuery))
-						.bind(convertIdValues(sourceEntity.getIdProperty(), fromId)) //
-							.to(Constants.FROM_ID_PARAMETER_NAME) //
-						.bind(knownRelationshipsIds) //
-							.to(Constants.NAME_OF_KNOWN_RELATIONSHIPS_PARAM) //
-						.run();
+				removeRelationshipsIfNeeded(fromId, relationshipContext,sourceEntity,relationshipDescription,false, relatedValuesToStore,canUseElementId);
 			}
 
 			// nothing to do because there is nothing to map
@@ -845,10 +885,9 @@ public final class Neo4jTemplate implements
 				stateMachine.markRelationshipAsProcessed(possibleInternalLongId == null ? relatedInternalId : possibleInternalLongId,
 						relationshipDescription.getRelationshipObverse());
 
-				Object idValue = idProperty != null
-						? relationshipContext
-						.getRelationshipPropertiesPropertyAccessor(relatedValueToStore).getProperty(idProperty)
-						: null;
+
+				assert idProperty != null;
+				Object idValue = createIdValue(idProperty, relationshipContext, relatedValueToStore);
 
 				Map<String, Object> properties = new HashMap<>();
 				properties.put(Constants.FROM_ID_PARAMETER_NAME, convertIdValues(sourceEntity.getRequiredIdProperty(), fromId));
@@ -913,52 +952,55 @@ public final class Neo4jTemplate implements
 				}
 
 				Object potentiallyRecreatedNewRelatedObject = MappingSupport.getRelationshipOrRelationshipPropertiesObject(neo4jMappingContext,
-								relationshipDescription.hasRelationshipProperties(),
-								relationshipProperty.isDynamicAssociation(),
-								relatedValueToStore,
-								targetPropertyAccessor);
+						relationshipDescription.hasRelationshipProperties(),
+						relationshipProperty.isDynamicAssociation(),
+						relatedValueToStore,
+						targetPropertyAccessor);
 				relationshipHandler.handle(relatedValueToStore, relatedObjectBeforeCallbacksApplied, potentiallyRecreatedNewRelatedObject);
 			}
 			// batch operations
-			if (!(relationshipDescription.hasRelationshipProperties() || relationshipDescription.isDynamic() || plainRelationshipRows.isEmpty())) {
-				CreateRelationshipStatementHolder statementHolder = neo4jMappingContext.createStatementForImperativeSimpleRelationshipBatch(
-						sourceEntity, relationshipDescription, plainRelationshipRows, canUseElementId);
-				statementHolder = statementHolder.addProperty(Constants.NAME_OF_RELATIONSHIP_LIST_PARAM, plainRelationshipRows);
-				neo4jClient.query(renderer.render(statementHolder.getStatement()))
-						.bindAll(statementHolder.getProperties())
-						.run();
-			} else if (relationshipDescription.hasRelationshipProperties()) {
-				if (!relationshipPropertiesRows.isEmpty()) {
-					CreateRelationshipStatementHolder statementHolder = neo4jMappingContext.createStatementForImperativeRelationshipsWithPropertiesBatch(false,
-							sourceEntity, relationshipDescription, updateRelatedValuesToStore, relationshipPropertiesRows, canUseElementId);
-					statementHolder = statementHolder.addProperty(Constants.NAME_OF_RELATIONSHIP_LIST_PARAM, relationshipPropertiesRows);
-
-					neo4jClient.query(renderer.render(statementHolder.getStatement()))
-							.bindAll(statementHolder.getProperties())
-							.run();
-				}
-				if (!newRelatedValuesToStore.isEmpty()) {
-					CreateRelationshipStatementHolder statementHolder = neo4jMappingContext.createStatementForImperativeRelationshipsWithPropertiesBatch(true,
-							sourceEntity, relationshipDescription, newRelatedValuesToStore, newRelationshipPropertiesRows, canUseElementId);
-					List<Object> all = new ArrayList<>(neo4jClient.query(renderer.render(statementHolder.getStatement()))
-							.bindAll(statementHolder.getProperties())
-							.fetchAs(Object.class)
-							.mappedBy((t, r) -> IdentitySupport.mapperForRelatedIdValues(idProperty).apply(r))
-							.all());
-					// assign new ids
-					for (int i = 0; i < all.size(); i++) {
-						Object anId = all.get(i);
-						assignIdToRelationshipProperties(relationshipContext, newRelatedValuesToStore.get(i), idProperty, anId);
-					}
-				}
-			}
+			CreateRelationshipStatementHolder statementHolder = null;
+			assert idProperty != null;
+			executeRelationshipOperations(statementHolder, relationshipDescription, plainRelationshipRows, relationshipPropertiesRows, newRelatedValuesToStore, idProperty, relationshipContext);
 
 			relationshipHandler.applyFinalResultToOwner(propertyAccessor);
 		});
+	}
 
-		@SuppressWarnings("unchecked")
-		T finalSubgraphRoot = (T) propertyAccessor.getBean();
-		return finalSubgraphRoot;
+	private void executeRelationshipOperations(
+			CreateRelationshipStatementHolder statementHolder,
+			RelationshipDescription relationshipDescription,
+			List<Object> plainRelationshipRows,
+			List<Map<String, Object>> relationshipPropertiesRows,
+			List<Object> newRelatedValuesToStore,
+			Neo4jPersistentProperty idProperty,
+			NestedRelationshipContext relationshipContext
+	) {
+		if (!(relationshipDescription.hasRelationshipProperties() || relationshipDescription.isDynamic() || plainRelationshipRows.isEmpty())) {
+			statementHolder = statementHolder.addProperty(Constants.NAME_OF_RELATIONSHIP_LIST_PARAM, plainRelationshipRows);
+			neo4jClient.query(renderer.render(statementHolder.getStatement()))
+					.bindAll(statementHolder.getProperties())
+					.run();
+		} else if (relationshipDescription.hasRelationshipProperties()) {
+			if (!relationshipPropertiesRows.isEmpty()) {
+				statementHolder = statementHolder.addProperty(Constants.NAME_OF_RELATIONSHIP_LIST_PARAM, relationshipPropertiesRows);
+				neo4jClient.query(renderer.render(statementHolder.getStatement()))
+						.bindAll(statementHolder.getProperties())
+						.run();
+			}
+			if (!newRelatedValuesToStore.isEmpty()) {
+				List<Object> all = new ArrayList<>(neo4jClient.query(renderer.render(statementHolder.getStatement()))
+						.bindAll(statementHolder.getProperties())
+						.fetchAs(Object.class)
+						.mappedBy((t, r) -> IdentitySupport.mapperForRelatedIdValues(idProperty).apply(r))
+						.all());
+				// assign new ids
+				for (int i = 0; i < all.size(); i++) {
+					Object anId = all.get(i);
+					assignIdToRelationshipProperties(relationshipContext, newRelatedValuesToStore.get(i), idProperty, anId);
+				}
+			}
+		}
 	}
 
 	private void assignIdToRelationshipProperties(
@@ -1048,7 +1090,7 @@ public final class Neo4jTemplate implements
 
 
 	private <T> ExecutableQuery<T> createExecutableQuery(Class<T> domainType, @Nullable Class<?> resultType,
- 			QueryFragmentsAndParameters queryFragmentsAndParameters) {
+														 QueryFragmentsAndParameters queryFragmentsAndParameters) {
 
 		Supplier<BiFunction<TypeSystem, MapAccessor, ?>> mappingFunction = TemplateSupport
 				.getAndDecorateMappingFunction(neo4jMappingContext, domainType, resultType);
@@ -1172,7 +1214,7 @@ public final class Neo4jTemplate implements
 		}
 
 		private NodesAndRelationshipsByIdStatementProvider createNodesAndRelationshipsByIdStatementProvider(Neo4jPersistentEntity<?> entityMetaData,
-						   QueryFragments queryFragments, Map<String, Object> parameters) {
+																											QueryFragments queryFragments, Map<String, Object> parameters) {
 
 			// first check if the root node(s) exist(s) at all
 			Statement rootNodesStatement = cypherGenerator
