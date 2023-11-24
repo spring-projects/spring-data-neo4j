@@ -467,6 +467,13 @@ public final class Neo4jTemplate implements
 		return saveAllImpl(instances, Collections.emptySet(), null);
 	}
 
+	private boolean requiresSingleStatements(boolean heterogeneousCollection, Neo4jPersistentEntity<?> entityMetaData) {
+		return heterogeneousCollection
+				|| entityMetaData.isUsingInternalIds()
+				|| entityMetaData.hasVersionProperty()
+				|| entityMetaData.getDynamicLabelsProperty().isPresent();
+	}
+
 	private <T> List<T> saveAllImpl(Iterable<T> instances, @Nullable Collection<PropertyFilter.ProjectedPath> includedProperties, @Nullable BiPredicate<PropertyPath, Neo4jPersistentProperty> includeProperty) {
 
 		Set<Class<?>> types = new HashSet<>();
@@ -489,8 +496,8 @@ public final class Neo4jTemplate implements
 						includeProperty);
 
 		Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getRequiredPersistentEntity(domainClass);
-		if (heterogeneousCollection || entityMetaData.isUsingInternalIds() || entityMetaData.hasVersionProperty()
-				|| entityMetaData.getDynamicLabelsProperty().isPresent()) {
+
+		if (requiresSingleStatements(heterogeneousCollection, entityMetaData)) {
 			log.debug("Saving entities using single statements.");
 
 			NestedRelationshipProcessingStateMachine stateMachine = new NestedRelationshipProcessingStateMachine(neo4jMappingContext);
@@ -680,7 +687,7 @@ public final class Neo4jTemplate implements
 	}
 
 	private <T> ExecutableQuery<T> createExecutableQuery(Class<T> domainType, @Nullable Class<?> resultType,  @Nullable String cypherStatement,
-			Map<String, Object> parameters) {
+														 Map<String, Object> parameters) {
 
 		Supplier<BiFunction<TypeSystem, MapAccessor, ?>> mappingFunction = TemplateSupport
 				.getAndDecorateMappingFunction(neo4jMappingContext, domainType, resultType);
@@ -752,7 +759,7 @@ public final class Neo4jTemplate implements
 				idProperty = null;
 			} else {
 				Neo4jPersistentEntity<?> relationshipPropertiesEntity = (Neo4jPersistentEntity<?>) relationshipDescription.getRelationshipPropertiesEntity();
-                idProperty = relationshipPropertiesEntity.getIdProperty();
+				idProperty = relationshipPropertiesEntity.getIdProperty();
 			}
 
 			// break recursive procession and deletion of previously created relationships
@@ -785,9 +792,9 @@ public final class Neo4jTemplate implements
 
 				neo4jClient.query(renderer.render(relationshipRemoveQuery))
 						.bind(convertIdValues(sourceEntity.getIdProperty(), fromId)) //
-							.to(Constants.FROM_ID_PARAMETER_NAME) //
+						.to(Constants.FROM_ID_PARAMETER_NAME) //
 						.bind(knownRelationshipsIds) //
-							.to(Constants.NAME_OF_KNOWN_RELATIONSHIPS_PARAM) //
+						.to(Constants.NAME_OF_KNOWN_RELATIONSHIPS_PARAM) //
 						.run();
 			}
 
@@ -913,10 +920,10 @@ public final class Neo4jTemplate implements
 				}
 
 				Object potentiallyRecreatedNewRelatedObject = MappingSupport.getRelationshipOrRelationshipPropertiesObject(neo4jMappingContext,
-								relationshipDescription.hasRelationshipProperties(),
-								relationshipProperty.isDynamicAssociation(),
-								relatedValueToStore,
-								targetPropertyAccessor);
+						relationshipDescription.hasRelationshipProperties(),
+						relationshipProperty.isDynamicAssociation(),
+						relatedValueToStore,
+						targetPropertyAccessor);
 				relationshipHandler.handle(relatedValueToStore, relatedObjectBeforeCallbacksApplied, potentiallyRecreatedNewRelatedObject);
 			}
 			// batch operations
@@ -1048,7 +1055,7 @@ public final class Neo4jTemplate implements
 
 
 	private <T> ExecutableQuery<T> createExecutableQuery(Class<T> domainType, @Nullable Class<?> resultType,
- 			QueryFragmentsAndParameters queryFragmentsAndParameters) {
+														 QueryFragmentsAndParameters queryFragmentsAndParameters) {
 
 		Supplier<BiFunction<TypeSystem, MapAccessor, ?>> mappingFunction = TemplateSupport
 				.getAndDecorateMappingFunction(neo4jMappingContext, domainType, resultType);
@@ -1172,7 +1179,7 @@ public final class Neo4jTemplate implements
 		}
 
 		private NodesAndRelationshipsByIdStatementProvider createNodesAndRelationshipsByIdStatementProvider(Neo4jPersistentEntity<?> entityMetaData,
-						   QueryFragments queryFragments, Map<String, Object> parameters) {
+																											QueryFragments queryFragments, Map<String, Object> parameters) {
 
 			// first check if the root node(s) exist(s) at all
 			Statement rootNodesStatement = cypherGenerator
