@@ -30,16 +30,16 @@ import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
  */
 final class ReactiveIdGeneratingBeforeBindCallback implements ReactiveBeforeBindCallback<Object>, Ordered {
 
-	private final IdPopulator idPopulator;
+	private final Neo4jMappingContext neo4jMappingContext ;
 
 	ReactiveIdGeneratingBeforeBindCallback(Neo4jMappingContext neo4jMappingContext) {
-		this.idPopulator = new IdPopulator(neo4jMappingContext);
+		this.neo4jMappingContext = new Neo4jMappingContext();
 	}
 
 	@Override
 	public Publisher<Object> onBeforeBind(Object entity) {
 
-		return Mono.fromSupplier(() -> idPopulator.populateIfNecessary(entity));
+		return Mono.fromSupplier(() -> neo4jMappingContext.populateIfNecessary(entity));
 	}
 
 	@Override

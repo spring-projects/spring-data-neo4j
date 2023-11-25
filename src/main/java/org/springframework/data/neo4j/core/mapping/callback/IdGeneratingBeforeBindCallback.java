@@ -27,15 +27,16 @@ import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
  */
 final class IdGeneratingBeforeBindCallback implements BeforeBindCallback<Object>, Ordered {
 
-	private final IdPopulator idPopulator;
+
+	private final Neo4jMappingContext neo4jMappingContext;
 
 	IdGeneratingBeforeBindCallback(Neo4jMappingContext neo4jMappingContext) {
-		this.idPopulator = new IdPopulator(neo4jMappingContext);
+		this.neo4jMappingContext = neo4jMappingContext;
 	}
 
 	@Override
 	public Object onBeforeBind(Object entity) {
-		return idPopulator.populateIfNecessary(entity);
+		return neo4jMappingContext.populateIfNecessary(entity);
 	}
 
 	@Override

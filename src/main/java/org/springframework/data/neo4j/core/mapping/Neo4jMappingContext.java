@@ -50,6 +50,7 @@ import org.springframework.core.KotlinDetector;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.data.mapping.MappingException;
 import org.springframework.data.mapping.PersistentEntity;
+import org.springframework.data.mapping.PersistentPropertyAccessor;
 import org.springframework.data.mapping.callback.EntityCallbacks;
 import org.springframework.data.mapping.context.AbstractMappingContext;
 import org.springframework.data.mapping.model.EntityInstantiator;
@@ -68,6 +69,7 @@ import org.springframework.data.neo4j.core.schema.PostLoad;
 import org.springframework.data.util.Lazy;
 import org.springframework.data.util.TypeInformation;
 import org.springframework.lang.Nullable;
+import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
 
 /**
@@ -118,6 +120,54 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 	private boolean strict = false;
 
 	private final Lazy<PersistentPropertyCharacteristicsProvider> propertyCharacteristicsProvider;
+
+	public Object populateIfNecessary(Object entity) {
+
+		Assert.notNull(entity, "Entity may not be null");
+
+		Neo4jPersistentEntity<?> nodeDescription = getRequiredPersistentEntity(entity.getClass());
+		IdDescription idDescription = nodeDescription.getIdDescription();
+
+		if (idDescription == null) {
+			if (nodeDescription.isRelationshipPropertiesEntity()) {
+				return entity;
+			} else {
+				throw new IllegalStateException(
+						"Cannot persist implicit entity due to missing id property on " + nodeDescription.getUnderlyingClass());
+			}
+		}
+
+		// Filter in two steps to avoid unnecessary object creation.
+		if (!idDescription.isExternallyGeneratedId()) {
+			return entity;
+		}
+
+		PersistentPropertyAccessor<?> propertyAccessor = nodeDescription.getPropertyAccessor(entity);
+		Neo4jPersistentProperty idProperty = nodeDescription.getRequiredIdProperty();
+
+		// Check existing ID
+		if (propertyAccessor.getProperty(idProperty) != null) {
+			return entity;
+		}
+
+		IdGenerator<?> idGenerator;
+
+		// Get or create the shared generator
+		// Ref has precedence over class
+		Optional<String> optionalIdGeneratorRef = idDescription.getIdGeneratorRef();
+		if (optionalIdGeneratorRef.isPresent()) {
+
+			idGenerator = getIdGenerator(optionalIdGeneratorRef.get()).orElseThrow(
+					() -> new IllegalStateException("Id generator named " + optionalIdGeneratorRef.get() + " not found"));
+		} else {
+
+			idGenerator = getOrCreateIdGeneratorOfType(idDescription.getIdGeneratorClass().orElseThrow(
+					() -> new IllegalStateException("Neither generator reference nor generator class configured")));
+		}
+
+		propertyAccessor.setProperty(idProperty, idGenerator.generateId(nodeDescription.getPrimaryLabel(), entity));
+		return propertyAccessor.getBean();
+	}
 
 	/**
 	 * A builder for creating custom instances of a {@link Neo4jMappingContext}.

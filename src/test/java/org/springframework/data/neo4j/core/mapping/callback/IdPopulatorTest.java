@@ -50,8 +50,8 @@ class IdPopulatorTest {
 
 	@Test
 	void shouldRejectNullEntity() {
-		IdPopulator idPopulator = new IdPopulator(neo4jMappingContext);
-		Assertions.assertThatIllegalArgumentException().isThrownBy(() -> idPopulator.populateIfNecessary(null))
+		Neo4jMappingContext neo4jMappingContext = new Neo4jMappingContext();
+		Assertions.assertThatIllegalArgumentException().isThrownBy(() -> neo4jMappingContext.populateIfNecessary(null))
 				.withMessage("Entity may not be null");
 	}
 
@@ -62,10 +62,10 @@ class IdPopulatorTest {
 		doReturn(toBeReturned).when(nodeDescription).getIdDescription();
 		doReturn(nodeDescription).when(neo4jMappingContext).getRequiredPersistentEntity(Sample.class);
 
-		IdPopulator idPopulator = new IdPopulator(neo4jMappingContext);
+		Neo4jMappingContext neo4jMappingContext = new Neo4jMappingContext();
 		Sample sample = new Sample();
 
-		assertThat(idPopulator.populateIfNecessary(sample)).isSameAs(sample);
+		assertThat(neo4jMappingContext.populateIfNecessary(sample)).isSameAs(sample);
 
 		verify(nodeDescription).getIdDescription();
 		verify(neo4jMappingContext).getRequiredPersistentEntity(Sample.class);
@@ -76,11 +76,11 @@ class IdPopulatorTest {
 	@Test
 	void shouldNotActOnAssignedProperty() {
 
-		IdPopulator idPopulator = new IdPopulator(new Neo4jMappingContext());
+		Neo4jMappingContext neo4jMappingContext = new Neo4jMappingContext();
 		Sample sample = new Sample();
 		sample.theId = "something";
 
-		Sample populatedSample = (Sample) idPopulator.populateIfNecessary(sample);
+		Sample populatedSample = (Sample) neo4jMappingContext.populateIfNecessary(sample);
 		assertThat(populatedSample).isSameAs(sample);
 		assertThat(populatedSample.theId).isEqualTo("something");
 	}
@@ -88,10 +88,10 @@ class IdPopulatorTest {
 	@Test
 	void shouldInvokeGenerator() {
 
-		IdPopulator idPopulator = new IdPopulator(new Neo4jMappingContext());
+		Neo4jMappingContext neo4jMappingContext = new Neo4jMappingContext();
 		Sample sample = new Sample();
 
-		Sample populatedSample = (Sample) idPopulator.populateIfNecessary(sample);
+		Sample populatedSample = (Sample) neo4jMappingContext.populateIfNecessary(sample);
 		assertThat(populatedSample).isSameAs(sample);
 		assertThat(populatedSample.theId).isEqualTo("Not necessary unique.");
 	}
@@ -99,8 +99,8 @@ class IdPopulatorTest {
 	@Test // DATAGRAPH-1423
 	void shouldNotFailWithNPEOnMissingIDGenerator() {
 
-		IdPopulator idPopulator = new IdPopulator(new Neo4jMappingContext());
-		assertThatIllegalStateException().isThrownBy(() -> idPopulator.populateIfNecessary(new ImplicitEntityWithoutId()))
+		Neo4jMappingContext neo4jMappingContext = new Neo4jMappingContext();
+		assertThatIllegalStateException().isThrownBy(() -> neo4jMappingContext.populateIfNecessary(new ImplicitEntityWithoutId()))
 				.withMessage("Cannot persist implicit entity due to missing id property on " + ImplicitEntityWithoutId.class);
 	}
 
