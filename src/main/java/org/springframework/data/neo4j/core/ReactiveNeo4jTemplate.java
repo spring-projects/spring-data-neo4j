@@ -22,8 +22,7 @@ import static org.neo4j.cypherdsl.core.Cypher.parameter;
 import org.neo4j.cypherdsl.core.FunctionInvocation;
 import org.neo4j.cypherdsl.core.Named;
 import org.neo4j.driver.Values;
-import org.springframework.data.neo4j.core.mapping.IdDescription;
-import org.springframework.data.neo4j.core.mapping.SpringDataCypherDsl;
+import org.springframework.data.neo4j.core.mapping.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.util.function.Tuple2;
@@ -76,24 +75,7 @@ import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.mapping.callback.ReactiveEntityCallbacks;
 import org.springframework.data.neo4j.core.TemplateSupport.FilteredBinderFunction;
 import org.springframework.data.neo4j.core.TemplateSupport.NodesAndRelationshipsByIdStatementProvider;
-import org.springframework.data.neo4j.core.mapping.AssociationHandlerSupport;
-import org.springframework.data.neo4j.core.mapping.Constants;
-import org.springframework.data.neo4j.core.mapping.CreateRelationshipStatementHolder;
-import org.springframework.data.neo4j.core.mapping.CypherGenerator;
-import org.springframework.data.neo4j.core.mapping.DtoInstantiatingConverter;
-import org.springframework.data.neo4j.core.mapping.EntityFromDtoInstantiatingConverter;
-import org.springframework.data.neo4j.core.mapping.EntityInstanceWithSource;
-import org.springframework.data.neo4j.core.mapping.IdentitySupport;
-import org.springframework.data.neo4j.core.mapping.MappingSupport;
-import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
-import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
-import org.springframework.data.neo4j.core.mapping.Neo4jPersistentProperty;
-import org.springframework.data.neo4j.core.mapping.NestedRelationshipContext;
-import org.springframework.data.neo4j.core.mapping.NestedRelationshipProcessingStateMachine;
 import org.springframework.data.neo4j.core.mapping.NestedRelationshipProcessingStateMachine.ProcessState;
-import org.springframework.data.neo4j.core.mapping.NodeDescription;
-import org.springframework.data.neo4j.core.mapping.PropertyFilter;
-import org.springframework.data.neo4j.core.mapping.RelationshipDescription;
 import org.springframework.data.neo4j.core.mapping.callback.ReactiveEventSupport;
 import org.springframework.data.neo4j.core.schema.TargetNode;
 import org.springframework.data.neo4j.repository.query.QueryFragments;
@@ -126,6 +108,8 @@ public final class ReactiveNeo4jTemplate implements
 	private final ReactiveNeo4jClient neo4jClient;
 
 	private final Neo4jMappingContext neo4jMappingContext;
+
+	private RelationshipStatementBuilder relationshipStatementBuilder;
 
 	private final CypherGenerator cypherGenerator;
 
@@ -991,7 +975,7 @@ public final class ReactiveNeo4jTemplate implements
 											: null;
 
 									boolean isNewRelationship = idValue == null;
-									CreateRelationshipStatementHolder statementHolder = neo4jMappingContext.createStatementForSingleRelationship(
+									CreateRelationshipStatementHolder statementHolder = relationshipStatementBuilder.createStatementForSingleRelationship(
 											sourceEntity, relationshipDescription, relatedValueToStore, isNewRelationship, canUseElementId);
 
 									Map<String, Object> properties = new HashMap<>();

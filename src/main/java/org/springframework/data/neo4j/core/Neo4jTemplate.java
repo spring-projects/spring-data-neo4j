@@ -60,6 +60,7 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.core.convert.ConversionService;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.dao.OptimisticLockingFailureException;
@@ -68,6 +69,7 @@ import org.springframework.data.mapping.PersistentPropertyAccessor;
 import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.mapping.callback.EntityCallbacks;
 import org.springframework.data.neo4j.core.TemplateSupport.NodesAndRelationshipsByIdStatementProvider;
+import org.springframework.data.neo4j.core.convert.Neo4jConversionService;
 import org.springframework.data.neo4j.core.mapping.AssociationHandlerSupport;
 import org.springframework.data.neo4j.core.mapping.Constants;
 import org.springframework.data.neo4j.core.mapping.CreateRelationshipStatementHolder;
@@ -79,6 +81,7 @@ import org.springframework.data.neo4j.core.mapping.IdDescription;
 import org.springframework.data.neo4j.core.mapping.IdentitySupport;
 import org.springframework.data.neo4j.core.mapping.MappingSupport;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
+import org.springframework.data.neo4j.core.mapping.RelationshipStatementBuilder;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.core.mapping.NestedRelationshipContext;
@@ -122,6 +125,8 @@ public final class Neo4jTemplate implements
 
 	private final Neo4jMappingContext neo4jMappingContext;
 
+	private RelationshipStatementBuilder relationshipStatementBuilder;
+
 	private final CypherGenerator cypherGenerator;
 
 	private ClassLoader beanClassLoader;
@@ -155,6 +160,8 @@ public final class Neo4jTemplate implements
 		this.renderer = Renderer.getDefaultRenderer();
 		this.elementIdOrIdFunction = SpringDataCypherDsl.elementIdOrIdFunction.apply(null);
 	}
+
+
 
 	ProjectionFactory getProjectionFactory() {
 		return Objects.requireNonNull(this.projectionFactoryf, "Projection support for the Neo4j template is only available when the template is a proper and fully initialized Spring bean.");
@@ -858,7 +865,7 @@ public final class Neo4jTemplate implements
 				if (relationshipDescription.isDynamic()) {
 					// create new dynamic relationship properties
 					if (relationshipDescription.hasRelationshipProperties() && isNewRelationship && idProperty != null) {
-						CreateRelationshipStatementHolder statementHolder = neo4jMappingContext.createStatementForSingleRelationship(
+						CreateRelationshipStatementHolder statementHolder = relationshipStatementBuilder.createStatementForSingleRelationship(
 								sourceEntity, relationshipDescription, relatedValueToStore, true, canUseElementId);
 
 						List<Object> row = Collections.singletonList(properties);
@@ -879,7 +886,7 @@ public final class Neo4jTemplate implements
 						assignIdToRelationshipProperties(relationshipContext, relatedValueToStore, idProperty, relationshipInternalId.orElseThrow());
 					} else { // plain (new or to update) dynamic relationship or dynamic relationships with properties to update
 
-						CreateRelationshipStatementHolder statementHolder = neo4jMappingContext.createStatementForSingleRelationship(
+						CreateRelationshipStatementHolder statementHolder = relationshipStatementBuilder.createStatementForSingleRelationship(
 								sourceEntity, relationshipDescription, relatedValueToStore, false, canUseElementId);
 
 						List<Object> row = Collections.singletonList(properties);
@@ -921,7 +928,7 @@ public final class Neo4jTemplate implements
 			}
 			// batch operations
 			if (!(relationshipDescription.hasRelationshipProperties() || relationshipDescription.isDynamic() || plainRelationshipRows.isEmpty())) {
-				CreateRelationshipStatementHolder statementHolder = neo4jMappingContext.createStatementForImperativeSimpleRelationshipBatch(
+				CreateRelationshipStatementHolder statementHolder = relationshipStatementBuilder.createStatementForImperativeSimpleRelationshipBatch(
 						sourceEntity, relationshipDescription, plainRelationshipRows, canUseElementId);
 				statementHolder = statementHolder.addProperty(Constants.NAME_OF_RELATIONSHIP_LIST_PARAM, plainRelationshipRows);
 				neo4jClient.query(renderer.render(statementHolder.getStatement()))
@@ -929,7 +936,7 @@ public final class Neo4jTemplate implements
 						.run();
 			} else if (relationshipDescription.hasRelationshipProperties()) {
 				if (!relationshipPropertiesRows.isEmpty()) {
-					CreateRelationshipStatementHolder statementHolder = neo4jMappingContext.createStatementForImperativeRelationshipsWithPropertiesBatch(false,
+					CreateRelationshipStatementHolder statementHolder = relationshipStatementBuilder.createStatementForImperativeRelationshipsWithPropertiesBatch(false,
 							sourceEntity, relationshipDescription, updateRelatedValuesToStore, relationshipPropertiesRows, canUseElementId);
 					statementHolder = statementHolder.addProperty(Constants.NAME_OF_RELATIONSHIP_LIST_PARAM, relationshipPropertiesRows);
 
@@ -938,7 +945,7 @@ public final class Neo4jTemplate implements
 							.run();
 				}
 				if (!newRelatedValuesToStore.isEmpty()) {
-					CreateRelationshipStatementHolder statementHolder = neo4jMappingContext.createStatementForImperativeRelationshipsWithPropertiesBatch(true,
+					CreateRelationshipStatementHolder statementHolder = relationshipStatementBuilder.createStatementForImperativeRelationshipsWithPropertiesBatch(true,
 							sourceEntity, relationshipDescription, newRelatedValuesToStore, newRelationshipPropertiesRows, canUseElementId);
 					List<Object> all = new ArrayList<>(neo4jClient.query(renderer.render(statementHolder.getStatement()))
 							.bindAll(statementHolder.getProperties())
