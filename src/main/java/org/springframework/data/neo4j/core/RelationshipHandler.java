@@ -42,6 +42,12 @@ final class RelationshipHandler {
 		DYNAMIC_ONE_TO_MANY
 	}
 
+	private CardinalityResolver resolver;
+
+	public void setResolver(CardinalityResolver resolver) {
+		this.resolver = resolver;
+	}
+
 	static RelationshipHandler forProperty(Neo4jPersistentProperty property, Object rawValue) {
 
 		Cardinality cardinality;
@@ -111,23 +117,7 @@ final class RelationshipHandler {
 
 	void applyFinalResultToOwner(PersistentPropertyAccessor<?> parentPropertyAccessor) {
 
-		Object finalRelation = null;
-		switch (cardinality) {
-			case ONE_TO_ONE:
-				finalRelation = Optional.ofNullable(newRelatedObjects).flatMap(v -> v.stream().findFirst()).orElse(null);
-				break;
-			case ONE_TO_MANY:
-				if (!newRelatedObjects.isEmpty()) {
-					finalRelation = newRelatedObjects;
-				}
-				break;
-			case DYNAMIC_ONE_TO_ONE:
-			case DYNAMIC_ONE_TO_MANY:
-				if (!newRelatedObjectsByType.isEmpty()) {
-					finalRelation = newRelatedObjectsByType;
-				}
-				break;
-		}
+		Object finalRelation = resolver.resolveRelation(newRelatedObjects, newRelatedObjectsByType);
 
 		if (finalRelation != null) {
 			parentPropertyAccessor.setProperty(property, finalRelation);
