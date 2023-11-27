@@ -1179,7 +1179,7 @@ public final class Neo4jTemplate implements
 		}
 
 		private NodesAndRelationshipsByIdStatementProvider createNodesAndRelationshipsByIdStatementProvider(Neo4jPersistentEntity<?> entityMetaData,
-				   QueryFragments queryFragments, Map<String, Object> parameters) {
+						   QueryFragments queryFragments, Map<String, Object> parameters) {
 
 			// first check if the root node(s) exist(s) at all
 			Statement rootNodesStatement = cypherGenerator
