@@ -759,7 +759,7 @@ public final class Neo4jTemplate implements
 				idProperty = null;
 			} else {
 				Neo4jPersistentEntity<?> relationshipPropertiesEntity = (Neo4jPersistentEntity<?>) relationshipDescription.getRelationshipPropertiesEntity();
-				idProperty = relationshipPropertiesEntity.getIdProperty();
+                idProperty = relationshipPropertiesEntity.getIdProperty();
 			}
 
 			// break recursive procession and deletion of previously created relationships
@@ -1055,7 +1055,7 @@ public final class Neo4jTemplate implements
 
 
 	private <T> ExecutableQuery<T> createExecutableQuery(Class<T> domainType, @Nullable Class<?> resultType,
-			QueryFragmentsAndParameters queryFragmentsAndParameters) {
+ 			QueryFragmentsAndParameters queryFragmentsAndParameters) {
 
 		Supplier<BiFunction<TypeSystem, MapAccessor, ?>> mappingFunction = TemplateSupport
 				.getAndDecorateMappingFunction(neo4jMappingContext, domainType, resultType);
@@ -1179,7 +1179,7 @@ public final class Neo4jTemplate implements
 		}
 
 		private NodesAndRelationshipsByIdStatementProvider createNodesAndRelationshipsByIdStatementProvider(Neo4jPersistentEntity<?> entityMetaData,
-						QueryFragments queryFragments, Map<String, Object> parameters) {
+				   QueryFragments queryFragments, Map<String, Object> parameters) {
 
 			// first check if the root node(s) exist(s) at all
 			Statement rootNodesStatement = cypherGenerator
