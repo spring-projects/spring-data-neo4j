@@ -687,7 +687,7 @@ public final class Neo4jTemplate implements
 	}
 
 	private <T> ExecutableQuery<T> createExecutableQuery(Class<T> domainType, @Nullable Class<?> resultType,  @Nullable String cypherStatement,
-														 Map<String, Object> parameters) {
+			Map<String, Object> parameters) {
 
 		Supplier<BiFunction<TypeSystem, MapAccessor, ?>> mappingFunction = TemplateSupport
 				.getAndDecorateMappingFunction(neo4jMappingContext, domainType, resultType);
@@ -792,9 +792,9 @@ public final class Neo4jTemplate implements
 
 				neo4jClient.query(renderer.render(relationshipRemoveQuery))
 						.bind(convertIdValues(sourceEntity.getIdProperty(), fromId)) //
-						.to(Constants.FROM_ID_PARAMETER_NAME) //
+							.to(Constants.FROM_ID_PARAMETER_NAME) //
 						.bind(knownRelationshipsIds) //
-						.to(Constants.NAME_OF_KNOWN_RELATIONSHIPS_PARAM) //
+							.to(Constants.NAME_OF_KNOWN_RELATIONSHIPS_PARAM) //
 						.run();
 			}
 
@@ -920,10 +920,10 @@ public final class Neo4jTemplate implements
 				}
 
 				Object potentiallyRecreatedNewRelatedObject = MappingSupport.getRelationshipOrRelationshipPropertiesObject(neo4jMappingContext,
-						relationshipDescription.hasRelationshipProperties(),
-						relationshipProperty.isDynamicAssociation(),
-						relatedValueToStore,
-						targetPropertyAccessor);
+								relationshipDescription.hasRelationshipProperties(),
+								relationshipProperty.isDynamicAssociation(),
+								relatedValueToStore,
+								targetPropertyAccessor);
 				relationshipHandler.handle(relatedValueToStore, relatedObjectBeforeCallbacksApplied, potentiallyRecreatedNewRelatedObject);
 			}
 			// batch operations
@@ -1055,7 +1055,7 @@ public final class Neo4jTemplate implements
 
 
 	private <T> ExecutableQuery<T> createExecutableQuery(Class<T> domainType, @Nullable Class<?> resultType,
-														 QueryFragmentsAndParameters queryFragmentsAndParameters) {
+			QueryFragmentsAndParameters queryFragmentsAndParameters) {
 
 		Supplier<BiFunction<TypeSystem, MapAccessor, ?>> mappingFunction = TemplateSupport
 				.getAndDecorateMappingFunction(neo4jMappingContext, domainType, resultType);
@@ -1179,7 +1179,7 @@ public final class Neo4jTemplate implements
 		}
 
 		private NodesAndRelationshipsByIdStatementProvider createNodesAndRelationshipsByIdStatementProvider(Neo4jPersistentEntity<?> entityMetaData,
-																											QueryFragments queryFragments, Map<String, Object> parameters) {
+						QueryFragments queryFragments, Map<String, Object> parameters) {
 
 			// first check if the root node(s) exist(s) at all
 			Statement rootNodesStatement = cypherGenerator
