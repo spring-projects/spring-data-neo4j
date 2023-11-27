@@ -467,6 +467,13 @@ public final class Neo4jTemplate implements
 		return saveAllImpl(instances, Collections.emptySet(), null);
 	}
 
+	private boolean requiresSingleStatements(boolean heterogeneousCollection, Neo4jPersistentEntity<?> entityMetaData) {
+		return heterogeneousCollection
+				|| entityMetaData.isUsingInternalIds()
+				|| entityMetaData.hasVersionProperty()
+				|| entityMetaData.getDynamicLabelsProperty().isPresent();
+	}
+
 	private <T> List<T> saveAllImpl(Iterable<T> instances, @Nullable Collection<PropertyFilter.ProjectedPath> includedProperties, @Nullable BiPredicate<PropertyPath, Neo4jPersistentProperty> includeProperty) {
 
 		Set<Class<?>> types = new HashSet<>();
@@ -489,8 +496,8 @@ public final class Neo4jTemplate implements
 						includeProperty);
 
 		Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getRequiredPersistentEntity(domainClass);
-		if (heterogeneousCollection || entityMetaData.isUsingInternalIds() || entityMetaData.hasVersionProperty()
-				|| entityMetaData.getDynamicLabelsProperty().isPresent()) {
+
+		if (requiresSingleStatements(heterogeneousCollection, entityMetaData)) {
 			log.debug("Saving entities using single statements.");
 
 			NestedRelationshipProcessingStateMachine stateMachine = new NestedRelationshipProcessingStateMachine(neo4jMappingContext);
