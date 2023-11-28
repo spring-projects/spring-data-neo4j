@@ -153,7 +153,7 @@ class ReactiveConnectionAcquisitionIT {
 					.withConnectionAcquisitionTimeout(2, TimeUnit.SECONDS)
 					.withLeakedSessionsLogging()
 					.build();
-			return GraphDatabase.driver(neo4jConnectionSupport.url, neo4jConnectionSupport.authToken, config);
+			return GraphDatabase.driver(neo4jConnectionSupport.uri, neo4jConnectionSupport.authToken, config);
 		}
 	}
 }
