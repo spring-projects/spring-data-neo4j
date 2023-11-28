@@ -15,6 +15,9 @@
  */
 package org.springframework.data.neo4j.test;
 
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.util.concurrent.DefaultThreadFactory;
 import org.apache.commons.logging.Log;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.BeforeEachCallback;
@@ -23,14 +26,17 @@ import org.junit.platform.commons.support.HierarchyTraversalMode;
 import org.junit.platform.commons.support.ReflectionSupport;
 import org.neo4j.driver.AccessMode;
 import org.neo4j.driver.AuthToken;
+import org.neo4j.driver.AuthTokenManagers;
 import org.neo4j.driver.AuthTokens;
 import org.neo4j.driver.Config;
 import org.neo4j.driver.Driver;
-import org.neo4j.driver.GraphDatabase;
 import org.neo4j.driver.Logging;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.SessionConfig;
+import org.neo4j.driver.internal.DriverFactory;
+import org.neo4j.driver.internal.SecuritySettings;
+import org.neo4j.driver.internal.security.SecurityPlans;
 import org.springframework.core.log.LogMessage;
 import org.springframework.lang.Nullable;
 import org.testcontainers.containers.Neo4jContainer;
@@ -38,6 +44,7 @@ import org.testcontainers.utility.TestcontainersConfiguration;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.net.URI;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -82,12 +89,14 @@ public class Neo4jExtension implements BeforeAllCallback, BeforeEachCallback {
 	private static final String SYS_PROPERTY_FORCE_CONTAINER_REUSE = "SDN_FORCE_REUSE_OF_CONTAINERS";
 	private static final Log log = org.apache.commons.logging.LogFactory.getLog(Neo4jExtension.class);
 
-	private static Set<String> COMMUNITY_EDITION_INDICATOR = Set.of("community");
+	private static final Set<String> COMMUNITY_EDITION_INDICATOR = Set.of("community");
+	private static final Set<String> COMMERCIAL_EDITION_INDICATOR = Set.of("commercial", "enterprise");
 
-	private static Set<String> COMMERCIAL_EDITION_INDICATOR = Set.of("commercial", "enterprise");
+	private static final EventLoopGroup EVENT_LOOP_GROUP = new NioEventLoopGroup(new DefaultThreadFactory(Neo4jExtension.class, true));
 
 	@Override
 	public void beforeAll(ExtensionContext context) throws Exception {
+
 		List<Field> injectableFields = ReflectionSupport.findFields(context.getRequiredTestClass(),
 				field -> Modifier.isStatic(field.getModifiers()) && field.getType() == Neo4jConnectionSupport.class,
 				HierarchyTraversalMode.BOTTOM_UP);
@@ -163,6 +172,8 @@ public class Neo4jExtension implements BeforeAllCallback, BeforeEachCallback {
 	 */
 	public static final class Neo4jConnectionSupport implements ExtensionContext.Store.CloseableResource {
 
+		private final DriverFactory driverFactory;
+
 		public final String url;
 
 		public final AuthToken authToken;
@@ -182,6 +193,7 @@ public class Neo4jExtension implements BeforeAllCallback, BeforeEachCallback {
 			this.config = Config.builder().withLogging(Logging.slf4j())
 					.withMaxConnectionPoolSize(Runtime.getRuntime().availableProcessors())
 					.build();
+			this.driverFactory = new DriverFactory();
 		}
 
 		/**
@@ -198,12 +210,19 @@ public class Neo4jExtension implements BeforeAllCallback, BeforeEachCallback {
 				synchronized (this) {
 					driver = this.driverInstance;
 					if (!isUsable(driver)) {
-						this.driverInstance = GraphDatabase.driver(url, authToken, config);
+						this.driverInstance = createDriverInstance();
 						driver = this.driverInstance;
 					}
 				}
 			}
 			return driver;
+		}
+
+		private Driver createDriverInstance() {
+			var uri = URI.create(url);
+			var settings = new SecuritySettings(config.encrypted(), config.trustStrategy());
+			var securityPlan = SecurityPlans.createSecurityPlan(settings, uri.getScheme());
+			return this.driverFactory.newInstance(uri, AuthTokenManagers.basic(() -> authToken), config, securityPlan, EVENT_LOOP_GROUP, null);
 		}
 
 		/**
