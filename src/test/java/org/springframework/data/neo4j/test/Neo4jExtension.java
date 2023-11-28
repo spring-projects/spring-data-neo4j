@@ -21,12 +21,9 @@ import lombok.extern.apachecommons.CommonsLog;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -83,10 +80,11 @@ public class Neo4jExtension implements BeforeAllCallback, BeforeEachCallback {
 	private static final String SYS_PROPERTY_NEO4J_ACCEPT_COMMERCIAL_EDITION = "SDN_NEO4J_ACCEPT_COMMERCIAL_EDITION";
 	private static final String SYS_PROPERTY_NEO4J_REPOSITORY = "SDN_NEO4J_REPOSITORY";
 	private static final String SYS_PROPERTY_NEO4J_VERSION = "SDN_NEO4J_VERSION";
+	private static final String SYS_PROPERTY_FORCE_CONTAINER_REUSE = "SDN_FORCE_REUSE_OF_CONTAINERS";
 
-	private static Set<String> COMMUNITY_EDITION_INDICATOR = Collections.singleton("community");
+	private static Set<String> COMMUNITY_EDITION_INDICATOR = Set.of("community");
 
-	private static Set<String> COMMERCIAL_EDITION_INDICATOR = new HashSet<>(Arrays.asList("commercial", "enterprise"));
+	private static Set<String> COMMERCIAL_EDITION_INDICATOR = Set.of("commercial", "enterprise");
 
 	@Override
 	public void beforeAll(ExtensionContext context) throws Exception {
@@ -291,21 +289,20 @@ public class Neo4jExtension implements BeforeAllCallback, BeforeEachCallback {
 
 	static class ContainerAdapter implements ExtensionContext.Store.CloseableResource {
 
-		private final String repository = Optional.ofNullable(System.getenv(SYS_PROPERTY_NEO4J_REPOSITORY)).orElse("neo4j");
+		private static final String repository = Optional.ofNullable(System.getenv(SYS_PROPERTY_NEO4J_REPOSITORY)).orElse("neo4j");
 
-		private final String imageVersion = Optional.ofNullable(System.getenv(SYS_PROPERTY_NEO4J_VERSION)).orElse("5");
+		private static final String imageVersion = Optional.ofNullable(System.getenv(SYS_PROPERTY_NEO4J_VERSION)).orElse("5");
 
-		private final boolean containerReuseSupported = TestcontainersConfiguration
+		private static final boolean containerReuseSupported = TestcontainersConfiguration
 				.getInstance().environmentSupportsReuse();
 
-		private final Neo4jContainer<?> neo4jContainer = new Neo4jContainer<>(repository + ":" + imageVersion)
+		private  static final boolean forceReuse = Boolean.parseBoolean(System.getenv(SYS_PROPERTY_FORCE_CONTAINER_REUSE));
+
+		private static final Neo4jContainer<?> neo4jContainer = new Neo4jContainer<>(repository + ":" + imageVersion)
 				.withoutAuthentication()
 				.withEnv("NEO4J_ACCEPT_LICENSE_AGREEMENT",
 						Optional.ofNullable(System.getenv(SYS_PROPERTY_NEO4J_ACCEPT_COMMERCIAL_EDITION)).orElse("no"))
-				.withTmpFs(new HashMap<String, String>() {{ // K.W. Gedächtnis-Double-Brace-Initialization
-					put("/log", "rw");
-					put("/data", "rw");
-				}})
+				.withTmpFs(Map.of("/log", "rw", "/data", "rw"))
 				.withReuse(containerReuseSupported);
 
 		public String getBoltUrl() {
@@ -313,13 +310,15 @@ public class Neo4jExtension implements BeforeAllCallback, BeforeEachCallback {
 		}
 
 		public void start() {
-			neo4jContainer.start();
+			if (!neo4jContainer.isRunning()) {
+				neo4jContainer.start();
+			}
 		}
 
 		@Override
 		public void close() {
-			if (!containerReuseSupported) {
-				this.neo4jContainer.close();
+			if (!(containerReuseSupported || forceReuse)) {
+				neo4jContainer.close();
 			}
 		}
 	}
