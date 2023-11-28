@@ -36,6 +36,7 @@ import org.neo4j.driver.Session;
 import org.neo4j.driver.SessionConfig;
 import org.neo4j.driver.internal.DriverFactory;
 import org.neo4j.driver.internal.SecuritySettings;
+import org.neo4j.driver.internal.security.SecurityPlan;
 import org.neo4j.driver.internal.security.SecurityPlans;
 import org.springframework.core.log.LogMessage;
 import org.springframework.lang.Nullable;
@@ -174,11 +175,13 @@ public class Neo4jExtension implements BeforeAllCallback, BeforeEachCallback {
 
 		private final DriverFactory driverFactory;
 
-		public final String url;
+		public final URI uri;
 
 		public final AuthToken authToken;
 
 		public final Config config;
+
+		private final SecurityPlan securityPlan;
 
 		private volatile ServerVersion cachedServerVersion;
 
@@ -188,11 +191,13 @@ public class Neo4jExtension implements BeforeAllCallback, BeforeEachCallback {
 		private volatile Driver driverInstance;
 
 		public Neo4jConnectionSupport(String url, AuthToken authToken) {
-			this.url = url;
+			this.uri = URI.create(url);
 			this.authToken = authToken;
 			this.config = Config.builder().withLogging(Logging.slf4j())
 					.withMaxConnectionPoolSize(Runtime.getRuntime().availableProcessors())
 					.build();
+			var settings = new SecuritySettings(config.encrypted(), config.trustStrategy());
+			this.securityPlan = SecurityPlans.createSecurityPlan(settings, uri.getScheme());
 			this.driverFactory = new DriverFactory();
 		}
 
@@ -219,9 +224,6 @@ public class Neo4jExtension implements BeforeAllCallback, BeforeEachCallback {
 		}
 
 		private Driver createDriverInstance() {
-			var uri = URI.create(url);
-			var settings = new SecuritySettings(config.encrypted(), config.trustStrategy());
-			var securityPlan = SecurityPlans.createSecurityPlan(settings, uri.getScheme());
 			return this.driverFactory.newInstance(uri, AuthTokenManagers.basic(() -> authToken), config, securityPlan, EVENT_LOOP_GROUP, null);
 		}
 
