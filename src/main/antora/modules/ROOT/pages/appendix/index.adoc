@@ -1,21 +1,4 @@
 [[sdn-appendix]]
 [appendix]
 = Appendix
-
-:leveloffset: +1
-
-include::neo4j-client.adoc[]
-
-include::query-creation.adoc[]
-
-include::custom-queries.adoc[]
-
-include::spatial-types.adoc[]
-
-include::logging.adoc[]
-
-include::migrating.adoc[]
-
-include::build.adoc[]
-
-:leveloffset: -1
+:page-section-summary-toc: 1

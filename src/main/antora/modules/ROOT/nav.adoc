@@ -24,8 +24,8 @@
 ** xref:query-by-example.adoc[]
 ** xref:repositories/scrolling.adoc[]
 ** xref:repositories/sdn-extension.adoc[]
-** xref:repositories/query-keywords-reference.adoc
-** xref:repositories/query-return-types-reference.adoc
+** xref:repositories/query-keywords-reference.adoc[]
+** xref:repositories/query-return-types-reference.adoc[]
 
 * xref:repositories/projections.adoc[]
 ** xref:projections/sdn-projections.adoc[]
@@ -39,5 +39,12 @@
 * xref:faq.adoc[]
 
 * xref:appendix/index.adoc[]
+** xref:appendix/conversions.adoc[]
+** xref:appendix/neo4j-client.adoc[]
+** xref:appendix/query-creation.adoc[]
+** xref:appendix/custom-queries.adoc[]
+** xref:appendix/spatial-types.adoc[]
+** xref:appendix/migrating.adoc[]
+** xref:appendix/build.adoc[]
 
 * https://github.com/spring-projects/spring-data-commons/wiki[Wiki]
