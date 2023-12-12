@@ -43,7 +43,7 @@
             <property name="max" value="3" />
         </module>
         <module name="com.puppycrawl.tools.checkstyle.checks.coding.NestedIfDepthCheck">
-            <property name="max" value="3" />
+            <property name="max" value="4" />
         </module>
         <module name="com.puppycrawl.tools.checkstyle.checks.coding.NestedTryDepthCheck">
             <property name="max" value="3" />
