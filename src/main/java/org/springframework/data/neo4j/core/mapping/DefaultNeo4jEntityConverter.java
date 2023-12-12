@@ -662,21 +662,21 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 
 		String elementId = IdentitySupport.getElementId(values);
 		Long internalId = IdentitySupport.getInternalId(values);
-		boolean hasGeneratedIdValue = elementId != null || internalId != null;
+		boolean hasIdValue = elementId != null || internalId != null;
 
-		if (relationshipListEmptyOrNull && hasGeneratedIdValue) {
+		if (relationshipListEmptyOrNull && hasIdValue) {
 			String sourceNodeId;
 			Function<Relationship, String> sourceIdSelector;
 			Function<Relationship, String> targetIdSelector = relationshipDescription.isIncoming() ? Relationship::startNodeElementId : Relationship::endNodeElementId;
 
-			if (internalId != null) {
+			if (elementId != null) {
+				sourceNodeId = elementId;
+				sourceIdSelector = relationshipDescription.isIncoming() ? Relationship::endNodeElementId : Relationship::startNodeElementId;
+			} else {
 				// this can happen when someone used dto mapping and added the "classical" approach
 				sourceNodeId = Long.toString(internalId);
 				Function<Relationship, Long> hlp = relationshipDescription.isIncoming() ? Relationship::endNodeId : Relationship::startNodeId;
 				sourceIdSelector = hlp.andThen(l -> Long.toString(l));
-			} else {
-				sourceNodeId = elementId;
-				sourceIdSelector = relationshipDescription.isIncoming() ? Relationship::endNodeElementId : Relationship::startNodeElementId;
 			}
 
 			// Retrieve all matching relationships from the result's list(s)
@@ -684,64 +684,67 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 					extractMatchingRelationships(relationshipsFromResult, relationshipDescription, typeOfRelationship,
 							(possibleRelationship) -> sourceIdSelector.apply(possibleRelationship).equals(sourceNodeId));
 
-			// Retrieve all nodes from the result's list(s)
-			Collection<Node> allNodesWithMatchingLabelInResult = extractMatchingNodes(nodesFromResult, targetLabel);
+			// Fast exit if there is no relationship that can be mapped
+			if (!allMatchingTypeRelationshipsInResult.isEmpty()) {
 
-			for (Node possibleValueNode : allNodesWithMatchingLabelInResult) {
-				String targetNodeId = IdentitySupport.getElementId(possibleValueNode);
+				// Retrieve all nodes from the result's list(s)
+				Collection<Node> allNodesWithMatchingLabelInResult = extractMatchingNodes(nodesFromResult, targetLabel);
+				for (Node possibleValueNode : allNodesWithMatchingLabelInResult) {
+					String targetNodeId = IdentitySupport.getElementId(possibleValueNode);
 
-				Neo4jPersistentEntity<?> concreteTargetNodeDescription =
-						getMostConcreteTargetNodeDescription(genericTargetNodeDescription, possibleValueNode);
+					Neo4jPersistentEntity<?> concreteTargetNodeDescription =
+							getMostConcreteTargetNodeDescription(genericTargetNodeDescription, possibleValueNode);
 
-				Set<Relationship> relationshipsProcessed = new HashSet<>();
-				for (Relationship possibleRelationship : allMatchingTypeRelationshipsInResult) {
-					if (targetIdSelector.apply(possibleRelationship).equals(targetNodeId)) {
+					Set<Relationship> relationshipsProcessed = new HashSet<>();
+					for (Relationship possibleRelationship : allMatchingTypeRelationshipsInResult) {
+						if (targetIdSelector.apply(possibleRelationship).equals(targetNodeId)) {
 
-						// Reduce the amount of relationships in the candidate list.
-						// If this relationship got processed twice (OUTGOING, INCOMING), it is never needed again
-						// and therefor should not be in the list.
-						// Otherwise, for highly linked data it could potentially cause a StackOverflowError.
-						String direction = relationshipDescription.getDirection().name();
-						if (knownObjects.hasProcessedRelationshipCompletely("R" + direction + IdentitySupport.getElementId(possibleRelationship))) {
-							relationshipsFromResult.remove(possibleRelationship);
-						}
-						// If the target is the same(equal) node, get the related object from the cache.
-						// Avoiding the call to the map method also breaks an endless cycle of trying to finish
-						// the property population of _this_ object.
-						// The initial population will happen at the end of this mapping. This is sufficient because
-						// it only affects properties not changing the instance of the object.
-						Object mappedObject;
-						if (fetchMore) {
-							mappedObject = sourceNodeId != null && sourceNodeId.equals(targetNodeId)
-									? knownObjects.getObject("N" + sourceNodeId)
-									: map(possibleValueNode, concreteTargetNodeDescription, baseDescription, null, null, relationshipsFromResult, nodesFromResult);
-						} else {
-							Object objectFromStore = knownObjects.getObject("N" + targetNodeId);
-							mappedObject = objectFromStore != null
-								? objectFromStore
-								: map(possibleValueNode, concreteTargetNodeDescription, baseDescription, null, null, relationshipsFromResult, nodesFromResult);
-						}
-
-						if (relationshipDescription.hasRelationshipProperties()) {
-							Object relationshipProperties;
-							Neo4jPersistentEntity<?> relationshipPropertiesEntity = (Neo4jPersistentEntity<?>) relationshipDescription.getRelationshipPropertiesEntity();
-							if (fetchMore) {
-								relationshipProperties = map(possibleRelationship, relationshipPropertiesEntity, relationshipPropertiesEntity, mappedObject, relationshipDescription, relationshipsFromResult, nodesFromResult);
-							} else {
-								Object objectFromStore = knownObjects.getObject(IdentitySupport.getPrefixedElementId(possibleRelationship, relationshipDescription.getDirection().name()));
-								relationshipProperties = objectFromStore != null
-									? objectFromStore
-									: map(possibleRelationship, relationshipPropertiesEntity, relationshipPropertiesEntity, mappedObject, relationshipDescription, relationshipsFromResult, nodesFromResult);
+							// Reduce the amount of relationships in the candidate list.
+							// If this relationship got processed twice (OUTGOING, INCOMING), it is never needed again
+							// and therefor should not be in the list.
+							// Otherwise, for highly linked data it could potentially cause a StackOverflowError.
+							String direction = relationshipDescription.getDirection().name();
+							if (knownObjects.hasProcessedRelationshipCompletely("R" + direction + IdentitySupport.getElementId(possibleRelationship))) {
+								relationshipsFromResult.remove(possibleRelationship);
 							}
-							relationshipsAndProperties.add(relationshipProperties);
-							mappedObjectHandler.accept(possibleRelationship.type(), relationshipProperties);
-						} else {
-							mappedObjectHandler.accept(possibleRelationship.type(), mappedObject);
+							// If the target is the same(equal) node, get the related object from the cache.
+							// Avoiding the call to the map method also breaks an endless cycle of trying to finish
+							// the property population of _this_ object.
+							// The initial population will happen at the end of this mapping. This is sufficient because
+							// it only affects properties not changing the instance of the object.
+							Object mappedObject;
+							if (fetchMore) {
+								mappedObject = sourceNodeId != null && sourceNodeId.equals(targetNodeId)
+										? knownObjects.getObject("N" + sourceNodeId)
+										: map(possibleValueNode, concreteTargetNodeDescription, baseDescription, null, null, relationshipsFromResult, nodesFromResult);
+							} else {
+								Object objectFromStore = knownObjects.getObject("N" + targetNodeId);
+								mappedObject = objectFromStore != null
+										? objectFromStore
+										: map(possibleValueNode, concreteTargetNodeDescription, baseDescription, null, null, relationshipsFromResult, nodesFromResult);
+							}
+
+							if (relationshipDescription.hasRelationshipProperties()) {
+								Object relationshipProperties;
+								Neo4jPersistentEntity<?> relationshipPropertiesEntity = (Neo4jPersistentEntity<?>) relationshipDescription.getRelationshipPropertiesEntity();
+								if (fetchMore) {
+									relationshipProperties = map(possibleRelationship, relationshipPropertiesEntity, relationshipPropertiesEntity, mappedObject, relationshipDescription, relationshipsFromResult, nodesFromResult);
+								} else {
+									Object objectFromStore = knownObjects.getObject(IdentitySupport.getPrefixedElementId(possibleRelationship, relationshipDescription.getDirection().name()));
+									relationshipProperties = objectFromStore != null
+											? objectFromStore
+											: map(possibleRelationship, relationshipPropertiesEntity, relationshipPropertiesEntity, mappedObject, relationshipDescription, relationshipsFromResult, nodesFromResult);
+								}
+								relationshipsAndProperties.add(relationshipProperties);
+								mappedObjectHandler.accept(possibleRelationship.type(), relationshipProperties);
+							} else {
+								mappedObjectHandler.accept(possibleRelationship.type(), mappedObject);
+							}
+							relationshipsProcessed.add(possibleRelationship);
 						}
-						relationshipsProcessed.add(possibleRelationship);
 					}
+					allMatchingTypeRelationshipsInResult.removeAll(relationshipsProcessed);
 				}
-				allMatchingTypeRelationshipsInResult.removeAll(relationshipsProcessed);
 			}
 		} else if (!relationshipListEmptyOrNull) {
 			for (Value relatedEntity : list.asList(Function.identity())) {
