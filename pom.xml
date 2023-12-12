@@ -102,7 +102,7 @@
 		<maven.compiler.release>${java.version}</maven.compiler.release>
 		<mockito>${mockito.version}</mockito>
 		<mockito.version>4.4.0</mockito.version>
-		<neo4j-java-driver.version>5.13.0</neo4j-java-driver.version>
+		<neo4j-java-driver.version>5.15.0</neo4j-java-driver.version>
 		<neo4j-migrations.version>1.13.1</neo4j-migrations.version>
 		<neo4j.version>4.4.8</neo4j.version>
 		<objenesis.version>3.0.1</objenesis.version>
