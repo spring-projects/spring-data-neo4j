@@ -30,13 +30,15 @@
     <logger name="InboundMessageDispatcher" level="info"/>
 
     <logger name="org.springframework.data.neo4j.cypher" level="info"/>
-    <logger name="org.springframework.data.neo4j.cypher.performance" level="info"/>
-    <logger name="org.springframework.data.neo4j.cypher.hint" level="info"/>
+    <logger name="org.springframework.data.neo4j.cypher.performance" level="error"/>
+    <logger name="org.springframework.data.neo4j.cypher.hint" level="error"/>
     <logger name="org.springframework.data.neo4j.cypher.unrecognized" level="error"/>
     <logger name="org.springframework.data.neo4j.cypher.unsupported" level="error"/>
     <!--  if deprecation gets set to "warn" or finer, all id() deprecation will get logged  -->
     <logger name="org.springframework.data.neo4j.cypher.deprecation" level="error"/>
     <logger name="org.springframework.data.neo4j.cypher.generic" level="error"/>
+    <logger name="org.springframework.data.neo4j.cypher.security" level="error"/>
+    <logger name="org.springframework.data.neo4j.cypher.topology" level="error"/>
     <logger name="org.springframework.data.neo4j" level="info"/>
     <logger name="org.springframework.data.neo4j.test" level="info"/>
     <logger name="org.springframework.data.neo4j.repository.query.Neo4jQuerySupport" level="debug" />
