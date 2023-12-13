@@ -43,6 +43,8 @@ final class ResultSummaries {
 	private static final LogAccessor cypherUnsupportedNotificationLog = new LogAccessor(LogFactory.getLog("org.springframework.data.neo4j.cypher.unsupported"));
 	private static final LogAccessor cypherDeprecationNotificationLog = new LogAccessor(LogFactory.getLog("org.springframework.data.neo4j.cypher.deprecation"));
 	private static final LogAccessor cypherGenericNotificationLog = new LogAccessor(LogFactory.getLog("org.springframework.data.neo4j.cypher.generic"));
+	private static final LogAccessor cypherSecurityNotificationLog = new LogAccessor(LogFactory.getLog("org.springframework.data.neo4j.cypher.security"));
+	private static final LogAccessor cypherTopologyNotificationLog = new LogAccessor(LogFactory.getLog("org.springframework.data.neo4j.cypher.topology"));
 
 	/**
 	 * Does some post-processing on the giving result summary, especially logging all notifications
@@ -97,6 +99,12 @@ final class ResultSummaries {
 		}
 		if (category == NotificationCategory.UNRECOGNIZED) {
 			return cypherUnrecognizedNotificationLog;
+		}
+		if (category == NotificationCategory.SECURITY) {
+			return cypherSecurityNotificationLog;
+		}
+		if (category == NotificationCategory.TOPOLOGY) {
+			return cypherTopologyNotificationLog;
 		}
 		return Neo4jClient.cypherLog;
 	}
