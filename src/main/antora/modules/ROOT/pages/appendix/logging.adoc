@@ -11,3 +11,5 @@ To exclude or elevate some categories, the following loggers are in place:
 * `org.springframework.data.neo4j.cypher.unsupported`
 * `org.springframework.data.neo4j.cypher.deprecation`
 * `org.springframework.data.neo4j.cypher.generic`
+* `org.springframework.data.neo4j.cypher.security`
+* `org.springframework.data.neo4j.cypher.topology`
