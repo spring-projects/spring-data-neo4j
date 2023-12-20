@@ -41,6 +41,7 @@
 * xref:appendix/index.adoc[]
 ** xref:appendix/conversions.adoc[]
 ** xref:appendix/neo4j-client.adoc[]
+** xref:appendix/logging.adoc[]
 ** xref:appendix/query-creation.adoc[]
 ** xref:appendix/custom-queries.adoc[]
 ** xref:appendix/spatial-types.adoc[]
