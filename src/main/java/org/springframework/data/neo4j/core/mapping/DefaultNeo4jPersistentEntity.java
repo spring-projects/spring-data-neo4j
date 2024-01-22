@@ -265,7 +265,8 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 		if (this.isRelationshipPropertiesEntity()) {
 			Supplier<String> messageSupplier = () -> String.format(
 					"The class `%s` for the properties of a relationship "
-							+ "is missing a property for the generated, internal ID (`@Id @GeneratedValue Long id`) "
+							+ "is missing a property for the generated, internal ID (`@Id @GeneratedValue Long id` "
+							+ "or `@Id @GeneratedValue String id`) "
 							+ "which is needed for safely updating properties",
 					this.getUnderlyingClass().getName());
 			Assert.state(this.getIdDescription() != null && this.getIdDescription().isInternallyGeneratedId(), messageSupplier);

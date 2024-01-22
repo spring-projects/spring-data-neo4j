@@ -95,7 +95,7 @@ class Neo4jMappingContextTest {
 								Arrays.asList(IrrelevantSourceContainer.class, InvalidRelationshipPropertyContainer.class,
 										IrrelevantTargetContainer.class)));
 						schema.initialize();
-					}).withMessage("The class `org.springframework.data.neo4j.core.mapping.Neo4jMappingContextTest$InvalidRelationshipPropertyContainer` for the properties of a relationship is missing a property for the generated, internal ID (`@Id @GeneratedValue Long id`) which is needed for safely updating properties");
+					}).withMessage("The class `org.springframework.data.neo4j.core.mapping.Neo4jMappingContextTest$InvalidRelationshipPropertyContainer` for the properties of a relationship is missing a property for the generated, internal ID (`@Id @GeneratedValue Long id` or `@Id @GeneratedValue String id`) which is needed for safely updating properties");
 		}
 
 		@Test // GH-2214
@@ -107,7 +107,7 @@ class Neo4jMappingContextTest {
 						Arrays.asList(IrrelevantSourceContainer3.class, InvalidRelationshipPropertyContainer2.class,
 								IrrelevantTargetContainer.class)));
 				schema.initialize();
-			}).withMessage("The class `org.springframework.data.neo4j.core.mapping.Neo4jMappingContextTest$InvalidRelationshipPropertyContainer2` for the properties of a relationship is missing a property for the generated, internal ID (`@Id @GeneratedValue Long id`) which is needed for safely updating properties");
+			}).withMessage("The class `org.springframework.data.neo4j.core.mapping.Neo4jMappingContextTest$InvalidRelationshipPropertyContainer2` for the properties of a relationship is missing a property for the generated, internal ID (`@Id @GeneratedValue Long id` or `@Id @GeneratedValue String id`) which is needed for safely updating properties");
 		}
 
 		@Test // GH-2118
