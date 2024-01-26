@@ -1202,8 +1202,8 @@ public final class Neo4jTemplate implements
 				return NodesAndRelationshipsByIdStatementProvider.EMPTY;
 			}
 			// load first level relationships
-			final Set<String> relationshipIds = new HashSet<>();
-			final Set<String> relatedNodeIds = new HashSet<>();
+//			final Set<String> relationshipIds = new HashSet<>();
+			final Map<String, Set<String>> relationshipsToRelatedNodeIds = new HashMap<>();
 
 			for (RelationshipDescription relationshipDescription : entityMetaData.getRelationshipsInHierarchy(queryFragments::includeField)) {
 
@@ -1217,14 +1217,14 @@ public final class Neo4jTemplate implements
 						.bindAll(usedParameters)
 						.fetch()
 						.one()
-						.ifPresent(iterateAndMapNextLevel(relationshipIds, relatedNodeIds, relationshipDescription, PropertyPathWalkStep.empty()));
+						.ifPresent(iterateAndMapNextLevel(relationshipsToRelatedNodeIds, relationshipDescription, PropertyPathWalkStep.empty()));
 			}
 
-			return new NodesAndRelationshipsByIdStatementProvider(rootNodeIds, relationshipIds, relatedNodeIds, queryFragments, elementIdOrIdFunction);
+			return new NodesAndRelationshipsByIdStatementProvider(rootNodeIds, relationshipsToRelatedNodeIds.keySet(), relationshipsToRelatedNodeIds.values().stream().flatMap(Collection::stream).toList(), queryFragments, elementIdOrIdFunction);
 		}
 
-		private void iterateNextLevel(Collection<String> nodeIds, RelationshipDescription sourceRelationshipDescription, Set<String> relationshipIds,
-									  Set<String> relatedNodeIds, PropertyPathWalkStep currentPathStep) {
+		private void iterateNextLevel(Collection<String> nodeIds, RelationshipDescription sourceRelationshipDescription,
+									  Map<String, Set<String>> relationshipsToRelatedNodes, PropertyPathWalkStep currentPathStep) {
 
 			Neo4jPersistentEntity<?> target = (Neo4jPersistentEntity<?>) sourceRelationshipDescription.getTarget();
 
@@ -1258,32 +1258,42 @@ public final class Neo4jTemplate implements
 						.bindAll(Collections.singletonMap(Constants.NAME_OF_IDS, TemplateSupport.convertToLongIdOrStringElementId(nodeIds)))
 						.fetch()
 						.one()
-						.ifPresent(iterateAndMapNextLevel(relationshipIds, relatedNodeIds, relationshipDescription, nextPathStep));
+						.ifPresent(iterateAndMapNextLevel(relationshipsToRelatedNodes, relationshipDescription, nextPathStep));
 			}
 		}
 
 		@NonNull
-		private Consumer<Map<String, Object>> iterateAndMapNextLevel(Set<String> relationshipIds,
-																	 Set<String> relatedNodeIds,
+		private Consumer<Map<String, Object>> iterateAndMapNextLevel(Map<String, Set<String>> relationshipsToRelatedNodes,
 																	 RelationshipDescription relationshipDescription,
 																	 PropertyPathWalkStep currentPathStep) {
 
 			return record -> {
+
+				Map<String, Set<String>> relatedNodesVisited = new HashMap<>(relationshipsToRelatedNodes);
 				@SuppressWarnings("unchecked")
 				List<String> newRelationshipIds = ((List<Object>) record.get(Constants.NAME_OF_SYNTHESIZED_RELATIONS)).stream().map(TemplateSupport::convertIdOrElementIdToString).toList();
-				relationshipIds.addAll(newRelationshipIds);
-
 				@SuppressWarnings("unchecked")
-				List<String> newRelatedNodeIds = ((List<Object>) record.get(Constants.NAME_OF_SYNTHESIZED_RELATED_NODES)).stream().map(TemplateSupport::convertIdOrElementIdToString).toList();
+				Set<String> relatedIds = new HashSet<>(((List<Object>) record.get(Constants.NAME_OF_SYNTHESIZED_RELATED_NODES)).stream().map(TemplateSupport::convertIdOrElementIdToString).toList());
 
-				Set<String> relatedIds = new HashSet<>(newRelatedNodeIds);
 				// use this list to get down the road
 				// 1. remove already visited ones;
-				relatedIds.removeAll(relatedNodeIds);
-				relatedNodeIds.addAll(relatedIds);
+				// we don't know which id came with which node, so we need to assume that a relationshipId connects to all related nodes
+				for (String newRelationshipId : newRelationshipIds) {
+					relatedNodesVisited.put(newRelationshipId, relatedIds);
+					Set<String> knownRelatedNodesBefore = relationshipsToRelatedNodes.get(newRelationshipId);
+					if (knownRelatedNodesBefore != null) {
+						Set<String> mergedKnownRelatedNodes = new HashSet<>(knownRelatedNodesBefore);
+						// there are already existing nodes in there for this relationship
+						mergedKnownRelatedNodes.addAll(relatedIds);
+						relatedNodesVisited.put(newRelationshipId, mergedKnownRelatedNodes);
+						relatedIds.removeAll(knownRelatedNodesBefore);
+					}
+				}
+
+				relationshipsToRelatedNodes.putAll(relatedNodesVisited);
 				// 2. for the rest start the exploration
 				if (!relatedIds.isEmpty()) {
-					iterateNextLevel(relatedIds, relationshipDescription, relationshipIds, relatedNodeIds, currentPathStep);
+					iterateNextLevel(relatedIds, relationshipDescription, relationshipsToRelatedNodes, currentPathStep);
 				}
 			};
 		}
