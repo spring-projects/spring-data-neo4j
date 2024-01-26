@@ -720,8 +720,7 @@ public final class ReactiveNeo4jTemplate implements
 				Class<?> rootClass = entityMetaData.getUnderlyingClass();
 
 				Set<String> rootNodeIds = ctx.get("rootNodes");
-				Set<String> processedRelationshipIds = ctx.get("processedRelationships");
-				Set<String> processedNodeIds = ctx.get("processedNodes");
+				Map<String, Set<String>> relationshipsToRelatedNodeIds = ctx.get("relationshipsToRelatedNodeIds");
 				return Flux.fromIterable(entityMetaData.getRelationshipsInHierarchy(queryFragments::includeField))
 						.concatMap(relationshipDescription -> {
 
@@ -748,12 +747,11 @@ public final class ReactiveNeo4jTemplate implements
 									})
 									.expand(iterateAndMapNextLevel(relationshipDescription, queryFragments, rootClass, PropertyPathWalkStep.empty()));
 						})
-						.then(Mono.fromSupplier(() -> new NodesAndRelationshipsByIdStatementProvider(rootNodeIds, processedRelationshipIds, processedNodeIds, queryFragments, elementIdOrIdFunction)));
+						.then(Mono.fromSupplier(() -> new NodesAndRelationshipsByIdStatementProvider(rootNodeIds, relationshipsToRelatedNodeIds.keySet(), relationshipsToRelatedNodeIds.values().stream().flatMap(Collection::stream).toList(), queryFragments, elementIdOrIdFunction)));
 			})
 			.contextWrite(ctx -> ctx
 					.put("rootNodes", ConcurrentHashMap.newKeySet())
-					.put("processedNodes", ConcurrentHashMap.newKeySet())
-					.put("processedRelationships", ConcurrentHashMap.newKeySet()));
+					.put("relationshipsToRelatedNodeIds", new ConcurrentHashMap<>()));
 
 	}
 
@@ -812,22 +810,29 @@ public final class ReactiveNeo4jTemplate implements
 
 		return newRelationshipAndRelatedNodeIds ->
 			Flux.deferContextual(ctx -> {
-				Set<String> relationshipIds = ctx.get("processedRelationships");
-				Set<String> processedNodeIds = ctx.get("processedNodes");
+				Map<String, Set<String>> relationshipsToRelatedNodeIds = ctx.get("relationshipsToRelatedNodeIds");
+				Map<String, Set<String>> relatedNodesVisited = new HashMap<>(relationshipsToRelatedNodeIds);
 
 				Collection<String> newRelationshipIds = newRelationshipAndRelatedNodeIds.getT1();
-				Set<String> tmpProcessedRels = ConcurrentHashMap.newKeySet(newRelationshipIds.size());
-				tmpProcessedRels.addAll(newRelationshipIds);
-				tmpProcessedRels.removeAll(relationshipIds);
-				relationshipIds.addAll(newRelationshipIds);
 
 				Collection<String> newRelatedNodeIds = newRelationshipAndRelatedNodeIds.getT2();
-				Set<String> tmpProcessedNodes = ConcurrentHashMap.newKeySet(newRelatedNodeIds.size());
-				tmpProcessedNodes.addAll(newRelatedNodeIds);
-				tmpProcessedNodes.removeAll(processedNodeIds);
-				processedNodeIds.addAll(newRelatedNodeIds);
+				Set<String> relatedIds = ConcurrentHashMap.newKeySet(newRelatedNodeIds.size());
+				relatedIds.addAll(newRelatedNodeIds);
 
-				if (tmpProcessedRels.isEmpty() && tmpProcessedNodes.isEmpty()) {
+				for (String newRelationshipId : newRelationshipIds) {
+					relatedNodesVisited.put(newRelationshipId, relatedIds);
+					Set<String> knownRelatedNodesBefore = relationshipsToRelatedNodeIds.get(newRelationshipId);
+					if (knownRelatedNodesBefore != null) {
+						Set<String> mergedKnownRelatedNodes = new HashSet<>(knownRelatedNodesBefore);
+						// there are already existing nodes in there for this relationship
+						mergedKnownRelatedNodes.addAll(relatedIds);
+						relatedNodesVisited.put(newRelationshipId, mergedKnownRelatedNodes);
+						relatedIds.removeAll(knownRelatedNodesBefore);
+					}
+				}
+				relationshipsToRelatedNodeIds.putAll(relatedNodesVisited);
+
+				if (relatedIds.isEmpty()) {
 					return Mono.empty();
 				}
 
