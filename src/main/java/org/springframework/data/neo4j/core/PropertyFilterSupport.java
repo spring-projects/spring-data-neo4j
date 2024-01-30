@@ -153,8 +153,13 @@ public final class PropertyFilterSupport {
 						break;
 					}
 
-					addPropertiesFrom(domainType, returnedType, factory, filteredProperties,
-							nextProjectionPathProcessor, mappingContext);
+					if (projectionPathProcessor.typeInformation.getActualType().getType().equals(nextProjectionPathProcessor.typeInformation.getActualType().getType())
+						|| (!projectionPathProcessor.typeInformation.isCollectionLike() && !projectionPathProcessor.typeInformation.isMap() && projectionPathProcessor.typeInformation.getType().equals(nextProjectionPathProcessor.typeInformation.getType()))) {
+						filteredProperties.add(new PropertyFilter.ProjectedPath(propertyPath, true));
+					} else {
+						addPropertiesFrom(domainType, returnedType, factory, filteredProperties,
+								nextProjectionPathProcessor, mappingContext);
+					}
 				}
 			} else {
 				// An open projection at this place needs to get replaced with the matching (real) entity
