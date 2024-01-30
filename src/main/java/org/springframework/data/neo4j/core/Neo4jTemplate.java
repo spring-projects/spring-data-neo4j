@@ -1195,7 +1195,6 @@ public final class Neo4jTemplate implements
 				return NodesAndRelationshipsByIdStatementProvider.EMPTY;
 			}
 			// load first level relationships
-//			final Set<String> relationshipIds = new HashSet<>();
 			final Map<String, Set<String>> relationshipsToRelatedNodeIds = new HashMap<>();
 
 			for (RelationshipDescription relationshipDescription : entityMetaData.getRelationshipsInHierarchy(queryFragments::includeField)) {

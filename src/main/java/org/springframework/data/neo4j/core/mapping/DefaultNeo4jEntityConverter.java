@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.BiConsumer;
@@ -334,6 +335,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 
 			// save final state of the bean
 			knownObjects.storeObject(internalId, bean);
+			knownObjects.mappedWithQueryResult(internalId, queryResult);
 			return bean;
 		};
 
@@ -342,19 +344,34 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 		if (mappedObject == null) {
 			mappedObject = mappedObjectSupplier.get();
 			knownObjects.storeObject(internalId, mappedObject);
-		} else if (knownObjects.alreadyMappedInPreviousRecord(internalId)) {
-			// If the object were created in a run before, it _could_ have missing relationships
-			// (e.g. due to incomplete fetching by a custom query)
-			// in such cases we will add the additional data from the next record.
+			knownObjects.mappedWithQueryResult(internalId, queryResult);
+		} else if (knownObjects.alreadyMappedInPreviousRecord(internalId) || hasMoreFields(queryResult.asMap(), knownObjects.getQueryResultsFor(internalId))) {
+			// If the object were created in a run before or from a different path that represents another projection,
+			// it _could_ have missing relationships and properties.
+			// In such cases, we will add the additional data from the next record.
 			// This can and should only work for
-			// 1. mutable owning types
+			// 1. Mutable owning types
 			// AND (!!!)
-			// 2. mutable target types
+			// 2. Mutable target types
 			// because we cannot just create new instances
 			populateProperties(queryResult, (Neo4jPersistentEntity<ET>) genericTargetNodeDescription, nodeDescription, internalId, mappedObject, lastMappedEntity, relationshipsFromResult, nodesFromResult, true);
 		}
 		// due to a needed side effect in `populateProperties`, the entity might have been changed
 		return getMostCurrentInstance(internalId, mappedObject);
+	}
+
+	private boolean hasMoreFields(Map<String, Object> currentQueryResult, Set<Map<String, Object>> savedQueryResults) {
+		if (savedQueryResults.isEmpty()) {
+			return true;
+		}
+		Set<String> currentFields = new HashSet<>(currentQueryResult.keySet());
+		Set<String> alreadyProcessedFields = new HashSet<>();
+
+		for (Map<String, Object> savedQueryResult : savedQueryResults) {
+			alreadyProcessedFields.addAll(savedQueryResult.keySet());
+		}
+		currentFields.removeAll(alreadyProcessedFields);
+		return !currentFields.isEmpty();
 	}
 
 	@Nullable
@@ -383,21 +400,19 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 		Predicate<Neo4jPersistentProperty> isConstructorParameter = concreteNodeDescription
 				.getInstanceCreatorMetadata()::isCreatorParameter;
 
-		// if the object were mapped before, we assume that at least all properties are populated
-		if (!objectAlreadyMapped) {
-			boolean isKotlinType = KotlinDetector.isKotlinType(concreteNodeDescription.getType());
-			// Fill simple properties
-			PropertyHandler<Neo4jPersistentProperty> handler = populateFrom(queryResult, propertyAccessor,
-					isConstructorParameter, nodeDescriptionAndLabels.getDynamicLabels(), lastMappedEntity, isKotlinType);
-			PropertyHandlerSupport.of(concreteNodeDescription).doWithProperties(handler);
-		}
+		boolean isKotlinType = KotlinDetector.isKotlinType(concreteNodeDescription.getType());
+		// Fill simple properties
+		PropertyHandler<Neo4jPersistentProperty> handler = populateFrom(queryResult, propertyAccessor,
+				isConstructorParameter, nodeDescriptionAndLabels.getDynamicLabels(), lastMappedEntity, isKotlinType, objectAlreadyMapped);
+		PropertyHandlerSupport.of(concreteNodeDescription).doWithProperties(handler);
 		// in a cyclic graph / with bidirectional relationships, we could end up in a state in which we
 		// reference the start again. Because it is getting still constructed, it won't be in the knownObjects
 		// store unless we temporarily put it there.
 		knownObjects.storeObject(internalId, propertyAccessor.getBean());
+		knownObjects.mappedWithQueryResult(internalId, queryResult);
 
 		AssociationHandlerSupport.of(concreteNodeDescription).doWithAssociations(
-				populateFrom(queryResult, baseNodeDescription, propertyAccessor, isConstructorParameter, objectAlreadyMapped, relationshipsFromResult, nodesFromResult));
+				populateFrom(queryResult, baseNodeDescription, propertyAccessor, isConstructorParameter, objectAlreadyMapped, relationshipsFromResult, nodesFromResult, internalId));
 	}
 
 	@NonNull
@@ -499,7 +514,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 
 	private PropertyHandler<Neo4jPersistentProperty> populateFrom(MapAccessor queryResult,
 			  PersistentPropertyAccessor<?> propertyAccessor, Predicate<Neo4jPersistentProperty> isConstructorParameter,
-			  Collection<String> surplusLabels, @Nullable Object targetNode, boolean ownerIsKotlinType) {
+			  Collection<String> surplusLabels, @Nullable Object targetNode, boolean ownerIsKotlinType, boolean objectAlreadyMapped) {
 
 		return property -> {
 			if (isConstructorParameter.test(property)) {
@@ -507,14 +522,17 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 			}
 
 			TypeInformation<?> typeInformation = property.getTypeInformation();
-			if (property.isDynamicLabels()) {
-				propertyAccessor.setProperty(property,
-						createDynamicLabelsProperty(typeInformation, surplusLabels));
-			} else if (property.isAnnotationPresent(TargetNode.class)) {
-				if (queryResult instanceof Relationship) {
-					propertyAccessor.setProperty(property, targetNode);
+			if (!objectAlreadyMapped) {
+				if (property.isDynamicLabels()) {
+					propertyAccessor.setProperty(property,
+							createDynamicLabelsProperty(typeInformation, surplusLabels));
+				} else if (property.isAnnotationPresent(TargetNode.class)) {
+					if (queryResult instanceof Relationship) {
+						propertyAccessor.setProperty(property, targetNode);
+					}
 				}
-			} else {
+			}
+			if (!property.isDynamicLabels() && !property.isAnnotationPresent(TargetNode.class)) {
 				Object value = conversionService.readValue(extractValueOf(property, queryResult), typeInformation, property.getOptionalConverter());
 				if (value != null) {
 					Class<?> rawType = typeInformation.getType();
@@ -532,7 +550,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 
 	private AssociationHandler<Neo4jPersistentProperty> populateFrom(MapAccessor queryResult, NodeDescription<?> baseDescription,
 			PersistentPropertyAccessor<?> propertyAccessor, Predicate<Neo4jPersistentProperty> isConstructorParameter,
-		    boolean objectAlreadyMapped, Collection<Relationship> relationshipsFromResult, Collection<Node> nodesFromResult) {
+		    boolean objectAlreadyMapped, Collection<Relationship> relationshipsFromResult, Collection<Node> nodesFromResult, String internalId) {
 
 		return association -> {
 
@@ -555,15 +573,15 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 
 			boolean propertyValueNotNull = propertyValue != null;
 
-			boolean populatedCollection = persistentProperty.isCollectionLike()
+			boolean populatedCollection = objectAlreadyMapped && persistentProperty.isCollectionLike()
 					&& propertyValueNotNull
 					&& !((Collection<?>) propertyValue).isEmpty();
 
-			boolean populatedMap = persistentProperty.isMap()
+			boolean populatedMap = objectAlreadyMapped && persistentProperty.isMap()
 					&& propertyValueNotNull
 					&& !((Map<?, ?>) propertyValue).isEmpty();
 
-			boolean populatedScalarValue = !persistentProperty.isCollectionLike() && !persistentProperty.isMap()
+			boolean populatedScalarValue = objectAlreadyMapped && !persistentProperty.isCollectionLike() && !persistentProperty.isMap()
 					&& propertyValueNotNull;
 
 			if (populatedCollection) {
@@ -592,6 +610,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 
 			createInstanceOfRelationships(persistentProperty, queryResult, (RelationshipDescription) association, baseDescription, relationshipsFromResult, nodesFromResult)
 					.ifPresent(value -> propertyAccessor.setProperty(persistentProperty, value));
+
 		};
 	}
 
@@ -903,6 +922,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 		private final Set<String> idsInCreation = new HashSet<>();
 
 		private final Map<String, Integer> processedRelationships = new HashMap<>();
+		private final Map<String, Set<Map<String, Object>>> mappedQueryResults = new HashMap<>();
 
 		private void storeObject(@Nullable String internalId, Object object) {
 			if (internalId == null) {
@@ -1028,6 +1048,25 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 		private void nextRecord() {
 			previousRecords.addAll(internalCurrentRecord.keySet());
 			internalCurrentRecord.clear();
+		}
+
+		private void mappedWithQueryResult(String internalId, MapAccessor queryResult) {
+			try {
+				write.lock();
+				mappedQueryResults.computeIfAbsent(internalId, id -> ConcurrentHashMap.newKeySet())
+						.add(queryResult.asMap());
+			} finally {
+				write.unlock();
+			}
+		}
+
+		private Set<Map<String, Object>> getQueryResultsFor(String internalId) {
+			try {
+				read.lock();
+				return mappedQueryResults.get(internalId);
+			} finally {
+				read.unlock();
+			}
 		}
 	}
 }
