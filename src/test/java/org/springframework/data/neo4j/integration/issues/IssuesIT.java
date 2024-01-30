@@ -145,6 +145,8 @@ import org.springframework.data.neo4j.integration.issues.gh2639.ProgrammingLangu
 import org.springframework.data.neo4j.integration.issues.gh2639.Sales;
 import org.springframework.data.neo4j.integration.issues.gh2819.GH2819Model;
 import org.springframework.data.neo4j.integration.issues.gh2819.GH2819Repository;
+import org.springframework.data.neo4j.integration.issues.gh2858.GH2858;
+import org.springframework.data.neo4j.integration.issues.gh2858.GH2858Repository;
 import org.springframework.data.neo4j.integration.issues.qbe.A;
 import org.springframework.data.neo4j.integration.issues.qbe.ARepository;
 import org.springframework.data.neo4j.integration.issues.qbe.B;
@@ -1121,6 +1123,42 @@ class IssuesIT extends TestBase {
 		var parentC = parentB.getParentC();
 		assertThat(parentC).isNotNull();
 		assertThat(parentC.getName()).isEqualTo("parentC");
+
+	}
+
+	@Test
+	@Tag("GH-2858")
+	void hydrateProjectionReachableViaMultiplePaths(@Autowired GH2858Repository repository) {
+		GH2858 entity = new GH2858();
+		entity.name = "rootEntity";
+
+		GH2858 friend1 = new GH2858();
+		friend1.name = "friend1";
+
+		GH2858 friendAndRelative = new GH2858();
+		friendAndRelative.name = "friendAndRelative";
+
+		// root -> friend1 -> friendAndRelative
+		//   \                   /|
+		//    -------------------
+		friend1.friends = List.of(friendAndRelative);
+		entity.relatives = List.of(friendAndRelative);
+		entity.friends = List.of(friend1);
+
+		GH2858 savedEntity = repository.save(entity);
+
+		GH2858.GH2858Projection projection = repository.findOneByName(savedEntity.name);
+
+		assertThat(projection.getFriends()).hasSize(1);
+		assertThat(projection.getRelatives()).hasSize(1);
+
+		GH2858.GH2858Projection.Friend loadedFriend = projection.getFriends().get(0);
+		assertThat(loadedFriend.getName()).isEqualTo("friend1");
+		assertThat(loadedFriend.getFriends()).hasSize(1);
+		GH2858.GH2858Projection.KnownPerson friendOfFriend = loadedFriend.getFriends().get(0);
+		assertThat(friendOfFriend.getName()).isEqualTo("friendAndRelative");
+
+		assertThat(projection.getRelatives().get(0).getName()).isEqualTo(friendOfFriend.getName());
 
 	}
 
