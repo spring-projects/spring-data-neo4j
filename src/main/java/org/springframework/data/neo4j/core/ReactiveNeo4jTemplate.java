@@ -15,15 +15,70 @@
  */
 package org.springframework.data.neo4j.core;
 
-import static org.neo4j.cypherdsl.core.Cypher.anyNode;
-import static org.neo4j.cypherdsl.core.Cypher.asterisk;
-import static org.neo4j.cypherdsl.core.Cypher.parameter;
-
+import org.apache.commons.logging.LogFactory;
+import org.apiguardian.api.API;
+import org.neo4j.cypherdsl.core.Condition;
+import org.neo4j.cypherdsl.core.Cypher;
 import org.neo4j.cypherdsl.core.FunctionInvocation;
+import org.neo4j.cypherdsl.core.Functions;
 import org.neo4j.cypherdsl.core.Named;
+import org.neo4j.cypherdsl.core.Node;
+import org.neo4j.cypherdsl.core.Statement;
+import org.neo4j.cypherdsl.core.renderer.Configuration;
+import org.neo4j.cypherdsl.core.renderer.Renderer;
+import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
+import org.neo4j.driver.types.Entity;
+import org.neo4j.driver.types.MapAccessor;
+import org.neo4j.driver.types.TypeSystem;
+import org.reactivestreams.Publisher;
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanClassLoaderAware;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.core.log.LogAccessor;
+import org.springframework.dao.IncorrectResultSizeDataAccessException;
+import org.springframework.dao.OptimisticLockingFailureException;
+import org.springframework.data.mapping.Association;
+import org.springframework.data.mapping.PersistentPropertyAccessor;
+import org.springframework.data.mapping.PropertyPath;
+import org.springframework.data.mapping.callback.ReactiveEntityCallbacks;
+import org.springframework.data.neo4j.core.TemplateSupport.FilteredBinderFunction;
+import org.springframework.data.neo4j.core.TemplateSupport.NodesAndRelationshipsByIdStatementProvider;
+import org.springframework.data.neo4j.core.mapping.AssociationHandlerSupport;
+import org.springframework.data.neo4j.core.mapping.Constants;
+import org.springframework.data.neo4j.core.mapping.CreateRelationshipStatementHolder;
+import org.springframework.data.neo4j.core.mapping.CypherGenerator;
+import org.springframework.data.neo4j.core.mapping.DtoInstantiatingConverter;
+import org.springframework.data.neo4j.core.mapping.EntityFromDtoInstantiatingConverter;
+import org.springframework.data.neo4j.core.mapping.EntityInstanceWithSource;
 import org.springframework.data.neo4j.core.mapping.IdDescription;
+import org.springframework.data.neo4j.core.mapping.IdentitySupport;
+import org.springframework.data.neo4j.core.mapping.MappingSupport;
+import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
+import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
+import org.springframework.data.neo4j.core.mapping.Neo4jPersistentProperty;
+import org.springframework.data.neo4j.core.mapping.NestedRelationshipContext;
+import org.springframework.data.neo4j.core.mapping.NestedRelationshipProcessingStateMachine;
+import org.springframework.data.neo4j.core.mapping.NestedRelationshipProcessingStateMachine.ProcessState;
+import org.springframework.data.neo4j.core.mapping.NodeDescription;
+import org.springframework.data.neo4j.core.mapping.PropertyFilter;
+import org.springframework.data.neo4j.core.mapping.RelationshipDescription;
 import org.springframework.data.neo4j.core.mapping.SpringDataCypherDsl;
+import org.springframework.data.neo4j.core.mapping.callback.ReactiveEventSupport;
+import org.springframework.data.neo4j.core.schema.TargetNode;
+import org.springframework.data.neo4j.repository.query.QueryFragments;
+import org.springframework.data.neo4j.repository.query.QueryFragmentsAndParameters;
+import org.springframework.data.projection.ProjectionFactory;
+import org.springframework.data.projection.ProjectionInformation;
+import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
+import org.springframework.data.util.TypeInformation;
+import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
+import org.springframework.transaction.ReactiveTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.reactive.TransactionalOperator;
+import org.springframework.util.Assert;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.util.function.Tuple2;
@@ -49,62 +104,9 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import org.apache.commons.logging.LogFactory;
-import org.apiguardian.api.API;
-import org.neo4j.cypherdsl.core.Condition;
-import org.neo4j.cypherdsl.core.Cypher;
-import org.neo4j.cypherdsl.core.Functions;
-import org.neo4j.cypherdsl.core.Node;
-import org.neo4j.cypherdsl.core.Statement;
-import org.neo4j.cypherdsl.core.renderer.Configuration;
-import org.neo4j.cypherdsl.core.renderer.Renderer;
-import org.neo4j.driver.Value;
-import org.neo4j.driver.types.Entity;
-import org.neo4j.driver.types.MapAccessor;
-import org.neo4j.driver.types.TypeSystem;
-import org.reactivestreams.Publisher;
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.BeanClassLoaderAware;
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.BeanFactoryAware;
-import org.springframework.core.log.LogAccessor;
-import org.springframework.dao.IncorrectResultSizeDataAccessException;
-import org.springframework.dao.OptimisticLockingFailureException;
-import org.springframework.data.mapping.Association;
-import org.springframework.data.mapping.PersistentPropertyAccessor;
-import org.springframework.data.mapping.PropertyPath;
-import org.springframework.data.mapping.callback.ReactiveEntityCallbacks;
-import org.springframework.data.neo4j.core.TemplateSupport.FilteredBinderFunction;
-import org.springframework.data.neo4j.core.TemplateSupport.NodesAndRelationshipsByIdStatementProvider;
-import org.springframework.data.neo4j.core.mapping.AssociationHandlerSupport;
-import org.springframework.data.neo4j.core.mapping.Constants;
-import org.springframework.data.neo4j.core.mapping.CreateRelationshipStatementHolder;
-import org.springframework.data.neo4j.core.mapping.CypherGenerator;
-import org.springframework.data.neo4j.core.mapping.DtoInstantiatingConverter;
-import org.springframework.data.neo4j.core.mapping.EntityFromDtoInstantiatingConverter;
-import org.springframework.data.neo4j.core.mapping.EntityInstanceWithSource;
-import org.springframework.data.neo4j.core.mapping.IdentitySupport;
-import org.springframework.data.neo4j.core.mapping.MappingSupport;
-import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
-import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
-import org.springframework.data.neo4j.core.mapping.Neo4jPersistentProperty;
-import org.springframework.data.neo4j.core.mapping.NestedRelationshipContext;
-import org.springframework.data.neo4j.core.mapping.NestedRelationshipProcessingStateMachine;
-import org.springframework.data.neo4j.core.mapping.NestedRelationshipProcessingStateMachine.ProcessState;
-import org.springframework.data.neo4j.core.mapping.NodeDescription;
-import org.springframework.data.neo4j.core.mapping.PropertyFilter;
-import org.springframework.data.neo4j.core.mapping.RelationshipDescription;
-import org.springframework.data.neo4j.core.mapping.callback.ReactiveEventSupport;
-import org.springframework.data.neo4j.core.schema.TargetNode;
-import org.springframework.data.neo4j.repository.query.QueryFragments;
-import org.springframework.data.neo4j.repository.query.QueryFragmentsAndParameters;
-import org.springframework.data.projection.ProjectionFactory;
-import org.springframework.data.projection.ProjectionInformation;
-import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
-import org.springframework.data.util.TypeInformation;
-import org.springframework.lang.NonNull;
-import org.springframework.lang.Nullable;
-import org.springframework.util.Assert;
+import static org.neo4j.cypherdsl.core.Cypher.anyNode;
+import static org.neo4j.cypherdsl.core.Cypher.asterisk;
+import static org.neo4j.cypherdsl.core.Cypher.parameter;
 
 /**
  * @author Michael J. Simons
@@ -128,6 +130,17 @@ public final class ReactiveNeo4jTemplate implements
 	private final Neo4jMappingContext neo4jMappingContext;
 
 	private final CypherGenerator cypherGenerator;
+
+	private static final TransactionDefinition readOnlyTransactionDefinition = new TransactionDefinition() {
+		@Override
+		public boolean isReadOnly() {
+			return true;
+		}
+	};
+
+	private TransactionalOperator transactionalOperatorReadOnly;
+
+	private TransactionalOperator transactionalOperator;
 
 	private ClassLoader beanClassLoader;
 
@@ -183,13 +196,13 @@ public final class ReactiveNeo4jTemplate implements
 	public Mono<Long> count(String cypherQuery, Map<String, Object> parameters) {
 		PreparedQuery<Long> preparedQuery = PreparedQuery.queryFor(Long.class).withCypherQuery(cypherQuery)
 				.withParameters(parameters).build();
-		return this.toExecutableQuery(preparedQuery).flatMap(ExecutableQuery::getSingleResult);
+		return transactionalOperatorReadOnly.transactional(this.toExecutableQuery(preparedQuery).flatMap(ExecutableQuery::getSingleResult));
 	}
 
 	@Override
 	public <T> Flux<T> findAll(Class<T> domainType) {
 
-		return doFindAll(domainType, null);
+		return transactionalOperatorReadOnly.transactional(doFindAll(domainType, null));
 	}
 
 	private <T> Flux<T> doFindAll(Class<T> domainType, @Nullable Class<?> resultType) {
@@ -202,34 +215,34 @@ public final class ReactiveNeo4jTemplate implements
 	@Override
 	public <T> Flux<T> findAll(Statement statement, Class<T> domainType) {
 
-		return createExecutableQuery(domainType, statement).flatMapMany(ExecutableQuery::getResults);
+		return transactionalOperatorReadOnly.transactional(createExecutableQuery(domainType, statement).flatMapMany(ExecutableQuery::getResults));
 	}
 
 	@Override
 	public <T> Flux<T> findAll(Statement statement, Map<String, Object> parameters, Class<T> domainType) {
 
-		return createExecutableQuery(domainType, null, statement, parameters).flatMapMany(ExecutableQuery::getResults);
+		return transactionalOperatorReadOnly.transactional(createExecutableQuery(domainType, null, statement, parameters).flatMapMany(ExecutableQuery::getResults));
 	}
 
 	@Override
 	public <T> Mono<T> findOne(Statement statement, Map<String, Object> parameters, Class<T> domainType) {
 
-		return createExecutableQuery(domainType, null, statement, parameters).flatMap(ExecutableQuery::getSingleResult);
+		return transactionalOperatorReadOnly.transactional(createExecutableQuery(domainType, null, statement, parameters).flatMap(ExecutableQuery::getSingleResult));
 	}
 
 	@Override
 	public <T> Flux<T> findAll(String cypherQuery, Class<T> domainType) {
-		return createExecutableQuery(domainType, cypherQuery).flatMapMany(ExecutableQuery::getResults);
+		return transactionalOperatorReadOnly.transactional(createExecutableQuery(domainType, cypherQuery).flatMapMany(ExecutableQuery::getResults));
 	}
 
 	@Override
 	public <T> Flux<T> findAll(String cypherQuery, Map<String, Object> parameters, Class<T> domainType) {
-		return createExecutableQuery(domainType, null, cypherQuery, parameters).flatMapMany(ExecutableQuery::getResults);
+		return transactionalOperatorReadOnly.transactional(createExecutableQuery(domainType, null, cypherQuery, parameters).flatMapMany(ExecutableQuery::getResults));
 	}
 
 	@Override
 	public <T> Mono<T> findOne(String cypherQuery, Map<String, Object> parameters, Class<T> domainType) {
-		return createExecutableQuery(domainType, null, cypherQuery, parameters).flatMap(ExecutableQuery::getSingleResult);
+		return transactionalOperatorReadOnly.transactional(createExecutableQuery(domainType, null, cypherQuery, parameters).flatMap(ExecutableQuery::getSingleResult));
 	}
 
 	@Override
@@ -253,8 +266,8 @@ public final class ReactiveNeo4jTemplate implements
 			}
 
 			intermediaResults = switch (fetchType) {
-				case ALL -> executableQuery.flatMapMany(ExecutableQuery::getResults);
-				case ONE -> executableQuery.flatMap(ExecutableQuery::getSingleResult).flux();
+				case ALL ->	transactionalOperatorReadOnly.transactional(executableQuery.flatMapMany(ExecutableQuery::getResults));
+				case ONE -> transactionalOperatorReadOnly.transactional(executableQuery.flatMap(ExecutableQuery::getSingleResult).flux());
 			};
 		}
 
@@ -290,10 +303,10 @@ public final class ReactiveNeo4jTemplate implements
 
 		Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getRequiredPersistentEntity(domainType);
 
-		return createExecutableQuery(domainType, null,
+		return transactionalOperatorReadOnly.transactional(createExecutableQuery(domainType, null,
 				QueryFragmentsAndParameters.forFindById(entityMetaData,
 						convertIdValues(entityMetaData.getRequiredIdProperty(), id)))
-				.flatMap(ExecutableQuery::getSingleResult);
+				.flatMap(ExecutableQuery::getSingleResult));
 	}
 
 	@Override
@@ -301,10 +314,10 @@ public final class ReactiveNeo4jTemplate implements
 
 		Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getRequiredPersistentEntity(domainType);
 
-		return createExecutableQuery(domainType, null,
+		return transactionalOperatorReadOnly.transactional(createExecutableQuery(domainType, null,
 						QueryFragmentsAndParameters.forFindByAllId(entityMetaData,
 						convertIdValues(entityMetaData.getRequiredIdProperty(), ids)))
-				.flatMapMany(ExecutableQuery::getResults);
+				.flatMapMany(ExecutableQuery::getResults));
 	}
 
 	@Override
@@ -333,7 +346,7 @@ public final class ReactiveNeo4jTemplate implements
 	@Override
 	public <T> Mono<T> save(T instance) {
 
-		return saveImpl(instance, Collections.emptySet(), null);
+		return transactionalOperator.transactional(saveImpl(instance, Collections.emptySet(), null));
 	}
 
 	@Override
@@ -343,7 +356,7 @@ public final class ReactiveNeo4jTemplate implements
 			return null;
 		}
 
-		return saveImpl(instance, TemplateSupport.computeIncludedPropertiesFromPredicate(this.neo4jMappingContext, instance.getClass(), includeProperty), null);
+		return transactionalOperator.transactional(saveImpl(instance, TemplateSupport.computeIncludedPropertiesFromPredicate(this.neo4jMappingContext, instance.getClass(), includeProperty), null));
 	}
 
 	@Override
@@ -364,7 +377,7 @@ public final class ReactiveNeo4jTemplate implements
 		Collection<PropertyFilter.ProjectedPath> pps = PropertyFilterSupport.addPropertiesFrom(instance.getClass(), resultType,
 				localProjectionFactory, neo4jMappingContext);
 
-		Mono<T> savingPublisher = saveImpl(instance, pps, null);
+		Mono<T> savingPublisher = transactionalOperator.transactional(saveImpl(instance, pps, null));
 
 		if (!resultType.isInterface()) {
 			return savingPublisher.map(savedInstance -> {
@@ -382,8 +395,8 @@ public final class ReactiveNeo4jTemplate implements
 			Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getRequiredPersistentEntity(savedInstance.getClass());
 			Neo4jPersistentProperty idProperty = entityMetaData.getIdProperty();
 			PersistentPropertyAccessor<T> propertyAccessor = entityMetaData.getPropertyAccessor(savedInstance);
-			return this.findById(propertyAccessor.getProperty(idProperty), savedInstance.getClass())
-					.map(loadedValue -> localProjectionFactory.createProjection(resultType, loadedValue));
+			return transactionalOperatorReadOnly.transactional(this.findById(propertyAccessor.getProperty(idProperty), savedInstance.getClass())
+					.map(loadedValue -> localProjectionFactory.createProjection(resultType, loadedValue)));
 		});
 	}
 
@@ -401,14 +414,14 @@ public final class ReactiveNeo4jTemplate implements
 		NestedRelationshipProcessingStateMachine stateMachine = new NestedRelationshipProcessingStateMachine(neo4jMappingContext);
 		EntityFromDtoInstantiatingConverter<T> converter = new EntityFromDtoInstantiatingConverter<>(domainType, neo4jMappingContext);
 		return Flux.fromIterable(instances)
-			.concatMap(instance -> {
-				T domainObject = converter.convert(instance);
+				.concatMap(instance -> {
+					T domainObject = converter.convert(instance);
 
-				@SuppressWarnings("unchecked")
-				Mono<R> result = saveImpl(domainObject, pps, stateMachine)
-						.map(savedEntity -> (R) new DtoInstantiatingConverter(resultType, neo4jMappingContext).convertDirectly(savedEntity));
-				return result;
-			});
+					@SuppressWarnings("unchecked")
+					Mono<R> result = transactionalOperator.transactional(saveImpl(domainObject, pps, stateMachine)
+							.map(savedEntity -> (R) new DtoInstantiatingConverter(resultType, neo4jMappingContext).convertDirectly(savedEntity)));
+					return result;
+				});
 	}
 
 	private <T> Mono<T> saveImpl(T instance, @Nullable Collection<PropertyFilter.ProjectedPath> includedProperties, @Nullable NestedRelationshipProcessingStateMachine stateMachine) {
@@ -493,13 +506,13 @@ public final class ReactiveNeo4jTemplate implements
 
 	@Override
 	public <T> Flux<T> saveAll(Iterable<T> instances) {
-		return saveAllImpl(instances, Collections.emptySet(), null);
+		return transactionalOperator.transactional(saveAllImpl(instances, Collections.emptySet(), null));
 	}
 
 	@Override
 	public <T> Flux<T> saveAllAs(Iterable<T> instances, BiPredicate<PropertyPath, Neo4jPersistentProperty> includeProperty) {
 
-		return saveAllImpl(instances, null, includeProperty);
+		return transactionalOperator.transactional(saveAllImpl(instances, null, includeProperty));
 	}
 
 	@Override
@@ -527,7 +540,7 @@ public final class ReactiveNeo4jTemplate implements
 		Collection<PropertyFilter.ProjectedPath> pps = PropertyFilterSupport.addPropertiesFrom(commonElementType, resultType,
 				localProjectionFactory, neo4jMappingContext);
 
-		Flux<T> savedInstances = saveAllImpl(instances, pps, null);
+		Flux<T> savedInstances = transactionalOperator.transactional(saveAllImpl(instances, pps, null));
 		if (projectionInformation.isClosed()) {
 			return savedInstances.map(instance -> localProjectionFactory.createProjection(resultType, instance));
 		}
@@ -537,7 +550,7 @@ public final class ReactiveNeo4jTemplate implements
 
 		return savedInstances.concatMap(savedInstance -> {
 			PersistentPropertyAccessor<T> propertyAccessor = entityMetaData.getPropertyAccessor(savedInstance);
-			return findById(propertyAccessor.getProperty(idProperty), commonElementType);
+			return transactionalOperatorReadOnly.transactional(findById(propertyAccessor.getProperty(idProperty), commonElementType));
 		}).map(instance -> localProjectionFactory.createProjection(resultType, instance));
 	}
 
@@ -615,9 +628,10 @@ public final class ReactiveNeo4jTemplate implements
 		Condition condition = entityMetaData.getIdExpression().in(parameter(nameOfParameter));
 
 		Statement statement = cypherGenerator.prepareDeleteOf(entityMetaData, condition);
-		return Mono.defer(() -> this.neo4jClient.query(() -> renderer.render(statement))
-				.bind(convertIdValues(entityMetaData.getRequiredIdProperty(), ids))
-				.to(nameOfParameter).run().then());
+		return transactionalOperator.transactional(Mono.defer(() ->
+				this.neo4jClient.query(() -> renderer.render(statement))
+					.bind(convertIdValues(entityMetaData.getRequiredIdProperty(), ids))
+					.to(nameOfParameter).run().then()));
 	}
 
 	@Override
@@ -630,9 +644,10 @@ public final class ReactiveNeo4jTemplate implements
 		Condition condition = entityMetaData.getIdExpression().isEqualTo(parameter(nameOfParameter));
 
 		Statement statement = cypherGenerator.prepareDeleteOf(entityMetaData, condition);
-		return Mono.defer(() -> this.neo4jClient.query(() -> renderer.render(statement))
-				.bind(convertIdValues(entityMetaData.getRequiredIdProperty(), id))
-				.to(nameOfParameter).run().then());
+		return transactionalOperator.transactional(Mono.defer(() ->
+				this.neo4jClient.query(() -> renderer.render(statement))
+					.bind(convertIdValues(entityMetaData.getRequiredIdProperty(), id))
+					.to(nameOfParameter).run().then()));
 	}
 
 	@Override
@@ -653,15 +668,16 @@ public final class ReactiveNeo4jTemplate implements
 		parameters.put(nameOfParameter, convertIdValues(entityMetaData.getRequiredIdProperty(), id));
 		parameters.put(Constants.NAME_OF_VERSION_PARAM, versionValue);
 
-		return Mono.defer(() -> this.neo4jClient.query(() -> renderer.render(statement))
-				.bindAll(parameters)
-				.fetch().one().switchIfEmpty(Mono.defer(() -> {
-					if (entityMetaData.hasVersionProperty()) {
-						return Mono.error(() -> new OptimisticLockingFailureException(OPTIMISTIC_LOCKING_ERROR_MESSAGE));
-					}
-					return Mono.empty();
-				})))
-		.then(deleteById(id, domainType));
+		return transactionalOperator.transactional(Mono.defer(() ->
+						this.neo4jClient.query(() -> renderer.render(statement))
+							.bindAll(parameters)
+							.fetch().one().switchIfEmpty(Mono.defer(() -> {
+								if (entityMetaData.hasVersionProperty()) {
+									return Mono.error(() -> new OptimisticLockingFailureException(OPTIMISTIC_LOCKING_ERROR_MESSAGE));
+								}
+								return Mono.empty();
+							})))
+				.then(deleteById(id, domainType)));
 	}
 
 	@Override
@@ -669,7 +685,7 @@ public final class ReactiveNeo4jTemplate implements
 
 		Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getRequiredPersistentEntity(domainType);
 		Statement statement = cypherGenerator.prepareDeleteOf(entityMetaData);
-		return Mono.defer(() -> this.neo4jClient.query(() -> renderer.render(statement)).run().then());
+		return transactionalOperator.transactional(Mono.defer(() -> this.neo4jClient.query(() -> renderer.render(statement)).run().then()));
 	}
 
 	private <T> Mono<ExecutableQuery<T>> createExecutableQuery(Class<T> domainType, Statement statement) {
@@ -1165,6 +1181,8 @@ public final class ReactiveNeo4jTemplate implements
 		this.renderer = Renderer.getRenderer(cypherDslConfiguration);
 		this.elementIdOrIdFunction = SpringDataCypherDsl.elementIdOrIdFunction.apply(cypherDslConfiguration.getDialect());
 		this.cypherGenerator.setElementIdOrIdFunction(elementIdOrIdFunction);
+		this.transactionalOperatorReadOnly = TransactionalOperator.create(beanFactory.getBean(ReactiveTransactionManager.class), readOnlyTransactionDefinition);
+		this.transactionalOperator = TransactionalOperator.create(beanFactory.getBean(ReactiveTransactionManager.class));
 	}
 
 	@Override
@@ -1177,7 +1195,7 @@ public final class ReactiveNeo4jTemplate implements
 		return new ReactiveFluentOperationSupport(this).save(domainType);
 	}
 
-	static final class DefaultReactiveExecutableQuery<T> implements ExecutableQuery<T> {
+	final class DefaultReactiveExecutableQuery<T> implements ExecutableQuery<T> {
 
 		private final PreparedQuery<T> preparedQuery;
 		private final ReactiveNeo4jClient.RecordFetchSpec<T> fetchSpec;
@@ -1193,12 +1211,12 @@ public final class ReactiveNeo4jTemplate implements
 		@SuppressWarnings("unchecked")
 		public Flux<T> getResults() {
 
-			return fetchSpec.all().switchOnFirst((signal, f) -> {
+			return transactionalOperator.transactional(fetchSpec.all().switchOnFirst((signal, f) -> {
 				if (signal.hasValue() && preparedQuery.resultsHaveBeenAggregated()) {
 					return f.concatMap(nested -> Flux.fromIterable((Collection<T>) nested).distinct()).distinct();
 				}
 				return f;
-			});
+			}));
 		}
 
 		/**
@@ -1206,14 +1224,14 @@ public final class ReactiveNeo4jTemplate implements
 		 * @throws IncorrectResultSizeDataAccessException if there is no or more than one result
 		 */
 		public Mono<T> getSingleResult() {
-			return fetchSpec.one().map(t -> {
+			return transactionalOperator.transactional(fetchSpec.one().map(t -> {
 				if (t instanceof LinkedHashSet) {
 					@SuppressWarnings("unchecked")
 					T firstItem = (T) ((LinkedHashSet<?>) t).iterator().next();
 					return firstItem;
 				}
 				return t;
-			}).onErrorMap(IndexOutOfBoundsException.class, e -> new IncorrectResultSizeDataAccessException(e.getMessage(), 1));
+			}).onErrorMap(IndexOutOfBoundsException.class, e -> new IncorrectResultSizeDataAccessException(e.getMessage(), 1)));
 		}
 	}
 }
