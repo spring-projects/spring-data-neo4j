@@ -60,6 +60,7 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.dao.OptimisticLockingFailureException;
@@ -99,6 +100,11 @@ import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
 import org.springframework.data.util.TypeInformation;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.TransactionManager;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.util.Assert;
 
 /**
@@ -330,12 +336,15 @@ public final class Neo4jTemplate implements
 			return Values.NULL;
 		}
 	}
-
+@Autowired
+	PlatformTransactionManager transactionManager;
 
 	@Override
 	public <T> T save(T instance) {
 
-		return saveImpl(instance, Collections.emptySet(), null);
+		new TransactionTemplate(transactionManager, TransactionDefinition.withDefaults())
+				.execute(tx -> saveImpl(instance, Collections.emptySet(), null));
+
 	}
 
 	@Override

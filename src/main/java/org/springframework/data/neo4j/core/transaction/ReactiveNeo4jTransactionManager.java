@@ -20,6 +20,7 @@ import reactor.util.function.Tuples;
 
 import org.apiguardian.api.API;
 import org.neo4j.driver.Driver;
+import org.neo4j.driver.Transaction;
 import org.neo4j.driver.TransactionConfig;
 import org.neo4j.driver.reactivestreams.ReactiveSession;
 import org.neo4j.driver.reactivestreams.ReactiveTransaction;
@@ -215,7 +216,7 @@ public final class ReactiveNeo4jTransactionManager extends AbstractReactiveTrans
 					return Mono.defer(() -> {
 
 						ReactiveSession session = driver.session(ReactiveSession.class, Neo4jTransactionUtils.defaultSessionConfig(targetDatabase, asUser));
-						return Mono.fromDirect(session.beginTransaction(TransactionConfig.empty())).map(tx -> {
+						return Mono.fromDirect(session.beginTransaction(Neo4jTransactionUtils.createTransactionConfigFrom(TransactionDefinition.withDefaults(), -1))).map(tx -> {
 
 							ReactiveNeo4jTransactionHolder newConnectionHolder = new ReactiveNeo4jTransactionHolder(
 									new Neo4jTransactionContext(targetDatabase, asUser), session, tx);
