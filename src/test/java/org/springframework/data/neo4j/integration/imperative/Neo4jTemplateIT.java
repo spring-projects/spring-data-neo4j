@@ -49,6 +49,7 @@ import org.springframework.data.neo4j.test.Neo4jImperativeTestConfiguration;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -880,20 +881,22 @@ class Neo4jTemplateIT {
 	}
 
 	@Test
-	void updatingFindShouldWork() {
+	void updatingFindShouldWork(@Autowired PlatformTransactionManager transactionManager) {
 		Map<String, Object> params = new HashMap<>();
 		params.put("wrongName", "Siemons");
 		params.put("correctName", "Simons");
-		Optional<Person> optionalResult = neo4jTemplate
-				.findOne("MERGE (p:Person {lastName: $wrongName}) ON MATCH set p.lastName = $correctName RETURN p",
-						params, Person.class);
+		new TransactionTemplate(transactionManager).executeWithoutResult(tx -> {
+			Optional<Person> optionalResult = neo4jTemplate
+					.findOne("MERGE (p:Person {lastName: $wrongName}) ON MATCH set p.lastName = $correctName RETURN p",
+							params, Person.class);
 
-		assertThat(optionalResult).hasValueSatisfying(
-				updatedPerson -> {
-					assertThat(updatedPerson.getLastName()).isEqualTo("Simons");
-					assertThat(updatedPerson.getAddress()).isNull(); // We didn't fetch it
-				}
-		);
+			assertThat(optionalResult).hasValueSatisfying(
+					updatedPerson -> {
+						assertThat(updatedPerson.getLastName()).isEqualTo("Simons");
+						assertThat(updatedPerson.getAddress()).isNull(); // We didn't fetch it
+					}
+			);
+		});
 	}
 
 	@Test

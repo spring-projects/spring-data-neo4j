@@ -246,7 +246,7 @@ public final class Neo4jTransactionManager extends AbstractPlatformTransactionMa
 
 		// Otherwise we open a session and synchronize it.
 		Session session = driver.session(Neo4jTransactionUtils.defaultSessionConfig(targetDatabase, asUser));
-		Transaction transaction = session.beginTransaction(TransactionConfig.empty());
+		Transaction transaction = session.beginTransaction(Neo4jTransactionUtils.createTransactionConfigFrom(TransactionDefinition.withDefaults(), -1));
 		// Manually create a new synchronization
 		connectionHolder = new Neo4jTransactionHolder(new Neo4jTransactionContext(targetDatabase, asUser), session, transaction);
 		connectionHolder.setSynchronizedWithTransaction(true);

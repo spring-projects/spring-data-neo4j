@@ -75,10 +75,12 @@ class Neo4jCdiConfigurationSupport {
 	public Neo4jOperations neo4jOperations(
 			@Any Instance<Neo4jClient> neo4jClient,
 			@Any Instance<Neo4jMappingContext> mappingContext,
-			@Any Instance<Configuration> cypherDslConfiguration
+			@Any Instance<Configuration> cypherDslConfiguration,
+			@Any Instance<PlatformTransactionManager> transactionManager
 	) {
 		Neo4jTemplate neo4jTemplate = new Neo4jTemplate(resolve(neo4jClient), resolve(mappingContext));
 		neo4jTemplate.setCypherRenderer(Renderer.getRenderer(resolve(cypherDslConfiguration)));
+		neo4jTemplate.setTransactionManager(resolve(transactionManager));
 		return neo4jTemplate;
 	}
 

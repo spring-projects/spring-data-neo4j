@@ -57,6 +57,7 @@ import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 import org.springframework.data.neo4j.test.Neo4jReactiveTestConfiguration;
 import org.springframework.transaction.ReactiveTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.springframework.transaction.reactive.TransactionalOperator;
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 
@@ -533,9 +534,10 @@ class ReactiveNeo4jTemplateIT {
 	}
 
 	@Test
-	void saveAllAsWithOpenProjectionShouldWork(@Autowired ReactiveNeo4jTemplate template) {
+	void saveAllAsWithOpenProjectionShouldWork(@Autowired ReactiveNeo4jTemplate template, @Autowired ReactiveTransactionManager transactionManager) {
 
 		// Using a query on purpose so that the address is null
+		TransactionalOperator.create(transactionManager).transactional(
 		template.findOne("MATCH (p:Person {lastName: $lastName}) RETURN p",
 						Collections.singletonMap("lastName", "Siemons"), Person.class)
 				.zipWith(template.findOne("MATCH (p:Person {lastName: $lastName}) RETURN p",
@@ -550,7 +552,7 @@ class ReactiveNeo4jTemplateIT {
 					p2.setFirstName("Helga");
 					p2.setLastName("Schneider");
 					return template.saveAllAs(Arrays.asList(p1, p2), OpenProjection.class);
-				})
+				}))
 				.map(OpenProjection::getFullName)
 				.sort()
 				.as(StepVerifier::create)
@@ -832,13 +834,15 @@ class ReactiveNeo4jTemplateIT {
 	}
 
 	@Test
-	void updatingFindShouldWork() {
+	void updatingFindShouldWork(@Autowired ReactiveTransactionManager transactionManager) {
 		Map<String, Object> params = new HashMap<>();
 		params.put("wrongName", "Siemons");
 		params.put("correctName", "Simons");
-		neo4jTemplate
-				.findOne("MERGE (p:Person {lastName: $wrongName}) ON MATCH set p.lastName = $correctName RETURN p",
-						params, Person.class)
+		TransactionalOperator.create(transactionManager)
+				.transactional(
+						neo4jTemplate
+								.findOne("MERGE (p:Person {lastName: $wrongName}) ON MATCH set p.lastName = $correctName RETURN p",
+										params, Person.class))
 				.as(StepVerifier::create)
 				.consumeNextWith(updatedPerson -> {
 
