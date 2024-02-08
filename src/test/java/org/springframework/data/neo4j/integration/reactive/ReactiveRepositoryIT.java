@@ -702,9 +702,9 @@ class ReactiveRepositoryIT {
 		}
 
 		@Test // DATAGRAPH-1429
-		void queryAggregatesShouldWorkWithTheTemplate(@Autowired ReactiveNeo4jTemplate template) {
+		void queryAggregatesShouldWorkWithTheTemplate(@Autowired ReactiveNeo4jTemplate template, @Autowired ReactiveTransactionManager reactiveTransactionManager) {
 
-			Flux<Person> people = template.findAll("unwind range(1,5) as i with i create (p:Person {firstName: toString(i)}) return p", Person.class);
+			Flux<Person> people = TransactionalOperator.create(reactiveTransactionManager).transactional(template.findAll("unwind range(1,5) as i with i create (p:Person {firstName: toString(i)}) return p", Person.class));
 
 			StepVerifier.create(people.map(Person::getFirstName))
 					.expectNext("1", "2", "3", "4", "5")

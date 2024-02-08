@@ -499,10 +499,12 @@ class RepositoryIT {
 		}
 
 		@Test  // DATAGRAPH-1429
-		void queryAggregatesShouldWorkWithTheTemplate(@Autowired Neo4jTemplate template) {
+		void queryAggregatesShouldWorkWithTheTemplate(@Autowired Neo4jTemplate template, @Autowired PlatformTransactionManager transactionManager) {
+			new TransactionTemplate(transactionManager).executeWithoutResult(tx -> {
 
-			List<Person> people = template.findAll("unwind range(1,5) as i with i create (p:Person {firstName: toString(i)}) return p", Person.class);
-			assertThat(people).extracting(Person::getFirstName).containsExactly("1", "2", "3", "4", "5");
+				List<Person> people = template.findAll("unwind range(1,5) as i with i create (p:Person {firstName: toString(i)}) return p", Person.class);
+				assertThat(people).extracting(Person::getFirstName).containsExactly("1", "2", "3", "4", "5");
+			});
 		}
 
 		@Test

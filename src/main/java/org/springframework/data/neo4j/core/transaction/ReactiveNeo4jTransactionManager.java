@@ -20,7 +20,6 @@ import reactor.util.function.Tuples;
 
 import org.apiguardian.api.API;
 import org.neo4j.driver.Driver;
-import org.neo4j.driver.Transaction;
 import org.neo4j.driver.TransactionConfig;
 import org.neo4j.driver.reactivestreams.ReactiveSession;
 import org.neo4j.driver.reactivestreams.ReactiveTransaction;
