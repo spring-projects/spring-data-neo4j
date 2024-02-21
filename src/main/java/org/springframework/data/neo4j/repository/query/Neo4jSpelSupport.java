@@ -15,6 +15,7 @@
  */
 package org.springframework.data.neo4j.repository.query;
 
+import java.io.Serial;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Locale;
@@ -24,10 +25,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import org.apache.commons.logging.LogFactory;
 import org.apiguardian.api.API;
-import org.neo4j.cypherdsl.core.internal.SchemaNames;
-import org.springframework.core.log.LogAccessor;
+import org.neo4j.cypherdsl.support.schema_name.SchemaNames;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.core.mapping.CypherGenerator;
@@ -56,8 +55,6 @@ public final class Neo4jSpelSupport {
 	public static String FUNCTION_ANY_OF = "anyOf";
 	public static String FUNCTION_ALL_OF = "allOf";
 	public static String FUNCTION_ORDER_BY = "orderBy";
-
-	private static final LogAccessor LOG = new LogAccessor(LogFactory.getLog(Neo4jSpelSupport.class));
 
 	/**
 	 * Takes {@code arg} and tries to either extract a {@link Sort sort} from it or cast it to a sort.  That sort is
@@ -90,9 +87,8 @@ public final class Neo4jSpelSupport {
 	 */
 	public static LiteralReplacement literal(@Nullable Object arg) {
 
-		LiteralReplacement literalReplacement = StringBasedLiteralReplacement
+		return StringBasedLiteralReplacement
 				.withTargetAndValue(LiteralReplacement.Target.UNSPECIFIED, arg == null ? "" : arg.toString());
-		return literalReplacement;
 	}
 
 	public static LiteralReplacement anyOf(@Nullable Object arg) {
@@ -113,7 +109,7 @@ public final class Neo4jSpelSupport {
 	private static String joinStrings(Object arg, String joinOn) {
 		if (arg instanceof Collection) {
 			return ((Collection<?>) arg).stream()
-					.map(o -> SchemaNames.sanitize(o.toString()).get())
+					.map(o -> SchemaNames.sanitize(o.toString()).orElseThrow())
 					.collect(Collectors.joining(joinOn));
 		}
 
@@ -130,7 +126,7 @@ public final class Neo4jSpelSupport {
 	 * comes in handy in places where non-parameterizable things should be created dynamic, for example matching on
 	 * set of dynamic labels, types order ordering in a dynamic way.
 	 */
-	interface LiteralReplacement {
+	public interface LiteralReplacement {
 
 		/**
 		 * The target of this replacement. While a replacement can be used theoretically everywhere in the query, the target
@@ -155,7 +151,10 @@ public final class Neo4jSpelSupport {
 		 * the creation of too many small objects.
 		 */
 		private static final Map<String, LiteralReplacement> INSTANCES =
-				new LinkedHashMap<String, LiteralReplacement>(DEFAULT_CACHE_SIZE) {
+				new LinkedHashMap<>(DEFAULT_CACHE_SIZE) {
+					@Serial
+					private static final long serialVersionUID = 195460174410223375L;
+
 					@Override
 					protected boolean removeEldestEntry(Map.Entry<String, LiteralReplacement> eldest) {
 						return size() > DEFAULT_CACHE_SIZE;
@@ -167,7 +166,7 @@ public final class Neo4jSpelSupport {
 		static LiteralReplacement withTargetAndValue(LiteralReplacement.Target target, @Nullable String value) {
 
 			String valueUsed = value == null ? "" : value;
-			String key = new StringBuilder(target.name()).append("_").append(valueUsed).toString();
+			String key = target.name() + "_" + valueUsed;
 
 			long stamp = LOCK.tryOptimisticRead();
 			if (LOCK.validate(stamp) && INSTANCES.containsKey(key)) {

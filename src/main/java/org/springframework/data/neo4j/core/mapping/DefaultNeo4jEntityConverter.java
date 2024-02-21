@@ -38,7 +38,6 @@ import java.util.stream.StreamSupport;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
-import org.neo4j.driver.internal.value.NullValue;
 import org.neo4j.driver.types.MapAccessor;
 import org.neo4j.driver.types.Node;
 import org.neo4j.driver.types.Relationship;
@@ -895,7 +894,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 			} else if (propertyContainer.containsKey(Constants.NAME_OF_ALL_PROPERTIES)) {
 				return propertyContainer.get(Constants.NAME_OF_ALL_PROPERTIES).get(graphPropertyName);
 			} else {
-				return NullValue.NULL;
+				return Values.NULL;
 			}
 		}
 	}

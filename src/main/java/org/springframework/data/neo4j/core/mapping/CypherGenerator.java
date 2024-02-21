@@ -60,7 +60,6 @@ import org.neo4j.cypherdsl.core.StatementBuilder.OngoingUpdate;
 import org.neo4j.cypherdsl.core.SymbolicName;
 import org.neo4j.cypherdsl.core.renderer.Configuration;
 import org.neo4j.cypherdsl.core.renderer.Renderer;
-import org.neo4j.cypherdsl.core.utils.Assertions;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mapping.MappingException;
 import org.springframework.data.mapping.PersistentProperty;
@@ -701,7 +700,7 @@ public enum CypherGenerator {
 						expression = Cypher.property(property.substring(0, firstDot), tail);
 					} else {
 						try {
-							Assertions.isTrue(SourceVersion.isIdentifier(property), "Name must be a valid identifier.");
+							Assert.isTrue(SourceVersion.isIdentifier(property), "Name must be a valid identifier.");
 							expression = Cypher.name(property);
 						} catch (IllegalArgumentException e) {
 							if (e.getMessage().endsWith(".")) {
