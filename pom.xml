@@ -199,6 +199,11 @@
 				</exclusions>
 			</dependency>
 			<dependency>
+				<groupId>org.neo4j</groupId>
+				<artifactId>neo4j-cypher-dsl-schema-name-support</artifactId>
+				<version>${cypher-dsl.version}</version>
+			</dependency>
+			<dependency>
 				<groupId>org.neo4j.driver</groupId>
 				<artifactId>neo4j-java-driver</artifactId>
 				<version>${neo4j-java-driver.version}</version>
@@ -369,6 +374,10 @@
 		<dependency>
 			<groupId>org.neo4j</groupId>
 			<artifactId>neo4j-cypher-dsl</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.neo4j</groupId>
+			<artifactId>neo4j-cypher-dsl-schema-name-support</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.neo4j.driver</groupId>
