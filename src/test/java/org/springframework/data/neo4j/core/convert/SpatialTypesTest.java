@@ -16,8 +16,14 @@
 package org.springframework.data.neo4j.core.convert;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
 
+import kotlin.reflect.jvm.internal.ReflectProperties;
 import org.junit.jupiter.api.Test;
+import org.neo4j.driver.Value;
+import org.neo4j.driver.internal.InternalPoint2D;
+import org.neo4j.driver.internal.value.ListValue;
+import org.neo4j.driver.internal.value.PointValue;
 import org.neo4j.driver.types.Point;
 import org.springframework.data.neo4j.types.CartesianPoint2d;
 import org.springframework.data.neo4j.types.CartesianPoint3d;
@@ -55,5 +61,25 @@ class SpatialTypesTest {
 		assertThat(point.x()).isEqualTo(10.0);
 		assertThat(point.y()).isEqualTo(20.0);
 		assertThat(point.z()).isEqualTo(30.0);
+	}
+
+	@Test
+	void valueReturnsArray(){
+		org.springframework.data.geo.Point point1 = new org.springframework.data.geo.Point(12, 45);
+		org.springframework.data.geo.Point point2 = new org.springframework.data.geo.Point(65, 23);
+		org.springframework.data.geo.Point point3 = new org.springframework.data.geo.Point(76, 23);
+		org.springframework.data.geo.Point point4 = new org.springframework.data.geo.Point(32, 45);
+		org.springframework.data.geo.Point[] points = new org.springframework.data.geo.Point[]{point1, point2, point3, point4};
+
+		Value value1 = new PointValue( new InternalPoint2D(4326, point1.getY(), point1.getX()));
+		Value value2 = new PointValue( new InternalPoint2D(4326, point2.getY(), point2.getX()));
+		Value value3 = new PointValue( new InternalPoint2D(4326, point3.getY(), point3.getX()));
+		Value value4 = new PointValue( new InternalPoint2D(4326, point4.getY(), point4.getX()));
+
+		Value[] values = new Value[]{value1, value2, value3, value4};
+
+		ListValue listValue = new ListValue(values);
+
+		assertEquals(SpatialTypes.value(points), listValue);
 	}
 }
