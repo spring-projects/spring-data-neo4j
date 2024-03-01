@@ -4,6 +4,9 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.Assert.assertEquals;
 
+/**
+ * @author Shivang Patel
+ */
 public class PointerBuilderTest {
 	
 	@Test

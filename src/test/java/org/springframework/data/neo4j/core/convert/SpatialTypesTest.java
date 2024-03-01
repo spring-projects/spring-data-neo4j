@@ -63,12 +63,16 @@ class SpatialTypesTest {
 		assertThat(point.z()).isEqualTo(30.0);
 	}
 
+	/**
+	 * @author Shivang Patel
+	 */
 	@Test
 	void valueReturnsArray(){
 		org.springframework.data.geo.Point point1 = new org.springframework.data.geo.Point(12, 45);
 		org.springframework.data.geo.Point point2 = new org.springframework.data.geo.Point(65, 23);
 		org.springframework.data.geo.Point point3 = new org.springframework.data.geo.Point(76, 23);
 		org.springframework.data.geo.Point point4 = new org.springframework.data.geo.Point(32, 45);
+
 		org.springframework.data.geo.Point[] points = new org.springframework.data.geo.Point[]{point1, point2, point3, point4};
 
 		Value value1 = new PointValue( new InternalPoint2D(4326, point1.getY(), point1.getX()));
