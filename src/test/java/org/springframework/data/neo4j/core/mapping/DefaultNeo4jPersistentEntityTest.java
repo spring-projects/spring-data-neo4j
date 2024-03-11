@@ -34,6 +34,7 @@ import org.springframework.data.annotation.ReadOnlyProperty;
 import org.springframework.data.annotation.Transient;
 import org.springframework.data.mapping.AssociationHandler;
 import org.springframework.data.mapping.MappingException;
+import org.springframework.data.neo4j.core.convert.ConvertWith;
 import org.springframework.data.neo4j.core.schema.DynamicLabels;
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
@@ -55,6 +56,16 @@ class DefaultNeo4jPersistentEntityTest {
 		Neo4jMappingContext neo4jMappingContext = new Neo4jMappingContext();
 		neo4jMappingContext.getPersistentEntity(CorrectEntity1.class);
 		neo4jMappingContext.getPersistentEntity(CorrectEntity2.class);
+	}
+
+	@Test
+	void skipsEntityTypeDetectionForConvertedProperties() {
+
+		Neo4jPersistentEntity<?> entity = new Neo4jMappingContext().getRequiredPersistentEntity(WithConvertedProperty.class);
+		Neo4jPersistentProperty property = entity.getRequiredPersistentProperty("converted");
+
+		assertThat(property.isEntity()).isFalse();
+		assertThat(property.getPersistentEntityTypeInformation()).isEmpty();
 	}
 
 	@Nested
@@ -729,5 +740,15 @@ class DefaultNeo4jPersistentEntityTest {
 		@SuppressWarnings("DefaultAnnotationParam")
 		@Property(readOnly = false)
 		private String writableProperty;
+	}
+
+	static class WithConvertedProperty {
+
+		@ConvertWith
+		IWillBeConverted converted;
+	}
+
+	static class IWillBeConverted {
+
 	}
 }

@@ -16,6 +16,7 @@
 package org.springframework.data.neo4j.core.mapping;
 
 import java.lang.reflect.Field;
+import java.util.Collections;
 import java.util.Optional;
 
 import org.springframework.data.annotation.ReadOnlyProperty;
@@ -209,7 +210,13 @@ final class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProp
 
 	@Override
 	public boolean isEntity() {
-		return super.isEntity() && !isWritableProperty.get();
+		return super.isEntity() && !isWritableProperty.get() && !this.isAnnotationPresent(ConvertWith.class);
+	}
+
+	@Override
+	public Iterable<? extends TypeInformation<?>> getPersistentEntityTypeInformation() {
+		return this.isAnnotationPresent(ConvertWith.class) ? Collections.emptyList()
+				: super.getPersistentEntityTypeInformation();
 	}
 
 	@Override
@@ -219,7 +226,7 @@ final class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProp
 
 	@Override
 	public Neo4jPersistentPropertyConverter<?> getOptionalConverter() {
-		return customConversion.getOptional()
+		return isEntity() ? null : customConversion.getOptional()
 				.map(Neo4jPersistentPropertyConverter.class::cast)
 				.orElse(null);
 	}
