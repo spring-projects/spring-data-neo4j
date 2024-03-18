@@ -147,6 +147,7 @@ import org.springframework.data.neo4j.integration.issues.gh2819.GH2819Model;
 import org.springframework.data.neo4j.integration.issues.gh2819.GH2819Repository;
 import org.springframework.data.neo4j.integration.issues.gh2858.GH2858;
 import org.springframework.data.neo4j.integration.issues.gh2858.GH2858Repository;
+import org.springframework.data.neo4j.integration.issues.gh2872.UserChangesRepository;
 import org.springframework.data.neo4j.integration.issues.qbe.A;
 import org.springframework.data.neo4j.integration.issues.qbe.ARepository;
 import org.springframework.data.neo4j.integration.issues.qbe.B;
@@ -205,6 +206,7 @@ class IssuesIT extends TestBase {
 				setupGH2459(transaction);
 				setupGH2572(transaction);
 				setupGH2583(transaction);
+				setupGH2872(transaction);
 
 				transaction.run("CREATE (:A {name: 'A name', id: randomUUID()}) -[:HAS] ->(:B {anotherName: 'Whatever', id: randomUUID()})");
 
@@ -212,6 +214,21 @@ class IssuesIT extends TestBase {
 			}
 			bookmarkCapture.seedWith(session.lastBookmarks());
 		}
+	}
+
+	private static void setupGH2872(QueryRunner queryRunner) {
+		queryRunner.run("""
+						CREATE (p:`UserChanges`:`Gh2872Entity` {nodeId: randomUUID(), someField: -10}),
+							(c:`UserChanges`:`Gh2872Entity` {nodeId: randomUUID(), someField: 0}),
+							(n10:`UserChanges`:`Gh2872Entity` {nodeId: randomUUID(), someField: 10}),
+							(n20:`UserChanges`:`Gh2872Entity` {nodeId: randomUUID(), someField: 20}),
+							(p)-[:HAS_USER_CHANGES]->(c),
+							(c)-[:PREVIOUS_USER_CHANGE]->(p),
+							(c)-[:HAS_USER_CHANGES]->(n10),
+							(c)-[:HAS_USER_CHANGES]->(n20),
+							(n10)-[:PREVIOUS_USER_CHANGE]->(c),
+							(n20)-[:PREVIOUS_USER_CHANGE]->(c)
+				""").consume();
 	}
 
 	private static void setupGH2168(QueryRunner queryRunner) {
@@ -298,6 +315,29 @@ class IssuesIT extends TestBase {
 
 		var allResults = repository.findAll(Example.of(probe));
 		assertThat(allResults).hasSize(1);
+	}
+
+
+	@Test
+	@Tag("GH-2872")
+	void findAllWithPossibleCircles(@Autowired UserChangesRepository userChangesRepository) {
+		var results = userChangesRepository.findAll();
+		assertThat(results).hasSize(4);
+		for (var result : results) {
+			var someField = result.getSomeField();
+			assertThat(someField).isNotNull();
+			if (someField.equals(0)) {
+				assertThat(result.getPrevious()).isNotNull();
+				assertThat(result.getPrevious().getSomeField()).isEqualTo(-10);
+			} else if (someField.equals(-10)) {
+				assertThat(result.getPrevious()).isNull();
+				assertThat(result.getUsers()).hasSize(1).first().matches(e -> e.getSomeField().equals(0));
+			} else {
+				assertThat(result.getPrevious()).isNotNull();
+				assertThat(result.getPrevious().getSomeField()).isEqualTo(0);
+				assertThat(result.getUsers()).isEmpty();
+			}
+		}
 	}
 
 	@Test

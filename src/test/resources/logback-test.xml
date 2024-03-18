@@ -29,7 +29,7 @@
     <logger name="OutboundMessageHandler" level="info"/>
     <logger name="InboundMessageDispatcher" level="info"/>
 
-    <logger name="org.springframework.data.neo4j.cypher" level="info"/>
+    <logger name="org.springframework.data.neo4j.cypher" level="debug"/>
     <logger name="org.springframework.data.neo4j.cypher.performance" level="error"/>
     <logger name="org.springframework.data.neo4j.cypher.hint" level="error"/>
     <logger name="org.springframework.data.neo4j.cypher.unrecognized" level="error"/>
