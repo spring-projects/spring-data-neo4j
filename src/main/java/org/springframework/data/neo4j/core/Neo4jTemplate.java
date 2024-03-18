@@ -529,12 +529,14 @@ public final class Neo4jTemplate implements
 				.collect(Collectors.toMap(m -> (Value) m.getKey(), m -> (String) m.getValue()));
 
 		// Save related
+		var stateMachine = new NestedRelationshipProcessingStateMachine(neo4jMappingContext, null, null);
 		return entitiesToBeSaved.stream().map(t -> {
 			PersistentPropertyAccessor<T> propertyAccessor = entityMetaData.getPropertyAccessor(t.modifiedInstance);
 			Neo4jPersistentProperty idProperty = entityMetaData.getRequiredIdProperty();
 			Object id = convertIdValues(idProperty, propertyAccessor.getProperty(idProperty));
 			String internalId = idToInternalIdMapping.get(id);
-			return this.<T>processRelations(entityMetaData, propertyAccessor, t.wasNew, new NestedRelationshipProcessingStateMachine(neo4jMappingContext, t.originalInstance, internalId), TemplateSupport.computeIncludePropertyPredicate(pps, entityMetaData));
+			stateMachine.registerInitialObject(t.originalInstance, internalId);
+			return this.<T>processRelations(entityMetaData, propertyAccessor, t.wasNew, stateMachine, TemplateSupport.computeIncludePropertyPredicate(pps, entityMetaData));
 		}).collect(Collectors.toList());
 	}
 
