@@ -20,6 +20,7 @@ import java.util.function.Predicate;
 
 import org.apiguardian.api.API;
 import org.neo4j.driver.exceptions.DiscoveryException;
+import org.neo4j.driver.exceptions.RetryableException;
 import org.neo4j.driver.exceptions.ServiceUnavailableException;
 import org.neo4j.driver.exceptions.SessionExpiredException;
 import org.neo4j.driver.exceptions.TransientException;
@@ -42,6 +43,10 @@ public final class RetryExceptionPredicate implements Predicate<Throwable> {
 
 	@Override
 	public boolean test(Throwable throwable) {
+
+		if (throwable instanceof RetryableException) {
+			return true;
+		}
 
 		if (throwable instanceof IllegalStateException) {
 			String msg = throwable.getMessage();
