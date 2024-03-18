@@ -367,10 +367,14 @@ public final class QueryFragmentsAndParameters {
 			Pageable pageable,
 			QueryFragments queryFragments
 	) {
+		if (pageable.isPaged()) {
+			queryFragments.setSkip(pageable.getOffset());
+			queryFragments.setLimit(pageable.getPageSize());
+		}
 		Sort pageableSort = pageable.getSort();
-		queryFragments.setSkip(pageable.getOffset());
-		queryFragments.setLimit(pageable.getPageSize());
-		queryFragments.setOrderBy(CypherAdapterUtils.toSortItems(entityMetaData, pageableSort));
+		if (pageableSort.isSorted()) {
+			queryFragments.setOrderBy(CypherAdapterUtils.toSortItems(entityMetaData, pageableSort));
+		}
 	}
 
 }
