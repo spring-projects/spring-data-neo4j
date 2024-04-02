@@ -15,17 +15,22 @@
  */
 package org.springframework.data.neo4j.integration.issues.pure_element_id;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
+import ch.qos.logback.classic.Level;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.test.BookmarkCapture;
+import org.springframework.data.neo4j.test.LogbackCapture;
 import org.springframework.data.neo4j.test.Neo4jExtension;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 @Tag(Neo4jExtension.NEEDS_VERSION_SUPPORTING_ELEMENT_ID)
 abstract class AbstractElementIdTestBase {
@@ -33,8 +38,9 @@ abstract class AbstractElementIdTestBase {
 	protected static Neo4jExtension.Neo4jConnectionSupport neo4jConnectionSupport;
 
 	@BeforeEach
-	void setupData(@Autowired Driver driver, @Autowired BookmarkCapture bookmarkCapture) {
+	void setupData(LogbackCapture logbackCapture, @Autowired Driver driver, @Autowired BookmarkCapture bookmarkCapture) {
 
+		logbackCapture.addLogger("org.springframework.data.neo4j.cypher.deprecation", Level.WARN);
 		try (Session session = driver.session()) {
 			session.run("MATCH (n) DETACH DELETE n").consume();
 			bookmarkCapture.seedWith(session.lastBookmarks());
@@ -68,4 +74,10 @@ abstract class AbstractElementIdTestBase {
 		return query;
 	}
 
+	static void assertThatLogMessageDoNotIndicateIDUsage(LogbackCapture logbackCapture) {
+		List<String> formattedMessages = logbackCapture.getFormattedMessages();
+		assertThat(formattedMessages)
+				.noneMatch(s -> s.contains("Neo.ClientNotification.Statement.FeatureDeprecationWarning") ||
+						s.contains("The query used a deprecated function. ('id' is no longer supported)"));
+	}
 }
