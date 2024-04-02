@@ -15,8 +15,6 @@
  */
 package org.springframework.data.neo4j.integration.issues.pure_element_id;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -40,6 +38,9 @@ import org.springframework.data.neo4j.test.Neo4jReactiveTestConfiguration;
 import org.springframework.lang.NonNull;
 import org.springframework.transaction.ReactiveTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+import reactor.core.publisher.Mono;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Assertions that no {@code id()} calls are generated when no deprecated id types are present.
@@ -55,9 +56,11 @@ public class ReactiveElementIdIT extends AbstractElementIdTestBase {
 
 
 	interface Repo1 extends ReactiveNeo4jRepository<NodeWithGeneratedId1, String> {
+		Mono<NodeWithGeneratedId1> findByIdIn(List<String> ids);
 	}
 
 	interface Repo2 extends ReactiveNeo4jRepository<NodeWithGeneratedId2, String> {
+		Mono<NodeWithGeneratedId2> findByRelatedNodesIdIn(List<String> ids);
 	}
 
 	interface Repo3 extends ReactiveNeo4jRepository<NodeWithGeneratedId3, String> {
@@ -66,6 +69,30 @@ public class ReactiveElementIdIT extends AbstractElementIdTestBase {
 	interface Repo4 extends ReactiveNeo4jRepository<NodeWithGeneratedId4, String> {
 	}
 
+	@Test
+	void dontCallIdForDerivedQueriesWithInClause(LogbackCapture logbackCapture, @Autowired Repo1 repo1) {
+
+		var node = repo1.save(new NodeWithGeneratedId1("testValue")).block();
+		String id = node.getId();
+
+		repo1.findByIdIn(List.of(id)).block();
+
+		assertThatLogMessageDoNotIndicateIDUsage(logbackCapture);
+	}
+
+	@Test
+	void dontCallIdForDerivedQueriesWithRelatedInClause(LogbackCapture logbackCapture, @Autowired Repo2 repo2) {
+		var node1 = new NodeWithGeneratedId1("testValue");
+		var node2 = new NodeWithGeneratedId2("testValue");
+		node2.setRelatedNodes(List.of(node1));
+		var savedNode2 = repo2.save(node2).block();
+
+		String id = savedNode2.getRelatedNodes().get(0).getId();
+
+		repo2.findByRelatedNodesIdIn(List.of(id)).block();
+
+		assertThatLogMessageDoNotIndicateIDUsage(logbackCapture);
+	}
 
 	@Test
 	void simpleNodeCreationShouldFillIdAndNotUseIdFunction(LogbackCapture logbackCapture, @Autowired Repo1 repo1) {
@@ -334,12 +361,6 @@ public class ReactiveElementIdIT extends AbstractElementIdTestBase {
 					.single().get(0).asLong();
 			assertThat(count).isEqualTo(1L);
 		}
-	}
-
-	private static void assertThatLogMessageDoNotIndicateIDUsage(LogbackCapture logbackCapture) {
-		assertThat(logbackCapture.getFormattedMessages())
-				.noneMatch(s -> s.contains("Neo.ClientNotification.Statement.FeatureDeprecationWarning") ||
-						s.contains("The query used a deprecated function. ('id' is no longer supported)"));
 	}
 
 	@Configuration

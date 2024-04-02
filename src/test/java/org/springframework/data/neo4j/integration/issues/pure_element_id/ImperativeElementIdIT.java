@@ -50,15 +50,44 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 public class ImperativeElementIdIT extends AbstractElementIdTestBase {
 
 	interface Repo1 extends Neo4jRepository<NodeWithGeneratedId1, String> {
+
+		NodeWithGeneratedId1 findByIdIn(List<String> ids);
 	}
 
 	interface Repo2 extends Neo4jRepository<NodeWithGeneratedId2, String> {
+
+		NodeWithGeneratedId2 findByRelatedNodesIdIn(List<String> ids);
 	}
 
 	interface Repo3 extends Neo4jRepository<NodeWithGeneratedId3, String> {
 	}
 
 	interface Repo4 extends Neo4jRepository<NodeWithGeneratedId4, String> {
+	}
+
+	@Test
+	void dontCallIdForDerivedQueriesWithInClause(LogbackCapture logbackCapture, @Autowired Repo1 repo1) {
+
+		var node = repo1.save(new NodeWithGeneratedId1("testValue"));
+		String id = node.getId();
+
+		repo1.findByIdIn(List.of(id));
+
+		assertThatLogMessageDoNotIndicateIDUsage(logbackCapture);
+	}
+
+	@Test
+	void dontCallIdForDerivedQueriesWithRelatedInClause(LogbackCapture logbackCapture, @Autowired Repo2 repo2) {
+		var node1 = new NodeWithGeneratedId1("testValue");
+		var node2 = new NodeWithGeneratedId2("testValue");
+		node2.setRelatedNodes(List.of(node1));
+		var savedNode2 = repo2.save(node2);
+
+		String id = savedNode2.getRelatedNodes().get(0).getId();
+
+		repo2.findByRelatedNodesIdIn(List.of(id));
+
+		assertThatLogMessageDoNotIndicateIDUsage(logbackCapture);
 	}
 
 	@Test
@@ -320,12 +349,6 @@ public class ImperativeElementIdIT extends AbstractElementIdTestBase {
 					.single().get(0).asLong();
 			assertThat(count).isEqualTo(1L);
 		}
-	}
-
-	private static void assertThatLogMessageDoNotIndicateIDUsage(LogbackCapture logbackCapture) {
-		assertThat(logbackCapture.getFormattedMessages())
-				.noneMatch(s -> s.contains("Neo.ClientNotification.Statement.FeatureDeprecationWarning") ||
-						s.contains("The query used a deprecated function. ('id' is no longer supported)"));
 	}
 
 	@Configuration

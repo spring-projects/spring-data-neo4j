@@ -483,11 +483,17 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndPar
 
 		String containerName = getContainerName(path, owner);
 		if (owner.equals(this.nodeDescription) && path.getLength() == 1) {
-			expression = leafProperty.isInternalIdProperty() ?
-					Cypher.call("id").withArgs(Constants.NAME_OF_TYPED_ROOT_NODE.apply(nodeDescription)).asFunction() :
-					Cypher.property(containerName, leafProperty.getPropertyName());
-		} else if (leafProperty.isInternalIdProperty()) {
+			if (leafProperty.isInternalIdProperty() && owner.isUsingDeprecatedInternalId()) {
+				expression = Cypher.call("id").withArgs(Constants.NAME_OF_TYPED_ROOT_NODE.apply(nodeDescription)).asFunction();
+			} else if (leafProperty.isInternalIdProperty()) {
+				expression = Cypher.call("elementId").withArgs(Constants.NAME_OF_TYPED_ROOT_NODE.apply(nodeDescription)).asFunction();
+			} else {
+				expression = Cypher.property(containerName, leafProperty.getPropertyName());
+			}
+		} else if (leafProperty.isInternalIdProperty() && owner.isUsingDeprecatedInternalId()) {
 			expression = Cypher.call("id").withArgs(Cypher.name(containerName)).asFunction();
+		} else if (leafProperty.isInternalIdProperty()) {
+			expression = Cypher.call("elementId").withArgs(Cypher.name(containerName)).asFunction();
 		} else {
 			expression = Cypher.property(containerName, leafProperty.getPropertyName());
 		}
