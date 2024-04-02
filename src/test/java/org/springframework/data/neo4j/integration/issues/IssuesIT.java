@@ -28,6 +28,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.assertj.core.api.InstanceOfAssertFactories;
@@ -147,6 +148,9 @@ import org.springframework.data.neo4j.integration.issues.gh2819.GH2819Model;
 import org.springframework.data.neo4j.integration.issues.gh2819.GH2819Repository;
 import org.springframework.data.neo4j.integration.issues.gh2858.GH2858;
 import org.springframework.data.neo4j.integration.issues.gh2858.GH2858Repository;
+import org.springframework.data.neo4j.integration.issues.gh2886.Apple;
+import org.springframework.data.neo4j.integration.issues.gh2886.FruitRepository;
+import org.springframework.data.neo4j.integration.issues.gh2886.Orange;
 import org.springframework.data.neo4j.integration.issues.qbe.A;
 import org.springframework.data.neo4j.integration.issues.qbe.ARepository;
 import org.springframework.data.neo4j.integration.issues.qbe.B;
@@ -1160,6 +1164,32 @@ class IssuesIT extends TestBase {
 
 		assertThat(projection.getRelatives().get(0).getName()).isEqualTo(friendOfFriend.getName());
 
+	}
+
+	@Test
+	@Tag("GH-2886")
+	void dynamicLabels(@Autowired FruitRepository repository) {
+
+		var f1 = new Apple();
+		f1.setVolume(1.0);
+		f1.setColor("Red");
+		f1.setLabels(Set.of("X"));
+
+		var f2 = new Apple();
+		f2.setColor("Blue");
+
+		var f3 = new Orange();
+		f2.setVolume(3.0);
+		f3.setColor("Red");
+		f3.setLabels(Set.of("Y"));
+
+		var f4 = new Orange();
+		f4.setColor("Yellow");
+
+		repository.saveAll(List.of(f1, f2, f3, f4));
+
+		var fruits = repository.findAllFruits();
+		assertThat(fruits).allMatch(f -> f instanceof Apple || f instanceof Orange);
 	}
 
 	@Configuration
