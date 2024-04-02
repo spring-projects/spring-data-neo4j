@@ -608,4 +608,11 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 		visitedNodes.addAll(visitedTargetNodes);
 		return false;
 	}
+
+	@Override
+	public String toString() {
+		return "DefaultNeo4jPersistentEntity{" +
+				"primaryLabel='" + primaryLabel + '\'' +
+				'}';
+	}
 }

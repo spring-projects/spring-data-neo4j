@@ -102,7 +102,7 @@ final class NodeDescriptionStore {
 		return nodeDescriptionAndLabels.apply(entityDescription, labels);
 	}
 
-	private NodeDescriptionAndLabels computeConcreteNodeDescription(NodeDescription<?> entityDescription, List<String> labels) {
+	private NodeDescriptionAndLabels computeConcreteNodeDescription(NodeDescription<?> entityDescription, @Nullable List<String> labels) {
 
 		boolean isConcreteClassThatFulfillsEverything = !Modifier.isAbstract(entityDescription.getUnderlyingClass().getModifiers()) && entityDescription.getStaticLabels().containsAll(labels);
 
@@ -139,9 +139,9 @@ final class NodeDescriptionStore {
 
 				int unmatchedLabelsCount = 0;
 				List<String> matchingLabels = new ArrayList<>();
-				for (String staticLabel : staticLabels) {
-					if (labels.contains(staticLabel)) {
-						matchingLabels.add(staticLabel);
+				for (String label : labels) {
+					if (staticLabels.contains(label)) {
+						matchingLabels.add(label);
 					} else {
 						unmatchedLabelsCount++;
 					}
