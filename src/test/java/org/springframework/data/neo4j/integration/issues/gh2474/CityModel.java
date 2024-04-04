@@ -15,6 +15,7 @@
  */
 package org.springframework.data.neo4j.integration.issues.gh2474;
 
+import org.springframework.data.neo4j.core.schema.CompositeProperty;
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
@@ -23,6 +24,7 @@ import org.springframework.data.neo4j.core.schema.Relationship;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -47,6 +49,9 @@ public class CityModel {
 
 	@Property("exotic.property")
 	private String exoticProperty;
+
+	@CompositeProperty
+	private Map<String, String> compositeProperty;
 
 	public CityModel() {
 	}
@@ -97,6 +102,14 @@ public class CityModel {
 
 	public void setExoticProperty(String exoticProperty) {
 		this.exoticProperty = exoticProperty;
+	}
+
+	public Map<String, String> getCompositeProperty() {
+		return compositeProperty;
+	}
+
+	public void setCompositeProperty(Map<String, String> compositeProperty) {
+		this.compositeProperty = compositeProperty;
 	}
 
 	public boolean equals(final Object o) {
