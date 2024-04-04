@@ -67,6 +67,7 @@ import org.springframework.data.neo4j.core.mapping.RelationshipDescription;
 import org.springframework.data.neo4j.core.mapping.SpringDataCypherDsl;
 import org.springframework.data.neo4j.core.mapping.callback.ReactiveEventSupport;
 import org.springframework.data.neo4j.core.schema.TargetNode;
+import org.springframework.data.neo4j.core.transaction.ReactiveNeo4jTransactionManager;
 import org.springframework.data.neo4j.repository.query.QueryFragments;
 import org.springframework.data.neo4j.repository.query.QueryFragmentsAndParameters;
 import org.springframework.data.projection.ProjectionFactory;
@@ -1181,8 +1182,10 @@ public final class ReactiveNeo4jTemplate implements
 		this.renderer = Renderer.getRenderer(cypherDslConfiguration);
 		this.elementIdOrIdFunction = SpringDataCypherDsl.elementIdOrIdFunction.apply(cypherDslConfiguration.getDialect());
 		this.cypherGenerator.setElementIdOrIdFunction(elementIdOrIdFunction);
-		this.transactionalOperatorReadOnly = TransactionalOperator.create(beanFactory.getBean(ReactiveTransactionManager.class), readOnlyTransactionDefinition);
-		this.transactionalOperator = TransactionalOperator.create(beanFactory.getBean(ReactiveTransactionManager.class));
+		ReactiveTransactionManager reactiveTransactionManager = beanFactory.getBeanProvider(ReactiveTransactionManager.class)
+				.getIfUnique(() -> beanFactory.getBean(ReactiveNeo4jTransactionManager.class));
+		this.transactionalOperatorReadOnly = TransactionalOperator.create(reactiveTransactionManager, readOnlyTransactionDefinition);
+		this.transactionalOperator = TransactionalOperator.create(reactiveTransactionManager);
 	}
 
 	@Override
