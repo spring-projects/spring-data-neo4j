@@ -102,8 +102,8 @@ abstract class TestBase {
 	protected static void setupGH2289(QueryRunner queryRunner) {
 		queryRunner.run("MATCH (s:SKU_RO) DETACH DELETE s").consume();
 		for (int i = 0; i < 4; ++i) {
-			queryRunner.run("CREATE (s:SKU_RO {number: $i, name: $n})",
-					Values.parameters("i", i, "n", new String(new char[]{(char) ('A' + i)}))).consume();
+			queryRunner.run("CREATE (s:SKU_RO {number: $i, name: $n, `composite.a`: $a})",
+					Values.parameters("i", i, "n", new String(new char[]{(char) ('A' + i)}), "a", 10 - i)).consume();
 		}
 	}
 

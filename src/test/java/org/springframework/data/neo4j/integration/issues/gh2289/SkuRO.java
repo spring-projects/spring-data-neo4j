@@ -16,6 +16,7 @@
 package org.springframework.data.neo4j.integration.issues.gh2289;
 
 import org.springframework.data.annotation.ReadOnlyProperty;
+import org.springframework.data.neo4j.core.schema.CompositeProperty;
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
@@ -23,6 +24,7 @@ import org.springframework.data.neo4j.core.schema.Property;
 import org.springframework.data.neo4j.core.schema.Relationship;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -47,6 +49,9 @@ public class SkuRO {
 	@ReadOnlyProperty
 	@Relationship(type = "RANGE_RELATION_TO", direction = Relationship.Direction.INCOMING)
 	private Set<RangeRelationRO> rangeRelationsIn = new HashSet<>();
+
+	@CompositeProperty
+	private Map<String, Integer> composite;
 
 	public SkuRO(Long number, String name) {
 		this.number = number;
@@ -97,6 +102,14 @@ public class SkuRO {
 
 	public void setRangeRelationsIn(Set<RangeRelationRO> rangeRelationsIn) {
 		this.rangeRelationsIn = rangeRelationsIn;
+	}
+
+	public Map<String, Integer> getComposite() {
+		return composite;
+	}
+
+	public void setComposite(Map<String, Integer> composite) {
+		this.composite = composite;
 	}
 
 	public boolean equals(final Object o) {

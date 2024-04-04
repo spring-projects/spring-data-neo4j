@@ -16,10 +16,12 @@
 package org.springframework.data.neo4j.integration.shared.common;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 import java.util.UUID;
 
 import org.neo4j.driver.QueryRunner;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.neo4j.core.schema.CompositeProperty;
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
@@ -77,6 +79,9 @@ public class ScrollingEntity {
 	private Integer b;
 
 	private LocalDateTime c;
+
+	@CompositeProperty
+	private Map<String, String> basicComposite;
 
 	public UUID getId() {
 		return id;
