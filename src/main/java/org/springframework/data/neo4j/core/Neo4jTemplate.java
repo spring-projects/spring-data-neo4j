@@ -90,6 +90,7 @@ import org.springframework.data.neo4j.core.mapping.RelationshipDescription;
 import org.springframework.data.neo4j.core.mapping.SpringDataCypherDsl;
 import org.springframework.data.neo4j.core.mapping.callback.EventSupport;
 import org.springframework.data.neo4j.core.schema.TargetNode;
+import org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager;
 import org.springframework.data.neo4j.repository.NoResultException;
 import org.springframework.data.neo4j.repository.query.QueryFragments;
 import org.springframework.data.neo4j.repository.query.QueryFragmentsAndParameters;
@@ -1093,8 +1094,10 @@ public final class Neo4jTemplate implements
 		this.renderer = Renderer.getRenderer(cypherDslConfiguration);
 		this.elementIdOrIdFunction = SpringDataCypherDsl.elementIdOrIdFunction.apply(cypherDslConfiguration.getDialect());
 		this.cypherGenerator.setElementIdOrIdFunction(elementIdOrIdFunction);
-		this.transactionTemplate = new TransactionTemplate(beanFactory.getBean(PlatformTransactionManager.class));
-		this.transactionTemplateReadOnly = new TransactionTemplate(beanFactory.getBean(PlatformTransactionManager.class), readOnlyTransactionDefinition);
+
+		PlatformTransactionManager transactionManager = beanFactory.getBeanProvider(PlatformTransactionManager.class).getIfUnique(() -> beanFactory.getBean(Neo4jTransactionManager.class));
+		this.transactionTemplate = new TransactionTemplate(transactionManager);
+		this.transactionTemplateReadOnly = new TransactionTemplate(transactionManager, readOnlyTransactionDefinition);
 	}
 
 	// only used for the CDI configuration
