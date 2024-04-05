@@ -197,7 +197,7 @@ public class Neo4jExtension implements BeforeAllCallback, BeforeEachCallback {
 					.withMaxConnectionPoolSize(Runtime.getRuntime().availableProcessors())
 					.build();
 			var settings = new SecuritySettings(config.encrypted(), config.trustStrategy());
-			this.securityPlan = SecurityPlans.createSecurityPlan(settings, uri.getScheme());
+			this.securityPlan = SecurityPlans.createSecurityPlan(settings, uri.getScheme(), null, Logging.none());
 			this.driverFactory = new DriverFactory();
 		}
 
@@ -224,7 +224,7 @@ public class Neo4jExtension implements BeforeAllCallback, BeforeEachCallback {
 		}
 
 		private Driver createDriverInstance() {
-			return this.driverFactory.newInstance(uri, AuthTokenManagers.basic(() -> authToken), config, securityPlan, EVENT_LOOP_GROUP, null);
+			return this.driverFactory.newInstance(uri, AuthTokenManagers.basic(() -> authToken), null, config, securityPlan, EVENT_LOOP_GROUP, null);
 		}
 
 		/**
