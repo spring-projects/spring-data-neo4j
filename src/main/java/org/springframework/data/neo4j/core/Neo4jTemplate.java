@@ -158,8 +158,17 @@ public final class Neo4jTemplate implements
 		this(neo4jClient, neo4jMappingContext, EntityCallbacks.create());
 	}
 
+	public Neo4jTemplate(Neo4jClient neo4jClient, Neo4jMappingContext neo4jMappingContext, PlatformTransactionManager transactionManager) {
+		this(neo4jClient, neo4jMappingContext, EntityCallbacks.create(), transactionManager);
+	}
+
 	public Neo4jTemplate(Neo4jClient neo4jClient, Neo4jMappingContext neo4jMappingContext,
 						 EntityCallbacks entityCallbacks) {
+		this(neo4jClient, neo4jMappingContext, entityCallbacks, null);
+	}
+
+	public Neo4jTemplate(Neo4jClient neo4jClient, Neo4jMappingContext neo4jMappingContext,
+						 EntityCallbacks entityCallbacks, @Nullable PlatformTransactionManager platformTransactionManager) {
 
 		Assert.notNull(neo4jClient, "The Neo4jClient is required");
 		Assert.notNull(neo4jMappingContext, "The Neo4jMappingContext is required");
@@ -170,6 +179,7 @@ public final class Neo4jTemplate implements
 		this.eventSupport = EventSupport.useExistingCallbacks(neo4jMappingContext, entityCallbacks);
 		this.renderer = Renderer.getDefaultRenderer();
 		this.elementIdOrIdFunction = SpringDataCypherDsl.elementIdOrIdFunction.apply(null);
+		setTransactionManager(platformTransactionManager);
 	}
 
 	ProjectionFactory getProjectionFactory() {
@@ -1102,9 +1112,22 @@ public final class Neo4jTemplate implements
 		this.elementIdOrIdFunction = SpringDataCypherDsl.elementIdOrIdFunction.apply(cypherDslConfiguration.getDialect());
 		this.cypherGenerator.setElementIdOrIdFunction(elementIdOrIdFunction);
 
-		PlatformTransactionManager transactionManager = beanFactory.getBeanProvider(PlatformTransactionManager.class).getIfUnique(() -> beanFactory.getBean(Neo4jTransactionManager.class));
-		this.transactionTemplate = new TransactionTemplate(transactionManager);
-		this.transactionTemplateReadOnly = new TransactionTemplate(transactionManager, readOnlyTransactionDefinition);
+		if (this.transactionTemplate != null && this.transactionTemplateReadOnly != null) {
+			return;
+		}
+		PlatformTransactionManager transactionManager = null;
+		var it = beanFactory.getBeanProvider(PlatformTransactionManager.class).stream().iterator();
+		while (it.hasNext()) {
+			PlatformTransactionManager transactionManagerCandidate = it.next();
+			if (transactionManagerCandidate instanceof Neo4jTransactionManager neo4jTransactionManager) {
+				if (transactionManager != null) {
+					throw new IllegalStateException("Multiple Neo4jTransactionManagers are defined in this context. " +
+							"If this in intended, please pass the transaction manager to use with this Neo4jTemplate in the constructor");
+				}
+				transactionManager = neo4jTransactionManager;
+			}
+		}
+		setTransactionManager(transactionManager);
 	}
 
 	// only used for the CDI configuration
@@ -1112,10 +1135,12 @@ public final class Neo4jTemplate implements
 		this.renderer = rendererFromCdiConfiguration;
 	}
 
-	// only used for the CDI configuration
-	public void setTransactionManager(PlatformTransactionManager platformTransactionManager) {
-		this.transactionTemplate = new TransactionTemplate(platformTransactionManager);
-		this.transactionTemplateReadOnly = new TransactionTemplate(platformTransactionManager, readOnlyTransactionDefinition);
+	public void setTransactionManager(@Nullable PlatformTransactionManager transactionManager) {
+		if (transactionManager == null) {
+			return;
+		}
+		this.transactionTemplate = new TransactionTemplate(transactionManager);
+		this.transactionTemplateReadOnly = new TransactionTemplate(transactionManager, readOnlyTransactionDefinition);
 	}
 
 	@Override

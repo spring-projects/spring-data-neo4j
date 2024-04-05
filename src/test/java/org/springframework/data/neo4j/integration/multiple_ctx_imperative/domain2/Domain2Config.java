@@ -62,9 +62,10 @@ public class Domain2Config {
 	@Bean
 	public Neo4jOperations domain2Template(
 			@Qualifier("domain2Client") Neo4jClient domain2Client,
-			@Qualifier("domain2Context") Neo4jMappingContext domain2Context
+			@Qualifier("domain2Context") Neo4jMappingContext domain2Context,
+			@Qualifier("domain2Manager") PlatformTransactionManager domain2TransactionManager
 	) {
-		return new Neo4jTemplate(domain2Client, domain2Context);
+		return new Neo4jTemplate(domain2Client, domain2Context, domain2TransactionManager);
 	}
 
 	@Bean
@@ -77,7 +78,7 @@ public class Domain2Config {
 
 	@Bean
 	public DatabaseSelectionProvider domain2Selection() {
-		return () -> DatabaseSelection.undecided();
+		return DatabaseSelection::undecided;
 	}
 
 	@Bean
