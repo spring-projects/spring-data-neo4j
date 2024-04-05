@@ -150,9 +150,14 @@ public final class ReactiveNeo4jTemplate implements
 	private ProjectionFactory projectionFactory;
 
 	private Renderer renderer;
+
 	private Function<Named, FunctionInvocation> elementIdOrIdFunction;
 
 	public ReactiveNeo4jTemplate(ReactiveNeo4jClient neo4jClient, Neo4jMappingContext neo4jMappingContext) {
+		this(neo4jClient, neo4jMappingContext, null);
+	}
+
+	public ReactiveNeo4jTemplate(ReactiveNeo4jClient neo4jClient, Neo4jMappingContext neo4jMappingContext, @Nullable ReactiveTransactionManager transactionManager) {
 
 		Assert.notNull(neo4jClient, "The Neo4jClient is required");
 		Assert.notNull(neo4jMappingContext, "The Neo4jMappingContext is required");
@@ -163,6 +168,7 @@ public final class ReactiveNeo4jTemplate implements
 		this.eventSupport = ReactiveEventSupport.useExistingCallbacks(neo4jMappingContext, ReactiveEntityCallbacks.create());
 		this.renderer = Renderer.getDefaultRenderer();
 		this.elementIdOrIdFunction = SpringDataCypherDsl.elementIdOrIdFunction.apply(null);
+		setTransactionManager(transactionManager);
 	}
 
 	ProjectionFactory getProjectionFactory() {
@@ -1182,10 +1188,32 @@ public final class ReactiveNeo4jTemplate implements
 		this.renderer = Renderer.getRenderer(cypherDslConfiguration);
 		this.elementIdOrIdFunction = SpringDataCypherDsl.elementIdOrIdFunction.apply(cypherDslConfiguration.getDialect());
 		this.cypherGenerator.setElementIdOrIdFunction(elementIdOrIdFunction);
-		ReactiveTransactionManager reactiveTransactionManager = beanFactory.getBeanProvider(ReactiveTransactionManager.class)
-				.getIfUnique(() -> beanFactory.getBean(ReactiveNeo4jTransactionManager.class));
-		this.transactionalOperatorReadOnly = TransactionalOperator.create(reactiveTransactionManager, readOnlyTransactionDefinition);
+
+		if (this.transactionalOperator != null && this.transactionalOperatorReadOnly != null) {
+			return;
+		}
+
+		ReactiveTransactionManager reactiveTransactionManager = null;
+		var iter = beanFactory.getBeanProvider(ReactiveTransactionManager.class).stream().iterator();
+		while (iter.hasNext()) {
+			ReactiveTransactionManager transactionManagerCandidate = iter.next();
+			if (transactionManagerCandidate instanceof ReactiveNeo4jTransactionManager reactiveNeo4jTransactionManager) {
+				if (reactiveTransactionManager != null) {
+					throw new IllegalStateException("Multiple ReactiveNeo4jTransactionManagers are defined in this context. " +
+							"If this in intended, please pass the transaction manager to use with this ReactiveNeo4jTemplate in the constructor");
+				}
+				reactiveTransactionManager = reactiveNeo4jTransactionManager;
+			}
+		}
+		setTransactionManager(reactiveTransactionManager);
+	}
+
+	private void setTransactionManager(@Nullable ReactiveTransactionManager reactiveTransactionManager) {
+		if (reactiveTransactionManager == null) {
+			return;
+		}
 		this.transactionalOperator = TransactionalOperator.create(reactiveTransactionManager);
+		this.transactionalOperatorReadOnly = TransactionalOperator.create(reactiveTransactionManager, readOnlyTransactionDefinition);
 	}
 
 	@Override
