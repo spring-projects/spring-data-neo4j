@@ -19,8 +19,10 @@ import lombok.Data;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
+import org.springframework.data.neo4j.core.schema.CompositeProperty;
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
@@ -50,4 +52,7 @@ public class CityModel {
 
 	@Property("exotic.property")
 	private String exoticProperty;
+
+	@CompositeProperty
+	private Map<String, String> compositeProperty;
 }

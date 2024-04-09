@@ -16,6 +16,7 @@
 package org.springframework.data.neo4j.repository.query;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 
 import java.time.LocalDateTime;
 import java.util.Map;
@@ -61,5 +62,26 @@ class CypherAdapterUtilsTest {
 
 		assertThat(Renderer.getRenderer(Configuration.prettyPrinting()).render(Cypher.match(Cypher.anyNode(n)).where(condition).returning(n).build()))
 						.isEqualTo(expected);
+	}
+
+	@Test
+	void sortByCompositePropertyField() {
+		var mappingContext = new Neo4jMappingContext();
+		var entity = mappingContext.getPersistentEntity(ScrollingEntity.class);
+
+		var sortItem = CypherAdapterUtils.sortAdapterFor(entity).apply(Sort.Order.asc("basicComposite.blubb"));
+		var node = Cypher.anyNode("scrollingEntity");
+		var statement = Cypher.match(node).returning(node).orderBy(sortItem).build();
+		assertThat(Renderer.getDefaultRenderer().render(statement))
+				.isEqualTo("MATCH (scrollingEntity) RETURN scrollingEntity ORDER BY scrollingEntity.__allProperties__.`basicComposite.blubb`");
+	}
+
+	@Test
+	void failOnDirectCompositePropertyAccess() {
+		var mappingContext = new Neo4jMappingContext();
+		var entity = mappingContext.getPersistentEntity(ScrollingEntity.class);
+
+		assertThatIllegalStateException().isThrownBy(() -> CypherAdapterUtils.sortAdapterFor(entity).apply(Sort.Order.asc("basicComposite")))
+				.withMessage("Cannot order by composite property: 'basicComposite'. Only ordering by its nested fields is allowed.");
 	}
 }
