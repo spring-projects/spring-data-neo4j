@@ -285,7 +285,6 @@ abstract class Neo4jQuerySupport {
 		var domainType = resultProcessor.getReturnedType().getDomainType();
 		var neo4jPersistentEntity = mappingContext.getPersistentEntity(domainType);
 		var limit = orderBy.getQueryFragments().getLimit().intValue() - (incrementLimit ? 1 : 0);
-		var conversionService = mappingContext.getConversionService();
 		var scrollPosition = parameterAccessor.getScrollPosition();
 
 		var scrollDirection = scrollPosition instanceof KeysetScrollPosition keysetScrollPosition ? keysetScrollPosition.getDirection() : Direction.FORWARD;
@@ -295,7 +294,7 @@ abstract class Neo4jQuerySupport {
 
 		return Window.from(getSubList(rawResult, limit, scrollDirection), v -> {
 			if (scrollPosition instanceof OffsetScrollPosition offsetScrollPosition) {
-				return offsetScrollPosition.advanceBy(v + limit);
+				return offsetScrollPosition.advanceBy(v);
 			} else {
 				var accessor = neo4jPersistentEntity.getPropertyAccessor(rawResult.get(v));
 				var keys = new LinkedHashMap<String, Object>();

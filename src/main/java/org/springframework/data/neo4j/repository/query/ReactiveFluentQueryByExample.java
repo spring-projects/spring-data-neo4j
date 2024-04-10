@@ -171,7 +171,7 @@ final class ReactiveFluentQueryByExample<S, R> extends FluentQuerySupport<R> imp
 
 		var skip = scrollPosition.isInitial()
 				? 0
-				: (scrollPosition instanceof OffsetScrollPosition offsetScrollPosition) ? offsetScrollPosition.getOffset()
+				: (scrollPosition instanceof OffsetScrollPosition offsetScrollPosition) ? offsetScrollPosition.getOffset() + 1
 				: 0;
 
 		Condition condition = scrollPosition instanceof KeysetScrollPosition keysetScrollPosition

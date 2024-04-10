@@ -273,7 +273,7 @@ public final class QueryFragmentsAndParameters {
 		if (scrollPosition instanceof OffsetScrollPosition offsetScrollPosition) {
 			skip = offsetScrollPosition.isInitial()
 					? 0
-					: offsetScrollPosition.getOffset();
+					: offsetScrollPosition.getOffset() + 1;
 
 			return forCondition(entityMetaData, condition, null, sort, null, limit, skip, includeField);
 		}
