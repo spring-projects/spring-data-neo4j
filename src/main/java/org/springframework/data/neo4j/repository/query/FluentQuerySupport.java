@@ -90,7 +90,7 @@ abstract class FluentQuerySupport<R> {
 
 		var skip = scrollPosition.isInitial()
 				? 0
-				: (scrollPosition instanceof OffsetScrollPosition offsetScrollPosition) ? offsetScrollPosition.getOffset()
+				: (scrollPosition instanceof OffsetScrollPosition offsetScrollPosition) ? offsetScrollPosition.getOffset() + 1
 				: 0;
 
 		var scrollDirection = scrollPosition instanceof KeysetScrollPosition keysetScrollPosition ? keysetScrollPosition.getDirection() : ScrollPosition.Direction.FORWARD;

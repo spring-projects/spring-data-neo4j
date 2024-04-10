@@ -2923,7 +2923,7 @@ class RepositoryIT {
 
 			Example<PersonWithAllConstructor> example = Example.of(sameValuePerson,
 					ExampleMatcher.matchingAll().withIgnoreNullValues());
-			Window<PersonWithAllConstructor> person = repository.findBy(example, q -> q.sortBy(Sort.by("name")).limit(1).scroll(ScrollPosition.offset(0)));
+			Window<PersonWithAllConstructor> person = repository.findBy(example, q -> q.sortBy(Sort.by("name")).limit(1).scroll(ScrollPosition.offset()));
 
 			assertThat(person).isNotNull();
 			assertThat(person.getContent().get(0)).isEqualTo(person1);

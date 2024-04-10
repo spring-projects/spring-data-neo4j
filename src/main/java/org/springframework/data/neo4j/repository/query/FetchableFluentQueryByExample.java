@@ -170,7 +170,7 @@ final class FetchableFluentQueryByExample<S, R> extends FluentQuerySupport<R> im
 
 		var skip = scrollPosition.isInitial()
 				? 0
-				: (scrollPosition instanceof OffsetScrollPosition offsetScrollPosition) ? offsetScrollPosition.getOffset()
+				: (scrollPosition instanceof OffsetScrollPosition offsetScrollPosition) ? offsetScrollPosition.getOffset() + 1
 				: 0;
 
 		Condition condition = scrollPosition instanceof KeysetScrollPosition keysetScrollPosition

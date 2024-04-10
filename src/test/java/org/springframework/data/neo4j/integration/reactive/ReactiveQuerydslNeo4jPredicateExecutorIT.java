@@ -196,7 +196,7 @@ class ReactiveQuerydslNeo4jPredicateExecutorIT {
 		Predicate predicate = Expressions.predicate(Ops.EQ, firstNamePath, Expressions.asString("Helge"))
 				.or(Expressions.predicate(Ops.EQ, lastNamePath, Expressions.asString("B.")));
 
-		repository.findBy(predicate, q -> q.limit(1).sortBy(Sort.by("firstName").descending()).scroll(ScrollPosition.offset(0)))
+		repository.findBy(predicate, q -> q.limit(1).sortBy(Sort.by("firstName").descending()).scroll(ScrollPosition.offset()))
 				.as(StepVerifier::create)
 				.expectNextMatches(peopleWindow -> {
 
@@ -206,7 +206,7 @@ class ReactiveQuerydslNeo4jPredicateExecutorIT {
 					assertThat(peopleWindow.isLast()).isFalse();
 					assertThat(peopleWindow.hasNext()).isTrue();
 
-					assertThat(peopleWindow.positionAt(peopleWindow.getContent().get(0))).isEqualTo(ScrollPosition.offset(1));
+					assertThat(peopleWindow.positionAt(peopleWindow.getContent().get(0))).isEqualTo(ScrollPosition.offset(0));
 					return true;
 				}).verifyComplete();
 	}
@@ -217,14 +217,14 @@ class ReactiveQuerydslNeo4jPredicateExecutorIT {
 		Predicate predicate = Expressions.predicate(Ops.EQ, firstNamePath, Expressions.asString("Helge"))
 				.or(Expressions.predicate(Ops.EQ, lastNamePath, Expressions.asString("B.")));
 
-		repository.findBy(predicate, q -> q.limit(1).sortBy(Sort.by("firstName").descending()).scroll(ScrollPosition.offset(1)))
+		repository.findBy(predicate, q -> q.limit(1).sortBy(Sort.by("firstName").descending()).scroll(ScrollPosition.offset(0)))
 				.as(StepVerifier::create)
 				.expectNextMatches(peopleWindow -> {
 					assertThat(peopleWindow.getContent()).extracting(Person::getFirstName)
 							.containsExactlyInAnyOrder("Bela");
 
 					assertThat(peopleWindow.isLast()).isTrue();
-					assertThat(peopleWindow.positionAt(peopleWindow.getContent().get(0))).isEqualTo(ScrollPosition.offset(2));
+					assertThat(peopleWindow.positionAt(peopleWindow.getContent().get(0))).isEqualTo(ScrollPosition.offset(1));
 					return true;
 				}).verifyComplete();
 	}
