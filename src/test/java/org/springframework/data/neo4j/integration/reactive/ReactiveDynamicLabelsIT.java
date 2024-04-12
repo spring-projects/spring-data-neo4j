@@ -17,7 +17,6 @@ package org.springframework.data.neo4j.integration.reactive;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import org.neo4j.cypherdsl.core.Functions;
 import org.neo4j.driver.TransactionContext;
 import org.junit.jupiter.api.RepeatedTest;
 import org.neo4j.driver.reactive.ReactiveSession;
@@ -471,8 +470,9 @@ public class ReactiveDynamicLabelsIT {
 			}
 		}
 
+		@SuppressWarnings("deprecation")
 		protected final Flux<String> getLabels(Long id) {
-			return getLabels(Functions.id(Cypher.anyNode().named("n")).isEqualTo(Cypher.parameter("id")), id);
+			return getLabels(Cypher.anyNode().named("n").internalId().isEqualTo(Cypher.parameter("id")), id);
 		}
 
 		protected final Flux<String> getLabels(Condition idCondition, Object id) {

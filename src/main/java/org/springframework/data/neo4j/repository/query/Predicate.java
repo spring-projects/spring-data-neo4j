@@ -30,9 +30,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiFunction;
 
 import org.neo4j.cypherdsl.core.Condition;
-import org.neo4j.cypherdsl.core.Conditions;
+import org.neo4j.cypherdsl.core.Cypher;
 import org.neo4j.cypherdsl.core.Expression;
-import org.neo4j.cypherdsl.core.Functions;
 import org.neo4j.cypherdsl.core.StatementBuilder;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
@@ -177,8 +176,8 @@ final class Predicate {
 			if (String.class.equals(graphProperty.getActualType())) {
 
 				if (matcherAccessor.isIgnoreCaseForPath(currentPath)) {
-					property = Functions.toLower(property);
-					parameter = Functions.toLower(parameter);
+					property = Cypher.toLower(property);
+					parameter = Cypher.toLower(parameter);
 				}
 
 				condition = switch (matcherAccessor.getStringMatcherForPath(currentPath)) {
@@ -206,7 +205,7 @@ final class Predicate {
 
 	private final Neo4jPersistentEntity neo4jPersistentEntity;
 
-	private Condition condition = Conditions.noCondition();
+	private Condition condition = Cypher.noCondition();
 
 	private final Map<String, Object> parameters = new HashMap<>();
 

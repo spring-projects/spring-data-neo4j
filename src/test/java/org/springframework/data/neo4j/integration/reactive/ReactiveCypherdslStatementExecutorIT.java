@@ -28,7 +28,6 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.neo4j.cypherdsl.core.Cypher;
-import org.neo4j.cypherdsl.core.Functions;
 import org.neo4j.cypherdsl.core.Node;
 import org.neo4j.cypherdsl.core.Property;
 import org.neo4j.cypherdsl.core.Relationship;
@@ -102,8 +101,8 @@ class ReactiveCypherdslStatementExecutorIT {
 				.where(p.property("firstName").isEqualTo(Cypher.anonParameter(name)))
 				.returning(
 						p.getRequiredSymbolicName(),
-						Functions.collect(r),
-						Functions.collect(a)
+						Cypher.collect(r),
+						Cypher.collect(a)
 				)
 				.build();
 	}
@@ -115,8 +114,8 @@ class ReactiveCypherdslStatementExecutorIT {
 		return Cypher.match(p).optionalMatch(r)
 				.returning(
 						p.getRequiredSymbolicName(),
-						Functions.collect(r),
-						Functions.collect(a)
+						Cypher.collect(r),
+						Cypher.collect(a)
 				)
 				.orderBy(p.property("firstName").ascending())
 				.build();
@@ -129,8 +128,8 @@ class ReactiveCypherdslStatementExecutorIT {
 		return Cypher.match(p).optionalMatch(r)
 				.returning(
 						p.getRequiredSymbolicName(),
-						Functions.collect(r),
-						Functions.collect(a)
+						Cypher.collect(r),
+						Cypher.collect(a)
 				);
 	}
 

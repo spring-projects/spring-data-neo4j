@@ -26,8 +26,7 @@ import java.util.function.Predicate;
 
 import org.apiguardian.api.API;
 import org.neo4j.cypherdsl.core.Condition;
-import org.neo4j.cypherdsl.core.Conditions;
-import org.neo4j.cypherdsl.core.Functions;
+import org.neo4j.cypherdsl.core.Cypher;
 import org.neo4j.cypherdsl.core.SortItem;
 import org.neo4j.cypherdsl.core.Statement;
 import org.springframework.data.domain.Page;
@@ -109,7 +108,7 @@ public final class CypherdslConditionExecutorImpl<T> implements CypherdslConditi
 
 		return this.neo4jOperations.toExecutableQuery(
 				this.metaData.getType(),
-				QueryFragmentsAndParameters.forConditionAndSortItems(this.metaData, Conditions.noCondition(), Arrays.asList(sortItems))
+				QueryFragmentsAndParameters.forConditionAndSortItems(this.metaData, Cypher.noCondition(), Arrays.asList(sortItems))
 		).getResults();
 	}
 
@@ -129,7 +128,7 @@ public final class CypherdslConditionExecutorImpl<T> implements CypherdslConditi
 	public long count(Condition condition) {
 
 		Statement statement = CypherGenerator.INSTANCE.prepareMatchOf(this.metaData, condition)
-				.returning(Functions.count(asterisk())).build();
+				.returning(Cypher.count(asterisk())).build();
 		return this.neo4jOperations.count(statement, statement.getCatalog().getParameters());
 	}
 

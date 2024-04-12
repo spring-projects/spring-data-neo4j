@@ -31,7 +31,6 @@ import java.util.Map;
 
 // tag::domain-results-impl[]
 import org.neo4j.cypherdsl.core.Cypher;
-import org.neo4j.cypherdsl.core.Functions;
 
 // end::domain-results-impl[]
 
@@ -89,7 +88,7 @@ class DomainResultsImpl implements DomainResults {
 		var p = shortestPath.getRequiredSymbolicName();
 		var statement = Cypher.match(shortestPath)
 				.with(p, listWith(name("n"))
-						.in(Functions.nodes(shortestPath))
+						.in(Cypher.nodes(shortestPath))
 						.where(anyNode().named("n").hasLabels("Movie")).returning().as("mn")
 				)
 				.unwind(name("mn")).as("m")
@@ -97,7 +96,7 @@ class DomainResultsImpl implements DomainResults {
 				.match(node("Person").named("d")
 						.relationshipTo(anyNode("m"), "DIRECTED").named("r")
 				)
-				.returning(p, Functions.collect(name("r")), Functions.collect(name("d")))
+				.returning(p, Cypher.collect(name("r")), Cypher.collect(name("d")))
 				.build();
 
 		Map<String, Object> parameters = new HashMap<>();

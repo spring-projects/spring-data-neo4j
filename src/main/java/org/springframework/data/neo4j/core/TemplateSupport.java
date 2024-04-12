@@ -36,7 +36,6 @@ import java.util.stream.StreamSupport;
 import org.apiguardian.api.API;
 import org.neo4j.cypherdsl.core.Cypher;
 import org.neo4j.cypherdsl.core.FunctionInvocation;
-import org.neo4j.cypherdsl.core.Functions;
 import org.neo4j.cypherdsl.core.Named;
 import org.neo4j.cypherdsl.core.Node;
 import org.neo4j.cypherdsl.core.Relationship;
@@ -187,7 +186,7 @@ public final class TemplateSupport {
 		private final static String RELATED_NODE_IDS = "relatedNodeIds";
 
 		final static NodesAndRelationshipsByIdStatementProvider EMPTY =
-				new NodesAndRelationshipsByIdStatementProvider(Collections.emptySet(), Collections.emptySet(), Collections.emptySet(), new QueryFragments(), SpringDataCypherDsl.elementIdOrIdFunction.apply(Dialect.DEFAULT));
+				new NodesAndRelationshipsByIdStatementProvider(Collections.emptySet(), Collections.emptySet(), Collections.emptySet(), new QueryFragments(), SpringDataCypherDsl.elementIdOrIdFunction.apply(Dialect.NEO4J_4));
 
 		private final Map<String, Collection<String>> parameters = new HashMap<>(3);
 		private final QueryFragments queryFragments;
@@ -223,16 +222,16 @@ public final class TemplateSupport {
 			Relationship relationships = Cypher.anyNode().relationshipBetween(Cypher.anyNode()).named(RELATIONSHIP_IDS);
 			return Cypher.match(rootNodes)
 					.where(elementIdFunction.apply(rootNodes).in(Cypher.parameter(ROOT_NODE_IDS)))
-					.with(Functions.collect(rootNodes).as(Constants.NAME_OF_ROOT_NODE))
+					.with(Cypher.collect(rootNodes).as(Constants.NAME_OF_ROOT_NODE))
 					.optionalMatch(relationships)
 					.where(elementIdFunction.apply(relationships).in(Cypher.parameter(RELATIONSHIP_IDS)))
-					.with(Constants.NAME_OF_ROOT_NODE, Functions.collectDistinct(relationships).as(Constants.NAME_OF_SYNTHESIZED_RELATIONS))
+					.with(Constants.NAME_OF_ROOT_NODE, Cypher.collectDistinct(relationships).as(Constants.NAME_OF_SYNTHESIZED_RELATIONS))
 					.optionalMatch(relatedNodes)
 					.where(elementIdFunction.apply(relatedNodes).in(Cypher.parameter(RELATED_NODE_IDS)))
 					.with(
 							Constants.NAME_OF_ROOT_NODE,
 							Cypher.name(Constants.NAME_OF_SYNTHESIZED_RELATIONS).as(Constants.NAME_OF_SYNTHESIZED_RELATIONS),
-							Functions.collectDistinct(relatedNodes).as(Constants.NAME_OF_SYNTHESIZED_RELATED_NODES)
+							Cypher.collectDistinct(relatedNodes).as(Constants.NAME_OF_SYNTHESIZED_RELATED_NODES)
 					)
 					.unwind(Constants.NAME_OF_ROOT_NODE).as(ROOT_NODE_IDS)
 					.with(
@@ -431,7 +430,7 @@ public final class TemplateSupport {
 	}
 
 	static boolean rendererRendersElementId(Renderer renderer) {
-		return renderer.render(Cypher.returning(Functions.elementId(Cypher.anyNode("n"))).build())
+		return renderer.render(Cypher.returning(Cypher.elementId(Cypher.anyNode("n"))).build())
 				.equals("RETURN elementId(n)");
 	}
 

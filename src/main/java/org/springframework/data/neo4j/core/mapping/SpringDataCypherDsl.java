@@ -16,8 +16,8 @@
 package org.springframework.data.neo4j.core.mapping;
 
 import org.apiguardian.api.API;
+import org.neo4j.cypherdsl.core.Cypher;
 import org.neo4j.cypherdsl.core.FunctionInvocation;
-import org.neo4j.cypherdsl.core.Functions;
 import org.neo4j.cypherdsl.core.Named;
 import org.neo4j.cypherdsl.core.Node;
 import org.neo4j.cypherdsl.core.Relationship;
@@ -39,14 +39,14 @@ public final class SpringDataCypherDsl {
 	public static Function<Dialect, Function<Named, FunctionInvocation>> elementIdOrIdFunction = dialect -> {
 		if (dialect == Dialect.NEO4J_5) {
 			return SpringDataCypherDsl::elementId;
-		} else if (dialect == Dialect.DEFAULT) {
+		} else if (dialect == Dialect.NEO4J_4) {
 			return SpringDataCypherDsl::id;
 		} else {
 			return named -> {
 				if (named instanceof Node node) {
-					return Functions.elementId(node);
+					return Cypher.elementId(node);
 				} else if (named instanceof Relationship relationship) {
-					return Functions.elementId(relationship);
+					return Cypher.elementId(relationship);
 				} else {
 					throw new IllegalArgumentException("Unsupported CypherDSL type: " + named.getClass());
 				}

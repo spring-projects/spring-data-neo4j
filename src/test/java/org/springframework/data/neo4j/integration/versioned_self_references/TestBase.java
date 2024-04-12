@@ -31,7 +31,7 @@ import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.params.provider.Arguments;
 import org.neo4j.cypherdsl.core.Cypher;
-import org.neo4j.cypherdsl.core.Functions;
+
 import org.neo4j.cypherdsl.core.Node;
 import org.neo4j.cypherdsl.core.ResultStatement;
 import org.neo4j.cypherdsl.core.executables.ExecutableStatement;
@@ -136,7 +136,8 @@ abstract class TestBase {
 			if (isExternal) {
 				statement = Cypher.create(nodeTemplate).returning(nodeTemplate.property("id")).build();
 			} else {
-				statement = Cypher.create(nodeTemplate).returning(Functions.id(nodeTemplate)).build();
+				//noinspection deprecation
+				statement = Cypher.create(nodeTemplate).returning(nodeTemplate.internalId()).build();
 			}
 
 			long id = ExecutableStatement.makeExecutable(statement).fetchWith(tx).get(0).get(0).asLong();
@@ -173,10 +174,11 @@ abstract class TestBase {
 						.returning(n1.property("id"), n2.property("id"))
 						.build();
 			} else {
+				//noinspection deprecation
 				statement = Cypher.create(n1).create(n2)
 						.merge(n1.relationshipTo(n2, "RELATED"))
 						.merge(n2.relationshipTo(n1, "RELATED"))
-						.returning(Functions.id(n1), Functions.id(n2))
+						.returning(n1.internalId(), n2.internalId())
 						.build();
 			}
 
@@ -257,9 +259,9 @@ abstract class TestBase {
 		Node nodeTemplate = Cypher.node(type.getSimpleName());
 		Node n1 = nodeTemplate.named("n1");
 		Node n2 = nodeTemplate.named("n2");
-		ResultStatement statement =
+		@SuppressWarnings("deprecation") ResultStatement statement =
 				Cypher.match(n1.relationshipTo(n2, "RELATED"))
-						.where(Functions.id(n1).isEqualTo(Cypher.anonParameter(id))
+						.where(n1.internalId().isEqualTo(Cypher.anonParameter(id))
 								.and(n2.relationshipTo(n1, "RELATED")))
 						.returning(n1.property("version")).build();
 

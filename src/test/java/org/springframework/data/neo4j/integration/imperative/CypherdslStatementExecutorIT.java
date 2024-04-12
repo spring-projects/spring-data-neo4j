@@ -22,7 +22,6 @@ import java.util.Optional;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.neo4j.cypherdsl.core.Cypher;
-import org.neo4j.cypherdsl.core.Functions;
 import org.neo4j.cypherdsl.core.Node;
 import org.neo4j.cypherdsl.core.Relationship;
 import org.neo4j.cypherdsl.core.Statement;
@@ -86,8 +85,8 @@ class CypherdslStatementExecutorIT {
 				.where(p.property("firstName").isEqualTo(Cypher.anonParameter(name))) // <.>
 				.returning(
 						p.getRequiredSymbolicName(),
-						Functions.collect(r),
-						Functions.collect(a)
+						Cypher.collect(r),
+						Cypher.collect(a)
 				)
 				.build();
 	}
@@ -100,8 +99,8 @@ class CypherdslStatementExecutorIT {
 		return Cypher.match(p).optionalMatch(r)
 				.returning(
 						p.getRequiredSymbolicName(),
-						Functions.collect(r),
-						Functions.collect(a)
+						Cypher.collect(r),
+						Cypher.collect(a)
 				)
 				.orderBy(p.property("firstName").ascending())
 				.build();
@@ -114,8 +113,8 @@ class CypherdslStatementExecutorIT {
 		return Cypher.match(p).optionalMatch(r)
 				.returning(
 						p.getRequiredSymbolicName(),
-						Functions.collect(r),
-						Functions.collect(a)
+						Cypher.collect(r),
+						Cypher.collect(a)
 				);
 	}
 
@@ -193,7 +192,7 @@ class CypherdslStatementExecutorIT {
 
 		Node person = Cypher.node("Person");
 		Page<Person> result = repository.findAll(
-				byCustomQueryWithoutOrder(), Cypher.match(person).returning(Functions.count(person)).build(),
+				byCustomQueryWithoutOrder(), Cypher.match(person).returning(Cypher.count(person)).build(),
 				PageRequest.of(1, 2, Sort.by("p.firstName").ascending())
 		);
 
@@ -209,7 +208,7 @@ class CypherdslStatementExecutorIT {
 
 		Node person = Cypher.node("Person");
 		Page<NamesOnly> result = repository.findAll(
-				byCustomQueryWithoutOrder(), Cypher.match(person).returning(Functions.count(person)).build(),
+				byCustomQueryWithoutOrder(), Cypher.match(person).returning(Cypher.count(person)).build(),
 				PageRequest.of(1, 2, Sort.by("p.firstName").ascending()),
 				NamesOnly.class
 		);

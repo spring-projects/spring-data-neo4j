@@ -18,7 +18,6 @@ package org.springframework.data.neo4j.integration.imperative;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.neo4j.cypherdsl.core.Cypher;
-import org.neo4j.cypherdsl.core.Functions;
 import org.neo4j.cypherdsl.core.Node;
 import org.neo4j.cypherdsl.core.Statement;
 import org.neo4j.driver.Driver;
@@ -130,7 +129,7 @@ class Neo4jTemplateIT {
 	@Test
 	void countWithStatement() {
 		Node node = Cypher.node("PersonWithAllConstructor").named("n");
-		Statement statement = Cypher.match(node).returning(Functions.count(node)).build();
+		Statement statement = Cypher.match(node).returning(Cypher.count(node)).build();
 
 		assertThat(neo4jTemplate.count(statement)).isEqualTo(2);
 	}
@@ -139,7 +138,7 @@ class Neo4jTemplateIT {
 	void countWithStatementAndParameters() {
 		Node node = Cypher.node("PersonWithAllConstructor").named("n");
 		Statement statement = Cypher.match(node).where(node.property("name").isEqualTo(Cypher.parameter("name")))
-				.returning(Functions.count(node)).build();
+				.returning(Cypher.count(node)).build();
 
 		assertThat(neo4jTemplate.count(statement, Collections.singletonMap("name", TEST_PERSON1_NAME))).isEqualTo(1);
 	}

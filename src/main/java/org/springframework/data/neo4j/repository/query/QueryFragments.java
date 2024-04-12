@@ -25,7 +25,6 @@ import java.util.function.Predicate;
 
 import org.apiguardian.api.API;
 import org.neo4j.cypherdsl.core.Condition;
-import org.neo4j.cypherdsl.core.Conditions;
 import org.neo4j.cypherdsl.core.Cypher;
 import org.neo4j.cypherdsl.core.Expression;
 import org.neo4j.cypherdsl.core.PatternElement;
@@ -77,7 +76,7 @@ public final class QueryFragments {
 	}
 
 	public void setCondition(@Nullable Condition condition) {
-		this.condition = Optional.ofNullable(condition).orElse(Conditions.noCondition());
+		this.condition = Optional.ofNullable(condition).orElse(Cypher.noCondition());
 	}
 
 	public Condition getCondition() {

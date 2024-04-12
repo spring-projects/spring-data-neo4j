@@ -65,7 +65,7 @@ class Neo4jCdiExtensionIT {
 				return Configuration.newConfig().withDialect(Dialect.NEO4J_5).build();
 			}
 
-			return Configuration.newConfig().withDialect(Dialect.DEFAULT).build();
+			return Configuration.newConfig().withDialect(Dialect.NEO4J_4).build();
 		}
 	}
 

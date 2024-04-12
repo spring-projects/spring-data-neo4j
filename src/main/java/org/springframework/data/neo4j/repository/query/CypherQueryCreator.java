@@ -15,7 +15,7 @@
  */
 package org.springframework.data.neo4j.repository.query;
 
-import static org.neo4j.cypherdsl.core.Functions.point;
+import static org.neo4j.cypherdsl.core.Cypher.point;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -33,13 +33,10 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.neo4j.cypherdsl.core.Condition;
-import org.neo4j.cypherdsl.core.Conditions;
 import org.neo4j.cypherdsl.core.Cypher;
 import org.neo4j.cypherdsl.core.Expression;
-import org.neo4j.cypherdsl.core.Functions;
 import org.neo4j.cypherdsl.core.Node;
 import org.neo4j.cypherdsl.core.PatternElement;
-import org.neo4j.cypherdsl.core.Predicates;
 import org.neo4j.cypherdsl.core.Property;
 import org.neo4j.cypherdsl.core.RelationshipPattern;
 import org.neo4j.cypherdsl.core.SortItem;
@@ -202,7 +199,7 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndPar
 		Node startNode = Cypher.node(nodeDescription.getPrimaryLabel(), nodeDescription.getAdditionalLabels())
 				.named(Constants.NAME_OF_TYPED_ROOT_NODE.apply(nodeDescription));
 
-		Condition conditionFragment = Optional.ofNullable(condition).orElseGet(Conditions::noCondition);
+		Condition conditionFragment = Optional.ofNullable(condition).orElseGet(Cypher::noCondition);
 		List<PatternElement> relationshipChain = new ArrayList<>();
 
 		for (PropertyPathWrapper possiblePathWithRelationship : propertyPathWrappers) {
@@ -219,12 +216,12 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndPar
 		// end of initial filter query creation
 
 		if (queryType == Neo4jQueryType.COUNT) {
-			queryFragments.setReturnExpression(Functions.count(Cypher.asterisk()), true);
+			queryFragments.setReturnExpression(Cypher.count(Cypher.asterisk()), true);
 		} else if (queryType == Neo4jQueryType.EXISTS) {
-			queryFragments.setReturnExpression(Functions.count(Constants.NAME_OF_TYPED_ROOT_NODE.apply(nodeDescription)).gt(Cypher.literalOf(0)), true);
+			queryFragments.setReturnExpression(Cypher.count(Constants.NAME_OF_TYPED_ROOT_NODE.apply(nodeDescription)).gt(Cypher.literalOf(0)), true);
 		} else if (queryType == Neo4jQueryType.DELETE) {
 			queryFragments.setDeleteExpression(Constants.NAME_OF_TYPED_ROOT_NODE.apply(nodeDescription));
-			queryFragments.setReturnExpression(Functions.count(Constants.NAME_OF_TYPED_ROOT_NODE.apply(nodeDescription)), true);
+			queryFragments.setReturnExpression(Cypher.count(Constants.NAME_OF_TYPED_ROOT_NODE.apply(nodeDescription)), true);
 		} else {
 
 			var theSort = pagingParameter.getSort().and(sort);
@@ -277,7 +274,7 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndPar
 					Cypher.name(getContainerName(path, (Neo4jPersistentEntity<?>) property.getOwner())),
 					toCypherParameter(nextRequiredParameter(actualParameters, property), ignoreCase));
 			if (part.getType() == Part.Type.NEGATING_SIMPLE_PROPERTY) {
-				compositePropertyCondition = Conditions.not(compositePropertyCondition);
+				compositePropertyCondition = Cypher.not(compositePropertyCondition);
 			}
 			return compositePropertyCondition;
 		}
@@ -291,7 +288,7 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndPar
 			case CONTAINING -> 	containingCondition(path, property, actualParameters, ignoreCase);
 			case ENDING_WITH -> toCypherProperty(path, ignoreCase)
 					.endsWith(toCypherParameter(nextRequiredParameter(actualParameters, property), ignoreCase));
-			case EXISTS -> Predicates.exists(toCypherProperty(property));
+			case EXISTS -> Cypher.exists(toCypherProperty(property));
 			case FALSE -> toCypherProperty(path, ignoreCase).isFalse();
 			case GREATER_THAN_EQUAL -> toCypherProperty(path, ignoreCase)
 					.gte(toCypherParameter(nextRequiredParameter(actualParameters, property), ignoreCase));
@@ -333,7 +330,7 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndPar
 			Neo4jPersistentEntity<?> owner = (Neo4jPersistentEntity<?>) leafProperty.getOwner();
 			String containerName = getContainerName(path, owner);
 			return toCypherParameter(nextRequiredParameter(actualParameters, property), ignoreCase)
-					.in(Functions.labels(Cypher.anyNode(containerName)));
+					.in(Cypher.labels(Cypher.anyNode(containerName)));
 		}
 		if (property.isCollectionLike()) {
 			return toCypherParameter(nextRequiredParameter(actualParameters, property), ignoreCase).in(cypherProperty);
@@ -401,7 +398,7 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndPar
 					String.format("The NEAR operation requires a reference point of type %s", Point.class));
 		}
 
-		Expression distanceFunction = Functions.distance(toCypherProperty(path, false), referencePoint);
+		Expression distanceFunction = Cypher.distance(toCypherProperty(path, false), referencePoint);
 
 		if (other.filter(p -> p.hasValueOfType(Distance.class)).isPresent()) {
 			return distanceFunction.lte(toCypherParameter(other.get(), false));
@@ -414,7 +411,7 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndPar
 
 			// Also, we cannot filter, but need to sort in the end.
 			this.sortItems.add(distanceFunction.ascending());
-			return Conditions.noCondition();
+			return Cypher.noCondition();
 		}
 	}
 
@@ -427,7 +424,7 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndPar
 			Expression referencePoint = point(Cypher.mapOf("x", createCypherParameter(area.nameOrIndex + ".x", false), "y",
 					createCypherParameter(area.nameOrIndex + ".y", false), "srid",
 					Cypher.property(toCypherProperty(path, false), "srid")));
-			Expression distanceFunction = Functions.distance(toCypherProperty(path, false), referencePoint);
+			Expression distanceFunction = Cypher.distance(toCypherProperty(path, false), referencePoint);
 			return distanceFunction.lte(createCypherParameter(area.nameOrIndex + ".radius", false));
 		} else if (area.hasValueOfType(BoundingBox.class) || area.hasValueOfType(Box.class)) {
 			Expression llx = createCypherParameter(area.nameOrIndex + ".llx", false);
@@ -457,7 +454,7 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndPar
 	private Condition createRangeConditionForProperty(Expression property, Parameter rangeParameter) {
 
 		Range range = (Range) rangeParameter.value;
-		Condition betweenCondition = Conditions.noCondition();
+		Condition betweenCondition = Cypher.noCondition();
 		if (range.getLowerBound().isBounded()) {
 			Expression parameterPlaceholder = createCypherParameter(rangeParameter.nameOrIndex + ".lb", false);
 			betweenCondition = betweenCondition.and(
@@ -501,7 +498,7 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndPar
 		}
 
 		if (addToLower) {
-			expression = Functions.toLower(expression);
+			expression = Cypher.toLower(expression);
 		}
 
 		return expression;
@@ -534,7 +531,7 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndPar
 
 		Expression expression = Cypher.parameter(name);
 		if (addToLower) {
-			expression = Functions.toLower(expression);
+			expression = Cypher.toLower(expression);
 		}
 		return expression;
 	}

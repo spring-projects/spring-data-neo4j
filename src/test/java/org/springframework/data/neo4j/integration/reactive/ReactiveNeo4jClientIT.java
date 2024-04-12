@@ -261,17 +261,17 @@ class ReactiveNeo4jClientIT {
 		}
 
 		Query createQuery() {
-			return new Query(this.delegate.getCypher(), this.delegate.getParameters());
+			return new Query(this.delegate.getCypher(), this.delegate.getCatalog().getParameters());
 		}
 
 		@Override
 		public Map<String, Object> getParameters() {
-			return this.delegate.getParameters();
+			return this.delegate.getCatalog().getParameters();
 		}
 
 		@Override
 		public Collection<String> getParameterNames() {
-			return this.delegate.getParameterNames();
+			return this.delegate.getCatalog().getParameterNames();
 		}
 
 		@Override

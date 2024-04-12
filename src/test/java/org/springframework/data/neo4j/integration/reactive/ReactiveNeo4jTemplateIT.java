@@ -19,7 +19,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.neo4j.cypherdsl.core.Cypher;
-import org.neo4j.cypherdsl.core.Functions;
 import org.neo4j.cypherdsl.core.Node;
 import org.neo4j.cypherdsl.core.Statement;
 import org.neo4j.driver.Driver;
@@ -150,7 +149,7 @@ class ReactiveNeo4jTemplateIT {
 	@Test
 	void countWithStatement() {
 		Node node = Cypher.node("PersonWithAllConstructor").named("n");
-		Statement statement = Cypher.match(node).returning(Functions.count(node)).build();
+		Statement statement = Cypher.match(node).returning(Cypher.count(node)).build();
 
 		StepVerifier.create(neo4jTemplate.count(statement)).assertNext(count -> assertThat(count).isEqualTo(2))
 				.verifyComplete();
@@ -160,7 +159,7 @@ class ReactiveNeo4jTemplateIT {
 	void countWithStatementAndParameters() {
 		Node node = Cypher.node("PersonWithAllConstructor").named("n");
 		Statement statement = Cypher.match(node).where(node.property("name").isEqualTo(parameter("name")))
-				.returning(Functions.count(node)).build();
+				.returning(Cypher.count(node)).build();
 
 		StepVerifier.create(neo4jTemplate.count(statement, Collections.singletonMap("name", TEST_PERSON1_NAME)))
 				.assertNext(count -> assertThat(count).isEqualTo(1)).verifyComplete();
