@@ -27,10 +27,8 @@ import java.util.stream.Collectors;
 
 import org.apiguardian.api.API;
 import org.neo4j.cypherdsl.core.Condition;
-import org.neo4j.cypherdsl.core.Conditions;
 import org.neo4j.cypherdsl.core.Cypher;
 import org.neo4j.cypherdsl.core.Expression;
-import org.neo4j.cypherdsl.core.Functions;
 import org.neo4j.cypherdsl.core.SortItem;
 import org.neo4j.cypherdsl.core.StatementBuilder;
 import org.neo4j.cypherdsl.core.SymbolicName;
@@ -104,7 +102,7 @@ public final class CypherAdapterUtils {
 			} else {
 				expression = property(root, graphProperty.getPropertyName());
 				if (order.isIgnoreCase()) {
-					expression = Functions.toLower(expression);
+					expression = Cypher.toLower(expression);
 				}
 			}
 			SortItem sortItem = Cypher.sort(expression);
@@ -141,11 +139,11 @@ public final class CypherAdapterUtils {
 
 		var root = Constants.NAME_OF_TYPED_ROOT_NODE.apply(entity);
 
-		var resultingCondition = Conditions.noCondition();
+		var resultingCondition = Cypher.noCondition();
 		// This is the next equality pair if previous sort key was equal
-		var nextEquals = Conditions.noCondition();
+		var nextEquals = Cypher.noCondition();
 		// This is the condition for when all the sort orderedKeys are equal, and we must filter via id
-		var allEqualsWithArtificialSort = Conditions.noCondition();
+		var allEqualsWithArtificialSort = Cypher.noCondition();
 
 		for (Map.Entry<String, Object> entry : orderedKeys.entrySet()) {
 

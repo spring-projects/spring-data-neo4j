@@ -20,7 +20,6 @@ import java.util.Optional;
 import org.apiguardian.api.API;
 import org.neo4j.cypherdsl.core.Cypher;
 import org.neo4j.cypherdsl.core.Expression;
-import org.neo4j.cypherdsl.core.Functions;
 import org.neo4j.cypherdsl.core.Node;
 import org.neo4j.cypherdsl.core.SymbolicName;
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
@@ -99,7 +98,8 @@ public final class IdDescription {
 		this.idExpression = Lazy.of(() -> {
 			final Node rootNode = Cypher.anyNode(symbolicName);
 			if (this.isInternallyGeneratedId()) {
-				return isDeprecated ? Functions.id(rootNode) : Functions.elementId(rootNode);
+				//noinspection deprecation
+				return isDeprecated ? rootNode.internalId() : rootNode.elementId();
 			} else {
 				return this.getOptionalGraphPropertyName()
 						.map(propertyName -> Cypher.property(symbolicName, propertyName)).get();
@@ -121,7 +121,8 @@ public final class IdDescription {
 	public Expression asIdExpression(String nodeName) {
 		final Node rootNode = Cypher.anyNode(nodeName);
 		if (this.isInternallyGeneratedId()) {
-			return isDeprecated ? Functions.id(rootNode) : Functions.elementId(rootNode);
+			//noinspection deprecation
+			return isDeprecated ? rootNode.internalId() : rootNode.elementId();
 		} else {
 			return this.getOptionalGraphPropertyName()
 					.map(propertyName -> Cypher.property(nodeName, propertyName)).get();

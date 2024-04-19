@@ -76,7 +76,7 @@
 		<checkstyle.skip>${skipTests}</checkstyle.skip>
 		<checkstyle.version>8.40</checkstyle.version>
 		<classgraph.version>4.8.149</classgraph.version>
-		<cypher-dsl.version>2023.2.0</cypher-dsl.version>
+		<cypher-dsl.version>2023.9.5</cypher-dsl.version>
 		<dist.id>spring-data-neo4j</dist.id>
 		<dist.key>SDNEO4J</dist.key>
 		<flatten-maven-plugin.version>1.2.5</flatten-maven-plugin.version>
@@ -118,6 +118,13 @@
 
 	<dependencyManagement>
 		<dependencies>
+			<dependency>
+				<groupId>org.neo4j</groupId>
+				<artifactId>neo4j-cypher-dsl-bom</artifactId>
+				<version>${cypher-dsl.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
 			<dependency>
 				<groupId>com.google.code.findbugs</groupId>
 				<artifactId>jsr305</artifactId>
@@ -186,22 +193,6 @@
 				<groupId>org.neo4j</groupId>
 				<artifactId>neo4j</artifactId>
 				<version>${neo4j.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.neo4j</groupId>
-				<artifactId>neo4j-cypher-dsl</artifactId>
-				<version>${cypher-dsl.version}</version>
-				<exclusions>
-					<exclusion>
-						<artifactId>annotations</artifactId>
-						<groupId>org.jetbrains</groupId>
-					</exclusion>
-				</exclusions>
-			</dependency>
-			<dependency>
-				<groupId>org.neo4j</groupId>
-				<artifactId>neo4j-cypher-dsl-schema-name-support</artifactId>
-				<version>${cypher-dsl.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>org.neo4j.driver</groupId>

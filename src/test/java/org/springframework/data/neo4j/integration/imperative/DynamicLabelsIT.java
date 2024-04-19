@@ -31,7 +31,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.neo4j.cypherdsl.core.Condition;
 import org.neo4j.cypherdsl.core.Cypher;
-import org.neo4j.cypherdsl.core.Functions;
 import org.neo4j.cypherdsl.core.Node;
 import org.neo4j.cypherdsl.core.renderer.Renderer;
 import org.neo4j.driver.Driver;
@@ -508,7 +507,7 @@ public class DynamicLabelsIT {
 		}
 
 		protected final List<String> getLabels(Long id) {
-			return getLabels(Functions.id(Cypher.anyNode().named("n")).isEqualTo(parameter("id")), id);
+			return getLabels(Cypher.anyNode().named("n").internalId().isEqualTo(parameter("id")), id);
 		}
 
 		protected final List<String> getLabels(Condition idCondition, Object id) {

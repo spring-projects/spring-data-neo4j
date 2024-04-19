@@ -16,13 +16,14 @@
 package org.springframework.data.neo4j.core.mapping;
 
 import static org.neo4j.cypherdsl.core.Cypher.anyNode;
+import static org.neo4j.cypherdsl.core.Cypher.coalesce;
+import static org.neo4j.cypherdsl.core.Cypher.collect;
 import static org.neo4j.cypherdsl.core.Cypher.listBasedOn;
 import static org.neo4j.cypherdsl.core.Cypher.literalOf;
 import static org.neo4j.cypherdsl.core.Cypher.match;
 import static org.neo4j.cypherdsl.core.Cypher.node;
 import static org.neo4j.cypherdsl.core.Cypher.optionalMatch;
 import static org.neo4j.cypherdsl.core.Cypher.parameter;
-import static org.neo4j.cypherdsl.core.Functions.coalesce;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -39,11 +40,9 @@ import javax.lang.model.SourceVersion;
 
 import org.apiguardian.api.API;
 import org.neo4j.cypherdsl.core.Condition;
-import org.neo4j.cypherdsl.core.Conditions;
 import org.neo4j.cypherdsl.core.Cypher;
 import org.neo4j.cypherdsl.core.Expression;
 import org.neo4j.cypherdsl.core.FunctionInvocation;
-import org.neo4j.cypherdsl.core.Functions;
 import org.neo4j.cypherdsl.core.IdentifiableElement;
 import org.neo4j.cypherdsl.core.MapProjection;
 import org.neo4j.cypherdsl.core.Named;
@@ -87,9 +86,9 @@ public enum CypherGenerator {
 	// default elementId function
 	private Function<Named, FunctionInvocation> elementIdOrIdFunction = named -> {
 		if (named instanceof Node node) {
-			return Functions.elementId(node);
+			return Cypher.elementId(node);
 		} else if (named instanceof Relationship relationship) {
-			return Functions.elementId(relationship);
+			return Cypher.elementId(relationship);
 		} else {
 			throw new IllegalArgumentException("Unsupported CypherDSL type: " + named.getClass());
 		}
@@ -140,7 +139,8 @@ public enum CypherGenerator {
 		List<IdentifiableElement> expressions = new ArrayList<>();
 		expressions.add(rootNode.getRequiredSymbolicName());
 		if (nodeDescription instanceof Neo4jPersistentEntity<?> entity && entity.isUsingDeprecatedInternalId()) {
-			expressions.add(Functions.id(rootNode).as(Constants.NAME_OF_INTERNAL_ID));
+			//noinspection deprecation
+			expressions.add(rootNode.internalId().as(Constants.NAME_OF_INTERNAL_ID));
 		}
 		expressions.add(elementIdOrIdFunction.apply(rootNode).as(Constants.NAME_OF_ELEMENT_ID));
 
@@ -155,7 +155,7 @@ public enum CypherGenerator {
 		StatementBuilder.OngoingReadingWithoutWhere match = prepareMatchOfRootNode(rootNode, initialMatchOn);
 
 		List<IdentifiableElement> expressions = new ArrayList<>();
-		expressions.add(Functions.collect(elementIdOrIdFunction.apply(rootNode)).as(Constants.NAME_OF_SYNTHESIZED_ROOT_NODE));
+		expressions.add(Cypher.collect(elementIdOrIdFunction.apply(rootNode)).as(Constants.NAME_OF_SYNTHESIZED_ROOT_NODE));
 
 		return match
 				.where(conditionOrNoCondition(condition))
@@ -192,9 +192,9 @@ public enum CypherGenerator {
 
 		relationship = relationship.named(Constants.NAME_OF_SYNTHESIZED_RELATIONS);
 		List<IdentifiableElement> expressions = new ArrayList<>();
-		expressions.add(Functions.collect(elementIdOrIdFunction.apply(rootNode)).as(Constants.NAME_OF_SYNTHESIZED_ROOT_NODE));
-		expressions.add(Functions.collect(elementIdOrIdFunction.apply(targetNode)).as(Constants.NAME_OF_SYNTHESIZED_RELATED_NODES));
-		expressions.add(Functions.collect(elementIdOrIdFunction.apply(relationship)).as(Constants.NAME_OF_SYNTHESIZED_RELATIONS));
+		expressions.add(Cypher.collect(elementIdOrIdFunction.apply(rootNode)).as(Constants.NAME_OF_SYNTHESIZED_ROOT_NODE));
+		expressions.add(Cypher.collect(elementIdOrIdFunction.apply(targetNode)).as(Constants.NAME_OF_SYNTHESIZED_RELATED_NODES));
+		expressions.add(Cypher.collect(elementIdOrIdFunction.apply(relationship)).as(Constants.NAME_OF_SYNTHESIZED_RELATIONS));
 
 		return match
 				.where(conditionOrNoCondition(condition))
@@ -251,14 +251,14 @@ public enum CypherGenerator {
 			versionCondition = rootNode.property(versionProperty.getName())
 					.isEqualTo(coalesce(parameter(Constants.NAME_OF_VERSION_PARAM), literalOf(0)));
 		} else {
-			versionCondition = Conditions.noCondition();
+			versionCondition = Cypher.noCondition();
 		}
 
 		return match(rootNode)
 				.where(idDescription.asIdExpression().isEqualTo(parameter(Constants.NAME_OF_ID)))
 				.and(versionCondition).unwind(rootNode.labels()).as("label").with(Cypher.name("label"))
 				.where(Cypher.name("label").in(parameter(Constants.NAME_OF_STATIC_LABELS_PARAM)).not())
-				.returning(Functions.collect(Cypher.name("label")).as(Constants.NAME_OF_LABELS)).build();
+				.returning(collect(Cypher.name("label")).as(Constants.NAME_OF_LABELS)).build();
 	}
 
 	public Statement prepareDeleteOf(NodeDescription<?> nodeDescription) {
@@ -276,7 +276,7 @@ public enum CypherGenerator {
 				.named(Constants.NAME_OF_TYPED_ROOT_NODE.apply(nodeDescription));
 		OngoingUpdate ongoingUpdate = match(rootNode).where(conditionOrNoCondition(condition)).detachDelete(rootNode);
 		if (count) {
-			return ongoingUpdate.returning(Functions.count(rootNode)).build();
+			return ongoingUpdate.returning(Cypher.count(rootNode)).build();
 		}
 		return ongoingUpdate.build();
 	}
@@ -289,7 +289,7 @@ public enum CypherGenerator {
 
 		Neo4jPersistentProperty property = (Neo4jPersistentProperty) idProperty;
 
-		Condition result = Conditions.noCondition();
+		Condition result = Cypher.noCondition();
 		for (String key : property.getOptionalConverter().write(null).keys()) {
 			Property expression = Cypher.property(containerName, key);
 			result = result.and(expression.isEqualTo(actualParameter.property(key)));
@@ -420,7 +420,7 @@ public enum CypherGenerator {
 
 		List<Expression> expressions = new ArrayList<>();
 		if (nodeDescription instanceof Neo4jPersistentEntity<?> entity && entity.isUsingDeprecatedInternalId()) {
-			Functions.id(rootNode).as(Constants.NAME_OF_INTERNAL_ID);
+			rootNode.internalId().as(Constants.NAME_OF_INTERNAL_ID);
 		}
 		expressions.add(elementIdOrIdFunction.apply(rootNode).as(Constants.NAME_OF_ELEMENT_ID));
 		expressions.add(rootNode.property(nameOfIdProperty).as(Constants.NAME_OF_ID));
@@ -465,9 +465,9 @@ public enum CypherGenerator {
 		var idProperty = entity.getRequiredIdProperty();
 		if (entity.isUsingInternalIds()) {
 			if (entity.isUsingDeprecatedInternalId() || !canUseElementId) {
-				startNodeIdFunction = Functions::id;
+				startNodeIdFunction = Node::internalId;
 			} else {
-				startNodeIdFunction = Functions::elementId;
+				startNodeIdFunction = Cypher::elementId;
 			}
 		} else {
 			startNodeIdFunction = node -> node.property(idProperty.getPropertyName());
@@ -479,25 +479,29 @@ public enum CypherGenerator {
 
 		Function<Node, Expression> startNodeIdFunction;
 		if (entity == null) {
-			return Functions::elementId;
+			return Cypher::elementId;
 		}
 		if (!entity.isUsingDeprecatedInternalId() && canUseElementId) {
-			startNodeIdFunction = Functions::elementId;
+			startNodeIdFunction = Cypher::elementId;
 		} else {
-			startNodeIdFunction = Functions::id;
+			startNodeIdFunction = Node::internalId;
 		}
 		return startNodeIdFunction;
 	}
 
+	static Expression relId(Relationship r) {
+		return FunctionInvocation.create(() -> "id", r.getRequiredSymbolicName());
+	}
+
 	private static Function<Relationship, Expression> getRelationshipIdFunction(RelationshipDescription relationshipDescription, boolean canUseElementId) {
 
-		Function<Relationship, Expression> result = canUseElementId ? Functions::elementId : Functions::id;
+		Function<Relationship, Expression> result = canUseElementId ? Cypher::elementId : CypherGenerator::relId;
 		if (relationshipDescription.hasRelationshipProperties()) {
 			Neo4jPersistentEntity<?> entity = (Neo4jPersistentEntity<?>) relationshipDescription.getRelationshipPropertiesEntity();
 			if ((entity != null && entity.isUsingDeprecatedInternalId()) || !canUseElementId) {
-				result = Functions::id;
+				result = CypherGenerator::relId;
 			} else {
-				result = Functions::elementId;
+				result = Cypher::elementId;
 			}
 		}
 		return result;
@@ -623,7 +627,7 @@ public enum CypherGenerator {
 	private List<Expression> getReturnedIdExpressionsForRelationship(RelationshipDescription relationship, Relationship relationshipFragment) {
 		List<Expression> result = new ArrayList<>();
 		if (relationship.hasRelationshipProperties() && relationship.getRelationshipPropertiesEntity() instanceof Neo4jPersistentEntity<?> entity && entity.isUsingDeprecatedInternalId()) {
-			result.add(Functions.id(relationshipFragment).as(Constants.NAME_OF_INTERNAL_ID));
+			result.add(relId(relationshipFragment).as(Constants.NAME_OF_INTERNAL_ID));
 		}
 		result.add(elementIdOrIdFunction.apply(relationshipFragment).as(Constants.NAME_OF_ELEMENT_ID));
 		return result;
@@ -661,7 +665,7 @@ public enum CypherGenerator {
 
 	public Collection<Expression> createReturnStatementForExists(Neo4jPersistentEntity<?> nodeDescription) {
 
-		return Collections.singleton(Functions.count(Constants.NAME_OF_TYPED_ROOT_NODE.apply(nodeDescription)));
+		return Collections.singleton(Cypher.count(Constants.NAME_OF_TYPED_ROOT_NODE.apply(nodeDescription)));
 	}
 
 	public Collection<Expression> createReturnStatementForMatch(Neo4jPersistentEntity<?> nodeDescription) {
@@ -711,7 +715,7 @@ public enum CypherGenerator {
 						}
 					}
 					if (order.isIgnoreCase()) {
-						expression = Functions.toLower(expression);
+						expression = Cypher.toLower(expression);
 					}
 					return order.isAscending() ? expression.ascending() : expression.descending();
 				}).toArray(SortItem[]::new))
@@ -804,10 +808,11 @@ public enum CypherGenerator {
 		}
 
 		nodePropertiesProjection.add(Constants.NAME_OF_LABELS);
-		nodePropertiesProjection.add(Functions.labels(node));
+		nodePropertiesProjection.add(Cypher.labels(node));
 		if (nodeDescription instanceof Neo4jPersistentEntity<?> entity && entity.isUsingDeprecatedInternalId()) {
 			nodePropertiesProjection.add(Constants.NAME_OF_INTERNAL_ID);
-			nodePropertiesProjection.add(Functions.id(node));
+			//noinspection deprecation
+			nodePropertiesProjection.add(node.internalId());
 		}
 		nodePropertiesProjection.add(Constants.NAME_OF_ELEMENT_ID);
 		nodePropertiesProjection.add(elementIdOrIdFunction.apply(node));
@@ -876,7 +881,7 @@ public enum CypherGenerator {
 
 			addMapProjection(relationshipTargetName,
 					listBasedOn(relationship).returning(mapProjection
-							.and(RelationshipDescription.NAME_OF_RELATIONSHIP_TYPE, Functions.type(relationship))),
+							.and(RelationshipDescription.NAME_OF_RELATIONSHIP_TYPE, Cypher.type(relationship))),
 					mapProjectionLists);
 
 		} else {
@@ -902,6 +907,6 @@ public enum CypherGenerator {
 	}
 
 	private static Condition conditionOrNoCondition(@Nullable Condition condition) {
-		return condition == null ? Conditions.noCondition() : condition;
+		return condition == null ? Cypher.noCondition() : condition;
 	}
 }

@@ -27,9 +27,7 @@ import java.util.function.Function;
 
 import org.apiguardian.api.API;
 import org.neo4j.cypherdsl.core.Condition;
-import org.neo4j.cypherdsl.core.Conditions;
 import org.neo4j.cypherdsl.core.Cypher;
-import org.neo4j.cypherdsl.core.Functions;
 import org.neo4j.cypherdsl.core.SortItem;
 import org.neo4j.cypherdsl.core.Statement;
 import org.reactivestreams.Publisher;
@@ -108,7 +106,7 @@ public final class ReactiveQuerydslNeo4jPredicateExecutor<T> implements Reactive
 	@Override
 	public Flux<T> findAll(OrderSpecifier<?>... orders) {
 
-		return doFindAll(Conditions.noCondition(), Arrays.asList(QuerydslNeo4jPredicateExecutor.toSortItems(orders)));
+		return doFindAll(Cypher.noCondition(), Arrays.asList(QuerydslNeo4jPredicateExecutor.toSortItems(orders)));
 	}
 
 	private Flux<T> doFindAll(Condition condition, Collection<SortItem> sortItems) {
@@ -124,7 +122,7 @@ public final class ReactiveQuerydslNeo4jPredicateExecutor<T> implements Reactive
 
 		Statement statement = CypherGenerator.INSTANCE.prepareMatchOf(this.metaData,
 						Cypher.adapt(predicate).asCondition())
-				.returning(Functions.count(asterisk())).build();
+				.returning(Cypher.count(asterisk())).build();
 		return this.neo4jOperations.count(statement, statement.getCatalog().getParameters());
 	}
 

@@ -17,7 +17,6 @@ package org.springframework.data.neo4j.repository.query;
 
 import org.apiguardian.api.API;
 import org.neo4j.cypherdsl.core.Condition;
-import org.neo4j.cypherdsl.core.Conditions;
 import org.neo4j.cypherdsl.core.Cypher;
 import org.neo4j.cypherdsl.core.Node;
 import org.neo4j.cypherdsl.core.PatternElement;
@@ -152,7 +151,7 @@ public final class QueryFragmentsAndParameters {
 	public static QueryFragmentsAndParameters forFindAll(Neo4jPersistentEntity<?> entityMetaData) {
 		QueryFragments queryFragments = new QueryFragments();
 		queryFragments.addMatchOn(cypherGenerator.createRootNode(entityMetaData));
-		queryFragments.setCondition(Conditions.noCondition());
+		queryFragments.setCondition(Cypher.noCondition());
 		queryFragments.setReturnExpressions(cypherGenerator.createReturnStatementForMatch(entityMetaData));
 		return new QueryFragmentsAndParameters(entityMetaData, queryFragments, Collections.emptyMap(), null);
 	}

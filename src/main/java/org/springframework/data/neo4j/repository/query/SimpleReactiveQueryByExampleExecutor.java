@@ -16,7 +16,8 @@
 package org.springframework.data.neo4j.repository.query;
 
 import org.apiguardian.api.API;
-import org.neo4j.cypherdsl.core.Functions;
+
+import org.neo4j.cypherdsl.core.Cypher;
 import org.neo4j.cypherdsl.core.Statement;
 import org.reactivestreams.Publisher;
 import org.springframework.data.domain.Example;
@@ -85,7 +86,7 @@ public final class SimpleReactiveQueryByExampleExecutor<T> implements ReactiveQu
 
 		Predicate predicate = Predicate.create(mappingContext, example);
 		Statement statement = predicate.useWithReadingFragment(cypherGenerator::prepareMatchOf)
-				.returning(Functions.count(asterisk())).build();
+				.returning(Cypher.count(asterisk())).build();
 
 		return this.neo4jOperations.count(statement, predicate.getParameters());
 	}

@@ -43,7 +43,6 @@ import org.apiguardian.api.API;
 import org.neo4j.cypherdsl.core.Condition;
 import org.neo4j.cypherdsl.core.Cypher;
 import org.neo4j.cypherdsl.core.FunctionInvocation;
-import org.neo4j.cypherdsl.core.Functions;
 import org.neo4j.cypherdsl.core.Named;
 import org.neo4j.cypherdsl.core.Node;
 import org.neo4j.cypherdsl.core.Statement;
@@ -190,7 +189,7 @@ public final class Neo4jTemplate implements
 	public long count(Class<?> domainType) {
 
 		Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getRequiredPersistentEntity(domainType);
-		Statement statement = cypherGenerator.prepareMatchOf(entityMetaData).returning(Functions.count(asterisk()))
+		Statement statement = cypherGenerator.prepareMatchOf(entityMetaData).returning(Cypher.count(asterisk()))
 				.build();
 
 		return count(statement);
