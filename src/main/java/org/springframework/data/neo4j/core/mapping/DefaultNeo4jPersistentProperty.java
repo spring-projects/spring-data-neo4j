@@ -169,7 +169,7 @@ final class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProp
 
 		DefaultRelationshipDescription relationshipDescription = new DefaultRelationshipDescription(this,
 				obverseRelationshipDescription.orElse(null), type, dynamicAssociation, (NodeDescription<?>) getOwner(),
-				this.getName(), obverseOwner, direction, relationshipPropertiesClass);
+				this.getName(), obverseOwner, direction, relationshipPropertiesClass, relationship == null || relationship.cascadeUpdates());
 
 		// Update the previous found, if any, relationship with the newly created one as its counterpart.
 		obverseRelationshipDescription

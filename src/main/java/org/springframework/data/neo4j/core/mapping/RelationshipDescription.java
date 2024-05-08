@@ -138,4 +138,9 @@ public interface RelationshipDescription {
 	 * @return true if a logically same relationship in the target entity exists, otherwise false.
 	 */
 	boolean hasRelationshipObverse();
+
+	/**
+	 * {@return true if updates should be cascaded along this relationship}
+	 */
+	boolean cascadeUpdates();
 }

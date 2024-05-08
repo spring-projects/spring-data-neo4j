@@ -82,4 +82,13 @@ public @interface Relationship {
 	 * @return The direction of the relationship.
 	 */
 	Direction direction() default Direction.OUTGOING;
+
+	/**
+	 * Set this attribute to {@literal false} if you don't want updates on an aggregate root to be cascaded to related objects.
+	 * Be aware that in this case you are responsible to manually save the related objects and that you might end up with a local
+	 * object graph that is not in sync with the actual graph.
+	 *
+	 * @return whether updates to the owning instance should be cascaded to the related objects
+	 */
+	boolean cascadeUpdates() default true;
 }

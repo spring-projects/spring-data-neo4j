@@ -756,6 +756,12 @@ public enum CypherGenerator {
 		return returnExpressions;
 	}
 
+
+	public StatementBuilder.OngoingReading prepareFindOf(NodeDescription<?> nodeDescription, @Nullable List<PatternElement> initialMatchOn, @Nullable Condition condition) {
+		var rootNode = createRootNode(nodeDescription);
+		return prepareMatchOfRootNode(rootNode, initialMatchOn).where(conditionOrNoCondition(condition));
+	}
+
 	private MapProjection projectPropertiesAndRelationships(PropertyFilter.RelaxedPropertyPath parentPath, Neo4jPersistentEntity<?> nodeDescription, SymbolicName nodeName,
 															Predicate<PropertyFilter.RelaxedPropertyPath> includedProperties, @Nullable RelationshipDescription relationshipDescription, List<RelationshipDescription> processedRelationships) {
 

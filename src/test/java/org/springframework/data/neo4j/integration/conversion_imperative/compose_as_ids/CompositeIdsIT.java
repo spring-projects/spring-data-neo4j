@@ -97,8 +97,7 @@ class CompositeIdsIT {
 	@Test
 	void compositeIdsShouldWork(@Autowired ThingWithCompositeIdRepository repository) {
 
-		ThingWithCompositeId thing = new ThingWithCompositeId(new CompositeValue("a,", 1), "first entity");
-		ThingWithCompositeId saved = repository.save(thing);
+		ThingWithCompositeId saved = repository.save(new ThingWithCompositeId(new CompositeValue("a,", 1), "first entity"));
 		assertThat(saved.getVersion()).isGreaterThanOrEqualTo(0);
 
 		saved.setName("foobar");

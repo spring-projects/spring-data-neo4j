@@ -890,8 +890,7 @@ public final class Neo4jTemplate implements
 				// here a map entry is not always anymore a dynamic association
 				Object relatedObjectBeforeCallbacksApplied = relationshipContext.identifyAndExtractRelationshipTargetNode(relatedValueToStore);
 				Neo4jPersistentEntity<?> targetEntity = neo4jMappingContext.getRequiredPersistentEntity(relatedObjectBeforeCallbacksApplied.getClass());
-
-				boolean isEntityNew = targetEntity.isNew(relatedObjectBeforeCallbacksApplied);
+				boolean isNewEntity = targetEntity.isNew(relatedObjectBeforeCallbacksApplied);
 
 				Object newRelatedObject = stateMachine.hasProcessedValue(relatedObjectBeforeCallbacksApplied)
 						? stateMachine.getProcessedAs(relatedObjectBeforeCallbacksApplied)
@@ -903,7 +902,13 @@ public final class Neo4jTemplate implements
 				if (stateMachine.hasProcessedValue(relatedValueToStore)) {
 					relatedInternalId = stateMachine.getObjectId(relatedValueToStore);
 				} else {
-					savedEntity = saveRelatedNode(newRelatedObject, targetEntity, includeProperty, currentPropertyPath);
+					if (isNewEntity || relationshipDescription.cascadeUpdates()) {
+						savedEntity = saveRelatedNode(newRelatedObject, targetEntity, includeProperty, currentPropertyPath);
+					} else {
+						var targetPropertyAccessor = targetEntity.getPropertyAccessor(newRelatedObject);
+						var requiredIdProperty = targetEntity.getRequiredIdProperty();
+						savedEntity = loadRelatedNode(targetEntity, targetPropertyAccessor.getProperty(requiredIdProperty));
+					}
 					relatedInternalId = TemplateSupport.rendererCanUseElementIdIfPresent(renderer, targetEntity) ? savedEntity.elementId() : savedEntity.id();
 					stateMachine.markEntityAsProcessed(relatedValueToStore, relatedInternalId);
 					if (relatedValueToStore instanceof MappingSupport.RelationshipPropertiesWithEntityHolder) {
@@ -987,7 +992,7 @@ public final class Neo4jTemplate implements
 				}
 
 				if (processState != ProcessState.PROCESSED_ALL_VALUES) {
-					processNestedRelations(targetEntity, targetPropertyAccessor, isEntityNew, stateMachine, includeProperty, currentPropertyPath);
+					processNestedRelations(targetEntity, targetPropertyAccessor, isNewEntity, stateMachine, includeProperty, currentPropertyPath);
 				}
 
 				Object potentiallyRecreatedNewRelatedObject = MappingSupport.getRelationshipOrRelationshipPropertiesObject(neo4jMappingContext,
@@ -1037,6 +1042,23 @@ public final class Neo4jTemplate implements
 		@SuppressWarnings("unchecked")
 		T finalSubgraphRoot = (T) propertyAccessor.getBean();
 		return finalSubgraphRoot;
+	}
+
+	// The pendant to {@link #saveRelatedNode(Object, NodeDescription, PropertyFilter, PropertyFilter.RelaxedPropertyPath)}
+	// We can't do without a query, as we need to refresh the internal id
+	private Entity loadRelatedNode(NodeDescription<?> targetNodeDescription, Object relatedInternalId) {
+
+		var targetPersistentEntity = (Neo4jPersistentEntity<?>) targetNodeDescription;
+		var queryFragmentsAndParameters = QueryFragmentsAndParameters.forFindById(targetPersistentEntity, convertIdValues(targetPersistentEntity.getRequiredIdProperty(), relatedInternalId));
+		var nodeName = Constants.NAME_OF_TYPED_ROOT_NODE.apply(targetNodeDescription).getValue();
+
+		return neo4jClient
+				.query(() -> renderer.render(
+						cypherGenerator.prepareFindOf(targetNodeDescription, queryFragmentsAndParameters.getQueryFragments().getMatchOn(),
+								queryFragmentsAndParameters.getQueryFragments().getCondition()).returning(nodeName).build()))
+				.bindAll(queryFragmentsAndParameters.getParameters())
+				.fetchAs(Entity.class).mappedBy((t, r) -> r.get(nodeName).asNode())
+				.one().orElseThrow();
 	}
 
 	private void assignIdToRelationshipProperties(
