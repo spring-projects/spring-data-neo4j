@@ -114,6 +114,7 @@
 		<skipUnitTests>${skipTests}</skipUnitTests>
 
 		<springdata.commons>3.3.0-SNAPSHOT</springdata.commons>
+		<junit-pioneer.version>2.2.0</junit-pioneer.version>
 	</properties>
 
 	<dependencyManagement>
@@ -133,6 +134,11 @@
 				<artifactId>junit-jupiter-causal-cluster-testcontainer-extension</artifactId>
 				<version>${junit-cc-testcontainer}</version>
 				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.junit-pioneer</groupId>
+				<artifactId>junit-pioneer</artifactId>
+				<version>${junit-pioneer.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>io.github.classgraph</groupId>
@@ -448,6 +454,11 @@
 		<dependency>
 			<groupId>io.projectreactor.tools</groupId>
 			<artifactId>blockhound</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.junit-pioneer</groupId>
+			<artifactId>junit-pioneer</artifactId>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>

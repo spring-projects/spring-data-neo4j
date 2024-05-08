@@ -27,21 +27,21 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Import;
-import org.springframework.data.neo4j.core.Neo4jTemplate;
+import org.springframework.data.neo4j.core.ReactiveNeo4jTemplate;
 import org.springframework.data.neo4j.test.Neo4jExtension;
-import org.springframework.data.neo4j.test.Neo4jImperativeTestConfiguration;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
+import org.springframework.data.neo4j.test.Neo4jReactiveTestConfiguration;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 @Neo4jIntegrationTest
-@Import(CascadingIT.Config.class)
-class CascadingIT extends AbstractCascadingTestBase {
+@Import(ReactiveCascadingIT.Config.class)
+class ReactiveCascadingIT extends AbstractCascadingTestBase {
 
 	protected static Neo4jExtension.Neo4jConnectionSupport neo4jConnectionSupport;
 
 	@EnableTransactionManagement
 	@ComponentScan
-	static class Config extends Neo4jImperativeTestConfiguration {
+	static class Config extends Neo4jReactiveTestConfiguration {
 
 		@Bean
 		public Driver driver() {
@@ -55,7 +55,7 @@ class CascadingIT extends AbstractCascadingTestBase {
 	}
 
 	@Autowired
-	Neo4jTemplate template;
+	ReactiveNeo4jTemplate template;
 
 	@CartesianTest
 	<T extends Parent> void updatesMustNotCascade(
@@ -63,7 +63,7 @@ class CascadingIT extends AbstractCascadingTestBase {
 			@Values(booleans = {true, false}) boolean single) throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
 
 		var id = EXISTING_IDS.get(type);
-		var instance = this.template.findById(id, type).orElseThrow();
+		var instance = this.template.findById(id, type).single().block();
 
 		instance.setName("Updated parent");
 		instance.getSingleCUE().setName("Updated single CUE");
@@ -74,13 +74,13 @@ class CascadingIT extends AbstractCascadingTestBase {
 		});
 
 		if (single) {
-			this.template.save(instance);
+			this.template.save(instance).block();
 		} else {
-			this.template.saveAll(List.of(instance, type.getDeclaredConstructor(String.class).newInstance("Parent2")));
+			this.template.saveAll(List.of(instance, type.getDeclaredConstructor(String.class).newInstance("Parent2"))).collectList().block();
 		}
 
 		// Can't assert on the instance above, as that would ofc be the purposefully modified state
-		var reloadedInstance = this.template.findById(id, type).orElseThrow();
+		var reloadedInstance = this.template.findById(id, type).singleOptional().block().orElseThrow();
 		assertThat(reloadedInstance.getName()).isEqualTo("Updated parent");
 
 		assertThat(reloadedInstance.getSingleCUE().getName()).isEqualTo("ParentDB.singleCUE");
@@ -98,9 +98,12 @@ class CascadingIT extends AbstractCascadingTestBase {
 
 		T instance;
 		if (single) {
-			instance = template.save(type.getDeclaredConstructor(String.class).newInstance("Parent"));
+			instance = template.save(type.getDeclaredConstructor(String.class).newInstance("Parent")).block();
 		} else {
-			instance = template.saveAll(List.of(type.getDeclaredConstructor(String.class).newInstance("Parent"), type.getDeclaredConstructor(String.class).newInstance("Parent2"))).get(0);
+			instance = template.saveAll(List.of(type.getDeclaredConstructor(String.class).newInstance("Parent"), type.getDeclaredConstructor(String.class).newInstance("Parent2")))
+					.collectList()
+					.block()
+					.get(0);
 		}
 
 		assertAllRelationshipsHaveBeenCreated(instance);

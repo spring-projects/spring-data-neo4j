@@ -970,6 +970,9 @@ public final class ReactiveNeo4jTemplate implements
 			Flux<RelationshipHandler> relationshipCreation = Flux.fromIterable(relatedValuesToStore).concatMap(relatedValueToStore -> {
 
 				Object relatedObjectBeforeCallbacksApplied = relationshipContext.identifyAndExtractRelationshipTargetNode(relatedValueToStore);
+				Neo4jPersistentEntity<?> targetEntity = neo4jMappingContext.getRequiredPersistentEntity(relatedObjectBeforeCallbacksApplied.getClass());
+				boolean isNewEntity = targetEntity.isNew(relatedObjectBeforeCallbacksApplied);
+
 				return Mono.deferContextual(ctx ->
 
 						(stateMachine.hasProcessedValue(relatedObjectBeforeCallbacksApplied)
@@ -977,7 +980,6 @@ public final class ReactiveNeo4jTemplate implements
 								: eventSupport.maybeCallBeforeBind(relatedObjectBeforeCallbacksApplied))
 
 						.flatMap(newRelatedObject -> {
-							Neo4jPersistentEntity<?> targetEntity = neo4jMappingContext.getRequiredPersistentEntity(relatedObjectBeforeCallbacksApplied.getClass());
 
 							Mono<Tuple2<AtomicReference<Object>, AtomicReference<Entity>>> queryOrSave;
 							if (stateMachine.hasProcessedValue(relatedValueToStore)) {
@@ -988,7 +990,16 @@ public final class ReactiveNeo4jTemplate implements
 								}
 								queryOrSave = Mono.just(Tuples.of(relatedInternalId, new AtomicReference<>()));
 							} else {
-								queryOrSave = saveRelatedNode(newRelatedObject, targetEntity, includeProperty, currentPropertyPath)
+								Mono<Entity> savedEntity;
+								if (isNewEntity || relationshipDescription.cascadeUpdates()) {
+									savedEntity = saveRelatedNode(newRelatedObject, targetEntity, includeProperty, currentPropertyPath);
+								} else {
+									var targetPropertyAccessor = targetEntity.getPropertyAccessor(newRelatedObject);
+									var requiredIdProperty = targetEntity.getRequiredIdProperty();
+									savedEntity = loadRelatedNode(targetEntity, targetPropertyAccessor.getProperty(requiredIdProperty));
+								}
+
+								queryOrSave = savedEntity
 										.map(entity -> Tuples.of(new AtomicReference<>((Object) (TemplateSupport.rendererCanUseElementIdIfPresent(renderer, targetEntity) ? entity.elementId() : entity.id())), new AtomicReference<>(entity)))
 										.doOnNext(t -> {
 											var relatedInternalId = t.getT1().get();
@@ -999,6 +1010,7 @@ public final class ReactiveNeo4jTemplate implements
 											}
 										});
 							}
+
 							return queryOrSave.flatMap(idAndEntity -> {
 									Object relatedInternalId = idAndEntity.getT1().get();
 									Entity savedEntity = idAndEntity.getT2().get();
@@ -1087,6 +1099,23 @@ public final class ReactiveNeo4jTemplate implements
 				.then(Mono.fromSupplier(parentPropertyAccessor::getBean));
 		return deleteAndThanCreateANew;
 
+	}
+
+	// The pendant to {@link #saveRelatedNode(Object, Neo4jPersistentEntity, PropertyFilter, PropertyFilter.RelaxedPropertyPath)}
+	// We can't do without a query, as we need to refresh the internal id
+	private Mono<Entity> loadRelatedNode(NodeDescription<?> targetNodeDescription, Object relatedInternalId) {
+
+		var targetPersistentEntity = (Neo4jPersistentEntity<?>) targetNodeDescription;
+		var queryFragmentsAndParameters = QueryFragmentsAndParameters.forFindById(targetPersistentEntity, convertIdValues(targetPersistentEntity.getRequiredIdProperty(), relatedInternalId));
+		var nodeName = Constants.NAME_OF_TYPED_ROOT_NODE.apply(targetNodeDescription).getValue();
+
+		return neo4jClient
+				.query(() -> renderer.render(
+						cypherGenerator.prepareFindOf(targetNodeDescription, queryFragmentsAndParameters.getQueryFragments().getMatchOn(),
+								queryFragmentsAndParameters.getQueryFragments().getCondition()).returning(nodeName).build()))
+				.bindAll(queryFragmentsAndParameters.getParameters())
+				.fetchAs(Entity.class).mappedBy((t, r) -> r.get(nodeName).asNode())
+				.one();
 	}
 
 	private Mono<Entity> saveRelatedNode(Object relatedNode, Neo4jPersistentEntity<?> targetNodeDescription, PropertyFilter includeProperty, PropertyFilter.RelaxedPropertyPath currentPropertyPath) {

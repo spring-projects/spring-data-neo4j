@@ -891,8 +891,7 @@ public final class Neo4jTemplate implements
 				// here a map entry is not always anymore a dynamic association
 				Object relatedObjectBeforeCallbacksApplied = relationshipContext.identifyAndExtractRelationshipTargetNode(relatedValueToStore);
 				Neo4jPersistentEntity<?> targetEntity = neo4jMappingContext.getRequiredPersistentEntity(relatedObjectBeforeCallbacksApplied.getClass());
-
-				boolean isEntityNew = targetEntity.isNew(relatedObjectBeforeCallbacksApplied);
+				boolean isNewEntity = targetEntity.isNew(relatedObjectBeforeCallbacksApplied);
 
 				Object newRelatedObject = stateMachine.hasProcessedValue(relatedObjectBeforeCallbacksApplied)
 						? stateMachine.getProcessedAs(relatedObjectBeforeCallbacksApplied)
@@ -904,7 +903,7 @@ public final class Neo4jTemplate implements
 				if (stateMachine.hasProcessedValue(relatedValueToStore)) {
 					relatedInternalId = stateMachine.getObjectId(relatedValueToStore);
 				} else {
-					if (isEntityNew || relationshipDescription.cascadeUpdates()) {
+					if (isNewEntity || relationshipDescription.cascadeUpdates()) {
 						savedEntity = saveRelatedNode(newRelatedObject, targetEntity, includeProperty, currentPropertyPath);
 					} else {
 						var targetPropertyAccessor = targetEntity.getPropertyAccessor(newRelatedObject);
@@ -994,7 +993,7 @@ public final class Neo4jTemplate implements
 				}
 
 				if (processState != ProcessState.PROCESSED_ALL_VALUES) {
-					processNestedRelations(targetEntity, targetPropertyAccessor, isEntityNew, stateMachine, includeProperty, currentPropertyPath);
+					processNestedRelations(targetEntity, targetPropertyAccessor, isNewEntity, stateMachine, includeProperty, currentPropertyPath);
 				}
 
 				Object potentiallyRecreatedNewRelatedObject = MappingSupport.getRelationshipOrRelationshipPropertiesObject(neo4jMappingContext,
