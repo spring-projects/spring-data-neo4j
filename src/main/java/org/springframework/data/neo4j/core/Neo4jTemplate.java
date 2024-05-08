@@ -904,7 +904,13 @@ public final class Neo4jTemplate implements
 				if (stateMachine.hasProcessedValue(relatedValueToStore)) {
 					relatedInternalId = stateMachine.getObjectId(relatedValueToStore);
 				} else {
-					savedEntity = saveRelatedNode(newRelatedObject, targetEntity, includeProperty, currentPropertyPath);
+					if (isEntityNew || relationshipDescription.cascadeUpdates()) {
+						savedEntity = saveRelatedNode(newRelatedObject, targetEntity, includeProperty, currentPropertyPath);
+					} else {
+						var targetPropertyAccessor = targetEntity.getPropertyAccessor(newRelatedObject);
+						var requiredIdProperty = targetEntity.getRequiredIdProperty();
+						savedEntity = loadRelatedNode(targetEntity, targetPropertyAccessor.getProperty(requiredIdProperty));
+					}
 					relatedInternalId = TemplateSupport.rendererCanUseElementIdIfPresent(renderer, targetEntity) ? savedEntity.elementId() : savedEntity.id();
 					stateMachine.markEntityAsProcessed(relatedValueToStore, relatedInternalId);
 					if (relatedValueToStore instanceof MappingSupport.RelationshipPropertiesWithEntityHolder) {
@@ -1038,6 +1044,23 @@ public final class Neo4jTemplate implements
 		@SuppressWarnings("unchecked")
 		T finalSubgraphRoot = (T) propertyAccessor.getBean();
 		return finalSubgraphRoot;
+	}
+
+	// The pendant to {@link #saveRelatedNode(Object, NodeDescription, PropertyFilter, PropertyFilter.RelaxedPropertyPath)}
+	// We can't do without a query, as we need to refresh the internal id
+	private Entity loadRelatedNode(NodeDescription<?> targetNodeDescription, Object relatedInternalId) {
+
+		var targetPersistentEntity = (Neo4jPersistentEntity<?>) targetNodeDescription;
+		var queryFragmentsAndParameters = QueryFragmentsAndParameters.forFindById(targetPersistentEntity, convertIdValues(targetPersistentEntity.getRequiredIdProperty(), relatedInternalId));
+		var nodeName = Constants.NAME_OF_TYPED_ROOT_NODE.apply(targetNodeDescription).getValue();
+
+		return neo4jClient
+				.query(() -> renderer.render(
+						cypherGenerator.prepareFindOf(targetNodeDescription, queryFragmentsAndParameters.getQueryFragments().getMatchOn(),
+								queryFragmentsAndParameters.getQueryFragments().getCondition()).returning(nodeName).build()))
+				.bindAll(queryFragmentsAndParameters.getParameters())
+				.fetchAs(Entity.class).mappedBy((t, r) -> r.get(nodeName).asNode())
+				.one().orElseThrow();
 	}
 
 	private void assignIdToRelationshipProperties(

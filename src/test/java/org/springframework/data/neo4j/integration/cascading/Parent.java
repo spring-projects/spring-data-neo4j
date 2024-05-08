@@ -15,10 +15,28 @@
  */
 package org.springframework.data.neo4j.integration.cascading;
 
+import java.util.List;
+
 /**
  * Marker for parent
  */
 public interface Parent {
 
 	String getId();
+
+	String getName();
+
+	void setName(String name);
+
+	List<CUI> getManyCUI();
+
+	List<CVI> getManyCVI();
+
+	CUE getSingleCUE();
+
+	CUI getSingleCUI();
+
+	CVE getSingleCVE();
+
+	CVI getSingleCVI();
 }

@@ -44,9 +44,12 @@ final class DefaultRelationshipDescription extends Association<Neo4jPersistentPr
 
 	private RelationshipDescription relationshipObverse;
 
+	private final boolean cascadeUpdates;
+
 	DefaultRelationshipDescription(Neo4jPersistentProperty inverse, @Nullable RelationshipDescription relationshipObverse,
 			String type, boolean dynamic, NodeDescription<?> source, String fieldName, NodeDescription<?> target,
-			Relationship.Direction direction, @Nullable NodeDescription<?> relationshipProperties) {
+			Relationship.Direction direction, @Nullable NodeDescription<?> relationshipProperties,
+			boolean cascadeUpdates) {
 
 		// the immutable obverse association-wise is always null because we cannot determine them on both sides
 		// if we consider to support bidirectional relationships.
@@ -60,6 +63,7 @@ final class DefaultRelationshipDescription extends Association<Neo4jPersistentPr
 		this.target = target;
 		this.direction = direction;
 		this.relationshipPropertiesClass = relationshipProperties;
+		this.cascadeUpdates = cascadeUpdates;
 	}
 
 	@Override
@@ -115,6 +119,11 @@ final class DefaultRelationshipDescription extends Association<Neo4jPersistentPr
 	@Override
 	public boolean hasRelationshipObverse() {
 		return this.relationshipObverse != null;
+	}
+
+	@Override
+	public boolean cascadeUpdates() {
+		return cascadeUpdates;
 	}
 
 	@Override

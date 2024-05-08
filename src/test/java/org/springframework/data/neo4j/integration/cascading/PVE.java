@@ -39,22 +39,22 @@ public class PVE implements Parent, Versioned, ExternalId {
 
 	private String name;
 
-	@Relationship("HAS_SINGLE_CUI")
+	@Relationship(value = "HAS_SINGLE_CUI", cascadeUpdates = false)
 	private CUI singleCUI;
 
-	@Relationship("HAS_SINGLE_CUE")
+	@Relationship(value = "HAS_SINGLE_CUE", cascadeUpdates = false)
 	private CUE singleCUE;
 
 	@Relationship("HAS_MANY_CUI")
 	private List<CUI> manyCUI;
 
-	@Relationship("HAS_SINGLE_CVI")
+	@Relationship(value = "HAS_SINGLE_CVI", cascadeUpdates = false)
 	private CVI singleCVI;
 
-	@Relationship("HAS_SINGLE_CVE")
+	@Relationship(value = "HAS_SINGLE_CVE", cascadeUpdates = false)
 	private CVE singleCVE;
 
-	@Relationship("HAS_MANY_CVI")
+	@Relationship(value = "HAS_MANY_CVI", cascadeUpdates = false)
 	private List<CVI> manyCVI;
 
 	public PVE(String name) {
@@ -77,11 +77,48 @@ public class PVE implements Parent, Versioned, ExternalId {
 		return id;
 	}
 
+	@Override
 	public String getName() {
 		return name;
 	}
 
+	@Override
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	@Override
 	public Long getVersion() {
 		return version;
+	}
+
+	@Override
+	public List<CUI> getManyCUI() {
+		return manyCUI;
+	}
+
+	@Override
+	public List<CVI> getManyCVI() {
+		return manyCVI;
+	}
+
+	@Override
+	public CUE getSingleCUE() {
+		return singleCUE;
+	}
+
+	@Override
+	public CUI getSingleCUI() {
+		return singleCUI;
+	}
+
+	@Override
+	public CVE getSingleCVE() {
+		return singleCVE;
+	}
+
+	@Override
+	public CVI getSingleCVI() {
+		return singleCVI;
 	}
 }

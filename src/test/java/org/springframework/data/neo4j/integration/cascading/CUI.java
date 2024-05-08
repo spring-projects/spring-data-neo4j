@@ -17,6 +17,7 @@ package org.springframework.data.neo4j.integration.cascading;
 
 import java.util.List;
 
+import org.springframework.data.annotation.PersistenceCreator;
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Relationship;
@@ -32,7 +33,7 @@ public class CUI {
 
 	private String name;
 
-	@Relationship("HAS_NESTED_CHILDREN")
+	@Relationship(value = "HAS_NESTED_CHILDREN", cascadeUpdates = false)
 	private List<CUI> nested;
 
 	public CUI(String name) {
@@ -43,6 +44,7 @@ public class CUI {
 				);
 	}
 
+	@PersistenceCreator
 	public CUI(String name, List<CUI> nested) {
 		this.name = name;
 		this.nested = nested;
@@ -54,5 +56,13 @@ public class CUI {
 
 	public String getName() {
 		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public List<CUI> getNested() {
+		return nested;
 	}
 }

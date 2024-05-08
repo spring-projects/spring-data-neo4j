@@ -17,6 +17,7 @@ package org.springframework.data.neo4j.integration.cascading;
 
 import java.util.List;
 
+import org.springframework.data.annotation.PersistenceCreator;
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Relationship;
@@ -44,6 +45,7 @@ public class CUE implements ExternalId {
 		);
 	}
 
+	@PersistenceCreator
 	public CUE(String name, List<CUE> nested) {
 		this.name = name;
 		this.nested = nested;
@@ -55,5 +57,9 @@ public class CUE implements ExternalId {
 
 	public String getName() {
 		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
 	}
 }
