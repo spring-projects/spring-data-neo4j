@@ -45,18 +45,25 @@ public final class PropertyFilterSupport {
 																			  Neo4jMappingContext mappingContext) {
 
 		ReturnedType returnedType = resultProcessor.getReturnedType();
+		Class<?> potentiallyProjectedType = returnedType.getReturnedType();
+		Class<?> domainType = returnedType.getDomainType();
+
 		Collection<PropertyFilter.ProjectedPath> filteredProperties = new HashSet<>();
 
 		boolean isProjecting = returnedType.isProjecting();
-		boolean isClosedProjection = factory.getProjectionInformation(returnedType.getReturnedType()).isClosed();
+		boolean isClosedProjection = factory.getProjectionInformation(potentiallyProjectedType).isClosed();
 
 		if (!isProjecting || !isClosedProjection) {
 			return Collections.emptySet();
 		}
 
 		for (String inputProperty : returnedType.getInputProperties()) {
-			addPropertiesFrom(returnedType.getDomainType(), returnedType.getReturnedType(), factory,
-					filteredProperties, new ProjectionPathProcessor(inputProperty, PropertyPath.from(inputProperty, returnedType.getReturnedType()).getLeafProperty().getTypeInformation()), mappingContext);
+			addPropertiesFrom(domainType, potentiallyProjectedType, factory,
+					filteredProperties, new ProjectionPathProcessor(inputProperty, PropertyPath.from(inputProperty, potentiallyProjectedType).getLeafProperty().getTypeInformation()), mappingContext);
+		}
+		for (String inputProperty : KPropertyFilterSupport.getRequiredProperties(domainType)) {
+			addPropertiesFrom(domainType, potentiallyProjectedType, factory,
+					filteredProperties, new ProjectionPathProcessor(inputProperty, PropertyPath.from(inputProperty, domainType).getLeafProperty().getTypeInformation()), mappingContext);
 		}
 
 		return filteredProperties;
