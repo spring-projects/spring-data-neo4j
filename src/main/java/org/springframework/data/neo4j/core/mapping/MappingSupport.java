@@ -179,6 +179,9 @@ public final class MappingSupport {
 			PersistentPropertyAccessor<Object> relationshipPropertiesAccessor = persistentEntity.getPropertyAccessor(relationshipPropertiesValue);
 			relationshipPropertiesAccessor.setProperty(persistentEntity.getPersistentProperty(TargetNode.class), newRelationshipObject);
 			newRelationshipObject = relationshipPropertiesAccessor.getBean();
+
+			// If we recreate or manipulate the object including it's accessor, we must update it in the holder as well.
+			entityHolder.setRelationshipProperties(newRelationshipObject);
 		}
 		return newRelationshipObject;
 	}
@@ -190,14 +193,17 @@ public final class MappingSupport {
 	 */
 	@API(status = API.Status.INTERNAL)
 	public final static class RelationshipPropertiesWithEntityHolder {
-		private final PersistentPropertyAccessor<?> relationshipPropertiesPropertyAccessor;
-		private final Object relationshipProperties;
+
+		private final Neo4jPersistentEntity<?> relationshipPropertiesEntity;
+		private PersistentPropertyAccessor<?> relationshipPropertiesPropertyAccessor;
+		private Object relationshipProperties;
 		private final Object relatedEntity;
 
 		RelationshipPropertiesWithEntityHolder(
 				Neo4jPersistentEntity<?> relationshipPropertiesEntity,
 				Object relationshipProperties, Object relatedEntity
 		) {
+			this.relationshipPropertiesEntity = relationshipPropertiesEntity;
 			this.relationshipPropertiesPropertyAccessor = relationshipPropertiesEntity.getPropertyAccessor(relationshipProperties);
 			this.relationshipProperties = relationshipProperties;
 			this.relatedEntity = relatedEntity;
@@ -209,6 +215,11 @@ public final class MappingSupport {
 
 		public Object getRelationshipProperties() {
 			return relationshipProperties;
+		}
+
+		private void setRelationshipProperties(Object relationshipProperties) {
+			this.relationshipProperties = relationshipProperties;
+			this.relationshipPropertiesPropertyAccessor = relationshipPropertiesEntity.getPropertyAccessor(this.relationshipProperties);
 		}
 
 		public Object getRelatedEntity() {
@@ -230,6 +241,13 @@ public final class MappingSupport {
 		@Override
 		public int hashCode() {
 			return Objects.hash(relationshipProperties, relatedEntity);
+		}
+
+		@Override
+		public String toString() {
+			return "RelationshipPropertiesWithEntityHolder{" +
+					"relationshipProperties=" + relationshipProperties +
+					'}';
 		}
 	}
 }

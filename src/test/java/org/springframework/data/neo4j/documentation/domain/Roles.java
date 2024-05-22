@@ -41,8 +41,21 @@ public class Roles {
 		this.roles = roles;
 	}
 
+	// end::mapping.relationship.properties[]
+	public Long getId() {
+		return id;
+	}
+	// tag::mapping.relationship.properties[]
+
 	public List<String> getRoles() {
 		return roles;
+	}
+
+	@Override
+	public String toString() {
+		return "Roles{" +
+				"id=" + id +
+				'}' + this.hashCode();
 	}
 }
 // end::mapping.relationship.properties[]
