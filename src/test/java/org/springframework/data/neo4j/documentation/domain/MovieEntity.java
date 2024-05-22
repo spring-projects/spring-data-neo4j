@@ -44,7 +44,7 @@ public class MovieEntity {
 
 	// tag::mapping.relationship.properties[]
 	@Relationship(type = "ACTED_IN", direction = Direction.INCOMING) // <.>
-	private List<Roles> actorsAndRoles;
+	private List<Roles> actorsAndRoles = new ArrayList<>();
 	// end::mapping.relationship.properties[]
 
 	@Relationship(type = "DIRECTED", direction = Direction.INCOMING)
