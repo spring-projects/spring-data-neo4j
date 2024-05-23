@@ -47,7 +47,7 @@ import org.springframework.data.neo4j.test.BookmarkCapture;
 import org.springframework.data.neo4j.test.Neo4jExtension;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 import org.springframework.data.querydsl.QuerydslPredicateExecutor;
-import org.springframework.data.repository.query.FluentQuery;
+import org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
@@ -97,7 +97,7 @@ class QuerydslNeo4jPredicateExecutorIT {
 	void fluentFindOneShouldWork(@Autowired QueryDSLPersonRepository repository) {
 
 		Predicate predicate = Expressions.predicate(Ops.EQ, firstNamePath, Expressions.asString("Helge"));
-		Person person = repository.findBy(predicate, q -> q.oneValue());
+		Person person = repository.findBy(predicate, FetchableFluentQuery::oneValue);
 
 		assertThat(person).isNotNull();
 		assertThat(person).extracting(Person::getLastName).isEqualTo("Schneider");
@@ -108,7 +108,7 @@ class QuerydslNeo4jPredicateExecutorIT {
 
 		Predicate predicate = Expressions.predicate(Ops.EQ, firstNamePath, Expressions.asString("Helge"))
 				.or(Expressions.predicate(Ops.EQ, lastNamePath, Expressions.asString("B.")));
-		List<Person> people = repository.findBy(predicate, q -> q.all());
+		List<Person> people = repository.findBy(predicate, FetchableFluentQuery::all);
 
 		assertThat(people).extracting(Person::getFirstName)
 				.containsExactlyInAnyOrder("Bela", "Helge");
@@ -170,9 +170,10 @@ class QuerydslNeo4jPredicateExecutorIT {
 		Predicate predicate = Expressions.predicate(Ops.EQ, firstNamePath, Expressions.asString("Helge"))
 				.or(Expressions.predicate(Ops.EQ, lastNamePath, Expressions.asString("B.")));
 
-		Window<Person> peopleWindow = repository.findBy(predicate, q -> q.limit(1).sortBy(Sort.by("firstName").descending()).scroll(ScrollPosition.offset()));
+		var firstName = Sort.by("firstName").descending();
+		Window<Person> peopleWindow = repository.findBy(predicate, q -> q.limit(1).sortBy(firstName).scroll(ScrollPosition.offset()));
 		ScrollPosition currentPosition = peopleWindow.positionAt(peopleWindow.getContent().get(0));
-		peopleWindow = repository.findBy(predicate, q -> q.limit(1).scroll(currentPosition));
+		peopleWindow = repository.findBy(predicate, q -> q.limit(1).sortBy(firstName).scroll(currentPosition));
 
 		assertThat(peopleWindow.getContent()).extracting(Person::getFirstName)
 				.containsExactlyInAnyOrder("Bela");
@@ -250,7 +251,7 @@ class QuerydslNeo4jPredicateExecutorIT {
 	void fluentStreamShouldWork(@Autowired QueryDSLPersonRepository repository) {
 
 		Predicate predicate = Expressions.predicate(Ops.EQ, firstNamePath, Expressions.asString("Helge"));
-		Stream<Person> people = repository.findBy(predicate, FluentQuery.FetchableFluentQuery::stream);
+		Stream<Person> people = repository.findBy(predicate, FetchableFluentQuery::stream);
 
 		assertThat(people.map(Person::getFirstName)).containsExactly("Helge");
 	}
@@ -323,7 +324,7 @@ class QuerydslNeo4jPredicateExecutorIT {
 		Predicate predicate = Expressions.predicate(Ops.EQ, firstNamePath, Expressions.asString("Helge"))
 				.or(Expressions.predicate(Ops.EQ, lastNamePath, Expressions.asString("B.")));
 		List<Person> people = repository.findBy(predicate,
-				q -> q.limit(1)).all();
+				q -> q.limit(1).sortBy(Sort.by("firstName").descending())).all();
 
 		assertThat(people).hasSize(1);
 		assertThat(people).extracting(Person::getFirstName).containsExactly("Helge");
