@@ -977,15 +977,22 @@ public final class Neo4jTemplate implements
 								.bindAll(statementHolder.getProperties())
 								.run();
 					}
-				} else if (relationshipDescription.hasRelationshipProperties() && isNewRelationship && idProperty != null) {
-					newRelationshipPropertiesRows.add(properties);
-					newRelatedValuesToStore.add(relatedValueToStore);
 				} else if (relationshipDescription.hasRelationshipProperties()) {
-					neo4jMappingContext.getEntityConverter().write(
-							((MappingSupport.RelationshipPropertiesWithEntityHolder) relatedValueToStore).getRelationshipProperties(),
-							properties);
-
-					relationshipPropertiesRows.add(properties);
+					// check if bidi mapped already
+					var hlp = ((MappingSupport.RelationshipPropertiesWithEntityHolder) relatedValueToStore);
+					var hasProcessedRelationshipEntity = stateMachine.hasProcessedRelationshipEntity(propertyAccessor.getBean(), hlp.getRelatedEntity(), relationshipContext.getRelationship());
+					if (hasProcessedRelationshipEntity) {
+						stateMachine.requireIdUpdate(sourceEntity, relationshipDescription, canUseElementId, fromId, relatedInternalId, relationshipContext, relatedValueToStore, idProperty);
+					} else {
+						if (isNewRelationship && idProperty != null) {
+							newRelationshipPropertiesRows.add(properties);
+							newRelatedValuesToStore.add(relatedValueToStore);
+						} else {
+							neo4jMappingContext.getEntityConverter().write(hlp.getRelationshipProperties(), properties);
+							relationshipPropertiesRows.add(properties);
+						}
+						stateMachine.storeProcessRelationshipEntity(hlp, propertyAccessor.getBean(), hlp.getRelatedEntity(), relationshipContext.getRelationship());
+					}
 				} else {
 					// non-dynamic relationship or relationship with properties
 					plainRelationshipRows.add(properties);
@@ -1036,6 +1043,9 @@ public final class Neo4jTemplate implements
 				}
 			}
 
+			// Possible grab missing relationship ids now for bidirectional ones, with properties, mapped in opposite directions
+			stateMachine.updateRelationshipIds(this::getRelationshipId);
+
 			relationshipHandler.applyFinalResultToOwner(propertyAccessor);
 		});
 
@@ -1043,6 +1053,19 @@ public final class Neo4jTemplate implements
 		T finalSubgraphRoot = (T) propertyAccessor.getBean();
 		return finalSubgraphRoot;
 	}
+
+	Optional<Object> getRelationshipId(Statement statement, Neo4jPersistentProperty idProperty, Object fromId, Object toId) {
+
+		return neo4jClient.query(renderer.render(statement))
+				.bind(convertIdValues(idProperty, fromId)) //
+				.to(Constants.FROM_ID_PARAMETER_NAME) //
+				.bind(toId) //
+				.to(Constants.TO_ID_PARAMETER_NAME) //
+				.fetchAs(Object.class)
+				.mappedBy((t, r) -> IdentitySupport.mapperForRelatedIdValues(idProperty).apply(r))
+				.one();
+	}
+
 
 	// The pendant to {@link #saveRelatedNode(Object, NodeDescription, PropertyFilter, PropertyFilter.RelaxedPropertyPath)}
 	// We can't do without a query, as we need to refresh the internal id

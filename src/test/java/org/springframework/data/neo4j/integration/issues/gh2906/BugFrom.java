@@ -13,31 +13,46 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.integration.issues.gh2905;
+package org.springframework.data.neo4j.integration.issues.gh2906;
 
-import java.util.Set;
-
+import org.springframework.data.annotation.PersistenceCreator;
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
+import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Relationship;
 import org.springframework.data.neo4j.core.support.UUIDStringGenerator;
 
 /**
  * @author Mathias Kühn
  */
-abstract class BugTargetBase {
+@Node
+class BugFrom {
 	@Id
 	@GeneratedValue(UUIDStringGenerator.class)
-	protected String uuid;
+	String uuid;
 
-	private String name;
+	String name;
 
-	@Relationship(type = "RELI", direction = Relationship.Direction.OUTGOING)
-	Set<BugFrom> relatedBugs;
+	@Relationship(type = "RELI", direction = Relationship.Direction.INCOMING)
+	BugRelationship<BugTargetBase> reli;
 
-	BugTargetBase(String uuid, String name, Set<BugFrom> relatedBugs) {
-		this.uuid = uuid;
+	@PersistenceCreator
+	BugFrom(String name, BugRelationship<BugTargetBase> reli, String uuid) {
 		this.name = name;
-		this.relatedBugs = relatedBugs;
+		this.reli = reli;
+		this.uuid = uuid;
+	}
+
+	BugFrom(String name, String comment, BugTargetBase target) {
+		this.name = name;
+
+		this.reli = new IncomingBugRelationship(comment, target);
+	}
+
+
+	@Override
+	public String toString() {
+		return String.format("<BugFrom> {uuid: %s, name: %s}", uuid, name);
 	}
 }
+

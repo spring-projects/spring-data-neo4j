@@ -603,7 +603,7 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 
 		Statement relationshipCreationQuery = CypherGenerator.INSTANCE.prepareSaveOfRelationshipWithProperties(
 				neo4jPersistentEntity, relationshipDescription, isNewRelationship,
-				dynamicRelationshipType, canUseElementId);
+				dynamicRelationshipType, canUseElementId, false);
 
 		Map<String, Object> propMap = new HashMap<>();
 		// write relationship properties

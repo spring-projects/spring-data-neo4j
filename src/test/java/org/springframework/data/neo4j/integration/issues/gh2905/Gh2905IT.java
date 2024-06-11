@@ -46,11 +46,11 @@ public class Gh2905IT {
 
 	protected static Neo4jExtension.Neo4jConnectionSupport neo4jConnectionSupport;
 
-	interface FromRepository extends Neo4jRepository<BugFrom, String> {
+	interface FromRepository extends Neo4jRepository<BugFromV1, String> {
 
 	}
 
-	interface ToRepository extends Neo4jRepository<BugTarget, String> {
+	interface ToRepository extends Neo4jRepository<BugTargetV1, String> {
 
 	}
 
@@ -61,19 +61,19 @@ public class Gh2905IT {
 
 	@Test
 	void storeFromRootAggregate(@Autowired ToRepository toRepository, @Autowired Driver driver) {
-		var to1 = BugTarget.builder().name("T1").type("BUG").build();
+		var to1 = BugTargetV1.builder().name("T1").type("BUG").build();
 
-		var from1 = BugFrom.builder()
+		var from1 = BugFromV1.builder()
 				.name("F1")
-				.reli(BugRelationship.builder().target(to1).comment("F1<-T1").build())
+				.reli(BugRelationshipV1.builder().target(to1).comment("F1<-T1").build())
 				.build();
-		var from2 = BugFrom.builder()
+		var from2 = BugFromV1.builder()
 				.name("F2")
-				.reli(BugRelationship.builder().target(to1).comment("F2<-T1").build())
+				.reli(BugRelationshipV1.builder().target(to1).comment("F2<-T1").build())
 				.build();
-		var from3 = BugFrom.builder()
+		var from3 = BugFromV1.builder()
 				.name("F3")
-				.reli(BugRelationship.builder().target(to1).comment("F3<-T1").build())
+				.reli(BugRelationshipV1.builder().target(to1).comment("F3<-T1").build())
 				.build();
 
 		to1.relatedBugs = Set.of(from1, from2, from3);
@@ -84,29 +84,29 @@ public class Gh2905IT {
 
 	@Test
 	void saveSingleEntities(@Autowired FromRepository fromRepository, @Autowired ToRepository toRepository, @Autowired Driver driver) {
-		var to1 = BugTarget.builder().name("T1").type("BUG").build();
+		var to1 = BugTargetV1.builder().name("T1").type("BUG").build();
 		to1.relatedBugs = new HashSet<>();
 		to1 = toRepository.save(to1);
 
-		var from1 = BugFrom.builder()
+		var from1 = BugFromV1.builder()
 				.name("F1")
-				.reli(BugRelationship.builder().target(to1).comment("F1<-T1").build())
+				.reli(BugRelationshipV1.builder().target(to1).comment("F1<-T1").build())
 				.build();
 		// This is the key to solve 2905 when you had the annotation previously, you must maintain both ends of the bidirectional relationship.
 		// SDN does not do this for you.
 		to1.relatedBugs.add(from1);
 		from1 = fromRepository.save(from1);
 
-		var from2 = BugFrom.builder()
+		var from2 = BugFromV1.builder()
 				.name("F2")
-				.reli(BugRelationship.builder().target(to1).comment("F2<-T1").build())
+				.reli(BugRelationshipV1.builder().target(to1).comment("F2<-T1").build())
 				.build();
 		// See above
 		to1.relatedBugs.add(from2);
 
-		var from3 = BugFrom.builder()
+		var from3 = BugFromV1.builder()
 				.name("F3")
-				.reli(BugRelationship.builder().target(to1).comment("F3<-T1").build())
+				.reli(BugRelationshipV1.builder().target(to1).comment("F3<-T1").build())
 				.build();
 		to1.relatedBugs.add(from3);
 		// See above
@@ -116,7 +116,7 @@ public class Gh2905IT {
 	}
 
 	private static void assertGraph(Driver driver) {
-		var result = driver.executableQuery("MATCH (t:BugTarget) -[:RELI] ->(f:BugFrom) RETURN t, collect(f) AS f").execute().records();
+		var result = driver.executableQuery("MATCH (t:BugTargetV1) -[:RELI] ->(f:BugFromV1) RETURN t, collect(f) AS f").execute().records();
 		assertThat(result)
 				.hasSize(1)
 				.element(0).satisfies(r -> {

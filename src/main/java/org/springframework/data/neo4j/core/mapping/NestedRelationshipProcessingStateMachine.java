@@ -24,6 +24,7 @@ import java.util.Set;
 import java.util.concurrent.locks.StampedLock;
 
 import org.apiguardian.api.API;
+import org.neo4j.cypherdsl.core.Statement;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
@@ -65,6 +66,10 @@ public final class NestedRelationshipProcessingStateMachine {
 	 * This will be useful during the persistence to avoid another DB network round-trip.
 	 */
 	private final Map<Integer, Object> processedObjectsIds = new HashMap<>();
+
+	private final Set<ProcessedRelationshipEntity> processedRelationshipEntities = new HashSet<>();
+
+	private final Set<RelationshipIdUpdateContext> requiresIdUpdate = new HashSet<>();
 
 	public NestedRelationshipProcessingStateMachine(final Neo4jMappingContext mappingContext) {
 
@@ -123,6 +128,23 @@ public final class NestedRelationshipProcessingStateMachine {
 	 * One could say that this is a Tuple but it has a nicer name.
 	 */
 	private record RelationshipDescriptionWithSourceId(Object id, RelationshipDescription relationshipDescription) {
+	}
+
+	private record ProcessedRelationshipEntity(MappingSupport.RelationshipPropertiesWithEntityHolder entityHolder,
+		Object source, Object target, RelationshipDescription relationshipDescription) {
+	}
+
+	private record RelationshipIdUpdateContext(Statement cypher, Object fromId, Object toId,
+		NestedRelationshipContext relationshipContext,
+		Object relatedValueToStore, Neo4jPersistentProperty idProperty) {
+	}
+
+	/**
+	 * Supplier for arbitrary relationship ids
+	 */
+	@FunctionalInterface
+	public interface RelationshipIdSupplier {
+		Optional<Object> getId(Statement statement, Neo4jPersistentProperty idProperty, Object fromId, Object toId);
 	}
 
 	/**
@@ -226,6 +248,60 @@ public final class NestedRelationshipProcessingStateMachine {
 			}
 		}
 		return false;
+	}
+
+	public void storeProcessRelationshipEntity(MappingSupport.RelationshipPropertiesWithEntityHolder id, Object source, Object target, RelationshipDescription type) {
+		final long stamp = lock.writeLock();
+		try {
+			this.processedRelationshipEntities.add(new ProcessedRelationshipEntity(id, source, target, type));
+		} finally {
+			lock.unlock(stamp);
+		}
+	}
+
+	public boolean hasProcessedRelationshipEntity(Object source, Object target, RelationshipDescription type) {
+		final long stamp = lock.readLock();
+		try {
+			return this.processedRelationshipEntities.stream()
+					.anyMatch(r -> r.relationshipDescription().getType().equals(type.getType()) && r.relationshipDescription().getDirection().opposite() == type.getDirection() && (
+							r.source() == source && r.target() == target ||
+									r.target() == source && r.source() == target
+					));
+		} finally {
+			lock.unlock(stamp);
+		}
+	}
+
+	public void requireIdUpdate(Neo4jPersistentEntity<?> sourceEntity, RelationshipDescription relationshipDescription, boolean canUseElementId,
+	                            Object fromId, Object toId, NestedRelationshipContext relationshipContext, Object relatedValueToStore, Neo4jPersistentProperty idProperty) {
+
+		Statement relationshipCreationQuery = CypherGenerator.INSTANCE.prepareSaveOfRelationshipWithProperties(
+				sourceEntity, relationshipDescription, false,
+				null, canUseElementId, true);
+		final long stamp = lock.writeLock();
+		try {
+			this.requiresIdUpdate.add(new RelationshipIdUpdateContext(relationshipCreationQuery, fromId, toId, relationshipContext, relatedValueToStore, idProperty));
+		} finally {
+			lock.unlock(stamp);
+		}
+	}
+
+	public void updateRelationshipIds(RelationshipIdSupplier idSupplier) {
+		final long stamp = lock.writeLock();
+		try {
+			var it = requiresIdUpdate.iterator();
+			while (it.hasNext()) {
+				var requiredIdUpdate = it.next();
+				idSupplier.getId(requiredIdUpdate.cypher(), requiredIdUpdate.idProperty(), requiredIdUpdate.fromId(), requiredIdUpdate.toId()).ifPresent(anId -> {
+					requiredIdUpdate.relationshipContext()
+							.getRelationshipPropertiesPropertyAccessor(requiredIdUpdate.relatedValueToStore())
+							.setProperty(requiredIdUpdate.idProperty(), anId);
+					it.remove();
+				});
+			}
+		} finally {
+			lock.unlock(stamp);
+		}
 	}
 
 	public void markAsAliased(Object aliasEntity, Object entityOrId) {

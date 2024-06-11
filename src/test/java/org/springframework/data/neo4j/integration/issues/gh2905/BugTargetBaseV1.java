@@ -15,6 +15,8 @@
  */
 package org.springframework.data.neo4j.integration.issues.gh2905;
 
+import java.util.Set;
+
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Relationship;
@@ -23,56 +25,19 @@ import org.springframework.data.neo4j.core.support.UUIDStringGenerator;
 /**
  * @author Mathias Kühn
  */
-@SuppressWarnings("HiddenField") // Not worth cleaning up the Delomboked version
-class BugFrom {
+abstract class BugTargetBaseV1 {
 	@Id
 	@GeneratedValue(UUIDStringGenerator.class)
 	protected String uuid;
 
 	private String name;
 
-	@Relationship(type = "RELI", direction = Relationship.Direction.INCOMING)
-	private BugRelationship reli;
+	@Relationship(type = "RELI", direction = Relationship.Direction.OUTGOING)
+	Set<BugFromV1> relatedBugs;
 
-	BugFrom(String uuid, String name, BugRelationship reli) {
+	BugTargetBaseV1(String uuid, String name, Set<BugFromV1> relatedBugs) {
 		this.uuid = uuid;
 		this.name = name;
-		this.reli = reli;
-	}
-
-	public static BugFromBuilder builder() {
-		return new BugFromBuilder();
-	}
-
-	public static class BugFromBuilder {
-		private String uuid;
-		private String name;
-		private BugRelationship reli;
-
-		BugFromBuilder() {
-		}
-
-		public BugFromBuilder uuid(String uuid) {
-			this.uuid = uuid;
-			return this;
-		}
-
-		public BugFromBuilder name(String name) {
-			this.name = name;
-			return this;
-		}
-
-		public BugFromBuilder reli(BugRelationship reli) {
-			this.reli = reli;
-			return this;
-		}
-
-		public BugFrom build() {
-			return new BugFrom(this.uuid, this.name, this.reli);
-		}
-
-		public String toString() {
-			return "BugFrom.BugFromBuilder(uuid=" + this.uuid + ", name=" + this.name + ", reli=" + this.reli + ")";
-		}
+		this.relatedBugs = relatedBugs;
 	}
 }
