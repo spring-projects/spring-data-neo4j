@@ -28,16 +28,16 @@ import org.springframework.data.neo4j.core.support.UUIDStringGenerator;
  * @author Mathias Kühn
  */
 @Node
-abstract class BugTargetBase {
+public abstract class BugTargetBase {
 
 	@Id
 	@GeneratedValue(UUIDStringGenerator.class)
-	String uuid;
+	public String uuid;
 
-	String name;
+	public String name;
 
 	@Relationship(type = "RELI", direction = Relationship.Direction.OUTGOING)
-	Set<OutgoingBugRelationship> relatedBugs = new HashSet<>();
+	public Set<OutgoingBugRelationship> relatedBugs = new HashSet<>();
 
 	BugTargetBase(String name) {
 		this.name = name;

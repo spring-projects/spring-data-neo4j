@@ -24,7 +24,7 @@ import org.springframework.data.neo4j.core.schema.TargetNode;
  */
 @SuppressWarnings("HiddenField") // Not worth cleaning up the Delomboked version
 @RelationshipProperties
-class BugRelationshipV1 {
+public class BugRelationshipV1 {
 	@RelationshipId
 	protected Long id;
 

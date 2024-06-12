@@ -21,7 +21,7 @@ import java.util.Set;
  * @author Mathias Kühn
  */
 @SuppressWarnings("HiddenField") // Not worth cleaning up the Delomboked version
-class BugTargetV1 extends BugTargetBaseV1 {
+public class BugTargetV1 extends BugTargetBaseV1 {
 	private String type;
 
 	BugTargetV1(String uuid, String name, Set<BugFromV1> relatedBugs, String type) {

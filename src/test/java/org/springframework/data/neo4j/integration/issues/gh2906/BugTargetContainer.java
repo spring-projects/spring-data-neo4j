@@ -25,12 +25,12 @@ import org.springframework.data.neo4j.core.schema.Relationship;
  * @author Mathias Kühn
  */
 @Node
-class BugTargetContainer extends BugTargetBase {
+public class BugTargetContainer extends BugTargetBase {
 
 	@Relationship(type = "INCLUDE", direction = Relationship.Direction.OUTGOING)
-	Set<BugTargetBase> items = new HashSet<>();
+	public Set<BugTargetBase> items = new HashSet<>();
 
-	BugTargetContainer(String name) {
+	public BugTargetContainer(String name) {
 		super(name);
 	}
 }

@@ -18,7 +18,7 @@ package org.springframework.data.neo4j.integration.issues.gh2906;
 /**
  * @author Michael J. Simons
  */
-class IncomingBugRelationship extends BugRelationship<BugTargetBase> {
+public class IncomingBugRelationship extends BugRelationship<BugTargetBase> {
 
 	IncomingBugRelationship(String comment, BugTargetBase target) {
 		super(comment, target);

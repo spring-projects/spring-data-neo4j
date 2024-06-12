@@ -21,11 +21,11 @@ import org.springframework.data.neo4j.core.schema.Node;
  * @author Mathias Kühn
  */
 @Node
-class BugTarget extends BugTargetBase {
+public class BugTarget extends BugTargetBase {
 
 	String type;
 
-	BugTarget(String name, String type) {
+	public BugTarget(String name, String type) {
 		super(name);
 
 		this.type = type;

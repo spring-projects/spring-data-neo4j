@@ -23,15 +23,15 @@ import org.springframework.data.neo4j.core.schema.TargetNode;
  * @author Mathias Kühn
  */
 @RelationshipProperties
-abstract class BugRelationship<T>  {
+public abstract class BugRelationship<T>  {
 
 	@RelationshipId
-	Long id;
+	public Long id;
 
-	String comment;
+	public String comment;
 
 	@TargetNode
-	T target;
+	public T target;
 
 	BugRelationship(String comment, T target) {
 		this.comment = comment;

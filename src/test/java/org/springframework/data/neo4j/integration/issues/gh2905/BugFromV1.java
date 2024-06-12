@@ -24,7 +24,7 @@ import org.springframework.data.neo4j.core.support.UUIDStringGenerator;
  * @author Mathias Kühn
  */
 @SuppressWarnings("HiddenField") // Not worth cleaning up the Delomboked version
-class BugFromV1 {
+public class BugFromV1 {
 	@Id
 	@GeneratedValue(UUIDStringGenerator.class)
 	protected String uuid;

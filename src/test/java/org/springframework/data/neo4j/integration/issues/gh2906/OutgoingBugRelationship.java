@@ -18,9 +18,9 @@ package org.springframework.data.neo4j.integration.issues.gh2906;
 /**
  * @author Michael J. Simons
  */
-class OutgoingBugRelationship extends BugRelationship<BugFrom> {
+public class OutgoingBugRelationship extends BugRelationship<BugFrom> {
 
-	OutgoingBugRelationship(String comment, BugFrom target) {
+	public OutgoingBugRelationship(String comment, BugFrom target) {
 		super(comment, target);
 	}
 }
