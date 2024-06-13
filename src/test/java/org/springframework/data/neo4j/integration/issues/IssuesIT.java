@@ -1292,6 +1292,7 @@ class IssuesIT extends TestBase {
 		// This is the key to solve 2905 when you had the annotation previously, you must maintain both ends of the bidirectional relationship.
 		// SDN does not do this for you.
 		to1.relatedBugs.add(from1);
+		System.out.println("NEEEEEEEEEEEEEEEXT STEP");
 		from1 = fromRepositoryV1.save(from1);
 
 		var from2 = BugFromV1.builder()
@@ -1307,6 +1308,7 @@ class IssuesIT extends TestBase {
 				.build();
 		to1.relatedBugs.add(from3);
 		// See above
+		System.out.println("NEEEEEEEEEEEEEEEXT STEP");
 		fromRepositoryV1.saveAll(List.of(from1, from2, from3));
 
 		assertGH2905Graph(driver);

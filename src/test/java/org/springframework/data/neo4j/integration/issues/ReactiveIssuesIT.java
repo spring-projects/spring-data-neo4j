@@ -490,7 +490,9 @@ class ReactiveIssuesIT extends TestBase {
 		var to1 = BugTargetV1.builder().name("T1").type("BUG").build();
 		to1.relatedBugs = new HashSet<>();
 		to1 = toRepositoryV1.save(to1).block();
-
+		System.out.println();
+		System.out.println("EEEINNNS");
+		System.out.println();
 		var from1 = BugFromV1.builder()
 				.name("F1")
 				.reli(BugRelationshipV1.builder().target(to1).comment("F1<-T1").build())
@@ -499,7 +501,9 @@ class ReactiveIssuesIT extends TestBase {
 		// SDN does not do this for you.
 		to1.relatedBugs.add(from1);
 		from1 = fromRepositoryV1.save(from1).block();
-
+		System.out.println();
+		System.out.println("ZWEI");
+		System.out.println();
 		var from2 = BugFromV1.builder()
 				.name("F2")
 				.reli(BugRelationshipV1.builder().target(to1).comment("F2<-T1").build())
