@@ -59,6 +59,8 @@ import org.springframework.data.neo4j.core.mapping.datagraph1446.R1;
 import org.springframework.data.neo4j.core.mapping.datagraph1446.R2;
 import org.springframework.data.neo4j.core.mapping.datagraph1448.A_S3;
 import org.springframework.data.neo4j.core.mapping.datagraph1448.RelatedThing;
+import org.springframework.data.neo4j.core.mapping.genericRelProperties.Source;
+import org.springframework.data.neo4j.core.mapping.genericRelProperties.Target;
 import org.springframework.data.neo4j.core.mapping.gh2574.Model;
 import org.springframework.data.neo4j.core.schema.CompositeProperty;
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
@@ -680,6 +682,16 @@ class Neo4jMappingContextTest {
 				.collect(Collectors.toList());
 
 		assertThat(children).containsExactly("A2", "A3", "A4");
+	}
+
+	@Test // GH-2911
+	void shouldDealWithGenericRelationshipProperties() {
+		Neo4jMappingContext schema = new Neo4jMappingContext();
+		Neo4jPersistentEntity<?> persistentEntity = schema.getPersistentEntity(Source.class);
+		assertThat(persistentEntity.getRelationships()).hasSize(1).first().satisfies(r -> {
+			var target = r.getTarget();
+			assertThat(target.getUnderlyingClass()).isEqualTo(Target.class);
+		});
 	}
 
 	static class EntityWithPostLoadMethods {
