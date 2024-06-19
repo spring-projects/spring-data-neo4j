@@ -21,6 +21,7 @@ import org.springframework.data.neo4j.core.schema.TargetNode;
 
 /**
  * @author Mathias Kühn
+ * @param <T> The crux of this thing
  */
 @RelationshipProperties
 public abstract class BugRelationship<T>  {

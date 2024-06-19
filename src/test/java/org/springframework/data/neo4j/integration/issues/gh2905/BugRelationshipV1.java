@@ -43,6 +43,9 @@ public class BugRelationshipV1 {
 		return new BugRelationshipBuilder();
 	}
 
+	/**
+	 * Lombok builder
+	 */
 	public static class BugRelationshipBuilder {
 		private Long id;
 		private String comment;

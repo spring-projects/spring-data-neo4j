@@ -19,7 +19,6 @@ import static org.assertj.core.api.Assertions.as;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.assertj.core.api.InstanceOfAssertFactories;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.neo4j.cypherdsl.core.Cypher;
 import org.neo4j.cypherdsl.core.LabelExpression;
@@ -30,18 +29,14 @@ import org.neo4j.driver.types.TypeSystem;
 import org.springframework.data.neo4j.integration.issues.gh2905.BugFromV1;
 import org.springframework.data.neo4j.integration.issues.gh2905.BugRelationshipV1;
 import org.springframework.data.neo4j.integration.issues.gh2905.BugTargetV1;
-import org.springframework.data.neo4j.integration.issues.gh2905.FromRepositoryV1;
 import org.springframework.data.neo4j.integration.issues.gh2905.ReactiveFromRepositoryV1;
 import org.springframework.data.neo4j.integration.issues.gh2905.ReactiveToRepositoryV1;
-import org.springframework.data.neo4j.integration.issues.gh2905.ToRepositoryV1;
 import org.springframework.data.neo4j.integration.issues.gh2906.BugFrom;
 import org.springframework.data.neo4j.integration.issues.gh2906.BugTarget;
 import org.springframework.data.neo4j.integration.issues.gh2906.BugTargetContainer;
-import org.springframework.data.neo4j.integration.issues.gh2906.FromRepository;
 import org.springframework.data.neo4j.integration.issues.gh2906.OutgoingBugRelationship;
 import org.springframework.data.neo4j.integration.issues.gh2906.ReactiveFromRepository;
 import org.springframework.data.neo4j.integration.issues.gh2906.ReactiveToRepository;
-import org.springframework.data.neo4j.integration.issues.gh2906.ToRepository;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -56,6 +51,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 import java.util.stream.IntStream;
 
 import org.junit.jupiter.api.BeforeAll;
@@ -479,7 +475,7 @@ class ReactiveIssuesIT extends TestBase {
 				.build();
 
 		to1.relatedBugs = Set.of(from1, from2, from3);
-		toRepositoryV1.save(to1).block();
+		toRepositoryV1.save(to1).then().as(StepVerifier::create).expectComplete().verify();
 
 		assertGH2905Graph(driver);
 	}
@@ -487,37 +483,34 @@ class ReactiveIssuesIT extends TestBase {
 	@Test
 	@Tag("GH-2905")
 	void saveSingleEntities(@Autowired ReactiveFromRepositoryV1 fromRepositoryV1, @Autowired ReactiveToRepositoryV1 toRepositoryV1, @Autowired Driver driver) {
-		var to1 = BugTargetV1.builder().name("T1").type("BUG").build();
-		to1.relatedBugs = new HashSet<>();
-		to1 = toRepositoryV1.save(to1).block();
-		System.out.println();
-		System.out.println("EEEINNNS");
-		System.out.println();
-		var from1 = BugFromV1.builder()
-				.name("F1")
-				.reli(BugRelationshipV1.builder().target(to1).comment("F1<-T1").build())
-				.build();
-		// This is the key to solve 2905 when you had the annotation previously, you must maintain both ends of the bidirectional relationship.
-		// SDN does not do this for you.
-		to1.relatedBugs.add(from1);
-		from1 = fromRepositoryV1.save(from1).block();
-		System.out.println();
-		System.out.println("ZWEI");
-		System.out.println();
-		var from2 = BugFromV1.builder()
-				.name("F2")
-				.reli(BugRelationshipV1.builder().target(to1).comment("F2<-T1").build())
-				.build();
-		// See above
-		to1.relatedBugs.add(from2);
+		var bugTargetV1 = BugTargetV1.builder().name("T1").type("BUG").build();
+		bugTargetV1.relatedBugs = new HashSet<>();
+		toRepositoryV1.save(bugTargetV1).flatMapMany(to1 -> {
 
-		var from3 = BugFromV1.builder()
-				.name("F3")
-				.reli(BugRelationshipV1.builder().target(to1).comment("F3<-T1").build())
-				.build();
-		to1.relatedBugs.add(from3);
-		// See above
-		fromRepositoryV1.saveAll(List.of(from1, from2, from3)).collectList().block();
+			var from1 = BugFromV1.builder()
+					.name("F1")
+					.reli(BugRelationshipV1.builder().target(to1).comment("F1<-T1").build())
+					.build();
+			// This is the key to solve 2905 when you had the annotation previously, you must maintain both ends of the bidirectional relationship.
+			// SDN does not do this for you.
+			to1.relatedBugs.add(from1);
+
+			var from2 = BugFromV1.builder()
+					.name("F2")
+					.reli(BugRelationshipV1.builder().target(to1).comment("F2<-T1").build())
+					.build();
+			// See above
+			to1.relatedBugs.add(from2);
+
+			var from3 = BugFromV1.builder()
+					.name("F3")
+					.reli(BugRelationshipV1.builder().target(to1).comment("F3<-T1").build())
+					.build();
+			to1.relatedBugs.add(from3);
+
+			// See above
+			return fromRepositoryV1.saveAll(List.of(from1, from2, from3));
+		}).then().as(StepVerifier::create).expectComplete().verify();
 
 		assertGH2905Graph(driver);
 	}
@@ -549,7 +542,7 @@ class ReactiveIssuesIT extends TestBase {
 				new OutgoingBugRelationship(from2.reli.comment, from2),
 				new OutgoingBugRelationship(from3.reli.comment, from3)
 		);
-		toRepository.save(to1).block();
+		toRepository.save(to1).as(StepVerifier::create).expectNextCount(1).verifyComplete();
 
 		assertGH2906Graph(driver);
 	}
@@ -575,7 +568,7 @@ class ReactiveIssuesIT extends TestBase {
 				new OutgoingBugRelationship(from2.reli.comment, from2),
 				new OutgoingBugRelationship(from3.reli.comment, from3)
 		);
-		toRepository.save(to1).block();
+		toRepository.save(to1).as(StepVerifier::create).expectNextCount(1).verifyComplete();
 
 		assertGH2906Graph(driver);
 	}
@@ -584,28 +577,25 @@ class ReactiveIssuesIT extends TestBase {
 	@Tag("GH-2906")
 	void saveSingleEntitiesToLeaf(@Autowired ReactiveFromRepository fromRepository, @Autowired ReactiveToRepository toRepository, @Autowired Driver driver) {
 
-		var to1 = new BugTarget("T1", "BUG");
-		to1 = toRepository.save(to1).block();
+		var bt = new BugTarget("T1", "BUG");
+		toRepository.save(bt).flatMapMany(to1 -> {
 
-		var from1 = new BugFrom("F1", "F1<-T1", to1);
-		to1.relatedBugs.add(new OutgoingBugRelationship(from1.reli.comment, from1));
-		from1 = fromRepository.save(from1).block();
+			var from1 = new BugFrom("F1", "F1<-T1", to1);
+			to1.relatedBugs.add(new OutgoingBugRelationship(from1.reli.comment, from1));
 
-		assertThat(from1.reli.id).isNotNull();
-		assertThat(from1.reli.target.relatedBugs).first().extracting(r -> r.id).isNotNull();
+			var from2 = new BugFrom("F2", "F2<-T1", to1);
+			to1.relatedBugs.add(new OutgoingBugRelationship(from2.reli.comment, from2));
 
-		var from2 = new BugFrom("F2", "F2<-T1", to1);
-		to1.relatedBugs.add(new OutgoingBugRelationship(from2.reli.comment, from2));
+			var from3 = new BugFrom("F3", "F3<-T1", to1);
+			to1.relatedBugs.add(new OutgoingBugRelationship(from3.reli.comment, from3));
 
-		var from3 = new BugFrom("F3", "F3<-T1", to1);
-		to1.relatedBugs.add(new OutgoingBugRelationship(from3.reli.comment, from3));
-
-		// See above
-		var bugs = fromRepository.saveAll(List.of(from1, from2, from3)).collectList().block();
-		for (BugFrom from : bugs) {
-			assertThat(from.reli.id).isNotNull();
-			assertThat(from.reli.target.relatedBugs).first().extracting(r -> r.id).isNotNull();
-		}
+			return fromRepository.saveAll(List.of(from1, from2, from3)).collectList().doOnNext(bugs -> {
+				for (BugFrom from : bugs) {
+					assertThat(from.reli.id).isNotNull();
+					assertThat(from.reli.target.relatedBugs).first().extracting(r -> r.id).isNotNull();
+				}
+			});
+		}).then().as(StepVerifier::create).expectComplete().verify();
 
 		assertGH2906Graph(driver);
 	}
@@ -633,7 +623,7 @@ class ReactiveIssuesIT extends TestBase {
 		to1.relatedBugs.add(new OutgoingBugRelationship(from3.reli.comment, from3));
 
 		// See above
-		fromRepository.saveAll(List.of(from1, from2, from3));
+		fromRepository.saveAll(List.of(from1, from2, from3)).collectList().block();
 
 		assertGH2906Graph(driver);
 	}
@@ -649,18 +639,19 @@ class ReactiveIssuesIT extends TestBase {
 		to1.items.add(t1);
 		to1.items.add(t2);
 
-		to1 = toRepository.save(to1).block();
-		var uuid = to1.uuid;
-		to1 = null;
+		toRepository.save(to1)
+				.flatMapMany(x -> {
+					var uuid = x.uuid;
+					var from1 = new BugFrom("F1", "F1<-T1", null);
+					var from2 = new BugFrom("F2", "F2<-T1", null);
+					var from3 = new BugFrom("F3", "F3<-T1", null);
 
-		var from1 = new BugFrom("F1", "F1<-T1", null);
-		from1 = saveGH2906Entity(from1, uuid, fromRepository, toRepository).block();
-
-		var from2 = new BugFrom("F2", "F2<-T1", null);
-		from2 = saveGH2906Entity(from2, uuid, fromRepository, toRepository).block();
-
-		var from3 = new BugFrom("F3", "F3<-T1", null);
-		from3 = saveGH2906Entity(from3, uuid, fromRepository, toRepository).block();
+					return Flux.concat(saveGH2906Entity(from1, uuid, fromRepository, toRepository), saveGH2906Entity(from2, uuid, fromRepository, toRepository), saveGH2906Entity(from3, uuid, fromRepository, toRepository));
+				})
+				.then()
+				.as(StepVerifier::create)
+				.expectComplete()
+				.verify();
 
 		assertGH2906Graph(driver);
 	}
@@ -676,15 +667,17 @@ class ReactiveIssuesIT extends TestBase {
 		to1.items.add(t1);
 		to1.items.add(t2);
 
-		to1 = toRepository.save(to1).block();
-		var uuid = to1.uuid;
-		to1 = null;
+		toRepository.save(to1).flatMapMany(x -> {
+			var uuid = x.uuid;
+			var from1 = new BugFrom("F1", "F1<-T1", null);
+			var from2 = new BugFrom("F2", "F2<-T1", null);
 
-		var from1 = new BugFrom("F1", "F1<-T1", null);
-		from1 = saveGH2906Entity(from1, uuid, fromRepository, toRepository).block();
-
-		var from2 = new BugFrom("F2", "F2<-T1", null);
-		from2 = saveGH2906Entity(from2, uuid, fromRepository, toRepository).block();
+			return Flux.concat(saveGH2906Entity(from1, uuid, fromRepository, toRepository), saveGH2906Entity(from2, uuid, fromRepository, toRepository));
+		})
+		.then()
+		.as(StepVerifier::create)
+		.expectComplete()
+		.verify();
 
 		assertGH2906Graph(driver, 2);
 	}
@@ -693,22 +686,28 @@ class ReactiveIssuesIT extends TestBase {
 	@Tag("GH-2906")
 	void saveSingleEntitiesViaServiceToLeaf(@Autowired ReactiveFromRepository fromRepository, @Autowired ReactiveToRepository toRepository, @Autowired Driver driver) {
 
-		var uuid = toRepository.save(new BugTarget("T1", "BUG")).block().uuid;
+		toRepository.save(new BugTarget("T1", "BUG"))
+				.map(x -> x.uuid)
+				.flatMapMany(uuid -> Flux.concat(
+						saveGH2906Entity(new BugFrom("F1", "F1<-T1", null), uuid, fromRepository, toRepository)
+								.doOnNext(assertRelations()),
+						saveGH2906Entity(new BugFrom("F2", "F2<-T1", null), uuid, fromRepository, toRepository)
+								.doOnNext(assertRelations()),
+						saveGH2906Entity(new BugFrom("F3", "F3<-T1", null), uuid, fromRepository, toRepository)
+								.doOnNext(assertRelations())
 
-		var e1 = saveGH2906Entity(new BugFrom("F1", "F1<-T1", null), uuid, fromRepository, toRepository).block();
-
-		assertThat(e1.reli.id).isNotNull();
-		assertThat(e1.reli.target.relatedBugs).first().extracting(r -> r.id).isNotNull();
-
-		e1 = saveGH2906Entity(new BugFrom("F2", "F2<-T1", null), uuid, fromRepository, toRepository).block();
-		assertThat(e1.reli.id).isNotNull();
-		assertThat(e1.reli.target.relatedBugs).first().extracting(r -> r.id).isNotNull();
-
-		e1 = saveGH2906Entity(new BugFrom("F3", "F3<-T1", null), uuid, fromRepository, toRepository).block();
-		assertThat(e1.reli.id).isNotNull();
-		assertThat(e1.reli.target.relatedBugs).first().extracting(r -> r.id).isNotNull();
+				)).then()
+				.as(StepVerifier::create)
+				.expectComplete().verify();
 
 		assertGH2906Graph(driver);
+	}
+
+	private static Consumer<BugFrom> assertRelations() {
+		return e1 -> {
+			assertThat(e1.reli.id).isNotNull();
+			assertThat(e1.reli.target.relatedBugs).first().extracting(r -> r.id).isNotNull();
+		};
 	}
 
 	@Test
@@ -716,26 +715,27 @@ class ReactiveIssuesIT extends TestBase {
 	void saveTwoSingleEntitiesViaServiceToLeaf(@Autowired ReactiveFromRepository fromRepository, @Autowired ReactiveToRepository toRepository, @Autowired Driver driver) {
 
 		var to1 = new BugTarget("T1", "BUG");
-		to1 = toRepository.save(to1).block();
-		var uuid = to1.uuid;
-		to1 = null;
+		toRepository.save(to1)
+				.map(x -> x.uuid)
+				.flatMapMany(uuid -> Flux.concat(
+						saveGH2906Entity(new BugFrom("F1", "F1<-T1", null), uuid, fromRepository, toRepository),
+						saveGH2906Entity(new BugFrom("F2", "F2<-T1", null), uuid, fromRepository, toRepository)
 
-		var from1 = new BugFrom("F1", "F1<-T1", null);
-		from1 = saveGH2906Entity(from1, uuid, fromRepository, toRepository).block();
-
-		var from2 = new BugFrom("F2", "F2<-T1", null);
-		from2 = saveGH2906Entity(from2, uuid, fromRepository, toRepository).block();
+				)).then()
+				.as(StepVerifier::create)
+				.expectComplete().verify();
 
 		assertGH2906Graph(driver, 2);
 	}
 
 	private Mono<BugFrom> saveGH2906Entity(BugFrom from, String uuid, ReactiveFromRepository fromRepository, ReactiveToRepository toRepository) {
-		var to = toRepository.findById(uuid).blockOptional().orElseThrow();
+		return toRepository.findById(uuid).flatMap(to -> {
 
-		from.reli.target = to;
-		to.relatedBugs.add(new OutgoingBugRelationship(from.reli.comment, from));
+			from.reli.target = to;
+			to.relatedBugs.add(new OutgoingBugRelationship(from.reli.comment, from));
 
-		return fromRepository.save(from);
+			return fromRepository.save(from);
+		});
 	}
 
 	private static void assertGH2906Graph(Driver driver) {

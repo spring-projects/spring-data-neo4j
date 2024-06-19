@@ -418,19 +418,25 @@ public final class ReactiveNeo4jTemplate implements
 				getProjectionFactory(), neo4jMappingContext);
 
 		NestedRelationshipProcessingStateMachine stateMachine = new NestedRelationshipProcessingStateMachine(neo4jMappingContext);
+		Collection<Object> knownRelationshipsIds = new HashSet<>();
 		EntityFromDtoInstantiatingConverter<T> converter = new EntityFromDtoInstantiatingConverter<>(domainType, neo4jMappingContext);
 		return Flux.fromIterable(instances)
 				.concatMap(instance -> {
 					T domainObject = converter.convert(instance);
 
 					@SuppressWarnings("unchecked")
-					Mono<R> result = transactionalOperator.transactional(saveImpl(domainObject, pps, stateMachine)
+					Mono<R> result = transactionalOperator.transactional(saveImpl(domainObject, pps, stateMachine, knownRelationshipsIds)
 							.map(savedEntity -> (R) new DtoInstantiatingConverter(resultType, neo4jMappingContext).convertDirectly(savedEntity)));
 					return result;
 				});
 	}
 
+
 	private <T> Mono<T> saveImpl(T instance, @Nullable Collection<PropertyFilter.ProjectedPath> includedProperties, @Nullable NestedRelationshipProcessingStateMachine stateMachine) {
+		return saveImpl(instance, includedProperties, stateMachine, new HashSet<>());
+	}
+
+	private <T> Mono<T> saveImpl(T instance, @Nullable Collection<PropertyFilter.ProjectedPath> includedProperties, @Nullable NestedRelationshipProcessingStateMachine stateMachine, Collection<Object> knownRelationshipsIds) {
 
 		if (stateMachine != null && stateMachine.hasProcessedValue(instance)) {
 			return Mono.just(instance);
@@ -479,7 +485,7 @@ public final class ReactiveNeo4jTemplate implements
 						TemplateSupport.updateVersionPropertyIfPossible(entityMetaData, propertyAccessor, newOrUpdatedNode);
 						finalStateMachine.markEntityAsProcessed(instance, elementId);
 					}).map(IdentitySupport::getElementId)
-							.flatMap(internalId -> processRelations(entityMetaData,  propertyAccessor, isNewEntity, finalStateMachine, binderFunction.filter));
+							.flatMap(internalId -> processRelations(entityMetaData,  propertyAccessor, isNewEntity, finalStateMachine, knownRelationshipsIds, binderFunction.filter));
 				});
 	}
 
@@ -618,16 +624,16 @@ public final class ReactiveNeo4jTemplate implements
 						.concatMap(t -> {
 							PersistentPropertyAccessor<T> propertyAccessor = entityMetaData.getPropertyAccessor(t.getT3());
 							Neo4jPersistentProperty idProperty = entityMetaData.getRequiredIdProperty();
-							Object id = convertIdValues(idProperty, propertyAccessor.getProperty(idProperty));
-							String internalId = idToInternalIdMapping.get(id);
-							System.out.println("process relations for " + internalId);
 							return processRelations(entityMetaData, propertyAccessor, t.getT2(),
 								ctx.get("stateMachine"),
+								ctx.get("knownRelIds"),
 								TemplateSupport.computeIncludePropertyPredicate(pps, entityMetaData));
 						}))
 				))
 				.contextWrite(ctx ->
-					ctx.put("stateMachine", new NestedRelationshipProcessingStateMachine(neo4jMappingContext, null, null))
+					ctx
+							.put("stateMachine", new NestedRelationshipProcessingStateMachine(neo4jMappingContext, null, null))
+							.put("knownRelIds", new HashSet<>())
 				);
 	}
 
@@ -883,16 +889,19 @@ public final class ReactiveNeo4jTemplate implements
 			PersistentPropertyAccessor<?> parentPropertyAccessor,
 			boolean isParentObjectNew,
 			NestedRelationshipProcessingStateMachine stateMachine,
+			Collection<Object> knownRelationshipsIds,
 			PropertyFilter includeProperty
 	) {
 
 		PropertyFilter.RelaxedPropertyPath startingPropertyPath = PropertyFilter.RelaxedPropertyPath.withRootType(neo4jPersistentEntity.getUnderlyingClass());
 		return processNestedRelations(neo4jPersistentEntity, parentPropertyAccessor, isParentObjectNew,
-				stateMachine, includeProperty, startingPropertyPath);
+				stateMachine, knownRelationshipsIds, includeProperty, startingPropertyPath);
 	}
 
 	private <T> Mono<T> processNestedRelations(Neo4jPersistentEntity<?> sourceEntity, PersistentPropertyAccessor<?> parentPropertyAccessor,
-											   boolean isParentObjectNew, NestedRelationshipProcessingStateMachine stateMachine, PropertyFilter includeProperty, PropertyFilter.RelaxedPropertyPath previousPath) {
+											   boolean isParentObjectNew, NestedRelationshipProcessingStateMachine stateMachine,
+											   Collection<Object> knownRelationshipsIds,
+											   PropertyFilter includeProperty, PropertyFilter.RelaxedPropertyPath previousPath) {
 
 		Object fromId = parentPropertyAccessor.getProperty(sourceEntity.getRequiredIdProperty());
 		List<Mono<Void>> relationshipDeleteMonos = new ArrayList<>();
@@ -937,7 +946,6 @@ public final class ReactiveNeo4jTemplate implements
 			boolean canUseElementId = TemplateSupport.rendererRendersElementId(renderer);
 			if (!isParentObjectNew && !stateMachine.hasProcessedRelationship(fromId, relationshipDescription)) {
 
-				List<Object> knownRelationshipsIds = new ArrayList<>();
 				if (idProperty != null) {
 					for (Object relatedValueToStore : relatedValuesToStore) {
 						if (relatedValueToStore == null) {
@@ -1045,12 +1053,12 @@ public final class ReactiveNeo4jTemplate implements
 									var update = true;
 									if (!relationshipDescription.isDynamic() && relationshipDescription.hasRelationshipProperties()) {
 										var hlp = ((MappingSupport.RelationshipPropertiesWithEntityHolder) relatedValueToStore);
-										var hasProcessedRelationshipEntity = stateMachine.hasProcessedRelationshipEntity(targetPropertyAccessor.getBean(), hlp.getRelatedEntity(), relationshipContext.getRelationship());
+										var hasProcessedRelationshipEntity = stateMachine.hasProcessedRelationshipEntity(parentPropertyAccessor.getBean(), hlp.getRelatedEntity(), relationshipContext.getRelationship());
 										if (hasProcessedRelationshipEntity) {
 											stateMachine.requireIdUpdate(sourceEntity, relationshipDescription, canUseElementId, fromId, relatedInternalId, relationshipContext, relatedValueToStore, idProperty);
 											update = false;
 										} else {
-											stateMachine.storeProcessRelationshipEntity(hlp, targetPropertyAccessor.getBean(), hlp.getRelatedEntity(), relationshipContext.getRelationship());
+											stateMachine.storeProcessRelationshipEntity(hlp, parentPropertyAccessor.getBean(), hlp.getRelatedEntity(), relationshipContext.getRelationship());
 										}
 									}
 									List<Object> rows = new ArrayList<>();
@@ -1075,11 +1083,12 @@ public final class ReactiveNeo4jTemplate implements
 														relationshipContext
 																.getRelationshipPropertiesPropertyAccessor(relatedValueToStore)
 																.setProperty(idProperty, relationshipInternalId);
+														knownRelationshipsIds.add(relationshipInternalId);
 													}
 
 													Mono<Object> nestedRelationshipsSignal = null;
 													if (processState != ProcessState.PROCESSED_ALL_VALUES) {
-														nestedRelationshipsSignal = processNestedRelations(targetEntity, targetPropertyAccessor, targetEntity.isNew(newRelatedObject), stateMachine, includeProperty, currentPropertyPath);
+														nestedRelationshipsSignal = processNestedRelations(targetEntity, targetPropertyAccessor, targetEntity.isNew(newRelatedObject), stateMachine, knownRelationshipsIds, includeProperty, currentPropertyPath);
 													}
 
 													Mono<Object> getRelationshipOrRelationshipPropertiesObject = Mono.fromSupplier(() -> MappingSupport.getRelationshipOrRelationshipPropertiesObject(
@@ -1118,14 +1127,14 @@ public final class ReactiveNeo4jTemplate implements
 		Mono<T> deleteAndThanCreateANew = (Mono<T>) Flux.concat(relationshipDeleteMonos)
 				.thenMany(Flux.concat(relationshipCreationCreations))
 				.doOnNext(objects -> objects.applyFinalResultToOwner(parentPropertyAccessor))
-				.doOnNext(objects -> stateMachine.updateRelationshipIds(this::getRelationshipId))
 				.checkpoint()
+				.then(stateMachine.updateRelationshipIds(this::getRelationshipId))
 				.then(Mono.fromSupplier(parentPropertyAccessor::getBean));
 		return deleteAndThanCreateANew;
 
 	}
 
-	private Optional<Object> getRelationshipId(Statement statement, Neo4jPersistentProperty idProperty, Object fromId, Object toId) {
+	private Mono<Object> getRelationshipId(Statement statement, Neo4jPersistentProperty idProperty, Object fromId, Object toId) {
 
 		return neo4jClient.query(renderer.render(statement))
 				.bind(convertIdValues(idProperty, fromId)) //
@@ -1134,8 +1143,7 @@ public final class ReactiveNeo4jTemplate implements
 				.to(Constants.TO_ID_PARAMETER_NAME) //
 				.fetchAs(Object.class)
 				.mappedBy((t, r) -> IdentitySupport.mapperForRelatedIdValues(idProperty).apply(r))
-				.one()
-				.blockOptional();
+				.one();
 	}
 
 	// The pendant to {@link #saveRelatedNode(Object, Neo4jPersistentEntity, PropertyFilter, PropertyFilter.RelaxedPropertyPath)}

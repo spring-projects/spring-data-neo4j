@@ -20,7 +20,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.tuple;
 
-import java.awt.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -1292,7 +1291,6 @@ class IssuesIT extends TestBase {
 		// This is the key to solve 2905 when you had the annotation previously, you must maintain both ends of the bidirectional relationship.
 		// SDN does not do this for you.
 		to1.relatedBugs.add(from1);
-		System.out.println("NEEEEEEEEEEEEEEEXT STEP");
 		from1 = fromRepositoryV1.save(from1);
 
 		var from2 = BugFromV1.builder()
@@ -1307,8 +1305,8 @@ class IssuesIT extends TestBase {
 				.reli(BugRelationshipV1.builder().target(to1).comment("F3<-T1").build())
 				.build();
 		to1.relatedBugs.add(from3);
+
 		// See above
-		System.out.println("NEEEEEEEEEEEEEEEXT STEP");
 		fromRepositoryV1.saveAll(List.of(from1, from2, from3));
 
 		assertGH2905Graph(driver);
@@ -1400,6 +1398,9 @@ class IssuesIT extends TestBase {
 		}
 
 		assertGH2906Graph(driver);
+
+		var from1Loaded = fromRepository.findById(from1.uuid).orElseThrow();
+		assertThat(from1Loaded.reli).isNotNull();
 	}
 
 	@Test
@@ -1470,13 +1471,12 @@ class IssuesIT extends TestBase {
 
 		to1 = toRepository.save(to1);
 		var uuid = to1.uuid;
-		to1 = null;
 
 		var from1 = new BugFrom("F1", "F1<-T1", null);
-		from1 = saveGH2906Entity(from1, uuid, fromRepository, toRepository);
+		saveGH2906Entity(from1, uuid, fromRepository, toRepository);
 
 		var from2 = new BugFrom("F2", "F2<-T1", null);
-		from2 = saveGH2906Entity(from2, uuid, fromRepository, toRepository);
+		saveGH2906Entity(from2, uuid, fromRepository, toRepository);
 
 		assertGH2906Graph(driver, 2);
 	}

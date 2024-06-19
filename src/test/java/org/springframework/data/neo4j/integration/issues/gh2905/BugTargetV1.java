@@ -33,6 +33,9 @@ public class BugTargetV1 extends BugTargetBaseV1 {
 		return new BugTargetBuilder();
 	}
 
+	/**
+	 * Builder
+	 */
 	public static class BugTargetBuilder {
 		private String uuid;
 		private String name;

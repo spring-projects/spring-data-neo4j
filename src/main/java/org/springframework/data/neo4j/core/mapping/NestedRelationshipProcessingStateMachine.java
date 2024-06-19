@@ -29,6 +29,9 @@ import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+
 /**
  * This stores all processed nested relations and objects during save of objects so that the recursive descent can be
  * stopped accordingly.
@@ -145,6 +148,14 @@ public final class NestedRelationshipProcessingStateMachine {
 	@FunctionalInterface
 	public interface RelationshipIdSupplier {
 		Optional<Object> getId(Statement statement, Neo4jPersistentProperty idProperty, Object fromId, Object toId);
+	}
+
+	/**
+	 * Reactive Supplier for arbitrary relationship ids
+	 */
+	@FunctionalInterface
+	public interface ReactiveRelationshipIdSupplier {
+		Mono<Object> getId(Statement statement, Neo4jPersistentProperty idProperty, Object fromId, Object toId);
 	}
 
 	/**
@@ -286,6 +297,24 @@ public final class NestedRelationshipProcessingStateMachine {
 		}
 	}
 
+	public Collection<RelationshipIdUpdateContext> getRequiresIdUpdate() {
+		final long stamp = lock.readLock();
+		try {
+			return Set.copyOf(requiresIdUpdate);
+		} finally {
+			lock.unlock(stamp);
+		}
+	}
+
+	public void markAsUpdated(RelationshipIdUpdateContext context) {
+		final long stamp = lock.writeLock();
+		try {
+			requiresIdUpdate.remove(context);
+		} finally {
+			lock.unlock(stamp);
+		}
+	}
+
 	public void updateRelationshipIds(RelationshipIdSupplier idSupplier) {
 		final long stamp = lock.writeLock();
 		try {
@@ -302,6 +331,21 @@ public final class NestedRelationshipProcessingStateMachine {
 		} finally {
 			lock.unlock(stamp);
 		}
+	}
+
+	public Mono<Void> updateRelationshipIds(ReactiveRelationshipIdSupplier idSupplier) {
+		return Flux.defer(() -> {
+			final long stamp = lock.writeLock();
+			return Flux.fromIterable(requiresIdUpdate)
+					.flatMap(requiredIdUpdate -> Mono.just(requiredIdUpdate).zipWith(idSupplier.getId(requiredIdUpdate.cypher(), requiredIdUpdate.idProperty(), requiredIdUpdate.fromId(), requiredIdUpdate.toId())))
+					.doOnNext(t -> {
+						var requiredIdUpdate = t.getT1();
+						requiredIdUpdate.relationshipContext()
+								.getRelationshipPropertiesPropertyAccessor(requiredIdUpdate.relatedValueToStore())
+								.setProperty(requiredIdUpdate.idProperty(), t.getT2());
+						requiresIdUpdate.remove(requiredIdUpdate);
+					}).doOnTerminate(() -> lock.unlock(stamp));
+		}).then();
 	}
 
 	public void markAsAliased(Object aliasEntity, Object entityOrId) {

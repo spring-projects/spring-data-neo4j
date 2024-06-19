@@ -29,17 +29,16 @@ import org.springframework.data.neo4j.core.support.UUIDStringGenerator;
 public class BugFrom {
 	@Id
 	@GeneratedValue(UUIDStringGenerator.class)
-	String uuid;
+	public String uuid;
 
 	String name;
 
 	@Relationship(type = "RELI", direction = Relationship.Direction.INCOMING)
-	public BugRelationship<BugTargetBase> reli;
+	public IncomingBugRelationship reli;
 
-	@PersistenceCreator
-	BugFrom(String name, BugRelationship<BugTargetBase> reli, String uuid) {
+	@PersistenceCreator // Due to the cyclic mapping you cannot have the relation as constructor parameter, how should this work?
+	BugFrom(String name, String uuid) {
 		this.name = name;
-		this.reli = reli;
 		this.uuid = uuid;
 	}
 

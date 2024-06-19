@@ -40,10 +40,16 @@ public class BugFromV1 {
 		this.reli = reli;
 	}
 
+	/**
+	 * Lombok builder
+	 */
 	public static BugFromBuilder builder() {
 		return new BugFromBuilder();
 	}
 
+	/**
+	 * Lombok builder
+	 */
 	public static class BugFromBuilder {
 		private String uuid;
 		private String name;
@@ -71,6 +77,7 @@ public class BugFromV1 {
 			return new BugFromV1(this.uuid, this.name, this.reli);
 		}
 
+		@Override
 		public String toString() {
 			return "BugFrom.BugFromBuilder(uuid=" + this.uuid + ", name=" + this.name + ", reli=" + this.reli + ")";
 		}
