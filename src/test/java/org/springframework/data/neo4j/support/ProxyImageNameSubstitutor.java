@@ -36,7 +36,7 @@ public class ProxyImageNameSubstitutor extends ImageNameSubstitutor {
 
 	private static final List<String> NAMES_TO_LIBRARY_PROXY_PREFIX = List.of("neo4j");
 
-	private static final String PROXY_PREFIX = "harbor-repo.vmware.com/dockerhub-proxy-cache/";
+	private static final String PROXY_PREFIX = "docker-hub.usw1.packages.broadcom.com/";
 
 	private static final String LIBRARY_PROXY_PREFIX = PROXY_PREFIX + "library/";
 
