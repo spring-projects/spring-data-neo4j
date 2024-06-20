@@ -38,9 +38,11 @@ pipeline {
 
 			steps {
 				script {
-					docker.image(p['docker.java.main.image']).inside(p['docker.java.inside.docker']) {
-						sh "PROFILE=none JENKINS_USER_NAME=${p['jenkins.user.name']} ci/test.sh"
-						sh "JENKINS_USER_NAME=${p['jenkins.user.name']} ci/clean.sh"
+					docker.withRegistry(p['docker.proxy.registry'], p['docker.proxy.credentials']) {
+						docker.image(p['docker.java.main.image']).inside(p['docker.java.inside.docker']) {
+							sh "PROFILE=none JENKINS_USER_NAME=${p['jenkins.user.name']} ci/test.sh"
+							sh "JENKINS_USER_NAME=${p['jenkins.user.name']} ci/clean.sh"
+						}
 					}
 				}
 			}
@@ -66,9 +68,11 @@ pipeline {
 					}
 					steps {
 						script {
-							docker.image(p['docker.java.next.image']).inside(p['docker.java.inside.docker']) {
-									sh "PROFILE=none JENKINS_USER_NAME=${p['jenkins.user.name']} ci/test.sh"
-									sh "JENKINS_USER_NAME=${p['jenkins.user.name']} ci/clean.sh"
+							docker.withRegistry(p['docker.proxy.registry'], p['docker.proxy.credentials']) {
+								docker.image(p['docker.java.next.image']).inside(p['docker.java.inside.docker']) {
+										sh "PROFILE=none JENKINS_USER_NAME=${p['jenkins.user.name']} ci/test.sh"
+										sh "JENKINS_USER_NAME=${p['jenkins.user.name']} ci/clean.sh"
+								}
 							}
 						}
 					}
@@ -95,16 +99,18 @@ pipeline {
 
 			steps {
 				script {
-					docker.image(p['docker.java.main.image']).inside(p['docker.java.inside.basic']) {
-						sh 'MAVEN_OPTS="-Duser.name=' + "${p['jenkins.user.name']}" + ' -Duser.home=/tmp/jenkins-home" ' +
-							"./mvnw -s settings.xml -Pci,artifactory -Dmaven.repo.local=/tmp/jenkins-home/.m2/spring-data-neo4j-non-root " +
-							"-Dartifactory.server=${p['artifactory.url']} " +
-							"-Dartifactory.username=${ARTIFACTORY_USR} " +
-							"-Dartifactory.password=${ARTIFACTORY_PSW} " +
-							"-Dartifactory.staging-repository=${p['artifactory.repository.snapshot']} " +
-							"-Dartifactory.build-name=spring-data-neo4j " +
-							"-Dartifactory.build-number=spring-data-neo4j-${BRANCH_NAME}-build-${BUILD_NUMBER} " +
-							"-Dmaven.test.skip=true clean deploy -U -B"
+					docker.withRegistry(p['docker.proxy.registry'], p['docker.proxy.credentials']) {
+						docker.image(p['docker.java.main.image']).inside(p['docker.java.inside.basic']) {
+							sh 'MAVEN_OPTS="-Duser.name=' + "${p['jenkins.user.name']}" + ' -Duser.home=/tmp/jenkins-home" ' +
+								"./mvnw -s settings.xml -Pci,artifactory -Dmaven.repo.local=/tmp/jenkins-home/.m2/spring-data-neo4j-non-root " +
+								"-Dartifactory.server=${p['artifactory.url']} " +
+								"-Dartifactory.username=${ARTIFACTORY_USR} " +
+								"-Dartifactory.password=${ARTIFACTORY_PSW} " +
+								"-Dartifactory.staging-repository=${p['artifactory.repository.snapshot']} " +
+								"-Dartifactory.build-name=spring-data-neo4j " +
+								"-Dartifactory.build-number=spring-data-neo4j-${BRANCH_NAME}-build-${BUILD_NUMBER} " +
+								"-Dmaven.test.skip=true clean deploy -U -B"
+						}
 					}
 				}
 			}
