@@ -541,7 +541,8 @@ public enum CypherGenerator {
 				 RelationshipDescription relationship,
 				 boolean isNew,
 				 @Nullable String dynamicRelationshipType,
-				 boolean canUseElementId) {
+				 boolean canUseElementId,
+				 boolean matchOnly) {
 
 		Assert.isTrue(relationship.hasRelationshipProperties(),
 				"Properties required to create a relationship with properties");
@@ -566,6 +567,12 @@ public enum CypherGenerator {
 				.where(nodeIdFunction.apply(startNode).isEqualTo(idParameter))
 				.match(endNode)
 				.where(getEndNodeIdFunction((Neo4jPersistentEntity<?>) relationship.getTarget(), canUseElementId).apply(endNode).isEqualTo(parameter(Constants.TO_ID_PARAMETER_NAME)));
+
+		if (matchOnly) {
+			return startAndEndNodeMatch.match(relationshipFragment)
+					.returning(getReturnedIdExpressionsForRelationship(relationship, relationshipFragment))
+					.build();
+		}
 
 		StatementBuilder.ExposesSet createOrMatch = isNew
 				? startAndEndNodeMatch.create(relationshipFragment)

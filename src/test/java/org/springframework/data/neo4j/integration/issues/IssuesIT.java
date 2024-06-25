@@ -25,14 +25,17 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.assertj.core.api.SoftAssertions;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -43,6 +46,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.neo4j.cypherdsl.core.Condition;
 import org.neo4j.cypherdsl.core.Cypher;
+import org.neo4j.cypherdsl.core.LabelExpression;
 import org.neo4j.cypherdsl.core.Node;
 import org.neo4j.cypherdsl.core.Parameter;
 import org.neo4j.cypherdsl.core.Property;
@@ -50,7 +54,10 @@ import org.neo4j.driver.Driver;
 import org.neo4j.driver.QueryRunner;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.Transaction;
+import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
+import org.neo4j.driver.types.Relationship;
+import org.neo4j.driver.types.TypeSystem;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -151,6 +158,17 @@ import org.springframework.data.neo4j.integration.issues.gh2858.GH2858Repository
 import org.springframework.data.neo4j.integration.issues.gh2886.Apple;
 import org.springframework.data.neo4j.integration.issues.gh2886.FruitRepository;
 import org.springframework.data.neo4j.integration.issues.gh2886.Orange;
+import org.springframework.data.neo4j.integration.issues.gh2905.BugFromV1;
+import org.springframework.data.neo4j.integration.issues.gh2905.BugRelationshipV1;
+import org.springframework.data.neo4j.integration.issues.gh2905.BugTargetV1;
+import org.springframework.data.neo4j.integration.issues.gh2905.FromRepositoryV1;
+import org.springframework.data.neo4j.integration.issues.gh2905.ToRepositoryV1;
+import org.springframework.data.neo4j.integration.issues.gh2906.BugFrom;
+import org.springframework.data.neo4j.integration.issues.gh2906.BugTarget;
+import org.springframework.data.neo4j.integration.issues.gh2906.BugTargetContainer;
+import org.springframework.data.neo4j.integration.issues.gh2906.FromRepository;
+import org.springframework.data.neo4j.integration.issues.gh2906.OutgoingBugRelationship;
+import org.springframework.data.neo4j.integration.issues.gh2906.ToRepository;
 import org.springframework.data.neo4j.integration.issues.qbe.A;
 import org.springframework.data.neo4j.integration.issues.qbe.ARepository;
 import org.springframework.data.neo4j.integration.issues.qbe.B;
@@ -214,6 +232,24 @@ class IssuesIT extends TestBase {
 
 				transaction.commit();
 			}
+			bookmarkCapture.seedWith(session.lastBookmarks());
+		}
+	}
+
+	// clean up known throw-away nodes / rels
+	@AfterEach
+	void cleanup(@Autowired BookmarkCapture bookmarkCapture) {
+		List<String> labelsToBeRemoved = List.of("BugFromV1", "BugFrom", "BugTargetV1", "BugTarget", "BugTargetBaseV1", "BugTargetBase", "BugTargetContainer");
+		var labelExpression = new LabelExpression(labelsToBeRemoved.get(0));
+		for (int i = 1; i < labelsToBeRemoved.size(); i++) {
+			labelExpression = labelExpression.or(new LabelExpression(labelsToBeRemoved.get(i)));
+		}
+		try (Session session = neo4jConnectionSupport.getDriver().session(bookmarkCapture.createSessionConfig());
+			 Transaction transaction = session.beginTransaction()) {
+			Node nodes = Cypher.node(labelExpression);
+			String cypher = Cypher.match(nodes).detachDelete(nodes).build().getCypher();
+			transaction.run(cypher).consume();
+			transaction.commit();
 			bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 	}
@@ -1215,6 +1251,310 @@ class IssuesIT extends TestBase {
 
 		var fruits = repository.findAllFruits();
 		assertThat(fruits).allMatch(f -> f instanceof Apple || f instanceof Orange);
+	}
+
+	@Test
+	@Tag("GH-2905")
+	void storeFromRootAggregate(@Autowired ToRepositoryV1 toRepositoryV1, @Autowired Driver driver) {
+		var to1 = BugTargetV1.builder().name("T1").type("BUG").build();
+
+		var from1 = BugFromV1.builder()
+				.name("F1")
+				.reli(BugRelationshipV1.builder().target(to1).comment("F1<-T1").build())
+				.build();
+		var from2 = BugFromV1.builder()
+				.name("F2")
+				.reli(BugRelationshipV1.builder().target(to1).comment("F2<-T1").build())
+				.build();
+		var from3 = BugFromV1.builder()
+				.name("F3")
+				.reli(BugRelationshipV1.builder().target(to1).comment("F3<-T1").build())
+				.build();
+
+		to1.relatedBugs = Set.of(from1, from2, from3);
+		toRepositoryV1.save(to1);
+
+		assertGH2905Graph(driver);
+	}
+
+	@Test
+	@Tag("GH-2905")
+	void saveSingleEntities(@Autowired FromRepositoryV1 fromRepositoryV1, @Autowired ToRepositoryV1 toRepositoryV1, @Autowired Driver driver) {
+		var to1 = BugTargetV1.builder().name("T1").type("BUG").build();
+		to1.relatedBugs = new HashSet<>();
+		to1 = toRepositoryV1.save(to1);
+
+		var from1 = BugFromV1.builder()
+				.name("F1")
+				.reli(BugRelationshipV1.builder().target(to1).comment("F1<-T1").build())
+				.build();
+		// This is the key to solve 2905 when you had the annotation previously, you must maintain both ends of the bidirectional relationship.
+		// SDN does not do this for you.
+		to1.relatedBugs.add(from1);
+		from1 = fromRepositoryV1.save(from1);
+
+		var from2 = BugFromV1.builder()
+				.name("F2")
+				.reli(BugRelationshipV1.builder().target(to1).comment("F2<-T1").build())
+				.build();
+		// See above
+		to1.relatedBugs.add(from2);
+
+		var from3 = BugFromV1.builder()
+				.name("F3")
+				.reli(BugRelationshipV1.builder().target(to1).comment("F3<-T1").build())
+				.build();
+		to1.relatedBugs.add(from3);
+
+		// See above
+		fromRepositoryV1.saveAll(List.of(from1, from2, from3));
+
+		assertGH2905Graph(driver);
+	}
+
+	private static void assertGH2905Graph(Driver driver) {
+		var result = driver.executableQuery("MATCH (t:BugTargetV1) -[:RELI] ->(f:BugFromV1) RETURN t, collect(f) AS f").execute().records();
+		assertThat(result)
+				.hasSize(1)
+				.element(0).satisfies(r -> {
+					assertThat(r.get("t")).matches(TypeSystem.getDefault().NODE()::isTypeOf);
+					assertThat(r.get("f"))
+							.matches(TypeSystem.getDefault().LIST()::isTypeOf)
+							.extracting(Value::asList, as(InstanceOfAssertFactories.LIST))
+							.hasSize(3);
+				});
+	}
+
+	@Test
+	@Tag("GH-2906")
+	void storeFromRootAggregateToLeaf(@Autowired ToRepository toRepository, @Autowired Driver driver) {
+		var to1 = new BugTarget("T1", "BUG");
+
+		var from1 = new BugFrom("F1", "F1<-T1", to1);
+		var from2 = new BugFrom("F2", "F2<-T1", to1);
+		var from3 = new BugFrom("F3", "F3<-T1", to1);
+
+		to1.relatedBugs = Set.of(
+				new OutgoingBugRelationship(from1.reli.comment, from1),
+				new OutgoingBugRelationship(from2.reli.comment, from2),
+				new OutgoingBugRelationship(from3.reli.comment, from3)
+		);
+		toRepository.save(to1);
+
+		assertGH2906Graph(driver);
+	}
+
+
+	@Test
+	@Tag("GH-2906")
+	void storeFromRootAggregateToContainer(@Autowired ToRepository toRepository, @Autowired Driver driver) {
+
+		var t1 = new BugTarget("T1", "BUG");
+		var t2 = new BugTarget("T2", "BUG");
+
+		var to1 = new BugTargetContainer("C1");
+		to1.items.add(t1);
+		to1.items.add(t2);
+
+		var from1 = new BugFrom("F1", "F1<-T1", to1);
+		var from2 = new BugFrom("F2", "F2<-T1", to1);
+		var from3 = new BugFrom("F3", "F3<-T1", to1);
+
+		to1.relatedBugs = Set.of(
+				new OutgoingBugRelationship(from1.reli.comment, from1),
+				new OutgoingBugRelationship(from2.reli.comment, from2),
+				new OutgoingBugRelationship(from3.reli.comment, from3)
+		);
+		toRepository.save(to1);
+
+		assertGH2906Graph(driver);
+	}
+
+	@Test
+	@Tag("GH-2906")
+	void saveSingleEntitiesToLeaf(@Autowired FromRepository fromRepository, @Autowired ToRepository toRepository, @Autowired Driver driver) {
+
+		var to1 = new BugTarget("T1", "BUG");
+		to1 = toRepository.save(to1);
+
+		var from1 = new BugFrom("F1", "F1<-T1", to1);
+		to1.relatedBugs.add(new OutgoingBugRelationship(from1.reli.comment, from1));
+		from1 = fromRepository.save(from1);
+
+		assertThat(from1.reli.id).isNotNull();
+		assertThat(from1.reli.target.relatedBugs).first().extracting(r -> r.id).isNotNull();
+
+		var from2 = new BugFrom("F2", "F2<-T1", to1);
+		to1.relatedBugs.add(new OutgoingBugRelationship(from2.reli.comment, from2));
+
+		var from3 = new BugFrom("F3", "F3<-T1", to1);
+		to1.relatedBugs.add(new OutgoingBugRelationship(from3.reli.comment, from3));
+
+		// See above
+		var bugs = fromRepository.saveAll(List.of(from1, from2, from3));
+		for (BugFrom from : bugs) {
+			assertThat(from.reli.id).isNotNull();
+			assertThat(from.reli.target.relatedBugs).first().extracting(r -> r.id).isNotNull();
+		}
+
+		assertGH2906Graph(driver);
+
+		var from1Loaded = fromRepository.findById(from1.uuid).orElseThrow();
+		assertThat(from1Loaded.reli).isNotNull();
+	}
+
+	@Test
+	@Tag("GH-2906")
+	void saveSingleEntitiesToContainer(@Autowired FromRepository fromRepository, @Autowired ToRepository toRepository, @Autowired Driver driver) {
+
+		var t1 = new BugTarget("T1", "BUG");
+		var t2 = new BugTarget("T2", "BUG");
+
+		var to1 = new BugTargetContainer("C1");
+		to1.items.add(t1);
+		to1.items.add(t2);
+
+		to1 = toRepository.save(to1);
+
+		var from1 = new BugFrom("F1", "F1<-T1", to1);
+		to1.relatedBugs.add(new OutgoingBugRelationship(from1.reli.comment, from1));
+
+		var from2 = new BugFrom("F2", "F2<-T1", to1);
+		to1.relatedBugs.add(new OutgoingBugRelationship(from2.reli.comment, from2));
+
+		var from3 = new BugFrom("F3", "F3<-T1", to1);
+		to1.relatedBugs.add(new OutgoingBugRelationship(from3.reli.comment, from3));
+
+		// See above
+		fromRepository.saveAll(List.of(from1, from2, from3));
+
+		assertGH2906Graph(driver);
+	}
+
+	@Test
+	@Tag("GH-2906")
+	void saveSingleEntitiesViaServiceToContainer(@Autowired FromRepository fromRepository, @Autowired ToRepository toRepository, @Autowired Driver driver) {
+
+		var t1 = new BugTarget("T1", "BUG");
+		var t2 = new BugTarget("T2", "BUG");
+
+		var to1 = new BugTargetContainer("C1");
+		to1.items.add(t1);
+		to1.items.add(t2);
+
+		to1 = toRepository.save(to1);
+		var uuid = to1.uuid;
+		to1 = null;
+
+		var from1 = new BugFrom("F1", "F1<-T1", null);
+		from1 = saveGH2906Entity(from1, uuid, fromRepository, toRepository);
+
+		var from2 = new BugFrom("F2", "F2<-T1", null);
+		from2 = saveGH2906Entity(from2, uuid, fromRepository, toRepository);
+
+		var from3 = new BugFrom("F3", "F3<-T1", null);
+		from3 = saveGH2906Entity(from3, uuid, fromRepository, toRepository);
+
+		assertGH2906Graph(driver);
+	}
+
+	@Test
+	@Tag("GH-2906")
+	void saveTwoSingleEntitiesViaServiceToContainer(@Autowired FromRepository fromRepository, @Autowired ToRepository toRepository, @Autowired Driver driver) {
+
+		var t1 = new BugTarget("T1", "BUG");
+		var t2 = new BugTarget("T2", "BUG");
+
+		var to1 = new BugTargetContainer("C1");
+		to1.items.add(t1);
+		to1.items.add(t2);
+
+		to1 = toRepository.save(to1);
+		var uuid = to1.uuid;
+
+		var from1 = new BugFrom("F1", "F1<-T1", null);
+		saveGH2906Entity(from1, uuid, fromRepository, toRepository);
+
+		var from2 = new BugFrom("F2", "F2<-T1", null);
+		saveGH2906Entity(from2, uuid, fromRepository, toRepository);
+
+		assertGH2906Graph(driver, 2);
+	}
+
+	@Test
+	@Tag("GH-2906")
+	void saveSingleEntitiesViaServiceToLeaf(@Autowired FromRepository fromRepository, @Autowired ToRepository toRepository, @Autowired Driver driver) {
+
+		var uuid = toRepository.save(new BugTarget("T1", "BUG")).uuid;
+
+		var e1 = saveGH2906Entity(new BugFrom("F1", "F1<-T1", null), uuid, fromRepository, toRepository);
+
+		assertThat(e1.reli.id).isNotNull();
+		assertThat(e1.reli.target.relatedBugs).first().extracting(r -> r.id).isNotNull();
+
+		e1 = saveGH2906Entity(new BugFrom("F2", "F2<-T1", null), uuid, fromRepository, toRepository);
+		assertThat(e1.reli.id).isNotNull();
+		assertThat(e1.reli.target.relatedBugs).first().extracting(r -> r.id).isNotNull();
+
+		e1 = saveGH2906Entity(new BugFrom("F3", "F3<-T1", null), uuid, fromRepository, toRepository);
+		assertThat(e1.reli.id).isNotNull();
+		assertThat(e1.reli.target.relatedBugs).first().extracting(r -> r.id).isNotNull();
+
+		assertGH2906Graph(driver);
+	}
+
+	@Test
+	@Tag("GH-2906")
+	void saveTwoSingleEntitiesViaServiceToLeaf(@Autowired FromRepository fromRepository, @Autowired ToRepository toRepository, @Autowired Driver driver) {
+
+		var to1 = new BugTarget("T1", "BUG");
+		to1 = toRepository.save(to1);
+		var uuid = to1.uuid;
+		to1 = null;
+
+		var from1 = new BugFrom("F1", "F1<-T1", null);
+		from1 = saveGH2906Entity(from1, uuid, fromRepository, toRepository);
+
+		var from2 = new BugFrom("F2", "F2<-T1", null);
+		from2 = saveGH2906Entity(from2, uuid, fromRepository, toRepository);
+
+		assertGH2906Graph(driver, 2);
+	}
+
+	private BugFrom saveGH2906Entity(BugFrom from, String uuid, FromRepository fromRepository, ToRepository toRepository) {
+		var to = toRepository.findById(uuid).orElseThrow();
+
+		from.reli.target = to;
+		to.relatedBugs.add(new OutgoingBugRelationship(from.reli.comment, from));
+
+		return fromRepository.save(from);
+	}
+
+	private static void assertGH2906Graph(Driver driver) {
+		assertGH2906Graph(driver, 3);
+	}
+
+	private static void assertGH2906Graph(Driver driver, int cnt) {
+
+		var expectedNodes = IntStream.rangeClosed(1, cnt).mapToObj(i -> String.format("F%d", i)).toArray(String[]::new);
+		var expectedRelationships = IntStream.rangeClosed(1, cnt).mapToObj(i -> String.format("F%d<-T1", i)).toArray(String[]::new);
+
+		var result = driver.executableQuery("MATCH (t:BugTargetBase) -[r:RELI] ->(f:BugFrom) RETURN t, collect(f) AS f, collect(r) AS r").execute().records();
+		assertThat(result)
+				.hasSize(1)
+				.element(0).satisfies(r -> {
+					assertThat(r.get("t")).matches(TypeSystem.getDefault().NODE()::isTypeOf);
+					assertThat(r.get("f"))
+							.matches(TypeSystem.getDefault().LIST()::isTypeOf)
+							.extracting(Value::asList, as(InstanceOfAssertFactories.LIST))
+							.map(node -> ((org.neo4j.driver.types.Node) node).get("name").asString())
+							.containsExactlyInAnyOrder(expectedNodes);
+					assertThat(r.get("r"))
+							.matches(TypeSystem.getDefault().LIST()::isTypeOf)
+							.extracting(Value::asList, as(InstanceOfAssertFactories.LIST))
+							.map(rel -> ((Relationship) rel).get("comment").asString())
+							.containsExactlyInAnyOrder(expectedRelationships);
+				});
 	}
 
 	@Configuration

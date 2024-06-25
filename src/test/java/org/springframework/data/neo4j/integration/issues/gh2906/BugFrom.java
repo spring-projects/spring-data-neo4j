@@ -13,66 +13,45 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.integration.issues.gh2905;
+package org.springframework.data.neo4j.integration.issues.gh2906;
 
+import org.springframework.data.annotation.PersistenceCreator;
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
+import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Relationship;
 import org.springframework.data.neo4j.core.support.UUIDStringGenerator;
 
 /**
  * @author Mathias Kühn
  */
-@SuppressWarnings("HiddenField") // Not worth cleaning up the Delomboked version
-class BugFrom {
+@Node
+public class BugFrom {
 	@Id
 	@GeneratedValue(UUIDStringGenerator.class)
-	protected String uuid;
+	public String uuid;
 
-	private String name;
+	String name;
 
 	@Relationship(type = "RELI", direction = Relationship.Direction.INCOMING)
-	private BugRelationship reli;
+	public IncomingBugRelationship reli;
 
-	BugFrom(String uuid, String name, BugRelationship reli) {
-		this.uuid = uuid;
+	@PersistenceCreator // Due to the cyclic mapping you cannot have the relation as constructor parameter, how should this work?
+	BugFrom(String name, String uuid) {
 		this.name = name;
-		this.reli = reli;
+		this.uuid = uuid;
 	}
 
-	public static BugFromBuilder builder() {
-		return new BugFromBuilder();
+	public BugFrom(String name, String comment, BugTargetBase target) {
+		this.name = name;
+
+		this.reli = new IncomingBugRelationship(comment, target);
 	}
 
-	public static class BugFromBuilder {
-		private String uuid;
-		private String name;
-		private BugRelationship reli;
 
-		BugFromBuilder() {
-		}
-
-		public BugFromBuilder uuid(String uuid) {
-			this.uuid = uuid;
-			return this;
-		}
-
-		public BugFromBuilder name(String name) {
-			this.name = name;
-			return this;
-		}
-
-		public BugFromBuilder reli(BugRelationship reli) {
-			this.reli = reli;
-			return this;
-		}
-
-		public BugFrom build() {
-			return new BugFrom(this.uuid, this.name, this.reli);
-		}
-
-		public String toString() {
-			return "BugFrom.BugFromBuilder(uuid=" + this.uuid + ", name=" + this.name + ", reli=" + this.reli + ")";
-		}
+	@Override
+	public String toString() {
+		return String.format("<BugFrom> {uuid: %s, name: %s}", uuid, name);
 	}
 }
+

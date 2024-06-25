@@ -15,8 +15,6 @@
  */
 package org.springframework.data.neo4j.integration.issues.gh2905;
 
-import java.util.Set;
-
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Relationship;
@@ -25,19 +23,63 @@ import org.springframework.data.neo4j.core.support.UUIDStringGenerator;
 /**
  * @author Mathias Kühn
  */
-abstract class BugTargetBase {
+@SuppressWarnings("HiddenField") // Not worth cleaning up the Delomboked version
+public class BugFromV1 {
 	@Id
 	@GeneratedValue(UUIDStringGenerator.class)
 	protected String uuid;
 
 	private String name;
 
-	@Relationship(type = "RELI", direction = Relationship.Direction.OUTGOING)
-	Set<BugFrom> relatedBugs;
+	@Relationship(type = "RELI", direction = Relationship.Direction.INCOMING)
+	private BugRelationshipV1 reli;
 
-	BugTargetBase(String uuid, String name, Set<BugFrom> relatedBugs) {
+	BugFromV1(String uuid, String name, BugRelationshipV1 reli) {
 		this.uuid = uuid;
 		this.name = name;
-		this.relatedBugs = relatedBugs;
+		this.reli = reli;
+	}
+
+	/**
+	 * Lombok builder
+	 */
+	public static BugFromBuilder builder() {
+		return new BugFromBuilder();
+	}
+
+	/**
+	 * Lombok builder
+	 */
+	public static class BugFromBuilder {
+		private String uuid;
+		private String name;
+		private BugRelationshipV1 reli;
+
+		BugFromBuilder() {
+		}
+
+		public BugFromBuilder uuid(String uuid) {
+			this.uuid = uuid;
+			return this;
+		}
+
+		public BugFromBuilder name(String name) {
+			this.name = name;
+			return this;
+		}
+
+		public BugFromBuilder reli(BugRelationshipV1 reli) {
+			this.reli = reli;
+			return this;
+		}
+
+		public BugFromV1 build() {
+			return new BugFromV1(this.uuid, this.name, this.reli);
+		}
+
+		@Override
+		public String toString() {
+			return "BugFrom.BugFromBuilder(uuid=" + this.uuid + ", name=" + this.name + ", reli=" + this.reli + ")";
+		}
 	}
 }
