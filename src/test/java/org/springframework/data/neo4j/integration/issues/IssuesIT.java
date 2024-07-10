@@ -18,6 +18,7 @@ package org.springframework.data.neo4j.integration.issues;
 import static org.assertj.core.api.Assertions.as;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.tuple;
 
 import java.util.ArrayList;
@@ -169,6 +170,8 @@ import org.springframework.data.neo4j.integration.issues.gh2906.BugTargetContain
 import org.springframework.data.neo4j.integration.issues.gh2906.FromRepository;
 import org.springframework.data.neo4j.integration.issues.gh2906.OutgoingBugRelationship;
 import org.springframework.data.neo4j.integration.issues.gh2906.ToRepository;
+import org.springframework.data.neo4j.integration.issues.gh2918.ConditionNode;
+import org.springframework.data.neo4j.integration.issues.gh2918.ConditionRepository;
 import org.springframework.data.neo4j.integration.issues.qbe.A;
 import org.springframework.data.neo4j.integration.issues.qbe.ARepository;
 import org.springframework.data.neo4j.integration.issues.qbe.B;
@@ -1555,6 +1558,18 @@ class IssuesIT extends TestBase {
 							.map(rel -> ((Relationship) rel).get("comment").asString())
 							.containsExactlyInAnyOrder(expectedRelationships);
 				});
+	}
+
+	@Test
+	@Tag("GH-2918")
+	void loadCycleFreeWithInAndOutgoingRelationship(@Autowired ConditionRepository conditionRepository, @Autowired Driver driver) {
+
+		var conditionSaved = conditionRepository.save(new ConditionNode());
+
+		// Condition has both an incoming and outgoing relationship typed CAUSES that will cause a duplicate key
+		// in the map projection for the relationships to load. The fix was to indicate the direction in the name
+		// used for projecting the relationship, too
+		assertThatNoException().isThrownBy(() -> conditionRepository.findById(conditionSaved.uuid));
 	}
 
 	@Configuration
