@@ -1099,6 +1099,10 @@ public final class Neo4jTemplate implements
 		return results;
 	}
 
+	String render(Statement statement) {
+		return renderer.render(statement);
+	}
+
 	final class DefaultExecutableQuery<T> implements ExecutableQuery<T> {
 
 		private final PreparedQuery<T> preparedQuery;

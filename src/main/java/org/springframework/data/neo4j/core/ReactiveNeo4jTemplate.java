@@ -1172,7 +1172,11 @@ public final class ReactiveNeo4jTemplate implements
 		return new ReactiveFluentOperationSupport(this).save(domainType);
 	}
 
-	static final class DefaultReactiveExecutableQuery<T> implements ExecutableQuery<T> {
+	String render(Statement statement) {
+		return this.renderer.render(statement);
+	}
+
+	final class DefaultReactiveExecutableQuery<T> implements ExecutableQuery<T> {
 
 		private final PreparedQuery<T> preparedQuery;
 		private final ReactiveNeo4jClient.RecordFetchSpec<T> fetchSpec;

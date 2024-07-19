@@ -41,6 +41,7 @@ abstract class AbstractElementIdTestBase {
 	void setupData(LogbackCapture logbackCapture, @Autowired Driver driver, @Autowired BookmarkCapture bookmarkCapture) {
 
 		logbackCapture.addLogger("org.springframework.data.neo4j.cypher.deprecation", Level.WARN);
+		logbackCapture.addLogger("org.springframework.data.neo4j.cypher", Level.DEBUG);
 		try (Session session = driver.session()) {
 			session.run("MATCH (n) DETACH DELETE n").consume();
 			bookmarkCapture.seedWith(session.lastBookmarks());
@@ -78,6 +79,7 @@ abstract class AbstractElementIdTestBase {
 		List<String> formattedMessages = logbackCapture.getFormattedMessages();
 		assertThat(formattedMessages)
 				.noneMatch(s -> s.contains("Neo.ClientNotification.Statement.FeatureDeprecationWarning") ||
-						s.contains("The query used a deprecated function. ('id' is no longer supported)"));
+						s.contains("The query used a deprecated function. ('id' is no longer supported)") ||
+						s.matches("(?s).*toString\\(id\\(.*")); // No deprecations are logged when deprecated function call is nested. Anzeige ist raus.
 	}
 }

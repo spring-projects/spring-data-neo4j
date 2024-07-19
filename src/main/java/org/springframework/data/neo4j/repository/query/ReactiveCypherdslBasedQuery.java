@@ -18,6 +18,7 @@ package org.springframework.data.neo4j.repository.query;
 import java.util.Collection;
 import java.util.Map;
 import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
@@ -42,15 +43,19 @@ import org.springframework.util.Assert;
 final class ReactiveCypherdslBasedQuery extends AbstractReactiveNeo4jQuery {
 
 	static ReactiveCypherdslBasedQuery create(ReactiveNeo4jOperations neo4jOperations, Neo4jMappingContext mappingContext,
-			Neo4jQueryMethod queryMethod, ProjectionFactory projectionFactory) {
+		Neo4jQueryMethod queryMethod, ProjectionFactory projectionFactory, Function<Statement, String> renderer) {
 
-		return new ReactiveCypherdslBasedQuery(neo4jOperations, mappingContext, queryMethod, Neo4jQueryType.DEFAULT, projectionFactory);
+		return new ReactiveCypherdslBasedQuery(neo4jOperations, mappingContext, queryMethod, Neo4jQueryType.DEFAULT, projectionFactory, renderer);
 	}
+
+	private final Function<Statement, String> renderer;
 
 	private ReactiveCypherdslBasedQuery(ReactiveNeo4jOperations neo4jOperations,
 			Neo4jMappingContext mappingContext,
-			Neo4jQueryMethod queryMethod, Neo4jQueryType queryType, ProjectionFactory projectionFactory) {
+			Neo4jQueryMethod queryMethod, Neo4jQueryType queryType, ProjectionFactory projectionFactory,
+			Function<Statement, String> renderer) {
 		super(neo4jOperations, mappingContext, queryMethod, queryType, projectionFactory);
+		this.renderer = renderer;
 	}
 
 	@Override
@@ -68,7 +73,7 @@ final class ReactiveCypherdslBasedQuery extends AbstractReactiveNeo4jQuery {
 
 		Map<String, Object> boundParameters = statement.getCatalog().getParameters();
 		return PreparedQuery.queryFor(returnedType)
-				.withCypherQuery(statement.getCypher())
+				.withCypherQuery(renderer.apply(statement))
 				.withParameters(boundParameters)
 				.usingMappingFunction(mappingFunction)
 				.build();
