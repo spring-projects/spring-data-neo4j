@@ -17,6 +17,7 @@ package org.springframework.data.neo4j.repository.support;
 
 import java.util.Optional;
 
+import org.neo4j.cypherdsl.core.renderer.Configuration;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.ListableBeanFactory;
@@ -54,6 +55,8 @@ final class ReactiveNeo4jRepositoryFactory extends ReactiveRepositoryFactorySupp
 	private final ReactiveNeo4jOperations neo4jOperations;
 
 	private final Neo4jMappingContext mappingContext;
+
+	private Configuration cypherDSLConfiguration = Configuration.defaultConfig();
 
 	ReactiveNeo4jRepositoryFactory(ReactiveNeo4jOperations neo4jOperations, Neo4jMappingContext mappingContext) {
 
@@ -133,7 +136,7 @@ final class ReactiveNeo4jRepositoryFactory extends ReactiveRepositoryFactorySupp
 			QueryMethodEvaluationContextProvider evaluationContextProvider) {
 
 		return Optional
-				.of(new ReactiveNeo4jQueryLookupStrategy(neo4jOperations, mappingContext, evaluationContextProvider));
+				.of(new ReactiveNeo4jQueryLookupStrategy(neo4jOperations, mappingContext, evaluationContextProvider, cypherDSLConfiguration));
 	}
 
 	@Override
@@ -148,6 +151,10 @@ final class ReactiveNeo4jRepositoryFactory extends ReactiveRepositoryFactorySupp
 				factory.addAdvice(advice);
 			});
 		}
+
+		this.cypherDSLConfiguration = beanFactory
+				.getBeanProvider(Configuration.class)
+				.getIfAvailable(Configuration::defaultConfig);
 	}
 
 	@Override

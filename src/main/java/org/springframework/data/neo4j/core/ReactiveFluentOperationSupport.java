@@ -21,6 +21,7 @@ import reactor.core.publisher.Mono;
 import java.util.Collections;
 import java.util.Map;
 
+import org.neo4j.cypherdsl.core.Statement;
 import org.springframework.data.neo4j.repository.query.QueryFragmentsAndParameters;
 import org.springframework.util.Assert;
 
@@ -99,6 +100,12 @@ final class ReactiveFluentOperationSupport implements ReactiveFluentFindOperatio
 		public TerminatingFind<T> matching(QueryFragmentsAndParameters queryFragmentsAndParameters) {
 
 			return new ExecutableFindSupport<>(template, domainType, returnType, queryFragmentsAndParameters);
+		}
+
+		@Override
+		public TerminatingFind<T> matching(Statement statement, Map<String, Object> parameter) {
+
+			return matching(template.render(statement), TemplateSupport.mergeParameters(statement, parameter));
 		}
 
 		@Override

@@ -19,6 +19,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import org.neo4j.cypherdsl.core.Statement;
 import org.springframework.data.neo4j.repository.query.QueryFragmentsAndParameters;
 import org.springframework.util.Assert;
 
@@ -87,7 +88,6 @@ final class FluentOperationSupport implements FluentFindOperation, FluentSaveOpe
 		public TerminatingFind<T> matching(String query, Map<String, Object> parameters) {
 
 			Assert.notNull(query, "Query must not be null");
-
 			return new ExecutableFindSupport<>(template, domainType, returnType, query, parameters);
 		}
 
@@ -98,6 +98,12 @@ final class FluentOperationSupport implements FluentFindOperation, FluentSaveOpe
 			Assert.notNull(queryFragmentsAndParameters, "Query fragments must not be null");
 
 			return new ExecutableFindSupport<>(template, domainType, returnType, queryFragmentsAndParameters);
+		}
+
+		@Override
+		public TerminatingFind<T> matching(Statement statement, Map<String, Object> parameter) {
+
+			return matching(template.render(statement), TemplateSupport.mergeParameters(statement, parameter));
 		}
 
 		@Override

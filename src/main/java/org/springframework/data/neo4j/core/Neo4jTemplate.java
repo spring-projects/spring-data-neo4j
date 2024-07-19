@@ -1197,6 +1197,10 @@ public final class Neo4jTemplate implements
 				});
 	}
 
+	String render(Statement statement) {
+		return renderer.render(statement);
+	}
+
 	final class DefaultExecutableQuery<T> implements ExecutableQuery<T> {
 
 		private final PreparedQuery<T> preparedQuery;
