@@ -17,6 +17,9 @@ package org.springframework.data.neo4j.repository.support;
 
 import java.util.Optional;
 
+import org.neo4j.cypherdsl.core.renderer.Configuration;
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.data.neo4j.core.Neo4jOperations;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
@@ -50,6 +53,8 @@ final class Neo4jRepositoryFactory extends RepositoryFactorySupport {
 	private final Neo4jOperations neo4jOperations;
 
 	private final Neo4jMappingContext mappingContext;
+
+	private Configuration cypherDSLConfiguration = Configuration.defaultConfig();
 
 	Neo4jRepositoryFactory(Neo4jOperations neo4jOperations, Neo4jMappingContext mappingContext) {
 
@@ -122,6 +127,14 @@ final class Neo4jRepositoryFactory extends RepositoryFactorySupport {
 		return SimpleNeo4jRepository.class;
 	}
 
+	@Override
+	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
+		super.setBeanFactory(beanFactory);
+		this.cypherDSLConfiguration = beanFactory
+				.getBeanProvider(Configuration.class)
+				.getIfAvailable(Configuration::defaultConfig);
+	}
+
 	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.repository.core.support.RepositoryFactorySupport#getQueryLookupStrategy(org.springframework.data.repository.query.QueryLookupStrategy.Key, org.springframework.data.repository.query.EvaluationContextProvider)
@@ -130,7 +143,7 @@ final class Neo4jRepositoryFactory extends RepositoryFactorySupport {
 	protected Optional<QueryLookupStrategy> getQueryLookupStrategy(Key key,
 			QueryMethodEvaluationContextProvider evaluationContextProvider) {
 
-		return Optional.of(new Neo4jQueryLookupStrategy(neo4jOperations, mappingContext, evaluationContextProvider));
+		return Optional.of(new Neo4jQueryLookupStrategy(neo4jOperations, mappingContext, evaluationContextProvider, cypherDSLConfiguration));
 	}
 
 	@Override
