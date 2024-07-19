@@ -126,9 +126,7 @@ public interface ReactiveFluentFindOperation {
 		 * @return new instance of {@link TerminatingFind}.
 		 * @throws IllegalArgumentException if statement is {@literal null}.
 		 */
-		default TerminatingFind<T> matching(Statement statement, @Nullable Map<String, Object> parameter) {
-			return matching(statement.getCypher(), TemplateSupport.mergeParameters(statement, parameter));
-		}
+		TerminatingFind<T> matching(Statement statement, @Nullable Map<String, Object> parameter);
 
 		/**
 		 * Set the filter {@link Statement statement} to be used.

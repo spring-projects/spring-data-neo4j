@@ -20,13 +20,17 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.List;
 import java.util.Map;
 
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.neo4j.cypherdsl.core.Cypher;
+import org.neo4j.cypherdsl.core.Statement;
 import org.neo4j.driver.Driver;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.neo4j.core.DatabaseSelectionProvider;
+import org.springframework.data.neo4j.core.Neo4jTemplate;
 import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
 import org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
@@ -349,6 +353,28 @@ public class ImperativeElementIdIT extends AbstractElementIdTestBase {
 					.single().get(0).asLong();
 			assertThat(count).isEqualTo(1L);
 		}
+	}
+
+	@Test
+	@Tag("GH-2927")
+	void fluentOpsMustUseCypherDSLConfig(
+			LogbackCapture logbackCapture,
+			@Autowired Driver driver,
+			@Autowired BookmarkCapture bookmarkCapture,
+			@Autowired Neo4jTemplate neo4jTemplate) {
+
+		try (var session = driver.session(bookmarkCapture.createSessionConfig())) {
+			 session.run("MERGE (n:" + Thing.THING_LABEL + "{foo: 'bar'})").consume();
+		}
+
+		var thingNode = Cypher.node(Thing.THING_LABEL);
+		var cypherStatement = Statement.builder()
+				.match(thingNode)
+				.where(Cypher.elementId(thingNode).eq(Cypher.literalOf("test")))
+				.returning(thingNode)
+				.build();
+		neo4jTemplate.find(Thing.class).matching(cypherStatement).one();
+		assertThatLogMessageDoNotIndicateIDUsage(logbackCapture);
 	}
 
 	@Configuration

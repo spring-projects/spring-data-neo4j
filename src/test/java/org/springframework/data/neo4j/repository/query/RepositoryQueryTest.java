@@ -45,6 +45,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Answers;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.neo4j.cypherdsl.core.renderer.Configuration;
 import org.neo4j.driver.Values;
 import org.neo4j.driver.types.Point;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -199,7 +200,7 @@ final class RepositoryQueryTest {
 
 			final Neo4jQueryLookupStrategy lookupStrategy = new Neo4jQueryLookupStrategy(neo4jOperations,
 					neo4jMappingContext,
-					QueryMethodEvaluationContextProvider.DEFAULT);
+					QueryMethodEvaluationContextProvider.DEFAULT, Configuration.defaultConfig());
 
 			RepositoryQuery query = lookupStrategy.resolveQuery(queryMethod("findById", Object.class),
 					TEST_REPOSITORY_METADATA, PROJECTION_FACTORY, namedQueries);
@@ -210,7 +211,7 @@ final class RepositoryQueryTest {
 		void shouldSelectStringBasedNeo4jQuery() {
 
 			final Neo4jQueryLookupStrategy lookupStrategy = new Neo4jQueryLookupStrategy(neo4jOperations,
-					neo4jMappingContext, QueryMethodEvaluationContextProvider.DEFAULT);
+					neo4jMappingContext, QueryMethodEvaluationContextProvider.DEFAULT, Configuration.defaultConfig());
 
 			RepositoryQuery query = lookupStrategy.resolveQuery(queryMethod("annotatedQueryWithValidTemplate"),
 					TEST_REPOSITORY_METADATA, PROJECTION_FACTORY, namedQueries);
@@ -225,7 +226,7 @@ final class RepositoryQueryTest {
 			when(namedQueries.getQuery(namedQueryName)).thenReturn("MATCH (n) RETURN n");
 
 			final Neo4jQueryLookupStrategy lookupStrategy = new Neo4jQueryLookupStrategy(neo4jOperations,
-					neo4jMappingContext, QueryMethodEvaluationContextProvider.DEFAULT);
+					neo4jMappingContext, QueryMethodEvaluationContextProvider.DEFAULT, Configuration.defaultConfig());
 
 			RepositoryQuery query = lookupStrategy
 					.resolveQuery(queryMethod("findAllByANamedQuery"), TEST_REPOSITORY_METADATA,

@@ -18,6 +18,8 @@ package org.springframework.data.neo4j.repository.query;
 import java.lang.reflect.Method;
 
 import org.apiguardian.api.API;
+import org.neo4j.cypherdsl.core.renderer.Configuration;
+import org.neo4j.cypherdsl.core.renderer.Renderer;
 import org.springframework.data.neo4j.core.ReactiveNeo4jOperations;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.projection.ProjectionFactory;
@@ -40,12 +42,14 @@ public final class ReactiveNeo4jQueryLookupStrategy implements QueryLookupStrate
 	private final ReactiveNeo4jOperations neo4jOperations;
 	private final Neo4jMappingContext mappingContext;
 	private final QueryMethodEvaluationContextProvider evaluationContextProvider;
+	private final Configuration configuration;
 
 	public ReactiveNeo4jQueryLookupStrategy(ReactiveNeo4jOperations neo4jOperations, Neo4jMappingContext mappingContext,
-			QueryMethodEvaluationContextProvider evaluationContextProvider) {
+			QueryMethodEvaluationContextProvider evaluationContextProvider, Configuration configuration) {
 		this.neo4jOperations = neo4jOperations;
 		this.mappingContext = mappingContext;
 		this.evaluationContextProvider = evaluationContextProvider;
+		this.configuration = configuration;
 	}
 
 	/* (non-Javadoc)
@@ -65,7 +69,7 @@ public final class ReactiveNeo4jQueryLookupStrategy implements QueryLookupStrate
 			return ReactiveStringBasedNeo4jQuery.create(neo4jOperations, mappingContext, evaluationContextProvider,
 					queryMethod, projectionFactory);
 		} else if (queryMethod.isCypherBasedProjection()) {
-			return ReactiveCypherdslBasedQuery.create(neo4jOperations, mappingContext, queryMethod, projectionFactory);
+			return ReactiveCypherdslBasedQuery.create(neo4jOperations, mappingContext, queryMethod, projectionFactory, Renderer.getRenderer(configuration)::render);
 		} else {
 			return ReactivePartTreeNeo4jQuery.create(neo4jOperations, mappingContext, queryMethod, projectionFactory);
 		}
