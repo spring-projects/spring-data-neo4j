@@ -15,7 +15,6 @@
  */
 package org.springframework.data.neo4j.repository.query;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -126,7 +125,7 @@ abstract class FluentQuerySupport<R> {
 		Set<String> allPaths = new HashSet<>();
 		for (String property : projectingProperties) {
 			if (property.contains(".")) {
-				allPaths.addAll(Arrays.stream(property.split("\\.")).toList());
+				allPaths.add(property.substring(0, property.lastIndexOf(".")));
 			}
 			allPaths.add(property);
 		}
