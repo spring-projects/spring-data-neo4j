@@ -57,4 +57,12 @@ public class Flight {
 	public Airport getArrival() {
 		return arrival;
 	}
+
+	public Flight getNextFlight() {
+		return this.nextFlight;
+	}
+
+	public void setNextFlight(Flight nextFlight) {
+		this.nextFlight = nextFlight;
+	}
 }

@@ -2793,6 +2793,7 @@ class RepositoryIT {
 					CREATE (f2) -[:ARRIVES] ->(cdg)
 					CREATE (f3) -[:DEPARTS] ->(lax)
 					CREATE (f3) -[:ARRIVES] ->(lhr)
+					CREATE (f1) -[:NEXT_FLIGHT] ->(f2) -[:NEXT_FLIGHT] ->(f3)
 					""");
 		}
 
@@ -2879,6 +2880,22 @@ class RepositoryIT {
 						assertThat(p.getDeparture()).isNotNull();
 						assertThat(p.getDeparture().getName()).isEqualTo("London Heathrow");
 						assertThat(p.getDeparture().getCode()).isNull();
+					});
+		}
+
+		@Test
+		void findAllByExampleFluentCyclicRelationships(@Autowired FlightRepository repository) {
+			Example<Flight> example = Example.of(new Flight("FL 001", null, null),
+					ExampleMatcher.matchingAll().withIgnoreNullValues());
+			List<Flight> flights = repository.findBy(example,
+					q -> q.project("name", "nextFlight.name", "nextFlight.nextFlight.name").all());
+
+			assertThat(flights)
+					.hasSize(1)
+					.first().satisfies(p -> {
+						assertThat(p.getName()).isEqualTo("FL 001");
+						assertThat(p.getNextFlight().getName()).isEqualTo("FL 002");
+						assertThat(p.getNextFlight().getNextFlight().getName()).isEqualTo("FL 003");
 					});
 		}
 
