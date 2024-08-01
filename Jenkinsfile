@@ -33,7 +33,6 @@ pipeline {
 
 			environment {
 				ARTIFACTORY = credentials("${p['artifactory.credentials']}")
-				DEVELOCITY_CACHE = credentials("${p['develocity.cache.credentials']}")
 				DEVELOCITY_ACCESS_KEY = credentials("${p['develocity.access-key']}")
 				TESTCONTAINERS_IMAGE_SUBSTITUTOR = 'org.springframework.data.neo4j.support.ProxyImageNameSubstitutor'
 			}
@@ -66,7 +65,6 @@ pipeline {
 					options { timeout(time: 60, unit: 'MINUTES') }
 					environment {
 						ARTIFACTORY = credentials("${p['artifactory.credentials']}")
-						DEVELOCITY_CACHE = credentials("${p['develocity.cache.credentials']}")
 						DEVELOCITY_ACCESS_KEY = credentials("${p['develocity.access-key']}")
 						TESTCONTAINERS_IMAGE_SUBSTITUTOR = 'org.springframework.data.neo4j.support.ProxyImageNameSubstitutor'
 					}
