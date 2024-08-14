@@ -51,6 +51,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.DefaultConversionService;
+import org.springframework.data.geo.GeoPage;
 import org.springframework.data.mapping.MappingException;
 import org.springframework.data.neo4j.core.DatabaseSelectionProvider;
 import org.springframework.data.neo4j.core.Neo4jClient;
@@ -297,6 +298,8 @@ class TypeConversionIT extends Neo4jConversionsITBase {
 	}
 
 	public interface SpatialTypesRepository extends Neo4jRepository<ThingWithAllSpatialTypes, Long> {
+
+		GeoPage<ThingWithAllSpatialTypes> f();
 	}
 
 	public interface CustomTypesRepository extends Neo4jRepository<ThingWithCustomTypes, Long> {

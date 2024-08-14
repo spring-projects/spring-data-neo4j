@@ -31,6 +31,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
@@ -736,30 +737,35 @@ public enum CypherGenerator {
 	 * @param nodeDescription Description of the root node
 	 * @param includeField A predicate derived from the set of included properties. This is only relevant in various forms
 	 *                     of projections which allow to exclude one or more fields.
+	 * @param additionalExpressions any additional expressions to add to the return statement
 	 * @return An expression to be returned by a Cypher statement
 	 */
 	public Collection<Expression> createReturnStatementForMatch(Neo4jPersistentEntity<?> nodeDescription,
-			Predicate<PropertyFilter.RelaxedPropertyPath> includeField) {
-
+			Predicate<PropertyFilter.RelaxedPropertyPath> includeField, Expression... additionalExpressions) {
 		List<RelationshipDescription> processedRelationships = new ArrayList<>();
+
 		if (nodeDescription.containsPossibleCircles(includeField)) {
-			return createGenericReturnStatement();
+			return createGenericReturnStatement(additionalExpressions);
 		} else {
-			return Collections.singleton(projectPropertiesAndRelationships(
-					PropertyFilter.RelaxedPropertyPath.withRootType(nodeDescription.getUnderlyingClass()),
-					nodeDescription,
-					Constants.NAME_OF_TYPED_ROOT_NODE.apply(nodeDescription),
-					includeField,
-					null,
-					processedRelationships));
+			List<Expression> returnContent = new ArrayList<>();
+			returnContent.add(projectPropertiesAndRelationships(
+				PropertyFilter.RelaxedPropertyPath.withRootType(nodeDescription.getUnderlyingClass()),
+				nodeDescription,
+				Constants.NAME_OF_TYPED_ROOT_NODE.apply(nodeDescription),
+				includeField,
+				null,
+				processedRelationships));
+			Collections.addAll(returnContent, additionalExpressions);
+			return returnContent;
 		}
 	}
 
-	public Collection<Expression> createGenericReturnStatement() {
+	public Collection<Expression> createGenericReturnStatement(Expression... additionalExpressions) {
 		List<Expression> returnExpressions = new ArrayList<>();
 		returnExpressions.add(Cypher.name(Constants.NAME_OF_SYNTHESIZED_ROOT_NODE));
 		returnExpressions.add(Cypher.name(Constants.NAME_OF_SYNTHESIZED_RELATED_NODES));
 		returnExpressions.add(Cypher.name(Constants.NAME_OF_SYNTHESIZED_RELATIONS));
+		returnExpressions.addAll(Arrays.asList(additionalExpressions));
 		return returnExpressions;
 	}
 
@@ -770,7 +776,7 @@ public enum CypherGenerator {
 	}
 
 	private MapProjection projectPropertiesAndRelationships(PropertyFilter.RelaxedPropertyPath parentPath, Neo4jPersistentEntity<?> nodeDescription, SymbolicName nodeName,
-															Predicate<PropertyFilter.RelaxedPropertyPath> includedProperties, @Nullable RelationshipDescription relationshipDescription, List<RelationshipDescription> processedRelationships) {
+															Predicate<PropertyFilter.RelaxedPropertyPath> includedProperties, @Nullable RelationshipDescription relationshipDescription, List<RelationshipDescription> processedRelationships, Expression... additionalExpressions) {
 
 		Collection<RelationshipDescription> relationships = ((DefaultNeo4jPersistentEntity<?>) nodeDescription).getRelationshipsInHierarchy(includedProperties, parentPath);
 		relationships.removeIf(r -> !includedProperties.test(parentPath.append(r.getFieldName())));
