@@ -101,9 +101,12 @@ public class Neo4jExtension implements BeforeAllCallback, BeforeEachCallback {
 		List<Field> injectableFields = ReflectionSupport.findFields(context.getRequiredTestClass(),
 				field -> Modifier.isStatic(field.getModifiers()) && field.getType() == Neo4jConnectionSupport.class,
 				HierarchyTraversalMode.BOTTOM_UP);
-
+		System.out.println(injectableFields);
 		if (injectableFields.size() != 1) {
+			System.out.println("ups " + injectableFields);
 			return;
+		} else {
+			System.out.println("asd");
 		}
 
 		String neo4jUrl = Optional.ofNullable(System.getenv(SYS_PROPERTY_NEO4J_URL)).orElse("");

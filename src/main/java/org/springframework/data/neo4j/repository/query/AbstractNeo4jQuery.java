@@ -107,7 +107,10 @@ abstract class AbstractNeo4jQuery extends Neo4jQuerySupport implements Repositor
 			rawResult = createSlice(incrementLimit, parameterAccessor, (List<?>) rawResult);
 		} else if (queryMethod.isScrollQuery()) {
 			rawResult = createWindow(resultProcessor, incrementLimit, parameterAccessor, (List<?>) rawResult, preparedQuery.getQueryFragmentsAndParameters());
+		} else if (queryMethod.isGeoNearQuery()) {
+			// do things
 		}
+
 		return resultProcessor.processResult(rawResult, preparingConverter);
 	}
 

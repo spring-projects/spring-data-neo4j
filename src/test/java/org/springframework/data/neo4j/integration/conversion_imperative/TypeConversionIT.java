@@ -298,8 +298,6 @@ class TypeConversionIT extends Neo4jConversionsITBase {
 	}
 
 	public interface SpatialTypesRepository extends Neo4jRepository<ThingWithAllSpatialTypes, Long> {
-
-		GeoPage<ThingWithAllSpatialTypes> f();
 	}
 
 	public interface CustomTypesRepository extends Neo4jRepository<ThingWithCustomTypes, Long> {

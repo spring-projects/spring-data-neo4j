@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -68,6 +69,8 @@ import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.geo.Distance;
+import org.springframework.data.geo.Metrics;
 import org.springframework.data.mapping.MappingException;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
 import org.springframework.data.neo4j.core.DatabaseSelectionProvider;
@@ -170,6 +173,9 @@ import org.springframework.data.neo4j.integration.issues.gh2906.BugTargetContain
 import org.springframework.data.neo4j.integration.issues.gh2906.FromRepository;
 import org.springframework.data.neo4j.integration.issues.gh2906.OutgoingBugRelationship;
 import org.springframework.data.neo4j.integration.issues.gh2906.ToRepository;
+import org.springframework.data.neo4j.integration.issues.gh2908.LocatedNode;
+import org.springframework.data.neo4j.integration.issues.gh2908.LocatedNodeRepository;
+import org.springframework.data.neo4j.integration.issues.gh2908.Place;
 import org.springframework.data.neo4j.integration.issues.gh2918.ConditionNode;
 import org.springframework.data.neo4j.integration.issues.gh2918.ConditionRepository;
 import org.springframework.data.neo4j.integration.issues.qbe.A;
@@ -230,6 +236,7 @@ class IssuesIT extends TestBase {
 				setupGH2459(transaction);
 				setupGH2572(transaction);
 				setupGH2583(transaction);
+				setupGH2908(transaction);
 
 				transaction.run("CREATE (:A {name: 'A name', id: randomUUID()}) -[:HAS] ->(:B {anotherName: 'Whatever', id: randomUUID()})");
 
@@ -240,6 +247,7 @@ class IssuesIT extends TestBase {
 	}
 
 	// clean up known throw-away nodes / rels
+
 	@AfterEach
 	void cleanup(@Autowired BookmarkCapture bookmarkCapture) {
 		List<String> labelsToBeRemoved = List.of("BugFromV1", "BugFrom", "BugTargetV1", "BugTarget", "BugTargetBaseV1", "BugTargetBase", "BugTargetContainer");
@@ -254,6 +262,13 @@ class IssuesIT extends TestBase {
 			transaction.run(cypher).consume();
 			transaction.commit();
 			bookmarkCapture.seedWith(session.lastBookmarks());
+		}
+	}
+
+	private static void setupGH2908(QueryRunner queryRunner) {
+		EnumSet<Place> places = EnumSet.of(Place.NEO4J_HQ, Place.SFO);
+		for (Place value : places) {
+			queryRunner.run("CREATE (l:LocatedNode {name: $name, place: $place})", Map.of("name", value.name(), "place", value.getValue()));
 		}
 	}
 
@@ -1570,6 +1585,24 @@ class IssuesIT extends TestBase {
 		// in the map projection for the relationships to load. The fix was to indicate the direction in the name
 		// used for projecting the relationship, too
 		assertThatNoException().isThrownBy(() -> conditionRepository.findById(conditionSaved.uuid));
+	}
+
+	@Test
+	@Tag("GH-2908")
+	void shouldSupportGeoResult(@Autowired LocatedNodeRepository repository) {
+
+		var nodes = repository.findAllByPlaceNear(Place.SFO.getValue());
+		assertThat(nodes).hasSize(2);
+
+		var distance = new Distance(200.0 / 1000.0, Metrics.KILOMETERS);
+
+		nodes = repository.findAllByPlaceNear(Place.MINC.getValue(), distance);
+		assertThat(nodes).hasSize(1)
+			.first()
+			.extracting(LocatedNode::getName).isEqualTo("NEO4J_HQ");
+
+		nodes = repository.findAllByPlaceNear(Place.CLARION.getValue(), distance);
+		assertThat(nodes).isEmpty();
 	}
 
 	@Configuration
