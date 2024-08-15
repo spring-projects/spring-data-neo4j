@@ -38,7 +38,6 @@ import org.springframework.data.neo4j.integration.shared.conversion.ThingWithCus
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.data.neo4j.test.BookmarkCapture;
-import org.springframework.data.neo4j.test.Neo4jExtension;
 import org.springframework.data.neo4j.test.Neo4jImperativeTestConfiguration;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -50,8 +49,6 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
  */
 @Neo4jIntegrationTest
 class ImperativeCompositePropertiesIT extends CompositePropertiesITBase {
-
-	protected static Neo4jExtension.Neo4jConnectionSupport neo4jConnectionSupport;
 
 	@Autowired ImperativeCompositePropertiesIT(Driver driver, BookmarkCapture bookmarkCapture) {
 		super(driver, bookmarkCapture);
