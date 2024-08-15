@@ -57,8 +57,6 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @Tag(Neo4jExtension.NEEDS_REACTIVE_SUPPORT)
 class ReactiveCompositePropertiesIT extends CompositePropertiesITBase {
 
-	protected static Neo4jExtension.Neo4jConnectionSupport neo4jConnectionSupport;
-
 	@Autowired
 	ReactiveCompositePropertiesIT(Driver driver, BookmarkCapture bookmarkCapture) {
 		super(driver, bookmarkCapture);
