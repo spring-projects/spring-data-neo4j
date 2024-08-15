@@ -32,7 +32,6 @@ import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.ParametersSource;
 import org.springframework.data.repository.query.QueryMethod;
-import org.springframework.data.util.ClassTypeInformation;
 import org.springframework.data.util.TypeInformation;
 import org.springframework.lang.Nullable;
 import org.springframework.util.ClassUtils;
@@ -50,7 +49,7 @@ import org.springframework.util.StringUtils;
  */
 class Neo4jQueryMethod extends QueryMethod {
 
-	private static final List<Class<? extends Serializable>> GEO_NEAR_RESULTS = List.of(GeoResult.class, GeoResults.class, GeoPage.class);
+	static final List<Class<? extends Serializable>> GEO_NEAR_RESULTS = List.of(GeoResult.class, GeoResults.class, GeoPage.class);
 
 	/**
 	 * Optional query annotation of the method.
@@ -141,6 +140,15 @@ class Neo4jQueryMethod extends QueryMethod {
 		}
 	}
 
+	@Override
+	public Class<?> getReturnedObjectType() {
+		Class<?> returnedObjectType = super.getReturnedObjectType();
+		if (returnedObjectType.equals(GeoResult.class)) {
+			return getDomainClass();
+		}
+		return returnedObjectType;
+	}
+
 	static class Neo4jParameter extends Parameter {
 
 		private static final String NAMED_PARAMETER_TEMPLATE = "$%s";
@@ -166,37 +174,16 @@ class Neo4jQueryMethod extends QueryMethod {
 		}
 	}
 
-	/**
-	 * {@return whether the query is a geo near query}
-	 */
-	public boolean isGeoNearQuery() {
-		return isGeoNearQuery(this.method);
-	}
-
-	private boolean isGeoNearQuery(Method method) {
-
-		Class<?> returnType = method.getReturnType();
-
-		for (Class<?> type : GEO_NEAR_RESULTS) {
-			if (type.isAssignableFrom(returnType)) {
-				return true;
-			}
-		}
-
-		if (Iterable.class.isAssignableFrom(returnType)) {
-			TypeInformation<?> from = TypeInformation.fromReturnTypeOf(method);
-			return GeoResult.class.equals(from.getComponentType().getType());
-		}
-
-		return false;
-	}
-
-
 	boolean incrementLimit() {
 		return (this.isSliceQuery() && this.getQueryAnnotation().map(Query::countQuery).filter(StringUtils::hasText).isEmpty()) || this.isScrollQuery();
 	}
 
 	boolean asCollectionQuery() {
-		return this.isCollectionLikeQuery() || this.isPageQuery() || this.isSliceQuery() || this.isScrollQuery();
+		return this.isCollectionLikeQuery() || this.isPageQuery() || this.isSliceQuery() || this.isScrollQuery() ||
+			GeoResults.class.isAssignableFrom(this.method.getReturnType());
+	}
+
+	Method getMethod() {
+		return method;
 	}
 }

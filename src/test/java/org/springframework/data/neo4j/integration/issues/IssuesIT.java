@@ -25,7 +25,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -37,6 +36,8 @@ import java.util.stream.IntStream;
 
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.assertj.core.api.SoftAssertions;
+import org.assertj.core.api.ThrowingConsumer;
+import org.assertj.core.data.Percentage;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -68,8 +69,13 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Range;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.geo.Distance;
+import org.springframework.data.geo.GeoPage;
+import org.springframework.data.geo.GeoResult;
+import org.springframework.data.geo.GeoResults;
 import org.springframework.data.geo.Metrics;
 import org.springframework.data.mapping.MappingException;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
@@ -262,13 +268,6 @@ class IssuesIT extends TestBase {
 			transaction.run(cypher).consume();
 			transaction.commit();
 			bookmarkCapture.seedWith(session.lastBookmarks());
-		}
-	}
-
-	private static void setupGH2908(QueryRunner queryRunner) {
-		EnumSet<Place> places = EnumSet.of(Place.NEO4J_HQ, Place.SFO);
-		for (Place value : places) {
-			queryRunner.run("CREATE (l:LocatedNode {name: $name, place: $place})", Map.of("name", value.name(), "place", value.getValue()));
 		}
 	}
 
@@ -1591,18 +1590,57 @@ class IssuesIT extends TestBase {
 	@Tag("GH-2908")
 	void shouldSupportGeoResult(@Autowired LocatedNodeRepository repository) {
 
-		var nodes = repository.findAllByPlaceNear(Place.SFO.getValue());
+		ThrowingConsumer<GeoResult<LocatedNode>> neo4jFoundInTheNearDistance = gr -> {
+			assertThat(gr.getContent().getName()).isEqualTo("NEO4J_HQ");
+			assertThat(gr.getDistance().getValue()).isCloseTo(90 / 1000.0, Percentage.withPercentage(5));
+		};
+
+		GeoResults<LocatedNode> nodes = repository.findAllAsGeoResultsByPlaceNear(Place.SFO.getValue());
 		assertThat(nodes).hasSize(2);
+		var distanceBetweenSFOAndNeo4jHQ = 8830.306;
+		assertThat(nodes.getAverageDistance()).satisfies(d -> {
+			assertThat(d.getValue()).isCloseTo(distanceBetweenSFOAndNeo4jHQ / 2.0, Percentage.withPercentage(1));
+			assertThat(d.getMetric()).isEqualTo(Metrics.KILOMETERS);
+		});
+
+		var zeroTo9k = Distance.between(0, Metrics.KILOMETERS, 90000, Metrics.KILOMETERS);
+		GeoPage<LocatedNode> pagedNodes = repository.findAllByPlaceNear(Place.SFO.getValue(), zeroTo9k, Pageable.ofSize(1));
+		assertThat(pagedNodes).hasSize(1);
+		assertThat(pagedNodes.getAverageDistance().getValue()).isCloseTo(0, Percentage.withPercentage(1));
+		assertThat(pagedNodes.getContent().get(0).getContent().getName()).isEqualTo("SFO");
+
+		pagedNodes = repository.findAllByPlaceNear(Place.SFO.getValue(), zeroTo9k, pagedNodes.nextPageable());
+		assertThat(pagedNodes).hasSize(1);
+		assertThat(pagedNodes.getAverageDistance().getValue()).isCloseTo(distanceBetweenSFOAndNeo4jHQ, Percentage.withPercentage(1));
+		assertThat(pagedNodes.getContent().get(0).getContent().getName()).isEqualTo("NEO4J_HQ");
 
 		var distance = new Distance(200.0 / 1000.0, Metrics.KILOMETERS);
-
 		nodes = repository.findAllByPlaceNear(Place.MINC.getValue(), distance);
 		assertThat(nodes).hasSize(1)
 			.first()
-			.extracting(LocatedNode::getName).isEqualTo("NEO4J_HQ");
+			.satisfies(neo4jFoundInTheNearDistance);
 
 		nodes = repository.findAllByPlaceNear(Place.CLARION.getValue(), distance);
 		assertThat(nodes).isEmpty();
+
+		nodes = repository.findAllByPlaceNear(Place.MINC.getValue(),
+			Distance.between(60.0 / 1000.0, Metrics.KILOMETERS, 200.0 / 1000.0, Metrics.KILOMETERS));
+		assertThat(nodes).hasSize(1).first()
+			.satisfies(neo4jFoundInTheNearDistance);
+
+		nodes = repository.findAllByPlaceNear(Place.MINC.getValue(),
+			Distance.between(100.0 / 1000.0, Metrics.KILOMETERS, 200.0 / 1000.0, Metrics.KILOMETERS));
+		assertThat(nodes).isEmpty();
+
+		final Range<Distance> distanceRange = Range.of(Range.Bound.inclusive(new Distance(100.0 / 1000.0, Metrics.KILOMETERS)),
+			Range.Bound.unbounded());
+		nodes = repository.findAllByPlaceNear(Place.MINC.getValue(), distanceRange);
+		assertThat(nodes).hasSize(1).first().satisfies(gr -> {
+			var d = gr.getDistance();
+			assertThat(d.getValue()).isCloseTo(8800, Percentage.withPercentage(1));
+			assertThat(d.getMetric()).isEqualTo(Metrics.KILOMETERS);
+			assertThat(gr.getContent().getName()).isEqualTo("SFO");
+		});
 	}
 
 	@Configuration

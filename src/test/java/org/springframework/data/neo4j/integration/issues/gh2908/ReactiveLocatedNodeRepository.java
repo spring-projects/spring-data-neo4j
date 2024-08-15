@@ -15,27 +15,23 @@
  */
 package org.springframework.data.neo4j.integration.issues.gh2908;
 
-import org.neo4j.driver.Values;
 import org.neo4j.driver.types.Point;
+import org.springframework.data.domain.Range;
+import org.springframework.data.geo.Distance;
+import org.springframework.data.geo.GeoResult;
+import org.springframework.data.neo4j.repository.ReactiveNeo4jRepository;
+
+import reactor.core.publisher.Flux;
 
 /**
- * Cool places to be.
+ * Repository spotting all supported Geo* results.
  * @author Michael J. Simons
  */
-public enum Place {
+public interface ReactiveLocatedNodeRepository extends ReactiveNeo4jRepository<LocatedNode, String> {
 
-	NEO4J_HQ(Values.point(4326, 12.994823, 55.612191).asPoint()),
-	SFO(Values.point(4326, -122.38681, 37.61649).asPoint()),
-	CLARION(Values.point(4326, 12.994243, 55.607726).asPoint()),
-	MINC(Values.point(4326, 12.994039, 55.611496).asPoint());
+	Flux<GeoResult<LocatedNode>> findAllAsGeoResultsByPlaceNear(Point point);
 
-	private final Point value;
+	Flux<GeoResult<LocatedNode>> findAllByPlaceNear(Point p, Distance max);
 
-	Place(Point value) {
-		this.value = value;
-	}
-
-	public Point getValue() {
-		return value;
-	}
+	Flux<GeoResult<LocatedNode>> findAllByPlaceNear(Point p, Range<Distance> between);
 }

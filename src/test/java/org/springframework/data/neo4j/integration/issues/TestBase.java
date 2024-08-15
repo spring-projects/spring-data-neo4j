@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -36,6 +37,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.integration.issues.gh2328.Entity2328;
 import org.springframework.data.neo4j.integration.issues.gh2347.Application;
 import org.springframework.data.neo4j.integration.issues.gh2347.Workflow;
+import org.springframework.data.neo4j.integration.issues.gh2908.Place;
 import org.springframework.data.neo4j.test.BookmarkCapture;
 import org.springframework.data.neo4j.test.Neo4jExtension;
 
@@ -117,6 +119,13 @@ abstract class TestBase {
 		queryRunner.run("CREATE (p:GH2572Parent {id: 'GH2572Parent-1', name:'no-pets'})");
 		queryRunner.run("CREATE (p:GH2572Parent {id: 'GH2572Parent-2', name:'one-pet'}) <-[:IS_PET]- (:GH2572Child {id: 'GH2572Child-3', name: 'a-pet'})");
 		queryRunner.run("MATCH (p:GH2572Parent {id: 'GH2572Parent-2'}) CREATE (p) <-[:IS_PET]- (:GH2572Child {id: 'GH2572Child-4', name: 'another-pet'})");
+	}
+
+	protected static void setupGH2908(QueryRunner queryRunner) {
+		EnumSet<Place> places = EnumSet.of(Place.NEO4J_HQ, Place.SFO);
+		for (Place value : places) {
+			queryRunner.run("CREATE (l:LocatedNode {name: $name, place: $place})", Map.of("name", value.name(), "place", value.getValue()));
+		}
 	}
 
 	protected static void assertLabels(BookmarkCapture bookmarkCapture, List<String> ids) {

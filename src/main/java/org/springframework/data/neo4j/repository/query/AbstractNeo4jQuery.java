@@ -32,6 +32,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
+import org.springframework.data.geo.GeoPage;
+import org.springframework.data.geo.GeoResult;
 import org.springframework.data.neo4j.core.Neo4jOperations;
 import org.springframework.data.neo4j.core.PreparedQuery;
 import org.springframework.data.neo4j.core.PropertyFilterSupport;
@@ -45,6 +47,7 @@ import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.data.repository.query.ResultProcessor;
 import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.data.support.PageableExecutionUtils;
+import org.springframework.data.util.TypeInformation;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
@@ -76,10 +79,32 @@ abstract class AbstractNeo4jQuery extends Neo4jQuerySupport implements Repositor
 		return this.queryMethod;
 	}
 
+	/**
+	 * {@return whether the query is a geo near query}
+	 */
+	boolean isGeoNearQuery() {
+		var repositoryMethod = queryMethod.getMethod();
+		Class<?> returnType = repositoryMethod.getReturnType();
+
+		for (Class<?> type : Neo4jQueryMethod.GEO_NEAR_RESULTS) {
+			if (type.isAssignableFrom(returnType)) {
+				return true;
+			}
+		}
+
+		if (Iterable.class.isAssignableFrom(returnType)) {
+			TypeInformation<?> from = TypeInformation.fromReturnTypeOf(repositoryMethod);
+			return GeoResult.class.equals(from.getComponentType().getType());
+		}
+
+		return GeoPage.class.isAssignableFrom(returnType);
+	}
+
 	@Override
 	public final Object execute(Object[] parameters) {
 
 		boolean incrementLimit = queryMethod.incrementLimit();
+		boolean geoNearQuery = isGeoNearQuery();
 		Neo4jParameterAccessor parameterAccessor = new Neo4jParameterAccessor(
 				(Neo4jQueryMethod.Neo4jParameters) this.queryMethod.getParameters(),
 				parameters);
@@ -88,7 +113,7 @@ abstract class AbstractNeo4jQuery extends Neo4jQuerySupport implements Repositor
 		ReturnedType returnedType = resultProcessor.getReturnedType();
 		PreparedQuery<?> preparedQuery = prepareQuery(returnedType.getReturnedType(),
 				PropertyFilterSupport.getInputProperties(resultProcessor, factory, mappingContext), parameterAccessor,
-				null, getMappingFunction(resultProcessor), incrementLimit ? l -> l + 1 : UnaryOperator.identity());
+				null, getMappingFunction(resultProcessor, geoNearQuery), incrementLimit ? l -> l + 1 : UnaryOperator.identity());
 
 		Object rawResult = new Neo4jQueryExecution.DefaultQueryExecution(neo4jOperations).execute(preparedQuery, queryMethod.asCollectionQuery());
 
@@ -107,8 +132,8 @@ abstract class AbstractNeo4jQuery extends Neo4jQuerySupport implements Repositor
 			rawResult = createSlice(incrementLimit, parameterAccessor, (List<?>) rawResult);
 		} else if (queryMethod.isScrollQuery()) {
 			rawResult = createWindow(resultProcessor, incrementLimit, parameterAccessor, (List<?>) rawResult, preparedQuery.getQueryFragmentsAndParameters());
-		} else if (queryMethod.isGeoNearQuery()) {
-			// do things
+		} else if (geoNearQuery) {
+			rawResult = newGeoResults(rawResult);
 		}
 
 		return resultProcessor.processResult(rawResult, preparingConverter);
@@ -124,6 +149,11 @@ abstract class AbstractNeo4jQuery extends Neo4jQuerySupport implements Repositor
 
 			return neo4jOperations.toExecutableQuery(countQuery).getRequiredSingleResult();
 		};
+
+		if (isGeoNearQuery()) {
+			return new GeoPage<>(newGeoResults(rawResult), parameterAccessor.getPageable(), totalSupplier.getAsLong());
+		}
+
 		return PageableExecutionUtils.getPage(rawResult, parameterAccessor.getPageable(), totalSupplier);
 	}
 

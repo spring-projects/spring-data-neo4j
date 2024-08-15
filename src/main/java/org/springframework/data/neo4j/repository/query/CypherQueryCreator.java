@@ -30,7 +30,6 @@ import java.util.function.BiFunction;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.neo4j.cypherdsl.core.Condition;
 import org.neo4j.cypherdsl.core.Cypher;
@@ -244,11 +243,13 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndPar
 				queryFragments.setLimit(limitModifier.apply(pagingParameter.isUnpaged() ? maxResults.intValue() : pagingParameter.getPageSize()));
 			}
 
+			var finalSortItems = new ArrayList<SortItem>();
+			this.distanceExpressions.forEach(e -> finalSortItems.add(e.ascending()));
+			finalSortItems.addAll(this.sortItems);
+			theSort.stream().map(CypherAdapterUtils.sortAdapterFor(nodeDescription)).forEach(finalSortItems::add);
+
 			queryFragments.setReturnBasedOn(nodeDescription, includedProperties, isDistinct, this.distanceExpressions);
-			queryFragments.setOrderBy(Stream
-					.concat(sortItems.stream(),
-							theSort.stream().map(CypherAdapterUtils.sortAdapterFor(nodeDescription)))
-					.collect(Collectors.toList()));
+			queryFragments.setOrderBy(finalSortItems);
 		}
 
 		// closing action: add the condition and path match
