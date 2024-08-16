@@ -36,6 +36,8 @@ import java.util.stream.IntStream;
 
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.assertj.core.api.SoftAssertions;
+import org.assertj.core.api.ThrowingConsumer;
+import org.assertj.core.data.Percentage;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -67,7 +69,14 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Range;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.geo.Distance;
+import org.springframework.data.geo.GeoPage;
+import org.springframework.data.geo.GeoResult;
+import org.springframework.data.geo.GeoResults;
+import org.springframework.data.geo.Metrics;
 import org.springframework.data.mapping.MappingException;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
 import org.springframework.data.neo4j.core.DatabaseSelectionProvider;
@@ -170,6 +179,11 @@ import org.springframework.data.neo4j.integration.issues.gh2906.BugTargetContain
 import org.springframework.data.neo4j.integration.issues.gh2906.FromRepository;
 import org.springframework.data.neo4j.integration.issues.gh2906.OutgoingBugRelationship;
 import org.springframework.data.neo4j.integration.issues.gh2906.ToRepository;
+import org.springframework.data.neo4j.integration.issues.gh2908.HasNameAndPlace;
+import org.springframework.data.neo4j.integration.issues.gh2908.HasNameAndPlaceRepository;
+import org.springframework.data.neo4j.integration.issues.gh2908.LocatedNodeRepository;
+import org.springframework.data.neo4j.integration.issues.gh2908.LocatedNodeWithSelfRefRepository;
+import org.springframework.data.neo4j.integration.issues.gh2908.Place;
 import org.springframework.data.neo4j.integration.issues.gh2918.ConditionNode;
 import org.springframework.data.neo4j.integration.issues.gh2918.ConditionRepository;
 import org.springframework.data.neo4j.integration.issues.qbe.A;
@@ -230,6 +244,7 @@ class IssuesIT extends TestBase {
 				setupGH2459(transaction);
 				setupGH2572(transaction);
 				setupGH2583(transaction);
+				setupGH2908(transaction);
 
 				transaction.run("CREATE (:A {name: 'A name', id: randomUUID()}) -[:HAS] ->(:B {anotherName: 'Whatever', id: randomUUID()})");
 
@@ -240,6 +255,7 @@ class IssuesIT extends TestBase {
 	}
 
 	// clean up known throw-away nodes / rels
+
 	@AfterEach
 	void cleanup(@Autowired BookmarkCapture bookmarkCapture) {
 		List<String> labelsToBeRemoved = List.of("BugFromV1", "BugFrom", "BugTargetV1", "BugTarget", "BugTargetBaseV1", "BugTargetBase", "BugTargetContainer");
@@ -1570,6 +1586,75 @@ class IssuesIT extends TestBase {
 		// in the map projection for the relationships to load. The fix was to indicate the direction in the name
 		// used for projecting the relationship, too
 		assertThatNoException().isThrownBy(() -> conditionRepository.findById(conditionSaved.uuid));
+	}
+
+	private void assertSupportedGeoResultBehavior(HasNameAndPlaceRepository<? extends HasNameAndPlace> repository) {
+
+		ThrowingConsumer<GeoResult<? extends HasNameAndPlace>> neo4jFoundInTheNearDistance = gr -> {
+			assertThat(gr.getContent().getName()).isEqualTo("NEO4J_HQ");
+			assertThat(gr.getDistance().getValue()).isCloseTo(90 / 1000.0, Percentage.withPercentage(5));
+		};
+
+		GeoResults<? extends HasNameAndPlace> nodes = repository.findAllAsGeoResultsByPlaceNear(Place.SFO.getValue());
+		assertThat(nodes).hasSize(2);
+		var distanceBetweenSFOAndNeo4jHQ = 8830.306;
+		assertThat(nodes.getAverageDistance()).satisfies(d -> {
+			assertThat(d.getValue()).isCloseTo(distanceBetweenSFOAndNeo4jHQ / 2.0, Percentage.withPercentage(1));
+			assertThat(d.getMetric()).isEqualTo(Metrics.KILOMETERS);
+		});
+
+		var zeroTo9k = Distance.between(0, Metrics.KILOMETERS, 90000, Metrics.KILOMETERS);
+		GeoPage<? extends HasNameAndPlace> pagedNodes = repository.findAllByPlaceNear(Place.SFO.getValue(), zeroTo9k, Pageable.ofSize(1));
+		assertThat(pagedNodes).hasSize(1);
+		assertThat(pagedNodes.getAverageDistance().getValue()).isCloseTo(0, Percentage.withPercentage(1));
+		assertThat(pagedNodes.getContent().get(0).getContent().getName()).isEqualTo("SFO");
+
+		pagedNodes = repository.findAllByPlaceNear(Place.SFO.getValue(), zeroTo9k, pagedNodes.nextPageable());
+		assertThat(pagedNodes).hasSize(1);
+		assertThat(pagedNodes.getAverageDistance().getValue()).isCloseTo(distanceBetweenSFOAndNeo4jHQ, Percentage.withPercentage(1));
+		assertThat(pagedNodes.getContent().get(0).getContent().getName()).isEqualTo("NEO4J_HQ");
+
+		var distance = new Distance(200.0 / 1000.0, Metrics.KILOMETERS);
+		nodes = repository.findAllByPlaceNear(Place.MINC.getValue(), distance);
+		assertThat(nodes).hasSize(1)
+			.first()
+			.satisfies(neo4jFoundInTheNearDistance);
+
+		nodes = repository.findAllByPlaceNear(Place.CLARION.getValue(), distance);
+		assertThat(nodes).isEmpty();
+
+		nodes = repository.findAllByPlaceNear(Place.MINC.getValue(),
+			Distance.between(60.0 / 1000.0, Metrics.KILOMETERS, 200.0 / 1000.0, Metrics.KILOMETERS));
+		assertThat(nodes).hasSize(1).first()
+			.satisfies(neo4jFoundInTheNearDistance);
+
+		nodes = repository.findAllByPlaceNear(Place.MINC.getValue(),
+			Distance.between(100.0 / 1000.0, Metrics.KILOMETERS, 200.0 / 1000.0, Metrics.KILOMETERS));
+		assertThat(nodes).isEmpty();
+
+		final Range<Distance> distanceRange = Range.of(Range.Bound.inclusive(new Distance(100.0 / 1000.0, Metrics.KILOMETERS)),
+			Range.Bound.unbounded());
+		nodes = repository.findAllByPlaceNear(Place.MINC.getValue(), distanceRange);
+		assertThat(nodes).hasSize(1).first().satisfies(gr -> {
+			var d = gr.getDistance();
+			assertThat(d.getValue()).isCloseTo(8800, Percentage.withPercentage(1));
+			assertThat(d.getMetric()).isEqualTo(Metrics.KILOMETERS);
+			assertThat(gr.getContent().getName()).isEqualTo("SFO");
+		});
+	}
+
+	@Test
+	@Tag("GH-2908")
+	void shouldSupportGeoResult(@Autowired LocatedNodeRepository repository) {
+
+		assertSupportedGeoResultBehavior(repository);
+	}
+
+	@Test
+	@Tag("GH-2908")
+	void shouldSupportGeoResultWithSelfRef(@Autowired LocatedNodeWithSelfRefRepository repository) {
+
+		assertSupportedGeoResultBehavior(repository);
 	}
 
 	@Configuration

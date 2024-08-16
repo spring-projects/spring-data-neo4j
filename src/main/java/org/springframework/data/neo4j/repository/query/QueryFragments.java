@@ -55,7 +55,6 @@ public final class QueryFragments {
 	private Long skip;
 	private ReturnTuple returnTuple;
 	private boolean scalarValueReturn = false;
-	private boolean renderConstantsAsParameters = false;
 	private Expression deleteExpression;
 	/**
 	 * This flag becomes {@literal true} for backward scrolling keyset pagination. Any {@code AbstractNeo4jQuery} will in turn reverse the result list.
@@ -118,24 +117,16 @@ public final class QueryFragments {
 	}
 
 	public void setReturnBasedOn(NodeDescription<?> nodeDescription, Collection<PropertyFilter.ProjectedPath> includedProperties,
-			boolean isDistinct) {
-		this.returnTuple = new ReturnTuple(nodeDescription, includedProperties, isDistinct);
+			boolean isDistinct, List<Expression> additionalExpressions) {
+		this.returnTuple = new ReturnTuple(nodeDescription, includedProperties, isDistinct, additionalExpressions);
 	}
 
 	public boolean isScalarValueReturn() {
 		return scalarValueReturn;
 	}
 
-	public boolean requiresReverseSort() {
-		return requiresReverseSort;
-	}
-
 	public void setRequiresReverseSort(boolean requiresReverseSort) {
 		this.requiresReverseSort = requiresReverseSort;
-	}
-
-	public void setRenderConstantsAsParameters(boolean renderConstantsAsParameters) {
-		this.renderConstantsAsParameters = renderConstantsAsParameters;
 	}
 
 	public Statement toStatement() {
@@ -165,15 +156,17 @@ public final class QueryFragments {
 				.skip(skip)
 				.limit(limit).build();
 
-		statement.setRenderConstantsAsParameters(renderConstantsAsParameters);
+		statement.setRenderConstantsAsParameters(false);
 		return statement;
 	}
 
 	private Collection<Expression> getReturnExpressions() {
-		return returnExpressions.size() > 0
-				? returnExpressions
-				: CypherGenerator.INSTANCE.createReturnStatementForMatch((Neo4jPersistentEntity<?>) returnTuple.nodeDescription,
-				this::includeField);
+		return returnExpressions.isEmpty() ? CypherGenerator.INSTANCE.createReturnStatementForMatch((Neo4jPersistentEntity<?>) returnTuple.nodeDescription,
+			this::includeField, returnTuple.additionalExpressions.toArray(Expression[]::new)) : returnExpressions;
+	}
+
+	public Collection<Expression> getAdditionalReturnExpressions() {
+		return this.returnTuple == null ? List.of() : returnTuple.additionalExpressions;
 	}
 
 	private boolean isDistinctReturn() {
@@ -218,6 +211,7 @@ public final class QueryFragments {
 		return skip;
 	}
 
+
 	/**
 	 * Describes which fields of an entity needs to get returned.
 	 */
@@ -225,11 +219,13 @@ public final class QueryFragments {
 		final NodeDescription<?> nodeDescription;
 		final PropertyFilter filteredProperties;
 		final boolean isDistinct;
+		final List<Expression> additionalExpressions;
 
-		private ReturnTuple(NodeDescription<?> nodeDescription, Collection<PropertyFilter.ProjectedPath> filteredProperties, boolean isDistinct) {
+		private ReturnTuple(NodeDescription<?> nodeDescription, Collection<PropertyFilter.ProjectedPath> filteredProperties, boolean isDistinct, List<Expression> additionalExpressions) {
 			this.nodeDescription = nodeDescription;
 			this.filteredProperties = PropertyFilter.from(filteredProperties, nodeDescription);
 			this.isDistinct = isDistinct;
+			this.additionalExpressions = List.copyOf(additionalExpressions);
 		}
 
 		boolean include(PropertyFilter.RelaxedPropertyPath fieldName) {
