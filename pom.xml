@@ -72,7 +72,6 @@
 		<apiguardian.version>1.1.1</apiguardian.version>
 		<archunit.version>0.23.1</archunit.version>
 		<blockhound.version>1.0.8.RELEASE</blockhound.version>
-		<byte-buddy.version>1.14.18</byte-buddy.version>
 		<checkstyle.skip>${skipTests}</checkstyle.skip>
 		<checkstyle.version>8.40</checkstyle.version>
 		<classgraph.version>4.8.149</classgraph.version>
@@ -98,8 +97,6 @@
 		<maven-source-plugin.version>3.2.0</maven-source-plugin.version>
 		<maven-surefire-plugin.version>3.0.0-M4</maven-surefire-plugin.version>
 		<maven.compiler.release>${java.version}</maven.compiler.release>
-		<mockito>${mockito.version}</mockito>
-		<mockito.version>4.11.0</mockito.version>
 		<neo4j-java-driver.version>5.23.0</neo4j-java-driver.version>
 		<neo4j-migrations.version>1.13.1</neo4j-migrations.version>
 		<neo4j.version>4.4.8</neo4j.version>
@@ -174,16 +171,6 @@
 				<artifactId>jaxb-api</artifactId>
 				<version>${jaxb.version}</version>
 				<scope>provided</scope>
-			</dependency>
-			<dependency>
-				<groupId>net.bytebuddy</groupId>
-				<artifactId>byte-buddy</artifactId>
-				<version>${byte-buddy.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>net.bytebuddy</groupId>
-				<artifactId>byte-buddy-agent</artifactId>
-				<version>${byte-buddy.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>net.java.dev.jna</groupId>
