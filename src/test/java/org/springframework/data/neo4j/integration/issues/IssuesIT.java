@@ -179,8 +179,10 @@ import org.springframework.data.neo4j.integration.issues.gh2906.BugTargetContain
 import org.springframework.data.neo4j.integration.issues.gh2906.FromRepository;
 import org.springframework.data.neo4j.integration.issues.gh2906.OutgoingBugRelationship;
 import org.springframework.data.neo4j.integration.issues.gh2906.ToRepository;
-import org.springframework.data.neo4j.integration.issues.gh2908.LocatedNode;
+import org.springframework.data.neo4j.integration.issues.gh2908.HasNameAndPlace;
+import org.springframework.data.neo4j.integration.issues.gh2908.HasNameAndPlaceRepository;
 import org.springframework.data.neo4j.integration.issues.gh2908.LocatedNodeRepository;
+import org.springframework.data.neo4j.integration.issues.gh2908.LocatedNodeWithSelfRefRepository;
 import org.springframework.data.neo4j.integration.issues.gh2908.Place;
 import org.springframework.data.neo4j.integration.issues.gh2918.ConditionNode;
 import org.springframework.data.neo4j.integration.issues.gh2918.ConditionRepository;
@@ -1586,16 +1588,14 @@ class IssuesIT extends TestBase {
 		assertThatNoException().isThrownBy(() -> conditionRepository.findById(conditionSaved.uuid));
 	}
 
-	@Test
-	@Tag("GH-2908")
-	void shouldSupportGeoResult(@Autowired LocatedNodeRepository repository) {
+	private void assertSupportedGeoResultBehavior(HasNameAndPlaceRepository<? extends HasNameAndPlace> repository) {
 
-		ThrowingConsumer<GeoResult<LocatedNode>> neo4jFoundInTheNearDistance = gr -> {
+		ThrowingConsumer<GeoResult<? extends HasNameAndPlace>> neo4jFoundInTheNearDistance = gr -> {
 			assertThat(gr.getContent().getName()).isEqualTo("NEO4J_HQ");
 			assertThat(gr.getDistance().getValue()).isCloseTo(90 / 1000.0, Percentage.withPercentage(5));
 		};
 
-		GeoResults<LocatedNode> nodes = repository.findAllAsGeoResultsByPlaceNear(Place.SFO.getValue());
+		GeoResults<? extends HasNameAndPlace> nodes = repository.findAllAsGeoResultsByPlaceNear(Place.SFO.getValue());
 		assertThat(nodes).hasSize(2);
 		var distanceBetweenSFOAndNeo4jHQ = 8830.306;
 		assertThat(nodes.getAverageDistance()).satisfies(d -> {
@@ -1604,7 +1604,7 @@ class IssuesIT extends TestBase {
 		});
 
 		var zeroTo9k = Distance.between(0, Metrics.KILOMETERS, 90000, Metrics.KILOMETERS);
-		GeoPage<LocatedNode> pagedNodes = repository.findAllByPlaceNear(Place.SFO.getValue(), zeroTo9k, Pageable.ofSize(1));
+		GeoPage<? extends HasNameAndPlace> pagedNodes = repository.findAllByPlaceNear(Place.SFO.getValue(), zeroTo9k, Pageable.ofSize(1));
 		assertThat(pagedNodes).hasSize(1);
 		assertThat(pagedNodes.getAverageDistance().getValue()).isCloseTo(0, Percentage.withPercentage(1));
 		assertThat(pagedNodes.getContent().get(0).getContent().getName()).isEqualTo("SFO");
@@ -1641,6 +1641,20 @@ class IssuesIT extends TestBase {
 			assertThat(d.getMetric()).isEqualTo(Metrics.KILOMETERS);
 			assertThat(gr.getContent().getName()).isEqualTo("SFO");
 		});
+	}
+
+	@Test
+	@Tag("GH-2908")
+	void shouldSupportGeoResult(@Autowired LocatedNodeRepository repository) {
+
+		assertSupportedGeoResultBehavior(repository);
+	}
+
+	@Test
+	@Tag("GH-2908")
+	void shouldSupportGeoResultWithSelfRef(@Autowired LocatedNodeWithSelfRefRepository repository) {
+
+		assertSupportedGeoResultBehavior(repository);
 	}
 
 	@Configuration

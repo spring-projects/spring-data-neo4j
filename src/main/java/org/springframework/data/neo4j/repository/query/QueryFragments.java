@@ -165,6 +165,10 @@ public final class QueryFragments {
 			this::includeField, returnTuple.additionalExpressions.toArray(Expression[]::new)) : returnExpressions;
 	}
 
+	public Collection<Expression> getAdditionalReturnExpressions() {
+		return this.returnTuple == null ? List.of() : returnTuple.additionalExpressions;
+	}
+
 	private boolean isDistinctReturn() {
 		return returnExpressions.isEmpty() && returnTuple.isDistinct;
 	}
@@ -206,6 +210,7 @@ public final class QueryFragments {
 	public Long getSkip() {
 		return skip;
 	}
+
 
 	/**
 	 * Describes which fields of an entity needs to get returned.

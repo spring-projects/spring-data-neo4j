@@ -125,6 +125,7 @@ abstract class TestBase {
 		EnumSet<Place> places = EnumSet.of(Place.NEO4J_HQ, Place.SFO);
 		for (Place value : places) {
 			queryRunner.run("CREATE (l:LocatedNode {name: $name, place: $place})", Map.of("name", value.name(), "place", value.getValue()));
+			queryRunner.run("CREATE (l:LocatedNodeWithSelfRef {name: $name, place: $place})-[:NEXT]->(n:LocatedNodeWithSelfRef {name: $name + 'next'})", Map.of("name", value.name(), "place", value.getValue()));
 		}
 	}
 

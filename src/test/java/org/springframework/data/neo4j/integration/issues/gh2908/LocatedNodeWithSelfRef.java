@@ -19,13 +19,14 @@ import org.neo4j.driver.types.Point;
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
+import org.springframework.data.neo4j.core.schema.Relationship;
 
 /**
- * A located node without circles.
+ * A located node with circles.
  * @author Michael J. Simons
  */
 @Node
-public class LocatedNode implements HasNameAndPlace {
+public class LocatedNodeWithSelfRef implements HasNameAndPlace {
 
 	@Id
 	@GeneratedValue
@@ -35,7 +36,10 @@ public class LocatedNode implements HasNameAndPlace {
 
 	private final Point place;
 
-	public LocatedNode(String name, Point place) {
+	@Relationship
+	private LocatedNodeWithSelfRef next;
+
+	public LocatedNodeWithSelfRef(String name, Point place) {
 		this.name = name;
 		this.place = place;
 	}
@@ -52,5 +56,13 @@ public class LocatedNode implements HasNameAndPlace {
 	@Override
 	public Point getPlace() {
 		return place;
+	}
+
+	public LocatedNodeWithSelfRef getNext() {
+		return next;
+	}
+
+	public void setNext(LocatedNodeWithSelfRef next) {
+		this.next = next;
 	}
 }

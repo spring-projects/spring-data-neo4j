@@ -15,11 +15,26 @@
  */
 package org.springframework.data.neo4j.integration.issues.gh2908;
 
+import org.neo4j.driver.types.Point;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Range;
+import org.springframework.data.geo.Distance;
+import org.springframework.data.geo.GeoPage;
+import org.springframework.data.geo.GeoResults;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 
 /**
- * Repository spotting all supported Geo* results.
+ * Just extending {@link Neo4jRepository} here did not work, so it's split in the concrete interface.
  * @author Michael J. Simons
+ * @param <T> Concrete type of the entity
  */
-public interface LocatedNodeRepository extends HasNameAndPlaceRepository<LocatedNode>, Neo4jRepository<LocatedNode, String> {
+public interface HasNameAndPlaceRepository<T extends HasNameAndPlace> {
+
+	GeoResults<T> findAllAsGeoResultsByPlaceNear(Point point);
+
+	GeoResults<T> findAllByPlaceNear(Point p, Distance max);
+
+	GeoResults<T> findAllByPlaceNear(Point p, Range<Distance> between);
+
+	GeoPage<T> findAllByPlaceNear(Point p, Range<Distance> between, Pageable pageable);
 }

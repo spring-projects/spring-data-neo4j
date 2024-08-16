@@ -243,9 +243,7 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndPar
 				queryFragments.setLimit(limitModifier.apply(pagingParameter.isUnpaged() ? maxResults.intValue() : pagingParameter.getPageSize()));
 			}
 
-			var finalSortItems = new ArrayList<SortItem>();
-			this.distanceExpressions.forEach(e -> finalSortItems.add(e.ascending()));
-			finalSortItems.addAll(this.sortItems);
+			var finalSortItems = new ArrayList<>(this.sortItems);
 			theSort.stream().map(CypherAdapterUtils.sortAdapterFor(nodeDescription)).forEach(finalSortItems::add);
 
 			queryFragments.setReturnBasedOn(nodeDescription, includedProperties, isDistinct, this.distanceExpressions);
@@ -403,18 +401,17 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndPar
 		String containerName = getContainerName(path, owner);
 		this.distanceExpressions.add(distanceFunction.as("__distance_" + containerName + "_" + leafProperty.getPropertyName() + "__"));
 
+		this.sortItems.add(distanceFunction.ascending());
+
 		if (other.filter(p -> p.hasValueOfType(Distance.class)).isPresent()) {
 			return distanceFunction.lte(toCypherParameter(other.get(), false));
 		} else if (other.filter(p -> p.hasValueOfType(Range.class)).isPresent()) {
 			return createRangeConditionForExpression(distanceFunction, other.get());
 		} else {
-			// We only have a point toCypherParameter, that's ok, but we have to put back the last toCypherParameter when it
-			// wasn't null
+			// We only have a point toCypherParameter, that's ok, but we have to put back the last toCypherParameter when it wasn't null
 			other.ifPresent(this.lastParameter::offer);
-
-			// Also, we cannot filter, but need to sort in the end.
-			this.sortItems.add(distanceFunction.ascending());
-			return Cypher.noCondition();
+			// A `NULL` distance makes no sense in a result asking for places nearby. It would be an arbitrary choice mapping null to zero or a max value.
+			return distanceFunction.isNotNull();
 		}
 	}
 
