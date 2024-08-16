@@ -1310,7 +1310,7 @@ public final class Neo4jTemplate implements
 
 			boolean containsPossibleCircles = entityMetaData != null && entityMetaData.containsPossibleCircles(queryFragments::includeField);
 			if (cypherQuery == null || containsPossibleCircles) {
-
+				Statement statement;
 				if (containsPossibleCircles && !queryFragments.isScalarValueReturn()) {
 					NodesAndRelationshipsByIdStatementProvider nodesAndRelationshipsById =
 							createNodesAndRelationshipsByIdStatementProvider(entityMetaData, queryFragments, queryFragmentsAndParameters.getParameters());
@@ -1318,13 +1318,12 @@ public final class Neo4jTemplate implements
 					if (nodesAndRelationshipsById.hasRootNodeIds()) {
 						return Optional.empty();
 					}
-					cypherQuery = renderer.render(nodesAndRelationshipsById.toStatement(entityMetaData));
-					finalParameters = nodesAndRelationshipsById.getParameters();
+					statement = nodesAndRelationshipsById.toStatement(entityMetaData);
 				} else {
-					Statement statement = queryFragments.toStatement();
-					cypherQuery = renderer.render(statement);
-					finalParameters = TemplateSupport.mergeParameters(statement, finalParameters);
+					statement = queryFragments.toStatement();
 				}
+				cypherQuery = renderer.render(statement);
+				finalParameters = TemplateSupport.mergeParameters(statement, finalParameters);
 			}
 
 			Neo4jClient.MappingSpec<T> newMappingSpec = neo4jClient.query(cypherQuery)

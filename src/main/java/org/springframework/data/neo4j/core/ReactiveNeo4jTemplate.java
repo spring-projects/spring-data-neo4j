@@ -738,9 +738,11 @@ public final class ReactiveNeo4jTemplate implements
 		boolean containsPossibleCircles = entityMetaData != null && entityMetaData.containsPossibleCircles(queryFragments::includeField);
 		if (containsPossibleCircles && !queryFragments.isScalarValueReturn()) {
 			return createNodesAndRelationshipsByIdStatementProvider(entityMetaData, queryFragments, queryFragmentsAndParameters.getParameters())
-					.flatMap(finalQueryAndParameters ->
-							createExecutableQuery(domainType, resultType, renderer.render(finalQueryAndParameters.toStatement(entityMetaData)),
-									finalQueryAndParameters.getParameters()));
+					.flatMap(finalQueryAndParameters -> {
+						var statement = finalQueryAndParameters.toStatement(entityMetaData);
+						return createExecutableQuery(domainType, resultType, renderer.render(statement),
+								statement.getCatalog().getParameters());
+					});
 		}
 
 		return createExecutableQuery(domainType, resultType, queryFragments.toStatement(), queryFragmentsAndParameters.getParameters());
@@ -1220,9 +1222,11 @@ public final class ReactiveNeo4jTemplate implements
 				if (containsPossibleCircles && !queryFragments.isScalarValueReturn()) {
 					return createNodesAndRelationshipsByIdStatementProvider(entityMetaData, queryFragments, finalParameters)
 							.map(nodesAndRelationshipsById -> {
-								ReactiveNeo4jClient.MappingSpec<T> mappingSpec = this.neo4jClient.query(renderer.render(
-										nodesAndRelationshipsById.toStatement(entityMetaData)))
-										.bindAll(nodesAndRelationshipsById.getParameters()).fetchAs(resultType);
+								var statement = nodesAndRelationshipsById.toStatement(entityMetaData);
+								ReactiveNeo4jClient.MappingSpec<T> mappingSpec = this.neo4jClient
+										.query(renderer.render(statement))
+										.bindAll(statement.getCatalog().getParameters())
+										.fetchAs(resultType);
 
 								ReactiveNeo4jClient.RecordFetchSpec<T> fetchSpec = preparedQuery.getOptionalMappingFunction()
 										.map(mappingSpec::mappedBy).orElse(mappingSpec);
