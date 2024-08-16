@@ -30,7 +30,6 @@ import java.util.function.BiFunction;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.neo4j.cypherdsl.core.Condition;
 import org.neo4j.cypherdsl.core.Conditions;
@@ -82,9 +81,6 @@ import org.springframework.lang.Nullable;
 final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndParameters, Condition> {
 
 	private final Neo4jMappingContext mappingContext;
-	private final QueryMethod queryMethod;
-
-	private final Class<?> domainType;
 	private final NodeDescription<?> nodeDescription;
 
 	private final Neo4jQueryType queryType;
@@ -118,6 +114,8 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndPar
 
 	private final boolean keysetRequiresSort;
 
+	private final List<Expression> distanceExpressions = new ArrayList<>();
+
 	/**
 	 * Can be used to modify the limit of a paged or sliced query.
 	 */
@@ -130,10 +128,8 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndPar
 
 		super(tree, actualParameters);
 		this.mappingContext = mappingContext;
-		this.queryMethod = queryMethod;
 
-		this.domainType = domainType;
-		this.nodeDescription = this.mappingContext.getRequiredNodeDescription(this.domainType);
+		this.nodeDescription = this.mappingContext.getRequiredNodeDescription(domainType);
 
 		this.queryType = queryType;
 		this.isDistinct = tree.isDistinct();
@@ -248,11 +244,11 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndPar
 				queryFragments.setLimit(limitModifier.apply(pagingParameter.isUnpaged() ? maxResults.intValue() : pagingParameter.getPageSize()));
 			}
 
-			queryFragments.setReturnBasedOn(nodeDescription, includedProperties, isDistinct);
-			queryFragments.setOrderBy(Stream
-					.concat(sortItems.stream(),
-							theSort.stream().map(CypherAdapterUtils.sortAdapterFor(nodeDescription)))
-					.collect(Collectors.toList()));
+			var finalSortItems = new ArrayList<>(this.sortItems);
+			theSort.stream().map(CypherAdapterUtils.sortAdapterFor(nodeDescription)).forEach(finalSortItems::add);
+
+			queryFragments.setReturnBasedOn(nodeDescription, includedProperties, isDistinct, this.distanceExpressions);
+			queryFragments.setOrderBy(finalSortItems);
 		}
 
 		// closing action: add the condition and path match
@@ -371,7 +367,7 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndPar
 
 		Expression property = toCypherProperty(path, ignoreCase);
 		if (lowerBoundOrRange.value instanceof Range) {
-			return createRangeConditionForProperty(property, lowerBoundOrRange);
+			return createRangeConditionForExpression(property, lowerBoundOrRange);
 		} else {
 			Parameter upperBound = nextRequiredParameter(actualParameters, leafProperty);
 			return property.gte(toCypherParameter(lowerBoundOrRange, ignoreCase))
@@ -401,18 +397,22 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndPar
 
 		Expression distanceFunction = Functions.distance(toCypherProperty(path, false), referencePoint);
 
+		// Add the distance expression for that property as additional, artificial property to be later retrieved and mapped
+		Neo4jPersistentEntity<?> owner = (Neo4jPersistentEntity<?>) leafProperty.getOwner();
+		String containerName = getContainerName(path, owner);
+		this.distanceExpressions.add(distanceFunction.as("__distance_" + containerName + "_" + leafProperty.getPropertyName() + "__"));
+
+		this.sortItems.add(distanceFunction.ascending());
+
 		if (other.filter(p -> p.hasValueOfType(Distance.class)).isPresent()) {
 			return distanceFunction.lte(toCypherParameter(other.get(), false));
 		} else if (other.filter(p -> p.hasValueOfType(Range.class)).isPresent()) {
-			return createRangeConditionForProperty(distanceFunction, other.get());
+			return createRangeConditionForExpression(distanceFunction, other.get());
 		} else {
-			// We only have a point toCypherParameter, that's ok, but we have to put back the last toCypherParameter when it
-			// wasn't null
+			// We only have a point toCypherParameter, that's ok, but we have to put back the last toCypherParameter when it wasn't null
 			other.ifPresent(this.lastParameter::offer);
-
-			// Also, we cannot filter, but need to sort in the end.
-			this.sortItems.add(distanceFunction.ascending());
-			return Conditions.noCondition();
+			// A `NULL` distance makes no sense in a result asking for places nearby. It would be an arbitrary choice mapping null to zero or a max value.
+			return distanceFunction.isNotNull();
 		}
 	}
 
@@ -448,24 +448,24 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndPar
 	}
 
 	/**
-	 * @param property property for which the range should get checked
+	 * @param expression property for which the range should get checked
 	 * @param rangeParameter parameter that expresses the range
-	 * @return The equivalent of a A BETWEEN B AND C expression for a given range.
+	 * @return The equivalent of a {@code A BETWEEN B AND C} expression for a given range.
 	 */
-	private Condition createRangeConditionForProperty(Expression property, Parameter rangeParameter) {
+	private Condition createRangeConditionForExpression(Expression expression, Parameter rangeParameter) {
 
-		Range range = (Range) rangeParameter.value;
+		Range<?> range = (Range<?>) rangeParameter.value;
 		Condition betweenCondition = Conditions.noCondition();
 		if (range.getLowerBound().isBounded()) {
 			Expression parameterPlaceholder = createCypherParameter(rangeParameter.nameOrIndex + ".lb", false);
 			betweenCondition = betweenCondition.and(
-					range.getLowerBound().isInclusive() ? property.gte(parameterPlaceholder) : property.gt(parameterPlaceholder));
+					range.getLowerBound().isInclusive() ? expression.gte(parameterPlaceholder) : expression.gt(parameterPlaceholder));
 		}
 
 		if (range.getUpperBound().isBounded()) {
 			Expression parameterPlaceholder = createCypherParameter(rangeParameter.nameOrIndex + ".ub", false);
 			betweenCondition = betweenCondition.and(
-					range.getUpperBound().isInclusive() ? property.lte(parameterPlaceholder) : property.lt(parameterPlaceholder));
+					range.getUpperBound().isInclusive() ? expression.lte(parameterPlaceholder) : expression.lt(parameterPlaceholder));
 		}
 		return betweenCondition;
 	}

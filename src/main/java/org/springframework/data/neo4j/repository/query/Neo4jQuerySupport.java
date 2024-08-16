@@ -30,6 +30,7 @@ import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import org.apache.commons.logging.LogFactory;
 import org.neo4j.driver.Values;
@@ -46,6 +47,8 @@ import org.springframework.data.domain.Window;
 import org.springframework.data.geo.Box;
 import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.Distance;
+import org.springframework.data.geo.GeoResult;
+import org.springframework.data.geo.GeoResults;
 import org.springframework.data.geo.Metrics;
 import org.springframework.data.neo4j.core.TemplateSupport;
 import org.springframework.data.neo4j.core.convert.Neo4jPersistentPropertyConverter;
@@ -110,7 +113,7 @@ abstract class Neo4jQuerySupport {
 		this.queryType = queryType;
 	}
 
-	protected final Supplier<BiFunction<TypeSystem, MapAccessor, ?>> getMappingFunction(final ResultProcessor resultProcessor) {
+	protected final Supplier<BiFunction<TypeSystem, MapAccessor, ?>> getMappingFunction(final ResultProcessor resultProcessor, boolean isGeoNearQuery) {
 
 		return () -> {
 			final ReturnedType returnedTypeMetadata = resultProcessor.getReturnedType();
@@ -125,11 +128,27 @@ abstract class Neo4jQuerySupport {
 				mappingFunction = null;
 			} else if (returnedTypeMetadata.isProjecting()) {
 				mappingFunction = EntityInstanceWithSource.decorateMappingFunction(
-						this.mappingContext.getRequiredMappingFunctionFor(domainType));
+					this.mappingContext.getRequiredMappingFunctionFor(domainType));
+			} else if (isGeoNearQuery) {
+				mappingFunction = decorateAsGeoResult(this.mappingContext.getRequiredMappingFunctionFor(domainType));
 			} else {
 				mappingFunction = this.mappingContext.getRequiredMappingFunctionFor(domainType);
 			}
 			return mappingFunction;
+		};
+	}
+
+	public static BiFunction<TypeSystem, MapAccessor, ?> decorateAsGeoResult(BiFunction<TypeSystem, MapAccessor, ?> target) {
+		return (t, r) -> {
+			Object intermediateResult = target.apply(t, r);
+			var distances = StreamSupport.stream(r.keys().spliterator(), false).filter(k -> k.startsWith("__distance_")).toList();
+			if (distances.isEmpty()) {
+				throw new RuntimeException("No distance has been returned by the query, cannot create `GeoResult`");
+			} else if (distances.size() > 1) {
+				throw new RuntimeException("More than one distance has been returned by the query, cannot create `GeoResult`; avoid using multiple near operations when returning `GeoResult`");
+			}
+			var distance = new Distance(r.get(distances.get(0)).asDouble() / 1000.0, Metrics.KILOMETERS);
+			return new GeoResult<>(intermediateResult, distance);
 		};
 	}
 
@@ -310,6 +329,11 @@ abstract class Neo4jQuerySupport {
 				return ScrollPosition.forward(keys);
 			}
 		}, hasMoreElements(rawResult, limit));
+	}
+
+	@SuppressWarnings("unchecked")
+	static GeoResults<Object> newGeoResults(Object rawResult) {
+		return new GeoResults<>((List<GeoResult<Object>>) rawResult, Metrics.KILOMETERS);
 	}
 
 	private static boolean hasMoreElements(List<?> result, int limit) {

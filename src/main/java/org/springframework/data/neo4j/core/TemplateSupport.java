@@ -15,6 +15,7 @@
  */
 package org.springframework.data.neo4j.core;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -35,6 +36,7 @@ import java.util.stream.StreamSupport;
 
 import org.apiguardian.api.API;
 import org.neo4j.cypherdsl.core.Cypher;
+import org.neo4j.cypherdsl.core.Expression;
 import org.neo4j.cypherdsl.core.FunctionInvocation;
 import org.neo4j.cypherdsl.core.Functions;
 import org.neo4j.cypherdsl.core.Named;
@@ -200,15 +202,7 @@ public final class TemplateSupport {
 			this.parameters.put(RELATIONSHIP_IDS, relationshipsIds);
 			this.parameters.put(RELATED_NODE_IDS, relatedNodeIds);
 			this.queryFragments = queryFragments;
-		}
 
-		Map<String, Object> getParameters() {
-			Map<String, Object> result = new HashMap<>(3);
-			result.put(ROOT_NODE_IDS, convertToLongIdOrStringElementId(this.parameters.get(ROOT_NODE_IDS)));
-			result.put(RELATIONSHIP_IDS, convertToLongIdOrStringElementId(this.parameters.get(RELATIONSHIP_IDS)));
-			result.put(RELATED_NODE_IDS, convertToLongIdOrStringElementId(this.parameters.get(RELATED_NODE_IDS)));
-
-			return Collections.unmodifiableMap(result);
 		}
 
 		boolean hasRootNodeIds() {
@@ -220,15 +214,22 @@ public final class TemplateSupport {
 			String primaryLabel = nodeDescription.getPrimaryLabel();
 			Node rootNodes = Cypher.node(primaryLabel).named(ROOT_NODE_IDS);
 			Node relatedNodes = Cypher.anyNode(RELATED_NODE_IDS);
+
+			List<Expression> projection = new ArrayList<>();
+			projection.add(Constants.NAME_OF_TYPED_ROOT_NODE.apply(nodeDescription).as(Constants.NAME_OF_SYNTHESIZED_ROOT_NODE));
+			projection.add(Cypher.name(Constants.NAME_OF_SYNTHESIZED_RELATIONS));
+			projection.add(Cypher.name(Constants.NAME_OF_SYNTHESIZED_RELATED_NODES));
+			projection.addAll(queryFragments.getAdditionalReturnExpressions());
+
 			Relationship relationships = Cypher.anyNode().relationshipBetween(Cypher.anyNode()).named(RELATIONSHIP_IDS);
 			return Cypher.match(rootNodes)
-					.where(elementIdFunction.apply(rootNodes).in(Cypher.parameter(ROOT_NODE_IDS)))
+					.where(elementIdFunction.apply(rootNodes).in(Cypher.parameter(ROOT_NODE_IDS, convertToLongIdOrStringElementId(this.parameters.get(ROOT_NODE_IDS)))))
 					.with(Functions.collect(rootNodes).as(Constants.NAME_OF_ROOT_NODE))
 					.optionalMatch(relationships)
-					.where(elementIdFunction.apply(relationships).in(Cypher.parameter(RELATIONSHIP_IDS)))
+					.where(elementIdFunction.apply(relationships).in(Cypher.parameter(RELATIONSHIP_IDS, convertToLongIdOrStringElementId(this.parameters.get(RELATIONSHIP_IDS)))))
 					.with(Constants.NAME_OF_ROOT_NODE, Functions.collectDistinct(relationships).as(Constants.NAME_OF_SYNTHESIZED_RELATIONS))
 					.optionalMatch(relatedNodes)
-					.where(elementIdFunction.apply(relatedNodes).in(Cypher.parameter(RELATED_NODE_IDS)))
+					.where(elementIdFunction.apply(relatedNodes).in(Cypher.parameter(RELATED_NODE_IDS, convertToLongIdOrStringElementId(this.parameters.get(RELATED_NODE_IDS)))))
 					.with(
 							Constants.NAME_OF_ROOT_NODE,
 							Cypher.name(Constants.NAME_OF_SYNTHESIZED_RELATIONS).as(Constants.NAME_OF_SYNTHESIZED_RELATIONS),
@@ -240,11 +241,7 @@ public final class TemplateSupport {
 							Cypher.name(Constants.NAME_OF_SYNTHESIZED_RELATIONS),
 							Cypher.name(Constants.NAME_OF_SYNTHESIZED_RELATED_NODES))
 					.orderBy(queryFragments.getOrderBy())
-					.returning(
-							Constants.NAME_OF_TYPED_ROOT_NODE.apply(nodeDescription).as(Constants.NAME_OF_SYNTHESIZED_ROOT_NODE),
-							Cypher.name(Constants.NAME_OF_SYNTHESIZED_RELATIONS),
-							Cypher.name(Constants.NAME_OF_SYNTHESIZED_RELATED_NODES)
-					)
+					.returning(projection)
 					.skip(queryFragments.getSkip())
 					.limit(queryFragments.getLimit()).build();
 		}

@@ -15,17 +15,22 @@
  */
 package org.springframework.data.neo4j.repository.query;
 
+import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Optional;
 
 import org.springframework.core.MethodParameter;
 import org.springframework.core.annotation.AnnotatedElementUtils;
+import org.springframework.data.geo.GeoPage;
+import org.springframework.data.geo.GeoResult;
+import org.springframework.data.geo.GeoResults;
 import org.springframework.data.neo4j.repository.support.CypherdslStatementExecutor;
 import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.Parameters;
+import org.springframework.data.repository.query.ParametersSource;
 import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.data.util.TypeInformation;
 import org.springframework.lang.Nullable;
@@ -44,6 +49,8 @@ import org.springframework.util.StringUtils;
  */
 class Neo4jQueryMethod extends QueryMethod {
 
+	static final List<Class<? extends Serializable>> GEO_NEAR_RESULTS = List.of(GeoResult.class, GeoResults.class, GeoPage.class);
+
 	/**
 	 * Optional query annotation of the method.
 	 */
@@ -52,6 +59,8 @@ class Neo4jQueryMethod extends QueryMethod {
 	private final String repositoryName;
 
 	private final boolean cypherBasedProjection;
+
+	private final Method method;
 
 	/**
 	 * Creates a new {@link Neo4jQueryMethod} from the given parameters. Looks up the correct query to use for following
@@ -78,10 +87,10 @@ class Neo4jQueryMethod extends QueryMethod {
 			boolean cypherBasedProjection) {
 		super(method, metadata, factory);
 
-		Class<?> declaringClass = method.getDeclaringClass();
-		this.repositoryName = declaringClass.getName();
+		this.method = method;
+		this.repositoryName = this.method.getDeclaringClass().getName();
 		this.cypherBasedProjection = cypherBasedProjection;
-		this.queryAnnotation = AnnotatedElementUtils.findMergedAnnotation(method, Query.class);
+		this.queryAnnotation = AnnotatedElementUtils.findMergedAnnotation(this.method, Query.class);
 	}
 
 	String getRepositoryName() {
@@ -111,14 +120,14 @@ class Neo4jQueryMethod extends QueryMethod {
 	}
 
 	@Override
-	protected Parameters<Neo4jParameters, Neo4jParameter> createParameters(Method method, TypeInformation<?> domainType) {
-		return new Neo4jParameters(method, domainType);
+	protected Parameters<Neo4jParameters, Neo4jParameter> createParameters(ParametersSource parametersSource) {
+		return new Neo4jParameters(parametersSource);
 	}
 
 	static class Neo4jParameters extends Parameters<Neo4jParameters, Neo4jParameter> {
 
-		Neo4jParameters(Method method, TypeInformation<?> domainType) {
-			super(method, it -> new Neo4jParameter(it, domainType));
+		Neo4jParameters(ParametersSource parametersSource) {
+			super(parametersSource, it -> new Neo4jParameter(it, parametersSource.getDomainTypeInformation()));
 		}
 
 		private Neo4jParameters(List<Neo4jParameter> originals) {
@@ -129,6 +138,15 @@ class Neo4jQueryMethod extends QueryMethod {
 		protected Neo4jParameters createFrom(List<Neo4jParameter> parameters) {
 			return new Neo4jParameters(parameters);
 		}
+	}
+
+	@Override
+	public Class<?> getReturnedObjectType() {
+		Class<?> returnedObjectType = super.getReturnedObjectType();
+		if (returnedObjectType.equals(GeoResult.class)) {
+			return getDomainClass();
+		}
+		return returnedObjectType;
 	}
 
 	static class Neo4jParameter extends Parameter {
@@ -149,14 +167,10 @@ class Neo4jQueryMethod extends QueryMethod {
 		public String getPlaceholder() {
 
 			if (isNamedParameter()) {
-				return String.format(NAMED_PARAMETER_TEMPLATE, getName().get());
+				return String.format(NAMED_PARAMETER_TEMPLATE, getName().orElseThrow());
 			} else {
 				return String.format(POSITION_PARAMETER_TEMPLATE, getIndex());
 			}
-		}
-
-		public String getNameOrIndex() {
-			return this.getName().orElseGet(() -> Integer.toString(this.getIndex()));
 		}
 	}
 
@@ -165,6 +179,11 @@ class Neo4jQueryMethod extends QueryMethod {
 	}
 
 	boolean asCollectionQuery() {
-		return this.isCollectionLikeQuery() || this.isPageQuery() || this.isSliceQuery() || this.isScrollQuery();
+		return this.isCollectionLikeQuery() || this.isPageQuery() || this.isSliceQuery() || this.isScrollQuery() ||
+			GeoResults.class.isAssignableFrom(this.method.getReturnType());
+	}
+
+	Method getMethod() {
+		return method;
 	}
 }

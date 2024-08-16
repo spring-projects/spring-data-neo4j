@@ -18,6 +18,12 @@ package org.springframework.data.neo4j.integration.issues;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.assertj.core.api.ThrowingConsumer;
+import org.assertj.core.data.Percentage;
+import org.springframework.data.domain.Range;
+import org.springframework.data.geo.Distance;
+import org.springframework.data.geo.GeoResult;
+import org.springframework.data.geo.Metrics;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -65,6 +71,9 @@ import org.springframework.data.neo4j.integration.issues.gh2533.EntitiesAndProje
 import org.springframework.data.neo4j.integration.issues.gh2533.ReactiveGH2533Repository;
 import org.springframework.data.neo4j.integration.issues.gh2572.GH2572Child;
 import org.springframework.data.neo4j.integration.issues.gh2572.ReactiveGH2572Repository;
+import org.springframework.data.neo4j.integration.issues.gh2908.LocatedNode;
+import org.springframework.data.neo4j.integration.issues.gh2908.Place;
+import org.springframework.data.neo4j.integration.issues.gh2908.ReactiveLocatedNodeRepository;
 import org.springframework.data.neo4j.repository.config.EnableReactiveNeo4jRepositories;
 import org.springframework.data.neo4j.test.BookmarkCapture;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
@@ -89,6 +98,7 @@ class ReactiveIssuesIT extends TestBase {
 
 				setupGH2328(transaction);
 				setupGH2572(transaction);
+				setupGH2908(transaction);
 
 				transaction.commit();
 			}
@@ -423,6 +433,47 @@ class ReactiveIssuesIT extends TestBase {
 				.as(StepVerifier::create)
 				.expectNextCount(0L)
 				.verifyComplete();
+	}
+
+	@Test
+	@Tag("GH-2908")
+	void shouldSupportGeoResult(@Autowired ReactiveLocatedNodeRepository repository) {
+
+		ThrowingConsumer<GeoResult<LocatedNode>> neo4jFoundInTheNearDistance = gr -> {
+			assertThat(gr.getContent().getName()).isEqualTo("NEO4J_HQ");
+			assertThat(gr.getDistance().getValue()).isCloseTo(90 / 1000.0, Percentage.withPercentage(5));
+		};
+
+		List<GeoResult<LocatedNode>> nodes = repository.findAllAsGeoResultsByPlaceNear(Place.SFO.getValue()).collectList().block();
+		assertThat(nodes).hasSize(2);
+
+		var distance = new Distance(200.0 / 1000.0, Metrics.KILOMETERS);
+		nodes = repository.findAllByPlaceNear(Place.MINC.getValue(), distance).collectList().block();
+		assertThat(nodes).hasSize(1)
+			.first()
+			.satisfies(neo4jFoundInTheNearDistance);
+
+		nodes = repository.findAllByPlaceNear(Place.CLARION.getValue(), distance).collectList().block();
+		assertThat(nodes).isEmpty();
+
+		nodes = repository.findAllByPlaceNear(Place.MINC.getValue(),
+			Distance.between(60.0 / 1000.0, Metrics.KILOMETERS, 200.0 / 1000.0, Metrics.KILOMETERS)).collectList().block();
+		assertThat(nodes).hasSize(1).first()
+			.satisfies(neo4jFoundInTheNearDistance);
+
+		nodes = repository.findAllByPlaceNear(Place.MINC.getValue(),
+			Distance.between(100.0 / 1000.0, Metrics.KILOMETERS, 200.0 / 1000.0, Metrics.KILOMETERS)).collectList().block();
+		assertThat(nodes).isEmpty();
+
+		final Range<Distance> distanceRange = Range.of(Range.Bound.inclusive(new Distance(100.0 / 1000.0, Metrics.KILOMETERS)),
+			Range.Bound.unbounded());
+		nodes = repository.findAllByPlaceNear(Place.MINC.getValue(), distanceRange).collectList().block();
+		assertThat(nodes).hasSize(1).first().satisfies(gr -> {
+			var d = gr.getDistance();
+			assertThat(d.getValue()).isCloseTo(8800, Percentage.withPercentage(1));
+			assertThat(d.getMetric()).isEqualTo(Metrics.KILOMETERS);
+			assertThat(gr.getContent().getName()).isEqualTo("SFO");
+		});
 	}
 
 	@Configuration

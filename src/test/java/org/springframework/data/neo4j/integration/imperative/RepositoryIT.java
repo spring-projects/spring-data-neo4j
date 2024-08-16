@@ -3161,11 +3161,11 @@ class RepositoryIT {
 
 			Record record = doWithSession(session -> session
 					.run("""
-     					CREATE
-     						(n:PersonWithRelationship{name:'Freddie'})-[:Has]->(h1:Hobby{name:'Music'}),
-     						(n)-[:Has]->(p1:Pet{name: 'Jerry'}),
-     						(n)-[:Has]->(p2:Pet{name: 'Tom'}),
-     						(p1)-[:Has]->(p3:Pet{name: 'Silvester'})-[:Has]->(h2:Hobby{name: 'Hunt Tweety'})
+						CREATE
+							(n:PersonWithRelationship{name:'Freddie'})-[:Has]->(h1:Hobby{name:'Music'}),
+							(n)-[:Has]->(p1:Pet{name: 'Jerry'}),
+							(n)-[:Has]->(p2:Pet{name: 'Tom'}),
+							(p1)-[:Has]->(p3:Pet{name: 'Silvester'})-[:Has]->(h2:Hobby{name: 'Hunt Tweety'})
 						RETURN n, h1, p1, p2
 						""").single());
 
@@ -3212,10 +3212,10 @@ class RepositoryIT {
 
 			Record record = doWithSession(session -> session
 					.run("""
-     					CREATE
-     						(n:PersonWithRelationship{name:'Freddie'})-[:Has]->(h1:Hobby{name:'Music'}),
-     						(n)-[:Has]->(p1:Pet{name: 'Jerry'}),
-     						(n)-[:Has]->(p2:Pet{name: 'Tom'})
+						CREATE
+							(n:PersonWithRelationship{name:'Freddie'})-[:Has]->(h1:Hobby{name:'Music'}),
+							(n)-[:Has]->(p1:Pet{name: 'Jerry'}),
+							(n)-[:Has]->(p2:Pet{name: 'Tom'})
 						 RETURN n, h1, p1, p2
 						 """).single());
 
@@ -3251,10 +3251,10 @@ class RepositoryIT {
 
 			Record record = doWithSession(session -> session
 					.run("""
-     					CREATE
-     						(n:PersonWithRelationship{name:'Freddie'})-[:Has]->(h1:Hobby{name:'Music'}),
-     						(n)-[:Has]->(p1:Pet{name: 'Jerry'}),
-     						(n)-[:Has]->(p2:Pet{name: 'Tom'})
+						CREATE
+							(n:PersonWithRelationship{name:'Freddie'})-[:Has]->(h1:Hobby{name:'Music'}),
+							(n)-[:Has]->(p1:Pet{name: 'Jerry'}),
+							(n)-[:Has]->(p2:Pet{name: 'Tom'})
 						RETURN n, h1, p1, p2
 						""").single());
 
