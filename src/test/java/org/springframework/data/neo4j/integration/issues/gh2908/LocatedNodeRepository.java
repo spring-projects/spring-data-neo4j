@@ -15,6 +15,8 @@
  */
 package org.springframework.data.neo4j.integration.issues.gh2908;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 
 /**
@@ -22,4 +24,6 @@ import org.springframework.data.neo4j.repository.Neo4jRepository;
  * @author Michael J. Simons
  */
 public interface LocatedNodeRepository extends HasNameAndPlaceRepository<LocatedNode>, Neo4jRepository<LocatedNode, String> {
+
+	Page<LocatedNode> findAllByName(String whatever, PageRequest name);
 }
