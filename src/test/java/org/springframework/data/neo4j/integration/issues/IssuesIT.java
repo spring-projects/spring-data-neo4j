@@ -44,6 +44,7 @@ import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.neo4j.cypherdsl.core.Condition;
 import org.neo4j.cypherdsl.core.Cypher;
 import org.neo4j.cypherdsl.core.Node;
@@ -182,11 +183,15 @@ import org.springframework.data.neo4j.integration.misc.ConcreteImplementationTwo
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.data.neo4j.repository.query.QueryFragmentsAndParameters;
 import org.springframework.data.neo4j.test.BookmarkCapture;
+import org.springframework.data.neo4j.test.LogbackCapture;
+import org.springframework.data.neo4j.test.LogbackCapturingExtension;
 import org.springframework.data.neo4j.test.Neo4jImperativeTestConfiguration;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.annotation.Transactional;
+
+import ch.qos.logback.classic.Level;
 
 /**
  * @author Michael J. Simons
@@ -195,6 +200,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Neo4jIntegrationTest
 @DisplayNameGeneration(SimpleDisplayNameGeneratorWithTags.class)
 @TestMethodOrder(MethodOrderer.DisplayName.class)
+@ExtendWith(LogbackCapturingExtension.class)
 class IssuesIT extends TestBase {
 
 	// GH-2210
@@ -1314,6 +1320,20 @@ class IssuesIT extends TestBase {
 	void shouldSupportGeoResultWithSelfRef(@Autowired LocatedNodeWithSelfRefRepository repository) {
 
 		assertSupportedGeoResultBehavior(repository);
+	}
+
+	@Test
+	@Tag("GH-2940")
+	void shouldNotGenerateDuplicateOrder(@Autowired LocatedNodeRepository repository, LogbackCapture logbackCapture) {
+
+		try {
+			logbackCapture.addLogger("org.springframework.data.neo4j.cypher", Level.DEBUG);
+			var nodes = repository.findAllByName("NEO4J_HQ", PageRequest.of(0, 10, Sort.by(Sort.Order.asc("name"))));
+			assertThat(nodes).isNotEmpty();
+			assertThat(logbackCapture.getFormattedMessages()).noneMatch(l -> l.contains("locatedNode.name, locatedNode.name"));
+		} finally {
+			logbackCapture.resetLogLevel();
+		}
 	}
 
 	@Configuration

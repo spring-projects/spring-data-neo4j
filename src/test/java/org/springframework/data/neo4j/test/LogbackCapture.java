@@ -23,7 +23,6 @@ import ch.qos.logback.core.read.ListAppender;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.extension.ExtensionContext;
 
@@ -54,7 +53,7 @@ public final class LogbackCapture implements ExtensionContext.Store.CloseableRes
 	}
 
 	public List<String> getFormattedMessages() {
-		return listAppender.list.stream().map(e -> e.getFormattedMessage()).collect(Collectors.toList());
+		return listAppender.list.stream().map(ILoggingEvent::getFormattedMessage).toList();
 	}
 
 	void start() {
@@ -75,6 +74,6 @@ public final class LogbackCapture implements ExtensionContext.Store.CloseableRes
 	}
 
 	public void resetLogLevel() {
-		this.additionalLoggers.entrySet().forEach(entry -> entry.getKey().setLevel(entry.getValue()));
+		this.additionalLoggers.forEach(Logger::setLevel);
 	}
 }
