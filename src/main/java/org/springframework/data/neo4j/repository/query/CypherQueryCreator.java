@@ -23,6 +23,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Queue;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -220,7 +221,10 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndPar
 			queryFragments.setReturnExpression(Cypher.count(Constants.NAME_OF_TYPED_ROOT_NODE.apply(nodeDescription)), true);
 		} else {
 
-			var theSort = pagingParameter.getSort().and(sort);
+			var theSort = pagingParameter.getSort();
+			if (!Objects.equals(theSort, sort)) {
+				theSort = theSort.and(sort);
+			}
 
 			if (pagingParameter.isUnpaged() && scrollPosition == null && maxResults != null) {
 				queryFragments.setLimit(limitModifier.apply(maxResults.intValue()));
