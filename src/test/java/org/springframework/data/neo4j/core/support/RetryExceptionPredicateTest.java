@@ -34,8 +34,8 @@ import org.springframework.data.neo4j.core.Neo4jPersistenceExceptionTranslator;
 class RetryExceptionPredicateTest {
 
 	@ParameterizedTest
-	@ValueSource(strings = { "Transaction must be open, but has already been closed.",
-			"Session must be open, but has already been closed." })
+	@ValueSource(strings = { "Transaction must be open, but has already been closed",
+			"Session must be open, but has already been closed" })
 	void shouldRetryOnSomeIllegalStateExceptions(String msg) {
 
 		RetryExceptionPredicate predicate = new RetryExceptionPredicate();
