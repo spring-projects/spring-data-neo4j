@@ -26,6 +26,7 @@ import org.neo4j.driver.exceptions.SessionExpiredException;
 import org.neo4j.driver.exceptions.TransientException;
 import org.springframework.dao.TransientDataAccessResourceException;
 
+
 /**
  * A predicate indicating {@literal true} for {@link Throwable throwables} that can be safely retried and {@literal false}
  * in any other case. This predicate can be used for example with Resilience4j.
@@ -37,9 +38,12 @@ import org.springframework.dao.TransientDataAccessResourceException;
 @API(status = API.Status.STABLE, since = "6.0")
 public final class RetryExceptionPredicate implements Predicate<Throwable> {
 
+	public static final String TRANSACTION_MUST_BE_OPEN_BUT_HAS_ALREADY_BEEN_CLOSED = "Transaction must be open, but has already been closed";
+	public static final String SESSION_MUST_BE_OPEN_BUT_HAS_ALREADY_BEEN_CLOSED = "Session must be open, but has already been closed";
 	private static final Set<String> RETRYABLE_ILLEGAL_STATE_MESSAGES = Set.of(
-			"Transaction must be open, but has already been closed.",
-			"Session must be open, but has already been closed.");
+			TRANSACTION_MUST_BE_OPEN_BUT_HAS_ALREADY_BEEN_CLOSED,
+			SESSION_MUST_BE_OPEN_BUT_HAS_ALREADY_BEEN_CLOSED
+	);
 
 	@Override
 	public boolean test(Throwable throwable) {
