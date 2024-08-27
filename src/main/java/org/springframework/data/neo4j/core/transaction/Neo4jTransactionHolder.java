@@ -22,6 +22,7 @@ import org.neo4j.driver.Session;
 import org.neo4j.driver.Transaction;
 import org.springframework.data.neo4j.core.DatabaseSelection;
 import org.springframework.data.neo4j.core.UserSelection;
+import org.springframework.data.neo4j.core.support.RetryExceptionPredicate;
 import org.springframework.lang.Nullable;
 import org.springframework.transaction.support.ResourceHolderSupport;
 import org.springframework.util.Assert;
@@ -68,7 +69,7 @@ final class Neo4jTransactionHolder extends ResourceHolderSupport {
 
 	Collection<Bookmark> commit() {
 
-		Assert.state(hasActiveTransaction(), "Transaction must be open, but has already been closed");
+		Assert.state(hasActiveTransaction(), RetryExceptionPredicate.TRANSACTION_MUST_BE_OPEN_BUT_HAS_ALREADY_BEEN_CLOSED);
 		Assert.state(!isRollbackOnly(), "Resource must not be marked as rollback only");
 
 		transaction.commit();
@@ -79,7 +80,7 @@ final class Neo4jTransactionHolder extends ResourceHolderSupport {
 
 	void rollback() {
 
-		Assert.state(hasActiveTransaction(), "Transaction must be open, but has already been closed");
+		Assert.state(hasActiveTransaction(), RetryExceptionPredicate.TRANSACTION_MUST_BE_OPEN_BUT_HAS_ALREADY_BEEN_CLOSED);
 
 		transaction.rollback();
 		transaction.close();
@@ -87,7 +88,7 @@ final class Neo4jTransactionHolder extends ResourceHolderSupport {
 
 	void close() {
 
-		Assert.state(hasActiveSession(), "Session must be open, but has already been closed");
+		Assert.state(hasActiveSession(), RetryExceptionPredicate.SESSION_MUST_BE_OPEN_BUT_HAS_ALREADY_BEEN_CLOSED);
 
 		if (hasActiveTransaction()) {
 			transaction.close();
