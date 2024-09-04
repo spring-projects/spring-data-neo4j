@@ -138,7 +138,6 @@ final class ReactiveStringBasedNeo4jQuery extends AbstractReactiveNeo4jQuery {
 				boundParameters
 		);
 
-		replaceLiteralsIn(queryContext);
 		logWarningsIfNecessary(queryContext, parameterAccessor);
 
 		return PreparedQuery.queryFor(returnedType)

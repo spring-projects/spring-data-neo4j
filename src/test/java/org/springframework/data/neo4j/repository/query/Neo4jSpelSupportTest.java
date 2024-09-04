@@ -23,6 +23,7 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -43,6 +44,7 @@ import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.repository.query.Neo4jSpelSupport.LiteralReplacement;
 import org.springframework.data.repository.core.EntityMetadata;
+import org.springframework.data.repository.query.SpelQueryContext;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.util.ReflectionUtils;
 
@@ -181,6 +183,46 @@ class Neo4jSpelSupportTest {
 
 		String query = Neo4jSpelSupport.potentiallyUnquoteParameterExpressions(quoted);
 		assertThat(query).isEqualTo(expected);
+	}
+
+	@Test
+	void moreThan10SpelEntriesShouldWork() {
+
+		SpelQueryContext spelQueryContext = StringBasedNeo4jQuery.SPEL_QUERY_CONTEXT;
+
+		StringBuilder template = new StringBuilder("MATCH (user:User) WHERE ");
+		String query;
+		SpelQueryContext.SpelExtractor spelExtractor;
+
+		class R implements LiteralReplacement {
+			private final String value;
+
+			R(String value) {
+				this.value = value;
+			}
+
+			@Override
+			public String getValue() {
+				return value;
+			}
+
+			@Override
+			public Target getTarget() {
+				return Target.UNSPECIFIED;
+			}
+		}
+
+		Map<String, Object> parameters = new HashMap<>();
+		for (int i = 0; i <= 20; ++i) {
+			template.append("user.name = :#{#searchUser.name} OR ");
+			parameters.put("__SpEL__" + i, new R("'x" + i + "'"));
+		}
+		template.delete(template.length() - 4, template.length());
+		spelExtractor = spelQueryContext.parse(template.toString());
+		query = spelExtractor.getQueryString();
+		Neo4jQuerySupport.QueryContext qc = new Neo4jQuerySupport.QueryContext("n/a", query, parameters);
+		assertThat(qc.query).isEqualTo(
+				"MATCH (user:User) WHERE user.name = 'x0' OR user.name = 'x1' OR user.name = 'x2' OR user.name = 'x3' OR user.name = 'x4' OR user.name = 'x5' OR user.name = 'x6' OR user.name = 'x7' OR user.name = 'x8' OR user.name = 'x9' OR user.name = 'x10' OR user.name = 'x11' OR user.name = 'x12' OR user.name = 'x13' OR user.name = 'x14' OR user.name = 'x15' OR user.name = 'x16' OR user.name = 'x17' OR user.name = 'x18' OR user.name = 'x19' OR user.name = 'x20'");
 	}
 
 	@Test // GH-2279

@@ -188,7 +188,6 @@ final class StringBasedNeo4jQuery extends AbstractNeo4jQuery {
 				boundParameters
 		);
 
-		replaceLiteralsIn(queryContext);
 		logWarningsIfNecessary(queryContext, parameterAccessor);
 
 		return PreparedQuery.queryFor(returnedType)
@@ -246,8 +245,6 @@ final class StringBasedNeo4jQuery extends AbstractNeo4jQuery {
 							countQuery,
 							boundParameters
 					);
-
-					replaceLiteralsIn(queryContext);
 
 					return PreparedQuery.queryFor(Long.class)
 							.withCypherQuery(queryContext.query)
