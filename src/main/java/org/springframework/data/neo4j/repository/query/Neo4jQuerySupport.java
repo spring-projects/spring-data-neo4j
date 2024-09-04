@@ -20,9 +20,9 @@ import java.time.ZoneOffset;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -245,37 +245,36 @@ abstract class Neo4jQuerySupport {
 
 		final Map<String, Object> boundParameters;
 
-		String query;
+		final String query;
 
 		private boolean hasLiteralReplacementForSort = false;
 
 		QueryContext(String repositoryMethodName, String template, Map<String, Object> boundParameters) {
 			this.repositoryMethodName = repositoryMethodName;
 			this.template = template;
-			this.query = this.template;
 			this.boundParameters = boundParameters;
-		}
-	}
 
-	void replaceLiteralsIn(QueryContext queryContext) {
+			String cypherQuery = this.template;
+			Comparator<Map.Entry<String, Object>> byLengthDescending = Comparator.comparing(e -> e.getKey().length());
+			byLengthDescending = byLengthDescending.reversed();
+			List<Map.Entry<String, Object>> entries = this.boundParameters.entrySet()
+					.stream().sorted(byLengthDescending)
+					.toList();
+			for (var entry : entries) {
+				Object value = entry.getValue();
+				if (!(value instanceof Neo4jSpelSupport.LiteralReplacement)) {
+					continue;
+				}
+				this.boundParameters.remove(entry.getKey());
 
-		String cypherQuery = queryContext.template;
-		Iterator<Map.Entry<String, Object>> iterator = queryContext.boundParameters.entrySet().iterator();
-		while (iterator.hasNext()) {
-			Map.Entry<String, Object> entry = iterator.next();
-			Object value = entry.getValue();
-			if (!(value instanceof Neo4jSpelSupport.LiteralReplacement)) {
-				continue;
+				String key = entry.getKey();
+				cypherQuery = cypherQuery.replace("$" + key, ((Neo4jSpelSupport.LiteralReplacement) value).getValue());
+				this.hasLiteralReplacementForSort =
+						this.hasLiteralReplacementForSort ||
+								((Neo4jSpelSupport.LiteralReplacement) value).getTarget() == Neo4jSpelSupport.LiteralReplacement.Target.SORT;
 			}
-			iterator.remove();
-
-			String key = entry.getKey();
-			cypherQuery = cypherQuery.replace("$" + key, ((Neo4jSpelSupport.LiteralReplacement) value).getValue());
-			queryContext.hasLiteralReplacementForSort =
-					queryContext.hasLiteralReplacementForSort ||
-					((Neo4jSpelSupport.LiteralReplacement) value).getTarget() == Neo4jSpelSupport.LiteralReplacement.Target.SORT;
+			this.query = cypherQuery;
 		}
-		queryContext.query = cypherQuery;
 	}
 
 	void logWarningsIfNecessary(QueryContext queryContext, Neo4jParameterAccessor parameterAccessor) {
