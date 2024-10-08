@@ -29,13 +29,13 @@ import org.apiguardian.api.API;
 import org.neo4j.cypherdsl.support.schema_name.SchemaNames;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.expression.ValueEvaluationContext;
+import org.springframework.data.expression.ValueExpression;
+import org.springframework.data.expression.ValueExpressionParser;
 import org.springframework.data.neo4j.core.mapping.CypherGenerator;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
 import org.springframework.data.repository.core.EntityMetadata;
-import org.springframework.expression.Expression;
-import org.springframework.expression.ParserContext;
-import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
@@ -233,7 +233,7 @@ public final class Neo4jSpelSupport {
 	 * @return A query in which some SpEL expression have been replaced with the result of evaluating the expression
 	 */
 	public static String renderQueryIfExpressionOrReturnQuery(String query, Neo4jMappingContext mappingContext, EntityMetadata<?> metadata,
-			SpelExpressionParser parser) {
+			ValueExpressionParser parser) {
 
 		Assert.notNull(query, "query must not be null");
 		Assert.notNull(metadata, "metadata must not be null");
@@ -243,10 +243,10 @@ public final class Neo4jSpelSupport {
 			return query;
 		}
 
-		StandardEvaluationContext evalContext = new StandardEvaluationContext();
+		ValueEvaluationContext evalContext = ValueEvaluationContext.of(null, new StandardEvaluationContext());
 		Neo4jPersistentEntity<?> requiredPersistentEntity = mappingContext
 				.getRequiredPersistentEntity(metadata.getJavaType());
-		evalContext.setVariable(ENTITY_NAME, requiredPersistentEntity.getStaticLabels()
+		evalContext.getEvaluationContext().setVariable(ENTITY_NAME, requiredPersistentEntity.getStaticLabels()
 				.stream()
 				.map(l -> {
 					Matcher matcher = LABEL_AND_TYPE_QUOTATION.matcher(l);
@@ -256,9 +256,9 @@ public final class Neo4jSpelSupport {
 
 		query = potentiallyQuoteExpressionsParameter(query);
 
-		Expression expr = parser.parseExpression(query, ParserContext.TEMPLATE_EXPRESSION);
+		ValueExpression expr = parser.parse(query);
 
-		String result = expr.getValue(evalContext, String.class);
+		String result = (String) expr.evaluate(evalContext);
 
 		if (result == null) {
 			return query;
