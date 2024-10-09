@@ -22,11 +22,13 @@ import java.util.Optional;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.TestPropertySource;
 
 /**
  * Basic tests for domain events (and documentation).
  */
 @Disabled
+@TestPropertySource("foo=The Root")
 // tag::domain-events[]
 public class DomainEventsTest {
 
@@ -56,6 +58,9 @@ public class DomainEventsTest {
 		assertThat(optionalAggregate).isPresent();
 
 		optionalAggregate = aRepository.findByCustomQueryWithSpEL("The ", "Root");
+		assertThat(optionalAggregate).isPresent();
+
+		optionalAggregate = aRepository.findByCustomQueryWithPropertyPlaceholder();
 		assertThat(optionalAggregate).isPresent();
 	}
 
