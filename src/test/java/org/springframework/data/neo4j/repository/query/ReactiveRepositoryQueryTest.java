@@ -53,9 +53,9 @@ import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.core.support.DefaultRepositoryMetadata;
 import org.springframework.data.repository.query.Param;
-import org.springframework.data.repository.query.ReactiveExtensionAwareQueryMethodEvaluationContextProvider;
-import org.springframework.data.repository.query.ReactiveQueryMethodEvaluationContextProvider;
+import org.springframework.data.repository.query.QueryMethodValueEvaluationContextAccessor;
 import org.springframework.data.repository.query.SpelQueryContext;
+import org.springframework.data.repository.query.ValueExpressionDelegate;
 import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 import org.springframework.util.ReflectionUtils;
 
@@ -124,7 +124,7 @@ final class ReactiveRepositoryQueryTest {
 			Neo4jQueryMethod method = reactiveNeo4jQueryMethod("annotatedQueryWithoutTemplate");
 			assertThatExceptionOfType(MappingException.class)
 					.isThrownBy(() -> ReactiveStringBasedNeo4jQuery
-							.create(neo4jOperations, neo4jMappingContext, ReactiveQueryMethodEvaluationContextProvider.DEFAULT, method, projectionFactory))
+							.create(neo4jOperations, neo4jMappingContext, ValueExpressionDelegate.create(), method, projectionFactory))
 					.withMessage("Expected @Query annotation to have a value, but it did not");
 		}
 
@@ -135,7 +135,7 @@ final class ReactiveRepositoryQueryTest {
 			ReactiveStringBasedNeo4jQuery query =
 					ReactiveStringBasedNeo4jQuery
 							.create(neo4jOperations, neo4jMappingContext,
-									ReactiveQueryMethodEvaluationContextProvider.DEFAULT, method, projectionFactory);
+									ValueExpressionDelegate.create(), method, projectionFactory);
 
 			Neo4jParameterAccessor parameterAccessor = new Neo4jParameterAccessor(
 					(Neo4jQueryMethod.Neo4jParameters) method.getParameters(),
@@ -167,11 +167,10 @@ final class ReactiveRepositoryQueryTest {
 			context.refresh();
 
 			Neo4jQueryMethod method = reactiveNeo4jQueryMethod("orderBySpel", Pageable.class);
+			ValueExpressionDelegate delegate = getValueExpressionDelegate(context);
 			ReactiveStringBasedNeo4jQuery query =
 					ReactiveStringBasedNeo4jQuery
-							.create(neo4jOperations, neo4jMappingContext,
-									new ReactiveExtensionAwareQueryMethodEvaluationContextProvider(
-											context.getBeanFactory()), method, projectionFactory);
+							.create(neo4jOperations, neo4jMappingContext, delegate, method, projectionFactory);
 
 			Neo4jParameterAccessor parameterAccessor = new Neo4jParameterAccessor(
 					(Neo4jQueryMethod.Neo4jParameters) method.getParameters(),
@@ -205,7 +204,7 @@ final class ReactiveRepositoryQueryTest {
 					String.class, String.class, Sort.class);
 			ReactiveStringBasedNeo4jQuery query =
 					ReactiveStringBasedNeo4jQuery.create(neo4jOperations, neo4jMappingContext,
-							new ReactiveExtensionAwareQueryMethodEvaluationContextProvider(context.getBeanFactory()),
+							getValueExpressionDelegate(context),
 							method, projectionFactory);
 
 			String s = Mono.fromSupplier(() -> {
@@ -236,7 +235,7 @@ final class ReactiveRepositoryQueryTest {
 
 			ReactiveStringBasedNeo4jQuery repositoryQuery = spy(
 					ReactiveStringBasedNeo4jQuery.create(neo4jOperations,
-							neo4jMappingContext, ReactiveQueryMethodEvaluationContextProvider.DEFAULT,
+							neo4jMappingContext, ValueExpressionDelegate.create(),
 							method, projectionFactory));
 
 			// skip conversion
@@ -258,7 +257,7 @@ final class ReactiveRepositoryQueryTest {
 
 			ReactiveStringBasedNeo4jQuery repositoryQuery = spy(
 					ReactiveStringBasedNeo4jQuery.create(neo4jOperations,
-							neo4jMappingContext, ReactiveQueryMethodEvaluationContextProvider.DEFAULT,
+							neo4jMappingContext, ValueExpressionDelegate.create(),
 							method, projectionFactory));
 
 			// skip conversion
@@ -275,6 +274,12 @@ final class ReactiveRepositoryQueryTest {
 					.containsEntry("firstName", "TheFirstName").containsEntry("__SpEL__0", "TheFirstName")
 					.containsEntry("__SpEL__1", "TheNameTheFirstName");
 		}
+	}
+
+	private static ValueExpressionDelegate getValueExpressionDelegate(ConfigurableApplicationContext context) {
+		QueryMethodValueEvaluationContextAccessor accessor = new QueryMethodValueEvaluationContextAccessor(context.getEnvironment(), context.getBeanFactory());
+		ValueExpressionDelegate delegate = new ValueExpressionDelegate(accessor, ValueExpressionDelegate.create());
+		return delegate;
 	}
 
 	private static Method queryMethod(String name, Class<?>... parameters) {

@@ -169,6 +169,7 @@ import org.springframework.data.repository.query.FluentQuery;
 import org.springframework.data.repository.query.Param;
 import org.springframework.data.support.WindowIterator;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
@@ -212,6 +213,7 @@ class RepositoryIT {
 	PersonWithAllConstructor person2;
 
 	@Nested
+	@TestPropertySource(properties = "foo=Test")
 	class Find extends IntegrationTestBase {
 
 		@Override
@@ -542,6 +544,15 @@ class RepositoryIT {
 
 			Optional<PersonWithAllConstructor> person = repository
 					.getOptionalPersonViaQuery(TEST_PERSON1_NAME.substring(0, 2), TEST_PERSON1_NAME.substring(2));
+			assertThat(person).isPresent();
+			assertThat(person.get().getName()).isEqualTo(TEST_PERSON1_NAME);
+		}
+
+		@Test
+		void loadOptionalPersonWithAllConstructorWithPropertyPlacholder(@Autowired PersonRepository repository) {
+
+			Optional<PersonWithAllConstructor> person = repository
+					.getOptionalPersonViaPropertyPlaceholder();
 			assertThat(person).isPresent();
 			assertThat(person.get().getName()).isEqualTo(TEST_PERSON1_NAME);
 		}

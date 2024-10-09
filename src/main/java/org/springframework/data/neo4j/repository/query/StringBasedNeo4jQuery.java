@@ -81,8 +81,6 @@ final class StringBasedNeo4jQuery extends AbstractNeo4jQuery {
 	 */
 	private final Optional<ValueExpressionQueryRewriter.QueryExpressionEvaluator> parsedCountQuery;
 
-	private final ValueExpressionDelegate delegate;
-
 	private final ValueExpressionQueryRewriter.EvaluatingValueExpressionQueryRewriter queryRewriter;
 
 	/**
@@ -161,7 +159,6 @@ final class StringBasedNeo4jQuery extends AbstractNeo4jQuery {
 
 		super(neo4jOperations, mappingContext, queryMethod, queryType, factory);
 
-		this.delegate = delegate;
 		cypherTemplate = Neo4jSpelSupport.renderQueryIfExpressionOrReturnQuery(cypherTemplate, mappingContext, queryMethod.getEntityInformation(), SPEL_EXPRESSION_PARSER);
 		this.queryRewriter = ValueExpressionQueryRewriter.of(delegate,
 				StringBasedNeo4jQuery::parameterNameSource, StringBasedNeo4jQuery::replacementSource);

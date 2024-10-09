@@ -23,6 +23,7 @@ import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
 import org.springframework.data.neo4j.core.transaction.ReactiveNeo4jTransactionManager;
 import org.springframework.data.neo4j.test.BookmarkCapture;
 import org.springframework.data.neo4j.test.Neo4jReactiveTestConfiguration;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.transaction.ReactiveTransactionManager;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -66,6 +67,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
  */
 @Neo4jIntegrationTest
 @Tag(Neo4jExtension.NEEDS_REACTIVE_SUPPORT)
+@TestPropertySource(properties = {"foo=XYZ"})
 public class ReactiveCustomTypesIT {
 
 	protected static Neo4jExtension.Neo4jConnectionSupport neo4jConnectionSupport;
@@ -114,6 +116,15 @@ public class ReactiveCustomTypesIT {
 
 		StepVerifier
 				.create(repository.findByCustomTypeCustomSpELPropertyAccessQuery(ThingWithCustomTypes.CustomType.of("XYZ")))
+				.expectNextCount(1).verifyComplete();
+	}
+
+	@Test
+	void findByConvertedCustomTypeWithPropertyPlaceholderAccessQuery(
+			@Autowired EntityWithCustomTypePropertyRepository repository) {
+
+		StepVerifier
+				.create(repository.findByCustomTypeCustomPropertyPlaceholderAccessQuery())
 				.expectNextCount(1).verifyComplete();
 	}
 
@@ -181,6 +192,10 @@ public class ReactiveCustomTypesIT {
 		@Query("MATCH (c:CustomTypes) WHERE c.customType = :#{#customType.value} return c")
 		Mono<ThingWithCustomTypes> findByCustomTypeCustomSpELPropertyAccessQuery(
 				@Param("customType") ThingWithCustomTypes.CustomType customType);
+
+
+		@Query("MATCH (c:CustomTypes) WHERE c.customType = :${foo} return c")
+		Mono<ThingWithCustomTypes> findByCustomTypeCustomPropertyPlaceholderAccessQuery();
 
 		@Query("MATCH (c:CustomTypes) WHERE c.customType = :#{#customType} return c")
 		Mono<ThingWithCustomTypes> findByCustomTypeSpELObjectQuery(
