@@ -23,6 +23,8 @@ import org.neo4j.driver.Driver;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.Transaction;
 import org.neo4j.driver.TransactionConfig;
+import org.neo4j.driver.exceptions.Neo4jException;
+import org.neo4j.driver.exceptions.RetryableException;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -338,10 +340,17 @@ public final class Neo4jTransactionManager extends AbstractPlatformTransactionMa
 	@Override
 	protected void doCommit(DefaultTransactionStatus status) throws TransactionException {
 
-		Neo4jTransactionObject transactionObject = extractNeo4jTransaction(status);
-		Neo4jTransactionHolder transactionHolder = transactionObject.getRequiredResourceHolder();
-		Collection<Bookmark> newBookmarks = transactionHolder.commit();
-		this.bookmarkManager.resolve().updateBookmarks(transactionHolder.getBookmarks(), newBookmarks);
+		try {
+			Neo4jTransactionObject transactionObject = extractNeo4jTransaction(status);
+			Neo4jTransactionHolder transactionHolder = transactionObject.getRequiredResourceHolder();
+			Collection<Bookmark> newBookmarks = transactionHolder.commit();
+			this.bookmarkManager.resolve().updateBookmarks(transactionHolder.getBookmarks(), newBookmarks);
+		} catch (Neo4jException ex) {
+			if (ex instanceof RetryableException) {
+				throw new TransactionSystemException(ex.getMessage(), ex);
+			}
+			throw ex;
+		}
 	}
 
 	@Override

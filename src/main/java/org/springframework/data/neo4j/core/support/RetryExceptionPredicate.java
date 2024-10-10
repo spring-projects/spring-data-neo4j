@@ -25,6 +25,7 @@ import org.neo4j.driver.exceptions.ServiceUnavailableException;
 import org.neo4j.driver.exceptions.SessionExpiredException;
 import org.neo4j.driver.exceptions.TransientException;
 import org.springframework.dao.TransientDataAccessResourceException;
+import org.springframework.transaction.TransactionSystemException;
 
 
 /**
@@ -52,13 +53,17 @@ public final class RetryExceptionPredicate implements Predicate<Throwable> {
 			return true;
 		}
 
+		if (throwable instanceof TransactionSystemException && throwable.getCause() != null) {
+			throwable = throwable.getCause();
+		}
+
 		if (throwable instanceof IllegalStateException) {
 			String msg = throwable.getMessage();
 			return msg != null && RETRYABLE_ILLEGAL_STATE_MESSAGES.contains(msg);
 		}
 
 		Throwable ex = throwable;
-		if (throwable instanceof TransientDataAccessResourceException) {
+		if (throwable instanceof TransientDataAccessResourceException || throwable instanceof TransactionSystemException) {
 			ex = throwable.getCause();
 		}
 
