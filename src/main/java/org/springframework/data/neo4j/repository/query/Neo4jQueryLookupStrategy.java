@@ -26,8 +26,8 @@ import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.repository.core.NamedQueries;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.query.QueryLookupStrategy;
-import org.springframework.data.repository.query.QueryMethodEvaluationContextProvider;
 import org.springframework.data.repository.query.RepositoryQuery;
+import org.springframework.data.repository.query.ValueExpressionDelegate;
 
 /**
  * Lookup strategy for queries. This is the internal api of the {@code query package}.
@@ -41,14 +41,14 @@ public final class Neo4jQueryLookupStrategy implements QueryLookupStrategy {
 
 	private final Neo4jMappingContext mappingContext;
 	private final Neo4jOperations neo4jOperations;
-	private final QueryMethodEvaluationContextProvider evaluationContextProvider;
+	private final ValueExpressionDelegate delegate;
 	private final Configuration configuration;
 
 	public Neo4jQueryLookupStrategy(Neo4jOperations neo4jOperations, Neo4jMappingContext mappingContext,
-			QueryMethodEvaluationContextProvider evaluationContextProvider, Configuration configuration) {
+			ValueExpressionDelegate delegate, Configuration configuration) {
 		this.neo4jOperations = neo4jOperations;
 		this.mappingContext = mappingContext;
-		this.evaluationContextProvider = evaluationContextProvider;
+		this.delegate = delegate;
 		this.configuration = configuration;
 	}
 
@@ -63,10 +63,10 @@ public final class Neo4jQueryLookupStrategy implements QueryLookupStrategy {
 		String namedQueryName = queryMethod.getNamedQueryName();
 
 		if (namedQueries.hasQuery(namedQueryName)) {
-			return StringBasedNeo4jQuery.create(neo4jOperations, mappingContext, evaluationContextProvider, queryMethod,
+			return StringBasedNeo4jQuery.create(neo4jOperations, mappingContext, delegate, queryMethod,
 					namedQueries.getQuery(namedQueryName), factory);
 		} else if (queryMethod.hasQueryAnnotation()) {
-			return StringBasedNeo4jQuery.create(neo4jOperations, mappingContext, evaluationContextProvider, queryMethod,
+			return StringBasedNeo4jQuery.create(neo4jOperations, mappingContext, delegate, queryMethod,
 					factory);
 		} else if (queryMethod.isCypherBasedProjection()) {
 			return CypherdslBasedQuery.create(neo4jOperations, mappingContext, queryMethod, factory, Renderer.getRenderer(configuration)::render);

@@ -33,11 +33,10 @@ import org.springframework.data.neo4j.core.mapping.PropertyFilter;
 import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.Parameters;
-import org.springframework.data.repository.query.QueryMethodEvaluationContextProvider;
 import org.springframework.data.repository.query.RepositoryQuery;
-import org.springframework.data.repository.query.SpelEvaluator;
 import org.springframework.data.repository.query.SpelQueryContext;
-import org.springframework.data.repository.query.SpelQueryContext.SpelExtractor;
+import org.springframework.data.repository.query.ValueExpressionDelegate;
+import org.springframework.data.repository.query.ValueExpressionQueryRewriter;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -65,11 +64,9 @@ final class ReactiveStringBasedNeo4jQuery extends AbstractReactiveNeo4jQuery {
 	static final SpelQueryContext SPEL_QUERY_CONTEXT = SpelQueryContext
 			.of(ReactiveStringBasedNeo4jQuery::parameterNameSource, ReactiveStringBasedNeo4jQuery::replacementSource);
 
-	/**
-	 * Used to evaluate the expression found while parsing the cypher template of this query against the actual parameters
-	 * with the help of the formal parameters during the building of the {@link PreparedQuery}.
-	 */
-	private final SpelEvaluator spelEvaluator;
+	private final ValueExpressionQueryRewriter.EvaluatingValueExpressionQueryRewriter queryRewriter;
+
+	private final ValueExpressionQueryRewriter.QueryExpressionEvaluator parsedQuery;
 
 	/**
 	 * Create a {@link ReactiveStringBasedNeo4jQuery} for a query method that is annotated with {@link Query @Query}. The
@@ -77,12 +74,12 @@ final class ReactiveStringBasedNeo4jQuery extends AbstractReactiveNeo4jQuery {
 	 *
 	 * @param neo4jOperations reactive Neo4j operations
 	 * @param mappingContext a Neo4jMappingContext instance
-	 * @param evaluationContextProvider a QueryMethodEvaluationContextProvider instance
+	 * @param delegate a ValueExpressionDelegate instance
 	 * @param queryMethod the query method
 	 * @return A new instance of a String based Neo4j query.
 	 */
 	static ReactiveStringBasedNeo4jQuery create(ReactiveNeo4jOperations neo4jOperations,
-			Neo4jMappingContext mappingContext, QueryMethodEvaluationContextProvider evaluationContextProvider,
+			Neo4jMappingContext mappingContext, ValueExpressionDelegate delegate,
 			Neo4jQueryMethod queryMethod, ProjectionFactory factory) {
 
 		Query queryAnnotation = queryMethod.getQueryAnnotation()
@@ -91,7 +88,7 @@ final class ReactiveStringBasedNeo4jQuery extends AbstractReactiveNeo4jQuery {
 		String cypherTemplate = Optional.ofNullable(queryAnnotation.value()).filter(StringUtils::hasText)
 				.orElseThrow(() -> new MappingException("Expected @Query annotation to have a value, but it did not"));
 
-		return new ReactiveStringBasedNeo4jQuery(neo4jOperations, mappingContext, evaluationContextProvider, queryMethod,
+		return new ReactiveStringBasedNeo4jQuery(neo4jOperations, mappingContext, delegate, queryMethod,
 				cypherTemplate, Neo4jQueryType.fromDefinition(queryAnnotation), factory);
 	}
 
@@ -100,30 +97,30 @@ final class ReactiveStringBasedNeo4jQuery extends AbstractReactiveNeo4jQuery {
 	 *
 	 * @param neo4jOperations reactive Neo4j operations
 	 * @param mappingContext a Neo4jMappingContext instance
-	 * @param evaluationContextProvider a QueryMethodEvaluationContextProvider instance
+	 * @param delegate a ValueExpressionDelegate instance
 	 * @param queryMethod the query method
 	 * @param cypherTemplate The template to use.
 	 * @return A new instance of a String based Neo4j query.
 	 */
 	static ReactiveStringBasedNeo4jQuery create(ReactiveNeo4jOperations neo4jOperations,
-			Neo4jMappingContext mappingContext, QueryMethodEvaluationContextProvider evaluationContextProvider,
+			Neo4jMappingContext mappingContext, ValueExpressionDelegate delegate,
 			Neo4jQueryMethod queryMethod, String cypherTemplate, ProjectionFactory factory) {
 
 		Assert.hasText(cypherTemplate, "Cannot create String based Neo4j query without a cypher template");
 
-		return new ReactiveStringBasedNeo4jQuery(neo4jOperations, mappingContext, evaluationContextProvider, queryMethod,
+		return new ReactiveStringBasedNeo4jQuery(neo4jOperations, mappingContext, delegate, queryMethod,
 				cypherTemplate, Neo4jQueryType.DEFAULT, factory);
 	}
 
 	private ReactiveStringBasedNeo4jQuery(ReactiveNeo4jOperations neo4jOperations, Neo4jMappingContext mappingContext,
-			QueryMethodEvaluationContextProvider evaluationContextProvider, Neo4jQueryMethod queryMethod,
+			ValueExpressionDelegate delegate, Neo4jQueryMethod queryMethod,
 			String cypherTemplate, Neo4jQueryType queryType, ProjectionFactory factory) {
 
 		super(neo4jOperations, mappingContext, queryMethod, queryType, factory);
 
-		cypherTemplate = Neo4jSpelSupport.renderQueryIfExpressionOrReturnQuery(cypherTemplate, mappingContext, queryMethod.getEntityInformation(), SPEL_EXPRESSION_PARSER);
-		SpelExtractor spelExtractor = SPEL_QUERY_CONTEXT.parse(cypherTemplate);
-		this.spelEvaluator = new SpelEvaluator(evaluationContextProvider, queryMethod.getParameters(), spelExtractor);
+		this.queryRewriter = ValueExpressionQueryRewriter.of(delegate,
+				StringBasedNeo4jQuery::parameterNameSource, StringBasedNeo4jQuery::replacementSource);
+		this.parsedQuery = queryRewriter.parse(cypherTemplate, queryMethod.getParameters());
 	}
 
 	@Override
@@ -134,7 +131,7 @@ final class ReactiveStringBasedNeo4jQuery extends AbstractReactiveNeo4jQuery {
 		Map<String, Object> boundParameters = bindParameters(parameterAccessor);
 		QueryContext queryContext = new QueryContext(
 				queryMethod.getRepositoryName() + "." + queryMethod.getName(),
-				spelEvaluator.getQueryString(),
+				parsedQuery.getQueryString(),
 				boundParameters
 		);
 
@@ -153,7 +150,7 @@ final class ReactiveStringBasedNeo4jQuery extends AbstractReactiveNeo4jQuery {
 		Map<String, Object> resolvedParameters = new HashMap<>();
 
 		// Values from the parameter accessor can only get converted after evaluation
-		for (Map.Entry<String, Object> evaluatedParam : spelEvaluator.evaluate(parameterAccessor.getValues()).entrySet()) {
+		for (Map.Entry<String, Object> evaluatedParam : parsedQuery.evaluate(parameterAccessor.getValues()).entrySet()) {
 			Object value = evaluatedParam.getValue();
 			if (!(evaluatedParam.getValue() instanceof Neo4jSpelSupport.LiteralReplacement)) {
 				Neo4jQuerySupport.logParameterIfNull(evaluatedParam.getKey(), value);

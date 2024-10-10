@@ -367,8 +367,11 @@ If an entity has a relationship with the same type to different types of others 
 If you need such a mapping and also have the need to work with those custom parameters, you have to unroll it accordingly.
 One way to do this are correlated subqueries (Neo4j 4.1+ required).
 
+[[custom-queries.expressions]]
+== Value Expressions in custom queries
+
 [[custom-queries.spel]]
-== Spring Expression Language in custom queries
+=== Spring Expression Language in custom queries
 
 {springdocsurl}/core/expressions.html[Spring Expression Language (SpEL)] can be used in custom queries inside `:#{}`.
 The colon here refers to a parameter and such an expression should be used where parameters make sense.
@@ -502,3 +505,18 @@ MATCH (n:`Bike`:`Gravel`:`Easy Trail`) WHERE n.id = $nameOrId OR n.name = $nameO
 
 Notice how we used standard parameter for the `nameOrId`: In most cases there is no need to complicate things here by
 adding a SpEL expression.
+
+
+[[custom-queries.propertyplaceholder]]
+=== Property Placeholder resolution in custom queries
+
+Spring's property placeholders can be used in custom queries inside `${}`.
+
+[source,java,indent=0]
+[[custom-queries-with-property-placeholder-example]]
+.ARepository.java
+----
+include::example$documentation/repositories/domain_events/ARepository.java[tags=property-placeholder]
+----
+
+In the example above, if the property `foo` would be set to `bar` then the `${foo}` block would be resolved to `bar`.

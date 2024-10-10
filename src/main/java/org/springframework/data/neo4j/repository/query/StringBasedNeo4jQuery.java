@@ -36,10 +36,9 @@ import org.springframework.data.neo4j.core.mapping.PropertyFilter;
 import org.springframework.data.neo4j.repository.query.Neo4jSpelSupport.LiteralReplacement;
 import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.repository.query.Parameters;
-import org.springframework.data.repository.query.QueryMethodEvaluationContextProvider;
 import org.springframework.data.repository.query.RepositoryQuery;
-import org.springframework.data.repository.query.SpelEvaluator;
-import org.springframework.data.repository.query.SpelQueryContext;
+import org.springframework.data.repository.query.ValueExpressionDelegate;
+import org.springframework.data.repository.query.ValueExpressionQueryRewriter;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -61,12 +60,6 @@ import org.springframework.util.StringUtils;
  */
 final class StringBasedNeo4jQuery extends AbstractNeo4jQuery {
 
-	/**
-	 * Used for extracting SpEL expressions inside Cypher query templates.
-	 */
-	static final SpelQueryContext SPEL_QUERY_CONTEXT = SpelQueryContext.of(StringBasedNeo4jQuery::parameterNameSource,
-			StringBasedNeo4jQuery::replacementSource);
-
 	private final static String COMMENT_OR_WHITESPACE_GROUP = "(?:\\s|/\\\\*.*?\\\\*/|//.*?$)";
 	static final Pattern SKIP_AND_LIMIT_WITH_PLACEHOLDER_PATTERN = Pattern
 			.compile(""
@@ -81,12 +74,14 @@ final class StringBasedNeo4jQuery extends AbstractNeo4jQuery {
 	 * Used to evaluate the expression found while parsing the cypher template of this query against the actual parameters
 	 * with the help of the formal parameters during the building of the {@link PreparedQuery}.
 	 */
-	private final SpelEvaluator spelEvaluator;
+	private final ValueExpressionQueryRewriter.QueryExpressionEvaluator parsedQuery;
 
 	/**
 	 * An optional evaluator for a count query if such a query is present.
 	 */
-	private final Optional<SpelEvaluator> spelEvaluatorForCountQuery;
+	private final Optional<ValueExpressionQueryRewriter.QueryExpressionEvaluator> parsedCountQuery;
+
+	private final ValueExpressionQueryRewriter.EvaluatingValueExpressionQueryRewriter queryRewriter;
 
 	/**
 	 * Create a {@link StringBasedNeo4jQuery} for a query method that is annotated with {@link Query @Query}. The
@@ -94,12 +89,12 @@ final class StringBasedNeo4jQuery extends AbstractNeo4jQuery {
 	 *
 	 * @param neo4jOperations           the Neo4j operations
 	 * @param mappingContext            a Neo4jMappingContext instance
-	 * @param evaluationContextProvider a QueryMethodEvaluationContextProvider instance
+	 * @param delegate                  a ValueExpressionDelegate instance
 	 * @param queryMethod               the query method
 	 * @return A new instance of a String based Neo4j query.
 	 */
 	static StringBasedNeo4jQuery create(Neo4jOperations neo4jOperations, Neo4jMappingContext mappingContext,
-						QueryMethodEvaluationContextProvider evaluationContextProvider, Neo4jQueryMethod queryMethod,
+						ValueExpressionDelegate delegate, Neo4jQueryMethod queryMethod,
 						ProjectionFactory factory) {
 
 		Query queryAnnotation = queryMethod.getQueryAnnotation()
@@ -134,7 +129,7 @@ final class StringBasedNeo4jQuery extends AbstractNeo4jQuery {
 							cypherTemplate, queryMethod.getRepositoryName(), queryMethod.getName()));
 		}
 
-		return new StringBasedNeo4jQuery(neo4jOperations, mappingContext, evaluationContextProvider, queryMethod,
+		return new StringBasedNeo4jQuery(neo4jOperations, mappingContext, delegate, queryMethod,
 				cypherTemplate, Neo4jQueryType.fromDefinition(queryAnnotation), factory);
 	}
 
@@ -143,35 +138,35 @@ final class StringBasedNeo4jQuery extends AbstractNeo4jQuery {
 	 *
 	 * @param neo4jOperations           the Neo4j operations
 	 * @param mappingContext            a Neo4jMappingContext instance
-	 * @param evaluationContextProvider a QueryMethodEvaluationContextProvider instance
+	 * @param delegate                  a ValueExpressionDelegate instance
 	 * @param queryMethod               the query method
 	 * @param cypherTemplate            The template to use.
 	 * @return A new instance of a String based Neo4j query.
 	 */
 	static StringBasedNeo4jQuery create(Neo4jOperations neo4jOperations, Neo4jMappingContext mappingContext,
-			QueryMethodEvaluationContextProvider evaluationContextProvider, Neo4jQueryMethod queryMethod,
+			ValueExpressionDelegate delegate, Neo4jQueryMethod queryMethod,
 			String cypherTemplate, ProjectionFactory factory) {
 
 		Assert.hasText(cypherTemplate, "Cannot create String based Neo4j query without a cypher template");
 
-		return new StringBasedNeo4jQuery(neo4jOperations, mappingContext, evaluationContextProvider, queryMethod,
+		return new StringBasedNeo4jQuery(neo4jOperations, mappingContext, delegate, queryMethod,
 				cypherTemplate, Neo4jQueryType.DEFAULT, factory);
 	}
 
 	private StringBasedNeo4jQuery(Neo4jOperations neo4jOperations, Neo4jMappingContext mappingContext,
-			QueryMethodEvaluationContextProvider evaluationContextProvider, Neo4jQueryMethod queryMethod,
+			ValueExpressionDelegate delegate, Neo4jQueryMethod queryMethod,
 			String cypherTemplate, Neo4jQueryType queryType, ProjectionFactory factory) {
 
 		super(neo4jOperations, mappingContext, queryMethod, queryType, factory);
 
-		Parameters<?, ?> methodParameters = queryMethod.getParameters();
 		cypherTemplate = Neo4jSpelSupport.renderQueryIfExpressionOrReturnQuery(cypherTemplate, mappingContext, queryMethod.getEntityInformation(), SPEL_EXPRESSION_PARSER);
-		this.spelEvaluator = new SpelEvaluator(
-				evaluationContextProvider, methodParameters, SPEL_QUERY_CONTEXT.parse(cypherTemplate));
-		this.spelEvaluatorForCountQuery = queryMethod.getQueryAnnotation()
+		this.queryRewriter = ValueExpressionQueryRewriter.of(delegate,
+				StringBasedNeo4jQuery::parameterNameSource, StringBasedNeo4jQuery::replacementSource);
+		this.parsedQuery = queryRewriter.parse(cypherTemplate, queryMethod.getParameters());
+		this.parsedCountQuery = queryMethod.getQueryAnnotation()
 				.map(Query::countQuery)
-				.map(q -> Neo4jSpelSupport.renderQueryIfExpressionOrReturnQuery(q, mappingContext, queryMethod.getEntityInformation(), SPEL_EXPRESSION_PARSER))
-				.map(countQuery -> new SpelEvaluator(evaluationContextProvider, methodParameters, SPEL_QUERY_CONTEXT.parse(countQuery)));
+				.map(q -> Neo4jSpelSupport.renderQueryIfExpressionOrReturnQuery(q, mappingContext, queryMethod.getEntityInformation(), delegate))
+				.map(string -> queryRewriter.parse(string, queryMethod.getParameters()));
 	}
 
 	@Override
@@ -184,7 +179,7 @@ final class StringBasedNeo4jQuery extends AbstractNeo4jQuery {
 		Map<String, Object> boundParameters = bindParameters(parameterAccessor, true, limitModifier);
 		QueryContext queryContext = new QueryContext(
 				queryMethod.getRepositoryName() + "." + queryMethod.getName(),
-				spelEvaluator.getQueryString(),
+				parsedQuery.getQueryString(),
 				boundParameters
 		);
 
@@ -204,7 +199,7 @@ final class StringBasedNeo4jQuery extends AbstractNeo4jQuery {
 		Map<String, Object> resolvedParameters = new HashMap<>();
 
 		// Values from the parameter accessor can only get converted after evaluation
-		for (Entry<String, Object> evaluatedParam : spelEvaluator.evaluate(parameterAccessor.getValues()).entrySet()) {
+		for (Entry<String, Object> evaluatedParam : parsedQuery.evaluate(parameterAccessor.getValues()).entrySet()) {
 			Object value = evaluatedParam.getValue();
 			if (!(evaluatedParam.getValue() instanceof LiteralReplacement)) {
 				Neo4jQuerySupport.logParameterIfNull(evaluatedParam.getKey(), value);
@@ -237,7 +232,7 @@ final class StringBasedNeo4jQuery extends AbstractNeo4jQuery {
 
 	@Override
 	protected Optional<PreparedQuery<Long>> getCountQuery(Neo4jParameterAccessor parameterAccessor) {
-		return spelEvaluatorForCountQuery.map(SpelEvaluator::getQueryString)
+		return parsedCountQuery.map(ValueExpressionQueryRewriter.QueryExpressionEvaluator::getQueryString)
 				.map(countQuery -> {
 					Map<String, Object> boundParameters = bindParameters(parameterAccessor, false, UnaryOperator.identity());
 					QueryContext queryContext = new QueryContext(
@@ -258,7 +253,7 @@ final class StringBasedNeo4jQuery extends AbstractNeo4jQuery {
 	 * @param originalSpelExpression Not used for configuring parameter names atm.
 	 * @return A new parameter name for the given index.
 	 */
-	private static String parameterNameSource(int index, @SuppressWarnings("unused") String originalSpelExpression) {
+	static String parameterNameSource(int index, @SuppressWarnings("unused") String originalSpelExpression) {
 		return "__SpEL__" + index;
 	}
 
@@ -268,7 +263,7 @@ final class StringBasedNeo4jQuery extends AbstractNeo4jQuery {
 	 * @param parameterName  name of the parameter
 	 * @return The name of the parameter in its native Cypher form.
 	 */
-	private static String replacementSource(@SuppressWarnings("unused") String originalPrefix, String parameterName) {
+	static String replacementSource(@SuppressWarnings("unused") String originalPrefix, String parameterName) {
 		return "$" + parameterName;
 	}
 

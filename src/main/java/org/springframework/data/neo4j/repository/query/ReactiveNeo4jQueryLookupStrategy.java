@@ -26,8 +26,8 @@ import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.repository.core.NamedQueries;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.query.QueryLookupStrategy;
-import org.springframework.data.repository.query.QueryMethodEvaluationContextProvider;
 import org.springframework.data.repository.query.RepositoryQuery;
+import org.springframework.data.repository.query.ValueExpressionDelegate;
 
 /**
  * Lookup strategy for queries. This is the internal api of the {@code query package}.
@@ -41,14 +41,14 @@ public final class ReactiveNeo4jQueryLookupStrategy implements QueryLookupStrate
 
 	private final ReactiveNeo4jOperations neo4jOperations;
 	private final Neo4jMappingContext mappingContext;
-	private final QueryMethodEvaluationContextProvider evaluationContextProvider;
+	private final ValueExpressionDelegate delegate;
 	private final Configuration configuration;
 
 	public ReactiveNeo4jQueryLookupStrategy(ReactiveNeo4jOperations neo4jOperations, Neo4jMappingContext mappingContext,
-			QueryMethodEvaluationContextProvider evaluationContextProvider, Configuration configuration) {
+			ValueExpressionDelegate delegate, Configuration configuration) {
 		this.neo4jOperations = neo4jOperations;
 		this.mappingContext = mappingContext;
-		this.evaluationContextProvider = evaluationContextProvider;
+		this.delegate = delegate;
 		this.configuration = configuration;
 	}
 
@@ -63,10 +63,10 @@ public final class ReactiveNeo4jQueryLookupStrategy implements QueryLookupStrate
 		String namedQueryName = queryMethod.getNamedQueryName();
 
 		if (namedQueries.hasQuery(namedQueryName)) {
-			return ReactiveStringBasedNeo4jQuery.create(neo4jOperations, mappingContext, evaluationContextProvider,
+			return ReactiveStringBasedNeo4jQuery.create(neo4jOperations, mappingContext, delegate,
 					queryMethod, namedQueries.getQuery(namedQueryName), projectionFactory);
 		} else if (queryMethod.hasQueryAnnotation()) {
-			return ReactiveStringBasedNeo4jQuery.create(neo4jOperations, mappingContext, evaluationContextProvider,
+			return ReactiveStringBasedNeo4jQuery.create(neo4jOperations, mappingContext, delegate,
 					queryMethod, projectionFactory);
 		} else if (queryMethod.isCypherBasedProjection()) {
 			return ReactiveCypherdslBasedQuery.create(neo4jOperations, mappingContext, queryMethod, projectionFactory, Renderer.getRenderer(configuration)::render);

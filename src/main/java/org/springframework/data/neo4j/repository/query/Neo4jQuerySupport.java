@@ -44,6 +44,7 @@ import org.springframework.data.domain.Range;
 import org.springframework.data.domain.ScrollPosition;
 import org.springframework.data.domain.ScrollPosition.Direction;
 import org.springframework.data.domain.Window;
+import org.springframework.data.expression.ValueExpressionParser;
 import org.springframework.data.geo.Box;
 import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.Distance;
@@ -60,7 +61,6 @@ import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.data.repository.query.ResultProcessor;
 import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.data.util.TypeInformation;
-import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
@@ -74,7 +74,7 @@ import org.springframework.util.Assert;
  */
 abstract class Neo4jQuerySupport {
 
-	protected static final SpelExpressionParser SPEL_EXPRESSION_PARSER = new SpelExpressionParser();
+	protected static final ValueExpressionParser SPEL_EXPRESSION_PARSER = ValueExpressionParser.create();
 
 	protected final Neo4jMappingContext mappingContext;
 	protected final Neo4jQueryMethod queryMethod;

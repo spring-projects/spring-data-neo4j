@@ -36,6 +36,11 @@ public interface ARepository extends Neo4jRepository<AnAggregateRoot, String> {
 	Optional<AnAggregateRoot> findByCustomQuery(String name);
 	// end::standard-parameter[]
 
+	// tag::property-placeholder[]
+	@Query("MATCH (a:AnAggregateRoot) WHERE a.name = :${foo} RETURN a")
+	Optional<AnAggregateRoot> findByCustomQueryWithPropertyPlaceholder();
+	// end::property-placeholder[]
+
 	// tag::spel[]
 	@Query("MATCH (a:AnAggregateRoot) WHERE a.name = :#{#pt1 + #pt2} RETURN a")
 	Optional<AnAggregateRoot> findByCustomQueryWithSpEL(String pt1, String pt2);

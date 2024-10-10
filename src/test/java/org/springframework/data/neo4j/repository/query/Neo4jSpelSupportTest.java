@@ -39,13 +39,14 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.expression.ValueExpressionParser;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.repository.query.Neo4jSpelSupport.LiteralReplacement;
 import org.springframework.data.repository.core.EntityMetadata;
-import org.springframework.data.repository.query.SpelQueryContext;
-import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.data.repository.query.ValueExpressionDelegate;
+import org.springframework.data.repository.query.ValueExpressionQueryRewriter;
 import org.springframework.util.ReflectionUtils;
 
 /**
@@ -188,11 +189,9 @@ class Neo4jSpelSupportTest {
 	@Test
 	void moreThan10SpelEntriesShouldWork() {
 
-		SpelQueryContext spelQueryContext = StringBasedNeo4jQuery.SPEL_QUERY_CONTEXT;
-
 		StringBuilder template = new StringBuilder("MATCH (user:User) WHERE ");
 		String query;
-		SpelQueryContext.SpelExtractor spelExtractor;
+		ValueExpressionQueryRewriter.ParsedQuery spelExtractor;
 
 		class R implements LiteralReplacement {
 			private final String value;
@@ -218,7 +217,8 @@ class Neo4jSpelSupportTest {
 			parameters.put("__SpEL__" + i, new R("'x" + i + "'"));
 		}
 		template.delete(template.length() - 4, template.length());
-		spelExtractor = spelQueryContext.parse(template.toString());
+		spelExtractor = ValueExpressionQueryRewriter.of(ValueExpressionDelegate.create(),
+				StringBasedNeo4jQuery::parameterNameSource, StringBasedNeo4jQuery::replacementSource).parse(template.toString());
 		query = spelExtractor.getQueryString();
 		Neo4jQuerySupport.QueryContext qc = new Neo4jQuerySupport.QueryContext("n/a", query, parameters);
 		assertThat(qc.query).isEqualTo(
@@ -240,7 +240,7 @@ class Neo4jSpelSupportTest {
 
 		String query = Neo4jSpelSupport.renderQueryIfExpressionOrReturnQuery(
 				"MATCH (n:#{#staticLabels}) WHERE n.name = ?#{#name} OR n.name = :?#{#name} RETURN n",
-				new Neo4jMappingContext(), (EntityMetadata<BikeNode>) () -> BikeNode.class, new SpelExpressionParser());
+				new Neo4jMappingContext(), (EntityMetadata<BikeNode>) () -> BikeNode.class, ValueExpressionParser.create());
 
 		assertThat(query).isEqualTo("MATCH (n:`Bike`:`Gravel`:`Easy Trail`) WHERE n.name = ?#{#name} OR n.name = :?#{#name} RETURN n");
 

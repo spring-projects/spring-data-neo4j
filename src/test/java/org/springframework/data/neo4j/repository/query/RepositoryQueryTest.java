@@ -57,6 +57,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.expression.ValueExpressionParser;
 import org.springframework.data.mapping.MappingException;
 import org.springframework.data.neo4j.core.Neo4jOperations;
 import org.springframework.data.neo4j.core.PreparedQuery;
@@ -71,12 +72,12 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.core.NamedQueries;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.core.support.DefaultRepositoryMetadata;
-import org.springframework.data.repository.query.ExtensionAwareQueryMethodEvaluationContextProvider;
 import org.springframework.data.repository.query.Param;
-import org.springframework.data.repository.query.QueryMethodEvaluationContextProvider;
+import org.springframework.data.repository.query.QueryMethodValueEvaluationContextAccessor;
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.data.repository.query.ReturnedType;
-import org.springframework.data.repository.query.SpelQueryContext;
+import org.springframework.data.repository.query.ValueExpressionDelegate;
+import org.springframework.data.repository.query.ValueExpressionQueryRewriter;
 import org.springframework.util.ReflectionUtils;
 
 /**
@@ -200,7 +201,7 @@ final class RepositoryQueryTest {
 
 			final Neo4jQueryLookupStrategy lookupStrategy = new Neo4jQueryLookupStrategy(neo4jOperations,
 					neo4jMappingContext,
-					QueryMethodEvaluationContextProvider.DEFAULT, Configuration.defaultConfig());
+					ValueExpressionDelegate.create(), Configuration.defaultConfig());
 
 			RepositoryQuery query = lookupStrategy.resolveQuery(queryMethod("findById", Object.class),
 					TEST_REPOSITORY_METADATA, PROJECTION_FACTORY, namedQueries);
@@ -211,7 +212,7 @@ final class RepositoryQueryTest {
 		void shouldSelectStringBasedNeo4jQuery() {
 
 			final Neo4jQueryLookupStrategy lookupStrategy = new Neo4jQueryLookupStrategy(neo4jOperations,
-					neo4jMappingContext, QueryMethodEvaluationContextProvider.DEFAULT, Configuration.defaultConfig());
+					neo4jMappingContext, ValueExpressionDelegate.create(), Configuration.defaultConfig());
 
 			RepositoryQuery query = lookupStrategy.resolveQuery(queryMethod("annotatedQueryWithValidTemplate"),
 					TEST_REPOSITORY_METADATA, PROJECTION_FACTORY, namedQueries);
@@ -226,7 +227,7 @@ final class RepositoryQueryTest {
 			when(namedQueries.getQuery(namedQueryName)).thenReturn("MATCH (n) RETURN n");
 
 			final Neo4jQueryLookupStrategy lookupStrategy = new Neo4jQueryLookupStrategy(neo4jOperations,
-					neo4jMappingContext, QueryMethodEvaluationContextProvider.DEFAULT, Configuration.defaultConfig());
+					neo4jMappingContext, ValueExpressionDelegate.create(), Configuration.defaultConfig());
 
 			RepositoryQuery query = lookupStrategy
 					.resolveQuery(queryMethod("findAllByANamedQuery"), TEST_REPOSITORY_METADATA,
@@ -241,12 +242,13 @@ final class RepositoryQueryTest {
 
 		@Test
 		void spelQueryContextShouldBeConfiguredCorrectly() {
-
-			SpelQueryContext spelQueryContext = StringBasedNeo4jQuery.SPEL_QUERY_CONTEXT;
+			ValueExpressionQueryRewriter.EvaluatingValueExpressionQueryRewriter spelQueryContext = ValueExpressionQueryRewriter.of(
+					ValueExpressionDelegate.create(), StringBasedNeo4jQuery::parameterNameSource,
+					StringBasedNeo4jQuery::replacementSource);
 
 			String template;
 			String query;
-			SpelQueryContext.SpelExtractor spelExtractor;
+			ValueExpressionQueryRewriter.ParsedQuery spelExtractor;
 
 			template = "MATCH (user:User) WHERE user.name = :#{#searchUser.name} and user.middleName = ?#{#searchUser.middleName} RETURN user";
 
@@ -272,7 +274,7 @@ final class RepositoryQueryTest {
 			assertThatExceptionOfType(MappingException.class)
 					.isThrownBy(() -> StringBasedNeo4jQuery
 							.create(neo4jOperations, neo4jMappingContext,
-									QueryMethodEvaluationContextProvider.DEFAULT, method, projectionFactory))
+									ValueExpressionDelegate.create(), method, projectionFactory))
 					.withMessage("Expected @Query annotation to have a value, but it did not");
 		}
 
@@ -283,7 +285,7 @@ final class RepositoryQueryTest {
 			assertThatExceptionOfType(MappingException.class)
 					.isThrownBy(() -> StringBasedNeo4jQuery
 							.create(neo4jOperations, neo4jMappingContext,
-									QueryMethodEvaluationContextProvider.DEFAULT, method, projectionFactory))
+									ValueExpressionDelegate.create(), method, projectionFactory))
 					.withMessage("Expected paging query method to have a count query");
 		}
 
@@ -292,7 +294,7 @@ final class RepositoryQueryTest {
 
 			Neo4jQueryMethod method = neo4jQueryMethod("missingCountQueryOnSlice", Pageable.class);
 			StringBasedNeo4jQuery.create(neo4jOperations, neo4jMappingContext,
-					QueryMethodEvaluationContextProvider.DEFAULT, method, projectionFactory);
+					ValueExpressionDelegate.create(), method, projectionFactory);
 			assertThat(logbackCapture.getFormattedMessages())
 					.anyMatch(s -> s.matches(
 							"(?s)You provided a string based query returning a slice for '.*\\.missingCountQueryOnSlice'\\. You might want to consider adding a count query if more slices than you expect are returned\\."));
@@ -303,7 +305,7 @@ final class RepositoryQueryTest {
 
 			Neo4jQueryMethod method = neo4jQueryMethod("missingPlaceHoldersOnPage", Pageable.class);
 			StringBasedNeo4jQuery.create(neo4jOperations, neo4jMappingContext,
-					QueryMethodEvaluationContextProvider.DEFAULT, method, projectionFactory);
+					ValueExpressionDelegate.create(), method, projectionFactory);
 			assertThat(logbackCapture.getFormattedMessages())
 					.anyMatch(s -> s.matches(
 							"(?s)The custom query.*MATCH \\(n:Page\\) return n.*for '.*\\.missingPlaceHoldersOnPage' is supposed to work with a page or slicing query but does not have the required parameter placeholders `\\$skip` and `\\$limit`\\..*"));
@@ -314,7 +316,7 @@ final class RepositoryQueryTest {
 
 			Neo4jQueryMethod method = neo4jQueryMethod("missingPlaceHoldersOnSlice", Pageable.class);
 			StringBasedNeo4jQuery.create(neo4jOperations, neo4jMappingContext,
-					QueryMethodEvaluationContextProvider.DEFAULT, method, projectionFactory);
+					ValueExpressionDelegate.create(), method, projectionFactory);
 			assertThat(logbackCapture.getFormattedMessages())
 					.anyMatch(s -> s.matches(
 							"(?s)The custom query.*MATCH \\(n:Slice\\) return n.*is supposed to work with a page or slicing query but does not have the required parameter placeholders `\\$skip` and `\\$limit`\\..*"));
@@ -326,7 +328,7 @@ final class RepositoryQueryTest {
 			Neo4jQueryMethod method = neo4jQueryMethod("findAllExtendedEntitiesWithCustomQuery", Sort.class);
 			AbstractNeo4jQuery query =
 					StringBasedNeo4jQuery.create(neo4jOperations, neo4jMappingContext,
-							QueryMethodEvaluationContextProvider.DEFAULT, method, projectionFactory);
+							ValueExpressionDelegate.create(), method, projectionFactory);
 
 			Neo4jParameterAccessor parameterAccessor = new Neo4jParameterAccessor(
 					(Neo4jQueryMethod.Neo4jParameters) method.getParameters(),
@@ -353,7 +355,7 @@ final class RepositoryQueryTest {
 			Neo4jQueryMethod method = neo4jQueryMethod("noWarningsPerSe", Pageable.class);
 			AbstractNeo4jQuery query =
 					StringBasedNeo4jQuery.create(neo4jOperations, neo4jMappingContext,
-							QueryMethodEvaluationContextProvider.DEFAULT, method, projectionFactory);
+							ValueExpressionDelegate.create(), method, projectionFactory);
 			Neo4jParameterAccessor parameterAccessor = new Neo4jParameterAccessor(
 					(Neo4jQueryMethod.Neo4jParameters) method.getParameters(),
 					new Object[] { PageRequest.of(1, 1, Sort.by("name").ascending()) });
@@ -383,9 +385,11 @@ final class RepositoryQueryTest {
 					new Neo4jEvaluationContextExtension());
 			context.refresh();
 
+			ValueExpressionDelegate delegate = new ValueExpressionDelegate(new QueryMethodValueEvaluationContextAccessor(context), ValueExpressionParser.create());
+
 			Neo4jQueryMethod method = neo4jQueryMethod("orderBySpel", Pageable.class);
 			StringBasedNeo4jQuery query = StringBasedNeo4jQuery.create(neo4jOperations, neo4jMappingContext,
-							new ExtensionAwareQueryMethodEvaluationContextProvider(context.getBeanFactory()), method, projectionFactory);
+					delegate, method, projectionFactory);
 
 			Neo4jParameterAccessor parameterAccessor = new Neo4jParameterAccessor(
 					(Neo4jQueryMethod.Neo4jParameters) method.getParameters(),
@@ -415,9 +419,11 @@ final class RepositoryQueryTest {
 					new Neo4jEvaluationContextExtension());
 			context.refresh();
 
+			ValueExpressionDelegate delegate = new ValueExpressionDelegate(new QueryMethodValueEvaluationContextAccessor(context), ValueExpressionParser.create());
+
 			Neo4jQueryMethod method = neo4jQueryMethod("makeStaticThingsDynamic", String.class, String.class, String.class, String.class, Sort.class);
 			StringBasedNeo4jQuery query = StringBasedNeo4jQuery.create(neo4jOperations, neo4jMappingContext,
-							new ExtensionAwareQueryMethodEvaluationContextProvider(context.getBeanFactory()), method, projectionFactory);
+					delegate, method, projectionFactory);
 
 			Neo4jParameterAccessor parameterAccessor = new Neo4jParameterAccessor(
 					(Neo4jQueryMethod.Neo4jParameters) method.getParameters(),
@@ -442,7 +448,7 @@ final class RepositoryQueryTest {
 					String.class);
 
 			StringBasedNeo4jQuery repositoryQuery = spy(StringBasedNeo4jQuery.create(neo4jOperations,
-					neo4jMappingContext, QueryMethodEvaluationContextProvider.DEFAULT, method, projectionFactory));
+					neo4jMappingContext, ValueExpressionDelegate.create(), method, projectionFactory));
 
 			// skip conversion
 			doAnswer(invocation -> invocation.getArgument(0)).when(repositoryQuery).convertParameter(any());
@@ -461,7 +467,7 @@ final class RepositoryQueryTest {
 					org.neo4j.driver.types.Point.class, String.class, String.class);
 
 			StringBasedNeo4jQuery repositoryQuery = spy(StringBasedNeo4jQuery.create(neo4jOperations,
-					neo4jMappingContext, QueryMethodEvaluationContextProvider.DEFAULT, method, projectionFactory));
+					neo4jMappingContext, ValueExpressionDelegate.create(), method, projectionFactory));
 
 			// skip conversion
 			doAnswer(invocation -> invocation.getArgument(0)).when(repositoryQuery).convertParameter(any());
