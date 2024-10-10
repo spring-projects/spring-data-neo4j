@@ -323,7 +323,7 @@ class QuerydslNeo4jPredicateExecutorIT {
 		Predicate predicate = Expressions.predicate(Ops.EQ, firstNamePath, Expressions.asString("Helge"))
 				.or(Expressions.predicate(Ops.EQ, lastNamePath, Expressions.asString("B.")));
 		List<Person> people = repository.findBy(predicate,
-				q -> q.limit(1)).all();
+				q -> q.sortBy(Sort.by("firstName").descending()).limit(1)).all();
 
 		assertThat(people).hasSize(1);
 		assertThat(people).extracting(Person::getFirstName).containsExactly("Helge");
