@@ -110,7 +110,7 @@
 
 		<skipUnitTests>${skipTests}</skipUnitTests>
 
-		<springdata.commons>3.4.0-GH-3049-SNAPSHOT</springdata.commons>
+		<springdata.commons>3.4.0-SNAPSHOT</springdata.commons>
 		<junit-pioneer.version>2.2.0</junit-pioneer.version>
 	</properties>
 
