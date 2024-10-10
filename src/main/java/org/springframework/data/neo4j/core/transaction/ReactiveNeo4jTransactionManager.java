@@ -21,6 +21,7 @@ import reactor.util.function.Tuples;
 import org.apiguardian.api.API;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.TransactionConfig;
+import org.neo4j.driver.exceptions.RetryableException;
 import org.neo4j.driver.reactivestreams.ReactiveSession;
 import org.neo4j.driver.reactivestreams.ReactiveTransaction;
 import org.springframework.beans.BeansException;
@@ -35,6 +36,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.transaction.NoTransactionException;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionException;
+import org.springframework.transaction.TransactionSystemException;
 import org.springframework.transaction.reactive.AbstractReactiveTransactionManager;
 import org.springframework.transaction.reactive.GenericReactiveTransaction;
 import org.springframework.transaction.reactive.TransactionSynchronizationManager;
@@ -326,6 +328,7 @@ public final class ReactiveNeo4jTransactionManager extends AbstractReactiveTrans
 				.getRequiredResourceHolder();
 		return holder.commit()
 				.doOnNext(bookmark -> bookmarkManager.resolve().updateBookmarks(holder.getBookmarks(), bookmark))
+				.onErrorMap(e -> e instanceof RetryableException, e -> new TransactionSystemException(e.getMessage(), e))
 				.then();
 	}
 
