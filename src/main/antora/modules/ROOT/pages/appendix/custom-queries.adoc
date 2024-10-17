@@ -519,4 +519,4 @@ Spring's property placeholders can be used in custom queries inside `${}`.
 include::example$documentation/repositories/domain_events/ARepository.java[tags=property-placeholder]
 ----
 
-In the example above, if the property `foo` would be set to `bar` then the `${foo}` block would be resolved to `bar`.
+In the example above, if the property `foo` would be set to `bar` then the `$\{foo\}` block would be resolved to `bar`.
