@@ -216,7 +216,7 @@ public final class Neo4jTemplate implements
 		return transactionTemplateReadOnly.execute(tx -> {
 			PreparedQuery<Long> preparedQuery = PreparedQuery.queryFor(Long.class).withCypherQuery(cypherQuery)
 					.withParameters(parameters).build();
-			return toExecutableQuery(preparedQuery).getRequiredSingleResult();
+			return toExecutableQuery(preparedQuery, true).getRequiredSingleResult();
 		});
 	}
 
@@ -230,7 +230,8 @@ public final class Neo4jTemplate implements
 		return transactionTemplateReadOnly
 				.execute(tx -> {
 					Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getRequiredPersistentEntity(domainType);
-					return createExecutableQuery(domainType, resultType, QueryFragmentsAndParameters.forFindAll(entityMetaData))
+					return createExecutableQuery(
+							domainType, resultType, QueryFragmentsAndParameters.forFindAll(entityMetaData), true)
 							.getResults();
 				});
 	}
@@ -238,37 +239,37 @@ public final class Neo4jTemplate implements
 	@Override
 	public <T> List<T> findAll(Statement statement, Class<T> domainType) {
 		return transactionTemplateReadOnly
-				.execute(tx -> createExecutableQuery(domainType, statement).getResults());
+				.execute(tx -> createExecutableQuery(domainType, statement, true).getResults());
 	}
 
 	@Override
 	public <T> List<T> findAll(Statement statement, Map<String, Object> parameters, Class<T> domainType) {
 		return transactionTemplateReadOnly
-				.execute(tx -> createExecutableQuery(domainType, null, statement, parameters).getResults());
+				.execute(tx -> createExecutableQuery(domainType, null, statement, parameters, true).getResults());
 	}
 
 	@Override
 	public <T> Optional<T> findOne(Statement statement, Map<String, Object> parameters, Class<T> domainType) {
 		return transactionTemplateReadOnly
-				.execute(tx -> createExecutableQuery(domainType, null, statement, parameters).getSingleResult());
+				.execute(tx -> createExecutableQuery(domainType, null, statement, parameters, true).getSingleResult());
 	}
 
 	@Override
 	public <T> List<T> findAll(String cypherQuery, Class<T> domainType) {
 		return transactionTemplateReadOnly
-				.execute(tx -> createExecutableQuery(domainType, cypherQuery).getResults());
+				.execute(tx -> createExecutableQuery(domainType, cypherQuery, true).getResults());
 	}
 
 	@Override
 	public <T> List<T> findAll(String cypherQuery, Map<String, Object> parameters, Class<T> domainType) {
 		return transactionTemplateReadOnly
-				.execute(tx -> createExecutableQuery(domainType, null, cypherQuery, parameters).getResults());
+				.execute(tx -> createExecutableQuery(domainType, null, cypherQuery, parameters, true).getResults());
 	}
 
 	@Override
 	public <T> Optional<T> findOne(String cypherQuery, Map<String, Object> parameters, Class<T> domainType) {
 		return transactionTemplateReadOnly
-				.execute(tx -> createExecutableQuery(domainType, null, cypherQuery, parameters).getSingleResult());
+				.execute(tx -> createExecutableQuery(domainType, null, cypherQuery, parameters, true).getSingleResult());
 	}
 
 	@Override
@@ -288,9 +289,10 @@ public final class Neo4jTemplate implements
 				ExecutableQuery<T> executableQuery;
 				if (queryFragmentsAndParameters == null) {
 					executableQuery = createExecutableQuery(domainType, resultType, cypherQuery,
-							parameters == null ? Collections.emptyMap() : parameters);
+							parameters == null ? Collections.emptyMap() : parameters,
+							true);
 				} else {
-					executableQuery = createExecutableQuery(domainType, resultType, queryFragmentsAndParameters);
+					executableQuery = createExecutableQuery(domainType, resultType, queryFragmentsAndParameters, true);
 				}
 				intermediaResults = switch (fetchType) {
 					case ALL -> executableQuery.getResults();
@@ -341,7 +343,8 @@ public final class Neo4jTemplate implements
 
 					return createExecutableQuery(domainType, null,
 							QueryFragmentsAndParameters.forFindById(entityMetaData,
-									convertIdValues(entityMetaData.getRequiredIdProperty(), id)))
+									convertIdValues(entityMetaData.getRequiredIdProperty(), id)),
+							true)
 							.getSingleResult();
 				});
 	}
@@ -354,7 +357,8 @@ public final class Neo4jTemplate implements
 
 					return createExecutableQuery(domainType, null,
 							QueryFragmentsAndParameters.forFindByAllId(
-									entityMetaData, convertIdValues(entityMetaData.getRequiredIdProperty(), ids)))
+									entityMetaData, convertIdValues(entityMetaData.getRequiredIdProperty(), ids)),
+							true)
 							.getResults();
 				});
 	}
@@ -697,7 +701,7 @@ public final class Neo4jTemplate implements
 					parameters.put(nameOfParameter, convertIdValues(entityMetaData.getRequiredIdProperty(), id));
 					parameters.put(Constants.NAME_OF_VERSION_PARAM, versionValue);
 
-					createExecutableQuery(domainType, null, statement, parameters).getSingleResult().orElseThrow(
+					createExecutableQuery(domainType, null, statement, parameters, false).getSingleResult().orElseThrow(
 							() -> new OptimisticLockingFailureException(OPTIMISTIC_LOCKING_ERROR_MESSAGE)
 					);
 
@@ -744,21 +748,24 @@ public final class Neo4jTemplate implements
 				});
 	}
 
-	private <T> ExecutableQuery<T> createExecutableQuery(Class<T> domainType, Statement statement) {
-		return createExecutableQuery(domainType, null, statement, Collections.emptyMap());
+	private <T> ExecutableQuery<T> createExecutableQuery(Class<T> domainType, Statement statement, boolean readOnly) {
+		return createExecutableQuery(domainType, null, statement, Collections.emptyMap(), readOnly);
 	}
 
-	private <T> ExecutableQuery<T> createExecutableQuery(Class<T> domainType, String cypherQuery) {
-		return createExecutableQuery(domainType, null, cypherQuery, Collections.emptyMap());
+	private <T> ExecutableQuery<T> createExecutableQuery(Class<T> domainType, String cypherQuery, boolean readOnly) {
+		return createExecutableQuery(domainType, null, cypherQuery, Collections.emptyMap(), readOnly);
 	}
 
-	private <T> ExecutableQuery<T> createExecutableQuery(Class<T> domainType, @Nullable Class<?> resultType, Statement statement, Map<String, Object> parameters) {
+	private <T> ExecutableQuery<T> createExecutableQuery(Class<T> domainType, @Nullable Class<?> resultType, Statement statement, Map<String, Object> parameters, boolean readOnly) {
 
-		return createExecutableQuery(domainType, resultType, renderer.render(statement), TemplateSupport.mergeParameters(statement, parameters));
+		return createExecutableQuery(domainType, resultType, renderer.render(statement), TemplateSupport.mergeParameters(statement, parameters), readOnly);
 	}
 
-	private <T> ExecutableQuery<T> createExecutableQuery(Class<T> domainType, @Nullable Class<?> resultType,  @Nullable String cypherStatement,
-			Map<String, Object> parameters) {
+	private <T> ExecutableQuery<T> createExecutableQuery(
+			Class<T> domainType, @Nullable Class<?> resultType,
+			@Nullable String cypherStatement,
+			Map<String, Object> parameters,
+			boolean readOnly) {
 
 		Supplier<BiFunction<TypeSystem, MapAccessor, ?>> mappingFunction = TemplateSupport
 				.getAndDecorateMappingFunction(neo4jMappingContext, domainType, resultType);
@@ -768,7 +775,7 @@ public final class Neo4jTemplate implements
 				.usingMappingFunction(mappingFunction)
 				.build();
 
-		return toExecutableQuery(preparedQuery);
+		return toExecutableQuery(preparedQuery, readOnly);
 	}
 
 	/**
@@ -1191,12 +1198,14 @@ public final class Neo4jTemplate implements
 	public <T> ExecutableQuery<T> toExecutableQuery(Class<T> domainType,
 													QueryFragmentsAndParameters queryFragmentsAndParameters) {
 
-		return createExecutableQuery(domainType, null, queryFragmentsAndParameters);
+		return createExecutableQuery(domainType, null, queryFragmentsAndParameters, false);
 	}
 
 
-	private <T> ExecutableQuery<T> createExecutableQuery(Class<T> domainType, @Nullable Class<?> resultType,
- 			QueryFragmentsAndParameters queryFragmentsAndParameters) {
+	private <T> ExecutableQuery<T> createExecutableQuery(
+			Class<T> domainType, @Nullable Class<?> resultType,
+ 			QueryFragmentsAndParameters queryFragmentsAndParameters,
+			boolean readOnlyTransaction) {
 
 		Supplier<BiFunction<TypeSystem, MapAccessor, ?>> mappingFunction = TemplateSupport
 				.getAndDecorateMappingFunction(neo4jMappingContext, domainType, resultType);
@@ -1204,13 +1213,16 @@ public final class Neo4jTemplate implements
 				.withQueryFragmentsAndParameters(queryFragmentsAndParameters)
 				.usingMappingFunction(mappingFunction)
 				.build();
-		return toExecutableQuery(preparedQuery);
+		return toExecutableQuery(preparedQuery, readOnlyTransaction);
 	}
 
 	@Override
 	public <T> ExecutableQuery<T> toExecutableQuery(PreparedQuery<T> preparedQuery) {
+        return toExecutableQuery(preparedQuery, false);
+	}
 
-		return new DefaultExecutableQuery<>(preparedQuery);
+	private <T> ExecutableQuery<T> toExecutableQuery(PreparedQuery<T> preparedQuery, boolean readOnly) {
+		return new DefaultExecutableQuery<>(preparedQuery, readOnly);
 	}
 
 	@Override
@@ -1255,14 +1267,17 @@ public final class Neo4jTemplate implements
 	final class DefaultExecutableQuery<T> implements ExecutableQuery<T> {
 
 		private final PreparedQuery<T> preparedQuery;
+		private final TransactionTemplate txTemplate;
 
-		DefaultExecutableQuery(PreparedQuery<T> preparedQuery) {
+		DefaultExecutableQuery(PreparedQuery<T> preparedQuery, boolean readOnly) {
 			this.preparedQuery = preparedQuery;
+			this.txTemplate = readOnly ? transactionTemplateReadOnly : transactionTemplate;
 		}
+
 
 		@SuppressWarnings("unchecked")
 		public List<T> getResults() {
-			return transactionTemplate
+			return txTemplate
 					.execute(tx -> {
 						Collection<T> all = createFetchSpec().map(Neo4jClient.RecordFetchSpec::all).orElse(Collections.emptyList());
 						if (preparedQuery.resultsHaveBeenAggregated()) {
@@ -1274,7 +1289,7 @@ public final class Neo4jTemplate implements
 
 		@SuppressWarnings("unchecked")
 		public Optional<T> getSingleResult() {
-			return transactionTemplate.execute(tx -> {
+			return txTemplate.execute(tx -> {
 				try {
 					Optional<T> one = createFetchSpec().flatMap(Neo4jClient.RecordFetchSpec::one);
 					if (preparedQuery.resultsHaveBeenAggregated()) {
@@ -1291,7 +1306,7 @@ public final class Neo4jTemplate implements
 
 		@SuppressWarnings("unchecked")
 		public T getRequiredSingleResult() {
-			return transactionTemplate.execute(tx -> {
+			return txTemplate.execute(tx -> {
 				Optional<T> one = createFetchSpec().flatMap(Neo4jClient.RecordFetchSpec::one);
 				if (preparedQuery.resultsHaveBeenAggregated()) {
 					one = one.map(aggregatedResults -> ((LinkedHashSet<T>) aggregatedResults).iterator().next());
