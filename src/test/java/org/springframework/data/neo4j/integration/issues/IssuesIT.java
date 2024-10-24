@@ -169,6 +169,8 @@ import org.springframework.data.neo4j.integration.issues.gh2908.LocatedNodeWithS
 import org.springframework.data.neo4j.integration.issues.gh2908.Place;
 import org.springframework.data.neo4j.integration.issues.gh2918.ConditionNode;
 import org.springframework.data.neo4j.integration.issues.gh2918.ConditionRepository;
+import org.springframework.data.neo4j.integration.issues.gh2963.MyModel;
+import org.springframework.data.neo4j.integration.issues.gh2963.MyRepository;
 import org.springframework.data.neo4j.integration.issues.qbe.A;
 import org.springframework.data.neo4j.integration.issues.qbe.ARepository;
 import org.springframework.data.neo4j.integration.issues.qbe.B;
@@ -1334,6 +1336,25 @@ class IssuesIT extends TestBase {
 		} finally {
 			logbackCapture.resetLogLevel();
 		}
+	}
+
+	@Tag("GH-2963")
+	@Test
+	void customQueriesShouldKeepWorkingWithoutSpecifyingTheRelDirectionInTheirQueries(@Autowired MyRepository myRepository) {
+		// set up data in database
+		MyModel myNestedModel = new MyModel();
+		myNestedModel.setName("nested");
+
+		MyModel myRootModel = new MyModel();
+		myRootModel.setName("root");
+		myRootModel.setMyNestedModel(myNestedModel);
+
+		String uuid = myRepository.save(myRootModel).getUuid();
+		Optional<MyModel> rootModelFromDbCustom = myRepository.getByUuidCustomQuery(uuid);
+		assertThat(rootModelFromDbCustom).map(MyModel::getMyNestedModel).isPresent();
+
+		rootModelFromDbCustom = myRepository.getByUuidCustomQueryV2(uuid);
+		assertThat(rootModelFromDbCustom).map(MyModel::getMyNestedModel).isPresent();
 	}
 
 	@Configuration

@@ -675,6 +675,11 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 		String collectionName = relationshipDescription.generateRelatedNodesCollectionName(baseDescription);
 		Value list = values.get(collectionName);
 		boolean relationshipListEmptyOrNull = Values.NULL.equals(list);
+		if (relationshipListEmptyOrNull) {
+			collectionName = collectionName.replaceFirst("_" + relationshipDescription.isOutgoing() + "\\z", "");
+		}
+		list = values.get(collectionName);
+		relationshipListEmptyOrNull = Values.NULL.equals(list);
 
 		List<Object> relationshipsAndProperties = new ArrayList<>();
 
