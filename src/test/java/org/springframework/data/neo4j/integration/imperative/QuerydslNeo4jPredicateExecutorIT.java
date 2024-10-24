@@ -170,9 +170,10 @@ class QuerydslNeo4jPredicateExecutorIT {
 		Predicate predicate = Expressions.predicate(Ops.EQ, firstNamePath, Expressions.asString("Helge"))
 				.or(Expressions.predicate(Ops.EQ, lastNamePath, Expressions.asString("B.")));
 
-		Window<Person> peopleWindow = repository.findBy(predicate, q -> q.limit(1).sortBy(Sort.by("firstName").descending()).scroll(ScrollPosition.offset(0)));
+		var firstName = Sort.by("firstName").descending();
+		Window<Person> peopleWindow = repository.findBy(predicate, q -> q.limit(1).sortBy(firstName).scroll(ScrollPosition.offset(0)));
 		ScrollPosition currentPosition = peopleWindow.positionAt(peopleWindow.getContent().get(0));
-		peopleWindow = repository.findBy(predicate, q -> q.limit(1).scroll(currentPosition));
+		peopleWindow = repository.findBy(predicate, q -> q.limit(1).sortBy(firstName).scroll(currentPosition));
 
 		assertThat(peopleWindow.getContent()).extracting(Person::getFirstName)
 				.containsExactlyInAnyOrder("Bela");
