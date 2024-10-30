@@ -38,4 +38,5 @@ node_modules
 node
 package-lock.json
 .mvn/.develocity
+.tmp
 
