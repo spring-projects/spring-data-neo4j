@@ -47,10 +47,18 @@ src(spring_boot, initial_release, end_of_oss_support, end_of_commercial_support)
 " \
 -s "
 CREATE OR REPLACE VIEW v_versions AS (
-  SELECT v.* EXCLUDE(id, release_date), release_date, end_of_oss_support, end_of_commercial_support
-  FROM versions v
+  WITH hlp AS (
+    SELECT *, f_make_version(v.spring_boot) AS orderable_version,
+    FROM versions v
+  )
+  SELECT v.* EXCLUDE(id, release_date, orderable_version),
+         release_date,
+         least(end_of_oss_support, lead(release_date) OVER release_order) AS end_of_oss_support,
+         least(end_of_commercial_support, lead(release_date) OVER release_order) AS end_of_commercial_support
+  FROM hlp v
   ASOF LEFT JOIN support_matrix sm ON f_make_version(v.spring_boot) >= f_make_version(sm.spring_boot)
-  ORDER BY f_make_version(v.spring_boot) ASC
+  WINDOW release_order AS (PARTITION BY f_make_version(sm.spring_boot) ORDER BY orderable_version ASC)
+  ORDER BY orderable_version ASC
 )" \
 -s "
 CREATE OR REPLACE VIEW v_oss_supported_versions AS (
