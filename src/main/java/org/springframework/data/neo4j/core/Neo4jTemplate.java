@@ -1221,7 +1221,7 @@ public final class Neo4jTemplate implements
         return toQuery(preparedQuery, false);
 	}
 
-	private <T> ExecutableQuery<T> toQuery(PreparedQuery<T> preparedQuery, boolean readOnly) {
+	private <T> ExecutableQuery<T> toExecutableQuery(PreparedQuery<T> preparedQuery, boolean readOnly) {
 		return new DefaultExecutableQuery<>(preparedQuery, readOnly);
 	}
 
