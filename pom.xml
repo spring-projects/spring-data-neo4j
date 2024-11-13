@@ -97,7 +97,7 @@
 		<maven-source-plugin.version>3.2.0</maven-source-plugin.version>
 		<maven-surefire-plugin.version>3.0.0-M4</maven-surefire-plugin.version>
 		<maven.compiler.release>${java.version}</maven.compiler.release>
-		<neo4j-java-driver.version>5.26.3</neo4j-java-driver.version>
+		<neo4j-java-driver.version>5.25.0</neo4j-java-driver.version>
 		<neo4j-migrations.version>1.13.1</neo4j-migrations.version>
 		<neo4j.version>4.4.8</neo4j.version>
 		<objenesis.version>3.0.1</objenesis.version>
