@@ -216,7 +216,7 @@ public final class Neo4jTemplate implements
 		return transactionTemplateReadOnly.execute(tx -> {
 			PreparedQuery<Long> preparedQuery = PreparedQuery.queryFor(Long.class).withCypherQuery(cypherQuery)
 					.withParameters(parameters).build();
-			return toQuery(preparedQuery, true).getRequiredSingleResult();
+			return toExecutableQuery(preparedQuery, true).getRequiredSingleResult();
 		});
 	}
 
@@ -775,7 +775,7 @@ public final class Neo4jTemplate implements
 				.usingMappingFunction(mappingFunction)
 				.build();
 
-		return toQuery(preparedQuery, readOnly);
+		return toExecutableQuery(preparedQuery, readOnly);
 	}
 
 	/**
@@ -1205,7 +1205,7 @@ public final class Neo4jTemplate implements
 	private <T> ExecutableQuery<T> createExecutableQuery(
 			Class<T> domainType, @Nullable Class<?> resultType,
  			QueryFragmentsAndParameters queryFragmentsAndParameters,
-			boolean readOnly) {
+			boolean readOnlyTransaction) {
 
 		Supplier<BiFunction<TypeSystem, MapAccessor, ?>> mappingFunction = TemplateSupport
 				.getAndDecorateMappingFunction(neo4jMappingContext, domainType, resultType);
@@ -1213,12 +1213,12 @@ public final class Neo4jTemplate implements
 				.withQueryFragmentsAndParameters(queryFragmentsAndParameters)
 				.usingMappingFunction(mappingFunction)
 				.build();
-		return toQuery(preparedQuery, readOnly);
+		return toExecutableQuery(preparedQuery, readOnlyTransaction);
 	}
 
 	@Override
 	public <T> ExecutableQuery<T> toExecutableQuery(PreparedQuery<T> preparedQuery) {
-        return toQuery(preparedQuery, false);
+        return toExecutableQuery(preparedQuery, false);
 	}
 
 	private <T> ExecutableQuery<T> toExecutableQuery(PreparedQuery<T> preparedQuery, boolean readOnly) {
