@@ -39,7 +39,6 @@ import org.springframework.data.repository.core.support.RepositoryFactorySupport
 import org.springframework.data.repository.core.support.RepositoryFragment;
 import org.springframework.data.repository.query.QueryLookupStrategy;
 import org.springframework.data.repository.query.QueryLookupStrategy.Key;
-import org.springframework.data.repository.query.QueryMethodEvaluationContextProvider;
 import org.springframework.data.repository.query.ValueExpressionDelegate;
 
 /**
@@ -61,8 +60,6 @@ final class Neo4jRepositoryFactory extends RepositoryFactorySupport {
 
 		this.neo4jOperations = neo4jOperations;
 		this.mappingContext = mappingContext;
-
-		setEvaluationContextProvider(QueryMethodEvaluationContextProvider.DEFAULT);
 	}
 
 	@SuppressWarnings("unchecked")

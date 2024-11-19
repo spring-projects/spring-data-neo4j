@@ -34,7 +34,6 @@ import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.RepositoryQuery;
-import org.springframework.data.repository.query.SpelQueryContext;
 import org.springframework.data.repository.query.ValueExpressionDelegate;
 import org.springframework.data.repository.query.ValueExpressionQueryRewriter;
 import org.springframework.lang.Nullable;
@@ -58,12 +57,6 @@ import org.springframework.util.StringUtils;
  */
 final class ReactiveStringBasedNeo4jQuery extends AbstractReactiveNeo4jQuery {
 
-	/**
-	 * Used for extracting SpEL expressions inside Cypher query templates.
-	 */
-	static final SpelQueryContext SPEL_QUERY_CONTEXT = SpelQueryContext
-			.of(ReactiveStringBasedNeo4jQuery::parameterNameSource, ReactiveStringBasedNeo4jQuery::replacementSource);
-
 	private final ValueExpressionQueryRewriter.EvaluatingValueExpressionQueryRewriter queryRewriter;
 
 	private final ValueExpressionQueryRewriter.QueryExpressionEvaluator parsedQuery;
@@ -79,8 +72,8 @@ final class ReactiveStringBasedNeo4jQuery extends AbstractReactiveNeo4jQuery {
 	 * @return A new instance of a String based Neo4j query.
 	 */
 	static ReactiveStringBasedNeo4jQuery create(ReactiveNeo4jOperations neo4jOperations,
-			Neo4jMappingContext mappingContext, ValueExpressionDelegate delegate,
-			Neo4jQueryMethod queryMethod, ProjectionFactory factory) {
+			Neo4jMappingContext mappingContext, ValueExpressionDelegate delegate, Neo4jQueryMethod queryMethod,
+			ProjectionFactory factory) {
 
 		Query queryAnnotation = queryMethod.getQueryAnnotation()
 				.orElseThrow(() -> new MappingException("Expected @Query annotation on the query method"));
@@ -88,8 +81,8 @@ final class ReactiveStringBasedNeo4jQuery extends AbstractReactiveNeo4jQuery {
 		String cypherTemplate = Optional.ofNullable(queryAnnotation.value()).filter(StringUtils::hasText)
 				.orElseThrow(() -> new MappingException("Expected @Query annotation to have a value, but it did not"));
 
-		return new ReactiveStringBasedNeo4jQuery(neo4jOperations, mappingContext, delegate, queryMethod,
-				cypherTemplate, Neo4jQueryType.fromDefinition(queryAnnotation), factory);
+		return new ReactiveStringBasedNeo4jQuery(neo4jOperations, mappingContext, delegate, queryMethod, cypherTemplate,
+				Neo4jQueryType.fromDefinition(queryAnnotation), factory);
 	}
 
 	/**
@@ -103,45 +96,44 @@ final class ReactiveStringBasedNeo4jQuery extends AbstractReactiveNeo4jQuery {
 	 * @return A new instance of a String based Neo4j query.
 	 */
 	static ReactiveStringBasedNeo4jQuery create(ReactiveNeo4jOperations neo4jOperations,
-			Neo4jMappingContext mappingContext, ValueExpressionDelegate delegate,
-			Neo4jQueryMethod queryMethod, String cypherTemplate, ProjectionFactory factory) {
+			Neo4jMappingContext mappingContext, ValueExpressionDelegate delegate, Neo4jQueryMethod queryMethod,
+			String cypherTemplate, ProjectionFactory factory) {
 
 		Assert.hasText(cypherTemplate, "Cannot create String based Neo4j query without a cypher template");
 
-		return new ReactiveStringBasedNeo4jQuery(neo4jOperations, mappingContext, delegate, queryMethod,
-				cypherTemplate, Neo4jQueryType.DEFAULT, factory);
+		return new ReactiveStringBasedNeo4jQuery(neo4jOperations, mappingContext, delegate, queryMethod, cypherTemplate,
+				Neo4jQueryType.DEFAULT, factory);
 	}
 
 	private ReactiveStringBasedNeo4jQuery(ReactiveNeo4jOperations neo4jOperations, Neo4jMappingContext mappingContext,
-			ValueExpressionDelegate delegate, Neo4jQueryMethod queryMethod,
-			String cypherTemplate, Neo4jQueryType queryType, ProjectionFactory factory) {
+			ValueExpressionDelegate delegate, Neo4jQueryMethod queryMethod, String cypherTemplate, Neo4jQueryType queryType,
+			ProjectionFactory factory) {
 
 		super(neo4jOperations, mappingContext, queryMethod, queryType, factory);
 
-		this.queryRewriter = ValueExpressionQueryRewriter.of(delegate,
-				StringBasedNeo4jQuery::parameterNameSource, StringBasedNeo4jQuery::replacementSource);
+		this.queryRewriter = createQueryRewriter(delegate);
 		this.parsedQuery = queryRewriter.parse(cypherTemplate, queryMethod.getParameters());
 	}
 
+	static ValueExpressionQueryRewriter.EvaluatingValueExpressionQueryRewriter createQueryRewriter(ValueExpressionDelegate delegate) {
+		return ValueExpressionQueryRewriter.of(delegate, StringBasedNeo4jQuery::parameterNameSource,
+				StringBasedNeo4jQuery::replacementSource);
+	}
+
 	@Override
-	protected <T extends Object> PreparedQuery<T> prepareQuery(Class<T> returnedType, Collection<PropertyFilter.ProjectedPath> includedProperties,
-			Neo4jParameterAccessor parameterAccessor, @Nullable Neo4jQueryType queryType,
-			@Nullable Supplier<BiFunction<TypeSystem, MapAccessor, ?>> mappingFunction, @Nullable UnaryOperator<Integer> limitModifier) {
+	protected <T extends Object> PreparedQuery<T> prepareQuery(Class<T> returnedType,
+			Collection<PropertyFilter.ProjectedPath> includedProperties, Neo4jParameterAccessor parameterAccessor,
+			@Nullable Neo4jQueryType queryType, @Nullable Supplier<BiFunction<TypeSystem, MapAccessor, ?>> mappingFunction,
+			@Nullable UnaryOperator<Integer> limitModifier) {
 
 		Map<String, Object> boundParameters = bindParameters(parameterAccessor);
-		QueryContext queryContext = new QueryContext(
-				queryMethod.getRepositoryName() + "." + queryMethod.getName(),
-				parsedQuery.getQueryString(),
-				boundParameters
-		);
+		QueryContext queryContext = new QueryContext(queryMethod.getRepositoryName() + "." + queryMethod.getName(),
+				parsedQuery.getQueryString(), boundParameters);
 
 		logWarningsIfNecessary(queryContext, parameterAccessor);
 
-		return PreparedQuery.queryFor(returnedType)
-				.withCypherQuery(queryContext.query)
-				.withParameters(boundParameters)
-				.usingMappingFunction(mappingFunction)
-				.build();
+		return PreparedQuery.queryFor(returnedType).withCypherQuery(queryContext.query).withParameters(boundParameters)
+				.usingMappingFunction(mappingFunction).build();
 	}
 
 	Map<String, Object> bindParameters(Neo4jParameterAccessor parameterAccessor) {

@@ -26,6 +26,7 @@ import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.util.Lazy;
 import org.springframework.data.util.ReactiveWrappers;
+import org.springframework.data.util.ReflectionUtils;
 import org.springframework.data.util.TypeInformation;
 import org.springframework.util.ClassUtils;
 
@@ -56,7 +57,7 @@ final class ReactiveNeo4jQueryMethod extends Neo4jQueryMethod {
 	ReactiveNeo4jQueryMethod(Method method, RepositoryMetadata metadata, ProjectionFactory factory) {
 		super(method, metadata, factory, ClassUtils.hasMethod(ReactiveCypherdslStatementExecutor.class, method));
 
-		if (org.springframework.data.repository.util.ClassUtils.hasParameterOfType(method, Pageable.class)) {
+		if (ReflectionUtils.hasParameterOfType(method, Pageable.class)) {
 
 			TypeInformation<?> returnType = TypeInformation.fromReturnTypeOf(method);
 
