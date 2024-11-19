@@ -54,8 +54,8 @@ import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.core.support.DefaultRepositoryMetadata;
 import org.springframework.data.repository.query.Param;
 import org.springframework.data.repository.query.QueryMethodValueEvaluationContextAccessor;
-import org.springframework.data.repository.query.SpelQueryContext;
 import org.springframework.data.repository.query.ValueExpressionDelegate;
+import org.springframework.data.repository.query.ValueExpressionQueryRewriter;
 import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 import org.springframework.util.ReflectionUtils;
 
@@ -95,24 +95,24 @@ final class ReactiveRepositoryQueryTest {
 		@Test
 		void spelQueryContextShouldBeConfiguredCorrectly() {
 
-			SpelQueryContext spelQueryContext = ReactiveStringBasedNeo4jQuery.SPEL_QUERY_CONTEXT;
+			ValueExpressionQueryRewriter rewriter = ReactiveStringBasedNeo4jQuery.createQueryRewriter(ValueExpressionDelegate.create());
 
 			String template;
 			String query;
-			SpelQueryContext.SpelExtractor spelExtractor;
+			ValueExpressionQueryRewriter.ParsedQuery parsedQuery;
 
 			template = "MATCH (user:User) WHERE user.name = :#{#searchUser.name} and user.middleName = ?#{#searchUser.middleName} RETURN user";
 
-			spelExtractor = spelQueryContext.parse(template);
-			query = spelExtractor.getQueryString();
+			parsedQuery = rewriter.parse(template);
+			query = parsedQuery.getQueryString();
 
 			assertThat(query)
 					.isEqualTo(
 							"MATCH (user:User) WHERE user.name = $__SpEL__0 and user.middleName = $__SpEL__1 RETURN user");
 
 			template = "MATCH (user:User) WHERE user.name=?#{[0]} and user.name=:#{[0]} RETURN user";
-			spelExtractor = spelQueryContext.parse(template);
-			query = spelExtractor.getQueryString();
+			parsedQuery = rewriter.parse(template);
+			query = parsedQuery.getQueryString();
 
 			assertThat(query)
 					.isEqualTo("MATCH (user:User) WHERE user.name=$__SpEL__0 and user.name=$__SpEL__1 RETURN user");
