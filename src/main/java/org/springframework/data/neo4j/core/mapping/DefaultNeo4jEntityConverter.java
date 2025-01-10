@@ -233,6 +233,8 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 
 		Neo4jPersistentEntity<?> nodeDescription = (Neo4jPersistentEntity<?>) nodeDescriptionStore
 				.getNodeDescription(source.getClass());
+		// add type info when write to the database
+		properties.put(Constants.NAME_OF_RELATIONSHIP_TYPE, nodeDescription.getPrimaryLabel());
 
 		PersistentPropertyAccessor<Object> propertyAccessor = nodeDescription.getPropertyAccessor(source);
 		PropertyHandlerSupport.of(nodeDescription).doWithProperties((Neo4jPersistentProperty p) -> {
@@ -441,8 +443,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 			Node nodeRepresentation = (Node) queryResult;
 			nodeRepresentation.labels().forEach(labels::add);
 		} else if (queryResult instanceof Relationship){
-			Relationship relationshipRepresentation = (Relationship) queryResult;
-			labels.add(relationshipRepresentation.type());
+			labels.add(queryResult.get(Constants.NAME_OF_RELATIONSHIP_TYPE).asString());
 		} else if (containsOnePlainNode(queryResult)) {
 			for (Value value : queryResult.values()) {
 				if (value.hasType(nodeType)) {
