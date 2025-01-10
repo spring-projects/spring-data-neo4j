@@ -88,6 +88,7 @@ import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
 import org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager;
+import org.springframework.data.neo4j.integration.issues.gh2973.*;
 import org.springframework.data.neo4j.integration.issues.gh2168.DomainObject;
 import org.springframework.data.neo4j.integration.issues.gh2168.DomainObjectRepository;
 import org.springframework.data.neo4j.integration.issues.gh2168.UnrelatedObject;
@@ -1855,4 +1856,43 @@ class IssuesIT extends TestBase {
 
 		return repository.save(n1);
 	}
+
+
+	@Test
+	void testTypeMapping(@Autowired Gh2973Repository gh2973Repository) {
+		var node = new BaseNode();
+		RelationshipA a1 = new RelationshipA();
+		RelationshipA a2 = new RelationshipA();
+		RelationshipA a3 = new RelationshipA();
+		RelationshipB b1 = new RelationshipB();
+		RelationshipB b2 = new RelationshipB();
+		a1.setTargetNode(new BaseNode());
+		a1.setA("a1");
+		a2.setTargetNode(new BaseNode());
+		a2.setA("a2");
+		a3.setTargetNode(new BaseNode());
+		a3.setA("a3");
+
+		b1.setTargetNode(new BaseNode());
+		b1.setB("b1");
+		b2.setTargetNode(new BaseNode());
+		b2.setB("b2");
+
+		node.setRelationships(Map.of(
+				"a", List.of(
+						a1, a2, b2
+				),
+				"b", List.of(
+						b1, a3
+				)
+		));
+		var persistedNode = gh2973Repository.save(node);
+
+		var loadedNode = gh2973Repository.findById(persistedNode.getId()).get();
+		List<BaseRelationship> relationshipsA = loadedNode.getRelationships().get("a");
+		List<BaseRelationship> relationshipsB = loadedNode.getRelationships().get("b");
+		assertThat(relationshipsA).hasExactlyElementsOfTypes(RelationshipA.class, RelationshipA.class, RelationshipB.class);
+		assertThat(relationshipsB).hasExactlyElementsOfTypes(RelationshipB.class, RelationshipA.class);
+	}
+
 }
