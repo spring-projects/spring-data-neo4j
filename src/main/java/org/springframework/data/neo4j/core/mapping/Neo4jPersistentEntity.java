@@ -57,6 +57,12 @@ public interface Neo4jPersistentEntity<T>
 	boolean isRelationshipPropertiesEntity();
 
 	/**
+	 * Determines if the entity is annotated with {@link org.springframework.data.neo4j.core.schema.RelationshipProperties}
+	 * and has the flag {@link org.springframework.data.neo4j.core.schema.RelationshipProperties#persistTypeInfo()} set to true.
+	 * @return true if this is a relationship properties class and the type info should be persisted, otherwise false.
+	 */
+	boolean hasRelationshipPropertyPersistTypeInfoFlag();
+	/**
 	 * @return True if the underlying domain classes uses {@code id()} to compute internally generated ids.
 	 */
 	default boolean isUsingDeprecatedInternalId() {

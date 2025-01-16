@@ -1861,11 +1861,15 @@ class IssuesIT extends TestBase {
 	@Test
 	void testTypeMapping(@Autowired Gh2973Repository gh2973Repository) {
 		var node = new BaseNode();
+		var nodeFail = new BaseNode();
 		RelationshipA a1 = new RelationshipA();
 		RelationshipA a2 = new RelationshipA();
 		RelationshipA a3 = new RelationshipA();
 		RelationshipB b1 = new RelationshipB();
 		RelationshipB b2 = new RelationshipB();
+		RelationshipC c1 = new RelationshipC();
+		RelationshipD d1 = new RelationshipD();
+
 		a1.setTargetNode(new BaseNode());
 		a1.setA("a1");
 		a2.setTargetNode(new BaseNode());
@@ -1878,6 +1882,12 @@ class IssuesIT extends TestBase {
 		b2.setTargetNode(new BaseNode());
 		b2.setB("b2");
 
+		c1.setTargetNode(new BaseNode());
+		c1.setC("c1");
+
+		d1.setTargetNode(new BaseNode());
+		d1.setD("d1");
+
 		node.setRelationships(Map.of(
 				"a", List.of(
 						a1, a2, b2
@@ -1886,13 +1896,27 @@ class IssuesIT extends TestBase {
 						b1, a3
 				)
 		));
+		nodeFail.setRelationships(Map.of(
+				"c", List.of(
+						c1, d1
+				)
+		));
 		var persistedNode = gh2973Repository.save(node);
+		var persistedNodeFail = gh2973Repository.save(nodeFail);
 
+		// with type info, the relationships are of the correct type
 		var loadedNode = gh2973Repository.findById(persistedNode.getId()).get();
 		List<BaseRelationship> relationshipsA = loadedNode.getRelationships().get("a");
 		List<BaseRelationship> relationshipsB = loadedNode.getRelationships().get("b");
 		assertThat(relationshipsA).hasExactlyElementsOfTypes(RelationshipA.class, RelationshipA.class, RelationshipB.class);
 		assertThat(relationshipsB).hasExactlyElementsOfTypes(RelationshipB.class, RelationshipA.class);
+
+		// without type info, the relationships are all same type and not the base class BaseRelationship
+		var loadedNodeFail = gh2973Repository.findById(persistedNodeFail.getId()).get();
+		List<BaseRelationship> relationshipsCFail = loadedNodeFail.getRelationships().get("c");
+		assertThat(relationshipsCFail.get(0)).isNotExactlyInstanceOf(BaseRelationship.class);
+		var type = relationshipsCFail.get(0).getClass();
+		assertThat(relationshipsCFail).hasExactlyElementsOfTypes(type, type);
 	}
 
 }

@@ -185,6 +185,15 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 		return this.isRelationshipPropertiesEntity.get();
 	}
 
+	@Override
+	public boolean hasRelationshipPropertyPersistTypeInfoFlag() {
+		RelationshipProperties relationshipProperties = this.findAnnotation(RelationshipProperties.class);
+		if (relationshipProperties != null) {
+			return relationshipProperties.persistTypeInfo();
+		}
+		return false;
+	}
+
 	/*
 	 * (non-Javadoc)
 	 * @see BasicPersistentEntity#getFallbackIsNewStrategy()
