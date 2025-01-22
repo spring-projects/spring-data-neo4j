@@ -38,6 +38,7 @@ import java.util.stream.StreamSupport;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
+import org.neo4j.driver.internal.value.NullValue;
 import org.neo4j.driver.types.MapAccessor;
 import org.neo4j.driver.types.Node;
 import org.neo4j.driver.types.Relationship;
@@ -431,6 +432,8 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 
 	/**
 	 * Returns the list of labels for the entity to be created from the "main" node returned.
+	 * In case of a relationship that maps to a relationship properties definition,
+	 * return the optional persisted type.
 	 *
 	 * @param queryResult The complete query result
 	 * @return The list of labels defined by the query variable {@link Constants#NAME_OF_LABELS}.
@@ -445,7 +448,12 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 			Node nodeRepresentation = (Node) queryResult;
 			nodeRepresentation.labels().forEach(labels::add);
 		} else if (queryResult instanceof Relationship) {
-			labels.add(queryResult.get(Constants.NAME_OF_RELATIONSHIP_TYPE).asString());
+			Value value = queryResult.get(Constants.NAME_OF_RELATIONSHIP_TYPE);
+			if (value instanceof NullValue) {
+				labels.addAll(nodeDescription.getStaticLabels());
+			} else {
+				labels.add(value.asString());
+			}
 		} else if (containsOnePlainNode(queryResult)) {
 			for (Value value : queryResult.values()) {
 				if (value.hasType(nodeType)) {

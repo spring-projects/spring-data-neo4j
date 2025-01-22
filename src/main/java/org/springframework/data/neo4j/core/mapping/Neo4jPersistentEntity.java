@@ -62,6 +62,7 @@ public interface Neo4jPersistentEntity<T>
 	 * @return true if this is a relationship properties class and the type info should be persisted, otherwise false.
 	 */
 	boolean hasRelationshipPropertyPersistTypeInfoFlag();
+
 	/**
 	 * @return True if the underlying domain classes uses {@code id()} to compute internally generated ids.
 	 */

@@ -70,7 +70,7 @@ public final class Constants {
 	public static final String NAME_OF_ALL_PROPERTIES = "__allProperties__";
 
 	/**
-	 * Use relationship's primaryLabel in NodeDescription as type info
+	 * Optional property for relationship properties' simple class name to keep type info
 	 */
 	public static final String NAME_OF_RELATIONSHIP_TYPE = "__relationshipType__";
 
