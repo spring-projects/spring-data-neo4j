@@ -444,7 +444,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 		} else if (queryResult instanceof Node) {
 			Node nodeRepresentation = (Node) queryResult;
 			nodeRepresentation.labels().forEach(labels::add);
-		} else if (queryResult instanceof Relationship){
+		} else if (queryResult instanceof Relationship) {
 			labels.add(queryResult.get(Constants.NAME_OF_RELATIONSHIP_TYPE).asString());
 		} else if (containsOnePlainNode(queryResult)) {
 			for (Value value : queryResult.values()) {
