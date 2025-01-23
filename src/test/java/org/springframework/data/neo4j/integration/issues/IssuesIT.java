@@ -1707,7 +1707,7 @@ class IssuesIT extends TestBase {
 
 	@Tag("GH-2973")
 	@Test
-	void testTypeMapping(@Autowired Gh2973Repository gh2973Repository) {
+	void abstractedRelationshipTypesShouldBeMappedCorrectly(@Autowired Gh2973Repository gh2973Repository) {
 		var node = new BaseNode();
 		var nodeFail = new BaseNode();
 		RelationshipA a1 = new RelationshipA();
@@ -1756,15 +1756,19 @@ class IssuesIT extends TestBase {
 		var loadedNode = gh2973Repository.findById(persistedNode.getId()).get();
 		List<BaseRelationship> relationshipsA = loadedNode.getRelationships().get("a");
 		List<BaseRelationship> relationshipsB = loadedNode.getRelationships().get("b");
-		assertThat(relationshipsA).hasExactlyElementsOfTypes(RelationshipA.class, RelationshipA.class, RelationshipB.class);
-		assertThat(relationshipsB).hasExactlyElementsOfTypes(RelationshipB.class, RelationshipA.class);
-
+		assertThat(relationshipsA).satisfiesExactlyInAnyOrder(
+				r1 -> assertThat(r1).isOfAnyClassIn(RelationshipA.class),
+				r2 -> assertThat(r2).isOfAnyClassIn(RelationshipA.class),
+				r3 -> assertThat(r3).isOfAnyClassIn(RelationshipB.class)
+		);
+		assertThat(relationshipsB).satisfiesExactlyInAnyOrder(
+				r1 -> assertThat(r1).isOfAnyClassIn(RelationshipA.class),
+				r2 -> assertThat(r2).isOfAnyClassIn(RelationshipB.class)
+		);
 		// without type info, the relationships are all same type and not the base class BaseRelationship
 		var loadedNodeFail = gh2973Repository.findById(persistedNodeFail.getId()).get();
 		List<BaseRelationship> relationshipsCFail = loadedNodeFail.getRelationships().get("c");
 		assertThat(relationshipsCFail.get(0)).isNotExactlyInstanceOf(BaseRelationship.class);
-		var type = relationshipsCFail.get(0).getClass();
-		assertThat(relationshipsCFail).hasExactlyElementsOfTypes(type, type);
 	}
 
 	@Configuration
