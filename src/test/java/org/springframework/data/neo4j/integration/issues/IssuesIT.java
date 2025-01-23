@@ -189,6 +189,13 @@ import org.springframework.data.neo4j.integration.issues.gh2918.ConditionNode;
 import org.springframework.data.neo4j.integration.issues.gh2918.ConditionRepository;
 import org.springframework.data.neo4j.integration.issues.gh2963.MyModel;
 import org.springframework.data.neo4j.integration.issues.gh2963.MyRepository;
+import org.springframework.data.neo4j.integration.issues.gh2973.BaseNode;
+import org.springframework.data.neo4j.integration.issues.gh2973.BaseRelationship;
+import org.springframework.data.neo4j.integration.issues.gh2973.Gh2973Repository;
+import org.springframework.data.neo4j.integration.issues.gh2973.RelationshipA;
+import org.springframework.data.neo4j.integration.issues.gh2973.RelationshipB;
+import org.springframework.data.neo4j.integration.issues.gh2973.RelationshipC;
+import org.springframework.data.neo4j.integration.issues.gh2973.RelationshipD;
 import org.springframework.data.neo4j.integration.issues.qbe.A;
 import org.springframework.data.neo4j.integration.issues.qbe.ARepository;
 import org.springframework.data.neo4j.integration.issues.qbe.B;
@@ -1698,6 +1705,72 @@ class IssuesIT extends TestBase {
 		assertThat(rootModelFromDbCustom).map(MyModel::getMyNestedModel).isPresent();
 	}
 
+	@Tag("GH-2973")
+	@Test
+	void abstractedRelationshipTypesShouldBeMappedCorrectly(@Autowired Gh2973Repository gh2973Repository) {
+		var node = new BaseNode();
+		var nodeFail = new BaseNode();
+		RelationshipA a1 = new RelationshipA();
+		RelationshipA a2 = new RelationshipA();
+		RelationshipA a3 = new RelationshipA();
+		RelationshipB b1 = new RelationshipB();
+		RelationshipB b2 = new RelationshipB();
+		RelationshipC c1 = new RelationshipC();
+		RelationshipD d1 = new RelationshipD();
+
+		a1.setTargetNode(new BaseNode());
+		a1.setA("a1");
+		a2.setTargetNode(new BaseNode());
+		a2.setA("a2");
+		a3.setTargetNode(new BaseNode());
+		a3.setA("a3");
+
+		b1.setTargetNode(new BaseNode());
+		b1.setB("b1");
+		b2.setTargetNode(new BaseNode());
+		b2.setB("b2");
+
+		c1.setTargetNode(new BaseNode());
+		c1.setC("c1");
+
+		d1.setTargetNode(new BaseNode());
+		d1.setD("d1");
+
+		node.setRelationships(Map.of(
+				"a", List.of(
+						a1, a2, b2
+				),
+				"b", List.of(
+						b1, a3
+				)
+		));
+		nodeFail.setRelationships(Map.of(
+				"c", List.of(
+						c1, d1
+				)
+		));
+		var persistedNode = gh2973Repository.save(node);
+		var persistedNodeFail = gh2973Repository.save(nodeFail);
+
+		// with type info, the relationships are of the correct type
+		var loadedNode = gh2973Repository.findById(persistedNode.getId()).get();
+		List<BaseRelationship> relationshipsA = loadedNode.getRelationships().get("a");
+		List<BaseRelationship> relationshipsB = loadedNode.getRelationships().get("b");
+		assertThat(relationshipsA).satisfiesExactlyInAnyOrder(
+				r1 -> assertThat(r1).isOfAnyClassIn(RelationshipA.class),
+				r2 -> assertThat(r2).isOfAnyClassIn(RelationshipA.class),
+				r3 -> assertThat(r3).isOfAnyClassIn(RelationshipB.class)
+		);
+		assertThat(relationshipsB).satisfiesExactlyInAnyOrder(
+				r1 -> assertThat(r1).isOfAnyClassIn(RelationshipA.class),
+				r2 -> assertThat(r2).isOfAnyClassIn(RelationshipB.class)
+		);
+		// without type info, the relationships are all same type and not the base class BaseRelationship
+		var loadedNodeFail = gh2973Repository.findById(persistedNodeFail.getId()).get();
+		List<BaseRelationship> relationshipsCFail = loadedNodeFail.getRelationships().get("c");
+		assertThat(relationshipsCFail.get(0)).isNotExactlyInstanceOf(BaseRelationship.class);
+	}
+
 	@Configuration
 	@EnableTransactionManagement
 	@EnableNeo4jRepositories(namedQueriesLocation = "more-custom-queries.properties")
@@ -1855,4 +1928,6 @@ class IssuesIT extends TestBase {
 
 		return repository.save(n1);
 	}
+
+
 }
