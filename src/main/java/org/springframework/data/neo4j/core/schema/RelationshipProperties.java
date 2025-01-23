@@ -52,4 +52,12 @@ import org.apiguardian.api.API;
 @Inherited
 @API(status = API.Status.STABLE, since = "6.0")
 public @interface RelationshipProperties {
+	/**
+	 * Set to true will persist {@link org.springframework.data.neo4j.core.mapping.Constants#NAME_OF_RELATIONSHIP_TYPE} to {@link Class#getSimpleName()}
+	 * as a property in relationships. This property will be used to determine the type of the relationship
+	 * when mapping back to the domain model.
+	 *
+	 * @return whether to persist type information for the annotated class.
+	 */
+	boolean persistTypeInfo() default false;
 }

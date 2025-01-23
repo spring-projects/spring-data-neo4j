@@ -69,6 +69,11 @@ public final class Constants {
 	public static final String NAME_OF_KNOWN_RELATIONSHIPS_PARAM = "__knownRelationShipIds__";
 	public static final String NAME_OF_ALL_PROPERTIES = "__allProperties__";
 
+	/**
+	 * Optional property for relationship properties' simple class name to keep type info
+	 */
+	public static final String NAME_OF_RELATIONSHIP_TYPE = "__relationshipType__";
+
 	public static final String NAME_OF_SYNTHESIZED_ROOT_NODE = "__sn__";
 	public static final String NAME_OF_SYNTHESIZED_RELATED_NODES = "__srn__";
 	public static final String NAME_OF_SYNTHESIZED_RELATIONS = "__sr__";
