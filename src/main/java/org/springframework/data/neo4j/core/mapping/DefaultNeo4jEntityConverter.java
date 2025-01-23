@@ -38,7 +38,6 @@ import java.util.stream.StreamSupport;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
-import org.neo4j.driver.internal.value.NullValue;
 import org.neo4j.driver.types.MapAccessor;
 import org.neo4j.driver.types.Node;
 import org.neo4j.driver.types.Relationship;
@@ -449,7 +448,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 			nodeRepresentation.labels().forEach(labels::add);
 		} else if (queryResult instanceof Relationship) {
 			Value value = queryResult.get(Constants.NAME_OF_RELATIONSHIP_TYPE);
-			if (value instanceof NullValue) {
+			if (value.isNull()) {
 				labels.addAll(nodeDescription.getStaticLabels());
 			} else {
 				labels.add(value.asString());
