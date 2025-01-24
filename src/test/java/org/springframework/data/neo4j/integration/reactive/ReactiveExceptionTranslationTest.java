@@ -70,7 +70,9 @@ class ReactiveExceptionTranslationTest {
 			ex.getMessage().matches(
 					"Node\\(\\d+\\) already exists with label `SimplePerson` and property `name` = '[\\w\\s]+'; Error code 'Neo\\.ClientError\\.Schema\\.ConstraintValidationFailed'.*") ||
 			ex.getMessage().matches(
-					"New data does not satisfy Constraint\\( id=\\d+, name='simple_person__unique_name', type='UNIQUENESS', schema=\\(:SimplePerson \\{name}\\), ownedIndex=\\d+ \\): Both node \\d+ and node -?\\d+ share the property value \\( String\\(\"Tom\"\\) \\); Error code 'Neo\\.ClientError\\.Schema\\.ConstraintValidationFailed'")
+					"New data does not satisfy Constraint\\( id=\\d+, name='simple_person__unique_name', type='UNIQUENESS', schema=\\(:SimplePerson \\{name}\\), ownedIndex=\\d+ \\): Both node \\d+ and node -?\\d+ share the property value \\( String\\(\"Tom\"\\) \\); Error code 'Neo\\.ClientError\\.Schema\\.ConstraintValidationFailed'") ||
+			ex.getMessage().matches(
+					"New data does not satisfy Constraint\\( id=\\d+, name='simple_person__unique_name', type='UNIQUENESS', schema=\\(:SimplePerson \\{name}\\), ownedIndex=\\d+ \\): Node\\(\\d+\\) already exists with label `Label\\[\\d+]` and property `PropertyKey\\[\\d+]` = 'Tom'; Error code 'Neo\\.ClientError\\.Schema\\.ConstraintValidationFailed'")
 	);
 	// @formatter:on
 
