@@ -18,10 +18,8 @@ package org.springframework.data.neo4j.repository.query;
 import java.io.Serial;
 import java.util.Collection;
 import java.util.LinkedHashMap;
-import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.locks.StampedLock;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -248,10 +246,7 @@ public final class Neo4jSpelSupport {
 				.getRequiredPersistentEntity(metadata.getJavaType());
 		evalContext.setVariable(ENTITY_NAME, requiredPersistentEntity.getStaticLabels()
 				.stream()
-				.map(l -> {
-					Matcher matcher = LABEL_AND_TYPE_QUOTATION.matcher(l);
-					return String.format(Locale.ENGLISH, "`%s`", matcher.replaceAll("``"));
-				})
+				.map(l -> SchemaNames.sanitize(l, true).orElseThrow())
 				.collect(Collectors.joining(":")));
 
 		query = potentiallyQuoteExpressionsParameter(query);
