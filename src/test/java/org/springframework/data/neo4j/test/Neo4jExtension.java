@@ -258,11 +258,17 @@ public class Neo4jExtension implements BeforeAllCallback, BeforeEachCallback {
 				synchronized (this) {
 					serverVersion = this.cachedServerVersion;
 					if (serverVersion == null) {
+						String versionString = "";
 						try (Session session = this.getDriver().session()) {
 							Record result = session.run("CALL dbms.components() YIELD versions RETURN 'Neo4j/' + versions[0] as version").single();
-							this.cachedServerVersion = ServerVersion.version(result.get("version").asString());
+							versionString = result.get("version").asString();
+							this.cachedServerVersion = ServerVersion.version(versionString);
 						} catch (Exception e) {
-							throw new RuntimeException("Could not determine server version", e);
+							if (versionString.matches("Neo4j/20\\d{2}.+")) {
+								this.cachedServerVersion = ServerVersion.vInDev;
+							} else {
+								throw new RuntimeException("Could not determine server version", e);
+							}
 						}
 						serverVersion = this.cachedServerVersion;
 					}

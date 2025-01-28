@@ -298,8 +298,10 @@ class AdvancedMappingIT {
 	void mappingOfAPathWithOddNumberOfElementsShouldWorkFromStartToEnd(@Autowired Neo4jTemplate template) {
 
 		Map<String, Movie> movies = template
-				.findAll(
-						"MATCH p=shortestPath((:Person {name: 'Mary Alice'})-[*]-(:Person {name: 'Emil Eifrem'})) RETURN p",
+				.findAll("""
+					MATCH p=shortestPath((:Person {name: 'Mary Alice'})-[*]-(:Person {name: 'Emil Eifrem'}))
+					WHERE any(t IN [ x in nodes(p) | x.title] WHERE t = 'The Matrix Reloaded')
+					RETURN p""",
 						Collections.emptyMap(), Movie.class)
 				.stream().collect(Collectors.toMap(Movie::getTitle, Function.identity()));
 		assertThat(movies).hasSize(3);
@@ -317,8 +319,11 @@ class AdvancedMappingIT {
 	void mappingOfAPathWithEventNumberOfElementsShouldWorkFromStartToEnd(@Autowired Neo4jTemplate template) {
 
 		Map<String, Movie> movies = template
-				.findAll(
-						"MATCH p=shortestPath((:Movie {title: 'The Matrix Revolutions'})-[*]-(:Person {name: 'Emil Eifrem'})) RETURN p",
+				.findAll("""
+					MATCH p=shortestPath((:Movie {title: 'The Matrix Revolutions'})-[*]-(:Person {name: 'Emil Eifrem'}))
+					WHERE any(t IN [ x in nodes(p) | x.title] WHERE t = 'The Matrix Reloaded')
+					RETURN p
+					""",
 						Collections.emptyMap(), Movie.class)
 				.stream().collect(Collectors.toMap(Movie::getTitle, Function.identity()));
 		assertThat(movies).hasSize(3);
