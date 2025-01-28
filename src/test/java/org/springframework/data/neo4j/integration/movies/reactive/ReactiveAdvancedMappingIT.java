@@ -258,7 +258,10 @@ class ReactiveAdvancedMappingIT {
 	void mappingOfAPathWithOddNumberOfElementsShouldWorkFromStartToEnd(@Autowired ReactiveNeo4jTemplate template) {
 
 		StepVerifier.create(template
-				.findAll("MATCH p=shortestPath((:Person {name: 'Mary Alice'})-[*]-(:Person {name: 'Emil Eifrem'})) RETURN p", Collections.emptyMap(), Movie.class))
+				.findAll("""
+					MATCH p=shortestPath((:Person {name: 'Mary Alice'})-[*]-(:Person {name: 'Emil Eifrem'}))
+					WHERE any(t IN [ x in nodes(p) | x.title] WHERE t = 'The Matrix Reloaded')
+					RETURN p""", Collections.emptyMap(), Movie.class))
 				.recordWith(ArrayList::new)
 				.expectNextCount(3)
 				.consumeRecordedWith(result -> {
@@ -279,7 +282,10 @@ class ReactiveAdvancedMappingIT {
 	void mappingOfAPathWithEventNumberOfElementsShouldWorkFromStartToEnd(@Autowired ReactiveNeo4jTemplate template) {
 
 		StepVerifier.create(template
-				.findAll("MATCH p=shortestPath((:Movie {title: 'The Matrix Revolutions'})-[*]-(:Person {name: 'Emil Eifrem'})) RETURN p", Collections.emptyMap(), Movie.class))
+				.findAll("""
+					MATCH p=shortestPath((:Movie {title: 'The Matrix Revolutions'})-[*]-(:Person {name: 'Emil Eifrem'}))
+					WHERE any(t IN [ x in nodes(p) | x.title] WHERE t = 'The Matrix Reloaded')
+					RETURN p""", Collections.emptyMap(), Movie.class))
 				.recordWith(ArrayList::new)
 				.expectNextCount(3)
 				.consumeRecordedWith(result -> {
