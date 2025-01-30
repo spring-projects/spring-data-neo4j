@@ -48,6 +48,12 @@ public interface ReactivePersonRepository extends ReactiveNeo4jRepository<Person
 	@Query("MATCH (n:PersonWithAllConstructor{name:'Test'}) return n")
 	Mono<PersonWithAllConstructor> getOnePersonViaQuery();
 
+	@Query("UNWIND ['a', 'b', 'c'] AS x RETURN x")
+	Flux<String> noDomainTypeAsFlux();
+
+	@Query("RETURN ['a', 'b', 'c']")
+	Flux<String> noDomainTypeWithListInQuery();
+
 	Mono<PersonWithAllConstructor> findOneByNameAndFirstName(String name, String firstName);
 
 	Mono<PersonWithAllConstructor> findOneByNameAndFirstNameAllIgnoreCase(String name, String firstName);

@@ -251,6 +251,18 @@ class ReactiveRepositoryIT {
 		}
 
 		@Test
+		void noDomainType(@Autowired ReactivePersonRepository repository) {
+			var strings = repository.noDomainTypeAsFlux();
+			StepVerifier.create(strings).expectNext("a", "b", "c").verifyComplete();
+		}
+
+		@Test
+		void noDomainTypeWithListInQueryShouldWork(@Autowired ReactivePersonRepository repository) {
+			var strings = repository.noDomainTypeWithListInQuery();
+			StepVerifier.create(strings).expectNext("a", "b", "c").verifyComplete();
+		}
+
+		@Test
 		void findAllByIdsPublisher(@Autowired ReactivePersonRepository repository) {
 
 			List<PersonWithAllConstructor> personList = Arrays.asList(person1, person2);
