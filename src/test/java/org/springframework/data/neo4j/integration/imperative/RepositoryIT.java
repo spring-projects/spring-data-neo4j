@@ -266,6 +266,18 @@ class RepositoryIT {
 		}
 
 		@Test
+		void noDomainType(@Autowired PersonRepository repository) {
+			var strings = repository.noDomainType();
+			assertThat(strings).containsExactly("a", "b", "c");
+		}
+
+		@Test
+		void noDomainTypeWithListInQueryShouldWork(@Autowired PersonRepository repository) {
+			var strings = repository.noDomainTypeWithListInQuery();
+			assertThat(strings).containsExactly("a", "b", "c");
+		}
+
+		@Test
 		void findAll(@Autowired PersonRepository repository) {
 
 			List<PersonWithAllConstructor> people = repository.findAll();

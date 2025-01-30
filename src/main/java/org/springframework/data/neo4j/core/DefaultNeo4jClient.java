@@ -24,6 +24,7 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.neo4j.driver.Bookmark;
 import org.neo4j.driver.Driver;
@@ -472,7 +473,12 @@ final class DefaultNeo4jClient implements Neo4jClient, ApplicationContextAware {
 
 			try (QueryRunner statementRunner = getQueryRunner(this.databaseSelection, this.impersonatedUser)) {
 				Result result = runnableStatement.runWith(statementRunner);
-				Collection<T> values = result.stream().map(partialMappingFunction(TypeSystem.getDefault())).filter(Objects::nonNull).collect(Collectors.toList());
+				Collection<T> values = result.stream().flatMap(r -> {
+					if (mappingFunction instanceof SingleValueMappingFunction && r.size() == 1 && r.get(0).hasType(TypeSystem.getDefault().LIST())) {
+						return r.get(0).asList(v -> ((SingleValueMappingFunction<T>) mappingFunction).convertValue(v)).stream();
+					}
+					return Stream.of(partialMappingFunction(TypeSystem.getDefault()).apply(r));
+				}).filter(Objects::nonNull).collect(Collectors.toList());
 				ResultSummaries.process(result.consume());
 				return values;
 			} catch (RuntimeException e) {

@@ -54,7 +54,11 @@ final class SingleValueMappingFunction<T> implements BiFunction<TypeSystem, Reco
 			throw new IllegalArgumentException("Records with more than one value cannot be converted without a mapper");
 		}
 
-		Value source = record.get(0);
+		return convertValue(record.get(0));
+	}
+
+	@Nullable
+	T convertValue(@Nullable Value source) {
 		if (targetClass == Void.class || targetClass == void.class) {
 			return null;
 		}

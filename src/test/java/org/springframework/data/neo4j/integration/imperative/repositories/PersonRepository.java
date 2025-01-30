@@ -131,6 +131,12 @@ public interface PersonRepository extends Neo4jRepository<PersonWithAllConstruct
 			countQuery = "MATCH (n:PersonWithAllConstructor) WHERE n.name = $aName OR n.name = $anotherName RETURN count(n)")
 	Page<PersonWithAllConstructor> findPageByCustomQueryWithCount(@Param("aName") String aName, @Param("anotherName") String anotherName, Pageable pageable);
 
+	@Query("UNWIND ['a', 'b', 'c'] AS x RETURN x")
+	List<String> noDomainType();
+
+	@Query("RETURN ['a', 'b', 'c']")
+	List<String> noDomainTypeWithListInQuery();
+
 	Long countAllByNameOrName(String aName, String anotherName);
 
 	Optional<PersonWithAllConstructor> findOneByNameAndFirstNameAllIgnoreCase(String name, String firstName);

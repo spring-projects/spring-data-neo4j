@@ -1268,7 +1268,7 @@ public final class Neo4jTemplate implements
 						if (preparedQuery.resultsHaveBeenAggregated()) {
 							return all.stream().flatMap(nested -> ((Collection<T>) nested).stream()).distinct().collect(Collectors.toList());
 						}
-						return all.stream().collect(Collectors.toList());
+						return new ArrayList<>(all);
 					});
 		}
 
@@ -1328,8 +1328,8 @@ public final class Neo4jTemplate implements
 
 			Neo4jClient.MappingSpec<T> newMappingSpec = neo4jClient.query(cypherQuery)
 					.bindAll(finalParameters).fetchAs(preparedQuery.getResultType());
-			return Optional.of(preparedQuery.getOptionalMappingFunction()
-					.map(newMappingSpec::mappedBy).orElse(newMappingSpec));
+			return preparedQuery.getOptionalMappingFunction()
+					.map(newMappingSpec::mappedBy).or(() -> Optional.of(newMappingSpec));
 		}
 
 		private NodesAndRelationshipsByIdStatementProvider createNodesAndRelationshipsByIdStatementProvider(Neo4jPersistentEntity<?> entityMetaData,

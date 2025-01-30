@@ -408,7 +408,13 @@ final class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient, Applicati
 		Flux<T> executeWith(Tuple2<String, Map<String, Object>> t, ReactiveQueryRunner runner) {
 
 			return Flux.usingWhen(Flux.from(runner.run(t.getT1(), t.getT2())),
-					result -> Flux.from(result.records()).mapNotNull(r -> mappingFunction.apply(TypeSystem.getDefault(), r)),
+					result -> Flux.from(result.records()).flatMap(r -> {
+						if (mappingFunction instanceof SingleValueMappingFunction && r.size() == 1 && r.get(0).hasType(TypeSystem.getDefault().LIST())) {
+							return Flux.fromStream(r.get(0).asList(v -> ((SingleValueMappingFunction<T>) mappingFunction).convertValue(v)).stream());
+						}
+						var item = mappingFunction.apply(TypeSystem.getDefault(), r);
+						return item == null ? Flux.empty() : Flux.just(item);
+					}),
 					result -> Flux.from(result.consume()).doOnNext(ResultSummaries::process));
 		}
 
