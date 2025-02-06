@@ -353,8 +353,8 @@ Passing an instance of `Movie` to the repository method above, will generate the
 }
 ----
 
-A node is represented by a map. The map will always contain `__id__`  which is the mapped id property.
-Under `__labels__` all labels, static and dynamic, will be available.
+A node is represented by a map. The map will always contain `\\__id__`  which is the mapped id property.
+Under `\\__labels__` all labels, static and dynamic, will be available.
 All properties - and type of relationships - appear in those maps as they would appear in the graph when the entity would
 have been written by SDN.
 Values will have the correct Cypher type and won't need further conversion.
