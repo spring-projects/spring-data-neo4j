@@ -83,7 +83,7 @@ This is needed for situations when inheritance is used and you query not for the
 Talking about relationships: If you have defined relationships in your entity, they will get added to the returned map as https://neo4j.com/docs/cypher-manual/4.0/syntax/lists/#cypher-pattern-comprehension[pattern comprehensions].
 The above return part will then look like:
 
-`RETURN n{.first_name, ..., Person_Has_Hobby: [(n)-[:Has]->(n_hobbies:Hobby)|n_hobbies{{neo4jInternalId}: id(n_hobbies), .name, __nodeLabels__: labels(n_hobbies)}]}`
+`RETURN n{.first_name, ..., Person_Has_Hobby: [(n)-[:Has]->(n_hobbies:Hobby)|n_hobbies{{neo4jInternalId}: id(n_hobbies), .name, {neo4jLabels}: labels(n_hobbies)}]}`
 
 The map projection and pattern comprehension used by SDN ensures that only the properties and relationships you have defined are getting queried.
 
