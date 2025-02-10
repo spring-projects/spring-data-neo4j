@@ -99,7 +99,7 @@
 		<maven.compiler.release>${java.version}</maven.compiler.release>
 		<neo4j-java-driver.version>5.28.1</neo4j-java-driver.version>
 		<neo4j-migrations.version>2.15.2</neo4j-migrations.version>
-		<neo4j.version>4.4.39</neo4j.version>
+		<neo4j.version>4.4.41</neo4j.version>
 		<objenesis.version>3.0.1</objenesis.version>
 		<project.build.docs>${project.build.directory}/docs</project.build.docs>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
