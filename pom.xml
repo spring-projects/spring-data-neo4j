@@ -74,7 +74,6 @@
 		<blockhound.version>1.0.8.RELEASE</blockhound.version>
 		<checkstyle.skip>${skipTests}</checkstyle.skip>
 		<checkstyle.version>8.40</checkstyle.version>
-		<classgraph.version>4.8.149</classgraph.version>
 		<cypher-dsl.version>2024.2.0</cypher-dsl.version>
 		<dist.id>spring-data-neo4j</dist.id>
 		<dist.key>SDNEO4J</dist.key>
@@ -143,11 +142,6 @@
 				<groupId>org.junit-pioneer</groupId>
 				<artifactId>junit-pioneer</artifactId>
 				<version>${junit-pioneer.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>io.github.classgraph</groupId>
-				<artifactId>classgraph</artifactId>
-				<version>${classgraph.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>io.r2dbc</groupId>
