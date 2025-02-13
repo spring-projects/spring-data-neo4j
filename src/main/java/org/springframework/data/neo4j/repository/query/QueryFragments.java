@@ -160,6 +160,10 @@ public final class QueryFragments {
 		return statement;
 	}
 
+	public Statement toStatement(CustomStatementCreator customStatementCreator) {
+		return customStatementCreator.createStatement(matchOn, condition, this::includeField, (Neo4jPersistentEntity<?>) returnTuple.nodeDescription, getReturnExpressions(), getOrderBy(), skip, limit);
+	}
+
 	private Collection<Expression> getReturnExpressions() {
 		return returnExpressions.isEmpty() ? CypherGenerator.INSTANCE.createReturnStatementForMatch((Neo4jPersistentEntity<?>) returnTuple.nodeDescription,
 			this::includeField, returnTuple.additionalExpressions.toArray(Expression[]::new)) : returnExpressions;

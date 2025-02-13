@@ -91,6 +91,7 @@ import org.springframework.data.neo4j.core.mapping.callback.EventSupport;
 import org.springframework.data.neo4j.core.schema.TargetNode;
 import org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager;
 import org.springframework.data.neo4j.repository.NoResultException;
+import org.springframework.data.neo4j.repository.query.CustomStatementCreator;
 import org.springframework.data.neo4j.repository.query.QueryFragments;
 import org.springframework.data.neo4j.repository.query.QueryFragmentsAndParameters;
 import org.springframework.data.projection.ProjectionFactory;
@@ -148,6 +149,7 @@ public final class Neo4jTemplate implements
 	private TransactionTemplate transactionTemplate;
 
 	private TransactionTemplate transactionTemplateReadOnly;
+	private CustomStatementCreator customStatementCreator;
 
 	public Neo4jTemplate(Neo4jClient neo4jClient) {
 		this(neo4jClient, new Neo4jMappingContext());
@@ -1156,6 +1158,8 @@ public final class Neo4jTemplate implements
 		this.elementIdOrIdFunction = SpringDataCypherDsl.elementIdOrIdFunction.apply(cypherDslConfiguration.getDialect());
 		this.cypherGenerator.setElementIdOrIdFunction(elementIdOrIdFunction);
 
+		beanFactory.getBeanProvider(CustomStatementCreator.class)
+				.ifAvailable(customStatementCreatorDings -> this.customStatementCreator = customStatementCreatorDings);
 		if (this.transactionTemplate != null && this.transactionTemplateReadOnly != null) {
 			return;
 		}
@@ -1320,7 +1324,11 @@ public final class Neo4jTemplate implements
 					}
 					statement = nodesAndRelationshipsById.toStatement(entityMetaData);
 				} else {
-					statement = queryFragments.toStatement();
+					if (customStatementCreator != null) {
+						statement = queryFragments.toStatement(customStatementCreator);
+					} else {
+						statement = queryFragments.toStatement();
+					}
 				}
 				cypherQuery = renderer.render(statement);
 				finalParameters = TemplateSupport.mergeParameters(statement, finalParameters);
