@@ -15,6 +15,7 @@
  */
 package org.springframework.data.neo4j.repository.support;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.neo4j.cypherdsl.core.renderer.Configuration;
@@ -25,6 +26,7 @@ import org.springframework.data.neo4j.core.ReactiveNeo4jOperations;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.repository.ReactiveNeo4jRepository;
+import org.springframework.data.neo4j.repository.query.CustomStatementKreator;
 import org.springframework.data.neo4j.repository.query.ReactiveNeo4jQueryLookupStrategy;
 import org.springframework.data.neo4j.repository.query.ReactiveQuerydslNeo4jPredicateExecutor;
 import org.springframework.data.neo4j.repository.query.SimpleReactiveQueryByExampleExecutor;
@@ -57,6 +59,7 @@ final class ReactiveNeo4jRepositoryFactory extends ReactiveRepositoryFactorySupp
 	private final Neo4jMappingContext mappingContext;
 
 	private Configuration cypherDSLConfiguration = Configuration.defaultConfig();
+	private List<CustomStatementKreator> kreatorBeans;
 
 	ReactiveNeo4jRepositoryFactory(ReactiveNeo4jOperations neo4jOperations, Neo4jMappingContext mappingContext) {
 
@@ -131,7 +134,7 @@ final class ReactiveNeo4jRepositoryFactory extends ReactiveRepositoryFactorySupp
 	@Override protected Optional<QueryLookupStrategy> getQueryLookupStrategy(Key key,
 			ValueExpressionDelegate valueExpressionDelegate) {
 		return Optional
-				.of(new ReactiveNeo4jQueryLookupStrategy(neo4jOperations, mappingContext, valueExpressionDelegate, cypherDSLConfiguration));
+				.of(new ReactiveNeo4jQueryLookupStrategy(neo4jOperations, mappingContext, valueExpressionDelegate, cypherDSLConfiguration, kreatorBeans));
 	}
 
 	@Override
@@ -150,6 +153,8 @@ final class ReactiveNeo4jRepositoryFactory extends ReactiveRepositoryFactorySupp
 		this.cypherDSLConfiguration = beanFactory
 				.getBeanProvider(Configuration.class)
 				.getIfAvailable(Configuration::defaultConfig);
+
+		this.kreatorBeans = beanFactory.getBeanProvider(CustomStatementKreator.class).orderedStream().toList();
 	}
 
 	@Override

@@ -38,6 +38,7 @@ import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.core.mapping.NodeDescription;
 import org.springframework.data.neo4j.core.schema.Property;
 import org.springframework.lang.Nullable;
+import org.springframework.util.Assert;
 
 /**
  * Collects the parts of a Cypher query to be handed over to the Cypher generator.
@@ -47,6 +48,48 @@ import org.springframework.lang.Nullable;
  */
 @API(status = API.Status.INTERNAL, since = "6.0.4")
 public final class QueryFragments {
+	// todo put me into something referencable for the bean creation
+	public static final CustomStatementKreator KREATOR = new CustomStatementKreator() {
+		@Override
+		public Statement createStatement(Neo4jPersistentEntity<?> neo4jPersistentEntity, List<PatternElement> matchOn, Condition condition, Predicate<PropertyFilter.RelaxedPropertyPath> includeField, boolean isDistinctReturn, Collection<Expression> returnExpressions, Collection<SortItem> orderBy, Long skip, Number limit, Expression deleteExpression) {
+
+			StatementBuilder.OngoingReadingWithoutWhere match = null;
+
+			for (PatternElement patternElement : matchOn) {
+				if (match == null) {
+					match = Cypher.match(matchOn.get(0));
+				} else {
+					match = match.match(patternElement);
+				}
+			}
+
+			StatementBuilder.OngoingReadingWithWhere matchWithWhere = match.where(condition);
+
+			if (deleteExpression != null) {
+				matchWithWhere = (StatementBuilder.OngoingReadingWithWhere) matchWithWhere.detachDelete(deleteExpression);
+			}
+
+			StatementBuilder.OngoingReadingAndReturn returnPart = isDistinctReturn
+					? matchWithWhere.returningDistinct(returnExpressions)
+					: matchWithWhere.returning(returnExpressions);
+
+			Statement statement = returnPart
+					.orderBy(orderBy)
+					.skip(skip)
+					.limit(limit).build();
+
+			statement.setRenderConstantsAsParameters(false);
+			return statement;
+
+		}
+
+		@Override
+		public boolean supports(String repositoryName, String methodName) {
+			return true;
+		}
+	};
+
+	private final CustomStatementKreator kreator;
 	private List<PatternElement> matchOn = new ArrayList<>();
 	private Condition condition;
 	private Collection<Expression> returnExpressions = new ArrayList<>();
@@ -56,11 +99,20 @@ public final class QueryFragments {
 	private ReturnTuple returnTuple;
 	private boolean scalarValueReturn = false;
 	private Expression deleteExpression;
+
 	/**
 	 * This flag becomes {@literal true} for backward scrolling keyset pagination. Any {@code AbstractNeo4jQuery} will in turn reverse the result list.
 	 */
 	private boolean requiresReverseSort = false;
 	private Predicate<PropertyFilter.RelaxedPropertyPath> projectingPropertyFilter;
+
+	public QueryFragments() {
+		this.kreator = KREATOR;
+	}
+
+	public QueryFragments(CustomStatementKreator kreator) {
+		this.kreator = kreator;
+	}
 
 	public void addMatchOn(PatternElement match) {
 		this.matchOn.add(match);
@@ -130,38 +182,19 @@ public final class QueryFragments {
 	}
 
 	public Statement toStatement() {
-
-		StatementBuilder.OngoingReadingWithoutWhere match = null;
-
-		for (PatternElement patternElement : matchOn) {
-			if (match == null) {
-				match = Cypher.match(matchOn.get(0));
-			} else {
-				match = match.match(patternElement);
-			}
-		}
-
-		StatementBuilder.OngoingReadingWithWhere matchWithWhere = match.where(condition);
-
-		if (deleteExpression != null) {
-			matchWithWhere = (StatementBuilder.OngoingReadingWithWhere) matchWithWhere.detachDelete(deleteExpression);
-		}
-
-		StatementBuilder.OngoingReadingAndReturn returnPart = isDistinctReturn()
-				? matchWithWhere.returningDistinct(getReturnExpressions())
-				: matchWithWhere.returning(getReturnExpressions());
-
-		Statement statement = returnPart
-				.orderBy(getOrderBy())
-				.skip(skip)
-				.limit(limit).build();
-
-		statement.setRenderConstantsAsParameters(false);
-		return statement;
-	}
-
-	public Statement toStatement(CustomStatementCreator customStatementCreator) {
-		return customStatementCreator.createStatement(matchOn, condition, this::includeField, (Neo4jPersistentEntity<?>) returnTuple.nodeDescription, getReturnExpressions(), getOrderBy(), skip, limit);
+		Assert.notNull(kreator, "Missing kreator bean. This _should_ not happen.");
+		return kreator.createStatement(this.returnTuple != null
+				? (Neo4jPersistentEntity<?>) returnTuple.nodeDescription
+				: null,
+				matchOn,
+				condition,
+				this::includeField,
+				isDistinctReturn(),
+				getReturnExpressions(),
+				getOrderBy(),
+				skip,
+				limit,
+				deleteExpression);
 	}
 
 	private Collection<Expression> getReturnExpressions() {

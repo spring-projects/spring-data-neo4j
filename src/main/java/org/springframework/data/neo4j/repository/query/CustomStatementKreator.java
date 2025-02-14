@@ -30,6 +30,19 @@ import java.util.function.Predicate;
 /**
  * @author Gerrit Meier
  */
-public interface CustomStatementCreator {
-	Statement createStatement(List<PatternElement> matchOn, Condition condition, Predicate<PropertyFilter.RelaxedPropertyPath> includeField, Neo4jPersistentEntity<?> returnTuple, Collection<Expression> returnExpressions, Collection<SortItem> orderBy, Long skip, Number limit);
+public interface CustomStatementKreator {
+	Statement createStatement(
+			Neo4jPersistentEntity<?> neo4jPersistentEntity,
+			List<PatternElement> matchOn,
+			Condition condition,
+			Predicate<PropertyFilter.RelaxedPropertyPath> includeField,
+			boolean isDistinctReturn,
+			Collection<Expression> returnExpressions,
+			Collection<SortItem> orderBy,
+			Long skip,
+			Number limit,
+			Expression deleteExpression
+			);
+
+	boolean supports(String repositoryName, String methodName);
 }

@@ -21,6 +21,8 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.data.neo4j.core.ReactiveDatabaseSelectionProvider;
 import org.springframework.data.neo4j.core.ReactiveNeo4jClient;
 import org.springframework.data.neo4j.core.ReactiveNeo4jTemplate;
@@ -29,6 +31,8 @@ import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
 import org.springframework.data.neo4j.core.transaction.ReactiveNeo4jTransactionManager;
 import org.springframework.data.neo4j.repository.config.ReactiveNeo4jRepositoryConfigurationExtension;
+import org.springframework.data.neo4j.repository.query.CustomStatementKreator;
+import org.springframework.data.neo4j.repository.query.QueryFragments;
 import org.springframework.lang.Nullable;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.ReactiveTransactionManager;
@@ -122,5 +126,11 @@ public abstract class AbstractReactiveNeo4jConfig extends Neo4jConfigurationSupp
 	protected ReactiveDatabaseSelectionProvider reactiveDatabaseSelectionProvider() {
 
 		return ReactiveDatabaseSelectionProvider.getDefaultSelectionProvider();
+	}
+
+	@Bean
+	@Order(Ordered.LOWEST_PRECEDENCE)
+	public CustomStatementKreator defaultStatementCreator() {
+		return QueryFragments.KREATOR;
 	}
 }

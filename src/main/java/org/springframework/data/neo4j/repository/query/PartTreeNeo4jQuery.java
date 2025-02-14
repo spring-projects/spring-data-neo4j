@@ -16,6 +16,7 @@
 package org.springframework.data.neo4j.repository.query;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
@@ -43,18 +44,20 @@ import org.springframework.lang.Nullable;
 final class PartTreeNeo4jQuery extends AbstractNeo4jQuery {
 
 	private final PartTree tree;
+	private final List<CustomStatementKreator> kreatorBeans;
 
 	public static RepositoryQuery create(Neo4jOperations neo4jOperations, Neo4jMappingContext mappingContext,
-										 Neo4jQueryMethod queryMethod, ProjectionFactory factory) {
+										 Neo4jQueryMethod queryMethod, ProjectionFactory factory, List<CustomStatementKreator> kreatorBeans) {
 		return new PartTreeNeo4jQuery(neo4jOperations, mappingContext, queryMethod,
-				new PartTree(queryMethod.getName(), getDomainType(queryMethod)), factory);
+				new PartTree(queryMethod.getName(), getDomainType(queryMethod)), factory, kreatorBeans);
 	}
 
 	private PartTreeNeo4jQuery(Neo4jOperations neo4jOperations, Neo4jMappingContext mappingContext,
-			Neo4jQueryMethod queryMethod, PartTree tree, ProjectionFactory factory) {
+			Neo4jQueryMethod queryMethod, PartTree tree, ProjectionFactory factory, List<CustomStatementKreator> kreatorBeans) {
 		super(neo4jOperations, mappingContext, queryMethod, Neo4jQueryType.fromPartTree(tree), factory);
 
 		this.tree = tree;
+		this.kreatorBeans = kreatorBeans;
 		// Validate parts. Sort properties will be validated by Spring Data already.
 		PartValidator validator = new PartValidator(mappingContext, queryMethod);
 		this.tree.flatMap(OrPart::stream).forEach(validator::validatePart);
@@ -65,9 +68,15 @@ final class PartTreeNeo4jQuery extends AbstractNeo4jQuery {
 			Neo4jParameterAccessor parameterAccessor, @Nullable Neo4jQueryType queryType,
 			@Nullable Supplier<BiFunction<TypeSystem, MapAccessor, ?>> mappingFunction, UnaryOperator<Integer> limitModifier) {
 
+		CustomStatementKreator kreatorBean = kreatorBeans
+				.stream()
+				.filter(bean -> bean.supports(queryMethod.getRepositoryName(), queryMethod.getNamedQueryName()))
+				.findFirst()
+				.orElse(QueryFragments.KREATOR);
+
 		CypherQueryCreator queryCreator = new CypherQueryCreator(mappingContext, queryMethod, getDomainType(queryMethod),
 				Optional.ofNullable(queryType).orElseGet(() -> Neo4jQueryType.fromPartTree(tree)), tree, parameterAccessor,
-				includedProperties, this::convertParameter, limitModifier);
+				includedProperties, this::convertParameter, limitModifier, kreatorBean);
 
 		QueryFragmentsAndParameters queryAndParameters = queryCreator.createQuery();
 		return PreparedQuery.queryFor(returnedType).withQueryFragmentsAndParameters(queryAndParameters)

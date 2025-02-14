@@ -15,6 +15,7 @@
  */
 package org.springframework.data.neo4j.repository.support;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.neo4j.cypherdsl.core.renderer.Configuration;
@@ -24,6 +25,7 @@ import org.springframework.data.neo4j.core.Neo4jOperations;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
+import org.springframework.data.neo4j.repository.query.CustomStatementKreator;
 import org.springframework.data.neo4j.repository.query.CypherdslConditionExecutorImpl;
 import org.springframework.data.neo4j.repository.query.Neo4jQueryLookupStrategy;
 import org.springframework.data.neo4j.repository.query.QuerydslNeo4jPredicateExecutor;
@@ -56,6 +58,7 @@ final class Neo4jRepositoryFactory extends RepositoryFactorySupport {
 	private final Neo4jMappingContext mappingContext;
 
 	private Configuration cypherDSLConfiguration = Configuration.defaultConfig();
+	private List<CustomStatementKreator> kreatorBeans;
 
 	Neo4jRepositoryFactory(Neo4jOperations neo4jOperations, Neo4jMappingContext mappingContext) {
 
@@ -134,12 +137,14 @@ final class Neo4jRepositoryFactory extends RepositoryFactorySupport {
 		this.cypherDSLConfiguration = beanFactory
 				.getBeanProvider(Configuration.class)
 				.getIfAvailable(Configuration::defaultConfig);
+
+		this.kreatorBeans = beanFactory.getBeanProvider(CustomStatementKreator.class).orderedStream().toList();
 	}
 
 	@Override
 	protected Optional<QueryLookupStrategy> getQueryLookupStrategy(Key key,
 			ValueExpressionDelegate valueExpressionDelegate) {
-		return Optional.of(new Neo4jQueryLookupStrategy(neo4jOperations, mappingContext, valueExpressionDelegate, cypherDSLConfiguration));
+		return Optional.of(new Neo4jQueryLookupStrategy(neo4jOperations, mappingContext, valueExpressionDelegate, cypherDSLConfiguration, kreatorBeans));
 	}
 
 	@Override

@@ -118,11 +118,12 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndPar
 	 * Can be used to modify the limit of a paged or sliced query.
 	 */
 	private final UnaryOperator<Integer> limitModifier;
+	private final CustomStatementKreator kreator;
 
 	CypherQueryCreator(Neo4jMappingContext mappingContext, QueryMethod queryMethod, Class<?> domainType, Neo4jQueryType queryType, PartTree tree,
-			Neo4jParameterAccessor actualParameters, Collection<PropertyFilter.ProjectedPath> includedProperties,
-			BiFunction<Object, Neo4jPersistentPropertyConverter<?>, Object> parameterConversion,
-			UnaryOperator<Integer> limitModifier) {
+					   Neo4jParameterAccessor actualParameters, Collection<PropertyFilter.ProjectedPath> includedProperties,
+					   BiFunction<Object, Neo4jPersistentPropertyConverter<?>, Object> parameterConversion,
+					   UnaryOperator<Integer> limitModifier, CustomStatementKreator kreator) {
 
 		super(tree, actualParameters);
 		this.mappingContext = mappingContext;
@@ -141,6 +142,7 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndPar
 		this.pagingParameter = actualParameters.getPageable();
 		this.scrollPosition = actualParameters.getScrollPosition();
 		this.limitModifier = limitModifier;
+		this.kreator = kreator;
 
 		AtomicInteger symbolicNameIndex = new AtomicInteger();
 
@@ -190,7 +192,7 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndPar
 
 	@NonNull
 	private QueryFragments createQueryFragments(@Nullable Condition condition, Sort sort) {
-		QueryFragments queryFragments = new QueryFragments();
+		QueryFragments queryFragments = new QueryFragments(kreator);
 
 		// all the ways we could query for
 		Node startNode = Cypher.node(nodeDescription.getPrimaryLabel(), nodeDescription.getAdditionalLabels())

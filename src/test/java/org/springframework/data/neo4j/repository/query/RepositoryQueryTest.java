@@ -201,7 +201,7 @@ final class RepositoryQueryTest {
 
 			final Neo4jQueryLookupStrategy lookupStrategy = new Neo4jQueryLookupStrategy(neo4jOperations,
 					neo4jMappingContext,
-					ValueExpressionDelegate.create(), Configuration.defaultConfig());
+					ValueExpressionDelegate.create(), Configuration.defaultConfig(), null);
 
 			RepositoryQuery query = lookupStrategy.resolveQuery(queryMethod("findById", Object.class),
 					TEST_REPOSITORY_METADATA, PROJECTION_FACTORY, namedQueries);
@@ -212,7 +212,7 @@ final class RepositoryQueryTest {
 		void shouldSelectStringBasedNeo4jQuery() {
 
 			final Neo4jQueryLookupStrategy lookupStrategy = new Neo4jQueryLookupStrategy(neo4jOperations,
-					neo4jMappingContext, ValueExpressionDelegate.create(), Configuration.defaultConfig());
+					neo4jMappingContext, ValueExpressionDelegate.create(), Configuration.defaultConfig(), null);
 
 			RepositoryQuery query = lookupStrategy.resolveQuery(queryMethod("annotatedQueryWithValidTemplate"),
 					TEST_REPOSITORY_METADATA, PROJECTION_FACTORY, namedQueries);
@@ -227,7 +227,7 @@ final class RepositoryQueryTest {
 			when(namedQueries.getQuery(namedQueryName)).thenReturn("MATCH (n) RETURN n");
 
 			final Neo4jQueryLookupStrategy lookupStrategy = new Neo4jQueryLookupStrategy(neo4jOperations,
-					neo4jMappingContext, ValueExpressionDelegate.create(), Configuration.defaultConfig());
+					neo4jMappingContext, ValueExpressionDelegate.create(), Configuration.defaultConfig(), null);
 
 			RepositoryQuery query = lookupStrategy
 					.resolveQuery(queryMethod("findAllByANamedQuery"), TEST_REPOSITORY_METADATA,

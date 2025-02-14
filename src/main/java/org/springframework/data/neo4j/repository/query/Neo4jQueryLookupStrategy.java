@@ -16,6 +16,7 @@
 package org.springframework.data.neo4j.repository.query;
 
 import java.lang.reflect.Method;
+import java.util.List;
 
 import org.apiguardian.api.API;
 import org.neo4j.cypherdsl.core.renderer.Configuration;
@@ -43,13 +44,15 @@ public final class Neo4jQueryLookupStrategy implements QueryLookupStrategy {
 	private final Neo4jOperations neo4jOperations;
 	private final ValueExpressionDelegate delegate;
 	private final Configuration configuration;
+	private final List<CustomStatementKreator> kreatorBeans;
 
 	public Neo4jQueryLookupStrategy(Neo4jOperations neo4jOperations, Neo4jMappingContext mappingContext,
-			ValueExpressionDelegate delegate, Configuration configuration) {
+									ValueExpressionDelegate delegate, Configuration configuration, List<CustomStatementKreator> kreatorBeans) {
 		this.neo4jOperations = neo4jOperations;
 		this.mappingContext = mappingContext;
 		this.delegate = delegate;
 		this.configuration = configuration;
+		this.kreatorBeans = kreatorBeans;
 	}
 
 	/* (non-Javadoc)
@@ -71,7 +74,7 @@ public final class Neo4jQueryLookupStrategy implements QueryLookupStrategy {
 		} else if (queryMethod.isCypherBasedProjection()) {
 			return CypherdslBasedQuery.create(neo4jOperations, mappingContext, queryMethod, factory, Renderer.getRenderer(configuration)::render);
 		} else {
-			return PartTreeNeo4jQuery.create(neo4jOperations, mappingContext, queryMethod, factory);
+			return PartTreeNeo4jQuery.create(neo4jOperations, mappingContext, queryMethod, factory, kreatorBeans);
 		}
 	}
 }
