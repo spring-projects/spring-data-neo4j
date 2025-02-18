@@ -18,6 +18,7 @@ package org.springframework.data.neo4j.core;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -43,6 +44,12 @@ import org.springframework.lang.Nullable;
  */
 @API(status = API.Status.STABLE, since = "6.0")
 public interface Neo4jClient {
+
+	/**
+	 * This is a public API introduced to turn the logging of the infamous warning back on.
+	 * {@code The query used a deprecated function: `id`.}
+	 */
+	AtomicBoolean SUPPRESS_ID_DEPRECATIONS = new AtomicBoolean(true);
 
 	LogAccessor cypherLog = new LogAccessor(LogFactory.getLog("org.springframework.data.neo4j.cypher"));
 	LogAccessor log = new LogAccessor(LogFactory.getLog(Neo4jClient.class));
