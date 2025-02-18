@@ -16,16 +16,20 @@
 package org.springframework.data.neo4j.core;
 
 import java.util.function.Consumer;
+import java.util.function.Predicate;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.commons.logging.LogFactory;
-import org.neo4j.driver.NotificationCategory;
+import org.neo4j.driver.NotificationClassification;
+import org.neo4j.driver.NotificationSeverity;
 import org.neo4j.driver.summary.InputPosition;
 import org.neo4j.driver.summary.Notification;
 import org.neo4j.driver.summary.Plan;
 import org.neo4j.driver.summary.ResultSummary;
 import org.springframework.core.log.LogAccessor;
+import org.springframework.lang.Nullable;
 
 /**
  * Utility class for dealing with result summaries.
@@ -46,6 +50,8 @@ final class ResultSummaries {
 	private static final LogAccessor cypherSecurityNotificationLog = new LogAccessor(LogFactory.getLog("org.springframework.data.neo4j.cypher.security"));
 	private static final LogAccessor cypherTopologyNotificationLog = new LogAccessor(LogFactory.getLog("org.springframework.data.neo4j.cypher.topology"));
 
+	private static final Pattern DEPRECATED_ID_PATTERN = Pattern.compile("(?im)The query used a deprecated function: `id`\\.");
+
 	/**
 	 * Does some post-processing on the giving result summary, especially logging all notifications
 	 * and potentially query plans.
@@ -65,48 +71,55 @@ final class ResultSummaries {
 			return;
 		}
 
+		boolean supressIdDeprecations = Neo4jClient.SUPPRESS_ID_DEPRECATIONS.getAcquire();
+		Predicate<Notification> isDeprecationWarningForId;
+		try {
+			isDeprecationWarningForId = notification -> supressIdDeprecations
+					&& notification.classification().orElse(NotificationClassification.UNRECOGNIZED)
+					== NotificationClassification.DEPRECATION && DEPRECATED_ID_PATTERN.matcher(notification.description())
+					.matches();
+		} finally {
+			Neo4jClient.SUPPRESS_ID_DEPRECATIONS.setRelease(supressIdDeprecations);
+		}
+
 		String query = resultSummary.query().text();
 		resultSummary.notifications()
-				.forEach(notification -> {
-					LogAccessor log = notification.category()
-							.map(ResultSummaries::getLogAccessor)
-							.orElse(Neo4jClient.cypherLog);
-					Consumer<String> logFunction =
-							switch (notification.severity()) {
-								case "WARNING" -> log::warn;
-								case "INFORMATION" -> log::info;
-								default -> log::debug;
-							};
+				.stream().filter(Predicate.not(isDeprecationWarningForId))
+				.forEach(notification -> notification.severityLevel().ifPresent(severityLevel -> {
+					var category = notification.classification().orElse(null);
+
+					var logger = getLogAccessor(category);
+					Consumer<String> logFunction;
+					if (severityLevel == NotificationSeverity.WARNING) {
+						logFunction = logger::warn;
+					} else if (severityLevel == NotificationSeverity.INFORMATION) {
+						logFunction = logger::info;
+					} else if (severityLevel == NotificationSeverity.OFF) {
+						logFunction = (String message) -> {
+						};
+					} else {
+						logFunction = logger::debug;
+					}
+
 					logFunction.accept(ResultSummaries.format(notification, query));
-				});
+				}));
 	}
 
-	private static LogAccessor getLogAccessor(NotificationCategory category) {
-		if (category == NotificationCategory.HINT) {
-			return cypherHintNotificationLog;
+	private static LogAccessor getLogAccessor(@Nullable NotificationClassification category) {
+		if (category == null) {
+			return Neo4jClient.cypherLog;
 		}
-		if (category == NotificationCategory.DEPRECATION) {
-			return cypherDeprecationNotificationLog;
-		}
-		if (category == NotificationCategory.PERFORMANCE) {
-			return cypherPerformanceNotificationLog;
-		}
-		if (category == NotificationCategory.GENERIC) {
-			return cypherGenericNotificationLog;
-		}
-		if (category == NotificationCategory.UNSUPPORTED) {
-			return cypherUnsupportedNotificationLog;
-		}
-		if (category == NotificationCategory.UNRECOGNIZED) {
-			return cypherUnrecognizedNotificationLog;
-		}
-		if (category == NotificationCategory.SECURITY) {
-			return cypherSecurityNotificationLog;
-		}
-		if (category == NotificationCategory.TOPOLOGY) {
-			return cypherTopologyNotificationLog;
-		}
-		return Neo4jClient.cypherLog;
+		return switch (category) {
+			case HINT -> cypherHintNotificationLog;
+			case DEPRECATION -> cypherDeprecationNotificationLog;
+			case PERFORMANCE -> cypherPerformanceNotificationLog;
+			case GENERIC -> cypherGenericNotificationLog;
+			case UNSUPPORTED -> cypherUnsupportedNotificationLog;
+			case UNRECOGNIZED -> cypherUnrecognizedNotificationLog;
+			case SECURITY -> cypherSecurityNotificationLog;
+			case TOPOLOGY -> cypherTopologyNotificationLog;
+			default -> Neo4jClient.cypherLog;
+		};
 	}
 
 	/**

@@ -80,6 +80,7 @@ abstract class AbstractElementIdTestBase {
 		assertThat(formattedMessages)
 				.noneMatch(s -> s.contains("Neo.ClientNotification.Statement.FeatureDeprecationWarning") ||
 						s.contains("The query used a deprecated function. ('id' is no longer supported)") ||
+						s.contains("The query used a deprecated function: `id`.") ||
 						s.matches("(?s).*toString\\(id\\(.*")); // No deprecations are logged when deprecated function call is nested. Anzeige ist raus.
 	}
 }
