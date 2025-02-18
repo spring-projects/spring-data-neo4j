@@ -61,7 +61,7 @@ public final class LogbackCapture implements ExtensionContext.Store.CloseableRes
 		this.listAppender.start();
 	}
 
-	void clear() {
+	public void clear() {
 		this.resetLogLevel();
 		this.listAppender.list.clear();
 	}
