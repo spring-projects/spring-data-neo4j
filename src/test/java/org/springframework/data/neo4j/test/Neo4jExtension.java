@@ -83,6 +83,7 @@ public class Neo4jExtension implements BeforeAllCallback, BeforeEachCallback {
 	private static final String KEY_DRIVER_INSTANCE = "neo4j.driver";
 
 	private static final String SYS_PROPERTY_NEO4J_URL = "SDN_NEO4J_URL";
+	private static final String SYS_PROPERTY_NEO4J_USERNAME = "SDN_NEO4J_USERNAME";
 	private static final String SYS_PROPERTY_NEO4J_PASSWORD = "SDN_NEO4J_PASSWORD";
 	private static final String SYS_PROPERTY_NEO4J_ACCEPT_COMMERCIAL_EDITION = "SDN_NEO4J_ACCEPT_COMMERCIAL_EDITION";
 	private static final String SYS_PROPERTY_NEO4J_REPOSITORY = "SDN_NEO4J_REPOSITORY";
@@ -107,6 +108,7 @@ public class Neo4jExtension implements BeforeAllCallback, BeforeEachCallback {
 		}
 
 		String neo4jUrl = Optional.ofNullable(System.getenv(SYS_PROPERTY_NEO4J_URL)).orElse("");
+		String neo4jUser = Optional.ofNullable(System.getenv(SYS_PROPERTY_NEO4J_USERNAME)).orElse("neo4j").trim();
 		String neo4jPassword = Optional.ofNullable(System.getenv(SYS_PROPERTY_NEO4J_PASSWORD)).orElse("").trim();
 
 		ExtensionContext.Store contextStore = context.getStore(NAMESPACE);
@@ -115,7 +117,7 @@ public class Neo4jExtension implements BeforeAllCallback, BeforeEachCallback {
 		if (neo4jConnectionSupport == null) {
 			if (!(neo4jUrl.isEmpty() || neo4jPassword.isEmpty())) {
 				log.info(LogMessage.format("Using Neo4j instance at %s.", neo4jUrl));
-				neo4jConnectionSupport = new Neo4jConnectionSupport(neo4jUrl, AuthTokens.basic("neo4j", neo4jPassword));
+				neo4jConnectionSupport = new Neo4jConnectionSupport(neo4jUrl, AuthTokens.basic(neo4jUser, neo4jPassword));
 			} else {
 				log.info("Using Neo4j test container.");
 				ContainerAdapter adapter = contextStore.getOrComputeIfAbsent(KEY_NEO4J_INSTANCE,
