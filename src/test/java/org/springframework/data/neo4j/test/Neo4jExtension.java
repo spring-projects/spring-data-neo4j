@@ -212,6 +212,10 @@ public class Neo4jExtension implements BeforeAllCallback, BeforeEachCallback {
 		 */
 		public Driver getDriver() {
 
+			if (uri.getScheme().startsWith("neo4j")) {
+				return createDriverInstance();
+			}
+
 			Driver driver = this.driverInstance;
 			if (!isUsable(driver)) {
 				synchronized (this) {
