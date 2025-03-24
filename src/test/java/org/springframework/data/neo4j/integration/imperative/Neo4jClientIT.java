@@ -19,8 +19,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.neo4j.cypherdsl.core.Cypher;
 import org.neo4j.cypherdsl.core.Node;
-import org.neo4j.cypherdsl.core.executables.ExecutableResultStatement;
-import org.neo4j.cypherdsl.core.executables.ExecutableStatement;
+import org.neo4j.cypherdsl.core.Statement;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Session;
@@ -75,12 +74,12 @@ class Neo4jClientIT {
 
 		Node namedAnswer = Cypher.node("TheAnswer", Cypher.mapOf("value",
 				Cypher.literalOf(23).multiply(Cypher.literalOf(2)).subtract(Cypher.literalOf(4)))).named("n");
-		ExecutableResultStatement statement = ExecutableStatement.makeExecutable(Cypher.create(namedAnswer)
+		Statement statement = Cypher.create(namedAnswer)
 				.returning(namedAnswer)
-				.build());
+				.build();
 
 		Long vanishedId = transactionTemplate.execute(transactionStatus -> {
-			List<Record> records = statement.fetchWith(client.getQueryRunner());
+			List<Record> records = client.getQueryRunner().run(statement.getCypher()).list();
 			assertThat(records).hasSize(1)
 					.first().extracting(r -> r.get("n").get("value").asLong()).isEqualTo(42L);
 
