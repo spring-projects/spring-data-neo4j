@@ -34,7 +34,6 @@ import org.neo4j.cypherdsl.core.Cypher;
 
 import org.neo4j.cypherdsl.core.Node;
 import org.neo4j.cypherdsl.core.ResultStatement;
-import org.neo4j.cypherdsl.core.executables.ExecutableStatement;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Session;
@@ -140,7 +139,7 @@ abstract class TestBase {
 				statement = Cypher.create(nodeTemplate).returning(nodeTemplate.internalId()).build();
 			}
 
-			long id = ExecutableStatement.makeExecutable(statement).fetchWith(tx).get(0).get(0).asLong();
+			long id = tx.run(statement.getCypher(), statement.getCatalog().getParameters()).single().get(0).asLong();
 
 			tx.commit();
 			return id;
@@ -182,7 +181,7 @@ abstract class TestBase {
 						.build();
 			}
 
-			Record record = ExecutableStatement.makeExecutable(statement).fetchWith(tx).get(0);
+			Record record = tx.run(statement.getCypher(), statement.getCatalog().getParameters()).single();
 			long id1 = record.get(0).asLong();
 			long id2 = record.get(1).asLong();
 
@@ -270,7 +269,7 @@ abstract class TestBase {
 
 	private void assertImpl(Long expectedVersion, ResultStatement resultStatement) {
 		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
-			List<Record> result = ExecutableStatement.makeExecutable(resultStatement).fetchWith(session);
+			List<Record> result = session.run(resultStatement.getCypher(), resultStatement.getCatalog().getParameters()).list();
 			assertThat(result).hasSize(1)
 					.first().satisfies(record -> {
 						long version = record.get(0).asLong();
