@@ -32,6 +32,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.data.annotation.ReadOnlyProperty;
 import org.springframework.data.annotation.Transient;
+import org.springframework.data.domain.Vector;
 import org.springframework.data.mapping.AssociationHandler;
 import org.springframework.data.mapping.MappingException;
 import org.springframework.data.neo4j.core.convert.ConvertWith;
@@ -375,6 +376,27 @@ class DefaultNeo4jPersistentEntityTest {
 					.isThrownBy(() -> new Neo4jMappingContext().getPersistentEntity(InvalidDynamicLabels.class))
 					.withMessageMatching(
 							"Property dynamicLabels on class .*DefaultNeo4jPersistentEntityTest\\$InvalidDynamicLabels must extends java\\.util\\.Collection");
+		}
+	}
+
+	@Nested
+	class VectorType {
+		@Test
+		void validVectorProperties() {
+			Neo4jPersistentEntity<?> persistentEntity = new Neo4jMappingContext()
+					.getPersistentEntity(VectorValid.class);
+
+			assertThat(persistentEntity.getPersistentProperty("vectorProperty").isVectorProperty());
+		}
+
+		@Test
+		void invalidVectorProperties() {
+			assertThatIllegalStateException()
+					.isThrownBy(() -> new Neo4jMappingContext().getPersistentEntity(VectorInvalid.class))
+					.withMessageContaining("There are multiple fields of type interface org.springframework.data.domain.Vector in entity org.springframework.data.neo4j.core.mapping.DefaultNeo4jPersistentEntityTest$VectorInvalid:")
+					// the order of properties might be not the same all the time
+					.withMessageContaining("vectorProperty1")
+					.withMessageContaining("vectorProperty2");
 		}
 	}
 
@@ -750,5 +772,22 @@ class DefaultNeo4jPersistentEntityTest {
 
 	static class IWillBeConverted {
 
+	}
+
+	@Node
+	static class VectorValid {
+		@Id @GeneratedValue
+		private Long id;
+
+		Vector vectorProperty;
+	}
+
+	@Node
+	static class VectorInvalid {
+		@Id @GeneratedValue
+		private Long id;
+
+		Vector vectorProperty1;
+		Vector vectorProperty2;
 	}
 }

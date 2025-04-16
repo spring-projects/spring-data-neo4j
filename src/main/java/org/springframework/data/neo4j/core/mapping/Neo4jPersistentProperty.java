@@ -18,6 +18,7 @@ package org.springframework.data.neo4j.core.mapping;
 import java.util.Optional;
 
 import org.apiguardian.api.API;
+import org.springframework.data.domain.Vector;
 import org.springframework.data.mapping.PersistentProperty;
 import org.springframework.data.neo4j.core.convert.Neo4jPersistentPropertyConverter;
 import org.springframework.data.neo4j.core.schema.CompositeProperty;
@@ -65,6 +66,10 @@ public interface Neo4jPersistentProperty extends PersistentProperty<Neo4jPersist
 	 */
 	default boolean isDynamicLabels() {
 		return this.isAnnotationPresent(DynamicLabels.class) && this.isCollectionLike();
+	}
+
+	default boolean isVectorProperty() {
+		return this.getType().isAssignableFrom(Vector.class);
 	}
 
 	@Nullable

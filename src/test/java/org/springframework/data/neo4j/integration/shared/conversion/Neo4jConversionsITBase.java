@@ -18,6 +18,7 @@ package org.springframework.data.neo4j.integration.shared.conversion;
 import org.junit.jupiter.api.BeforeAll;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.Values;
+import org.springframework.data.domain.Vector;
 import org.springframework.data.geo.Point;
 import org.springframework.data.neo4j.integration.shared.conversion.ThingWithAllAdditionalTypes.SomeEnum;
 import org.springframework.data.neo4j.test.BookmarkCapture;
@@ -126,6 +127,7 @@ public abstract class Neo4jConversionsITBase {
 		hlp.put("aZoneId", ZoneId.of("America/New_York"));
 		hlp.put("aZeroPeriod", Period.of(0, 0, 0));
 		hlp.put("aZeroDuration", Duration.ZERO);
+		hlp.put("aVector", Vector.of(0.1d, 0.2d));
 		ADDITIONAL_TYPES = Collections.unmodifiableMap(hlp);
 	}
 
@@ -278,7 +280,8 @@ public abstract class Neo4jConversionsITBase {
 						n.anEnum = 'TheUsualMisfit', n.anArrayOfEnums = ['ValueA', 'ValueB'],
 						n.aCollectionOfEnums = ['ValueC', 'TheUsualMisfit'],
 						n.aTimeZone = 'America/Los_Angeles',\s
-						n.aZoneId = 'America/New_York', n.aZeroPeriod = duration('PT0S'), n.aZeroDuration = duration('PT0S')
+						n.aZoneId = 'America/New_York', n.aZeroPeriod = duration('PT0S'), n.aZeroDuration = duration('PT0S'),
+						n.aVector = [0.1, 0.2]
 					RETURN id(n) AS id
 					""", parameters).single().get("id").asLong();
 

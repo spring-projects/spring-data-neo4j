@@ -308,6 +308,17 @@ public enum CypherGenerator {
 		Assert.notNull(idDescription, "Cannot save individual nodes without an id attribute");
 		Parameter<?> idParameter = parameter(Constants.NAME_OF_ID);
 
+		Function<StatementBuilder.OngoingMatchAndUpdate, Statement> vectorProcedureCall = (bs) -> {
+			if (((Neo4jPersistentEntity<?>) nodeDescription).hasVectorProperty()) {
+				return bs.with(rootNode)
+						.call("db.create.setNodeVectorProperty")
+						.withArgs(rootNode.getRequiredSymbolicName(), parameter(Constants.NAME_OF_VECTOR_PROPERTY), parameter(Constants.NAME_OF_VECTOR_VALUE))
+						.withoutResults()
+						.returning(rootNode).build();
+			}
+			return bs.returning(rootNode).build();
+		};
+
 		if (!idDescription.isInternallyGeneratedId()) {
 			GraphPropertyDescription idPropertyDescription = ((Neo4jPersistentEntity<?>) nodeDescription).getRequiredIdProperty();
 
@@ -316,54 +327,45 @@ public enum CypherGenerator {
 				String nameOfPossibleExistingNode = "hlp";
 				Node possibleExistingNode = node(primaryLabel, additionalLabels).named(nameOfPossibleExistingNode);
 
-				Statement createIfNew = updateDecorator.apply(optionalMatch(possibleExistingNode)
+				Statement createIfNew = vectorProcedureCall.apply(updateDecorator.apply(optionalMatch(possibleExistingNode)
 						.where(createCompositePropertyCondition(idPropertyDescription, possibleExistingNode.getRequiredSymbolicName(), idParameter))
 						.with(possibleExistingNode)
 						.where(possibleExistingNode.isNull())
 						.create(rootNode.withProperties(versionProperty, literalOf(0)))
 						.with(rootNode)
-						.mutate(rootNode, parameter(Constants.NAME_OF_PROPERTIES_PARAM))).returning(rootNode)
-						.build();
+						.mutate(rootNode, parameter(Constants.NAME_OF_PROPERTIES_PARAM))));
 
-				Statement updateIfExists = updateDecorator.apply(match(rootNode)
+				Statement updateIfExists = vectorProcedureCall.apply(updateDecorator.apply(match(rootNode)
 						.where(createCompositePropertyCondition(idPropertyDescription, rootNode.getRequiredSymbolicName(), idParameter))
 						.and(versionProperty.isEqualTo(parameter(Constants.NAME_OF_VERSION_PARAM))) // Initial check
 						.set(versionProperty.to(versionProperty.add(literalOf(1)))) // Acquire lock
 						.with(rootNode)
 						.where(versionProperty.isEqualTo(coalesce(parameter(Constants.NAME_OF_VERSION_PARAM), literalOf(0)).add(
 								literalOf(1))))
-						.mutate(rootNode, parameter(Constants.NAME_OF_PROPERTIES_PARAM)))
-						.returning(rootNode)
-						.build();
+						.mutate(rootNode, parameter(Constants.NAME_OF_PROPERTIES_PARAM))));
 				return Cypher.union(createIfNew, updateIfExists);
 
 			} else {
 				String nameOfPossibleExistingNode = "hlp";
 				Node possibleExistingNode = node(primaryLabel, additionalLabels).named(nameOfPossibleExistingNode);
 
-				Statement createIfNew = updateDecorator.apply(optionalMatch(possibleExistingNode)
+				Statement createIfNew = vectorProcedureCall.apply(updateDecorator.apply(optionalMatch(possibleExistingNode)
 								.where(createCompositePropertyCondition(idPropertyDescription, possibleExistingNode.getRequiredSymbolicName(), idParameter))
 								.with(possibleExistingNode)
 								.where(possibleExistingNode.isNull())
 								.create(rootNode)
 								.with(rootNode)
-								.mutate(rootNode, parameter(Constants.NAME_OF_PROPERTIES_PARAM))).returning(rootNode)
-						.build();
+								.mutate(rootNode, parameter(Constants.NAME_OF_PROPERTIES_PARAM))));
 
-				Statement updateIfExists = updateDecorator.apply(match(rootNode)
+				Statement updateIfExists = vectorProcedureCall.apply(updateDecorator.apply(match(rootNode)
 								.where(createCompositePropertyCondition(idPropertyDescription, rootNode.getRequiredSymbolicName(), idParameter))
 								.with(rootNode)
-								.mutate(rootNode, parameter(Constants.NAME_OF_PROPERTIES_PARAM)))
-						.returning(rootNode)
-						.build();
+								.mutate(rootNode, parameter(Constants.NAME_OF_PROPERTIES_PARAM))));
 				return Cypher.union(createIfNew, updateIfExists);
 			}
 		} else {
 			String nameOfPossibleExistingNode = "hlp";
 			Node possibleExistingNode = node(primaryLabel, additionalLabels).named(nameOfPossibleExistingNode);
-
-			Statement createIfNew;
-			Statement updateIfExists;
 
 			var neo4jPersistentEntity = (Neo4jPersistentEntity<?>) nodeDescription;
 			var nodeIdFunction = getNodeIdFunction(neo4jPersistentEntity, canUseElementId);
@@ -371,37 +373,33 @@ public enum CypherGenerator {
 			if (neo4jPersistentEntity.hasVersionProperty()) {
 				Property versionProperty = rootNode.property(neo4jPersistentEntity.getRequiredVersionProperty().getName());
 
-				createIfNew = updateDecorator.apply(optionalMatch(possibleExistingNode)
+				var createIfNew = vectorProcedureCall.apply(updateDecorator.apply(optionalMatch(possibleExistingNode)
 						.where(nodeIdFunction.apply(possibleExistingNode).isEqualTo(idParameter))
 						.with(possibleExistingNode)
 						.where(possibleExistingNode.isNull())
 						.create(rootNode.withProperties(versionProperty, literalOf(0)))
 						.with(rootNode)
-						.mutate(rootNode, parameter(Constants.NAME_OF_PROPERTIES_PARAM)))
-						.returning(rootNode)
-						.build();
+						.mutate(rootNode, parameter(Constants.NAME_OF_PROPERTIES_PARAM))));
 
-				updateIfExists = updateDecorator.apply(match(rootNode)
+				var updateIfExists = vectorProcedureCall.apply(updateDecorator.apply(match(rootNode)
 						.where(nodeIdFunction.apply(rootNode).isEqualTo(idParameter))
 						.and(versionProperty.isEqualTo(parameter(Constants.NAME_OF_VERSION_PARAM))) // Initial check
 						.set(versionProperty.to(versionProperty.add(literalOf(1)))) // Acquire lock
 						.with(rootNode)
 						.where(versionProperty.isEqualTo(coalesce(parameter(Constants.NAME_OF_VERSION_PARAM), literalOf(0)).add(
 								literalOf(1))))
-						.mutate(rootNode, parameter(Constants.NAME_OF_PROPERTIES_PARAM)))
-						.returning(rootNode).build();
+						.mutate(rootNode, parameter(Constants.NAME_OF_PROPERTIES_PARAM))));
+				return Cypher.union(createIfNew, updateIfExists);
 			} else {
-				createIfNew = updateDecorator
-						.apply(optionalMatch(possibleExistingNode).where(nodeIdFunction.apply(possibleExistingNode).isEqualTo(idParameter))
+				var createStatement = vectorProcedureCall.apply(updateDecorator.apply(optionalMatch(possibleExistingNode).where(nodeIdFunction.apply(possibleExistingNode).isEqualTo(idParameter))
 								.with(possibleExistingNode).where(possibleExistingNode.isNull()).create(rootNode)
-								.set(rootNode, parameter(Constants.NAME_OF_PROPERTIES_PARAM)))
-						.returning(rootNode).build();
+								.set(rootNode, parameter(Constants.NAME_OF_PROPERTIES_PARAM))));
+				var updateStatement = vectorProcedureCall.apply(updateDecorator.apply(match(rootNode).where(nodeIdFunction.apply(rootNode).isEqualTo(idParameter))
+								.mutate(rootNode, parameter(Constants.NAME_OF_PROPERTIES_PARAM))));
 
-				updateIfExists = updateDecorator.apply(match(rootNode).where(nodeIdFunction.apply(rootNode).isEqualTo(idParameter))
-						.mutate(rootNode, parameter(Constants.NAME_OF_PROPERTIES_PARAM))).returning(rootNode).build();
+				return Cypher.union(createStatement, updateStatement);
 			}
 
-			return Cypher.union(createIfNew, updateIfExists);
 		}
 	}
 
