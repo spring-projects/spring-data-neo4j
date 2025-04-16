@@ -58,6 +58,8 @@ public final class Constants {
 	public static final String NAME_OF_ID = "__id__";
 	public static final String NAME_OF_VERSION_PARAM = "__version__";
 	public static final String NAME_OF_PROPERTIES_PARAM = "__properties__";
+	public static final String NAME_OF_VECTOR_PROPERTY = "__vectorProperty__";
+	public static final String NAME_OF_VECTOR_VALUE = "__vectorValue__";
 	/**
 	 * Indicates the parameter that contains the static labels which are required to correctly compute the difference
 	 * in the list of dynamic labels when saving a node.

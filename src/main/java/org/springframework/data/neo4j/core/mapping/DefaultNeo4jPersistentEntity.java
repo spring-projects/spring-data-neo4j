@@ -35,6 +35,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.data.annotation.Persistent;
+import org.springframework.data.domain.Vector;
 import org.springframework.data.mapping.Association;
 import org.springframework.data.mapping.model.BasicPersistentEntity;
 import org.springframework.data.neo4j.core.schema.DynamicLabels;
@@ -88,6 +89,8 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 
 	private List<NodeDescription<?>> childNodeDescriptionsInHierarchy;
 
+	private final Lazy<Neo4jPersistentProperty> vectorProperty;
+
 	DefaultNeo4jPersistentEntity(TypeInformation<T> information) {
 		super(information);
 
@@ -99,6 +102,8 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 		this.isRelationshipPropertiesEntity = Lazy.of(() -> isAnnotationPresent(RelationshipProperties.class));
 		this.idDescription = Lazy.of(this::computeIdDescription);
 		this.childNodeDescriptionsInHierarchy = computeChildNodeDescriptionInHierarchy();
+		this.vectorProperty = Lazy.of(() -> getGraphProperties().stream().map(Neo4jPersistentProperty.class::cast)
+				.filter(Neo4jPersistentProperty::isVectorProperty).findFirst().orElse(null));
 	}
 
 	/*
@@ -212,6 +217,7 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 		verifyDynamicAssociations();
 		verifyAssociationsWithProperties();
 		verifyDynamicLabels();
+		verifyAtMostOneVectorDefinition();
 	}
 
 	private void verifyIdDescription() {
@@ -299,6 +305,18 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 		Assert.state(namesOfPropertiesWithDynamicLabels.size() <= 1,
 				() -> String.format("Multiple properties in entity %s are annotated with @%s: %s", getUnderlyingClass(),
 						DynamicLabels.class.getSimpleName(), namesOfPropertiesWithDynamicLabels));
+	}
+
+	private void verifyAtMostOneVectorDefinition() {
+		List<Neo4jPersistentProperty> foundVectorDefinition = new ArrayList<>();
+		PropertyHandlerSupport.of(this).doWithProperties(persistentProperty -> {
+			if (persistentProperty.getType().isAssignableFrom(Vector.class)) {
+				foundVectorDefinition.add(persistentProperty);
+			}
+		});
+
+		Assert.state(foundVectorDefinition.size() <= 1, () -> String.format("There are multiple fields of type %s in entity %s: %s",
+				Vector.class.toString(), this.getName(), foundVectorDefinition.stream().map(p -> p.getPropertyName()).toList()));
 	}
 
 	/**
@@ -408,6 +426,23 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 	@Override
 	public boolean describesInterface() {
 		return this.getTypeInformation().getRawTypeInformation().getType().isInterface();
+	}
+
+	@Override
+	public boolean hasVectorProperty() {
+		return Optional.ofNullable(getVectorProperty()).map(v -> true).orElse(false);
+	}
+
+	public Neo4jPersistentProperty getVectorProperty() {
+		return this.vectorProperty.getNullable();
+	}
+
+	public Neo4jPersistentProperty getRequiredVectorProperty() {
+		Neo4jPersistentProperty property = getVectorProperty();
+		if (property != null) {
+			return property;
+		}
+		throw new IllegalStateException(String.format("Required vector property not found for %s", this.getType()));
 	}
 
 	private static boolean hasEmptyLabelInformation(Node nodeAnnotation) {

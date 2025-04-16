@@ -210,11 +210,34 @@ class TypeConversionIT extends Neo4jConversionsITBase {
 			Map<String, Object> parameters = new HashMap<>();
 			parameters.put("id", id);
 			parameters.put("attribute", fieldName);
-			parameters.put("v", driverValue);
 
-			long cnt = session
-					.run("MATCH (n) WHERE id(n) = $id  AND n[$attribute] = $v RETURN COUNT(n) AS cnt", parameters)
-					.single().get("cnt").asLong();
+			long cnt = 0L;
+			// the procedure will convert the value eventually and thus the equals check
+			// cannot be applied anymore
+			if (fieldName.equals("aVector")) {
+				var doubleList = driverValue.asList(v -> v.asDouble());
+				parameters.put("v1_lower", doubleList.get(0) - 0.000001d);
+				parameters.put("v2_lower", doubleList.get(1) - 0.000001d);
+				parameters.put("v1_upper", doubleList.get(0) + 0.000001d);
+				parameters.put("v2_upper", doubleList.get(1) + 0.000001d);
+				cnt = session
+						.run("""
+							MATCH (n) WHERE id(n) = $id
+							AND n[$attribute][0] > $v1_lower
+							AND n[$attribute][1] > $v2_lower
+							AND n[$attribute][0] < $v1_upper
+							AND n[$attribute][1] < $v2_upper
+							RETURN COUNT(n) AS cnt
+						""",
+						parameters)
+						.single().get("cnt").asLong();
+			} else {
+				parameters.put("v", driverValue);
+
+				cnt = session
+						.run("MATCH (n) WHERE id(n) = $id AND n[$attribute] = $v RETURN COUNT(n) AS cnt", parameters)
+						.single().get("cnt").asLong();
+			}
 			assertThat(cnt).isEqualTo(1L);
 		}
 	}

@@ -75,4 +75,9 @@ public interface Neo4jPersistentEntity<T>
 		}
 		return isUsingInternalIds() && Neo4jPersistentEntity.DEPRECATED_GENERATED_ID_TYPES.contains(getRequiredIdProperty().getType());
 	}
+
+	boolean hasVectorProperty();
+
+	Neo4jPersistentProperty getVectorProperty();
+	Neo4jPersistentProperty getRequiredVectorProperty();
 }
