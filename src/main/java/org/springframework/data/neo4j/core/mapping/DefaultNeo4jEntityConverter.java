@@ -242,14 +242,13 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 		PropertyHandlerSupport.of(nodeDescription).doWithProperties((Neo4jPersistentProperty p) -> {
 
 			// Skip the internal properties, we don't want them to end up stored as properties
-			if (p.isInternalIdProperty() || p.isDynamicLabels() || p.isEntity() || p.isVersionProperty() || p.isReadOnly()) {
+			if (p.isInternalIdProperty() || p.isDynamicLabels() || p.isEntity() || p.isVersionProperty() || p.isReadOnly() || p.isVectorProperty()) {
 				return;
 			}
 
 			final Value value = conversionService.writeValue(propertyAccessor.getProperty(p), p.getTypeInformation(), p.getOptionalConverter());
 			if (p.isComposite()) {
 				properties.put(p.getPropertyName(), new MapValueWrapper(value));
-				//value.keys().forEach(k -> properties.put(k, value.get(k)));
 			} else {
 				properties.put(p.getPropertyName(), value);
 			}
@@ -269,6 +268,14 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 
 			// we incremented this upfront the persist operation so the matching version would be one "before"
 			parameters.put(Constants.NAME_OF_VERSION_PARAM, versionProperty);
+		}
+
+		// special handling for vector property to provide the needed procedure information
+		if (nodeDescription.hasVectorProperty()) {
+			Neo4jPersistentProperty vectorProperty = nodeDescription.getRequiredVectorProperty();
+			parameters.put(Constants.NAME_OF_VECTOR_PROPERTY, vectorProperty.getPropertyName());
+			parameters.put(Constants.NAME_OF_VECTOR_VALUE, conversionService.writeValue(propertyAccessor.getProperty(vectorProperty), vectorProperty.getTypeInformation(), vectorProperty.getOptionalConverter()));
+			return;
 		}
 	}
 

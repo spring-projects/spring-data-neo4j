@@ -50,6 +50,7 @@ import org.springframework.core.convert.converter.GenericConverter;
 import org.springframework.data.convert.ConverterBuilder;
 import org.springframework.data.convert.ReadingConverter;
 import org.springframework.data.convert.WritingConverter;
+import org.springframework.data.domain.Vector;
 import org.springframework.data.mapping.MappingException;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -104,12 +105,16 @@ final class AdditionalTypes {
 		hlp.add(ConverterBuilder.reading(Value.class, Node.class, Value::asNode));
 		hlp.add(ConverterBuilder.reading(Value.class, Relationship.class, Value::asRelationship));
 		hlp.add(ConverterBuilder.reading(Value.class, Map.class, Value::asMap).andWriting(AdditionalTypes::value));
-
+		hlp.add(ConverterBuilder.reading(Value.class, Vector.class, AdditionalTypes::asVector).andWriting(AdditionalTypes::value));
 		CONVERTERS = Collections.unmodifiableList(hlp);
 	}
 
 	static Value value(Map<?, ?> map) {
 		return Values.value(map);
+	}
+
+	static Value value(Vector vector) {
+		return Values.value(vector.toDoubleArray());
 	}
 
 	static TimeZone asTimeZone(Value value) {
@@ -460,6 +465,11 @@ final class AdditionalTypes {
 			array[i++] = v;
 		}
 		return array;
+	}
+
+	static Vector asVector(Value value) {
+		double[] array = asDoubleArray(value);
+		return Vector.of(array);
 	}
 
 	static Value value(short[] aShortArray) {

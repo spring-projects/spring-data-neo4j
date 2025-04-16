@@ -30,6 +30,7 @@ import java.util.Set;
 import java.util.TimeZone;
 import java.util.UUID;
 
+import org.springframework.data.domain.Vector;
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
@@ -43,7 +44,7 @@ import org.springframework.data.neo4j.core.schema.Node;
 @Node("AdditionalTypes")
 public class ThingWithAllAdditionalTypes {
 
-	private ThingWithAllAdditionalTypes(Long id, boolean[] booleanArray, byte aByte, char aChar, char[] charArray, Date aDate, BigDecimal aBigDecimal, BigInteger aBigInteger, double[] doubleArray, float aFloat, float[] floatArray, int anInt, int[] intArray, Locale aLocale, long[] longArray, short aShort, short[] shortArray, Period aPeriod, Duration aDuration, String[] stringArray, List<String> listOfStrings, Set<String> setOfStrings, Instant anInstant, UUID aUUID, URL aURL, URI aURI, SomeEnum anEnum, SomeEnum[] anArrayOfEnums, List<Double> listOfDoubles, List<SomeEnum> aCollectionOfEnums, TimeZone aTimeZone, ZoneId aZoneId, Period aZeroPeriod, Duration aZeroDuration) {
+	private ThingWithAllAdditionalTypes(Long id, boolean[] booleanArray, byte aByte, char aChar, char[] charArray, Date aDate, BigDecimal aBigDecimal, BigInteger aBigInteger, double[] doubleArray, float aFloat, float[] floatArray, int anInt, int[] intArray, Locale aLocale, long[] longArray, short aShort, short[] shortArray, Period aPeriod, Duration aDuration, String[] stringArray, List<String> listOfStrings, Set<String> setOfStrings, Instant anInstant, UUID aUUID, URL aURL, URI aURI, SomeEnum anEnum, SomeEnum[] anArrayOfEnums, List<Double> listOfDoubles, List<SomeEnum> aCollectionOfEnums, TimeZone aTimeZone, ZoneId aZoneId, Period aZeroPeriod, Duration aZeroDuration, Vector aVector) {
 		this.id = id;
 		this.booleanArray = booleanArray;
 		this.aByte = aByte;
@@ -78,6 +79,7 @@ public class ThingWithAllAdditionalTypes {
 		this.aZoneId = aZoneId;
 		this.aZeroPeriod = aZeroPeriod;
 		this.aZeroDuration = aZeroDuration;
+		this.aVector = aVector;
 	}
 
 	public static ThingWithAllAdditionalTypesBuilder builder() {
@@ -220,6 +222,10 @@ public class ThingWithAllAdditionalTypes {
 		return this.aZeroDuration;
 	}
 
+	public Vector getAVector() {
+		return this.aVector;
+	}
+
 	public void setBooleanArray(boolean[] booleanArray) {
 		this.booleanArray = booleanArray;
 	}
@@ -350,6 +356,10 @@ public class ThingWithAllAdditionalTypes {
 
 	public void setAZeroDuration(Duration aZeroDuration) {
 		this.aZeroDuration = aZeroDuration;
+	}
+
+	public void setAVector(Vector aVector) {
+		this.aVector = aVector;
 	}
 
 	public boolean equals(final Object o) {
@@ -505,6 +515,12 @@ public class ThingWithAllAdditionalTypes {
 		if (this$aZeroDuration == null ? other$aZeroDuration != null : !this$aZeroDuration.equals(other$aZeroDuration)) {
 			return false;
 		}
+
+		final Object this$aVector = this.getAVector();
+		final Object other$aVector = other.getAVector();
+		if (this$aVector == null ? other$aVector != null : !this$aVector.equals(other$aVector)) {
+			return false;
+		}
 		return true;
 	}
 
@@ -569,6 +585,8 @@ public class ThingWithAllAdditionalTypes {
 		result = result * PRIME + ($aZeroPeriod == null ? 43 : $aZeroPeriod.hashCode());
 		final Object $aZeroDuration = this.getAZeroDuration();
 		result = result * PRIME + ($aZeroDuration == null ? 43 : $aZeroDuration.hashCode());
+		final Object $aVector = this.getAVector();
+		result = result * PRIME + ($aVector == null ? 43 : $aVector.hashCode());
 		return result;
 	}
 
@@ -577,7 +595,7 @@ public class ThingWithAllAdditionalTypes {
 	}
 
 	public ThingWithAllAdditionalTypes withId(Long id) {
-		return this.id == id ? this : new ThingWithAllAdditionalTypes(id, this.booleanArray, this.aByte, this.aChar, this.charArray, this.aDate, this.aBigDecimal, this.aBigInteger, this.doubleArray, this.aFloat, this.floatArray, this.anInt, this.intArray, this.aLocale, this.longArray, this.aShort, this.shortArray, this.aPeriod, this.aDuration, this.stringArray, this.listOfStrings, this.setOfStrings, this.anInstant, this.aUUID, this.aURL, this.aURI, this.anEnum, this.anArrayOfEnums, this.listOfDoubles, this.aCollectionOfEnums, this.aTimeZone, this.aZoneId, this.aZeroPeriod, this.aZeroDuration);
+		return this.id == id ? this : new ThingWithAllAdditionalTypes(id, this.booleanArray, this.aByte, this.aChar, this.charArray, this.aDate, this.aBigDecimal, this.aBigInteger, this.doubleArray, this.aFloat, this.floatArray, this.anInt, this.intArray, this.aLocale, this.longArray, this.aShort, this.shortArray, this.aPeriod, this.aDuration, this.stringArray, this.listOfStrings, this.setOfStrings, this.anInstant, this.aUUID, this.aURL, this.aURI, this.anEnum, this.anArrayOfEnums, this.listOfDoubles, this.aCollectionOfEnums, this.aTimeZone, this.aZoneId, this.aZeroPeriod, this.aZeroDuration, this.aVector);
 	}
 
 	enum SomeEnum {
@@ -654,6 +672,8 @@ public class ThingWithAllAdditionalTypes {
 
 	private Duration aZeroDuration;
 
+	private Vector aVector;
+
 	/**
 	 * the builder
 	 */
@@ -692,6 +712,7 @@ public class ThingWithAllAdditionalTypes {
 		private ZoneId aZoneId;
 		private Period aZeroPeriod;
 		private Duration aZeroDuration;
+		private Vector aVector;
 
 		ThingWithAllAdditionalTypesBuilder() {
 		}
@@ -866,12 +887,17 @@ public class ThingWithAllAdditionalTypes {
 			return this;
 		}
 
+		public ThingWithAllAdditionalTypesBuilder aVector(Vector vector) {
+			this.aVector = aVector;
+			return this;
+		}
+
 		public ThingWithAllAdditionalTypes build() {
-			return new ThingWithAllAdditionalTypes(this.id, this.booleanArray, this.aByte, this.aChar, this.charArray, this.aDate, this.aBigDecimal, this.aBigInteger, this.doubleArray, this.aFloat, this.floatArray, this.anInt, this.intArray, this.aLocale, this.longArray, this.aShort, this.shortArray, this.aPeriod, this.aDuration, this.stringArray, this.listOfStrings, this.setOfStrings, this.anInstant, this.aUUID, this.aURL, this.aURI, this.anEnum, this.anArrayOfEnums, this.listOfDoubles, this.aCollectionOfEnums, this.aTimeZone, this.aZoneId, this.aZeroPeriod, this.aZeroDuration);
+			return new ThingWithAllAdditionalTypes(this.id, this.booleanArray, this.aByte, this.aChar, this.charArray, this.aDate, this.aBigDecimal, this.aBigInteger, this.doubleArray, this.aFloat, this.floatArray, this.anInt, this.intArray, this.aLocale, this.longArray, this.aShort, this.shortArray, this.aPeriod, this.aDuration, this.stringArray, this.listOfStrings, this.setOfStrings, this.anInstant, this.aUUID, this.aURL, this.aURI, this.anEnum, this.anArrayOfEnums, this.listOfDoubles, this.aCollectionOfEnums, this.aTimeZone, this.aZoneId, this.aZeroPeriod, this.aZeroDuration, this.aVector);
 		}
 
 		public String toString() {
-			return "ThingWithAllAdditionalTypes.ThingWithAllAdditionalTypesBuilder(id=" + this.id + ", booleanArray=" + java.util.Arrays.toString(this.booleanArray) + ", aByte=" + this.aByte + ", aChar=" + this.aChar + ", charArray=" + java.util.Arrays.toString(this.charArray) + ", aDate=" + this.aDate + ", aBigDecimal=" + this.aBigDecimal + ", aBigInteger=" + this.aBigInteger + ", doubleArray=" + java.util.Arrays.toString(this.doubleArray) + ", aFloat=" + this.aFloat + ", floatArray=" + java.util.Arrays.toString(this.floatArray) + ", anInt=" + this.anInt + ", intArray=" + java.util.Arrays.toString(this.intArray) + ", aLocale=" + this.aLocale + ", longArray=" + java.util.Arrays.toString(this.longArray) + ", aShort=" + this.aShort + ", shortArray=" + java.util.Arrays.toString(this.shortArray) + ", aPeriod=" + this.aPeriod + ", aDuration=" + this.aDuration + ", stringArray=" + java.util.Arrays.deepToString(this.stringArray) + ", listOfStrings=" + this.listOfStrings + ", setOfStrings=" + this.setOfStrings + ", anInstant=" + this.anInstant + ", aUUID=" + this.aUUID + ", aURL=" + this.aURL + ", aURI=" + this.aURI + ", anEnum=" + this.anEnum + ", anArrayOfEnums=" + java.util.Arrays.deepToString(this.anArrayOfEnums) + ", listOfDoubles=" + this.listOfDoubles + ", aCollectionOfEnums=" + this.aCollectionOfEnums + ", aTimeZone=" + this.aTimeZone + ", aZoneId=" + this.aZoneId + ", aZeroPeriod=" + this.aZeroPeriod + ", aZeroDuration=" + this.aZeroDuration + ")";
+			return "ThingWithAllAdditionalTypes.ThingWithAllAdditionalTypesBuilder(id=" + this.id + ", booleanArray=" + java.util.Arrays.toString(this.booleanArray) + ", aByte=" + this.aByte + ", aChar=" + this.aChar + ", charArray=" + java.util.Arrays.toString(this.charArray) + ", aDate=" + this.aDate + ", aBigDecimal=" + this.aBigDecimal + ", aBigInteger=" + this.aBigInteger + ", doubleArray=" + java.util.Arrays.toString(this.doubleArray) + ", aFloat=" + this.aFloat + ", floatArray=" + java.util.Arrays.toString(this.floatArray) + ", anInt=" + this.anInt + ", intArray=" + java.util.Arrays.toString(this.intArray) + ", aLocale=" + this.aLocale + ", longArray=" + java.util.Arrays.toString(this.longArray) + ", aShort=" + this.aShort + ", shortArray=" + java.util.Arrays.toString(this.shortArray) + ", aPeriod=" + this.aPeriod + ", aDuration=" + this.aDuration + ", stringArray=" + java.util.Arrays.deepToString(this.stringArray) + ", listOfStrings=" + this.listOfStrings + ", setOfStrings=" + this.setOfStrings + ", anInstant=" + this.anInstant + ", aUUID=" + this.aUUID + ", aURL=" + this.aURL + ", aURI=" + this.aURI + ", anEnum=" + this.anEnum + ", anArrayOfEnums=" + java.util.Arrays.deepToString(this.anArrayOfEnums) + ", listOfDoubles=" + this.listOfDoubles + ", aCollectionOfEnums=" + this.aCollectionOfEnums + ", aTimeZone=" + this.aTimeZone + ", aZoneId=" + this.aZoneId + ", aZeroPeriod=" + this.aZeroPeriod + ", aZeroDuration=" + this.aZeroDuration + ", aVector=" + this.aVector + ")";
 		}
 	}
 }

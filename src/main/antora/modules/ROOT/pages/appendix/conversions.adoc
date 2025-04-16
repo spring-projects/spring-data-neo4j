@@ -188,6 +188,10 @@ If you require the time zone, use a type that supports it (i.e. `ZoneDateTime`) 
 |Point with CRS 4326 and x/y corresponding to lat/long
 |
 
+|`org.springframework.data.domain.Vector`
+|persisted through `setNodeVectorProperty`
+|
+
 |Instances of `Enum`
 |String (The name value of the enum)
 |
@@ -209,6 +213,17 @@ If you require the time zone, use a type that supports it (i.e. `ZoneDateTime`) 
 |
 
 |===
+
+[[build-in.conversions.vector]]
+=== Vector type
+Spring Data has its own type for vector representation `org.springframework.data.domain.Vector`.
+While this can be used as a wrapper around a `float` or `double` array, Spring Data Neo4j supports only the `double` variant right now.
+From a user perspective, it is possible to only define the `Vector` interface on the property definition and use either `double` or `float`.
+Neo4j will store both `double` and `float` variants as a 64-bit Cypher `FLOAT` value, which is consistent with values persisted through Cypher and the dedicated `setNodeVectorProperty` function that Spring Data Neo4j uses to persist the property.
+
+NOTE: Spring Data Neo4j only allows one `Vector` property to be present in an entity definition.
+
+NOTE: Please be aware that a persisted `float` value differs from a read back value due to the nature of floating numbers.
 
 [[custom.conversions]]
 == Custom conversions
