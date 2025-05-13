@@ -42,6 +42,7 @@ import org.springframework.data.neo4j.integration.shared.common.ThingWithAllCyph
 import org.springframework.data.neo4j.integration.shared.conversion.ThingWithCompositeProperties;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.repository.core.RepositoryInformation;
+import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.query.QueryCreationException;
 
 /**
@@ -67,7 +68,7 @@ class Neo4jRepositoryFactoryTest {
 			metadata = mock(RepositoryInformation.class);
 			entityInformation = mock(Neo4jEntityInformation.class);
 
-			doReturn(entityInformation).when(neo4jRepositoryFactory).getEntityInformation(Mockito.any());
+			doReturn(entityInformation).when(neo4jRepositoryFactory).getEntityInformation(Mockito.any(RepositoryMetadata.class));
 		}
 
 		@Test

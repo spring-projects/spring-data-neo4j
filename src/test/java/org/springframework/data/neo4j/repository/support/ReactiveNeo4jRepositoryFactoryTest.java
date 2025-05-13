@@ -28,6 +28,7 @@ import org.mockito.Mockito;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.repository.core.RepositoryInformation;
+import org.springframework.data.repository.core.RepositoryMetadata;
 
 /**
  * @author Gerrit Meier
@@ -53,7 +54,7 @@ class ReactiveNeo4jRepositoryFactoryTest {
 			metadata = mock(RepositoryInformation.class);
 			entityInformation = mock(Neo4jEntityInformation.class);
 
-			doReturn(entityInformation).when(neo4jRepositoryFactory).getEntityInformation(Mockito.any());
+			doReturn(entityInformation).when(neo4jRepositoryFactory).getEntityInformation(Mockito.any(RepositoryMetadata.class));
 		}
 
 		@Test

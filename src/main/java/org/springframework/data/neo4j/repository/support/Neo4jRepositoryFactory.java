@@ -62,18 +62,17 @@ final class Neo4jRepositoryFactory extends RepositoryFactorySupport {
 		this.mappingContext = mappingContext;
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
-	public <T, ID> Neo4jEntityInformation<T, ID> getEntityInformation(Class<T> domainClass) {
+	public Neo4jEntityInformation<?, ?> getEntityInformation(RepositoryMetadata metadata) {
 
-		Neo4jPersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(domainClass);
-		return new DefaultNeo4jEntityInformation<>((Neo4jPersistentEntity<T>) entity);
+		Neo4jPersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(metadata.getDomainType());
+		return new DefaultNeo4jEntityInformation<>(entity);
 	}
 
 	@Override
 	protected Object getTargetRepository(RepositoryInformation metadata) {
 
-		Neo4jEntityInformation<?, Object> entityInformation = getEntityInformation(metadata.getDomainType());
+		Neo4jEntityInformation<?, ?> entityInformation = getEntityInformation(metadata);
 		Neo4jRepositoryFactorySupport.assertIdentifierType(metadata.getIdType(), entityInformation.getIdType());
 		return getTargetRepositoryViaReflection(metadata, neo4jOperations, entityInformation);
 	}
@@ -106,7 +105,7 @@ final class Neo4jRepositoryFactory extends RepositoryFactorySupport {
 
 	private RepositoryFragment<Object> createDSLPredicateExecutorFragment(RepositoryMetadata metadata, Class<?> implementor) {
 
-		Neo4jEntityInformation<?, Object> entityInformation = getEntityInformation(metadata.getDomainType());
+		Neo4jEntityInformation<?, ?> entityInformation = getEntityInformation(metadata);
 		Object querydslFragment = instantiateClass(implementor, mappingContext, entityInformation, neo4jOperations);
 
 		return RepositoryFragment.implemented(querydslFragment);
@@ -114,7 +113,7 @@ final class Neo4jRepositoryFactory extends RepositoryFactorySupport {
 
 	private RepositoryFragment<Object> createDSLExecutorFragment(RepositoryMetadata metadata, Class<?> implementor) {
 
-		Neo4jEntityInformation<?, Object> entityInformation = getEntityInformation(metadata.getDomainType());
+		Neo4jEntityInformation<?, ?> entityInformation = getEntityInformation(metadata);
 		Object querydslFragment = instantiateClass(implementor, entityInformation, neo4jOperations);
 
 		return RepositoryFragment.implemented(querydslFragment);
