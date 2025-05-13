@@ -58,7 +58,7 @@ class Neo4jRepositoryFactoryTest {
 	 */
 	@Nested
 	class IdentifierTypeCheck {
-		@Spy private Neo4jRepositoryFactory neo4jRepositoryFactory = new Neo4jRepositoryFactory(null, null);
+		@Spy private Neo4jRepositoryFactory neo4jRepositoryFactory = new Neo4jRepositoryFactory(null, null, null);
 		private Neo4jEntityInformation entityInformation;
 		private RepositoryInformation metadata;
 
@@ -109,7 +109,7 @@ class Neo4jRepositoryFactoryTest {
 					Arrays.asList(ThingWithAllAdditionalTypes.class,
 							ThingWithAllCypherTypes.class,
 							ThingWithCompositeProperties.class)));
-			repositoryFactory = new Neo4jRepositoryFactory(Mockito.mock(Neo4jTemplate.class), mappingContext);
+			repositoryFactory = new Neo4jRepositoryFactory(Mockito.mock(Neo4jTemplate.class), mappingContext, Neo4jRepositoryFragmentsContributor.DEFAULT);
 		}
 
 		@Test

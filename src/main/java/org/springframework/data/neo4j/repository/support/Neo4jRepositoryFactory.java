@@ -24,19 +24,13 @@ import org.springframework.data.neo4j.core.Neo4jOperations;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
-import org.springframework.data.neo4j.repository.query.CypherdslConditionExecutorImpl;
 import org.springframework.data.neo4j.repository.query.Neo4jQueryLookupStrategy;
-import org.springframework.data.neo4j.repository.query.QuerydslNeo4jPredicateExecutor;
-import org.springframework.data.neo4j.repository.query.SimpleQueryByExampleExecutor;
 import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
-import org.springframework.data.querydsl.QuerydslPredicateExecutor;
-import org.springframework.data.querydsl.QuerydslUtils;
 import org.springframework.data.repository.core.RepositoryInformation;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.core.support.RepositoryComposition.RepositoryFragments;
 import org.springframework.data.repository.core.support.RepositoryFactorySupport;
-import org.springframework.data.repository.core.support.RepositoryFragment;
 import org.springframework.data.repository.query.QueryLookupStrategy;
 import org.springframework.data.repository.query.QueryLookupStrategy.Key;
 import org.springframework.data.repository.query.ValueExpressionDelegate;
@@ -46,6 +40,7 @@ import org.springframework.data.repository.query.ValueExpressionDelegate;
  *
  * @author Gerrit Meier
  * @author Michael J. Simons
+ * @author Mark Paluch
  * @since 6.0
  */
 final class Neo4jRepositoryFactory extends RepositoryFactorySupport {
@@ -54,12 +49,15 @@ final class Neo4jRepositoryFactory extends RepositoryFactorySupport {
 
 	private final Neo4jMappingContext mappingContext;
 
+	private final Neo4jRepositoryFragmentsContributor fragmentsContributor;
+
 	private Configuration cypherDSLConfiguration = Configuration.defaultConfig();
 
-	Neo4jRepositoryFactory(Neo4jOperations neo4jOperations, Neo4jMappingContext mappingContext) {
+	Neo4jRepositoryFactory(Neo4jOperations neo4jOperations, Neo4jMappingContext mappingContext, Neo4jRepositoryFragmentsContributor fragmentsContributor) {
 
 		this.neo4jOperations = neo4jOperations;
 		this.mappingContext = mappingContext;
+		this.fragmentsContributor = fragmentsContributor;
 	}
 
 	@Override
@@ -79,44 +77,7 @@ final class Neo4jRepositoryFactory extends RepositoryFactorySupport {
 
 	@Override
 	protected RepositoryFragments getRepositoryFragments(RepositoryMetadata metadata) {
-
-		RepositoryFragments fragments = RepositoryFragments.empty();
-
-		Object byExampleExecutor = instantiateClass(SimpleQueryByExampleExecutor.class, neo4jOperations,
-				mappingContext);
-
-		fragments = fragments.append(RepositoryFragment.implemented(byExampleExecutor));
-
-		boolean isQueryDslRepository = QuerydslUtils.QUERY_DSL_PRESENT
-									   && QuerydslPredicateExecutor.class.isAssignableFrom(metadata.getRepositoryInterface());
-
-		if (isQueryDslRepository) {
-
-			fragments = fragments.append(createDSLPredicateExecutorFragment(metadata, QuerydslNeo4jPredicateExecutor.class));
-		}
-
-		if (CypherdslConditionExecutor.class.isAssignableFrom(metadata.getRepositoryInterface())) {
-
-			fragments = fragments.append(createDSLExecutorFragment(metadata, CypherdslConditionExecutorImpl.class));
-		}
-
-		return fragments;
-	}
-
-	private RepositoryFragment<Object> createDSLPredicateExecutorFragment(RepositoryMetadata metadata, Class<?> implementor) {
-
-		Neo4jEntityInformation<?, ?> entityInformation = getEntityInformation(metadata);
-		Object querydslFragment = instantiateClass(implementor, mappingContext, entityInformation, neo4jOperations);
-
-		return RepositoryFragment.implemented(querydslFragment);
-	}
-
-	private RepositoryFragment<Object> createDSLExecutorFragment(RepositoryMetadata metadata, Class<?> implementor) {
-
-		Neo4jEntityInformation<?, ?> entityInformation = getEntityInformation(metadata);
-		Object querydslFragment = instantiateClass(implementor, entityInformation, neo4jOperations);
-
-		return RepositoryFragment.implemented(querydslFragment);
+		return fragmentsContributor.contribute(metadata, getEntityInformation(metadata), neo4jOperations, mappingContext);
 	}
 
 	@Override

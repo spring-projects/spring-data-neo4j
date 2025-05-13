@@ -35,6 +35,7 @@ import org.springframework.data.repository.config.CustomRepositoryImplementation
  * The CDI pendant to the {@link Neo4jRepositoryFactoryBean}. It creates instances of {@link Neo4jRepositoryFactory}.
  *
  * @author Michael J. Simons
+ * @author Mark Paluch
  * @param <T> The type of the repository being created
  * @soundtrack Various - TRON Legacy R3conf1gur3d
  * @since 6.0
@@ -57,7 +58,7 @@ public final class Neo4jRepositoryFactoryCdiBean<T> extends CdiRepositoryBean<T>
 		Neo4jOperations neo4jOperations = getReference(Neo4jOperations.class, creationalContext);
 		Neo4jMappingContext mappingContext = getReference(Neo4jMappingContext.class, creationalContext);
 
-		return create(() -> new Neo4jRepositoryFactory(neo4jOperations, mappingContext), repositoryType);
+		return create(() -> new Neo4jRepositoryFactory(neo4jOperations, mappingContext, Neo4jRepositoryFragmentsContributor.DEFAULT), repositoryType);
 	}
 
 	private <RT> RT getReference(Class<RT> clazz, CreationalContext<?> creationalContext) {

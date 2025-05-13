@@ -48,6 +48,7 @@ import org.springframework.data.repository.query.ValueExpressionDelegate;
  * @author Gerrit Meier
  * @author Michael J. Simons
  * @author Niklas Krieger
+ * @author Mark Paluch
  * @since 6.0
  */
 final class ReactiveNeo4jRepositoryFactory extends ReactiveRepositoryFactorySupport {
@@ -56,12 +57,15 @@ final class ReactiveNeo4jRepositoryFactory extends ReactiveRepositoryFactorySupp
 
 	private final Neo4jMappingContext mappingContext;
 
+	private final ReactiveNeo4jRepositoryFragmentsContributor fragmentsContributor;
+
 	private Configuration cypherDSLConfiguration = Configuration.defaultConfig();
 
-	ReactiveNeo4jRepositoryFactory(ReactiveNeo4jOperations neo4jOperations, Neo4jMappingContext mappingContext) {
+	ReactiveNeo4jRepositoryFactory(ReactiveNeo4jOperations neo4jOperations, Neo4jMappingContext mappingContext, ReactiveNeo4jRepositoryFragmentsContributor fragmentsContributor) {
 
 		this.neo4jOperations = neo4jOperations;
 		this.mappingContext = mappingContext;
+		this.fragmentsContributor = fragmentsContributor;
 	}
 
 	@Override
@@ -81,44 +85,7 @@ final class ReactiveNeo4jRepositoryFactory extends ReactiveRepositoryFactorySupp
 
 	@Override
 	protected RepositoryFragments getRepositoryFragments(RepositoryMetadata metadata) {
-
-		RepositoryFragments fragments = RepositoryFragments.empty();
-
-		SimpleReactiveQueryByExampleExecutor<?> byExampleExecutor = instantiateClass(
-				SimpleReactiveQueryByExampleExecutor.class, neo4jOperations, mappingContext);
-
-		fragments = fragments.append(RepositoryFragment.implemented(byExampleExecutor));
-
-		boolean isQueryDslRepository = QuerydslUtils.QUERY_DSL_PRESENT
-									   && ReactiveQuerydslPredicateExecutor.class.isAssignableFrom(metadata.getRepositoryInterface());
-
-		if (isQueryDslRepository) {
-
-			fragments = fragments.append(createDSLPredicateExecutorFragment(metadata, ReactiveQuerydslNeo4jPredicateExecutor.class));
-		}
-
-		if (ReactiveCypherdslConditionExecutor.class.isAssignableFrom(metadata.getRepositoryInterface())) {
-
-			fragments = fragments.append(createDSLExecutorFragment(metadata, ReactiveCypherdslConditionExecutorImpl.class));
-		}
-
-		return fragments;
-	}
-
-	private RepositoryFragment<Object> createDSLPredicateExecutorFragment(RepositoryMetadata metadata, Class<?> implementor) {
-
-		Neo4jEntityInformation<?, ?> entityInformation = getEntityInformation(metadata);
-		Object querydslFragment = instantiateClass(implementor, mappingContext, entityInformation, neo4jOperations);
-
-		return RepositoryFragment.implemented(querydslFragment);
-	}
-
-	private RepositoryFragment<Object> createDSLExecutorFragment(RepositoryMetadata metadata, Class<?> implementor) {
-
-		Neo4jEntityInformation<?, ?> entityInformation = getEntityInformation(metadata);
-		Object querydslFragment = instantiateClass(implementor, entityInformation, neo4jOperations);
-
-		return RepositoryFragment.implemented(querydslFragment);
+		return fragmentsContributor.contribute(metadata, getEntityInformation(metadata), neo4jOperations, mappingContext);
 	}
 
 	@Override
@@ -126,8 +93,8 @@ final class ReactiveNeo4jRepositoryFactory extends ReactiveRepositoryFactorySupp
 		return SimpleReactiveNeo4jRepository.class;
 	}
 
-
-	@Override protected Optional<QueryLookupStrategy> getQueryLookupStrategy(Key key,
+	@Override
+	protected Optional<QueryLookupStrategy> getQueryLookupStrategy(Key key,
 			ValueExpressionDelegate valueExpressionDelegate) {
 		return Optional
 				.of(new ReactiveNeo4jQueryLookupStrategy(neo4jOperations, mappingContext, valueExpressionDelegate, cypherDSLConfiguration));

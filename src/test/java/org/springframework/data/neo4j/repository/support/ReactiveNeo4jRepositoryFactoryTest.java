@@ -44,7 +44,7 @@ class ReactiveNeo4jRepositoryFactoryTest {
 	@Nested
 	class IdentifierTypeCheck {
 
-		@Spy private ReactiveNeo4jRepositoryFactory neo4jRepositoryFactory = new ReactiveNeo4jRepositoryFactory(null, null);
+		@Spy private ReactiveNeo4jRepositoryFactory neo4jRepositoryFactory = new ReactiveNeo4jRepositoryFactory(null, null, null);
 		private Neo4jEntityInformation entityInformation;
 		private RepositoryInformation metadata;
 

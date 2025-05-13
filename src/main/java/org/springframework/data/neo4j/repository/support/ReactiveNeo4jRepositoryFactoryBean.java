@@ -30,6 +30,7 @@ import org.springframework.data.repository.core.support.TransactionalRepositoryF
  *
  * @author Gerrit Meier
  * @author Michael J. Simons
+ * @author Mark Paluch
  * @param <T> the type of the repository
  * @param <S> type of the domain class to map
  * @param <ID> identifier type in the domain class
@@ -42,6 +43,8 @@ public final class ReactiveNeo4jRepositoryFactoryBean<T extends Repository<S, ID
 	private ReactiveNeo4jOperations neo4jOperations;
 
 	private Neo4jMappingContext neo4jMappingContext;
+
+	private ReactiveNeo4jRepositoryFragmentsContributor repositoryFragmentsContributor = ReactiveNeo4jRepositoryFragmentsContributor.DEFAULT;
 
 	/**
 	 * Creates a new {@link TransactionalRepositoryFactoryBeanSupport} for the given repository interface.
@@ -62,7 +65,16 @@ public final class ReactiveNeo4jRepositoryFactoryBean<T extends Repository<S, ID
 	}
 
 	@Override
+	public ReactiveNeo4jRepositoryFragmentsContributor getRepositoryFragmentsContributor() {
+		return repositoryFragmentsContributor;
+	}
+
+	public void setRepositoryFragmentsContributor(ReactiveNeo4jRepositoryFragmentsContributor repositoryFragmentsContributor) {
+		this.repositoryFragmentsContributor = repositoryFragmentsContributor;
+	}
+
+	@Override
 	protected RepositoryFactorySupport doCreateRepositoryFactory() {
-		return new ReactiveNeo4jRepositoryFactory(neo4jOperations, neo4jMappingContext);
+		return new ReactiveNeo4jRepositoryFactory(neo4jOperations, neo4jMappingContext, repositoryFragmentsContributor);
 	}
 }
