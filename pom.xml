@@ -19,7 +19,7 @@
 	<parent>
 		<groupId>org.springframework.data.build</groupId>
 		<artifactId>spring-data-parent</artifactId>
-		<version>3.4.6</version>
+		<version>3.4.7-SNAPSHOT</version>
 	</parent>
 
 	<groupId>org.springframework.data</groupId>
@@ -109,7 +109,7 @@
 
 		<skipUnitTests>${skipTests}</skipUnitTests>
 
-		<springdata.commons>3.4.6</springdata.commons>
+		<springdata.commons>3.4.7-SNAPSHOT</springdata.commons>
 		<junit-pioneer.version>2.2.0</junit-pioneer.version>
 	</properties>
 
@@ -436,8 +436,20 @@
 	</dependencies>
 
 	<repositories>
-		
-		
+		<repository>
+			<id>spring-snapshot</id>
+			<url>https://repo.spring.io/snapshot</url>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+			<releases>
+				<enabled>false</enabled>
+			</releases>
+		</repository>
+		<repository>
+			<id>spring-milestone</id>
+			<url>https://repo.spring.io/milestone</url>
+		</repository>
 	</repositories>
 
 	<build>
