@@ -50,7 +50,7 @@ final class ResultSummaries {
 	private static final LogAccessor cypherSecurityNotificationLog = new LogAccessor(LogFactory.getLog("org.springframework.data.neo4j.cypher.security"));
 	private static final LogAccessor cypherTopologyNotificationLog = new LogAccessor(LogFactory.getLog("org.springframework.data.neo4j.cypher.topology"));
 
-	private static final Pattern DEPRECATED_ID_PATTERN = Pattern.compile("(?im)The query used a deprecated function: `id`\\.");
+	private static final Pattern DEPRECATED_ID_PATTERN = Pattern.compile("(?im)The query used a deprecated function[\\.:] \\(?[`']id.+");
 
 	/**
 	 * Does some post-processing on the giving result summary, especially logging all notifications
