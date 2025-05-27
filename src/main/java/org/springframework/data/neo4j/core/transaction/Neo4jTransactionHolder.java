@@ -17,6 +17,7 @@ package org.springframework.data.neo4j.core.transaction;
 
 import java.util.Collection;
 
+import org.jspecify.annotations.Nullable;
 import org.neo4j.driver.Bookmark;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.Transaction;
@@ -61,6 +62,7 @@ final class Neo4jTransactionHolder extends ResourceHolderSupport {
 	 * @param asUser impersonated user if any
 	 * @return An optional, ongoing transaction.
 	 */
+	@Nullable
 	Transaction getTransaction(DatabaseSelection inDatabase, UserSelection asUser) {
 		return this.context.isForDatabaseAndUser(inDatabase, asUser) ? transaction : null;
 	}

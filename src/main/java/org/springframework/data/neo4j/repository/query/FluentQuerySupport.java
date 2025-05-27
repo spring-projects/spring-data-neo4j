@@ -24,6 +24,7 @@ import java.util.Set;
 import java.util.function.IntFunction;
 import java.util.function.Predicate;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.KeysetScrollPosition;
 import org.springframework.data.domain.OffsetScrollPosition;
 import org.springframework.data.domain.ScrollPosition;
@@ -46,6 +47,7 @@ abstract class FluentQuerySupport<R> {
 
 	protected final Sort sort;
 
+	@Nullable
 	protected final Integer limit;
 
 	protected final Set<String> properties;
@@ -53,8 +55,8 @@ abstract class FluentQuerySupport<R> {
 	FluentQuerySupport(
 			Class<R> resultType,
 			Sort sort,
-			Integer limit,
-			Collection<String> properties
+			@Nullable Integer limit,
+			@Nullable Collection<String> properties
 	) {
 		this.resultType = resultType;
 		this.sort = sort;
@@ -130,11 +132,11 @@ abstract class FluentQuerySupport<R> {
 		return allPaths;
 	}
 
-	private static boolean hasMoreElements(List<?> result, Integer limit) {
+	private static boolean hasMoreElements(List<?> result, @Nullable Integer limit) {
 		return !result.isEmpty() && result.size() > (limit != null ? limit : 0);
 	}
 
-	private static <T> List<T> getSubList(List<T> result, Integer limit, ScrollPosition.Direction scrollDirection) {
+	private static <T> List<T> getSubList(List<T> result, @Nullable Integer limit, ScrollPosition.Direction scrollDirection) {
 
 		if (limit != null && limit > 0 && result.size() > limit) {
 			return scrollDirection == ScrollPosition.Direction.FORWARD ? result.subList(0, limit) : result.subList(1, limit + 1);

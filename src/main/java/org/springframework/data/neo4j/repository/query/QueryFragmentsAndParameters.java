@@ -248,13 +248,13 @@ public final class QueryFragmentsAndParameters {
 
 	static QueryFragmentsAndParameters forConditionAndPageable(Neo4jPersistentEntity<?> entityMetaData,
 															   Condition condition, Pageable pageable,
-															   java.util.function.Predicate<PropertyFilter.RelaxedPropertyPath> includeField) {
+															   @Nullable Predicate<PropertyFilter.RelaxedPropertyPath> includeField) {
 
 		return forCondition(entityMetaData, condition, pageable, null, null, null, null, includeField);
 	}
 
-	static QueryFragmentsAndParameters forConditionAndSort(Neo4jPersistentEntity<?> entityMetaData, Condition condition, Sort sort, Integer limit,
-														   java.util.function.Predicate<PropertyFilter.RelaxedPropertyPath> includeField) {
+	static QueryFragmentsAndParameters forConditionAndSort(Neo4jPersistentEntity<?> entityMetaData, Condition condition, Sort sort, @Nullable Integer limit,
+	                                                       @Nullable Predicate<PropertyFilter.RelaxedPropertyPath> includeField) {
 
 		return forCondition(entityMetaData, condition, null, sort, null, limit, null, includeField);
 	}
@@ -265,11 +265,11 @@ public final class QueryFragmentsAndParameters {
 
 	static QueryFragmentsAndParameters forConditionWithScrollPosition(Neo4jPersistentEntity<?> entityMetaData,
 																	  Condition condition,
-																	  Condition keysetCondition,
+																	  @Nullable Condition keysetCondition,
 																	  ScrollPosition scrollPosition,
 																	  Sort sort,
-																	  Integer limit,
-																	  java.util.function.Predicate<PropertyFilter.RelaxedPropertyPath> includeField) {
+																	  @Nullable Integer limit,
+																	  @Nullable Predicate<PropertyFilter.RelaxedPropertyPath> includeField) {
 
 		long skip = 0L;
 
@@ -282,7 +282,7 @@ public final class QueryFragmentsAndParameters {
 		}
 
 		if (scrollPosition instanceof KeysetScrollPosition keysetScrollPosition) {
-			if (!scrollPosition.isInitial()) {
+			if (!scrollPosition.isInitial() && keysetCondition != null) {
 				condition = condition.and(keysetCondition);
 			}
 			QueryFragmentsAndParameters queryFragmentsAndParameters = getQueryFragmentsAndParameters(entityMetaData, null,

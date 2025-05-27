@@ -146,7 +146,7 @@ public final class NestedRelationshipProcessingStateMachine {
 	 */
 	@FunctionalInterface
 	public interface RelationshipIdSupplier {
-		Optional<Object> getId(Statement statement, Neo4jPersistentProperty idProperty, Object fromId, Object toId);
+		Optional<Object> getId(Statement statement, @Nullable Neo4jPersistentProperty idProperty, Object fromId, Object toId);
 	}
 
 	/**
@@ -154,7 +154,7 @@ public final class NestedRelationshipProcessingStateMachine {
 	 */
 	@FunctionalInterface
 	public interface ReactiveRelationshipIdSupplier {
-		Mono<Object> getId(Statement statement, Neo4jPersistentProperty idProperty, Object fromId, Object toId);
+		Mono<Object> getId(Statement statement, @Nullable Neo4jPersistentProperty idProperty, Object fromId, Object toId);
 	}
 
 	/**
@@ -364,6 +364,7 @@ public final class NestedRelationshipProcessingStateMachine {
 	 * @param object The object for which an id is requested
 	 * @return The objects id
 	 */
+	@Nullable
 	public Object getObjectId(Object object) {
 		final long stamp = lock.readLock();
 		try {
@@ -385,6 +386,7 @@ public final class NestedRelationshipProcessingStateMachine {
 		}
 	}
 
+	@Nullable
 	private Object getProcessedObjectIds(Object entity) {
 		if (entity == null) {
 			return null;

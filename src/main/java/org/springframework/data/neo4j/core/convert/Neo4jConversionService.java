@@ -40,6 +40,7 @@ public interface Neo4jConversionService {
 	 * @param <T>        The type to be returned
 	 * @return The converted value
 	 */
+	@Nullable
 	<T> T convert(Object source, Class<T> targetType);
 
 	/**

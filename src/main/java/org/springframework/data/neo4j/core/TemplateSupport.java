@@ -394,8 +394,8 @@ public final class TemplateSupport {
 	static <T> Object retrieveOrSetRelatedId(
 			Neo4jPersistentEntity<?> entityMetadata,
 			PersistentPropertyAccessor<T> propertyAccessor,
-			Optional<Entity> databaseEntity,
-			Object relatedInternalId
+			@SuppressWarnings("OptionalUsedAsFieldOrParameterType") Optional<Entity> databaseEntity,
+			@Nullable Object relatedInternalId
 	) {
 		if (!entityMetadata.isUsingInternalIds()) {
 			return Objects.requireNonNull(relatedInternalId);

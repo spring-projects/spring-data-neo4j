@@ -29,6 +29,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiFunction;
 
+import org.jspecify.annotations.Nullable;
 import org.neo4j.cypherdsl.core.Condition;
 import org.neo4j.cypherdsl.core.Cypher;
 import org.neo4j.cypherdsl.core.Expression;
@@ -83,9 +84,13 @@ final class Predicate {
 		return predicate;
 	}
 
-	private static <S> void processRelationships(Neo4jMappingContext mappingContext, Example<S> example, NodeDescription<?> currentNodeDescription,
-												 DirectFieldAccessFallbackBeanWrapper beanWrapper, ExampleMatcher.MatchMode mode, AtomicInteger relationshipPatternCount,
-												 PropertyPath propertyPath, Predicate predicate) {
+	private static <S> void processRelationships(Neo4jMappingContext mappingContext, Example<S> example, @Nullable NodeDescription<?> currentNodeDescription,
+	                                             DirectFieldAccessFallbackBeanWrapper beanWrapper, ExampleMatcher.MatchMode mode, AtomicInteger relationshipPatternCount,
+	                                             @Nullable PropertyPath propertyPath, Predicate predicate) {
+
+		if (currentNodeDescription == null) {
+			return;
+		}
 
 		for (RelationshipDescription relationship : currentNodeDescription.getRelationships()) {
 			String relationshipFieldName = relationship.getFieldName();
@@ -97,7 +102,7 @@ final class Predicate {
 
 			// Right now we are only accepting the first element of a collection as a filter entry.
 			// Maybe combining multiple entities with AND might make sense.
-			if (relationshipObject instanceof Collection collection) {
+			if (relationshipObject instanceof Collection<?> collection) {
 				int collectionSize = collection.size();
 				if (collectionSize > 1) {
 					throw new IllegalArgumentException("Cannot have more than one related node per collection.");
@@ -119,10 +124,12 @@ final class Predicate {
 			PropertyPathWrapper nestedPropertyPathWrapper = new PropertyPathWrapper(relationshipPatternCount.incrementAndGet(), mappingContext.getPersistentPropertyPath(nestedPropertyPath), false);
 			predicate.addRelationship(nestedPropertyPathWrapper);
 
-			for (GraphPropertyDescription graphProperty : relatedNodeDescription.getGraphProperties()) {
-				addConditionAndParameters(mappingContext, (Neo4jPersistentEntity<?>) relatedNodeDescription, new DirectFieldAccessFallbackBeanWrapper(relationshipObject), mode,
-						new ExampleMatcherAccessor(example.getMatcher()), predicate,
-						graphProperty, nestedPropertyPathWrapper);
+			if (relatedNodeDescription != null) {
+				for (GraphPropertyDescription graphProperty : relatedNodeDescription.getGraphProperties()) {
+					addConditionAndParameters(mappingContext, (Neo4jPersistentEntity<?>) relatedNodeDescription, new DirectFieldAccessFallbackBeanWrapper(relationshipObject), mode,
+							new ExampleMatcherAccessor(example.getMatcher()), predicate,
+							graphProperty, nestedPropertyPathWrapper);
+				}
 			}
 
 			processRelationships(mappingContext, example, relatedNodeDescription, new DirectFieldAccessFallbackBeanWrapper(relationshipObject), mode, relationshipPatternCount,

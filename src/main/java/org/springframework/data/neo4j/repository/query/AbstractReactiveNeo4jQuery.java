@@ -20,6 +20,7 @@ import java.util.function.BiFunction;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
+import org.jspecify.annotations.Nullable;
 import org.neo4j.driver.types.MapAccessor;
 import org.neo4j.driver.types.TypeSystem;
 import org.springframework.core.convert.converter.Converter;
@@ -90,6 +91,7 @@ abstract class AbstractReactiveNeo4jQuery extends Neo4jQuerySupport implements R
 	}
 
 	@Override
+	@Nullable
 	public final Object execute(Object[] parameters) {
 
 		boolean incrementLimit = queryMethod.incrementLimit();

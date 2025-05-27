@@ -56,6 +56,7 @@ final class DefaultNeo4jConversionService implements Neo4jConversionService {
 	}
 
 	@Override
+	@Nullable
 	public <T> T convert(Object source, Class<T> targetType) {
 		return conversionService.convert(source, targetType);
 	}

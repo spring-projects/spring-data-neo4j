@@ -16,8 +16,10 @@
 package org.springframework.data.neo4j.core.transaction;
 
 import java.util.Collection;
+import java.util.Objects;
 
 import org.apiguardian.api.API;
+import org.jspecify.annotations.Nullable;
 import org.neo4j.driver.Bookmark;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Session;
@@ -73,10 +75,13 @@ public final class Neo4jTransactionManager extends AbstractPlatformTransactionMa
 
 		private final Driver driver;
 
+		@Nullable
 		private DatabaseSelectionProvider databaseSelectionProvider;
 
+		@Nullable
 		private UserSelectionProvider userSelectionProvider;
 
+		@Nullable
 		private Neo4jBookmarkManager bookmarkManager;
 
 		private Builder(Driver driver) {
@@ -91,7 +96,7 @@ public final class Neo4jTransactionManager extends AbstractPlatformTransactionMa
 		 * @param databaseSelectionProvider The database selection provider
 		 * @return The builder
 		 */
-		public Builder withDatabaseSelectionProvider(DatabaseSelectionProvider databaseSelectionProvider) {
+		public Builder withDatabaseSelectionProvider(@Nullable DatabaseSelectionProvider databaseSelectionProvider) {
 			this.databaseSelectionProvider = databaseSelectionProvider;
 			return this;
 		}
@@ -104,7 +109,7 @@ public final class Neo4jTransactionManager extends AbstractPlatformTransactionMa
 		 * @param userSelectionProvider The provider for impersonated users
 		 * @return The builder
 		 */
-		public Builder withUserSelectionProvider(UserSelectionProvider userSelectionProvider) {
+		public Builder withUserSelectionProvider(@Nullable UserSelectionProvider userSelectionProvider) {
 			this.userSelectionProvider = userSelectionProvider;
 			return this;
 		}
@@ -238,7 +243,7 @@ public final class Neo4jTransactionManager extends AbstractPlatformTransactionMa
 				.registerSynchronization(new Neo4jSessionSynchronization(connectionHolder, driver));
 
 		TransactionSynchronizationManager.bindResource(driver, connectionHolder);
-		return connectionHolder.getTransaction(targetDatabase, asUser);
+		return Objects.requireNonNull(connectionHolder.getTransaction(targetDatabase, asUser));
 	}
 
 	private static Neo4jTransactionObject extractNeo4jTransaction(Object transaction) {

@@ -30,7 +30,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
@@ -56,6 +55,7 @@ import org.neo4j.cypherdsl.core.SortItem;
 import org.neo4j.cypherdsl.core.Statement;
 import org.neo4j.cypherdsl.core.StatementBuilder;
 import org.neo4j.cypherdsl.core.StatementBuilder.OngoingMatchAndUpdate;
+import org.neo4j.cypherdsl.core.StatementBuilder.OngoingReadingWithoutWhere;
 import org.neo4j.cypherdsl.core.StatementBuilder.OngoingUpdate;
 import org.neo4j.cypherdsl.core.SymbolicName;
 import org.neo4j.cypherdsl.core.renderer.Configuration;
@@ -151,7 +151,7 @@ public enum CypherGenerator {
 														  @Nullable Condition condition) {
 		Node rootNode = createRootNode(nodeDescription);
 
-		StatementBuilder.OngoingReadingWithoutWhere match = prepareMatchOfRootNode(rootNode, initialMatchOn);
+		OngoingReadingWithoutWhere match = prepareMatchOfRootNode(rootNode, initialMatchOn);
 
 		List<IdentifiableElement> expressions = new ArrayList<>();
 		expressions.add(Cypher.collect(elementIdOrIdFunction.apply(rootNode)).as(Constants.NAME_OF_SYNTHESIZED_ROOT_NODE));
@@ -166,7 +166,7 @@ public enum CypherGenerator {
 
 		Node rootNode = createRootNode(nodeDescription);
 
-		StatementBuilder.OngoingReadingWithoutWhere match = prepareMatchOfRootNode(rootNode, initialMatchOn);
+		OngoingReadingWithoutWhere match = prepareMatchOfRootNode(rootNode, initialMatchOn);
 
 		Node targetNode = node(relationshipDescription.getTarget().getPrimaryLabel(),
 				relationshipDescription.getTarget().getAdditionalLabels())
@@ -207,11 +207,12 @@ public enum CypherGenerator {
 		return node(primaryLabel, additionalLabels).named(Constants.NAME_OF_TYPED_ROOT_NODE.apply(nodeDescription));
 	}
 
-	private StatementBuilder.OngoingReadingWithoutWhere prepareMatchOfRootNode(
+	@Nullable
+	private OngoingReadingWithoutWhere prepareMatchOfRootNode(
 			Node rootNode, @Nullable List<PatternElement> initialMatchOn
 	) {
 
-		StatementBuilder.OngoingReadingWithoutWhere match = null;
+		OngoingReadingWithoutWhere match = null;
 		if (initialMatchOn == null || initialMatchOn.isEmpty()) {
 			match = Cypher.match(rootNode);
 		} else {
@@ -678,13 +679,14 @@ public enum CypherGenerator {
 	 * @param sort The {@link Sort sort} that should be turned into a valid Cypher {@code ORDER}-clause
 	 * @return An optional order clause. Will be {@literal null} on sorts that are {@literal null} or unsorted.
 	 */
+	@Nullable
 	public String createOrderByFragment(Sort sort) {
 
 		if (sort == null || sort.isUnsorted()) {
 			return null;
 		}
 		Statement statement = match(anyNode()).returning("n")
-				.orderBy(sort.stream().filter(Objects::nonNull).map(order -> {
+				.orderBy(sort.stream().map(order -> {
 					String property = order.getProperty().trim();
 					Expression expression;
 					if (LOOKS_LIKE_A_FUNCTION.matcher(property).matches()) {

@@ -17,6 +17,7 @@ package org.springframework.data.neo4j.core;
 
 import java.util.function.BiFunction;
 
+import org.jspecify.annotations.Nullable;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
@@ -42,6 +43,7 @@ final class SingleValueMappingFunction<T> implements BiFunction<TypeSystem, Reco
 	}
 
 	@Override
+	@Nullable
 	public T apply(TypeSystem typeSystem, Record record) {
 
 		if (record.size() == 0) {
@@ -55,6 +57,7 @@ final class SingleValueMappingFunction<T> implements BiFunction<TypeSystem, Reco
 		return convertValue(record.get(0));
 	}
 
+	@Nullable
 	T convertValue(Value source) {
 		if (targetClass == Void.class || targetClass == void.class) {
 			return null;

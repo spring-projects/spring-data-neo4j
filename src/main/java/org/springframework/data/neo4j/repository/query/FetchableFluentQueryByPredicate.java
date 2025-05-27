@@ -22,6 +22,7 @@ import java.util.function.LongSupplier;
 import java.util.stream.Stream;
 
 import org.apiguardian.api.API;
+import org.jspecify.annotations.Nullable;
 import org.neo4j.cypherdsl.core.Cypher;
 import org.springframework.data.domain.KeysetScrollPosition;
 import org.springframework.data.domain.Page;
@@ -84,8 +85,8 @@ final class FetchableFluentQueryByPredicate<S, R> extends FluentQuerySupport<R> 
 			Function<Predicate, Long> countOperation,
 			Function<Predicate, Boolean> existsOperation,
 			Sort sort,
-			Integer limit,
-			Collection<String> properties
+			@Nullable Integer limit,
+			@Nullable Collection<String> properties
 	) {
 		super(resultType, sort, limit, properties);
 		this.predicate = predicate;
@@ -142,6 +143,7 @@ final class FetchableFluentQueryByPredicate<S, R> extends FluentQuerySupport<R> 
 	}
 
 	@Override
+	@Nullable
 	public R firstValue() {
 
 		List<R> all = all();

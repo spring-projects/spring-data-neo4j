@@ -1064,7 +1064,7 @@ public final class Neo4jTemplate implements
 		return finalSubgraphRoot;
 	}
 
-	private Optional<Object> getRelationshipId(Statement statement, Neo4jPersistentProperty idProperty, Object fromId, Object toId) {
+	private Optional<Object> getRelationshipId(Statement statement, @Nullable Neo4jPersistentProperty idProperty, Object fromId, Object toId) {
 
 		return neo4jClient.query(renderer.render(statement))
 				.bind(convertIdValues(idProperty, fromId)) //
@@ -1310,7 +1310,7 @@ public final class Neo4jTemplate implements
 			});
 		}
 
-		@SuppressWarnings( {"unchecked", "NullAway"})
+		@SuppressWarnings({"unchecked", "NullAway"})
 		public T getRequiredSingleResult() {
 			return txTemplate.execute(tx -> {
 				Optional<T> one = createFetchSpec().flatMap(Neo4jClient.RecordFetchSpec::one);

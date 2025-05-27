@@ -22,6 +22,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 import org.neo4j.driver.NotificationClassification;
 import org.neo4j.driver.NotificationSeverity;
 import org.neo4j.driver.summary.InputPosition;
@@ -104,7 +105,7 @@ final class ResultSummaries {
 				}));
 	}
 
-	private static LogAccessor getLogAccessor(NotificationClassification category) {
+	private static LogAccessor getLogAccessor(@Nullable NotificationClassification category) {
 		if (category == null) {
 			return Neo4jClient.cypherLog;
 		}

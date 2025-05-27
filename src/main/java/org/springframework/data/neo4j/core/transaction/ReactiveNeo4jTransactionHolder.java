@@ -20,6 +20,7 @@ import reactor.core.publisher.Mono;
 import java.util.Collection;
 import java.util.Set;
 
+import org.jspecify.annotations.Nullable;
 import org.neo4j.driver.Bookmark;
 import org.neo4j.driver.reactivestreams.ReactiveSession;
 import org.neo4j.driver.reactivestreams.ReactiveTransaction;
@@ -49,6 +50,7 @@ final class ReactiveNeo4jTransactionHolder extends ResourceHolderSupport {
 		return session;
 	}
 
+	@Nullable
 	ReactiveTransaction getTransaction(DatabaseSelection inDatabase, UserSelection asUser) {
 
 		return this.context.isForDatabaseAndUser(inDatabase, asUser) ? transaction : null;

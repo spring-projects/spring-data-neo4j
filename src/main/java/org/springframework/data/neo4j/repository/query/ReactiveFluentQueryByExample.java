@@ -15,6 +15,7 @@
  */
 package org.springframework.data.neo4j.repository.query;
 
+import org.jspecify.annotations.Nullable;
 import org.neo4j.cypherdsl.core.Condition;
 import org.springframework.data.domain.KeysetScrollPosition;
 import org.springframework.data.domain.OffsetScrollPosition;
@@ -80,8 +81,8 @@ final class ReactiveFluentQueryByExample<S, R> extends FluentQuerySupport<R> imp
 			Function<Example<S>, Mono<Long>> countOperation,
 			Function<Example<S>, Mono<Boolean>> existsOperation,
 			Sort sort,
-			Integer limit,
-			Collection<String> properties
+			@Nullable Integer limit,
+			@Nullable Collection<String> properties
 	) {
 		super(resultType, sort, limit, properties);
 		this.mappingContext = mappingContext;

@@ -15,6 +15,7 @@
  */
 package org.springframework.data.neo4j.repository.query;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.KeysetScrollPosition;
 import org.springframework.data.domain.ScrollPosition;
 import org.springframework.data.domain.Window;
@@ -83,8 +84,8 @@ import com.querydsl.core.types.Predicate;
 			Function<Predicate, Mono<Long>> countOperation,
 			Function<Predicate, Mono<Boolean>> existsOperation,
 			Sort sort,
-			Integer limit,
-			Collection<String> properties
+			@Nullable Integer limit,
+			@Nullable Collection<String> properties
 	) {
 		super(resultType, sort, limit, properties);
 		this.predicate = predicate;
