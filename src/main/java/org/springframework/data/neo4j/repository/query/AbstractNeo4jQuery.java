@@ -24,6 +24,7 @@ import java.util.function.LongSupplier;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
+import org.jspecify.annotations.Nullable;
 import org.neo4j.driver.types.MapAccessor;
 import org.neo4j.driver.types.TypeSystem;
 import org.springframework.core.convert.converter.Converter;
@@ -93,13 +94,14 @@ abstract class AbstractNeo4jQuery extends Neo4jQuerySupport implements Repositor
 
 		if (Iterable.class.isAssignableFrom(returnType)) {
 			TypeInformation<?> from = TypeInformation.fromReturnTypeOf(repositoryMethod);
-			return GeoResult.class.equals(from.getComponentType().getType());
+			return from.getComponentType() != null && GeoResult.class.equals(from.getComponentType().getType());
 		}
 
 		return GeoPage.class.isAssignableFrom(returnType);
 	}
 
 	@Override
+	@Nullable
 	public final Object execute(Object[] parameters) {
 
 		boolean incrementLimit = queryMethod.incrementLimit();
@@ -179,10 +181,10 @@ abstract class AbstractNeo4jQuery extends Neo4jQuerySupport implements Repositor
 		}
 	}
 
-	protected abstract <T extends Object> PreparedQuery<T> prepareQuery(Class<T> returnedType,
+	protected abstract <T> PreparedQuery<T> prepareQuery(Class<T> returnedType,
 			Collection<PropertyFilter.ProjectedPath> includedProperties, Neo4jParameterAccessor parameterAccessor,
-			Neo4jQueryType queryType,
-			Supplier<BiFunction<TypeSystem, MapAccessor, ?>> mappingFunction,
+			@Nullable Neo4jQueryType queryType,
+			@Nullable Supplier<BiFunction<TypeSystem, MapAccessor, ?>> mappingFunction,
 			UnaryOperator<Integer> limitModifier);
 
 	protected Optional<PreparedQuery<Long>> getCountQuery(Neo4jParameterAccessor parameterAccessor) {

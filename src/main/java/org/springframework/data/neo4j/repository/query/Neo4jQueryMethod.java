@@ -20,6 +20,7 @@ import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Optional;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.core.MethodParameter;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.data.geo.GeoPage;
@@ -53,6 +54,7 @@ class Neo4jQueryMethod extends QueryMethod {
 	/**
 	 * Optional query annotation of the method.
 	 */
+	@Nullable
 	private final Query queryAnnotation;
 
 	private final String repositoryName;
@@ -84,7 +86,7 @@ class Neo4jQueryMethod extends QueryMethod {
 	 */
 	Neo4jQueryMethod(Method method, RepositoryMetadata metadata, ProjectionFactory factory,
 			boolean cypherBasedProjection) {
-		super(method, metadata, factory);
+		super(method, metadata, factory, null);
 
 		this.method = method;
 		this.repositoryName = this.method.getDeclaringClass().getName();

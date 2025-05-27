@@ -20,6 +20,7 @@ import static org.apiguardian.api.API.Status.INTERNAL;
 import java.util.function.Function;
 
 import org.apiguardian.api.API;
+import org.jspecify.annotations.Nullable;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.types.Entity;
 import org.neo4j.driver.types.MapAccessor;
@@ -104,7 +105,7 @@ public final class IdentitySupport {
 		return null;
 	}
 
-	public static Function<MapAccessor, Object> mapperForRelatedIdValues(Neo4jPersistentProperty idProperty) {
+	public static Function<MapAccessor, Object> mapperForRelatedIdValues(@Nullable Neo4jPersistentProperty idProperty) {
 		boolean deprecatedHolder = idProperty != null && Neo4jPersistentEntity.DEPRECATED_GENERATED_ID_TYPES.contains(idProperty.getType());
 		return deprecatedHolder ? IdentitySupport::getInternalId : IdentitySupport::getElementId;
 	}

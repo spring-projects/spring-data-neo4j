@@ -21,6 +21,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
+import org.jspecify.annotations.Nullable;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.NotReadablePropertyException;
@@ -63,7 +64,8 @@ final class EntityAndGraphPropertyAccessingMethodInterceptor implements MethodIn
 	}
 
 	@Override
-	public Object invoke(@SuppressWarnings("null") MethodInvocation invocation) throws Throwable {
+	@Nullable
+	public Object invoke(MethodInvocation invocation) throws Throwable {
 
 		Method method = invocation.getMethod();
 
@@ -111,6 +113,7 @@ final class EntityAndGraphPropertyAccessingMethodInterceptor implements MethodIn
 		}
 
 		@Override
+		@Nullable
 		public Object getPropertyValue(String propertyName) {
 			try {
 				return super.getPropertyValue(propertyName);

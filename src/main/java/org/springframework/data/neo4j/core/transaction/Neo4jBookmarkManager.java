@@ -20,6 +20,7 @@ import java.util.Set;
 import java.util.function.Supplier;
 
 import org.apiguardian.api.API;
+import org.jspecify.annotations.Nullable;
 import org.neo4j.driver.Bookmark;
 import org.springframework.context.ApplicationEventPublisher;
 
@@ -114,6 +115,6 @@ public sealed interface Neo4jBookmarkManager permits AbstractBookmarkManager, No
 	 *
 	 * @param applicationEventPublisher An event publisher. If null, no events will be published.
 	 */
-	default void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
+	default void setApplicationEventPublisher(@Nullable ApplicationEventPublisher applicationEventPublisher) {
 	}
 }

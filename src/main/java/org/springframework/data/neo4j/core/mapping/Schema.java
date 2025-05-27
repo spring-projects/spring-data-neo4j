@@ -22,6 +22,7 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import org.apiguardian.api.API;
+import org.jspecify.annotations.Nullable;
 import org.neo4j.driver.types.MapAccessor;
 import org.neo4j.driver.types.TypeSystem;
 import org.springframework.data.mapping.MappingException;
@@ -42,6 +43,7 @@ public interface Schema {
 	 * @param primaryLabel The primary label under which the node is described
 	 * @return The description if any, null otherwise
 	 */
+	@Nullable
 	NodeDescription<?> getNodeDescription(String primaryLabel);
 
 	/**
@@ -50,6 +52,7 @@ public interface Schema {
 	 * @param underlyingClass The underlying class of the node description to be retrieved
 	 * @return The description if any, null otherwise
 	 */
+	@Nullable
 	NodeDescription<?> getNodeDescription(Class<?> underlyingClass);
 
 	default NodeDescription<?> getRequiredNodeDescription(Class<?> underlyingClass) {

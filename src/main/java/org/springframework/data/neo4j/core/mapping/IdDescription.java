@@ -18,6 +18,7 @@ package org.springframework.data.neo4j.core.mapping;
 import java.util.Optional;
 
 import org.apiguardian.api.API;
+import org.jspecify.annotations.Nullable;
 import org.neo4j.cypherdsl.core.Cypher;
 import org.neo4j.cypherdsl.core.Expression;
 import org.neo4j.cypherdsl.core.Node;
@@ -39,16 +40,19 @@ public final class IdDescription {
 	/**
 	 * The class representing a generator for new ids or null for assigned ids.
 	 */
+	@Nullable
 	private final Class<? extends IdGenerator<?>> idGeneratorClass;
 
 	/**
 	 * A reference to an ID generator.
 	 */
+	@Nullable
 	private final String idGeneratorRef;
 
 	/**
 	 * The property that stores the id if applicable.
 	 */
+	@Nullable
 	private final String graphPropertyName;
 	private final boolean isDeprecated;
 
@@ -87,8 +91,8 @@ public final class IdDescription {
 	}
 
 	@SuppressWarnings("deprecation")
-	private IdDescription(SymbolicName symbolicName, Class<? extends IdGenerator<?>> idGeneratorClass,
-	                      String idGeneratorRef, String graphPropertyName, boolean isDeprecated) {
+	private IdDescription(SymbolicName symbolicName, @Nullable Class<? extends IdGenerator<?>> idGeneratorClass,
+		@Nullable String idGeneratorRef, @Nullable String graphPropertyName, boolean isDeprecated) {
 
 		this.idGeneratorClass = idGeneratorClass;
 		this.idGeneratorRef = idGeneratorRef != null && idGeneratorRef.isEmpty() ? null : idGeneratorRef;

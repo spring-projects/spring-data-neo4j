@@ -33,6 +33,7 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 import org.neo4j.driver.Values;
 import org.neo4j.driver.types.MapAccessor;
 import org.neo4j.driver.types.TypeSystem;
@@ -187,7 +188,7 @@ abstract class Neo4jQuerySupport {
 	 * @param conversionOverride Passed to the entity converter if present.
 	 * @return A parameter that fits the placeholders of a generated query
 	 */
-	final Object convertParameter(Object parameter, Neo4jPersistentPropertyConverter<?> conversionOverride) {
+	final Object convertParameter(Object parameter, @Nullable Neo4jPersistentPropertyConverter<?> conversionOverride) {
 
 		if (parameter == null) {
 			return Values.NULL;

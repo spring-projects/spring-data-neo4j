@@ -21,6 +21,7 @@ import java.util.Optional;
 import java.util.function.BiPredicate;
 
 import org.apiguardian.api.API;
+import org.jspecify.annotations.Nullable;
 import org.neo4j.cypherdsl.core.Statement;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.data.mapping.PropertyPath;
@@ -206,6 +207,7 @@ public interface Neo4jOperations {
 	 * @return the saved instance.
 	 * @since 6.3
 	 */
+	@Nullable
 	default <T> T saveAs(T instance, BiPredicate<PropertyPath, Neo4jPersistentProperty> includeProperty) {
 		throw new UnsupportedOperationException();
 	}
@@ -219,6 +221,7 @@ public interface Neo4jOperations {
 	 * @return the saved, projected instance.
 	 * @since 6.1
 	 */
+	@Nullable
 	default <T, R> R saveAs(T instance, Class<R> resultType) {
 		throw new UnsupportedOperationException();
 	}

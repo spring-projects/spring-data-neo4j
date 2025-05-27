@@ -31,12 +31,15 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import org.apiguardian.api.API;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import org.neo4j.cypherdsl.core.Statement;
 import org.neo4j.driver.types.TypeSystem;
 import org.springframework.beans.BeanUtils;
@@ -112,6 +115,7 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 
 	private EventSupport eventSupport;
 
+	@Nullable
 	private AutowireCapableBeanFactory beanFactory;
 
 	private boolean strict = false;
@@ -128,15 +132,16 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 
 		private TypeSystem typeSystem;
 
+		@Nullable
 		private PersistentPropertyCharacteristicsProvider persistentPropertyCharacteristicsProvider;
 
 		private Builder() {
 			this(new Neo4jConversions(), null, null);
 		}
 
-		private Builder(Neo4jConversions neo4jConversions, TypeSystem typeSystem, PersistentPropertyCharacteristicsProvider persistentPropertyCharacteristicsProvider) {
+		private Builder(Neo4jConversions neo4jConversions, @Nullable TypeSystem typeSystem, @Nullable PersistentPropertyCharacteristicsProvider persistentPropertyCharacteristicsProvider) {
 			this.neo4jConversions = neo4jConversions;
-			this.typeSystem = typeSystem;
+			this.typeSystem = Objects.requireNonNullElseGet(typeSystem, TypeSystem::getDefault);
 			this.persistentPropertyCharacteristicsProvider = persistentPropertyCharacteristicsProvider;
 		}
 
@@ -154,7 +159,7 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 
 		@SuppressWarnings("HiddenField")
 		public Builder withTypeSystem(TypeSystem typeSystem) {
-			this.typeSystem = typeSystem;
+			this.typeSystem = Objects.requireNonNullElseGet(typeSystem, TypeSystem::getDefault);
 			return this;
 		}
 
@@ -175,20 +180,6 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 	public Neo4jMappingContext(Neo4jConversions neo4jConversions) {
 
 		this(new Builder(neo4jConversions, null, null));
-	}
-
-	/**
-	 * This API is primarily used from inside the CDI extension to configure the type system. This is necessary as
-	 * we don't get notified of the context via {@link #setApplicationContext(ApplicationContext applicationContext)}.
-	 *
-	 * @param neo4jConversions The conversions to be used
-	 * @param typeSystem       The current drivers type system. If this is null, we use the default one without accessing the driver.
-	 * @deprecated Use {@link Neo4jMappingContext#builder()}
-	 */
-	@API(status = API.Status.INTERNAL, since = "6.0")
-	@Deprecated(since = "6.3.7", forRemoval = true)
-	public Neo4jMappingContext(Neo4jConversions neo4jConversions, TypeSystem typeSystem) {
-		this(new Builder(neo4jConversions, typeSystem, null));
 	}
 
 	private Neo4jMappingContext(Builder builder) {
@@ -251,9 +242,9 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 		if (!newEntity.describesInterface()) {
 			if (this.nodeDescriptionStore.containsKey(primaryLabel)) {
 
-				Neo4jPersistentEntity existingEntity = (Neo4jPersistentEntity) this.nodeDescriptionStore.get(
+				Neo4jPersistentEntity<?> existingEntity = (Neo4jPersistentEntity<?>) this.nodeDescriptionStore.get(
 						primaryLabel);
-				if (!existingEntity.getTypeInformation().getRawTypeInformation()
+				if (existingEntity != null && !existingEntity.getTypeInformation().getRawTypeInformation()
 						.equals(typeInformation.getRawTypeInformation())) {
 					String message = String.format(Locale.ENGLISH,
 							"The schema already contains a node description under the primary label %s", primaryLabel);
@@ -346,16 +337,19 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 	}
 
 	@Override
+	@Nullable
 	public NodeDescription<?> getNodeDescription(String primaryLabel) {
 		return this.nodeDescriptionStore.get(primaryLabel);
 	}
 
 	@Override
+	@Nullable
 	public NodeDescription<?> getNodeDescription(Class<?> underlyingClass) {
 		return doGetPersistentEntity(underlyingClass);
 	}
 
 	@Override
+	@Nullable
 	public Neo4jPersistentEntity<?> getPersistentEntity(TypeInformation<?> typeInformation) {
 
 		Neo4jPersistentEntity<?> existingDescription = this.doGetPersistentEntity(typeInformation);
@@ -380,6 +374,7 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 	 * @return An optional persistent entity
 	 * @see #doGetPersistentEntity(Class)
 	 */
+	@Nullable
 	private Neo4jPersistentEntity<?> doGetPersistentEntity(TypeInformation<?> typeInformation) {
 		return doGetPersistentEntity(typeInformation.getRawTypeInformation().getType());
 	}
@@ -393,6 +388,7 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 	 * @param underlyingClass The underlying class
 	 * @return An optional persistent entity
 	 */
+	@Nullable
 	private Neo4jPersistentEntity<?> doGetPersistentEntity(Class<?> underlyingClass) {
 
 		if (underlyingClass.isInterface()) {
@@ -436,6 +432,7 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 		}
 	}
 
+	@Nullable
 	Constructor<?> findConstructor(Class<?> clazz, Class<?>... parameterTypes) {
 		try {
 			return ReflectionUtils.accessibleConstructor(clazz, parameterTypes);
@@ -478,6 +475,7 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 	 * @param persistentProperty The persistent property for which the conversion should be build.
 	 * @return An optional conversion.
 	 */
+	@Nullable
 	Neo4jPersistentPropertyConverter<?> getOptionalCustomConversionsFor(Neo4jPersistentProperty persistentProperty) {
 
 		// Is the annotation present at all?

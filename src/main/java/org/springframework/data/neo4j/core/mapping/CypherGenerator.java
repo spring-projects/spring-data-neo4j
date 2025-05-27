@@ -39,6 +39,7 @@ import java.util.regex.Pattern;
 import javax.lang.model.SourceVersion;
 
 import org.apiguardian.api.API;
+import org.jspecify.annotations.Nullable;
 import org.neo4j.cypherdsl.core.Condition;
 import org.neo4j.cypherdsl.core.Cypher;
 import org.neo4j.cypherdsl.core.Expression;
@@ -147,7 +148,7 @@ public enum CypherGenerator {
 
 	public StatementBuilder.OngoingReading prepareMatchOf(NodeDescription<?> nodeDescription,
 														  List<PatternElement> initialMatchOn,
-														  Condition condition) {
+														  @Nullable Condition condition) {
 		Node rootNode = createRootNode(nodeDescription);
 
 		StatementBuilder.OngoingReadingWithoutWhere match = prepareMatchOfRootNode(rootNode, initialMatchOn);
@@ -161,8 +162,7 @@ public enum CypherGenerator {
 	}
 
 	public StatementBuilder.OngoingReading prepareMatchOf(NodeDescription<?> nodeDescription,
-			  RelationshipDescription relationshipDescription, List<PatternElement> initialMatchOn,
-														  Condition condition) {
+			  RelationshipDescription relationshipDescription, @Nullable List<PatternElement> initialMatchOn, @Nullable Condition condition) {
 
 		Node rootNode = createRootNode(nodeDescription);
 
@@ -208,7 +208,7 @@ public enum CypherGenerator {
 	}
 
 	private StatementBuilder.OngoingReadingWithoutWhere prepareMatchOfRootNode(
-			Node rootNode, List<PatternElement> initialMatchOn
+			Node rootNode, @Nullable List<PatternElement> initialMatchOn
 	) {
 
 		StatementBuilder.OngoingReadingWithoutWhere match = null;
@@ -762,7 +762,7 @@ public enum CypherGenerator {
 	}
 
 
-	public StatementBuilder.OngoingReading prepareFindOf(NodeDescription<?> nodeDescription, List<PatternElement> initialMatchOn, Condition condition) {
+	public StatementBuilder.OngoingReading prepareFindOf(NodeDescription<?> nodeDescription, List<PatternElement> initialMatchOn, @Nullable Condition condition) {
 		var rootNode = createRootNode(nodeDescription);
 		return prepareMatchOfRootNode(rootNode, initialMatchOn).where(conditionOrNoCondition(condition));
 	}
@@ -922,7 +922,7 @@ public enum CypherGenerator {
 		projectionList.add(projection);
 	}
 
-	private static Condition conditionOrNoCondition(Condition condition) {
+	private static Condition conditionOrNoCondition(@Nullable Condition condition) {
 		return condition == null ? Cypher.noCondition() : condition;
 	}
 }

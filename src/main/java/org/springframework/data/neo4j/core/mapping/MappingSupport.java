@@ -33,7 +33,6 @@ import org.neo4j.driver.types.Relationship;
 import org.neo4j.driver.types.Type;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
 import org.springframework.data.neo4j.core.schema.TargetNode;
-import org.springframework.util.Assert;
 
 /**
  * @author Michael J. Simons

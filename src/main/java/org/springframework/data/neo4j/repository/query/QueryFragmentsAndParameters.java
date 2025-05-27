@@ -193,7 +193,7 @@ public final class QueryFragmentsAndParameters {
 		return forExample(mappingContext, example, null, pageable, null, null, null, null, includeField);
 	}
 
-	static QueryFragmentsAndParameters forExampleWithSort(Neo4jMappingContext mappingContext, Example<?> example, Sort sort, Integer limit, java.util.function.Predicate<PropertyFilter.RelaxedPropertyPath> includeField) {
+	static QueryFragmentsAndParameters forExampleWithSort(Neo4jMappingContext mappingContext, Example<?> example, Sort sort, @Nullable Integer limit, java.util.function.Predicate<PropertyFilter.RelaxedPropertyPath> includeField) {
 		return forExample(mappingContext, example, null, null, sort, limit, null, null, includeField);
 	}
 

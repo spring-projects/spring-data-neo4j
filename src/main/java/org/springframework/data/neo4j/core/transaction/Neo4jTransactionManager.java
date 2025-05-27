@@ -190,20 +190,6 @@ public final class Neo4jTransactionManager extends AbstractPlatformTransactionMa
 	}
 
 	/**
-	 * @param driver The driver that has been used as a synchronization object.
-	 * @param targetDatabase The target database
-	 * @return An optional managed transaction or {@literal null} if the method hasn't been called inside an ongoing
-	 *         Spring transaction
-	 * @see #retrieveTransaction(Driver, DatabaseSelection, UserSelection)
-	 * @deprecated since 6.2, use #retrieveTransaction(Driver, DatabaseSelection, UserSelection)
-	 */
-	@Deprecated
-	public static Transaction retrieveTransaction(final Driver driver, final String targetDatabase) {
-
-		return retrieveTransaction(driver, StringUtils.hasText(targetDatabase) ? DatabaseSelection.byName(targetDatabase) : DatabaseSelection.undecided(), UserSelection.connectedUser());
-	}
-
-	/**
 	 * This method provides a native Neo4j transaction to be used from within a {@link org.springframework.data.neo4j.core.Neo4jClient}.
 	 * In most cases this the native transaction will be controlled from the Neo4j specific {@link org.springframework.transaction.PlatformTransactionManager}.
 	 * However, SDN provides support for other transaction managers as well. This method registers a session synchronization

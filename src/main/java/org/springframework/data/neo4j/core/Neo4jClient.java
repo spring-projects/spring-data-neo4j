@@ -217,6 +217,7 @@ public interface Neo4jClient {
 	 *
 	 * @return The database selection provider - can be null
 	 */
+	@Nullable
 	DatabaseSelectionProvider getDatabaseSelectionProvider();
 
 	/**
@@ -319,7 +320,7 @@ public interface Neo4jClient {
 		 * @param value The value to bind to a query
 		 * @return An ongoing bind spec for specifying the name that {@code value} should be bound to or a binder function
 		 */
-		<T> OngoingBindSpec<T, S> bind(T value);
+		<T> OngoingBindSpec<T, S> bind(@Nullable T value);
 
 		S bindAll(Map<String, Object> parameters);
 	}
@@ -434,7 +435,8 @@ public interface Neo4jClient {
 	 * @return A possibly trimmed name of the database.
 	 * @throws IllegalArgumentException when the database name is not allowed with the underlying driver.
 	 */
-	static String verifyDatabaseName(String databaseName) {
+	@Nullable
+	static String verifyDatabaseName(@Nullable String databaseName) {
 
 		String newTargetDatabase = databaseName == null ? null : databaseName.trim();
 		if (newTargetDatabase != null && newTargetDatabase.isEmpty()) {

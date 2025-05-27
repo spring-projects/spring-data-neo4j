@@ -23,6 +23,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
+import org.jspecify.annotations.Nullable;
 import org.neo4j.cypherdsl.core.Statement;
 import org.neo4j.cypherdsl.core.StatementBuilder.OngoingReadingAndReturn;
 import org.neo4j.driver.types.MapAccessor;
@@ -64,8 +65,8 @@ final class CypherdslBasedQuery extends AbstractNeo4jQuery {
 	@Override
 	protected <T> PreparedQuery<T> prepareQuery(Class<T> returnedType,
 			Collection<PropertyFilter.ProjectedPath> includedProperties,
-			Neo4jParameterAccessor parameterAccessor, Neo4jQueryType queryType,
-			Supplier<BiFunction<TypeSystem, MapAccessor, ?>> mappingFunction,
+			Neo4jParameterAccessor parameterAccessor, @Nullable Neo4jQueryType queryType,
+			@Nullable Supplier<BiFunction<TypeSystem, MapAccessor, ?>> mappingFunction,
 			UnaryOperator<Integer> limitModifier) {
 
 		Object[] parameters = parameterAccessor.getValues();

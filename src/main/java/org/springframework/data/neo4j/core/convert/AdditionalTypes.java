@@ -37,6 +37,7 @@ import java.util.Set;
 import java.util.TimeZone;
 import java.util.UUID;
 
+import org.jspecify.annotations.Nullable;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
 import org.neo4j.driver.exceptions.value.LossyCoercion;
@@ -267,7 +268,8 @@ final class AdditionalTypes {
 
 		@SuppressWarnings({"raw", "unchecked"}) // Due to dynamic enum retrieval
 		@Override
-		public Object convert(Object source, TypeDescriptor sourceType, TypeDescriptor targetType) {
+		@Nullable
+		public Object convert(@Nullable Object source, TypeDescriptor sourceType, TypeDescriptor targetType) {
 
 			if (source == null) {
 				return Value.class.isAssignableFrom(targetType.getType()) ? Values.NULL : null;
@@ -299,6 +301,7 @@ final class AdditionalTypes {
 		}
 
 		@Override
+		@Nullable
 		public Set<ConvertiblePair> getConvertibleTypes() {
 			return null;
 		}
@@ -320,7 +323,8 @@ final class AdditionalTypes {
 		}
 
 		@Override
-		public Object convert(Object object, TypeDescriptor sourceType, TypeDescriptor targetType) {
+		@Nullable
+		public Object convert(@Nullable Object object, TypeDescriptor sourceType, TypeDescriptor targetType) {
 
 			if (object == null) {
 				return Value.class.isAssignableFrom(targetType.getType()) ? Values.NULL : null;
@@ -357,6 +361,7 @@ final class AdditionalTypes {
 		return Values.value(aFloat.toString());
 	}
 
+	@Nullable
 	static Locale asLocale(Value value) {
 
 		return StringUtils.parseLocale(value.asString());

@@ -24,6 +24,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Supplier;
 
+import org.jspecify.annotations.Nullable;
 import org.neo4j.driver.Bookmark;
 import org.springframework.context.ApplicationEventPublisher;
 
@@ -46,7 +47,7 @@ final class DefaultBookmarkManager extends AbstractBookmarkManager {
 
 	private ApplicationEventPublisher applicationEventPublisher;
 
-	DefaultBookmarkManager(Supplier<Set<Bookmark>> bookmarksSupplier) {
+	DefaultBookmarkManager(@Nullable Supplier<Set<Bookmark>> bookmarksSupplier) {
 		this.bookmarksSupplier = bookmarksSupplier == null ? Collections::emptySet : bookmarksSupplier;
 	}
 

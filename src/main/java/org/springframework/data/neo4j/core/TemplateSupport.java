@@ -35,6 +35,7 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import org.apiguardian.api.API;
+import org.jspecify.annotations.Nullable;
 import org.neo4j.cypherdsl.core.Cypher;
 import org.neo4j.cypherdsl.core.Expression;
 import org.neo4j.cypherdsl.core.FunctionInvocation;
@@ -89,6 +90,7 @@ public final class TemplateSupport {
 		ALL
 	}
 
+	@Nullable
 	public static Class<?> findCommonElementType(Iterable<?> collection) {
 
 		if (collection == null) {
@@ -96,7 +98,7 @@ public final class TemplateSupport {
 		}
 
 		Collection<Class<?>> allClasses = StreamSupport.stream(collection.spliterator(), true)
-				.filter(o -> o != null)
+				.filter(Objects::nonNull)
 				.map(Object::getClass).collect(Collectors.toSet());
 
 		if (allClasses.isEmpty()) {
@@ -154,8 +156,9 @@ public final class TemplateSupport {
 			Entity newOrUpdatedNode
 	) {
 		if (entityMetaData.hasVersionProperty()) {
+			var versionProperty = entityMetaData.getRequiredVersionProperty();
 			propertyAccessor.setProperty(
-					entityMetaData.getVersionProperty(), newOrUpdatedNode.get(entityMetaData.getVersionProperty().getPropertyName()).asLong());
+					versionProperty, newOrUpdatedNode.get(versionProperty.getPropertyName()).asLong());
 		}
 	}
 
@@ -203,7 +206,8 @@ public final class TemplateSupport {
 		}
 
 		boolean hasRootNodeIds() {
-			return parameters.get(ROOT_NODE_IDS).isEmpty();
+			var ids = parameters.get(ROOT_NODE_IDS);
+			return ids != null && !ids.isEmpty();
 		}
 
 		Statement toStatement(NodeDescription<?> nodeDescription) {
@@ -257,7 +261,7 @@ public final class TemplateSupport {
 	 * @return A mapping function
 	 */
 	static <T> Supplier<BiFunction<TypeSystem, MapAccessor, ?>> getAndDecorateMappingFunction(
-			Neo4jMappingContext mappingContext, Class<T> domainType, Class<?> resultType) {
+			Neo4jMappingContext mappingContext, Class<T> domainType, @Nullable Class<?> resultType) {
 
 		Assert.notNull(mappingContext.getPersistentEntity(domainType), "Cannot get or create persistent entity");
 		return () -> {
@@ -289,10 +293,10 @@ public final class TemplateSupport {
 			@SuppressWarnings("unchecked")
 			Map<String, Object> properties = (Map<String, Object>) tree.get(Constants.NAME_OF_PROPERTIES_PARAM);
 
-			String idPropertyName = entityMetaData.getIdProperty().getPropertyName();
+			String idPropertyName = entityMetaData.getRequiredIdProperty().getPropertyName();
 			IdDescription idDescription = entityMetaData.getIdDescription();
 			boolean assignedId = idDescription.isAssignedId() || idDescription.isExternallyGeneratedId();
-			if (!includeProperty.isNotFiltering()) {
+			if (!(includeProperty.isNotFiltering() || properties == null)) {
 				properties.entrySet()
 						.removeIf(e -> {
 							// we cannot skip the id property if it is an assigned id
@@ -441,7 +445,11 @@ public final class TemplateSupport {
 		return value.toString();
 	}
 
-	static Object convertToLongIdOrStringElementId(Collection<String> ids) {
+	@Nullable
+	static Object convertToLongIdOrStringElementId(@Nullable Collection<String> ids) {
+		if(ids == null) {
+			return null;
+		}
 		try {
 			return ids.stream()
 					.map(Long::valueOf).collect(Collectors.toSet());

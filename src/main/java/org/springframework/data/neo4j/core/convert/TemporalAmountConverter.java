@@ -23,6 +23,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.jspecify.annotations.Nullable;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
 import org.neo4j.driver.types.IsoDuration;
@@ -52,7 +53,8 @@ final class TemporalAmountConverter implements GenericConverter {
 	}
 
 	@Override
-	public Object convert(Object value, TypeDescriptor sourceType, TypeDescriptor targetType) {
+	@Nullable
+	public Object convert(@Nullable Object value, TypeDescriptor sourceType, TypeDescriptor targetType) {
 
 		if (TemporalAmount.class.isAssignableFrom(sourceType.getType())) {
 			return Values.value(value);

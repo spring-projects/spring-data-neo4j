@@ -20,6 +20,7 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
+import org.jspecify.annotations.Nullable;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
 import org.springframework.core.CollectionFactory;
@@ -65,13 +66,12 @@ final class DefaultNeo4jConversionService implements Neo4jConversionService {
 	}
 
 	@Override
-	public Object readValue(Value source, TypeInformation<?> targetType,
-			Neo4jPersistentPropertyConverter<?> conversionOverride) {
+	public Object readValue(Value source, TypeInformation<?> targetType, @Nullable Neo4jPersistentPropertyConverter<?> conversionOverride) {
 
 		BiFunction<Value, Class<?>, Object> conversion;
 		boolean applyConversionToCompleteCollection = false;
 		if (conversionOverride == null) {
-			conversion = (v, t) -> conversionService.convert(v, t);
+			conversion = conversionService::convert;
 		} else {
 			applyConversionToCompleteCollection = conversionOverride instanceof NullSafeNeo4jPersistentPropertyConverter
 												  && ((NullSafeNeo4jPersistentPropertyConverter<?>) conversionOverride).isForCollection();
@@ -105,7 +105,7 @@ final class DefaultNeo4jConversionService implements Neo4jConversionService {
 
 	@Override
 	public Value writeValue(Object value, TypeInformation<?> sourceType,
-			Neo4jPersistentPropertyConverter<?> writingConverter) {
+			@Nullable Neo4jPersistentPropertyConverter<?> writingConverter) {
 
 		Function<Object, Value> conversion;
 		boolean applyConversionToCompleteCollection = false;

@@ -90,18 +90,4 @@ abstract class Neo4jConfigurationSupport {
 
 		return Neo4jEntityScanner.get().scan(getMappingBasePackages());
 	}
-
-	/**
-	 * Scans the given base package for entities, i.e. Neo4j specific types annotated with {@link Node}.
-	 *
-	 * @param basePackage must not be {@literal null}.
-	 * @return found entities in the package to scan.
-	 * @throws ClassNotFoundException if the given class cannot be loaded by the class loader.
-	 * @deprecated since 6.0.2 Use {@link Neo4jEntityScanner} instead.
-	 */
-	@Deprecated
-	protected final Set<Class<?>> scanForEntities(String basePackage) throws ClassNotFoundException {
-
-		return Neo4jEntityScanner.get().scan(basePackage);
-	}
 }

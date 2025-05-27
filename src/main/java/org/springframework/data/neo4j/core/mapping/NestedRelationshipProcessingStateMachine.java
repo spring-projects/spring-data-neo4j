@@ -24,6 +24,7 @@ import java.util.Set;
 import java.util.concurrent.locks.StampedLock;
 
 import org.apiguardian.api.API;
+import org.jspecify.annotations.Nullable;
 import org.neo4j.cypherdsl.core.Statement;
 import org.springframework.util.Assert;
 
@@ -79,7 +80,7 @@ public final class NestedRelationshipProcessingStateMachine {
 		this.mappingContext = mappingContext;
 	}
 
-	public NestedRelationshipProcessingStateMachine(final Neo4jMappingContext mappingContext, Object initialObject, Object elementId) {
+	public NestedRelationshipProcessingStateMachine(final Neo4jMappingContext mappingContext, @Nullable Object initialObject, @Nullable Object elementId) {
 		this(mappingContext);
 
 		if (initialObject != null && elementId != null) {
@@ -99,7 +100,7 @@ public final class NestedRelationshipProcessingStateMachine {
 	 * @param valuesToStore           Check whether all the values in the collection have been processed
 	 * @return The state of things processed
 	 */
-	public ProcessState getStateOf(Object fromId, RelationshipDescription relationshipDescription, Collection<?> valuesToStore) {
+	public ProcessState getStateOf(@Nullable Object fromId, RelationshipDescription relationshipDescription, Collection<?> valuesToStore) {
 		if (fromId == null) {
 			return ProcessState.PROCESSED_BOTH;
 		}
@@ -137,7 +138,7 @@ public final class NestedRelationshipProcessingStateMachine {
 
 	private record RelationshipIdUpdateContext(Statement cypher, Object fromId, Object toId,
 		NestedRelationshipContext relationshipContext,
-		Object relatedValueToStore, Neo4jPersistentProperty idProperty) {
+		Object relatedValueToStore, @Nullable Neo4jPersistentProperty idProperty) {
 	}
 
 	/**
@@ -161,8 +162,8 @@ public final class NestedRelationshipProcessingStateMachine {
 	 *
 	 * @param relationshipDescription To be marked as processed
 	 */
-	public void markRelationshipAsProcessed(Object fromId, RelationshipDescription relationshipDescription) {
-		if (relationshipDescription == null) {
+	public void markRelationshipAsProcessed(@Nullable Object fromId, @Nullable RelationshipDescription relationshipDescription) {
+		if (fromId == null || relationshipDescription == null) {
 			return;
 		}
 
@@ -247,16 +248,17 @@ public final class NestedRelationshipProcessingStateMachine {
 	 * @param relationshipDescription the relationship that should be looked for in the registry.
 	 * @return processed yes (true) / no (false)
 	 */
-	public boolean hasProcessedRelationship(Object fromId, RelationshipDescription relationshipDescription) {
-		if (relationshipDescription != null) {
-			final long stamp = lock.readLock();
-			try {
-				return processedRelationshipDescriptions.contains(new RelationshipDescriptionWithSourceId(fromId, relationshipDescription));
-			} finally {
-				lock.unlock(stamp);
-			}
+	public boolean hasProcessedRelationship(@Nullable Object fromId, RelationshipDescription relationshipDescription) {
+		if (fromId == null || relationshipDescription == null) {
+			return false;
 		}
-		return false;
+
+		final long stamp = lock.readLock();
+		try {
+			return processedRelationshipDescriptions.contains(new RelationshipDescriptionWithSourceId(fromId, relationshipDescription));
+		} finally {
+			lock.unlock(stamp);
+		}
 	}
 
 	public void storeProcessRelationshipEntity(MappingSupport.RelationshipPropertiesWithEntityHolder id, Object source, Object target, RelationshipDescription type) {
@@ -282,7 +284,7 @@ public final class NestedRelationshipProcessingStateMachine {
 	}
 
 	public void requireIdUpdate(Neo4jPersistentEntity<?> sourceEntity, RelationshipDescription relationshipDescription, boolean canUseElementId,
-	                            Object fromId, Object toId, NestedRelationshipContext relationshipContext, Object relatedValueToStore, Neo4jPersistentProperty idProperty) {
+	                            Object fromId, Object toId, NestedRelationshipContext relationshipContext, Object relatedValueToStore, @Nullable Neo4jPersistentProperty idProperty) {
 
 		Statement relationshipCreationQuery = CypherGenerator.INSTANCE.prepareSaveOfRelationshipWithProperties(
 				sourceEntity, relationshipDescription, false,

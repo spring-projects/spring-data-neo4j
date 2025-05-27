@@ -16,6 +16,7 @@
 package org.springframework.data.neo4j.core;
 
 import org.apiguardian.api.API;
+import org.jspecify.annotations.Nullable;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
@@ -34,6 +35,7 @@ import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -65,7 +67,9 @@ public final class PreparedQuery<T> {
 
 	private final Class<T> resultType;
 	private final QueryFragmentsAndParameters queryFragmentsAndParameters;
+	@Nullable
 	private final Supplier<BiFunction<TypeSystem, MapAccessor, ?>> mappingFunctionSupplier;
+	@SuppressWarnings("OptionalUsedAsFieldOrParameterType")
 	private volatile Optional<BiFunction<TypeSystem, Record, T>> lastMappingFunction = Optional.empty();
 
 	private PreparedQuery(OptionalBuildSteps<T> optionalBuildSteps) {
@@ -113,7 +117,7 @@ public final class PreparedQuery<T> {
 			return new OptionalBuildSteps<>(resultType, new QueryFragmentsAndParameters(cypherQuery));
 		}
 
-		public OptionalBuildSteps<CT> withQueryFragmentsAndParameters(QueryFragmentsAndParameters queryFragmentsAndParameters) {
+		public OptionalBuildSteps<CT> withQueryFragmentsAndParameters(@Nullable QueryFragmentsAndParameters queryFragmentsAndParameters) {
 			return new OptionalBuildSteps<>(resultType, queryFragmentsAndParameters);
 		}
 	}
@@ -125,10 +129,12 @@ public final class PreparedQuery<T> {
 	public static class OptionalBuildSteps<CT> {
 
 		final Class<CT> resultType;
+		@Nullable
 		final QueryFragmentsAndParameters queryFragmentsAndParameters;
+		@Nullable
 		Supplier<BiFunction<TypeSystem, MapAccessor, ?>> mappingFunctionSupplier;
 
-		OptionalBuildSteps(Class<CT> resultType, QueryFragmentsAndParameters queryFragmentsAndParameters) {
+		OptionalBuildSteps(Class<CT> resultType, @Nullable QueryFragmentsAndParameters queryFragmentsAndParameters) {
 			this.resultType = resultType;
 			this.queryFragmentsAndParameters = queryFragmentsAndParameters;
 		}
@@ -139,12 +145,12 @@ public final class PreparedQuery<T> {
 		 * @param newParameters The new parameters for the prepared query.
 		 * @return This builder.
 		 */
-		public OptionalBuildSteps<CT> withParameters(Map<String, Object> newParameters) {
-			this.queryFragmentsAndParameters.setParameters(newParameters);
+		public OptionalBuildSteps<CT> withParameters(@Nullable Map<String, Object> newParameters) {
+			this.queryFragmentsAndParameters.setParameters(Objects.requireNonNullElseGet(newParameters, Map::of));
 			return this;
 		}
 
-		public OptionalBuildSteps<CT> usingMappingFunction(Supplier<BiFunction<TypeSystem, MapAccessor, ?>> newMappingFunction) {
+		public OptionalBuildSteps<CT> usingMappingFunction(@Nullable Supplier<BiFunction<TypeSystem, MapAccessor, ?>> newMappingFunction) {
 			this.mappingFunctionSupplier = newMappingFunction;
 			return this;
 		}

@@ -20,6 +20,7 @@ import java.lang.reflect.ParameterizedType;
 import java.util.Collections;
 import java.util.Optional;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.core.ResolvableType;
 import org.springframework.data.annotation.ReadOnlyProperty;
 import org.springframework.data.mapping.Association;
@@ -61,6 +62,7 @@ final class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProp
 
 	private final Lazy<Neo4jPersistentPropertyConverter<?>> customConversion;
 
+	@Nullable
 	private final PersistentPropertyCharacteristics optionalCharacteristics;
 
 	/**
@@ -71,7 +73,7 @@ final class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProp
 	 * @param simpleTypeHolder type holder
 	 */
 	DefaultNeo4jPersistentProperty(Property property, PersistentEntity<?, Neo4jPersistentProperty> owner,
-			Neo4jMappingContext mappingContext, SimpleTypeHolder simpleTypeHolder, PersistentPropertyCharacteristics optionalCharacteristics) {
+			Neo4jMappingContext mappingContext, SimpleTypeHolder simpleTypeHolder, @Nullable PersistentPropertyCharacteristics optionalCharacteristics) {
 
 		super(property, owner, simpleTypeHolder);
 		this.mappingContext = mappingContext;

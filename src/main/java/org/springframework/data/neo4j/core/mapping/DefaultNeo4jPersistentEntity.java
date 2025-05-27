@@ -32,6 +32,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.data.annotation.Persistent;
@@ -424,9 +425,10 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 
 	@Override
 	public boolean hasVectorProperty() {
-		return Optional.ofNullable(getVectorProperty()).map(v -> true).orElse(false);
+		return getVectorProperty() != null;
 	}
 
+	@Nullable
 	public Neo4jPersistentProperty getVectorProperty() {
 		return this.vectorProperty.getNullable();
 	}

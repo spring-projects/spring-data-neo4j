@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.apiguardian.api.API;
+import org.jspecify.annotations.Nullable;
 import org.neo4j.cypherdsl.core.Cypher;
 import org.neo4j.driver.Value;
 import org.springframework.data.neo4j.core.mapping.Constants;
@@ -58,7 +59,7 @@ final class NamedParameters {
 	 * @throws IllegalStateException when a parameter with the given name already exists
 	 */
 	@SuppressWarnings("unchecked")
-	void add(String name, Object value) {
+	void add(String name, @Nullable Object value) {
 
 		if (this.parameters.containsKey(name)) {
 			Object previousValue = this.parameters.get(name);
@@ -139,6 +140,7 @@ final class NamedParameters {
 				.collect(Collectors.joining(System.lineSeparator()));
 	}
 
+	@Nullable
 	private static String formatValue(Object value) {
 		if (value == null) {
 			return null;

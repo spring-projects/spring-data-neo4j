@@ -44,7 +44,8 @@ public interface Neo4jPersistentProperty extends PersistentProperty<Neo4jPersist
 	 */
 	default boolean isDynamicAssociation() {
 
-		return isRelationship() && isMap() && (getComponentType() == String.class || getComponentType().isEnum());
+		Class<?> componentType = getComponentType();
+		return isRelationship() && isMap() && (componentType == String.class || (componentType != null && componentType.isEnum()));
 	}
 
 	/**
