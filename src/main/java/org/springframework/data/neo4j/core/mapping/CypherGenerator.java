@@ -871,10 +871,15 @@ public enum CypherGenerator {
 		Neo4jPersistentEntity<?> endNodeDescription = (Neo4jPersistentEntity<?>) relationshipDescription.getTarget();
 
 		processedRelationships.add(relationshipDescription);
-		PropertyFilter.RelaxedPropertyPath newParentPath = relationshipDescription.hasRelationshipProperties()
-				? parentPath.append(relationshipDescription.getFieldName()).append(((Neo4jPersistentEntity<?>) relationshipDescription.getRelationshipPropertiesEntity())
-					.getPersistentProperty(TargetNode.class).getFieldName())
-				: parentPath.append(relationshipDescription.getFieldName());
+		PropertyFilter.RelaxedPropertyPath newParentPath;
+		newParentPath = parentPath.append(relationshipDescription.getFieldName());
+		if (relationshipDescription.hasRelationshipProperties()) {
+			var persistentProperty = ((Neo4jPersistentEntity<?>) relationshipDescription.getRelationshipPropertiesEntity()).getPersistentProperty(TargetNode.class);
+			if (persistentProperty != null) {
+				newParentPath = newParentPath
+						.append(persistentProperty.getFieldName());
+			}
+		}
 
 		if (relationshipDescription.isDynamic()) {
 			Relationship relationship = relationshipDescription.isOutgoing()

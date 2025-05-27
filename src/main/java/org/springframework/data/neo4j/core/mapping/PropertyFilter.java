@@ -22,6 +22,7 @@ import java.util.Set;
 import java.util.function.Predicate;
 
 import org.apiguardian.api.API;
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.neo4j.core.schema.Property;
 import org.springframework.util.StringUtils;
 
@@ -223,7 +224,7 @@ public abstract class PropertyFilter {
 			return new RelaxedPropertyPath(dotPath.substring(idx + 1), this.type);
 		}
 
-		public RelaxedPropertyPath replaceLastSegment(String lastSegment) {
+		public RelaxedPropertyPath replaceLastSegment(@Nullable String lastSegment) {
 			if (lastSegment == null) {
 				return this;
 			}

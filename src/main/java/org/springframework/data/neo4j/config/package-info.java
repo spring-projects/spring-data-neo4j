@@ -5,4 +5,8 @@
    The package provides some additional annotations that enable auditing.
  * <!-- end::intent[] -->
  */
+
+@NullMarked
 package org.springframework.data.neo4j.config;
+
+import org.jspecify.annotations.NullMarked;

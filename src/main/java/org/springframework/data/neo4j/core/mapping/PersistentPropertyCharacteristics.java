@@ -18,6 +18,7 @@ package org.springframework.data.neo4j.core.mapping;
 import static org.apiguardian.api.API.Status.STABLE;
 
 import org.apiguardian.api.API;
+import org.jspecify.annotations.Nullable;
 
 /**
  * The characteristics of a {@link Neo4jPersistentProperty} can diverge from what is by default derived from the annotated
@@ -34,6 +35,7 @@ public interface PersistentPropertyCharacteristics {
 	/**
 	 * @return {@literal null} to leave the defaults, {@literal true} or {@literal false} otherwise
 	 */
+	@Nullable
 	default Boolean isTransient() {
 		return null;
 	}
@@ -41,6 +43,7 @@ public interface PersistentPropertyCharacteristics {
 	/**
 	 * @return {@literal null} to leave the defaults, {@literal true} or {@literal false} otherwise
 	 */
+	@Nullable
 	default Boolean isReadOnly() {
 		return null;
 	}

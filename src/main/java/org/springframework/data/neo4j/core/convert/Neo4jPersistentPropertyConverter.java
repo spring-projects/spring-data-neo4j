@@ -16,6 +16,7 @@
 package org.springframework.data.neo4j.core.convert;
 
 import org.apiguardian.api.API;
+import org.jspecify.annotations.Nullable;
 import org.neo4j.driver.Value;
 
 /**
@@ -34,11 +35,11 @@ public interface Neo4jPersistentPropertyConverter<T> {
 	 *                  this is ok, we do handle {@link NullPointerException null pointer exceptions}
 	 * @return The converted value, never null. To represent {@literal null}, use {@link org.neo4j.driver.Values#NULL}
 	 */
-	Value write(T source);
+	Value write(@Nullable T source);
 
 	/**
 	 * @param source The value to read, never null or {@link org.neo4j.driver.Values#NULL}
 	 * @return The converted value, maybe null if {@code source} was equals to {@link org.neo4j.driver.Values#NULL}.
 	 */
-	T read(Value source);
+	@Nullable T read(Value source);
 }

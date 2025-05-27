@@ -26,6 +26,7 @@ import java.util.function.Supplier;
 
 import org.apache.commons.logging.LogFactory;
 import org.apiguardian.api.API;
+import org.jspecify.annotations.Nullable;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.QueryRunner;
 import org.neo4j.driver.Record;
@@ -78,12 +79,16 @@ public interface Neo4jClient {
 
 		final Driver driver;
 
+		@Nullable
 		DatabaseSelectionProvider databaseSelectionProvider;
 
+		@Nullable
 		UserSelectionProvider userSelectionProvider;
 
+		@Nullable
 		Neo4jConversions neo4jConversions;
 
+		@Nullable
 		Neo4jBookmarkManager bookmarkManager;
 
 		private Builder(Driver driver) {
@@ -98,7 +103,7 @@ public interface Neo4jClient {
 		 * @param databaseSelectionProvider The database selection provider
 		 * @return The builder
 		 */
-		public Builder withDatabaseSelectionProvider(DatabaseSelectionProvider databaseSelectionProvider) {
+		public Builder withDatabaseSelectionProvider(@Nullable DatabaseSelectionProvider databaseSelectionProvider) {
 			this.databaseSelectionProvider = databaseSelectionProvider;
 			return this;
 		}
@@ -111,7 +116,7 @@ public interface Neo4jClient {
 		 * @param userSelectionProvider The provider for impersonated users
 		 * @return The builder
 		 */
-		public Builder withUserSelectionProvider(UserSelectionProvider userSelectionProvider) {
+		public Builder withUserSelectionProvider(@Nullable UserSelectionProvider userSelectionProvider) {
 			this.userSelectionProvider = userSelectionProvider;
 			return this;
 		}
@@ -123,7 +128,7 @@ public interface Neo4jClient {
 		 * @return The builder
 		 * @since 6.3.3
 		 */
-		public Builder withNeo4jConversions(Neo4jConversions neo4jConversions) {
+		public Builder withNeo4jConversions(@Nullable Neo4jConversions neo4jConversions) {
 			this.neo4jConversions = neo4jConversions;
 			return this;
 		}
@@ -137,7 +142,7 @@ public interface Neo4jClient {
 		 * @return The builder
 		 * @since 7.1.2
 		 */
-		public Builder withNeo4jBookmarkManager(Neo4jBookmarkManager bookmarkManager) {
+		public Builder withNeo4jBookmarkManager(@Nullable Neo4jBookmarkManager bookmarkManager) {
 			this.bookmarkManager = bookmarkManager;
 			return this;
 		}

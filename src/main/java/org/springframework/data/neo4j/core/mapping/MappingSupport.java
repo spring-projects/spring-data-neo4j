@@ -33,6 +33,7 @@ import org.neo4j.driver.types.Relationship;
 import org.neo4j.driver.types.Type;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
 import org.springframework.data.neo4j.core.schema.TargetNode;
+import org.springframework.util.Assert;
 
 /**
  * @author Michael J. Simons
@@ -173,10 +174,10 @@ public final class MappingSupport {
 			Object relationshipPropertiesValue = entityHolder.getRelationshipProperties();
 
 			Neo4jPersistentEntity<?> persistentEntity =
-					neo4jMappingContext.getPersistentEntity(relationshipPropertiesValue.getClass());
+					Objects.requireNonNull(neo4jMappingContext.getPersistentEntity(relationshipPropertiesValue.getClass()));
 
 			PersistentPropertyAccessor<Object> relationshipPropertiesAccessor = persistentEntity.getPropertyAccessor(relationshipPropertiesValue);
-			relationshipPropertiesAccessor.setProperty(persistentEntity.getPersistentProperty(TargetNode.class), newRelationshipObject);
+			relationshipPropertiesAccessor.setProperty(Objects.requireNonNull(persistentEntity.getPersistentProperty(TargetNode.class)), newRelationshipObject);
 			newRelationshipObject = relationshipPropertiesAccessor.getBean();
 
 			// If we recreate or manipulate the object including it's accessor, we must update it in the holder as well.

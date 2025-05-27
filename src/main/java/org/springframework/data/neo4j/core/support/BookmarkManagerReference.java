@@ -15,8 +15,10 @@
  */
 package org.springframework.data.neo4j.core.support;
 
+import java.util.Objects;
 import java.util.function.Supplier;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.ObjectProvider;
@@ -56,11 +58,12 @@ public final class BookmarkManagerReference implements ApplicationContextAware {
 		}
 	};
 
+	@Nullable
 	private volatile Neo4jBookmarkManager bookmarkManager;
 
 	private ApplicationEventPublisher applicationEventPublisher;
 
-	public BookmarkManagerReference(Supplier<Neo4jBookmarkManager> defaultBookmarkManagerSupplier, Neo4jBookmarkManager bookmarkManager) {
+	public BookmarkManagerReference(Supplier<Neo4jBookmarkManager> defaultBookmarkManagerSupplier, @Nullable  Neo4jBookmarkManager bookmarkManager) {
 		this.defaultBookmarkManagerSupplier = defaultBookmarkManagerSupplier;
 		this.bookmarkManager = bookmarkManager;
 	}
@@ -71,7 +74,8 @@ public final class BookmarkManagerReference implements ApplicationContextAware {
 		this.neo4jBookmarkManagers = applicationContext.getBeanProvider(Neo4jBookmarkManager.class);
 		this.applicationEventPublisher = applicationContext;
 		if (this.bookmarkManager != null) {
-			this.bookmarkManager.setApplicationEventPublisher(this.applicationEventPublisher);
+			Objects.requireNonNull(this.bookmarkManager)
+					.setApplicationEventPublisher(this.applicationEventPublisher);
 		}
 	}
 
@@ -82,6 +86,7 @@ public final class BookmarkManagerReference implements ApplicationContextAware {
 				result = this.bookmarkManager;
 				if (result == null) {
 					this.bookmarkManager = neo4jBookmarkManagers.getIfAvailable(this.defaultBookmarkManagerSupplier);
+					//noinspection DataFlowIssue
 					this.bookmarkManager.setApplicationEventPublisher(this.applicationEventPublisher);
 					result = this.bookmarkManager;
 				}
