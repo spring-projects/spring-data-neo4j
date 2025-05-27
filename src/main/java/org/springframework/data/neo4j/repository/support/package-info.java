@@ -4,7 +4,4 @@
    repository base classes. The support classes are the same classes used by SDN itself.
  * <!-- end::intent[] -->
  */
-@NonNullApi
 package org.springframework.data.neo4j.repository.support;
-
-import org.springframework.lang.NonNullApi;

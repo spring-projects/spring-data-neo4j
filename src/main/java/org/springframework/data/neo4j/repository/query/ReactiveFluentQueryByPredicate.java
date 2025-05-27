@@ -34,7 +34,6 @@ import org.springframework.data.neo4j.core.ReactiveFluentFindOperation;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
 import org.springframework.data.repository.query.FluentQuery.ReactiveFluentQuery;
 import org.springframework.data.support.PageableExecutionUtils;
-import org.springframework.lang.Nullable;
 
 import com.querydsl.core.types.Predicate;
 
@@ -84,8 +83,8 @@ import com.querydsl.core.types.Predicate;
 			Function<Predicate, Mono<Long>> countOperation,
 			Function<Predicate, Mono<Boolean>> existsOperation,
 			Sort sort,
-			@Nullable Integer limit,
-			@Nullable Collection<String> properties
+			Integer limit,
+			Collection<String> properties
 	) {
 		super(resultType, sort, limit, properties);
 		this.predicate = predicate;

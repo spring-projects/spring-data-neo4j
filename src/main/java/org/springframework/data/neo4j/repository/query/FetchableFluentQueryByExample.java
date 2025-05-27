@@ -30,7 +30,6 @@ import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
 import org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery;
 import org.springframework.data.support.PageableExecutionUtils;
-import org.springframework.lang.Nullable;
 
 import java.util.Collection;
 import java.util.List;
@@ -81,8 +80,8 @@ final class FetchableFluentQueryByExample<S, R> extends FluentQuerySupport<R> im
 			Function<Example<S>, Long> countOperation,
 			Function<Example<S>, Boolean> existsOperation,
 			Sort sort,
-			@Nullable Integer limit,
-			@Nullable Collection<String> properties
+			Integer limit,
+			Collection<String> properties
 	) {
 		super(resultType, sort, limit, properties);
 		this.mappingContext = mappingContext;

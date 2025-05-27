@@ -22,7 +22,6 @@ import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
 import org.neo4j.driver.types.TypeSystem;
 import org.springframework.core.convert.ConversionService;
-import org.springframework.lang.Nullable;
 
 /**
  * Used to automatically map single valued records to a sensible Java type based on {@link Value#asObject()}.
@@ -42,7 +41,6 @@ final class SingleValueMappingFunction<T> implements BiFunction<TypeSystem, Reco
 		this.targetClass = targetClass;
 	}
 
-	@Nullable
 	@Override
 	public T apply(TypeSystem typeSystem, Record record) {
 
@@ -57,8 +55,7 @@ final class SingleValueMappingFunction<T> implements BiFunction<TypeSystem, Reco
 		return convertValue(record.get(0));
 	}
 
-	@Nullable
-	T convertValue(@Nullable Value source) {
+	T convertValue(Value source) {
 		if (targetClass == Void.class || targetClass == void.class) {
 			return null;
 		}

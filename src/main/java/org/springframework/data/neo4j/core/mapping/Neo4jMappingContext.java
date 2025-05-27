@@ -67,7 +67,6 @@ import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.PostLoad;
 import org.springframework.data.util.Lazy;
 import org.springframework.data.util.TypeInformation;
-import org.springframework.lang.Nullable;
 import org.springframework.util.ReflectionUtils;
 
 /**
@@ -109,11 +108,11 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 
 	private final Neo4jConversionService conversionService;
 
-	private final Map<Neo4jPersistentEntity, Set<MethodHolder>> postLoadMethods = new ConcurrentHashMap<>();
+	private final Map<Neo4jPersistentEntity<?>, Set<MethodHolder>> postLoadMethods = new ConcurrentHashMap<>();
 
 	private EventSupport eventSupport;
 
-	private @Nullable AutowireCapableBeanFactory beanFactory;
+	private AutowireCapableBeanFactory beanFactory;
 
 	private boolean strict = false;
 
@@ -127,36 +126,34 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 
 		private Neo4jConversions neo4jConversions;
 
-		@Nullable
 		private TypeSystem typeSystem;
 
-		@Nullable
 		private PersistentPropertyCharacteristicsProvider persistentPropertyCharacteristicsProvider;
 
 		private Builder() {
 			this(new Neo4jConversions(), null, null);
 		}
 
-		private Builder(Neo4jConversions neo4jConversions, @Nullable TypeSystem typeSystem, @Nullable PersistentPropertyCharacteristicsProvider persistentPropertyCharacteristicsProvider) {
+		private Builder(Neo4jConversions neo4jConversions, TypeSystem typeSystem, PersistentPropertyCharacteristicsProvider persistentPropertyCharacteristicsProvider) {
 			this.neo4jConversions = neo4jConversions;
 			this.typeSystem = typeSystem;
 			this.persistentPropertyCharacteristicsProvider = persistentPropertyCharacteristicsProvider;
 		}
 
 		@SuppressWarnings("HiddenField")
-		public Builder withNeo4jConversions(@Nullable Neo4jConversions neo4jConversions) {
+		public Builder withNeo4jConversions(Neo4jConversions neo4jConversions) {
 			this.neo4jConversions = neo4jConversions;
 			return this;
 		}
 
 		@SuppressWarnings("HiddenField")
-		public Builder withPersistentPropertyCharacteristicsProvider(@Nullable PersistentPropertyCharacteristicsProvider persistentPropertyCharacteristicsProvider) {
+		public Builder withPersistentPropertyCharacteristicsProvider(PersistentPropertyCharacteristicsProvider persistentPropertyCharacteristicsProvider) {
 			this.persistentPropertyCharacteristicsProvider = persistentPropertyCharacteristicsProvider;
 			return this;
 		}
 
 		@SuppressWarnings("HiddenField")
-		public Builder withTypeSystem(@Nullable TypeSystem typeSystem) {
+		public Builder withTypeSystem(TypeSystem typeSystem) {
 			this.typeSystem = typeSystem;
 			return this;
 		}
@@ -190,7 +187,7 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 	 */
 	@API(status = API.Status.INTERNAL, since = "6.0")
 	@Deprecated(since = "6.3.7", forRemoval = true)
-	public Neo4jMappingContext(Neo4jConversions neo4jConversions, @Nullable TypeSystem typeSystem) {
+	public Neo4jMappingContext(Neo4jConversions neo4jConversions, TypeSystem typeSystem) {
 		this(new Builder(neo4jConversions, typeSystem, null));
 	}
 
@@ -318,7 +315,7 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 		return newEntity;
 	}
 
-	private static boolean isValidParentNode(@Nullable Class<?> parentClass) {
+	private static boolean isValidParentNode(Class<?> parentClass) {
 		if (parentClass == null || parentClass.equals(Object.class)) {
 			return false;
 		}
@@ -349,7 +346,6 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 	}
 
 	@Override
-	@Nullable
 	public NodeDescription<?> getNodeDescription(String primaryLabel) {
 		return this.nodeDescriptionStore.get(primaryLabel);
 	}
@@ -360,7 +356,6 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 	}
 
 	@Override
-	@Nullable
 	public Neo4jPersistentEntity<?> getPersistentEntity(TypeInformation<?> typeInformation) {
 
 		Neo4jPersistentEntity<?> existingDescription = this.doGetPersistentEntity(typeInformation);
@@ -385,7 +380,6 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 	 * @return An optional persistent entity
 	 * @see #doGetPersistentEntity(Class)
 	 */
-	@Nullable
 	private Neo4jPersistentEntity<?> doGetPersistentEntity(TypeInformation<?> typeInformation) {
 		return doGetPersistentEntity(typeInformation.getRawTypeInformation().getType());
 	}
@@ -399,7 +393,6 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 	 * @param underlyingClass The underlying class
 	 * @return An optional persistent entity
 	 */
-	@Nullable
 	private Neo4jPersistentEntity<?> doGetPersistentEntity(Class<?> underlyingClass) {
 
 		if (underlyingClass.isInterface()) {
@@ -443,7 +436,6 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 		}
 	}
 
-	@Nullable
 	Constructor<?> findConstructor(Class<?> clazz, Class<?>... parameterTypes) {
 		try {
 			return ReflectionUtils.accessibleConstructor(clazz, parameterTypes);
@@ -486,7 +478,6 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 	 * @param persistentProperty The persistent property for which the conversion should be build.
 	 * @return An optional conversion.
 	 */
-	@Nullable
 	Neo4jPersistentPropertyConverter<?> getOptionalCustomConversionsFor(Neo4jPersistentProperty persistentProperty) {
 
 		// Is the annotation present at all?
@@ -598,7 +589,7 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 
 	private CreateRelationshipStatementHolder createStatementForRelationshipWithProperties(
 			Neo4jPersistentEntity<?> neo4jPersistentEntity,
-			RelationshipDescription relationshipDescription, @Nullable String dynamicRelationshipType,
+			RelationshipDescription relationshipDescription, String dynamicRelationshipType,
 			MappingSupport.RelationshipPropertiesWithEntityHolder relatedValue, boolean isNewRelationship, boolean canUseElementId) {
 
 		Statement relationshipCreationQuery = CypherGenerator.INSTANCE.prepareSaveOfRelationshipWithProperties(
@@ -699,10 +690,9 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 
 		private final Method method;
 
-		@Nullable
 		private final Field delegate;
 
-		MethodHolder(Method method, @Nullable Field delegate) {
+		MethodHolder(Method method, Field delegate) {
 			this.method = method;
 			this.delegate = delegate;
 		}
@@ -717,7 +707,7 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 			ReflectionUtils.invokeMethod(method, getInstanceOrDelegate(instance, delegate));
 		}
 
-		static Object getInstanceOrDelegate(Object instance, @Nullable Field delegateHolder) {
+		static Object getInstanceOrDelegate(Object instance, Field delegateHolder) {
 			if (delegateHolder == null) {
 				return instance;
 			} else {

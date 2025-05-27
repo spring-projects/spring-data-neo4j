@@ -34,7 +34,6 @@ import org.neo4j.driver.types.TypeSystem;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.data.neo4j.core.Neo4jClient.BindSpec;
 import org.springframework.data.neo4j.core.convert.Neo4jConversions;
-import org.springframework.lang.Nullable;
 
 /**
  * Reactive Neo4j client. The main difference to the {@link Neo4jClient imperative Neo4j client} is the fact that all
@@ -74,16 +73,12 @@ public interface ReactiveNeo4jClient {
 
 		final Driver driver;
 
-		@Nullable
 		ReactiveDatabaseSelectionProvider databaseSelectionProvider;
 
-		@Nullable
 		ReactiveUserSelectionProvider impersonatedUserProvider;
 
-		@Nullable
 		Neo4jConversions neo4jConversions;
 
-		@Nullable
 		Neo4jBookmarkManager bookmarkManager;
 
 		private Builder(Driver driver) {
@@ -98,7 +93,7 @@ public interface ReactiveNeo4jClient {
 		 * @param databaseSelectionProvider The database selection provider
 		 * @return The builder
 		 */
-		public Builder withDatabaseSelectionProvider(@Nullable ReactiveDatabaseSelectionProvider databaseSelectionProvider) {
+		public Builder withDatabaseSelectionProvider(ReactiveDatabaseSelectionProvider databaseSelectionProvider) {
 			this.databaseSelectionProvider = databaseSelectionProvider;
 			return this;
 		}
@@ -111,7 +106,7 @@ public interface ReactiveNeo4jClient {
 		 * @param impersonatedUserProvider The provider for impersonated users
 		 * @return The builder
 		 */
-		public Builder withUserSelectionProvider(@Nullable ReactiveUserSelectionProvider impersonatedUserProvider) {
+		public Builder withUserSelectionProvider(ReactiveUserSelectionProvider impersonatedUserProvider) {
 			this.impersonatedUserProvider = impersonatedUserProvider;
 			return this;
 		}
@@ -212,7 +207,6 @@ public interface ReactiveNeo4jClient {
 	 *
 	 * @return The database selection provider - can be null
 	 */
-	@Nullable
 	ReactiveDatabaseSelectionProvider getDatabaseSelectionProvider();
 
 	/**
@@ -306,7 +300,7 @@ public interface ReactiveNeo4jClient {
 		 * @param targetDatabase selected database to use. A {@literal null} value indicates the default database.
 		 * @return A runnable query specification that is now bound to a given database.
 		 */
-		RunnableSpecBoundToDatabase in(@Nullable String targetDatabase);
+		RunnableSpecBoundToDatabase in(String targetDatabase);
 
 		/**
 		 * Pins the previously defined query to an impersonated user. A value of {@literal null} chooses the user owning
@@ -315,7 +309,7 @@ public interface ReactiveNeo4jClient {
 		 * @param asUser The name of the user to impersonate. A {@literal null} value indicates the connected user.
 		 * @return A runnable query specification that is now bound to a given database.
 		 */
-		RunnableSpecBoundToUser asUser(@Nullable String asUser);
+		RunnableSpecBoundToUser asUser(String asUser);
 	}
 
 	/**
@@ -361,7 +355,7 @@ public interface ReactiveNeo4jClient {
 		 * @param targetDatabase selected database to use. A {@literal null} value indicates the default database.
 		 * @return An ongoing delegation
 		 */
-		RunnableDelegation<T> in(@Nullable String targetDatabase);
+		RunnableDelegation<T> in(String targetDatabase);
 	}
 
 	/**

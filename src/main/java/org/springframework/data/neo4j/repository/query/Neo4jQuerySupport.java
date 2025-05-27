@@ -61,7 +61,6 @@ import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.data.repository.query.ResultProcessor;
 import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.data.util.TypeInformation;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -188,11 +187,11 @@ abstract class Neo4jQuerySupport {
 	 * @param conversionOverride Passed to the entity converter if present.
 	 * @return A parameter that fits the placeholders of a generated query
 	 */
-	final Object convertParameter(Object parameter, @Nullable Neo4jPersistentPropertyConverter<?> conversionOverride) {
+	final Object convertParameter(Object parameter, Neo4jPersistentPropertyConverter<?> conversionOverride) {
 
 		if (parameter == null) {
 			return Values.NULL;
-		} else if (parameter instanceof Range v) {
+		} else if (parameter instanceof Range<?> v) {
 			return convertRange(v);
 		} else if (parameter instanceof Distance v) {
 			return calculateDistanceInMeter(v);

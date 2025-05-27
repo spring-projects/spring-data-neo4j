@@ -49,7 +49,6 @@ import org.springframework.data.neo4j.core.mapping.PropertyHandlerSupport;
 import org.springframework.data.neo4j.core.mapping.RelationshipDescription;
 import org.springframework.data.neo4j.core.schema.TargetNode;
 import org.springframework.data.util.TypeInformation;
-import org.springframework.lang.Nullable;
 
 /**
  * A specialized version of an {@link EntityWriter} for Neo4j that traverses the entity and maps the entity,
@@ -77,7 +76,7 @@ final class Neo4jNestedMapEntityWriter implements EntityWriter<Object, Map<Strin
 	}
 
 	@Override
-	public void write(@Nullable Object source, Map<String, Object> sink) {
+	public void write(Object source, Map<String, Object> sink) {
 
 		if (source == null) {
 			return;
@@ -87,7 +86,7 @@ final class Neo4jNestedMapEntityWriter implements EntityWriter<Object, Map<Strin
 		writeImpl(source, sink, seenObjects, true);
 	}
 
-	Map<String, Object> writeImpl(@Nullable Object source, Map<String, Object> sink, Set<Object> seenObjects, boolean initialObject) {
+	Map<String, Object> writeImpl(Object source, Map<String, Object> sink, Set<Object> seenObjects, boolean initialObject) {
 
 		if (source == null) {
 			return sink;

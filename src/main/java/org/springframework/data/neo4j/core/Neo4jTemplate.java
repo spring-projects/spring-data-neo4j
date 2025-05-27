@@ -97,8 +97,6 @@ import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.projection.ProjectionInformation;
 import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
 import org.springframework.data.util.TypeInformation;
-import org.springframework.lang.NonNull;
-import org.springframework.lang.Nullable;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -167,7 +165,7 @@ public final class Neo4jTemplate implements
 	}
 
 	public Neo4jTemplate(Neo4jClient neo4jClient, Neo4jMappingContext neo4jMappingContext,
-						 EntityCallbacks entityCallbacks, @Nullable PlatformTransactionManager platformTransactionManager) {
+						 EntityCallbacks entityCallbacks, PlatformTransactionManager platformTransactionManager) {
 
 		Assert.notNull(neo4jClient, "The Neo4jClient is required");
 		Assert.notNull(neo4jMappingContext, "The Neo4jMappingContext is required");
@@ -226,7 +224,7 @@ public final class Neo4jTemplate implements
 		return doFindAll(domainType, null);
 	}
 
-	private <T> List<T> doFindAll(Class<T> domainType, @Nullable Class<?> resultType) {
+	private <T> List<T> doFindAll(Class<T> domainType, Class<?> resultType) {
 		return transactionTemplateReadOnly
 				.execute(tx -> {
 					Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getRequiredPersistentEntity(domainType);
@@ -279,7 +277,7 @@ public final class Neo4jTemplate implements
 	}
 
 	@SuppressWarnings("unchecked")
-	<T, R> List<R> doFind(@Nullable String cypherQuery, @Nullable Map<String, Object> parameters, Class<T> domainType, Class<R> resultType, TemplateSupport.FetchType fetchType, @Nullable QueryFragmentsAndParameters queryFragmentsAndParameters) {
+	<T, R> List<R> doFind(String cypherQuery, Map<String, Object> parameters, Class<T> domainType, Class<R> resultType, TemplateSupport.FetchType fetchType, QueryFragmentsAndParameters queryFragmentsAndParameters) {
 
 		return transactionTemplateReadOnly.execute(tx -> {
 			List<T> intermediaResults = Collections.emptyList();
@@ -363,7 +361,7 @@ public final class Neo4jTemplate implements
 				});
 	}
 
-	private Object convertIdValues(@Nullable Neo4jPersistentProperty idProperty, @Nullable Object idValues) {
+	private Object convertIdValues(Neo4jPersistentProperty idProperty, Object idValues) {
 
 		if (idProperty != null && ((Neo4jPersistentEntity<?>) idProperty.getOwner()).isUsingInternalIds()) {
 			return idValues;
@@ -434,7 +432,7 @@ public final class Neo4jTemplate implements
 				});
 	}
 
-	private <T> T saveImpl(T instance, @Nullable Collection<PropertyFilter.ProjectedPath> includedProperties, @Nullable NestedRelationshipProcessingStateMachine stateMachine) {
+	private <T> T saveImpl(T instance, Collection<PropertyFilter.ProjectedPath> includedProperties, NestedRelationshipProcessingStateMachine stateMachine) {
 
 		if (stateMachine != null && stateMachine.hasProcessedValue(instance)) {
 			return instance;
@@ -527,7 +525,7 @@ public final class Neo4jTemplate implements
 				|| entityMetaData.getDynamicLabelsProperty().isPresent();
 	}
 
-	private <T> List<T> saveAllImpl(Iterable<T> instances, @Nullable Collection<PropertyFilter.ProjectedPath> includedProperties, @Nullable BiPredicate<PropertyPath, Neo4jPersistentProperty> includeProperty) {
+	private <T> List<T> saveAllImpl(Iterable<T> instances, Collection<PropertyFilter.ProjectedPath> includedProperties, BiPredicate<PropertyPath, Neo4jPersistentProperty> includeProperty) {
 
 		Set<Class<?>> types = new HashSet<>();
 		List<T> entities = new ArrayList<>();
@@ -756,14 +754,14 @@ public final class Neo4jTemplate implements
 		return createExecutableQuery(domainType, null, cypherQuery, Collections.emptyMap(), readOnly);
 	}
 
-	private <T> ExecutableQuery<T> createExecutableQuery(Class<T> domainType, @Nullable Class<?> resultType, Statement statement, Map<String, Object> parameters, boolean readOnly) {
+	private <T> ExecutableQuery<T> createExecutableQuery(Class<T> domainType, Class<?> resultType, Statement statement, Map<String, Object> parameters, boolean readOnly) {
 
 		return createExecutableQuery(domainType, resultType, renderer.render(statement), TemplateSupport.mergeParameters(statement, parameters), readOnly);
 	}
 
 	private <T> ExecutableQuery<T> createExecutableQuery(
-			Class<T> domainType, @Nullable Class<?> resultType,
-			@Nullable String cypherStatement,
+			Class<T> domainType, Class<?> resultType,
+			String cypherStatement,
 			Map<String, Object> parameters,
 			boolean readOnly) {
 
@@ -1186,7 +1184,7 @@ public final class Neo4jTemplate implements
 		this.renderer = rendererFromCdiConfiguration;
 	}
 
-	public void setTransactionManager(@Nullable PlatformTransactionManager transactionManager) {
+	public void setTransactionManager(PlatformTransactionManager transactionManager) {
 		if (transactionManager == null) {
 			return;
 		}
@@ -1203,7 +1201,7 @@ public final class Neo4jTemplate implements
 
 
 	private <T> ExecutableQuery<T> createExecutableQuery(
-			Class<T> domainType, @Nullable Class<?> resultType,
+			Class<T> domainType, Class<?> resultType,
  			QueryFragmentsAndParameters queryFragmentsAndParameters,
 			boolean readOnlyTransaction) {
 
@@ -1430,7 +1428,6 @@ public final class Neo4jTemplate implements
 			}
 		}
 
-		@NonNull
 		private Consumer<Map<String, Object>> iterateAndMapNextLevel(Map<String, Set<String>> relationshipsToRelatedNodes,
 																	 RelationshipDescription relationshipDescription,
 																	 PropertyPathWalkStep currentPathStep) {

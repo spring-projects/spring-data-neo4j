@@ -34,7 +34,6 @@ import org.springframework.data.neo4j.repository.support.SimpleNeo4jRepository;
 import org.springframework.data.neo4j.repository.support.SimpleReactiveNeo4jRepository;
 import org.springframework.data.querydsl.QuerydslUtils;
 import org.springframework.data.util.ReactiveWrappers;
-import org.springframework.lang.Nullable;
 
 import java.util.Arrays;
 
@@ -45,7 +44,7 @@ import java.util.Arrays;
 public class Neo4jRuntimeHints implements RuntimeHintsRegistrar {
 
 	@Override
-	public void registerHints(RuntimeHints hints, @Nullable ClassLoader classLoader) {
+	public void registerHints(RuntimeHints hints, ClassLoader classLoader) {
 
 		hints.reflection().registerTypes(
 				Arrays.asList(

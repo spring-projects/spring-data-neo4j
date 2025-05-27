@@ -15,6 +15,7 @@
  */
 package org.springframework.data.neo4j.core;
 
+import java.io.Serial;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
@@ -33,7 +34,6 @@ import org.neo4j.driver.types.TypeSystem;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.data.neo4j.core.convert.Neo4jConversions;
 import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
-import org.springframework.lang.Nullable;
 
 /**
  * Definition of a modern Neo4j client.
@@ -78,16 +78,12 @@ public interface Neo4jClient {
 
 		final Driver driver;
 
-		@Nullable
 		DatabaseSelectionProvider databaseSelectionProvider;
 
-		@Nullable
 		UserSelectionProvider userSelectionProvider;
 
-		@Nullable
 		Neo4jConversions neo4jConversions;
 
-		@Nullable
 		Neo4jBookmarkManager bookmarkManager;
 
 		private Builder(Driver driver) {
@@ -102,7 +98,7 @@ public interface Neo4jClient {
 		 * @param databaseSelectionProvider The database selection provider
 		 * @return The builder
 		 */
-		public Builder withDatabaseSelectionProvider(@Nullable DatabaseSelectionProvider databaseSelectionProvider) {
+		public Builder withDatabaseSelectionProvider(DatabaseSelectionProvider databaseSelectionProvider) {
 			this.databaseSelectionProvider = databaseSelectionProvider;
 			return this;
 		}
@@ -115,7 +111,7 @@ public interface Neo4jClient {
 		 * @param userSelectionProvider The provider for impersonated users
 		 * @return The builder
 		 */
-		public Builder withUserSelectionProvider(@Nullable UserSelectionProvider userSelectionProvider) {
+		public Builder withUserSelectionProvider(UserSelectionProvider userSelectionProvider) {
 			this.userSelectionProvider = userSelectionProvider;
 			return this;
 		}
@@ -216,7 +212,6 @@ public interface Neo4jClient {
 	 *
 	 * @return The database selection provider - can be null
 	 */
-	@Nullable
 	DatabaseSelectionProvider getDatabaseSelectionProvider();
 
 	/**
@@ -266,7 +261,7 @@ public interface Neo4jClient {
 		 * @param targetDatabase selected database to use. A {@literal null} value indicates the default database.
 		 * @return A runnable query specification that is now bound to a given database.
 		 */
-		RunnableSpecBoundToDatabase in(@Nullable String targetDatabase);
+		RunnableSpecBoundToDatabase in(String targetDatabase);
 
 		/**
 		 * Pins the previously defined query to an impersonated user. A value of {@literal null} chooses the user owning
@@ -275,7 +270,7 @@ public interface Neo4jClient {
 		 * @param asUser The name of the user to impersonate. A {@literal null} value indicates the connected user.
 		 * @return A runnable query specification that is now bound to a given database.
 		 */
-		RunnableSpecBoundToUser asUser(@Nullable String asUser);
+		RunnableSpecBoundToUser asUser(String asUser);
 	}
 
 	/**
@@ -319,7 +314,7 @@ public interface Neo4jClient {
 		 * @param value The value to bind to a query
 		 * @return An ongoing bind spec for specifying the name that {@code value} should be bound to or a binder function
 		 */
-		<T> OngoingBindSpec<T, S> bind(@Nullable T value);
+		<T> OngoingBindSpec<T, S> bind(T value);
 
 		S bindAll(Map<String, Object> parameters);
 	}
@@ -408,7 +403,7 @@ public interface Neo4jClient {
 		 * @param targetDatabase selected database to use. A {@literal null} value indicates the default database.
 		 * @return An ongoing delegation
 		 */
-		RunnableDelegation<T> in(@Nullable String targetDatabase);
+		RunnableDelegation<T> in(String targetDatabase);
 	}
 
 	/**
@@ -434,8 +429,7 @@ public interface Neo4jClient {
 	 * @return A possibly trimmed name of the database.
 	 * @throws IllegalArgumentException when the database name is not allowed with the underlying driver.
 	 */
-	@Nullable
-	static String verifyDatabaseName(@Nullable String databaseName) {
+	static String verifyDatabaseName(String databaseName) {
 
 		String newTargetDatabase = databaseName == null ? null : databaseName.trim();
 		if (newTargetDatabase != null && newTargetDatabase.isEmpty()) {
@@ -450,6 +444,9 @@ public interface Neo4jClient {
 	 */
 	@API(status = API.Status.STABLE, since = "6.1.5")
 	class IllegalDatabaseNameException extends IllegalArgumentException {
+
+		@Serial
+		private static final long serialVersionUID = 3496326026855204643L;
 
 		private final String illegalDatabaseName;
 

@@ -31,7 +31,6 @@ import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.data.repository.query.parser.PartTree;
 import org.springframework.data.repository.query.parser.PartTree.OrPart;
-import org.springframework.lang.Nullable;
 
 /**
  * Implementation of {@link RepositoryQuery} for derived finder methods.
@@ -62,8 +61,8 @@ final class PartTreeNeo4jQuery extends AbstractNeo4jQuery {
 
 	@Override
 	protected <T extends Object> PreparedQuery<T> prepareQuery(Class<T> returnedType, Collection<PropertyFilter.ProjectedPath> includedProperties,
-			Neo4jParameterAccessor parameterAccessor, @Nullable Neo4jQueryType queryType,
-			@Nullable Supplier<BiFunction<TypeSystem, MapAccessor, ?>> mappingFunction, UnaryOperator<Integer> limitModifier) {
+			Neo4jParameterAccessor parameterAccessor, Neo4jQueryType queryType,
+			Supplier<BiFunction<TypeSystem, MapAccessor, ?>> mappingFunction, UnaryOperator<Integer> limitModifier) {
 
 		CypherQueryCreator queryCreator = new CypherQueryCreator(mappingContext, queryMethod, getDomainType(queryMethod),
 				Optional.ofNullable(queryType).orElseGet(() -> Neo4jQueryType.fromPartTree(tree)), tree, parameterAccessor,

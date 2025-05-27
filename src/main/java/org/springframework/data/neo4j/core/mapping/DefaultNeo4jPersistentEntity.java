@@ -49,8 +49,6 @@ import org.springframework.data.neo4j.core.schema.TargetNode;
 import org.springframework.data.support.IsNewStrategy;
 import org.springframework.data.util.Lazy;
 import org.springframework.data.util.TypeInformation;
-import org.springframework.lang.NonNull;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -152,7 +150,6 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 	 * @see NodeDescription#getIdDescription()
 	 */
 	@Override
-	@Nullable
 	public IdDescription getIdDescription() {
 		return this.idDescription.getNullable();
 	}
@@ -255,7 +252,7 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 
 	private void verifyDynamicAssociations() {
 
-		Set<Class> targetEntities = new HashSet<>();
+		Set<Class<?>> targetEntities = new HashSet<>();
 		AssociationHandlerSupport.of(this).doWithAssociations((Association<Neo4jPersistentProperty> association) -> {
 			Neo4jPersistentProperty inverse = association.getInverse();
 			if (inverse.isDynamicAssociation()) {
@@ -329,7 +326,6 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 	 * @param type the type of the underlying class
 	 * @return computed primary label
 	 */
-	@Nullable
 	static String computePrimaryLabel(Class<?> type) {
 
 		Node nodeAnnotation = AnnotatedElementUtils.findMergedAnnotation(type, Node.class);
@@ -365,7 +361,6 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 	 *
 	 * @return computed additional labels of the concrete class
 	 */
-	@NonNull
 	private List<String> computeOwnAdditionalLabels() {
 		List<String> result = new ArrayList<>();
 
@@ -398,7 +393,6 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 		return Collections.unmodifiableList(result);
 	}
 
-	@NonNull
 	private List<String> computeParentLabels() {
 		List<String> parentLabels = new ArrayList<>();
 		Neo4jPersistentEntity<?> parentNodeDescriptionCalculated = (Neo4jPersistentEntity<?>) parentNodeDescription;
@@ -449,7 +443,6 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 		return nodeAnnotation.labels().length < 1 && !StringUtils.hasText(nodeAnnotation.primaryLabel());
 	}
 
-	@Nullable
 	private IdDescription computeIdDescription() {
 
 		Neo4jPersistentProperty idProperty = this.getIdProperty();
@@ -511,13 +504,11 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 		return Collections.unmodifiableCollection(relationships);
 	}
 
-	@NonNull
 	public Collection<RelationshipDescription> getRelationshipsInHierarchy(Predicate<PropertyFilter.RelaxedPropertyPath> propertyFilter) {
 
 		return getRelationshipsInHierarchy(propertyFilter, PropertyFilter.RelaxedPropertyPath.withRootType(this.getUnderlyingClass()));
 	}
 
-	@NonNull
 	public Collection<RelationshipDescription> getRelationshipsInHierarchy(Predicate<PropertyFilter.RelaxedPropertyPath> propertyFilter, PropertyFilter.RelaxedPropertyPath path) {
 
 		Collection<RelationshipDescription> relationships = new HashSet<>(getRelationships());
@@ -603,7 +594,6 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 		this.parentNodeDescription = parent;
 	}
 
-	@Nullable
 	public NodeDescription<?> getParentNodeDescription() {
 		return parentNodeDescription;
 	}

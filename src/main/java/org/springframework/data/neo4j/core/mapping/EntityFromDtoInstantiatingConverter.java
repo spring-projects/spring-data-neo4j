@@ -33,7 +33,6 @@ import org.springframework.data.neo4j.core.convert.Neo4jConversionService;
 import org.springframework.data.neo4j.core.schema.TargetNode;
 import org.springframework.data.util.ReflectionUtils;
 import org.springframework.data.util.TypeInformation;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -104,7 +103,6 @@ public final class EntityFromDtoInstantiatingConverter<T> implements Converter<O
 		return entity;
 	}
 
-	@Nullable
 	Object getPropertyValueFor(PersistentProperty<?> targetProperty, PersistentEntity<?, ?> sourceEntity,
 			PersistentPropertyAccessor<?> sourceAccessor) {
 

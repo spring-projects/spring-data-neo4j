@@ -57,8 +57,6 @@ import org.springframework.data.neo4j.core.mapping.callback.EventSupport;
 import org.springframework.data.neo4j.core.schema.TargetNode;
 import org.springframework.data.util.ReflectionUtils;
 import org.springframework.data.util.TypeInformation;
-import org.springframework.lang.NonNull;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -107,7 +105,6 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 	}
 
 	@Override
-	@Nullable
 	public <R> R read(Class<R> targetType, MapAccessor mapAccessor) {
 
 		knownObjects.nextRecord();
@@ -124,8 +121,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 		}
 	}
 
-	@Nullable
-	private <R> MapAccessor determineQueryRoot(MapAccessor mapAccessor, @Nullable Neo4jPersistentEntity<R> rootNodeDescription, boolean firstTry) {
+	private <R> MapAccessor determineQueryRoot(MapAccessor mapAccessor, Neo4jPersistentEntity<R> rootNodeDescription, boolean firstTry) {
 
 		if (rootNodeDescription == null) {
 			return null;
@@ -313,7 +309,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 	}
 
 	private <ET> ET map(MapAccessor queryResult, Neo4jPersistentEntity<ET> nodeDescription, NodeDescription<?> genericTargetNodeDescription,
-			@Nullable Object lastMappedEntity, @Nullable RelationshipDescription relationshipDescription, Collection<Relationship> relationshipsFromResult, Collection<Node> nodesFromResult) {
+			Object lastMappedEntity, RelationshipDescription relationshipDescription, Collection<Relationship> relationshipsFromResult, Collection<Node> nodesFromResult) {
 
 		// prior to SDN 7 local `getInternalId` didn't check relationships, so in that case, they have never been a known
 		// object. The centralized methods checks those too now. The condition is to recreate the old behaviour without
@@ -384,14 +380,13 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 		return !currentFields.isEmpty();
 	}
 
-	@Nullable
 	private <ET> ET getMostCurrentInstance(String internalId, ET fallbackInstance) {
 		return (ET) (knownObjects.getObject(internalId) != null ? knownObjects.getObject(internalId) : fallbackInstance);
 	}
 
 
 	private <ET> void populateProperties(MapAccessor queryResult, Neo4jPersistentEntity<ET> baseNodeDescription, Neo4jPersistentEntity<ET> moreConcreteNodeDescription, String internalId,
-										 ET mappedObject, @Nullable Object lastMappedEntity,
+										 ET mappedObject, Object lastMappedEntity,
 										 Collection<Relationship> relationshipsFromResult, Collection<Node> nodesFromResult, boolean objectAlreadyMapped) {
 
 		List<String> allLabels = getLabels(queryResult, moreConcreteNodeDescription);
@@ -425,7 +420,6 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 				populateFrom(queryResult, baseNodeDescription, propertyAccessor, isConstructorParameter, objectAlreadyMapped, relationshipsFromResult, nodesFromResult, internalId));
 	}
 
-	@NonNull
 	private Neo4jPersistentEntity<?> getMostConcreteTargetNodeDescription(
 			Neo4jPersistentEntity<?> genericTargetNodeDescription, MapAccessor possibleValueNode) {
 
@@ -444,8 +438,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 	 * @param queryResult The complete query result
 	 * @return The list of labels defined by the query variable {@link Constants#NAME_OF_LABELS}.
 	 */
-	@NonNull
-	private List<String> getLabels(MapAccessor queryResult, @Nullable NodeDescription<?> nodeDescription) {
+	private List<String> getLabels(MapAccessor queryResult, NodeDescription<?> nodeDescription) {
 		Value labelsValue = queryResult.get(Constants.NAME_OF_LABELS);
 		List<String> labels = new ArrayList<>();
 		if (!labelsValue.isNull()) {
@@ -483,7 +476,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 	}
 
 	private <ET> ET instantiate(Neo4jPersistentEntity<ET> nodeDescription, NodeDescription<?> genericNodeDescription, MapAccessor values,
-			Collection<String> surplusLabels, @Nullable Object lastMappedEntity,
+			Collection<String> surplusLabels, Object lastMappedEntity,
 			Collection<Relationship> relationshipsFromResult, Collection<Node> nodesFromResult) {
 
 		ParameterValueProvider<Neo4jPersistentProperty> parameterValueProvider = new ParameterValueProvider<Neo4jPersistentProperty>() {
@@ -533,7 +526,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 
 	private PropertyHandler<Neo4jPersistentProperty> populateFrom(MapAccessor queryResult,
 			  PersistentPropertyAccessor<?> propertyAccessor, Predicate<Neo4jPersistentProperty> isConstructorParameter,
-			  Collection<String> surplusLabels, @Nullable Object targetNode, boolean ownerIsKotlinType, boolean objectAlreadyMapped) {
+			  Collection<String> surplusLabels, Object targetNode, boolean ownerIsKotlinType, boolean objectAlreadyMapped) {
 
 		return property -> {
 			if (isConstructorParameter.test(property)) {
@@ -561,8 +554,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 		};
 	}
 
-	@Nullable
-	private static Object getValueOrDefault(boolean ownerIsKotlinType, Class<?> rawType, @Nullable Object value) {
+	private static Object getValueOrDefault(boolean ownerIsKotlinType, Class<?> rawType, Object value) {
 
 		return value == null && !ownerIsKotlinType && rawType.isPrimitive() ? ReflectionUtils.getPrimitiveDefault(rawType) : value;
 	}
@@ -948,7 +940,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 		private final Map<String, Integer> processedRelationships = new HashMap<>();
 		private final Map<String, Set<Map<String, Object>>> mappedQueryResults = new HashMap<>();
 
-		private void storeObject(@Nullable String internalId, Object object) {
+		private void storeObject(String internalId, Object object) {
 			if (internalId == null) {
 				return;
 			}
@@ -962,7 +954,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 			}
 		}
 
-		private void setInCreation(@Nullable String internalId) {
+		private void setInCreation(String internalId) {
 			if (internalId == null) {
 				return;
 			}
@@ -974,7 +966,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 			}
 		}
 
-		private boolean isInCreation(@Nullable String internalId) {
+		private boolean isInCreation(String internalId) {
 			if (internalId == null) {
 				return false;
 			}
@@ -996,8 +988,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 			}
 		}
 
-		@Nullable
-		private Object getObject(@Nullable String internalId) {
+		private Object getObject(String internalId) {
 			if (internalId == null) {
 				return null;
 			}
@@ -1017,7 +1008,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 			}
 		}
 
-		private void removeFromInCreation(@Nullable String internalId) {
+		private void removeFromInCreation(String internalId) {
 			if (internalId == null) {
 				return;
 			}
@@ -1029,7 +1020,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 			}
 		}
 
-		private boolean alreadyMappedInPreviousRecord(@Nullable String internalId) {
+		private boolean alreadyMappedInPreviousRecord(String internalId) {
 			if (internalId == null) {
 				return false;
 			}

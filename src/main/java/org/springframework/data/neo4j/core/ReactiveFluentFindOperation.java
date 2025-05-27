@@ -24,7 +24,6 @@ import java.util.Map;
 import org.apiguardian.api.API;
 import org.neo4j.cypherdsl.core.Statement;
 import org.springframework.data.neo4j.repository.query.QueryFragmentsAndParameters;
-import org.springframework.lang.Nullable;
 
 /**
  * {@link ReactiveFluentFindOperation} allows creation and execution of Neo4j find operations in a fluent API style.
@@ -95,7 +94,7 @@ public interface ReactiveFluentFindOperation {
 		 * @return new instance of {@link TerminatingFind}.
 		 * @throws IllegalArgumentException if query is {@literal null}.
 		 */
-		TerminatingFind<T> matching(String query, @Nullable Map<String, Object> parameter);
+		TerminatingFind<T> matching(String query, Map<String, Object> parameter);
 
 		/**
 		 * Creates an executable query based on fragments and parameters. Hardly useful outside framework-code
@@ -126,7 +125,7 @@ public interface ReactiveFluentFindOperation {
 		 * @return new instance of {@link TerminatingFind}.
 		 * @throws IllegalArgumentException if statement is {@literal null}.
 		 */
-		TerminatingFind<T> matching(Statement statement, @Nullable Map<String, Object> parameter);
+		TerminatingFind<T> matching(Statement statement, Map<String, Object> parameter);
 
 		/**
 		 * Set the filter {@link Statement statement} to be used.

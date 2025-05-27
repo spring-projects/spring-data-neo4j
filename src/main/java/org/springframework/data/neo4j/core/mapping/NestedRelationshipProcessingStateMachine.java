@@ -25,8 +25,6 @@ import java.util.concurrent.locks.StampedLock;
 
 import org.apiguardian.api.API;
 import org.neo4j.cypherdsl.core.Statement;
-import org.springframework.lang.NonNull;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 import reactor.core.publisher.Flux;
@@ -81,7 +79,7 @@ public final class NestedRelationshipProcessingStateMachine {
 		this.mappingContext = mappingContext;
 	}
 
-	public NestedRelationshipProcessingStateMachine(final Neo4jMappingContext mappingContext, @Nullable Object initialObject, @Nullable Object elementId) {
+	public NestedRelationshipProcessingStateMachine(final Neo4jMappingContext mappingContext, Object initialObject, Object elementId) {
 		this(mappingContext);
 
 		if (initialObject != null && elementId != null) {
@@ -101,7 +99,7 @@ public final class NestedRelationshipProcessingStateMachine {
 	 * @param valuesToStore           Check whether all the values in the collection have been processed
 	 * @return The state of things processed
 	 */
-	public ProcessState getStateOf(@Nullable Object fromId, RelationshipDescription relationshipDescription, @Nullable Collection<?> valuesToStore) {
+	public ProcessState getStateOf(Object fromId, RelationshipDescription relationshipDescription, Collection<?> valuesToStore) {
 		if (fromId == null) {
 			return ProcessState.PROCESSED_BOTH;
 		}
@@ -163,7 +161,7 @@ public final class NestedRelationshipProcessingStateMachine {
 	 *
 	 * @param relationshipDescription To be marked as processed
 	 */
-	public void markRelationshipAsProcessed(Object fromId, @Nullable RelationshipDescription relationshipDescription) {
+	public void markRelationshipAsProcessed(Object fromId, RelationshipDescription relationshipDescription) {
 		if (relationshipDescription == null) {
 			return;
 		}
@@ -249,7 +247,7 @@ public final class NestedRelationshipProcessingStateMachine {
 	 * @param relationshipDescription the relationship that should be looked for in the registry.
 	 * @return processed yes (true) / no (false)
 	 */
-	public boolean hasProcessedRelationship(Object fromId, @Nullable RelationshipDescription relationshipDescription) {
+	public boolean hasProcessedRelationship(Object fromId, RelationshipDescription relationshipDescription) {
 		if (relationshipDescription != null) {
 			final long stamp = lock.readLock();
 			try {
@@ -364,7 +362,6 @@ public final class NestedRelationshipProcessingStateMachine {
 	 * @param object The object for which an id is requested
 	 * @return The objects id
 	 */
-	@Nullable
 	public Object getObjectId(Object object) {
 		final long stamp = lock.readLock();
 		try {
@@ -386,15 +383,13 @@ public final class NestedRelationshipProcessingStateMachine {
 		}
 	}
 
-	@Nullable
-	private Object getProcessedObjectIds(@Nullable Object entity) {
+	private Object getProcessedObjectIds(Object entity) {
 		if (entity == null) {
 			return null;
 		}
 		return processedObjectsIds.get(System.identityHashCode(entity));
 	}
 
-	@NonNull
 	private Object extractRelatedValueFromRelationshipProperties(Object valueToStore) {
 		Object value;
 		if (valueToStore instanceof MappingSupport.RelationshipPropertiesWithEntityHolder) {
@@ -424,7 +419,7 @@ public final class NestedRelationshipProcessingStateMachine {
 		return processedObjectsAlias.containsKey(System.identityHashCode(entity));
 	}
 
-	private boolean hasProcessedAllOf(@Nullable Collection<?> entities) {
+	private boolean hasProcessedAllOf(Collection<?> entities) {
 		// there can be null elements in the unified collection of values to store.
 		if (entities == null) {
 			return false;

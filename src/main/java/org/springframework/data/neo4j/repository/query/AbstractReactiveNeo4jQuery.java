@@ -37,7 +37,6 @@ import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.data.repository.query.ResultProcessor;
 import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.data.util.TypeInformation;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 import reactor.core.publisher.Flux;
@@ -125,6 +124,6 @@ abstract class AbstractReactiveNeo4jQuery extends Neo4jQuerySupport implements R
 
 	protected abstract <T extends Object> PreparedQuery<T> prepareQuery(Class<T> returnedType,
 				Collection<PropertyFilter.ProjectedPath> includedProperties, Neo4jParameterAccessor parameterAccessor,
-				@Nullable Neo4jQueryType queryType, @Nullable Supplier<BiFunction<TypeSystem, MapAccessor, ?>> mappingFunction,
-				@Nullable UnaryOperator<Integer> limitModifier);
+				Neo4jQueryType queryType, Supplier<BiFunction<TypeSystem, MapAccessor, ?>> mappingFunction,
+				UnaryOperator<Integer> limitModifier);
 }

@@ -4,7 +4,4 @@
  *
  * @author Michael J. Simons
  */
-@NonNullApi
 package org.springframework.data.neo4j.core.schema;
-
-import org.springframework.lang.NonNullApi;

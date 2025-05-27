@@ -5,7 +5,4 @@
    The package provides some additional annotations that enable auditing.
  * <!-- end::intent[] -->
  */
-@NonNullApi
 package org.springframework.data.neo4j.config;
-
-import org.springframework.lang.NonNullApi;

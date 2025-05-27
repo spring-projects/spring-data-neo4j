@@ -18,7 +18,6 @@ package org.springframework.data.neo4j.core.mapping;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
 import org.springframework.data.neo4j.core.convert.Neo4jPersistentPropertyConverter;
-import org.springframework.lang.Nullable;
 
 /**
  * All property converters will be wrapped by this class. It adds the information if a converter needs to be applied to
@@ -53,15 +52,15 @@ final class NullSafeNeo4jPersistentPropertyConverter<T> implements Neo4jPersiste
 	}
 
 	@Override
-	public Value write(@Nullable T source) {
+	public Value write(T source) {
 		if (source == null) {
 			return passNullOnWrite ? delegate.write(source) : Values.NULL;
 		}
 		return delegate.write(source);
 	}
 
-	@Override @Nullable
-	public T read(@Nullable Value source) {
+	@Override
+	public T read(Value source) {
 		return source == null || source.isNull() ? null : delegate.read(source);
 	}
 

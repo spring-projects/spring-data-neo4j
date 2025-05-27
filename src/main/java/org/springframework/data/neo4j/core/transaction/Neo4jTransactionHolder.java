@@ -23,7 +23,6 @@ import org.neo4j.driver.Transaction;
 import org.springframework.data.neo4j.core.DatabaseSelection;
 import org.springframework.data.neo4j.core.UserSelection;
 import org.springframework.data.neo4j.core.support.RetryExceptionPredicate;
-import org.springframework.lang.Nullable;
 import org.springframework.transaction.support.ResourceHolderSupport;
 import org.springframework.util.Assert;
 
@@ -62,7 +61,6 @@ final class Neo4jTransactionHolder extends ResourceHolderSupport {
 	 * @param asUser impersonated user if any
 	 * @return An optional, ongoing transaction.
 	 */
-	@Nullable
 	Transaction getTransaction(DatabaseSelection inDatabase, UserSelection asUser) {
 		return this.context.isForDatabaseAndUser(inDatabase, asUser) ? transaction : null;
 	}

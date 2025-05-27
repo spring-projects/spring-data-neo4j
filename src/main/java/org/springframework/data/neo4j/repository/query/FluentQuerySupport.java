@@ -32,7 +32,6 @@ import org.springframework.data.domain.Window;
 import org.springframework.data.neo4j.core.mapping.Constants;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.core.mapping.PropertyFilter;
-import org.springframework.lang.Nullable;
 
 /**
  * Supporting class containing some state and convenience methods for building fluent queries (both imperative and reactive).
@@ -49,14 +48,13 @@ abstract class FluentQuerySupport<R> {
 
 	protected final Integer limit;
 
-	@Nullable
 	protected final Set<String> properties;
 
 	FluentQuerySupport(
 			Class<R> resultType,
 			Sort sort,
-			@Nullable Integer limit,
-			@Nullable Collection<String> properties
+			Integer limit,
+			Collection<String> properties
 	) {
 		this.resultType = resultType;
 		this.sort = sort;
@@ -132,11 +130,11 @@ abstract class FluentQuerySupport<R> {
 		return allPaths;
 	}
 
-	private static boolean hasMoreElements(List<?> result, @Nullable Integer limit) {
+	private static boolean hasMoreElements(List<?> result, Integer limit) {
 		return !result.isEmpty() && result.size() > (limit != null ? limit : 0);
 	}
 
-	private static <T> List<T> getSubList(List<T> result, @Nullable Integer limit, ScrollPosition.Direction scrollDirection) {
+	private static <T> List<T> getSubList(List<T> result, Integer limit, ScrollPosition.Direction scrollDirection) {
 
 		if (limit != null && limit > 0 && result.size() > limit) {
 			return scrollDirection == ScrollPosition.Direction.FORWARD ? result.subList(0, limit) : result.subList(1, limit + 1);

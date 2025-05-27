@@ -24,7 +24,6 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
-import org.springframework.lang.Nullable;
 
 /**
  * Don't use outside SDN code. You have been warned.
@@ -57,12 +56,11 @@ public final class BookmarkManagerReference implements ApplicationContextAware {
 		}
 	};
 
-	@Nullable
 	private volatile Neo4jBookmarkManager bookmarkManager;
 
 	private ApplicationEventPublisher applicationEventPublisher;
 
-	public BookmarkManagerReference(Supplier<Neo4jBookmarkManager> defaultBookmarkManagerSupplier, @Nullable Neo4jBookmarkManager bookmarkManager) {
+	public BookmarkManagerReference(Supplier<Neo4jBookmarkManager> defaultBookmarkManagerSupplier, Neo4jBookmarkManager bookmarkManager) {
 		this.defaultBookmarkManagerSupplier = defaultBookmarkManagerSupplier;
 		this.bookmarkManager = bookmarkManager;
 	}

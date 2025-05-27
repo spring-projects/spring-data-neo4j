@@ -45,7 +45,6 @@ import org.springframework.data.neo4j.core.convert.Neo4jPersistentPropertyToMapC
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.core.schema.CompositeProperty.Phase;
 import org.springframework.data.util.TypeInformation;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -134,7 +133,7 @@ public @interface CompositeProperty {
 		}
 
 		@Override
-		public Map<K, Value> decompose(@Nullable Map<K, Object> property, Neo4jConversionService conversionService) {
+		public Map<K, Value> decompose(Map<K, Object> property, Neo4jConversionService conversionService) {
 
 			if (property == null) {
 				return Collections.emptyMap();
@@ -249,7 +248,7 @@ final class CompositePropertyConverterFactory implements Neo4jPersistentProperty
 	private final BeanFactory beanFactory;
 	private final Neo4jConversionService conversionServiceDelegate;
 
-	CompositePropertyConverterFactory(@Nullable BeanFactory beanFactory, @Nullable Neo4jConversionService conversionServiceDelegate) {
+	CompositePropertyConverterFactory(BeanFactory beanFactory, Neo4jConversionService conversionServiceDelegate) {
 		this.beanFactory = beanFactory;
 		this.conversionServiceDelegate = conversionServiceDelegate;
 	}

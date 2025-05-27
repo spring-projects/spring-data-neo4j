@@ -23,7 +23,6 @@ import java.util.function.Predicate;
 
 import org.apiguardian.api.API;
 import org.springframework.data.neo4j.core.schema.Property;
-import org.springframework.lang.Nullable;
 import org.springframework.util.StringUtils;
 
 /**
@@ -48,7 +47,7 @@ public abstract class PropertyFilter {
 
 	public abstract boolean isNotFiltering();
 
-	static String toDotPath(RelaxedPropertyPath propertyPath, @Nullable String lastSegment) {
+	static String toDotPath(RelaxedPropertyPath propertyPath, String lastSegment) {
 
 		if (lastSegment == null) {
 			return propertyPath.toDotPath();
@@ -167,7 +166,7 @@ public abstract class PropertyFilter {
 			return dotPath;
 		}
 
-		public String toDotPath(@Nullable String lastSegment) {
+		public String toDotPath(String lastSegment) {
 
 			if (lastSegment == null) {
 				return this.toDotPath();
@@ -224,7 +223,7 @@ public abstract class PropertyFilter {
 			return new RelaxedPropertyPath(dotPath.substring(idx + 1), this.type);
 		}
 
-		public RelaxedPropertyPath replaceLastSegment(@Nullable String lastSegment) {
+		public RelaxedPropertyPath replaceLastSegment(String lastSegment) {
 			if (lastSegment == null) {
 				return this;
 			}

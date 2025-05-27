@@ -47,7 +47,6 @@ import org.springframework.data.neo4j.core.mapping.NodeDescription;
 import org.springframework.data.neo4j.core.mapping.RelationshipDescription;
 import org.springframework.data.support.ExampleMatcherAccessor;
 import org.springframework.data.util.DirectFieldAccessFallbackBeanWrapper;
-import org.springframework.lang.Nullable;
 
 /**
  * Support class for "query by example" executors.
@@ -86,7 +85,7 @@ final class Predicate {
 
 	private static <S> void processRelationships(Neo4jMappingContext mappingContext, Example<S> example, NodeDescription<?> currentNodeDescription,
 												 DirectFieldAccessFallbackBeanWrapper beanWrapper, ExampleMatcher.MatchMode mode, AtomicInteger relationshipPatternCount,
-												 @Nullable PropertyPath propertyPath, Predicate predicate) {
+												 PropertyPath propertyPath, Predicate predicate) {
 
 		for (RelationshipDescription relationship : currentNodeDescription.getRelationships()) {
 			String relationshipFieldName = relationship.getFieldName();

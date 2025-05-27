@@ -4,7 +4,4 @@
    and reactive Spring Data Neo4j repositories.
  * <!-- end::intent[] -->
  */
-@NonNullApi
 package org.springframework.data.neo4j.repository.config;
-
-import org.springframework.lang.NonNullApi;

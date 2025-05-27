@@ -30,7 +30,6 @@ import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
 import org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager;
 import org.springframework.data.neo4j.repository.config.Neo4jRepositoryConfigurationExtension;
-import org.springframework.lang.Nullable;
 import org.springframework.transaction.PlatformTransactionManager;
 
 /**
@@ -78,7 +77,6 @@ public abstract class AbstractNeo4jConfig extends Neo4jConfigurationSupport {
 		return this.bookmarkManagerProviders.getIfAvailable(Neo4jBookmarkManager::create);
 	}
 
-	@Nullable
 	private UserSelectionProvider getUserSelectionProvider() {
 		return this.userSelectionProviders == null ? null : this.userSelectionProviders.getIfUnique();
 	}

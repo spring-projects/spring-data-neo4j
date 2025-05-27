@@ -33,7 +33,6 @@ import org.springframework.data.neo4j.core.DatabaseSelectionProvider;
 import org.springframework.data.neo4j.core.UserSelection;
 import org.springframework.data.neo4j.core.UserSelectionProvider;
 import org.springframework.data.neo4j.core.support.BookmarkManagerReference;
-import org.springframework.lang.Nullable;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionException;
 import org.springframework.transaction.TransactionSystemException;
@@ -75,13 +74,10 @@ public final class Neo4jTransactionManager extends AbstractPlatformTransactionMa
 
 		private final Driver driver;
 
-		@Nullable
 		private DatabaseSelectionProvider databaseSelectionProvider;
 
-		@Nullable
 		private UserSelectionProvider userSelectionProvider;
 
-		@Nullable
 		private Neo4jBookmarkManager bookmarkManager;
 
 		private Builder(Driver driver) {
@@ -96,7 +92,7 @@ public final class Neo4jTransactionManager extends AbstractPlatformTransactionMa
 		 * @param databaseSelectionProvider The database selection provider
 		 * @return The builder
 		 */
-		public Builder withDatabaseSelectionProvider(@Nullable DatabaseSelectionProvider databaseSelectionProvider) {
+		public Builder withDatabaseSelectionProvider(DatabaseSelectionProvider databaseSelectionProvider) {
 			this.databaseSelectionProvider = databaseSelectionProvider;
 			return this;
 		}
@@ -109,12 +105,12 @@ public final class Neo4jTransactionManager extends AbstractPlatformTransactionMa
 		 * @param userSelectionProvider The provider for impersonated users
 		 * @return The builder
 		 */
-		public Builder withUserSelectionProvider(@Nullable UserSelectionProvider userSelectionProvider) {
+		public Builder withUserSelectionProvider(UserSelectionProvider userSelectionProvider) {
 			this.userSelectionProvider = userSelectionProvider;
 			return this;
 		}
 
-		public Builder withBookmarkManager(@Nullable Neo4jBookmarkManager bookmarkManager) {
+		public Builder withBookmarkManager(Neo4jBookmarkManager bookmarkManager) {
 			this.bookmarkManager = bookmarkManager;
 			return this;
 		}
@@ -202,7 +198,7 @@ public final class Neo4jTransactionManager extends AbstractPlatformTransactionMa
 	 * @deprecated since 6.2, use #retrieveTransaction(Driver, DatabaseSelection, UserSelection)
 	 */
 	@Deprecated
-	public static @Nullable Transaction retrieveTransaction(final Driver driver, @Nullable final String targetDatabase) {
+	public static Transaction retrieveTransaction(final Driver driver, final String targetDatabase) {
 
 		return retrieveTransaction(driver, StringUtils.hasText(targetDatabase) ? DatabaseSelection.byName(targetDatabase) : DatabaseSelection.undecided(), UserSelection.connectedUser());
 	}
@@ -219,7 +215,7 @@ public final class Neo4jTransactionManager extends AbstractPlatformTransactionMa
 	 * @return An optional managed transaction or {@literal null} if the method hasn't been called inside an ongoing
 	 *         Spring transaction
 	 */
-	public static @Nullable Transaction retrieveTransaction(
+	public static Transaction retrieveTransaction(
 			final Driver driver,
 			final DatabaseSelection targetDatabase,
 			final UserSelection asUser
@@ -329,7 +325,7 @@ public final class Neo4jTransactionManager extends AbstractPlatformTransactionMa
 	}
 
 	@Override
-	protected void doResume(@Nullable Object transaction, Object suspendedResources) {
+	protected void doResume(Object transaction, Object suspendedResources) {
 
 		Neo4jTransactionObject transactionObject = extractNeo4jTransaction(transaction);
 		transactionObject.setResourceHolder((Neo4jTransactionHolder) suspendedResources);
@@ -383,9 +379,9 @@ public final class Neo4jTransactionManager extends AbstractPlatformTransactionMa
 		// The resource holder is null when the call to TransactionSynchronizationManager.getResource
 		// in Neo4jTransactionManager.doGetTransaction didn't return a corresponding resource holder.
 		// If it is null, there's no existing session / transaction.
-		@Nullable private Neo4jTransactionHolder resourceHolder;
+		private Neo4jTransactionHolder resourceHolder;
 
-		Neo4jTransactionObject(@Nullable Neo4jTransactionHolder resourceHolder) {
+		Neo4jTransactionObject(Neo4jTransactionHolder resourceHolder) {
 			this.resourceHolder = resourceHolder;
 		}
 
@@ -395,7 +391,7 @@ public final class Neo4jTransactionManager extends AbstractPlatformTransactionMa
 		 *
 		 * @param resourceHolder A newly created resource holder with a fresh drivers session,
 		 */
-		void setResourceHolder(@Nullable Neo4jTransactionHolder resourceHolder) {
+		void setResourceHolder(Neo4jTransactionHolder resourceHolder) {
 			this.resourceHolder = resourceHolder;
 		}
 

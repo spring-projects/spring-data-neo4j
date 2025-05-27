@@ -23,7 +23,6 @@ import java.util.function.Predicate;
 
 import org.apiguardian.api.API;
 import org.neo4j.cypherdsl.core.Expression;
-import org.springframework.lang.Nullable;
 
 /**
  * Describes how a class is mapped to a node inside the database. It provides navigable links to relationships and
@@ -68,7 +67,6 @@ public interface NodeDescription<T> {
 	/**
 	 * @return A description how to determine primary ids for nodes fitting this description
 	 */
-	@Nullable
 	IdDescription getIdDescription();
 
 	/**
@@ -132,7 +130,6 @@ public interface NodeDescription<T> {
 	 */
 	void setParentNodeDescription(NodeDescription<?> parent);
 
-	@Nullable
 	NodeDescription<?> getParentNodeDescription();
 
 	/**

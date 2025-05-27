@@ -39,7 +39,6 @@ import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.data.repository.query.ValueExpressionDelegate;
 import org.springframework.data.repository.query.ValueExpressionQueryRewriter;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -171,8 +170,8 @@ final class StringBasedNeo4jQuery extends AbstractNeo4jQuery {
 
 	@Override
 	protected <T extends Object> PreparedQuery<T> prepareQuery(Class<T> returnedType, Collection<PropertyFilter.ProjectedPath> includedProperties,
-			Neo4jParameterAccessor parameterAccessor, @Nullable Neo4jQueryType queryType,
-			@Nullable Supplier<BiFunction<TypeSystem, MapAccessor, ?>> mappingFunction,
+			Neo4jParameterAccessor parameterAccessor, Neo4jQueryType queryType,
+			Supplier<BiFunction<TypeSystem, MapAccessor, ?>> mappingFunction,
 			UnaryOperator<Integer> limitModifier
 	) {
 

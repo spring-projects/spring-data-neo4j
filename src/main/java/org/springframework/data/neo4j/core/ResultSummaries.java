@@ -29,7 +29,6 @@ import org.neo4j.driver.summary.Notification;
 import org.neo4j.driver.summary.Plan;
 import org.neo4j.driver.summary.ResultSummary;
 import org.springframework.core.log.LogAccessor;
-import org.springframework.lang.Nullable;
 
 /**
  * Utility class for dealing with result summaries.
@@ -105,7 +104,7 @@ final class ResultSummaries {
 				}));
 	}
 
-	private static LogAccessor getLogAccessor(@Nullable NotificationClassification category) {
+	private static LogAccessor getLogAccessor(NotificationClassification category) {
 		if (category == null) {
 			return Neo4jClient.cypherLog;
 		}

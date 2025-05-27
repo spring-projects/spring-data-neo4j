@@ -26,7 +26,6 @@ import org.neo4j.driver.types.MapAccessor;
 import org.neo4j.driver.types.TypeSystem;
 import org.springframework.data.mapping.MappingException;
 import org.springframework.data.neo4j.core.schema.IdGenerator;
-import org.springframework.lang.Nullable;
 
 /**
  * Contains the descriptions of all nodes, their properties and relationships known to SDN.
@@ -43,7 +42,6 @@ public interface Schema {
 	 * @param primaryLabel The primary label under which the node is described
 	 * @return The description if any, null otherwise
 	 */
-	@Nullable
 	NodeDescription<?> getNodeDescription(String primaryLabel);
 
 	/**
@@ -52,7 +50,6 @@ public interface Schema {
 	 * @param underlyingClass The underlying class of the node description to be retrieved
 	 * @return The description if any, null otherwise
 	 */
-	@Nullable
 	NodeDescription<?> getNodeDescription(Class<?> underlyingClass);
 
 	default NodeDescription<?> getRequiredNodeDescription(Class<?> underlyingClass) {

@@ -19,8 +19,6 @@ import java.util.Optional;
 
 import org.apiguardian.api.API;
 import org.springframework.data.neo4j.core.schema.Relationship;
-import org.springframework.lang.NonNull;
-import org.springframework.lang.Nullable;
 
 /**
  * Description of a relationship. Those descriptions always describe outgoing relationships. The inverse direction is
@@ -89,7 +87,6 @@ public interface RelationshipDescription {
 	 *
 	 * @return The type of the relationship property class for relationship with properties, otherwise {@literal null}
 	 */
-	@Nullable
 	NodeDescription<?> getRelationshipPropertiesEntity();
 
 	/**
@@ -114,7 +111,6 @@ public interface RelationshipDescription {
 		return Relationship.Direction.INCOMING.equals(this.getDirection());
 	}
 
-	@NonNull
 	default String generateRelatedNodesCollectionName(NodeDescription<?> mostAbstractNodeDescription) {
 
 		return this.getSource().getMostAbstractParentLabel(mostAbstractNodeDescription) + "_" + this.getType() + "_" + this.getTarget().getPrimaryLabel() + "_" + this.isOutgoing();

@@ -73,8 +73,6 @@ import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.projection.ProjectionInformation;
 import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
 import org.springframework.data.util.TypeInformation;
-import org.springframework.lang.NonNull;
-import org.springframework.lang.Nullable;
 import org.springframework.transaction.ReactiveTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.reactive.TransactionalOperator;
@@ -156,7 +154,7 @@ public final class ReactiveNeo4jTemplate implements
 		this(neo4jClient, neo4jMappingContext, null);
 	}
 
-	public ReactiveNeo4jTemplate(ReactiveNeo4jClient neo4jClient, Neo4jMappingContext neo4jMappingContext, @Nullable ReactiveTransactionManager transactionManager) {
+	public ReactiveNeo4jTemplate(ReactiveNeo4jClient neo4jClient, Neo4jMappingContext neo4jMappingContext, ReactiveTransactionManager transactionManager) {
 
 		Assert.notNull(neo4jClient, "The Neo4jClient is required");
 		Assert.notNull(neo4jMappingContext, "The Neo4jMappingContext is required");
@@ -211,7 +209,7 @@ public final class ReactiveNeo4jTemplate implements
 		return transactionalOperatorReadOnly.transactional(doFindAll(domainType, null));
 	}
 
-	private <T> Flux<T> doFindAll(Class<T> domainType, @Nullable Class<?> resultType) {
+	private <T> Flux<T> doFindAll(Class<T> domainType, Class<?> resultType) {
 
 		Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getRequiredPersistentEntity(domainType);
 		return createExecutableQuery(domainType, resultType, QueryFragmentsAndParameters.forFindAll(entityMetaData))
@@ -257,7 +255,7 @@ public final class ReactiveNeo4jTemplate implements
 	}
 
 	@SuppressWarnings("unchecked")
-	<T, R> Flux<R> doFind(@Nullable String cypherQuery, @Nullable Map<String, Object> parameters, Class<T> domainType, Class<R> resultType, TemplateSupport.FetchType fetchType, @Nullable QueryFragmentsAndParameters queryFragmentsAndParameters) {
+	<T, R> Flux<R> doFind(String cypherQuery, Map<String, Object> parameters, Class<T> domainType, Class<R> resultType, TemplateSupport.FetchType fetchType, QueryFragmentsAndParameters queryFragmentsAndParameters) {
 
 		Flux<T> intermediaResults;
 		if (cypherQuery == null && queryFragmentsAndParameters == null && fetchType == TemplateSupport.FetchType.ALL) {
@@ -333,7 +331,7 @@ public final class ReactiveNeo4jTemplate implements
 		return createExecutableQuery(domainType, null, queryFragmentsAndParameters);
 	}
 
-	private Object convertIdValues(@Nullable Neo4jPersistentProperty idProperty, @Nullable Object idValues) {
+	private Object convertIdValues(Neo4jPersistentProperty idProperty, Object idValues) {
 
 		if (idProperty != null && ((Neo4jPersistentEntity<?>) idProperty.getOwner()).isUsingInternalIds()) {
 			return idValues;
@@ -432,11 +430,11 @@ public final class ReactiveNeo4jTemplate implements
 	}
 
 
-	private <T> Mono<T> saveImpl(T instance, @Nullable Collection<PropertyFilter.ProjectedPath> includedProperties, @Nullable NestedRelationshipProcessingStateMachine stateMachine) {
+	private <T> Mono<T> saveImpl(T instance, Collection<PropertyFilter.ProjectedPath> includedProperties, NestedRelationshipProcessingStateMachine stateMachine) {
 		return saveImpl(instance, includedProperties, stateMachine, new HashSet<>());
 	}
 
-	private <T> Mono<T> saveImpl(T instance, @Nullable Collection<PropertyFilter.ProjectedPath> includedProperties, @Nullable NestedRelationshipProcessingStateMachine stateMachine, Collection<Object> knownRelationshipsIds) {
+	private <T> Mono<T> saveImpl(T instance, Collection<PropertyFilter.ProjectedPath> includedProperties, NestedRelationshipProcessingStateMachine stateMachine, Collection<Object> knownRelationshipsIds) {
 
 		if (stateMachine != null && stateMachine.hasProcessedValue(instance)) {
 			return Mono.just(instance);
@@ -566,7 +564,7 @@ public final class ReactiveNeo4jTemplate implements
 		}).map(instance -> localProjectionFactory.createProjection(resultType, instance));
 	}
 
-	private <T> Flux<T> saveAllImpl(Iterable<T> instances, @Nullable Collection<PropertyFilter.ProjectedPath> includedProperties, @Nullable BiPredicate<PropertyPath, Neo4jPersistentProperty> includeProperty) {
+	private <T> Flux<T> saveAllImpl(Iterable<T> instances, Collection<PropertyFilter.ProjectedPath> includedProperties, BiPredicate<PropertyPath, Neo4jPersistentProperty> includeProperty) {
 
 		Set<Class<?>> types = new HashSet<>();
 		List<T> entities = new ArrayList<>();
@@ -713,13 +711,13 @@ public final class ReactiveNeo4jTemplate implements
 		return createExecutableQuery(domainType, null, cypherQuery, Collections.emptyMap());
 	}
 
-	private <T> Mono<ExecutableQuery<T>> createExecutableQuery(Class<T> domainType, @Nullable Class<?> resultType, Statement statement,
+	private <T> Mono<ExecutableQuery<T>> createExecutableQuery(Class<T> domainType, Class<?> resultType, Statement statement,
 			Map<String, Object> parameters) {
 
 		return createExecutableQuery(domainType, resultType, renderer.render(statement), TemplateSupport.mergeParameters(statement, parameters));
 	}
 
-	private <T> Mono<ExecutableQuery<T>> createExecutableQuery(Class<T> domainType, @Nullable Class<?> resultType, @Nullable String cypherQuery,
+	private <T> Mono<ExecutableQuery<T>> createExecutableQuery(Class<T> domainType, Class<?> resultType, String cypherQuery,
 			Map<String, Object> parameters) {
 
 		Supplier<BiFunction<TypeSystem, MapAccessor, ?>> mappingFunction = TemplateSupport
@@ -730,7 +728,7 @@ public final class ReactiveNeo4jTemplate implements
 		return this.toExecutableQuery(preparedQuery);
 	}
 
-	private <T> Mono<ExecutableQuery<T>> createExecutableQuery(Class<T> domainType, @Nullable Class<?> resultType, QueryFragmentsAndParameters queryFragmentsAndParameters) {
+	private <T> Mono<ExecutableQuery<T>> createExecutableQuery(Class<T> domainType, Class<?> resultType, QueryFragmentsAndParameters queryFragmentsAndParameters) {
 
 		Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getRequiredPersistentEntity(domainType);
 		QueryFragments queryFragments = queryFragmentsAndParameters.getQueryFragments();
@@ -838,7 +836,6 @@ public final class ReactiveNeo4jTemplate implements
 
 	}
 
-	@NonNull
 	private Function<Tuple2<Collection<String>, Collection<String>>,
 			Publisher<Tuple2<Collection<String>, Collection<String>>>> iterateAndMapNextLevel(
 			RelationshipDescription relationshipDescription, QueryFragments queryFragments, Class<?> rootClass, PropertyPathWalkStep currentPathStep) {
@@ -1286,7 +1283,7 @@ public final class ReactiveNeo4jTemplate implements
 		setTransactionManager(reactiveTransactionManager);
 	}
 
-	private void setTransactionManager(@Nullable ReactiveTransactionManager reactiveTransactionManager) {
+	private void setTransactionManager(ReactiveTransactionManager reactiveTransactionManager) {
 		if (reactiveTransactionManager == null) {
 			return;
 		}

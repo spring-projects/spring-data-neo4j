@@ -34,7 +34,6 @@ import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
 import org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery;
 import org.springframework.data.support.PageableExecutionUtils;
-import org.springframework.lang.Nullable;
 
 import com.querydsl.core.types.Predicate;
 
@@ -85,8 +84,8 @@ final class FetchableFluentQueryByPredicate<S, R> extends FluentQuerySupport<R> 
 			Function<Predicate, Long> countOperation,
 			Function<Predicate, Boolean> existsOperation,
 			Sort sort,
-			@Nullable Integer limit,
-			@Nullable Collection<String> properties
+			Integer limit,
+			Collection<String> properties
 	) {
 		super(resultType, sort, limit, properties);
 		this.predicate = predicate;

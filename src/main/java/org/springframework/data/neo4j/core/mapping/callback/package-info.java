@@ -15,7 +15,4 @@
  * <!-- end::intent[] -->
  * @author Michael J. Simons
  */
-@NonNullApi
 package org.springframework.data.neo4j.core.mapping.callback;
-
-import org.springframework.lang.NonNullApi;

@@ -25,7 +25,6 @@ import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.core.mapping.NodeDescription;
 import org.springframework.data.neo4j.core.mapping.RelationshipDescription;
 import org.springframework.data.neo4j.core.schema.TargetNode;
-import org.springframework.lang.Nullable;
 
 class PropertyPathWrapper {
 	private static final String NAME_OF_RELATED_FILTER_ENTITY = "m";
@@ -108,7 +107,7 @@ class PropertyPathWrapper {
 		return cypherRelationship;
 	}
 
-	private boolean isRelationshipPropertiesEntity(@Nullable NodeDescription<?> relationshipPropertiesEntity) {
+	private boolean isRelationshipPropertiesEntity(NodeDescription<?> relationshipPropertiesEntity) {
 		return relationshipPropertiesEntity != null
 				&& ((Neo4jPersistentEntity<?>) relationshipPropertiesEntity)
 				.getPersistentProperty(TargetNode.class) != null;

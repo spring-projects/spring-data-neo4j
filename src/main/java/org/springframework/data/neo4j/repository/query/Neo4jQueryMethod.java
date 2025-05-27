@@ -33,7 +33,6 @@ import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.ParametersSource;
 import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.data.util.TypeInformation;
-import org.springframework.lang.Nullable;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 
@@ -54,7 +53,7 @@ class Neo4jQueryMethod extends QueryMethod {
 	/**
 	 * Optional query annotation of the method.
 	 */
-	private @Nullable final Query queryAnnotation;
+	private final Query queryAnnotation;
 
 	private final String repositoryName;
 

@@ -37,8 +37,6 @@ import org.springframework.data.neo4j.core.schema.TargetNode;
 import org.springframework.data.util.Lazy;
 import org.springframework.data.util.ReflectionUtils;
 import org.springframework.data.util.TypeInformation;
-import org.springframework.lang.NonNull;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -63,7 +61,7 @@ final class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProp
 
 	private final Lazy<Neo4jPersistentPropertyConverter<?>> customConversion;
 
-	private final @Nullable PersistentPropertyCharacteristics optionalCharacteristics;
+	private final PersistentPropertyCharacteristics optionalCharacteristics;
 
 	/**
 	 * Creates a new {@link AnnotationBasedPersistentProperty}.
@@ -73,7 +71,7 @@ final class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProp
 	 * @param simpleTypeHolder type holder
 	 */
 	DefaultNeo4jPersistentProperty(Property property, PersistentEntity<?, Neo4jPersistentProperty> owner,
-			Neo4jMappingContext mappingContext, SimpleTypeHolder simpleTypeHolder, @Nullable PersistentPropertyCharacteristics optionalCharacteristics) {
+			Neo4jMappingContext mappingContext, SimpleTypeHolder simpleTypeHolder, PersistentPropertyCharacteristics optionalCharacteristics) {
 
 		super(property, owner, simpleTypeHolder);
 		this.mappingContext = mappingContext;
@@ -180,7 +178,6 @@ final class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProp
 		return relationshipDescription;
 	}
 
-	@NonNull
 	private TypeInformation<?> getRelationshipPropertiesTargetType(Class<?> relationshipPropertiesType) {
 
 		Field targetNodeField = ReflectionUtils.findField(relationshipPropertiesType,
@@ -242,7 +239,6 @@ final class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProp
 	 *
 	 * @return A property on a node or {@literal null} if this property describes an association.
 	 */
-	@Nullable
 	private String computeGraphPropertyName() {
 
 		if (this.isRelationship()) {

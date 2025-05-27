@@ -64,8 +64,6 @@ import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.data.repository.query.parser.AbstractQueryCreator;
 import org.springframework.data.repository.query.parser.Part;
 import org.springframework.data.repository.query.parser.PartTree;
-import org.springframework.lang.NonNull;
-import org.springframework.lang.Nullable;
 
 /**
  * A Cypher-DSL based implementation of the {@link AbstractQueryCreator} that eventually creates Cypher queries as
@@ -173,7 +171,7 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndPar
 	}
 
 	@Override
-	protected QueryFragmentsAndParameters complete(@Nullable Condition condition, Sort sort) {
+	protected QueryFragmentsAndParameters complete(Condition condition, Sort sort) {
 
 		Map<String, Object> convertedParameters = this.boundedParameters.stream()
 				.peek(p -> Neo4jQuerySupport.logParameterIfNull(p.nameOrIndex, p.value))
@@ -188,8 +186,7 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndPar
 		return new QueryFragmentsAndParameters(nodeDescription, queryFragments, convertedParameters, theSort);
 	}
 
-	@NonNull
-	private QueryFragments createQueryFragments(@Nullable Condition condition, Sort sort) {
+	private QueryFragments createQueryFragments(Condition condition, Sort sort) {
 		QueryFragments queryFragments = new QueryFragments();
 
 		// all the ways we could query for
@@ -580,9 +577,9 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndPar
 
 		final Object value;
 
-		final @Nullable Neo4jPersistentPropertyConverter<?> conversionOverride;
+		final Neo4jPersistentPropertyConverter<?> conversionOverride;
 
-		Parameter(String nameOrIndex, Object value, @Nullable Neo4jPersistentPropertyConverter<?> conversionOverride) {
+		Parameter(String nameOrIndex, Object value, Neo4jPersistentPropertyConverter<?> conversionOverride) {
 			this.nameOrIndex = nameOrIndex;
 			this.value = value;
 			this.conversionOverride = conversionOverride;

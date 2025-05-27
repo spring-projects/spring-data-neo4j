@@ -25,7 +25,6 @@ import org.neo4j.driver.reactivestreams.ReactiveSession;
 import org.neo4j.driver.reactivestreams.ReactiveTransaction;
 import org.springframework.data.neo4j.core.DatabaseSelection;
 import org.springframework.data.neo4j.core.UserSelection;
-import org.springframework.lang.Nullable;
 import org.springframework.transaction.support.ResourceHolderSupport;
 
 /**
@@ -50,7 +49,6 @@ final class ReactiveNeo4jTransactionHolder extends ResourceHolderSupport {
 		return session;
 	}
 
-	@Nullable
 	ReactiveTransaction getTransaction(DatabaseSelection inDatabase, UserSelection asUser) {
 
 		return this.context.isForDatabaseAndUser(inDatabase, asUser) ? transaction : null;

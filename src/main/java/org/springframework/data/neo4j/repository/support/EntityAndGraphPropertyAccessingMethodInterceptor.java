@@ -30,7 +30,6 @@ import org.springframework.data.neo4j.core.mapping.PropertyHandlerSupport;
 import org.springframework.data.neo4j.core.schema.Property;
 import org.springframework.data.projection.MethodInterceptorFactory;
 import org.springframework.data.util.DirectFieldAccessFallbackBeanWrapper;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
 
@@ -63,7 +62,6 @@ final class EntityAndGraphPropertyAccessingMethodInterceptor implements MethodIn
 		this.target = new GraphPropertyAndDirectFieldAccessFallbackBeanWrapper(target, ctx);
 	}
 
-	@Nullable
 	@Override
 	public Object invoke(@SuppressWarnings("null") MethodInvocation invocation) throws Throwable {
 

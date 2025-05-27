@@ -32,7 +32,6 @@ import org.springframework.data.neo4j.core.ReactiveDatabaseSelectionProvider;
 import org.springframework.data.neo4j.core.ReactiveUserSelectionProvider;
 import org.springframework.data.neo4j.core.UserSelection;
 import org.springframework.data.neo4j.core.support.BookmarkManagerReference;
-import org.springframework.lang.Nullable;
 import org.springframework.transaction.NoTransactionException;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionException;
@@ -72,13 +71,10 @@ public final class ReactiveNeo4jTransactionManager extends AbstractReactiveTrans
 
 		private final Driver driver;
 
-		@Nullable
 		private ReactiveDatabaseSelectionProvider databaseSelectionProvider;
 
-		@Nullable
 		private ReactiveUserSelectionProvider userSelectionProvider;
 
-		@Nullable
 		private Neo4jBookmarkManager bookmarkManager;
 
 		private Builder(Driver driver) {
@@ -93,7 +89,7 @@ public final class ReactiveNeo4jTransactionManager extends AbstractReactiveTrans
 		 * @param databaseSelectionProvider The database selection provider
 		 * @return The builder
 		 */
-		public Builder withDatabaseSelectionProvider(@Nullable ReactiveDatabaseSelectionProvider databaseSelectionProvider) {
+		public Builder withDatabaseSelectionProvider(ReactiveDatabaseSelectionProvider databaseSelectionProvider) {
 			this.databaseSelectionProvider = databaseSelectionProvider;
 			return this;
 		}
@@ -106,12 +102,12 @@ public final class ReactiveNeo4jTransactionManager extends AbstractReactiveTrans
 		 * @param userSelectionProvider The provider for impersonated users
 		 * @return The builder
 		 */
-		public Builder withUserSelectionProvider(@Nullable ReactiveUserSelectionProvider userSelectionProvider) {
+		public Builder withUserSelectionProvider(ReactiveUserSelectionProvider userSelectionProvider) {
 			this.userSelectionProvider = userSelectionProvider;
 			return this;
 		}
 
-		public Builder withBookmarkManager(@Nullable Neo4jBookmarkManager bookmarkManager) {
+		public Builder withBookmarkManager(Neo4jBookmarkManager bookmarkManager) {
 			this.bookmarkManager = bookmarkManager;
 			return this;
 		}
@@ -379,9 +375,9 @@ public final class ReactiveNeo4jTransactionManager extends AbstractReactiveTrans
 		// The resource holder is null when the call to TransactionSynchronizationManager.getResource
 		// in Neo4jTransactionManager.doGetTransaction didn't return a corresponding resource holder.
 		// If it is null, there's no existing session / transaction.
-		@Nullable private ReactiveNeo4jTransactionHolder resourceHolder;
+		private ReactiveNeo4jTransactionHolder resourceHolder;
 
-		ReactiveNeo4jTransactionObject(@Nullable ReactiveNeo4jTransactionHolder resourceHolder) {
+		ReactiveNeo4jTransactionObject(ReactiveNeo4jTransactionHolder resourceHolder) {
 			this.resourceHolder = resourceHolder;
 		}
 
@@ -391,7 +387,7 @@ public final class ReactiveNeo4jTransactionManager extends AbstractReactiveTrans
 		 *
 		 * @param resourceHolder A newly created resource holder with a fresh drivers session,
 		 */
-		void setResourceHolder(@Nullable ReactiveNeo4jTransactionHolder resourceHolder) {
+		void setResourceHolder(ReactiveNeo4jTransactionHolder resourceHolder) {
 			this.resourceHolder = resourceHolder;
 		}
 

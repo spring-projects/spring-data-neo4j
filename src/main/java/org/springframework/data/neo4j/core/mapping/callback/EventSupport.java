@@ -23,7 +23,6 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.data.mapping.callback.EntityCallbacks;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
-import org.springframework.lang.Nullable;
 
 /**
  * Utility class that orchestrates {@link EntityCallbacks}. Not to be used outside the framework.
@@ -74,8 +73,7 @@ public final class EventSupport {
 		this.entityCallbacks = entityCallbacks;
 	}
 
-	@Nullable
-	public <T> T maybeCallBeforeBind(@Nullable T object) {
+	public <T> T maybeCallBeforeBind(T object) {
 
 		if (object == null) {
 			return object;
@@ -90,8 +88,7 @@ public final class EventSupport {
 	 * @param <T>    Expected type
 	 * @return The instance to which the callback was applied to
 	 */
-	@Nullable
-	public <T> T maybeCallAfterConvert(@Nullable T object, Neo4jPersistentEntity<T> entity, MapAccessor source) {
+	public <T> T maybeCallAfterConvert(T object, Neo4jPersistentEntity<T> entity, MapAccessor source) {
 
 		if (object == null) {
 			return object;

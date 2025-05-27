@@ -62,7 +62,6 @@ import org.springframework.data.neo4j.core.mapping.PropertyFilter;
 import org.springframework.data.neo4j.core.mapping.PropertyTraverser;
 import org.springframework.data.neo4j.core.mapping.SpringDataCypherDsl;
 import org.springframework.data.neo4j.repository.query.QueryFragments;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -90,7 +89,6 @@ public final class TemplateSupport {
 		ALL
 	}
 
-	@Nullable
 	public static Class<?> findCommonElementType(Iterable<?> collection) {
 
 		if (collection == null) {
@@ -168,7 +166,7 @@ public final class TemplateSupport {
 	 * @param parameters The original parameters
 	 * @return Merged parameters
 	 */
-	static Map<String, Object> mergeParameters(Statement statement, @Nullable Map<String, Object> parameters) {
+	static Map<String, Object> mergeParameters(Statement statement, Map<String, Object> parameters) {
 
 		Map<String, Object> mergedParameters = new HashMap<>(statement.getCatalog().getParameters());
 		if (parameters != null) {
@@ -259,7 +257,7 @@ public final class TemplateSupport {
 	 * @return A mapping function
 	 */
 	static <T> Supplier<BiFunction<TypeSystem, MapAccessor, ?>> getAndDecorateMappingFunction(
-			Neo4jMappingContext mappingContext, Class<T> domainType, @Nullable Class<?> resultType) {
+			Neo4jMappingContext mappingContext, Class<T> domainType, Class<?> resultType) {
 
 		Assert.notNull(mappingContext.getPersistentEntity(domainType), "Cannot get or create persistent entity");
 		return () -> {
@@ -317,7 +315,7 @@ public final class TemplateSupport {
 	 * @return A map as expected by the property filter.
 	 */
 	static <T> Collection<PropertyFilter.ProjectedPath> computeIncludedPropertiesFromPredicate(Neo4jMappingContext mappingContext,
-			Class<T> domainType, @Nullable BiPredicate<PropertyPath, Neo4jPersistentProperty> predicate) {
+			Class<T> domainType, BiPredicate<PropertyPath, Neo4jPersistentProperty> predicate) {
 		if (predicate == null) {
 			return Collections.emptySet();
 		}
@@ -357,6 +355,7 @@ public final class TemplateSupport {
 	 * @param databaseEntity A fallback entity to retrieve the deprecated internal long id
 	 * @param <T> The type of the entity
 	 */
+	@SuppressWarnings("deprecation")
 	static <T> void setGeneratedIdIfNecessary(
 			Neo4jPersistentEntity<?> entityMetaData,
 			PersistentPropertyAccessor<T> propertyAccessor,
@@ -392,7 +391,7 @@ public final class TemplateSupport {
 			Neo4jPersistentEntity<?> entityMetadata,
 			PersistentPropertyAccessor<T> propertyAccessor,
 			Optional<Entity> databaseEntity,
-			@Nullable Object relatedInternalId
+			Object relatedInternalId
 	) {
 		if (!entityMetadata.isUsingInternalIds()) {
 			return Objects.requireNonNull(relatedInternalId);

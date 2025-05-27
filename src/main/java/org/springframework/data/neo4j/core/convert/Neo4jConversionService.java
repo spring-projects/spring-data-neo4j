@@ -19,7 +19,6 @@ import org.apiguardian.api.API;
 import org.neo4j.driver.Value;
 import org.springframework.dao.TypeMismatchDataAccessException;
 import org.springframework.data.util.TypeInformation;
-import org.springframework.lang.Nullable;
 
 /**
  * This service orchestrates a standard Spring conversion service with {@link org.springframework.data.neo4j.core.convert.Neo4jConversions} registered.
@@ -40,7 +39,7 @@ public interface Neo4jConversionService {
 	 * @param <T>        The type to be returned
 	 * @return The converted value
 	 */
-	@Nullable <T> T convert(Object source, Class<T> targetType);
+	<T> T convert(Object source, Class<T> targetType);
 
 	/**
 	 * Returns whether we have a custom conversion registered to read {@code sourceType} into a native type. The returned
@@ -65,10 +64,7 @@ public interface Neo4jConversionService {
 	 * @return A simple type or null, if the value was {@literal null} or {@link org.neo4j.driver.Values#NULL}.
 	 * @throws TypeMismatchDataAccessException In case the value cannot be converted to the target type
 	 */
-	@Nullable
-	Object readValue(
-			@Nullable Value source, TypeInformation<?> targetType, @Nullable Neo4jPersistentPropertyConverter<?> conversionOverride
-	);
+	Object readValue(Value source, TypeInformation<?> targetType, Neo4jPersistentPropertyConverter<?> conversionOverride);
 
 	/**
 	 * Converts an {@link Object} to a driver's value object.
@@ -77,9 +73,7 @@ public interface Neo4jConversionService {
 	 * @param sourceType The type information describing the target type.
 	 * @return A driver compatible value object.
 	 */
-	Value writeValue(
-			@Nullable Object value, TypeInformation<?> sourceType, @Nullable Neo4jPersistentPropertyConverter<?> conversionOverride
-	);
+	Value writeValue(Object value, TypeInformation<?> sourceType, Neo4jPersistentPropertyConverter<?> conversionOverride);
 
 	/**
 	 * @param type A type that should be checked whether it's simple or not.

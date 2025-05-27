@@ -27,7 +27,6 @@ import org.springframework.data.mapping.Association;
 import org.springframework.data.mapping.MappingException;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
 import org.springframework.data.neo4j.core.schema.TargetNode;
-import org.springframework.lang.Nullable;
 
 /**
  * Working on nested relationships happens in a certain algorithmic context. This context enables a tight cohesion
@@ -47,7 +46,7 @@ public final class NestedRelationshipContext {
 
 	private final boolean inverseValueIsEmpty;
 
-	private NestedRelationshipContext(Neo4jPersistentProperty inverse, @Nullable Object value,
+	private NestedRelationshipContext(Neo4jPersistentProperty inverse, Object value,
 			RelationshipDescription relationship, boolean inverseValueIsEmpty) {
 		this.inverse = inverse;
 		this.value = value;
@@ -63,7 +62,6 @@ public final class NestedRelationshipContext {
 		return inverse;
 	}
 
-	@Nullable
 	public Object getValue() {
 		return value;
 	}
@@ -100,7 +98,7 @@ public final class NestedRelationshipContext {
 		return valueToBeSaved;
 	}
 
-	public @Nullable PersistentPropertyAccessor<?> getRelationshipPropertiesPropertyAccessor(@Nullable Object relatedValue) {
+	public PersistentPropertyAccessor<?> getRelationshipPropertiesPropertyAccessor(Object relatedValue) {
 
 		if (!this.hasRelationshipWithProperties() || relatedValue == null) {
 			return null;

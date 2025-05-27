@@ -18,6 +18,7 @@ package org.springframework.data.neo4j.repository.support;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.io.Serial;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 
@@ -57,6 +58,8 @@ import org.springframework.util.Assert;
 public final class ReactivePersistenceExceptionTranslationPostProcessor
 		extends AbstractBeanFactoryAwareAdvisingPostProcessor {
 
+	@Serial
+	private static final long serialVersionUID = -8597336297033105680L;
 	private final Class<? extends Annotation> repositoryAnnotationType;
 
 	public ReactivePersistenceExceptionTranslationPostProcessor() {
@@ -88,6 +91,8 @@ public final class ReactivePersistenceExceptionTranslationPostProcessor
 	 */
 	static final class ReactivePersistenceExceptionTranslationAdvisor extends AbstractPointcutAdvisor {
 
+		@Serial
+		private static final long serialVersionUID = 849460320459940956L;
 		private final ReactivePersistenceExceptionTranslationInterceptor advice;
 
 		private final AnnotationMatchingPointcut pointcut;

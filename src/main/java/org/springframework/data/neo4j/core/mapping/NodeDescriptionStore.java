@@ -28,7 +28,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiFunction;
 
 import org.springframework.data.mapping.context.AbstractMappingContext;
-import org.springframework.lang.Nullable;
 
 /**
  * This class is more or less just a wrapper around the node description lookup map. It ensures that there is no cyclic
@@ -83,12 +82,10 @@ final class NodeDescriptionStore {
 		return nodeDescriptionsByPrimaryLabel.values();
 	}
 
-	@Nullable
 	public NodeDescription<?> get(String primaryLabel) {
 		return nodeDescriptionsByPrimaryLabel.get(primaryLabel);
 	}
 
-	@Nullable
 	public NodeDescription<?> getNodeDescription(Class<?> targetType) {
 		for (NodeDescription<?> nodeDescription : values()) {
 			if (nodeDescription.getUnderlyingClass().equals(targetType)) {
@@ -102,7 +99,7 @@ final class NodeDescriptionStore {
 		return nodeDescriptionAndLabels.apply(entityDescription, labels);
 	}
 
-	private NodeDescriptionAndLabels computeConcreteNodeDescription(NodeDescription<?> entityDescription, @Nullable List<String> labels) {
+	private NodeDescriptionAndLabels computeConcreteNodeDescription(NodeDescription<?> entityDescription, List<String> labels) {
 
 		boolean isConcreteClassThatFulfillsEverything = !Modifier.isAbstract(entityDescription.getUnderlyingClass().getModifiers()) && entityDescription.getStaticLabels().containsAll(labels);
 

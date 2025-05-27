@@ -15,6 +15,8 @@
  */
 package org.springframework.data.neo4j.repository;
 
+import java.io.Serial;
+
 import org.apiguardian.api.API;
 import org.springframework.dao.EmptyResultDataAccessException;
 
@@ -26,8 +28,10 @@ import org.springframework.dao.EmptyResultDataAccessException;
  * @since 6.0
  */
 @API(status = API.Status.STABLE, since = "6.0")
-public class NoResultException extends EmptyResultDataAccessException {
+public final class NoResultException extends EmptyResultDataAccessException {
 
+	@Serial
+	private static final long serialVersionUID = -1508370436250180391L;
 	private final String query;
 
 	public NoResultException(int expectedNumberOfResults, String query) {

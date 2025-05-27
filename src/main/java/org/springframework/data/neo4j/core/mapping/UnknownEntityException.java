@@ -15,6 +15,8 @@
  */
 package org.springframework.data.neo4j.core.mapping;
 
+import java.io.Serial;
+
 import org.apiguardian.api.API;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 
@@ -28,6 +30,8 @@ import org.springframework.dao.InvalidDataAccessApiUsageException;
 @API(status = API.Status.STABLE, since = "6.0")
 public final class UnknownEntityException extends InvalidDataAccessApiUsageException {
 
+	@Serial
+	private static final long serialVersionUID = -1769937352513022599L;
 	private final Class<?> targetClass;
 
 	public UnknownEntityException(Class<?> targetClass) {

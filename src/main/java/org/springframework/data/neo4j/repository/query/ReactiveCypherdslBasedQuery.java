@@ -30,7 +30,6 @@ import org.springframework.data.neo4j.core.ReactiveNeo4jOperations;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.mapping.PropertyFilter;
 import org.springframework.data.projection.ProjectionFactory;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -60,9 +59,9 @@ final class ReactiveCypherdslBasedQuery extends AbstractReactiveNeo4jQuery {
 
 	@Override
 	protected <T> PreparedQuery<T> prepareQuery(Class<T> returnedType, Collection<PropertyFilter.ProjectedPath> includedProperties,
-			@Nullable Neo4jParameterAccessor parameterAccessor, Neo4jQueryType queryType,
-			@Nullable Supplier<BiFunction<TypeSystem, MapAccessor, ?>> mappingFunction,
-			@Nullable UnaryOperator<Integer> limitModifier) {
+			Neo4jParameterAccessor parameterAccessor, Neo4jQueryType queryType,
+			Supplier<BiFunction<TypeSystem, MapAccessor, ?>> mappingFunction,
+			UnaryOperator<Integer> limitModifier) {
 
 		Object[] parameters = parameterAccessor.getValues();
 

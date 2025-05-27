@@ -36,7 +36,6 @@ import org.springframework.data.neo4j.core.ReactiveFluentFindOperation;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.repository.query.FluentQuery.ReactiveFluentQuery;
 import org.springframework.data.support.PageableExecutionUtils;
-import org.springframework.lang.Nullable;
 
 /**
  * Immutable implementation of a {@link ReactiveFluentQuery}. All
@@ -81,8 +80,8 @@ final class ReactiveFluentQueryByExample<S, R> extends FluentQuerySupport<R> imp
 			Function<Example<S>, Mono<Long>> countOperation,
 			Function<Example<S>, Mono<Boolean>> existsOperation,
 			Sort sort,
-			@Nullable Integer limit,
-			@Nullable Collection<String> properties
+			Integer limit,
+			Collection<String> properties
 	) {
 		super(resultType, sort, limit, properties);
 		this.mappingContext = mappingContext;

@@ -26,7 +26,6 @@ import org.apiguardian.api.API;
 import org.springframework.data.mapping.Association;
 import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.neo4j.core.schema.TargetNode;
-import org.springframework.lang.Nullable;
 
 /**
  * A strategy for traversing all properties (including association) once, without going in circles with cyclic mappings.
@@ -64,7 +63,7 @@ public final class PropertyTraverser {
 
 	private void traverseImpl(
 			Neo4jPersistentEntity<?> root,
-			@Nullable PropertyPath base,
+			PropertyPath base,
 			BiPredicate<PropertyPath, Neo4jPersistentProperty> predicate,
 			BiConsumer<PropertyPath, Neo4jPersistentProperty> sink,
 			boolean pathAlreadyVisited

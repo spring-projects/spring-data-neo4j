@@ -27,7 +27,6 @@ import org.springframework.data.neo4j.core.mapping.Constants;
 import org.springframework.data.neo4j.core.mapping.MappingSupport;
 import org.springframework.data.neo4j.core.mapping.NoRootNodeMappingException;
 import org.springframework.data.neo4j.repository.query.QueryFragmentsAndParameters;
-import org.springframework.lang.Nullable;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -66,7 +65,7 @@ public final class PreparedQuery<T> {
 
 	private final Class<T> resultType;
 	private final QueryFragmentsAndParameters queryFragmentsAndParameters;
-	private final @Nullable Supplier<BiFunction<TypeSystem, MapAccessor, ?>> mappingFunctionSupplier;
+	private final Supplier<BiFunction<TypeSystem, MapAccessor, ?>> mappingFunctionSupplier;
 	private volatile Optional<BiFunction<TypeSystem, Record, T>> lastMappingFunction = Optional.empty();
 
 	private PreparedQuery(OptionalBuildSteps<T> optionalBuildSteps) {
@@ -127,7 +126,7 @@ public final class PreparedQuery<T> {
 
 		final Class<CT> resultType;
 		final QueryFragmentsAndParameters queryFragmentsAndParameters;
-		@Nullable Supplier<BiFunction<TypeSystem, MapAccessor, ?>> mappingFunctionSupplier;
+		Supplier<BiFunction<TypeSystem, MapAccessor, ?>> mappingFunctionSupplier;
 
 		OptionalBuildSteps(Class<CT> resultType, QueryFragmentsAndParameters queryFragmentsAndParameters) {
 			this.resultType = resultType;
@@ -145,7 +144,7 @@ public final class PreparedQuery<T> {
 			return this;
 		}
 
-		public OptionalBuildSteps<CT> usingMappingFunction(@Nullable Supplier<BiFunction<TypeSystem, MapAccessor, ?>> newMappingFunction) {
+		public OptionalBuildSteps<CT> usingMappingFunction(Supplier<BiFunction<TypeSystem, MapAccessor, ?>> newMappingFunction) {
 			this.mappingFunctionSupplier = newMappingFunction;
 			return this;
 		}

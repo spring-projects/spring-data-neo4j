@@ -15,19 +15,15 @@
  */
 package org.springframework.data.neo4j.integration.issues.gh2168;
 
-import org.neo4j.driver.Driver;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.neo4j.driver.types.TypeSystem;
 import org.springframework.data.neo4j.core.convert.Neo4jPersistentPropertyConverter;
 
 /**
  * @author Michael J. Simons
  */
 public class UnrelatedObjectPropertyConverterAsBean implements Neo4jPersistentPropertyConverter<UnrelatedObject> {
-
-	@Autowired
-	private Driver driver;
 
 	@Override
 	public Value write(UnrelatedObject source) {
@@ -38,7 +34,7 @@ public class UnrelatedObjectPropertyConverterAsBean implements Neo4jPersistentPr
 	@Override
 	public UnrelatedObject read(Value source) {
 
-		if (!driver.defaultTypeSystem().STRING().isTypeOf(source)) {
+		if (!TypeSystem.getDefault().STRING().isTypeOf(source)) {
 			throw new IllegalArgumentException("Unsupported value");
 		}
 

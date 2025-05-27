@@ -38,7 +38,6 @@ import org.springframework.data.neo4j.core.support.BookmarkManagerReference;
 import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
 import org.springframework.data.neo4j.core.transaction.Neo4jTransactionUtils;
 import org.springframework.data.neo4j.core.transaction.ReactiveNeo4jTransactionManager;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -66,8 +65,8 @@ import java.util.function.Supplier;
 final class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient, ApplicationContextAware {
 
 	private final Driver driver;
-	private @Nullable final ReactiveDatabaseSelectionProvider databaseSelectionProvider;
-	private @Nullable final ReactiveUserSelectionProvider userSelectionProvider;
+	private final ReactiveDatabaseSelectionProvider databaseSelectionProvider;
+	private final ReactiveUserSelectionProvider userSelectionProvider;
 	private final ConversionService conversionService;
 	private final Neo4jPersistenceExceptionTranslator persistenceExceptionTranslator = new Neo4jPersistenceExceptionTranslator();
 
@@ -182,12 +181,11 @@ final class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient, Applicati
 	}
 
 	@Override
-	@Nullable
 	public ReactiveDatabaseSelectionProvider getDatabaseSelectionProvider() {
 		return databaseSelectionProvider;
 	}
 
-	private Mono<DatabaseSelection> resolveTargetDatabaseName(@Nullable String parameterTargetDatabase) {
+	private Mono<DatabaseSelection> resolveTargetDatabaseName(String parameterTargetDatabase) {
 
 		String value = Neo4jClient.verifyDatabaseName(parameterTargetDatabase);
 		if (value != null) {
@@ -199,7 +197,7 @@ final class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient, Applicati
 		return ReactiveDatabaseSelectionProvider.getDefaultSelectionProvider().getDatabaseSelection();
 	}
 
-	private Mono<UserSelection> resolveUser(@Nullable String userName) {
+	private Mono<UserSelection> resolveUser(String userName) {
 
 		if (StringUtils.hasText(userName)) {
 			return Mono.just(UserSelection.impersonate(userName));
@@ -272,9 +270,9 @@ final class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient, Applicati
 
 		class DefaultOngoingBindSpec<T> implements Neo4jClient.OngoingBindSpec<T, RunnableSpec> {
 
-			@Nullable private final T value;
+			private final T value;
 
-			DefaultOngoingBindSpec(@Nullable T value) {
+			DefaultOngoingBindSpec(T value) {
 				this.value = value;
 			}
 
@@ -377,7 +375,7 @@ final class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient, Applicati
 		private BiFunction<TypeSystem, Record, T> mappingFunction;
 
 		DefaultRecordFetchSpec(Mono<DatabaseSelection> databaseSelection, Mono<UserSelection> userSelection, Supplier<String> cypherSupplier, NamedParameters parameters,
-				@Nullable BiFunction<TypeSystem, Record, T> mappingFunction) {
+				BiFunction<TypeSystem, Record, T> mappingFunction) {
 
 			this.databaseSelection = databaseSelection;
 			this.userSelection = userSelection;
@@ -477,7 +475,7 @@ final class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient, Applicati
 		}
 
 		@Override
-		public RunnableDelegation<T> in(@Nullable @SuppressWarnings("HiddenField") String targetDatabase) {
+		public RunnableDelegation<T> in(@SuppressWarnings("HiddenField") String targetDatabase) {
 
 			this.databaseSelection = resolveTargetDatabaseName(targetDatabase);
 			return this;

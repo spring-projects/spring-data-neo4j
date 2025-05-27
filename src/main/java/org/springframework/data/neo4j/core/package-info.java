@@ -5,7 +5,4 @@
    the imperative and reactive variants of the client and the template.
  * <!-- end::intent[] -->
  */
-@NonNullApi
 package org.springframework.data.neo4j.core;
-
-import org.springframework.lang.NonNullApi;

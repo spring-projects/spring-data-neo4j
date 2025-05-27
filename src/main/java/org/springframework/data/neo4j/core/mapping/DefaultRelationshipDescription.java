@@ -19,7 +19,6 @@ import java.util.Objects;
 
 import org.springframework.data.mapping.Association;
 import org.springframework.data.neo4j.core.schema.Relationship;
-import org.springframework.lang.Nullable;
 
 /**
  * @author Michael J. Simons
@@ -46,9 +45,9 @@ final class DefaultRelationshipDescription extends Association<Neo4jPersistentPr
 
 	private final boolean cascadeUpdates;
 
-	DefaultRelationshipDescription(Neo4jPersistentProperty inverse, @Nullable RelationshipDescription relationshipObverse,
+	DefaultRelationshipDescription(Neo4jPersistentProperty inverse, RelationshipDescription relationshipObverse,
 			String type, boolean dynamic, NodeDescription<?> source, String fieldName, NodeDescription<?> target,
-			Relationship.Direction direction, @Nullable NodeDescription<?> relationshipProperties,
+			Relationship.Direction direction, NodeDescription<?> relationshipProperties,
 			boolean cascadeUpdates) {
 
 		// the immutable obverse association-wise is always null because we cannot determine them on both sides

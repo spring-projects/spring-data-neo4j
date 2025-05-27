@@ -28,7 +28,6 @@ import org.neo4j.cypherdsl.core.Cypher;
 import org.neo4j.driver.Value;
 import org.springframework.data.neo4j.core.mapping.Constants;
 import org.springframework.data.neo4j.core.mapping.MapValueWrapper;
-import org.springframework.lang.Nullable;
 
 /**
  * @author Michael J. Simons
@@ -59,7 +58,7 @@ final class NamedParameters {
 	 * @throws IllegalStateException when a parameter with the given name already exists
 	 */
 	@SuppressWarnings("unchecked")
-	void add(String name, @Nullable Object value) {
+	void add(String name, Object value) {
 
 		if (this.parameters.containsKey(name)) {
 			Object previousValue = this.parameters.get(name);
@@ -140,8 +139,7 @@ final class NamedParameters {
 				.collect(Collectors.joining(System.lineSeparator()));
 	}
 
-	@Nullable
-	private static String formatValue(@Nullable Object value) {
+	private static String formatValue(Object value) {
 		if (value == null) {
 			return null;
 		} else if (value instanceof String) {

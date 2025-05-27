@@ -27,7 +27,6 @@ import org.springframework.data.projection.ProjectionInformation;
 import org.springframework.data.repository.query.ResultProcessor;
 import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.data.util.TypeInformation;
-import org.springframework.lang.Nullable;
 
 import java.beans.PropertyDescriptor;
 import java.util.Collection;
@@ -182,13 +181,13 @@ public final class PropertyFilterSupport {
 		final String path;
 		final String name;
 
-		private ProjectionPathProcessor(String name, String path, @Nullable TypeInformation<?> typeInformation) {
+		private ProjectionPathProcessor(String name, String path, TypeInformation<?> typeInformation) {
 			this.typeInformation = typeInformation;
 			this.path = path;
 			this.name = name;
 		}
 
-		private ProjectionPathProcessor(String name, @Nullable TypeInformation<?> typeInformation) {
+		private ProjectionPathProcessor(String name, TypeInformation<?> typeInformation) {
 			this(name, name, typeInformation);
 		}
 

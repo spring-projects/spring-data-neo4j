@@ -336,7 +336,7 @@ final class AdditionalTypes {
 						i -> delegate.convert(source.get(i), TypeDescriptor.valueOf(Value.class), elementTypeDescriptor));
 				return targetArray;
 			} else {
-				Enum[] source = (Enum[]) object;
+				Enum<?>[] source = (Enum<?>[]) object;
 
 				return Values.value(Arrays.stream(source)
 						.map(e -> delegate.convert(e, sourceType.getElementTypeDescriptor(), TypeDescriptor.valueOf(Value.class)))

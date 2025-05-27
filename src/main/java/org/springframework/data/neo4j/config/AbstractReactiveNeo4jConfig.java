@@ -29,7 +29,6 @@ import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
 import org.springframework.data.neo4j.core.transaction.ReactiveNeo4jTransactionManager;
 import org.springframework.data.neo4j.repository.config.ReactiveNeo4jRepositoryConfigurationExtension;
-import org.springframework.lang.Nullable;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.ReactiveTransactionManager;
 
@@ -78,7 +77,6 @@ public abstract class AbstractReactiveNeo4jConfig extends Neo4jConfigurationSupp
 		return this.bookmarkManagerProviders.getIfAvailable(Neo4jBookmarkManager::createReactive);
 	}
 
-	@Nullable
 	private ReactiveUserSelectionProvider getUserSelectionProvider() {
 		return this.userSelectionProviders == null ? null : this.userSelectionProviders.getIfUnique();
 	}

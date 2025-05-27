@@ -35,7 +35,6 @@ import org.springframework.data.mapping.PersistentProperty;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
 import org.springframework.data.mapping.model.ParameterValueProvider;
 import org.springframework.data.util.TypeInformation;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -98,8 +97,6 @@ public final class DtoInstantiatingConverter implements Converter<EntityInstance
 		return dto;
 	}
 
-
-	@Nullable
 	Object getPropertyValueDirectlyFor(PersistentProperty<?> targetProperty, PersistentEntity<?, ?> sourceEntity,
 							   PersistentPropertyAccessor<?> sourceAccessor) {
 
@@ -118,7 +115,7 @@ public final class DtoInstantiatingConverter implements Converter<EntityInstance
 	}
 
 	@Override
-	public Object convert(@Nullable EntityInstanceWithSource entityInstanceAndSource) {
+	public Object convert(EntityInstanceWithSource entityInstanceAndSource) {
 
 		if (entityInstanceAndSource == null) {
 			return null;
@@ -176,7 +173,7 @@ public final class DtoInstantiatingConverter implements Converter<EntityInstance
 
 	private void setPropertyOnDtoObject(EntityInstanceWithSource entityInstanceAndSource,
 			PersistentEntity<?, ?> sourceEntity, PersistentPropertyAccessor<Object> sourceAccessor,
-			@Nullable InstanceCreatorMetadata<?> creator, PersistentPropertyAccessor<Object> dtoAccessor,
+			InstanceCreatorMetadata<?> creator, PersistentPropertyAccessor<Object> dtoAccessor,
 			Neo4jPersistentProperty property) {
 
 		if (creator != null && creator.isCreatorParameter(property)) {
@@ -187,7 +184,6 @@ public final class DtoInstantiatingConverter implements Converter<EntityInstance
 		dtoAccessor.setProperty(property, propertyValue);
 	}
 
-	@Nullable
 	Object getPropertyValueFor(Neo4jPersistentProperty targetProperty, PersistentEntity<?, ?> sourceEntity,
 			PersistentPropertyAccessor<?> sourceAccessor, EntityInstanceWithSource entityInstanceAndSource) {
 

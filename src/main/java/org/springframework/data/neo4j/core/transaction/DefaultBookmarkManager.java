@@ -26,7 +26,6 @@ import java.util.function.Supplier;
 
 import org.neo4j.driver.Bookmark;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.lang.Nullable;
 
 /**
  * Default bookmark manager.
@@ -45,10 +44,9 @@ final class DefaultBookmarkManager extends AbstractBookmarkManager {
 
 	private final Supplier<Set<Bookmark>> bookmarksSupplier;
 
-	@Nullable
 	private ApplicationEventPublisher applicationEventPublisher;
 
-	DefaultBookmarkManager(@Nullable Supplier<Set<Bookmark>> bookmarksSupplier) {
+	DefaultBookmarkManager(Supplier<Set<Bookmark>> bookmarksSupplier) {
 		this.bookmarksSupplier = bookmarksSupplier == null ? Collections::emptySet : bookmarksSupplier;
 	}
 
@@ -81,7 +79,7 @@ final class DefaultBookmarkManager extends AbstractBookmarkManager {
 	}
 
 	@Override
-	public void setApplicationEventPublisher(@Nullable ApplicationEventPublisher applicationEventPublisher) {
+	public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
 		this.applicationEventPublisher = applicationEventPublisher;
 	}
 }

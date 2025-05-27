@@ -20,7 +20,6 @@ import java.util.function.Function;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.data.support.IsNewStrategy;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -84,7 +83,7 @@ final class DefaultNeo4jIsNewStrategy implements IsNewStrategy {
 
 	private final Class<?> valueType;
 
-	private @Nullable final Function<Object, Object> valueLookup;
+	private final Function<Object, Object> valueLookup;
 
 	private DefaultNeo4jIsNewStrategy(IdDescription idDescription, Class<?> valueType,
 			Function<Object, Object> valueLookup) {

@@ -27,7 +27,6 @@ import java.util.function.BiPredicate;
 import org.apiguardian.api.API;
 import org.neo4j.cypherdsl.core.Statement;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
-import org.springframework.lang.Nullable;
 
 /**
  * Specifies reactive operations one can perform on a database, based on an <em>Domain Type</em>.
@@ -273,7 +272,7 @@ public interface ReactiveNeo4jOperations {
 	<T> Mono<Void> deleteById(Object id, Class<T> domainType);
 
 	<T> Mono<Void> deleteByIdWithVersion(Object id, Class<T> domainType, Neo4jPersistentProperty versionProperty,
-										 @Nullable Object versionValue);
+										 Object versionValue);
 
 	/**
 	 * Deletes all entities with one of the given ids, including all entities related to that entity.

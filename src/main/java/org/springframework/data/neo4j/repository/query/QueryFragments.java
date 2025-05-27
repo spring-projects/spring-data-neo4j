@@ -37,7 +37,6 @@ import org.springframework.data.neo4j.core.mapping.PropertyFilter;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.core.mapping.NodeDescription;
 import org.springframework.data.neo4j.core.schema.Property;
-import org.springframework.lang.Nullable;
 
 /**
  * Collects the parts of a Cypher query to be handed over to the Cypher generator.
@@ -74,7 +73,7 @@ public final class QueryFragments {
 		return matchOn;
 	}
 
-	public void setCondition(@Nullable Condition condition) {
+	public void setCondition(Condition condition) {
 		this.condition = Optional.ofNullable(condition).orElse(Cypher.noCondition());
 	}
 
