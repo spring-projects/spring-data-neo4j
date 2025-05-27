@@ -42,7 +42,6 @@ import org.springframework.transaction.support.SmartTransactionObject;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.transaction.support.TransactionSynchronizationUtils;
 import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
 
 /**
  * Dedicated {@link org.springframework.transaction.PlatformTransactionManager} for native Neo4j transactions. This

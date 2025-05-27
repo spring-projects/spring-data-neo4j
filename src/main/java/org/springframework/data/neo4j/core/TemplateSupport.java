@@ -447,7 +447,7 @@ public final class TemplateSupport {
 
 	@Nullable
 	static Object convertToLongIdOrStringElementId(@Nullable Collection<String> ids) {
-		if(ids == null) {
+		if (ids == null) {
 			return null;
 		}
 		try {

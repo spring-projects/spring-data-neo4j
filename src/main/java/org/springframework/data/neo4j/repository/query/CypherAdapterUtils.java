@@ -32,11 +32,9 @@ import org.neo4j.cypherdsl.core.Condition;
 import org.neo4j.cypherdsl.core.Cypher;
 import org.neo4j.cypherdsl.core.Expression;
 import org.neo4j.cypherdsl.core.SortItem;
-import org.neo4j.cypherdsl.core.StatementBuilder;
 import org.neo4j.cypherdsl.core.SymbolicName;
 import org.neo4j.driver.Value;
 import org.springframework.data.domain.KeysetScrollPosition;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.ScrollPosition.Direction;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.core.convert.Neo4jConversionService;
@@ -163,7 +161,7 @@ public final class CypherAdapterUtils {
 				expression = entity.getIdExpression();
 				var comparatorFunction = getComparatorFunction(scrollPosition.scrollsForward() ? Sort.Direction.ASC : Sort.Direction.DESC, scrollDirection);
 				allEqualsWithArtificialSort = allEqualsWithArtificialSort.and(comparatorFunction.apply(expression, parameter));
-			} else if(propertyAndDirection.containsKey(k)) {
+			} else if (propertyAndDirection.containsKey(k)) {
 				var p = propertyAndDirection.get(k);
 				expression = p.property.isIdProperty() ? entity.getIdExpression() : root.property(k);
 

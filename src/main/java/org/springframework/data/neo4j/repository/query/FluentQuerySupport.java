@@ -24,7 +24,6 @@ import java.util.Set;
 import java.util.function.IntFunction;
 import java.util.function.Predicate;
 
-import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.KeysetScrollPosition;
 import org.springframework.data.domain.OffsetScrollPosition;
 import org.springframework.data.domain.ScrollPosition;

@@ -686,31 +686,31 @@ public final class Neo4jTemplate implements
 
 	@Override
 	public <T> void deleteByIdWithVersion(Object id, Class<T> domainType, Neo4jPersistentProperty versionProperty,
-										  Object versionValue) {
+	                                      Object versionValue) {
 
-				executeWithoutResult(tx -> {
-					Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getRequiredPersistentEntity(domainType);
+		executeWithoutResult(tx -> {
+			Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getRequiredPersistentEntity(domainType);
 
-					String nameOfParameter = "id";
-					Condition condition = entityMetaData.getIdExpression().isEqualTo(parameter(nameOfParameter))
-							.and(Cypher.property(Constants.NAME_OF_TYPED_ROOT_NODE.apply(entityMetaData), versionProperty.getPropertyName())
-									.isEqualTo(parameter(Constants.NAME_OF_VERSION_PARAM))
-									.or(Cypher.property(Constants.NAME_OF_TYPED_ROOT_NODE.apply(entityMetaData), versionProperty.getPropertyName()).isNull()));
+			String nameOfParameter = "id";
+			Condition condition = entityMetaData.getIdExpression().isEqualTo(parameter(nameOfParameter))
+					.and(Cypher.property(Constants.NAME_OF_TYPED_ROOT_NODE.apply(entityMetaData), versionProperty.getPropertyName())
+							.isEqualTo(parameter(Constants.NAME_OF_VERSION_PARAM))
+							.or(Cypher.property(Constants.NAME_OF_TYPED_ROOT_NODE.apply(entityMetaData), versionProperty.getPropertyName()).isNull()));
 
-					Statement statement = cypherGenerator.prepareMatchOf(entityMetaData, condition)
-							.returning(Constants.NAME_OF_TYPED_ROOT_NODE.apply(entityMetaData)).build();
+			Statement statement = cypherGenerator.prepareMatchOf(entityMetaData, condition)
+					.returning(Constants.NAME_OF_TYPED_ROOT_NODE.apply(entityMetaData)).build();
 
-					Map<String, Object> parameters = new HashMap<>();
-					parameters.put(nameOfParameter, convertIdValues(entityMetaData.getRequiredIdProperty(), id));
-					parameters.put(Constants.NAME_OF_VERSION_PARAM, versionValue);
+			Map<String, Object> parameters = new HashMap<>();
+			parameters.put(nameOfParameter, convertIdValues(entityMetaData.getRequiredIdProperty(), id));
+			parameters.put(Constants.NAME_OF_VERSION_PARAM, versionValue);
 
-					var lockedEntity = createExecutableQuery(domainType, null, statement, parameters, false).getSingleResult();
-					if (lockedEntity.isEmpty()) {
-						throw new OptimisticLockingFailureException(OPTIMISTIC_LOCKING_ERROR_MESSAGE);
-					};
+			var lockedEntity = createExecutableQuery(domainType, null, statement, parameters, false).getSingleResult();
+			if (lockedEntity.isEmpty()) {
+				throw new OptimisticLockingFailureException(OPTIMISTIC_LOCKING_ERROR_MESSAGE);
+			}
 
-					deleteById(id, domainType);
-				});
+			deleteById(id, domainType);
+		});
 	}
 
 	@Override
@@ -1241,7 +1241,7 @@ public final class Neo4jTemplate implements
 		}
 
 		Class<?> resultType = TemplateSupport.findCommonElementType(instances);
-		if(resultType == null) {
+		if (resultType == null) {
 			throw new IllegalArgumentException("Could not find a common type element to store and then project multiple instances of type %s".formatted(domainType));
 		}
 

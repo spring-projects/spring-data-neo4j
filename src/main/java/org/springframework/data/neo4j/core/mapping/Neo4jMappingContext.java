@@ -38,7 +38,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import org.apiguardian.api.API;
-import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.neo4j.cypherdsl.core.Statement;
 import org.neo4j.driver.types.TypeSystem;
