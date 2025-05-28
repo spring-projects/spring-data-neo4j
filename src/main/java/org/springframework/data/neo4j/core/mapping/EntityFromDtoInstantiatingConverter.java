@@ -17,6 +17,7 @@ package org.springframework.data.neo4j.core.mapping;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apiguardian.api.API;
@@ -73,18 +74,19 @@ public final class EntityFromDtoInstantiatingConverter<T> implements Converter<O
 		}
 
 		PersistentEntity<?, ?> sourceEntity = context.addPersistentEntity(TypeInformation.of(dtoInstance.getClass()))
-				.get();
+				.orElseThrow();
 		PersistentPropertyAccessor<Object> sourceAccessor = sourceEntity.getPropertyAccessor(dtoInstance);
 
-		PersistentEntity<?, ?> targetEntity = context.getPersistentEntity(targetEntityType);
-		InstanceCreatorMetadata<?> creator = targetEntity.getInstanceCreatorMetadata();
+		PersistentEntity<?, ?> targetEntity = Objects.requireNonNull(context.getPersistentEntity(targetEntityType));
+		InstanceCreatorMetadata<?> creator = Objects.requireNonNull(targetEntity.getInstanceCreatorMetadata());
 
 		@SuppressWarnings({ "rawtypes", "unchecked" })
 		T entity = (T) context.getInstantiatorFor(targetEntity)
 				.createInstance(targetEntity, new ParameterValueProvider() {
 					@Override
+					@Nullable
 					public Object getParameterValue(Parameter parameter) {
-						PersistentProperty<?> targetProperty = targetEntity.getPersistentProperty(parameter.getName());
+						PersistentProperty<?> targetProperty = targetEntity.getPersistentProperty(Objects.requireNonNull(parameter.getName(), "Parameter names are not available"));
 						if (targetProperty == null) {
 							throw new MappingException("Cannot map constructor parameter " + parameter.getName()
 													   + " to a property of class " + targetEntityType);
@@ -105,6 +107,7 @@ public final class EntityFromDtoInstantiatingConverter<T> implements Converter<O
 		return entity;
 	}
 
+	@Nullable
 	Object getPropertyValueFor(PersistentProperty<?> targetProperty, PersistentEntity<?, ?> sourceEntity,
 			PersistentPropertyAccessor<?> sourceAccessor) {
 

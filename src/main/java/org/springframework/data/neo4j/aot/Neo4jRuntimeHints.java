@@ -15,6 +15,7 @@
  */
 package org.springframework.data.neo4j.aot;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.aot.hint.MemberCategory;
 import org.springframework.aot.hint.RuntimeHints;
 import org.springframework.aot.hint.RuntimeHintsRegistrar;
@@ -44,7 +45,7 @@ import java.util.Arrays;
 public class Neo4jRuntimeHints implements RuntimeHintsRegistrar {
 
 	@Override
-	public void registerHints(RuntimeHints hints, ClassLoader classLoader) {
+	public void registerHints(RuntimeHints hints, @Nullable ClassLoader classLoader) {
 
 		hints.reflection().registerTypes(
 				Arrays.asList(

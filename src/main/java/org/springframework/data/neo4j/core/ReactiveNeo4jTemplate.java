@@ -15,6 +15,29 @@
  */
 package org.springframework.data.neo4j.core;
 
+import static org.neo4j.cypherdsl.core.Cypher.anyNode;
+import static org.neo4j.cypherdsl.core.Cypher.asterisk;
+import static org.neo4j.cypherdsl.core.Cypher.parameter;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.BiFunction;
+import java.util.function.BiPredicate;
+import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+
 import org.apache.commons.logging.LogFactory;
 import org.apiguardian.api.API;
 import org.jspecify.annotations.Nullable;
@@ -27,7 +50,6 @@ import org.neo4j.cypherdsl.core.Statement;
 import org.neo4j.cypherdsl.core.renderer.Configuration;
 import org.neo4j.cypherdsl.core.renderer.Renderer;
 import org.neo4j.driver.Value;
-import org.neo4j.driver.Values;
 import org.neo4j.driver.types.Entity;
 import org.neo4j.driver.types.MapAccessor;
 import org.neo4j.driver.types.TypeSystem;
@@ -73,39 +95,16 @@ import org.springframework.data.neo4j.repository.query.QueryFragmentsAndParamete
 import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.projection.ProjectionInformation;
 import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
-import org.springframework.data.util.TypeInformation;
 import org.springframework.transaction.ReactiveTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.reactive.TransactionalOperator;
 import org.springframework.util.Assert;
+
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.util.function.Tuple2;
 import reactor.util.function.Tuple3;
 import reactor.util.function.Tuples;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.BiFunction;
-import java.util.function.BiPredicate;
-import java.util.function.Function;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
-
-import static org.neo4j.cypherdsl.core.Cypher.anyNode;
-import static org.neo4j.cypherdsl.core.Cypher.asterisk;
-import static org.neo4j.cypherdsl.core.Cypher.parameter;
 
 /**
  * @author Michael J. Simons
@@ -652,8 +651,7 @@ public final class ReactiveNeo4jTemplate implements
 	}
 
 	@Override
-	public <T> Mono<Void> deleteByIdWithVersion(Object id, Class<T> domainType, Neo4jPersistentProperty versionProperty,
-										  Object versionValue) {
+	public <T> Mono<Void> deleteByIdWithVersion(Object id, Class<T> domainType, Neo4jPersistentProperty versionProperty, @Nullable Object versionValue) {
 
 		String nameOfParameter = "id";
 		Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getRequiredPersistentEntity(domainType);

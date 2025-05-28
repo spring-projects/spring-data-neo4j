@@ -51,7 +51,6 @@ final class FluentOperationSupport implements FluentFindOperation, FluentSaveOpe
 
 		private final Neo4jTemplate template;
 		private final Class<?> domainType;
-		@Nullable
 		private final Class<T> returnType;
 		@Nullable
 		private final String query;
@@ -60,7 +59,7 @@ final class FluentOperationSupport implements FluentFindOperation, FluentSaveOpe
 		@Nullable
 		private final QueryFragmentsAndParameters queryFragmentsAndParameters;
 
-		ExecutableFindSupport(Neo4jTemplate template, Class<?> domainType, @Nullable Class<T> returnType, @Nullable String query,
+		ExecutableFindSupport(Neo4jTemplate template, Class<?> domainType, Class<T> returnType, @Nullable String query,
 				@Nullable Map<String, Object> parameters) {
 			this.template = template;
 			this.domainType = domainType;
@@ -70,7 +69,7 @@ final class FluentOperationSupport implements FluentFindOperation, FluentSaveOpe
 			this.queryFragmentsAndParameters = null;
 		}
 
-		ExecutableFindSupport(Neo4jTemplate template, Class<?> domainType, @Nullable Class<T> returnType, @Nullable QueryFragmentsAndParameters queryFragmentsAndParameters) {
+		ExecutableFindSupport(Neo4jTemplate template, Class<?> domainType, Class<T> returnType, @Nullable QueryFragmentsAndParameters queryFragmentsAndParameters) {
 			this.template = template;
 			this.domainType = domainType;
 			this.returnType = returnType;

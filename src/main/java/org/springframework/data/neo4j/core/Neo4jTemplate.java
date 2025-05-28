@@ -51,7 +51,6 @@ import org.neo4j.cypherdsl.core.Statement;
 import org.neo4j.cypherdsl.core.renderer.Configuration;
 import org.neo4j.cypherdsl.core.renderer.Renderer;
 import org.neo4j.driver.Value;
-import org.neo4j.driver.Values;
 import org.neo4j.driver.exceptions.NoSuchRecordException;
 import org.neo4j.driver.summary.ResultSummary;
 import org.neo4j.driver.types.Entity;
@@ -98,7 +97,6 @@ import org.springframework.data.neo4j.repository.query.QueryFragmentsAndParamete
 import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.projection.ProjectionInformation;
 import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
-import org.springframework.data.util.TypeInformation;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionException;
@@ -290,20 +288,20 @@ public final class Neo4jTemplate implements
 	}
 
 	@SuppressWarnings("unchecked")
-	<T, R> List<R> doFind(@Nullable String cypherQuery, @Nullable Map<String, Object> parameters, Class<T> domainType, @Nullable Class<R> resultType, TemplateSupport.FetchType fetchType, @Nullable QueryFragmentsAndParameters queryFragmentsAndParameters) {
+	<T, R> List<R> doFind(@Nullable String cypherQuery, @Nullable Map<String, Object> parameters, Class<T> domainType, Class<R> resultType, TemplateSupport.FetchType fetchType, @Nullable QueryFragmentsAndParameters queryFragmentsAndParameters) {
 
 		return executeReadOnly(tx -> {
-			List<T> intermediaResults = Collections.emptyList();
+			List<T> intermediaResults;
 			if (cypherQuery == null && queryFragmentsAndParameters == null && fetchType == TemplateSupport.FetchType.ALL) {
 				intermediaResults = doFindAll(domainType, resultType);
 			} else {
 				ExecutableQuery<T> executableQuery;
-				if (queryFragmentsAndParameters == null) {
+				if (queryFragmentsAndParameters == null && cypherQuery != null) {
 					executableQuery = createExecutableQuery(domainType, resultType, cypherQuery,
 							parameters == null ? Collections.emptyMap() : parameters,
 							true);
 				} else {
-					executableQuery = createExecutableQuery(domainType, resultType, queryFragmentsAndParameters, true);
+					executableQuery = createExecutableQuery(domainType, resultType, Objects.requireNonNull(queryFragmentsAndParameters), true);
 				}
 				intermediaResults = switch (fetchType) {
 					case ALL -> executableQuery.getResults();
@@ -670,7 +668,7 @@ public final class Neo4jTemplate implements
 
 	@Override
 	public <T> void deleteByIdWithVersion(Object id, Class<T> domainType, Neo4jPersistentProperty versionProperty,
-	                                      Object versionValue) {
+	                                      @Nullable Object versionValue) {
 
 		executeWithoutResult(tx -> {
 			Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getRequiredPersistentEntity(domainType);
@@ -847,7 +845,7 @@ public final class Neo4jTemplate implements
 						}
 
 						PersistentPropertyAccessor<?> relationshipPropertiesPropertyAccessor = relationshipContext.getRelationshipPropertiesPropertyAccessor(relatedValueToStore);
-						if(relationshipPropertiesPropertyAccessor == null) {
+						if (relationshipPropertiesPropertyAccessor == null) {
 							continue;
 						}
 						Object id = relationshipPropertiesPropertyAccessor.getProperty(idProperty);
@@ -1204,7 +1202,7 @@ public final class Neo4jTemplate implements
 	private <T> ExecutableQuery<T> createExecutableQuery(
 			Class<T> domainType,
 			@Nullable Class<?> resultType,
- 			@Nullable QueryFragmentsAndParameters queryFragmentsAndParameters,
+ 			QueryFragmentsAndParameters queryFragmentsAndParameters,
 			boolean readOnlyTransaction) {
 
 		Supplier<BiFunction<TypeSystem, MapAccessor, ?>> mappingFunction = TemplateSupport

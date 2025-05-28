@@ -72,7 +72,7 @@ final class ReactiveFluentOperationSupport implements ReactiveFluentFindOperatio
 			this.queryFragmentsAndParameters = null;
 		}
 
-		ExecutableFindSupport(ReactiveNeo4jTemplate template, Class<?> domainType, Class<T> returnType, QueryFragmentsAndParameters queryFragmentsAndParameters) {
+		ExecutableFindSupport(ReactiveNeo4jTemplate template, Class<?> domainType, Class<T> returnType, @Nullable QueryFragmentsAndParameters queryFragmentsAndParameters) {
 			this.template = template;
 			this.domainType = domainType;
 			this.returnType = returnType;

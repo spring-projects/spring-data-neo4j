@@ -19,6 +19,7 @@ import java.io.Serializable;
 
 import org.apiguardian.api.API;
 import org.jspecify.annotations.Nullable;
+import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.neo4j.core.Neo4jOperations;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.repository.Repository;
@@ -29,11 +30,11 @@ import org.springframework.data.repository.core.support.TransactionalRepositoryF
  * Special adapter for Springs {@link org.springframework.beans.factory.FactoryBean} interface to allow easy setup of
  * repository factories via Spring configuration.
  *
+ * @author Michael J. Simons
+ * @author Gerrit Meier
  * @param <T>  the type of the repository
  * @param <S>  type of the domain class to map
  * @param <ID> identifier type in the domain class
- * @author Michael J. Simons
- * @author Gerrit Meier
  * @since 6.0
  */
 @API(status = API.Status.INTERNAL, since = "6.0")
@@ -55,14 +56,14 @@ public final class Neo4jRepositoryFactoryBean<T extends Repository<S, ID>, S, ID
 		super(repositoryInterface);
 	}
 
-
 	public void setNeo4jOperations(@Nullable Neo4jOperations neo4jOperations) {
 		this.neo4jOperations = neo4jOperations;
 	}
 
-	public void setNeo4jMappingContext(Neo4jMappingContext neo4jMappingContext) {
-		super.setMappingContext(neo4jMappingContext);
-		this.neo4jMappingContext = neo4jMappingContext;
+	@Override
+	public void setMappingContext(MappingContext<?, ?> mappingContext) {
+		super.setMappingContext(mappingContext);
+		this.neo4jMappingContext = (Neo4jMappingContext) mappingContext;
 	}
 
 	@Override

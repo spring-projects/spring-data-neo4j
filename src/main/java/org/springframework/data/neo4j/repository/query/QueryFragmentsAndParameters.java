@@ -177,7 +177,7 @@ public final class QueryFragmentsAndParameters {
 		return new QueryFragmentsAndParameters(entityMetaData, queryFragments, Objects.requireNonNullElseGet(parameters, Map::of), null);
 	}
 
-	public static QueryFragmentsAndParameters forPageableAndSort(Neo4jPersistentEntity<?> neo4jPersistentEntity, Pageable pageable, Sort sort) {
+	public static QueryFragmentsAndParameters forPageableAndSort(Neo4jPersistentEntity<?> neo4jPersistentEntity, @Nullable Pageable pageable, @Nullable Sort sort) {
 
 		return getQueryFragmentsAndParameters(neo4jPersistentEntity, pageable, sort, null, null, null, Collections.emptyMap(), null, null, null);
 	}

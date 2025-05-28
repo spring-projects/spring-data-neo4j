@@ -20,6 +20,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import org.apiguardian.api.API;
 import org.jspecify.annotations.NonNull;
@@ -187,7 +188,8 @@ public final class NestedRelationshipContext {
 	private static Object getTargetNode(Neo4jPersistentEntity<?> relationshipPropertiesEntity, Object object) {
 
 		PersistentPropertyAccessor<Object> propertyAccessor = relationshipPropertiesEntity.getPropertyAccessor(object);
-		return propertyAccessor.getProperty(relationshipPropertiesEntity.getPersistentProperty(TargetNode.class));
+		var targetNodeProperty = Objects.requireNonNull(relationshipPropertiesEntity.getPersistentProperty(TargetNode.class), () -> "Could not get target node property on %s".formatted(relationshipPropertiesEntity.getType()));
+		return Objects.requireNonNull(propertyAccessor.getProperty(targetNodeProperty));
 
 	}
 }

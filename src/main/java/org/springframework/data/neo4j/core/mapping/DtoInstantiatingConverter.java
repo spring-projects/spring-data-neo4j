@@ -21,6 +21,7 @@ import java.util.function.Function;
 
 import org.apache.commons.logging.LogFactory;
 import org.apiguardian.api.API;
+import org.jspecify.annotations.Nullable;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.types.MapAccessor;
 import org.neo4j.driver.types.TypeSystem;
@@ -72,8 +73,7 @@ public final class DtoInstantiatingConverter implements Converter<EntityInstance
 		Neo4jPersistentEntity<?> sourceEntity = context.getRequiredPersistentEntity(entityInstance.getClass());
 		PersistentPropertyAccessor<Object> sourceAccessor = sourceEntity.getPropertyAccessor(entityInstance);
 
-		Neo4jPersistentEntity<?> targetEntity = context.addPersistentEntity(TypeInformation.of(targetType)).orElse(null);
-		Assert.notNull(targetEntity, "Target entity could not be created for a DTO");
+		Neo4jPersistentEntity<?> targetEntity = context.addPersistentEntity(TypeInformation.of(targetType)).orElseThrow(() -> new IllegalStateException("Target entity could not be created for a DTO"));
 		InstanceCreatorMetadata<?> creator = targetEntity.getInstanceCreatorMetadata();
 
 		Object dto = context.getInstantiatorFor(targetEntity)
@@ -97,6 +97,7 @@ public final class DtoInstantiatingConverter implements Converter<EntityInstance
 		return dto;
 	}
 
+	@Nullable
 	Object getPropertyValueDirectlyFor(PersistentProperty<?> targetProperty, PersistentEntity<?, ?> sourceEntity,
 							   PersistentPropertyAccessor<?> sourceAccessor) {
 
@@ -108,13 +109,14 @@ public final class DtoInstantiatingConverter implements Converter<EntityInstance
 		}
 
 		Object result = sourceAccessor.getProperty(sourceProperty);
-		if (targetProperty.isEntity() && !targetProperty.getTypeInformation().isAssignableFrom(sourceProperty.getTypeInformation())) {
+		if (result != null && targetProperty.isEntity() && !targetProperty.getTypeInformation().isAssignableFrom(sourceProperty.getTypeInformation())) {
 			return new DtoInstantiatingConverter(targetProperty.getType(), this.context).convertDirectly(result);
 		}
 		return result;
 	}
 
 	@Override
+	@Nullable
 	public Object convert(EntityInstanceWithSource entityInstanceAndSource) {
 
 		if (entityInstanceAndSource == null) {
@@ -173,7 +175,7 @@ public final class DtoInstantiatingConverter implements Converter<EntityInstance
 
 	private void setPropertyOnDtoObject(EntityInstanceWithSource entityInstanceAndSource,
 			PersistentEntity<?, ?> sourceEntity, PersistentPropertyAccessor<Object> sourceAccessor,
-			InstanceCreatorMetadata<?> creator, PersistentPropertyAccessor<Object> dtoAccessor,
+			@Nullable InstanceCreatorMetadata<?> creator, PersistentPropertyAccessor<Object> dtoAccessor,
 			Neo4jPersistentProperty property) {
 
 		if (creator != null && creator.isCreatorParameter(property)) {
@@ -184,6 +186,7 @@ public final class DtoInstantiatingConverter implements Converter<EntityInstance
 		dtoAccessor.setProperty(property, propertyValue);
 	}
 
+	@Nullable
 	Object getPropertyValueFor(Neo4jPersistentProperty targetProperty, PersistentEntity<?, ?> sourceEntity,
 			PersistentPropertyAccessor<?> sourceAccessor, EntityInstanceWithSource entityInstanceAndSource) {
 

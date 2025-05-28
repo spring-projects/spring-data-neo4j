@@ -23,8 +23,10 @@ import java.lang.annotation.Target;
 import java.util.Date;
 
 import org.apiguardian.api.API;
+import org.jspecify.annotations.Nullable;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
+import org.neo4j.driver.types.TypeSystem;
 import org.springframework.data.neo4j.core.convert.ConvertWith;
 import org.springframework.data.neo4j.core.convert.Neo4jPersistentPropertyConverter;
 
@@ -47,12 +49,13 @@ public @interface DateLong {
 final class DateLongConverter implements Neo4jPersistentPropertyConverter<Date> {
 
 	@Override
-	public Value write(Date source) {
-		return Values.value(source.getTime());
+	public Value write(@Nullable Date source) {
+		return source == null ? Values.NULL : Values.value(source.getTime());
 	}
 
 	@Override
-	public Date read(Value source) {
-		return new Date(source.asLong());
+	@Nullable
+	public Date read(@Nullable Value source) {
+		return source == null || TypeSystem.getDefault().NULL().isTypeOf(source) ? null : new Date(source.asLong());
 	}
 }

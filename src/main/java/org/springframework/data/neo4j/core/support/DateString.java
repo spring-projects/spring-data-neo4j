@@ -29,6 +29,7 @@ import org.apiguardian.api.API;
 import org.jspecify.annotations.Nullable;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
+import org.neo4j.driver.types.TypeSystem;
 import org.springframework.core.annotation.AliasFor;
 import org.springframework.data.neo4j.core.convert.ConvertWith;
 import org.springframework.data.neo4j.core.convert.Neo4jPersistentPropertyConverterFactory;
@@ -106,9 +107,10 @@ final class DateStringConverter implements Neo4jPersistentPropertyConverter<Date
 	}
 
 	@Override
-	public Date read(Value source) {
+	@Nullable
+	public Date read(@Nullable Value source) {
 		try {
-			return getFormat().parse(source.asString());
+			return source == null || TypeSystem.getDefault().NULL().isTypeOf(source) ? null : getFormat().parse(source.asString());
 		} catch (ParseException e) {
 			throw new RuntimeException(e);
 		}

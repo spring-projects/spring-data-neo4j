@@ -23,6 +23,7 @@ import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 
 import org.apiguardian.api.API;
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.mapping.Association;
 import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.neo4j.core.schema.TargetNode;
@@ -63,7 +64,7 @@ public final class PropertyTraverser {
 
 	private void traverseImpl(
 			Neo4jPersistentEntity<?> root,
-			PropertyPath base,
+			@Nullable PropertyPath base,
 			BiPredicate<PropertyPath, Neo4jPersistentProperty> predicate,
 			BiConsumer<PropertyPath, Neo4jPersistentProperty> sink,
 			boolean pathAlreadyVisited

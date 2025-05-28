@@ -275,7 +275,7 @@ public interface Neo4jOperations {
 	 */
 	<T> void deleteById(Object id, Class<T> domainType);
 
-	<T> void deleteByIdWithVersion(Object id, Class<T> domainType, Neo4jPersistentProperty versionProperty, Object versionValue);
+	<T> void deleteByIdWithVersion(Object id, Class<T> domainType, Neo4jPersistentProperty versionProperty, @Nullable Object versionValue);
 
 	/**
 	 * Deletes all entities with one of the given ids, including all entities related to that entity.

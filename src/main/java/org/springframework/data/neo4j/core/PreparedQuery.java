@@ -117,7 +117,7 @@ public final class PreparedQuery<T> {
 			return new OptionalBuildSteps<>(resultType, new QueryFragmentsAndParameters(cypherQuery));
 		}
 
-		public OptionalBuildSteps<CT> withQueryFragmentsAndParameters(@Nullable QueryFragmentsAndParameters queryFragmentsAndParameters) {
+		public OptionalBuildSteps<CT> withQueryFragmentsAndParameters(QueryFragmentsAndParameters queryFragmentsAndParameters) {
 			return new OptionalBuildSteps<>(resultType, queryFragmentsAndParameters);
 		}
 	}
@@ -129,12 +129,11 @@ public final class PreparedQuery<T> {
 	public static class OptionalBuildSteps<CT> {
 
 		final Class<CT> resultType;
-		@Nullable
 		final QueryFragmentsAndParameters queryFragmentsAndParameters;
 		@Nullable
 		Supplier<BiFunction<TypeSystem, MapAccessor, ?>> mappingFunctionSupplier;
 
-		OptionalBuildSteps(Class<CT> resultType, @Nullable QueryFragmentsAndParameters queryFragmentsAndParameters) {
+		OptionalBuildSteps(Class<CT> resultType, QueryFragmentsAndParameters queryFragmentsAndParameters) {
 			this.resultType = resultType;
 			this.queryFragmentsAndParameters = queryFragmentsAndParameters;
 		}

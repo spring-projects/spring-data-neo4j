@@ -235,7 +235,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 
 		Neo4jPersistentEntity<?> nodeDescription = (Neo4jPersistentEntity<?>) nodeDescriptionStore
 				.getNodeDescription(source.getClass());
-		if(nodeDescription == null) {
+		if (nodeDescription == null) {
 			return;
 		}
 
@@ -600,7 +600,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 
 			Object propertyValue = propertyAccessor.getProperty(persistentProperty);
 
-			if(propertyValue != null) {
+			if (propertyValue != null) {
 
 				boolean populatedCollection = objectAlreadyMapped && persistentProperty.isCollectionLike() && !((Collection<?>) propertyValue).isEmpty();
 				boolean populatedMap = objectAlreadyMapped && persistentProperty.isMap() && !((Map<?, ?>) propertyValue).isEmpty();

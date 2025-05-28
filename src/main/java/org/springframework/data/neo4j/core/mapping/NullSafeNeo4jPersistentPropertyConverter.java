@@ -15,6 +15,7 @@
  */
 package org.springframework.data.neo4j.core.mapping;
 
+import org.jspecify.annotations.Nullable;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
 import org.springframework.data.neo4j.core.convert.Neo4jPersistentPropertyConverter;
@@ -52,7 +53,7 @@ final class NullSafeNeo4jPersistentPropertyConverter<T> implements Neo4jPersiste
 	}
 
 	@Override
-	public Value write(T source) {
+	public Value write(@Nullable T source) {
 		if (source == null) {
 			return passNullOnWrite ? delegate.write(source) : Values.NULL;
 		}
@@ -60,7 +61,8 @@ final class NullSafeNeo4jPersistentPropertyConverter<T> implements Neo4jPersiste
 	}
 
 	@Override
-	public T read(Value source) {
+	@Nullable
+	public T read(@Nullable Value source) {
 		return source == null || source.isNull() ? null : delegate.read(source);
 	}
 

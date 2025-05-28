@@ -80,7 +80,7 @@ public @interface ConvertWith {
 
 		@Override
 		@Nullable
-		public Object read(Value source) {
+		public Object read(@Nullable Value source) {
 			return null;
 		}
 	}

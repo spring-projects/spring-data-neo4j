@@ -349,7 +349,7 @@ public final class NestedRelationshipProcessingStateMachine {
 						var requiredIdUpdate = t.getT1();
 						PersistentPropertyAccessor<?> relationshipPropertiesPropertyAccessor = requiredIdUpdate.relationshipContext()
 								.getRelationshipPropertiesPropertyAccessor(requiredIdUpdate.relatedValueToStore());
-						if(relationshipPropertiesPropertyAccessor != null && requiredIdUpdate.idProperty() != null) {
+						if (relationshipPropertiesPropertyAccessor != null && requiredIdUpdate.idProperty() != null) {
 							relationshipPropertiesPropertyAccessor.setProperty(requiredIdUpdate.idProperty(), t.getT2());
 							requiresIdUpdate.remove(requiredIdUpdate);
 						}

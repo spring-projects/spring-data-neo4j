@@ -16,6 +16,7 @@
 package org.springframework.data.neo4j.core;
 
 import org.apiguardian.api.API;
+import org.springframework.data.mapping.PersistentProperty;
 import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.neo4j.core.mapping.GraphPropertyDescription;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
@@ -32,6 +33,7 @@ import java.beans.PropertyDescriptor;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Optional;
 
 /**
  * This class is responsible for creating a List of {@link PropertyPath} entries that contains all reachable
@@ -84,7 +86,7 @@ public final class PropertyFilterSupport {
 				// try to figure out the right property by name
 				for (GraphPropertyDescription graphProperty : domainEntity.getGraphProperties()) {
 					if (graphProperty.getPropertyName().equals(inputProperty.getName())) {
-						typeInformation = domainEntity.getPersistentProperty(graphProperty.getFieldName()).getTypeInformation();
+						typeInformation = Optional.ofNullable(domainEntity.getPersistentProperty(graphProperty.getFieldName())).map(PersistentProperty::getTypeInformation).orElse(null);
 						break;
 					}
 				}
@@ -92,13 +94,15 @@ public final class PropertyFilterSupport {
 				if (typeInformation == null) {
 					for (RelationshipDescription relationshipDescription : domainEntity.getRelationships()) {
 						if (relationshipDescription.getFieldName().equals(inputProperty.getName())) {
-							typeInformation = domainEntity.getPersistentProperty(relationshipDescription.getFieldName()).getTypeInformation();
+							typeInformation = Optional.ofNullable(domainEntity.getPersistentProperty(relationshipDescription.getFieldName())).map(PersistentProperty::getTypeInformation).orElse(null);
 							break;
 						}
 					}
 				}
 			}
-			addPropertiesFrom(domainType, returnType, projectionFactory, propertyPaths, new ProjectionPathProcessor(inputProperty.getName(), typeInformation), neo4jMappingContext);
+			if (typeInformation != null) {
+				addPropertiesFrom(domainType, returnType, projectionFactory, propertyPaths, new ProjectionPathProcessor(inputProperty.getName(), typeInformation), neo4jMappingContext);
+			}
 		}
 		return propertyPaths;
 	}

@@ -19,6 +19,7 @@ import java.io.Serializable;
 
 import org.apiguardian.api.API;
 import org.jspecify.annotations.Nullable;
+import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.neo4j.core.ReactiveNeo4jOperations;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.repository.Repository;
@@ -59,9 +60,10 @@ public final class ReactiveNeo4jRepositoryFactoryBean<T extends Repository<S, ID
 		this.neo4jOperations = neo4jOperations;
 	}
 
-	public void setNeo4jMappingContext(Neo4jMappingContext neo4jMappingContext) {
-		super.setMappingContext(neo4jMappingContext);
-		this.neo4jMappingContext = neo4jMappingContext;
+	@Override
+	public void setMappingContext(MappingContext<?, ?> mappingContext) {
+		super.setMappingContext(mappingContext);
+		this.neo4jMappingContext = (Neo4jMappingContext) mappingContext;
 	}
 
 	@Override

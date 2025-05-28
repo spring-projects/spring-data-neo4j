@@ -17,6 +17,7 @@ package org.springframework.data.neo4j.repository.query;
 
 import static org.neo4j.cypherdsl.core.Cypher.asterisk;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -109,7 +110,7 @@ public final class ReactiveQuerydslNeo4jPredicateExecutor<T> implements Reactive
 		return doFindAll(Cypher.noCondition(), Arrays.asList(QuerydslNeo4jPredicateExecutor.toSortItems(orders)));
 	}
 
-	private Flux<T> doFindAll(Condition condition, Collection<SortItem> sortItems) {
+	private Flux<T> doFindAll(Condition condition, @Nullable Collection<SortItem> sortItems) {
 		return this.neo4jOperations.toExecutableQuery(
 				this.metaData.getType(),
 				QueryFragmentsAndParameters.forConditionAndSortItems(this.metaData, condition,

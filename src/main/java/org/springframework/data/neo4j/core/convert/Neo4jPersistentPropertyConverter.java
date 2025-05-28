@@ -41,5 +41,5 @@ public interface Neo4jPersistentPropertyConverter<T> {
 	 * @param source The value to read, never null or {@link org.neo4j.driver.Values#NULL}
 	 * @return The converted value, maybe null if {@code source} was equals to {@link org.neo4j.driver.Values#NULL}.
 	 */
-	@Nullable T read(Value source);
+	@Nullable T read(@Nullable Value source);
 }

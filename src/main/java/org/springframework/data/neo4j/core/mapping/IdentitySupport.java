@@ -59,6 +59,7 @@ public final class IdentitySupport {
 	 * @param row A query result row
 	 * @return An internal id
 	 */
+	@Nullable
 	public static String getElementId(MapAccessor row) {
 		if (row instanceof Entity entity) {
 			return getElementId(entity);
@@ -75,7 +76,9 @@ public final class IdentitySupport {
 		return value.asString();
 	}
 
+	@SuppressWarnings("DeprecatedIsStillUsed")
 	@Deprecated
+	@Nullable
 	public static Long getInternalId(MapAccessor row) {
 		if (row instanceof Entity entity) {
 			return entity.id();

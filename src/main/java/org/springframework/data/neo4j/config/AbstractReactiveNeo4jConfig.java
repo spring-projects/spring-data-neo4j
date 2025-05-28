@@ -16,6 +16,7 @@
 package org.springframework.data.neo4j.config;
 
 import org.apiguardian.api.API;
+import org.jspecify.annotations.Nullable;
 import org.neo4j.driver.Driver;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -77,6 +78,7 @@ public abstract class AbstractReactiveNeo4jConfig extends Neo4jConfigurationSupp
 		return this.bookmarkManagerProviders.getIfAvailable(Neo4jBookmarkManager::createReactive);
 	}
 
+	@Nullable
 	private ReactiveUserSelectionProvider getUserSelectionProvider() {
 		return this.userSelectionProviders == null ? null : this.userSelectionProviders.getIfUnique();
 	}
