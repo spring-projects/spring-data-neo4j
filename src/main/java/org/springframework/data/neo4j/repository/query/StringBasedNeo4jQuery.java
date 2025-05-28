@@ -25,6 +25,7 @@ import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 import java.util.regex.Pattern;
 
+import org.jspecify.annotations.Nullable;
 import org.neo4j.driver.types.MapAccessor;
 import org.neo4j.driver.types.TypeSystem;
 import org.springframework.data.domain.Pageable;
@@ -170,8 +171,8 @@ final class StringBasedNeo4jQuery extends AbstractNeo4jQuery {
 
 	@Override
 	protected <T extends Object> PreparedQuery<T> prepareQuery(Class<T> returnedType, Collection<PropertyFilter.ProjectedPath> includedProperties,
-			Neo4jParameterAccessor parameterAccessor, Neo4jQueryType queryType,
-			Supplier<BiFunction<TypeSystem, MapAccessor, ?>> mappingFunction,
+			Neo4jParameterAccessor parameterAccessor, @Nullable Neo4jQueryType queryType,
+			@Nullable Supplier<BiFunction<TypeSystem, MapAccessor, ?>> mappingFunction,
 			UnaryOperator<Integer> limitModifier
 	) {
 

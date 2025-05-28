@@ -22,6 +22,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.apiguardian.api.API;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.annotation.ReadOnlyProperty;
 import org.springframework.data.mapping.Association;
 import org.springframework.data.mapping.MappingException;
@@ -80,10 +82,9 @@ public final class NestedRelationshipContext {
 
 	public Object identifyAndExtractRelationshipTargetNode(Object relatedValue) {
 		Object valueToBeSaved = relatedValue;
-		if (relatedValue instanceof Map.Entry) {
-			Map.Entry<?, ?> relatedValueMapEntry = (Map.Entry<?, ?>) relatedValue;
+		if (relatedValue instanceof Map.Entry<?, ?> relatedValueMapEntry) {
 			if (this.hasRelationshipWithProperties()) {
-				Object mapValue = ((Map.Entry<?, ?>) relatedValue).getValue();
+				Object mapValue = relatedValueMapEntry.getValue();
 				// it can be either a scalar entity holder or a list of it
 				mapValue = mapValue instanceof List ? ((List<?>) mapValue).get(0) : mapValue;
 				valueToBeSaved = ((MappingSupport.RelationshipPropertiesWithEntityHolder) mapValue).getRelatedEntity();
@@ -98,6 +99,7 @@ public final class NestedRelationshipContext {
 		return valueToBeSaved;
 	}
 
+	@Nullable
 	public PersistentPropertyAccessor<?> getRelationshipPropertiesPropertyAccessor(Object relatedValue) {
 
 		if (!this.hasRelationshipWithProperties() || relatedValue == null) {
@@ -113,7 +115,7 @@ public final class NestedRelationshipContext {
 		}
 	}
 
-	public static NestedRelationshipContext of(Association<Neo4jPersistentProperty> handler,
+	public static NestedRelationshipContext of(Association<@NonNull Neo4jPersistentProperty> handler,
 			PersistentPropertyAccessor<?> propertyAccessor, Neo4jPersistentEntity<?> neo4jPersistentEntity) {
 
 		Neo4jPersistentProperty inverse = handler.getInverse();

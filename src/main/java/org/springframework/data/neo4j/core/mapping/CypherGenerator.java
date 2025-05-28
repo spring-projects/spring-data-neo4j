@@ -506,7 +506,7 @@ public enum CypherGenerator {
 	}
 
 	public Statement prepareSaveOfRelationships(Neo4jPersistentEntity<?> neo4jPersistentEntity,
-			RelationshipDescription relationship, String dynamicRelationshipType, boolean canUseElementId) {
+			RelationshipDescription relationship, @Nullable String dynamicRelationshipType, boolean canUseElementId) {
 
 		final Node startNode = neo4jPersistentEntity.isUsingInternalIds()
 				? anyNode(START_NODE_NAME)
@@ -517,7 +517,7 @@ public enum CypherGenerator {
 
 		String type = relationship.isDynamic() ? dynamicRelationshipType : relationship.getType();
 		Relationship relationshipFragment = (relationship.isOutgoing() ?
-				startNode.relationshipTo(endNode, type) :
+				startNode.relationshipTo(endNode, type) : // CypherDSL is fine with a null type
 				startNode.relationshipFrom(endNode, type)).named(RELATIONSHIP_NAME);
 
 		String row = "relationship";
@@ -536,7 +536,7 @@ public enum CypherGenerator {
 	public Statement prepareSaveOfRelationshipWithProperties(Neo4jPersistentEntity<?> neo4jPersistentEntity,
 				 RelationshipDescription relationship,
 				 boolean isNew,
-				 String dynamicRelationshipType,
+				 @Nullable String dynamicRelationshipType,
 				 boolean canUseElementId,
 				 boolean matchOnly) {
 
@@ -680,7 +680,7 @@ public enum CypherGenerator {
 	 * @return An optional order clause. Will be {@literal null} on sorts that are {@literal null} or unsorted.
 	 */
 	@Nullable
-	public String createOrderByFragment(Sort sort) {
+	public String createOrderByFragment(@Nullable Sort sort) {
 
 		if (sort == null || sort.isUnsorted()) {
 			return null;

@@ -406,7 +406,12 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 		if (this.beanFactory == null) {
 			idGenerator = BeanUtils.instantiateClass(t);
 		} else {
-			idGenerator = this.beanFactory.getBeanProvider(t).getIfUnique(() -> this.beanFactory.createBean(t));
+			idGenerator = this.beanFactory.getBeanProvider(t).getIfUnique(() -> {
+				// The beanFactory can't actually be reassigned, so doing a whole double lock check is a bit overkill
+				@SuppressWarnings("NullAway")
+				var result = this.beanFactory.createBean(t);
+				return result;
+			});
 		}
 		return idGenerator;
 	}
@@ -498,10 +503,10 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 			} else {
 				converterClass = customConverter.getClass();
 			}
-			Map<String, Type> typeVariableMap = GenericTypeResolver.getTypeVariableMap(converterClass)
+			Map<String, Type> typeVariableMap = (converterClass != null) ? GenericTypeResolver.getTypeVariableMap(converterClass)
 					.entrySet()
 					.stream()
-					.collect(Collectors.toMap(e -> e.getKey().getName(), Map.Entry::getValue));
+					.collect(Collectors.toMap(e -> e.getKey().getName(), Map.Entry::getValue)) : Map.of();
 			Type propertyType = null;
 			if (typeVariableMap.containsKey("T")) {
 				propertyType = typeVariableMap.get("T");
@@ -586,7 +591,7 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 
 	private CreateRelationshipStatementHolder createStatementForRelationshipWithProperties(
 			Neo4jPersistentEntity<?> neo4jPersistentEntity,
-			RelationshipDescription relationshipDescription, String dynamicRelationshipType,
+			RelationshipDescription relationshipDescription, @Nullable String dynamicRelationshipType,
 			MappingSupport.RelationshipPropertiesWithEntityHolder relatedValue, boolean isNewRelationship, boolean canUseElementId) {
 
 		Statement relationshipCreationQuery = CypherGenerator.INSTANCE.prepareSaveOfRelationshipWithProperties(
@@ -687,9 +692,10 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 
 		private final Method method;
 
+		@Nullable
 		private final Field delegate;
 
-		MethodHolder(Method method, Field delegate) {
+		MethodHolder(Method method, @Nullable Field delegate) {
 			this.method = method;
 			this.delegate = delegate;
 		}
@@ -704,7 +710,7 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 			ReflectionUtils.invokeMethod(method, getInstanceOrDelegate(instance, delegate));
 		}
 
-		static Object getInstanceOrDelegate(Object instance, Field delegateHolder) {
+		static Object getInstanceOrDelegate(Object instance, @Nullable Field delegateHolder) {
 			if (delegateHolder == null) {
 				return instance;
 			} else {

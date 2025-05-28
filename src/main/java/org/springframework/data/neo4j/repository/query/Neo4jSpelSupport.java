@@ -24,7 +24,9 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.apiguardian.api.API;
+import org.jspecify.annotations.Nullable;
 import org.neo4j.cypherdsl.support.schema_name.SchemaNames;
+import org.springframework.core.env.StandardEnvironment;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.expression.ValueEvaluationContext;
@@ -61,6 +63,7 @@ public final class Neo4jSpelSupport {
 	 * @param arg The {@link Sort sort object} to order the result set of the final query.
 	 * @return A literal replacement for a SpEL placeholder
 	 */
+	@Nullable
 	public static LiteralReplacement orderBy(Object arg) {
 
 		Sort sort = null;
@@ -160,7 +163,7 @@ public final class Neo4jSpelSupport {
 
 		private static final StampedLock LOCK = new StampedLock();
 
-		static LiteralReplacement withTargetAndValue(LiteralReplacement.Target target, String value) {
+		static LiteralReplacement withTargetAndValue(LiteralReplacement.Target target, @Nullable String value) {
 
 			String valueUsed = value == null ? "" : value;
 			String key = target.name() + "_" + valueUsed;
@@ -239,7 +242,7 @@ public final class Neo4jSpelSupport {
 			return query;
 		}
 
-		ValueEvaluationContext evalContext = ValueEvaluationContext.of(null, new StandardEvaluationContext());
+		ValueEvaluationContext evalContext = ValueEvaluationContext.of(new StandardEnvironment(), new StandardEvaluationContext());
 		Neo4jPersistentEntity<?> requiredPersistentEntity = mappingContext
 				.getRequiredPersistentEntity(metadata.getJavaType());
 		evalContext.getEvaluationContext().setVariable(ENTITY_NAME, requiredPersistentEntity.getStaticLabels()

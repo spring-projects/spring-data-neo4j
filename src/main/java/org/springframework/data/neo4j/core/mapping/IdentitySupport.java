@@ -89,7 +89,8 @@ public final class IdentitySupport {
 		return row.get(columnToUse).asLong();
 	}
 
-	public static String getPrefixedElementId(MapAccessor queryResult, String seed) {
+	@Nullable
+	public static String getPrefixedElementId(MapAccessor queryResult, @Nullable String seed) {
 		if (queryResult instanceof Node) {
 			return "N" + getElementId(queryResult);
 		} else if (queryResult instanceof Relationship) {

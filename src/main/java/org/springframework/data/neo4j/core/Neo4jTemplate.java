@@ -862,7 +862,11 @@ public final class Neo4jTemplate implements
 							continue;
 						}
 
-						Object id = relationshipContext.getRelationshipPropertiesPropertyAccessor(relatedValueToStore).getProperty(idProperty);
+						PersistentPropertyAccessor<?> relationshipPropertiesPropertyAccessor = relationshipContext.getRelationshipPropertiesPropertyAccessor(relatedValueToStore);
+						if(relationshipPropertiesPropertyAccessor == null) {
+							continue;
+						}
+						Object id = relationshipPropertiesPropertyAccessor.getProperty(idProperty);
 						if (id != null) {
 							knownRelationshipsIds.add(id);
 						}

@@ -15,6 +15,7 @@
  */
 package org.springframework.data.neo4j.core;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -73,12 +74,16 @@ public interface ReactiveNeo4jClient {
 
 		final Driver driver;
 
+		@Nullable
 		ReactiveDatabaseSelectionProvider databaseSelectionProvider;
 
+		@Nullable
 		ReactiveUserSelectionProvider impersonatedUserProvider;
 
+		@Nullable
 		Neo4jConversions neo4jConversions;
 
+		@Nullable
 		Neo4jBookmarkManager bookmarkManager;
 
 		private Builder(Driver driver) {
@@ -93,7 +98,7 @@ public interface ReactiveNeo4jClient {
 		 * @param databaseSelectionProvider The database selection provider
 		 * @return The builder
 		 */
-		public Builder withDatabaseSelectionProvider(ReactiveDatabaseSelectionProvider databaseSelectionProvider) {
+		public Builder withDatabaseSelectionProvider(@Nullable ReactiveDatabaseSelectionProvider databaseSelectionProvider) {
 			this.databaseSelectionProvider = databaseSelectionProvider;
 			return this;
 		}
@@ -106,7 +111,7 @@ public interface ReactiveNeo4jClient {
 		 * @param impersonatedUserProvider The provider for impersonated users
 		 * @return The builder
 		 */
-		public Builder withUserSelectionProvider(ReactiveUserSelectionProvider impersonatedUserProvider) {
+		public Builder withUserSelectionProvider(@Nullable ReactiveUserSelectionProvider impersonatedUserProvider) {
 			this.impersonatedUserProvider = impersonatedUserProvider;
 			return this;
 		}
@@ -118,7 +123,7 @@ public interface ReactiveNeo4jClient {
 		 * @return The builder
 		 * @since 6.3.3
 		 */
-		public Builder withNeo4jConversions(Neo4jConversions neo4jConversions) {
+		public Builder withNeo4jConversions(@Nullable Neo4jConversions neo4jConversions) {
 			this.neo4jConversions = neo4jConversions;
 			return this;
 		}
@@ -132,7 +137,7 @@ public interface ReactiveNeo4jClient {
 		 * @return The builder
 		 * @since 7.1.2
 		 */
-		public Builder withNeo4jBookmarkManager(Neo4jBookmarkManager bookmarkManager) {
+		public Builder withNeo4jBookmarkManager(@Nullable Neo4jBookmarkManager bookmarkManager) {
 			this.bookmarkManager = bookmarkManager;
 			return this;
 		}
