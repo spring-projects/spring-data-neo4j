@@ -129,6 +129,7 @@ final class FetchableFluentQueryByPredicate<S, R> extends FluentQuerySupport<R> 
 	}
 
 	@Override
+	@Nullable
 	public R oneValue() {
 
 		return findOperation.find(metaData.getType())

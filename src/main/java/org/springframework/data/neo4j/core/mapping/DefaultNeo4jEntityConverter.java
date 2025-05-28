@@ -115,7 +115,10 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 
 		@SuppressWarnings("unchecked") // ¯\_(ツ)_/¯
 		Neo4jPersistentEntity<R> rootNodeDescription = Objects.requireNonNull((Neo4jPersistentEntity<R>) nodeDescriptionStore.getNodeDescription(targetType), () -> "Can't read an entity of type %s without description".formatted(targetType));
-		MapAccessor queryRoot = Objects.requireNonNull(determineQueryRoot(mapAccessor, rootNodeDescription, true), () -> "Could not determine query root for target type %s".formatted(targetType));
+		MapAccessor queryRoot = determineQueryRoot(mapAccessor, rootNodeDescription, true);
+		if (queryRoot == null) {
+			throw new IllegalStateException("No query root");
+		}
 
 		try {
 			return map(queryRoot, queryRoot, rootNodeDescription);
@@ -373,7 +376,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 			populateProperties(queryResult, (Neo4jPersistentEntity<ET>) genericTargetNodeDescription, nodeDescription, internalId, mappedObject, lastMappedEntity, relationshipsFromResult, nodesFromResult, true);
 		}
 		// due to a needed side effect in `populateProperties`, the entity might have been changed
-		return getMostCurrentInstance(internalId, mappedObject);
+		return Objects.requireNonNull(getMostCurrentInstance(internalId, mappedObject), "Could not get mapped instance for internal id %s".formatted(internalId));
 	}
 
 	private boolean hasMoreFields(Map<String, Object> currentQueryResult, Set<Map<String, Object>> savedQueryResults) {
@@ -396,7 +399,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 		return (ET) (internalId != null && knownObjects.getObject(internalId) != null ? knownObjects.getObject(internalId) : fallbackInstance);
 	}
 
-	private <ET> void populateProperties(MapAccessor queryResult, Neo4jPersistentEntity<ET> baseNodeDescription, Neo4jPersistentEntity<ET> moreConcreteNodeDescription, String internalId,
+	private <ET> void populateProperties(MapAccessor queryResult, Neo4jPersistentEntity<ET> baseNodeDescription, Neo4jPersistentEntity<ET> moreConcreteNodeDescription, @Nullable String internalId,
 										 ET mappedObject, @Nullable Object lastMappedEntity,
 										 @Nullable Collection<Relationship> relationshipsFromResult, Collection<Node> nodesFromResult, boolean objectAlreadyMapped) {
 
@@ -413,12 +416,14 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 		}
 
 		PersistentPropertyAccessor<ET> propertyAccessor = concreteNodeDescription.getPropertyAccessor(mappedObject);
-		Predicate<Neo4jPersistentProperty> isConstructorParameter = concreteNodeDescription
-				.getInstanceCreatorMetadata()::isCreatorParameter;
+		Predicate<Neo4jPersistentProperty> isConstructorParameter = parameter -> {
+			var metadata = concreteNodeDescription.getInstanceCreatorMetadata();
+			return metadata != null && metadata.isCreatorParameter(parameter);
+		};
 
 		boolean isKotlinType = KotlinDetector.isKotlinType(concreteNodeDescription.getType());
 		// Fill simple properties
-		PropertyHandler<Neo4jPersistentProperty> handler = populateFrom(queryResult, propertyAccessor,
+		PropertyHandler<@NonNull Neo4jPersistentProperty> handler = populateFrom(queryResult, propertyAccessor,
 				isConstructorParameter, nodeDescriptionAndLabels.getDynamicLabels(), lastMappedEntity, isKotlinType, objectAlreadyMapped);
 		PropertyHandlerSupport.of(concreteNodeDescription).doWithProperties(handler);
 		// in a cyclic graph / with bidirectional relationships, we could end up in a state in which we
@@ -494,6 +499,7 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 			@SuppressWarnings("unchecked")
 			// Needed for the last cast. It's easier that way than using the parameter type info and checking for primitives
 			@Override
+			@Nullable
 			public <T> T getParameterValue(Parameter<T, @NonNull Neo4jPersistentProperty> parameter) {
 				Neo4jPersistentProperty matchingProperty = nodeDescription.getRequiredPersistentProperty(Objects.requireNonNull(parameter.getName(), "Parameter names are not available"));
 
@@ -1075,17 +1081,22 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 			internalCurrentRecord.clear();
 		}
 
-		private void mappedWithQueryResult(String internalId, MapAccessor queryResult) {
-			try {
-				write.lock();
-				mappedQueryResults.computeIfAbsent(internalId, id -> ConcurrentHashMap.newKeySet())
-						.add(queryResult.asMap());
-			} finally {
-				write.unlock();
+		private void mappedWithQueryResult(@Nullable String internalId, MapAccessor queryResult) {
+			if (internalId != null) {
+				try {
+					write.lock();
+					mappedQueryResults.computeIfAbsent(internalId, id -> ConcurrentHashMap.newKeySet())
+							.add(queryResult.asMap());
+				} finally {
+					write.unlock();
+				}
 			}
 		}
 
-		private Set<Map<String, Object>> getQueryResultsFor(String internalId) {
+		private Set<Map<String, Object>> getQueryResultsFor(@Nullable String internalId) {
+			if (internalId == null) {
+				return Set.of();
+			}
 			try {
 				read.lock();
 				return Objects.requireNonNullElseGet(mappedQueryResults.get(internalId), Set::of);

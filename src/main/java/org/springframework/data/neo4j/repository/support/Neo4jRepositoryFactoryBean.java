@@ -18,6 +18,7 @@ package org.springframework.data.neo4j.repository.support;
 import java.io.Serializable;
 
 import org.apiguardian.api.API;
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.neo4j.core.Neo4jOperations;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.repository.Repository;
@@ -28,19 +29,21 @@ import org.springframework.data.repository.core.support.TransactionalRepositoryF
  * Special adapter for Springs {@link org.springframework.beans.factory.FactoryBean} interface to allow easy setup of
  * repository factories via Spring configuration.
  *
+ * @param <T>  the type of the repository
+ * @param <S>  type of the domain class to map
+ * @param <ID> identifier type in the domain class
  * @author Michael J. Simons
  * @author Gerrit Meier
- * @param <T> the type of the repository
- * @param <S> type of the domain class to map
- * @param <ID> identifier type in the domain class
  * @since 6.0
  */
 @API(status = API.Status.INTERNAL, since = "6.0")
 public final class Neo4jRepositoryFactoryBean<T extends Repository<S, ID>, S, ID extends Serializable>
 		extends TransactionalRepositoryFactoryBeanSupport<T, S, ID> {
 
+	@Nullable
 	private Neo4jOperations neo4jOperations;
 
+	@Nullable
 	private Neo4jMappingContext neo4jMappingContext;
 
 	/**
@@ -48,11 +51,12 @@ public final class Neo4jRepositoryFactoryBean<T extends Repository<S, ID>, S, ID
 	 *
 	 * @param repositoryInterface must not be {@literal null}.
 	 */
-	protected Neo4jRepositoryFactoryBean(Class<? extends T> repositoryInterface) {
+	Neo4jRepositoryFactoryBean(Class<? extends T> repositoryInterface) {
 		super(repositoryInterface);
 	}
 
-	public void setNeo4jOperations(Neo4jOperations neo4jOperations) {
+
+	public void setNeo4jOperations(@Nullable Neo4jOperations neo4jOperations) {
 		this.neo4jOperations = neo4jOperations;
 	}
 
@@ -63,6 +67,9 @@ public final class Neo4jRepositoryFactoryBean<T extends Repository<S, ID>, S, ID
 
 	@Override
 	protected RepositoryFactorySupport doCreateRepositoryFactory() {
+		if (this.neo4jOperations == null || this.neo4jMappingContext == null) {
+			throw new IllegalStateException("Repository factory bean has not been configured properly, both Neo4j operations and mapping context are required");
+		}
 		return new Neo4jRepositoryFactory(neo4jOperations, neo4jMappingContext);
 	}
 }

@@ -26,6 +26,7 @@ import java.util.Date;
 import java.util.TimeZone;
 
 import org.apiguardian.api.API;
+import org.jspecify.annotations.Nullable;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
 import org.springframework.core.annotation.AliasFor;
@@ -100,8 +101,8 @@ final class DateStringConverter implements Neo4jPersistentPropertyConverter<Date
 	}
 
 	@Override
-	public Value write(Date source) {
-		return Values.value(getFormat().format(source));
+	public Value write(@Nullable Date source) {
+		return source == null ? Values.NULL : Values.value(getFormat().format(source));
 	}
 
 	@Override

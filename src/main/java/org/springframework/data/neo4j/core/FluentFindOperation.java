@@ -21,6 +21,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.apiguardian.api.API;
+import org.jspecify.annotations.Nullable;
 import org.neo4j.cypherdsl.core.Statement;
 import org.springframework.data.neo4j.repository.query.QueryFragmentsAndParameters;
 
@@ -85,6 +86,7 @@ public interface FluentFindOperation {
 		 * @return {@literal null} if no match found.
 		 * @throws org.springframework.dao.IncorrectResultSizeDataAccessException if more than one match found.
 		 */
+		@Nullable
 		T oneValue();
 	}
 

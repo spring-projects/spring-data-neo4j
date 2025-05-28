@@ -93,7 +93,13 @@ public interface Schema {
 			throw new UnknownEntityException(targetClass);
 		}
 		Neo4jEntityConverter entityConverter = getEntityConverter();
-		return (typeSystem, record) -> entityConverter.read(targetClass, record);
+		return (typeSystem, record) -> {
+			try {
+				return entityConverter.read(targetClass, record);
+			} catch (IllegalStateException ex) {
+				return null;
+			}
+		};
 	}
 
 	/**

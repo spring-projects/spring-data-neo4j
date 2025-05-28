@@ -15,6 +15,8 @@
  */
 package org.springframework.data.neo4j.types;
 
+import java.util.Objects;
+
 import org.apiguardian.api.API;
 
 /**
@@ -41,7 +43,7 @@ public final class GeographicPoint3d extends AbstractPoint {
 	}
 
 	public double getHeight() {
-		return coordinate.getZ();
+		return Objects.requireNonNull(coordinate.getZ(), "The underlying coordinate does not have a z-value (height)");
 	}
 
 	@Override

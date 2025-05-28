@@ -45,6 +45,7 @@ final class DefaultBookmarkManager extends AbstractBookmarkManager {
 
 	private final Supplier<Set<Bookmark>> bookmarksSupplier;
 
+	@Nullable
 	private ApplicationEventPublisher applicationEventPublisher;
 
 	DefaultBookmarkManager(@Nullable Supplier<Set<Bookmark>> bookmarksSupplier) {
@@ -80,7 +81,7 @@ final class DefaultBookmarkManager extends AbstractBookmarkManager {
 	}
 
 	@Override
-	public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
+	public void setApplicationEventPublisher(@Nullable ApplicationEventPublisher applicationEventPublisher) {
 		this.applicationEventPublisher = applicationEventPublisher;
 	}
 }

@@ -205,6 +205,7 @@ public final class Neo4jTransactionManager extends AbstractPlatformTransactionMa
 	 * @return An optional managed transaction or {@literal null} if the method hasn't been called inside an ongoing
 	 *         Spring transaction
 	 */
+	@Nullable
 	public static Transaction retrieveTransaction(
 			final Driver driver,
 			final DatabaseSelection targetDatabase,
@@ -271,7 +272,7 @@ public final class Neo4jTransactionManager extends AbstractPlatformTransactionMa
 	@Override
 	protected boolean isExistingTransaction(Object transaction) throws TransactionException {
 
-		return extractNeo4jTransaction(transaction).hasResourceHolder();
+		return extractNeo4jTransaction(transaction).getResourceHolder() != null;
 	}
 
 	@Override
@@ -315,9 +316,9 @@ public final class Neo4jTransactionManager extends AbstractPlatformTransactionMa
 	}
 
 	@Override
-	protected void doResume(Object transaction, Object suspendedResources) {
+	protected void doResume(@Nullable Object transaction, Object suspendedResources) {
 
-		Neo4jTransactionObject transactionObject = extractNeo4jTransaction(transaction);
+		Neo4jTransactionObject transactionObject = extractNeo4jTransaction(Objects.requireNonNull(transaction));
 		transactionObject.setResourceHolder((Neo4jTransactionHolder) suspendedResources);
 
 		TransactionSynchronizationManager.bindResource(driver, suspendedResources);
@@ -333,7 +334,7 @@ public final class Neo4jTransactionManager extends AbstractPlatformTransactionMa
 			this.bookmarkManager.resolve().updateBookmarks(transactionHolder.getBookmarks(), newBookmarks);
 		} catch (Neo4jException ex) {
 			if (ex instanceof RetryableException) {
-				throw new TransactionSystemException(ex.getMessage(), ex);
+				throw new TransactionSystemException(Objects.requireNonNullElse(ex.getMessage(), "Caught a retryable exception"), ex);
 			}
 			throw ex;
 		}
@@ -369,9 +370,10 @@ public final class Neo4jTransactionManager extends AbstractPlatformTransactionMa
 		// The resource holder is null when the call to TransactionSynchronizationManager.getResource
 		// in Neo4jTransactionManager.doGetTransaction didn't return a corresponding resource holder.
 		// If it is null, there's no existing session / transaction.
+		@Nullable
 		private Neo4jTransactionHolder resourceHolder;
 
-		Neo4jTransactionObject(Neo4jTransactionHolder resourceHolder) {
+		Neo4jTransactionObject(@Nullable Neo4jTransactionHolder resourceHolder) {
 			this.resourceHolder = resourceHolder;
 		}
 
@@ -379,23 +381,19 @@ public final class Neo4jTransactionManager extends AbstractPlatformTransactionMa
 		 * Usually called in {@link #doBegin(Object, TransactionDefinition)} which is called when there's no existing
 		 * transaction.
 		 *
-		 * @param resourceHolder A newly created resource holder with a fresh drivers session,
+		 * @param resourceHolder A newly created resource holder with a fresh drivers' session,
 		 */
-		void setResourceHolder(Neo4jTransactionHolder resourceHolder) {
+		void setResourceHolder(@Nullable Neo4jTransactionHolder resourceHolder) {
 			this.resourceHolder = resourceHolder;
 		}
 
-		/**
-		 * @return {@literal true} if a {@link Neo4jTransactionHolder} is set.
-		 */
-		boolean hasResourceHolder() {
-			return resourceHolder != null;
+		@Nullable Neo4jTransactionHolder getResourceHolder() {
+			return resourceHolder;
 		}
 
 		Neo4jTransactionHolder getRequiredResourceHolder() {
 
-			Assert.state(hasResourceHolder(), RESOURCE_HOLDER_NOT_PRESENT_MESSAGE);
-			return resourceHolder;
+			return Objects.requireNonNull(resourceHolder, RESOURCE_HOLDER_NOT_PRESENT_MESSAGE);
 		}
 
 		void setRollbackOnly() {
@@ -405,7 +403,7 @@ public final class Neo4jTransactionManager extends AbstractPlatformTransactionMa
 
 		@Override
 		public boolean isRollbackOnly() {
-			return this.hasResourceHolder() && this.resourceHolder.isRollbackOnly();
+			return this.resourceHolder != null && this.resourceHolder.isRollbackOnly();
 		}
 
 		@Override

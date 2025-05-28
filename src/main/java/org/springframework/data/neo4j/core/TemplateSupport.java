@@ -46,6 +46,7 @@ import org.neo4j.cypherdsl.core.Statement;
 import org.neo4j.cypherdsl.core.renderer.Dialect;
 import org.neo4j.cypherdsl.core.renderer.Renderer;
 import org.neo4j.driver.Value;
+import org.neo4j.driver.Values;
 import org.neo4j.driver.types.Entity;
 import org.neo4j.driver.types.MapAccessor;
 import org.neo4j.driver.types.TypeSystem;
@@ -63,6 +64,7 @@ import org.springframework.data.neo4j.core.mapping.PropertyFilter;
 import org.springframework.data.neo4j.core.mapping.PropertyTraverser;
 import org.springframework.data.neo4j.core.mapping.SpringDataCypherDsl;
 import org.springframework.data.neo4j.repository.query.QueryFragments;
+import org.springframework.data.util.TypeInformation;
 import org.springframework.util.Assert;
 
 /**
@@ -74,7 +76,6 @@ import org.springframework.util.Assert;
  */
 @API(status = API.Status.INTERNAL, since = "6.0.9")
 public final class TemplateSupport {
-
 
 	/**
 	 * Indicator for an empty collection
@@ -456,6 +457,22 @@ public final class TemplateSupport {
 
 		} catch (Exception e) {
 			return ids;
+		}
+	}
+
+	static Object convertIdValues(Neo4jMappingContext ctx, @Nullable Neo4jPersistentProperty idProperty, @Nullable Object idValues) {
+
+		if (idProperty != null && ((Neo4jPersistentEntity<?>) idProperty.getOwner()).isUsingInternalIds()) {
+			return (idValues != null) ? idValues : Values.NULL;
+		}
+
+		if (idValues != null) {
+			return ctx.getConversionService().writeValue(idValues, TypeInformation.of(idValues.getClass()), idProperty == null ? null : idProperty.getOptionalConverter());
+		} else if (idProperty != null) {
+			return ctx.getConversionService().writeValue(idValues, idProperty.getTypeInformation(), idProperty.getOptionalConverter());
+		} else {
+			// Not much we can convert here
+			return Values.NULL;
 		}
 	}
 

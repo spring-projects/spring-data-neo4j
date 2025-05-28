@@ -15,6 +15,7 @@
  */
 package org.springframework.data.neo4j.core.support;
 
+import org.jspecify.annotations.Nullable;
 import org.neo4j.driver.Driver;
 import org.springframework.data.mapping.context.AbstractMappingContext;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
@@ -33,15 +34,18 @@ public enum UserAgent {
 			getVersionOf(EnableNeo4jRepositories.class)
 	);
 
+	@Nullable
 	private final String driverVersion;
 
+	@Nullable
 	private final String springDataVersion;
 
+	@Nullable
 	private final String sdnVersion;
 
 	private final String representation;
 
-	UserAgent(String driverVersion, String springDataVersion, String sdnVersion) {
+	UserAgent(@Nullable String driverVersion, @Nullable String springDataVersion, @Nullable String sdnVersion) {
 		int idxOfDash = driverVersion == null ? -1 : driverVersion.indexOf('-');
 		this.driverVersion = driverVersion == null ?
 				null :
@@ -61,18 +65,22 @@ public enum UserAgent {
 		);
 	}
 
+	@Nullable
 	public String getDriverVersion() {
 		return driverVersion;
 	}
 
+	@Nullable
 	public String getSpringDataVersion() {
 		return springDataVersion;
 	}
 
+	@Nullable
 	public String getSdnVersion() {
 		return sdnVersion;
 	}
 
+	@Nullable
 	private static String getVersionOf(Class<?> type) {
 
 		Package p = type.getPackage();

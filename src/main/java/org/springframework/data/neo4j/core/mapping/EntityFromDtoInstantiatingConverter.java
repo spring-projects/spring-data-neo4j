@@ -20,6 +20,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apiguardian.api.API;
+import org.jspecify.annotations.Nullable;
 import org.springframework.core.CollectionFactory;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.mapping.InstanceCreatorMetadata;
@@ -64,6 +65,7 @@ public final class EntityFromDtoInstantiatingConverter<T> implements Converter<O
 	}
 
 	@Override
+	@Nullable
 	public T convert(Object dtoInstance) {
 
 		if (dtoInstance == null) {

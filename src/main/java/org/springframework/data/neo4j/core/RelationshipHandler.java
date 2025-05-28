@@ -100,9 +100,12 @@ final class RelationshipHandler {
 				} else {
 					@SuppressWarnings("unchecked")
 					Collection<Object> newCollection = (Collection<Object>) newRelatedObjectsByType
-							.computeIfAbsent(key, k -> CollectionFactory.createCollection(
-									property.getTypeInformation().getRequiredActualType().getType(),
-									((Collection<?>) ((Map<?, ?>) rawValue).get(key)).size()));
+							.computeIfAbsent(key, k -> {
+								Collection<?> objects = (Collection<?>) ((Map<?, ?>) rawValue).get(key);
+								return CollectionFactory.createCollection(
+										property.getTypeInformation().getRequiredActualType().getType(),
+										objects != null ? objects.size() : 32);
+							});
 					newCollection.add(potentiallyRecreatedRelatedObject);
 				}
 			}

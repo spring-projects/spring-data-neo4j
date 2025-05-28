@@ -155,7 +155,7 @@ public final class ReactiveNeo4jTemplate implements
 		this(neo4jClient, neo4jMappingContext, null);
 	}
 
-	public ReactiveNeo4jTemplate(ReactiveNeo4jClient neo4jClient, Neo4jMappingContext neo4jMappingContext, ReactiveTransactionManager transactionManager) {
+	public ReactiveNeo4jTemplate(ReactiveNeo4jClient neo4jClient, Neo4jMappingContext neo4jMappingContext, @Nullable ReactiveTransactionManager transactionManager) {
 
 		Assert.notNull(neo4jClient, "The Neo4jClient is required");
 		Assert.notNull(neo4jMappingContext, "The Neo4jMappingContext is required");
@@ -210,7 +210,7 @@ public final class ReactiveNeo4jTemplate implements
 		return transactionalOperatorReadOnly.transactional(doFindAll(domainType, null));
 	}
 
-	private <T> Flux<T> doFindAll(Class<T> domainType, Class<?> resultType) {
+	private <T> Flux<T> doFindAll(Class<T> domainType, @Nullable Class<?> resultType) {
 
 		Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getRequiredPersistentEntity(domainType);
 		return createExecutableQuery(domainType, resultType, QueryFragmentsAndParameters.forFindAll(entityMetaData))
@@ -256,7 +256,7 @@ public final class ReactiveNeo4jTemplate implements
 	}
 
 	@SuppressWarnings("unchecked")
-	<T, R> Flux<R> doFind(String cypherQuery, Map<String, Object> parameters, Class<T> domainType, Class<R> resultType, TemplateSupport.FetchType fetchType, QueryFragmentsAndParameters queryFragmentsAndParameters) {
+	<T, R> Flux<R> doFind(@Nullable String cypherQuery, @Nullable Map<String, Object> parameters, Class<T> domainType, Class<R> resultType, TemplateSupport.FetchType fetchType, @Nullable QueryFragmentsAndParameters queryFragmentsAndParameters) {
 
 		Flux<T> intermediaResults;
 		if (cypherQuery == null && queryFragmentsAndParameters == null && fetchType == TemplateSupport.FetchType.ALL) {
@@ -295,7 +295,7 @@ public final class ReactiveNeo4jTemplate implements
 		Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getRequiredPersistentEntity(domainType);
 
 		QueryFragmentsAndParameters fragmentsAndParameters = QueryFragmentsAndParameters
-				.forExistsById(entityMetaData, convertIdValues(entityMetaData.getRequiredIdProperty(), id));
+				.forExistsById(entityMetaData, TemplateSupport.convertIdValues(this.neo4jMappingContext, entityMetaData.getRequiredIdProperty(), id));
 
 		Statement statement = fragmentsAndParameters.getQueryFragments().toStatement();
 		Map<String, Object> parameters = fragmentsAndParameters.getParameters();
@@ -310,7 +310,7 @@ public final class ReactiveNeo4jTemplate implements
 
 		return transactionalOperatorReadOnly.transactional(createExecutableQuery(domainType, null,
 				QueryFragmentsAndParameters.forFindById(entityMetaData,
-						convertIdValues(entityMetaData.getRequiredIdProperty(), id)))
+						TemplateSupport.convertIdValues(this.neo4jMappingContext, entityMetaData.getRequiredIdProperty(), id)))
 				.flatMap(ExecutableQuery::getSingleResult));
 	}
 
@@ -321,7 +321,7 @@ public final class ReactiveNeo4jTemplate implements
 
 		return transactionalOperatorReadOnly.transactional(createExecutableQuery(domainType, null,
 						QueryFragmentsAndParameters.forFindByAllId(entityMetaData,
-						convertIdValues(entityMetaData.getRequiredIdProperty(), ids)))
+								TemplateSupport.convertIdValues(this.neo4jMappingContext, entityMetaData.getRequiredIdProperty(), ids)))
 				.flatMapMany(ExecutableQuery::getResults));
 	}
 
@@ -330,22 +330,6 @@ public final class ReactiveNeo4jTemplate implements
 														  QueryFragmentsAndParameters queryFragmentsAndParameters) {
 
 		return createExecutableQuery(domainType, null, queryFragmentsAndParameters);
-	}
-
-	private Object convertIdValues(Neo4jPersistentProperty idProperty, Object idValues) {
-
-		if (idProperty != null && ((Neo4jPersistentEntity<?>) idProperty.getOwner()).isUsingInternalIds()) {
-			return idValues;
-		}
-
-		if (idValues != null) {
-			return neo4jMappingContext.getConversionService().writeValue(idValues, TypeInformation.of(idValues.getClass()), idProperty == null ? null : idProperty.getOptionalConverter());
-		} else if (idProperty != null) {
-			return neo4jMappingContext.getConversionService().writeValue(idValues, idProperty.getTypeInformation(), idProperty.getOptionalConverter());
-		} else {
-			// Not much we can convert here
-			return Values.NULL;
-		}
 	}
 
 	@Override
@@ -411,7 +395,7 @@ public final class ReactiveNeo4jTemplate implements
 			return Flux.empty();
 		}
 
-		Class<?> resultType = TemplateSupport.findCommonElementType(instances);
+		Class<?> resultType = Objects.requireNonNull(TemplateSupport.findCommonElementType(instances), () -> "Could not find a common type element to store and then project multiple instances of type %s".formatted(domainType));
 
 		Collection<PropertyFilter.ProjectedPath> pps = PropertyFilterSupport.addPropertiesFrom(domainType, resultType,
 				getProjectionFactory(), neo4jMappingContext);
@@ -431,11 +415,11 @@ public final class ReactiveNeo4jTemplate implements
 	}
 
 
-	private <T> Mono<T> saveImpl(T instance, Collection<PropertyFilter.ProjectedPath> includedProperties, NestedRelationshipProcessingStateMachine stateMachine) {
+	private <T> Mono<T> saveImpl(T instance, Collection<PropertyFilter.ProjectedPath> includedProperties, @Nullable NestedRelationshipProcessingStateMachine stateMachine) {
 		return saveImpl(instance, includedProperties, stateMachine, new HashSet<>());
 	}
 
-	private <T> Mono<T> saveImpl(T instance, Collection<PropertyFilter.ProjectedPath> includedProperties, NestedRelationshipProcessingStateMachine stateMachine, Collection<Object> knownRelationshipsIds) {
+	private <T> Mono<T> saveImpl(T instance, Collection<PropertyFilter.ProjectedPath> includedProperties, @Nullable NestedRelationshipProcessingStateMachine stateMachine, Collection<Object> knownRelationshipsIds) {
 
 		if (stateMachine != null && stateMachine.hasProcessedValue(instance)) {
 			return Mono.just(instance);
@@ -499,7 +483,7 @@ public final class ReactiveNeo4jTemplate implements
 			Neo4jPersistentProperty idProperty = entityMetaData.getRequiredIdProperty();
 			ReactiveNeo4jClient.RunnableSpec runnableQuery = neo4jClient
 					.query(() -> renderer.render(cypherGenerator.createStatementReturningDynamicLabels(entityMetaData)))
-					.bind(convertIdValues(idProperty, propertyAccessor.getProperty(idProperty)))
+					.bind(TemplateSupport.convertIdValues(this.neo4jMappingContext, idProperty, propertyAccessor.getProperty(idProperty)))
 					.to(Constants.NAME_OF_ID).bind(entityMetaData.getStaticLabels()).to(Constants.NAME_OF_STATIC_LABELS_PARAM);
 
 			if (entityMetaData.hasVersionProperty()) {
@@ -565,7 +549,8 @@ public final class ReactiveNeo4jTemplate implements
 		}).map(instance -> localProjectionFactory.createProjection(resultType, instance));
 	}
 
-	private <T> Flux<T> saveAllImpl(Iterable<T> instances, Collection<PropertyFilter.ProjectedPath> includedProperties, BiPredicate<PropertyPath, Neo4jPersistentProperty> includeProperty) {
+	@SuppressWarnings("unchecked")
+	private <T> Flux<T> saveAllImpl(Iterable<T> instances, @Nullable Collection<PropertyFilter.ProjectedPath> includedProperties, @Nullable BiPredicate<PropertyPath, Neo4jPersistentProperty> includeProperty) {
 
 		Set<Class<?>> types = new HashSet<>();
 		List<T> entities = new ArrayList<>();
@@ -582,7 +567,7 @@ public final class ReactiveNeo4jTemplate implements
 		Class<?> domainClass = types.iterator().next();
 
 		Collection<PropertyFilter.ProjectedPath> pps = includeProperty == null ?
-				includedProperties :
+				Objects.requireNonNullElseGet(includedProperties, List::of) :
 				TemplateSupport.computeIncludedPropertiesFromPredicate(this.neo4jMappingContext, domainClass,
 						includeProperty);
 
@@ -646,7 +631,7 @@ public final class ReactiveNeo4jTemplate implements
 		Statement statement = cypherGenerator.prepareDeleteOf(entityMetaData, condition);
 		return transactionalOperator.transactional(Mono.defer(() ->
 				this.neo4jClient.query(() -> renderer.render(statement))
-					.bind(convertIdValues(entityMetaData.getRequiredIdProperty(), ids))
+					.bind(TemplateSupport.convertIdValues(this.neo4jMappingContext, entityMetaData.getRequiredIdProperty(), ids))
 					.to(nameOfParameter).run().then()));
 	}
 
@@ -662,7 +647,7 @@ public final class ReactiveNeo4jTemplate implements
 		Statement statement = cypherGenerator.prepareDeleteOf(entityMetaData, condition);
 		return transactionalOperator.transactional(Mono.defer(() ->
 				this.neo4jClient.query(() -> renderer.render(statement))
-					.bind(convertIdValues(entityMetaData.getRequiredIdProperty(), id))
+					.bind(TemplateSupport.convertIdValues(this.neo4jMappingContext, entityMetaData.getRequiredIdProperty(), id))
 					.to(nameOfParameter).run().then()));
 	}
 
@@ -681,7 +666,7 @@ public final class ReactiveNeo4jTemplate implements
 				.returning(Constants.NAME_OF_TYPED_ROOT_NODE.apply(entityMetaData)).build();
 
 		Map<String, Object> parameters = new HashMap<>();
-		parameters.put(nameOfParameter, convertIdValues(entityMetaData.getRequiredIdProperty(), id));
+		parameters.put(nameOfParameter, TemplateSupport.convertIdValues(this.neo4jMappingContext, entityMetaData.getRequiredIdProperty(), id));
 		parameters.put(Constants.NAME_OF_VERSION_PARAM, versionValue);
 
 		return transactionalOperator.transactional(Mono.defer(() ->
@@ -712,13 +697,13 @@ public final class ReactiveNeo4jTemplate implements
 		return createExecutableQuery(domainType, null, cypherQuery, Collections.emptyMap());
 	}
 
-	private <T> Mono<ExecutableQuery<T>> createExecutableQuery(Class<T> domainType, Class<?> resultType, Statement statement,
+	private <T> Mono<ExecutableQuery<T>> createExecutableQuery(Class<T> domainType, @Nullable Class<?> resultType, Statement statement,
 			Map<String, Object> parameters) {
 
 		return createExecutableQuery(domainType, resultType, renderer.render(statement), TemplateSupport.mergeParameters(statement, parameters));
 	}
 
-	private <T> Mono<ExecutableQuery<T>> createExecutableQuery(Class<T> domainType, Class<?> resultType, String cypherQuery,
+	private <T> Mono<ExecutableQuery<T>> createExecutableQuery(Class<T> domainType, @Nullable Class<?> resultType, String cypherQuery,
 			Map<String, Object> parameters) {
 
 		Supplier<BiFunction<TypeSystem, MapAccessor, ?>> mappingFunction = TemplateSupport
@@ -729,7 +714,7 @@ public final class ReactiveNeo4jTemplate implements
 		return this.toExecutableQuery(preparedQuery);
 	}
 
-	private <T> Mono<ExecutableQuery<T>> createExecutableQuery(Class<T> domainType, Class<?> resultType, QueryFragmentsAndParameters queryFragmentsAndParameters) {
+	private <T> Mono<ExecutableQuery<T>> createExecutableQuery(Class<T> domainType, @Nullable Class<?> resultType, QueryFragmentsAndParameters queryFragmentsAndParameters) {
 
 		Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getRequiredPersistentEntity(domainType);
 		QueryFragments queryFragments = queryFragmentsAndParameters.getQueryFragments();
@@ -965,7 +950,7 @@ public final class ReactiveNeo4jTemplate implements
 
 				relationshipDeleteMonos.add(
 						neo4jClient.query(renderer.render(relationshipRemoveQuery))
-								.bind(convertIdValues(sourceEntity.getIdProperty(), fromId)) //
+								.bind(TemplateSupport.convertIdValues(this.neo4jMappingContext, sourceEntity.getIdProperty(), fromId)) //
 									.to(Constants.FROM_ID_PARAMETER_NAME) //
 								.bind(knownRelationshipsIds) //
 									.to(Constants.NAME_OF_KNOWN_RELATIONSHIPS_PARAM) //
@@ -1047,7 +1032,7 @@ public final class ReactiveNeo4jTemplate implements
 											sourceEntity, relationshipDescription, relatedValueToStore, isNewRelationship, canUseElementId);
 
 									Map<String, Object> properties = new HashMap<>();
-									properties.put(Constants.FROM_ID_PARAMETER_NAME, convertIdValues(sourceEntity.getRequiredIdProperty(), fromId));
+									properties.put(Constants.FROM_ID_PARAMETER_NAME, TemplateSupport.convertIdValues(this.neo4jMappingContext, sourceEntity.getRequiredIdProperty(), fromId));
 									properties.put(Constants.TO_ID_PARAMETER_NAME, relatedInternalId);
 									properties.put(Constants.NAME_OF_KNOWN_RELATIONSHIP_PARAM, idValue);
 									var update = true;
@@ -1068,7 +1053,7 @@ public final class ReactiveNeo4jTemplate implements
 									if (update) {
 										return neo4jClient
 												.query(renderer.render(statementHolder.getStatement()))
-												.bind(convertIdValues(sourceEntity.getRequiredIdProperty(), fromId)) //
+												.bind(TemplateSupport.convertIdValues(this.neo4jMappingContext, sourceEntity.getRequiredIdProperty(), fromId)) //
 												.to(Constants.FROM_ID_PARAMETER_NAME) //
 												.bind(relatedInternalId) //
 												.to(Constants.TO_ID_PARAMETER_NAME) //
@@ -1137,7 +1122,7 @@ public final class ReactiveNeo4jTemplate implements
 	private Mono<Object> getRelationshipId(Statement statement, @Nullable Neo4jPersistentProperty idProperty, Object fromId, Object toId) {
 
 		return neo4jClient.query(renderer.render(statement))
-				.bind(convertIdValues(idProperty, fromId)) //
+				.bind(TemplateSupport.convertIdValues(this.neo4jMappingContext, idProperty, fromId)) //
 				.to(Constants.FROM_ID_PARAMETER_NAME) //
 				.bind(toId) //
 				.to(Constants.TO_ID_PARAMETER_NAME) //
@@ -1151,7 +1136,7 @@ public final class ReactiveNeo4jTemplate implements
 	private Mono<Entity> loadRelatedNode(NodeDescription<?> targetNodeDescription, Object relatedInternalId) {
 
 		var targetPersistentEntity = (Neo4jPersistentEntity<?>) targetNodeDescription;
-		var queryFragmentsAndParameters = QueryFragmentsAndParameters.forFindById(targetPersistentEntity, convertIdValues(targetPersistentEntity.getRequiredIdProperty(), relatedInternalId));
+		var queryFragmentsAndParameters = QueryFragmentsAndParameters.forFindById(targetPersistentEntity, TemplateSupport.convertIdValues(this.neo4jMappingContext, targetPersistentEntity.getRequiredIdProperty(), relatedInternalId));
 		var nodeName = Constants.NAME_OF_TYPED_ROOT_NODE.apply(targetNodeDescription).getValue();
 
 		return neo4jClient
@@ -1217,7 +1202,7 @@ public final class ReactiveNeo4jTemplate implements
 			boolean containsPossibleCircles = entityMetaData != null && entityMetaData.containsPossibleCircles(queryFragments::includeField);
 			if (cypherQuery == null || containsPossibleCircles) {
 
-				if (containsPossibleCircles && !queryFragments.isScalarValueReturn()) {
+				if (entityMetaData != null && containsPossibleCircles && !queryFragments.isScalarValueReturn()) {
 					return createNodesAndRelationshipsByIdStatementProvider(entityMetaData, queryFragments, finalParameters)
 							.map(nodesAndRelationshipsById -> {
 								var statement = nodesAndRelationshipsById.toStatement(entityMetaData);

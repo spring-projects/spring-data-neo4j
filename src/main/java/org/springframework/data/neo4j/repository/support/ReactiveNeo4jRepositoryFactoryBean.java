@@ -18,6 +18,7 @@ package org.springframework.data.neo4j.repository.support;
 import java.io.Serializable;
 
 import org.apiguardian.api.API;
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.neo4j.core.ReactiveNeo4jOperations;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.repository.Repository;
@@ -39,8 +40,10 @@ import org.springframework.data.repository.core.support.TransactionalRepositoryF
 public final class ReactiveNeo4jRepositoryFactoryBean<T extends Repository<S, ID>, S, ID extends Serializable>
 		extends TransactionalRepositoryFactoryBeanSupport<T, S, ID> {
 
+	@Nullable
 	private ReactiveNeo4jOperations neo4jOperations;
 
+	@Nullable
 	private Neo4jMappingContext neo4jMappingContext;
 
 	/**
@@ -48,11 +51,11 @@ public final class ReactiveNeo4jRepositoryFactoryBean<T extends Repository<S, ID
 	 *
 	 * @param repositoryInterface must not be {@literal null}.
 	 */
-	protected ReactiveNeo4jRepositoryFactoryBean(Class<? extends T> repositoryInterface) {
+	ReactiveNeo4jRepositoryFactoryBean(Class<? extends T> repositoryInterface) {
 		super(repositoryInterface);
 	}
 
-	public void setNeo4jOperations(ReactiveNeo4jOperations neo4jOperations) {
+	public void setNeo4jOperations(@Nullable ReactiveNeo4jOperations neo4jOperations) {
 		this.neo4jOperations = neo4jOperations;
 	}
 
@@ -63,6 +66,9 @@ public final class ReactiveNeo4jRepositoryFactoryBean<T extends Repository<S, ID
 
 	@Override
 	protected RepositoryFactorySupport doCreateRepositoryFactory() {
+		if (this.neo4jOperations == null || this.neo4jMappingContext == null) {
+			throw new IllegalStateException("Repository factory bean has not been configured properly, both Neo4j operations and mapping context are required");
+		}
 		return new ReactiveNeo4jRepositoryFactory(neo4jOperations, neo4jMappingContext);
 	}
 }

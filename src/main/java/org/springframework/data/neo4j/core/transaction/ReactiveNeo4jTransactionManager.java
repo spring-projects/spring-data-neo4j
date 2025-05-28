@@ -15,10 +15,13 @@
  */
 package org.springframework.data.neo4j.core.transaction;
 
+import java.util.Objects;
+
 import reactor.core.publisher.Mono;
 import reactor.util.function.Tuples;
 
 import org.apiguardian.api.API;
+import org.jspecify.annotations.Nullable;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.TransactionConfig;
 import org.neo4j.driver.exceptions.RetryableException;
@@ -71,10 +74,13 @@ public final class ReactiveNeo4jTransactionManager extends AbstractReactiveTrans
 
 		private final Driver driver;
 
+		@Nullable
 		private ReactiveDatabaseSelectionProvider databaseSelectionProvider;
 
+		@Nullable
 		private ReactiveUserSelectionProvider userSelectionProvider;
 
+		@Nullable
 		private Neo4jBookmarkManager bookmarkManager;
 
 		private Builder(Driver driver) {
@@ -89,7 +95,7 @@ public final class ReactiveNeo4jTransactionManager extends AbstractReactiveTrans
 		 * @param databaseSelectionProvider The database selection provider
 		 * @return The builder
 		 */
-		public Builder withDatabaseSelectionProvider(ReactiveDatabaseSelectionProvider databaseSelectionProvider) {
+		public Builder withDatabaseSelectionProvider(@Nullable ReactiveDatabaseSelectionProvider databaseSelectionProvider) {
 			this.databaseSelectionProvider = databaseSelectionProvider;
 			return this;
 		}
@@ -102,12 +108,12 @@ public final class ReactiveNeo4jTransactionManager extends AbstractReactiveTrans
 		 * @param userSelectionProvider The provider for impersonated users
 		 * @return The builder
 		 */
-		public Builder withUserSelectionProvider(ReactiveUserSelectionProvider userSelectionProvider) {
+		public Builder withUserSelectionProvider(@Nullable ReactiveUserSelectionProvider userSelectionProvider) {
 			this.userSelectionProvider = userSelectionProvider;
 			return this;
 		}
 
-		public Builder withBookmarkManager(Neo4jBookmarkManager bookmarkManager) {
+		public Builder withBookmarkManager(@Nullable Neo4jBookmarkManager bookmarkManager) {
 			this.bookmarkManager = bookmarkManager;
 			return this;
 		}
@@ -268,7 +274,7 @@ public final class ReactiveNeo4jTransactionManager extends AbstractReactiveTrans
 	@Override
 	protected boolean isExistingTransaction(Object transaction) throws TransactionException {
 
-		return extractNeo4jTransaction(transaction).hasResourceHolder();
+		return extractNeo4jTransaction(transaction).getResourceHolder() != null;
 	}
 
 	@Override
@@ -324,7 +330,7 @@ public final class ReactiveNeo4jTransactionManager extends AbstractReactiveTrans
 				.getRequiredResourceHolder();
 		return holder.commit()
 				.doOnNext(bookmark -> bookmarkManager.resolve().updateBookmarks(holder.getBookmarks(), bookmark))
-				.onErrorMap(e -> e instanceof RetryableException, e -> new TransactionSystemException(e.getMessage(), e))
+				.onErrorMap(e -> e instanceof RetryableException, ex -> new TransactionSystemException(Objects.requireNonNullElse(ex.getMessage(), "Caught a retryable exception"), ex))
 				.then();
 	}
 
@@ -346,10 +352,10 @@ public final class ReactiveNeo4jTransactionManager extends AbstractReactiveTrans
 	}
 
 	@Override
-	protected Mono<Void> doResume(TransactionSynchronizationManager synchronizationManager, Object transaction,
+	protected Mono<Void> doResume(TransactionSynchronizationManager synchronizationManager, @Nullable Object transaction,
 			Object suspendedResources) throws TransactionException {
 
-		return Mono.just(extractNeo4jTransaction(transaction))
+		return Mono.just(extractNeo4jTransaction(Objects.requireNonNull(transaction)))
 				.doOnNext(r -> r.setResourceHolder((ReactiveNeo4jTransactionHolder) suspendedResources))
 				.then(Mono.fromRunnable(() -> synchronizationManager.bindResource(driver, suspendedResources)));
 	}
@@ -375,9 +381,10 @@ public final class ReactiveNeo4jTransactionManager extends AbstractReactiveTrans
 		// The resource holder is null when the call to TransactionSynchronizationManager.getResource
 		// in Neo4jTransactionManager.doGetTransaction didn't return a corresponding resource holder.
 		// If it is null, there's no existing session / transaction.
+		@Nullable
 		private ReactiveNeo4jTransactionHolder resourceHolder;
 
-		ReactiveNeo4jTransactionObject(ReactiveNeo4jTransactionHolder resourceHolder) {
+		ReactiveNeo4jTransactionObject(@Nullable ReactiveNeo4jTransactionHolder resourceHolder) {
 			this.resourceHolder = resourceHolder;
 		}
 
@@ -385,33 +392,24 @@ public final class ReactiveNeo4jTransactionManager extends AbstractReactiveTrans
 		 * Usually called in {@link #doBegin(TransactionSynchronizationManager, Object, TransactionDefinition)} which is
 		 * called when there's no existing transaction.
 		 *
-		 * @param resourceHolder A newly created resource holder with a fresh drivers session,
+		 * @param resourceHolder A newly created resource holder with a fresh drivers' session,
 		 */
-		void setResourceHolder(ReactiveNeo4jTransactionHolder resourceHolder) {
+		void setResourceHolder(@Nullable ReactiveNeo4jTransactionHolder resourceHolder) {
 			this.resourceHolder = resourceHolder;
-		}
-
-		/**
-		 * @return {@literal true} if a {@link Neo4jTransactionHolder} is set.
-		 */
-		boolean hasResourceHolder() {
-			return resourceHolder != null;
 		}
 
 		ReactiveNeo4jTransactionHolder getRequiredResourceHolder() {
 
-			Assert.state(hasResourceHolder(), RESOURCE_HOLDER_NOT_PRESENT_MESSAGE);
-			return resourceHolder;
+			return Objects.requireNonNull(this.resourceHolder, RESOURCE_HOLDER_NOT_PRESENT_MESSAGE);
 		}
 
-		void setRollbackOnly() {
-
-			getRequiredResourceHolder().setRollbackOnly();
+		@Nullable ReactiveNeo4jTransactionHolder getResourceHolder() {
+			return resourceHolder;
 		}
 
 		@Override
 		public boolean isRollbackOnly() {
-			return this.hasResourceHolder() && this.resourceHolder.isRollbackOnly();
+			return this.resourceHolder != null && this.resourceHolder.isRollbackOnly();
 		}
 
 		@Override
