@@ -145,7 +145,7 @@ class CausalClusterLoadTestIT {
 		public boolean isCypher5Compatible() {
 			try (Session session = driver().session()) {
 				String version = session
-						.run("CALL dbms.components() YIELD versions RETURN 'Neo4j/' + versions[0] as version")
+						.run("CALL dbms.components() YIELD name, versions WHERE name = 'Neo4j Kernel' RETURN 'Neo4j/' + versions[0] as version")
 						.single()
 						.get("version").asString();
 
