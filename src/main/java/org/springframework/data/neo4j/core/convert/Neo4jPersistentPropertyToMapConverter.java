@@ -18,6 +18,7 @@ package org.springframework.data.neo4j.core.convert;
 import java.util.Map;
 
 import org.apiguardian.api.API;
+import org.jspecify.annotations.Nullable;
 import org.neo4j.driver.Value;
 
 /**
@@ -43,7 +44,7 @@ public interface Neo4jPersistentPropertyToMapConverter<K, P> {
 	 * @param neo4jConversionService The conversion service to delegate to if necessary
 	 * @return The decomposed object.
 	 */
-	Map<K, Value> decompose(P property, Neo4jConversionService neo4jConversionService);
+	Map<K, Value> decompose(@Nullable P property, Neo4jConversionService neo4jConversionService);
 
 	/**
 	 * Composes the object back from the map. The map contains the raw driver values, as SDN cannot know how you want to

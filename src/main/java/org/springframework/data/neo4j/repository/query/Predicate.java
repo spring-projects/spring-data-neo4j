@@ -24,6 +24,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -172,7 +173,7 @@ final class Predicate {
 			if (isRootNode) {
 				condition = predicate.neo4jPersistentEntity.getIdExpression().isEqualTo(literalOf(theValue));
 			} else {
-				condition = nodeDescription.getIdDescription().asIdExpression(wrapper.getNodeName()).isEqualTo(literalOf(theValue));
+				condition = Objects.requireNonNull(nodeDescription.getIdDescription(), "No id description available, cannot compute a Cypher expression for retrieving or storing the id").asIdExpression(wrapper.getNodeName()).isEqualTo(literalOf(theValue));
 			}
 		} else {
 			Expression property =  !isRootNode ? property(wrapper.getNodeName(), propertyName) : property(Constants.NAME_OF_TYPED_ROOT_NODE.apply(nodeDescription), propertyName);

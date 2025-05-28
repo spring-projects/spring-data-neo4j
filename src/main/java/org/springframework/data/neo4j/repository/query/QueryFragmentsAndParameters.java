@@ -197,7 +197,7 @@ public final class QueryFragmentsAndParameters {
 		return forExample(mappingContext, example, null, null, sort, limit, null, null, includeField);
 	}
 
-	static QueryFragmentsAndParameters forExampleWithScrollPosition(Neo4jMappingContext mappingContext, Example<?> example, Condition keysetScrollPositionCondition, Sort sort, Integer limit, Long skip, ScrollPosition scrollPosition, java.util.function.Predicate<PropertyFilter.RelaxedPropertyPath> includeField) {
+	static QueryFragmentsAndParameters forExampleWithScrollPosition(Neo4jMappingContext mappingContext, Example<?> example, @Nullable Condition keysetScrollPositionCondition, Sort sort, Integer limit, Long skip, ScrollPosition scrollPosition, java.util.function.Predicate<PropertyFilter.RelaxedPropertyPath> includeField) {
 		return forExample(mappingContext, example, keysetScrollPositionCondition, null, sort, limit, skip, scrollPosition, includeField);
 	}
 
@@ -259,7 +259,7 @@ public final class QueryFragmentsAndParameters {
 		return forCondition(entityMetaData, condition, null, sort, null, limit, null, includeField);
 	}
 
-	static QueryFragmentsAndParameters forConditionAndSortItems(Neo4jPersistentEntity<?> entityMetaData, Condition condition, Collection<SortItem> sortItems) {
+	static QueryFragmentsAndParameters forConditionAndSortItems(Neo4jPersistentEntity<?> entityMetaData, Condition condition, @Nullable Collection<SortItem> sortItems) {
 		return forCondition(entityMetaData, condition, null, null, sortItems, null, null, null);
 	}
 

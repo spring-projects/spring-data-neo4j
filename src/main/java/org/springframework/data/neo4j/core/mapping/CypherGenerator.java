@@ -237,8 +237,7 @@ public enum CypherGenerator {
 	 */
 	public Statement createStatementReturningDynamicLabels(NodeDescription<?> nodeDescription) {
 
-		IdDescription idDescription = nodeDescription.getIdDescription();
-		Assert.notNull(idDescription, "Cannot load specific nodes by id without a corresponding attribute");
+		IdDescription idDescription = Objects.requireNonNull(nodeDescription.getIdDescription(), "Cannot load specific nodes by id without a corresponding attribute");
 
 		final Node rootNode = createRootNode(nodeDescription);
 
@@ -317,7 +316,7 @@ public enum CypherGenerator {
 			return bs.returning(rootNode).build();
 		};
 
-		if (!idDescription.isInternallyGeneratedId()) {
+		if (idDescription != null && !idDescription.isInternallyGeneratedId()) {
 			GraphPropertyDescription idPropertyDescription = ((Neo4jPersistentEntity<?>) nodeDescription).getRequiredIdProperty();
 
 			if (((Neo4jPersistentEntity<?>) nodeDescription).hasVersionProperty()) {
@@ -412,7 +411,7 @@ public enum CypherGenerator {
 		IdDescription idDescription = nodeDescription.getIdDescription();
 
 		@SuppressWarnings("ConstantConditions") // We now already that the node is using internal ids, and as such, an IdDescription must be present
-		String nameOfIdProperty = idDescription.getOptionalGraphPropertyName()
+		String nameOfIdProperty = Optional.ofNullable(idDescription).flatMap(IdDescription::getOptionalGraphPropertyName)
 				.orElseThrow(() -> new MappingException("External id does not correspond to a graph property"));
 
 		List<Expression> expressions = new ArrayList<>();

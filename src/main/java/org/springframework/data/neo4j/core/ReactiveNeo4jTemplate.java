@@ -140,6 +140,7 @@ public final class ReactiveNeo4jTemplate implements
 
 	private TransactionalOperator transactionalOperator;
 
+	@Nullable
 	private ClassLoader beanClassLoader;
 
 	private ReactiveEventSupport eventSupport;
@@ -341,7 +342,7 @@ public final class ReactiveNeo4jTemplate implements
 	public <T> Mono<T> saveAs(T instance, BiPredicate<PropertyPath, Neo4jPersistentProperty> includeProperty) {
 
 		if (instance == null) {
-			return null;
+			return Mono.empty();
 		}
 
 		return transactionalOperator.transactional(saveImpl(instance, TemplateSupport.computeIncludedPropertiesFromPredicate(this.neo4jMappingContext, instance.getClass(), includeProperty), null));
@@ -353,7 +354,7 @@ public final class ReactiveNeo4jTemplate implements
 		Assert.notNull(resultType, "ResultType must not be null");
 
 		if (instance == null) {
-			return null;
+			return Mono.empty();
 		}
 
 		if (resultType.equals(instance.getClass())) {
@@ -997,7 +998,7 @@ public final class ReactiveNeo4jTemplate implements
 								queryOrSave = savedEntity
 										.map(entity -> Tuples.of(new AtomicReference<>((Object) (TemplateSupport.rendererCanUseElementIdIfPresent(renderer, targetEntity) ? entity.elementId() : entity.id())), new AtomicReference<>(entity)))
 										.doOnNext(t -> {
-											var relatedInternalId = t.getT1().get();
+											var relatedInternalId = Objects.requireNonNull(t.getT1().get(), "Related internal id is null");
 											stateMachine.markEntityAsProcessed(relatedValueToStore, relatedInternalId);
 											if (relatedValueToStore instanceof MappingSupport.RelationshipPropertiesWithEntityHolder) {
 												Object entity = ((MappingSupport.RelationshipPropertiesWithEntityHolder) relatedValueToStore).getRelatedEntity();
@@ -1267,7 +1268,7 @@ public final class ReactiveNeo4jTemplate implements
 		setTransactionManager(reactiveTransactionManager);
 	}
 
-	private void setTransactionManager(ReactiveTransactionManager reactiveTransactionManager) {
+	private void setTransactionManager(@Nullable ReactiveTransactionManager reactiveTransactionManager) {
 		if (reactiveTransactionManager == null) {
 			return;
 		}
@@ -1277,6 +1278,7 @@ public final class ReactiveNeo4jTemplate implements
 
 	@Override
 	public void setBeanClassLoader(ClassLoader classLoader) {
+		//noinspection ConstantValue
 		this.beanClassLoader = beanClassLoader == null ? org.springframework.util.ClassUtils.getDefaultClassLoader() : beanClassLoader;
 	}
 

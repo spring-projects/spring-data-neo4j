@@ -137,7 +137,7 @@ public @interface CompositeProperty {
 		}
 
 		@Override
-		public Map<K, Value> decompose(Map<K, Object> property, Neo4jConversionService conversionService) {
+		public Map<K, Value> decompose(@Nullable Map<K, Object> property, Neo4jConversionService conversionService) {
 
 			if (property == null) {
 				return Collections.emptyMap();
@@ -211,10 +211,6 @@ final class CompositePropertyConverter<K, P> implements Neo4jPersistentPropertyC
 
 	@Override
 	public Value write(@Nullable P property) {
-
-		if (property == null) {
-			return Values.NULL;
-		}
 
 		Map<K, Value> source = delegate.decompose(property, neo4jConversionService);
 		Map<String, Object> temp = new HashMap<>();

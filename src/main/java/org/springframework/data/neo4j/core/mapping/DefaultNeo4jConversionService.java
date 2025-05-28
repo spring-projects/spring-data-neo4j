@@ -16,6 +16,7 @@
 package org.springframework.data.neo4j.core.mapping;
 
 import java.util.Collection;
+import java.util.Objects;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -67,7 +68,8 @@ final class DefaultNeo4jConversionService implements Neo4jConversionService {
 	}
 
 	@Override
-	public Object readValue(Value source, TypeInformation<?> targetType, @Nullable Neo4jPersistentPropertyConverter<?> conversionOverride) {
+	@Nullable
+	public Object readValue(@Nullable Value source, TypeInformation<?> targetType, @Nullable Neo4jPersistentPropertyConverter<?> conversionOverride) {
 
 		BiFunction<Value, Class<?>, Object> conversion;
 		boolean applyConversionToCompleteCollection = false;
@@ -82,7 +84,8 @@ final class DefaultNeo4jConversionService implements Neo4jConversionService {
 		return readValueImpl(source, targetType, conversion, applyConversionToCompleteCollection);
 	}
 
-	private Object readValueImpl(Value value, TypeInformation<?> type,
+	@Nullable
+	private Object readValueImpl(@Nullable Value value, TypeInformation<?> type,
 			BiFunction<Value, Class<?>, Object> conversion, boolean applyConversionToCompleteCollection) {
 
 		boolean valueIsLiteralNullOrNullValue = value == null || value == Values.NULL;
@@ -91,8 +94,10 @@ final class DefaultNeo4jConversionService implements Neo4jConversionService {
 			Class<?> rawType = type.getType();
 
 			if (!valueIsLiteralNullOrNullValue && isCollection(type) && !applyConversionToCompleteCollection) {
+				// value can't be null at this point in time
+				@SuppressWarnings("NullAway")
 				Collection<Object> target = CollectionFactory
-						.createCollection(rawType, type.getComponentType().getType(), value.size());
+						.createCollection(rawType, Objects.requireNonNull(type.getComponentType()).getType(), value.size());
 				value.values()
 						.forEach(element -> target.add(conversion.apply(element, type.getComponentType().getType())));
 				return target;
@@ -105,7 +110,7 @@ final class DefaultNeo4jConversionService implements Neo4jConversionService {
 	}
 
 	@Override
-	public Value writeValue(Object value, TypeInformation<?> sourceType,
+	public Value writeValue(@Nullable Object value, TypeInformation<?> sourceType,
 			@Nullable Neo4jPersistentPropertyConverter<?> writingConverter) {
 
 		Function<Object, Value> conversion;
@@ -123,7 +128,7 @@ final class DefaultNeo4jConversionService implements Neo4jConversionService {
 		return writeValueImpl(value, sourceType, conversion, applyConversionToCompleteCollection);
 	}
 
-	private Value writeValueImpl(Object value, TypeInformation<?> type,
+	private Value writeValueImpl(@Nullable Object value, TypeInformation<?> type,
 			Function<Object, Value> conversion, boolean applyConversionToCompleteCollection) {
 
 		if (value == null) {

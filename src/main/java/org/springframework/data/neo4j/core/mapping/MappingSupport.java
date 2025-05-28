@@ -27,6 +27,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import org.apiguardian.api.API;
+import org.jspecify.annotations.Nullable;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.types.Node;
 import org.neo4j.driver.types.Relationship;
@@ -52,7 +53,7 @@ public final class MappingSupport {
 	 * @return A unified collection (Either a collection of Map.Entry for dynamic and relationships with properties or a
 	 *         list of related values)
 	 */
-	public static Collection<?> unifyRelationshipValue(Neo4jPersistentProperty property, Object rawValue) {
+	public static Collection<?> unifyRelationshipValue(Neo4jPersistentProperty property, @Nullable Object rawValue) {
 
 		if (rawValue == null) {
 			return Collections.emptyList();

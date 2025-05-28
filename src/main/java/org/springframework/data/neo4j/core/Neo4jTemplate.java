@@ -462,7 +462,7 @@ public final class Neo4jTemplate implements
 				return IdentitySupport.getElementId(node);
 			}
 			return node.id();
-		}).get();
+		}).orElseThrow();
 
 		PersistentPropertyAccessor<T> propertyAccessor = entityMetaData.getPropertyAccessor(entityToBeSaved);
 		TemplateSupport.setGeneratedIdIfNecessary(entityMetaData, propertyAccessor, elementId, newOrUpdatedNode);
@@ -1111,7 +1111,7 @@ public final class Neo4jTemplate implements
 			Map<String, Object> properties = (Map<String, Object>) tree.get(Constants.NAME_OF_PROPERTIES_PARAM);
 			String idPropertyName = targetPersistentEntity.getRequiredIdProperty().getPropertyName();
 			IdDescription idDescription = targetPersistentEntity.getIdDescription();
-			boolean assignedId = idDescription.isAssignedId() || idDescription.isExternallyGeneratedId();
+			boolean assignedId = idDescription != null && (idDescription.isAssignedId() || idDescription.isExternallyGeneratedId());
 			if (!(includeProperty.isNotFiltering() || properties == null)) {
 				properties.entrySet()
 						.removeIf(e -> {

@@ -44,12 +44,13 @@ import org.springframework.data.neo4j.core.schema.TargetNode;
 @API(status = API.Status.INTERNAL, since = "6.0")
 public final class NestedRelationshipContext {
 	private final Neo4jPersistentProperty inverse;
+	@Nullable
 	private final Object value;
 	private final RelationshipDescription relationship;
 
 	private final boolean inverseValueIsEmpty;
 
-	private NestedRelationshipContext(Neo4jPersistentProperty inverse, Object value,
+	private NestedRelationshipContext(Neo4jPersistentProperty inverse, @Nullable Object value,
 			RelationshipDescription relationship, boolean inverseValueIsEmpty) {
 		this.inverse = inverse;
 		this.value = value;
@@ -65,6 +66,7 @@ public final class NestedRelationshipContext {
 		return inverse;
 	}
 
+	@Nullable
 	public Object getValue() {
 		return value;
 	}

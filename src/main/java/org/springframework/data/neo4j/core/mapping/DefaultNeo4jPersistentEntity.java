@@ -151,6 +151,7 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 	 * @see NodeDescription#getIdDescription()
 	 */
 	@Override
+	@Nullable
 	public IdDescription getIdDescription() {
 		return this.idDescription.getNullable();
 	}

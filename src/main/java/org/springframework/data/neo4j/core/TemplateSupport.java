@@ -296,7 +296,7 @@ public final class TemplateSupport {
 
 			String idPropertyName = entityMetaData.getRequiredIdProperty().getPropertyName();
 			IdDescription idDescription = entityMetaData.getIdDescription();
-			boolean assignedId = idDescription.isAssignedId() || idDescription.isExternallyGeneratedId();
+			boolean assignedId = idDescription != null && (idDescription.isAssignedId() || idDescription.isExternallyGeneratedId());
 			if (!(includeProperty.isNotFiltering() || properties == null)) {
 				properties.entrySet()
 						.removeIf(e -> {
