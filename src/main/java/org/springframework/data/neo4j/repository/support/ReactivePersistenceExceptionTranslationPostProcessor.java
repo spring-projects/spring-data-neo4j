@@ -21,6 +21,7 @@ import reactor.core.publisher.Mono;
 import java.io.Serial;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.util.Objects;
 
 import org.aopalliance.aop.Advice;
 import org.apiguardian.api.API;
@@ -60,7 +61,7 @@ public final class ReactivePersistenceExceptionTranslationPostProcessor
 
 	@Serial
 	private static final long serialVersionUID = -8597336297033105680L;
-	private final Class<? extends Annotation> repositoryAnnotationType;
+	private transient final Class<? extends Annotation> repositoryAnnotationType;
 
 	public ReactivePersistenceExceptionTranslationPostProcessor() {
 
@@ -82,7 +83,7 @@ public final class ReactivePersistenceExceptionTranslationPostProcessor
 					"Cannot use PersistenceExceptionTranslator autodetection without ListableBeanFactory");
 		}
 		this.advisor = new ReactivePersistenceExceptionTranslationAdvisor((ListableBeanFactory) beanFactory,
-				this.repositoryAnnotationType);
+				Objects.requireNonNullElse(this.repositoryAnnotationType, Repository.class));
 	}
 
 	/**
@@ -93,9 +94,9 @@ public final class ReactivePersistenceExceptionTranslationPostProcessor
 
 		@Serial
 		private static final long serialVersionUID = 849460320459940956L;
-		private final ReactivePersistenceExceptionTranslationInterceptor advice;
+		private transient final ReactivePersistenceExceptionTranslationInterceptor advice;
 
-		private final AnnotationMatchingPointcut pointcut;
+		private transient final AnnotationMatchingPointcut pointcut;
 
 		/**
 		 * Create a new PersistenceExceptionTranslationAdvisor.

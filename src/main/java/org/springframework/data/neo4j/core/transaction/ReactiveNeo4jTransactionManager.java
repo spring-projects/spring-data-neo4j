@@ -15,6 +15,7 @@
  */
 package org.springframework.data.neo4j.core.transaction;
 
+import java.io.Serial;
 import java.util.Objects;
 
 import reactor.core.publisher.Mono;
@@ -53,6 +54,9 @@ import org.springframework.util.Assert;
  */
 @API(status = API.Status.STABLE, since = "6.0")
 public final class ReactiveNeo4jTransactionManager extends AbstractReactiveTransactionManager implements ApplicationContextAware {
+
+	@Serial
+	private static final long serialVersionUID = 204661696798919944L;
 
 	/**
 	 * Start building a new transaction manager for the given driver instance.
@@ -126,19 +130,19 @@ public final class ReactiveNeo4jTransactionManager extends AbstractReactiveTrans
 	/**
 	 * The underlying driver, which is also the synchronisation object.
 	 */
-	private final Driver driver;
+	private transient final Driver driver;
 
 	/**
 	 * Database name provider.
 	 */
-	private final ReactiveDatabaseSelectionProvider databaseSelectionProvider;
+	private transient final ReactiveDatabaseSelectionProvider databaseSelectionProvider;
 
 	/**
 	 * Provider for user impersonation.
 	 */
-	private final ReactiveUserSelectionProvider userSelectionProvider;
+	private transient final ReactiveUserSelectionProvider userSelectionProvider;
 
-	private final BookmarkManagerReference bookmarkManager;
+	private transient final BookmarkManagerReference bookmarkManager;
 
 	/**
 	 * This will create a transaction manager for the default database.

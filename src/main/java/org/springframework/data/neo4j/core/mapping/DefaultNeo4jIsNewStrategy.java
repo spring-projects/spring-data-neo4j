@@ -15,6 +15,7 @@
  */
 package org.springframework.data.neo4j.core.mapping;
 
+import java.util.Objects;
 import java.util.function.Function;
 
 import org.apache.commons.logging.LogFactory;
@@ -52,7 +53,7 @@ final class DefaultNeo4jIsNewStrategy implements IsNewStrategy {
 
 		Assert.notNull(entityMetaData, "Entity meta data must not be null");
 
-		IdDescription idDescription = entityMetaData.getIdDescription();
+		IdDescription idDescription = Objects.requireNonNull(entityMetaData.getIdDescription(), () -> "Cannot determine id description for entity %s".formatted(entityMetaData.getType()));
 		Class<?> valueType = entityMetaData.getRequiredIdProperty().getType();
 
 		if (idDescription.isExternallyGeneratedId() && valueType.isPrimitive()) {
@@ -103,7 +104,7 @@ final class DefaultNeo4jIsNewStrategy implements IsNewStrategy {
 		if (idDescription.isInternallyGeneratedId()) {
 
 			boolean isNew;
-			if (value != null && valueType.isPrimitive() && Number.class.isInstance(value)) {
+			if (value != null && valueType.isPrimitive() && value instanceof Number) {
 				isNew = ((Number) value).longValue() < 0;
 			} else {
 				isNew = value == null;
@@ -117,7 +118,7 @@ final class DefaultNeo4jIsNewStrategy implements IsNewStrategy {
 				return value == null;
 			}
 
-			if (Number.class.isInstance(value)) {
+			if (value instanceof Number) {
 				return ((Number) value).longValue() == 0;
 			}
 		}

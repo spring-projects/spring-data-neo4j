@@ -121,14 +121,14 @@ public final class IdDescription {
 	 * @param nodeName use this name as the symbolic name of the node in the query
 	 * @return An expression that represents the right identifier type.
 	 */
+	@SuppressWarnings("deprecation")
 	public Expression asIdExpression(String nodeName) {
 		final Node rootNode = Cypher.anyNode(nodeName);
 		if (this.isInternallyGeneratedId()) {
-			//noinspection deprecation
 			return isDeprecated ? rootNode.internalId() : rootNode.elementId();
 		} else {
 			return this.getOptionalGraphPropertyName()
-					.map(propertyName -> Cypher.property(nodeName, propertyName)).get();
+					.map(propertyName -> Cypher.property(nodeName, propertyName)).orElseThrow();
 		}
 	}
 

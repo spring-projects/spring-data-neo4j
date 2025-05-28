@@ -40,6 +40,7 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.logging.LogFactory;
 import org.apiguardian.api.API;
+import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.neo4j.cypherdsl.core.Condition;
 import org.neo4j.cypherdsl.core.Cypher;
@@ -773,14 +774,15 @@ public final class ReactiveNeo4jTemplate implements
 
 	}
 
+	@SuppressWarnings("unchecked")
 	private Flux<Tuple2<Collection<String>, Collection<String>>> iterateNextLevel(Collection<String> relatedNodeIds,
-			  RelationshipDescription sourceRelationshipDescription, QueryFragments queryFragments,
-			  Class<?> rootClass, PropertyPathWalkStep currentPathStep) {
+	                                                                              RelationshipDescription sourceRelationshipDescription, QueryFragments queryFragments,
+	                                                                              Class<?> rootClass, PropertyPathWalkStep currentPathStep) {
 
 		NodeDescription<?> target = sourceRelationshipDescription.getTarget();
 
 		@SuppressWarnings("unchecked")
-		String fieldName = ((Association<Neo4jPersistentProperty>) sourceRelationshipDescription).getInverse().getFieldName();
+		String fieldName = ((Association<@NonNull Neo4jPersistentProperty>) sourceRelationshipDescription).getInverse().getFieldName();
 
 		PropertyPathWalkStep nextPathStep = currentPathStep.with((sourceRelationshipDescription.hasRelationshipProperties() ?
 				fieldName + "." + ((Neo4jPersistentEntity<?>) sourceRelationshipDescription.getRelationshipPropertiesEntity())
@@ -812,10 +814,7 @@ public final class ReactiveNeo4jTemplate implements
 							return Tuples.of(newRelationshipIds, newRelatedNodeIds);
 						})
 						.one()
-						.map((t) -> {
-							//noinspection unchecked
-							return (Tuple2<Collection<String>, Collection<String>>) t;
-						})
+						.map((t) -> (Tuple2<Collection<String>, Collection<String>>) t)
 						.expand(object -> iterateAndMapNextLevel(relDe, queryFragments, rootClass, nextPathStep).apply(object));
 			});
 
@@ -1238,7 +1237,7 @@ public final class ReactiveNeo4jTemplate implements
 		this.eventSupport = ReactiveEventSupport.discoverCallbacks(neo4jMappingContext, beanFactory);
 
 		SpelAwareProxyProjectionFactory spelAwareProxyProjectionFactory = new SpelAwareProxyProjectionFactory();
-		spelAwareProxyProjectionFactory.setBeanClassLoader(beanClassLoader);
+		spelAwareProxyProjectionFactory.setBeanClassLoader(Objects.requireNonNull(this.beanClassLoader));
 		spelAwareProxyProjectionFactory.setBeanFactory(beanFactory);
 		this.projectionFactory = spelAwareProxyProjectionFactory;
 
@@ -1327,7 +1326,7 @@ public final class ReactiveNeo4jTemplate implements
 					return firstItem;
 				}
 				return t;
-			}).onErrorMap(IndexOutOfBoundsException.class, e -> new IncorrectResultSizeDataAccessException(e.getMessage(), 1)));
+			}).onErrorMap(IndexOutOfBoundsException.class, e -> new IncorrectResultSizeDataAccessException(Objects.requireNonNull(e.getMessage()), 1)));
 		}
 	}
 }

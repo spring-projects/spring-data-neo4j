@@ -461,7 +461,9 @@ public final class Neo4jTemplate implements
 			if (!entityMetaData.isUsingDeprecatedInternalId() && TemplateSupport.rendererRendersElementId(renderer)) {
 				return IdentitySupport.getElementId(node);
 			}
-			return node.id();
+			@SuppressWarnings("deprecation")
+			var id = node.id();
+			return id;
 		}).orElseThrow();
 
 		PersistentPropertyAccessor<T> propertyAccessor = entityMetaData.getPropertyAccessor(entityToBeSaved);
@@ -1149,7 +1151,7 @@ public final class Neo4jTemplate implements
 		this.eventSupport = EventSupport.discoverCallbacks(neo4jMappingContext, beanFactory);
 
 		SpelAwareProxyProjectionFactory spelAwareProxyProjectionFactory = new SpelAwareProxyProjectionFactory();
-		spelAwareProxyProjectionFactory.setBeanClassLoader(Objects.requireNonNull(beanClassLoader));
+		spelAwareProxyProjectionFactory.setBeanClassLoader(Objects.requireNonNull(this.beanClassLoader));
 		spelAwareProxyProjectionFactory.setBeanFactory(beanFactory);
 		this.projectionFactory = spelAwareProxyProjectionFactory;
 
@@ -1163,6 +1165,7 @@ public final class Neo4jTemplate implements
 		if (this.transactionTemplate != null && this.transactionTemplateReadOnly != null) {
 			return;
 		}
+
 		PlatformTransactionManager transactionManager = null;
 		var it = beanFactory.getBeanProvider(PlatformTransactionManager.class).stream().iterator();
 		while (it.hasNext()) {

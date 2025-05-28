@@ -392,6 +392,7 @@ public final class TemplateSupport {
 	 * @param <T> The type of the entity
 	 * @return The actual related internal id being used.
 	 */
+	@SuppressWarnings("deprecation")
 	static <T> Object retrieveOrSetRelatedId(
 			Neo4jPersistentEntity<?> entityMetadata,
 			PersistentPropertyAccessor<T> propertyAccessor,
