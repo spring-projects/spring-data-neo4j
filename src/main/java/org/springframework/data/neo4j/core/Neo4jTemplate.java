@@ -1114,7 +1114,7 @@ public final class Neo4jTemplate implements
 			String idPropertyName = targetPersistentEntity.getRequiredIdProperty().getPropertyName();
 			IdDescription idDescription = targetPersistentEntity.getIdDescription();
 			boolean assignedId = idDescription != null && (idDescription.isAssignedId() || idDescription.isExternallyGeneratedId());
-			if (!(includeProperty.isNotFiltering() || properties == null)) {
+			if (properties != null && !includeProperty.isNotFiltering()) {
 				properties.entrySet()
 						.removeIf(e -> {
 							// we cannot skip the id property if it is an assigned id

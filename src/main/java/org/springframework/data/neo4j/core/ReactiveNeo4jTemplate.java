@@ -137,8 +137,10 @@ public final class ReactiveNeo4jTemplate implements
 		}
 	};
 
+	@Nullable
 	private TransactionalOperator transactionalOperatorReadOnly;
 
+	@Nullable
 	private TransactionalOperator transactionalOperator;
 
 	@Nullable
@@ -146,6 +148,7 @@ public final class ReactiveNeo4jTemplate implements
 
 	private ReactiveEventSupport eventSupport;
 
+	@Nullable
 	private ProjectionFactory projectionFactory;
 
 	private Renderer renderer;
@@ -202,13 +205,29 @@ public final class ReactiveNeo4jTemplate implements
 	public Mono<Long> count(String cypherQuery, Map<String, Object> parameters) {
 		PreparedQuery<Long> preparedQuery = PreparedQuery.queryFor(Long.class).withCypherQuery(cypherQuery)
 				.withParameters(parameters).build();
-		return transactionalOperatorReadOnly.transactional(this.toExecutableQuery(preparedQuery).flatMap(ExecutableQuery::getSingleResult));
+		return executeReadOnly(this.toExecutableQuery(preparedQuery).flatMap(ExecutableQuery::getSingleResult));
+	}
+
+	private <T> Mono<T> executeReadOnly(Mono<T> action) {
+		return Objects.requireNonNull(this.transactionalOperatorReadOnly).transactional(action);
+	}
+
+	private <T> Flux<T> executeReadOnly(Flux<T> action) {
+		return Objects.requireNonNull(this.transactionalOperatorReadOnly).transactional(action);
+	}
+
+	private <T> Mono<T> execute(Mono<T> action) {
+		return Objects.requireNonNull(this.transactionalOperator).transactional(action);
+	}
+
+	private <T> Flux<T> execute(Flux<T> action) {
+		return Objects.requireNonNull(this.transactionalOperator).transactional(action);
 	}
 
 	@Override
 	public <T> Flux<T> findAll(Class<T> domainType) {
 
-		return transactionalOperatorReadOnly.transactional(doFindAll(domainType, null));
+		return executeReadOnly(doFindAll(domainType, null));
 	}
 
 	private <T> Flux<T> doFindAll(Class<T> domainType, @Nullable Class<?> resultType) {
@@ -221,34 +240,34 @@ public final class ReactiveNeo4jTemplate implements
 	@Override
 	public <T> Flux<T> findAll(Statement statement, Class<T> domainType) {
 
-		return transactionalOperatorReadOnly.transactional(createExecutableQuery(domainType, statement).flatMapMany(ExecutableQuery::getResults));
+		return executeReadOnly(createExecutableQuery(domainType, statement).flatMapMany(ExecutableQuery::getResults));
 	}
 
 	@Override
 	public <T> Flux<T> findAll(Statement statement, Map<String, Object> parameters, Class<T> domainType) {
 
-		return transactionalOperatorReadOnly.transactional(createExecutableQuery(domainType, null, statement, parameters).flatMapMany(ExecutableQuery::getResults));
+		return executeReadOnly(createExecutableQuery(domainType, null, statement, parameters).flatMapMany(ExecutableQuery::getResults));
 	}
 
 	@Override
 	public <T> Mono<T> findOne(Statement statement, Map<String, Object> parameters, Class<T> domainType) {
 
-		return transactionalOperatorReadOnly.transactional(createExecutableQuery(domainType, null, statement, parameters).flatMap(ExecutableQuery::getSingleResult));
+		return executeReadOnly(createExecutableQuery(domainType, null, statement, parameters).flatMap(ExecutableQuery::getSingleResult));
 	}
 
 	@Override
 	public <T> Flux<T> findAll(String cypherQuery, Class<T> domainType) {
-		return transactionalOperatorReadOnly.transactional(createExecutableQuery(domainType, cypherQuery).flatMapMany(ExecutableQuery::getResults));
+		return executeReadOnly(createExecutableQuery(domainType, cypherQuery).flatMapMany(ExecutableQuery::getResults));
 	}
 
 	@Override
 	public <T> Flux<T> findAll(String cypherQuery, Map<String, Object> parameters, Class<T> domainType) {
-		return transactionalOperatorReadOnly.transactional(createExecutableQuery(domainType, null, cypherQuery, parameters).flatMapMany(ExecutableQuery::getResults));
+		return executeReadOnly(createExecutableQuery(domainType, null, cypherQuery, parameters).flatMapMany(ExecutableQuery::getResults));
 	}
 
 	@Override
 	public <T> Mono<T> findOne(String cypherQuery, Map<String, Object> parameters, Class<T> domainType) {
-		return transactionalOperatorReadOnly.transactional(createExecutableQuery(domainType, null, cypherQuery, parameters).flatMap(ExecutableQuery::getSingleResult));
+		return executeReadOnly(createExecutableQuery(domainType, null, cypherQuery, parameters).flatMap(ExecutableQuery::getSingleResult));
 	}
 
 	@Override
@@ -265,15 +284,15 @@ public final class ReactiveNeo4jTemplate implements
 		} else {
 			Mono<ExecutableQuery<T>> executableQuery;
 			if (queryFragmentsAndParameters == null) {
-				executableQuery = createExecutableQuery(domainType, resultType, cypherQuery,
+				executableQuery = createExecutableQuery(domainType, resultType, Objects.requireNonNull(cypherQuery),
 						parameters == null ? Collections.emptyMap() : parameters);
 			} else {
 				executableQuery = createExecutableQuery(domainType, resultType, queryFragmentsAndParameters);
 			}
 
 			intermediaResults = switch (fetchType) {
-				case ALL ->	transactionalOperatorReadOnly.transactional(executableQuery.flatMapMany(ExecutableQuery::getResults));
-				case ONE -> transactionalOperatorReadOnly.transactional(executableQuery.flatMap(ExecutableQuery::getSingleResult).flux());
+				case ALL ->	executeReadOnly(executableQuery.flatMapMany(ExecutableQuery::getResults));
+				case ONE -> executeReadOnly(executableQuery.flatMap(ExecutableQuery::getSingleResult).flux());
 			};
 		}
 
@@ -309,7 +328,7 @@ public final class ReactiveNeo4jTemplate implements
 
 		Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getRequiredPersistentEntity(domainType);
 
-		return transactionalOperatorReadOnly.transactional(createExecutableQuery(domainType, null,
+		return executeReadOnly(createExecutableQuery(domainType, null,
 				QueryFragmentsAndParameters.forFindById(entityMetaData,
 						TemplateSupport.convertIdValues(this.neo4jMappingContext, entityMetaData.getRequiredIdProperty(), id)))
 				.flatMap(ExecutableQuery::getSingleResult));
@@ -320,7 +339,7 @@ public final class ReactiveNeo4jTemplate implements
 
 		Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getRequiredPersistentEntity(domainType);
 
-		return transactionalOperatorReadOnly.transactional(createExecutableQuery(domainType, null,
+		return executeReadOnly(createExecutableQuery(domainType, null,
 						QueryFragmentsAndParameters.forFindByAllId(entityMetaData,
 								TemplateSupport.convertIdValues(this.neo4jMappingContext, entityMetaData.getRequiredIdProperty(), ids)))
 				.flatMapMany(ExecutableQuery::getResults));
@@ -336,7 +355,7 @@ public final class ReactiveNeo4jTemplate implements
 	@Override
 	public <T> Mono<T> save(T instance) {
 
-		return transactionalOperator.transactional(saveImpl(instance, Collections.emptySet(), null));
+		return execute(saveImpl(instance, Collections.emptySet(), null));
 	}
 
 	@Override
@@ -346,7 +365,7 @@ public final class ReactiveNeo4jTemplate implements
 			return Mono.empty();
 		}
 
-		return transactionalOperator.transactional(saveImpl(instance, TemplateSupport.computeIncludedPropertiesFromPredicate(this.neo4jMappingContext, instance.getClass(), includeProperty), null));
+		return execute(saveImpl(instance, TemplateSupport.computeIncludedPropertiesFromPredicate(this.neo4jMappingContext, instance.getClass(), includeProperty), null));
 	}
 
 	@Override
@@ -367,7 +386,7 @@ public final class ReactiveNeo4jTemplate implements
 		Collection<PropertyFilter.ProjectedPath> pps = PropertyFilterSupport.addPropertiesFrom(instance.getClass(), resultType,
 				localProjectionFactory, neo4jMappingContext);
 
-		Mono<T> savingPublisher = transactionalOperator.transactional(saveImpl(instance, pps, null));
+		Mono<T> savingPublisher = execute(saveImpl(instance, pps, null));
 
 		if (!resultType.isInterface()) {
 			return savingPublisher.map(savedInstance -> {
@@ -383,9 +402,9 @@ public final class ReactiveNeo4jTemplate implements
 		return savingPublisher.flatMap(savedInstance -> {
 
 			Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getRequiredPersistentEntity(savedInstance.getClass());
-			Neo4jPersistentProperty idProperty = entityMetaData.getIdProperty();
+			Neo4jPersistentProperty idProperty = entityMetaData.getRequiredIdProperty();
 			PersistentPropertyAccessor<T> propertyAccessor = entityMetaData.getPropertyAccessor(savedInstance);
-			return transactionalOperatorReadOnly.transactional(this.findById(propertyAccessor.getProperty(idProperty), savedInstance.getClass())
+			return executeReadOnly(this.findById(Objects.requireNonNull(propertyAccessor.getProperty(idProperty)), savedInstance.getClass())
 					.map(loadedValue -> localProjectionFactory.createProjection(resultType, loadedValue)));
 		});
 	}
@@ -407,9 +426,12 @@ public final class ReactiveNeo4jTemplate implements
 		return Flux.fromIterable(instances)
 				.concatMap(instance -> {
 					T domainObject = converter.convert(instance);
+					if (domainObject == null) {
+						return Mono.empty();
+					}
 
 					@SuppressWarnings("unchecked")
-					Mono<R> result = transactionalOperator.transactional(saveImpl(domainObject, pps, stateMachine, knownRelationshipsIds)
+					Mono<R> result = execute(saveImpl(domainObject, pps, stateMachine, knownRelationshipsIds)
 							.map(savedEntity -> (R) new DtoInstantiatingConverter(resultType, neo4jMappingContext).convertDirectly(savedEntity)));
 					return result;
 				});
@@ -502,13 +524,13 @@ public final class ReactiveNeo4jTemplate implements
 
 	@Override
 	public <T> Flux<T> saveAll(Iterable<T> instances) {
-		return transactionalOperator.transactional(saveAllImpl(instances, Collections.emptySet(), null));
+		return execute(saveAllImpl(instances, Collections.emptySet(), null));
 	}
 
 	@Override
 	public <T> Flux<T> saveAllAs(Iterable<T> instances, BiPredicate<PropertyPath, Neo4jPersistentProperty> includeProperty) {
 
-		return transactionalOperator.transactional(saveAllImpl(instances, null, includeProperty));
+		return execute(saveAllImpl(instances, null, includeProperty));
 	}
 
 	@Override
@@ -536,17 +558,17 @@ public final class ReactiveNeo4jTemplate implements
 		Collection<PropertyFilter.ProjectedPath> pps = PropertyFilterSupport.addPropertiesFrom(commonElementType, resultType,
 				localProjectionFactory, neo4jMappingContext);
 
-		Flux<T> savedInstances = transactionalOperator.transactional(saveAllImpl(instances, pps, null));
+		Flux<T> savedInstances = execute(saveAllImpl(instances, pps, null));
 		if (projectionInformation.isClosed()) {
 			return savedInstances.map(instance -> localProjectionFactory.createProjection(resultType, instance));
 		}
 
 		Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getRequiredPersistentEntity(commonElementType);
-		Neo4jPersistentProperty idProperty = entityMetaData.getIdProperty();
+		Neo4jPersistentProperty idProperty = entityMetaData.getRequiredIdProperty();
 
 		return savedInstances.concatMap(savedInstance -> {
 			PersistentPropertyAccessor<T> propertyAccessor = entityMetaData.getPropertyAccessor(savedInstance);
-			return transactionalOperatorReadOnly.transactional(findById(propertyAccessor.getProperty(idProperty), commonElementType));
+			return executeReadOnly(findById(Objects.requireNonNull(propertyAccessor.getProperty(idProperty)), commonElementType));
 		}).map(instance -> localProjectionFactory.createProjection(resultType, instance));
 	}
 
@@ -630,7 +652,7 @@ public final class ReactiveNeo4jTemplate implements
 		Condition condition = entityMetaData.getIdExpression().in(parameter(nameOfParameter));
 
 		Statement statement = cypherGenerator.prepareDeleteOf(entityMetaData, condition);
-		return transactionalOperator.transactional(Mono.defer(() ->
+		return execute(Mono.defer(() ->
 				this.neo4jClient.query(() -> renderer.render(statement))
 					.bind(TemplateSupport.convertIdValues(this.neo4jMappingContext, entityMetaData.getRequiredIdProperty(), ids))
 					.to(nameOfParameter).run().then()));
@@ -646,7 +668,7 @@ public final class ReactiveNeo4jTemplate implements
 		Condition condition = entityMetaData.getIdExpression().isEqualTo(parameter(nameOfParameter));
 
 		Statement statement = cypherGenerator.prepareDeleteOf(entityMetaData, condition);
-		return transactionalOperator.transactional(Mono.defer(() ->
+		return execute(Mono.defer(() ->
 				this.neo4jClient.query(() -> renderer.render(statement))
 					.bind(TemplateSupport.convertIdValues(this.neo4jMappingContext, entityMetaData.getRequiredIdProperty(), id))
 					.to(nameOfParameter).run().then()));
@@ -669,7 +691,7 @@ public final class ReactiveNeo4jTemplate implements
 		parameters.put(nameOfParameter, TemplateSupport.convertIdValues(this.neo4jMappingContext, entityMetaData.getRequiredIdProperty(), id));
 		parameters.put(Constants.NAME_OF_VERSION_PARAM, versionValue);
 
-		return transactionalOperator.transactional(Mono.defer(() ->
+		return execute(Mono.defer(() ->
 						this.neo4jClient.query(() -> renderer.render(statement))
 							.bindAll(parameters)
 							.fetch().one().switchIfEmpty(Mono.defer(() -> {
@@ -686,7 +708,7 @@ public final class ReactiveNeo4jTemplate implements
 
 		Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getRequiredPersistentEntity(domainType);
 		Statement statement = cypherGenerator.prepareDeleteOf(entityMetaData);
-		return transactionalOperator.transactional(Mono.defer(() -> this.neo4jClient.query(() -> renderer.render(statement)).run().then()));
+		return execute(Mono.defer(() -> this.neo4jClient.query(() -> renderer.render(statement)).run().then()));
 	}
 
 	private <T> Mono<ExecutableQuery<T>> createExecutableQuery(Class<T> domainType, Statement statement) {
@@ -784,9 +806,9 @@ public final class ReactiveNeo4jTemplate implements
 		@SuppressWarnings("unchecked")
 		String fieldName = ((Association<@NonNull Neo4jPersistentProperty>) sourceRelationshipDescription).getInverse().getFieldName();
 
+		Neo4jPersistentEntity<?> relationshipPropertiesEntity = (Neo4jPersistentEntity<?>) sourceRelationshipDescription.getRelationshipPropertiesEntity();
 		PropertyPathWalkStep nextPathStep = currentPathStep.with((sourceRelationshipDescription.hasRelationshipProperties() ?
-				fieldName + "." + ((Neo4jPersistentEntity<?>) sourceRelationshipDescription.getRelationshipPropertiesEntity())
-						.getPersistentProperty(TargetNode.class).getFieldName() : fieldName));
+				fieldName + "." + Objects.requireNonNull(relationshipPropertiesEntity.getPersistentProperty(TargetNode.class), () -> "Could not get target node property on %s".formatted(relationshipPropertiesEntity.getType())).getFieldName() : fieldName));
 
 		return Flux.fromIterable(target
 				.getRelationshipsInHierarchy(
@@ -935,8 +957,8 @@ public final class ReactiveNeo4jTemplate implements
 							continue;
 						}
 
-						Object id = relationshipContext
-								.getRelationshipPropertiesPropertyAccessor(relatedValueToStore)
+						Object id = Objects.requireNonNull(relationshipContext
+								.getRelationshipPropertiesPropertyAccessor(relatedValueToStore))
 								.getProperty(idProperty);
 						if (id != null) {
 							knownRelationshipsIds.add(id);
@@ -1020,9 +1042,10 @@ public final class ReactiveNeo4jTemplate implements
 									stateMachine.markRelationshipAsProcessed(possibleInternalLongId == null ? relatedInternalId : possibleInternalLongId,
 												relationshipDescription.getRelationshipObverse());
 
-									Object idValue = idProperty != null
-											? relationshipContext
-											.getRelationshipPropertiesPropertyAccessor(relatedValueToStore).getProperty(idProperty)
+										PersistentPropertyAccessor<?> relationshipPropertiesPropertyAccessor = relationshipContext
+												.getRelationshipPropertiesPropertyAccessor(relatedValueToStore);
+										Object idValue = (idProperty != null && relationshipPropertiesPropertyAccessor != null)
+											? relationshipPropertiesPropertyAccessor.getProperty(idProperty)
 											: null;
 
 									boolean isNewRelationship = idValue == null;
@@ -1034,7 +1057,7 @@ public final class ReactiveNeo4jTemplate implements
 									properties.put(Constants.TO_ID_PARAMETER_NAME, relatedInternalId);
 									properties.put(Constants.NAME_OF_KNOWN_RELATIONSHIP_PARAM, idValue);
 									var update = true;
-									if (!relationshipDescription.isDynamic() && relationshipDescription.hasRelationshipProperties()) {
+									if (!relationshipDescription.isDynamic() && relationshipDescription.hasRelationshipProperties() && fromId != null) {
 										var hlp = ((MappingSupport.RelationshipPropertiesWithEntityHolder) relatedValueToStore);
 										var hasProcessedRelationshipEntity = stateMachine.hasProcessedRelationshipEntity(parentPropertyAccessor.getBean(), hlp.getRelatedEntity(), relationshipContext.getRelationship());
 										if (hasProcessedRelationshipEntity) {
@@ -1062,9 +1085,8 @@ public final class ReactiveNeo4jTemplate implements
 												.mappedBy((t, r) -> IdentitySupport.mapperForRelatedIdValues(idProperty).apply(r))
 												.one()
 												.flatMap(relationshipInternalId -> {
-													if (idProperty != null && isNewRelationship) {
-														relationshipContext
-																.getRelationshipPropertiesPropertyAccessor(relatedValueToStore)
+													if (idProperty != null && isNewRelationship && relationshipPropertiesPropertyAccessor != null) {
+														relationshipPropertiesPropertyAccessor
 																.setProperty(idProperty, relationshipInternalId);
 														knownRelationshipsIds.add(relationshipInternalId);
 													}
@@ -1131,7 +1153,7 @@ public final class ReactiveNeo4jTemplate implements
 
 	// The pendant to {@link #saveRelatedNode(Object, Neo4jPersistentEntity, PropertyFilter, PropertyFilter.RelaxedPropertyPath)}
 	// We can't do without a query, as we need to refresh the internal id
-	private Mono<Entity> loadRelatedNode(NodeDescription<?> targetNodeDescription, Object relatedInternalId) {
+	private Mono<Entity> loadRelatedNode(NodeDescription<?> targetNodeDescription, @Nullable Object relatedInternalId) {
 
 		var targetPersistentEntity = (Neo4jPersistentEntity<?>) targetNodeDescription;
 		var queryFragmentsAndParameters = QueryFragmentsAndParameters.forFindById(targetPersistentEntity, TemplateSupport.convertIdValues(this.neo4jMappingContext, targetPersistentEntity.getRequiredIdProperty(), relatedInternalId));
@@ -1156,14 +1178,14 @@ public final class ReactiveNeo4jTemplate implements
 					DynamicLabels dynamicLabels = t.getT2();
 					@SuppressWarnings("unchecked")
 					Function<Object, Map<String, Object>> binderFunction = neo4jMappingContext.getRequiredBinderFunctionFor(entityType);
-					String idPropertyName = targetNodeDescription.getIdProperty().getPropertyName();
+					String idPropertyName = targetNodeDescription.getRequiredIdProperty().getPropertyName();
 					IdDescription idDescription = targetNodeDescription.getIdDescription();
-					boolean assignedId = idDescription.isAssignedId() || idDescription.isExternallyGeneratedId();
+					boolean assignedId = idDescription != null && (idDescription.isAssignedId() || idDescription.isExternallyGeneratedId());
 					binderFunction = binderFunction.andThen(tree -> {
 						@SuppressWarnings("unchecked")
 						Map<String, Object> properties = (Map<String, Object>) tree.get(Constants.NAME_OF_PROPERTIES_PARAM);
 
-						if (!includeProperty.isNotFiltering()) {
+						if (properties != null && !includeProperty.isNotFiltering()) {
 							properties.entrySet().removeIf(e -> {
 								// we cannot skip the id property if it is an assigned id
 								boolean isIdProperty = e.getKey().equals(idPropertyName);
@@ -1277,7 +1299,6 @@ public final class ReactiveNeo4jTemplate implements
 
 	@Override
 	public void setBeanClassLoader(ClassLoader classLoader) {
-		//noinspection ConstantValue
 		this.beanClassLoader = beanClassLoader == null ? org.springframework.util.ClassUtils.getDefaultClassLoader() : beanClassLoader;
 	}
 
@@ -1306,7 +1327,7 @@ public final class ReactiveNeo4jTemplate implements
 		@SuppressWarnings("unchecked")
 		public Flux<T> getResults() {
 
-			return transactionalOperator.transactional(fetchSpec.all().switchOnFirst((signal, f) -> {
+			return execute(fetchSpec.all().switchOnFirst((signal, f) -> {
 				if (signal.hasValue() && preparedQuery.resultsHaveBeenAggregated()) {
 					return f.concatMap(nested -> Flux.fromIterable((Collection<T>) nested).distinct()).distinct();
 				}
@@ -1319,7 +1340,7 @@ public final class ReactiveNeo4jTemplate implements
 		 * @throws IncorrectResultSizeDataAccessException if there is no or more than one result
 		 */
 		public Mono<T> getSingleResult() {
-			return transactionalOperator.transactional(fetchSpec.one().map(t -> {
+			return execute(fetchSpec.one().map(t -> {
 				if (t instanceof LinkedHashSet) {
 					@SuppressWarnings("unchecked")
 					T firstItem = (T) ((LinkedHashSet<?>) t).iterator().next();

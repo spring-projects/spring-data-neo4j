@@ -50,6 +50,6 @@ public final class Neo4jBookmarksUpdatedEvent extends ApplicationEvent {
 	 */
 	public Set<Bookmark> getBookmarks() {
 
-		return this.bookmarks == null ? Set.of(): Collections.unmodifiableSet(this.bookmarks);
+		return this.bookmarks == null ? Set.of() : Collections.unmodifiableSet(this.bookmarks);
 	}
 }

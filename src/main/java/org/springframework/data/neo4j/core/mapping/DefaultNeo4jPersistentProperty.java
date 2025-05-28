@@ -18,8 +18,10 @@ package org.springframework.data.neo4j.core.mapping;
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.util.Collections;
+import java.util.Objects;
 import java.util.Optional;
 
+import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.springframework.core.ResolvableType;
 import org.springframework.data.annotation.ReadOnlyProperty;
@@ -110,7 +112,7 @@ final class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProp
 	}
 
 	@Override
-	protected Association<Neo4jPersistentProperty> createAssociation() {
+	protected Association<@NonNull Neo4jPersistentProperty> createAssociation() {
 
 		Neo4jPersistentEntity<?> obverseOwner;
 
@@ -120,31 +122,31 @@ final class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProp
 
 		if (this.hasActualTypeAnnotation(RelationshipProperties.class)) {
 			TypeInformation<?> typeInformation = getRelationshipPropertiesTargetType(getActualType());
-			obverseOwner = this.mappingContext.addPersistentEntity(typeInformation).get();
-			relationshipPropertiesClass = this.mappingContext.addPersistentEntity(TypeInformation.of(getActualType())).get();
+			obverseOwner = this.mappingContext.addPersistentEntity(typeInformation).orElseThrow();
+			relationshipPropertiesClass = this.mappingContext.addPersistentEntity(TypeInformation.of(getActualType())).orElseThrow();
 		} else {
-			Class<?> associationTargetType = this.getAssociationTargetType();
+			Class<?> associationTargetType = Objects.requireNonNull(this.getAssociationTargetType());
 			obverseOwner = this.mappingContext.addPersistentEntity(TypeInformation.of(associationTargetType)).orElse(null);
 			Assert.notNull(obverseOwner, "Obverse owner could not be added");
 			if (dynamicAssociation) {
 
-				TypeInformation<?> mapValueType = this.getTypeInformation().getMapValueType();
+				TypeInformation<?> mapValueType = Objects.requireNonNull(this.getTypeInformation().getMapValueType());
+				TypeInformation<?> componentType = mapValueType.getComponentType();
+				if (componentType != null) {
+					boolean relationshipPropertiesCollection = mapValueType.getActualType() != null && this.mappingContext.getRequiredPersistentEntity(mapValueType.getActualType().getType())
+							.isRelationshipPropertiesEntity();
 
-				boolean relationshipPropertiesCollection =
-						this.mappingContext.getPersistentEntity(mapValueType.getActualType().getType())
-								.isRelationshipPropertiesEntity();
+					boolean relationshipPropertiesScalar = mapValueType.getType().isAnnotationPresent(RelationshipProperties.class);
 
-				boolean relationshipPropertiesScalar =
-						mapValueType.getType().isAnnotationPresent(RelationshipProperties.class);
+					if (relationshipPropertiesCollection) {
+						TypeInformation<?> typeInformation = getRelationshipPropertiesTargetType(mapValueType.getActualType().getType());
+						obverseOwner = this.mappingContext.addPersistentEntity(typeInformation).orElseThrow();
+						relationshipPropertiesClass = this.mappingContext
+								.addPersistentEntity(componentType).orElseThrow();
 
-				if (relationshipPropertiesCollection) {
-					TypeInformation<?> typeInformation = getRelationshipPropertiesTargetType(mapValueType.getActualType().getType());
-					obverseOwner = this.mappingContext.addPersistentEntity(typeInformation).get();
-					relationshipPropertiesClass = this.mappingContext
-							.addPersistentEntity(mapValueType.getComponentType()).get();
-
-				} else if (relationshipPropertiesScalar) {
-					relationshipPropertiesClass = this.mappingContext.addPersistentEntity(mapValueType.getComponentType()).get();
+					} else if (relationshipPropertiesScalar) {
+						relationshipPropertiesClass = this.mappingContext.addPersistentEntity(componentType).orElseThrow();
+					}
 				}
 			}
 		}
