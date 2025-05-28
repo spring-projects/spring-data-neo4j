@@ -266,7 +266,7 @@ public class Neo4jExtension implements BeforeAllCallback, BeforeEachCallback {
 					if (serverVersion == null) {
 						String versionString = "";
 						try (Session session = this.getDriver().session()) {
-							Record result = session.run("CALL dbms.components() YIELD versions RETURN 'Neo4j/' + versions[0] as version").single();
+							Record result = session.run("CALL dbms.components() YIELD name, versions WHERE name = 'Neo4j Kernel' RETURN 'Neo4j/' + versions[0] as version").single();
 							versionString = result.get("version").asString();
 							this.cachedServerVersion = ServerVersion.version(versionString);
 						} catch (Exception e) {
@@ -288,7 +288,7 @@ public class Neo4jExtension implements BeforeAllCallback, BeforeEachCallback {
 			String edition;
 			SessionConfig sessionConfig = SessionConfig.builder().withDefaultAccessMode(AccessMode.READ).build();
 			try (Session session = getDriver().session(sessionConfig)) {
-				edition = session.run("call dbms.components() yield edition").single().get("edition").asString();
+				edition = session.run("CALL dbms.components() YIELD name, edition WHERE name = 'Neo4j Kernel' RETURN edition").single().get("edition").asString();
 			}
 			return edition.toLowerCase(Locale.ENGLISH);
 		}
