@@ -34,7 +34,7 @@ fun Neo4jClient.UnboundRunnableSpec.inDatabase(targetDatabase: String): Neo4jCli
  * @author Michael J. Simons
  * @since 6.0
  */
-fun <T : Any?> Neo4jClient.OngoingDelegation<T>.inDatabase(targetDatabase: String): Neo4jClient.RunnableDelegation<T> =
+fun <T : Any> Neo4jClient.OngoingDelegation<T>.inDatabase(targetDatabase: String): Neo4jClient.RunnableDelegation<T> =
         `in`(targetDatabase)
 
 /**

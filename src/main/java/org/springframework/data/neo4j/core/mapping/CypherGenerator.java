@@ -31,6 +31,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
@@ -39,6 +40,7 @@ import java.util.regex.Pattern;
 import javax.lang.model.SourceVersion;
 
 import org.apiguardian.api.API;
+import org.jspecify.annotations.Nullable;
 import org.neo4j.cypherdsl.core.Condition;
 import org.neo4j.cypherdsl.core.Cypher;
 import org.neo4j.cypherdsl.core.Expression;
@@ -55,6 +57,7 @@ import org.neo4j.cypherdsl.core.SortItem;
 import org.neo4j.cypherdsl.core.Statement;
 import org.neo4j.cypherdsl.core.StatementBuilder;
 import org.neo4j.cypherdsl.core.StatementBuilder.OngoingMatchAndUpdate;
+import org.neo4j.cypherdsl.core.StatementBuilder.OngoingReadingWithoutWhere;
 import org.neo4j.cypherdsl.core.StatementBuilder.OngoingUpdate;
 import org.neo4j.cypherdsl.core.SymbolicName;
 import org.neo4j.cypherdsl.core.renderer.Configuration;
@@ -63,8 +66,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.mapping.MappingException;
 import org.springframework.data.mapping.PersistentProperty;
 import org.springframework.data.neo4j.core.schema.TargetNode;
-import org.springframework.lang.NonNull;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -131,15 +132,14 @@ public enum CypherGenerator {
 	 * @param condition Optional conditions to add
 	 * @return An ongoing match
 	 */
-	public StatementBuilder.OrderableOngoingReadingAndWith prepareMatchOf(NodeDescription<?> nodeDescription,
-																		  @Nullable Condition condition) {
+	@SuppressWarnings("deprecation")
+	public StatementBuilder.OrderableOngoingReadingAndWith prepareMatchOf(NodeDescription<?> nodeDescription, @Nullable Condition condition) {
 
 		Node rootNode = createRootNode(nodeDescription);
 
 		List<IdentifiableElement> expressions = new ArrayList<>();
 		expressions.add(rootNode.getRequiredSymbolicName());
 		if (nodeDescription instanceof Neo4jPersistentEntity<?> entity && entity.isUsingDeprecatedInternalId()) {
-			//noinspection deprecation
 			expressions.add(rootNode.internalId().as(Constants.NAME_OF_INTERNAL_ID));
 		}
 		expressions.add(elementIdOrIdFunction.apply(rootNode).as(Constants.NAME_OF_ELEMENT_ID));
@@ -148,11 +148,11 @@ public enum CypherGenerator {
 	}
 
 	public StatementBuilder.OngoingReading prepareMatchOf(NodeDescription<?> nodeDescription,
-														  @Nullable List<PatternElement> initialMatchOn,
+														  List<PatternElement> initialMatchOn,
 														  @Nullable Condition condition) {
 		Node rootNode = createRootNode(nodeDescription);
 
-		StatementBuilder.OngoingReadingWithoutWhere match = prepareMatchOfRootNode(rootNode, initialMatchOn);
+		OngoingReadingWithoutWhere match = prepareMatchOfRootNode(rootNode, initialMatchOn);
 
 		List<IdentifiableElement> expressions = new ArrayList<>();
 		expressions.add(Cypher.collect(elementIdOrIdFunction.apply(rootNode)).as(Constants.NAME_OF_SYNTHESIZED_ROOT_NODE));
@@ -163,12 +163,11 @@ public enum CypherGenerator {
 	}
 
 	public StatementBuilder.OngoingReading prepareMatchOf(NodeDescription<?> nodeDescription,
-			  RelationshipDescription relationshipDescription, @Nullable List<PatternElement> initialMatchOn,
-														  @Nullable Condition condition) {
+			  RelationshipDescription relationshipDescription, @Nullable List<PatternElement> initialMatchOn, @Nullable Condition condition) {
 
 		Node rootNode = createRootNode(nodeDescription);
 
-		StatementBuilder.OngoingReadingWithoutWhere match = prepareMatchOfRootNode(rootNode, initialMatchOn);
+		OngoingReadingWithoutWhere match = prepareMatchOfRootNode(rootNode, initialMatchOn);
 
 		Node targetNode = node(relationshipDescription.getTarget().getPrimaryLabel(),
 				relationshipDescription.getTarget().getAdditionalLabels())
@@ -202,7 +201,6 @@ public enum CypherGenerator {
 				.with(expressions.toArray(IdentifiableElement[]::new));
 	}
 
-	@NonNull
 	public Node createRootNode(NodeDescription<?> nodeDescription) {
 		String primaryLabel = nodeDescription.getPrimaryLabel();
 		List<String> additionalLabels = nodeDescription.getAdditionalLabels();
@@ -210,11 +208,11 @@ public enum CypherGenerator {
 		return node(primaryLabel, additionalLabels).named(Constants.NAME_OF_TYPED_ROOT_NODE.apply(nodeDescription));
 	}
 
-	private StatementBuilder.OngoingReadingWithoutWhere prepareMatchOfRootNode(
+	private OngoingReadingWithoutWhere prepareMatchOfRootNode(
 			Node rootNode, @Nullable List<PatternElement> initialMatchOn
 	) {
 
-		StatementBuilder.OngoingReadingWithoutWhere match = null;
+		OngoingReadingWithoutWhere match = null;
 		if (initialMatchOn == null || initialMatchOn.isEmpty()) {
 			match = Cypher.match(rootNode);
 		} else {
@@ -226,7 +224,7 @@ public enum CypherGenerator {
 				}
 			}
 		}
-		return match;
+		return Objects.requireNonNull(match);
 	}
 
 	/**
@@ -239,8 +237,7 @@ public enum CypherGenerator {
 	 */
 	public Statement createStatementReturningDynamicLabels(NodeDescription<?> nodeDescription) {
 
-		IdDescription idDescription = nodeDescription.getIdDescription();
-		Assert.notNull(idDescription, "Cannot load specific nodes by id without a corresponding attribute");
+		IdDescription idDescription = Objects.requireNonNull(nodeDescription.getIdDescription(), "Cannot load specific nodes by id without a corresponding attribute");
 
 		final Node rootNode = createRootNode(nodeDescription);
 
@@ -290,7 +287,7 @@ public enum CypherGenerator {
 		Neo4jPersistentProperty property = (Neo4jPersistentProperty) idProperty;
 
 		Condition result = Cypher.noCondition();
-		for (String key : property.getOptionalConverter().write(null).keys()) {
+		for (String key : Objects.requireNonNull(property.getOptionalConverter()).write(null).keys()) {
 			Property expression = Cypher.property(containerName, key);
 			result = result.and(expression.isEqualTo(actualParameter.property(key)));
 		}
@@ -319,7 +316,7 @@ public enum CypherGenerator {
 			return bs.returning(rootNode).build();
 		};
 
-		if (!idDescription.isInternallyGeneratedId()) {
+		if (idDescription != null && !idDescription.isInternallyGeneratedId()) {
 			GraphPropertyDescription idPropertyDescription = ((Neo4jPersistentEntity<?>) nodeDescription).getRequiredIdProperty();
 
 			if (((Neo4jPersistentEntity<?>) nodeDescription).hasVersionProperty()) {
@@ -403,6 +400,7 @@ public enum CypherGenerator {
 		}
 	}
 
+	@SuppressWarnings("deprecation")
 	public Statement prepareSaveOfMultipleInstancesOf(NodeDescription<?> nodeDescription) {
 
 		Assert.isTrue(!nodeDescription.isUsingInternalIds(),
@@ -413,7 +411,7 @@ public enum CypherGenerator {
 		IdDescription idDescription = nodeDescription.getIdDescription();
 
 		@SuppressWarnings("ConstantConditions") // We now already that the node is using internal ids, and as such, an IdDescription must be present
-		String nameOfIdProperty = idDescription.getOptionalGraphPropertyName()
+		String nameOfIdProperty = Optional.ofNullable(idDescription).flatMap(IdDescription::getOptionalGraphPropertyName)
 				.orElseThrow(() -> new MappingException("External id does not correspond to a graph property"));
 
 		List<Expression> expressions = new ArrayList<>();
@@ -431,9 +429,8 @@ public enum CypherGenerator {
 				.build();
 	}
 
-	@NonNull
 	public Statement prepareSaveOfRelationship(Neo4jPersistentEntity<?> neo4jPersistentEntity,
-			RelationshipDescription relationship, @Nullable String dynamicRelationshipType, boolean canUseElementId) {
+			RelationshipDescription relationship, String dynamicRelationshipType, boolean canUseElementId) {
 		final Node startNode = neo4jPersistentEntity.isUsingInternalIds()
 				? anyNode(START_NODE_NAME)
 				: node(neo4jPersistentEntity.getPrimaryLabel(), neo4jPersistentEntity.getAdditionalLabels())
@@ -457,7 +454,8 @@ public enum CypherGenerator {
 				.build();
 	}
 
-	private static Function<Node, Expression> getNodeIdFunction(@Nullable Neo4jPersistentEntity<?> entity, boolean canUseElementId) {
+	@SuppressWarnings("deprecation")
+	private static Function<Node, Expression> getNodeIdFunction(Neo4jPersistentEntity<?> entity, boolean canUseElementId) {
 
 		Function<Node, Expression> startNodeIdFunction;
 		var idProperty = entity.getRequiredIdProperty();
@@ -473,7 +471,8 @@ public enum CypherGenerator {
 		return startNodeIdFunction;
 	}
 
-	private static Function<Node, Expression> getEndNodeIdFunction(@Nullable Neo4jPersistentEntity<?> entity, boolean canUseElementId) {
+	@SuppressWarnings("deprecation")
+	private static Function<Node, Expression> getEndNodeIdFunction(Neo4jPersistentEntity<?> entity, boolean canUseElementId) {
 
 		Function<Node, Expression> startNodeIdFunction;
 		if (entity == null) {
@@ -505,7 +504,6 @@ public enum CypherGenerator {
 		return result;
 	}
 
-	@NonNull
 	public Statement prepareSaveOfRelationships(Neo4jPersistentEntity<?> neo4jPersistentEntity,
 			RelationshipDescription relationship, @Nullable String dynamicRelationshipType, boolean canUseElementId) {
 
@@ -518,7 +516,7 @@ public enum CypherGenerator {
 
 		String type = relationship.isDynamic() ? dynamicRelationshipType : relationship.getType();
 		Relationship relationshipFragment = (relationship.isOutgoing() ?
-				startNode.relationshipTo(endNode, type) :
+				startNode.relationshipTo(endNode, type) : // CypherDSL is fine with a null type
 				startNode.relationshipFrom(endNode, type)).named(RELATIONSHIP_NAME);
 
 		String row = "relationship";
@@ -534,7 +532,6 @@ public enum CypherGenerator {
 				.build();
 	}
 
-	@NonNull
 	public Statement prepareSaveOfRelationshipWithProperties(Neo4jPersistentEntity<?> neo4jPersistentEntity,
 				 RelationshipDescription relationship,
 				 boolean isNew,
@@ -582,7 +579,6 @@ public enum CypherGenerator {
 				.build();
 	}
 
-	@NonNull
 	public Statement prepareUpdateOfRelationshipsWithProperties(Neo4jPersistentEntity<?> neo4jPersistentEntity,
 			RelationshipDescription relationship, boolean isNew, boolean canUseElementId) {
 
@@ -638,7 +634,6 @@ public enum CypherGenerator {
 		return result;
 	}
 
-	@NonNull
 	public Statement prepareDeleteOf(
 			Neo4jPersistentEntity<?> neo4jPersistentEntity,
 			RelationshipDescription relationshipDescription,
@@ -683,13 +678,14 @@ public enum CypherGenerator {
 	 * @param sort The {@link Sort sort} that should be turned into a valid Cypher {@code ORDER}-clause
 	 * @return An optional order clause. Will be {@literal null} on sorts that are {@literal null} or unsorted.
 	 */
-	public @Nullable String createOrderByFragment(@Nullable Sort sort) {
+	@Nullable
+	public String createOrderByFragment(@Nullable Sort sort) {
 
 		if (sort == null || sort.isUnsorted()) {
 			return null;
 		}
 		Statement statement = match(anyNode()).returning("n")
-				.orderBy(sort.stream().filter(Objects::nonNull).map(order -> {
+				.orderBy(sort.stream().map(order -> {
 					String property = order.getProperty().trim();
 					Expression expression;
 					if (LOOKS_LIKE_A_FUNCTION.matcher(property).matches()) {
@@ -711,12 +707,12 @@ public enum CypherGenerator {
 						try {
 							Assert.isTrue(SourceVersion.isIdentifier(property), "Name must be a valid identifier.");
 							expression = Cypher.name(property);
-						} catch (IllegalArgumentException e) {
-							if (e.getMessage().endsWith(".")) {
-								throw new IllegalArgumentException(
-										e.getMessage().substring(0, e.getMessage().length() - 1));
+						} catch (IllegalArgumentException ex) {
+							var msg = Optional.ofNullable(ex.getMessage()).orElse("");
+							if (msg.endsWith(".")) {
+								throw new IllegalArgumentException(msg.substring(0, msg.length() - 1));
 							}
-							throw e;
+							throw ex;
 						}
 					}
 					if (order.isIgnoreCase()) {
@@ -750,7 +746,6 @@ public enum CypherGenerator {
 				nodeDescription,
 				Constants.NAME_OF_TYPED_ROOT_NODE.apply(nodeDescription),
 				includeField,
-				null,
 				processedRelationships));
 			Collections.addAll(returnContent, additionalExpressions);
 			return returnContent;
@@ -767,18 +762,18 @@ public enum CypherGenerator {
 	}
 
 
-	public StatementBuilder.OngoingReading prepareFindOf(NodeDescription<?> nodeDescription, @Nullable List<PatternElement> initialMatchOn, @Nullable Condition condition) {
+	public StatementBuilder.OngoingReading prepareFindOf(NodeDescription<?> nodeDescription, List<PatternElement> initialMatchOn, @Nullable Condition condition) {
 		var rootNode = createRootNode(nodeDescription);
 		return prepareMatchOfRootNode(rootNode, initialMatchOn).where(conditionOrNoCondition(condition));
 	}
 
 	private MapProjection projectPropertiesAndRelationships(PropertyFilter.RelaxedPropertyPath parentPath, Neo4jPersistentEntity<?> nodeDescription, SymbolicName nodeName,
-															Predicate<PropertyFilter.RelaxedPropertyPath> includedProperties, @Nullable RelationshipDescription relationshipDescription, List<RelationshipDescription> processedRelationships, Expression... additionalExpressions) {
+															Predicate<PropertyFilter.RelaxedPropertyPath> includedProperties, @Nullable List<RelationshipDescription> processedRelationships) {
 
 		Collection<RelationshipDescription> relationships = ((DefaultNeo4jPersistentEntity<?>) nodeDescription).getRelationshipsInHierarchy(includedProperties, parentPath);
 		relationships.removeIf(r -> !includedProperties.test(parentPath.append(r.getFieldName())));
 
-		List<Object> propertiesProjection = projectNodeProperties(parentPath, nodeDescription, nodeName, relationshipDescription, includedProperties);
+		List<Object> propertiesProjection = projectNodeProperties(parentPath, nodeDescription, nodeName, includedProperties);
 		List<Object> contentOfProjection = new ArrayList<>(propertiesProjection);
 
 		contentOfProjection.addAll(generateListsFor(parentPath, nodeDescription, relationships, nodeName, includedProperties, processedRelationships));
@@ -790,8 +785,9 @@ public enum CypherGenerator {
 	 * this list can also contain two "keys" in a row. The {@link MapProjection} will take care to handle them as
 	 * self-reflecting fields. Example with self-reflection and explicit value: {@code n {.id, name: n.name}}.
 	 */
+	@SuppressWarnings("deprecation")
 	private List<Object> projectNodeProperties(PropertyFilter.RelaxedPropertyPath parentPath, NodeDescription<?> nodeDescription, SymbolicName nodeName,
-											   @Nullable RelationshipDescription relationshipDescription, Predicate<PropertyFilter.RelaxedPropertyPath> includeField) {
+	                                            Predicate<PropertyFilter.RelaxedPropertyPath> includeField) {
 
 		List<Object> nodePropertiesProjection = new ArrayList<>();
 		Node node = anyNode(nodeName);
@@ -827,7 +823,6 @@ public enum CypherGenerator {
 		nodePropertiesProjection.add(Cypher.labels(node));
 		if (nodeDescription instanceof Neo4jPersistentEntity<?> entity && entity.isUsingDeprecatedInternalId()) {
 			nodePropertiesProjection.add(Constants.NAME_OF_INTERNAL_ID);
-			//noinspection deprecation
 			nodePropertiesProjection.add(node.internalId());
 		}
 		nodePropertiesProjection.add(Constants.NAME_OF_ELEMENT_ID);
@@ -839,9 +834,10 @@ public enum CypherGenerator {
 	 * @see CypherGenerator#projectNodeProperties
 	 */
 	private List<Object> generateListsFor(PropertyFilter.RelaxedPropertyPath parentPath, Neo4jPersistentEntity<?> nodeDescription, Collection<RelationshipDescription> relationships, SymbolicName nodeName,
-										  Predicate<PropertyFilter.RelaxedPropertyPath> includedProperties, List<RelationshipDescription> processedRelationships) {
+										  Predicate<PropertyFilter.RelaxedPropertyPath> includedProperties, @Nullable List<RelationshipDescription> processedRelationships) {
 
 		List<Object> mapProjectionLists = new ArrayList<>();
+		List<RelationshipDescription> processed = Objects.requireNonNullElseGet(processedRelationships, ArrayList::new);
 
 		for (RelationshipDescription relationshipDescription : relationships) {
 
@@ -850,11 +846,11 @@ public enum CypherGenerator {
 			// if we already processed the other way before, do not try to jump in the infinite loop
 			// unless it is a root node relationship
 			if (relationshipDescription.hasRelationshipObverse()
-					&& processedRelationships.contains(relationshipDescription.getRelationshipObverse())) {
+					&& processed.contains(relationshipDescription.getRelationshipObverse())) {
 				continue;
 			}
 
-			generateListFor(parentPath, nodeDescription, relationshipDescription, nodeName, processedRelationships, fieldName, mapProjectionLists, includedProperties);
+			generateListFor(parentPath, nodeDescription, relationshipDescription, nodeName, processed, fieldName, mapProjectionLists, includedProperties);
 		}
 
 		return mapProjectionLists;
@@ -876,10 +872,15 @@ public enum CypherGenerator {
 		Neo4jPersistentEntity<?> endNodeDescription = (Neo4jPersistentEntity<?>) relationshipDescription.getTarget();
 
 		processedRelationships.add(relationshipDescription);
-		PropertyFilter.RelaxedPropertyPath newParentPath = relationshipDescription.hasRelationshipProperties()
-				? parentPath.append(relationshipDescription.getFieldName()).append(((Neo4jPersistentEntity<?>) relationshipDescription.getRelationshipPropertiesEntity())
-					.getPersistentProperty(TargetNode.class).getFieldName())
-				: parentPath.append(relationshipDescription.getFieldName());
+		PropertyFilter.RelaxedPropertyPath newParentPath;
+		newParentPath = parentPath.append(relationshipDescription.getFieldName());
+		if (relationshipDescription.hasRelationshipProperties()) {
+			var persistentProperty = ((Neo4jPersistentEntity<?>) relationshipDescription.getRequiredRelationshipPropertiesEntity()).getPersistentProperty(TargetNode.class);
+			if (persistentProperty != null) {
+				newParentPath = newParentPath
+						.append(persistentProperty.getFieldName());
+			}
+		}
 
 		if (relationshipDescription.isDynamic()) {
 			Relationship relationship = relationshipDescription.isOutgoing()
@@ -888,7 +889,7 @@ public enum CypherGenerator {
 			relationship = relationship.named(relationshipTargetName);
 
 			MapProjection mapProjection = projectPropertiesAndRelationships(newParentPath, endNodeDescription, relationshipFieldName,
-					includedProperties, relationshipDescription, new ArrayList<>(processedRelationships));
+					includedProperties, new ArrayList<>(processedRelationships));
 
 			if (relationshipDescription.hasRelationshipProperties()) {
 				relationship = relationship.named(relationshipSymbolicName);
@@ -906,7 +907,7 @@ public enum CypherGenerator {
 					: startNode.relationshipFrom(endNode, relationshipType);
 
 			MapProjection mapProjection = projectPropertiesAndRelationships(newParentPath, endNodeDescription, relationshipFieldName,
-					includedProperties, relationshipDescription, new ArrayList<>(processedRelationships));
+					includedProperties, new ArrayList<>(processedRelationships));
 
 			if (relationshipDescription.hasRelationshipProperties()) {
 				relationship = relationship.named(relationshipSymbolicName);

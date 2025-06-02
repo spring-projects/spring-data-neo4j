@@ -21,6 +21,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
+import org.jspecify.annotations.Nullable;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.NotReadablePropertyException;
@@ -30,7 +31,6 @@ import org.springframework.data.neo4j.core.mapping.PropertyHandlerSupport;
 import org.springframework.data.neo4j.core.schema.Property;
 import org.springframework.data.projection.MethodInterceptorFactory;
 import org.springframework.data.util.DirectFieldAccessFallbackBeanWrapper;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
 
@@ -63,9 +63,9 @@ final class EntityAndGraphPropertyAccessingMethodInterceptor implements MethodIn
 		this.target = new GraphPropertyAndDirectFieldAccessFallbackBeanWrapper(target, ctx);
 	}
 
-	@Nullable
 	@Override
-	public Object invoke(@SuppressWarnings("null") MethodInvocation invocation) throws Throwable {
+	@Nullable
+	public Object invoke(MethodInvocation invocation) throws Throwable {
 
 		Method method = invocation.getMethod();
 
@@ -113,6 +113,7 @@ final class EntityAndGraphPropertyAccessingMethodInterceptor implements MethodIn
 		}
 
 		@Override
+		@Nullable
 		public Object getPropertyValue(String propertyName) {
 			try {
 				return super.getPropertyValue(propertyName);

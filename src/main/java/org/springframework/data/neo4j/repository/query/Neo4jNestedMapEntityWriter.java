@@ -31,6 +31,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apiguardian.api.API;
+import org.jspecify.annotations.Nullable;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
 import org.springframework.data.convert.EntityWriter;
@@ -49,7 +50,6 @@ import org.springframework.data.neo4j.core.mapping.PropertyHandlerSupport;
 import org.springframework.data.neo4j.core.mapping.RelationshipDescription;
 import org.springframework.data.neo4j.core.schema.TargetNode;
 import org.springframework.data.util.TypeInformation;
-import org.springframework.lang.Nullable;
 
 /**
  * A specialized version of an {@link EntityWriter} for Neo4j that traverses the entity and maps the entity,
@@ -77,7 +77,7 @@ final class Neo4jNestedMapEntityWriter implements EntityWriter<Object, Map<Strin
 	}
 
 	@Override
-	public void write(@Nullable Object source, Map<String, Object> sink) {
+	public void write(Object source, Map<String, Object> sink) {
 
 		if (source == null) {
 			return;
@@ -132,7 +132,9 @@ final class Neo4jNestedMapEntityWriter implements EntityWriter<Object, Map<Strin
 		if (!(idProperty == null || idProperty.isInternalIdProperty())) {
 			@SuppressWarnings("unchecked")
 			Map<String, Object> propertyMap = (Map<String, Object>) sink.get(Constants.NAME_OF_PROPERTIES_PARAM);
-			propertyMap.remove(idProperty.getPropertyName());
+			if (propertyMap != null) {
+				propertyMap.remove(idProperty.getPropertyName());
+			}
 		}
 
 		// Param not needed
@@ -181,7 +183,7 @@ final class Neo4jNestedMapEntityWriter implements EntityWriter<Object, Map<Strin
 								Map.Entry::getKey,
 								Collectors.mapping(Map.Entry::getValue, Collectors.collectingAndThen(Collectors.toList(), Values::value)))
 						);
-				if (!collect.isEmpty()) {
+				if (!collect.isEmpty() && propertyMap != null) {
 					propertyMap.putAll(collect);
 				}
 			} else {
@@ -191,7 +193,7 @@ final class Neo4jNestedMapEntityWriter implements EntityWriter<Object, Map<Strin
 								seenObjects))
 						.collect(Collectors.toList());
 
-				if (!relatedObjects.isEmpty()) {
+				if (!relatedObjects.isEmpty() && propertyMap != null) {
 					String type = description.getType();
 					if (propertyMap.containsKey(type)) {
 						Value v = (Value) propertyMap.get(type);

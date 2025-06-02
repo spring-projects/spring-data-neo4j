@@ -17,16 +17,17 @@ package org.springframework.data.neo4j.core.mapping;
 
 import java.util.Objects;
 
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.mapping.Association;
 import org.springframework.data.neo4j.core.schema.Relationship;
-import org.springframework.lang.Nullable;
 
 /**
  * @author Michael J. Simons
  * @author Gerrit Meier
  * @since 6.0
  */
-final class DefaultRelationshipDescription extends Association<Neo4jPersistentProperty> implements RelationshipDescription {
+final class DefaultRelationshipDescription extends Association<@NonNull Neo4jPersistentProperty> implements RelationshipDescription {
 
 	private final String type;
 
@@ -40,8 +41,10 @@ final class DefaultRelationshipDescription extends Association<Neo4jPersistentPr
 
 	private final Relationship.Direction direction;
 
+	@Nullable
 	private final NodeDescription<?> relationshipPropertiesClass;
 
+	@Nullable
 	private RelationshipDescription relationshipObverse;
 
 	private final boolean cascadeUpdates;
@@ -97,6 +100,7 @@ final class DefaultRelationshipDescription extends Association<Neo4jPersistentPr
 	}
 
 	@Override
+	@Nullable
 	public NodeDescription<?> getRelationshipPropertiesEntity() {
 		return relationshipPropertiesClass;
 	}
@@ -107,11 +111,12 @@ final class DefaultRelationshipDescription extends Association<Neo4jPersistentPr
 	}
 
 	@Override
-	public void setRelationshipObverse(RelationshipDescription relationshipObverse) {
+	public void setRelationshipObverse(@Nullable RelationshipDescription relationshipObverse) {
 		this.relationshipObverse = relationshipObverse;
 	}
 
 	@Override
+	@Nullable
 	public RelationshipDescription getRelationshipObverse() {
 		return relationshipObverse;
 	}

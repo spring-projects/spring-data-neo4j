@@ -38,7 +38,7 @@ fun ReactiveNeo4jClient.UnboundRunnableSpec.inDatabase(targetDatabase: String):
  * @author Michael J. Simons
  * @since 6.0
  */
-fun <T : Any?> ReactiveNeo4jClient.OngoingDelegation<T>.inDatabase(targetDatabase: String):
+fun <T : Any> ReactiveNeo4jClient.OngoingDelegation<T>.inDatabase(targetDatabase: String):
         ReactiveNeo4jClient.RunnableDelegation<T> = `in`(targetDatabase)
 
 /**

@@ -21,6 +21,7 @@ import reactor.core.publisher.Mono;
 import java.util.Collections;
 import java.util.Map;
 
+import org.jspecify.annotations.Nullable;
 import org.neo4j.cypherdsl.core.Statement;
 import org.springframework.data.neo4j.repository.query.QueryFragmentsAndParameters;
 import org.springframework.util.Assert;
@@ -54,12 +55,15 @@ final class ReactiveFluentOperationSupport implements ReactiveFluentFindOperatio
 		private final ReactiveNeo4jTemplate template;
 		private final Class<?> domainType;
 		private final Class<T> returnType;
+		@Nullable
 		private final String query;
+		@Nullable
 		private final Map<String, Object> parameters;
+		@Nullable
 		private final QueryFragmentsAndParameters queryFragmentsAndParameters;
 
-		ExecutableFindSupport(ReactiveNeo4jTemplate template, Class<?> domainType, Class<T> returnType, String query,
-				Map<String, Object> parameters) {
+		ExecutableFindSupport(ReactiveNeo4jTemplate template, Class<?> domainType, Class<T> returnType, @Nullable String query,
+				@Nullable Map<String, Object> parameters) {
 			this.template = template;
 			this.domainType = domainType;
 			this.returnType = returnType;
@@ -68,7 +72,7 @@ final class ReactiveFluentOperationSupport implements ReactiveFluentFindOperatio
 			this.queryFragmentsAndParameters = null;
 		}
 
-		ExecutableFindSupport(ReactiveNeo4jTemplate template, Class<?> domainType, Class<T> returnType, QueryFragmentsAndParameters queryFragmentsAndParameters) {
+		ExecutableFindSupport(ReactiveNeo4jTemplate template, Class<?> domainType, Class<T> returnType, @Nullable QueryFragmentsAndParameters queryFragmentsAndParameters) {
 			this.template = template;
 			this.domainType = domainType;
 			this.returnType = returnType;

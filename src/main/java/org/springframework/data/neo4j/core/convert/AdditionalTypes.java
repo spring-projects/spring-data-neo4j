@@ -33,10 +33,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.UUID;
 
+import org.jspecify.annotations.Nullable;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
 import org.neo4j.driver.exceptions.value.LossyCoercion;
@@ -267,7 +269,8 @@ final class AdditionalTypes {
 
 		@SuppressWarnings({"raw", "unchecked"}) // Due to dynamic enum retrieval
 		@Override
-		public Object convert(Object source, TypeDescriptor sourceType, TypeDescriptor targetType) {
+		@Nullable
+		public Object convert(@Nullable Object source, TypeDescriptor sourceType, TypeDescriptor targetType) {
 
 			if (source == null) {
 				return Value.class.isAssignableFrom(targetType.getType()) ? Values.NULL : null;
@@ -299,6 +302,7 @@ final class AdditionalTypes {
 		}
 
 		@Override
+		@Nullable
 		public Set<ConvertiblePair> getConvertibleTypes() {
 			return null;
 		}
@@ -315,12 +319,14 @@ final class AdditionalTypes {
 		}
 
 		private static boolean describesSupportedEnumVariant(TypeDescriptor typeDescriptor) {
+			var elementTypeDescriptor = typeDescriptor.getElementTypeDescriptor();
 			return typeDescriptor.isArray()
-					&& Enum.class.isAssignableFrom(typeDescriptor.getElementTypeDescriptor().getType());
+					&& elementTypeDescriptor != null && Enum.class.isAssignableFrom(elementTypeDescriptor.getType());
 		}
 
 		@Override
-		public Object convert(Object object, TypeDescriptor sourceType, TypeDescriptor targetType) {
+		@Nullable
+		public Object convert(@Nullable Object object, TypeDescriptor sourceType, TypeDescriptor targetType) {
 
 			if (object == null) {
 				return Value.class.isAssignableFrom(targetType.getType()) ? Values.NULL : null;
@@ -329,17 +335,17 @@ final class AdditionalTypes {
 			if (Value.class.isAssignableFrom(sourceType.getType())) {
 				Value source = (Value) object;
 
-				TypeDescriptor elementTypeDescriptor = targetType.getElementTypeDescriptor();
+				TypeDescriptor elementTypeDescriptor = Objects.requireNonNull(targetType.getElementTypeDescriptor());
 				Object[] targetArray = (Object[]) Array.newInstance(elementTypeDescriptor.getType(), source.size());
 
 				Arrays.setAll(targetArray,
 						i -> delegate.convert(source.get(i), TypeDescriptor.valueOf(Value.class), elementTypeDescriptor));
 				return targetArray;
 			} else {
-				Enum[] source = (Enum[]) object;
+				Enum<?>[] source = (Enum<?>[]) object;
 
 				return Values.value(Arrays.stream(source)
-						.map(e -> delegate.convert(e, sourceType.getElementTypeDescriptor(), TypeDescriptor.valueOf(Value.class)))
+						.map(e -> delegate.convert(e, Objects.requireNonNull(sourceType.getElementTypeDescriptor()), TypeDescriptor.valueOf(Value.class)))
 						.toArray());
 			}
 		}
@@ -357,6 +363,7 @@ final class AdditionalTypes {
 		return Values.value(aFloat.toString());
 	}
 
+	@Nullable
 	static Locale asLocale(Value value) {
 
 		return StringUtils.parseLocale(value.asString());

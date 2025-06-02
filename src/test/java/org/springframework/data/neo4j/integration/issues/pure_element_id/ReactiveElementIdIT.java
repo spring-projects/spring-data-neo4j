@@ -39,7 +39,6 @@ import org.springframework.data.neo4j.test.LogbackCapture;
 import org.springframework.data.neo4j.test.LogbackCapturingExtension;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 import org.springframework.data.neo4j.test.Neo4jReactiveTestConfiguration;
-import org.springframework.lang.NonNull;
 import org.springframework.transaction.ReactiveTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import reactor.core.publisher.Mono;
@@ -402,8 +401,7 @@ public class ReactiveElementIdIT extends AbstractElementIdTestBase {
 		}
 
 		@Override
-		@NonNull
-		public ReactiveTransactionManager reactiveTransactionManager(@NonNull Driver driver, @NonNull ReactiveDatabaseSelectionProvider databaseSelectionProvider) {
+		public ReactiveTransactionManager reactiveTransactionManager(Driver driver, ReactiveDatabaseSelectionProvider databaseSelectionProvider) {
 
 			BookmarkCapture bookmarkCapture = bookmarkCapture();
 			return new ReactiveNeo4jTransactionManager(driver, databaseSelectionProvider,
@@ -411,7 +409,6 @@ public class ReactiveElementIdIT extends AbstractElementIdTestBase {
 		}
 
 		@Bean
-		@NonNull
 		public Driver driver() {
 
 			return neo4jConnectionSupport.getDriver();

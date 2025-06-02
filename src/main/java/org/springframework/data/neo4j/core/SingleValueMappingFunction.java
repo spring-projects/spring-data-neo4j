@@ -17,12 +17,12 @@ package org.springframework.data.neo4j.core;
 
 import java.util.function.BiFunction;
 
+import org.jspecify.annotations.Nullable;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
 import org.neo4j.driver.types.TypeSystem;
 import org.springframework.core.convert.ConversionService;
-import org.springframework.lang.Nullable;
 
 /**
  * Used to automatically map single valued records to a sensible Java type based on {@link Value#asObject()}.
@@ -42,8 +42,8 @@ final class SingleValueMappingFunction<T> implements BiFunction<TypeSystem, Reco
 		this.targetClass = targetClass;
 	}
 
-	@Nullable
 	@Override
+	@Nullable
 	public T apply(TypeSystem typeSystem, Record record) {
 
 		if (record.size() == 0) {
@@ -58,7 +58,7 @@ final class SingleValueMappingFunction<T> implements BiFunction<TypeSystem, Reco
 	}
 
 	@Nullable
-	T convertValue(@Nullable Value source) {
+	T convertValue(Value source) {
 		if (targetClass == Void.class || targetClass == void.class) {
 			return null;
 		}

@@ -18,12 +18,12 @@ package org.springframework.data.neo4j.core.mapping;
 import java.util.Optional;
 
 import org.apiguardian.api.API;
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Vector;
 import org.springframework.data.mapping.PersistentProperty;
 import org.springframework.data.neo4j.core.convert.Neo4jPersistentPropertyConverter;
 import org.springframework.data.neo4j.core.schema.CompositeProperty;
 import org.springframework.data.neo4j.core.schema.DynamicLabels;
-import org.springframework.lang.Nullable;
 
 /**
  * A {@link org.springframework.data.mapping.PersistentProperty} interface with additional methods for metadata related
@@ -45,7 +45,8 @@ public interface Neo4jPersistentProperty extends PersistentProperty<Neo4jPersist
 	 */
 	default boolean isDynamicAssociation() {
 
-		return isRelationship() && isMap() && (getComponentType() == String.class || getComponentType().isEnum());
+		Class<?> componentType = getComponentType();
+		return isRelationship() && isMap() && (componentType == String.class || (componentType != null && componentType.isEnum()));
 	}
 
 	/**

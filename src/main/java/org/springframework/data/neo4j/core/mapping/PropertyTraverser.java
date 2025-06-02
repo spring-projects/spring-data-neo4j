@@ -23,10 +23,10 @@ import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 
 import org.apiguardian.api.API;
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.mapping.Association;
 import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.neo4j.core.schema.TargetNode;
-import org.springframework.lang.Nullable;
 
 /**
  * A strategy for traversing all properties (including association) once, without going in circles with cyclic mappings.

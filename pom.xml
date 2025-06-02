@@ -84,7 +84,11 @@
 		<java-module-name>spring.data.neo4j</java-module-name>
 		<java.version>17</java.version>
 		<jaxb.version>2.3.1</jaxb.version>
+		<jna.version>5.8.0</jna.version>
+		<jspecify.version>1.0.0</jspecify.version>
+		<jsr305.version>3.0.2</jsr305.version>
 		<junit-cc-testcontainer>2021.0.1</junit-cc-testcontainer>
+		<junit-pioneer.version>2.2.0</junit-pioneer.version>
 		<maven-install-plugin.version>3.1.4</maven-install-plugin.version>
 		<maven-site-plugin.version>3.7.1</maven-site-plugin.version>
 		<maven.compiler.release>${java.version}</maven.compiler.release>
@@ -92,6 +96,7 @@
 		<neo4j-migrations.version>2.17.3</neo4j-migrations.version>
 		<neo4j.version>4.4.41</neo4j.version>
 		<objenesis.version>3.0.1</objenesis.version>
+		<org.osgi.core.version>6.0.0</org.osgi.core.version>
 		<project.build.docs>${project.build.directory}/docs</project.build.docs>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<r2dbc.releasetrain>Arabba-SR11</r2dbc.releasetrain>
@@ -102,22 +107,14 @@
 		<skipUnitTests>${skipTests}</skipUnitTests>
 
 		<springdata.commons>4.0.0-SNAPSHOT</springdata.commons>
-		<junit-pioneer.version>2.2.0</junit-pioneer.version>
 	</properties>
 
 	<dependencyManagement>
 		<dependencies>
 			<dependency>
-				<groupId>org.neo4j</groupId>
-				<artifactId>neo4j-cypher-dsl-bom</artifactId>
-				<version>${cypher-dsl.version}</version>
-				<type>pom</type>
-				<scope>import</scope>
-			</dependency>
-			<dependency>
 				<groupId>com.google.code.findbugs</groupId>
 				<artifactId>jsr305</artifactId>
-				<version>3.0.2</version>
+				<version>${jsr305.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>com.tngtech.archunit</groupId>
@@ -131,9 +128,9 @@
 				<scope>test</scope>
 			</dependency>
 			<dependency>
-				<groupId>org.junit-pioneer</groupId>
-				<artifactId>junit-pioneer</artifactId>
-				<version>${junit-pioneer.version}</version>
+				<groupId>io.projectreactor.tools</groupId>
+				<artifactId>blockhound</artifactId>
+				<version>${blockhound.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>io.r2dbc</groupId>
@@ -161,7 +158,7 @@
 			<dependency>
 				<groupId>net.java.dev.jna</groupId>
 				<artifactId>jna</artifactId>
-				<version>5.8.0</version>
+				<version>${jna.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>org.apiguardian</groupId>
@@ -169,9 +166,26 @@
 				<version>${apiguardian.version}</version>
 			</dependency>
 			<dependency>
+				<groupId>org.jspecify</groupId>
+				<artifactId>jspecify</artifactId>
+				<version>${jspecify.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.junit-pioneer</groupId>
+				<artifactId>junit-pioneer</artifactId>
+				<version>${junit-pioneer.version}</version>
+			</dependency>
+			<dependency>
 				<groupId>org.neo4j</groupId>
 				<artifactId>neo4j</artifactId>
 				<version>${neo4j.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.neo4j</groupId>
+				<artifactId>neo4j-cypher-dsl-bom</artifactId>
+				<version>${cypher-dsl.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
 			</dependency>
 			<dependency>
 				<groupId>org.neo4j.driver</groupId>
@@ -191,7 +205,7 @@
 			<dependency>
 				<groupId>org.osgi</groupId>
 				<artifactId>org.osgi.core</artifactId>
-				<version>6.0.0</version>
+				<version>${org.osgi.core.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>org.slf4j</groupId>
@@ -209,11 +223,6 @@
 				<version>${testcontainers}</version>
 				<type>pom</type>
 				<scope>import</scope>
-			</dependency>
-			<dependency>
-				<groupId>io.projectreactor.tools</groupId>
-				<artifactId>blockhound</artifactId>
-				<version>${blockhound.version}</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
@@ -280,6 +289,11 @@
 			<optional>true</optional>
 		</dependency>
 		<dependency>
+			<groupId>io.projectreactor.tools</groupId>
+			<artifactId>blockhound</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
 			<groupId>io.r2dbc</groupId>
 			<artifactId>r2dbc-h2</artifactId>
 			<scope>test</scope>
@@ -340,6 +354,11 @@
 			<groupId>org.jetbrains.kotlinx</groupId>
 			<artifactId>kotlinx-coroutines-reactor</artifactId>
 			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>org.junit-pioneer</groupId>
+			<artifactId>junit-pioneer</artifactId>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.neo4j</groupId>
@@ -415,28 +434,18 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
-		<dependency>
-			<groupId>io.projectreactor.tools</groupId>
-			<artifactId>blockhound</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.junit-pioneer</groupId>
-			<artifactId>junit-pioneer</artifactId>
-			<scope>test</scope>
-		</dependency>
 	</dependencies>
 
 	<repositories>
 		<repository>
-			<id>spring-snapshot</id>
-			<url>https://repo.spring.io/snapshot</url>
-			<snapshots>
-				<enabled>true</enabled>
-			</snapshots>
 			<releases>
 				<enabled>false</enabled>
 			</releases>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+			<id>spring-snapshot</id>
+			<url>https://repo.spring.io/snapshot</url>
 		</repository>
 		<repository>
 			<id>spring-milestone</id>
@@ -645,31 +654,6 @@
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>java-compile</id>
-						<configuration combine.self="append">
-							<compilerArgs>
-								<arg>-Xlint:all,-options,-path</arg>
-							</compilerArgs>
-						</configuration>
-					</execution>
-					<execution>
-						<!-- You would think that applying above configuration to java-test-compile would have the same result.
-						     Alas, it doesn't. The build just fails, -e -X doesn't show anything sane.
-						     So, showDeprecation is just warnings, if set to errors, than it fails hard (which is nice for
-						     deprecation, but it also fails during missing When.MAYBE whateever Jakarta annotation
-						     and there's just no motiviation to deal with Spring Data Commons build setup in this project -->
-						<id>java-test-compile</id>
-						<configuration combine.self="append">
-							<showDeprecation>true</showDeprecation>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-resources-plugin</artifactId>
 				<executions>
 					<execution>
@@ -689,8 +673,8 @@
 			<build>
 				<resources>
 					<resource>
-						<directory>src/main/antora/resources/antora-resources</directory>
 						<filtering>true</filtering>
+						<directory>src/main/antora/resources/antora-resources</directory>
 					</resource>
 				</resources>
 			</build>

@@ -18,12 +18,13 @@ package org.springframework.data.neo4j.core.mapping;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Predicate;
 
 import org.apiguardian.api.API;
+import org.jspecify.annotations.Nullable;
 import org.neo4j.cypherdsl.core.Expression;
-import org.springframework.lang.Nullable;
 
 /**
  * Describes how a class is mapped to a node inside the database. It provides navigable links to relationships and
@@ -143,14 +144,15 @@ public interface NodeDescription<T> {
 	 */
 	default Expression getIdExpression() {
 
-		if (this.getIdDescription().getOptionalGraphPropertyName()
+		var idDescription = Objects.requireNonNull(this.getIdDescription(), "No id description available, cannot compute a Cypher expression for retrieving or storing the id");
+		if (idDescription.getOptionalGraphPropertyName()
 				.flatMap(this::getGraphProperty)
 				.filter(GraphPropertyDescription::isComposite)
 				.isPresent()) {
 			throw new IllegalStateException("A composite id property cannot be used as ID expression.");
 		}
 
-		return this.getIdDescription().asIdExpression();
+		return idDescription.asIdExpression();
 	}
 
 	/**

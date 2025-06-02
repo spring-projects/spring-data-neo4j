@@ -24,9 +24,9 @@ import java.util.Set;
 import java.util.concurrent.locks.StampedLock;
 
 import org.apiguardian.api.API;
+import org.jspecify.annotations.Nullable;
 import org.neo4j.cypherdsl.core.Statement;
-import org.springframework.lang.NonNull;
-import org.springframework.lang.Nullable;
+import org.springframework.data.mapping.PersistentPropertyAccessor;
 import org.springframework.util.Assert;
 
 import reactor.core.publisher.Flux;
@@ -101,7 +101,7 @@ public final class NestedRelationshipProcessingStateMachine {
 	 * @param valuesToStore           Check whether all the values in the collection have been processed
 	 * @return The state of things processed
 	 */
-	public ProcessState getStateOf(@Nullable Object fromId, RelationshipDescription relationshipDescription, @Nullable Collection<?> valuesToStore) {
+	public ProcessState getStateOf(@Nullable Object fromId, RelationshipDescription relationshipDescription, Collection<?> valuesToStore) {
 		if (fromId == null) {
 			return ProcessState.PROCESSED_BOTH;
 		}
@@ -139,7 +139,7 @@ public final class NestedRelationshipProcessingStateMachine {
 
 	private record RelationshipIdUpdateContext(Statement cypher, Object fromId, Object toId,
 		NestedRelationshipContext relationshipContext,
-		Object relatedValueToStore, Neo4jPersistentProperty idProperty) {
+		Object relatedValueToStore, @Nullable Neo4jPersistentProperty idProperty) {
 	}
 
 	/**
@@ -147,7 +147,7 @@ public final class NestedRelationshipProcessingStateMachine {
 	 */
 	@FunctionalInterface
 	public interface RelationshipIdSupplier {
-		Optional<Object> getId(Statement statement, Neo4jPersistentProperty idProperty, Object fromId, Object toId);
+		Optional<Object> getId(Statement statement, @Nullable Neo4jPersistentProperty idProperty, Object fromId, Object toId);
 	}
 
 	/**
@@ -155,7 +155,7 @@ public final class NestedRelationshipProcessingStateMachine {
 	 */
 	@FunctionalInterface
 	public interface ReactiveRelationshipIdSupplier {
-		Mono<Object> getId(Statement statement, Neo4jPersistentProperty idProperty, Object fromId, Object toId);
+		Mono<Object> getId(Statement statement, @Nullable Neo4jPersistentProperty idProperty, Object fromId, Object toId);
 	}
 
 	/**
@@ -163,8 +163,8 @@ public final class NestedRelationshipProcessingStateMachine {
 	 *
 	 * @param relationshipDescription To be marked as processed
 	 */
-	public void markRelationshipAsProcessed(Object fromId, @Nullable RelationshipDescription relationshipDescription) {
-		if (relationshipDescription == null) {
+	public void markRelationshipAsProcessed(@Nullable Object fromId, @Nullable RelationshipDescription relationshipDescription) {
+		if (fromId == null || relationshipDescription == null) {
 			return;
 		}
 
@@ -218,16 +218,20 @@ public final class NestedRelationshipProcessingStateMachine {
 			if (!processed && mappingContext.hasPersistentEntityFor(typeOfValue)) {
 				Neo4jPersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(typeOfValue);
 				Neo4jPersistentProperty idProperty = entity.getIdProperty();
-				Object id = idProperty == null ? null : entity.getPropertyAccessor(valueToCheck).getProperty(idProperty);
+				Object id;
+				Optional<Object> alreadyProcessedObject = Optional.empty();
+				if (idProperty != null) {
+					// After the lookup by system.identityHashCode failed for a processed object alias,
+					// we must traverse or iterate over all value with the matching type and compare the domain ids
+					// to figure out if the logical object has already been processed through a different object instance.
+					// The type check is needed to avoid relationship ids <> node id conflicts.
+					id = entity.getPropertyAccessor(valueToCheck).getProperty(idProperty);
+					alreadyProcessedObject = processedObjectsAlias.values().stream()
+							.filter(typeOfValue::isInstance)
+							.filter(processedObject -> id != null && id.equals(entity.getPropertyAccessor(processedObject).getProperty(idProperty)))
+							.findAny();
+				}
 
-				// After the lookup by system.identityHashCode failed for a processed object alias,
-				// we must traverse or iterate over all value with the matching type and compare the domain ids
-				// to figure out if the logical object has already been processed through a different object instance.
-				// The type check is needed to avoid relationship ids <> node id conflicts.
-				Optional<Object> alreadyProcessedObject = id == null ? Optional.empty() : processedObjectsAlias.values().stream()
-						.filter(typeOfValue::isInstance)
-						.filter(processedObject -> id.equals(entity.getPropertyAccessor(processedObject).getProperty(idProperty)))
-						.findAny();
 				if (alreadyProcessedObject.isPresent()) { // Skip the show the next time around.
 					processed = true;
 					Object internalId = getObjectId(alreadyProcessedObject.get());
@@ -249,16 +253,17 @@ public final class NestedRelationshipProcessingStateMachine {
 	 * @param relationshipDescription the relationship that should be looked for in the registry.
 	 * @return processed yes (true) / no (false)
 	 */
-	public boolean hasProcessedRelationship(Object fromId, @Nullable RelationshipDescription relationshipDescription) {
-		if (relationshipDescription != null) {
-			final long stamp = lock.readLock();
-			try {
-				return processedRelationshipDescriptions.contains(new RelationshipDescriptionWithSourceId(fromId, relationshipDescription));
-			} finally {
-				lock.unlock(stamp);
-			}
+	public boolean hasProcessedRelationship(@Nullable Object fromId, @Nullable RelationshipDescription relationshipDescription) {
+		if (fromId == null || relationshipDescription == null) {
+			return false;
 		}
-		return false;
+
+		final long stamp = lock.readLock();
+		try {
+			return processedRelationshipDescriptions.contains(new RelationshipDescriptionWithSourceId(fromId, relationshipDescription));
+		} finally {
+			lock.unlock(stamp);
+		}
 	}
 
 	public void storeProcessRelationshipEntity(MappingSupport.RelationshipPropertiesWithEntityHolder id, Object source, Object target, RelationshipDescription type) {
@@ -284,7 +289,7 @@ public final class NestedRelationshipProcessingStateMachine {
 	}
 
 	public void requireIdUpdate(Neo4jPersistentEntity<?> sourceEntity, RelationshipDescription relationshipDescription, boolean canUseElementId,
-	                            Object fromId, Object toId, NestedRelationshipContext relationshipContext, Object relatedValueToStore, Neo4jPersistentProperty idProperty) {
+	                            Object fromId, Object toId, NestedRelationshipContext relationshipContext, Object relatedValueToStore, @Nullable Neo4jPersistentProperty idProperty) {
 
 		Statement relationshipCreationQuery = CypherGenerator.INSTANCE.prepareSaveOfRelationshipWithProperties(
 				sourceEntity, relationshipDescription, false,
@@ -297,24 +302,6 @@ public final class NestedRelationshipProcessingStateMachine {
 		}
 	}
 
-	public Collection<RelationshipIdUpdateContext> getRequiresIdUpdate() {
-		final long stamp = lock.readLock();
-		try {
-			return Set.copyOf(requiresIdUpdate);
-		} finally {
-			lock.unlock(stamp);
-		}
-	}
-
-	public void markAsUpdated(RelationshipIdUpdateContext context) {
-		final long stamp = lock.writeLock();
-		try {
-			requiresIdUpdate.remove(context);
-		} finally {
-			lock.unlock(stamp);
-		}
-	}
-
 	public void updateRelationshipIds(RelationshipIdSupplier idSupplier) {
 		final long stamp = lock.writeLock();
 		try {
@@ -322,10 +309,12 @@ public final class NestedRelationshipProcessingStateMachine {
 			while (it.hasNext()) {
 				var requiredIdUpdate = it.next();
 				idSupplier.getId(requiredIdUpdate.cypher(), requiredIdUpdate.idProperty(), requiredIdUpdate.fromId(), requiredIdUpdate.toId()).ifPresent(anId -> {
-					requiredIdUpdate.relationshipContext()
-							.getRelationshipPropertiesPropertyAccessor(requiredIdUpdate.relatedValueToStore())
-							.setProperty(requiredIdUpdate.idProperty(), anId);
-					it.remove();
+					PersistentPropertyAccessor<?> relationshipPropertiesPropertyAccessor = requiredIdUpdate.relationshipContext()
+							.getRelationshipPropertiesPropertyAccessor(requiredIdUpdate.relatedValueToStore());
+					if (relationshipPropertiesPropertyAccessor != null && requiredIdUpdate.idProperty() != null) {
+						relationshipPropertiesPropertyAccessor.setProperty(requiredIdUpdate.idProperty(), anId);
+						it.remove();
+					}
 				});
 			}
 		} finally {
@@ -333,17 +322,19 @@ public final class NestedRelationshipProcessingStateMachine {
 		}
 	}
 
-	public Mono<Void> updateRelationshipIds(ReactiveRelationshipIdSupplier idSupplier) {
+	public Mono<Void> updateRelationshipIdsReactive(ReactiveRelationshipIdSupplier idSupplier) {
 		return Flux.defer(() -> {
 			final long stamp = lock.writeLock();
 			return Flux.fromIterable(requiresIdUpdate)
 					.flatMap(requiredIdUpdate -> Mono.just(requiredIdUpdate).zipWith(idSupplier.getId(requiredIdUpdate.cypher(), requiredIdUpdate.idProperty(), requiredIdUpdate.fromId(), requiredIdUpdate.toId())))
 					.doOnNext(t -> {
 						var requiredIdUpdate = t.getT1();
-						requiredIdUpdate.relationshipContext()
-								.getRelationshipPropertiesPropertyAccessor(requiredIdUpdate.relatedValueToStore())
-								.setProperty(requiredIdUpdate.idProperty(), t.getT2());
-						requiresIdUpdate.remove(requiredIdUpdate);
+						PersistentPropertyAccessor<?> relationshipPropertiesPropertyAccessor = requiredIdUpdate.relationshipContext()
+								.getRelationshipPropertiesPropertyAccessor(requiredIdUpdate.relatedValueToStore());
+						if (relationshipPropertiesPropertyAccessor != null && requiredIdUpdate.idProperty() != null) {
+							relationshipPropertiesPropertyAccessor.setProperty(requiredIdUpdate.idProperty(), t.getT2());
+							requiresIdUpdate.remove(requiredIdUpdate);
+						}
 					}).doOnTerminate(() -> lock.unlock(stamp));
 		}).then();
 	}
@@ -387,14 +378,13 @@ public final class NestedRelationshipProcessingStateMachine {
 	}
 
 	@Nullable
-	private Object getProcessedObjectIds(@Nullable Object entity) {
+	private Object getProcessedObjectIds(Object entity) {
 		if (entity == null) {
 			return null;
 		}
 		return processedObjectsIds.get(System.identityHashCode(entity));
 	}
 
-	@NonNull
 	private Object extractRelatedValueFromRelationshipProperties(Object valueToStore) {
 		Object value;
 		if (valueToStore instanceof MappingSupport.RelationshipPropertiesWithEntityHolder) {
@@ -424,8 +414,9 @@ public final class NestedRelationshipProcessingStateMachine {
 		return processedObjectsAlias.containsKey(System.identityHashCode(entity));
 	}
 
-	private boolean hasProcessedAllOf(@Nullable Collection<?> entities) {
+	private boolean hasProcessedAllOf(Collection<?> entities) {
 		// there can be null elements in the unified collection of values to store.
+		//noinspection ConstantValue
 		if (entities == null) {
 			return false;
 		}

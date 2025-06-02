@@ -4,7 +4,7 @@
    indicating that some transaction may be retried and additional converters and id generators.
  * <!-- end::intent[] -->
  */
-@NonNullApi
+@NullMarked
 package org.springframework.data.neo4j.core.support;
 
-import org.springframework.lang.NonNullApi;
+import org.jspecify.annotations.NullMarked;

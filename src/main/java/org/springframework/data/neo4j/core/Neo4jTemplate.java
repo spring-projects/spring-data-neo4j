@@ -40,6 +40,8 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.logging.LogFactory;
 import org.apiguardian.api.API;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import org.neo4j.cypherdsl.core.Condition;
 import org.neo4j.cypherdsl.core.Cypher;
 import org.neo4j.cypherdsl.core.FunctionInvocation;
@@ -49,7 +51,6 @@ import org.neo4j.cypherdsl.core.Statement;
 import org.neo4j.cypherdsl.core.renderer.Configuration;
 import org.neo4j.cypherdsl.core.renderer.Renderer;
 import org.neo4j.driver.Value;
-import org.neo4j.driver.Values;
 import org.neo4j.driver.exceptions.NoSuchRecordException;
 import org.neo4j.driver.summary.ResultSummary;
 import org.neo4j.driver.types.Entity;
@@ -96,11 +97,11 @@ import org.springframework.data.neo4j.repository.query.QueryFragmentsAndParamete
 import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.projection.ProjectionInformation;
 import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
-import org.springframework.data.util.TypeInformation;
-import org.springframework.lang.NonNull;
-import org.springframework.lang.Nullable;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.TransactionException;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.util.Assert;
 
@@ -135,18 +136,22 @@ public final class Neo4jTemplate implements
 
 	private final CypherGenerator cypherGenerator;
 
+	@Nullable
 	private ClassLoader beanClassLoader;
 
 	private EventSupport eventSupport;
 
+	@Nullable
 	private ProjectionFactory projectionFactory;
 
 	private Renderer renderer;
 
 	private Function<Named, FunctionInvocation> elementIdOrIdFunction;
 
+	@Nullable
 	private TransactionTemplate transactionTemplate;
 
+	@Nullable
 	private TransactionTemplate transactionTemplateReadOnly;
 
 	public Neo4jTemplate(Neo4jClient neo4jClient) {
@@ -185,6 +190,18 @@ public final class Neo4jTemplate implements
 		return Objects.requireNonNull(this.projectionFactory, "Projection support for the Neo4j template is only available when the template is a proper and fully initialized Spring bean.");
 	}
 
+	private  <T> T execute(TransactionCallback<T> action) throws TransactionException {
+		return Objects.requireNonNull(Objects.requireNonNull(this.transactionTemplate).execute(action));
+	}
+
+	private <T> T executeReadOnly(TransactionCallback<T> action) throws TransactionException {
+		return Objects.requireNonNull(Objects.requireNonNull(this.transactionTemplateReadOnly).execute(action));
+	}
+
+	private void executeWithoutResult(Consumer<TransactionStatus> action) throws TransactionException {
+		Objects.requireNonNull(this.transactionTemplate).executeWithoutResult(action);
+	}
+
 	@Override
 	public long count(Class<?> domainType) {
 
@@ -213,7 +230,7 @@ public final class Neo4jTemplate implements
 
 	@Override
 	public long count(String cypherQuery, Map<String, Object> parameters) {
-		return transactionTemplateReadOnly.execute(tx -> {
+		return executeReadOnly(tx -> {
 			PreparedQuery<Long> preparedQuery = PreparedQuery.queryFor(Long.class).withCypherQuery(cypherQuery)
 					.withParameters(parameters).build();
 			return toExecutableQuery(preparedQuery, true).getRequiredSingleResult();
@@ -227,8 +244,7 @@ public final class Neo4jTemplate implements
 	}
 
 	private <T> List<T> doFindAll(Class<T> domainType, @Nullable Class<?> resultType) {
-		return transactionTemplateReadOnly
-				.execute(tx -> {
+		return executeReadOnly(tx -> {
 					Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getRequiredPersistentEntity(domainType);
 					return createExecutableQuery(
 							domainType, resultType, QueryFragmentsAndParameters.forFindAll(entityMetaData), true)
@@ -238,61 +254,54 @@ public final class Neo4jTemplate implements
 
 	@Override
 	public <T> List<T> findAll(Statement statement, Class<T> domainType) {
-		return transactionTemplateReadOnly
-				.execute(tx -> createExecutableQuery(domainType, statement, true).getResults());
+		return executeReadOnly(tx -> createExecutableQuery(domainType, statement, true).getResults());
 	}
 
 	@Override
 	public <T> List<T> findAll(Statement statement, Map<String, Object> parameters, Class<T> domainType) {
-		return transactionTemplateReadOnly
-				.execute(tx -> createExecutableQuery(domainType, null, statement, parameters, true).getResults());
+		return executeReadOnly(tx -> createExecutableQuery(domainType, null, statement, parameters, true).getResults());
 	}
 
 	@Override
 	public <T> Optional<T> findOne(Statement statement, Map<String, Object> parameters, Class<T> domainType) {
-		return transactionTemplateReadOnly
-				.execute(tx -> createExecutableQuery(domainType, null, statement, parameters, true).getSingleResult());
+		return executeReadOnly(tx -> createExecutableQuery(domainType, null, statement, parameters, true).getSingleResult());
 	}
 
 	@Override
 	public <T> List<T> findAll(String cypherQuery, Class<T> domainType) {
-		return transactionTemplateReadOnly
-				.execute(tx -> createExecutableQuery(domainType, cypherQuery, true).getResults());
+		return executeReadOnly(tx -> createExecutableQuery(domainType, cypherQuery, true).getResults());
 	}
 
 	@Override
 	public <T> List<T> findAll(String cypherQuery, Map<String, Object> parameters, Class<T> domainType) {
-		return transactionTemplateReadOnly
-				.execute(tx -> createExecutableQuery(domainType, null, cypherQuery, parameters, true).getResults());
+		return executeReadOnly(tx -> createExecutableQuery(domainType, null, cypherQuery, parameters, true).getResults());
 	}
 
 	@Override
 	public <T> Optional<T> findOne(String cypherQuery, Map<String, Object> parameters, Class<T> domainType) {
-		return transactionTemplateReadOnly
-				.execute(tx -> createExecutableQuery(domainType, null, cypherQuery, parameters, true).getSingleResult());
+		return executeReadOnly(tx -> createExecutableQuery(domainType, null, cypherQuery, parameters, true).getSingleResult());
 	}
 
 	@Override
 	public <T> ExecutableFind<T> find(Class<T> domainType) {
-		return transactionTemplateReadOnly
-				.execute(tx -> new FluentOperationSupport(this).find(domainType));
+		return new FluentOperationSupport(this).find(domainType);
 	}
 
 	@SuppressWarnings("unchecked")
 	<T, R> List<R> doFind(@Nullable String cypherQuery, @Nullable Map<String, Object> parameters, Class<T> domainType, Class<R> resultType, TemplateSupport.FetchType fetchType, @Nullable QueryFragmentsAndParameters queryFragmentsAndParameters) {
 
-		return transactionTemplateReadOnly.execute(tx -> {
-			List<T> intermediaResults = Collections.emptyList();
+		return executeReadOnly(tx -> {
+			List<T> intermediaResults;
 			if (cypherQuery == null && queryFragmentsAndParameters == null && fetchType == TemplateSupport.FetchType.ALL) {
 				intermediaResults = doFindAll(domainType, resultType);
 			} else {
 				ExecutableQuery<T> executableQuery;
-				if (queryFragmentsAndParameters == null) {
+				if (queryFragmentsAndParameters == null && cypherQuery != null) {
 					executableQuery = createExecutableQuery(domainType, resultType, cypherQuery,
 							parameters == null ? Collections.emptyMap() : parameters,
 							true);
 				} else {
-					executableQuery = createExecutableQuery(domainType, resultType, queryFragmentsAndParameters, true);
+					executableQuery = createExecutableQuery(domainType, resultType, Objects.requireNonNull(queryFragmentsAndParameters), true);
 				}
 				intermediaResults = switch (fetchType) {
 					case ALL -> executableQuery.getResults();
@@ -327,7 +336,7 @@ public final class Neo4jTemplate implements
 		Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getRequiredPersistentEntity(domainType);
 
 		QueryFragmentsAndParameters fragmentsAndParameters = QueryFragmentsAndParameters
-				.forExistsById(entityMetaData, convertIdValues(entityMetaData.getRequiredIdProperty(), id));
+				.forExistsById(entityMetaData, TemplateSupport.convertIdValues(this.neo4jMappingContext, entityMetaData.getRequiredIdProperty(), id));
 
 		Statement statement = fragmentsAndParameters.getQueryFragments().toStatement();
 		Map<String, Object> parameters = fragmentsAndParameters.getParameters();
@@ -337,13 +346,12 @@ public final class Neo4jTemplate implements
 
 	@Override
 	public <T> Optional<T> findById(Object id, Class<T> domainType) {
-		return transactionTemplateReadOnly
-				.execute(tx -> {
+		return executeReadOnly(tx -> {
 					Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getRequiredPersistentEntity(domainType);
 
 					return createExecutableQuery(domainType, null,
 							QueryFragmentsAndParameters.forFindById(entityMetaData,
-									convertIdValues(entityMetaData.getRequiredIdProperty(), id)),
+											TemplateSupport.convertIdValues(this.neo4jMappingContext, entityMetaData.getRequiredIdProperty(), id)),
 							true)
 							.getSingleResult();
 				});
@@ -351,62 +359,44 @@ public final class Neo4jTemplate implements
 
 	@Override
 	public <T> List<T> findAllById(Iterable<?> ids, Class<T> domainType) {
-		return transactionTemplateReadOnly
-				.execute(tx -> {
+		return executeReadOnly(tx -> {
 					Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getRequiredPersistentEntity(domainType);
 
 					return createExecutableQuery(domainType, null,
 							QueryFragmentsAndParameters.forFindByAllId(
-									entityMetaData, convertIdValues(entityMetaData.getRequiredIdProperty(), ids)),
+									entityMetaData, TemplateSupport.convertIdValues(this.neo4jMappingContext, entityMetaData.getRequiredIdProperty(), ids)),
 							true)
 							.getResults();
 				});
 	}
 
-	private Object convertIdValues(@Nullable Neo4jPersistentProperty idProperty, @Nullable Object idValues) {
-
-		if (idProperty != null && ((Neo4jPersistentEntity<?>) idProperty.getOwner()).isUsingInternalIds()) {
-			return idValues;
-		}
-
-		if (idValues != null) {
-			return neo4jMappingContext.getConversionService().writeValue(idValues, TypeInformation.of(idValues.getClass()), idProperty == null ? null : idProperty.getOptionalConverter());
-		} else if (idProperty != null) {
-			return neo4jMappingContext.getConversionService().writeValue(idValues, idProperty.getTypeInformation(), idProperty.getOptionalConverter());
-		} else {
-			// Not much we can convert here
-			return Values.NULL;
-		}
-	}
-
 	@Override
 	public <T> T save(T instance) {
 
-		return transactionTemplate
-				.execute(tx -> saveImpl(instance, Collections.emptySet(), null));
+		return execute(tx -> saveImpl(instance, Collections.emptySet(), null));
 
 	}
 
 	@Override
+	@Nullable
 	public <T> T saveAs(T instance, BiPredicate<PropertyPath, Neo4jPersistentProperty> includeProperty) {
 
 		if (instance == null) {
 			return null;
 		}
-		return transactionTemplate
-				.execute(tx -> saveImpl(instance, TemplateSupport.computeIncludedPropertiesFromPredicate(this.neo4jMappingContext, instance.getClass(), includeProperty), null));
+		return execute(tx -> saveImpl(instance, TemplateSupport.computeIncludedPropertiesFromPredicate(this.neo4jMappingContext, instance.getClass(), includeProperty), null));
 	}
 
 	@Override
+	@Nullable
 	public <T, R> R saveAs(T instance, Class<R> resultType) {
 
-		return transactionTemplate.execute(tx -> {
+		Assert.notNull(resultType, "ResultType must not be null");
+		if (instance == null) {
+			return null;
+		}
 
-					Assert.notNull(resultType, "ResultType must not be null");
-
-					if (instance == null) {
-						return null;
-					}
+		return execute(tx -> {
 
 					if (resultType.equals(instance.getClass())) {
 						return resultType.cast(save(instance));
@@ -427,14 +417,14 @@ public final class Neo4jTemplate implements
 					}
 
 					Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getRequiredPersistentEntity(savedInstance.getClass());
-					Neo4jPersistentProperty idProperty = entityMetaData.getIdProperty();
+					Neo4jPersistentProperty idProperty = entityMetaData.getRequiredIdProperty();
 					PersistentPropertyAccessor<T> propertyAccessor = entityMetaData.getPropertyAccessor(savedInstance);
 					return localProjectionFactory.createProjection(resultType,
-							this.findById(propertyAccessor.getProperty(idProperty), savedInstance.getClass()).get());
+							this.findById(Objects.requireNonNull(propertyAccessor.getProperty(idProperty)), savedInstance.getClass()).orElseThrow());
 				});
 	}
 
-	private <T> T saveImpl(T instance, @Nullable Collection<PropertyFilter.ProjectedPath> includedProperties, @Nullable NestedRelationshipProcessingStateMachine stateMachine) {
+	private <T> T saveImpl(T instance, Collection<PropertyFilter.ProjectedPath> includedProperties, @Nullable NestedRelationshipProcessingStateMachine stateMachine) {
 
 		if (stateMachine != null && stateMachine.hasProcessedValue(instance)) {
 			return instance;
@@ -471,8 +461,10 @@ public final class Neo4jTemplate implements
 			if (!entityMetaData.isUsingDeprecatedInternalId() && TemplateSupport.rendererRendersElementId(renderer)) {
 				return IdentitySupport.getElementId(node);
 			}
-			return node.id();
-		}).get();
+			@SuppressWarnings("deprecation")
+			var id = node.id();
+			return id;
+		}).orElseThrow();
 
 		PersistentPropertyAccessor<T> propertyAccessor = entityMetaData.getPropertyAccessor(entityToBeSaved);
 		TemplateSupport.setGeneratedIdIfNecessary(entityMetaData, propertyAccessor, elementId, newOrUpdatedNode);
@@ -498,7 +490,7 @@ public final class Neo4jTemplate implements
 			Neo4jPersistentProperty idProperty = entityMetaData.getRequiredIdProperty();
 			Neo4jClient.RunnableSpec runnableQuery = neo4jClient
 					.query(() -> renderer.render(cypherGenerator.createStatementReturningDynamicLabels(entityMetaData)))
-					.bind(convertIdValues(idProperty, propertyAccessor.getProperty(idProperty)))
+					.bind(TemplateSupport.convertIdValues(this.neo4jMappingContext, idProperty, propertyAccessor.getProperty(idProperty)))
 					.to(Constants.NAME_OF_ID).bind(entityMetaData.getStaticLabels())
 					.to(Constants.NAME_OF_STATIC_LABELS_PARAM);
 
@@ -516,8 +508,7 @@ public final class Neo4jTemplate implements
 
 	@Override
 	public <T> List<T> saveAll(Iterable<T> instances) {
-		return transactionTemplate
-				.execute(tx -> saveAllImpl(instances, Collections.emptySet(), null));
+		return execute(tx -> saveAllImpl(instances, Collections.emptySet(), null));
 	}
 
 	private boolean requiresSingleStatements(boolean heterogeneousCollection, Neo4jPersistentEntity<?> entityMetaData) {
@@ -544,7 +535,7 @@ public final class Neo4jTemplate implements
 		Class<?> domainClass = types.iterator().next();
 
 		Collection<PropertyFilter.ProjectedPath> pps = includeProperty == null ?
-				includedProperties :
+				Objects.requireNonNullElseGet(includedProperties, List::of) :
 				TemplateSupport.computeIncludedPropertiesFromPredicate(this.neo4jMappingContext, domainClass,
 						includeProperty);
 
@@ -593,8 +584,8 @@ public final class Neo4jTemplate implements
 		return entitiesToBeSaved.stream().map(t -> {
 			PersistentPropertyAccessor<T> propertyAccessor = entityMetaData.getPropertyAccessor(t.modifiedInstance);
 			Neo4jPersistentProperty idProperty = entityMetaData.getRequiredIdProperty();
-			Object id = convertIdValues(idProperty, propertyAccessor.getProperty(idProperty));
-			String internalId = idToInternalIdMapping.get(id);
+			Object id = TemplateSupport.convertIdValues(this.neo4jMappingContext, idProperty, propertyAccessor.getProperty(idProperty));
+			String internalId = Objects.requireNonNull(idToInternalIdMapping.get(id));
 			stateMachine.registerInitialObject(t.originalInstance, internalId);
 			return this.<T>processRelations(entityMetaData, propertyAccessor, t.wasNew, stateMachine, TemplateSupport.computeIncludePropertyPredicate(pps, entityMetaData));
 		}).collect(Collectors.toList());
@@ -603,17 +594,15 @@ public final class Neo4jTemplate implements
 	@Override
 	public <T> List<T> saveAllAs(Iterable<T> instances, BiPredicate<PropertyPath, Neo4jPersistentProperty> includeProperty) {
 
-		return transactionTemplate
-				.execute(tx -> saveAllImpl(instances, null, includeProperty));
+		return execute(tx -> saveAllImpl(instances, null, includeProperty));
 	}
 
 	@Override
 	public <T, R> List<R> saveAllAs(Iterable<T> instances, Class<R> resultType) {
 
-		return transactionTemplate
-				.execute(tx -> {
+		Assert.notNull(resultType, "ResultType must not be null");
 
-					Assert.notNull(resultType, "ResultType must not be null");
+		return execute(tx -> {
 
 					Class<?> commonElementType = TemplateSupport.findCommonElementType(instances);
 
@@ -645,7 +634,7 @@ public final class Neo4jTemplate implements
 					}
 
 					Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getRequiredPersistentEntity(commonElementType);
-					Neo4jPersistentProperty idProperty = entityMetaData.getIdProperty();
+					Neo4jPersistentProperty idProperty = entityMetaData.getRequiredIdProperty();
 
 					List<Object> ids = savedInstances.stream().map(savedInstance -> {
 						PersistentPropertyAccessor<T> propertyAccessor = entityMetaData.getPropertyAccessor(savedInstance);
@@ -661,8 +650,7 @@ public final class Neo4jTemplate implements
 	@Override
 	public <T> void deleteById(Object id, Class<T> domainType) {
 
-		transactionTemplate
-				.executeWithoutResult(tx -> {
+				executeWithoutResult(tx -> {
 
 					Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getRequiredPersistentEntity(domainType);
 					String nameOfParameter = "id";
@@ -672,7 +660,7 @@ public final class Neo4jTemplate implements
 
 					Statement statement = cypherGenerator.prepareDeleteOf(entityMetaData, condition);
 					ResultSummary summary = this.neo4jClient.query(renderer.render(statement))
-							.bind(convertIdValues(entityMetaData.getRequiredIdProperty(), id))
+							.bind(TemplateSupport.convertIdValues(this.neo4jMappingContext, entityMetaData.getRequiredIdProperty(), id))
 							.to(nameOfParameter).run();
 
 					log.debug(() -> String.format("Deleted %d nodes and %d relationships.", summary.counters().nodesDeleted(),
@@ -682,38 +670,37 @@ public final class Neo4jTemplate implements
 
 	@Override
 	public <T> void deleteByIdWithVersion(Object id, Class<T> domainType, Neo4jPersistentProperty versionProperty,
-										  Object versionValue) {
+	                                      @Nullable Object versionValue) {
 
-		transactionTemplate
-				.executeWithoutResult(tx -> {
-					Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getRequiredPersistentEntity(domainType);
+		executeWithoutResult(tx -> {
+			Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getRequiredPersistentEntity(domainType);
 
-					String nameOfParameter = "id";
-					Condition condition = entityMetaData.getIdExpression().isEqualTo(parameter(nameOfParameter))
-							.and(Cypher.property(Constants.NAME_OF_TYPED_ROOT_NODE.apply(entityMetaData), versionProperty.getPropertyName())
-									.isEqualTo(parameter(Constants.NAME_OF_VERSION_PARAM))
-									.or(Cypher.property(Constants.NAME_OF_TYPED_ROOT_NODE.apply(entityMetaData), versionProperty.getPropertyName()).isNull()));
+			String nameOfParameter = "id";
+			Condition condition = entityMetaData.getIdExpression().isEqualTo(parameter(nameOfParameter))
+					.and(Cypher.property(Constants.NAME_OF_TYPED_ROOT_NODE.apply(entityMetaData), versionProperty.getPropertyName())
+							.isEqualTo(parameter(Constants.NAME_OF_VERSION_PARAM))
+							.or(Cypher.property(Constants.NAME_OF_TYPED_ROOT_NODE.apply(entityMetaData), versionProperty.getPropertyName()).isNull()));
 
-					Statement statement = cypherGenerator.prepareMatchOf(entityMetaData, condition)
-							.returning(Constants.NAME_OF_TYPED_ROOT_NODE.apply(entityMetaData)).build();
+			Statement statement = cypherGenerator.prepareMatchOf(entityMetaData, condition)
+					.returning(Constants.NAME_OF_TYPED_ROOT_NODE.apply(entityMetaData)).build();
 
-					Map<String, Object> parameters = new HashMap<>();
-					parameters.put(nameOfParameter, convertIdValues(entityMetaData.getRequiredIdProperty(), id));
-					parameters.put(Constants.NAME_OF_VERSION_PARAM, versionValue);
+			Map<String, Object> parameters = new HashMap<>();
+			parameters.put(nameOfParameter, TemplateSupport.convertIdValues(this.neo4jMappingContext, entityMetaData.getRequiredIdProperty(), id));
+			parameters.put(Constants.NAME_OF_VERSION_PARAM, versionValue);
 
-					createExecutableQuery(domainType, null, statement, parameters, false).getSingleResult().orElseThrow(
-							() -> new OptimisticLockingFailureException(OPTIMISTIC_LOCKING_ERROR_MESSAGE)
-					);
+			var lockedEntity = createExecutableQuery(domainType, null, statement, parameters, false).getSingleResult();
+			if (lockedEntity.isEmpty()) {
+				throw new OptimisticLockingFailureException(OPTIMISTIC_LOCKING_ERROR_MESSAGE);
+			}
 
-					deleteById(id, domainType);
-				});
+			deleteById(id, domainType);
+		});
 	}
 
 	@Override
 	public <T> void deleteAllById(Iterable<?> ids, Class<T> domainType) {
 
-		transactionTemplate
-				.executeWithoutResult(tx -> {
+				executeWithoutResult(tx -> {
 
 					Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getRequiredPersistentEntity(domainType);
 					String nameOfParameter = "ids";
@@ -723,7 +710,7 @@ public final class Neo4jTemplate implements
 
 					Statement statement = cypherGenerator.prepareDeleteOf(entityMetaData, condition);
 					ResultSummary summary = this.neo4jClient.query(renderer.render(statement))
-							.bind(convertIdValues(entityMetaData.getRequiredIdProperty(), ids))
+							.bind(TemplateSupport.convertIdValues(this.neo4jMappingContext, entityMetaData.getRequiredIdProperty(), ids))
 							.to(nameOfParameter).run();
 
 					log.debug(() -> String.format("Deleted %d nodes and %d relationships.", summary.counters().nodesDeleted(),
@@ -734,8 +721,7 @@ public final class Neo4jTemplate implements
 	@Override
 	public void deleteAll(Class<?> domainType) {
 
-		transactionTemplate
-				.executeWithoutResult(tx -> {
+				executeWithoutResult(tx -> {
 
 					Neo4jPersistentEntity<?> entityMetaData = neo4jMappingContext.getRequiredPersistentEntity(domainType);
 					log.debug(() -> String.format("Deleting all nodes with primary label %s", entityMetaData.getPrimaryLabel()));
@@ -762,8 +748,9 @@ public final class Neo4jTemplate implements
 	}
 
 	private <T> ExecutableQuery<T> createExecutableQuery(
-			Class<T> domainType, @Nullable Class<?> resultType,
-			@Nullable String cypherStatement,
+			Class<T> domainType,
+			@Nullable Class<?> resultType,
+			String cypherStatement,
 			Map<String, Object> parameters,
 			boolean readOnly) {
 
@@ -802,6 +789,7 @@ public final class Neo4jTemplate implements
 				stateMachine, includeProperty, startingPropertyPath);
 	}
 
+	@SuppressWarnings("deprecation")
 	private <T> T processNestedRelations(
 			Neo4jPersistentEntity<?> sourceEntity,
 			PersistentPropertyAccessor<?> propertyAccessor,
@@ -837,7 +825,7 @@ public final class Neo4jTemplate implements
 				idProperty = null;
 			} else {
 				Neo4jPersistentEntity<?> relationshipPropertiesEntity = (Neo4jPersistentEntity<?>) relationshipDescription.getRelationshipPropertiesEntity();
-                idProperty = relationshipPropertiesEntity.getIdProperty();
+				idProperty = (relationshipPropertiesEntity == null) ? null : relationshipPropertiesEntity.getIdProperty();
 			}
 
 			// break recursive procession and deletion of previously created relationships
@@ -859,7 +847,11 @@ public final class Neo4jTemplate implements
 							continue;
 						}
 
-						Object id = relationshipContext.getRelationshipPropertiesPropertyAccessor(relatedValueToStore).getProperty(idProperty);
+						PersistentPropertyAccessor<?> relationshipPropertiesPropertyAccessor = relationshipContext.getRelationshipPropertiesPropertyAccessor(relatedValueToStore);
+						if (relationshipPropertiesPropertyAccessor == null) {
+							continue;
+						}
+						Object id = relationshipPropertiesPropertyAccessor.getProperty(idProperty);
 						if (id != null) {
 							knownRelationshipsIds.add(id);
 						}
@@ -869,7 +861,7 @@ public final class Neo4jTemplate implements
 				Statement relationshipRemoveQuery = cypherGenerator.prepareDeleteOf(sourceEntity, relationshipDescription, canUseElementId);
 
 				neo4jClient.query(renderer.render(relationshipRemoveQuery))
-						.bind(convertIdValues(sourceEntity.getIdProperty(), fromId)) //
+						.bind(TemplateSupport.convertIdValues(this.neo4jMappingContext, sourceEntity.getIdProperty(), fromId)) //
 							.to(Constants.FROM_ID_PARAMETER_NAME) //
 						.bind(knownRelationshipsIds) //
 							.to(Constants.NAME_OF_KNOWN_RELATIONSHIPS_PARAM) //
@@ -935,13 +927,17 @@ public final class Neo4jTemplate implements
 				stateMachine.markRelationshipAsProcessed(possibleInternalLongId == null ? relatedInternalId : possibleInternalLongId,
 						relationshipDescription.getRelationshipObverse());
 
-				Object idValue = idProperty != null
-						? relationshipContext
-						.getRelationshipPropertiesPropertyAccessor(relatedValueToStore).getProperty(idProperty)
-						: null;
+				Object idValue;
+				PersistentPropertyAccessor<?> relationshipPropertiesPropertyAccessor = relationshipContext
+						.getRelationshipPropertiesPropertyAccessor(relatedValueToStore);
+				if (idProperty == null || relationshipPropertiesPropertyAccessor == null) {
+					idValue = null;
+				} else {
+					idValue = relationshipPropertiesPropertyAccessor.getProperty(idProperty);
+				}
 
 				Map<String, Object> properties = new HashMap<>();
-				properties.put(Constants.FROM_ID_PARAMETER_NAME, convertIdValues(sourceEntity.getRequiredIdProperty(), fromId));
+				properties.put(Constants.FROM_ID_PARAMETER_NAME, TemplateSupport.convertIdValues(this.neo4jMappingContext, sourceEntity.getRequiredIdProperty(), fromId));
 				properties.put(Constants.TO_ID_PARAMETER_NAME, relatedInternalId);
 				properties.put(Constants.NAME_OF_KNOWN_RELATIONSHIP_PARAM, idValue);
 				boolean isNewRelationship = idValue == null;
@@ -955,7 +951,7 @@ public final class Neo4jTemplate implements
 						statementHolder = statementHolder.addProperty(Constants.NAME_OF_RELATIONSHIP_LIST_PARAM, row);
 
 						Optional<Object> relationshipInternalId = neo4jClient.query(renderer.render(statementHolder.getStatement()))
-								.bind(convertIdValues(sourceEntity.getRequiredIdProperty(), fromId)) //
+								.bind(TemplateSupport.convertIdValues(this.neo4jMappingContext, sourceEntity.getRequiredIdProperty(), fromId)) //
 								.to(Constants.FROM_ID_PARAMETER_NAME) //
 								.bind(relatedInternalId) //
 								.to(Constants.TO_ID_PARAMETER_NAME) //
@@ -975,7 +971,7 @@ public final class Neo4jTemplate implements
 						List<Object> row = Collections.singletonList(properties);
 						statementHolder = statementHolder.addProperty(Constants.NAME_OF_RELATIONSHIP_LIST_PARAM, row);
 						neo4jClient.query(renderer.render(statementHolder.getStatement()))
-								.bind(convertIdValues(sourceEntity.getRequiredIdProperty(), fromId)) //
+								.bind(TemplateSupport.convertIdValues(this.neo4jMappingContext, sourceEntity.getRequiredIdProperty(), fromId)) //
 								.to(Constants.FROM_ID_PARAMETER_NAME) //
 								.bind(relatedInternalId) //
 								.to(Constants.TO_ID_PARAMETER_NAME) //
@@ -984,7 +980,7 @@ public final class Neo4jTemplate implements
 								.bindAll(statementHolder.getProperties())
 								.run();
 					}
-				} else if (relationshipDescription.hasRelationshipProperties()) {
+				} else if (relationshipDescription.hasRelationshipProperties() && fromId != null) {
 					// check if bidi mapped already
 					var hlp = ((MappingSupport.RelationshipPropertiesWithEntityHolder) relatedValueToStore);
 					var hasProcessedRelationshipEntity = stateMachine.hasProcessedRelationshipEntity(propertyAccessor.getBean(), hlp.getRelatedEntity(), relationshipContext.getRelationship());
@@ -1034,7 +1030,7 @@ public final class Neo4jTemplate implements
 							.bindAll(statementHolder.getProperties())
 							.run();
 				}
-				if (!newRelationshipPropertiesToStore.isEmpty()) {
+				if (!(newRelationshipPropertiesToStore.isEmpty() || idProperty == null)) {
 					CreateRelationshipStatementHolder statementHolder = neo4jMappingContext.createStatementForImperativeRelationshipsWithPropertiesBatch(true,
 							sourceEntity, relationshipDescription, newRelationshipPropertiesToStore, newRelationshipPropertiesRows, canUseElementId);
 					List<Object> all = new ArrayList<>(neo4jClient.query(renderer.render(statementHolder.getStatement()))
@@ -1061,10 +1057,10 @@ public final class Neo4jTemplate implements
 		return finalSubgraphRoot;
 	}
 
-	private Optional<Object> getRelationshipId(Statement statement, Neo4jPersistentProperty idProperty, Object fromId, Object toId) {
+	private Optional<Object> getRelationshipId(Statement statement, @Nullable Neo4jPersistentProperty idProperty, Object fromId, Object toId) {
 
 		return neo4jClient.query(renderer.render(statement))
-				.bind(convertIdValues(idProperty, fromId)) //
+				.bind(TemplateSupport.convertIdValues(this.neo4jMappingContext, idProperty, fromId)) //
 				.to(Constants.FROM_ID_PARAMETER_NAME) //
 				.bind(toId) //
 				.to(Constants.TO_ID_PARAMETER_NAME) //
@@ -1076,10 +1072,10 @@ public final class Neo4jTemplate implements
 
 	// The pendant to {@link #saveRelatedNode(Object, NodeDescription, PropertyFilter, PropertyFilter.RelaxedPropertyPath)}
 	// We can't do without a query, as we need to refresh the internal id
-	private Entity loadRelatedNode(NodeDescription<?> targetNodeDescription, Object relatedInternalId) {
+	private Entity loadRelatedNode(NodeDescription<?> targetNodeDescription, @Nullable Object relatedInternalId) {
 
 		var targetPersistentEntity = (Neo4jPersistentEntity<?>) targetNodeDescription;
-		var queryFragmentsAndParameters = QueryFragmentsAndParameters.forFindById(targetPersistentEntity, convertIdValues(targetPersistentEntity.getRequiredIdProperty(), relatedInternalId));
+		var queryFragmentsAndParameters = QueryFragmentsAndParameters.forFindById(targetPersistentEntity, TemplateSupport.convertIdValues(this.neo4jMappingContext, targetPersistentEntity.getRequiredIdProperty(), relatedInternalId));
 		var nodeName = Constants.NAME_OF_TYPED_ROOT_NODE.apply(targetNodeDescription).getValue();
 
 		return neo4jClient
@@ -1097,9 +1093,12 @@ public final class Neo4jTemplate implements
 			Neo4jPersistentProperty idProperty,
 			Object relationshipInternalId
 	) {
-		relationshipContext
-				.getRelationshipPropertiesPropertyAccessor(relatedValueToStore)
-				.setProperty(idProperty, relationshipInternalId);
+		PersistentPropertyAccessor<?> relationshipPropertiesPropertyAccessor = relationshipContext
+				.getRelationshipPropertiesPropertyAccessor(relatedValueToStore);
+		if (relationshipPropertiesPropertyAccessor != null) {
+			relationshipPropertiesPropertyAccessor
+					.setProperty(idProperty, relationshipInternalId);
+		}
 	}
 
 	private Entity saveRelatedNode(Object entity, NodeDescription<?> targetNodeDescription, PropertyFilter includeProperty, PropertyFilter.RelaxedPropertyPath currentPropertyPath) {
@@ -1113,10 +1112,10 @@ public final class Neo4jTemplate implements
 		binderFunction = binderFunction.andThen(tree -> {
 			@SuppressWarnings("unchecked")
 			Map<String, Object> properties = (Map<String, Object>) tree.get(Constants.NAME_OF_PROPERTIES_PARAM);
-			String idPropertyName = targetPersistentEntity.getIdProperty().getPropertyName();
+			String idPropertyName = targetPersistentEntity.getRequiredIdProperty().getPropertyName();
 			IdDescription idDescription = targetPersistentEntity.getIdDescription();
-			boolean assignedId = idDescription.isAssignedId() || idDescription.isExternallyGeneratedId();
-			if (!includeProperty.isNotFiltering()) {
+			boolean assignedId = idDescription != null && (idDescription.isAssignedId() || idDescription.isExternallyGeneratedId());
+			if (properties != null && !includeProperty.isNotFiltering()) {
 				properties.entrySet()
 						.removeIf(e -> {
 							// we cannot skip the id property if it is an assigned id
@@ -1143,6 +1142,7 @@ public final class Neo4jTemplate implements
 
 	@Override
 	public void setBeanClassLoader(ClassLoader beanClassLoader) {
+		//noinspection ConstantValue
 		this.beanClassLoader = beanClassLoader == null ? org.springframework.util.ClassUtils.getDefaultClassLoader() : beanClassLoader;
 	}
 
@@ -1152,7 +1152,7 @@ public final class Neo4jTemplate implements
 		this.eventSupport = EventSupport.discoverCallbacks(neo4jMappingContext, beanFactory);
 
 		SpelAwareProxyProjectionFactory spelAwareProxyProjectionFactory = new SpelAwareProxyProjectionFactory();
-		spelAwareProxyProjectionFactory.setBeanClassLoader(beanClassLoader);
+		spelAwareProxyProjectionFactory.setBeanClassLoader(Objects.requireNonNull(this.beanClassLoader));
 		spelAwareProxyProjectionFactory.setBeanFactory(beanFactory);
 		this.projectionFactory = spelAwareProxyProjectionFactory;
 
@@ -1166,6 +1166,7 @@ public final class Neo4jTemplate implements
 		if (this.transactionTemplate != null && this.transactionTemplateReadOnly != null) {
 			return;
 		}
+
 		PlatformTransactionManager transactionManager = null;
 		var it = beanFactory.getBeanProvider(PlatformTransactionManager.class).stream().iterator();
 		while (it.hasNext()) {
@@ -1203,7 +1204,8 @@ public final class Neo4jTemplate implements
 
 
 	private <T> ExecutableQuery<T> createExecutableQuery(
-			Class<T> domainType, @Nullable Class<?> resultType,
+			Class<T> domainType,
+			@Nullable Class<?> resultType,
  			QueryFragmentsAndParameters queryFragmentsAndParameters,
 			boolean readOnlyTransaction) {
 
@@ -1232,15 +1234,13 @@ public final class Neo4jTemplate implements
 	}
 
 	<T, R> List<R> doSave(Iterable<R> instances, Class<T> domainType) {
-		return transactionTemplate
-				.execute(tx -> {
-					// empty check
-					if (!instances.iterator().hasNext()) {
-						return Collections.emptyList();
-					}
+		if (!instances.iterator().hasNext()) {
+			return Collections.emptyList();
+		}
 
-					Class<?> resultType = TemplateSupport.findCommonElementType(instances);
+		Class<?> resultType = Objects.requireNonNull(TemplateSupport.findCommonElementType(instances), () -> "Could not find a common type element to store and then project multiple instances of type %s".formatted(domainType));
 
+		return execute(tx -> {
 					Collection<PropertyFilter.ProjectedPath> pps = PropertyFilterSupport.addPropertiesFrom(domainType, resultType,
 							getProjectionFactory(), neo4jMappingContext);
 
@@ -1249,7 +1249,9 @@ public final class Neo4jTemplate implements
 					EntityFromDtoInstantiatingConverter<T> converter = new EntityFromDtoInstantiatingConverter<>(domainType, neo4jMappingContext);
 					for (R instance : instances) {
 						T domainObject = converter.convert(instance);
-
+						if (domainObject == null) {
+							continue;
+						}
 						T savedEntity = saveImpl(domainObject, pps, stateMachine);
 
 						@SuppressWarnings("unchecked")
@@ -1271,11 +1273,12 @@ public final class Neo4jTemplate implements
 
 		DefaultExecutableQuery(PreparedQuery<T> preparedQuery, boolean readOnly) {
 			this.preparedQuery = preparedQuery;
-			this.txTemplate = readOnly ? transactionTemplateReadOnly : transactionTemplate;
+			// At this time, both must be initialized
+			this.txTemplate = Objects.requireNonNull(readOnly ? transactionTemplateReadOnly : transactionTemplate);
 		}
 
 
-		@SuppressWarnings("unchecked")
+		@SuppressWarnings({"unchecked", "NullAway"})
 		public List<T> getResults() {
 			return txTemplate
 					.execute(tx -> {
@@ -1287,7 +1290,7 @@ public final class Neo4jTemplate implements
 					});
 		}
 
-		@SuppressWarnings("unchecked")
+		@SuppressWarnings({"unchecked", "NullAway"})
 		public Optional<T> getSingleResult() {
 			return txTemplate.execute(tx -> {
 				try {
@@ -1304,7 +1307,7 @@ public final class Neo4jTemplate implements
 			});
 		}
 
-		@SuppressWarnings("unchecked")
+		@SuppressWarnings({"unchecked", "NullAway"})
 		public T getRequiredSingleResult() {
 			return txTemplate.execute(tx -> {
 				Optional<T> one = createFetchSpec().flatMap(Neo4jClient.RecordFetchSpec::one);
@@ -1326,11 +1329,12 @@ public final class Neo4jTemplate implements
 			boolean containsPossibleCircles = entityMetaData != null && entityMetaData.containsPossibleCircles(queryFragments::includeField);
 			if (cypherQuery == null || containsPossibleCircles) {
 				Statement statement;
-				if (containsPossibleCircles && !queryFragments.isScalarValueReturn()) {
+				// The null check for the metadata is superfluous, but the easiest way to make NullAway happy
+				if (entityMetaData != null && containsPossibleCircles && !queryFragments.isScalarValueReturn()) {
 					NodesAndRelationshipsByIdStatementProvider nodesAndRelationshipsById =
 							createNodesAndRelationshipsByIdStatementProvider(entityMetaData, queryFragments, queryFragmentsAndParameters.getParameters());
 
-					if (nodesAndRelationshipsById.hasRootNodeIds()) {
+					if (!nodesAndRelationshipsById.hasRootNodeIds()) {
 						return Optional.empty();
 					}
 					statement = nodesAndRelationshipsById.toStatement(entityMetaData);
@@ -1341,7 +1345,7 @@ public final class Neo4jTemplate implements
 				finalParameters = TemplateSupport.mergeParameters(statement, finalParameters);
 			}
 
-			Neo4jClient.MappingSpec<T> newMappingSpec = neo4jClient.query(cypherQuery)
+			Neo4jClient.MappingSpec<T> newMappingSpec = neo4jClient.query(Objects.requireNonNull(cypherQuery, "Could not compute a query"))
 					.bindAll(finalParameters).fetchAs(preparedQuery.getResultType());
 			return preparedQuery.getOptionalMappingFunction()
 					.map(newMappingSpec::mappedBy).or(() -> Optional.of(newMappingSpec));
@@ -1364,7 +1368,7 @@ public final class Neo4jTemplate implements
 					.fetchAs(Value.class).mappedBy((t, r) -> r.get(Constants.NAME_OF_SYNTHESIZED_ROOT_NODE))
 					.one()
 					.map(value -> value.asList(TemplateSupport::convertIdOrElementIdToString))
-					.get());
+					.orElseThrow());
 
 			if (rootNodeIds.isEmpty()) {
 				// fast return if no matching root node(s) are found
@@ -1397,11 +1401,15 @@ public final class Neo4jTemplate implements
 			Neo4jPersistentEntity<?> target = (Neo4jPersistentEntity<?>) sourceRelationshipDescription.getTarget();
 
 			@SuppressWarnings("unchecked")
-			String fieldName = ((Association<Neo4jPersistentProperty>) sourceRelationshipDescription).getInverse().getFieldName();
-			PropertyPathWalkStep nextPathStep = currentPathStep.with((sourceRelationshipDescription.hasRelationshipProperties() ?
-					fieldName + "." + ((Neo4jPersistentEntity<?>) sourceRelationshipDescription.getRelationshipPropertiesEntity())
-							.getPersistentProperty(TargetNode.class).getFieldName() : fieldName));
-
+			String fieldName = ((Association<@NonNull Neo4jPersistentProperty>) sourceRelationshipDescription).getInverse().getFieldName();
+			PropertyPathWalkStep nextPathStep;
+			Neo4jPersistentEntity<?> relationshipPropertiesEntity = (Neo4jPersistentEntity<?>) sourceRelationshipDescription.getRelationshipPropertiesEntity();
+			if (sourceRelationshipDescription.hasRelationshipProperties() && relationshipPropertiesEntity != null) {
+				var targetNodeProperty = Objects.requireNonNull(relationshipPropertiesEntity.getPersistentProperty(TargetNode.class), () -> "Could not get target node property on %s".formatted(relationshipPropertiesEntity.getType()));
+				nextPathStep = currentPathStep.with(fieldName + "." + targetNodeProperty.getFieldName());
+			} else {
+				nextPathStep = currentPathStep.with(fieldName);
+			}
 
 			Collection<RelationshipDescription> relationships = target
 					.getRelationshipsInHierarchy(
@@ -1430,7 +1438,6 @@ public final class Neo4jTemplate implements
 			}
 		}
 
-		@NonNull
 		private Consumer<Map<String, Object>> iterateAndMapNextLevel(Map<String, Set<String>> relationshipsToRelatedNodes,
 																	 RelationshipDescription relationshipDescription,
 																	 PropertyPathWalkStep currentPathStep) {
@@ -1439,9 +1446,11 @@ public final class Neo4jTemplate implements
 
 				Map<String, Set<String>> relatedNodesVisited = new HashMap<>(relationshipsToRelatedNodes);
 				@SuppressWarnings("unchecked")
-				List<String> newRelationshipIds = ((List<Object>) record.get(Constants.NAME_OF_SYNTHESIZED_RELATIONS)).stream().map(TemplateSupport::convertIdOrElementIdToString).toList();
+				var sr = (List<Object>) record.get(Constants.NAME_OF_SYNTHESIZED_RELATIONS);
+				List<String> newRelationshipIds = (sr != null) ? sr.stream().map(TemplateSupport::convertIdOrElementIdToString).toList() : List.of();
 				@SuppressWarnings("unchecked")
-				Set<String> relatedIds = new HashSet<>(((List<Object>) record.get(Constants.NAME_OF_SYNTHESIZED_RELATED_NODES)).stream().map(TemplateSupport::convertIdOrElementIdToString).toList());
+				var srn = (List<Object>) record.get(Constants.NAME_OF_SYNTHESIZED_RELATED_NODES);
+				Set<String> relatedIds = (srn != null) ? new HashSet<>(srn.stream().map(TemplateSupport::convertIdOrElementIdToString).toList()) : Set.of();
 
 				// use this list to get down the road
 				// 1. remove already visited ones;

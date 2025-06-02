@@ -15,6 +15,7 @@
  */
 package org.springframework.data.neo4j.core;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -34,7 +35,6 @@ import org.neo4j.driver.types.TypeSystem;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.data.neo4j.core.Neo4jClient.BindSpec;
 import org.springframework.data.neo4j.core.convert.Neo4jConversions;
-import org.springframework.lang.Nullable;
 
 /**
  * Reactive Neo4j client. The main difference to the {@link Neo4jClient imperative Neo4j client} is the fact that all
@@ -123,7 +123,7 @@ public interface ReactiveNeo4jClient {
 		 * @return The builder
 		 * @since 6.3.3
 		 */
-		public Builder withNeo4jConversions(Neo4jConversions neo4jConversions) {
+		public Builder withNeo4jConversions(@Nullable Neo4jConversions neo4jConversions) {
 			this.neo4jConversions = neo4jConversions;
 			return this;
 		}
@@ -137,7 +137,7 @@ public interface ReactiveNeo4jClient {
 		 * @return The builder
 		 * @since 7.1.2
 		 */
-		public Builder withNeo4jBookmarkManager(Neo4jBookmarkManager bookmarkManager) {
+		public Builder withNeo4jBookmarkManager(@Nullable Neo4jBookmarkManager bookmarkManager) {
 			this.bookmarkManager = bookmarkManager;
 			return this;
 		}
@@ -306,7 +306,7 @@ public interface ReactiveNeo4jClient {
 		 * @param targetDatabase selected database to use. A {@literal null} value indicates the default database.
 		 * @return A runnable query specification that is now bound to a given database.
 		 */
-		RunnableSpecBoundToDatabase in(@Nullable String targetDatabase);
+		RunnableSpecBoundToDatabase in(String targetDatabase);
 
 		/**
 		 * Pins the previously defined query to an impersonated user. A value of {@literal null} chooses the user owning
@@ -315,7 +315,7 @@ public interface ReactiveNeo4jClient {
 		 * @param asUser The name of the user to impersonate. A {@literal null} value indicates the connected user.
 		 * @return A runnable query specification that is now bound to a given database.
 		 */
-		RunnableSpecBoundToUser asUser(@Nullable String asUser);
+		RunnableSpecBoundToUser asUser(String asUser);
 	}
 
 	/**
@@ -361,7 +361,7 @@ public interface ReactiveNeo4jClient {
 		 * @param targetDatabase selected database to use. A {@literal null} value indicates the default database.
 		 * @return An ongoing delegation
 		 */
-		RunnableDelegation<T> in(@Nullable String targetDatabase);
+		RunnableDelegation<T> in(String targetDatabase);
 	}
 
 	/**

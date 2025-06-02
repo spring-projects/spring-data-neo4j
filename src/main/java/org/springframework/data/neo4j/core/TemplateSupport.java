@@ -35,6 +35,7 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import org.apiguardian.api.API;
+import org.jspecify.annotations.Nullable;
 import org.neo4j.cypherdsl.core.Cypher;
 import org.neo4j.cypherdsl.core.Expression;
 import org.neo4j.cypherdsl.core.FunctionInvocation;
@@ -45,6 +46,7 @@ import org.neo4j.cypherdsl.core.Statement;
 import org.neo4j.cypherdsl.core.renderer.Dialect;
 import org.neo4j.cypherdsl.core.renderer.Renderer;
 import org.neo4j.driver.Value;
+import org.neo4j.driver.Values;
 import org.neo4j.driver.types.Entity;
 import org.neo4j.driver.types.MapAccessor;
 import org.neo4j.driver.types.TypeSystem;
@@ -62,7 +64,7 @@ import org.springframework.data.neo4j.core.mapping.PropertyFilter;
 import org.springframework.data.neo4j.core.mapping.PropertyTraverser;
 import org.springframework.data.neo4j.core.mapping.SpringDataCypherDsl;
 import org.springframework.data.neo4j.repository.query.QueryFragments;
-import org.springframework.lang.Nullable;
+import org.springframework.data.util.TypeInformation;
 import org.springframework.util.Assert;
 
 /**
@@ -74,7 +76,6 @@ import org.springframework.util.Assert;
  */
 @API(status = API.Status.INTERNAL, since = "6.0.9")
 public final class TemplateSupport {
-
 
 	/**
 	 * Indicator for an empty collection
@@ -98,7 +99,7 @@ public final class TemplateSupport {
 		}
 
 		Collection<Class<?>> allClasses = StreamSupport.stream(collection.spliterator(), true)
-				.filter(o -> o != null)
+				.filter(Objects::nonNull)
 				.map(Object::getClass).collect(Collectors.toSet());
 
 		if (allClasses.isEmpty()) {
@@ -156,8 +157,9 @@ public final class TemplateSupport {
 			Entity newOrUpdatedNode
 	) {
 		if (entityMetaData.hasVersionProperty()) {
+			var versionProperty = entityMetaData.getRequiredVersionProperty();
 			propertyAccessor.setProperty(
-					entityMetaData.getVersionProperty(), newOrUpdatedNode.get(entityMetaData.getVersionProperty().getPropertyName()).asLong());
+					versionProperty, newOrUpdatedNode.get(versionProperty.getPropertyName()).asLong());
 		}
 	}
 
@@ -168,7 +170,7 @@ public final class TemplateSupport {
 	 * @param parameters The original parameters
 	 * @return Merged parameters
 	 */
-	static Map<String, Object> mergeParameters(Statement statement, @Nullable Map<String, Object> parameters) {
+	static Map<String, Object> mergeParameters(Statement statement, Map<String, Object> parameters) {
 
 		Map<String, Object> mergedParameters = new HashMap<>(statement.getCatalog().getParameters());
 		if (parameters != null) {
@@ -205,7 +207,8 @@ public final class TemplateSupport {
 		}
 
 		boolean hasRootNodeIds() {
-			return parameters.get(ROOT_NODE_IDS).isEmpty();
+			var ids = parameters.get(ROOT_NODE_IDS);
+			return ids != null && !ids.isEmpty();
 		}
 
 		Statement toStatement(NodeDescription<?> nodeDescription) {
@@ -291,10 +294,10 @@ public final class TemplateSupport {
 			@SuppressWarnings("unchecked")
 			Map<String, Object> properties = (Map<String, Object>) tree.get(Constants.NAME_OF_PROPERTIES_PARAM);
 
-			String idPropertyName = entityMetaData.getIdProperty().getPropertyName();
+			String idPropertyName = entityMetaData.getRequiredIdProperty().getPropertyName();
 			IdDescription idDescription = entityMetaData.getIdDescription();
-			boolean assignedId = idDescription.isAssignedId() || idDescription.isExternallyGeneratedId();
-			if (!includeProperty.isNotFiltering()) {
+			boolean assignedId = idDescription != null && (idDescription.isAssignedId() || idDescription.isExternallyGeneratedId());
+			if (!(includeProperty.isNotFiltering() || properties == null)) {
 				properties.entrySet()
 						.removeIf(e -> {
 							// we cannot skip the id property if it is an assigned id
@@ -317,7 +320,7 @@ public final class TemplateSupport {
 	 * @return A map as expected by the property filter.
 	 */
 	static <T> Collection<PropertyFilter.ProjectedPath> computeIncludedPropertiesFromPredicate(Neo4jMappingContext mappingContext,
-			Class<T> domainType, @Nullable BiPredicate<PropertyPath, Neo4jPersistentProperty> predicate) {
+			Class<T> domainType, BiPredicate<PropertyPath, Neo4jPersistentProperty> predicate) {
 		if (predicate == null) {
 			return Collections.emptySet();
 		}
@@ -357,6 +360,7 @@ public final class TemplateSupport {
 	 * @param databaseEntity A fallback entity to retrieve the deprecated internal long id
 	 * @param <T> The type of the entity
 	 */
+	@SuppressWarnings("deprecation")
 	static <T> void setGeneratedIdIfNecessary(
 			Neo4jPersistentEntity<?> entityMetaData,
 			PersistentPropertyAccessor<T> propertyAccessor,
@@ -388,10 +392,11 @@ public final class TemplateSupport {
 	 * @param <T> The type of the entity
 	 * @return The actual related internal id being used.
 	 */
+	@SuppressWarnings("deprecation")
 	static <T> Object retrieveOrSetRelatedId(
 			Neo4jPersistentEntity<?> entityMetadata,
 			PersistentPropertyAccessor<T> propertyAccessor,
-			Optional<Entity> databaseEntity,
+			@SuppressWarnings("OptionalUsedAsFieldOrParameterType") Optional<Entity> databaseEntity,
 			@Nullable Object relatedInternalId
 	) {
 		if (!entityMetadata.isUsingInternalIds()) {
@@ -442,13 +447,33 @@ public final class TemplateSupport {
 		return value.toString();
 	}
 
-	static Object convertToLongIdOrStringElementId(Collection<String> ids) {
+	@Nullable
+	static Object convertToLongIdOrStringElementId(@Nullable Collection<String> ids) {
+		if (ids == null) {
+			return null;
+		}
 		try {
 			return ids.stream()
 					.map(Long::valueOf).collect(Collectors.toSet());
 
 		} catch (Exception e) {
 			return ids;
+		}
+	}
+
+	static Object convertIdValues(Neo4jMappingContext ctx, @Nullable Neo4jPersistentProperty idProperty, @Nullable Object idValues) {
+
+		if (idProperty != null && ((Neo4jPersistentEntity<?>) idProperty.getOwner()).isUsingInternalIds()) {
+			return (idValues != null) ? idValues : Values.NULL;
+		}
+
+		if (idValues != null) {
+			return ctx.getConversionService().writeValue(idValues, TypeInformation.of(idValues.getClass()), idProperty == null ? null : idProperty.getOptionalConverter());
+		} else if (idProperty != null) {
+			return ctx.getConversionService().writeValue(idValues, idProperty.getTypeInformation(), idProperty.getOptionalConverter());
+		} else {
+			// Not much we can convert here
+			return Values.NULL;
 		}
 	}
 

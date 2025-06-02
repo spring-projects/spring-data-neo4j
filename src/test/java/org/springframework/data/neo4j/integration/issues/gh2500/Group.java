@@ -21,7 +21,6 @@ import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Relationship;
 import org.springframework.data.neo4j.core.support.UUIDStringGenerator;
-import org.springframework.lang.NonNull;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -39,7 +38,6 @@ public class Group {
 	@Version
 	private Long version;
 
-	@NonNull
 	private String name;
 
 	@Relationship(type = "BELONGS_TO", direction = Relationship.Direction.INCOMING)
@@ -81,7 +79,6 @@ public class Group {
 		return this.version;
 	}
 
-	@NonNull
 	public String getName() {
 		return this.name;
 	}
@@ -102,7 +99,7 @@ public class Group {
 		this.version = version;
 	}
 
-	public void setName(@NonNull String name) {
+	public void setName(String name) {
 		this.name = name;
 	}
 

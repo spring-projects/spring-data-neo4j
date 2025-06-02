@@ -4,7 +4,7 @@
  *
  * @author Michael J. Simons
  */
-@NonNullApi
+@NullMarked
 package org.springframework.data.neo4j.core.schema;
 
-import org.springframework.lang.NonNullApi;
+import org.jspecify.annotations.NullMarked;

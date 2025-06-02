@@ -47,13 +47,13 @@ public final class Neo4jEvaluationContextExtension implements EvaluationContextE
 	public Map<String, Function> getFunctions() {
 		Map<String, Function> functions = new HashMap<>();
 		functions.put(Neo4jSpelSupport.FUNCTION_ORDER_BY, new Function(ReflectionUtils
-				.findRequiredMethod(Neo4jSpelSupport.class, Neo4jSpelSupport.FUNCTION_ORDER_BY, Object.class)));
+				.getRequiredMethod(Neo4jSpelSupport.class, Neo4jSpelSupport.FUNCTION_ORDER_BY, Object.class)));
 		functions.put(Neo4jSpelSupport.FUNCTION_LITERAL, new Function(ReflectionUtils
-				.findRequiredMethod(Neo4jSpelSupport.class, Neo4jSpelSupport.FUNCTION_LITERAL, Object.class)));
+				.getRequiredMethod(Neo4jSpelSupport.class, Neo4jSpelSupport.FUNCTION_LITERAL, Object.class)));
 		functions.put(Neo4jSpelSupport.FUNCTION_ANY_OF, new Function(ReflectionUtils
-				.findRequiredMethod(Neo4jSpelSupport.class, Neo4jSpelSupport.FUNCTION_ANY_OF, Object.class)));
+				.getRequiredMethod(Neo4jSpelSupport.class, Neo4jSpelSupport.FUNCTION_ANY_OF, Object.class)));
 		functions.put(Neo4jSpelSupport.FUNCTION_ALL_OF, new Function(ReflectionUtils
-				.findRequiredMethod(Neo4jSpelSupport.class, Neo4jSpelSupport.FUNCTION_ALL_OF, Object.class)));
+				.getRequiredMethod(Neo4jSpelSupport.class, Neo4jSpelSupport.FUNCTION_ALL_OF, Object.class)));
 
 		return functions;
 	}

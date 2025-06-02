@@ -42,7 +42,9 @@ import org.springframework.util.ClassUtils;
  */
 final class ReactiveNeo4jQueryMethod extends Neo4jQueryMethod {
 
+	@SuppressWarnings("rawtypes")
 	private static final TypeInformation<Page> PAGE_TYPE = TypeInformation.of(Page.class);
+	@SuppressWarnings("rawtypes")
 	private static final TypeInformation<Slice> SLICE_TYPE = TypeInformation.of(Slice.class);
 
 	private final Lazy<Boolean> isCollectionQuery;

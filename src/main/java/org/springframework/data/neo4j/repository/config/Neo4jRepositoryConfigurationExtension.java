@@ -132,7 +132,7 @@ public final class Neo4jRepositoryConfigurationExtension extends RepositoryConfi
 				source.getAttribute("transactionManagerRef").orElse(DEFAULT_TRANSACTION_MANAGER_BEAN_NAME));
 		builder.addPropertyReference("neo4jOperations",
 				source.getAttribute("neo4jTemplateRef").orElse(DEFAULT_NEO4J_TEMPLATE_BEAN_NAME));
-		builder.addPropertyReference("neo4jMappingContext",
+		builder.addPropertyReference("mappingContext",
 				source.getAttribute("neo4jMappingContextRef").orElse(DEFAULT_MAPPING_CONTEXT_BEAN_NAME));
 	}
 

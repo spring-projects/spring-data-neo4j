@@ -24,6 +24,7 @@ import java.util.Set;
 import java.util.function.IntFunction;
 import java.util.function.Predicate;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.KeysetScrollPosition;
 import org.springframework.data.domain.OffsetScrollPosition;
 import org.springframework.data.domain.ScrollPosition;
@@ -32,7 +33,6 @@ import org.springframework.data.domain.Window;
 import org.springframework.data.neo4j.core.mapping.Constants;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.core.mapping.PropertyFilter;
-import org.springframework.lang.Nullable;
 
 /**
  * Supporting class containing some state and convenience methods for building fluent queries (both imperative and reactive).
@@ -47,9 +47,9 @@ abstract class FluentQuerySupport<R> {
 
 	protected final Sort sort;
 
+	@Nullable
 	protected final Integer limit;
 
-	@Nullable
 	protected final Set<String> properties;
 
 	FluentQuerySupport(
@@ -64,7 +64,7 @@ abstract class FluentQuerySupport<R> {
 		if (properties != null) {
 			this.properties = new HashSet<>(properties);
 		} else {
-			this.properties = null;
+			this.properties = Set.of();
 		}
 	}
 

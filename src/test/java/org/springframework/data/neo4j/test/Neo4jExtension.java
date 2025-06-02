@@ -39,7 +39,6 @@ import org.neo4j.driver.internal.SecuritySettings;
 import org.neo4j.driver.internal.security.SecurityPlan;
 import org.neo4j.driver.internal.security.SecurityPlans;
 import org.springframework.core.log.LogMessage;
-import org.springframework.lang.Nullable;
 import org.testcontainers.containers.Neo4jContainer;
 import org.testcontainers.utility.TestcontainersConfiguration;
 
@@ -234,7 +233,7 @@ public class Neo4jExtension implements BeforeAllCallback, BeforeEachCallback {
 		 * @param driver The driver that should be checked for usability
 		 * @return true if the driver is currently usable.
 		 */
-		private static boolean isUsable(@Nullable Driver driver) {
+		private static boolean isUsable(Driver driver) {
 
 			if (driver == null) {
 				return false;

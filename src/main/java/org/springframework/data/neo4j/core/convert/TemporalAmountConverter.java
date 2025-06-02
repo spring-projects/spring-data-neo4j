@@ -23,12 +23,12 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.jspecify.annotations.Nullable;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
 import org.neo4j.driver.types.IsoDuration;
 import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.core.convert.converter.GenericConverter;
-import org.springframework.lang.Nullable;
 
 /**
  * This generic converter has been introduced to augment the {@link TemporalAmountAdapter} with the type information passed
@@ -53,14 +53,14 @@ final class TemporalAmountConverter implements GenericConverter {
 	}
 
 	@Override
+	@Nullable
 	public Object convert(@Nullable Object value, TypeDescriptor sourceType, TypeDescriptor targetType) {
 
 		if (TemporalAmount.class.isAssignableFrom(sourceType.getType())) {
 			return Values.value(value);
 		}
 
-		boolean valueIsLiteralNullOrNullValue = value == null || value == Values.NULL;
-		Object convertedValue = valueIsLiteralNullOrNullValue ? null : adapter.apply(((Value) value).asIsoDuration());
+		Object convertedValue = value == null || value == Values.NULL ? null : adapter.apply(((Value) value).asIsoDuration());
 
 		if (convertedValue instanceof IsoDuration && isZero((IsoDuration) convertedValue)) {
 			if (Period.class.isAssignableFrom(targetType.getType())) {

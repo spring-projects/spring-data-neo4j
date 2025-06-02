@@ -1,7 +1,7 @@
 /**
  * Additional types provided by SDN.
  */
-@NonNullApi
+@NullMarked
 package org.springframework.data.neo4j.types;
 
-import org.springframework.lang.NonNullApi;
+import org.jspecify.annotations.NullMarked;

@@ -24,11 +24,13 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiFunction;
 
+import org.jspecify.annotations.Nullable;
 import org.neo4j.cypherdsl.core.Condition;
 import org.neo4j.cypherdsl.core.Cypher;
 import org.neo4j.cypherdsl.core.Expression;
@@ -47,7 +49,6 @@ import org.springframework.data.neo4j.core.mapping.NodeDescription;
 import org.springframework.data.neo4j.core.mapping.RelationshipDescription;
 import org.springframework.data.support.ExampleMatcherAccessor;
 import org.springframework.data.util.DirectFieldAccessFallbackBeanWrapper;
-import org.springframework.lang.Nullable;
 
 /**
  * Support class for "query by example" executors.
@@ -84,9 +85,13 @@ final class Predicate {
 		return predicate;
 	}
 
-	private static <S> void processRelationships(Neo4jMappingContext mappingContext, Example<S> example, NodeDescription<?> currentNodeDescription,
-												 DirectFieldAccessFallbackBeanWrapper beanWrapper, ExampleMatcher.MatchMode mode, AtomicInteger relationshipPatternCount,
-												 @Nullable PropertyPath propertyPath, Predicate predicate) {
+	private static <S> void processRelationships(Neo4jMappingContext mappingContext, Example<S> example, @Nullable NodeDescription<?> currentNodeDescription,
+	                                             DirectFieldAccessFallbackBeanWrapper beanWrapper, ExampleMatcher.MatchMode mode, AtomicInteger relationshipPatternCount,
+	                                             @Nullable PropertyPath propertyPath, Predicate predicate) {
+
+		if (currentNodeDescription == null) {
+			return;
+		}
 
 		for (RelationshipDescription relationship : currentNodeDescription.getRelationships()) {
 			String relationshipFieldName = relationship.getFieldName();
@@ -98,7 +103,7 @@ final class Predicate {
 
 			// Right now we are only accepting the first element of a collection as a filter entry.
 			// Maybe combining multiple entities with AND might make sense.
-			if (relationshipObject instanceof Collection collection) {
+			if (relationshipObject instanceof Collection<?> collection) {
 				int collectionSize = collection.size();
 				if (collectionSize > 1) {
 					throw new IllegalArgumentException("Cannot have more than one related node per collection.");
@@ -120,10 +125,12 @@ final class Predicate {
 			PropertyPathWrapper nestedPropertyPathWrapper = new PropertyPathWrapper(relationshipPatternCount.incrementAndGet(), mappingContext.getPersistentPropertyPath(nestedPropertyPath), false);
 			predicate.addRelationship(nestedPropertyPathWrapper);
 
-			for (GraphPropertyDescription graphProperty : relatedNodeDescription.getGraphProperties()) {
-				addConditionAndParameters(mappingContext, (Neo4jPersistentEntity<?>) relatedNodeDescription, new DirectFieldAccessFallbackBeanWrapper(relationshipObject), mode,
-						new ExampleMatcherAccessor(example.getMatcher()), predicate,
-						graphProperty, nestedPropertyPathWrapper);
+			if (relatedNodeDescription != null) {
+				for (GraphPropertyDescription graphProperty : relatedNodeDescription.getGraphProperties()) {
+					addConditionAndParameters(mappingContext, (Neo4jPersistentEntity<?>) relatedNodeDescription, new DirectFieldAccessFallbackBeanWrapper(relationshipObject), mode,
+							new ExampleMatcherAccessor(example.getMatcher()), predicate,
+							graphProperty, nestedPropertyPathWrapper);
+				}
 			}
 
 			processRelationships(mappingContext, example, relatedNodeDescription, new DirectFieldAccessFallbackBeanWrapper(relationshipObject), mode, relationshipPatternCount,
@@ -166,7 +173,7 @@ final class Predicate {
 			if (isRootNode) {
 				condition = predicate.neo4jPersistentEntity.getIdExpression().isEqualTo(literalOf(theValue));
 			} else {
-				condition = nodeDescription.getIdDescription().asIdExpression(wrapper.getNodeName()).isEqualTo(literalOf(theValue));
+				condition = Objects.requireNonNull(nodeDescription.getIdDescription(), "No id description available, cannot compute a Cypher expression for retrieving or storing the id").asIdExpression(wrapper.getNodeName()).isEqualTo(literalOf(theValue));
 			}
 		} else {
 			Expression property =  !isRootNode ? property(wrapper.getNodeName(), propertyName) : property(Constants.NAME_OF_TYPED_ROOT_NODE.apply(nodeDescription), propertyName);
@@ -203,7 +210,7 @@ final class Predicate {
 		return condition;
 	}
 
-	private final Neo4jPersistentEntity neo4jPersistentEntity;
+	private final Neo4jPersistentEntity<?> neo4jPersistentEntity;
 
 	private Condition condition = Cypher.noCondition();
 
@@ -211,7 +218,7 @@ final class Predicate {
 
 	private final Set<PropertyPathWrapper> relationshipFields = new HashSet<>();
 
-	private Predicate(Neo4jPersistentEntity neo4jPersistentEntity) {
+	private Predicate(Neo4jPersistentEntity<?> neo4jPersistentEntity) {
 		this.neo4jPersistentEntity = neo4jPersistentEntity;
 	}
 

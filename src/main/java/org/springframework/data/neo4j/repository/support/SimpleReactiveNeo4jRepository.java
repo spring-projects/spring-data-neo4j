@@ -20,6 +20,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -168,10 +169,9 @@ public class SimpleReactiveNeo4jRepository<T, ID> implements ReactiveSortingRepo
 	@Override
 	@Transactional
 	public Mono<Void> delete(T entity) {
-		Assert.notNull(entity, "The given entity must not be null");
+		Objects.requireNonNull(entity, "The given entity must not be null");
 
-		ID id = this.entityInformation.getId(entity);
-		Assert.notNull(id, "Cannot delete individual nodes without an id");
+		ID id = Objects.requireNonNull(this.entityInformation.getId(entity), "Cannot delete individual nodes without an id");
 		if (entityMetaData.hasVersionProperty()) {
 			Neo4jPersistentProperty versionProperty = entityMetaData.getRequiredVersionProperty();
 			Object versionValue = entityMetaData.getPropertyAccessor(entity).getProperty(versionProperty);

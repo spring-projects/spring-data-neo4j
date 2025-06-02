@@ -40,7 +40,6 @@ import org.springframework.data.neo4j.test.LogbackCapture;
 import org.springframework.data.neo4j.test.LogbackCapturingExtension;
 import org.springframework.data.neo4j.test.Neo4jImperativeTestConfiguration;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
-import org.springframework.lang.NonNull;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
@@ -388,8 +387,7 @@ public class ImperativeElementIdIT extends AbstractElementIdTestBase {
 		}
 
 		@Override
-		@NonNull
-		public PlatformTransactionManager transactionManager(@NonNull Driver driver, @NonNull DatabaseSelectionProvider databaseNameProvider) {
+		public PlatformTransactionManager transactionManager(Driver driver, DatabaseSelectionProvider databaseNameProvider) {
 
 			BookmarkCapture bookmarkCapture = bookmarkCapture();
 			return new Neo4jTransactionManager(driver, databaseNameProvider,
@@ -397,7 +395,6 @@ public class ImperativeElementIdIT extends AbstractElementIdTestBase {
 		}
 
 		@Bean
-		@NonNull
 		public Driver driver() {
 
 			return neo4jConnectionSupport.getDriver();

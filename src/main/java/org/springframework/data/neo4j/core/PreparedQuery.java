@@ -16,6 +16,7 @@
 package org.springframework.data.neo4j.core;
 
 import org.apiguardian.api.API;
+import org.jspecify.annotations.Nullable;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
@@ -27,7 +28,6 @@ import org.springframework.data.neo4j.core.mapping.Constants;
 import org.springframework.data.neo4j.core.mapping.MappingSupport;
 import org.springframework.data.neo4j.core.mapping.NoRootNodeMappingException;
 import org.springframework.data.neo4j.repository.query.QueryFragmentsAndParameters;
-import org.springframework.lang.Nullable;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -35,6 +35,7 @@ import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -66,7 +67,9 @@ public final class PreparedQuery<T> {
 
 	private final Class<T> resultType;
 	private final QueryFragmentsAndParameters queryFragmentsAndParameters;
-	private final @Nullable Supplier<BiFunction<TypeSystem, MapAccessor, ?>> mappingFunctionSupplier;
+	@Nullable
+	private final Supplier<BiFunction<TypeSystem, MapAccessor, ?>> mappingFunctionSupplier;
+	@SuppressWarnings("OptionalUsedAsFieldOrParameterType")
 	private volatile Optional<BiFunction<TypeSystem, Record, T>> lastMappingFunction = Optional.empty();
 
 	private PreparedQuery(OptionalBuildSteps<T> optionalBuildSteps) {
@@ -127,7 +130,8 @@ public final class PreparedQuery<T> {
 
 		final Class<CT> resultType;
 		final QueryFragmentsAndParameters queryFragmentsAndParameters;
-		@Nullable Supplier<BiFunction<TypeSystem, MapAccessor, ?>> mappingFunctionSupplier;
+		@Nullable
+		Supplier<BiFunction<TypeSystem, MapAccessor, ?>> mappingFunctionSupplier;
 
 		OptionalBuildSteps(Class<CT> resultType, QueryFragmentsAndParameters queryFragmentsAndParameters) {
 			this.resultType = resultType;
@@ -140,8 +144,8 @@ public final class PreparedQuery<T> {
 		 * @param newParameters The new parameters for the prepared query.
 		 * @return This builder.
 		 */
-		public OptionalBuildSteps<CT> withParameters(Map<String, Object> newParameters) {
-			this.queryFragmentsAndParameters.setParameters(newParameters);
+		public OptionalBuildSteps<CT> withParameters(@Nullable Map<String, Object> newParameters) {
+			this.queryFragmentsAndParameters.setParameters(Objects.requireNonNullElseGet(newParameters, Map::of));
 			return this;
 		}
 
@@ -229,6 +233,9 @@ public final class PreparedQuery<T> {
 		}
 
 		@Override
+		// Suppressing the warnings for accessing `pathValues`: `partitioningBy`
+		// will always provide entries for `true` and `false`
+		@SuppressWarnings("NullAway")
 		public Object apply(TypeSystem t, Record r) {
 
 			if (r.size() == 1) {

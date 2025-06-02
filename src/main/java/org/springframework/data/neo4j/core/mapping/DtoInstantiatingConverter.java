@@ -21,6 +21,8 @@ import java.util.function.Function;
 
 import org.apache.commons.logging.LogFactory;
 import org.apiguardian.api.API;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.types.MapAccessor;
 import org.neo4j.driver.types.TypeSystem;
@@ -35,7 +37,6 @@ import org.springframework.data.mapping.PersistentProperty;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
 import org.springframework.data.mapping.model.ParameterValueProvider;
 import org.springframework.data.util.TypeInformation;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -73,8 +74,7 @@ public final class DtoInstantiatingConverter implements Converter<EntityInstance
 		Neo4jPersistentEntity<?> sourceEntity = context.getRequiredPersistentEntity(entityInstance.getClass());
 		PersistentPropertyAccessor<Object> sourceAccessor = sourceEntity.getPropertyAccessor(entityInstance);
 
-		Neo4jPersistentEntity<?> targetEntity = context.addPersistentEntity(TypeInformation.of(targetType)).orElse(null);
-		Assert.notNull(targetEntity, "Target entity could not be created for a DTO");
+		Neo4jPersistentEntity<?> targetEntity = context.addPersistentEntity(TypeInformation.of(targetType)).orElseThrow(() -> new IllegalStateException("Target entity could not be created for a DTO"));
 		InstanceCreatorMetadata<?> creator = targetEntity.getInstanceCreatorMetadata();
 
 		Object dto = context.getInstantiatorFor(targetEntity)
@@ -98,7 +98,6 @@ public final class DtoInstantiatingConverter implements Converter<EntityInstance
 		return dto;
 	}
 
-
 	@Nullable
 	Object getPropertyValueDirectlyFor(PersistentProperty<?> targetProperty, PersistentEntity<?, ?> sourceEntity,
 							   PersistentPropertyAccessor<?> sourceAccessor) {
@@ -111,18 +110,15 @@ public final class DtoInstantiatingConverter implements Converter<EntityInstance
 		}
 
 		Object result = sourceAccessor.getProperty(sourceProperty);
-		if (targetProperty.isEntity() && !targetProperty.getTypeInformation().isAssignableFrom(sourceProperty.getTypeInformation())) {
+		if (result != null && targetProperty.isEntity() && !targetProperty.getTypeInformation().isAssignableFrom(sourceProperty.getTypeInformation())) {
 			return new DtoInstantiatingConverter(targetProperty.getType(), this.context).convertDirectly(result);
 		}
 		return result;
 	}
 
 	@Override
-	public Object convert(@Nullable EntityInstanceWithSource entityInstanceAndSource) {
-
-		if (entityInstanceAndSource == null) {
-			return null;
-		}
+	@Nullable
+	public Object convert(EntityInstanceWithSource entityInstanceAndSource) {
 
 		Object entityInstance = entityInstanceAndSource.getEntityInstance();
 		if (targetType.isInterface() || targetType.isInstance(entityInstance)) {
@@ -135,7 +131,7 @@ public final class DtoInstantiatingConverter implements Converter<EntityInstance
 		Neo4jPersistentEntity<?> targetEntity = context.addPersistentEntity(TypeInformation.of(targetType))
 				.orElseThrow(() -> new MappingException(
 						"Could not add a persistent entity for the projection target type '" + targetType.getName() + "'"));
-		InstanceCreatorMetadata<? extends PersistentProperty<?>> creator = targetEntity.getInstanceCreatorMetadata();
+		InstanceCreatorMetadata<@NonNull ? extends PersistentProperty<?>> creator = targetEntity.getInstanceCreatorMetadata();
 
 		Object dto = context.getInstantiatorFor(targetEntity)
 				.createInstance(targetEntity,

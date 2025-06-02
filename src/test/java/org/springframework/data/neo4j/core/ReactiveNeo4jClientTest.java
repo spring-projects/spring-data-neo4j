@@ -34,7 +34,6 @@ import org.neo4j.driver.reactivestreams.ReactiveResult;
 import org.neo4j.driver.reactivestreams.ReactiveSession;
 import org.neo4j.driver.summary.ResultSummary;
 import org.springframework.data.neo4j.core.transaction.Neo4jTransactionUtils;
-import org.springframework.lang.Nullable;
 import org.springframework.util.ReflectionUtils;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -549,7 +548,7 @@ class ReactiveNeo4jClientTest {
 		verify(session).close();
 	}
 
-	void verifyDatabaseSelection(@Nullable String targetDatabase) {
+	void verifyDatabaseSelection(String targetDatabase) {
 
 		verify(driver).session(eq(ReactiveSession.class), configArgumentCaptor.capture());
 		SessionConfig config = configArgumentCaptor.getValue();
@@ -561,7 +560,7 @@ class ReactiveNeo4jClientTest {
 		}
 	}
 
-	void verifyUserSelection(@Nullable String aUser) {
+	void verifyUserSelection(String aUser) {
 
 		verify(driver).session(eq(ReactiveSession.class), configArgumentCaptor.capture());
 		SessionConfig config = configArgumentCaptor.getValue();

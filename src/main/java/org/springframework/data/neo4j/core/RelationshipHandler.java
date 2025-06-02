@@ -16,6 +16,7 @@
 package org.springframework.data.neo4j.core;
 
 import org.apiguardian.api.API;
+import org.jspecify.annotations.Nullable;
 import org.springframework.core.CollectionFactory;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentProperty;
@@ -34,6 +35,8 @@ import java.util.Optional;
 @API(status = API.Status.INTERNAL, since = "6.1")
 final class RelationshipHandler {
 
+	private static final int DEFAULT_SIZE = 32;
+
 	enum Cardinality {
 
 		ONE_TO_ONE,
@@ -42,7 +45,7 @@ final class RelationshipHandler {
 		DYNAMIC_ONE_TO_MANY
 	}
 
-	static RelationshipHandler forProperty(Neo4jPersistentProperty property, Object rawValue) {
+	static RelationshipHandler forProperty(Neo4jPersistentProperty property, @Nullable Object rawValue) {
 
 		Cardinality cardinality;
 		Collection<Object> newRelationshipObjectCollection = Collections.emptyList();
@@ -51,13 +54,16 @@ final class RelationshipHandler {
 		// Order is important here, all map based associations are dynamic, but not all dynamic associations are one to many
 		if (property.isCollectionLike()) {
 			cardinality = Cardinality.ONE_TO_MANY;
-			newRelationshipObjectCollection = CollectionFactory.createCollection(property.getType(), ((Collection<?>) rawValue).size());
+			var size = rawValue == null ? DEFAULT_SIZE : ((Collection<?>) rawValue).size();
+			newRelationshipObjectCollection = CollectionFactory.createCollection(property.getType(), size);
 		} else if (property.isDynamicOneToManyAssociation()) {
 			cardinality = Cardinality.DYNAMIC_ONE_TO_MANY;
-			newRelationshipObjectCollectionMap = CollectionFactory.createMap(property.getType(), ((Map<?, ?>) rawValue).size());
+			var size = rawValue == null ? DEFAULT_SIZE : ((Map<?, ?>) rawValue).size();
+			newRelationshipObjectCollectionMap = CollectionFactory.createMap(property.getType(), size);
 		} else if (property.isDynamicAssociation()) {
 			cardinality = Cardinality.DYNAMIC_ONE_TO_ONE;
-			newRelationshipObjectCollectionMap = CollectionFactory.createMap(property.getType(), ((Map<?, ?>) rawValue).size());
+			var size = rawValue == null ? DEFAULT_SIZE : ((Map<?, ?>) rawValue).size();
+			newRelationshipObjectCollectionMap = CollectionFactory.createMap(property.getType(), size);
 		} else {
 			cardinality = Cardinality.ONE_TO_ONE;
 		}
@@ -69,6 +75,7 @@ final class RelationshipHandler {
 	/**
 	 * The raw value as passed to the template.
 	 */
+	@Nullable
 	private final Object rawValue;
 	private final Cardinality cardinality;
 
@@ -76,7 +83,7 @@ final class RelationshipHandler {
 	private final Map<Object, Object> newRelatedObjectsByType;
 
 	RelationshipHandler(Neo4jPersistentProperty property,
-						Object rawValue, Cardinality cardinality,
+						@Nullable Object rawValue, Cardinality cardinality,
 						Collection<Object> newRelatedObjects,
 						Map<Object, Object> newRelatedObjectsByType) {
 		this.property = property;
@@ -100,9 +107,12 @@ final class RelationshipHandler {
 				} else {
 					@SuppressWarnings("unchecked")
 					Collection<Object> newCollection = (Collection<Object>) newRelatedObjectsByType
-							.computeIfAbsent(key, k -> CollectionFactory.createCollection(
-									property.getTypeInformation().getRequiredActualType().getType(),
-									((Collection<?>) ((Map<?, ?>) rawValue).get(key)).size()));
+							.computeIfAbsent(key, k -> {
+								Collection<?> objects = rawValue == null ? null : (Collection<?>) ((Map<?, ?>) rawValue).get(key);
+								return CollectionFactory.createCollection(
+										property.getTypeInformation().getRequiredActualType().getType(),
+										objects != null ? objects.size() : DEFAULT_SIZE);
+							});
 					newCollection.add(potentiallyRecreatedRelatedObject);
 				}
 			}

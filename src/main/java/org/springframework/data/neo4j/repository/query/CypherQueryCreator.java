@@ -32,6 +32,7 @@ import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
+import org.jspecify.annotations.Nullable;
 import org.neo4j.cypherdsl.core.Condition;
 import org.neo4j.cypherdsl.core.Cypher;
 import org.neo4j.cypherdsl.core.Expression;
@@ -64,8 +65,6 @@ import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.data.repository.query.parser.AbstractQueryCreator;
 import org.springframework.data.repository.query.parser.Part;
 import org.springframework.data.repository.query.parser.PartTree;
-import org.springframework.lang.NonNull;
-import org.springframework.lang.Nullable;
 
 /**
  * A Cypher-DSL based implementation of the {@link AbstractQueryCreator} that eventually creates Cypher queries as
@@ -94,11 +93,13 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndPar
 
 	private final Pageable pagingParameter;
 
+	@Nullable
 	private final ScrollPosition scrollPosition;
 
 	/**
 	 * Stores the number of max results, if the {@link PartTree tree} is limiting.
 	 */
+	@Nullable
 	private final Number maxResults;
 
 	/**
@@ -188,7 +189,6 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndPar
 		return new QueryFragmentsAndParameters(nodeDescription, queryFragments, convertedParameters, theSort);
 	}
 
-	@NonNull
 	private QueryFragments createQueryFragments(@Nullable Condition condition, Sort sort) {
 		QueryFragments queryFragments = new QueryFragments();
 
@@ -234,7 +234,9 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndPar
 				// Enforce sorting by something that is hopefully stable comparable (looking at Neo4j's id() with tears in my eyes).
 				theSort = theSort.and(Sort.by(entity.getRequiredIdProperty().getName()).ascending());
 
-				queryFragments.setLimit(limitModifier.apply(maxResults.intValue()));
+				if (maxResults != null) {
+					queryFragments.setLimit(limitModifier.apply(maxResults.intValue()));
+				}
 				if (!keysetScrollPosition.isInitial()) {
 					conditionFragment = conditionFragment.and(CypherAdapterUtils.combineKeysetIntoCondition(entity, keysetScrollPosition, theSort, mappingContext.getConversionService()));
 				}
@@ -244,7 +246,8 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndPar
 				if (!offsetScrollPosition.isInitial()) {
 					queryFragments.setSkip(offsetScrollPosition.getOffset() + 1);
 				}
-				queryFragments.setLimit(limitModifier.apply(pagingParameter.isUnpaged() ? maxResults.intValue() : pagingParameter.getPageSize()));
+
+				queryFragments.setLimit(limitModifier.apply((pagingParameter.isUnpaged() && maxResults != null) ? maxResults.intValue() : pagingParameter.getPageSize()));
 			}
 
 			var finalSortItems = new ArrayList<>(this.sortItems);
@@ -580,7 +583,8 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndPar
 
 		final Object value;
 
-		final @Nullable Neo4jPersistentPropertyConverter<?> conversionOverride;
+		@Nullable
+		final Neo4jPersistentPropertyConverter<?> conversionOverride;
 
 		Parameter(String nameOrIndex, Object value, @Nullable Neo4jPersistentPropertyConverter<?> conversionOverride) {
 			this.nameOrIndex = nameOrIndex;

@@ -22,8 +22,6 @@ import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
 import org.springframework.data.neo4j.core.convert.Neo4jConversionService;
 import org.springframework.data.neo4j.core.convert.Neo4jPersistentPropertyToMapConverter;
-import org.springframework.lang.NonNull;
-import org.springframework.lang.Nullable;
 
 /**
  * @author Michael J. Simons
@@ -34,9 +32,8 @@ public record CompositeValue(String value1, Integer value2) {
 
 	static class Converter implements Neo4jPersistentPropertyToMapConverter<String, CompositeValue> {
 
-		@NonNull
 		@Override
-		public Map<String, Value> decompose(@Nullable CompositeValue property, Neo4jConversionService conversionService) {
+		public Map<String, Value> decompose(CompositeValue property, Neo4jConversionService conversionService) {
 
 			final HashMap<String, Value> decomposed = new HashMap<>();
 			if (property == null) {

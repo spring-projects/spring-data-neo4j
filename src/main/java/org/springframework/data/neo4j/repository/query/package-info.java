@@ -1,7 +1,7 @@
 /**
  * A set of annotations for providing custom queries to repositories.
  */
-@NonNullApi
+@NullMarked
 package org.springframework.data.neo4j.repository.query;
 
-import org.springframework.lang.NonNullApi;
+import org.jspecify.annotations.NullMarked;

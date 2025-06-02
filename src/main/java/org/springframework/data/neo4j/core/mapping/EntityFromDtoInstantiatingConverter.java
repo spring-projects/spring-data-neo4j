@@ -17,9 +17,11 @@ package org.springframework.data.neo4j.core.mapping;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apiguardian.api.API;
+import org.jspecify.annotations.Nullable;
 import org.springframework.core.CollectionFactory;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.mapping.InstanceCreatorMetadata;
@@ -33,7 +35,6 @@ import org.springframework.data.neo4j.core.convert.Neo4jConversionService;
 import org.springframework.data.neo4j.core.schema.TargetNode;
 import org.springframework.data.util.ReflectionUtils;
 import org.springframework.data.util.TypeInformation;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -65,6 +66,7 @@ public final class EntityFromDtoInstantiatingConverter<T> implements Converter<O
 	}
 
 	@Override
+	@Nullable
 	public T convert(Object dtoInstance) {
 
 		if (dtoInstance == null) {
@@ -72,18 +74,19 @@ public final class EntityFromDtoInstantiatingConverter<T> implements Converter<O
 		}
 
 		PersistentEntity<?, ?> sourceEntity = context.addPersistentEntity(TypeInformation.of(dtoInstance.getClass()))
-				.get();
+				.orElseThrow();
 		PersistentPropertyAccessor<Object> sourceAccessor = sourceEntity.getPropertyAccessor(dtoInstance);
 
-		PersistentEntity<?, ?> targetEntity = context.getPersistentEntity(targetEntityType);
-		InstanceCreatorMetadata<?> creator = targetEntity.getInstanceCreatorMetadata();
+		PersistentEntity<?, ?> targetEntity = Objects.requireNonNull(context.getPersistentEntity(targetEntityType));
+		InstanceCreatorMetadata<?> creator = Objects.requireNonNull(targetEntity.getInstanceCreatorMetadata());
 
 		@SuppressWarnings({ "rawtypes", "unchecked" })
 		T entity = (T) context.getInstantiatorFor(targetEntity)
 				.createInstance(targetEntity, new ParameterValueProvider() {
 					@Override
+					@Nullable
 					public Object getParameterValue(Parameter parameter) {
-						PersistentProperty<?> targetProperty = targetEntity.getPersistentProperty(parameter.getName());
+						PersistentProperty<?> targetProperty = targetEntity.getPersistentProperty(Objects.requireNonNull(parameter.getName(), "Parameter names are not available"));
 						if (targetProperty == null) {
 							throw new MappingException("Cannot map constructor parameter " + parameter.getName()
 													   + " to a property of class " + targetEntityType);

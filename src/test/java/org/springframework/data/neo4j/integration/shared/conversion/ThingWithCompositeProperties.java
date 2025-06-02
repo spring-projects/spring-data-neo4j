@@ -31,8 +31,6 @@ import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Relationship;
-import org.springframework.lang.NonNull;
-import org.springframework.lang.Nullable;
 
 /**
  * Test class verifying composite properties behaviour.
@@ -234,8 +232,8 @@ public class ThingWithCompositeProperties {
 	 */
 	static class SomeOtherDTOToMapConverter implements Neo4jPersistentPropertyToMapConverter<String, SomeOtherDTO> {
 
-		@NonNull @Override
-		public Map<String, Value> decompose(@Nullable SomeOtherDTO property, Neo4jConversionService conversionService) {
+		@Override
+		public Map<String, Value> decompose(SomeOtherDTO property, Neo4jConversionService conversionService) {
 
 			final HashMap<String, Value> decomposed = new HashMap<>();
 			if (property == null) {

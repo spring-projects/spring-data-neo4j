@@ -18,7 +18,7 @@ package org.springframework.data.neo4j.core.mapping;
 import static org.apiguardian.api.API.Status.STABLE;
 
 import org.apiguardian.api.API;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * The characteristics of a {@link Neo4jPersistentProperty} can diverge from what is by default derived from the annotated

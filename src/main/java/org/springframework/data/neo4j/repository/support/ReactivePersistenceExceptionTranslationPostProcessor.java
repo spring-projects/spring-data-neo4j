@@ -18,8 +18,10 @@ package org.springframework.data.neo4j.repository.support;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.io.Serial;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.util.Objects;
 
 import org.aopalliance.aop.Advice;
 import org.apiguardian.api.API;
@@ -57,7 +59,9 @@ import org.springframework.util.Assert;
 public final class ReactivePersistenceExceptionTranslationPostProcessor
 		extends AbstractBeanFactoryAwareAdvisingPostProcessor {
 
-	private final Class<? extends Annotation> repositoryAnnotationType;
+	@Serial
+	private static final long serialVersionUID = -8597336297033105680L;
+	private transient final Class<? extends Annotation> repositoryAnnotationType;
 
 	public ReactivePersistenceExceptionTranslationPostProcessor() {
 
@@ -79,7 +83,7 @@ public final class ReactivePersistenceExceptionTranslationPostProcessor
 					"Cannot use PersistenceExceptionTranslator autodetection without ListableBeanFactory");
 		}
 		this.advisor = new ReactivePersistenceExceptionTranslationAdvisor((ListableBeanFactory) beanFactory,
-				this.repositoryAnnotationType);
+				Objects.requireNonNullElse(this.repositoryAnnotationType, Repository.class));
 	}
 
 	/**
@@ -88,9 +92,11 @@ public final class ReactivePersistenceExceptionTranslationPostProcessor
 	 */
 	static final class ReactivePersistenceExceptionTranslationAdvisor extends AbstractPointcutAdvisor {
 
-		private final ReactivePersistenceExceptionTranslationInterceptor advice;
+		@Serial
+		private static final long serialVersionUID = 849460320459940956L;
+		private transient final ReactivePersistenceExceptionTranslationInterceptor advice;
 
-		private final AnnotationMatchingPointcut pointcut;
+		private transient final AnnotationMatchingPointcut pointcut;
 
 		/**
 		 * Create a new PersistenceExceptionTranslationAdvisor.

@@ -17,7 +17,8 @@ package org.springframework.data.neo4j.types;
 
 import java.util.Objects;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
+
 
 /**
  * @author Michael J. Simons
@@ -27,6 +28,7 @@ public final class Coordinate {
 
 	private final double y;
 
+	@Nullable
 	private final Double z;
 
 	public Coordinate(double x, double y) {
@@ -47,7 +49,8 @@ public final class Coordinate {
 		return y;
 	}
 
-	@Nullable Double getZ() {
+	@Nullable
+	Double getZ() {
 		return z;
 	}
 

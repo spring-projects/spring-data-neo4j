@@ -25,14 +25,18 @@ import java.lang.reflect.Type;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
 import org.apiguardian.api.API;
+import org.jspecify.annotations.Nullable;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
+import org.neo4j.driver.types.TypeSystem;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.GenericTypeResolver;
@@ -45,7 +49,6 @@ import org.springframework.data.neo4j.core.convert.Neo4jPersistentPropertyToMapC
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.core.schema.CompositeProperty.Phase;
 import org.springframework.data.util.TypeInformation;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -62,7 +65,7 @@ import org.springframework.util.StringUtils;
  * @since 6.0
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ ElementType.FIELD })
+@Target({ElementType.FIELD})
 @Inherited
 @ConvertWith(converterFactory = CompositePropertyConverterFactory.class)
 @API(status = API.Status.STABLE, since = "6.0")
@@ -207,7 +210,7 @@ final class CompositePropertyConverter<K, P> implements Neo4jPersistentPropertyC
 	}
 
 	@Override
-	public Value write(P property) {
+	public Value write(@Nullable P property) {
 
 		Map<K, Value> source = delegate.decompose(property, neo4jConversionService);
 		Map<String, Object> temp = new HashMap<>();
@@ -216,7 +219,12 @@ final class CompositePropertyConverter<K, P> implements Neo4jPersistentPropertyC
 	}
 
 	@Override
-	public P read(Value source) {
+	@Nullable
+	public P read(@Nullable Value source) {
+
+		if (source == null || TypeSystem.getDefault().NULL().isTypeOf(source)) {
+			return null;
+		}
 
 		Map<K, Value> temp = new HashMap<>();
 		source.keys().forEach(k -> {
@@ -230,6 +238,7 @@ final class CompositePropertyConverter<K, P> implements Neo4jPersistentPropertyC
 
 	/**
 	 * Internally used via reflection.
+	 *
 	 * @return The type of the underlying delegate.
 	 */
 	@SuppressWarnings("unused")
@@ -249,7 +258,7 @@ final class CompositePropertyConverterFactory implements Neo4jPersistentProperty
 	private final BeanFactory beanFactory;
 	private final Neo4jConversionService conversionServiceDelegate;
 
-	CompositePropertyConverterFactory(@Nullable BeanFactory beanFactory, @Nullable Neo4jConversionService conversionServiceDelegate) {
+	CompositePropertyConverterFactory(BeanFactory beanFactory, Neo4jConversionService conversionServiceDelegate) {
 		this.beanFactory = beanFactory;
 		this.conversionServiceDelegate = conversionServiceDelegate;
 	}
@@ -306,15 +315,16 @@ final class CompositePropertyConverterFactory implements Neo4jPersistentProperty
 			}
 
 			if (persistentProperty.getActualType() != type) {
+				var typeName = Optional.ofNullable(type).map(Type::getTypeName).orElse("n/a");
 				throw new IllegalArgumentException(
-						"The property type `" + typeVariableMap.get(PROPERTY_TYPE_KEY).getTypeName() + "` created by `"
+						"The property type `" + typeName + "` created by `"
 								+ delegateClass.getName() + "` " + generateLocation(persistentProperty)
 								+ " doesn't match the actual property type");
 			}
 			componentType = (Class<?>) typeVariableMap.get(KEY_TYPE_KEY);
 		}
 
-		boolean isEnum = componentType.isEnum();
+		boolean isEnum = componentType != null && componentType.isEnum();
 		if (!(componentType == String.class || isEnum)) {
 			throw new IllegalArgumentException("@" + CompositeProperty.class.getSimpleName()
 					+ " can only be used on Map properties with a key type of String or enum. Was " + generateLocation(
@@ -343,7 +353,7 @@ final class CompositePropertyConverterFactory implements Neo4jPersistentProperty
 
 		String prefixWithDelimiter = persistentProperty.computePrefixWithDelimiter();
 		return new CompositePropertyConverter(
-				delegate, prefixWithDelimiter, conversionServiceDelegate, componentType,  keyWriter, keyReader);
+				delegate, prefixWithDelimiter, conversionServiceDelegate, Objects.requireNonNull(componentType), keyWriter, keyReader);
 	}
 
 	private static String generateLocation(Neo4jPersistentProperty persistentProperty) {
