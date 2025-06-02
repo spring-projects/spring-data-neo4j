@@ -26,6 +26,7 @@ import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.UUID;
@@ -595,7 +596,7 @@ public class ThingWithAllAdditionalTypes {
 	}
 
 	public ThingWithAllAdditionalTypes withId(Long id) {
-		return this.id == id ? this : new ThingWithAllAdditionalTypes(id, this.booleanArray, this.aByte, this.aChar, this.charArray, this.aDate, this.aBigDecimal, this.aBigInteger, this.doubleArray, this.aFloat, this.floatArray, this.anInt, this.intArray, this.aLocale, this.longArray, this.aShort, this.shortArray, this.aPeriod, this.aDuration, this.stringArray, this.listOfStrings, this.setOfStrings, this.anInstant, this.aUUID, this.aURL, this.aURI, this.anEnum, this.anArrayOfEnums, this.listOfDoubles, this.aCollectionOfEnums, this.aTimeZone, this.aZoneId, this.aZeroPeriod, this.aZeroDuration, this.aVector);
+		return Objects.equals(this.id, id) ? this : new ThingWithAllAdditionalTypes(id, this.booleanArray, this.aByte, this.aChar, this.charArray, this.aDate, this.aBigDecimal, this.aBigInteger, this.doubleArray, this.aFloat, this.floatArray, this.anInt, this.intArray, this.aLocale, this.longArray, this.aShort, this.shortArray, this.aPeriod, this.aDuration, this.stringArray, this.listOfStrings, this.setOfStrings, this.anInstant, this.aUUID, this.aURL, this.aURI, this.anEnum, this.anArrayOfEnums, this.listOfDoubles, this.aCollectionOfEnums, this.aTimeZone, this.aZoneId, this.aZeroPeriod, this.aZeroDuration, this.aVector);
 	}
 
 	enum SomeEnum {
@@ -887,7 +888,7 @@ public class ThingWithAllAdditionalTypes {
 			return this;
 		}
 
-		public ThingWithAllAdditionalTypesBuilder aVector(Vector vector) {
+		public ThingWithAllAdditionalTypesBuilder aVector(Vector aVector) {
 			this.aVector = aVector;
 			return this;
 		}
