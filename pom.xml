@@ -77,24 +77,16 @@
 		<cypher-dsl.version>2024.2.0</cypher-dsl.version>
 		<dist.id>spring-data-neo4j</dist.id>
 		<dist.key>SDNEO4J</dist.key>
-		<flatten-maven-plugin.version>1.2.5</flatten-maven-plugin.version>
-		<jacoco-maven-plugin.version>0.8.7</jacoco-maven-plugin.version>
+		<flatten-maven-plugin.version>1.7.0</flatten-maven-plugin.version>
+		<jacoco-maven-plugin.version>${jacoco}</jacoco-maven-plugin.version>
 		<jakarta.interceptor-api.version>2.0.1</jakarta.interceptor-api.version>
 		<jakarta.transaction-api.version>2.0.0</jakarta.transaction-api.version>
 		<java-module-name>spring.data.neo4j</java-module-name>
 		<java.version>17</java.version>
 		<jaxb.version>2.3.1</jaxb.version>
 		<junit-cc-testcontainer>2021.0.1</junit-cc-testcontainer>
-		<maven-checkstyle-plugin.version>3.1.2</maven-checkstyle-plugin.version>
-		<maven-deploy-plugin.version>3.0.0-M1</maven-deploy-plugin.version>
-		<maven-enforcer-plugin.version>3.0.0-M3</maven-enforcer-plugin.version>
-		<maven-failsafe-plugin.version>3.0.0-M5</maven-failsafe-plugin.version>
-		<maven-install-plugin.version>3.0.0-M1</maven-install-plugin.version>
-		<maven-jar-plugin.version>3.2.0</maven-jar-plugin.version>
-		<maven-javadoc-plugin.version>3.1.1</maven-javadoc-plugin.version>
+		<maven-install-plugin.version>3.1.4</maven-install-plugin.version>
 		<maven-site-plugin.version>3.7.1</maven-site-plugin.version>
-		<maven-source-plugin.version>3.2.0</maven-source-plugin.version>
-		<maven-surefire-plugin.version>3.0.0-M4</maven-surefire-plugin.version>
 		<maven.compiler.release>${java.version}</maven.compiler.release>
 		<neo4j-java-driver.version>5.28.5</neo4j-java-driver.version>
 		<neo4j-migrations.version>1.16.3</neo4j-migrations.version>
@@ -484,28 +476,8 @@
 				</plugin>
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-deploy-plugin</artifactId>
-					<version>${maven-deploy-plugin.version}</version>
-				</plugin>
-				<plugin>
-					<groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-enforcer-plugin</artifactId>
-					<version>${maven-enforcer-plugin.version}</version>
-				</plugin>
-				<plugin>
-					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-install-plugin</artifactId>
 					<version>${maven-install-plugin.version}</version>
-				</plugin>
-				<plugin>
-					<groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-failsafe-plugin</artifactId>
-					<version>${maven-failsafe-plugin.version}</version>
-				</plugin>
-				<plugin>
-					<groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-jar-plugin</artifactId>
-					<version>${maven-jar-plugin.version}</version>
 				</plugin>
 				<plugin>
 					<groupId>org.codehaus.mojo</groupId>
@@ -522,7 +494,6 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-checkstyle-plugin</artifactId>
-				<version>${maven-checkstyle-plugin.version}</version>
 				<executions>
 					<execution>
 						<id>verify</id>
@@ -660,7 +631,6 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>
-				<version>${maven-jar-plugin.version}</version>
 				<configuration>
 					<archive>
 						<manifest>
