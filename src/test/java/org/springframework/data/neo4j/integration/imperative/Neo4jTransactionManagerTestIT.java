@@ -15,18 +15,15 @@
  */
 package org.springframework.data.neo4j.integration.imperative;
 
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.assertj.core.api.Assertions.assertThat;
-
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Session;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
-import org.springframework.data.neo4j.test.Neo4jImperativeTestConfiguration;
 import org.springframework.data.neo4j.core.DatabaseSelectionProvider;
 import org.springframework.data.neo4j.core.Neo4jClient;
 import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
@@ -37,11 +34,15 @@ import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.data.neo4j.repository.query.Query;
 import org.springframework.data.neo4j.test.BookmarkCapture;
 import org.springframework.data.neo4j.test.Neo4jExtension;
+import org.springframework.data.neo4j.test.Neo4jImperativeTestConfiguration;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 /**
  * @author Michael J. Simons
@@ -60,32 +61,31 @@ class Neo4jTransactionManagerTestIT {
 	}
 
 	@Test // GH-2193
-	void exceptionShouldNotBeShadowed(
-			@Autowired TransactionTemplate transactionTemplate,
-			@Autowired Neo4jClient client,
-			@Autowired BookmarkCapture bookmarkCapture,
-			@Autowired SomeRepository someRepository) {
+	void exceptionShouldNotBeShadowed(@Autowired TransactionTemplate transactionTemplate, @Autowired Neo4jClient client,
+			@Autowired BookmarkCapture bookmarkCapture, @Autowired SomeRepository someRepository) {
 
 		assertThatExceptionOfType(InvalidDataAccessResourceUsageException.class).isThrownBy(() ->
-				// Need to wrap so that we actually trigger the setRollBackOnly on the outer transaction
-				transactionTemplate.executeWithoutResult(tx -> {
-					client.query("CREATE (n:ShouldNotBeThere)").run();
-					someRepository.broken();
-				})).withMessageStartingWith("Invalid input");
+		// Need to wrap so that we actually trigger the setRollBackOnly on the outer
+		// transaction
+		transactionTemplate.executeWithoutResult(tx -> {
+			client.query("CREATE (n:ShouldNotBeThere)").run();
+			someRepository.broken();
+		})).withMessageStartingWith("Invalid input");
 
 		try (Session session = neo4jConnectionSupport.getDriver().session(bookmarkCapture.createSessionConfig())) {
-			long cnt = session
-					.executeRead(tx -> tx.run("MATCH (n:ShouldNotBeThere) RETURN count(n)").single().get(0))
-					.asLong();
+			long cnt = session.executeRead(tx -> tx.run("MATCH (n:ShouldNotBeThere) RETURN count(n)").single().get(0))
+				.asLong();
 			assertThat(cnt).isEqualTo(0L);
 		}
 	}
 
 	interface SomeRepository extends Neo4jRepository<Person, Long> {
 
-		@Transactional // The annotation on the Neo4jRepository is not inherited on the derived methods
+		@Transactional // The annotation on the Neo4jRepository is not inherited on the
+						// derived methods
 		@Query("Kaputt")
 		Person broken();
+
 	}
 
 	@Configuration
@@ -94,31 +94,36 @@ class Neo4jTransactionManagerTestIT {
 	static class Config extends Neo4jImperativeTestConfiguration {
 
 		@Bean
+		@Override
 		public Driver driver() {
 
 			return neo4jConnectionSupport.getDriver();
 		}
 
 		@Bean
-		public TransactionTemplate transactionTemplate(PlatformTransactionManager transactionManager) {
+		TransactionTemplate transactionTemplate(PlatformTransactionManager transactionManager) {
 			return new TransactionTemplate(transactionManager);
 		}
 
 		@Bean
-		public BookmarkCapture bookmarkCapture() {
+		BookmarkCapture bookmarkCapture() {
 			return new BookmarkCapture();
 		}
 
 		@Override
-		public PlatformTransactionManager transactionManager(Driver driver, DatabaseSelectionProvider databaseNameProvider) {
+		public PlatformTransactionManager transactionManager(Driver driver,
+				DatabaseSelectionProvider databaseNameProvider) {
 
 			BookmarkCapture bookmarkCapture = bookmarkCapture();
-			return new Neo4jTransactionManager(driver, databaseNameProvider, Neo4jBookmarkManager.create(bookmarkCapture));
+			return new Neo4jTransactionManager(driver, databaseNameProvider,
+					Neo4jBookmarkManager.create(bookmarkCapture));
 		}
 
 		@Override
 		public boolean isCypher5Compatible() {
 			return neo4jConnectionSupport.isCypher5SyntaxCompatible();
 		}
+
 	}
+
 }

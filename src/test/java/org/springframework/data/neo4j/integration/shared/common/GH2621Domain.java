@@ -26,28 +26,33 @@ import org.springframework.data.neo4j.core.schema.Node;
  */
 public final class GH2621Domain {
 
+	private GH2621Domain() {
+	}
+
 	/**
 	 * A node.
 	 */
 	@Node("GH2621Foo")
 	public static class Foo {
+
+		private final Bar bar;
+
 		@Id
 		@GeneratedValue
 		private UUID id;
-
-		private final Bar bar;
 
 		public Foo(Bar bar) {
 			this.bar = bar;
 		}
 
 		public UUID getId() {
-			return id;
+			return this.id;
 		}
 
 		public Bar getBar() {
-			return bar;
+			return this.bar;
 		}
+
 	}
 
 	/**
@@ -55,23 +60,25 @@ public final class GH2621Domain {
 	 */
 	@Node("GH2621Bar")
 	public static class Bar {
+
+		private final String value1;
+
 		@Id
 		@GeneratedValue
 		private UUID id;
-
-		private final String value1;
 
 		public Bar(String value1) {
 			this.value1 = value1;
 		}
 
 		public UUID getId() {
-			return id;
+			return this.id;
 		}
 
 		public String getValue1() {
-			return value1;
+			return this.value1;
 		}
+
 	}
 
 	/**
@@ -79,6 +86,7 @@ public final class GH2621Domain {
 	 */
 	@Node("GH2621BarBar")
 	public static class BarBar extends Bar {
+
 		private final String value2;
 
 		public BarBar(String value1, String value2) {
@@ -87,14 +95,16 @@ public final class GH2621Domain {
 		}
 
 		public String getValue2() {
-			return value2;
+			return this.value2;
 		}
+
 	}
 
 	/**
 	 * Projects {@link Foo}
 	 */
 	public static class FooProjection {
+
 		private final BarProjection bar;
 
 		public FooProjection(BarProjection bar) {
@@ -102,14 +112,16 @@ public final class GH2621Domain {
 		}
 
 		public BarProjection getBar() {
-			return bar;
+			return this.bar;
 		}
+
 	}
 
 	/**
 	 * Projects {@link Bar} and {@link BarBar}
 	 */
 	public static class BarProjection {
+
 		private final String value1;
 
 		public BarProjection(String value1) {
@@ -117,14 +129,16 @@ public final class GH2621Domain {
 		}
 
 		public String getValue1() {
-			return value1;
+			return this.value1;
 		}
+
 	}
 
 	/**
 	 * Projects {@link Bar} and {@link BarBar}
 	 */
 	public static class BarBarProjection extends BarProjection {
+
 		private final String value2;
 
 		public BarBarProjection(String value1, String value2) {
@@ -133,11 +147,9 @@ public final class GH2621Domain {
 		}
 
 		public String getValue2() {
-			return value2;
+			return this.value2;
 		}
+
 	}
 
-
-	private GH2621Domain() {
-	}
 }

@@ -29,11 +29,13 @@ import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
 import org.neo4j.driver.types.IsoDuration;
 import org.neo4j.driver.types.Point;
+
 import org.springframework.data.convert.ConverterBuilder;
 
 /**
- * Conversions for all known Cypher types, directly supported by the driver. See
- * <a href="https://neo4j.com/docs/java-manual/current/cypher-workflow/#java-driver-type-mapping">Working with Cypher values</a>.
+ * Conversions for all known Cypher types, directly supported by the driver. See <a href=
+ * "https://neo4j.com/docs/java-manual/current/cypher-workflow/#java-driver-type-mapping">Working
+ * with Cypher values</a>.
  *
  * @author Michael J. Simons
  * @since 6.0
@@ -57,15 +59,21 @@ final class CypherTypes {
 		hlp.add(ConverterBuilder.reading(Value.class, byte[].class, Value::asByteArray).andWriting(Values::value));
 		hlp.add(ConverterBuilder.reading(Value.class, LocalDate.class, Value::asLocalDate).andWriting(Values::value));
 		hlp.add(ConverterBuilder.reading(Value.class, OffsetTime.class, Value::asOffsetTime).andWriting(Values::value));
-		hlp.add(ConverterBuilder.reading(Value.class, OffsetDateTime.class, Value::asOffsetDateTime).andWriting(Values::value));
+		hlp.add(ConverterBuilder.reading(Value.class, OffsetDateTime.class, Value::asOffsetDateTime)
+			.andWriting(Values::value));
 		hlp.add(ConverterBuilder.reading(Value.class, LocalTime.class, Value::asLocalTime).andWriting(Values::value));
-		hlp.add(ConverterBuilder.reading(Value.class, ZonedDateTime.class, Value::asZonedDateTime).andWriting(Values::value));
-		hlp.add(ConverterBuilder.reading(Value.class, LocalDateTime.class, Value::asLocalDateTime).andWriting(Values::value));
-		hlp.add(ConverterBuilder.reading(Value.class, IsoDuration.class, Value::asIsoDuration).andWriting(Values::value));
+		hlp.add(ConverterBuilder.reading(Value.class, ZonedDateTime.class, Value::asZonedDateTime)
+			.andWriting(Values::value));
+		hlp.add(ConverterBuilder.reading(Value.class, LocalDateTime.class, Value::asLocalDateTime)
+			.andWriting(Values::value));
+		hlp.add(ConverterBuilder.reading(Value.class, IsoDuration.class, Value::asIsoDuration)
+			.andWriting(Values::value));
 		hlp.add(ConverterBuilder.reading(Value.class, Point.class, Value::asPoint).andWriting(Values::value));
 
 		CONVERTERS = Collections.unmodifiableList(hlp);
 	}
 
-	private CypherTypes() {}
+	private CypherTypes() {
+	}
+
 }

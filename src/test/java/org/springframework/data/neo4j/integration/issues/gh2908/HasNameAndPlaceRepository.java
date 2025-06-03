@@ -16,6 +16,7 @@
 package org.springframework.data.neo4j.integration.issues.gh2908;
 
 import org.neo4j.driver.types.Point;
+
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Range;
 import org.springframework.data.geo.Distance;
@@ -24,9 +25,11 @@ import org.springframework.data.geo.GeoResults;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 
 /**
- * Just extending {@link Neo4jRepository} here did not work, so it's split in the concrete interface.
+ * Just extending {@link Neo4jRepository} here did not work, so it's split in the concrete
+ * interface.
+ *
+ * @param <T> concrete type of the entity
  * @author Michael J. Simons
- * @param <T> Concrete type of the entity
  */
 public interface HasNameAndPlaceRepository<T extends HasNameAndPlace> {
 
@@ -37,4 +40,5 @@ public interface HasNameAndPlaceRepository<T extends HasNameAndPlace> {
 	GeoResults<T> findAllByPlaceNear(Point p, Range<Distance> between);
 
 	GeoPage<T> findAllByPlaceNear(Point p, Range<Distance> between, Pageable pageable);
+
 }

@@ -15,20 +15,6 @@
  */
 package org.springframework.data.neo4j.integration.reactive;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assumptions.assumeThat;
-
-import org.springframework.data.neo4j.core.ReactiveDatabaseSelectionProvider;
-import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
-import org.springframework.data.neo4j.core.transaction.ReactiveNeo4jTransactionManager;
-import org.springframework.data.neo4j.integration.shared.common.Club;
-import org.springframework.data.neo4j.integration.shared.common.ClubRelationship;
-import org.springframework.data.neo4j.integration.shared.common.Hobby;
-import org.springframework.data.neo4j.integration.shared.common.HobbyRelationship;
-
-import org.springframework.data.neo4j.test.Neo4jReactiveTestConfiguration;
-import reactor.test.StepVerifier;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -39,10 +25,19 @@ import org.junit.jupiter.api.Test;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Transaction;
 import org.neo4j.driver.Values;
+import reactor.test.StepVerifier;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.neo4j.core.ReactiveDatabaseSelectionProvider;
+import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
+import org.springframework.data.neo4j.core.transaction.ReactiveNeo4jTransactionManager;
+import org.springframework.data.neo4j.integration.shared.common.Club;
+import org.springframework.data.neo4j.integration.shared.common.ClubRelationship;
 import org.springframework.data.neo4j.integration.shared.common.DynamicRelationshipsITBase;
+import org.springframework.data.neo4j.integration.shared.common.Hobby;
+import org.springframework.data.neo4j.integration.shared.common.HobbyRelationship;
 import org.springframework.data.neo4j.integration.shared.common.Person;
 import org.springframework.data.neo4j.integration.shared.common.PersonWithStringlyTypedRelatives;
 import org.springframework.data.neo4j.integration.shared.common.Pet;
@@ -50,9 +45,13 @@ import org.springframework.data.neo4j.repository.ReactiveNeo4jRepository;
 import org.springframework.data.neo4j.repository.config.EnableReactiveNeo4jRepositories;
 import org.springframework.data.neo4j.test.BookmarkCapture;
 import org.springframework.data.neo4j.test.Neo4jExtension;
+import org.springframework.data.neo4j.test.Neo4jReactiveTestConfiguration;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.ReactiveTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assumptions.assumeThat;
 
 /**
  * @author Michael J. Simons
@@ -68,7 +67,7 @@ class ReactiveStringlyTypeDynamicRelationshipsIT extends DynamicRelationshipsITB
 	@Test
 	void shouldReadDynamicRelationships(@Autowired PersonWithRelativesRepository repository) {
 
-		repository.findById(idOfExistingPerson).as(StepVerifier::create).consumeNextWith(person -> {
+		repository.findById(this.idOfExistingPerson).as(StepVerifier::create).consumeNextWith(person -> {
 			assertThat(person).isNotNull();
 			assertThat(person.getName()).isEqualTo("A");
 
@@ -87,7 +86,7 @@ class ReactiveStringlyTypeDynamicRelationshipsIT extends DynamicRelationshipsITB
 	@Test // GH-216
 	void shouldReadDynamicCollectionRelationships(@Autowired PersonWithRelativesRepository repository) {
 
-		repository.findById(idOfExistingPerson).as(StepVerifier::create).consumeNextWith(person -> {
+		repository.findById(this.idOfExistingPerson).as(StepVerifier::create).consumeNextWith(person -> {
 			assertThat(person).isNotNull();
 			assertThat(person.getName()).isEqualTo("A");
 
@@ -99,14 +98,15 @@ class ReactiveStringlyTypeDynamicRelationshipsIT extends DynamicRelationshipsITB
 			Map<String, List<HobbyRelationship>> hobbies = person.getHobbies();
 			assertThat(hobbies.get("ACTIVE")).extracting(HobbyRelationship::getPerformance).containsExactly("average");
 			assertThat(hobbies.get("ACTIVE")).extracting(HobbyRelationship::getHobby)
-					.extracting(Hobby::getName).containsExactly("Biking");
+				.extracting(Hobby::getName)
+				.containsExactly("Biking");
 		}).verifyComplete();
 	}
 
 	@Test // DATAGRAPH-1449
 	void shouldUpdateDynamicRelationships(@Autowired PersonWithRelativesRepository repository) {
 
-		repository.findById(idOfExistingPerson).map(person -> {
+		repository.findById(this.idOfExistingPerson).map(person -> {
 			assumeThat(person).isNotNull();
 			assumeThat(person.getName()).isEqualTo("A");
 
@@ -128,26 +128,30 @@ class ReactiveStringlyTypeDynamicRelationshipsIT extends DynamicRelationshipsITB
 			clubs.put("BASEBALL", clubRelationship);
 
 			return person;
-		}).flatMap(repository::save)
-				.flatMap(p -> repository.findById(p.getId()))
-				.as(StepVerifier::create).consumeNextWith(person -> {
-			Map<String, Person> relatives = person.getRelatives();
-			assertThat(relatives).containsOnlyKeys("HAS_DAUGHTER", "HAS_SON");
-			assertThat(relatives.get("HAS_DAUGHTER").getFirstName()).isEqualTo("C2");
-			assertThat(relatives.get("HAS_SON").getFirstName()).isEqualTo("D");
+		})
+			.flatMap(repository::save)
+			.flatMap(p -> repository.findById(p.getId()))
+			.as(StepVerifier::create)
+			.consumeNextWith(person -> {
+				Map<String, Person> relatives = person.getRelatives();
+				assertThat(relatives).containsOnlyKeys("HAS_DAUGHTER", "HAS_SON");
+				assertThat(relatives.get("HAS_DAUGHTER").getFirstName()).isEqualTo("C2");
+				assertThat(relatives.get("HAS_SON").getFirstName()).isEqualTo("D");
 
-			Map<String, ClubRelationship> clubs = person.getClubs();
-			assertThat(clubs).containsOnlyKeys("BASEBALL");
-			assertThat(clubs.get("BASEBALL")).extracting(ClubRelationship::getPlace).isEqualTo("Boston");
-			assertThat(clubs.get("BASEBALL")).extracting(ClubRelationship::getClub)
-					.extracting(Club::getName).isEqualTo("Red Sox");
-		}).verifyComplete();
+				Map<String, ClubRelationship> clubs = person.getClubs();
+				assertThat(clubs).containsOnlyKeys("BASEBALL");
+				assertThat(clubs.get("BASEBALL")).extracting(ClubRelationship::getPlace).isEqualTo("Boston");
+				assertThat(clubs.get("BASEBALL")).extracting(ClubRelationship::getClub)
+					.extracting(Club::getName)
+					.isEqualTo("Red Sox");
+			})
+			.verifyComplete();
 	}
 
 	@Test // GH-216 // DATAGRAPH-1449
 	void shouldUpdateDynamicCollectionRelationships(@Autowired PersonWithRelativesRepository repository) {
 
-		repository.findById(idOfExistingPerson).map(person -> {
+		repository.findById(this.idOfExistingPerson).map(person -> {
 			assumeThat(person).isNotNull();
 			assumeThat(person.getName()).isEqualTo("A");
 
@@ -169,21 +173,26 @@ class ReactiveStringlyTypeDynamicRelationshipsIT extends DynamicRelationshipsITB
 			hobbies.put("WATCHING", Collections.singletonList(hobbyRelationship));
 
 			return person;
-		}).flatMap(repository::save)
-				.flatMap(p -> repository.findById(p.getId()))
-				.as(StepVerifier::create).consumeNextWith(person -> {
-			Map<String, List<Pet>> pets = person.getPets();
-			assertThat(pets).containsOnlyKeys("CATS", "FISH");
-			assertThat(pets.get("CATS")).extracting(Pet::getName).containsExactlyInAnyOrder("Tom", "Garfield", "Delilah");
-			assertThat(pets.get("FISH")).extracting(Pet::getName).containsExactlyInAnyOrder("Nemo");
+		})
+			.flatMap(repository::save)
+			.flatMap(p -> repository.findById(p.getId()))
+			.as(StepVerifier::create)
+			.consumeNextWith(person -> {
+				Map<String, List<Pet>> pets = person.getPets();
+				assertThat(pets).containsOnlyKeys("CATS", "FISH");
+				assertThat(pets.get("CATS")).extracting(Pet::getName)
+					.containsExactlyInAnyOrder("Tom", "Garfield", "Delilah");
+				assertThat(pets.get("FISH")).extracting(Pet::getName).containsExactlyInAnyOrder("Nemo");
 
-			Map<String, List<HobbyRelationship>> hobbies = person.getHobbies();
-			assertThat(hobbies).containsOnlyKeys("WATCHING");
-			assertThat(hobbies.get("WATCHING")).extracting(HobbyRelationship::getPerformance)
+				Map<String, List<HobbyRelationship>> hobbies = person.getHobbies();
+				assertThat(hobbies).containsOnlyKeys("WATCHING");
+				assertThat(hobbies.get("WATCHING")).extracting(HobbyRelationship::getPerformance)
 					.containsExactly("average");
-			assertThat(hobbies.get("WATCHING")).extracting(HobbyRelationship::getHobby)
-					.extracting(Hobby::getName).containsExactly("Football");
-		}).verifyComplete();
+				assertThat(hobbies.get("WATCHING")).extracting(HobbyRelationship::getHobby)
+					.extracting(Hobby::getName)
+					.containsExactly("Football");
+			})
+			.verifyComplete();
 	}
 
 	@Test // DATAGRAPH-1447
@@ -212,21 +221,30 @@ class ReactiveStringlyTypeDynamicRelationshipsIT extends DynamicRelationshipsITB
 
 		List<PersonWithStringlyTypedRelatives> recorded = new ArrayList<>();
 		repository.save(newPerson)
-				.flatMap(p -> repository.findById(p.getId()))
-				.as(StepVerifier::create).recordWith(() -> recorded)
-				.consumeNextWith(personWithRelatives -> {
-					Map<String, Person> relatives = personWithRelatives.getRelatives();
-					assertThat(relatives).containsOnlyKeys("RELATIVE_1", "RELATIVE_2");
-				}).verifyComplete();
+			.flatMap(p -> repository.findById(p.getId()))
+			.as(StepVerifier::create)
+			.recordWith(() -> recorded)
+			.consumeNextWith(personWithRelatives -> {
+				Map<String, Person> relatives = personWithRelatives.getRelatives();
+				assertThat(relatives).containsOnlyKeys("RELATIVE_1", "RELATIVE_2");
+			})
+			.verifyComplete();
 
-		try (Transaction transaction = driver.session(bookmarkCapture.createSessionConfig()).beginTransaction()) {
+		try (Transaction transaction = this.driver.session(this.bookmarkCapture.createSessionConfig())
+			.beginTransaction()) {
 			long numberOfRelations = transaction
-					.run(("MATCH (t:%s)-[r]->(:Person) WHERE id(t) = $id RETURN count(r) as numberOfRelations").formatted(labelOfTestSubject), Values.parameters("id", newPerson.getId()))
-					.single().get("numberOfRelations").asLong();
+				.run(("MATCH (t:%s)-[r]->(:Person) WHERE id(t) = $id RETURN count(r) as numberOfRelations")
+					.formatted(this.labelOfTestSubject), Values.parameters("id", newPerson.getId()))
+				.single()
+				.get("numberOfRelations")
+				.asLong();
 			assertThat(numberOfRelations).isEqualTo(2L);
 			numberOfRelations = transaction
-					.run(("MATCH (t:%s)-[r]->(:Club) WHERE id(t) = $id RETURN count(r) as numberOfRelations").formatted(labelOfTestSubject), Values.parameters("id", newPerson.getId()))
-					.single().get("numberOfRelations").asLong();
+				.run(("MATCH (t:%s)-[r]->(:Club) WHERE id(t) = $id RETURN count(r) as numberOfRelations")
+					.formatted(this.labelOfTestSubject), Values.parameters("id", newPerson.getId()))
+				.single()
+				.get("numberOfRelations")
+				.asLong();
 			assertThat(numberOfRelations).isEqualTo(2L);
 		}
 	}
@@ -260,27 +278,37 @@ class ReactiveStringlyTypeDynamicRelationshipsIT extends DynamicRelationshipsITB
 
 		List<PersonWithStringlyTypedRelatives> recorded = new ArrayList<>();
 		repository.save(newPerson)
-				.flatMap(p -> repository.findById(p.getId()))
-				.as(StepVerifier::create).recordWith(() -> recorded).consumeNextWith(person -> {
-			Map<String, List<Pet>> writtenPets = person.getPets();
-			assertThat(writtenPets).containsOnlyKeys("MONSTERS", "FISH");
-		}).verifyComplete();
+			.flatMap(p -> repository.findById(p.getId()))
+			.as(StepVerifier::create)
+			.recordWith(() -> recorded)
+			.consumeNextWith(person -> {
+				Map<String, List<Pet>> writtenPets = person.getPets();
+				assertThat(writtenPets).containsOnlyKeys("MONSTERS", "FISH");
+			})
+			.verifyComplete();
 
-		try (Transaction transaction = driver.session(bookmarkCapture.createSessionConfig()).beginTransaction()) {
+		try (Transaction transaction = this.driver.session(this.bookmarkCapture.createSessionConfig())
+			.beginTransaction()) {
 			long numberOfRelations = transaction
-					.run(("MATCH (t:%s)-[r]->(:Pet) WHERE id(t) = $id RETURN count(r) as numberOfRelations").formatted(labelOfTestSubject),
-							Values.parameters("id", newPerson.getId()))
-					.single().get("numberOfRelations").asLong();
+				.run(("MATCH (t:%s)-[r]->(:Pet) WHERE id(t) = $id RETURN count(r) as numberOfRelations")
+					.formatted(this.labelOfTestSubject), Values.parameters("id", newPerson.getId()))
+				.single()
+				.get("numberOfRelations")
+				.asLong();
 			assertThat(numberOfRelations).isEqualTo(3L);
 			numberOfRelations = transaction
-					.run(("MATCH (t:%s)-[r]->(:Hobby) WHERE id(t) = $id RETURN count(r) as numberOfRelations").formatted(labelOfTestSubject),
-							Values.parameters("id", newPerson.getId()))
-					.single().get("numberOfRelations").asLong();
+				.run(("MATCH (t:%s)-[r]->(:Hobby) WHERE id(t) = $id RETURN count(r) as numberOfRelations")
+					.formatted(this.labelOfTestSubject), Values.parameters("id", newPerson.getId()))
+				.single()
+				.get("numberOfRelations")
+				.asLong();
 			assertThat(numberOfRelations).isEqualTo(2L);
 		}
 	}
 
-	interface PersonWithRelativesRepository extends ReactiveNeo4jRepository<PersonWithStringlyTypedRelatives, Long> {}
+	interface PersonWithRelativesRepository extends ReactiveNeo4jRepository<PersonWithStringlyTypedRelatives, Long> {
+
+	}
 
 	@Configuration
 	@EnableTransactionManagement
@@ -288,25 +316,30 @@ class ReactiveStringlyTypeDynamicRelationshipsIT extends DynamicRelationshipsITB
 	static class Config extends Neo4jReactiveTestConfiguration {
 
 		@Bean
+		@Override
 		public Driver driver() {
 			return neo4jConnectionSupport.getDriver();
 		}
 
 		@Bean
-		public BookmarkCapture bookmarkCapture() {
+		BookmarkCapture bookmarkCapture() {
 			return new BookmarkCapture();
 		}
 
 		@Override
-		public ReactiveTransactionManager reactiveTransactionManager(Driver driver, ReactiveDatabaseSelectionProvider databaseSelectionProvider) {
+		public ReactiveTransactionManager reactiveTransactionManager(Driver driver,
+				ReactiveDatabaseSelectionProvider databaseSelectionProvider) {
 
 			BookmarkCapture bookmarkCapture = bookmarkCapture();
-			return new ReactiveNeo4jTransactionManager(driver, databaseSelectionProvider, Neo4jBookmarkManager.createReactive(bookmarkCapture));
+			return new ReactiveNeo4jTransactionManager(driver, databaseSelectionProvider,
+					Neo4jBookmarkManager.createReactive(bookmarkCapture));
 		}
 
 		@Override
 		public boolean isCypher5Compatible() {
 			return neo4jConnectionSupport.isCypher5SyntaxCompatible();
 		}
+
 	}
+
 }

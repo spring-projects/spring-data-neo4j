@@ -16,15 +16,18 @@
 package org.springframework.data.neo4j.test;
 
 import org.neo4j.cypherdsl.core.renderer.Configuration;
+
 import org.springframework.data.neo4j.config.AbstractReactiveNeo4jConfig;
 
 /**
  * @author Gerrit Meier
  */
-public abstract class Neo4jReactiveTestConfiguration extends AbstractReactiveNeo4jConfig implements Neo4jTestConfiguration {
+public abstract class Neo4jReactiveTestConfiguration extends AbstractReactiveNeo4jConfig
+		implements Neo4jTestConfiguration {
 
 	@Override
 	public Configuration cypherDslConfiguration() {
 		return getConfiguration();
 	}
+
 }

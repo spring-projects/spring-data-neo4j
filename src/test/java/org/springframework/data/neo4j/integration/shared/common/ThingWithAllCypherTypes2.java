@@ -15,12 +15,6 @@
  */
 package org.springframework.data.neo4j.integration.shared.common;
 
-import org.neo4j.driver.types.IsoDuration;
-import org.neo4j.driver.types.Point;
-import org.springframework.data.neo4j.core.schema.GeneratedValue;
-import org.springframework.data.neo4j.core.schema.Id;
-import org.springframework.data.neo4j.core.schema.Node;
-
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -28,6 +22,13 @@ import java.time.LocalTime;
 import java.time.OffsetTime;
 import java.time.Period;
 import java.time.ZonedDateTime;
+
+import org.neo4j.driver.types.IsoDuration;
+import org.neo4j.driver.types.Point;
+
+import org.springframework.data.neo4j.core.schema.GeneratedValue;
+import org.springframework.data.neo4j.core.schema.Id;
+import org.springframework.data.neo4j.core.schema.Node;
 
 /**
  * Similar to {@link ThingWithAllCypherTypes} but using field access.
@@ -84,119 +85,120 @@ public class ThingWithAllCypherTypes2 {
 		return this.aBoolean;
 	}
 
-	public long getALong() {
-		return this.aLong;
-	}
-
-	public int getAnInt() {
-		return this.anInt;
-	}
-
-	public double getADouble() {
-		return this.aDouble;
-	}
-
-	public String getAString() {
-		return this.aString;
-	}
-
-	public byte[] getAByteArray() {
-		return this.aByteArray;
-	}
-
-	public LocalDate getALocalDate() {
-		return this.aLocalDate;
-	}
-
-	public OffsetTime getAnOffsetTime() {
-		return this.anOffsetTime;
-	}
-
-	public LocalTime getALocalTime() {
-		return this.aLocalTime;
-	}
-
-	public ZonedDateTime getAZoneDateTime() {
-		return this.aZoneDateTime;
-	}
-
-	public LocalDateTime getALocalDateTime() {
-		return this.aLocalDateTime;
-	}
-
-	public IsoDuration getAnIsoDuration() {
-		return this.anIsoDuration;
-	}
-
-	public Point getAPoint() {
-		return this.aPoint;
-	}
-
-	public Period getAZeroPeriod() {
-		return this.aZeroPeriod;
-	}
-
-	public Duration getAZeroDuration() {
-		return this.aZeroDuration;
-	}
-
 	public void setABoolean(boolean aBoolean) {
 		this.aBoolean = aBoolean;
+	}
+
+	public long getALong() {
+		return this.aLong;
 	}
 
 	public void setALong(long aLong) {
 		this.aLong = aLong;
 	}
 
+	public int getAnInt() {
+		return this.anInt;
+	}
+
 	public void setAnInt(int anInt) {
 		this.anInt = anInt;
+	}
+
+	public double getADouble() {
+		return this.aDouble;
 	}
 
 	public void setADouble(double aDouble) {
 		this.aDouble = aDouble;
 	}
 
+	public String getAString() {
+		return this.aString;
+	}
+
 	public void setAString(String aString) {
 		this.aString = aString;
+	}
+
+	public byte[] getAByteArray() {
+		return this.aByteArray;
 	}
 
 	public void setAByteArray(byte[] aByteArray) {
 		this.aByteArray = aByteArray;
 	}
 
+	public LocalDate getALocalDate() {
+		return this.aLocalDate;
+	}
+
 	public void setALocalDate(LocalDate aLocalDate) {
 		this.aLocalDate = aLocalDate;
+	}
+
+	public OffsetTime getAnOffsetTime() {
+		return this.anOffsetTime;
 	}
 
 	public void setAnOffsetTime(OffsetTime anOffsetTime) {
 		this.anOffsetTime = anOffsetTime;
 	}
 
+	public LocalTime getALocalTime() {
+		return this.aLocalTime;
+	}
+
 	public void setALocalTime(LocalTime aLocalTime) {
 		this.aLocalTime = aLocalTime;
+	}
+
+	public ZonedDateTime getAZoneDateTime() {
+		return this.aZoneDateTime;
 	}
 
 	public void setAZoneDateTime(ZonedDateTime aZoneDateTime) {
 		this.aZoneDateTime = aZoneDateTime;
 	}
 
+	public LocalDateTime getALocalDateTime() {
+		return this.aLocalDateTime;
+	}
+
 	public void setALocalDateTime(LocalDateTime aLocalDateTime) {
 		this.aLocalDateTime = aLocalDateTime;
+	}
+
+	public IsoDuration getAnIsoDuration() {
+		return this.anIsoDuration;
 	}
 
 	public void setAnIsoDuration(IsoDuration anIsoDuration) {
 		this.anIsoDuration = anIsoDuration;
 	}
 
+	public Point getAPoint() {
+		return this.aPoint;
+	}
+
 	public void setAPoint(Point aPoint) {
 		this.aPoint = aPoint;
+	}
+
+	public Period getAZeroPeriod() {
+		return this.aZeroPeriod;
 	}
 
 	public void setAZeroPeriod(Period aZeroPeriod) {
 		this.aZeroPeriod = aZeroPeriod;
 	}
 
+	public Duration getAZeroDuration() {
+		return this.aZeroDuration;
+	}
+
 	public void setAZeroDuration(Duration aZeroDuration) {
 		this.aZeroDuration = aZeroDuration;
 	}
+
 }

@@ -28,13 +28,13 @@ import org.springframework.data.neo4j.core.schema.TargetNode;
 @RelationshipProperties
 public class Roles {
 
-	@RelationshipId
-	private Long id;
-
 	private final List<String> roles;
 
 	@TargetNode
 	private final PersonEntity person;
+
+	@RelationshipId
+	private Long id;
 
 	public Roles(PersonEntity person, List<String> roles) {
 		this.person = person;
@@ -43,19 +43,18 @@ public class Roles {
 
 	// end::mapping.relationship.properties[]
 	public Long getId() {
-		return id;
+		return this.id;
 	}
 	// tag::mapping.relationship.properties[]
 
 	public List<String> getRoles() {
-		return roles;
+		return this.roles;
 	}
 
 	@Override
 	public String toString() {
-		return "Roles{" +
-				"id=" + id +
-				'}' + this.hashCode();
+		return "Roles{" + "id=" + this.id + '}' + this.hashCode();
 	}
+
 }
 // end::mapping.relationship.properties[]

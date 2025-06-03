@@ -42,7 +42,6 @@ import java.util.function.Consumer
 
 /**
  * @author Michael J. Simons
- * @soundtrack Genesis - Invisible Touch
  */
 @Neo4jIntegrationTest
 class KotlinInheritanceIT @Autowired constructor(

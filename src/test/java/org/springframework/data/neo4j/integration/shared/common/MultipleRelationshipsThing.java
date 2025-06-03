@@ -22,8 +22,9 @@ import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
 
 /**
- * This thing has several relationships to other things of the same kind but with a different type. It is used to test
- * whether all types are stored correctly even if those relationships point to the same instance of the thing.
+ * This thing has several relationships to other things of the same kind but with a
+ * different type. It is used to test whether all types are stored correctly even if those
+ * relationships point to the same instance of the thing.
  *
  * @author Michael J. Simons
  */
@@ -47,15 +48,15 @@ public class MultipleRelationshipsThing {
 	}
 
 	public Long getId() {
-		return id;
+		return this.id;
 	}
 
 	public String getName() {
-		return name;
+		return this.name;
 	}
 
 	public MultipleRelationshipsThing getTypeA() {
-		return typeA;
+		return this.typeA;
 	}
 
 	public void setTypeA(MultipleRelationshipsThing typeA) {
@@ -63,7 +64,7 @@ public class MultipleRelationshipsThing {
 	}
 
 	public List<MultipleRelationshipsThing> getTypeB() {
-		return typeB;
+		return this.typeB;
 	}
 
 	public void setTypeB(List<MultipleRelationshipsThing> typeB) {
@@ -71,10 +72,11 @@ public class MultipleRelationshipsThing {
 	}
 
 	public List<MultipleRelationshipsThing> getTypeC() {
-		return typeC;
+		return this.typeC;
 	}
 
 	public void setTypeC(List<MultipleRelationshipsThing> typeC) {
 		this.typeC = typeC;
 	}
+
 }

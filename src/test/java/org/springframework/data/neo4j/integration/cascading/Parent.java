@@ -39,4 +39,5 @@ public interface Parent {
 	CVE getSingleCVE();
 
 	CVI getSingleCVI();
+
 }

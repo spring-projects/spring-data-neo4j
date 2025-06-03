@@ -26,26 +26,28 @@ import jakarta.enterprise.inject.spi.AfterBeanDiscovery;
 import jakarta.enterprise.inject.spi.BeanManager;
 import jakarta.enterprise.inject.spi.BeforeBeanDiscovery;
 import jakarta.enterprise.util.AnnotationLiteral;
-
 import org.apache.commons.logging.LogFactory;
 import org.apiguardian.api.API;
+
 import org.springframework.core.log.LogAccessor;
 import org.springframework.data.neo4j.repository.support.Neo4jRepositoryFactoryCdiBean;
 import org.springframework.data.repository.cdi.CdiRepositoryExtensionSupport;
 import org.springframework.data.repository.config.CustomRepositoryImplementationDetector;
 
 /**
- * This CDI extension enables Spring Data Neo4j on a CDI 2.0 compatible CDI container. It creates a Neo4j client, template
- * and brings in the Neo4j repository mechanism as well. It is the main entry point to our CDI support.
+ * This CDI extension enables Spring Data Neo4j on a CDI 2.0 compatible CDI container. It
+ * creates a Neo4j client, template and brings in the Neo4j repository mechanism as well.
+ * It is the main entry point to our CDI support.
  * <p>
- * It requires the presence of a Neo4j Driver bean. Other beans, like the {@link org.springframework.data.neo4j.core.convert.Neo4jConversions}
- * can be overwritten by providing a producer of it. If such a producer or bean is added, it must not use any {@link jakarta.inject.Qualifier @Qualifier}
- * on the bean.
+ * It requires the presence of a Neo4j Driver bean. Other beans, like the
+ * {@link org.springframework.data.neo4j.core.convert.Neo4jConversions} can be overwritten
+ * by providing a producer of it. If such a producer or bean is added, it must not use any
+ * {@link jakarta.inject.Qualifier @Qualifier} on the bean.
  * <p>
- * This CDI extension can be used either via a build in service loader mechanism or through building a context manually.
+ * This CDI extension can be used either via a build in service loader mechanism or
+ * through building a context manually.
  *
  * @author Michael J. Simons
- * @soundtrack Juse Ju - Millennium
  * @since 6.0
  */
 @API(status = API.Status.STABLE, since = "6.0")
@@ -55,15 +57,18 @@ public final class Neo4jCdiExtension extends CdiRepositoryExtensionSupport {
 	 * An annotation literal used for selecting default CDI beans.
 	 */
 	public static final AnnotationLiteral<Default> DEFAULT_BEAN = new AnnotationLiteral<Default>() {
-		@Override public Class<? extends Annotation> annotationType() {
+		@Override
+		public Class<? extends Annotation> annotationType() {
 			return Default.class;
 		}
 	};
+
 	/**
 	 * An annotation literal used for selecting {@link Any @Any} annotated beans.
 	 */
 	public static final AnnotationLiteral<Any> ANY_BEAN = new AnnotationLiteral<Any>() {
-		@Override public Class<? extends Annotation> annotationType() {
+		@Override
+		public Class<? extends Annotation> annotationType() {
 			return Any.class;
 		}
 	};
@@ -87,15 +92,12 @@ public final class Neo4jCdiExtension extends CdiRepositoryExtensionSupport {
 			Class<?> repositoryType = entry.getKey();
 			Set<Annotation> qualifiers = entry.getValue();
 
-			Neo4jRepositoryFactoryCdiBean<?> repositoryBean = new Neo4jRepositoryFactoryCdiBean<>(
-					qualifiers,
-					repositoryType,
-					beanManager,
-					optionalCustomRepositoryImplementationDetector
-			);
+			Neo4jRepositoryFactoryCdiBean<?> repositoryBean = new Neo4jRepositoryFactoryCdiBean<>(qualifiers,
+					repositoryType, beanManager, optionalCustomRepositoryImplementationDetector);
 
 			registerBean(repositoryBean);
 			event.addBean(repositoryBean);
 		}
 	}
+
 }

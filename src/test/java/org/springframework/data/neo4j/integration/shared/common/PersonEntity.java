@@ -23,8 +23,10 @@ import org.springframework.data.neo4j.core.schema.Node;
  */
 @Node
 public class PersonEntity {
+
 	@Id
 	private final String id;
+
 	private final String email;
 
 	public PersonEntity(String id, String email) {
@@ -39,4 +41,5 @@ public class PersonEntity {
 	public String getEmail() {
 		return this.email;
 	}
+
 }

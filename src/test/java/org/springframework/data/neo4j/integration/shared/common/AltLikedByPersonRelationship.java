@@ -15,11 +15,11 @@
  */
 package org.springframework.data.neo4j.integration.shared.common;
 
+import java.util.Objects;
+
 import org.springframework.data.neo4j.core.schema.RelationshipId;
 import org.springframework.data.neo4j.core.schema.RelationshipProperties;
 import org.springframework.data.neo4j.core.schema.TargetNode;
-
-import java.util.Objects;
 
 /**
  * @author Michael J. Simons
@@ -36,7 +36,7 @@ public class AltLikedByPersonRelationship {
 	private AltPerson altPerson;
 
 	public Integer getRating() {
-		return rating;
+		return this.rating;
 	}
 
 	public void setRating(Integer rating) {
@@ -44,7 +44,7 @@ public class AltLikedByPersonRelationship {
 	}
 
 	public AltPerson getAltPerson() {
-		return altPerson;
+		return this.altPerson;
 	}
 
 	public void setAltPerson(AltPerson altPerson) {
@@ -60,19 +60,18 @@ public class AltLikedByPersonRelationship {
 			return false;
 		}
 		AltLikedByPersonRelationship that = (AltLikedByPersonRelationship) o;
-		return rating.equals(that.rating) && altPerson.equals(that.altPerson);
+		return this.rating.equals(that.rating) && this.altPerson.equals(that.altPerson);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(rating, altPerson);
+		return Objects.hash(this.rating, this.altPerson);
 	}
 
 	@Override
 	public String toString() {
-		return "AltLikedByPersonRelationship{" +
-				"rating=" + rating +
-				", altPerson=" + altPerson.getName() +
-				'}';
+		return "AltLikedByPersonRelationship{" + "rating=" + this.rating + ", altPerson=" + this.altPerson.getName()
+				+ '}';
 	}
+
 }

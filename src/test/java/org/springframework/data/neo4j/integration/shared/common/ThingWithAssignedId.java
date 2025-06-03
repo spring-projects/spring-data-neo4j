@@ -50,11 +50,11 @@ public class ThingWithAssignedId extends AbstractNamedThing {
 	}
 
 	public String getTheId() {
-		return theId;
+		return this.theId;
 	}
 
 	public List<AnotherThingWithAssignedId> getThings() {
-		return things;
+		return this.things;
 	}
 
 	public void setThings(List<AnotherThingWithAssignedId> things) {
@@ -62,7 +62,7 @@ public class ThingWithAssignedId extends AbstractNamedThing {
 	}
 
 	public String getRandomValue() {
-		return randomValue;
+		return this.randomValue;
 	}
 
 	public void setRandomValue(String randomValue) {
@@ -70,11 +70,12 @@ public class ThingWithAssignedId extends AbstractNamedThing {
 	}
 
 	public String getAnotherRandomValue() {
-		return anotherRandomValue;
+		return this.anotherRandomValue;
 	}
 
 	@PostLoad
 	public void generateValue() {
 		this.anotherRandomValue = UUID.randomUUID().toString();
 	}
+
 }

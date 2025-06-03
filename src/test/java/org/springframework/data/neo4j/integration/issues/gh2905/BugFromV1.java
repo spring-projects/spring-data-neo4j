@@ -25,6 +25,7 @@ import org.springframework.data.neo4j.core.support.UUIDStringGenerator;
  */
 @SuppressWarnings("HiddenField") // Not worth cleaning up the Delomboked version
 public class BugFromV1 {
+
 	@Id
 	@GeneratedValue(UUIDStringGenerator.class)
 	protected String uuid;
@@ -51,8 +52,11 @@ public class BugFromV1 {
 	 * Lombok builder
 	 */
 	public static class BugFromBuilder {
+
 		private String uuid;
+
 		private String name;
+
 		private BugRelationshipV1 reli;
 
 		BugFromBuilder() {
@@ -81,5 +85,7 @@ public class BugFromV1 {
 		public String toString() {
 			return "BugFrom.BugFromBuilder(uuid=" + this.uuid + ", name=" + this.name + ", reli=" + this.reli + ")";
 		}
+
 	}
+
 }

@@ -39,10 +39,7 @@ public class CUE implements ExternalId {
 
 	public CUE(String name) {
 		this.name = name;
-		this.nested = List.of(
-				new CUE(name + ".cc1", List.of()),
-				new CUE(name + ".cc2", List.of())
-		);
+		this.nested = List.of(new CUE(name + ".cc1", List.of()), new CUE(name + ".cc2", List.of()));
 	}
 
 	@PersistenceCreator
@@ -52,14 +49,15 @@ public class CUE implements ExternalId {
 	}
 
 	public String getId() {
-		return id;
+		return this.id;
 	}
 
 	public String getName() {
-		return name;
+		return this.name;
 	}
 
 	public void setName(String name) {
 		this.name = name;
 	}
+
 }

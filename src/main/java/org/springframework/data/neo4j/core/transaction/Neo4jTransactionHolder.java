@@ -21,6 +21,7 @@ import org.jspecify.annotations.Nullable;
 import org.neo4j.driver.Bookmark;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.Transaction;
+
 import org.springframework.data.neo4j.core.DatabaseSelection;
 import org.springframework.data.neo4j.core.UserSelection;
 import org.springframework.data.neo4j.core.support.RetryExceptionPredicate;
@@ -28,8 +29,9 @@ import org.springframework.transaction.support.ResourceHolderSupport;
 import org.springframework.util.Assert;
 
 /**
- * Neo4j specific {@link ResourceHolderSupport resource holder}, wrapping a {@link org.neo4j.driver.Transaction}.
- * {@link Neo4jTransactionManager} binds instances of this class to the thread.
+ * Neo4j specific {@link ResourceHolderSupport resource holder}, wrapping a
+ * {@link org.neo4j.driver.Transaction}. {@link Neo4jTransactionManager} binds instances
+ * of this class to the thread.
  * <p>
  * <strong>Note:</strong> Intended for internal usage only.
  *
@@ -39,12 +41,15 @@ import org.springframework.util.Assert;
 final class Neo4jTransactionHolder extends ResourceHolderSupport {
 
 	private final Neo4jTransactionContext context;
+
 	/**
 	 * The ongoing session...
 	 */
 	private final Session session;
+
 	/**
-	 * The driver's transaction as the second building block of what to synchronize our transaction against.
+	 * The driver's transaction as the second building block of what to synchronize our
+	 * transaction against.
 	 */
 	private final Transaction transaction;
 
@@ -56,34 +61,35 @@ final class Neo4jTransactionHolder extends ResourceHolderSupport {
 	}
 
 	/**
-	 * Returns the transaction if it has been opened in a session for the requested database or an empty optional.
-	 *
+	 * Returns the transaction if it has been opened in a session for the requested
+	 * database or an empty optional.
 	 * @param inDatabase selected database to use
 	 * @param asUser impersonated user if any
-	 * @return An optional, ongoing transaction.
+	 * @return an optional, ongoing transaction.
 	 */
-	@Nullable
-	Transaction getTransaction(DatabaseSelection inDatabase, UserSelection asUser) {
-		return this.context.isForDatabaseAndUser(inDatabase, asUser) ? transaction : null;
+	@Nullable Transaction getTransaction(DatabaseSelection inDatabase, UserSelection asUser) {
+		return this.context.isForDatabaseAndUser(inDatabase, asUser) ? this.transaction : null;
 	}
 
 	Collection<Bookmark> commit() {
 
-		Assert.state(hasActiveTransaction(), RetryExceptionPredicate.TRANSACTION_MUST_BE_OPEN_BUT_HAS_ALREADY_BEEN_CLOSED);
+		Assert.state(hasActiveTransaction(),
+				RetryExceptionPredicate.TRANSACTION_MUST_BE_OPEN_BUT_HAS_ALREADY_BEEN_CLOSED);
 		Assert.state(!isRollbackOnly(), "Resource must not be marked as rollback only");
 
-		transaction.commit();
-		transaction.close();
+		this.transaction.commit();
+		this.transaction.close();
 
-		return session.lastBookmarks();
+		return this.session.lastBookmarks();
 	}
 
 	void rollback() {
 
-		Assert.state(hasActiveTransaction(), RetryExceptionPredicate.TRANSACTION_MUST_BE_OPEN_BUT_HAS_ALREADY_BEEN_CLOSED);
+		Assert.state(hasActiveTransaction(),
+				RetryExceptionPredicate.TRANSACTION_MUST_BE_OPEN_BUT_HAS_ALREADY_BEEN_CLOSED);
 
-		transaction.rollback();
-		transaction.close();
+		this.transaction.rollback();
+		this.transaction.close();
 	}
 
 	void close() {
@@ -91,30 +97,31 @@ final class Neo4jTransactionHolder extends ResourceHolderSupport {
 		Assert.state(hasActiveSession(), RetryExceptionPredicate.SESSION_MUST_BE_OPEN_BUT_HAS_ALREADY_BEEN_CLOSED);
 
 		if (hasActiveTransaction()) {
-			transaction.close();
+			this.transaction.close();
 		}
-		session.close();
+		this.session.close();
 	}
 
 	boolean hasActiveSession() {
 
-		return session.isOpen();
+		return this.session.isOpen();
 	}
 
 	boolean hasActiveTransaction() {
 
-		return transaction.isOpen();
+		return this.transaction.isOpen();
 	}
 
 	DatabaseSelection getDatabaseSelection() {
-		return context.getDatabaseSelection();
+		return this.context.getDatabaseSelection();
 	}
 
 	UserSelection getUserSelection() {
-		return context.getUserSelection();
+		return this.context.getUserSelection();
 	}
 
 	Collection<Bookmark> getBookmarks() {
-		return context.getBookmarks();
+		return this.context.getBookmarks();
 	}
+
 }

@@ -21,11 +21,10 @@ import org.apiguardian.api.API;
 import org.jspecify.annotations.Nullable;
 
 /**
- * A value holder indicating a database selection based on an optional name. {@literal null} indicates to let the server
- * decide.
+ * A value holder indicating a database selection based on an optional name.
+ * {@literal null} indicates to let the server decide.
  *
  * @author Michael J. Simons
- * @soundtrack Rage - Reign Of Fear
  * @since 6.0
  */
 @API(status = API.Status.STABLE, since = "6.0")
@@ -36,6 +35,10 @@ public final class DatabaseSelection {
 	@Nullable
 	private final String value;
 
+	private DatabaseSelection(@Nullable String value) {
+		this.value = value;
+	}
+
 	public static DatabaseSelection undecided() {
 
 		return DEFAULT_DATABASE_NAME;
@@ -43,22 +46,16 @@ public final class DatabaseSelection {
 
 	/**
 	 * Create a new database selection by the given databaseName.
-	 *
-	 * @param databaseName The database name to select the database with.
-	 * @return A database selection
+	 * @param databaseName the database name to select the database with.
+	 * @return a database selection
 	 */
 	public static DatabaseSelection byName(String databaseName) {
 
 		return new DatabaseSelection(databaseName);
 	}
 
-	private DatabaseSelection(@Nullable String value) {
-		this.value = value;
-	}
-
-	@Nullable
-	public String getValue() {
-		return value;
+	@Nullable public String getValue() {
+		return this.value;
 	}
 
 	@Override
@@ -70,11 +67,12 @@ public final class DatabaseSelection {
 			return false;
 		}
 		DatabaseSelection that = (DatabaseSelection) o;
-		return Objects.equals(value, that.value);
+		return Objects.equals(this.value, that.value);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(value);
+		return Objects.hash(this.value);
 	}
+
 }

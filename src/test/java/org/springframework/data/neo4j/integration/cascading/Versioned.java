@@ -21,4 +21,5 @@ package org.springframework.data.neo4j.integration.cascading;
 public interface Versioned {
 
 	Long getVersion();
+
 }

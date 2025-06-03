@@ -21,8 +21,10 @@ import org.springframework.data.neo4j.core.mapping.Neo4jPersistentProperty;
 import org.springframework.util.StringUtils;
 
 /**
+ * Default converter for {@link Neo4jPersistentProperty Neo4j specific persistent
+ * properties}.
+ *
  * @author Michael J. Simons
- * @soundtrack Metallica - S&M2
  * @since 6.0
  */
 final class DefaultNeo4jPersistentPropertyConverterFactory implements Neo4jPersistentPropertyConverterFactory {
@@ -41,12 +43,12 @@ final class DefaultNeo4jPersistentPropertyConverterFactory implements Neo4jPersi
 		ConvertWith config = persistentProperty.getRequiredAnnotation(ConvertWith.class);
 
 		if (StringUtils.hasText(config.converterRef())) {
-			if (beanFactory == null) {
+			if (this.beanFactory == null) {
 				throw new IllegalStateException(
 						"The default converter factory has been configured without a bean factory and cannot use a converter from the application context");
 			}
 
-			return beanFactory.getBean(config.converterRef(), Neo4jPersistentPropertyConverter.class);
+			return this.beanFactory.getBean(config.converterRef(), Neo4jPersistentPropertyConverter.class);
 		}
 
 		if (config.converter() == ConvertWith.UnsetConverter.class) {
@@ -56,4 +58,5 @@ final class DefaultNeo4jPersistentPropertyConverterFactory implements Neo4jPersi
 
 		return BeanUtils.instantiateClass(config.converter());
 	}
+
 }

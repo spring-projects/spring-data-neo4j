@@ -1,3 +1,97 @@
-= Spring Data contribution guidelines
+= Contributing
+
+== Spring Data contribution guidelines
 
 You find the contribution guidelines for Spring Data projects https://github.com/spring-projects/spring-data-build/blob/main/CONTRIBUTING.adoc[here].
+
+== Building
+
+JDK 17, Maven and Docker are required to build Spring Data Neo4j.
+A full build will be started with:
+
+[source,bash]
+----
+./mvnw verify
+----
+
+SDN uses https://jspecify.dev[JSpecify] annotations and the build can optionally run https://github.com/uber/NullAway[NullAway] in a dedicated profile that can be enabled like this:
+
+[source,bash]
+----
+./mvnw verify -Pnullaway
+----
+
+The above builds will use the Develocity build-caches. You can disable them as follows:
+
+[source,bash]
+----
+./mvnw verify \
+  -Ddevelocity.cache.local.enabled=false \
+  -Ddevelocity.cache.remote.enabled=false
+----
+
+The integration tests are able to use a locally running Neo4j instance, too:
+
+[source,bash]
+----
+SDN_NEO4J_URL=bolt://localhost:7687 \
+SDN_NEO4J_PASSWORD=verysecret \
+./mvnw verify
+----
+
+There's a `fast` profile that will skip all the tests and validations:
+
+[source,bash]
+----
+./mvnw package -Pfast
+----
+
+Build the documentation as follows:
+
+[source,bash]
+----
+./mvnw process-resources -Pantora-process-resources
+./mvnw antora:antora -Pfast,antora
+----
+
+
+== Tasks
+
+=== Keep the build descriptor (`pom.xml`) sorted
+
+[source,bash]
+----
+./mvnw sortpom:sort
+----
+
+=== Formatting sources / adding headers
+
+When you add new files, you can run
+
+[source,bash]
+----
+./mvnw license:format
+----
+
+to add required headers automatically.
+
+We use https://github.com/spring-io/spring-javaformat[spring-javaformat] to format the source files.
+
+[source,bash]
+----
+./mvnw spring-javaformat:apply
+----
+
+TIP: The Spring Developers write: "The source formatter does not fundamentally change your code. For example, it will not change the order of import statements. It is effectively limited to adding or removing whitespace and line feeds."
+     This means the following checkstyle check might still fail.
+     Some common errors:
+     +
+     Static imports, import `javax.*` and `java.*` before others
+     +
+     Static imports are helpful, yes, but when working with 2 builders in the same project (here jOOQ and Cypher-DSL), they can be quite confusing.
+
+There are plugins for https://github.com/spring-io/spring-javaformat#eclipse[Eclipse] and https://github.com/spring-io/spring-javaformat#intellij-idea[IntelliJ IDEA] and the Checkstyle settings https://github.com/spring-io/spring-javaformat#checkstyle-idea-plugin[can be imported as well].
+We took those "as is" and just disabled the lambda check (requiring even single parameters to have parenthesis).
+
+Public classes do require an author tag.
+Please add yourself as an `@author` to the `.java` files you added or that modified substantially (more than cosmetic changes).

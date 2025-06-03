@@ -27,7 +27,6 @@ import org.springframework.data.neo4j.integration.shared.common.Club;
  * Just a holder for composite properties on relationships.
  *
  * @author Michael J. Simons
- * @soundtrack Die Toten Hosen - Learning English, Lesson Two
  */
 @RelationshipProperties
 public class RelationshipWithCompositeProperties {
@@ -49,11 +48,11 @@ public class RelationshipWithCompositeProperties {
 	}
 
 	public Club getOtherThing() {
-		return otherThing;
+		return this.otherThing;
 	}
 
 	public Map<String, String> getSomeProperties() {
-		return someProperties;
+		return this.someProperties;
 	}
 
 	public void setSomeProperties(Map<String, String> someProperties) {
@@ -61,11 +60,11 @@ public class RelationshipWithCompositeProperties {
 	}
 
 	public ThingWithCompositeProperties.SomeOtherDTO getSomeOtherDTO() {
-		return someOtherDTO;
+		return this.someOtherDTO;
 	}
 
-	public void setSomeOtherDTO(
-			ThingWithCompositeProperties.SomeOtherDTO someOtherDTO) {
+	public void setSomeOtherDTO(ThingWithCompositeProperties.SomeOtherDTO someOtherDTO) {
 		this.someOtherDTO = someOtherDTO;
 	}
+
 }

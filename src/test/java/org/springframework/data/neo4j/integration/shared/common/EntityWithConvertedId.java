@@ -28,7 +28,7 @@ public class EntityWithConvertedId {
 	private IdentifyingEnum identifyingEnum;
 
 	public IdentifyingEnum getIdentifyingEnum() {
-		return identifyingEnum;
+		return this.identifyingEnum;
 	}
 
 	public void setIdentifyingEnum(IdentifyingEnum identifyingEnum) {
@@ -39,6 +39,9 @@ public class EntityWithConvertedId {
 	 * Could also be another type that gets converted inside the framework
 	 */
 	public enum IdentifyingEnum {
+
 		A, B
+
 	}
+
 }

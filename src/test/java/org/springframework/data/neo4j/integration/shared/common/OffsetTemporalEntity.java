@@ -45,11 +45,11 @@ public class OffsetTemporalEntity {
 	}
 
 	public UUID getUuid() {
-		return uuid;
+		return this.uuid;
 	}
 
 	public OffsetDateTime getProperty1() {
-		return property1;
+		return this.property1;
 	}
 
 	public void setProperty1(OffsetDateTime property1) {
@@ -57,10 +57,11 @@ public class OffsetTemporalEntity {
 	}
 
 	public LocalTime getProperty2() {
-		return property2;
+		return this.property2;
 	}
 
 	public void setProperty2(LocalTime property2) {
 		this.property2 = property2;
 	}
+
 }

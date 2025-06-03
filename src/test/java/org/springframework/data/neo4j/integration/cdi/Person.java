@@ -24,37 +24,37 @@ import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
 
 /**
- * This domain object features a client side generated ID on purpose. It is needed to verify that the callbacks generating
- * those are actually registered correct.
+ * This domain object features a client side generated ID on purpose. It is needed to
+ * verify that the callbacks generating those are actually registered correct.
  *
  * @author Michael J. Simons
- * @soundtrack Various - TRON Legacy R3conf1gur3d
  */
 @Node
 class Person {
 
-	@Id @GeneratedValue
+	private final String name;
+
+	@Id
+	@GeneratedValue
 	private UUID id;
 
 	@CreatedDate
 	private LocalDate createdAt;
 
-	private final String name;
-
 	Person(String name) {
 		this.name = name;
 	}
 
-	public UUID getId() {
-		return id;
+	UUID getId() {
+		return this.id;
 	}
 
-	public String getName() {
-		return name;
+	String getName() {
+		return this.name;
 	}
 
-	public LocalDate getCreatedAt() {
-		return createdAt;
+	LocalDate getCreatedAt() {
+		return this.createdAt;
 	}
 
 }

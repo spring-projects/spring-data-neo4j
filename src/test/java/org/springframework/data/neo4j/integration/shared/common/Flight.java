@@ -26,16 +26,17 @@ import org.springframework.data.neo4j.core.schema.Relationship;
 @Node
 public class Flight {
 
-	@Id
-	@GeneratedValue
-	private Long id;
-
 	private final String name;
 
 	@Relationship(type = "DEPARTS")
 	private final Airport departure;
+
 	@Relationship(type = "ARRIVES")
 	private final Airport arrival;
+
+	@Id
+	@GeneratedValue
+	private Long id;
 
 	@Relationship("NEXT_FLIGHT")
 	private Flight nextFlight;
@@ -47,15 +48,15 @@ public class Flight {
 	}
 
 	public String getName() {
-		return name;
+		return this.name;
 	}
 
 	public Airport getDeparture() {
-		return departure;
+		return this.departure;
 	}
 
 	public Airport getArrival() {
-		return arrival;
+		return this.arrival;
 	}
 
 	public Flight getNextFlight() {
@@ -65,4 +66,5 @@ public class Flight {
 	public void setNextFlight(Flight nextFlight) {
 		this.nextFlight = nextFlight;
 	}
+
 }

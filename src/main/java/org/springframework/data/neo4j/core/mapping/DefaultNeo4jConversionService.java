@@ -24,6 +24,7 @@ import java.util.function.Predicate;
 import org.jspecify.annotations.Nullable;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
+
 import org.springframework.core.CollectionFactory;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.ConfigurableConversionService;
@@ -36,14 +37,18 @@ import org.springframework.data.neo4j.core.convert.Neo4jPersistentPropertyConver
 import org.springframework.data.util.TypeInformation;
 
 /**
+ * Default implementation for all {@link Neo4jConversionService Neo4j specific conversion
+ * services}.
+ *
  * @author Michael J. Simons
- * @soundtrack Die Ärzte - Die Nacht der Dämonen
  * @since 6.0
  */
 final class DefaultNeo4jConversionService implements Neo4jConversionService {
 
 	private final ConversionService conversionService;
+
 	private final Predicate<Class<?>> hasCustomWriteTargetPredicate;
+
 	private final SimpleTypeHolder simpleTypes;
 
 	DefaultNeo4jConversionService(Neo4jConversions neo4jConversions) {
@@ -56,36 +61,39 @@ final class DefaultNeo4jConversionService implements Neo4jConversionService {
 		this.simpleTypes = neo4jConversions.getSimpleTypeHolder();
 	}
 
+	private static boolean isCollection(TypeInformation<?> type) {
+		return Collection.class.isAssignableFrom(type.getType());
+	}
+
 	@Override
-	@Nullable
-	public <T> T convert(Object source, Class<T> targetType) {
-		return conversionService.convert(source, targetType);
+	@Nullable public <T> T convert(Object source, Class<T> targetType) {
+		return this.conversionService.convert(source, targetType);
 	}
 
 	@Override
 	public boolean hasCustomWriteTarget(Class<?> sourceType) {
-		return hasCustomWriteTargetPredicate.test(sourceType);
+		return this.hasCustomWriteTargetPredicate.test(sourceType);
 	}
 
 	@Override
-	@Nullable
-	public Object readValue(@Nullable Value source, TypeInformation<?> targetType, @Nullable Neo4jPersistentPropertyConverter<?> conversionOverride) {
+	@Nullable public Object readValue(@Nullable Value source, TypeInformation<?> targetType,
+			@Nullable Neo4jPersistentPropertyConverter<?> conversionOverride) {
 
 		BiFunction<Value, Class<?>, Object> conversion;
 		boolean applyConversionToCompleteCollection = false;
 		if (conversionOverride == null) {
-			conversion = conversionService::convert;
-		} else {
+			conversion = this.conversionService::convert;
+		}
+		else {
 			applyConversionToCompleteCollection = conversionOverride instanceof NullSafeNeo4jPersistentPropertyConverter
-												  && ((NullSafeNeo4jPersistentPropertyConverter<?>) conversionOverride).isForCollection();
+					&& ((NullSafeNeo4jPersistentPropertyConverter<?>) conversionOverride).isForCollection();
 			conversion = (v, t) -> conversionOverride.read(v);
 		}
 
 		return readValueImpl(source, targetType, conversion, applyConversionToCompleteCollection);
 	}
 
-	@Nullable
-	private Object readValueImpl(@Nullable Value value, TypeInformation<?> type,
+	@Nullable private Object readValueImpl(@Nullable Value value, TypeInformation<?> type,
 			BiFunction<Value, Class<?>, Object> conversion, boolean applyConversionToCompleteCollection) {
 
 		boolean valueIsLiteralNullOrNullValue = value == null || value == Values.NULL;
@@ -96,16 +104,17 @@ final class DefaultNeo4jConversionService implements Neo4jConversionService {
 			if (!valueIsLiteralNullOrNullValue && isCollection(type) && !applyConversionToCompleteCollection) {
 				// value can't be null at this point in time
 				@SuppressWarnings("NullAway")
-				Collection<Object> target = CollectionFactory
-						.createCollection(rawType, Objects.requireNonNull(type.getComponentType()).getType(), value.size());
+				Collection<Object> target = CollectionFactory.createCollection(rawType,
+						Objects.requireNonNull(type.getComponentType()).getType(), value.size());
 				value.values()
-						.forEach(element -> target.add(conversion.apply(element, type.getComponentType().getType())));
+					.forEach(element -> target.add(conversion.apply(element, type.getComponentType().getType())));
 				return target;
 			}
 			return valueIsLiteralNullOrNullValue ? null : conversion.apply(value, rawType);
-		} catch (Exception e) {
+		}
+		catch (Exception ex) {
 			String msg = String.format("Could not convert %s into %s", value, type);
-			throw new TypeMismatchDataAccessException(msg, e);
+			throw new TypeMismatchDataAccessException(msg, ex);
 		}
 	}
 
@@ -116,26 +125,29 @@ final class DefaultNeo4jConversionService implements Neo4jConversionService {
 		Function<Object, Value> conversion;
 		boolean applyConversionToCompleteCollection = false;
 		if (writingConverter == null) {
-			conversion = v -> conversionService.convert(v, Value.class);
-		} else {
+			conversion = v -> this.conversionService.convert(v, Value.class);
+		}
+		else {
 			@SuppressWarnings("unchecked")
 			Neo4jPersistentPropertyConverter<Object> hlp = (Neo4jPersistentPropertyConverter<Object>) writingConverter;
 			applyConversionToCompleteCollection = writingConverter instanceof NullSafeNeo4jPersistentPropertyConverter
-												  && ((NullSafeNeo4jPersistentPropertyConverter<?>) writingConverter).isForCollection();
+					&& ((NullSafeNeo4jPersistentPropertyConverter<?>) writingConverter).isForCollection();
 			conversion = hlp::write;
 		}
 
 		return writeValueImpl(value, sourceType, conversion, applyConversionToCompleteCollection);
 	}
 
-	private Value writeValueImpl(@Nullable Object value, TypeInformation<?> type,
-			Function<Object, Value> conversion, boolean applyConversionToCompleteCollection) {
+	private Value writeValueImpl(@Nullable Object value, TypeInformation<?> type, Function<Object, Value> conversion,
+			boolean applyConversionToCompleteCollection) {
 
 		if (value == null) {
 			try {
-				// Some conversion services may treat null special, so we pass it anyway and ask for forgiveness
+				// Some conversion services may treat null special, so we pass it anyway
+				// and ask for forgiveness
 				return conversion.apply(null);
-			} catch (NullPointerException e) {
+			}
+			catch (NullPointerException ex) {
 				return Values.NULL;
 			}
 		}
@@ -149,12 +161,9 @@ final class DefaultNeo4jConversionService implements Neo4jConversionService {
 		return conversion.apply(value);
 	}
 
-	private static boolean isCollection(TypeInformation<?> type) {
-		return Collection.class.isAssignableFrom(type.getType());
-	}
-
 	@Override
 	public boolean isSimpleType(Class<?> type) {
-		return simpleTypes.isSimpleType(type);
+		return this.simpleTypes.isSimpleType(type);
 	}
+
 }

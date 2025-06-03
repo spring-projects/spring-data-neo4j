@@ -21,9 +21,11 @@ package org.springframework.data.neo4j.integration.lite;
  * @author Michael J. Simons
  */
 public class MyDTO {
+
 	String resyncId;
 
 	Long counter;
 
 	User user;
+
 }

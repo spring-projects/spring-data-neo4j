@@ -19,11 +19,14 @@ import java.util.Objects;
 
 import org.jspecify.annotations.Nullable;
 
-
 /**
+ * A generic coordinate type with x, y and z values having an arbitrary meaning.
+ *
  * @author Michael J. Simons
+ * @since 6.0.0
  */
 public final class Coordinate {
+
 	private final double x;
 
 	private final double y;
@@ -42,16 +45,15 @@ public final class Coordinate {
 	}
 
 	double getX() {
-		return x;
+		return this.x;
 	}
 
 	double getY() {
-		return y;
+		return this.y;
 	}
 
-	@Nullable
-	Double getZ() {
-		return z;
+	@Nullable Double getZ() {
+		return this.z;
 	}
 
 	@Override
@@ -63,11 +65,13 @@ public final class Coordinate {
 			return false;
 		}
 		Coordinate that = (Coordinate) o;
-		return Double.compare(that.x, x) == 0 && Double.compare(that.y, y) == 0 && Objects.equals(z, that.z);
+		return Double.compare(that.x, this.x) == 0 && Double.compare(that.y, this.y) == 0
+				&& Objects.equals(this.z, that.z);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(x, y, z);
+		return Objects.hash(this.x, this.y, this.z);
 	}
+
 }

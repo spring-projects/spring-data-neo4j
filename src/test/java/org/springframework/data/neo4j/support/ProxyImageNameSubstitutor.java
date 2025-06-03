@@ -15,16 +15,15 @@
  */
 package org.springframework.data.neo4j.support;
 
-import ch.qos.logback.classic.Logger;
-
 import java.util.List;
 
+import ch.qos.logback.classic.Logger;
 import org.testcontainers.utility.DockerImageName;
 import org.testcontainers.utility.ImageNameSubstitutor;
 
 /**
- * An {@link ImageNameSubstitutor} only used on CI servers to leverage internal proxy solution, that needs to vary the
- * prefix based on which container image is needed.
+ * An {@link ImageNameSubstitutor} only used on CI servers to leverage internal proxy
+ * solution, that needs to vary the prefix based on which container image is needed.
  *
  * @author Greg Turnquist
  */
@@ -39,6 +38,20 @@ public class ProxyImageNameSubstitutor extends ImageNameSubstitutor {
 	private static final String PROXY_PREFIX = "docker-hub.usw1.packages.broadcom.com/";
 
 	private static final String LIBRARY_PROXY_PREFIX = PROXY_PREFIX + "library/";
+
+	/**
+	 * Apply a non-library-based prefix.
+	 */
+	private static String applyProxyPrefix(String imageName) {
+		return PROXY_PREFIX + imageName;
+	}
+
+	/**
+	 * Apply a library based prefix.
+	 */
+	private static String applyProxyAndLibraryPrefix(String imageName) {
+		return LIBRARY_PROXY_PREFIX + imageName;
+	}
 
 	@Override
 	public DockerImageName apply(DockerImageName dockerImageName) {
@@ -66,17 +79,4 @@ public class ProxyImageNameSubstitutor extends ImageNameSubstitutor {
 		return "Spring Data Proxy Image Name Substitutor";
 	}
 
-	/**
-	 * Apply a non-library-based prefix.
-	 */
-	private static String applyProxyPrefix(String imageName) {
-		return PROXY_PREFIX + imageName;
-	}
-
-	/**
-	 * Apply a library based prefix.
-	 */
-	private static String applyProxyAndLibraryPrefix(String imageName) {
-		return LIBRARY_PROXY_PREFIX + imageName;
-	}
 }

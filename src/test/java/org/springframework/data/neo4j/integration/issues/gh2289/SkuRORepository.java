@@ -25,4 +25,5 @@ import org.springframework.stereotype.Repository;
 public interface SkuRORepository extends Neo4jRepository<SkuRO, Long> {
 
 	SkuRO findOneByName(String name);
+
 }

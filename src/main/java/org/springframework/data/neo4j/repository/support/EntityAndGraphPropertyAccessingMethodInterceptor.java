@@ -22,6 +22,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.NotReadablePropertyException;
@@ -35,25 +36,12 @@ import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
 
 /**
- * Basically a lenient property accessing method interceptor, first trying the entity property (or attribute), than
- * a potentially renamed attribute via {@link Property}.
+ * Basically a lenient property accessing method interceptor, first trying the entity
+ * property (or attribute), than a potentially renamed attribute via {@link Property}.
  *
  * @author Michael J. Simons
  */
 final class EntityAndGraphPropertyAccessingMethodInterceptor implements MethodInterceptor {
-
-	static MethodInterceptorFactory createMethodInterceptorFactory(Neo4jMappingContext mappingContext) {
-		return new MethodInterceptorFactory() {
-			@Override
-			public MethodInterceptor createMethodInterceptor(Object source, Class<?> targetType) {
-				return new EntityAndGraphPropertyAccessingMethodInterceptor(source, mappingContext);
-			}
-
-			@Override public boolean supports(Object source, Class<?> targetType) {
-				return true;
-			}
-		};
-	}
 
 	private final BeanWrapper target;
 
@@ -63,9 +51,26 @@ final class EntityAndGraphPropertyAccessingMethodInterceptor implements MethodIn
 		this.target = new GraphPropertyAndDirectFieldAccessFallbackBeanWrapper(target, ctx);
 	}
 
+	static MethodInterceptorFactory createMethodInterceptorFactory(Neo4jMappingContext mappingContext) {
+		return new MethodInterceptorFactory() {
+			@Override
+			public MethodInterceptor createMethodInterceptor(Object source, Class<?> targetType) {
+				return new EntityAndGraphPropertyAccessingMethodInterceptor(source, mappingContext);
+			}
+
+			@Override
+			public boolean supports(Object source, Class<?> targetType) {
+				return true;
+			}
+		};
+	}
+
+	private static boolean isSetterMethod(Method method, PropertyDescriptor descriptor) {
+		return method.equals(descriptor.getWriteMethod());
+	}
+
 	@Override
-	@Nullable
-	public Object invoke(MethodInvocation invocation) throws Throwable {
+	@Nullable public Object invoke(MethodInvocation invocation) throws Throwable {
 
 		Method method = invocation.getMethod();
 
@@ -80,26 +85,23 @@ final class EntityAndGraphPropertyAccessingMethodInterceptor implements MethodIn
 		}
 
 		if (!isSetterMethod(method, descriptor)) {
-			return target.getPropertyValue(descriptor.getName());
+			return this.target.getPropertyValue(descriptor.getName());
 		}
 
 		if (invocation.getArguments().length != 1) {
 			throw new IllegalStateException("Invoked setter method requires exactly one argument");
 		}
 
-		target.setPropertyValue(descriptor.getName(), invocation.getArguments()[0]);
+		this.target.setPropertyValue(descriptor.getName(), invocation.getArguments()[0]);
 		return null;
 	}
 
-	private static boolean isSetterMethod(Method method, PropertyDescriptor descriptor) {
-		return method.equals(descriptor.getWriteMethod());
-	}
-
 	/**
-	 * this version of the {@link DirectFieldAccessFallbackBeanWrapper} checks if there's an attribute on the entity
-	 * annotated with {@link Property} mapping it to a different graph property when it fails to access the original
-	 * attribute If so, that property is accessed. If not, the original exception is rethrown.
-	 * This helps in projections such as described here
+	 * this version of the {@link DirectFieldAccessFallbackBeanWrapper} checks if there's
+	 * an attribute on the entity annotated with {@link Property} mapping it to a
+	 * different graph property when it fails to access the original attribute If so, that
+	 * property is accessed. If not, the original exception is rethrown. This helps in
+	 * projections such as described here
 	 * https://stackoverflow.com/questions/68938823/sdn6-projection-interfaces-with-property-mapping
 	 * that could have been used as workaround prior to fixing 2371.
 	 */
@@ -113,28 +115,28 @@ final class EntityAndGraphPropertyAccessingMethodInterceptor implements MethodIn
 		}
 
 		@Override
-		@Nullable
-		public Object getPropertyValue(String propertyName) {
+		@Nullable public Object getPropertyValue(String propertyName) {
 			try {
 				return super.getPropertyValue(propertyName);
-			} catch (NotReadablePropertyException e) {
-				Neo4jPersistentEntity<?> entity = ctx.getPersistentEntity(super.getRootClass());
+			}
+			catch (NotReadablePropertyException ex) {
+				Neo4jPersistentEntity<?> entity = this.ctx.getPersistentEntity(super.getRootClass());
 
 				AtomicReference<String> value = new AtomicReference<>();
 				if (entity != null) {
-					PropertyHandlerSupport.of(entity).doWithProperties(
-							p -> {
-								if (p.findAnnotation(Property.class) != null && p.getPropertyName()
-										.equals(propertyName)) {
-									value.compareAndSet(null, p.getFieldName());
-								}
-							});
+					PropertyHandlerSupport.of(entity).doWithProperties(p -> {
+						if (p.findAnnotation(Property.class) != null && p.getPropertyName().equals(propertyName)) {
+							value.compareAndSet(null, p.getFieldName());
+						}
+					});
 					if (value.get() != null) {
 						return super.getPropertyValue(value.get());
 					}
 				}
-				throw e;
+				throw ex;
 			}
 		}
+
 	}
+
 }

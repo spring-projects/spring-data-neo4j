@@ -27,21 +27,22 @@ import org.springframework.data.neo4j.core.schema.Node;
 @Node
 public class DomainModel {
 
+	private final String name;
+
 	@Id
 	@GeneratedValue
 	UUID id;
-
-	private final String name;
 
 	public DomainModel(String name) {
 		this.name = name;
 	}
 
 	public UUID getId() {
-		return id;
+		return this.id;
 	}
 
 	public String getName() {
-		return name;
+		return this.name;
 	}
+
 }

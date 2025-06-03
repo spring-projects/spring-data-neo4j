@@ -20,12 +20,13 @@ import java.util.Optional;
 
 import org.apiguardian.api.API;
 import org.jspecify.annotations.Nullable;
+
 import org.springframework.data.neo4j.core.schema.Relationship;
 
 /**
- * Description of a relationship. Those descriptions always describe outgoing relationships. The inverse direction is
- * maybe defined on the {@link NodeDescription} reachable in the {@link Schema} via it's primary label defined by
- * {@link #getTarget}.
+ * Description of a relationship. Those descriptions always describe outgoing
+ * relationships. The inverse direction is maybe defined on the {@link NodeDescription}
+ * reachable in the {@link Schema} via it's primary label defined by {@link #getTarget}.
  *
  * @author Michael J. Simons
  * @since 6.0
@@ -33,82 +34,89 @@ import org.springframework.data.neo4j.core.schema.Relationship;
 @API(status = API.Status.INTERNAL, since = "6.0")
 public interface RelationshipDescription {
 
+	/**
+	 * The name of the property SDN uses to transport relationship types.
+	 */
 	String NAME_OF_RELATIONSHIP = "__relationship__";
 
+	/**
+	 * The name of the property SDN uses to transport relationship types.
+	 */
 	String NAME_OF_RELATIONSHIP_TYPE = "__relationshipType__";
 
 	/**
-	 * If this relationship is dynamic, then this method always returns the name of the inverse property.
-	 *
-	 * @return The type of this relationship
+	 * If this relationship is dynamic, then this method always returns the name of the
+	 * inverse property.
+	 * @return the type of this relationship
 	 */
 	String getType();
 
 	/**
 	 * A relationship is dynamic when it's modelled as a {@code Map<String, ?>}.
-	 *
-	 * @return True, if this relationship is dynamic
+	 * @return true, if this relationship is dynamic
 	 */
 	boolean isDynamic();
 
 	/**
-	 * The source of this relationship is described by the primary label of the node in question.
-	 *
-	 * @return The source of this relationship
+	 * The source of this relationship is described by the primary label of the node in
+	 * question.
+	 * @return the source of this relationship
 	 */
 	NodeDescription<?> getSource();
 
 	/**
-	 * The target of this relationship is described by the primary label of the node in question.
-	 * If the relationship description includes a relationship properties class, this will be the {@link NodeDescription}
-	 * of the {@link org.springframework.data.neo4j.core.schema.TargetNode}.
-	 *
-	 * @return The target of this relationship
+	 * The target of this relationship is described by the primary label of the node in
+	 * question. If the relationship description includes a relationship properties class,
+	 * this will be the {@link NodeDescription} of the
+	 * {@link org.springframework.data.neo4j.core.schema.TargetNode}.
+	 * @return the target of this relationship
 	 */
 	NodeDescription<?> getTarget();
 
 	/**
-	 * The name of the property where the relationship was defined. This is used by the Cypher creation to name the return
-	 * values.
-	 *
-	 * @return The name of the field storing the relationship property
+	 * The name of the property where the relationship was defined. This is used by the
+	 * Cypher creation to name the return values.
+	 * @return the name of the field storing the relationship property
 	 */
 	String getFieldName();
 
 	/**
-	 * The direction of the defined relationship. This is used by the Cypher creation to query for relationships and
-	 * create them with the right directions.
-	 *
-	 * @return The direction of the relationship
+	 * The direction of the defined relationship. This is used by the Cypher creation to
+	 * query for relationships and create them with the right directions.
+	 * @return the direction of the relationship
 	 */
 	Relationship.Direction getDirection();
 
 	/**
-	 * If this is a relationship with properties, the properties-defining class will get returned, otherwise
-	 * {@literal null}.
-	 *
-	 * @return The type of the relationship property class for relationship with properties, otherwise {@literal null}
+	 * If this is a relationship with properties, the properties-defining class will get
+	 * returned, otherwise {@literal null}.
+	 * @return the type of the relationship property class for relationship with
+	 * properties, otherwise {@literal null}
 	 */
-	@Nullable
-	NodeDescription<?> getRelationshipPropertiesEntity();
+	@Nullable NodeDescription<?> getRelationshipPropertiesEntity();
 
 	default NodeDescription<?> getRequiredRelationshipPropertiesEntity() {
 
-		return Objects.requireNonNull(getRelationshipPropertiesEntity(), () -> "Relationship entity %s does not point to an entity holding the relationships' properties".formatted(this.getType()));
+		return Objects.requireNonNull(getRelationshipPropertiesEntity(),
+				() -> "Relationship entity %s does not point to an entity holding the relationships' properties"
+					.formatted(this.getType()));
 	}
 
 	/**
-	 * Tells if this relationship is a relationship with additional properties. In such cases
-	 * {@code getRelationshipPropertiesClass} will return the type of the properties holding class.
-	 *
-	 * @return {@literal true} if an additional properties are available, otherwise {@literal false}
+	 * Tells if this relationship is a relationship with additional properties. In such
+	 * cases {@code getRelationshipPropertiesClass} will return the type of the properties
+	 * holding class.
+	 * @return {@literal true} if an additional properties are available, otherwise
+	 * {@literal false}
 	 */
 	boolean hasRelationshipProperties();
 
 	default boolean hasInternalIdProperty() {
 
-		return hasRelationshipProperties() && Optional.ofNullable(getRelationshipPropertiesEntity()).map(NodeDescription::getIdDescription)
-				.filter(IdDescription::isInternallyGeneratedId).isPresent();
+		return hasRelationshipProperties() && Optional.ofNullable(getRelationshipPropertiesEntity())
+			.map(NodeDescription::getIdDescription)
+			.filter(IdDescription::isInternallyGeneratedId)
+			.isPresent();
 	}
 
 	default boolean isOutgoing() {
@@ -121,31 +129,36 @@ public interface RelationshipDescription {
 
 	default String generateRelatedNodesCollectionName(NodeDescription<?> mostAbstractNodeDescription) {
 
-		return this.getSource().getMostAbstractParentLabel(mostAbstractNodeDescription) + "_" + this.getType() + "_" + this.getTarget().getPrimaryLabel() + "_" + this.isOutgoing();
+		return this.getSource().getMostAbstractParentLabel(mostAbstractNodeDescription) + "_" + this.getType() + "_"
+				+ this.getTarget().getPrimaryLabel() + "_" + this.isOutgoing();
 	}
 
 	/**
-	 * Set the relationship definition that describes the opposite side of the relationship.
-	 *
-	 * @param relationshipObverse logically same relationship definition in the target entity
+	 * Returns the logically same relationship definition in the target entity.
+	 * @return logically same relationship definition in the target entity
+	 */
+	@Nullable RelationshipDescription getRelationshipObverse();
+
+	/**
+	 * Set the relationship definition that describes the opposite side of the
+	 * relationship.
+	 * @param relationshipObverse logically same relationship definition in the target
+	 * entity
 	 */
 	void setRelationshipObverse(@Nullable RelationshipDescription relationshipObverse);
 
 	/**
-	 * @return logically same relationship definition in the target entity
-	 */
-	@Nullable
-	RelationshipDescription getRelationshipObverse();
-
-	/**
-	 * Checks if there is a relationship description describing the obverse of this relationship.
-	 *
-	 * @return true if a logically same relationship in the target entity exists, otherwise false.
+	 * Checks if there is a relationship description describing the obverse of this
+	 * relationship.
+	 * @return true if a logically same relationship in the target entity exists,
+	 * otherwise false.
 	 */
 	boolean hasRelationshipObverse();
 
 	/**
-	 * {@return true if updates should be cascaded along this relationship}
+	 * Returns true if updates should be cascaded along this relationship.
+	 * @return true if updates should be cascaded along this relationship
 	 */
 	boolean cascadeUpdates();
+
 }

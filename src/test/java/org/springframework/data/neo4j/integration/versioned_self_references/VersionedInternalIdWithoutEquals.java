@@ -29,13 +29,14 @@ import org.springframework.data.neo4j.core.schema.Relationship;
  */
 class VersionedInternalIdWithoutEquals implements Relatable<VersionedInternalIdWithoutEquals> {
 
-	@Id @GeneratedValue
+	private final String name;
+
+	@Id
+	@GeneratedValue
 	private Long id;
 
 	@Version
 	private Long version;
-
-	private final String name;
 
 	@Relationship(direction = Relationship.Direction.OUTGOING, type = "RELATED")
 	private Set<VersionedInternalIdWithoutEquals> relatedObjects = new HashSet<>();
@@ -46,27 +47,28 @@ class VersionedInternalIdWithoutEquals implements Relatable<VersionedInternalIdW
 
 	@Override
 	public Long getId() {
-		return id;
+		return this.id;
 	}
 
-	public Long getVersion() {
-		return version;
+	Long getVersion() {
+		return this.version;
 	}
 
-	public String getName() {
-		return name;
+	String getName() {
+		return this.name;
 	}
 
 	@Override
 	public Set<VersionedInternalIdWithoutEquals> getRelatedObjects() {
-		return Collections.unmodifiableSet(relatedObjects);
+		return Collections.unmodifiableSet(this.relatedObjects);
 	}
 
 	/**
-	 * Called by SDN to set the related objects. In case of cyclic mapping, this can't be done via constructor.
-	 * I personally would want the {@link #getRelatedObjects()} not to return a modifiable list, so that
-	 * {@link #relate(VersionedInternalIdWithoutEquals)} cannot be ignored. In case that doesn't matter, a getter is enough.
-	 *
+	 * Called by SDN to set the related objects. In case of cyclic mapping, this can't be
+	 * done via constructor. I personally would want the {@link #getRelatedObjects()} not
+	 * to return a modifiable list, so that
+	 * {@link #relate(VersionedInternalIdWithoutEquals)} cannot be ignored. In case that
+	 * doesn't matter, a getter is enough.
 	 * @param relatedObjects New collection of related objects
 	 */
 	@SuppressWarnings("unused")
@@ -79,4 +81,5 @@ class VersionedInternalIdWithoutEquals implements Relatable<VersionedInternalIdW
 		this.relatedObjects.add(object);
 		object.relatedObjects.add(this);
 	}
+
 }

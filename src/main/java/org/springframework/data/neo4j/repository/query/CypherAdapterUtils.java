@@ -15,8 +15,6 @@
  */
 package org.springframework.data.neo4j.repository.query;
 
-import static org.neo4j.cypherdsl.core.Cypher.property;
-
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -34,6 +32,7 @@ import org.neo4j.cypherdsl.core.Expression;
 import org.neo4j.cypherdsl.core.SortItem;
 import org.neo4j.cypherdsl.core.SymbolicName;
 import org.neo4j.driver.Value;
+
 import org.springframework.data.domain.KeysetScrollPosition;
 import org.springframework.data.domain.ScrollPosition.Direction;
 import org.springframework.data.domain.Sort;
@@ -42,6 +41,8 @@ import org.springframework.data.neo4j.core.mapping.Constants;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.core.mapping.NodeDescription;
+
+import static org.neo4j.cypherdsl.core.Cypher.property;
 
 /**
  * Bridging between Spring Data domain Objects and Cypher constructs.
@@ -52,11 +53,14 @@ import org.springframework.data.neo4j.core.mapping.NodeDescription;
 @API(status = API.Status.INTERNAL, since = "6.0")
 public final class CypherAdapterUtils {
 
+	private CypherAdapterUtils() {
+	}
+
 	/**
-	 * Maps Spring Data's {@link org.springframework.data.domain.Sort.Order} to a {@link SortItem}. See {@link #toSortItems(NodeDescription, Sort)}.
-	 *
+	 * Maps Spring Data's {@link org.springframework.data.domain.Sort.Order} to a
+	 * {@link SortItem}. See {@link #toSortItems(NodeDescription, Sort)}.
 	 * @param nodeDescription {@link NodeDescription} to get properties for sorting from.
-	 * @return A stream if sort items. Will be empty when sort is unsorted.
+	 * @return a stream if sort items. Will be empty when sort is unsorted
 	 */
 	public static Function<Sort.Order, SortItem> sortAdapterFor(NodeDescription<?> nodeDescription) {
 		return order -> {
@@ -66,13 +70,16 @@ public final class CypherAdapterUtils {
 			SymbolicName root;
 			if (!propertyIsQualifiedOrComposite) {
 				root = Constants.NAME_OF_TYPED_ROOT_NODE.apply(nodeDescription);
-			} else {
-				// need to check first if this is really a qualified name or the "qualifier" is a composite property
+			}
+			else {
+				// need to check first if this is really a qualified name or the
+				// "qualifier" is a composite property
 				if (nodeDescription.getGraphProperty(domainProperty.split("\\.")[0]).isEmpty()) {
 					int indexOfSeparator = domainProperty.indexOf(".");
 					root = Cypher.name(domainProperty.substring(0, indexOfSeparator));
 					domainProperty = domainProperty.substring(indexOfSeparator + 1);
-				} else {
+				}
+				else {
 					root = Constants.NAME_OF_TYPED_ROOT_NODE.apply(nodeDescription);
 				}
 			}
@@ -84,22 +91,30 @@ public final class CypherAdapterUtils {
 				optionalGraphProperty = nodeDescription.getGraphProperty(domainPropertyPrefix);
 			}
 			if (optionalGraphProperty.isEmpty()) {
-				throw new IllegalStateException(String.format("Cannot order by the unknown graph property: '%s'", domainProperty));
+				throw new IllegalStateException(
+						String.format("Cannot order by the unknown graph property: '%s'", domainProperty));
 			}
 			var graphProperty = optionalGraphProperty.get();
 			Expression expression;
 			if (graphProperty.isInternalIdProperty()) {
-				// Not using the id expression here, as the root will be referring to the constructed map being returned.
+				// Not using the id expression here, as the root will be referring to the
+				// constructed map being returned.
 				expression = property(root, Constants.NAME_OF_INTERNAL_ID);
-			} else if (graphProperty.isComposite() && !domainProperty.contains(".")) {
-				throw new IllegalStateException(String.format("Cannot order by composite property: '%s'. Only ordering by its nested fields is allowed.", domainProperty));
-			} else if (graphProperty.isComposite()) {
+			}
+			else if (graphProperty.isComposite() && !domainProperty.contains(".")) {
+				throw new IllegalStateException(String.format(
+						"Cannot order by composite property: '%s'. Only ordering by its nested fields is allowed.",
+						domainProperty));
+			}
+			else if (graphProperty.isComposite()) {
 				if (nodeDescription.containsPossibleCircles(rpp -> true)) {
 					expression = property(root, domainProperty);
-				} else {
+				}
+				else {
 					expression = property(root, Constants.NAME_OF_ALL_PROPERTIES, domainProperty);
 				}
-			} else {
+			}
+			else {
 				expression = property(root, graphProperty.getPropertyName());
 				if (order.isIgnoreCase()) {
 					expression = Cypher.toLower(expression);
@@ -107,7 +122,8 @@ public final class CypherAdapterUtils {
 			}
 			SortItem sortItem = Cypher.sort(expression);
 
-			// Spring's Sort.Order defaults to ascending, so we just need to change this if we have descending order.
+			// Spring's Sort.Order defaults to ascending, so we just need to change this
+			// if we have descending order.
 			if (order.isDescending()) {
 				sortItem = sortItem.descending();
 			}
@@ -115,7 +131,8 @@ public final class CypherAdapterUtils {
 		};
 	}
 
-	public static Condition combineKeysetIntoCondition(Neo4jPersistentEntity<?> entity, KeysetScrollPosition scrollPosition, Sort sort, Neo4jConversionService conversionService) {
+	public static Condition combineKeysetIntoCondition(Neo4jPersistentEntity<?> entity,
+			KeysetScrollPosition scrollPosition, Sort sort, Neo4jConversionService conversionService) {
 
 		var incomingKeys = scrollPosition.getKeys();
 		var orderedKeys = new LinkedHashMap<String, Object>();
@@ -142,7 +159,8 @@ public final class CypherAdapterUtils {
 		var resultingCondition = Cypher.noCondition();
 		// This is the next equality pair if previous sort key was equal
 		var nextEquals = Cypher.noCondition();
-		// This is the condition for when all the sort orderedKeys are equal, and we must filter via id
+		// This is the condition for when all the sort orderedKeys are equal, and we must
+		// filter via id
 		var allEqualsWithArtificialSort = Cypher.noCondition();
 
 		for (Map.Entry<String, Object> entry : orderedKeys.entrySet()) {
@@ -150,7 +168,8 @@ public final class CypherAdapterUtils {
 			var k = entry.getKey();
 			var v = entry.getValue();
 			if (v == null || (v instanceof Value value && value.isNull())) {
-				throw new IllegalStateException("Cannot resume from KeysetScrollPosition. Offending key: '%s' is 'null'".formatted(k));
+				throw new IllegalStateException(
+						"Cannot resume from KeysetScrollPosition. Offending key: '%s' is 'null'".formatted(k));
 			}
 			var parameter = Cypher.anonParameter(conversionService.convert(v, Value.class));
 
@@ -159,14 +178,18 @@ public final class CypherAdapterUtils {
 			var scrollDirection = scrollPosition.getDirection();
 			if (Constants.NAME_OF_ADDITIONAL_SORT.equals(k)) {
 				expression = entity.getIdExpression();
-				var comparatorFunction = getComparatorFunction(scrollPosition.scrollsForward() ? Sort.Direction.ASC : Sort.Direction.DESC, scrollDirection);
-				allEqualsWithArtificialSort = allEqualsWithArtificialSort.and(comparatorFunction.apply(expression, parameter));
-			} else if (propertyAndDirection.containsKey(k)) {
+				var comparatorFunction = getComparatorFunction(
+						scrollPosition.scrollsForward() ? Sort.Direction.ASC : Sort.Direction.DESC, scrollDirection);
+				allEqualsWithArtificialSort = allEqualsWithArtificialSort
+					.and(comparatorFunction.apply(expression, parameter));
+			}
+			else if (propertyAndDirection.containsKey(k)) {
 				var p = propertyAndDirection.get(k);
 				expression = p.property.isIdProperty() ? entity.getIdExpression() : root.property(k);
 
 				var comparatorFunction = getComparatorFunction(p.order.getDirection(), scrollDirection);
-				resultingCondition = resultingCondition.or(nextEquals.and(comparatorFunction.apply(expression, parameter)));
+				resultingCondition = resultingCondition
+					.or(nextEquals.and(comparatorFunction.apply(expression, parameter)));
 				nextEquals = expression.eq(parameter);
 				allEqualsWithArtificialSort = allEqualsWithArtificialSort.and(nextEquals);
 			}
@@ -174,7 +197,8 @@ public final class CypherAdapterUtils {
 		return resultingCondition.or(allEqualsWithArtificialSort);
 	}
 
-	private static BiFunction<Expression, Expression, Condition> getComparatorFunction(Sort.Direction sortDirection, KeysetScrollPosition.Direction scrollDirection) {
+	private static BiFunction<Expression, Expression, Condition> getComparatorFunction(Sort.Direction sortDirection,
+			KeysetScrollPosition.Direction scrollDirection) {
 		if (scrollDirection == Direction.BACKWARD) {
 			return sortDirection.isAscending() ? Expression::lte : Expression::gte;
 		}
@@ -183,10 +207,9 @@ public final class CypherAdapterUtils {
 
 	/**
 	 * Converts a Spring Data sort to an equivalent list of {@link SortItem sort items}.
-	 *
-	 * @param nodeDescription The node description to map the properties
-	 * @param sort The sort object to convert
-	 * @return An of sort items. It will be empty when sort is unsorted.
+	 * @param nodeDescription the node description to map the properties
+	 * @param sort the sort object to convert
+	 * @return a collection of sort items which will be empty when sort is unsorted
 	 */
 	public static Collection<SortItem> toSortItems(@Nullable NodeDescription<?> nodeDescription, Sort sort) {
 
@@ -197,5 +220,4 @@ public final class CypherAdapterUtils {
 		return sort.stream().map(sortAdapterFor(nodeDescription)).collect(Collectors.toList());
 	}
 
-	private CypherAdapterUtils() {}
 }

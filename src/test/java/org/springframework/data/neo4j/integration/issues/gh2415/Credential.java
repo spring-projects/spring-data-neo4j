@@ -15,7 +15,10 @@
  */
 package org.springframework.data.neo4j.integration.issues.gh2415;
 
+import java.util.Objects;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import org.springframework.data.annotation.Immutable;
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
@@ -33,8 +36,7 @@ public final class Credential {
 	@JsonIgnore
 	@Id
 	@GeneratedValue(UUIDStringGenerator.class)
-	private final
-	String id;
+	private final String id;
 
 	private final String name;
 
@@ -55,18 +57,19 @@ public final class Credential {
 		return this.name;
 	}
 
-	public String toString() {
-		return "Credential(id=" + this.getId() + ", name=" + this.getName() + ")";
-	}
-
 	public Credential withId(String id) {
-		return this.id == id ? this : new Credential(id, this.name);
+		return Objects.equals(this.id, id) ? this : new Credential(id, this.name);
 	}
 
 	public Credential withName(String name) {
-		return this.name == name ? this : new Credential(this.id, name);
+		return Objects.equals(this.name, name) ? this : new Credential(this.id, name);
 	}
 
+	public CredentialBuilder toBuilder() {
+		return new CredentialBuilder().id(this.id).name(this.name);
+	}
+
+	@Override
 	public boolean equals(final Object o) {
 		if (o == this) {
 			return true;
@@ -77,29 +80,30 @@ public final class Credential {
 		final Credential other = (Credential) o;
 		final Object this$id = this.getId();
 		final Object other$id = other.getId();
-		if (this$id == null ? other$id != null : !this$id.equals(other$id)) {
-			return false;
-		}
-		return true;
+		return Objects.equals(this$id, other$id);
 	}
 
+	@Override
 	public int hashCode() {
 		final int PRIME = 59;
 		int result = 1;
 		final Object $id = this.getId();
-		result = result * PRIME + ($id == null ? 43 : $id.hashCode());
+		result = result * PRIME + (($id != null) ? $id.hashCode() : 43);
 		return result;
 	}
 
-	public CredentialBuilder toBuilder() {
-		return new CredentialBuilder().id(this.id).name(this.name);
+	@Override
+	public String toString() {
+		return "Credential(id=" + this.getId() + ", name=" + this.getName() + ")";
 	}
 
 	/**
 	 * the builder
 	 */
 	public static class CredentialBuilder {
+
 		private String id;
+
 		private String name;
 
 		CredentialBuilder() {
@@ -120,8 +124,11 @@ public final class Credential {
 			return new Credential(this.id, this.name);
 		}
 
+		@Override
 		public String toString() {
 			return "Credential.CredentialBuilder(id=" + this.id + ", name=" + this.name + ")";
 		}
+
 	}
+
 }

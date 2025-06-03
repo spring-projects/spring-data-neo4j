@@ -23,6 +23,7 @@ import java.util.Set;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
 import org.neo4j.driver.internal.value.StringValue;
+
 import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.core.convert.converter.GenericConverter;
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
@@ -38,7 +39,9 @@ import org.springframework.data.neo4j.core.support.DateString;
 @Node("CustomTypes")
 public class ThingWithCustomTypes {
 
-	@Id @GeneratedValue private final Long id;
+	@Id
+	@GeneratedValue
+	private final Long id;
 
 	private CustomType customType;
 
@@ -60,42 +63,42 @@ public class ThingWithCustomTypes {
 	}
 
 	public CustomType getCustomType() {
-		return customType;
+		return this.customType;
+	}
+
+	public Long getId() {
+		return this.id;
+	}
+
+	public Date getDateAsLong() {
+		return this.dateAsLong;
 	}
 
 	public void setDateAsLong(Date dateAsLong) {
 		this.dateAsLong = dateAsLong;
 	}
 
-	public Long getId() {
-		return id;
-	}
-
-	public Date getDateAsLong() {
-		return dateAsLong;
-	}
-
 	public Date getDateAsString() {
-		return dateAsString;
+		return this.dateAsString;
 	}
 
 	/**
 	 * Custom type to convert
 	 */
-	public static class CustomType {
+	public static final class CustomType {
 
 		private final String value;
+
+		private CustomType(String value) {
+			this.value = value;
+		}
 
 		public static CustomType of(String value) {
 			return new CustomType(value);
 		}
 
 		public String getValue() {
-			return value;
-		}
-
-		private CustomType(String value) {
-			this.value = value;
+			return this.value;
 		}
 
 		@Override
@@ -107,13 +110,14 @@ public class ThingWithCustomTypes {
 				return false;
 			}
 			CustomType that = (CustomType) o;
-			return value.equals(that.value);
+			return this.value.equals(that.value);
 		}
 
 		@Override
 		public int hashCode() {
-			return Objects.hash(value);
+			return Objects.hash(this.value);
 		}
+
 	}
 
 	/**
@@ -134,30 +138,33 @@ public class ThingWithCustomTypes {
 
 			if (StringValue.class.isAssignableFrom(sourceType.getType())) {
 				return CustomType.of(((StringValue) source).asString());
-			} else {
+			}
+			else {
 				return Values.value(((CustomType) source).getValue());
 			}
 		}
+
 	}
 
 	/**
 	 * A type that is not bound anywhere but has a converter
 	 */
-	public static class DifferentType {
+	public static final class DifferentType {
 
 		private final String value;
-
-		public static DifferentType of(String value) {
-			return new DifferentType(value);
-		}
 
 		private DifferentType(String value) {
 			this.value = value;
 		}
 
-		public String getValue() {
-			return value;
+		public static DifferentType of(String value) {
+			return new DifferentType(value);
 		}
+
+		public String getValue() {
+			return this.value;
+		}
+
 	}
 
 	/**
@@ -178,9 +185,12 @@ public class ThingWithCustomTypes {
 
 			if (Value.class.isAssignableFrom(sourceType.getType())) {
 				return CustomType.of(((Value) source).asString());
-			} else {
+			}
+			else {
 				return Values.value(((DifferentType) source).getValue());
 			}
 		}
+
 	}
+
 }

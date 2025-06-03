@@ -34,6 +34,7 @@ import org.apiguardian.api.API;
 import org.jspecify.annotations.Nullable;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
+
 import org.springframework.data.convert.EntityWriter;
 import org.springframework.data.mapping.MappingException;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
@@ -52,28 +53,29 @@ import org.springframework.data.neo4j.core.schema.TargetNode;
 import org.springframework.data.util.TypeInformation;
 
 /**
- * A specialized version of an {@link EntityWriter} for Neo4j that traverses the entity and maps the entity,
- * its association and other meta attributes into a couple of nested maps. The values in the map will either be
- * other maps or Neo4j Driver {@link org.neo4j.driver.Value values}.
+ * A specialized version of an {@link EntityWriter} for Neo4j that traverses the entity
+ * and maps the entity, its association and other meta attributes into a couple of nested
+ * maps. The values in the map will either be other maps or Neo4j Driver
+ * {@link org.neo4j.driver.Value values}.
  *
  * @author Michael J. Simons
- * @soundtrack Weekend - Scheiße Gechillt [feat. Koljah, Juse Ju]
  * @since 6.1.0
  */
 @API(status = API.Status.INTERNAL, since = "6.1.0")
 final class Neo4jNestedMapEntityWriter implements EntityWriter<Object, Map<String, Object>> {
 
-	static EntityWriter<Object, Map<String, Object>> forContext(Neo4jMappingContext context) {
-		return new Neo4jNestedMapEntityWriter(context);
-	}
-
 	private final Neo4jMappingContext mappingContext;
+
 	private final Neo4jConversionService conversionService;
 
 	private Neo4jNestedMapEntityWriter(Neo4jMappingContext mappingContext) {
 
 		this.mappingContext = mappingContext;
 		this.conversionService = mappingContext.getConversionService();
+	}
+
+	static EntityWriter<Object, Map<String, Object>> forContext(Neo4jMappingContext context) {
+		return new Neo4jNestedMapEntityWriter(context);
 	}
 
 	@Override
@@ -87,7 +89,8 @@ final class Neo4jNestedMapEntityWriter implements EntityWriter<Object, Map<Strin
 		writeImpl(source, sink, seenObjects, true);
 	}
 
-	Map<String, Object> writeImpl(@Nullable Object source, Map<String, Object> sink, Set<Object> seenObjects, boolean initialObject) {
+	Map<String, Object> writeImpl(@Nullable Object source, Map<String, Object> sink, Set<Object> seenObjects,
+			boolean initialObject) {
 
 		if (source == null) {
 			return sink;
@@ -104,8 +107,8 @@ final class Neo4jNestedMapEntityWriter implements EntityWriter<Object, Map<Strin
 		if (seenObjects.contains(source)) {
 			// The ID property is null in case of relationship properties
 			if (idProperty != null) {
-				Value idValue = mappingContext.getConversionService()
-						.writeValue(propertyAccessor.getProperty(idProperty), idProperty.getTypeInformation(), null);
+				Value idValue = this.mappingContext.getConversionService()
+					.writeValue(propertyAccessor.getProperty(idProperty), idProperty.getTypeInformation(), null);
 				sink.put("__ref__", idValue);
 			}
 			return sink;
@@ -121,7 +124,8 @@ final class Neo4jNestedMapEntityWriter implements EntityWriter<Object, Map<Strin
 		if (initialObject && entity.isRelationshipPropertiesEntity()) {
 			PropertyHandlerSupport.of(entity).doWithProperties(p -> {
 				if (p.isAnnotationPresent(TargetNode.class)) {
-					Value target = Values.value(this.writeImpl(propertyAccessor.getProperty(p), new HashMap<>(), seenObjects, false));
+					Value target = Values
+						.value(this.writeImpl(propertyAccessor.getProperty(p), new HashMap<>(), seenObjects, false));
 					sink.put("__target__", target);
 				}
 			});
@@ -143,7 +147,6 @@ final class Neo4jNestedMapEntityWriter implements EntityWriter<Object, Map<Strin
 		return sink;
 	}
 
-
 	private void addRelations(Map<String, Object> sink, Neo4jPersistentEntity<?> entity,
 			PersistentPropertyAccessor<Object> propertyAccessor, Set<Object> seenObjects) {
 
@@ -155,43 +158,42 @@ final class Neo4jNestedMapEntityWriter implements EntityWriter<Object, Map<Strin
 			RelationshipDescription description = (RelationshipDescription) association;
 			Neo4jPersistentProperty property = association.getInverse();
 
-			// Not using the Mapping support here so that we don't have to deal with the nested array lists.
-			Collection<?> unifiedView = Optional
-					.ofNullable(context.getValue())
-					.map(v -> v instanceof Collection col ? col : Collections.singletonList(v))
-					.orElseGet(Collections::emptyList);
+			// Not using the Mapping support here so that we don't have to deal with the
+			// nested array lists.
+			Collection<?> unifiedView = Optional.ofNullable(context.getValue())
+				.map(v -> (v instanceof Collection<?> col) ? col : Collections.singletonList(v))
+				.orElseGet(Collections::emptyList);
 
 			if (property.isDynamicAssociation()) {
 				TypeInformation<?> keyType = property.getTypeInformation().getRequiredComponentType();
 
-				Map<String, Value> collect = unifiedView
-						.stream().filter(Objects::nonNull)
-						.flatMap(intoSingleMapEntries())
-						.flatMap(intoSingleCollectionEntries())
-						.map(relatedEntry -> {
-							String key = conversionService.writeValue(relatedEntry.getKey(), keyType,
-									property.getOptionalConverter())
-									.asString();
+				Map<String, Value> collect = unifiedView.stream()
+					.filter(Objects::nonNull)
+					.flatMap(intoSingleMapEntries())
+					.flatMap(intoSingleCollectionEntries())
+					.map(relatedEntry -> {
+						String key = this.conversionService
+							.writeValue(relatedEntry.getKey(), keyType, property.getOptionalConverter())
+							.asString();
 
-							Map<String, Object> relatedObjectProperties;
-							Object relatedObject = relatedEntry.getValue();
-							relatedObjectProperties = extractPotentialRelationProperties(description, relatedObject, seenObjects);
+						Map<String, Object> relatedObjectProperties;
+						Object relatedObject = relatedEntry.getValue();
+						relatedObjectProperties = extractPotentialRelationProperties(description, relatedObject,
+								seenObjects);
 
-							return new HashMap.SimpleEntry<>(key, relatedObjectProperties);
-						})
-						.collect(Collectors.groupingBy(
-								Map.Entry::getKey,
-								Collectors.mapping(Map.Entry::getValue, Collectors.collectingAndThen(Collectors.toList(), Values::value)))
-						);
+						return new HashMap.SimpleEntry<>(key, relatedObjectProperties);
+					})
+					.collect(Collectors.groupingBy(Map.Entry::getKey, Collectors.mapping(Map.Entry::getValue,
+							Collectors.collectingAndThen(Collectors.toList(), Values::value))));
 				if (!collect.isEmpty() && propertyMap != null) {
 					propertyMap.putAll(collect);
 				}
-			} else {
-				List<Object> relatedObjects = unifiedView
-						.stream().filter(Objects::nonNull)
-						.map(relatedObject -> extractPotentialRelationProperties(description, relatedObject,
-								seenObjects))
-						.collect(Collectors.toList());
+			}
+			else {
+				List<Object> relatedObjects = unifiedView.stream()
+					.filter(Objects::nonNull)
+					.map(relatedObject -> extractPotentialRelationProperties(description, relatedObject, seenObjects))
+					.collect(Collectors.toList());
 
 				if (!relatedObjects.isEmpty() && propertyMap != null) {
 					String type = description.getType();
@@ -209,7 +211,8 @@ final class Neo4jNestedMapEntityWriter implements EntityWriter<Object, Map<Strin
 		return e -> {
 			if (e.getValue() instanceof Collection<?> col) {
 				return col.stream().map(v -> new AbstractMap.SimpleEntry<>(e.getKey(), v));
-			} else {
+			}
+			else {
 				return Stream.of(e);
 			}
 		};
@@ -219,13 +222,15 @@ final class Neo4jNestedMapEntityWriter implements EntityWriter<Object, Map<Strin
 		return e -> {
 			if (e instanceof Map<?, ?> map) {
 				return map.entrySet().stream();
-			} else {
+			}
+			else {
 				return Stream.of((Map.Entry<?, ?>) e);
 			}
 		};
 	}
 
-	private void addLabels(Map<String, Object> sink, Neo4jPersistentEntity<?> entity, PersistentPropertyAccessor<Object> propertyAccessor) {
+	private void addLabels(Map<String, Object> sink, Neo4jPersistentEntity<?> entity,
+			PersistentPropertyAccessor<Object> propertyAccessor) {
 
 		if (entity.isRelationshipPropertiesEntity()) {
 			return;
@@ -233,21 +238,16 @@ final class Neo4jNestedMapEntityWriter implements EntityWriter<Object, Map<Strin
 
 		List<String> labels = new ArrayList<>();
 		labels.add(entity.getPrimaryLabel());
-		entity.getDynamicLabelsProperty()
-				.map(p -> {
-					@SuppressWarnings("unchecked")
-					Collection<String> propertyValue = (Collection<String>) propertyAccessor.getProperty(p);
-					return propertyValue;
-				})
-				.ifPresent(labels::addAll);
+		entity.getDynamicLabelsProperty().map(p -> {
+			@SuppressWarnings("unchecked")
+			Collection<String> propertyValue = (Collection<String>) propertyAccessor.getProperty(p);
+			return propertyValue;
+		}).ifPresent(labels::addAll);
 		sink.put(Constants.NAME_OF_ALL_LABELS, Values.value(labels));
 	}
 
-	private Map<String, Object> extractPotentialRelationProperties(
-			RelationshipDescription description,
-			Object relatedObject,
-			Set<Object> seenObjects
-	) {
+	private Map<String, Object> extractPotentialRelationProperties(RelationshipDescription description,
+			Object relatedObject, Set<Object> seenObjects) {
 
 		if (!description.hasRelationshipProperties()) {
 			return this.writeImpl(relatedObject, new HashMap<>(), seenObjects, false);
@@ -255,12 +255,11 @@ final class Neo4jNestedMapEntityWriter implements EntityWriter<Object, Map<Strin
 
 		RelationshipPropertiesWithEntityHolder tuple = (RelationshipPropertiesWithEntityHolder) relatedObject;
 		Map<String, Object> relatedObjectProperties;
-		relatedObjectProperties = this
-				.writeImpl(tuple.getRelationshipProperties(), new HashMap<>(),
-						seenObjects, false);
+		relatedObjectProperties = this.writeImpl(tuple.getRelationshipProperties(), new HashMap<>(), seenObjects,
+				false);
 		relatedObjectProperties.put("__target__",
-				this.writeImpl(tuple.getRelatedEntity(), new HashMap<>(),
-						seenObjects, false));
+				this.writeImpl(tuple.getRelatedEntity(), new HashMap<>(), seenObjects, false));
 		return relatedObjectProperties;
 	}
+
 }

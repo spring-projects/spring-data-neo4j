@@ -15,12 +15,12 @@
  */
 package org.springframework.data.neo4j.integration.issues.gh2498;
 
+import java.util.List;
+
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Relationship;
-
-import java.util.List;
 
 /**
  * @author Michael J. Simons
@@ -28,10 +28,13 @@ import java.util.List;
 @SuppressWarnings("HiddenField")
 @Node("Vertex")
 public class Vertex {
+
 	@Id
 	@GeneratedValue
 	Long id;
+
 	String name;
+
 	@Relationship(type = "CONNECTED_TO", direction = Relationship.Direction.INCOMING)
 	List<Edge> edges;
 
@@ -52,20 +55,20 @@ public class Vertex {
 		return this.id;
 	}
 
-	public String getName() {
-		return this.name;
-	}
-
-	public List<Edge> getEdges() {
-		return this.edges;
-	}
-
 	public void setId(Long id) {
 		this.id = id;
 	}
 
+	public String getName() {
+		return this.name;
+	}
+
 	public void setName(String name) {
 		this.name = name;
+	}
+
+	public List<Edge> getEdges() {
+		return this.edges;
 	}
 
 	public void setEdges(List<Edge> edges) {
@@ -80,8 +83,11 @@ public class Vertex {
 	 * the builder
 	 */
 	public static class VertexBuilder {
+
 		private Long id;
+
 		private String name;
+
 		private List<Edge> edges;
 
 		VertexBuilder() {
@@ -106,8 +112,11 @@ public class Vertex {
 			return new Vertex(this.id, this.name, this.edges);
 		}
 
+		@Override
 		public String toString() {
 			return "Vertex.VertexBuilder(id=" + this.id + ", name=" + this.name + ", edges=" + this.edges + ")";
 		}
+
 	}
+
 }

@@ -15,6 +15,8 @@
  */
 package org.springframework.data.neo4j.integration.issues.gh2526;
 
+import java.util.Objects;
+
 import org.springframework.data.annotation.Immutable;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
@@ -27,8 +29,7 @@ import org.springframework.data.neo4j.core.schema.Node;
 public final class Measurand {
 
 	@Id
-	private final
-	String measurandId;
+	private final String measurandId;
 
 	public Measurand(String measurandId) {
 		this.measurandId = measurandId;
@@ -38,6 +39,7 @@ public final class Measurand {
 		return this.measurandId;
 	}
 
+	@Override
 	public boolean equals(final Object o) {
 		if (o == this) {
 			return true;
@@ -48,21 +50,21 @@ public final class Measurand {
 		final Measurand other = (Measurand) o;
 		final Object this$measurandId = this.getMeasurandId();
 		final Object other$measurandId = other.getMeasurandId();
-		if (this$measurandId == null ? other$measurandId != null : !this$measurandId.equals(other$measurandId)) {
-			return false;
-		}
-		return true;
+		return Objects.equals(this$measurandId, other$measurandId);
 	}
 
+	@Override
 	public int hashCode() {
 		final int PRIME = 59;
 		int result = 1;
 		final Object $measurandId = this.getMeasurandId();
-		result = result * PRIME + ($measurandId == null ? 43 : $measurandId.hashCode());
+		result = result * PRIME + (($measurandId != null) ? $measurandId.hashCode() : 43);
 		return result;
 	}
 
+	@Override
 	public String toString() {
 		return "Measurand(measurandId=" + this.getMeasurandId() + ")";
 	}
+
 }

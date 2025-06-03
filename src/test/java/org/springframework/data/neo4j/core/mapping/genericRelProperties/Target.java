@@ -19,4 +19,5 @@ package org.springframework.data.neo4j.core.mapping.genericRelProperties;
  * @author Michael J. Simons
  */
 public class Target {
+
 }

@@ -28,4 +28,5 @@ public interface GH2533Repository extends Neo4jRepository<EntitiesAndProjections
 
 	@Query("MATCH p=(n)-[*0..1]->(m) WHERE id(n)=$id RETURN n, collect(relationships(p)), collect(m);")
 	Optional<EntitiesAndProjections.GH2533Entity> findByIdWithLevelOneLinks(@Param("id") Long id);
+
 }

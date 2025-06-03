@@ -34,6 +34,7 @@ public class ThingWithGeneratedId extends AbstractNamedThing {
 	}
 
 	public String getTheId() {
-		return theId;
+		return this.theId;
 	}
+
 }

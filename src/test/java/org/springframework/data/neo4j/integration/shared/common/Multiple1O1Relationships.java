@@ -22,7 +22,6 @@ import org.springframework.data.neo4j.core.schema.Relationship;
 
 /**
  * @author Michael J. Simons
- * @soundtrack Dream Theater - Scenes From A Memory
  */
 @Node
 public class Multiple1O1Relationships {
@@ -40,7 +39,7 @@ public class Multiple1O1Relationships {
 	private AltPerson person2;
 
 	public Long getId() {
-		return id;
+		return this.id;
 	}
 
 	public void setId(Long id) {
@@ -48,7 +47,7 @@ public class Multiple1O1Relationships {
 	}
 
 	public String getName() {
-		return name;
+		return this.name;
 	}
 
 	public void setName(String name) {
@@ -56,7 +55,7 @@ public class Multiple1O1Relationships {
 	}
 
 	public AltPerson getPerson1() {
-		return person1;
+		return this.person1;
 	}
 
 	public void setPerson1(AltPerson person1) {
@@ -64,10 +63,11 @@ public class Multiple1O1Relationships {
 	}
 
 	public AltPerson getPerson2() {
-		return person2;
+		return this.person2;
 	}
 
 	public void setPerson2(AltPerson person2) {
 		this.person2 = person2;
 	}
+
 }

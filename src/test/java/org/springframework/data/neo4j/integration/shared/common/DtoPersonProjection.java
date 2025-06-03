@@ -15,13 +15,17 @@
  */
 package org.springframework.data.neo4j.integration.shared.common;
 
+import java.util.Objects;
+
 /**
  * @author Michael J. Simon
  */
 public final class DtoPersonProjection {
 
 	private final String name;
+
 	private final String sameValue;
+
 	private final String firstName;
 
 	public DtoPersonProjection(String name, String sameValue, String firstName) {
@@ -42,6 +46,7 @@ public final class DtoPersonProjection {
 		return this.firstName;
 	}
 
+	@Override
 	public boolean equals(final Object o) {
 		if (o == this) {
 			return true;
@@ -52,35 +57,36 @@ public final class DtoPersonProjection {
 		final DtoPersonProjection other = (DtoPersonProjection) o;
 		final Object this$name = this.getName();
 		final Object other$name = other.getName();
-		if (this$name == null ? other$name != null : !this$name.equals(other$name)) {
+		if (!Objects.equals(this$name, other$name)) {
 			return false;
 		}
 		final Object this$sameValue = this.getSameValue();
 		final Object other$sameValue = other.getSameValue();
-		if (this$sameValue == null ? other$sameValue != null : !this$sameValue.equals(other$sameValue)) {
+		if (!Objects.equals(this$sameValue, other$sameValue)) {
 			return false;
 		}
 		final Object this$firstName = this.getFirstName();
 		final Object other$firstName = other.getFirstName();
-		if (this$firstName == null ? other$firstName != null : !this$firstName.equals(other$firstName)) {
-			return false;
-		}
-		return true;
+		return Objects.equals(this$firstName, other$firstName);
 	}
 
+	@Override
 	public int hashCode() {
 		final int PRIME = 59;
 		int result = 1;
 		final Object $name = this.getName();
-		result = result * PRIME + ($name == null ? 43 : $name.hashCode());
+		result = result * PRIME + (($name != null) ? $name.hashCode() : 43);
 		final Object $sameValue = this.getSameValue();
-		result = result * PRIME + ($sameValue == null ? 43 : $sameValue.hashCode());
+		result = result * PRIME + (($sameValue != null) ? $sameValue.hashCode() : 43);
 		final Object $firstName = this.getFirstName();
-		result = result * PRIME + ($firstName == null ? 43 : $firstName.hashCode());
+		result = result * PRIME + (($firstName != null) ? $firstName.hashCode() : 43);
 		return result;
 	}
 
+	@Override
 	public String toString() {
-		return "DtoPersonProjection(name=" + this.getName() + ", sameValue=" + this.getSameValue() + ", firstName=" + this.getFirstName() + ")";
+		return "DtoPersonProjection(name=" + this.getName() + ", sameValue=" + this.getSameValue() + ", firstName="
+				+ this.getFirstName() + ")";
 	}
+
 }

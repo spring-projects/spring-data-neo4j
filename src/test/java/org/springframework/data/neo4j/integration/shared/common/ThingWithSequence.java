@@ -39,10 +39,11 @@ public class ThingWithSequence {
 	}
 
 	public String getName() {
-		return name;
+		return this.name;
 	}
 
 	public Long getSequenceNumber() {
-		return sequenceNumber;
+		return this.sequenceNumber;
 	}
+
 }

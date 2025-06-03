@@ -30,7 +30,7 @@ public abstract class Step {
 	private Long id;
 
 	public Long getId() {
-		return id;
+		return this.id;
 	}
 
 	/**
@@ -38,6 +38,7 @@ public abstract class Step {
 	 */
 	@Node
 	public static class Chain extends Step {
+
 	}
 
 	/**
@@ -45,6 +46,7 @@ public abstract class Step {
 	 */
 	@Node
 	public static class End extends Step {
+
 	}
 
 	/**
@@ -52,5 +54,7 @@ public abstract class Step {
 	 */
 	@Node
 	public static class Origin extends Step {
+
 	}
+
 }

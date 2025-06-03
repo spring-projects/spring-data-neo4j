@@ -44,7 +44,7 @@ public class PersonWithRelationship {
 	private Club club;
 
 	public Long getId() {
-		return id;
+		return this.id;
 	}
 
 	public void setId(Long id) {
@@ -52,7 +52,7 @@ public class PersonWithRelationship {
 	}
 
 	public String getName() {
-		return name;
+		return this.name;
 	}
 
 	public void setName(String name) {
@@ -60,7 +60,7 @@ public class PersonWithRelationship {
 	}
 
 	public Hobby getHobbies() {
-		return hobbies;
+		return this.hobbies;
 	}
 
 	public void setHobbies(Hobby hobbies) {
@@ -68,7 +68,7 @@ public class PersonWithRelationship {
 	}
 
 	public Club getClub() {
-		return club;
+		return this.club;
 	}
 
 	public void setClub(Club club) {
@@ -76,7 +76,7 @@ public class PersonWithRelationship {
 	}
 
 	public List<Pet> getPets() {
-		return pets;
+		return this.pets;
 	}
 
 	public void setPets(List<Pet> pets) {
@@ -87,8 +87,11 @@ public class PersonWithRelationship {
 	 * Simple person with hobbies relationship to enforce non-cyclic querying.
 	 */
 	public interface PersonWithHobby {
+
 		String getName();
 
 		Hobby getHobbies();
+
 	}
+
 }

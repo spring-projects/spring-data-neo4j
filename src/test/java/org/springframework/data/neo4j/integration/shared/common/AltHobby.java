@@ -28,6 +28,7 @@ import org.springframework.data.neo4j.core.schema.Relationship;
  */
 @Node
 public class AltHobby {
+
 	@Id
 	@GeneratedValue
 	private Long id;
@@ -41,11 +42,11 @@ public class AltHobby {
 	private List<AltHobby> memberOf = new ArrayList<>();
 
 	public List<AltHobby> getMemberOf() {
-		return memberOf;
+		return this.memberOf;
 	}
 
 	public Long getId() {
-		return id;
+		return this.id;
 	}
 
 	public void setId(Long id) {
@@ -53,7 +54,7 @@ public class AltHobby {
 	}
 
 	public String getName() {
-		return name;
+		return this.name;
 	}
 
 	public void setName(String name) {
@@ -61,6 +62,7 @@ public class AltHobby {
 	}
 
 	public List<AltLikedByPersonRelationship> getLikedBy() {
-		return likedBy;
+		return this.likedBy;
 	}
+
 }

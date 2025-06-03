@@ -16,6 +16,7 @@
 package org.springframework.data.neo4j.integration.issues.gh2908;
 
 import org.neo4j.driver.types.Point;
+
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
@@ -23,18 +24,19 @@ import org.springframework.data.neo4j.core.schema.Relationship;
 
 /**
  * A located node with circles.
+ *
  * @author Michael J. Simons
  */
 @Node
 public class LocatedNodeWithSelfRef implements HasNameAndPlace {
 
-	@Id
-	@GeneratedValue
-	private String id;
-
 	private final String name;
 
 	private final Point place;
+
+	@Id
+	@GeneratedValue
+	private String id;
 
 	@Relationship
 	private LocatedNodeWithSelfRef next;
@@ -45,24 +47,25 @@ public class LocatedNodeWithSelfRef implements HasNameAndPlace {
 	}
 
 	public String getId() {
-		return id;
+		return this.id;
 	}
 
 	@Override
 	public String getName() {
-		return name;
+		return this.name;
 	}
 
 	@Override
 	public Point getPlace() {
-		return place;
+		return this.place;
 	}
 
 	public LocatedNodeWithSelfRef getNext() {
-		return next;
+		return this.next;
 	}
 
 	public void setNext(LocatedNodeWithSelfRef next) {
 		this.next = next;
 	}
+
 }

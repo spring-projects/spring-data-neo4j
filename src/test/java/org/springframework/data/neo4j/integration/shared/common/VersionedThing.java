@@ -30,14 +30,14 @@ import org.springframework.data.neo4j.core.schema.Relationship;
 @Node
 public class VersionedThing {
 
+	private final String name;
+
 	@Id
 	@GeneratedValue
 	private Long id;
 
 	@Version
 	private Long myVersion;
-
-	private final String name;
 
 	private String mutableProperty;
 
@@ -49,11 +49,11 @@ public class VersionedThing {
 	}
 
 	public Long getId() {
-		return id;
+		return this.id;
 	}
 
 	public Long getMyVersion() {
-		return myVersion;
+		return this.myVersion;
 	}
 
 	public void setMyVersion(Long myVersion) {
@@ -61,7 +61,7 @@ public class VersionedThing {
 	}
 
 	public List<VersionedThing> getOtherVersionedThings() {
-		return otherVersionedThings;
+		return this.otherVersionedThings;
 	}
 
 	public void setOtherVersionedThings(List<VersionedThing> otherVersionedThings) {
@@ -69,7 +69,7 @@ public class VersionedThing {
 	}
 
 	public String getMutableProperty() {
-		return mutableProperty;
+		return this.mutableProperty;
 	}
 
 	public void setMutableProperty(String mutableProperty) {
@@ -85,11 +85,12 @@ public class VersionedThing {
 			return false;
 		}
 		VersionedThing that = (VersionedThing) o;
-		return Objects.equals(id, that.id) && name.equals(that.name);
+		return Objects.equals(this.id, that.id) && this.name.equals(that.name);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(id, name);
+		return Objects.hash(this.id, this.name);
 	}
+
 }

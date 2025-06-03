@@ -15,18 +15,15 @@
  */
 package org.springframework.data.neo4j.integration.reactive;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import org.springframework.data.neo4j.test.Neo4jReactiveTestConfiguration;
-import reactor.core.publisher.Mono;
-import reactor.test.StepVerifier;
-
 import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.neo4j.driver.Driver;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -41,9 +38,12 @@ import org.springframework.data.neo4j.repository.ReactiveNeo4jRepository;
 import org.springframework.data.neo4j.repository.config.EnableReactiveNeo4jRepositories;
 import org.springframework.data.neo4j.test.BookmarkCapture;
 import org.springframework.data.neo4j.test.Neo4jExtension;
+import org.springframework.data.neo4j.test.Neo4jReactiveTestConfiguration;
 import org.springframework.transaction.ReactiveTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.reactive.TransactionalOperator;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Michael J. Simons
@@ -53,7 +53,9 @@ class ReactiveAuditingWithoutDatesIT extends AuditingITBase {
 
 	private final ReactiveTransactionManager transactionManager;
 
-	@Autowired ReactiveAuditingWithoutDatesIT(Driver driver, BookmarkCapture bookmarkCapture, ReactiveTransactionManager transactionManager) {
+	@Autowired
+	ReactiveAuditingWithoutDatesIT(Driver driver, BookmarkCapture bookmarkCapture,
+			ReactiveTransactionManager transactionManager) {
 
 		super(driver, bookmarkCapture);
 		this.transactionManager = transactionManager;
@@ -63,9 +65,12 @@ class ReactiveAuditingWithoutDatesIT extends AuditingITBase {
 	void settingOfDatesShouldBeTurnedOff(@Autowired ImmutableEntityTestRepository repository) {
 
 		List<ImmutableAuditableThing> newThings = new ArrayList<>();
-		TransactionalOperator transactionalOperator = TransactionalOperator.create(transactionManager);
-		transactionalOperator.execute(t -> repository.save(new ImmutableAuditableThing("A thing"))).as(StepVerifier::create)
-				.recordWith(() -> newThings).expectNextCount(1L).verifyComplete();
+		TransactionalOperator transactionalOperator = TransactionalOperator.create(this.transactionManager);
+		transactionalOperator.execute(t -> repository.save(new ImmutableAuditableThing("A thing")))
+			.as(StepVerifier::create)
+			.recordWith(() -> newThings)
+			.expectNextCount(1L)
+			.verifyComplete();
 
 		ImmutableAuditableThing savedThing = newThings.get(0);
 		assertThat(savedThing.getCreatedAt()).isNull();
@@ -77,8 +82,11 @@ class ReactiveAuditingWithoutDatesIT extends AuditingITBase {
 		verifyDatabase(savedThing.getId(), savedThing);
 
 		ImmutableAuditableThing newThing = savedThing.withName("A new name");
-		transactionalOperator.execute(t -> repository.save(newThing)).as(StepVerifier::create)
-				.recordWith(() -> newThings).expectNextCount(1L).verifyComplete();
+		transactionalOperator.execute(t -> repository.save(newThing))
+			.as(StepVerifier::create)
+			.recordWith(() -> newThings)
+			.expectNextCount(1L)
+			.verifyComplete();
 
 		savedThing = newThings.get(1);
 		assertThat(savedThing.getCreatedAt()).isNull();
@@ -92,7 +100,9 @@ class ReactiveAuditingWithoutDatesIT extends AuditingITBase {
 		verifyDatabase(savedThing.getId(), savedThing);
 	}
 
-	interface ImmutableEntityTestRepository extends ReactiveNeo4jRepository<ImmutableAuditableThing, Long> {}
+	interface ImmutableEntityTestRepository extends ReactiveNeo4jRepository<ImmutableAuditableThing, Long> {
+
+	}
 
 	@Configuration
 	@EnableTransactionManagement
@@ -101,30 +111,35 @@ class ReactiveAuditingWithoutDatesIT extends AuditingITBase {
 	static class Config extends Neo4jReactiveTestConfiguration {
 
 		@Bean
+		@Override
 		public Driver driver() {
 			return neo4jConnectionSupport.getDriver();
 		}
 
 		@Bean
-		public ReactiveAuditorAware<String> auditorProvider() {
+		ReactiveAuditorAware<String> auditorProvider() {
 			return () -> Mono.just("A user");
 		}
 
 		@Bean
-		public BookmarkCapture bookmarkCapture() {
+		BookmarkCapture bookmarkCapture() {
 			return new BookmarkCapture();
 		}
 
 		@Override
-		public ReactiveTransactionManager reactiveTransactionManager(Driver driver, ReactiveDatabaseSelectionProvider databaseSelectionProvider) {
+		public ReactiveTransactionManager reactiveTransactionManager(Driver driver,
+				ReactiveDatabaseSelectionProvider databaseSelectionProvider) {
 
 			BookmarkCapture bookmarkCapture = bookmarkCapture();
-			return new ReactiveNeo4jTransactionManager(driver, databaseSelectionProvider, Neo4jBookmarkManager.createReactive(bookmarkCapture));
+			return new ReactiveNeo4jTransactionManager(driver, databaseSelectionProvider,
+					Neo4jBookmarkManager.createReactive(bookmarkCapture));
 		}
 
 		@Override
 		public boolean isCypher5Compatible() {
 			return neo4jConnectionSupport.isCypher5SyntaxCompatible();
 		}
+
 	}
+
 }

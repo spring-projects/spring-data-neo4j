@@ -38,14 +38,16 @@ public class CVI implements Versioned {
 	}
 
 	public String getId() {
-		return id;
+		return this.id;
 	}
 
 	public String getName() {
-		return name;
+		return this.name;
 	}
 
+	@Override
 	public Long getVersion() {
-		return version;
+		return this.version;
 	}
+
 }

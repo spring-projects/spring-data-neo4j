@@ -28,4 +28,5 @@ public interface NamesWithSpELCity {
 
 	@Value("#{target.address.city}")
 	String getCity();
+
 }

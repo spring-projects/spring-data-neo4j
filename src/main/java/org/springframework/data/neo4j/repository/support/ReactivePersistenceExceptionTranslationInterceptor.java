@@ -15,15 +15,15 @@
  */
 package org.springframework.data.neo4j.repository.support;
 
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
-
 import java.util.Map;
 import java.util.function.Function;
 
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 import org.jspecify.annotations.Nullable;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+
 import org.springframework.beans.factory.BeanFactoryUtils;
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.dao.DataAccessException;
@@ -34,18 +34,20 @@ import org.springframework.util.Assert;
 
 /**
  * This method interceptor is modelled somewhat after
- * {@link org.springframework.dao.support.PersistenceExceptionTranslationInterceptor}, but caters for reactive needs: If
- * the method identified by the pointcut returns a supported reactive type (either {@link Mono} or {@link Flux}), it
- * installs an error mapping function with {@code onErrorMap} that tries to translate the given exception into Spring's
- * hierarchy.
+ * {@link org.springframework.dao.support.PersistenceExceptionTranslationInterceptor}, but
+ * caters for reactive needs: If the method identified by the pointcut returns a supported
+ * reactive type (either {@link Mono} or {@link Flux}), it installs an error mapping
+ * function with {@code onErrorMap} that tries to translate the given exception into
+ * Spring's hierarchy.
  * <p>
- * The interceptor uses all {@link PersistenceExceptionTranslator persistence exception translators} it finds in the
- * context through a {@link ChainedPersistenceExceptionTranslator}. Translations are eventually done with
- * {@link DataAccessUtils#translateIfNecessary(RuntimeException, PersistenceExceptionTranslator)} which returns the
- * original exception in case translation is not possible (the translator returned null).
+ * The interceptor uses all {@link PersistenceExceptionTranslator persistence exception
+ * translators} it finds in the context through a
+ * {@link ChainedPersistenceExceptionTranslator}. Translations are eventually done with
+ * {@link DataAccessUtils#translateIfNecessary(RuntimeException, PersistenceExceptionTranslator)}
+ * which returns the original exception in case translation is not possible (the
+ * translator returned null).
  *
  * @author Michael J. Simons
- * @soundtrack Fatoni - Andorra
  * @since 6.0
  */
 final class ReactivePersistenceExceptionTranslationInterceptor implements MethodInterceptor {
@@ -55,10 +57,10 @@ final class ReactivePersistenceExceptionTranslationInterceptor implements Method
 	private volatile PersistenceExceptionTranslator persistenceExceptionTranslator;
 
 	/**
-	 * Create a new PersistenceExceptionTranslationInterceptor, autodetecting PersistenceExceptionTranslators in the given
-	 * BeanFactory.
-	 *
-	 * @param beanFactory the ListableBeanFactory to obtaining all PersistenceExceptionTranslators from
+	 * Create a new PersistenceExceptionTranslationInterceptor, autodetecting
+	 * PersistenceExceptionTranslators in the given BeanFactory.
+	 * @param beanFactory the ListableBeanFactory to obtaining all
+	 * PersistenceExceptionTranslators from
 	 */
 	@SuppressWarnings("NullAway")
 	ReactivePersistenceExceptionTranslationInterceptor(ListableBeanFactory beanFactory) {
@@ -67,21 +69,23 @@ final class ReactivePersistenceExceptionTranslationInterceptor implements Method
 	}
 
 	@Override
-	@Nullable
-	public Object invoke(MethodInvocation mi) throws Throwable {
+	@Nullable public Object invoke(MethodInvocation mi) throws Throwable {
 
 		// Invoke the method potentially returning a reactive type
 		Object m = mi.proceed();
 
 		PersistenceExceptionTranslator translator = getPersistenceExceptionTranslator();
-		// Add the translation. Nothing will happen if no-one subscribe the reactive result.
-		Function<RuntimeException, Throwable> errorMappingFunction = t -> t instanceof DataAccessException ? t
+		// Add the translation. Nothing will happen if no-one subscribe the reactive
+		// result.
+		Function<RuntimeException, Throwable> errorMappingFunction = t -> (t instanceof DataAccessException) ? t
 				: DataAccessUtils.translateIfNecessary(t, translator);
 		if (m instanceof Mono) {
 			return ((Mono<?>) m).onErrorMap(RuntimeException.class, errorMappingFunction);
-		} else if (m instanceof Flux) {
+		}
+		else if (m instanceof Flux) {
 			return ((Flux<?>) m).onErrorMap(RuntimeException.class, errorMappingFunction);
-		} else {
+		}
+		else {
 			return m;
 		}
 	}
@@ -103,17 +107,17 @@ final class ReactivePersistenceExceptionTranslationInterceptor implements Method
 
 	/**
 	 * Detect all PersistenceExceptionTranslators in the given BeanFactory.
-	 *
-	 * @return a chained PersistenceExceptionTranslator, combining all PersistenceExceptionTranslators found in the
-	 *         factory
+	 * @return a chained PersistenceExceptionTranslator, combining all
+	 * PersistenceExceptionTranslators found in the factory
 	 * @see ChainedPersistenceExceptionTranslator
 	 */
 	private PersistenceExceptionTranslator detectPersistenceExceptionTranslators() {
 		// Find all translators, being careful not to activate FactoryBeans.
-		Map<String, PersistenceExceptionTranslator> pets = BeanFactoryUtils.beansOfTypeIncludingAncestors(beanFactory,
-				PersistenceExceptionTranslator.class, false, false);
+		Map<String, PersistenceExceptionTranslator> pets = BeanFactoryUtils
+			.beansOfTypeIncludingAncestors(this.beanFactory, PersistenceExceptionTranslator.class, false, false);
 		ChainedPersistenceExceptionTranslator cpet = new ChainedPersistenceExceptionTranslator();
 		pets.values().forEach(cpet::addDelegate);
 		return cpet;
 	}
+
 }

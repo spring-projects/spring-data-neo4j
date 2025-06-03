@@ -15,14 +15,15 @@
  */
 package org.springframework.data.neo4j.integration.shared.common;
 
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+
 import org.springframework.data.annotation.PersistenceCreator;
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Relationship;
-
-import java.util.List;
-import java.util.Set;
 
 /**
  * @author Gerrit Meier
@@ -30,16 +31,11 @@ import java.util.Set;
 @Node
 public class Pet {
 
+	private final String name;
+
 	@Id
 	@GeneratedValue
 	private Long id;
-
-	private final String name;
-
-	public Pet(long id, String name) {
-		this(name);
-		this.id = id;
-	}
 
 	@Relationship("Has")
 	private Set<Hobby> hobbies;
@@ -53,13 +49,18 @@ public class Pet {
 	@Relationship("Has")
 	private List<ThingWithAssignedId> things;
 
+	public Pet(long id, String name) {
+		this(name);
+		this.id = id;
+	}
+
 	@PersistenceCreator
 	public Pet(String name) {
 		this.name = name;
 	}
 
 	public Set<Hobby> getHobbies() {
-		return hobbies;
+		return this.hobbies;
 	}
 
 	public void setHobbies(Set<Hobby> hobbies) {
@@ -67,7 +68,7 @@ public class Pet {
 	}
 
 	public List<Pet> getFriends() {
-		return friends;
+		return this.friends;
 	}
 
 	public void setFriends(List<Pet> friends) {
@@ -75,7 +76,7 @@ public class Pet {
 	}
 
 	public Long getId() {
-		return id;
+		return this.id;
 	}
 
 	public String getName() {
@@ -90,6 +91,11 @@ public class Pet {
 		return this.things;
 	}
 
+	protected boolean canEqual(final Object other) {
+		return other instanceof Pet;
+	}
+
+	@Override
 	public boolean equals(final Object o) {
 		if (o == this) {
 			return true;
@@ -103,28 +109,23 @@ public class Pet {
 		}
 		final Object this$id = this.getId();
 		final Object other$id = other.getId();
-		if (this$id == null ? other$id != null : !this$id.equals(other$id)) {
+		if (!Objects.equals(this$id, other$id)) {
 			return false;
 		}
 		final Object this$name = this.getName();
 		final Object other$name = other.getName();
-		if (this$name == null ? other$name != null : !this$name.equals(other$name)) {
-			return false;
-		}
-		return true;
+		return Objects.equals(this$name, other$name);
 	}
 
-	protected boolean canEqual(final Object other) {
-		return other instanceof Pet;
-	}
-
+	@Override
 	public int hashCode() {
 		final int PRIME = 59;
 		int result = 1;
 		final Object $id = this.getId();
-		result = result * PRIME + ($id == null ? 43 : $id.hashCode());
+		result = (result * PRIME) + (($id != null) ? $id.hashCode() : 43);
 		final Object $name = this.getName();
-		result = result * PRIME + ($name == null ? 43 : $name.hashCode());
+		result = (result * PRIME) + (($name != null) ? $name.hashCode() : 43);
 		return result;
 	}
+
 }

@@ -28,6 +28,7 @@ import org.springframework.data.neo4j.core.support.UUIDStringGenerator;
  */
 @Node
 public class ConditionNode {
+
 	@Id
 	@GeneratedValue(UUIDStringGenerator.class)
 	public String uuid;
@@ -37,4 +38,5 @@ public class ConditionNode {
 
 	@Relationship(type = "CAUSES", direction = Relationship.Direction.OUTGOING)
 	public Set<FailureRelationship> downstreamFailures;
+
 }

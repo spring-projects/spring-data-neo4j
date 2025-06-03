@@ -25,7 +25,9 @@ import org.springframework.data.neo4j.core.support.UUIDStringGenerator;
  */
 @Node
 public class FailureNode {
+
 	@Id
 	@GeneratedValue(UUIDStringGenerator.class)
 	public String uuid;
+
 }

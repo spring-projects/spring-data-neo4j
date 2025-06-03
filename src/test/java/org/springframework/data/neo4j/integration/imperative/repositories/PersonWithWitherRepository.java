@@ -25,7 +25,7 @@ import org.springframework.data.neo4j.repository.query.Query;
 /**
  * @author Michael J. Simons
  */
-public interface PersonWithWitherRepository extends Neo4jRepository<PersonWithWither, Long>  {
+public interface PersonWithWitherRepository extends Neo4jRepository<PersonWithWither, Long> {
 
 	@Query("MATCH (n:PersonWithWither) return n")
 	List<PersonWithWither> getAllPersonsWithWitherViaQuery();

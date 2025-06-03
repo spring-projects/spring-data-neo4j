@@ -15,11 +15,12 @@
  */
 package org.springframework.data.neo4j.core.mapping.callback;
 
+import java.util.Date;
+import java.util.Objects;
+
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedDate;
-
-import java.util.Date;
 
 /**
  * @author Michael J. Simons
@@ -28,8 +29,10 @@ public final class ImmutableSample {
 
 	@Id
 	private final String id;
+
 	@CreatedDate
 	private final Date created;
+
 	@LastModifiedDate
 	private final Date modified;
 
@@ -57,6 +60,19 @@ public final class ImmutableSample {
 		return this.modified;
 	}
 
+	public ImmutableSample withId(String newId) {
+		return Objects.equals(this.id, newId) ? this : new ImmutableSample(newId, this.created, this.modified);
+	}
+
+	public ImmutableSample withCreated(Date newCreated) {
+		return (this.created != newCreated) ? new ImmutableSample(this.id, newCreated, this.modified) : this;
+	}
+
+	public ImmutableSample withModified(Date newModified) {
+		return (this.modified != newModified) ? new ImmutableSample(this.id, this.created, newModified) : this;
+	}
+
+	@Override
 	public boolean equals(final Object o) {
 		if (o == this) {
 			return true;
@@ -67,47 +83,36 @@ public final class ImmutableSample {
 		final ImmutableSample other = (ImmutableSample) o;
 		final Object this$id = this.getId();
 		final Object other$id = other.getId();
-		if (this$id == null ? other$id != null : !this$id.equals(other$id)) {
+		if (!Objects.equals(this$id, other$id)) {
 			return false;
 		}
 		final Object this$created = this.getCreated();
 		final Object other$created = other.getCreated();
-		if (this$created == null ? other$created != null : !this$created.equals(other$created)) {
+		if (!Objects.equals(this$created, other$created)) {
 			return false;
 		}
 		final Object this$modified = this.getModified();
 		final Object other$modified = other.getModified();
-		if (this$modified == null ? other$modified != null : !this$modified.equals(other$modified)) {
-			return false;
-		}
-		return true;
+		return Objects.equals(this$modified, other$modified);
 	}
 
+	@Override
 	public int hashCode() {
 		final int PRIME = 59;
 		int result = 1;
 		final Object $id = this.getId();
-		result = result * PRIME + ($id == null ? 43 : $id.hashCode());
+		result = result * PRIME + (($id != null) ? $id.hashCode() : 43);
 		final Object $created = this.getCreated();
-		result = result * PRIME + ($created == null ? 43 : $created.hashCode());
+		result = result * PRIME + (($created != null) ? $created.hashCode() : 43);
 		final Object $modified = this.getModified();
-		result = result * PRIME + ($modified == null ? 43 : $modified.hashCode());
+		result = result * PRIME + (($modified != null) ? $modified.hashCode() : 43);
 		return result;
 	}
 
+	@Override
 	public String toString() {
-		return "ImmutableSample(id=" + this.getId() + ", created=" + this.getCreated() + ", modified=" + this.getModified() + ")";
+		return "ImmutableSample(id=" + this.getId() + ", created=" + this.getCreated() + ", modified="
+				+ this.getModified() + ")";
 	}
 
-	public ImmutableSample withId(String newId) {
-		return this.id == newId ? this : new ImmutableSample(newId, this.created, this.modified);
-	}
-
-	public ImmutableSample withCreated(Date newCreated) {
-		return this.created == newCreated ? this : new ImmutableSample(this.id, newCreated, this.modified);
-	}
-
-	public ImmutableSample withModified(Date newModified) {
-		return this.modified == newModified ? this : new ImmutableSample(this.id, this.created, newModified);
-	}
 }

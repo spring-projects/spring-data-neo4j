@@ -31,7 +31,6 @@ import org.springframework.data.domain.AuditorAware;
  *
  * @author Michael J. Simons
  * @since 6.0
- * @soundtrack Iron Maiden - Killers
  */
 @Inherited
 @Documented
@@ -41,31 +40,33 @@ import org.springframework.data.domain.AuditorAware;
 public @interface EnableNeo4jAuditing {
 
 	/**
-	 * Configures the {@link AuditorAware} bean to be used to look up the current principal.
-	 *
-	 * @return The name of the {@link AuditorAware} bean to be used to look up the current principal.
+	 * Configures the {@link AuditorAware} bean to be used to look up the current
+	 * principal.
+	 * @return The name of the {@link AuditorAware} bean to be used to look up the current
+	 * principal.
 	 */
 	String auditorAwareRef() default "";
 
 	/**
-	 * Configures whether the creation and modification dates are set. Defaults to {@literal true}.
-	 *
+	 * Configures whether the creation and modification dates are set. Defaults to
+	 * {@literal true}.
 	 * @return whether to set the creation and modification dates.
 	 */
 	boolean setDates() default true;
 
 	/**
-	 * Configures whether the entity shall be marked as modified on creation. Defaults to {@literal true}.
-	 *
+	 * Configures whether the entity shall be marked as modified on creation. Defaults to
+	 * {@literal true}.
 	 * @return whether to mark the entity as modified on creation.
 	 */
 	boolean modifyOnCreate() default true;
 
 	/**
-	 * Configures a {@link DateTimeProvider} bean name that allows customizing actual date time class to be used for
-	 * setting creation and modification dates.
-	 *
-	 * @return The name of the {@link DateTimeProvider} bean to provide the current date time for creation and modification dates.
+	 * Configures a {@link DateTimeProvider} bean name that allows customizing actual date
+	 * time class to be used for setting creation and modification dates.
+	 * @return The name of the {@link DateTimeProvider} bean to provide the current date
+	 * time for creation and modification dates.
 	 */
 	String dateTimeProviderRef() default "";
+
 }

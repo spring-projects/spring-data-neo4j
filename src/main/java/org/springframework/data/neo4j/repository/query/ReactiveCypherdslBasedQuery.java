@@ -26,6 +26,7 @@ import org.jspecify.annotations.Nullable;
 import org.neo4j.cypherdsl.core.Statement;
 import org.neo4j.driver.types.MapAccessor;
 import org.neo4j.driver.types.TypeSystem;
+
 import org.springframework.data.neo4j.core.PreparedQuery;
 import org.springframework.data.neo4j.core.ReactiveNeo4jOperations;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
@@ -34,34 +35,36 @@ import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.util.Assert;
 
 /**
- * A repository query based on the Cypher-DSL. This variant has been introduced as it turns out to be rather hard to access
- * facts about the returned type or the returned projection (if any).
+ * A repository query based on the Cypher-DSL. This variant has been introduced as it
+ * turns out to be rather hard to access facts about the returned type or the returned
+ * projection (if any).
  *
  * @author Michael J. Simons
  * @since 6.1
  */
 final class ReactiveCypherdslBasedQuery extends AbstractReactiveNeo4jQuery {
 
-	static ReactiveCypherdslBasedQuery create(ReactiveNeo4jOperations neo4jOperations, Neo4jMappingContext mappingContext,
-		Neo4jQueryMethod queryMethod, ProjectionFactory projectionFactory, Function<Statement, String> renderer) {
-
-		return new ReactiveCypherdslBasedQuery(neo4jOperations, mappingContext, queryMethod, Neo4jQueryType.DEFAULT, projectionFactory, renderer);
-	}
-
 	private final Function<Statement, String> renderer;
 
-	private ReactiveCypherdslBasedQuery(ReactiveNeo4jOperations neo4jOperations,
-			Neo4jMappingContext mappingContext,
+	private ReactiveCypherdslBasedQuery(ReactiveNeo4jOperations neo4jOperations, Neo4jMappingContext mappingContext,
 			Neo4jQueryMethod queryMethod, Neo4jQueryType queryType, ProjectionFactory projectionFactory,
 			Function<Statement, String> renderer) {
 		super(neo4jOperations, mappingContext, queryMethod, queryType, projectionFactory);
 		this.renderer = renderer;
 	}
 
+	static ReactiveCypherdslBasedQuery create(ReactiveNeo4jOperations neo4jOperations,
+			Neo4jMappingContext mappingContext, Neo4jQueryMethod queryMethod, ProjectionFactory projectionFactory,
+			Function<Statement, String> renderer) {
+
+		return new ReactiveCypherdslBasedQuery(neo4jOperations, mappingContext, queryMethod, Neo4jQueryType.DEFAULT,
+				projectionFactory, renderer);
+	}
+
 	@Override
-	protected <T> PreparedQuery<T> prepareQuery(Class<T> returnedType, Collection<PropertyFilter.ProjectedPath> includedProperties,
-			Neo4jParameterAccessor parameterAccessor, @Nullable Neo4jQueryType queryType,
-			Supplier<BiFunction<TypeSystem, MapAccessor, ?>> mappingFunction,
+	protected <T> PreparedQuery<T> prepareQuery(Class<T> returnedType,
+			Collection<PropertyFilter.ProjectedPath> includedProperties, Neo4jParameterAccessor parameterAccessor,
+			@Nullable Neo4jQueryType queryType, Supplier<BiFunction<TypeSystem, MapAccessor, ?>> mappingFunction,
 			UnaryOperator<Integer> limitModifier) {
 
 		Object[] parameters = parameterAccessor.getValues();
@@ -73,9 +76,10 @@ final class ReactiveCypherdslBasedQuery extends AbstractReactiveNeo4jQuery {
 
 		Map<String, Object> boundParameters = statement.getCatalog().getParameters();
 		return PreparedQuery.queryFor(returnedType)
-				.withCypherQuery(renderer.apply(statement))
-				.withParameters(boundParameters)
-				.usingMappingFunction(mappingFunction)
-				.build();
+			.withCypherQuery(this.renderer.apply(statement))
+			.withParameters(boundParameters)
+			.usingMappingFunction(mappingFunction)
+			.build();
 	}
+
 }

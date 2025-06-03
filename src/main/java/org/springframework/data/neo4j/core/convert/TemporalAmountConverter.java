@@ -27,58 +27,56 @@ import org.jspecify.annotations.Nullable;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
 import org.neo4j.driver.types.IsoDuration;
+
 import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.core.convert.converter.GenericConverter;
 
 /**
- * This generic converter has been introduced to augment the {@link TemporalAmountAdapter} with the type information passed
- * to a generic converter to make some educated guesses whether an {@link org.neo4j.driver.types.IsoDuration} of {@literal 0}
- * should be possibly treated as {@link java.time.Period} or {@link java.time.Duration}.
+ * This generic converter has been introduced to augment the {@link TemporalAmountAdapter}
+ * with the type information passed to a generic converter to make some educated guesses
+ * whether an {@link org.neo4j.driver.types.IsoDuration} of {@literal 0} should be
+ * possibly treated as {@link java.time.Period} or {@link java.time.Duration}.
  *
  * @author Michael J. Simons
- * @soundtrack Motörhead - Bomber
  */
 final class TemporalAmountConverter implements GenericConverter {
 
 	private final TemporalAmountAdapter adapter = new TemporalAmountAdapter();
-	private final Set<ConvertiblePair> convertibleTypes = Collections.unmodifiableSet(
-			new HashSet<>(Arrays.asList(
-					new ConvertiblePair(Value.class, TemporalAmount.class),
-					new ConvertiblePair(TemporalAmount.class, Value.class)
-			)));
 
-	@Override
-	public Set<ConvertiblePair> getConvertibleTypes() {
-		return convertibleTypes;
+	private final Set<ConvertiblePair> convertibleTypes = Collections
+		.unmodifiableSet(new HashSet<>(Arrays.asList(new ConvertiblePair(Value.class, TemporalAmount.class),
+				new ConvertiblePair(TemporalAmount.class, Value.class))));
+
+	private static boolean isZero(IsoDuration isoDuration) {
+
+		return isoDuration.months() == 0L && isoDuration.days() == 0L && isoDuration.seconds() == 0L
+				&& isoDuration.nanoseconds() == 0L;
 	}
 
 	@Override
-	@Nullable
-	public Object convert(@Nullable Object value, TypeDescriptor sourceType, TypeDescriptor targetType) {
+	public Set<ConvertiblePair> getConvertibleTypes() {
+		return this.convertibleTypes;
+	}
+
+	@Override
+	@Nullable public Object convert(@Nullable Object value, TypeDescriptor sourceType, TypeDescriptor targetType) {
 
 		if (TemporalAmount.class.isAssignableFrom(sourceType.getType())) {
 			return Values.value(value);
 		}
 
-		Object convertedValue = value == null || value == Values.NULL ? null : adapter.apply(((Value) value).asIsoDuration());
+		Object convertedValue = (value == null || value == Values.NULL) ? null
+				: this.adapter.apply(((Value) value).asIsoDuration());
 
 		if (convertedValue instanceof IsoDuration && isZero((IsoDuration) convertedValue)) {
 			if (Period.class.isAssignableFrom(targetType.getType())) {
 				return Period.of(0, 0, 0);
-			} else if (Duration.class.isAssignableFrom(targetType.getType())) {
+			}
+			else if (Duration.class.isAssignableFrom(targetType.getType())) {
 				return Duration.ZERO;
 			}
 		}
 		return convertedValue;
 	}
 
-	/**
-	 * @param isoDuration The duration to check whether it's {@literal 0} or not.
-	 * @return True if there are only temporal units in that duration with a value of {@literal 0}.
-	 */
-	private static boolean isZero(IsoDuration isoDuration) {
-
-		return isoDuration.months() == 0L && isoDuration.days() == 0L &&
-			   isoDuration.seconds() == 0L && isoDuration.nanoseconds() == 0L;
-	}
 }

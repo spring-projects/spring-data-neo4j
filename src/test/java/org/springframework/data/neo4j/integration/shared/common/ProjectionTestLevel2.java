@@ -26,10 +26,11 @@ public class ProjectionTestLevel2 extends ProjectionTestBase {
 	private ProjectionTestRoot backToRoot;
 
 	public ProjectionTestRoot getBackToRoot() {
-		return backToRoot;
+		return this.backToRoot;
 	}
 
 	public void setBackToRoot(ProjectionTestRoot backToRoot) {
 		this.backToRoot = backToRoot;
 	}
+
 }

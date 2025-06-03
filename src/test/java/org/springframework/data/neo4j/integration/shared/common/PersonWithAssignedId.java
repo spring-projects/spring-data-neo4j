@@ -32,7 +32,7 @@ public class PersonWithAssignedId {
 	private String lastName;
 
 	public String getId() {
-		return id;
+		return this.id;
 	}
 
 	public void setId(String id) {
@@ -40,7 +40,7 @@ public class PersonWithAssignedId {
 	}
 
 	public String getFirstName() {
-		return firstName;
+		return this.firstName;
 	}
 
 	public void setFirstName(String firstName) {
@@ -48,10 +48,11 @@ public class PersonWithAssignedId {
 	}
 
 	public String getLastName() {
-		return lastName;
+		return this.lastName;
 	}
 
 	public void setLastName(String lastName) {
 		this.lastName = lastName;
 	}
+
 }

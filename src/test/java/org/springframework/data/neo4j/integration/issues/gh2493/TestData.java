@@ -21,6 +21,7 @@ package org.springframework.data.neo4j.integration.issues.gh2493;
 public class TestData {
 
 	private int num;
+
 	private String string;
 
 	public TestData() {
@@ -36,15 +37,16 @@ public class TestData {
 		return this.num;
 	}
 
-	public String getString() {
-		return this.string;
-	}
-
 	public void setNum(int num) {
 		this.num = num;
+	}
+
+	public String getString() {
+		return this.string;
 	}
 
 	public void setString(String string) {
 		this.string = string;
 	}
+
 }

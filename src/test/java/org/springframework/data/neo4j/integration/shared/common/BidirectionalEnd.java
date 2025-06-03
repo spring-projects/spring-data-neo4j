@@ -35,8 +35,7 @@ public class BidirectionalEnd {
 	@Relationship(type = "CONNECTED", direction = Relationship.Direction.INCOMING)
 	private BidirectionalStart start;
 
-	@Relationship(type = "ANOTHER_CONNECTION",
-			direction = Relationship.Direction.INCOMING)
+	@Relationship(type = "ANOTHER_CONNECTION", direction = Relationship.Direction.INCOMING)
 	private BidirectionalStart anotherStart;
 
 	public BidirectionalEnd(String name) {
@@ -44,14 +43,15 @@ public class BidirectionalEnd {
 	}
 
 	public BidirectionalStart getStart() {
-		return start;
-	}
-
-	public BidirectionalStart getAnotherStart() {
-		return anotherStart;
+		return this.start;
 	}
 
 	public void setStart(BidirectionalStart start) {
 		this.start = start;
 	}
+
+	public BidirectionalStart getAnotherStart() {
+		return this.anotherStart;
+	}
+
 }

@@ -19,7 +19,7 @@ import org.springframework.data.neo4j.repository.Neo4jRepository;
 
 /**
  * @author Michael J. Simons
- * @soundtrack Various - T2 Trainspotting
  */
 public interface Domain2Repository extends Neo4jRepository<Domain2Entity, Long> {
+
 }

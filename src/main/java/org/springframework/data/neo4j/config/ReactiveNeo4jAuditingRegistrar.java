@@ -28,37 +28,27 @@ import org.springframework.data.neo4j.core.mapping.callback.ReactiveAuditingBefo
 import org.springframework.util.Assert;
 
 /**
+ * Registers all beans required for the auditing support.
+ *
  * @author Michael J. Simons
- * @soundtrack Ferris MC - Missglückte Asimetrie
  * @since 6.0
  */
 final class ReactiveNeo4jAuditingRegistrar extends AuditingBeanDefinitionRegistrarSupport {
 
 	private static final String AUDITING_HANDLER_BEAN_NAME = "reactiveNeo4jAuditingHandler";
+
 	private static final String MAPPING_CONTEXT_BEAN_NAME = "neo4jMappingContext";
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.auditing.config.AuditingBeanDefinitionRegistrarSupport#getAnnotation()
-	 */
 	@Override
 	protected Class<? extends Annotation> getAnnotation() {
 		return EnableReactiveNeo4jAuditing.class;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.auditing.config.AuditingBeanDefinitionRegistrarSupport#getAuditingHandlerBeanName()
-	 */
 	@Override
 	protected String getAuditingHandlerBeanName() {
 		return AUDITING_HANDLER_BEAN_NAME;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.auditing.config.AuditingBeanDefinitionRegistrarSupport#registerAuditListener(org.springframework.beans.factory.config.BeanDefinition, org.springframework.beans.factory.support.BeanDefinitionRegistry)
-	 */
 	@Override
 	protected void registerAuditListenerBeanDefinition(BeanDefinition auditingHandlerDefinition,
 			BeanDefinitionRegistry registry) {
@@ -66,30 +56,32 @@ final class ReactiveNeo4jAuditingRegistrar extends AuditingBeanDefinitionRegistr
 		Assert.notNull(auditingHandlerDefinition, "BeanDefinition must not be null");
 		Assert.notNull(registry, "BeanDefinitionRegistry must not be null");
 
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(ReactiveAuditingBeforeBindCallback.class);
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder
+			.rootBeanDefinition(ReactiveAuditingBeforeBindCallback.class);
 
-		builder.addConstructorArgValue(ParsingUtils.getObjectFactoryBeanDefinition(getAuditingHandlerBeanName(), registry));
+		builder.addConstructorArgValue(
+				ParsingUtils.getObjectFactoryBeanDefinition(getAuditingHandlerBeanName(), registry));
 		builder.getRawBeanDefinition().setSource(auditingHandlerDefinition.getSource());
 
-		registerInfrastructureBeanWithId(builder.getBeanDefinition(), ReactiveAuditingBeforeBindCallback.class.getName(), registry);
+		registerInfrastructureBeanWithId(builder.getBeanDefinition(),
+				ReactiveAuditingBeforeBindCallback.class.getName(), registry);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.auditing.config.AuditingBeanDefinitionRegistrarSupport#getAuditHandlerBeanDefinitionBuilder(org.springframework.data.auditing.config.AuditingConfiguration)
-	 */
 	@Override
 	protected BeanDefinitionBuilder getAuditHandlerBeanDefinitionBuilder(AuditingConfiguration configuration) {
 
 		Assert.notNull(configuration, "AuditingConfiguration must not be null");
 
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(ReactiveIsNewAwareAuditingHandler.class);
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder
+			.rootBeanDefinition(ReactiveIsNewAwareAuditingHandler.class);
 
 		return configureDefaultAuditHandlerAttributes(configuration, builder);
 	}
 
 	@Override
-	public void postProcess(BeanDefinitionBuilder builder, AuditingConfiguration configuration, BeanDefinitionRegistry registry) {
+	public void postProcess(BeanDefinitionBuilder builder, AuditingConfiguration configuration,
+			BeanDefinitionRegistry registry) {
 		builder.setFactoryMethod("from").addConstructorArgReference(MAPPING_CONTEXT_BEAN_NAME);
 	}
+
 }

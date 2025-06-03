@@ -18,6 +18,7 @@ package org.springframework.data.neo4j.config;
 import org.apiguardian.api.API;
 import org.jspecify.annotations.Nullable;
 import org.neo4j.driver.Driver;
+
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -27,6 +28,7 @@ import org.springframework.data.neo4j.core.Neo4jClient;
 import org.springframework.data.neo4j.core.Neo4jOperations;
 import org.springframework.data.neo4j.core.Neo4jTemplate;
 import org.springframework.data.neo4j.core.UserSelectionProvider;
+import org.springframework.data.neo4j.core.convert.Neo4jConversions;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
 import org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager;
@@ -34,8 +36,8 @@ import org.springframework.data.neo4j.repository.config.Neo4jRepositoryConfigura
 import org.springframework.transaction.PlatformTransactionManager;
 
 /**
- * Base class for imperative SDN configuration using JavaConfig. This can be included in all scenarios in which Spring
- * Boot is not an option.
+ * Base class for imperative SDN configuration using JavaConfig. This can be included in
+ * all scenarios in which Spring Boot is not an option.
  *
  * @author Michael J. Simons
  * @author Gerrit Meier
@@ -51,27 +53,42 @@ public abstract class AbstractNeo4jConfig extends Neo4jConfigurationSupport {
 	@Autowired
 	private ObjectProvider<Neo4jBookmarkManager> bookmarkManagerProviders;
 
+	@Override
+	public Neo4jConversions neo4jConversions() {
+		return super.neo4jConversions();
+	}
+
+	@Override
+	public org.neo4j.cypherdsl.core.renderer.Configuration cypherDslConfiguration() {
+		return super.cypherDslConfiguration();
+	}
+
+	@Override
+	public Neo4jMappingContext neo4jMappingContext(Neo4jConversions neo4JConversions) throws ClassNotFoundException {
+		return super.neo4jMappingContext(neo4JConversions);
+	}
+
 	/**
 	 * The driver to be used for interacting with Neo4j.
-	 *
 	 * @return the Neo4j Java driver instance to work with.
 	 */
 	public abstract Driver driver();
 
 	/**
-	 * The driver used here should be the driver resulting from {@link #driver()}, which is the default.
-	 *
-	 * @param driver The driver to connect with.
-	 * @return A imperative Neo4j client.
+	 * The driver used here should be the driver resulting from {@link #driver()}, which
+	 * is the default.
+	 * @param driver the driver to connect with.
+	 * @param databaseSelectionProvider the database selection provider to use.
+	 * @return a imperative Neo4j client.
 	 */
 	@Bean(Neo4jRepositoryConfigurationExtension.DEFAULT_NEO4J_CLIENT_BEAN_NAME)
 	public Neo4jClient neo4jClient(Driver driver, @Nullable DatabaseSelectionProvider databaseSelectionProvider) {
 
 		return Neo4jClient.with(driver)
-				.withDatabaseSelectionProvider(databaseSelectionProvider)
-				.withUserSelectionProvider(this.userSelectionProviders.getIfUnique())
-				.withNeo4jBookmarkManager(getBootBookmarkManager())
-				.build();
+			.withDatabaseSelectionProvider(databaseSelectionProvider)
+			.withUserSelectionProvider(this.userSelectionProviders.getIfUnique())
+			.withNeo4jBookmarkManager(getBootBookmarkManager())
+			.build();
 	}
 
 	private Neo4jBookmarkManager getBootBookmarkManager() {
@@ -85,21 +102,21 @@ public abstract class AbstractNeo4jConfig extends Neo4jConfigurationSupport {
 	}
 
 	/**
-	 * Provides a {@link PlatformTransactionManager} for Neo4j based on the driver resulting from {@link #driver()}.
-	 *
-	 * @param driver The driver to synchronize against
-	 * @param databaseSelectionProvider The configured database selection provider
-	 * @return A platform transaction manager
+	 * Provides a {@link PlatformTransactionManager} for Neo4j based on the driver
+	 * resulting from {@link #driver()}.
+	 * @param driver the driver to synchronize against
+	 * @param databaseSelectionProvider the configured database selection provider
+	 * @return a platform transaction manager
 	 */
 	@Bean(Neo4jRepositoryConfigurationExtension.DEFAULT_TRANSACTION_MANAGER_BEAN_NAME)
-	public PlatformTransactionManager transactionManager(Driver driver, @Nullable DatabaseSelectionProvider databaseSelectionProvider) {
+	public PlatformTransactionManager transactionManager(Driver driver,
+			@Nullable DatabaseSelectionProvider databaseSelectionProvider) {
 
-		return Neo4jTransactionManager
-				.with(driver)
-				.withDatabaseSelectionProvider(databaseSelectionProvider)
-				.withUserSelectionProvider(this.userSelectionProviders.getIfUnique())
-				.withBookmarkManager(getBootBookmarkManager())
-				.build();
+		return Neo4jTransactionManager.with(driver)
+			.withDatabaseSelectionProvider(databaseSelectionProvider)
+			.withUserSelectionProvider(this.userSelectionProviders.getIfUnique())
+			.withBookmarkManager(getBootBookmarkManager())
+			.build();
 	}
 
 	@Bean
@@ -109,13 +126,13 @@ public abstract class AbstractNeo4jConfig extends Neo4jConfigurationSupport {
 
 	/**
 	 * Configures the database selection provider.
-	 *
-	 * @return The default database name provider, defaulting to the default database on Neo4j 4.0 and on no default on
-	 *         Neo4j 3.5 and prior.
+	 * @return the default database name provider, defaulting to the default database on
+	 * Neo4j 4.0 and on no default on Neo4j 3.5 and prior.
 	 */
 	@Bean
 	protected DatabaseSelectionProvider databaseSelectionProvider() {
 
 		return DatabaseSelectionProvider.getDefaultSelectionProvider();
 	}
+
 }

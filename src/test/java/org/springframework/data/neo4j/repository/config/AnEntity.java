@@ -23,6 +23,9 @@ import org.springframework.data.neo4j.core.schema.Node;
  */
 @Node
 class AnEntity {
+
 	@SuppressWarnings("unused")
-	@Id String name;
+	@Id
+	String name;
+
 }

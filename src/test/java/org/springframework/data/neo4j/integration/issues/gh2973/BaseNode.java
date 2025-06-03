@@ -15,30 +15,31 @@
  */
 package org.springframework.data.neo4j.integration.issues.gh2973;
 
-import org.springframework.data.neo4j.core.schema.GeneratedValue;
-import org.springframework.data.neo4j.core.schema.Id;
-import org.springframework.data.neo4j.core.schema.Node;
-import org.springframework.data.neo4j.core.schema.Relationship;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import org.springframework.data.neo4j.core.schema.GeneratedValue;
+import org.springframework.data.neo4j.core.schema.Id;
+import org.springframework.data.neo4j.core.schema.Node;
+import org.springframework.data.neo4j.core.schema.Relationship;
 
 /**
  * @author yangyaofei
  */
 @Node
 public class BaseNode {
+
 	@Id
 	@GeneratedValue
 	private UUID id;
+
 	@Relationship(direction = Relationship.Direction.OUTGOING)
 	private Map<String, List<BaseRelationship>> relationships = new HashMap<>();
 
 	public UUID getId() {
-		return id;
+		return this.id;
 	}
 
 	public void setId(UUID id) {
@@ -46,10 +47,11 @@ public class BaseNode {
 	}
 
 	public Map<String, List<BaseRelationship>> getRelationships() {
-		return relationships;
+		return this.relationships;
 	}
 
 	public void setRelationships(Map<String, List<BaseRelationship>> relationships) {
 		this.relationships = relationships;
 	}
+
 }

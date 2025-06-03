@@ -39,7 +39,7 @@ public class RelWithProps {
 	}
 
 	public String getId() {
-		return id;
+		return this.id;
 	}
 
 	public void setId(String id) {
@@ -47,7 +47,7 @@ public class RelWithProps {
 	}
 
 	public String getRelValue() {
-		return relValue;
+		return this.relValue;
 	}
 
 	public void setRelValue(String relValue) {
@@ -55,10 +55,11 @@ public class RelWithProps {
 	}
 
 	public NodeWithGeneratedId1 getTarget() {
-		return target;
+		return this.target;
 	}
 
 	public void setTarget(NodeWithGeneratedId1 target) {
 		this.target = target;
 	}
+
 }

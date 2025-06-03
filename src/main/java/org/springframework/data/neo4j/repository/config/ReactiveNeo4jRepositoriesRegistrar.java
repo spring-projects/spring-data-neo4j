@@ -21,10 +21,11 @@ import org.springframework.data.repository.config.RepositoryBeanDefinitionRegist
 import org.springframework.data.repository.config.RepositoryConfigurationExtension;
 
 /**
- * {@link RepositoryBeanDefinitionRegistrarSupport} to enable {@link EnableReactiveNeo4jRepositories} annotation. The
- * {@link RepositoryBeanDefinitionRegistrarSupport} is a dedicated implementation of Spring's
- * {@code org.springframework.context.annotation.ImportBeanDefinitionRegistrar}, a dedicated SPI to register beans
- * during processing of configuration classes.
+ * {@link RepositoryBeanDefinitionRegistrarSupport} to enable
+ * {@link EnableReactiveNeo4jRepositories} annotation. The
+ * {@link RepositoryBeanDefinitionRegistrarSupport} is a dedicated implementation of
+ * Spring's {@code org.springframework.context.annotation.ImportBeanDefinitionRegistrar},
+ * a dedicated SPI to register beans during processing of configuration classes.
  *
  * @author Gerrit Meier
  * @author Michael J. Simons
@@ -32,21 +33,14 @@ import org.springframework.data.repository.config.RepositoryConfigurationExtensi
  */
 class ReactiveNeo4jRepositoriesRegistrar extends RepositoryBeanDefinitionRegistrarSupport {
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.config.RepositoryBeanDefinitionRegistrarSupport#getAnnotation()
-	 */
 	@Override
 	protected Class<? extends Annotation> getAnnotation() {
 		return EnableReactiveNeo4jRepositories.class;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.config.RepositoryBeanDefinitionRegistrarSupport#getExtension()
-	 */
 	@Override
 	protected RepositoryConfigurationExtension getExtension() {
 		return new ReactiveNeo4jRepositoryConfigurationExtension();
 	}
+
 }

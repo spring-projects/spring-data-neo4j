@@ -36,4 +36,5 @@ public abstract class AbstractPet {
 	public void setName(String name) {
 		this.name = name;
 	}
+
 }

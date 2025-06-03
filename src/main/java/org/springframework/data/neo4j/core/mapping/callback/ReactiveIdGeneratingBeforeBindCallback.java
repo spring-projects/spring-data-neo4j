@@ -15,9 +15,9 @@
  */
 package org.springframework.data.neo4j.core.mapping.callback;
 
+import org.reactivestreams.Publisher;
 import reactor.core.publisher.Mono;
 
-import org.reactivestreams.Publisher;
 import org.springframework.core.Ordered;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 
@@ -25,7 +25,6 @@ import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
  * Callback used to call the ID generator configured for an entity just before binding.
  *
  * @author Michael J. Simons
- * @soundtrack Various - Kung Fury (Original Motion Picture Soundtrack)
  * @since 6.0.2
  */
 final class ReactiveIdGeneratingBeforeBindCallback implements ReactiveBeforeBindCallback<Object>, Ordered {
@@ -39,11 +38,12 @@ final class ReactiveIdGeneratingBeforeBindCallback implements ReactiveBeforeBind
 	@Override
 	public Publisher<Object> onBeforeBind(Object entity) {
 
-		return Mono.fromSupplier(() -> idPopulator.populateIfNecessary(entity));
+		return Mono.fromSupplier(() -> this.idPopulator.populateIfNecessary(entity));
 	}
 
 	@Override
 	public int getOrder() {
 		return ReactiveAuditingBeforeBindCallback.NEO4J_REACTIVE_AUDITING_ORDER + 10;
 	}
+
 }

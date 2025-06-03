@@ -25,21 +25,22 @@ import org.springframework.data.neo4j.core.schema.Node;
 @Node
 public class TestNode {
 
+	private final String name;
+
 	@Id
 	@GeneratedValue
 	private Long id;
-
-	private final String name;
 
 	public TestNode(String name) {
 		this.name = name;
 	}
 
 	public Long getId() {
-		return id;
+		return this.id;
 	}
 
 	public String getName() {
-		return name;
+		return this.name;
 	}
+
 }

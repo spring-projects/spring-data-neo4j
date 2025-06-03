@@ -18,6 +18,10 @@ package org.springframework.data.neo4j.types;
 import org.apiguardian.api.API;
 
 /**
+ * A builder for points, so that coordinates and optionally a coordinate system can be
+ * configured. Dependening on the coordinate system, {@link GeographicPoint2d} or
+ * {@link GeographicPoint3d} will be created, cartesian points otherwise.
+ *
  * @author Michael J. Simons
  * @since 6.0
  */
@@ -26,22 +30,24 @@ public final class PointBuilder {
 
 	private final int srid;
 
-	public static PointBuilder withSrid(int srid) {
-		return new PointBuilder(srid);
-	}
-
 	private PointBuilder(int srid) {
 		this.srid = srid;
 	}
 
-	public AbstractPoint build(Coordinate coordinate) {
+	public static PointBuilder withSrid(int srid) {
+		return new PointBuilder(srid);
+	}
+
+	public Neo4jPoint build(Coordinate coordinate) {
 
 		boolean is3d = coordinate.getZ() != null;
 
-		if (srid == CartesianPoint2d.SRID || srid == CartesianPoint3d.SRID) {
+		if (this.srid == CartesianPoint2d.SRID || this.srid == CartesianPoint3d.SRID) {
 			return is3d ? new CartesianPoint3d(coordinate) : new CartesianPoint2d(coordinate);
-		} else {
-			return is3d ? new GeographicPoint3d(coordinate, srid) : new GeographicPoint2d(coordinate, srid);
+		}
+		else {
+			return is3d ? new GeographicPoint3d(coordinate, this.srid) : new GeographicPoint2d(coordinate, this.srid);
 		}
 	}
+
 }

@@ -23,4 +23,5 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface ReactiveSkuRepository extends ReactiveNeo4jRepository<Sku, Long> {
+
 }

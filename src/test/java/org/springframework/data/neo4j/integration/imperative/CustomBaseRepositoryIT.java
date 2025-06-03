@@ -15,21 +15,18 @@
  */
 package org.springframework.data.neo4j.integration.imperative;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-
 import java.util.List;
 
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.neo4j.driver.Driver;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan.Filter;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.FilterType;
-import org.springframework.data.neo4j.test.Neo4jImperativeTestConfiguration;
 import org.springframework.data.neo4j.core.Neo4jOperations;
 import org.springframework.data.neo4j.integration.shared.common.PersonWithAllConstructor;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
@@ -37,8 +34,12 @@ import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.data.neo4j.repository.support.Neo4jEntityInformation;
 import org.springframework.data.neo4j.repository.support.SimpleNeo4jRepository;
 import org.springframework.data.neo4j.test.DriverMocks;
+import org.springframework.data.neo4j.test.Neo4jImperativeTestConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 /**
  * Make sure custom base repositories can be used.
@@ -52,30 +53,29 @@ public class CustomBaseRepositoryIT {
 	public void customBaseRepositoryShouldBeInUse(@Autowired MyPersonRepository repository) {
 
 		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> repository.findAll())
-				.withMessage("This implementation does not support `findAll`");
+			.withMessage("This implementation does not support `findAll`");
 	}
 
-	interface MyPersonRepository extends Neo4jRepository<PersonWithAllConstructor, Long> {}
+	interface MyPersonRepository extends Neo4jRepository<PersonWithAllConstructor, Long> {
+
+	}
 
 	/**
 	 * Used in the FAQ as well
+	 *
 	 * @param <T> Type of the entity
 	 * @param <ID> Type of the id
 	 */
-	static
 	// tag::custom-base-repository[]
-	public class MyRepositoryImpl<T, ID> extends SimpleNeo4jRepository<T, ID> {
+	public static class MyRepositoryImpl<T, ID> extends SimpleNeo4jRepository<T, ID> {
 
-		MyRepositoryImpl(
-				Neo4jOperations neo4jOperations,
-				Neo4jEntityInformation<T, ID> entityInformation
-		) {
+		MyRepositoryImpl(Neo4jOperations neo4jOperations, Neo4jEntityInformation<T, ID> entityInformation) {
 			super(neo4jOperations, entityInformation); // <.>
 			// end::custom-base-repository[]
 			assertThat(neo4jOperations).isNotNull();
 			assertThat(entityInformation).isNotNull();
 			Assertions.assertThat(entityInformation.getEntityMetaData().getUnderlyingClass())
-					.isEqualTo(PersonWithAllConstructor.class);
+				.isEqualTo(PersonWithAllConstructor.class);
 			// tag::custom-base-repository[]
 		}
 
@@ -83,6 +83,7 @@ public class CustomBaseRepositoryIT {
 		public List<T> findAll() {
 			throw new UnsupportedOperationException("This implementation does not support `findAll`");
 		}
+
 	}
 	// end::custom-base-repository[]
 
@@ -93,6 +94,7 @@ public class CustomBaseRepositoryIT {
 	static class Config extends Neo4jImperativeTestConfiguration {
 
 		@Bean
+		@Override
 		public Driver driver() {
 			return DriverMocks.withOpenSessionAndTransaction();
 		}
@@ -101,5 +103,7 @@ public class CustomBaseRepositoryIT {
 		public boolean isCypher5Compatible() {
 			return false; // does not matter
 		}
+
 	}
+
 }

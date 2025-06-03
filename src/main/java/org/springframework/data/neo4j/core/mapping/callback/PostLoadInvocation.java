@@ -16,13 +16,14 @@
 package org.springframework.data.neo4j.core.mapping.callback;
 
 import org.neo4j.driver.types.MapAccessor;
+
 import org.springframework.core.Ordered;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
 
 /**
- * Triggers {@link Neo4jMappingContext#invokePostLoad(Neo4jPersistentEntity, Object)} via the {@link AfterConvertCallback}
- * mechanism.
+ * Triggers {@link Neo4jMappingContext#invokePostLoad(Neo4jPersistentEntity, Object)} via
+ * the {@link AfterConvertCallback} mechanism.
  *
  * @author Michael J. Simons
  */
@@ -42,6 +43,7 @@ final class PostLoadInvocation implements AfterConvertCallback<Object>, Ordered 
 	@Override
 	public Object onAfterConvert(Object instance, Neo4jPersistentEntity<Object> entity, MapAccessor source) {
 
-		return neo4jMappingContext.invokePostLoad(entity, instance);
+		return this.neo4jMappingContext.invokePostLoad(entity, instance);
 	}
+
 }

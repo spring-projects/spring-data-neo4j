@@ -29,39 +29,11 @@ import org.springframework.data.neo4j.core.schema.Node;
 @Node
 public class PersonWithRelatives {
 
-	/**
-	 * Some enum representing relatives.
-	 */
-	public enum TypeOfRelative {
-		HAS_WIFE, HAS_DAUGHTER, HAS_SON, RELATIVE_1, RELATIVE_2
-	}
-
-	/**
-	 * Some enum representing pets.
-	 */
-	public enum TypeOfPet {
-		CATS, DOGS, FISH, MONSTERS
-	}
-
-	/**
-	 * Some enum representing hobby states.
-	 */
-	public enum TypeOfHobby {
-		ACTIVE, WATCHING
-	}
-
-	/**
-	 * Some enum representing sport genres.
-	 */
-	public enum TypeOfClub {
-		FOOTBALL, BASEBALL
-	}
+	private final String name;
 
 	@Id
 	@GeneratedValue
 	private Long id;
-
-	private final String name;
 
 	private Map<TypeOfRelative, Person> relatives = new HashMap<>();
 
@@ -76,26 +48,63 @@ public class PersonWithRelatives {
 	}
 
 	public long getId() {
-		return id;
+		return this.id;
 	}
 
 	public String getName() {
-		return name;
+		return this.name;
 	}
 
 	public Map<TypeOfRelative, Person> getRelatives() {
-		return relatives;
+		return this.relatives;
 	}
 
 	public Map<TypeOfPet, List<Pet>> getPets() {
-		return pets;
+		return this.pets;
 	}
 
 	public Map<TypeOfHobby, List<HobbyRelationship>> getHobbies() {
-		return hobbies;
+		return this.hobbies;
 	}
 
 	public Map<TypeOfClub, ClubRelationship> getClubs() {
-		return clubs;
+		return this.clubs;
 	}
+
+	/**
+	 * Some enum representing relatives.
+	 */
+	public enum TypeOfRelative {
+
+		HAS_WIFE, HAS_DAUGHTER, HAS_SON, RELATIVE_1, RELATIVE_2
+
+	}
+
+	/**
+	 * Some enum representing pets.
+	 */
+	public enum TypeOfPet {
+
+		CATS, DOGS, FISH, MONSTERS
+
+	}
+
+	/**
+	 * Some enum representing hobby states.
+	 */
+	public enum TypeOfHobby {
+
+		ACTIVE, WATCHING
+
+	}
+
+	/**
+	 * Some enum representing sport genres.
+	 */
+	public enum TypeOfClub {
+
+		FOOTBALL, BASEBALL
+
+	}
+
 }

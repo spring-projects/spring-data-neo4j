@@ -15,8 +15,6 @@
  */
 package org.springframework.data.neo4j.integration.imperative;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -38,6 +36,7 @@ import org.neo4j.driver.Session;
 import org.neo4j.driver.Transaction;
 import org.neo4j.driver.Values;
 import org.neo4j.driver.types.MapAccessor;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -47,11 +46,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.neo4j.core.Neo4jOperations;
-import org.springframework.data.neo4j.integration.shared.common.DoritoEatingPerson;
-import org.springframework.data.neo4j.integration.shared.common.GH2621Domain;
-import org.springframework.data.neo4j.test.Neo4jImperativeTestConfiguration;
 import org.springframework.data.neo4j.core.DatabaseSelectionProvider;
+import org.springframework.data.neo4j.core.Neo4jOperations;
 import org.springframework.data.neo4j.core.Neo4jTemplate;
 import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
 import org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager;
@@ -59,6 +55,8 @@ import org.springframework.data.neo4j.integration.issues.gh2451.WidgetEntity;
 import org.springframework.data.neo4j.integration.issues.gh2451.WidgetProjection;
 import org.springframework.data.neo4j.integration.issues.gh2451.WidgetRepository;
 import org.springframework.data.neo4j.integration.shared.common.DepartmentEntity;
+import org.springframework.data.neo4j.integration.shared.common.DoritoEatingPerson;
+import org.springframework.data.neo4j.integration.shared.common.GH2621Domain;
 import org.springframework.data.neo4j.integration.shared.common.NamesOnly;
 import org.springframework.data.neo4j.integration.shared.common.NamesOnlyDto;
 import org.springframework.data.neo4j.integration.shared.common.NamesWithSpELCity;
@@ -76,11 +74,14 @@ import org.springframework.data.neo4j.repository.query.Query;
 import org.springframework.data.neo4j.repository.support.CypherdslStatementExecutor;
 import org.springframework.data.neo4j.test.BookmarkCapture;
 import org.springframework.data.neo4j.test.Neo4jExtension;
+import org.springframework.data.neo4j.test.Neo4jImperativeTestConfiguration;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.support.TransactionTemplate;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Gerrit Meier
@@ -90,16 +91,23 @@ import org.springframework.transaction.support.TransactionTemplate;
 class ProjectionIT {
 
 	private static final String FIRST_NAME = "Hans";
+
 	private static final String FIRST_NAME2 = "Lieschen";
+
 	private static final String LAST_NAME = "Mueller";
+
 	private static final String CITY = "Braunschweig";
 
 	private static Neo4jExtension.Neo4jConnectionSupport neo4jConnectionSupport;
 
 	private final Driver driver;
+
 	private final BookmarkCapture bookmarkCapture;
+
 	private Long projectionTestRootId;
+
 	private Long projectionTest1O1Id;
+
 	private Long projectionTestLevel1Id;
 
 	@Autowired
@@ -108,49 +116,61 @@ class ProjectionIT {
 		this.bookmarkCapture = bookmarkCapture;
 	}
 
+	private static void projectedEntities(PersonDepartmentQueryResult personAndDepartment) {
+		assertThat(personAndDepartment.getPerson()).extracting(PersonEntity::getId).isEqualTo("p1");
+		assertThat(personAndDepartment.getPerson()).extracting(PersonEntity::getEmail).isEqualTo("p1@dep1.org");
+		assertThat(personAndDepartment.getDepartment()).extracting(DepartmentEntity::getId).isEqualTo("d1");
+		assertThat(personAndDepartment.getDepartment()).extracting(DepartmentEntity::getName).isEqualTo("Dep1");
+	}
+
+	private static Statement whoHasFirstName(String firstName) {
+		Node p = Cypher.node("Person").named("p");
+		return Cypher.match(p)
+			.where(p.property("firstName").isEqualTo(Cypher.anonParameter(firstName)))
+			.returning(p.getRequiredSymbolicName())
+			.build();
+	}
+
 	@BeforeEach
 	void setup() {
 
-		try (Session session = driver.session(bookmarkCapture.createSessionConfig());
-		Transaction transaction = session.beginTransaction();) {
+		try (Session session = this.driver.session(this.bookmarkCapture.createSessionConfig());
+				Transaction transaction = session.beginTransaction();) {
 
 			transaction.run("MATCH (n) detach delete n");
-			transaction.run("CREATE (p:PersonEntity {id: 'p1', email: 'p1@dep1.org'}) -[:MEMBER_OF]->(department:DepartmentEntity {id: 'd1', name: 'Dep1'}) RETURN p");
-			transaction.run("CREATE (p:PersonWithNoConstructor {name: 'meistermeier', first_name: 'Gerrit', mittlererName: 'unknown'}) RETURN p");
+			transaction.run(
+					"CREATE (p:PersonEntity {id: 'p1', email: 'p1@dep1.org'}) -[:MEMBER_OF]->(department:DepartmentEntity {id: 'd1', name: 'Dep1'}) RETURN p");
+			transaction.run(
+					"CREATE (p:PersonWithNoConstructor {name: 'meistermeier', first_name: 'Gerrit', mittlererName: 'unknown'}) RETURN p");
 
 			for (Map.Entry<String, String> person : new Map.Entry[] {
 					new AbstractMap.SimpleEntry(FIRST_NAME, LAST_NAME),
-					new AbstractMap.SimpleEntry(FIRST_NAME2, LAST_NAME),
-			}) {
+					new AbstractMap.SimpleEntry(FIRST_NAME2, LAST_NAME), }) {
 				transaction.run(" MERGE (address:Address{city: $city})"
-								+ "CREATE (:Person{firstName: $firstName, lastName: $lastName})"
-								+ "-[:LIVES_AT]-> (address)",
+						+ "CREATE (:Person{firstName: $firstName, lastName: $lastName})" + "-[:LIVES_AT]-> (address)",
 						Values.parameters("firstName", person.getKey(), "lastName", person.getValue(), "city", CITY));
 			}
 
-			Record result = transaction.run("create (r:ProjectionTestRoot {name: 'root'}) \n"
-									 + "create (o:ProjectionTest1O1 {name: '1o1'}) "
-									 + "create (l11:ProjectionTestLevel1 {name: 'level11'})\n"
-									 + "create (l12:ProjectionTestLevel1 {name: 'level12'})\n"
-									 + "create (l21:ProjectionTestLevel2 {name: 'level21'})\n"
-									 + "create (l22:ProjectionTestLevel2 {name: 'level22'})\n"
-									 + "create (l23:ProjectionTestLevel2 {name: 'level23'})\n"
-									 + "create (r) - [:ONE_OONE] -> (o)\n"
-									 + "create (r) - [:LEVEL_1] -> (l11)\n"
-									 + "create (r) - [:LEVEL_1] -> (l12)\n"
-									 + "create (l11) - [:LEVEL_2] -> (l21)\n"
-									 + "create (l11) - [:LEVEL_2] -> (l22)\n"
-									 + "create (l12) - [:LEVEL_2] -> (l23)\n"
-									 + "return id(r), id(l11), id(o)").single();
+			Record result = transaction
+				.run("create (r:ProjectionTestRoot {name: 'root'}) \n" + "create (o:ProjectionTest1O1 {name: '1o1'}) "
+						+ "create (l11:ProjectionTestLevel1 {name: 'level11'})\n"
+						+ "create (l12:ProjectionTestLevel1 {name: 'level12'})\n"
+						+ "create (l21:ProjectionTestLevel2 {name: 'level21'})\n"
+						+ "create (l22:ProjectionTestLevel2 {name: 'level22'})\n"
+						+ "create (l23:ProjectionTestLevel2 {name: 'level23'})\n" + "create (r) - [:ONE_OONE] -> (o)\n"
+						+ "create (r) - [:LEVEL_1] -> (l11)\n" + "create (r) - [:LEVEL_1] -> (l12)\n"
+						+ "create (l11) - [:LEVEL_2] -> (l21)\n" + "create (l11) - [:LEVEL_2] -> (l22)\n"
+						+ "create (l12) - [:LEVEL_2] -> (l23)\n" + "return id(r), id(l11), id(o)")
+				.single();
 
-			projectionTestRootId = result.get(0).asLong();
-			projectionTestLevel1Id = result.get(1).asLong();
-			projectionTest1O1Id = result.get(2).asLong();
+			this.projectionTestRootId = result.get(0).asLong();
+			this.projectionTestLevel1Id = result.get(1).asLong();
+			this.projectionTest1O1Id = result.get(2).asLong();
 
 			transaction.run("create (w:Widget {code: 'Window1', label: 'yyy'})").consume();
 
 			transaction.commit();
-			bookmarkCapture.seedWith(session.lastBookmarks());
+			this.bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 	}
 
@@ -163,7 +183,8 @@ class ProjectionIT {
 		assertThat(people).extracting(NamesOnly::getFirstName).containsExactlyInAnyOrder(FIRST_NAME, FIRST_NAME2);
 		assertThat(people).extracting(NamesOnly::getLastName).containsOnly(LAST_NAME);
 
-		assertThat(people).extracting(NamesOnly::getFullName).containsExactlyInAnyOrder(FIRST_NAME + " " + LAST_NAME, FIRST_NAME2 + " " + LAST_NAME);
+		assertThat(people).extracting(NamesOnly::getFullName)
+			.containsExactlyInAnyOrder(FIRST_NAME + " " + LAST_NAME, FIRST_NAME2 + " " + LAST_NAME);
 	}
 
 	@Test // GH-2325
@@ -172,7 +193,8 @@ class ProjectionIT {
 		Collection<NamesWithSpELCity> people = repository.findProjectionByLastName(LAST_NAME);
 		assertThat(people).hasSize(2);
 
-		assertThat(people).extracting(NamesWithSpELCity::getFirstName).containsExactlyInAnyOrder(FIRST_NAME, FIRST_NAME2);
+		assertThat(people).extracting(NamesWithSpELCity::getFirstName)
+			.containsExactlyInAnyOrder(FIRST_NAME, FIRST_NAME2);
 		assertThat(people).extracting(NamesWithSpELCity::getLastName).containsOnly(LAST_NAME);
 
 		assertThat(people).extracting(NamesWithSpELCity::getCity).containsExactlyInAnyOrder(CITY, CITY);
@@ -236,7 +258,8 @@ class ProjectionIT {
 
 	@Test
 	void findDynamicProjectionForNamesOnlyDto(@Autowired ProjectionPersonRepository repository) {
-		Collection<NamesOnlyDto> people = repository.findByLastNameAndFirstName(LAST_NAME, FIRST_NAME, NamesOnlyDto.class);
+		Collection<NamesOnlyDto> people = repository.findByLastNameAndFirstName(LAST_NAME, FIRST_NAME,
+				NamesOnlyDto.class);
 		assertThat(people).hasSize(1);
 
 		NamesOnlyDto person = people.iterator().next();
@@ -258,7 +281,8 @@ class ProjectionIT {
 	@Test // GH-2139
 	void projectionsShouldBeSliceable(@Autowired ProjectionPersonRepository repository) {
 
-		Slice<NamesOnly> people = repository.findSliceProjectedBy(PageRequest.of(1, 1, Sort.by("firstName").descending()));
+		Slice<NamesOnly> people = repository
+			.findSliceProjectedBy(PageRequest.of(1, 1, Sort.by("firstName").descending()));
 		assertThat(people.hasPrevious()).isTrue();
 		assertThat(people.hasNext()).isFalse();
 		assertThat(people).hasSize(1);
@@ -268,57 +292,59 @@ class ProjectionIT {
 	@Test // GH-2164
 	void findByIdWithProjectionShouldWork(@Autowired TreestructureRepository repository) {
 
-		Optional<SimpleProjection> optionalProjection = repository
-				.findById(projectionTestRootId, SimpleProjection.class);
+		Optional<SimpleProjection> optionalProjection = repository.findById(this.projectionTestRootId,
+				SimpleProjection.class);
 		assertThat(optionalProjection).map(SimpleProjection::getName).hasValue("root");
 	}
 
 	@Test // GH-2165
 	void relationshipsShouldBeIncludedInProjections(@Autowired TreestructureRepository repository) {
 
-		Optional<SimpleProjectionWithLevelAndLower> optionalProjection = repository
-				.findById(projectionTestRootId, SimpleProjectionWithLevelAndLower.class);
+		Optional<SimpleProjectionWithLevelAndLower> optionalProjection = repository.findById(this.projectionTestRootId,
+				SimpleProjectionWithLevelAndLower.class);
 		assertThat(optionalProjection).hasValueSatisfying(p -> {
 
 			assertThat(p.getName()).isEqualTo("root");
 			assertThat(p.getOneOone()).extracting(ProjectionTest1O1::getName).isEqualTo("1o1");
 			assertThat(p.getLevel1()).hasSize(2);
-			assertThat(p.getLevel1().stream()).anyMatch(e -> e.getId().equals(projectionTestLevel1Id) && e.getLevel2().size() == 2);
+			assertThat(p.getLevel1().stream())
+				.anyMatch(e -> e.getId().equals(this.projectionTestLevel1Id) && e.getLevel2().size() == 2);
 		});
 	}
 
 	@Test // GH-2165
 	void nested1to1ProjectionsShouldWork(@Autowired TreestructureRepository repository) {
 
-		Optional<ProjectedOneToOne> optionalProjection = repository
-				.findById(projectionTestRootId, ProjectedOneToOne.class);
+		Optional<ProjectedOneToOne> optionalProjection = repository.findById(this.projectionTestRootId,
+				ProjectedOneToOne.class);
 		assertThat(optionalProjection).hasValueSatisfying(p -> {
 
 			assertThat(p.getName()).isEqualTo("root");
 			assertThat(p.getOneOone()).extracting(ProjectedOneToOne.Subprojection::getFullName)
-					.isEqualTo(projectionTest1O1Id + " 1o1");
+				.isEqualTo(this.projectionTest1O1Id + " 1o1");
 		});
 	}
 
 	@Test
 	void nested1to1ProjectionsWithNestedProjectionShouldWork(@Autowired TreestructureRepository repository) {
 
-		Optional<ProjectionWithNestedProjection> optionalProjection = repository
-				.findById(projectionTestRootId, ProjectionWithNestedProjection.class);
+		Optional<ProjectionWithNestedProjection> optionalProjection = repository.findById(this.projectionTestRootId,
+				ProjectionWithNestedProjection.class);
 		assertThat(optionalProjection).hasValueSatisfying(p -> {
 
 			assertThat(p.getName()).isEqualTo("root");
 			assertThat(p.getLevel1()).extracting("name").containsExactlyInAnyOrder("level11", "level12");
-			assertThat(p.getLevel1()).flatExtracting("level2").extracting("name")
-					.containsExactlyInAnyOrder("level21", "level22", "level23");
+			assertThat(p.getLevel1()).flatExtracting("level2")
+				.extracting("name")
+				.containsExactlyInAnyOrder("level21", "level22", "level23");
 		});
 	}
 
 	@Test // GH-2165
 	void nested1toManyProjectionsShouldWork(@Autowired TreestructureRepository repository) {
 
-		Optional<ProjectedOneToMany> optionalProjection = repository
-				.findById(projectionTestRootId, ProjectedOneToMany.class);
+		Optional<ProjectedOneToMany> optionalProjection = repository.findById(this.projectionTestRootId,
+				ProjectedOneToMany.class);
 		assertThat(optionalProjection).hasValueSatisfying(p -> {
 
 			assertThat(p.getName()).isEqualTo("root");
@@ -329,7 +355,7 @@ class ProjectionIT {
 	@Test // GH-2164
 	void findByIdInDerivedFinderMethodInRelatedObjectShouldWork(@Autowired TreestructureRepository repository) {
 
-		Optional<ProjectionTestRoot> optionalProjection = repository.findOneByLevel1Id(projectionTestLevel1Id);
+		Optional<ProjectionTestRoot> optionalProjection = repository.findOneByLevel1Id(this.projectionTestLevel1Id);
 		assertThat(optionalProjection).map(ProjectionTestRoot::getName).hasValue("root");
 	}
 
@@ -337,7 +363,8 @@ class ProjectionIT {
 	void findByIdInDerivedFinderMethodInRelatedObjectWithProjectionShouldWork(
 			@Autowired TreestructureRepository repository) {
 
-		Optional<SimpleProjection> optionalProjection = repository.findOneByLevel1Id(projectionTestLevel1Id, SimpleProjection.class);
+		Optional<SimpleProjection> optionalProjection = repository.findOneByLevel1Id(this.projectionTestLevel1Id,
+				SimpleProjection.class);
 		assertThat(optionalProjection).map(SimpleProjection::getName).hasValue("root");
 	}
 
@@ -363,22 +390,18 @@ class ProjectionIT {
 	void projectionsContainingKnownEntitiesShouldWorkFromRepository(@Autowired PersonRepository personRepository) {
 
 		List<PersonDepartmentQueryResult> results = personRepository.findPersonWithDepartment();
-		assertThat(results)
-				.hasSize(1)
-				.first()
-				.satisfies(ProjectionIT::projectedEntities);
+		assertThat(results).hasSize(1).first().satisfies(ProjectionIT::projectedEntities);
 	}
 
 	@Test // GH-2349
 	void projectionsContainingKnownEntitiesShouldWorkFromTemplate(@Autowired Neo4jTemplate template) {
 
-		List<PersonDepartmentQueryResult> results = template.find(PersonEntity.class).as(PersonDepartmentQueryResult.class)
-				.matching("MATCH (person:PersonEntity)-[:MEMBER_OF]->(department:DepartmentEntity) RETURN person, department")
-				.all();
-		assertThat(results)
-				.hasSize(1)
-				.first()
-				.satisfies(ProjectionIT::projectedEntities);
+		List<PersonDepartmentQueryResult> results = template.find(PersonEntity.class)
+			.as(PersonDepartmentQueryResult.class)
+			.matching(
+					"MATCH (person:PersonEntity)-[:MEMBER_OF]->(department:DepartmentEntity) RETURN person, department")
+			.all();
+		assertThat(results).hasSize(1).first().satisfies(ProjectionIT::projectedEntities);
 	}
 
 	@Test // GH-2451
@@ -409,8 +432,10 @@ class ProjectionIT {
 
 	@Test // GH-2371
 	void saveWithCustomPropertyNameWorks(@Autowired Neo4jTemplate neo4jTemplate) {
-		PersonWithNoConstructor person = neo4jTemplate.findOne("MATCH (p:PersonWithNoConstructor {name: 'meistermeier'}) RETURN p", Collections.emptyMap(),
-				PersonWithNoConstructor.class).get();
+		PersonWithNoConstructor person = neo4jTemplate
+			.findOne("MATCH (p:PersonWithNoConstructor {name: 'meistermeier'}) RETURN p", Collections.emptyMap(),
+					PersonWithNoConstructor.class)
+			.get();
 
 		person.setName("rotnroll666");
 		person.setFirstName("Michael");
@@ -418,10 +443,8 @@ class ProjectionIT {
 
 		neo4jTemplate.saveAs(person, ProjectedPersonWithNoConstructor.class);
 
-		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
-			Record record = session
-					.run("MATCH (p:PersonWithNoConstructor {name: 'rotnroll666'}) RETURN p")
-					.single();
+		try (Session session = this.driver.session(this.bookmarkCapture.createSessionConfig())) {
+			Record record = session.run("MATCH (p:PersonWithNoConstructor {name: 'rotnroll666'}) RETURN p").single();
 
 			MapAccessor p = record.get("p").asNode();
 			assertThat(p.get("first_name").asString()).isEqualTo("Michael");
@@ -430,7 +453,7 @@ class ProjectionIT {
 	}
 
 	@Test // GH-2578
-	public void projectionRespectedWithInexactPropertyNameMatch(@Autowired Neo4jOperations neo4jOperations) {
+	void projectionRespectedWithInexactPropertyNameMatch(@Autowired Neo4jOperations neo4jOperations) {
 		final DoritoEatingPerson person = new DoritoEatingPerson("Bob");
 		person.setEatsDoritos(true);
 		person.setFriendsAlsoEatDoritos(true);
@@ -446,7 +469,7 @@ class ProjectionIT {
 	}
 
 	@Test // GH-2578
-	public void projectionRespected(@Autowired Neo4jOperations neo4jOperations) {
+	void projectionRespected(@Autowired Neo4jOperations neo4jOperations) {
 		final DoritoEatingPerson person = new DoritoEatingPerson("Ben");
 		person.setEatsDoritos(true);
 		person.setFriendsAlsoEatDoritos(true);
@@ -462,7 +485,8 @@ class ProjectionIT {
 	}
 
 	@Test // GH-2621
-	public void nestedProjectWithFluentOpsShouldWork(@Autowired TransactionTemplate transactionTemplate, @Autowired Neo4jTemplate neo4jTemplate) {
+	void nestedProjectWithFluentOpsShouldWork(@Autowired TransactionTemplate transactionTemplate,
+			@Autowired Neo4jTemplate neo4jTemplate) {
 
 		GH2621Domain.FooProjection fooProjection = transactionTemplate.execute(tx -> {
 			final GH2621Domain.BarBarProjection barBarProjection = new GH2621Domain.BarBarProjection("v1", "v2");
@@ -471,19 +495,21 @@ class ProjectionIT {
 
 		assertThat(fooProjection.getBar()).isNotNull();
 		assertThat(fooProjection.getBar().getValue1()).isEqualTo("v1");
-		// There is no way to deduce from a `BarProjection` field the correlation from `BarBarProjection to `BarBar`
+		// There is no way to deduce from a `BarProjection` field the correlation from
+		// `BarBarProjection to `BarBar`
 		// without throwing a dice and we are not going to try this
 		assertThat(fooProjection.getBar()).isInstanceOf(GH2621Domain.BarProjection.class);
 
 		// The result above is reflected in the graph
-		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
+		try (Session session = this.driver.session(this.bookmarkCapture.createSessionConfig())) {
 			Record result = session.run("MATCH (n:GH2621Bar) RETURN n").single();
 			assertThat(result.get("n").asNode().get("value1").asString()).isEqualTo("v1");
 		}
 	}
 
 	@Test // GH-2621
-	public void nestedProjectWithFluentOpsShouldWork2(@Autowired TransactionTemplate transactionTemplate, @Autowired Neo4jTemplate neo4jTemplate) {
+	void nestedProjectWithFluentOpsShouldWork2(@Autowired TransactionTemplate transactionTemplate,
+			@Autowired Neo4jTemplate neo4jTemplate) {
 
 		GH2621Domain.FooProjection fooProjection = transactionTemplate.execute(tx -> {
 			GH2621Domain.Foo foo = new GH2621Domain.Foo(new GH2621Domain.BarBar("v1", "v2"));
@@ -492,41 +518,31 @@ class ProjectionIT {
 
 		assertThat(fooProjection.getBar()).isNotNull();
 		assertThat(fooProjection.getBar().getValue1()).isEqualTo("v1");
-		// There is no way to deduce from a `BarProjection` field the correlation from `BarBarProjection to `BarBar`
+		// There is no way to deduce from a `BarProjection` field the correlation from
+		// `BarBarProjection to `BarBar`
 		// without throwing a dice and we are not going to try this
 		assertThat(fooProjection.getBar()).isInstanceOf(GH2621Domain.BarProjection.class);
 
 		// This is a different here as the concrete dto was used during save ops, so the
-		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
+		try (Session session = this.driver.session(this.bookmarkCapture.createSessionConfig())) {
 			Record result = session.run("MATCH (n:GH2621Bar:GH2621BarBar) RETURN n").single();
 			org.neo4j.driver.types.Node node = result.get("n").asNode();
 			assertThat(node.get("value1").asString()).isEqualTo("v1");
-			// This is a limitation of the Spring Data Commons support for the DTO projections
-			// when we reach org/springframework/data/neo4j/core/PropertyFilterSupport.java:141 we call
-			// org.springframework.data.projection.ProjectionFactory.getProjectionInformation and we only
-			// have the concrete type information at hand, in the domain example FooProjection#bar, which points
-			// to BarProjection, without any clue that we do want a BarBarProjection being used during saving.
-			// So with the example in the ticket, saving value2 (or anything on the BarBarProjection) won't
+			// This is a limitation of the Spring Data Commons support for the DTO
+			// projections
+			// when we reach
+			// org/springframework/data/neo4j/core/PropertyFilterSupport.java:141 we call
+			// org.springframework.data.projection.ProjectionFactory.getProjectionInformation
+			// and we only
+			// have the concrete type information at hand, in the domain example
+			// FooProjection#bar, which points
+			// to BarProjection, without any clue that we do want a BarBarProjection being
+			// used during saving.
+			// So with the example in the ticket, saving value2 (or anything on the
+			// BarBarProjection) won't
 			// be possible
 			assertThat(node.get("value2").isNull()).isTrue();
 		}
-	}
-
-	private static void projectedEntities(PersonDepartmentQueryResult personAndDepartment) {
-		assertThat(personAndDepartment.getPerson()).extracting(PersonEntity::getId).isEqualTo("p1");
-		assertThat(personAndDepartment.getPerson()).extracting(PersonEntity::getEmail).isEqualTo("p1@dep1.org");
-		assertThat(personAndDepartment.getDepartment()).extracting(DepartmentEntity::getId).isEqualTo("d1");
-		assertThat(personAndDepartment.getDepartment()).extracting(DepartmentEntity::getName).isEqualTo("Dep1");
-	}
-
-	private static Statement whoHasFirstName(String firstName) {
-		Node p = Cypher.node("Person").named("p");
-		return Cypher.match(p)
-				.where(p.property("firstName").isEqualTo(Cypher.anonParameter(firstName)))
-				.returning(
-						p.getRequiredSymbolicName()
-				)
-				.build();
 	}
 
 	interface ProjectedPersonWithNoConstructor {
@@ -536,14 +552,16 @@ class ProjectionIT {
 		String getFirstName();
 
 		String getMittlererName();
+
 	}
 
 	interface PersonWithNoConstructorRepository extends Neo4jRepository<PersonWithNoConstructor, Long> {
 
 		ProjectedPersonWithNoConstructor findByName(String name);
+
 	}
 
-	interface ProjectionPersonRepository extends Neo4jRepository<Person, Long>, CypherdslStatementExecutor<Person>  {
+	interface ProjectionPersonRepository extends Neo4jRepository<Person, Long>, CypherdslStatementExecutor<Person> {
 
 		Collection<NamesOnly> findByLastName(String lastName);
 
@@ -561,6 +579,7 @@ class ProjectionIT {
 		Collection<NamesOnlyDto> findByFirstNameAndLastName(String firstName, String lastName);
 
 		<T> Collection<T> findByLastNameAndFirstName(String lastName, String firstName, Class<T> projectionClass);
+
 	}
 
 	interface TreestructureRepository extends Neo4jRepository<ProjectionTestRoot, Long> {
@@ -570,11 +589,13 @@ class ProjectionIT {
 		Optional<ProjectionTestRoot> findOneByLevel1Id(Long idOfLevel1);
 
 		<T> Optional<T> findOneByLevel1Id(Long idOfLevel1, Class<T> typeOfProjection);
+
 	}
 
 	interface SimpleProjection {
 
 		String getName();
+
 	}
 
 	interface SimpleProjectionWithLevelAndLower {
@@ -584,6 +605,7 @@ class ProjectionIT {
 		ProjectionTest1O1 getOneOone();
 
 		List<ProjectionTestLevel1> getLevel1();
+
 	}
 
 	interface ProjectedOneToOne {
@@ -595,11 +617,14 @@ class ProjectionIT {
 		interface Subprojection {
 
 			/**
-			 * @return Some arbitrary computed projection result to make sure that machinery works as well
+			 * @return Some arbitrary computed projection result to make sure that
+			 * machinery works as well
 			 */
 			@Value("#{target.id + ' ' + target.name}")
 			String getFullName();
+
 		}
+
 	}
 
 	interface ProjectedOneToMany {
@@ -611,11 +636,14 @@ class ProjectionIT {
 		interface Subprojection {
 
 			/**
-			 * @return Some arbitrary computed projection result to make sure that machinery works as well
+			 * @return Some arbitrary computed projection result to make sure that
+			 * machinery works as well
 			 */
 			@Value("#{target.id + ' ' + target.name}")
 			String getFullName();
+
 		}
+
 	}
 
 	interface ProjectionWithNestedProjection {
@@ -625,32 +653,42 @@ class ProjectionIT {
 		List<Subprojection1> getLevel1();
 
 		interface Subprojection1 {
+
 			String getName();
+
 			List<Subprojection2> getLevel2();
+
 		}
 
 		interface Subprojection2 {
+
 			String getName();
+
 		}
+
 	}
 
 	interface PersonRepository extends Neo4jRepository<PersonEntity, String> {
+
 		@Query("MATCH (person:PersonEntity)-[:MEMBER_OF]->(department:DepartmentEntity) RETURN person, department")
 		List<PersonDepartmentQueryResult> findPersonWithDepartment();
+
 	}
 
 	@Configuration
-	@EnableNeo4jRepositories(considerNestedRepositories = true, basePackageClasses = {ProjectionIT.class, WidgetEntity.class})
+	@EnableNeo4jRepositories(considerNestedRepositories = true,
+			basePackageClasses = { ProjectionIT.class, WidgetEntity.class })
 	@EnableTransactionManagement
 	static class Config extends Neo4jImperativeTestConfiguration {
 
 		@Bean
+		@Override
 		public Driver driver() {
 			return neo4jConnectionSupport.getDriver();
 		}
 
 		@Bean
-		public BookmarkCapture bookmarkCapture() {
+		BookmarkCapture bookmarkCapture() {
 			return new BookmarkCapture();
 		}
 
@@ -664,10 +702,12 @@ class ProjectionIT {
 		}
 
 		@Override
-		public PlatformTransactionManager transactionManager(Driver driver, DatabaseSelectionProvider databaseNameProvider) {
+		public PlatformTransactionManager transactionManager(Driver driver,
+				DatabaseSelectionProvider databaseNameProvider) {
 
 			BookmarkCapture bookmarkCapture = bookmarkCapture();
-			return new Neo4jTransactionManager(driver, databaseNameProvider, Neo4jBookmarkManager.create(bookmarkCapture));
+			return new Neo4jTransactionManager(driver, databaseNameProvider,
+					Neo4jBookmarkManager.create(bookmarkCapture));
 		}
 
 		@Override
@@ -679,5 +719,7 @@ class ProjectionIT {
 		TransactionTemplate transactionTemplate(PlatformTransactionManager transactionManager) {
 			return new TransactionTemplate(transactionManager);
 		}
+
 	}
+
 }

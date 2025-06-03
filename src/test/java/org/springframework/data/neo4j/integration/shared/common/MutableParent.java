@@ -34,7 +34,7 @@ public class MutableParent {
 	private List<MutableChild> children;
 
 	public Long getId() {
-		return id;
+		return this.id;
 	}
 
 	public void setId(Long id) {
@@ -42,10 +42,11 @@ public class MutableParent {
 	}
 
 	public List<MutableChild> getChildren() {
-		return children;
+		return this.children;
 	}
 
 	public void setChildren(List<MutableChild> children) {
 		this.children = children;
 	}
+
 }

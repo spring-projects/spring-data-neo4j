@@ -22,7 +22,6 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 /**
  * @author Michael J. Simons
- * @soundtrack Kelis - Tasty
  */
 @EnableTransactionManagement
 @Configuration(proxyBeanMethods = false)
@@ -32,4 +31,5 @@ public class SharedConfig {
 	public Neo4jConversions neo4jConversions() {
 		return new Neo4jConversions();
 	}
+
 }

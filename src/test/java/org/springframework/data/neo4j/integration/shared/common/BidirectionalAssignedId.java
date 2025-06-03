@@ -15,11 +15,11 @@
  */
 package org.springframework.data.neo4j.integration.shared.common;
 
+import java.util.UUID;
+
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Relationship;
-
-import java.util.UUID;
 
 /**
  * Bidirectional relationship persisting with assigned id.

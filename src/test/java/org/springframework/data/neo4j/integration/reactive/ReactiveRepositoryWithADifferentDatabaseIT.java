@@ -20,6 +20,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Tag;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.SessionConfig;
+
 import org.springframework.data.neo4j.core.DatabaseSelection;
 import org.springframework.data.neo4j.test.Neo4jExtension;
 
@@ -54,4 +55,5 @@ class ReactiveRepositoryWithADifferentDatabaseIT extends ReactiveRepositoryIT {
 
 		databaseSelection.set(DatabaseSelection.undecided());
 	}
+
 }

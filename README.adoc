@@ -139,7 +139,7 @@ class MyService {
         Person michael = new Person("Michael");
 
         // Persist entities and relationships to graph database
-        return repository.saveAll(Flux.just(emil, gerrit, michael));
+        return this.repository.saveAll(Flux.just(emil, gerrit, michael));
     }
 }
 ----

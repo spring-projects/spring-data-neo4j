@@ -25,6 +25,7 @@ import java.util.function.IntFunction;
 import java.util.function.Predicate;
 
 import org.jspecify.annotations.Nullable;
+
 import org.springframework.data.domain.KeysetScrollPosition;
 import org.springframework.data.domain.OffsetScrollPosition;
 import org.springframework.data.domain.ScrollPosition;
@@ -35,11 +36,11 @@ import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.core.mapping.PropertyFilter;
 
 /**
- * Supporting class containing some state and convenience methods for building fluent queries (both imperative and reactive).
+ * Supporting class containing some state and convenience methods for building fluent
+ * queries (both imperative and reactive).
  *
+ * @param <R> the result type
  * @author Michael J. Simons
- * @param <R> The result type
- * @soundtrack Die Ärzte - Geräusch
  */
 abstract class FluentQuerySupport<R> {
 
@@ -52,20 +53,32 @@ abstract class FluentQuerySupport<R> {
 
 	protected final Set<String> properties;
 
-	FluentQuerySupport(
-			Class<R> resultType,
-			Sort sort,
-			@Nullable Integer limit,
-			@Nullable Collection<String> properties
-	) {
+	FluentQuerySupport(Class<R> resultType, Sort sort, @Nullable Integer limit,
+			@Nullable Collection<String> properties) {
 		this.resultType = resultType;
 		this.sort = sort;
 		this.limit = limit;
 		if (properties != null) {
 			this.properties = new HashSet<>(properties);
-		} else {
+		}
+		else {
 			this.properties = Set.of();
 		}
+	}
+
+	private static boolean hasMoreElements(List<?> result, @Nullable Integer limit) {
+		return !result.isEmpty() && result.size() > ((limit != null) ? limit : 0);
+	}
+
+	private static <T> List<T> getSubList(List<T> result, @Nullable Integer limit,
+			ScrollPosition.Direction scrollDirection) {
+
+		if (limit != null && limit > 0 && result.size() > limit) {
+			return (scrollDirection != ScrollPosition.Direction.FORWARD) ? result.subList(1, limit + 1)
+					: result.subList(0, limit);
+		}
+
+		return result;
 	}
 
 	final Predicate<PropertyFilter.RelaxedPropertyPath> createIncludedFieldsPredicate() {
@@ -87,25 +100,26 @@ abstract class FluentQuerySupport<R> {
 
 	final Window<R> scroll(ScrollPosition scrollPosition, List<R> rawResult, Neo4jPersistentEntity<?> entity) {
 
-		var skip = scrollPosition.isInitial()
-				? 0
-				: (scrollPosition instanceof OffsetScrollPosition offsetScrollPosition) ? offsetScrollPosition.getOffset() + 1
-				: 0;
+		var skip = scrollPosition.isInitial() ? 0
+				: (scrollPosition instanceof OffsetScrollPosition offsetScrollPosition)
+						? offsetScrollPosition.getOffset() + 1 : 0;
 
-		var scrollDirection = scrollPosition instanceof KeysetScrollPosition keysetScrollPosition ? keysetScrollPosition.getDirection() : ScrollPosition.Direction.FORWARD;
+		var scrollDirection = (scrollPosition instanceof KeysetScrollPosition keysetScrollPosition)
+				? keysetScrollPosition.getDirection() : ScrollPosition.Direction.FORWARD;
 		if (scrollDirection == ScrollPosition.Direction.BACKWARD) {
 			Collections.reverse(rawResult);
 		}
 
-		IntFunction<? extends ScrollPosition> positionFunction = null;
+		IntFunction<? extends ScrollPosition> positionFunction;
 
 		if (scrollPosition instanceof OffsetScrollPosition) {
 			positionFunction = OffsetScrollPosition.positionFunction(skip);
-		} else {
+		}
+		else {
 			positionFunction = v -> {
 				var accessor = entity.getPropertyAccessor(rawResult.get(v));
 				var keys = new LinkedHashMap<String, Object>();
-				sort.forEach(o -> {
+				this.sort.forEach(o -> {
 					// Storing the graph property name here
 					var persistentProperty = entity.getRequiredPersistentProperty(o.getProperty());
 					keys.put(persistentProperty.getPropertyName(), accessor.getProperty(persistentProperty));
@@ -114,7 +128,8 @@ abstract class FluentQuerySupport<R> {
 				return ScrollPosition.forward(keys);
 			};
 		}
-		return Window.from(getSubList(rawResult, limit, scrollDirection), positionFunction, hasMoreElements(rawResult, limit));
+		return Window.from(getSubList(rawResult, this.limit, scrollDirection), positionFunction,
+				hasMoreElements(rawResult, this.limit));
 	}
 
 	final Collection<String> extractAllPaths(Collection<String> projectingProperties) {
@@ -132,16 +147,4 @@ abstract class FluentQuerySupport<R> {
 		return allPaths;
 	}
 
-	private static boolean hasMoreElements(List<?> result, @Nullable Integer limit) {
-		return !result.isEmpty() && result.size() > (limit != null ? limit : 0);
-	}
-
-	private static <T> List<T> getSubList(List<T> result, @Nullable Integer limit, ScrollPosition.Direction scrollDirection) {
-
-		if (limit != null && limit > 0 && result.size() > limit) {
-			return scrollDirection == ScrollPosition.Direction.FORWARD ? result.subList(0, limit) : result.subList(1, limit + 1);
-		}
-
-		return result;
-	}
 }

@@ -20,6 +20,7 @@ import org.neo4j.driver.types.Point;
 
 /**
  * Cool places to be.
+ *
  * @author Michael J. Simons
  */
 public enum Place {
@@ -36,6 +37,7 @@ public enum Place {
 	}
 
 	public Point getValue() {
-		return value;
+		return this.value;
 	}
+
 }

@@ -15,24 +15,23 @@
  */
 package org.springframework.data.neo4j.integration.issues.gh2328;
 
+import java.util.UUID;
+
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
 
-import java.util.UUID;
-
 /**
  * @author Michael J. Simons
- * @soundtrack Motörhead - Better Motörhead Than Dead - Live At Hammersmith
  */
 @Node
 public class Entity2328 {
 
+	private final String name;
+
 	@Id
 	@GeneratedValue
 	private UUID id;
-
-	private final String name;
 
 	public Entity2328(String name) {
 		this.name = name;
@@ -45,4 +44,5 @@ public class Entity2328 {
 	public String getName() {
 		return this.name;
 	}
+
 }

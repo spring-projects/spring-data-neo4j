@@ -46,31 +46,32 @@ public class DomainObject {
 		return this.id;
 	}
 
-	public UnrelatedObject getStoredAsMultipleProperties() {
-		return this.storedAsMultipleProperties;
-	}
-
-	public UnrelatedObject getStoredAsSingleProperty() {
-		return this.storedAsSingleProperty;
-	}
-
-	public UnrelatedObject getStoredAsAnotherSingleProperty() {
-		return this.storedAsAnotherSingleProperty;
-	}
-
 	public void setId(String id) {
 		this.id = id;
+	}
+
+	public UnrelatedObject getStoredAsMultipleProperties() {
+		return this.storedAsMultipleProperties;
 	}
 
 	public void setStoredAsMultipleProperties(UnrelatedObject storedAsMultipleProperties) {
 		this.storedAsMultipleProperties = storedAsMultipleProperties;
 	}
 
+	public UnrelatedObject getStoredAsSingleProperty() {
+		return this.storedAsSingleProperty;
+	}
+
 	public void setStoredAsSingleProperty(UnrelatedObject storedAsSingleProperty) {
 		this.storedAsSingleProperty = storedAsSingleProperty;
+	}
+
+	public UnrelatedObject getStoredAsAnotherSingleProperty() {
+		return this.storedAsAnotherSingleProperty;
 	}
 
 	public void setStoredAsAnotherSingleProperty(UnrelatedObject storedAsAnotherSingleProperty) {
 		this.storedAsAnotherSingleProperty = storedAsAnotherSingleProperty;
 	}
+
 }

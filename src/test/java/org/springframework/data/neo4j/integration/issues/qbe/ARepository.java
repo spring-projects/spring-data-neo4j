@@ -25,4 +25,5 @@ import org.springframework.data.neo4j.repository.Neo4jRepository;
  * @author Michael Simons
  */
 public interface ARepository extends Neo4jRepository<A, UUID> {
+
 }

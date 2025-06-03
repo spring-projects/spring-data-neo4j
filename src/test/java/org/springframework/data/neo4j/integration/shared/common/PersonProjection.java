@@ -26,4 +26,5 @@ public interface PersonProjection {
 	String getFirstName();
 
 	String getSameValue();
+
 }

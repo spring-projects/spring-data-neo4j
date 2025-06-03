@@ -15,8 +15,6 @@
  */
 package org.springframework.data.neo4j.repository.query;
 
-import static org.neo4j.cypherdsl.core.Cypher.asterisk;
-
 import java.util.Arrays;
 import java.util.function.Predicate;
 
@@ -25,21 +23,25 @@ import org.neo4j.cypherdsl.core.Condition;
 import org.neo4j.cypherdsl.core.Cypher;
 import org.neo4j.cypherdsl.core.SortItem;
 import org.neo4j.cypherdsl.core.Statement;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+
 import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.core.ReactiveNeo4jOperations;
 import org.springframework.data.neo4j.core.mapping.CypherGenerator;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.core.mapping.PropertyFilter;
-import org.springframework.data.neo4j.repository.support.ReactiveCypherdslConditionExecutor;
 import org.springframework.data.neo4j.repository.support.Neo4jEntityInformation;
+import org.springframework.data.neo4j.repository.support.ReactiveCypherdslConditionExecutor;
 
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
+import static org.neo4j.cypherdsl.core.Cypher.asterisk;
 
 /**
+ * Implementation of the {@link ReactiveCypherdslConditionExecutor}.
+ *
+ * @param <T> the returned domain type
  * @author Niklas Krieger
  * @author Michael J. Simons
- * @param <T> The returned domain type.
  * @since 6.3.3
  */
 @API(status = API.Status.INTERNAL, since = "6.3.3")
@@ -62,59 +64,57 @@ public final class ReactiveCypherdslConditionExecutorImpl<T> implements Reactive
 	@Override
 	public Mono<T> findOne(Condition condition) {
 
-		return this.neo4jOperations.toExecutableQuery(
-				this.metaData.getType(),
-				QueryFragmentsAndParameters.forCondition(this.metaData, condition)
-		).flatMap(ReactiveNeo4jOperations.ExecutableQuery::getSingleResult);
+		return this.neo4jOperations
+			.toExecutableQuery(this.metaData.getType(),
+					QueryFragmentsAndParameters.forCondition(this.metaData, condition))
+			.flatMap(ReactiveNeo4jOperations.ExecutableQuery::getSingleResult);
 	}
 
 	@Override
 	public Flux<T> findAll(Condition condition) {
 
-		return this.neo4jOperations.toExecutableQuery(
-				this.metaData.getType(),
-				QueryFragmentsAndParameters.forCondition(this.metaData, condition)
-		).flatMapMany(ReactiveNeo4jOperations.ExecutableQuery::getResults);
+		return this.neo4jOperations
+			.toExecutableQuery(this.metaData.getType(),
+					QueryFragmentsAndParameters.forCondition(this.metaData, condition))
+			.flatMapMany(ReactiveNeo4jOperations.ExecutableQuery::getResults);
 	}
 
 	@Override
 	public Flux<T> findAll(Condition condition, Sort sort) {
 
 		Predicate<PropertyFilter.RelaxedPropertyPath> noFilter = PropertyFilter.NO_FILTER;
-		return this.neo4jOperations.toExecutableQuery(
-				metaData.getType(),
-				QueryFragmentsAndParameters.forConditionAndSort(
-						this.metaData, condition, sort, null, noFilter
-				)
-		).flatMapMany(ReactiveNeo4jOperations.ExecutableQuery::getResults);
+		return this.neo4jOperations
+			.toExecutableQuery(this.metaData.getType(),
+					QueryFragmentsAndParameters.forConditionAndSort(this.metaData, condition, sort, null, noFilter))
+			.flatMapMany(ReactiveNeo4jOperations.ExecutableQuery::getResults);
 	}
 
 	@Override
 	public Flux<T> findAll(Condition condition, SortItem... sortItems) {
 
-		return this.neo4jOperations.toExecutableQuery(
-				this.metaData.getType(),
-				QueryFragmentsAndParameters.forConditionAndSortItems(
-						this.metaData, condition, Arrays.asList(sortItems)
-				)
-		).flatMapMany(ReactiveNeo4jOperations.ExecutableQuery::getResults);
+		return this.neo4jOperations
+			.toExecutableQuery(this.metaData.getType(),
+					QueryFragmentsAndParameters.forConditionAndSortItems(this.metaData, condition,
+							Arrays.asList(sortItems)))
+			.flatMapMany(ReactiveNeo4jOperations.ExecutableQuery::getResults);
 	}
 
 	@Override
 	public Flux<T> findAll(SortItem... sortItems) {
 
-		return this.neo4jOperations.toExecutableQuery(
-				this.metaData.getType(),
-				QueryFragmentsAndParameters.forConditionAndSortItems(this.metaData, Cypher.noCondition(),
-						Arrays.asList(sortItems))
-		).flatMapMany(ReactiveNeo4jOperations.ExecutableQuery::getResults);
+		return this.neo4jOperations
+			.toExecutableQuery(this.metaData.getType(),
+					QueryFragmentsAndParameters.forConditionAndSortItems(this.metaData, Cypher.noCondition(),
+							Arrays.asList(sortItems)))
+			.flatMapMany(ReactiveNeo4jOperations.ExecutableQuery::getResults);
 	}
 
 	@Override
 	public Mono<Long> count(Condition condition) {
 
 		Statement statement = CypherGenerator.INSTANCE.prepareMatchOf(this.metaData, condition)
-				.returning(Cypher.count(asterisk())).build();
+			.returning(Cypher.count(asterisk()))
+			.build();
 		return this.neo4jOperations.count(statement, statement.getCatalog().getParameters());
 	}
 
@@ -122,4 +122,5 @@ public final class ReactiveCypherdslConditionExecutorImpl<T> implements Reactive
 	public Mono<Boolean> exists(Condition condition) {
 		return count(condition).map(count -> count > 0);
 	}
+
 }

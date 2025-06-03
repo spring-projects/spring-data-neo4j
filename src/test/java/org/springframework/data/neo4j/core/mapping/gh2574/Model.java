@@ -25,13 +25,18 @@ import org.springframework.data.neo4j.core.schema.Node;
  */
 public abstract class Model {
 
+	private Model() {
+	}
+
 	/**
 	 * Shut up checkstyle.
 	 */
 	@Node
 	public abstract static class A1 {
+
 		@Id
 		String id;
+
 	}
 
 	/**
@@ -39,6 +44,7 @@ public abstract class Model {
 	 */
 	@Node
 	public abstract static class A2 extends A1 {
+
 	}
 
 	/**
@@ -46,6 +52,7 @@ public abstract class Model {
 	 */
 	@Node
 	public abstract static class A3 extends A2 {
+
 	}
 
 	/**
@@ -53,6 +60,7 @@ public abstract class Model {
 	 */
 	@Node
 	public static class A4 extends A3 {
+
 	}
 
 	/**
@@ -60,8 +68,10 @@ public abstract class Model {
 	 */
 	@Node
 	public abstract static class B1 {
+
 		@Id
 		String id;
+
 	}
 
 	/**
@@ -69,6 +79,7 @@ public abstract class Model {
 	 */
 	@Node
 	public abstract static class B2 extends B1 {
+
 	}
 
 	/**
@@ -76,6 +87,7 @@ public abstract class Model {
 	 */
 	@Node
 	public static class B2a extends B2 {
+
 	}
 
 	/**
@@ -83,6 +95,7 @@ public abstract class Model {
 	 */
 	@Node
 	public abstract static class B3 extends B2 {
+
 	}
 
 	/**
@@ -90,8 +103,7 @@ public abstract class Model {
 	 */
 	@Node
 	public static class B3a extends B3 {
+
 	}
 
-	private Model() {
-	}
 }

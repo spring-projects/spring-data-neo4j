@@ -37,7 +37,7 @@ public class EntityWithRelationshipPropertiesPath {
 	private RelationshipPropertyA relationshipA;
 
 	public RelationshipPropertyA getRelationshipA() {
-		return relationshipA;
+		return this.relationshipA;
 	}
 
 	/**
@@ -53,8 +53,9 @@ public class EntityWithRelationshipPropertiesPath {
 		private EntityA entityA;
 
 		public EntityA getEntityA() {
-			return entityA;
+			return this.entityA;
 		}
+
 	}
 
 	/**
@@ -70,8 +71,9 @@ public class EntityWithRelationshipPropertiesPath {
 		private EntityB entityB;
 
 		public EntityB getEntityB() {
-			return entityB;
+			return this.entityB;
 		}
+
 	}
 
 	/**
@@ -79,6 +81,7 @@ public class EntityWithRelationshipPropertiesPath {
 	 */
 	@Node
 	public static class EntityA {
+
 		@Id
 		@GeneratedValue
 		private Long id;
@@ -87,8 +90,9 @@ public class EntityWithRelationshipPropertiesPath {
 		private RelationshipPropertyB relationshipB;
 
 		public RelationshipPropertyB getRelationshipB() {
-			return relationshipB;
+			return this.relationshipB;
 		}
+
 	}
 
 	/**
@@ -96,11 +100,11 @@ public class EntityWithRelationshipPropertiesPath {
 	 */
 	@Node
 	public static class EntityB {
+
 		@Id
 		@GeneratedValue
 		private Long id;
 
 	}
-
 
 }

@@ -23,25 +23,25 @@ import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Relationship;
 
-/**
- * @soundtrack Guns n' Roses - Appetite For Destruction
- */
 @Node
 public class Organisation {
 
-	@Id
-	@GeneratedValue
-	private Long id;
 	private final String partnerCode;
+
 	private final String code;
+
 	private final String name;
+
 	private final String type;
 
 	@Relationship(type = "CHILD_ORGANISATIONS")
 	private final List<Organisation> organisations;
 
-	public Organisation(String partnerCode, String code, String name, String type,
-			List<Organisation> organisations) {
+	@Id
+	@GeneratedValue
+	private Long id;
+
+	public Organisation(String partnerCode, String code, String name, String type, List<Organisation> organisations) {
 		this.partnerCode = partnerCode;
 		this.code = code;
 		this.name = name;
@@ -59,37 +59,35 @@ public class Organisation {
 	}
 
 	public Long getId() {
-		return id;
+		return this.id;
 	}
 
 	public String getPartnerCode() {
-		return partnerCode;
+		return this.partnerCode;
 	}
 
 	public String getCode() {
-		return code;
+		return this.code;
 	}
 
 	public String getName() {
-		return name;
+		return this.name;
 	}
 
 	public String getType() {
-		return type;
+		return this.type;
 	}
 
 	public List<Organisation> getOrganisations() {
-		return organisations == null ? Collections.emptyList() : Collections.unmodifiableList(organisations);
+		return (this.organisations != null) ? Collections.unmodifiableList(this.organisations)
+				: Collections.emptyList();
 	}
 
-	@Override public String toString() {
-		return "Organisation{" +
-			   "id=" + id +
-			   ", partnerCode='" + partnerCode + '\'' +
-			   ", code='" + code + '\'' +
-			   ", name='" + name + '\'' +
-			   ", type='" + type + '\'' +
-			   ", organisations=" + organisations +
-			   '}';
+	@Override
+	public String toString() {
+		return "Organisation{" + "id=" + this.id + ", partnerCode='" + this.partnerCode + '\'' + ", code='" + this.code
+				+ '\'' + ", name='" + this.name + '\'' + ", type='" + this.type + '\'' + ", organisations="
+				+ this.organisations + '}';
 	}
+
 }

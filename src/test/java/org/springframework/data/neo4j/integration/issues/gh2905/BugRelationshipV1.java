@@ -25,6 +25,7 @@ import org.springframework.data.neo4j.core.schema.TargetNode;
 @SuppressWarnings("HiddenField") // Not worth cleaning up the Delomboked version
 @RelationshipProperties
 public class BugRelationshipV1 {
+
 	@RelationshipId
 	protected Long id;
 
@@ -47,8 +48,11 @@ public class BugRelationshipV1 {
 	 * Lombok builder
 	 */
 	public static class BugRelationshipBuilder {
+
 		private Long id;
+
 		private String comment;
+
 		private BugTargetBaseV1 target;
 
 		BugRelationshipBuilder() {
@@ -73,8 +77,12 @@ public class BugRelationshipV1 {
 			return new BugRelationshipV1(this.id, this.comment, this.target);
 		}
 
+		@Override
 		public String toString() {
-			return "BugRelationship.BugRelationshipBuilder(id=" + this.id + ", comment=" + this.comment + ", target=" + this.target + ")";
+			return "BugRelationship.BugRelationshipBuilder(id=" + this.id + ", comment=" + this.comment + ", target="
+					+ this.target + ")";
 		}
+
 	}
+
 }

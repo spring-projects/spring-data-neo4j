@@ -27,8 +27,16 @@ import org.springframework.data.annotation.Version;
  */
 class Sample {
 
-	@Id String id;
-	@Version Long version;
-	@CreatedDate Date created;
-	@LastModifiedDate Date modified;
+	@Id
+	String id;
+
+	@Version
+	Long version;
+
+	@CreatedDate
+	Date created;
+
+	@LastModifiedDate
+	Date modified;
+
 }

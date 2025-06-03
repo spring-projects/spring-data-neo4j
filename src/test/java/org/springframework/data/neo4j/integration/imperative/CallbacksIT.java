@@ -15,33 +15,21 @@
  */
 package org.springframework.data.neo4j.integration.imperative;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatNoException;
-
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Objects;
 import java.util.Optional;
-// tag::faq.entities.auditing.callbacks[]
 import java.util.UUID;
 import java.util.stream.StreamSupport;
 
-// end::faq.entities.auditing.callbacks[]
 import org.junit.jupiter.api.Test;
 import org.neo4j.driver.Driver;
+
 import org.springframework.beans.factory.annotation.Autowired;
-// tag::faq.entities.auditing.callbacks[]
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-// end::faq.entities.auditing.callbacks[]
 import org.springframework.context.annotation.Import;
-import org.springframework.data.neo4j.test.Neo4jImperativeTestConfiguration;
 import org.springframework.data.neo4j.core.DatabaseSelectionProvider;
-// tag::faq.entities.auditing.callbacks[]
-import org.springframework.data.neo4j.core.mapping.callback.AfterConvertCallback;
-import org.springframework.data.neo4j.core.mapping.callback.BeforeBindCallback;
-
-// end::faq.entities.auditing.callbacks[]
 import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
 import org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager;
 import org.springframework.data.neo4j.integration.imperative.repositories.ThingRepository;
@@ -49,15 +37,20 @@ import org.springframework.data.neo4j.integration.shared.common.CallbacksITBase;
 import org.springframework.data.neo4j.integration.shared.common.ThingWithAssignedId;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.data.neo4j.test.BookmarkCapture;
+import org.springframework.data.neo4j.test.Neo4jImperativeTestConfiguration;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 
 /**
  * @author Michael J. Simons
  */
 class CallbacksIT extends CallbacksITBase {
 
-	@Autowired CallbacksIT(Driver driver, BookmarkCapture bookmarkCapture) {
+	@Autowired
+	CallbacksIT(Driver driver, BookmarkCapture bookmarkCapture) {
 		super(driver, bookmarkCapture);
 	}
 
@@ -81,9 +74,9 @@ class CallbacksIT extends CallbacksITBase {
 		assertThat(optionalThing).hasValueSatisfying(thingWithAssignedId -> {
 			assertThat(thingWithAssignedId.getTheId()).isEqualTo("E1");
 			assertThat(thingWithAssignedId.getRandomValue()).isNotNull()
-					.satisfies(v -> assertThatNoException().isThrownBy(() -> UUID.fromString(v)));
+				.satisfies(v -> assertThatNoException().isThrownBy(() -> UUID.fromString(v)));
 			assertThat(thingWithAssignedId.getAnotherRandomValue()).isNotNull()
-					.satisfies(v -> assertThatNoException().isThrownBy(() -> UUID.fromString(v)));
+				.satisfies(v -> assertThatNoException().isThrownBy(() -> UUID.fromString(v)));
 		});
 	}
 
@@ -93,7 +86,7 @@ class CallbacksIT extends CallbacksITBase {
 		Optional<ThingWithAssignedId> optionalThing = repository.findById("E1");
 		assertThat(optionalThing).hasValueSatisfying(
 				thingWithAssignedId -> assertThat(thingWithAssignedId.getAnotherRandomValue()).isNotNull()
-						.satisfies(v -> assertThatNoException().isThrownBy(() -> UUID.fromString(v))));
+					.satisfies(v -> assertThatNoException().isThrownBy(() -> UUID.fromString(v))));
 	}
 
 	@Test
@@ -110,11 +103,9 @@ class CallbacksIT extends CallbacksITBase {
 		assertThat(unsaved).allMatch(v -> v.getRandomValue() != null);
 		assertThat(unsaved).noneMatch(v -> v.getAnotherRandomValue() != null);
 
-		assertThat(savedThings).extracting(ThingWithAssignedId::getName).containsExactlyInAnyOrder("A name (Edited)",
-				"Another name (Edited)");
-		assertThat(savedThings).hasSize(2)
-				.extracting(ThingWithAssignedId::getRandomValue)
-				.allMatch(Objects::isNull);
+		assertThat(savedThings).extracting(ThingWithAssignedId::getName)
+			.containsExactlyInAnyOrder("A name (Edited)", "Another name (Edited)");
+		assertThat(savedThings).hasSize(2).extracting(ThingWithAssignedId::getRandomValue).allMatch(Objects::isNull);
 
 		// Assert the onAfterConvert
 		var ids = StreamSupport.stream(savedThings.spliterator(), false).map(ThingWithAssignedId::getTheId).toList();
@@ -128,12 +119,11 @@ class CallbacksIT extends CallbacksITBase {
 	void onAfterConvertShouldBeCalledForAllEntities(@Autowired ThingRepository repository) {
 
 		Iterable<ThingWithAssignedId> optionalThing = repository.findAllById(Arrays.asList("E1", "E2"));
-		assertThat(optionalThing).hasSize(2)
-				.allSatisfy(thingWithAssignedId -> {
-					assertThat(thingWithAssignedId.getTheId()).startsWith("E");
-					assertThat(thingWithAssignedId.getRandomValue()).isNotNull()
-							.satisfies(v -> assertThatNoException().isThrownBy(() -> UUID.fromString(v)));
-				});
+		assertThat(optionalThing).hasSize(2).allSatisfy(thingWithAssignedId -> {
+			assertThat(thingWithAssignedId.getTheId()).startsWith("E");
+			assertThat(thingWithAssignedId.getRandomValue()).isNotNull()
+				.satisfies(v -> assertThatNoException().isThrownBy(() -> UUID.fromString(v)));
+		});
 	}
 
 	@Test // GH-2499
@@ -141,8 +131,8 @@ class CallbacksIT extends CallbacksITBase {
 
 		Iterable<ThingWithAssignedId> optionalThing = repository.findAllById(Arrays.asList("E1", "E2"));
 		assertThat(optionalThing).hasSize(2)
-				.allSatisfy(thingWithAssignedId -> assertThat(thingWithAssignedId.getAnotherRandomValue()).isNotNull()
-						.satisfies(v -> assertThatNoException().isThrownBy(() -> UUID.fromString(v))));
+			.allSatisfy(thingWithAssignedId -> assertThat(thingWithAssignedId.getAnotherRandomValue()).isNotNull()
+				.satisfies(v -> assertThatNoException().isThrownBy(() -> UUID.fromString(v))));
 	}
 
 	@Configuration
@@ -152,12 +142,13 @@ class CallbacksIT extends CallbacksITBase {
 	static class Config extends Neo4jImperativeTestConfiguration {
 
 		@Bean
+		@Override
 		public Driver driver() {
 			return neo4jConnectionSupport.getDriver();
 		}
 
 		@Bean
-		public BookmarkCapture bookmarkCapture() {
+		BookmarkCapture bookmarkCapture() {
 			return new BookmarkCapture();
 		}
 
@@ -174,28 +165,7 @@ class CallbacksIT extends CallbacksITBase {
 		public boolean isCypher5Compatible() {
 			return neo4jConnectionSupport.isCypher5SyntaxCompatible();
 		}
+
 	}
+
 }
-
-// tag::faq.entities.auditing.callbacks[]
-@Configuration
-class CallbacksConfig {
-
-	@Bean
-	BeforeBindCallback<ThingWithAssignedId> nameChanger() {
-		return entity -> {
-			ThingWithAssignedId updatedThing = new ThingWithAssignedId(
-					entity.getTheId(), entity.getName() + " (Edited)");
-			return updatedThing;
-		};
-	}
-
-	@Bean
-	AfterConvertCallback<ThingWithAssignedId> randomValueAssigner() {
-		return (entity, definition, source) -> {
-			entity.setRandomValue(UUID.randomUUID().toString());
-			return entity;
-		};
-	}
-}
-// end::faq.entities.auditing.callbacks[]

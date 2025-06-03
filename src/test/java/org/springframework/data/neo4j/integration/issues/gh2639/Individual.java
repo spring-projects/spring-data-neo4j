@@ -15,9 +15,9 @@
  */
 package org.springframework.data.neo4j.integration.issues.gh2639;
 
-import org.springframework.data.neo4j.core.schema.Node;
-
 import java.util.Objects;
+
+import org.springframework.data.neo4j.core.schema.Node;
 
 /**
  * @author Gerrit Meier
@@ -41,11 +41,12 @@ public class Individual extends Inventor {
 			return false;
 		}
 		Individual that = (Individual) o;
-		return username.equals(that.username);
+		return this.username.equals(that.username);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(username);
+		return Objects.hash(this.username);
 	}
+
 }

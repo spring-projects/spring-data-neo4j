@@ -15,15 +15,25 @@
  */
 package org.springframework.data.neo4j.integration.imperative;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Session;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.neo4j.test.Neo4jImperativeTestConfiguration;
 import org.springframework.data.neo4j.core.DatabaseSelectionProvider;
 import org.springframework.data.neo4j.core.convert.Neo4jConversions;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
@@ -37,19 +47,10 @@ import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.data.neo4j.test.BookmarkCapture;
 import org.springframework.data.neo4j.test.Neo4jExtension;
+import org.springframework.data.neo4j.test.Neo4jImperativeTestConfiguration;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -69,7 +70,7 @@ public class ImmutableExternallyGeneratedIdsIT {
 
 	@BeforeEach
 	void cleanUp(@Autowired BookmarkCapture bookmarkCapture) {
-		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
+		try (Session session = this.driver.session(bookmarkCapture.createSessionConfig())) {
 			session.run("MATCH (n) DETACH DELETE n").consume();
 			bookmarkCapture.seedWith(session.lastBookmarks());
 		}
@@ -80,7 +81,8 @@ public class ImmutableExternallyGeneratedIdsIT {
 			@Autowired ImmutablePersonWithExternalIdRepository repository) {
 
 		ImmutablePersonWithExternallyGeneratedId fallback1 = new ImmutablePersonWithExternallyGeneratedId();
-		ImmutablePersonWithExternallyGeneratedId fallback2 = ImmutablePersonWithExternallyGeneratedId.fallback(fallback1);
+		ImmutablePersonWithExternallyGeneratedId fallback2 = ImmutablePersonWithExternallyGeneratedId
+			.fallback(fallback1);
 		ImmutablePersonWithExternallyGeneratedId person = ImmutablePersonWithExternallyGeneratedId.fallback(fallback2);
 
 		ImmutablePersonWithExternallyGeneratedId savedPerson = repository.save(person);
@@ -95,7 +97,8 @@ public class ImmutableExternallyGeneratedIdsIT {
 			@Autowired ImmutablePersonWithExternalIdRepository repository) {
 
 		ImmutablePersonWithExternallyGeneratedId fallback1 = new ImmutablePersonWithExternallyGeneratedId();
-		ImmutablePersonWithExternallyGeneratedId fallback2 = ImmutablePersonWithExternallyGeneratedId.fallback(fallback1);
+		ImmutablePersonWithExternallyGeneratedId fallback2 = ImmutablePersonWithExternallyGeneratedId
+			.fallback(fallback1);
 		ImmutablePersonWithExternallyGeneratedId person = ImmutablePersonWithExternallyGeneratedId.fallback(fallback2);
 
 		ImmutablePersonWithExternallyGeneratedId savedPerson = repository.saveAll(Collections.singleton(person)).get(0);
@@ -110,7 +113,8 @@ public class ImmutableExternallyGeneratedIdsIT {
 			@Autowired ImmutablePersonWithExternalIdRepository repository) {
 
 		ImmutablePersonWithExternallyGeneratedId onboarder = new ImmutablePersonWithExternallyGeneratedId();
-		ImmutablePersonWithExternallyGeneratedId person = ImmutablePersonWithExternallyGeneratedId.wasOnboardedBy(Collections.singletonList(onboarder));
+		ImmutablePersonWithExternallyGeneratedId person = ImmutablePersonWithExternallyGeneratedId
+			.wasOnboardedBy(Collections.singletonList(onboarder));
 
 		ImmutablePersonWithExternallyGeneratedId savedPerson = repository.saveAll(Collections.singleton(person)).get(0);
 
@@ -122,7 +126,8 @@ public class ImmutableExternallyGeneratedIdsIT {
 			@Autowired ImmutablePersonWithExternalIdRepository repository) {
 
 		ImmutablePersonWithExternallyGeneratedId knowingPerson = new ImmutablePersonWithExternallyGeneratedId();
-		ImmutablePersonWithExternallyGeneratedId person = ImmutablePersonWithExternallyGeneratedId.knownBy(Collections.singleton(knowingPerson));
+		ImmutablePersonWithExternallyGeneratedId person = ImmutablePersonWithExternallyGeneratedId
+			.knownBy(Collections.singleton(knowingPerson));
 
 		ImmutablePersonWithExternallyGeneratedId savedPerson = repository.saveAll(Collections.singleton(person)).get(0);
 
@@ -134,7 +139,8 @@ public class ImmutableExternallyGeneratedIdsIT {
 			@Autowired ImmutablePersonWithExternalIdRepository repository) {
 
 		ImmutablePersonWithExternallyGeneratedId rater = new ImmutablePersonWithExternallyGeneratedId();
-		ImmutablePersonWithExternallyGeneratedId person = ImmutablePersonWithExternallyGeneratedId.ratedBy(Collections.singletonMap("Good", rater));
+		ImmutablePersonWithExternallyGeneratedId person = ImmutablePersonWithExternallyGeneratedId
+			.ratedBy(Collections.singletonMap("Good", rater));
 
 		ImmutablePersonWithExternallyGeneratedId savedPerson = repository.saveAll(Collections.singleton(person)).get(0);
 
@@ -165,7 +171,8 @@ public class ImmutableExternallyGeneratedIdsIT {
 			@Autowired ImmutablePersonWithExternalIdRepository repository) {
 
 		ImmutableSecondPersonWithExternallyGeneratedId rater = new ImmutableSecondPersonWithExternallyGeneratedId();
-		ImmutablePersonWithExternallyGeneratedId person = ImmutablePersonWithExternallyGeneratedId.ratedByCollection(Collections.singletonMap("Good", Collections.singletonList(rater)));
+		ImmutablePersonWithExternallyGeneratedId person = ImmutablePersonWithExternallyGeneratedId
+			.ratedByCollection(Collections.singletonMap("Good", Collections.singletonList(rater)));
 
 		ImmutablePersonWithExternallyGeneratedId savedPerson = repository.saveAll(Collections.singleton(person)).get(0);
 
@@ -177,8 +184,10 @@ public class ImmutableExternallyGeneratedIdsIT {
 			@Autowired ImmutablePersonWithExternalIdRepository repository) {
 
 		ImmutablePersonWithExternallyGeneratedId somebody = new ImmutablePersonWithExternallyGeneratedId();
-		ImmutablePersonWithExternallyGeneratedIdRelationshipProperties properties = new ImmutablePersonWithExternallyGeneratedIdRelationshipProperties(null, "blubb", somebody);
-		ImmutablePersonWithExternallyGeneratedId person = ImmutablePersonWithExternallyGeneratedId.relationshipProperties(properties);
+		ImmutablePersonWithExternallyGeneratedIdRelationshipProperties properties = new ImmutablePersonWithExternallyGeneratedIdRelationshipProperties(
+				null, "blubb", somebody);
+		ImmutablePersonWithExternallyGeneratedId person = ImmutablePersonWithExternallyGeneratedId
+			.relationshipProperties(properties);
 
 		ImmutablePersonWithExternallyGeneratedId savedPerson = repository.saveAll(Collections.singleton(person)).get(0);
 
@@ -191,8 +200,10 @@ public class ImmutableExternallyGeneratedIdsIT {
 			@Autowired ImmutablePersonWithExternalIdRepository repository) {
 
 		ImmutablePersonWithExternallyGeneratedId somebody = new ImmutablePersonWithExternallyGeneratedId();
-		ImmutablePersonWithExternallyGeneratedIdRelationshipProperties properties = new ImmutablePersonWithExternallyGeneratedIdRelationshipProperties(null, "blubb", somebody);
-		ImmutablePersonWithExternallyGeneratedId person = ImmutablePersonWithExternallyGeneratedId.relationshipPropertiesCollection(Collections.singletonList(properties));
+		ImmutablePersonWithExternallyGeneratedIdRelationshipProperties properties = new ImmutablePersonWithExternallyGeneratedIdRelationshipProperties(
+				null, "blubb", somebody);
+		ImmutablePersonWithExternallyGeneratedId person = ImmutablePersonWithExternallyGeneratedId
+			.relationshipPropertiesCollection(Collections.singletonList(properties));
 
 		ImmutablePersonWithExternallyGeneratedId savedPerson = repository.saveAll(Collections.singleton(person)).get(0);
 
@@ -205,8 +216,10 @@ public class ImmutableExternallyGeneratedIdsIT {
 			@Autowired ImmutablePersonWithExternalIdRepository repository) {
 
 		ImmutablePersonWithExternallyGeneratedId somebody = new ImmutablePersonWithExternallyGeneratedId();
-		ImmutablePersonWithExternallyGeneratedIdRelationshipProperties properties = new ImmutablePersonWithExternallyGeneratedIdRelationshipProperties(null, "blubb", somebody);
-		ImmutablePersonWithExternallyGeneratedId person = ImmutablePersonWithExternallyGeneratedId.relationshipPropertiesDynamic(Collections.singletonMap("Good", properties));
+		ImmutablePersonWithExternallyGeneratedIdRelationshipProperties properties = new ImmutablePersonWithExternallyGeneratedIdRelationshipProperties(
+				null, "blubb", somebody);
+		ImmutablePersonWithExternallyGeneratedId person = ImmutablePersonWithExternallyGeneratedId
+			.relationshipPropertiesDynamic(Collections.singletonMap("Good", properties));
 
 		ImmutablePersonWithExternallyGeneratedId savedPerson = repository.saveAll(Collections.singleton(person)).get(0);
 
@@ -215,67 +228,64 @@ public class ImmutableExternallyGeneratedIdsIT {
 		assertThat(savedPerson.relationshipPropertiesDynamic.values().iterator().next().target.id).isNotNull();
 	}
 
-
 	@Test // GH-2148
 	void saveRelationshipWithExternallyGeneratedIdsContainsObjectWithIdSetForRelationshipPropertiesDynamicCollection(
 			@Autowired ImmutablePersonWithExternalIdRepository repository) {
 
 		ImmutableSecondPersonWithExternallyGeneratedId somebody = new ImmutableSecondPersonWithExternallyGeneratedId();
-		ImmutableSecondPersonWithExternallyGeneratedIdRelationshipProperties properties = new ImmutableSecondPersonWithExternallyGeneratedIdRelationshipProperties(null, "blubb", somebody);
-		ImmutablePersonWithExternallyGeneratedId person = ImmutablePersonWithExternallyGeneratedId.relationshipPropertiesDynamicCollection(Collections.singletonMap("Good", Collections.singletonList(properties)));
+		ImmutableSecondPersonWithExternallyGeneratedIdRelationshipProperties properties = new ImmutableSecondPersonWithExternallyGeneratedIdRelationshipProperties(
+				null, "blubb", somebody);
+		ImmutablePersonWithExternallyGeneratedId person = ImmutablePersonWithExternallyGeneratedId
+			.relationshipPropertiesDynamicCollection(
+					Collections.singletonMap("Good", Collections.singletonList(properties)));
 
 		ImmutablePersonWithExternallyGeneratedId savedPerson = repository.saveAll(Collections.singleton(person)).get(0);
 
 		assertThat(savedPerson.relationshipPropertiesDynamicCollection.keySet().iterator().next()).isEqualTo("Good");
-		assertThat(savedPerson.relationshipPropertiesDynamicCollection.values().iterator().next().get(0).name).isNotNull();
-		assertThat(savedPerson.relationshipPropertiesDynamicCollection.values().iterator().next().get(0).target.id).isNotNull();
+		assertThat(savedPerson.relationshipPropertiesDynamicCollection.values().iterator().next().get(0).name)
+			.isNotNull();
+		assertThat(savedPerson.relationshipPropertiesDynamicCollection.values().iterator().next().get(0).target.id)
+			.isNotNull();
 	}
 
 	@Test // GH-2148
 	void saveRelationshipWithExternallyGeneratedIdsContainsAllRelationshipTypes(
 			@Autowired ImmutablePersonWithExternalIdRepository repository) {
 
-		ImmutablePersonWithExternallyGeneratedId fallback =
-				new ImmutablePersonWithExternallyGeneratedId();
+		ImmutablePersonWithExternallyGeneratedId fallback = new ImmutablePersonWithExternallyGeneratedId();
 
-		List<ImmutablePersonWithExternallyGeneratedId> wasOnboardedBy =
-				Collections.singletonList(new ImmutablePersonWithExternallyGeneratedId());
+		List<ImmutablePersonWithExternallyGeneratedId> wasOnboardedBy = Collections
+			.singletonList(new ImmutablePersonWithExternallyGeneratedId());
 
-		Set<ImmutablePersonWithExternallyGeneratedId> knownBy =
-				Collections.singleton(new ImmutablePersonWithExternallyGeneratedId());
+		Set<ImmutablePersonWithExternallyGeneratedId> knownBy = Collections
+			.singleton(new ImmutablePersonWithExternallyGeneratedId());
 
-		Map<String, ImmutablePersonWithExternallyGeneratedId> ratedBy =
-				Collections.singletonMap("Good", new ImmutablePersonWithExternallyGeneratedId());
+		Map<String, ImmutablePersonWithExternallyGeneratedId> ratedBy = Collections.singletonMap("Good",
+				new ImmutablePersonWithExternallyGeneratedId());
 
-		Map<String, List<ImmutableSecondPersonWithExternallyGeneratedId>> ratedByCollection =
-				Collections.singletonMap("Na", Collections.singletonList(new ImmutableSecondPersonWithExternallyGeneratedId()));
+		Map<String, List<ImmutableSecondPersonWithExternallyGeneratedId>> ratedByCollection = Collections
+			.singletonMap("Na", Collections.singletonList(new ImmutableSecondPersonWithExternallyGeneratedId()));
 
-		ImmutablePersonWithExternallyGeneratedIdRelationshipProperties relationshipProperties =
-				new ImmutablePersonWithExternallyGeneratedIdRelationshipProperties(null, "rel1", new ImmutablePersonWithExternallyGeneratedId());
+		ImmutablePersonWithExternallyGeneratedIdRelationshipProperties relationshipProperties = new ImmutablePersonWithExternallyGeneratedIdRelationshipProperties(
+				null, "rel1", new ImmutablePersonWithExternallyGeneratedId());
 
-		List<ImmutablePersonWithExternallyGeneratedIdRelationshipProperties> relationshipPropertiesCollection =
-				Collections.singletonList(new ImmutablePersonWithExternallyGeneratedIdRelationshipProperties(null, "rel2", new ImmutablePersonWithExternallyGeneratedId()));
+		List<ImmutablePersonWithExternallyGeneratedIdRelationshipProperties> relationshipPropertiesCollection = Collections
+			.singletonList(new ImmutablePersonWithExternallyGeneratedIdRelationshipProperties(null, "rel2",
+					new ImmutablePersonWithExternallyGeneratedId()));
 
-		Map<String, ImmutablePersonWithExternallyGeneratedIdRelationshipProperties> relationshipPropertiesDynamic =
-				Collections.singletonMap("Ok", new ImmutablePersonWithExternallyGeneratedIdRelationshipProperties(null, "rel3", new ImmutablePersonWithExternallyGeneratedId()));
+		Map<String, ImmutablePersonWithExternallyGeneratedIdRelationshipProperties> relationshipPropertiesDynamic = Collections
+			.singletonMap("Ok", new ImmutablePersonWithExternallyGeneratedIdRelationshipProperties(null, "rel3",
+					new ImmutablePersonWithExternallyGeneratedId()));
 
-		Map<String, List<ImmutableSecondPersonWithExternallyGeneratedIdRelationshipProperties>> relationshipPropertiesDynamicCollection =
-				Collections.singletonMap("Nope",
-						Collections.singletonList(new ImmutableSecondPersonWithExternallyGeneratedIdRelationshipProperties(
-								null, "rel4", new ImmutableSecondPersonWithExternallyGeneratedId()))
-				);
+		Map<String, List<ImmutableSecondPersonWithExternallyGeneratedIdRelationshipProperties>> relationshipPropertiesDynamicCollection = Collections
+			.singletonMap("Nope",
+					Collections.singletonList(new ImmutableSecondPersonWithExternallyGeneratedIdRelationshipProperties(
+							null, "rel4", new ImmutableSecondPersonWithExternallyGeneratedId())));
 
 		ImmutablePersonWithExternallyGeneratedId person = new ImmutablePersonWithExternallyGeneratedId(null,
-				wasOnboardedBy,
-				knownBy,
-				ratedBy,
-				ratedByCollection,
-				fallback,
-				relationshipProperties,
-				relationshipPropertiesCollection,
-				relationshipPropertiesDynamic,
-				relationshipPropertiesDynamicCollection
-				);
+				wasOnboardedBy, knownBy, ratedBy, ratedByCollection, fallback, relationshipProperties,
+				relationshipPropertiesCollection, relationshipPropertiesDynamic,
+				relationshipPropertiesDynamicCollection);
 
 		ImmutablePersonWithExternallyGeneratedId savedPerson = repository.saveAll(Collections.singleton(person)).get(0);
 
@@ -301,42 +311,49 @@ public class ImmutableExternallyGeneratedIdsIT {
 		assertThat(savedPerson.relationshipPropertiesDynamic.values().iterator().next().target.id).isNotNull();
 
 		assertThat(savedPerson.relationshipPropertiesDynamicCollection.keySet().iterator().next()).isEqualTo("Nope");
-		assertThat(savedPerson.relationshipPropertiesDynamicCollection.values().iterator().next().get(0).name).isEqualTo("rel4");
-		assertThat(savedPerson.relationshipPropertiesDynamicCollection.values().iterator().next().get(0).target.id).isNotNull();
+		assertThat(savedPerson.relationshipPropertiesDynamicCollection.values().iterator().next().get(0).name)
+			.isEqualTo("rel4");
+		assertThat(savedPerson.relationshipPropertiesDynamicCollection.values().iterator().next().get(0).target.id)
+			.isNotNull();
 	}
 
 	@Test // GH-2235
-	void saveWithGeneratedIdsWithMultipleRelationshipsToOneNode(@Autowired ImmutablePersonWithExternalIdRepository repository,
-																@Autowired BookmarkCapture bookmarkCapture) {
+	void saveWithGeneratedIdsWithMultipleRelationshipsToOneNode(
+			@Autowired ImmutablePersonWithExternalIdRepository repository, @Autowired BookmarkCapture bookmarkCapture) {
 		ImmutablePersonWithExternallyGeneratedId person1 = new ImmutablePersonWithExternallyGeneratedId();
 		ImmutablePersonWithExternallyGeneratedId person2 = ImmutablePersonWithExternallyGeneratedId.fallback(person1);
 		List<ImmutablePersonWithExternallyGeneratedId> onboardedBy = new ArrayList<>();
 		onboardedBy.add(person1);
 		onboardedBy.add(person2);
-		ImmutablePersonWithExternallyGeneratedId person3 = ImmutablePersonWithExternallyGeneratedId.wasOnboardedBy(onboardedBy);
+		ImmutablePersonWithExternallyGeneratedId person3 = ImmutablePersonWithExternallyGeneratedId
+			.wasOnboardedBy(onboardedBy);
 
 		ImmutablePersonWithExternallyGeneratedId savedPerson = repository.save(person3);
 		assertThat(savedPerson.id).isNotNull();
 		assertThat(savedPerson.wasOnboardedBy).allMatch(ob -> ob.id != null);
 
-		ImmutablePersonWithExternallyGeneratedId savedPerson2 = savedPerson.wasOnboardedBy.stream().filter(p -> p.fallback != null)
-				.findFirst().get();
+		ImmutablePersonWithExternallyGeneratedId savedPerson2 = savedPerson.wasOnboardedBy.stream()
+			.filter(p -> p.fallback != null)
+			.findFirst()
+			.get();
 
 		assertThat(savedPerson2.fallback.id).isNotNull();
 
-		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
-			List<Record> result = session.run(
-					"MATCH (person3:ImmutablePersonWithExternallyGeneratedId) " +
-							"-[:ONBOARDED_BY]->(person2:ImmutablePersonWithExternallyGeneratedId) " +
-							"-[:FALLBACK]->(person1:ImmutablePersonWithExternallyGeneratedId), " +
-							"(person3)-[:ONBOARDED_BY]->(person1) " +
-							"return person3")
-					.list();
+		try (Session session = this.driver.session(bookmarkCapture.createSessionConfig())) {
+			List<Record> result = session
+				.run("MATCH (person3:ImmutablePersonWithExternallyGeneratedId) "
+						+ "-[:ONBOARDED_BY]->(person2:ImmutablePersonWithExternallyGeneratedId) "
+						+ "-[:FALLBACK]->(person1:ImmutablePersonWithExternallyGeneratedId), "
+						+ "(person3)-[:ONBOARDED_BY]->(person1) " + "return person3")
+				.list();
 			assertThat(result).hasSize(1);
 		}
 	}
 
-	interface ImmutablePersonWithExternalIdRepository extends Neo4jRepository<ImmutablePersonWithExternallyGeneratedId, UUID> {}
+	interface ImmutablePersonWithExternalIdRepository
+			extends Neo4jRepository<ImmutablePersonWithExternallyGeneratedId, UUID> {
+
+	}
 
 	@Configuration
 	@EnableNeo4jRepositories(considerNestedRepositories = true)
@@ -344,6 +361,7 @@ public class ImmutableExternallyGeneratedIdsIT {
 	static class Config extends Neo4jImperativeTestConfiguration {
 
 		@Bean
+		@Override
 		public Driver driver() {
 			return neo4jConnectionSupport.getDriver();
 		}
@@ -354,7 +372,9 @@ public class ImmutableExternallyGeneratedIdsIT {
 		}
 
 		@Bean
-		public Neo4jMappingContext neo4jMappingContext(Neo4jConversions neo4JConversions) throws ClassNotFoundException {
+		@Override
+		public Neo4jMappingContext neo4jMappingContext(Neo4jConversions neo4JConversions)
+				throws ClassNotFoundException {
 
 			Neo4jMappingContext mappingContext = new Neo4jMappingContext(neo4JConversions);
 			mappingContext.setInitialEntitySet(getInitialEntitySet());
@@ -364,20 +384,24 @@ public class ImmutableExternallyGeneratedIdsIT {
 		}
 
 		@Bean
-		public BookmarkCapture bookmarkCapture() {
+		BookmarkCapture bookmarkCapture() {
 			return new BookmarkCapture();
 		}
 
 		@Override
-		public PlatformTransactionManager transactionManager(Driver driver, DatabaseSelectionProvider databaseNameProvider) {
+		public PlatformTransactionManager transactionManager(Driver driver,
+				DatabaseSelectionProvider databaseNameProvider) {
 
 			BookmarkCapture bookmarkCapture = bookmarkCapture();
-			return new Neo4jTransactionManager(driver, databaseNameProvider, Neo4jBookmarkManager.create(bookmarkCapture));
+			return new Neo4jTransactionManager(driver, databaseNameProvider,
+					Neo4jBookmarkManager.create(bookmarkCapture));
 		}
 
 		@Override
 		public boolean isCypher5Compatible() {
 			return neo4jConnectionSupport.isCypher5SyntaxCompatible();
 		}
+
 	}
+
 }

@@ -27,4 +27,5 @@ public interface HasNameAndPlace {
 	String getName();
 
 	Point getPlace();
+
 }

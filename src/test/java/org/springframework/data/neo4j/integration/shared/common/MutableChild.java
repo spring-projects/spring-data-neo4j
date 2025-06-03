@@ -30,10 +30,11 @@ public class MutableChild {
 	private Long id;
 
 	public Long getId() {
-		return id;
+		return this.id;
 	}
 
 	public void setId(Long id) {
 		this.id = id;
 	}
+
 }

@@ -37,4 +37,5 @@ public class TestEntityWithGeneratedDeprecatedId2 {
 		this.id = id;
 		this.valueTwo = valueTwo;
 	}
+
 }

@@ -37,15 +37,16 @@ public abstract class Fruit {
 		return this.id;
 	}
 
-	public Set<String> getLabels() {
-		return this.labels;
-	}
-
 	public void setId(String id) {
 		this.id = id;
+	}
+
+	public Set<String> getLabels() {
+		return this.labels;
 	}
 
 	public void setLabels(Set<String> labels) {
 		this.labels = labels;
 	}
+
 }

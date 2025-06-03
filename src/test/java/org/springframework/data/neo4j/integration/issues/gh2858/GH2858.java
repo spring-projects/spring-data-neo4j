@@ -15,12 +15,12 @@
  */
 package org.springframework.data.neo4j.integration.issues.gh2858;
 
+import java.util.List;
+
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Relationship;
-
-import java.util.List;
 
 /**
  * @author Gerrit Meier
@@ -44,24 +44,33 @@ public class GH2858 {
 	 * Projection of GH2858 entity
 	 */
 	public interface GH2858Projection {
+
 		String getName();
+
 		List<Friend> getFriends();
+
 		List<KnownPerson> getRelatives();
 
 		/**
 		 * Additional projection with just the name field.
 		 */
 		interface KnownPerson {
+
 			String getName();
+
 		}
 
 		/**
 		 * Additional projection with name field and friends relationship.
 		 */
 		interface Friend {
+
 			String getName();
+
 			List<KnownPerson> getFriends();
+
 		}
+
 	}
 
 }

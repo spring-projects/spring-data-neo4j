@@ -25,9 +25,11 @@ import org.springframework.data.neo4j.core.schema.Node;
 
 /**
  * @author Michael J. Simons
- * @soundtrack Samy Deluxe - Samy Deluxe
  */
 public final class EntitiesWithDynamicLabels {
+
+	private EntitiesWithDynamicLabels() {
+	}
 
 	/**
 	 * Used for testing whether related nodes store their dynamic labels.
@@ -42,8 +44,9 @@ public final class EntitiesWithDynamicLabels {
 		public SimpleDynamicLabels relatedTo;
 
 		public SimpleDynamicLabels getRelatedTo() {
-			return relatedTo;
+			return this.relatedTo;
 		}
+
 	}
 
 	/**
@@ -60,8 +63,9 @@ public final class EntitiesWithDynamicLabels {
 		public Set<String> moreLabels;
 
 		public Long getId() {
-			return id;
+			return this.id;
 		}
+
 	}
 
 	/**
@@ -69,6 +73,7 @@ public final class EntitiesWithDynamicLabels {
 	 */
 	@Node
 	public static class InheritedSimpleDynamicLabels extends SimpleDynamicLabels {
+
 	}
 
 	/**
@@ -88,8 +93,9 @@ public final class EntitiesWithDynamicLabels {
 		public Set<String> moreLabels;
 
 		public Long getId() {
-			return id;
+			return this.id;
 		}
+
 	}
 
 	/**
@@ -105,8 +111,9 @@ public final class EntitiesWithDynamicLabels {
 		public Set<String> moreLabels;
 
 		public String getId() {
-			return id;
+			return this.id;
 		}
+
 	}
 
 	/**
@@ -125,8 +132,9 @@ public final class EntitiesWithDynamicLabels {
 		public Set<String> moreLabels;
 
 		public String getId() {
-			return id;
+			return this.id;
 		}
+
 	}
 
 	/**
@@ -135,17 +143,18 @@ public final class EntitiesWithDynamicLabels {
 	@Node
 	public static class SimpleDynamicLabelsCtor {
 
+		@DynamicLabels
+		public final Set<String> moreLabels;
+
 		@Id
 		@GeneratedValue
 		private final Long id;
-
-		@DynamicLabels
-		public final Set<String> moreLabels;
 
 		public SimpleDynamicLabelsCtor(Long id, Set<String> moreLabels) {
 			this.id = id;
 			this.moreLabels = moreLabels;
 		}
+
 	}
 
 	/**
@@ -154,34 +163,37 @@ public final class EntitiesWithDynamicLabels {
 	@Node("Baz")
 	public static class DynamicLabelsWithNodeLabel {
 
+		@DynamicLabels
+		public Set<String> moreLabels;
+
 		@Id
 		@GeneratedValue
 		private Long id;
 
-		@DynamicLabels
-		public Set<String> moreLabels;
 	}
 
 	/**
 	 * Dynamic labels together with multiple labels.
 	 */
-	@Node({"Foo", "Bar"})
+	@Node({ "Foo", "Bar" })
 	public static class DynamicLabelsWithMultipleNodeLabels {
-
-		@Id
-		@GeneratedValue
-		private Long id;
 
 		@DynamicLabels
 		public Set<String> moreLabels;
-	}
-
-	@Node
-	static abstract class DynamicLabelsBaseClass {
 
 		@Id
 		@GeneratedValue
 		private Long id;
+
+	}
+
+	@Node
+	abstract static class DynamicLabelsBaseClass {
+
+		@Id
+		@GeneratedValue
+		private Long id;
+
 	}
 
 	/**
@@ -192,6 +204,7 @@ public final class EntitiesWithDynamicLabels {
 
 		@DynamicLabels
 		public Set<String> moreLabels;
+
 	}
 
 	/**
@@ -205,31 +218,36 @@ public final class EntitiesWithDynamicLabels {
 
 		@DynamicLabels
 		public Set<String> myLabels;
+
 	}
 
 	/**
 	 * Base entity for the multi-level abstraction
 	 */
 	@Node
-	public static abstract class BaseEntityWithoutDynamicLabels {
+	public abstract static class BaseEntityWithoutDynamicLabels {
+
 		@Id
 		public String id;
+
 	}
 
 	/**
 	 * adds the labels
 	 */
 	@Node
-	public static abstract class AbstractBaseEntityWithDynamicLabels extends BaseEntityWithoutDynamicLabels {
+	public abstract static class AbstractBaseEntityWithDynamicLabels extends BaseEntityWithoutDynamicLabels {
+
 		@DynamicLabels
 		public Set<String> labels;
+
 	}
 
 	/**
 	 * This might be the wrong most concrete class to be found
 	 */
 	@Node
-	public static abstract class AbstractEntityWithDynamicLabels extends AbstractBaseEntityWithDynamicLabels {
+	public abstract static class AbstractEntityWithDynamicLabels extends AbstractBaseEntityWithDynamicLabels {
 
 	}
 
@@ -238,9 +256,9 @@ public final class EntitiesWithDynamicLabels {
 	 */
 	@Node
 	public static class EntityWithMultilevelInheritanceAndDynamicLabels extends AbstractEntityWithDynamicLabels {
+
 		public String name;
+
 	}
 
-	private EntitiesWithDynamicLabels() {
-	}
 }

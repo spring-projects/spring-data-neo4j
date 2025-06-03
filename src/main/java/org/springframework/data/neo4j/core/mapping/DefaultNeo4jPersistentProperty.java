@@ -23,6 +23,7 @@ import java.util.Optional;
 
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
+
 import org.springframework.core.ResolvableType;
 import org.springframework.data.annotation.ReadOnlyProperty;
 import org.springframework.data.mapping.Association;
@@ -44,6 +45,8 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
+ * Default implementation of the {@link Neo4jPersistentProperty}.
+ *
  * @author Michael J. Simons
  * @since 6.0
  */
@@ -51,10 +54,13 @@ final class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProp
 		implements Neo4jPersistentProperty {
 
 	private final Lazy<String> graphPropertyName;
+
 	/**
-	 * A flag whether this is a writeable property: Something that ends up on a Neo4j node or relationship.
+	 * A flag whether this is a writeable property: Something that ends up on a Neo4j node
+	 * or relationship.
 	 */
 	private final Lazy<Boolean> isWritableProperty;
+
 	/**
 	 * A flag whether this domain property manifests itself as a relationship in Neo4j.
 	 */
@@ -69,13 +75,15 @@ final class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProp
 
 	/**
 	 * Creates a new {@link AnnotationBasedPersistentProperty}.
-	 *
-	 * @param property         must not be {@literal null}.
-	 * @param owner            must not be {@literal null}.
+	 * @param property must not be {@literal null}
+	 * @param owner must not be {@literal null}
+	 * @param mappingContext the mapping context in which this property is defined
 	 * @param simpleTypeHolder type holder
+	 * @param optionalCharacteristics characteristics of this property
 	 */
 	DefaultNeo4jPersistentProperty(Property property, PersistentEntity<?, Neo4jPersistentProperty> owner,
-			Neo4jMappingContext mappingContext, SimpleTypeHolder simpleTypeHolder, @Nullable PersistentPropertyCharacteristics optionalCharacteristics) {
+			Neo4jMappingContext mappingContext, SimpleTypeHolder simpleTypeHolder,
+			@Nullable PersistentPropertyCharacteristics optionalCharacteristics) {
 
 		super(property, owner, simpleTypeHolder);
 		this.mappingContext = mappingContext;
@@ -85,9 +93,14 @@ final class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProp
 		this.isWritableProperty = Lazy.of(() -> {
 			Class<?> targetType = getActualType();
 			return simpleTypeHolder.isSimpleType(targetType) // The driver can do this
-				   || this.mappingContext.hasCustomWriteTarget(targetType) // Some converter in the context can do this
-				   || isAnnotationPresent(ConvertWith.class) // An explicit converter can do this
-				   || isComposite(); // Our composite converter can do this
+					|| this.mappingContext.hasCustomWriteTarget(targetType) // Some
+																			// converter
+																			// in the
+																			// context can
+																			// do this
+					|| isAnnotationPresent(ConvertWith.class) // An explicit converter can
+																// do this
+					|| isComposite(); // Our composite converter can do this
 		});
 
 		this.isAssociation = Lazy.of(() -> {
@@ -96,7 +109,7 @@ final class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProp
 			if (isAnnotationPresent(Relationship.class)) {
 				return true;
 			}
-			return !(isWritableProperty.get());
+			return !(this.isWritableProperty.get());
 		});
 
 		this.customConversion = Lazy.of(() -> {
@@ -111,6 +124,33 @@ final class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProp
 		this.optionalCharacteristics = optionalCharacteristics;
 	}
 
+	static String deriveRelationshipType(String name) {
+
+		Assert.hasText(name, "The name to derive the type from is required");
+
+		StringBuilder sb = new StringBuilder();
+
+		int codePoint;
+		int previousIndex = 0;
+		int i = 0;
+		while (i < name.length()) {
+			codePoint = name.codePointAt(i);
+			if (Character.isLowerCase(codePoint)) {
+				if (i > 0 && !Character.isLetter(name.codePointAt(previousIndex))) {
+					sb.append("_");
+				}
+				codePoint = Character.toUpperCase(codePoint);
+			}
+			else if (sb.length() > 0) {
+				sb.append("_");
+			}
+			sb.append(Character.toChars(codePoint));
+			previousIndex = i;
+			i += Character.charCount(codePoint);
+		}
+		return sb.toString();
+	}
+
 	@Override
 	protected Association<@NonNull Neo4jPersistentProperty> createAssociation() {
 
@@ -123,10 +163,13 @@ final class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProp
 		if (this.hasActualTypeAnnotation(RelationshipProperties.class)) {
 			TypeInformation<?> typeInformation = getRelationshipPropertiesTargetType(getActualType());
 			obverseOwner = this.mappingContext.addPersistentEntity(typeInformation).orElseThrow();
-			relationshipPropertiesClass = this.mappingContext.addPersistentEntity(TypeInformation.of(getActualType())).orElseThrow();
-		} else {
+			relationshipPropertiesClass = this.mappingContext.addPersistentEntity(TypeInformation.of(getActualType()))
+				.orElseThrow();
+		}
+		else {
 			Class<?> associationTargetType = Objects.requireNonNull(this.getAssociationTargetType());
-			obverseOwner = this.mappingContext.addPersistentEntity(TypeInformation.of(associationTargetType)).orElse(null);
+			obverseOwner = this.mappingContext.addPersistentEntity(TypeInformation.of(associationTargetType))
+				.orElse(null);
 			Assert.notNull(obverseOwner, "Obverse owner could not be added");
 			if (dynamicAssociation) {
 
@@ -136,14 +179,16 @@ final class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProp
 					TypeInformation<?> actualType = mapValueType.getActualType();
 
 					if (actualType != null && this.mappingContext.getRequiredPersistentEntity(actualType.getType())
-							.isRelationshipPropertiesEntity()) {
+						.isRelationshipPropertiesEntity()) {
 						TypeInformation<?> typeInformation = getRelationshipPropertiesTargetType(actualType.getType());
 						obverseOwner = this.mappingContext.addPersistentEntity(typeInformation).orElseThrow();
-						relationshipPropertiesClass = this.mappingContext
-								.addPersistentEntity(componentType).orElseThrow();
+						relationshipPropertiesClass = this.mappingContext.addPersistentEntity(componentType)
+							.orElseThrow();
 
-					} else if (mapValueType.getType().isAnnotationPresent(RelationshipProperties.class)) {
-						relationshipPropertiesClass = this.mappingContext.addPersistentEntity(componentType).orElseThrow();
+					}
+					else if (mapValueType.getType().isAnnotationPresent(RelationshipProperties.class)) {
+						relationshipPropertiesClass = this.mappingContext.addPersistentEntity(componentType)
+							.orElseThrow();
 					}
 				}
 			}
@@ -154,30 +199,34 @@ final class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProp
 		String type;
 		if (relationship != null && StringUtils.hasText(relationship.type())) {
 			type = relationship.type();
-		} else {
+		}
+		else {
 			type = deriveRelationshipType(this.getName());
 		}
 
-		Relationship.Direction direction = relationship != null
-				? relationship.direction()
+		Relationship.Direction direction = (relationship != null) ? relationship.direction()
 				: Relationship.Direction.OUTGOING;
 
-		// Try to determine if there is a relationship definition that expresses logically the same relationship
+		// Try to determine if there is a relationship definition that expresses logically
+		// the same relationship
 		// on the other end.
 		// At this point, obverseOwner can't be null
 		@SuppressWarnings("NullAway")
-		Optional<RelationshipDescription> obverseRelationshipDescription = obverseOwner.getRelationships().stream()
-				.filter(rel -> rel.getType().equals(type)
-						&& rel.getTarget().equals(this.getOwner())
-						&& rel.getDirection() == direction.opposite()).findFirst();
+		Optional<RelationshipDescription> obverseRelationshipDescription = obverseOwner.getRelationships()
+			.stream()
+			.filter(rel -> rel.getType().equals(type) && rel.getTarget().equals(this.getOwner())
+					&& rel.getDirection() == direction.opposite())
+			.findFirst();
 
 		DefaultRelationshipDescription relationshipDescription = new DefaultRelationshipDescription(this,
 				obverseRelationshipDescription.orElse(null), type, dynamicAssociation, (NodeDescription<?>) getOwner(),
-				this.getName(), obverseOwner, direction, relationshipPropertiesClass, relationship == null || relationship.cascadeUpdates());
+				this.getName(), obverseOwner, direction, relationshipPropertiesClass,
+				relationship == null || relationship.cascadeUpdates());
 
-		// Update the previous found, if any, relationship with the newly created one as its counterpart.
+		// Update the previous found, if any, relationship with the newly created one as
+		// its counterpart.
 		obverseRelationshipDescription
-				.ifPresent(observeRelationship -> observeRelationship.setRelationshipObverse(relationshipDescription));
+			.ifPresent(observeRelationship -> observeRelationship.setRelationshipObverse(relationshipDescription));
 
 		return relationshipDescription;
 	}
@@ -191,8 +240,11 @@ final class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProp
 			throw new MappingException("Missing @TargetNode declaration in " + relationshipPropertiesType);
 		}
 		TypeInformation<?> relationshipPropertiesTypeInformation = TypeInformation.of(relationshipPropertiesType);
-		Class<?> type = Objects.requireNonNull(relationshipPropertiesTypeInformation.getProperty(targetNodeField.getName())).getType();
-		if (Object.class == type && this.getRequiredField().getGenericType() instanceof ParameterizedType pt && pt.getActualTypeArguments().length == 1) {
+		Class<?> type = Objects
+			.requireNonNull(relationshipPropertiesTypeInformation.getProperty(targetNodeField.getName()))
+			.getType();
+		if (Object.class == type && this.getRequiredField().getGenericType() instanceof ParameterizedType pt
+				&& pt.getActualTypeArguments().length == 1) {
 			return TypeInformation.of(ResolvableType.forType(pt.getActualTypeArguments()[0]));
 		}
 		return TypeInformation.of(type);
@@ -204,7 +256,8 @@ final class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProp
 		if (isDynamicOneToManyAssociation()) {
 			TypeInformation<?> actualType = getTypeInformation().getRequiredActualType();
 			return actualType.getRequiredComponentType().getType();
-		} else {
+		}
+		else {
 			return getActualType();
 		}
 	}
@@ -217,7 +270,7 @@ final class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProp
 
 	@Override
 	public boolean isEntity() {
-		return super.isEntity() && !isWritableProperty.get() && !this.isAnnotationPresent(ConvertWith.class);
+		return super.isEntity() && !this.isWritableProperty.get() && !this.isAnnotationPresent(ConvertWith.class);
 	}
 
 	@Override
@@ -232,27 +285,24 @@ final class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProp
 	}
 
 	@Override
-	@Nullable
-	public Neo4jPersistentPropertyConverter<?> getOptionalConverter() {
-		return isEntity() ? null : customConversion.getOptional()
-				.map(Neo4jPersistentPropertyConverter.class::cast)
-				.orElse(null);
+	@Nullable public Neo4jPersistentPropertyConverter<?> getOptionalConverter() {
+		return isEntity() ? null
+				: this.customConversion.getOptional().map(Neo4jPersistentPropertyConverter.class::cast).orElse(null);
 	}
 
 	/**
 	 * Computes the target name of this property.
-	 *
-	 * @return A property on a node or {@literal null} if this property describes an association.
+	 * @return a property on a node or {@literal null} if this property describes an
+	 * association
 	 */
-	@Nullable
-	private String computeGraphPropertyName() {
+	@Nullable private String computeGraphPropertyName() {
 
 		if (this.isRelationship()) {
 			return null;
 		}
 
 		org.springframework.data.neo4j.core.schema.Property propertyAnnotation = this
-				.findAnnotation(org.springframework.data.neo4j.core.schema.Property.class);
+			.findAnnotation(org.springframework.data.neo4j.core.schema.Property.class);
 
 		String targetName = this.getName();
 		if (propertyAnnotation != null && !propertyAnnotation.name().trim().isEmpty()) {
@@ -296,46 +346,22 @@ final class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProp
 		return isAnnotationPresent(CompositeProperty.class);
 	}
 
-	static String deriveRelationshipType(String name) {
-
-		Assert.hasText(name, "The name to derive the type from is required");
-
-		StringBuilder sb = new StringBuilder();
-
-		int codePoint;
-		int previousIndex = 0;
-		int i = 0;
-		while (i < name.length()) {
-			codePoint = name.codePointAt(i);
-			if (Character.isLowerCase(codePoint)) {
-				if (i > 0 && !Character.isLetter(name.codePointAt(previousIndex))) {
-					sb.append("_");
-				}
-				codePoint = Character.toUpperCase(codePoint);
-			} else if (sb.length() > 0) {
-				sb.append("_");
-			}
-			sb.append(Character.toChars(codePoint));
-			previousIndex = i;
-			i += Character.charCount(codePoint);
-		}
-		return sb.toString();
-	}
-
 	@Override
 	public boolean isReadOnly() {
 
-		if (optionalCharacteristics != null && optionalCharacteristics.isReadOnly() != null) {
-			return Boolean.TRUE.equals(optionalCharacteristics.isReadOnly());
+		if (this.optionalCharacteristics != null && this.optionalCharacteristics.isReadOnly() != null) {
+			return Boolean.TRUE.equals(this.optionalCharacteristics.isReadOnly());
 		}
 
 		Class<org.springframework.data.neo4j.core.schema.Property> typeOfAnnotation = org.springframework.data.neo4j.core.schema.Property.class;
-		return isAnnotationPresent(ReadOnlyProperty.class) || (isAnnotationPresent(typeOfAnnotation) && getRequiredAnnotation(typeOfAnnotation).readOnly());
+		return isAnnotationPresent(ReadOnlyProperty.class)
+				|| (isAnnotationPresent(typeOfAnnotation) && getRequiredAnnotation(typeOfAnnotation).readOnly());
 	}
 
 	@Override
 	public boolean isTransient() {
-		return this.optionalCharacteristics == null || optionalCharacteristics.isTransient() == null ?
-				super.isTransient() : Boolean.TRUE.equals(optionalCharacteristics.isTransient());
+		return (this.optionalCharacteristics == null || this.optionalCharacteristics.isTransient() == null)
+				? super.isTransient() : Boolean.TRUE.equals(this.optionalCharacteristics.isTransient());
 	}
+
 }

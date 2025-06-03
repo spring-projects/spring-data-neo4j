@@ -26,6 +26,7 @@ public class DepartmentEntity {
 
 	@Id
 	private final String id;
+
 	private final String name;
 
 	public DepartmentEntity(String id, String name) {
@@ -40,4 +41,5 @@ public class DepartmentEntity {
 	public String getName() {
 		return this.name;
 	}
+
 }

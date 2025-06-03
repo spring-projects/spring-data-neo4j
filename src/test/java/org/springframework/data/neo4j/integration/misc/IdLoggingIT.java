@@ -15,15 +15,15 @@
  */
 package org.springframework.data.neo4j.integration.misc;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatCode;
-
 import java.util.function.Predicate;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIf;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.neo4j.driver.Driver;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -38,14 +38,81 @@ import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 import org.springframework.data.neo4j.test.ServerVersion;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
-import ch.qos.logback.classic.Level;
-import ch.qos.logback.classic.Logger;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 
 @Neo4jIntegrationTest
 @ExtendWith(LogbackCapturingExtension.class)
 class IdLoggingIT {
 
 	protected static Neo4jExtension.Neo4jConnectionSupport neo4jConnectionSupport;
+
+	static boolean isGreaterThanOrEqualNeo4j5() {
+		return neo4jConnectionSupport.getServerVersion().greaterThanOrEqual(ServerVersion.v5_0_0);
+	}
+
+	@EnabledIf("isGreaterThanOrEqualNeo4j5")
+	@Test
+	void idWarningShouldBeSuppressed(LogbackCapture logbackCapture, @Autowired Neo4jClient neo4jClient) {
+
+		// Was not able to combine the autowiring of capture and the client here
+		for (Boolean enabled : new Boolean[] { true, false, null }) {
+
+			Logger logger = (Logger) org.slf4j.LoggerFactory
+				.getLogger("org.springframework.data.neo4j.cypher.deprecation");
+			Level originalLevel = logger.getLevel();
+			logger.setLevel(Level.DEBUG);
+
+			Boolean oldValue = null;
+			if (enabled != null) {
+				oldValue = Neo4jClient.SUPPRESS_ID_DEPRECATIONS.getAndSet(enabled);
+			}
+
+			try {
+				assertThatCode(() -> neo4jClient.query("CREATE (n:XXXIdTest) RETURN id(n)").fetch().all())
+					.doesNotThrowAnyException();
+				Predicate<String> stringPredicate = msg -> msg
+					.contains("Neo.ClientNotification.Statement.FeatureDeprecationWarning");
+
+				if (enabled == null || enabled) {
+					assertThat(logbackCapture.getFormattedMessages()).noneMatch(stringPredicate);
+				}
+				else {
+					assertThat(logbackCapture.getFormattedMessages()).anyMatch(stringPredicate);
+				}
+			}
+			finally {
+				logbackCapture.clear();
+				logger.setLevel(originalLevel);
+				if (oldValue != null) {
+					Neo4jClient.SUPPRESS_ID_DEPRECATIONS.set(oldValue);
+				}
+			}
+		}
+	}
+
+	@EnabledIf("isGreaterThanOrEqualNeo4j5")
+	@Test
+	void otherDeprecationsWarningsShouldNotBeSuppressed(LogbackCapture logbackCapture,
+			@Autowired Neo4jClient neo4jClient) {
+
+		Logger logger = (Logger) org.slf4j.LoggerFactory.getLogger("org.springframework.data.neo4j.cypher.deprecation");
+		Level originalLevel = logger.getLevel();
+		logger.setLevel(Level.DEBUG);
+
+		try {
+			assertThatCode(
+					() -> neo4jClient.query("MATCH (n) CALL {WITH n RETURN count(n) AS cnt} RETURN *").fetch().all())
+				.doesNotThrowAnyException();
+			assertThat(logbackCapture.getFormattedMessages())
+				.anyMatch(msg -> msg.contains("Neo.ClientNotification.Statement.FeatureDeprecationWarning"))
+				.anyMatch(msg -> msg
+					.contains("CALL subquery without a variable scope clause is now deprecated. Use CALL (n) { ... }"));
+		}
+		finally {
+			logger.setLevel(originalLevel);
+		}
+	}
 
 	@Configuration
 	@EnableTransactionManagement
@@ -58,6 +125,7 @@ class IdLoggingIT {
 		}
 
 		@Bean
+		@Override
 		public Driver driver() {
 			return neo4jConnectionSupport.getDriver();
 		}
@@ -66,65 +134,7 @@ class IdLoggingIT {
 		public boolean isCypher5Compatible() {
 			return neo4jConnectionSupport.isCypher5SyntaxCompatible();
 		}
+
 	}
 
-	static boolean isGreaterThanOrEqualNeo4j5() {
-		return neo4jConnectionSupport.getServerVersion().greaterThanOrEqual(ServerVersion.v5_0_0);
-	}
-
-	@EnabledIf("isGreaterThanOrEqualNeo4j5")
-	@Test
-	void idWarningShouldBeSuppressed(LogbackCapture logbackCapture, @Autowired Neo4jClient neo4jClient) {
-
-		// Was not able to combine the autowiring of capture and the client here
-		for (Boolean enabled : new Boolean[] {true, false, null}) {
-
-			Logger logger = (Logger) org.slf4j.LoggerFactory.getLogger("org.springframework.data.neo4j.cypher.deprecation");
-			Level originalLevel = logger.getLevel();
-			logger.setLevel(Level.DEBUG);
-
-			Boolean oldValue = null;
-			if (enabled != null) {
-				oldValue = Neo4jClient.SUPPRESS_ID_DEPRECATIONS.getAndSet(enabled);
-			}
-
-			try {
-				assertThatCode(() -> neo4jClient.query(
-						"CREATE (n:XXXIdTest) RETURN id(n)").fetch().all()).doesNotThrowAnyException();
-				Predicate<String> stringPredicate = msg -> msg.contains(
-						"Neo.ClientNotification.Statement.FeatureDeprecationWarning");
-
-				if (enabled == null || enabled) {
-					assertThat(logbackCapture.getFormattedMessages()).noneMatch(stringPredicate);
-				} else {
-					assertThat(logbackCapture.getFormattedMessages()).anyMatch(stringPredicate);
-				}
-			} finally {
-				logbackCapture.clear();
-				logger.setLevel(originalLevel);
-				if (oldValue != null) {
-					Neo4jClient.SUPPRESS_ID_DEPRECATIONS.set(oldValue);
-				}
-			}
-		}
-	}
-
-	@EnabledIf("isGreaterThanOrEqualNeo4j5")
-	@Test
-	void otherDeprecationsWarningsShouldNotBeSuppressed(LogbackCapture logbackCapture, @Autowired Neo4jClient neo4jClient) {
-
-		Logger logger = (Logger) org.slf4j.LoggerFactory.getLogger("org.springframework.data.neo4j.cypher.deprecation");
-		Level originalLevel = logger.getLevel();
-		logger.setLevel(Level.DEBUG);
-
-		try {
-			assertThatCode(() -> neo4jClient.query(
-					"MATCH (n) CALL {WITH n RETURN count(n) AS cnt} RETURN *").fetch().all()).doesNotThrowAnyException();
-			assertThat(logbackCapture.getFormattedMessages())
-					.anyMatch(msg -> msg.contains("Neo.ClientNotification.Statement.FeatureDeprecationWarning"))
-					.anyMatch(msg -> msg.contains("CALL subquery without a variable scope clause is now deprecated. Use CALL (n) { ... }"));
-		} finally {
-			logger.setLevel(originalLevel);
-		}
-	}
 }

@@ -26,18 +26,16 @@ import org.springframework.data.neo4j.repository.query.Query;
  */
 public interface GH2572Repository extends Neo4jRepository<GH2572Child, String> {
 
-	@Query("MATCH(person:GH2572Parent {id: $id}) "
-			+ "OPTIONAL MATCH (person)<-[:IS_PET]-(dog:GH2572Child) "
+	@Query("MATCH(person:GH2572Parent {id: $id}) " + "OPTIONAL MATCH (person)<-[:IS_PET]-(dog:GH2572Child) "
 			+ "RETURN dog")
 	List<GH2572Child> getDogsForPerson(String id);
 
-	@Query("MATCH(person:GH2572Parent {id: $id}) "
-			+ "OPTIONAL MATCH (person)<-[:IS_PET]-(dog:GH2572Child) "
+	@Query("MATCH(person:GH2572Parent {id: $id}) " + "OPTIONAL MATCH (person)<-[:IS_PET]-(dog:GH2572Child) "
 			+ "RETURN dog ORDER BY dog.name ASC LIMIT 1")
 	Optional<GH2572Child> findOneDogForPerson(String id);
 
-	@Query("MATCH(person:GH2572Parent {id: $id}) "
-			+ "OPTIONAL MATCH (person)<-[:IS_PET]-(dog:GH2572Child) "
+	@Query("MATCH(person:GH2572Parent {id: $id}) " + "OPTIONAL MATCH (person)<-[:IS_PET]-(dog:GH2572Child) "
 			+ "RETURN dog ORDER BY dog.name ASC LIMIT 1")
 	GH2572Child getOneDogForPerson(String id);
+
 }

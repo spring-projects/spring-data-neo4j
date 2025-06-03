@@ -37,6 +37,7 @@ import org.neo4j.driver.Session;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.summary.ResultSummary;
 import org.neo4j.driver.types.TypeSystem;
+
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -54,8 +55,8 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
- * Default implementation of {@link Neo4jClient}. Uses the Neo4j Java driver to connect to and interact with the
- * database.
+ * Default implementation of {@link Neo4jClient}. Uses the Neo4j Java driver to connect to
+ * and interact with the database.
  *
  * @author Gerrit Meier
  * @author Michael J. Simons
@@ -64,11 +65,15 @@ import org.springframework.util.StringUtils;
 final class DefaultNeo4jClient implements Neo4jClient, ApplicationContextAware {
 
 	private final Driver driver;
+
 	@Nullable
 	private final DatabaseSelectionProvider databaseSelectionProvider;
+
 	@Nullable
 	private final UserSelectionProvider userSelectionProvider;
+
 	private final ConversionService conversionService;
+
 	private final Neo4jPersistenceExceptionTranslator persistenceExceptionTranslator = new Neo4jPersistenceExceptionTranslator();
 
 	// Local bookmark manager when using outside managed transactions
@@ -79,23 +84,42 @@ final class DefaultNeo4jClient implements Neo4jClient, ApplicationContextAware {
 		this.driver = builder.driver;
 		this.databaseSelectionProvider = builder.databaseSelectionProvider;
 		this.userSelectionProvider = builder.userSelectionProvider;
-		this.bookmarkManager =  new BookmarkManagerReference(Neo4jBookmarkManager::create, builder.bookmarkManager);
+		this.bookmarkManager = new BookmarkManagerReference(Neo4jBookmarkManager::create, builder.bookmarkManager);
 
 		this.conversionService = new DefaultConversionService();
-		Optional.ofNullable(builder.neo4jConversions).orElseGet(Neo4jConversions::new).registerConvertersIn((ConverterRegistry) conversionService);
+		Optional.ofNullable(builder.neo4jConversions)
+			.orElseGet(Neo4jConversions::new)
+			.registerConvertersIn((ConverterRegistry) this.conversionService);
+	}
+
+	/**
+	 * Tries to convert the given {@link RuntimeException} into a
+	 * {@link DataAccessException} but returns the original exception if the conversation
+	 * failed. Thus allows safe re-throwing of the return value.
+	 * @param ex the exception to translate
+	 * @param exceptionTranslator the {@link PersistenceExceptionTranslator} to be used
+	 * for translation
+	 * @return any translated exception
+	 */
+	private static RuntimeException potentiallyConvertRuntimeException(RuntimeException ex,
+			PersistenceExceptionTranslator exceptionTranslator) {
+		RuntimeException resolved = exceptionTranslator.translateExceptionIfPossible(ex);
+		return (resolved != null) ? resolved : ex;
 	}
 
 	@Override
 	public QueryRunner getQueryRunner(DatabaseSelection databaseSelection, UserSelection impersonatedUser) {
 
-		QueryRunner queryRunner = Neo4jTransactionManager.retrieveTransaction(driver, databaseSelection, impersonatedUser);
-		Collection<Bookmark> lastBookmarks = bookmarkManager.resolve().getBookmarks();
+		QueryRunner queryRunner = Neo4jTransactionManager.retrieveTransaction(this.driver, databaseSelection,
+				impersonatedUser);
+		Collection<Bookmark> lastBookmarks = this.bookmarkManager.resolve().getBookmarks();
 
 		if (queryRunner == null) {
-			queryRunner = driver.session(Neo4jTransactionUtils.sessionConfig(false, lastBookmarks, databaseSelection, impersonatedUser));
+			queryRunner = this.driver.session(
+					Neo4jTransactionUtils.sessionConfig(false, lastBookmarks, databaseSelection, impersonatedUser));
 		}
 
-		return new DelegatingQueryRunner(queryRunner, lastBookmarks, bookmarkManager.resolve()::updateBookmarks);
+		return new DelegatingQueryRunner(queryRunner, lastBookmarks, this.bookmarkManager.resolve()::updateBookmarks);
 	}
 
 	@Override
@@ -104,57 +128,8 @@ final class DefaultNeo4jClient implements Neo4jClient, ApplicationContextAware {
 		this.bookmarkManager.setApplicationContext(applicationContext);
 	}
 
-	private static class DelegatingQueryRunner implements QueryRunner {
-
-		private final QueryRunner delegate;
-		private final Collection<Bookmark> usedBookmarks;
-		private final BiConsumer<Collection<Bookmark>, Collection<Bookmark>> newBookmarkConsumer;
-
-		private DelegatingQueryRunner(QueryRunner delegate, Collection<Bookmark> lastBookmarks, BiConsumer<Collection<Bookmark>, Collection<Bookmark>> newBookmarkConsumer) {
-			this.delegate = delegate;
-			this.usedBookmarks = lastBookmarks;
-			this.newBookmarkConsumer = newBookmarkConsumer;
-		}
-
-		@Override
-		public void close() {
-
-			// We're only going to close sessions we have acquired inside the client, not something that
-			// has been retrieved from the tx manager.
-			if (this.delegate instanceof Session session) {
-
-				session.close();
-				this.newBookmarkConsumer.accept(usedBookmarks, session.lastBookmarks());
-			}
-		}
-
-		@Override
-		public Result run(String s, Value value) {
-			return delegate.run(s, value);
-		}
-
-		@Override
-		public Result run(String s, Map<String, Object> map) {
-			return delegate.run(s, map);
-		}
-
-		@Override
-		public Result run(String s, Record record) {
-			return delegate.run(s, record);
-		}
-
-		@Override
-		public Result run(String s) {
-			return delegate.run(s);
-		}
-
-		@Override
-		public Result run(Query query) {
-			return delegate.run(query);
-		}
-	}
-
-	// Below are all the implementations (methods and classes) as defined by the contracts of Neo4jClient
+	// Below are all the implementations (methods and classes) as defined by the contracts
+	// of Neo4jClient
 
 	@Override
 	public UnboundRunnableSpec query(String cypher) {
@@ -172,16 +147,97 @@ final class DefaultNeo4jClient implements Neo4jClient, ApplicationContextAware {
 	}
 
 	@Override
-	@Nullable
-	public DatabaseSelectionProvider getDatabaseSelectionProvider() {
-		return databaseSelectionProvider;
+	@Nullable public DatabaseSelectionProvider getDatabaseSelectionProvider() {
+		return this.databaseSelectionProvider;
+	}
+
+	private DatabaseSelection resolveTargetDatabaseName(@Nullable String parameterTargetDatabase) {
+
+		String value = Neo4jClient.verifyDatabaseName(parameterTargetDatabase);
+		if (value != null) {
+			return DatabaseSelection.byName(value);
+		}
+		if (this.databaseSelectionProvider != null) {
+			return this.databaseSelectionProvider.getDatabaseSelection();
+		}
+		return DatabaseSelectionProvider.getDefaultSelectionProvider().getDatabaseSelection();
+	}
+
+	private UserSelection resolveUser(@Nullable String userName) {
+
+		if (StringUtils.hasText(userName)) {
+			return UserSelection.impersonate(userName);
+		}
+		if (this.userSelectionProvider != null) {
+			return this.userSelectionProvider.getUserSelection();
+		}
+		return UserSelectionProvider.getDefaultSelectionProvider().getUserSelection();
+	}
+
+	private static final class DelegatingQueryRunner implements QueryRunner {
+
+		private final QueryRunner delegate;
+
+		private final Collection<Bookmark> usedBookmarks;
+
+		private final BiConsumer<Collection<Bookmark>, Collection<Bookmark>> newBookmarkConsumer;
+
+		private DelegatingQueryRunner(QueryRunner delegate, Collection<Bookmark> lastBookmarks,
+				BiConsumer<Collection<Bookmark>, Collection<Bookmark>> newBookmarkConsumer) {
+			this.delegate = delegate;
+			this.usedBookmarks = lastBookmarks;
+			this.newBookmarkConsumer = newBookmarkConsumer;
+		}
+
+		@Override
+		public void close() {
+
+			// We're only going to close sessions we have acquired inside the client, not
+			// something that
+			// has been retrieved from the tx manager.
+			if (this.delegate instanceof Session session) {
+
+				session.close();
+				this.newBookmarkConsumer.accept(this.usedBookmarks, session.lastBookmarks());
+			}
+		}
+
+		@Override
+		public Result run(String s, Value value) {
+			return this.delegate.run(s, value);
+		}
+
+		@Override
+		public Result run(String s, Map<String, Object> map) {
+			return this.delegate.run(s, map);
+		}
+
+		@Override
+		public Result run(String s, Record record) {
+			return this.delegate.run(s, record);
+		}
+
+		@Override
+		public Result run(String s) {
+			return this.delegate.run(s);
+		}
+
+		@Override
+		public Result run(Query query) {
+			return this.delegate.run(query);
+		}
+
 	}
 
 	/**
-	 * Basically a holder of a cypher template supplier and a set of named parameters. It's main purpose is to orchestrate
-	 * the running of things with a bit of logging.
+	 * Basically a holder of a cypher template supplier and a set of named parameters.
+	 * It's main purpose is to orchestrate the running of things with a bit of logging.
 	 */
 	static class RunnableStatement {
+
+		private final Supplier<String> cypherSupplier;
+
+		private final NamedParameters parameters;
 
 		RunnableStatement(Supplier<String> cypherSupplier) {
 			this(cypherSupplier, new NamedParameters());
@@ -192,60 +248,21 @@ final class DefaultNeo4jClient implements Neo4jClient, ApplicationContextAware {
 			this.parameters = parameters;
 		}
 
-		private final Supplier<String> cypherSupplier;
-
-		private final NamedParameters parameters;
-
 		protected final Result runWith(QueryRunner statementRunner) {
-			String statementTemplate = cypherSupplier.get();
+			String statementTemplate = this.cypherSupplier.get();
 
 			if (cypherLog.isDebugEnabled()) {
 				cypherLog.debug(() -> String.format("Executing:%s%s", System.lineSeparator(), statementTemplate));
 
-				if (cypherLog.isTraceEnabled() && !parameters.isEmpty()) {
-					cypherLog.trace(() -> String.format("with parameters:%s%s", System.lineSeparator(), parameters));
+				if (cypherLog.isTraceEnabled() && !this.parameters.isEmpty()) {
+					cypherLog
+						.trace(() -> String.format("with parameters:%s%s", System.lineSeparator(), this.parameters));
 				}
 			}
 
-			return statementRunner.run(statementTemplate, parameters.get());
+			return statementRunner.run(statementTemplate, this.parameters.get());
 		}
-	}
 
-	/**
-	 * Tries to convert the given {@link RuntimeException} into a {@link DataAccessException} but returns the original
-	 * exception if the conversation failed. Thus allows safe re-throwing of the return value.
-	 *
-	 * @param ex                  the exception to translate
-	 * @param exceptionTranslator the {@link PersistenceExceptionTranslator} to be used for translation
-	 * @return Any translated exception
-	 */
-	private static RuntimeException potentiallyConvertRuntimeException(RuntimeException ex,
-			PersistenceExceptionTranslator exceptionTranslator) {
-		RuntimeException resolved = exceptionTranslator.translateExceptionIfPossible(ex);
-		return resolved == null ? ex : resolved;
-	}
-
-	private DatabaseSelection resolveTargetDatabaseName(@Nullable String parameterTargetDatabase) {
-
-		String value = Neo4jClient.verifyDatabaseName(parameterTargetDatabase);
-		if (value != null) {
-			return DatabaseSelection.byName(value);
-		}
-		if (databaseSelectionProvider != null) {
-			return databaseSelectionProvider.getDatabaseSelection();
-		}
-		return DatabaseSelectionProvider.getDefaultSelectionProvider().getDatabaseSelection();
-	}
-
-	private UserSelection resolveUser(@Nullable String userName) {
-
-		if (StringUtils.hasText(userName)) {
-			return UserSelection.impersonate(userName);
-		}
-		if (userSelectionProvider != null) {
-			return userSelectionProvider.getUserSelection();
-		}
-		return UserSelectionProvider.getDefaultSelectionProvider().getUserSelection();
 	}
 
 	class DefaultRunnableSpec implements UnboundRunnableSpec, RunnableSpecBoundToDatabaseAndUser {
@@ -291,26 +308,29 @@ final class DefaultNeo4jClient implements Neo4jClient, ApplicationContextAware {
 		@Override
 		public <T> MappingSpec<T> fetchAs(Class<T> targetClass) {
 
-			return new DefaultRecordFetchSpec<>(databaseSelection, userSelection, runnableStatement,
-					new SingleValueMappingFunction<>(conversionService, targetClass));
+			return new DefaultRecordFetchSpec<>(this.databaseSelection, this.userSelection, this.runnableStatement,
+					new SingleValueMappingFunction<>(DefaultNeo4jClient.this.conversionService, targetClass));
 		}
 
 		@Override
 		public RecordFetchSpec<Map<String, Object>> fetch() {
 
-			return new DefaultRecordFetchSpec<>(databaseSelection, userSelection, runnableStatement, (t, r) -> r.asMap());
+			return new DefaultRecordFetchSpec<>(this.databaseSelection, this.userSelection, this.runnableStatement,
+					(t, r) -> r.asMap());
 		}
 
 		@Override
 		public ResultSummary run() {
 
-			try (QueryRunner statementRunner = getQueryRunner(databaseSelection, userSelection)) {
-				Result result = runnableStatement.runWith(statementRunner);
+			try (QueryRunner statementRunner = getQueryRunner(this.databaseSelection, this.userSelection)) {
+				Result result = this.runnableStatement.runWith(statementRunner);
 				return ResultSummaries.process(result.consume());
-			} catch (RuntimeException e) {
-				throw potentiallyConvertRuntimeException(e, persistenceExceptionTranslator);
-			} catch (Exception e) {
-				throw new RuntimeException(e);
+			}
+			catch (RuntimeException ex) {
+				throw potentiallyConvertRuntimeException(ex, DefaultNeo4jClient.this.persistenceExceptionTranslator);
+			}
+			catch (Exception exception) {
+				throw new RuntimeException(exception);
 			}
 		}
 
@@ -326,7 +346,7 @@ final class DefaultNeo4jClient implements Neo4jClient, ApplicationContextAware {
 			@Override
 			public RunnableSpec to(String name) {
 
-				DefaultRunnableSpec.this.runnableStatement.parameters.add(name, value);
+				DefaultRunnableSpec.this.runnableStatement.parameters.add(name, this.value);
 				return DefaultRunnableSpec.this;
 			}
 
@@ -335,11 +355,13 @@ final class DefaultNeo4jClient implements Neo4jClient, ApplicationContextAware {
 
 				Assert.notNull(binder, "Binder is required");
 
-				return bindAll(binder.apply(value));
+				return bindAll(binder.apply(this.value));
 			}
+
 		}
 
 		class DefaultRunnableSpecBoundToDatabase implements RunnableSpecBoundToDatabase {
+
 			@Override
 			public RunnableSpecBoundToDatabaseAndUser asUser(String aUser) {
 
@@ -371,6 +393,7 @@ final class DefaultNeo4jClient implements Neo4jClient, ApplicationContextAware {
 			public RunnableSpec bindAll(Map<String, Object> parameters) {
 				return DefaultRunnableSpec.this.bindAll(parameters);
 			}
+
 		}
 
 		class DefaultRunnableSpecBoundToUser implements RunnableSpecBoundToUser {
@@ -406,7 +429,9 @@ final class DefaultNeo4jClient implements Neo4jClient, ApplicationContextAware {
 			public RunnableSpec bindAll(Map<String, Object> parameters) {
 				return DefaultRunnableSpec.this.bindAll(parameters);
 			}
+
 		}
+
 	}
 
 	class DefaultRecordFetchSpec<T> implements RecordFetchSpec<T>, MappingSpec<T> {
@@ -419,10 +444,8 @@ final class DefaultNeo4jClient implements Neo4jClient, ApplicationContextAware {
 
 		private BiFunction<TypeSystem, Record, T> mappingFunction;
 
-		DefaultRecordFetchSpec(DatabaseSelection databaseSelection,
-				UserSelection impersonatedUser,
-				RunnableStatement runnableStatement,
-				BiFunction<TypeSystem, Record, T> mappingFunction) {
+		DefaultRecordFetchSpec(DatabaseSelection databaseSelection, UserSelection impersonatedUser,
+				RunnableStatement runnableStatement, BiFunction<TypeSystem, Record, T> mappingFunction) {
 
 			this.databaseSelection = databaseSelection;
 			this.impersonatedUser = impersonatedUser;
@@ -442,16 +465,18 @@ final class DefaultNeo4jClient implements Neo4jClient, ApplicationContextAware {
 		public Optional<T> one() {
 
 			try (QueryRunner statementRunner = getQueryRunner(this.databaseSelection, this.impersonatedUser)) {
-				Result result = runnableStatement.runWith(statementRunner);
-				Optional<T> optionalValue = result.hasNext() ?
-						Optional.ofNullable(mappingFunction.apply(TypeSystem.getDefault(), result.single())) :
-						Optional.empty();
+				Result result = this.runnableStatement.runWith(statementRunner);
+				Optional<T> optionalValue = result.hasNext()
+						? Optional.ofNullable(this.mappingFunction.apply(TypeSystem.getDefault(), result.single()))
+						: Optional.empty();
 				ResultSummaries.process(result.consume());
 				return optionalValue;
-			} catch (RuntimeException e) {
-				throw potentiallyConvertRuntimeException(e, persistenceExceptionTranslator);
-			} catch (Exception e) {
-				throw new RuntimeException(e);
+			}
+			catch (RuntimeException ex) {
+				throw potentiallyConvertRuntimeException(ex, DefaultNeo4jClient.this.persistenceExceptionTranslator);
+			}
+			catch (Exception ex) {
+				throw new RuntimeException(ex);
 			}
 		}
 
@@ -459,14 +484,19 @@ final class DefaultNeo4jClient implements Neo4jClient, ApplicationContextAware {
 		public Optional<T> first() {
 
 			try (QueryRunner statementRunner = getQueryRunner(this.databaseSelection, this.impersonatedUser)) {
-				Result result = runnableStatement.runWith(statementRunner);
-				Optional<T> optionalValue = result.stream().map(partialMappingFunction(TypeSystem.getDefault())).filter(Objects::nonNull).findFirst();
+				Result result = this.runnableStatement.runWith(statementRunner);
+				Optional<T> optionalValue = result.stream()
+					.map(partialMappingFunction(TypeSystem.getDefault()))
+					.filter(Objects::nonNull)
+					.findFirst();
 				ResultSummaries.process(result.consume());
 				return optionalValue;
-			} catch (RuntimeException e) {
-				throw potentiallyConvertRuntimeException(e, persistenceExceptionTranslator);
-			} catch (Exception e) {
-				throw new RuntimeException(e);
+			}
+			catch (RuntimeException ex) {
+				throw potentiallyConvertRuntimeException(ex, DefaultNeo4jClient.this.persistenceExceptionTranslator);
+			}
+			catch (Exception ex) {
+				throw new RuntimeException(ex);
 			}
 		}
 
@@ -474,38 +504,40 @@ final class DefaultNeo4jClient implements Neo4jClient, ApplicationContextAware {
 		public Collection<T> all() {
 
 			try (QueryRunner statementRunner = getQueryRunner(this.databaseSelection, this.impersonatedUser)) {
-				Result result = runnableStatement.runWith(statementRunner);
+				Result result = this.runnableStatement.runWith(statementRunner);
 				Collection<T> values = result.stream().flatMap(r -> {
-					if (mappingFunction instanceof SingleValueMappingFunction && r.size() == 1 && r.get(0).hasType(TypeSystem.getDefault().LIST())) {
-						return r.get(0).asList(v -> ((SingleValueMappingFunction<T>) mappingFunction).convertValue(v)).stream();
+					if (this.mappingFunction instanceof SingleValueMappingFunction && r.size() == 1
+							&& r.get(0).hasType(TypeSystem.getDefault().LIST())) {
+						return r.get(0)
+							.asList(v -> ((SingleValueMappingFunction<T>) this.mappingFunction).convertValue(v))
+							.stream();
 					}
 					return Stream.of(partialMappingFunction(TypeSystem.getDefault()).apply(r));
 				}).filter(Objects::nonNull).collect(Collectors.toList());
 				ResultSummaries.process(result.consume());
 				return values;
-			} catch (RuntimeException e) {
-				throw potentiallyConvertRuntimeException(e, persistenceExceptionTranslator);
-			} catch (Exception e) {
-				throw new RuntimeException(e);
+			}
+			catch (RuntimeException ex) {
+				throw potentiallyConvertRuntimeException(ex, DefaultNeo4jClient.this.persistenceExceptionTranslator);
+			}
+			catch (Exception ex) {
+				throw new RuntimeException(ex);
 			}
 		}
 
-		/**
-		 * @param typeSystem The actual type system
-		 * @return The partially evaluated mapping function
-		 */
 		private Function<Record, T> partialMappingFunction(TypeSystem typeSystem) {
-			return r -> mappingFunction.apply(typeSystem, r);
+			return r -> this.mappingFunction.apply(typeSystem, r);
 		}
+
 	}
 
 	class DefaultRunnableDelegation<T> implements RunnableDelegation<T>, OngoingDelegation<T> {
 
+		private final Function<QueryRunner, Optional<T>> callback;
+
 		private DatabaseSelection databaseSelection;
 
 		private UserSelection impersonatedUser;
-
-		private final Function<QueryRunner, Optional<T>> callback;
 
 		DefaultRunnableDelegation(Function<QueryRunner, Optional<T>> callback) {
 			this.callback = callback;
@@ -522,13 +554,17 @@ final class DefaultNeo4jClient implements Neo4jClient, ApplicationContextAware {
 
 		@Override
 		public Optional<T> run() {
-			try (QueryRunner queryRunner = getQueryRunner(databaseSelection, this.impersonatedUser)) {
-				return callback.apply(queryRunner);
-			} catch (RuntimeException e) {
-				throw potentiallyConvertRuntimeException(e, persistenceExceptionTranslator);
-			} catch (Exception e) {
-				throw new RuntimeException(e);
+			try (QueryRunner queryRunner = getQueryRunner(this.databaseSelection, this.impersonatedUser)) {
+				return this.callback.apply(queryRunner);
+			}
+			catch (RuntimeException ex) {
+				throw potentiallyConvertRuntimeException(ex, DefaultNeo4jClient.this.persistenceExceptionTranslator);
+			}
+			catch (Exception ex) {
+				throw new RuntimeException(ex);
 			}
 		}
+
 	}
+
 }

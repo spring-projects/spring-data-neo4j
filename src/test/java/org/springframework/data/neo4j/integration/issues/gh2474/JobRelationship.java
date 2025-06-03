@@ -15,6 +15,8 @@
  */
 package org.springframework.data.neo4j.integration.issues.gh2474;
 
+import java.util.Objects;
+
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.RelationshipProperties;
@@ -25,6 +27,7 @@ import org.springframework.data.neo4j.core.schema.TargetNode;
  */
 @RelationshipProperties
 public class JobRelationship {
+
 	@Id
 	@GeneratedValue
 	private Long id;
@@ -41,26 +44,31 @@ public class JobRelationship {
 		return this.id;
 	}
 
-	public PersonModel getPerson() {
-		return this.person;
-	}
-
-	public String getJobTitle() {
-		return this.jobTitle;
-	}
-
 	public void setId(Long id) {
 		this.id = id;
+	}
+
+	public PersonModel getPerson() {
+		return this.person;
 	}
 
 	public void setPerson(PersonModel person) {
 		this.person = person;
 	}
 
+	public String getJobTitle() {
+		return this.jobTitle;
+	}
+
 	public void setJobTitle(String jobTitle) {
 		this.jobTitle = jobTitle;
 	}
 
+	protected boolean canEqual(final Object other) {
+		return other instanceof JobRelationship;
+	}
+
+	@Override
 	public boolean equals(final Object o) {
 		if (o == this) {
 			return true;
@@ -74,39 +82,36 @@ public class JobRelationship {
 		}
 		final Object this$id = this.getId();
 		final Object other$id = other.getId();
-		if (this$id == null ? other$id != null : !this$id.equals(other$id)) {
+		if (!Objects.equals(this$id, other$id)) {
 			return false;
 		}
 		final Object this$person = this.getPerson();
 		final Object other$person = other.getPerson();
-		if (this$person == null ? other$person != null : !this$person.equals(other$person)) {
+		if (!Objects.equals(this$person, other$person)) {
 			return false;
 		}
 		final Object this$jobTitle = this.getJobTitle();
 		final Object other$jobTitle = other.getJobTitle();
-		if (this$jobTitle == null ? other$jobTitle != null : !this$jobTitle.equals(other$jobTitle)) {
-			return false;
-		}
-		return true;
+		return Objects.equals(this$jobTitle, other$jobTitle);
 	}
 
-	protected boolean canEqual(final Object other) {
-		return other instanceof JobRelationship;
-	}
-
+	@Override
 	public int hashCode() {
 		final int PRIME = 59;
 		int result = 1;
 		final Object $id = this.getId();
-		result = result * PRIME + ($id == null ? 43 : $id.hashCode());
+		result = result * PRIME + (($id != null) ? $id.hashCode() : 43);
 		final Object $person = this.getPerson();
-		result = result * PRIME + ($person == null ? 43 : $person.hashCode());
+		result = result * PRIME + (($person != null) ? $person.hashCode() : 43);
 		final Object $jobTitle = this.getJobTitle();
-		result = result * PRIME + ($jobTitle == null ? 43 : $jobTitle.hashCode());
+		result = result * PRIME + (($jobTitle != null) ? $jobTitle.hashCode() : 43);
 		return result;
 	}
 
+	@Override
 	public String toString() {
-		return "JobRelationship(id=" + this.getId() + ", person=" + this.getPerson() + ", jobTitle=" + this.getJobTitle() + ")";
+		return "JobRelationship(id=" + this.getId() + ", person=" + this.getPerson() + ", jobTitle="
+				+ this.getJobTitle() + ")";
 	}
+
 }

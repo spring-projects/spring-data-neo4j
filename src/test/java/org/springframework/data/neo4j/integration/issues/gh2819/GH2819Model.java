@@ -28,23 +28,31 @@ public class GH2819Model {
 	 * Projection of ParentA/ChildA
 	 */
 	public interface ChildAProjection {
+
 		String getName();
+
 		GH2819Model.ChildBProjection getParentB();
+
 	}
 
 	/**
 	 * Projection of ParentB/ChildB
 	 */
 	public interface ChildBProjection {
+
 		String getName();
+
 		GH2819Model.ChildCProjection getParentC();
+
 	}
 
 	/**
 	 * Projection of ParentC/ChildC
 	 */
 	public interface ChildCProjection {
+
 		String getName();
+
 	}
 
 	/**
@@ -52,7 +60,9 @@ public class GH2819Model {
 	 */
 	@Node
 	public static class ParentA {
-		@Id	public String id;
+
+		@Id
+		public String id;
 
 		@Relationship(type = "HasBs", direction = Relationship.Direction.OUTGOING)
 		public ParentB parentB;
@@ -60,12 +70,13 @@ public class GH2819Model {
 		public String name;
 
 		public String getName() {
-			return name;
+			return this.name;
 		}
 
 		public ParentB getParentB() {
-			return parentB;
+			return this.parentB;
 		}
+
 	}
 
 	/**
@@ -73,7 +84,9 @@ public class GH2819Model {
 	 */
 	@Node
 	public static class ParentB {
-		@Id	public String id;
+
+		@Id
+		public String id;
 
 		@Relationship(type = "HasCs", direction = Relationship.Direction.OUTGOING)
 		public ParentC parentC;
@@ -81,12 +94,13 @@ public class GH2819Model {
 		public String name;
 
 		public ParentC getParentC() {
-			return parentC;
+			return this.parentC;
 		}
 
 		public String getName() {
-			return name;
+			return this.name;
 		}
+
 	}
 
 	/**
@@ -94,13 +108,16 @@ public class GH2819Model {
 	 */
 	@Node
 	public static class ParentC {
-		@Id	public String id;
+
+		@Id
+		public String id;
 
 		public String name;
 
 		public String getName() {
-			return name;
+			return this.name;
 		}
+
 	}
 
 	/**
@@ -126,4 +143,5 @@ public class GH2819Model {
 	public static class ChildC extends ParentC {
 
 	}
+
 }

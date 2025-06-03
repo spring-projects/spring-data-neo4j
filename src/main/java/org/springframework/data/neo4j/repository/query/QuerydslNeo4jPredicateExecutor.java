@@ -19,9 +19,12 @@ import java.util.Arrays;
 import java.util.Optional;
 import java.util.function.Function;
 
+import com.querydsl.core.types.OrderSpecifier;
+import com.querydsl.core.types.Predicate;
 import org.apiguardian.api.API;
 import org.neo4j.cypherdsl.core.Cypher;
 import org.neo4j.cypherdsl.core.SortItem;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -34,25 +37,25 @@ import org.springframework.data.neo4j.repository.support.Neo4jEntityInformation;
 import org.springframework.data.querydsl.QuerydslPredicateExecutor;
 import org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery;
 
-import com.querydsl.core.types.OrderSpecifier;
-import com.querydsl.core.types.Predicate;
-
 /**
- * Querydsl specific fragment for extending {@link org.springframework.data.neo4j.repository.support.SimpleNeo4jRepository}
- * with an implementation of {@link QuerydslPredicateExecutor}. Provides the necessary infrastructure for translating
- * Query-DSL predicates into conditions that are passed along to the Cypher-DSL and eventually to the template infrastructure.
- * This fragment will be loaded by the repository infrastructure when a repository is declared extending the above interface.
+ * Querydsl specific fragment for extending
+ * {@link org.springframework.data.neo4j.repository.support.SimpleNeo4jRepository} with an
+ * implementation of {@link QuerydslPredicateExecutor}. Provides the necessary
+ * infrastructure for translating Query-DSL predicates into conditions that are passed
+ * along to the Cypher-DSL and eventually to the template infrastructure. This fragment
+ * will be loaded by the repository infrastructure when a repository is declared extending
+ * the above interface.
  *
+ * @param <T> the returned domain type.
  * @author Michael J. Simons
- * @param <T> The returned domain type.
- * @soundtrack Various - Chef Aid: The South Park Album
  * @since 6.1
  */
 @API(status = API.Status.INTERNAL, since = "6.1")
 public final class QuerydslNeo4jPredicateExecutor<T> implements QuerydslPredicateExecutor<T> {
 
 	/**
-	 * Non-fluent operations are translated directly into Cypherdsl conditions and executed elsewhere.
+	 * Non-fluent operations are translated directly into Cypherdsl conditions and
+	 * executed elsewhere.
 	 */
 	private final CypherdslConditionExecutor<T> delegate;
 
@@ -67,17 +70,26 @@ public final class QuerydslNeo4jPredicateExecutor<T> implements QuerydslPredicat
 	private final Neo4jPersistentEntity<T> metaData;
 
 	/**
-	 * Mapping context
+	 * Mapping context.
 	 */
 	private final Neo4jMappingContext mappingContext;
 
-	public QuerydslNeo4jPredicateExecutor(Neo4jMappingContext mappingContext, Neo4jEntityInformation<T, Object> entityInformation,
-										  Neo4jOperations neo4jOperations) {
+	public QuerydslNeo4jPredicateExecutor(Neo4jMappingContext mappingContext,
+			Neo4jEntityInformation<T, Object> entityInformation, Neo4jOperations neo4jOperations) {
 
 		this.mappingContext = mappingContext;
 		this.delegate = new CypherdslConditionExecutorImpl<>(entityInformation, neo4jOperations);
 		this.neo4jOperations = neo4jOperations;
 		this.metaData = entityInformation.getEntityMetaData();
+	}
+
+	static SortItem[] toSortItems(OrderSpecifier<?>... orderSpecifiers) {
+
+		return Arrays.stream(orderSpecifiers)
+			.map(os -> Cypher.sort(Cypher.adapt(os.getTarget()).asExpression(),
+					os.isAscending() ? SortItem.Direction.ASC : SortItem.Direction.DESC))
+			.toArray(SortItem[]::new);
+
 	}
 
 	@Override
@@ -122,14 +134,6 @@ public final class QuerydslNeo4jPredicateExecutor<T> implements QuerydslPredicat
 		return this.delegate.count(Cypher.adapt(predicate).asCondition());
 	}
 
-	static SortItem[] toSortItems(OrderSpecifier<?>... orderSpecifiers) {
-
-		return Arrays.stream(orderSpecifiers)
-				.map(os -> Cypher.sort(Cypher.adapt(os.getTarget()).asExpression(),
-						os.isAscending() ? SortItem.Direction.ASC : SortItem.Direction.DESC)).toArray(SortItem[]::new);
-
-	}
-
 	@Override
 	public boolean exists(Predicate predicate) {
 		return findAll(predicate).iterator().hasNext();
@@ -139,13 +143,15 @@ public final class QuerydslNeo4jPredicateExecutor<T> implements QuerydslPredicat
 	public <S extends T, R> R findBy(Predicate predicate, Function<FetchableFluentQuery<S>, R> queryFunction) {
 
 		if (this.neo4jOperations instanceof FluentFindOperation ops) {
-			@SuppressWarnings("unchecked") // defaultResultType will be a supertype of S and at this stage, the same.
-			FetchableFluentQuery<S> fluentQuery =
-					(FetchableFluentQuery<S>) new FetchableFluentQueryByPredicate<>(predicate, mappingContext, metaData, metaData.getType(),
-							ops, this::count, this::exists);
+			@SuppressWarnings("unchecked") // defaultResultType will be a supertype of S
+											// and at this stage, the same.
+			FetchableFluentQuery<S> fluentQuery = (FetchableFluentQuery<S>) new FetchableFluentQueryByPredicate<>(
+					predicate, this.mappingContext, this.metaData, this.metaData.getType(), ops, this::count,
+					this::exists);
 			return queryFunction.apply(fluentQuery);
 		}
 		throw new UnsupportedOperationException(
 				"Fluent find by predicate not supported with standard Neo4jOperations, must support fluent queries too");
 	}
+
 }

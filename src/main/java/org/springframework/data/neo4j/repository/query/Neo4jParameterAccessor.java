@@ -21,13 +21,14 @@ import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.ParametersParameterAccessor;
 
 /**
+ * Support for creating query parameters.
+ *
  * @author Michael J. Simons
  */
 final class Neo4jParameterAccessor extends ParametersParameterAccessor {
 
 	/**
 	 * Creates a new {@link ParametersParameterAccessor}.
-	 *
 	 * @param parameters must not be {@literal null}.
 	 * @param values must not be {@literal null}.
 	 */
@@ -45,4 +46,5 @@ final class Neo4jParameterAccessor extends ParametersParameterAccessor {
 	public Object[] getValues() {
 		return super.getValues();
 	}
+
 }

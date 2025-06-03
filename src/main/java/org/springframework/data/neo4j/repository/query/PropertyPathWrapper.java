@@ -20,6 +20,7 @@ import org.neo4j.cypherdsl.core.Cypher;
 import org.neo4j.cypherdsl.core.ExposesRelationships;
 import org.neo4j.cypherdsl.core.Node;
 import org.neo4j.cypherdsl.core.RelationshipPattern;
+
 import org.springframework.data.mapping.PersistentProperty;
 import org.springframework.data.mapping.PersistentPropertyPath;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
@@ -28,11 +29,15 @@ import org.springframework.data.neo4j.core.mapping.RelationshipDescription;
 import org.springframework.data.neo4j.core.schema.TargetNode;
 
 class PropertyPathWrapper {
+
 	private static final String NAME_OF_RELATED_FILTER_ENTITY = "m";
+
 	private static final String NAME_OF_RELATED_FILTER_RELATIONSHIP = "r";
 
 	private final int index;
+
 	private final PersistentPropertyPath<?> persistentPropertyPath;
+
 	private final int lengthModification;
 
 	PropertyPathWrapper(int index, PersistentPropertyPath<?> persistentPropertyPath) {
@@ -45,29 +50,30 @@ class PropertyPathWrapper {
 		this.lengthModification = hasPropertyEnding ? 0 : 1;
 	}
 
-	public PersistentPropertyPath<?> getPersistentPropertyPath() {
-		return persistentPropertyPath;
+	PersistentPropertyPath<?> getPersistentPropertyPath() {
+		return this.persistentPropertyPath;
 	}
 
 	String getNodeName() {
-		return NAME_OF_RELATED_FILTER_ENTITY + "_" + index;
+		return NAME_OF_RELATED_FILTER_ENTITY + "_" + this.index;
 	}
 
 	String getRelationshipName() {
-		return NAME_OF_RELATED_FILTER_RELATIONSHIP + "_" + index;
+		return NAME_OF_RELATED_FILTER_RELATIONSHIP + "_" + this.index;
 	}
 
 	ExposesRelationships<?> createRelationshipChain(ExposesRelationships<?> existingRelationshipChain) {
 
 		ExposesRelationships<?> cypherRelationship = existingRelationshipChain;
 		int cnt = 0;
-		for (PersistentProperty<?> persistentProperty : persistentPropertyPath) {
+		for (PersistentProperty<?> persistentProperty : this.persistentPropertyPath) {
 
 			if (persistentProperty.isAssociation() && persistentProperty.isAnnotationPresent(TargetNode.class)) {
 				break;
 			}
 
-			RelationshipDescription relationshipDescription = (RelationshipDescription) persistentProperty.getAssociation();
+			RelationshipDescription relationshipDescription = (RelationshipDescription) persistentProperty
+				.getAssociation();
 
 			if (relationshipDescription == null) {
 				break;
@@ -82,9 +88,11 @@ class PropertyPathWrapper {
 			// length - 1 = last index
 			// length - 2 = property on last node
 			// length - 3 = last node itself
-			// length + 1 if there is no property ending but the path only goes until it reaches the relationship field
-			boolean lastNode = cnt > (persistentPropertyPath.getLength() - 3 + lengthModification);
-			boolean lastRelationship = cnt + 1 > (persistentPropertyPath.getLength() - 4 + lengthModification);
+			// length + 1 if there is no property ending but the path only goes until it
+			// reaches the relationship field
+			boolean lastNode = cnt > (this.persistentPropertyPath.getLength() - 3 + this.lengthModification);
+			boolean lastRelationship = cnt
+					+ 1 > (this.persistentPropertyPath.getLength() - 4 + this.lengthModification);
 			cnt = cnt + 1;
 
 			// we don't yet if the condition will target a relationship property
@@ -94,10 +102,8 @@ class PropertyPathWrapper {
 			}
 
 			cypherRelationship = switch (relationshipDescription.getDirection()) {
-				case OUTGOING -> cypherRelationship
-						.relationshipTo(relatedNode, relationshipDescription.getType());
-				case INCOMING -> cypherRelationship
-						.relationshipFrom(relatedNode, relationshipDescription.getType());
+				case OUTGOING -> cypherRelationship.relationshipTo(relatedNode, relationshipDescription.getType());
+				case INCOMING -> cypherRelationship.relationshipFrom(relatedNode, relationshipDescription.getType());
 			};
 
 			if (lastNode || (isRelationshipPropertiesEntity && lastRelationship)) {
@@ -109,14 +115,15 @@ class PropertyPathWrapper {
 	}
 
 	private boolean isRelationshipPropertiesEntity(@Nullable NodeDescription<?> relationshipPropertiesEntity) {
-		return relationshipPropertiesEntity != null
-				&& ((Neo4jPersistentEntity<?>) relationshipPropertiesEntity)
-				.getPersistentProperty(TargetNode.class) != null;
+		return relationshipPropertiesEntity != null && ((Neo4jPersistentEntity<?>) relationshipPropertiesEntity)
+			.getPersistentProperty(TargetNode.class) != null;
 	}
 
-	// if there is no direct property access, the list size is greater than 1 and as a consequence has to contain
+	// if there is no direct property access, the list size is greater than 1 and as a
+	// consequence has to contain
 	// relationships.
 	boolean hasRelationships() {
 		return this.persistentPropertyPath.getLength() > 1;
 	}
+
 }

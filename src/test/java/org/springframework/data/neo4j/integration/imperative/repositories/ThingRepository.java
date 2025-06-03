@@ -25,10 +25,12 @@ import org.springframework.data.repository.CrudRepository;
  * @author Michael J. Simons
  */
 public interface ThingRepository extends CrudRepository<ThingWithAssignedId, String> {
+
 	List<ThingWithAssignedId> findFirstByOrderByNameDesc();
 
 	List<ThingWithAssignedId> findTop5ByOrderByNameDesc();
 
 	@Query("MATCH (n:Thing{theId:'anId'})-[r:Has]->(b:Thing2) return n, collect(r), collect(b)")
 	ThingWithAssignedId getViaQuery();
+
 }

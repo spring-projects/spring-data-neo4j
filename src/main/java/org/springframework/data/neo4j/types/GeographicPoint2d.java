@@ -18,6 +18,8 @@ package org.springframework.data.neo4j.types;
 import org.apiguardian.api.API;
 
 /**
+ * A concrete, 2-dimensional geographic point with a specific coordinate system.
+ *
  * @author Michael J. Simons
  * @since 6.0
  */
@@ -33,16 +35,17 @@ public final class GeographicPoint2d extends AbstractPoint {
 	}
 
 	public double getLongitude() {
-		return coordinate.getX();
+		return this.coordinate.getX();
 	}
 
 	public double getLatitude() {
-		return coordinate.getY();
+		return this.coordinate.getY();
 	}
 
 	@Override
 	public String toString() {
-		return "GeographicPoint2d{" + "longitude=" + getLongitude() + ", latitude=" + getLatitude() + ", srid=" + getSrid()
-				+ '}';
+		return "GeographicPoint2d{" + "longitude=" + getLongitude() + ", latitude=" + getLatitude() + ", srid="
+				+ getSrid() + '}';
 	}
+
 }

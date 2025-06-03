@@ -21,4 +21,5 @@ import org.springframework.data.neo4j.repository.ReactiveNeo4jRepository;
  * @author Gerrit Meier
  */
 public interface ReactiveToRepository extends ReactiveNeo4jRepository<BugTargetBase, String> {
+
 }

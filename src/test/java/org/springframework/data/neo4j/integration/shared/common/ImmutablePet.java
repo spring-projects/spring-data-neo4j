@@ -15,13 +15,13 @@
  */
 package org.springframework.data.neo4j.integration.shared.common;
 
+import java.util.Set;
+
 import org.springframework.data.annotation.PersistenceCreator;
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Relationship;
-
-import java.util.Set;
 
 /**
  * @author Gerrit Meier
@@ -52,6 +52,7 @@ public class ImmutablePet {
 	}
 
 	public ImmutablePet withFriends(Set<ImmutablePet> newFriends) {
-		return new ImmutablePet(id, name, newFriends);
+		return new ImmutablePet(this.id, this.name, newFriends);
 	}
+
 }

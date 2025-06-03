@@ -27,11 +27,12 @@ import org.springframework.data.neo4j.core.schema.Relationship;
  */
 @Node
 public class Editor {
+
+	String name;
+
 	@Id
 	@GeneratedValue
 	private UUID id;
-
-	String name;
 
 	@Relationship("HAS_PREDECESSOR")
 	private Editor predecessor;
@@ -42,10 +43,11 @@ public class Editor {
 	}
 
 	public String getName() {
-		return name;
+		return this.name;
 	}
 
 	public Editor getPredecessor() {
-		return predecessor;
+		return this.predecessor;
 	}
+
 }

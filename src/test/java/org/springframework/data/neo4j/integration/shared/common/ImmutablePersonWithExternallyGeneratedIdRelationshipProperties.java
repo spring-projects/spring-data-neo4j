@@ -33,9 +33,11 @@ public class ImmutablePersonWithExternallyGeneratedIdRelationshipProperties {
 	@TargetNode
 	public final ImmutablePersonWithExternallyGeneratedId target;
 
-	public ImmutablePersonWithExternallyGeneratedIdRelationshipProperties(Long id, String name, ImmutablePersonWithExternallyGeneratedId target) {
+	public ImmutablePersonWithExternallyGeneratedIdRelationshipProperties(Long id, String name,
+			ImmutablePersonWithExternallyGeneratedId target) {
 		this.id = id;
 		this.name = name;
 		this.target = target;
 	}
+
 }

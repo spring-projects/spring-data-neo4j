@@ -15,13 +15,6 @@
  */
 package org.springframework.data.neo4j.test;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import reactor.core.publisher.Mono;
-
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.SessionConfig;
@@ -29,31 +22,41 @@ import org.neo4j.driver.Transaction;
 import org.neo4j.driver.TransactionConfig;
 import org.neo4j.driver.reactivestreams.ReactiveSession;
 import org.neo4j.driver.reactivestreams.ReactiveTransaction;
+import reactor.core.publisher.Mono;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mock;
 
 /**
- * Some preconfigured driver mocks, mainly used to for Spring Integration tests where the behaviour of configuration and
- * integration with Spring is tested and not with the database.
+ * Some preconfigured driver mocks, mainly used to for Spring Integration tests where the
+ * behaviour of configuration and integration with Spring is tested and not with the
+ * database.
  *
  * @author Michael J. Simons
- * @soundtrack Elton John - Greatest Hits 1970-2002
  * @since 6.0
  */
 public final class DriverMocks {
 
+	private DriverMocks() {
+	}
+
 	/**
-	 * @return An instance usable in a test where an open session with an ongoing transaction is required.
+	 * @return An instance usable in a test where an open session with an ongoing
+	 * transaction is required.
 	 */
 	public static Driver withOpenSessionAndTransaction() {
 
 		Transaction transaction = mock(Transaction.class);
-		when(transaction.isOpen()).thenReturn(true);
+		given(transaction.isOpen()).willReturn(true);
 
 		Session session = mock(Session.class);
-		when(session.isOpen()).thenReturn(true);
-		when(session.beginTransaction(any(TransactionConfig.class))).thenReturn(transaction);
+		given(session.isOpen()).willReturn(true);
+		given(session.beginTransaction(any(TransactionConfig.class))).willReturn(transaction);
 
 		Driver driver = mock(Driver.class);
-		when(driver.session(any(SessionConfig.class))).thenReturn(session);
+		given(driver.session(any(SessionConfig.class))).willReturn(session);
 		return driver;
 	}
 
@@ -62,12 +65,11 @@ public final class DriverMocks {
 		ReactiveTransaction transaction = mock(ReactiveTransaction.class);
 
 		ReactiveSession session = mock(ReactiveSession.class);
-		when(session.beginTransaction(any(TransactionConfig.class))).thenReturn(Mono.just(transaction));
+		given(session.beginTransaction(any(TransactionConfig.class))).willReturn(Mono.just(transaction));
 
 		Driver driver = mock(Driver.class);
-		when(driver.session(eq(ReactiveSession.class), any(SessionConfig.class))).thenReturn(session);
+		given(driver.session(eq(ReactiveSession.class), any(SessionConfig.class))).willReturn(session);
 		return driver;
 	}
 
-	private DriverMocks() {}
 }

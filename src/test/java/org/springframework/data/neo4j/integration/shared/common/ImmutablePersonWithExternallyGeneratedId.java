@@ -15,17 +15,17 @@
  */
 package org.springframework.data.neo4j.integration.shared.common;
 
-import org.springframework.data.annotation.PersistenceCreator;
-import org.springframework.data.neo4j.core.schema.GeneratedValue;
-import org.springframework.data.neo4j.core.schema.Id;
-import org.springframework.data.neo4j.core.schema.Node;
-import org.springframework.data.neo4j.core.schema.Relationship;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+
+import org.springframework.data.annotation.PersistenceCreator;
+import org.springframework.data.neo4j.core.schema.GeneratedValue;
+import org.springframework.data.neo4j.core.schema.Id;
+import org.springframework.data.neo4j.core.schema.Node;
+import org.springframework.data.neo4j.core.schema.Relationship;
 
 /**
  * @author Gerrit Meier
@@ -39,10 +39,12 @@ public class ImmutablePersonWithExternallyGeneratedId {
 
 	@Relationship("ONBOARDED_BY")
 	public final List<ImmutablePersonWithExternallyGeneratedId> wasOnboardedBy;
+
 	@Relationship("KNOWN_BY")
 	public final Set<ImmutablePersonWithExternallyGeneratedId> knownBy;
 
 	public final Map<String, ImmutablePersonWithExternallyGeneratedId> ratedBy;
+
 	public final Map<String, List<ImmutableSecondPersonWithExternallyGeneratedId>> ratedByCollection;
 
 	@Relationship("FALLBACK")
@@ -55,11 +57,11 @@ public class ImmutablePersonWithExternallyGeneratedId {
 	public final List<ImmutablePersonWithExternallyGeneratedIdRelationshipProperties> relationshipPropertiesCollection;
 
 	public final Map<String, ImmutablePersonWithExternallyGeneratedIdRelationshipProperties> relationshipPropertiesDynamic;
+
 	public final Map<String, List<ImmutableSecondPersonWithExternallyGeneratedIdRelationshipProperties>> relationshipPropertiesDynamicCollection;
 
 	@PersistenceCreator
-	public ImmutablePersonWithExternallyGeneratedId(
-			UUID id,
+	public ImmutablePersonWithExternallyGeneratedId(UUID id,
 			List<ImmutablePersonWithExternallyGeneratedId> wasOnboardedBy,
 			Set<ImmutablePersonWithExternallyGeneratedId> knownBy,
 			Map<String, ImmutablePersonWithExternallyGeneratedId> ratedBy,
@@ -83,143 +85,70 @@ public class ImmutablePersonWithExternallyGeneratedId {
 	}
 
 	public ImmutablePersonWithExternallyGeneratedId() {
-		this(null,
-				Collections.emptyList(),
-				Collections.emptySet(),
-				Collections.emptyMap(),
-				Collections.emptyMap(),
-				null,
-				null,
-				Collections.emptyList(),
-				Collections.emptyMap(),
-				Collections.emptyMap()
-		);
+		this(null, Collections.emptyList(), Collections.emptySet(), Collections.emptyMap(), Collections.emptyMap(),
+				null, null, Collections.emptyList(), Collections.emptyMap(), Collections.emptyMap());
 	}
 
-	public static ImmutablePersonWithExternallyGeneratedId wasOnboardedBy(List<ImmutablePersonWithExternallyGeneratedId> wasOnboardedBy) {
-		return new ImmutablePersonWithExternallyGeneratedId(null,
-				wasOnboardedBy,
-				Collections.emptySet(),
-				Collections.emptyMap(),
-				Collections.emptyMap(),
-				null,
-				null,
-				Collections.emptyList(),
-				Collections.emptyMap(),
-				Collections.emptyMap()
-		);
+	public static ImmutablePersonWithExternallyGeneratedId wasOnboardedBy(
+			List<ImmutablePersonWithExternallyGeneratedId> wasOnboardedBy) {
+		return new ImmutablePersonWithExternallyGeneratedId(null, wasOnboardedBy, Collections.emptySet(),
+				Collections.emptyMap(), Collections.emptyMap(), null, null, Collections.emptyList(),
+				Collections.emptyMap(), Collections.emptyMap());
 	}
 
-	public static ImmutablePersonWithExternallyGeneratedId knownBy(Set<ImmutablePersonWithExternallyGeneratedId> knownBy) {
-		return new ImmutablePersonWithExternallyGeneratedId(null,
-				Collections.emptyList(),
-				knownBy,
-				Collections.emptyMap(),
-				Collections.emptyMap(),
-				null,
-				null,
-				Collections.emptyList(),
-				Collections.emptyMap(),
-				Collections.emptyMap()
-		);
+	public static ImmutablePersonWithExternallyGeneratedId knownBy(
+			Set<ImmutablePersonWithExternallyGeneratedId> knownBy) {
+		return new ImmutablePersonWithExternallyGeneratedId(null, Collections.emptyList(), knownBy,
+				Collections.emptyMap(), Collections.emptyMap(), null, null, Collections.emptyList(),
+				Collections.emptyMap(), Collections.emptyMap());
 	}
 
-	public static ImmutablePersonWithExternallyGeneratedId ratedBy(Map<String, ImmutablePersonWithExternallyGeneratedId> ratedBy) {
-		return new ImmutablePersonWithExternallyGeneratedId(null,
-				Collections.emptyList(),
-				Collections.emptySet(),
-				ratedBy,
-				Collections.emptyMap(),
-				null,
-				null,
-				Collections.emptyList(),
-				Collections.emptyMap(),
-				Collections.emptyMap()
-		);
+	public static ImmutablePersonWithExternallyGeneratedId ratedBy(
+			Map<String, ImmutablePersonWithExternallyGeneratedId> ratedBy) {
+		return new ImmutablePersonWithExternallyGeneratedId(null, Collections.emptyList(), Collections.emptySet(),
+				ratedBy, Collections.emptyMap(), null, null, Collections.emptyList(), Collections.emptyMap(),
+				Collections.emptyMap());
 	}
 
-	public static ImmutablePersonWithExternallyGeneratedId ratedByCollection(Map<String, List<ImmutableSecondPersonWithExternallyGeneratedId>> ratedByCollection) {
-		return new ImmutablePersonWithExternallyGeneratedId(null,
-				Collections.emptyList(),
-				Collections.emptySet(),
-				Collections.emptyMap(),
-				ratedByCollection,
-				null,
-				null,
-				Collections.emptyList(),
-				Collections.emptyMap(),
-				Collections.emptyMap()
-		);
+	public static ImmutablePersonWithExternallyGeneratedId ratedByCollection(
+			Map<String, List<ImmutableSecondPersonWithExternallyGeneratedId>> ratedByCollection) {
+		return new ImmutablePersonWithExternallyGeneratedId(null, Collections.emptyList(), Collections.emptySet(),
+				Collections.emptyMap(), ratedByCollection, null, null, Collections.emptyList(), Collections.emptyMap(),
+				Collections.emptyMap());
 	}
 
 	public static ImmutablePersonWithExternallyGeneratedId fallback(ImmutablePersonWithExternallyGeneratedId fallback) {
-		return new ImmutablePersonWithExternallyGeneratedId(null,
-				Collections.emptyList(),
-				Collections.emptySet(),
-				Collections.emptyMap(),
-				Collections.emptyMap(),
-				fallback,
-				null,
-				Collections.emptyList(),
-				Collections.emptyMap(),
-				Collections.emptyMap()
-		);
+		return new ImmutablePersonWithExternallyGeneratedId(null, Collections.emptyList(), Collections.emptySet(),
+				Collections.emptyMap(), Collections.emptyMap(), fallback, null, Collections.emptyList(),
+				Collections.emptyMap(), Collections.emptyMap());
 	}
 
-	public static ImmutablePersonWithExternallyGeneratedId relationshipProperties(ImmutablePersonWithExternallyGeneratedIdRelationshipProperties relationshipProperties) {
-		return new ImmutablePersonWithExternallyGeneratedId(null,
-				Collections.emptyList(),
-				Collections.emptySet(),
-				Collections.emptyMap(),
-				Collections.emptyMap(),
-				null,
-				relationshipProperties,
-				Collections.emptyList(),
-				Collections.emptyMap(),
-				Collections.emptyMap()
-		);
+	public static ImmutablePersonWithExternallyGeneratedId relationshipProperties(
+			ImmutablePersonWithExternallyGeneratedIdRelationshipProperties relationshipProperties) {
+		return new ImmutablePersonWithExternallyGeneratedId(null, Collections.emptyList(), Collections.emptySet(),
+				Collections.emptyMap(), Collections.emptyMap(), null, relationshipProperties, Collections.emptyList(),
+				Collections.emptyMap(), Collections.emptyMap());
 	}
 
-	public static ImmutablePersonWithExternallyGeneratedId relationshipPropertiesCollection(List<ImmutablePersonWithExternallyGeneratedIdRelationshipProperties> relationshipPropertiesCollection) {
-		return new ImmutablePersonWithExternallyGeneratedId(null,
-				Collections.emptyList(),
-				Collections.emptySet(),
-				Collections.emptyMap(),
-				Collections.emptyMap(),
-				null,
-				null,
-				relationshipPropertiesCollection,
-				Collections.emptyMap(),
-				Collections.emptyMap()
-		);
+	public static ImmutablePersonWithExternallyGeneratedId relationshipPropertiesCollection(
+			List<ImmutablePersonWithExternallyGeneratedIdRelationshipProperties> relationshipPropertiesCollection) {
+		return new ImmutablePersonWithExternallyGeneratedId(null, Collections.emptyList(), Collections.emptySet(),
+				Collections.emptyMap(), Collections.emptyMap(), null, null, relationshipPropertiesCollection,
+				Collections.emptyMap(), Collections.emptyMap());
 	}
 
-	public static ImmutablePersonWithExternallyGeneratedId relationshipPropertiesDynamic(Map<String, ImmutablePersonWithExternallyGeneratedIdRelationshipProperties> relationshipPropertiesDynamic) {
-		return new ImmutablePersonWithExternallyGeneratedId(null,
-				Collections.emptyList(),
-				Collections.emptySet(),
-				Collections.emptyMap(),
-				Collections.emptyMap(),
-				null,
-				null,
-				Collections.emptyList(),
-				relationshipPropertiesDynamic,
-				Collections.emptyMap()
-		);
+	public static ImmutablePersonWithExternallyGeneratedId relationshipPropertiesDynamic(
+			Map<String, ImmutablePersonWithExternallyGeneratedIdRelationshipProperties> relationshipPropertiesDynamic) {
+		return new ImmutablePersonWithExternallyGeneratedId(null, Collections.emptyList(), Collections.emptySet(),
+				Collections.emptyMap(), Collections.emptyMap(), null, null, Collections.emptyList(),
+				relationshipPropertiesDynamic, Collections.emptyMap());
 	}
 
-	public static ImmutablePersonWithExternallyGeneratedId relationshipPropertiesDynamicCollection(Map<String, List<ImmutableSecondPersonWithExternallyGeneratedIdRelationshipProperties>> relationshipPropertiesDynamicCollection) {
-		return new ImmutablePersonWithExternallyGeneratedId(null,
-				Collections.emptyList(),
-				Collections.emptySet(),
-				Collections.emptyMap(),
-				Collections.emptyMap(),
-				null,
-				null,
-				Collections.emptyList(),
-				Collections.emptyMap(),
-				relationshipPropertiesDynamicCollection
-		);
+	public static ImmutablePersonWithExternallyGeneratedId relationshipPropertiesDynamicCollection(
+			Map<String, List<ImmutableSecondPersonWithExternallyGeneratedIdRelationshipProperties>> relationshipPropertiesDynamicCollection) {
+		return new ImmutablePersonWithExternallyGeneratedId(null, Collections.emptyList(), Collections.emptySet(),
+				Collections.emptyMap(), Collections.emptyMap(), null, null, Collections.emptyList(),
+				Collections.emptyMap(), relationshipPropertiesDynamicCollection);
 	}
 
 }

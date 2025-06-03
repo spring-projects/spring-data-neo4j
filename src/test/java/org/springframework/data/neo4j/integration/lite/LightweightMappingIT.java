@@ -15,8 +15,6 @@
  */
 package org.springframework.data.neo4j.integration.lite;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.util.Collection;
 import java.util.Optional;
 
@@ -24,6 +22,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Session;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -38,6 +37,8 @@ import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 @Neo4jIntegrationTest
 class LightweightMappingIT {
 
@@ -49,15 +50,13 @@ class LightweightMappingIT {
 		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
 			session.run("MATCH (n) DETACH DELETE n").consume();
 			// language=cypher
-			session.run(
-					"""
-							CREATE (u1:User {login: 'michael', id: randomUUID()})
-							CREATE (u2:User {login: 'gerrit', id: randomUUID()})
-							CREATE (so1:SomeDomainObject {name: 'name1', id: randomUUID()})
-							CREATE (so2:SomeDomainObject {name: 'name2', id: randomUUID()})
-							CREATE (so1)<-[:OWNS]-(u1)-[:OWNS]->(so2)
-							"""
-			);
+			session.run("""
+					CREATE (u1:User {login: 'michael', id: randomUUID()})
+					CREATE (u2:User {login: 'gerrit', id: randomUUID()})
+					CREATE (so1:SomeDomainObject {name: 'name1', id: randomUUID()})
+					CREATE (so2:SomeDomainObject {name: 'name2', id: randomUUID()})
+					CREATE (so1)<-[:OWNS]-(u1)-[:OWNS]->(so2)
+					""");
 			bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 	}
@@ -66,11 +65,10 @@ class LightweightMappingIT {
 	void getAllFlatShouldWork(@Autowired SomeDomainRepository repository) {
 
 		Collection<MyDTO> dtos = repository.getAllFlat();
-		assertThat(dtos).hasSize(10)
-				.allSatisfy(dto -> {
-					assertThat(dto.counter).isGreaterThan(0);
-					assertThat(dto.resyncId).isNotNull();
-				});
+		assertThat(dtos).hasSize(10).allSatisfy(dto -> {
+			assertThat(dto.counter).isGreaterThan(0);
+			assertThat(dto.resyncId).isNotNull();
+		});
 	}
 
 	@Test
@@ -87,21 +85,14 @@ class LightweightMappingIT {
 	void getAllNestedShouldWork(@Autowired SomeDomainRepository repository) {
 
 		Collection<MyDTO> dtos = repository.getNestedStuff();
-		assertThat(dtos).hasSize(1)
-				.first()
-				.satisfies(dto -> {
-					assertThat(dto.counter).isEqualTo(4711L);
-					assertThat(dto.resyncId).isNotNull();
-					assertThat(dto.user)
-							.isNotNull()
-							.extracting(User::getLogin)
-							.isEqualTo("michael");
-					assertThat(dto.user.getOwnedObjects())
-							.hasSize(2);
+		assertThat(dtos).hasSize(1).first().satisfies(dto -> {
+			assertThat(dto.counter).isEqualTo(4711L);
+			assertThat(dto.resyncId).isNotNull();
+			assertThat(dto.user).isNotNull().extracting(User::getLogin).isEqualTo("michael");
+			assertThat(dto.user.getOwnedObjects()).hasSize(2);
 
-				});
+		});
 	}
-
 
 	@Test
 	void getTestedDTOsShouldWork(@Autowired SomeDomainRepository repository) {
@@ -109,8 +100,7 @@ class LightweightMappingIT {
 		Optional<A> dto = repository.getOneNestedDTO();
 		assertThat(dto).hasValueSatisfying(v -> {
 			assertThat(v.getOuter()).isEqualTo("av");
-			assertThat(v.getNested()).isNotNull()
-					.extracting(B::getInner).isEqualTo("bv");
+			assertThat(v.getNested()).isNotNull().extracting(B::getInner).isEqualTo("bv");
 		});
 
 	}
@@ -121,26 +111,30 @@ class LightweightMappingIT {
 	static class Config extends Neo4jImperativeTestConfiguration {
 
 		@Bean
+		@Override
 		public Driver driver() {
 			return neo4jConnectionSupport.getDriver();
 		}
 
 		@Bean
-		public BookmarkCapture bookmarkCapture() {
+		BookmarkCapture bookmarkCapture() {
 			return new BookmarkCapture();
 		}
 
 		@Override
-		public PlatformTransactionManager transactionManager(Driver driver, DatabaseSelectionProvider databaseNameProvider) {
+		public PlatformTransactionManager transactionManager(Driver driver,
+				DatabaseSelectionProvider databaseNameProvider) {
 
 			BookmarkCapture bookmarkCapture = bookmarkCapture();
-			return new Neo4jTransactionManager(driver, databaseNameProvider, Neo4jBookmarkManager.create(bookmarkCapture));
+			return new Neo4jTransactionManager(driver, databaseNameProvider,
+					Neo4jBookmarkManager.create(bookmarkCapture));
 		}
 
 		@Override
 		public boolean isCypher5Compatible() {
 			return neo4jConnectionSupport.isCypher5SyntaxCompatible();
 		}
+
 	}
 
 }

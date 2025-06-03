@@ -25,13 +25,13 @@ import org.springframework.data.neo4j.core.schema.TargetNode;
 @RelationshipProperties
 public class Knows {
 
-	@RelationshipId
-	private Long id;
-
 	private final String description;
 
 	@TargetNode
 	private final Language language;
+
+	@RelationshipId
+	private Long id;
 
 	public Knows(String description, Language language) {
 		this.description = description;
@@ -39,14 +39,15 @@ public class Knows {
 	}
 
 	public Long getId() {
-		return id;
+		return this.id;
 	}
 
 	public String getDescription() {
-		return description;
+		return this.description;
 	}
 
 	public Language getLanguage() {
-		return language;
+		return this.language;
 	}
+
 }

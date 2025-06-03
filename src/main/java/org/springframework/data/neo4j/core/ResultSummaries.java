@@ -29,35 +29,54 @@ import org.neo4j.driver.summary.InputPosition;
 import org.neo4j.driver.summary.Notification;
 import org.neo4j.driver.summary.Plan;
 import org.neo4j.driver.summary.ResultSummary;
+
 import org.springframework.core.log.LogAccessor;
 
 /**
  * Utility class for dealing with result summaries.
  *
  * @author Michael J. Simons
- * @soundtrack Fatoni & Dexter - Yo, Picasso
  * @since 6.0
  */
 final class ResultSummaries {
 
 	private static final String LINE_SEPARATOR = System.lineSeparator();
-	private static final LogAccessor cypherPerformanceNotificationLog = new LogAccessor(LogFactory.getLog("org.springframework.data.neo4j.cypher.performance"));
-	private static final LogAccessor cypherHintNotificationLog = new LogAccessor(LogFactory.getLog("org.springframework.data.neo4j.cypher.hint"));
-	private static final LogAccessor cypherUnrecognizedNotificationLog = new LogAccessor(LogFactory.getLog("org.springframework.data.neo4j.cypher.unrecognized"));
-	private static final LogAccessor cypherUnsupportedNotificationLog = new LogAccessor(LogFactory.getLog("org.springframework.data.neo4j.cypher.unsupported"));
-	private static final LogAccessor cypherDeprecationNotificationLog = new LogAccessor(LogFactory.getLog("org.springframework.data.neo4j.cypher.deprecation"));
-	private static final LogAccessor cypherGenericNotificationLog = new LogAccessor(LogFactory.getLog("org.springframework.data.neo4j.cypher.generic"));
-	private static final LogAccessor cypherSecurityNotificationLog = new LogAccessor(LogFactory.getLog("org.springframework.data.neo4j.cypher.security"));
-	private static final LogAccessor cypherTopologyNotificationLog = new LogAccessor(LogFactory.getLog("org.springframework.data.neo4j.cypher.topology"));
 
-	private static final Pattern DEPRECATED_ID_PATTERN = Pattern.compile("(?im)The query used a deprecated function[\\.:] \\(?[`']id.+");
+	private static final LogAccessor cypherPerformanceNotificationLog = new LogAccessor(
+			LogFactory.getLog("org.springframework.data.neo4j.cypher.performance"));
+
+	private static final LogAccessor cypherHintNotificationLog = new LogAccessor(
+			LogFactory.getLog("org.springframework.data.neo4j.cypher.hint"));
+
+	private static final LogAccessor cypherUnrecognizedNotificationLog = new LogAccessor(
+			LogFactory.getLog("org.springframework.data.neo4j.cypher.unrecognized"));
+
+	private static final LogAccessor cypherUnsupportedNotificationLog = new LogAccessor(
+			LogFactory.getLog("org.springframework.data.neo4j.cypher.unsupported"));
+
+	private static final LogAccessor cypherDeprecationNotificationLog = new LogAccessor(
+			LogFactory.getLog("org.springframework.data.neo4j.cypher.deprecation"));
+
+	private static final LogAccessor cypherGenericNotificationLog = new LogAccessor(
+			LogFactory.getLog("org.springframework.data.neo4j.cypher.generic"));
+
+	private static final LogAccessor cypherSecurityNotificationLog = new LogAccessor(
+			LogFactory.getLog("org.springframework.data.neo4j.cypher.security"));
+
+	private static final LogAccessor cypherTopologyNotificationLog = new LogAccessor(
+			LogFactory.getLog("org.springframework.data.neo4j.cypher.topology"));
+
+	private static final Pattern DEPRECATED_ID_PATTERN = Pattern
+		.compile("(?im)The query used a deprecated function[.:] \\(?[`']id.+");
+
+	private ResultSummaries() {
+	}
 
 	/**
-	 * Does some post-processing on the giving result summary, especially logging all notifications
-	 * and potentially query plans.
-	 *
-	 * @param resultSummary The result summary to process
-	 * @return The same, unmodified result summary.
+	 * Does some post-processing on the giving result summary, especially logging all
+	 * notifications and potentially query plans.
+	 * @param resultSummary the result summary to process
+	 * @return the same, unmodified result summary.
 	 */
 	static ResultSummary process(ResultSummary resultSummary) {
 		logNotifications(resultSummary);
@@ -75,34 +94,39 @@ final class ResultSummaries {
 		Predicate<Notification> isDeprecationWarningForId;
 		try {
 			isDeprecationWarningForId = notification -> supressIdDeprecations
-					&& notification.classification().orElse(NotificationClassification.UNRECOGNIZED)
-					== NotificationClassification.DEPRECATION && DEPRECATED_ID_PATTERN.matcher(notification.description())
-					.matches();
-		} finally {
+					&& notification.classification()
+						.orElse(NotificationClassification.UNRECOGNIZED) == NotificationClassification.DEPRECATION
+					&& DEPRECATED_ID_PATTERN.matcher(notification.description()).matches();
+		}
+		finally {
 			Neo4jClient.SUPPRESS_ID_DEPRECATIONS.setRelease(supressIdDeprecations);
 		}
 
 		String query = resultSummary.query().text();
 		resultSummary.notifications()
-				.stream().filter(Predicate.not(isDeprecationWarningForId))
-				.forEach(notification -> notification.severityLevel().ifPresent(severityLevel -> {
-					var category = notification.classification().orElse(null);
+			.stream()
+			.filter(Predicate.not(isDeprecationWarningForId))
+			.forEach(notification -> notification.severityLevel().ifPresent(severityLevel -> {
+				var category = notification.classification().orElse(null);
 
-					var logger = getLogAccessor(category);
-					Consumer<String> logFunction;
-					if (severityLevel == NotificationSeverity.WARNING) {
-						logFunction = logger::warn;
-					} else if (severityLevel == NotificationSeverity.INFORMATION) {
-						logFunction = logger::info;
-					} else if (severityLevel == NotificationSeverity.OFF) {
-						logFunction = (String message) -> {
-						};
-					} else {
-						logFunction = logger::debug;
-					}
+				var logger = getLogAccessor(category);
+				Consumer<String> logFunction;
+				if (severityLevel == NotificationSeverity.WARNING) {
+					logFunction = logger::warn;
+				}
+				else if (severityLevel == NotificationSeverity.INFORMATION) {
+					logFunction = logger::info;
+				}
+				else if (severityLevel == NotificationSeverity.OFF) {
+					logFunction = (String message) -> {
+					};
+				}
+				else {
+					logFunction = logger::debug;
+				}
 
-					logFunction.accept(ResultSummaries.format(notification, query));
-				}));
+				logFunction.accept(ResultSummaries.format(notification, query));
+			}));
 	}
 
 	private static LogAccessor getLogAccessor(@Nullable NotificationClassification category) {
@@ -124,10 +148,9 @@ final class ResultSummaries {
 
 	/**
 	 * Creates a formatted string for a notification issued for a given query.
-	 *
-	 * @param notification The notification to format
-	 * @param forQuery     The query that caused the notification
-	 * @return A formatted string
+	 * @param notification the notification to format
+	 * @param forQuery the query that caused the notification
+	 * @return a formatted string
 	 */
 	static String format(Notification notification, String forQuery) {
 
@@ -140,8 +163,10 @@ final class ResultSummaries {
 			String line = lines[i];
 			queryHint.append("\t").append(line).append(LINE_SEPARATOR);
 			if (hasPosition && i + 1 == position.line()) {
-				queryHint.append("\t").append(Stream.generate(() -> " ").limit(position.column() - 1)
-						.collect(Collectors.joining())).append("^").append(System.lineSeparator());
+				queryHint.append("\t")
+					.append(Stream.generate(() -> " ").limit(position.column() - 1).collect(Collectors.joining()))
+					.append("^")
+					.append(System.lineSeparator());
 			}
 		}
 		return String.format("%s: %s%n%s%s", notification.code(), notification.title(), queryHint,
@@ -150,8 +175,7 @@ final class ResultSummaries {
 
 	/**
 	 * Logs the plan of the result summary if available and log level is at least debug.
-	 *
-	 * @param resultSummary The result summary that might contain a plan
+	 * @param resultSummary the result summary that might contain a plan
 	 */
 	private static void logPlan(ResultSummary resultSummary) {
 
@@ -180,6 +204,4 @@ final class ResultSummaries {
 		}
 	}
 
-	private ResultSummaries() {
-	}
 }

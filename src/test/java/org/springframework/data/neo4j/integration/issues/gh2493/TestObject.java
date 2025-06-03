@@ -16,6 +16,7 @@
 package org.springframework.data.neo4j.integration.issues.gh2493;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import org.springframework.data.neo4j.core.schema.CompositeProperty;
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
@@ -31,7 +32,7 @@ public class TestObject {
 
 	@Id
 	@Property(name = "id")
-	@GeneratedValue(value = UUIDStringGenerator.class)
+	@GeneratedValue(UUIDStringGenerator.class)
 	protected String id;
 
 	@JsonIgnore
@@ -40,23 +41,24 @@ public class TestObject {
 
 	public TestObject(TestData aData) {
 		super();
-		data = aData;
+		this.data = aData;
 	}
 
 	public String getId() {
 		return this.id;
 	}
 
-	public TestData getData() {
-		return this.data;
-	}
-
 	public void setId(String id) {
 		this.id = id;
+	}
+
+	public TestData getData() {
+		return this.data;
 	}
 
 	@JsonIgnore
 	public void setData(TestData data) {
 		this.data = data;
 	}
+
 }

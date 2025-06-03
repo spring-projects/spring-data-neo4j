@@ -15,13 +15,19 @@
  */
 package org.springframework.data.neo4j.integration.imperative;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Optional;
+import java.util.Set;
+
 import org.junit.jupiter.api.Test;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Session;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.neo4j.test.Neo4jImperativeTestConfiguration;
 import org.springframework.data.neo4j.core.DatabaseSelectionProvider;
 import org.springframework.data.neo4j.core.Neo4jTemplate;
 import org.springframework.data.neo4j.core.convert.Neo4jConversions;
@@ -36,15 +42,10 @@ import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
 import org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager;
 import org.springframework.data.neo4j.test.BookmarkCapture;
 import org.springframework.data.neo4j.test.Neo4jExtension;
+import org.springframework.data.neo4j.test.Neo4jImperativeTestConfiguration;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
-
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -70,11 +71,13 @@ public class CollectionsIT {
 	void loadingOfRelPropertiesInSetsShouldWork(@Autowired Neo4jTemplate repository) {
 
 		Long id;
-		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
+		try (Session session = this.driver.session(this.bookmarkCapture.createSessionConfig())) {
 			id = session.run(
-					"CREATE (c:CollectionChildNodeA {name: 'The Child'}) <- [:CHILDREN_WITH_PROPERTIES {prop: 'The Property'}] - (p:CollectionParentNode {name: 'The Parent'}) RETURN id(p)"
-			).single().get(0).asLong();
-			bookmarkCapture.seedWith(session.lastBookmarks());
+					"CREATE (c:CollectionChildNodeA {name: 'The Child'}) <- [:CHILDREN_WITH_PROPERTIES {prop: 'The Property'}] - (p:CollectionParentNode {name: 'The Parent'}) RETURN id(p)")
+				.single()
+				.get(0)
+				.asLong();
+			this.bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 
 		Optional<CollectionParentNode> optionalParent = repository.findById(id, CollectionParentNode.class);
@@ -106,62 +109,66 @@ public class CollectionsIT {
 			assertThat(p.prop).isEqualTo("a property");
 		});
 
-
-		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
+		try (Session session = this.driver.session(this.bookmarkCapture.createSessionConfig())) {
 			long cnt = session.run(
 					"MATCH (c:CollectionChildNodeA) <- [:CHILDREN_WITH_PROPERTIES] - (p:CollectionParentNode) WHERE id(p) = $id RETURN count(c) ",
-					Collections.singletonMap("id", parent.id)
-			).single().get(0).asLong();
+					Collections.singletonMap("id", parent.id))
+				.single()
+				.get(0)
+				.asLong();
 			assertThat(cnt).isEqualTo(1L);
-			bookmarkCapture.seedWith(session.lastBookmarks());
+			this.bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 	}
 
 	@Node
 	static class CollectionParentNode {
 
+		final String name;
+
 		@Id
 		@GeneratedValue
 		Long id;
-
-		final String name;
 
 		Set<RelProperties> childrenWithProperties = new HashSet<>();
 
 		CollectionParentNode(String name) {
 			this.name = name;
 		}
+
 	}
 
 	@Node
 	static class CollectionChildNodeA {
 
+		final String name;
+
 		@Id
 		@GeneratedValue
 		Long id;
 
-		final String name;
-
 		CollectionChildNodeA(String name) {
 			this.name = name;
 		}
+
 	}
 
 	@RelationshipProperties
 	static class RelProperties {
-
-		@RelationshipId
-		Long id;
 
 		@TargetNode
 		final CollectionChildNodeA target;
 
 		final String prop;
 
+		@RelationshipId
+		Long id;
+
 		RelProperties(CollectionChildNodeA target, String prop) {
 			this.target = target;
 			this.prop = prop;
 		}
+
 	}
 
 	@Configuration
@@ -169,36 +176,44 @@ public class CollectionsIT {
 	static class Config extends Neo4jImperativeTestConfiguration {
 
 		@Bean
+		@Override
 		public Driver driver() {
 			return neo4jConnectionSupport.getDriver();
 		}
 
 		@Override
-		public Neo4jMappingContext neo4jMappingContext(Neo4jConversions neo4JConversions) throws ClassNotFoundException {
+		public Neo4jMappingContext neo4jMappingContext(Neo4jConversions neo4JConversions)
+				throws ClassNotFoundException {
 
 			// Don't create repositories for the entities, otherwise they must be moved
-			// to a public reachable place. I didn't want that as the mapping context is polluted already
+			// to a public reachable place. I didn't want that as the mapping context is
+			// polluted already
 			// enough with the shared package of nodes.
 			Neo4jMappingContext ctx = new Neo4jMappingContext(neo4JConversions);
-			ctx.setInitialEntitySet(new HashSet<>(Arrays.asList(CollectionParentNode.class, CollectionChildNodeA.class, RelProperties.class)));
+			ctx.setInitialEntitySet(new HashSet<>(
+					Arrays.asList(CollectionParentNode.class, CollectionChildNodeA.class, RelProperties.class)));
 			return ctx;
 		}
 
 		@Bean
-		public BookmarkCapture bookmarkCapture() {
+		BookmarkCapture bookmarkCapture() {
 			return new BookmarkCapture();
 		}
 
 		@Override
-		public PlatformTransactionManager transactionManager(Driver driver, DatabaseSelectionProvider databaseNameProvider) {
+		public PlatformTransactionManager transactionManager(Driver driver,
+				DatabaseSelectionProvider databaseNameProvider) {
 
 			BookmarkCapture bookmarkCapture = bookmarkCapture();
-			return new Neo4jTransactionManager(driver, databaseNameProvider, Neo4jBookmarkManager.create(bookmarkCapture));
+			return new Neo4jTransactionManager(driver, databaseNameProvider,
+					Neo4jBookmarkManager.create(bookmarkCapture));
 		}
 
 		@Override
 		public boolean isCypher5Compatible() {
 			return neo4jConnectionSupport.isCypher5SyntaxCompatible();
 		}
+
 	}
+
 }

@@ -45,6 +45,7 @@ public class MovieEntity {
 	// tag::mapping.relationship.properties[]
 	@Relationship(type = "ACTED_IN", direction = Direction.INCOMING) // <.>
 	private List<Roles> actorsAndRoles = new ArrayList<>();
+
 	// end::mapping.relationship.properties[]
 
 	@Relationship(type = "DIRECTED", direction = Direction.INCOMING)
@@ -60,22 +61,23 @@ public class MovieEntity {
 	// end::mapping.annotations[]
 
 	public String getTitle() {
-		return title;
+		return this.title;
 	}
 
 	public String getDescription() {
-		return description;
+		return this.description;
 	}
 
 	public List<Roles> getActorsAndRoles() {
-		return actorsAndRoles;
+		return this.actorsAndRoles;
 	}
 
 	public List<PersonEntity> getDirectors() {
-		return directors;
+		return this.directors;
 	}
 	// tag::mapping.annotations[]
 	// tag::faq.custom-query[]
+
 }
 // end::mapping.annotations[]
 // end::faq.custom-query[]

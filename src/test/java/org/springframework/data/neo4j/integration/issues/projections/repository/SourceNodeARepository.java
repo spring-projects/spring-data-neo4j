@@ -24,4 +24,5 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface SourceNodeARepository extends Neo4jRepository<SourceNodeA, String>, CustomRepository {
+
 }

@@ -15,11 +15,6 @@
  */
 package org.springframework.data.neo4j.integration.versioned_self_references;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import org.springframework.data.neo4j.test.Neo4jReactiveTestConfiguration;
-import reactor.test.StepVerifier;
-
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.concurrent.atomic.AtomicReference;
@@ -30,6 +25,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.neo4j.driver.Driver;
+import reactor.test.StepVerifier;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -38,8 +35,11 @@ import org.springframework.data.neo4j.core.ReactiveNeo4jTemplate;
 import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
 import org.springframework.data.neo4j.core.transaction.ReactiveNeo4jTransactionManager;
 import org.springframework.data.neo4j.test.BookmarkCapture;
+import org.springframework.data.neo4j.test.Neo4jReactiveTestConfiguration;
 import org.springframework.transaction.ReactiveTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Michael J. Simons
@@ -57,8 +57,7 @@ class ReactiveOptimisticLockingOfSelfReferencesIT extends TestBase {
 		T r2 = f.get();
 		r1.relate(r2);
 
-		neo4jTemplate.save(r1)
-				.as(StepVerifier::create).expectNextCount(1L).verifyComplete();
+		this.neo4jTemplate.save(r1).as(StepVerifier::create).expectNextCount(1L).verifyComplete();
 
 		assertDatabase(0L, type, r1);
 		assertDatabase(0L, type, r2);
@@ -73,8 +72,10 @@ class ReactiveOptimisticLockingOfSelfReferencesIT extends TestBase {
 		T r2 = f.get();
 		r1.relate(r2);
 
-		neo4jTemplate.saveAll(Collections.singletonList(r1))
-				.as(StepVerifier::create).expectNextCount(1L).verifyComplete();
+		this.neo4jTemplate.saveAll(Collections.singletonList(r1))
+			.as(StepVerifier::create)
+			.expectNextCount(1L)
+			.verifyComplete();
 
 		assertDatabase(0L, type, r1);
 		assertDatabase(0L, type, r2);
@@ -89,8 +90,7 @@ class ReactiveOptimisticLockingOfSelfReferencesIT extends TestBase {
 		T r2 = f.get();
 		r1.relate(r2);
 
-		neo4jTemplate.saveAll(Arrays.asList(r1, r2))
-				.as(StepVerifier::create).expectNextCount(2L).verifyComplete();
+		this.neo4jTemplate.saveAll(Arrays.asList(r1, r2)).as(StepVerifier::create).expectNextCount(2L).verifyComplete();
 
 		assertDatabase(0L, type, r1);
 		assertDatabase(0L, type, r2);
@@ -106,17 +106,20 @@ class ReactiveOptimisticLockingOfSelfReferencesIT extends TestBase {
 
 		AtomicReference<T> r1 = new AtomicReference<>();
 		AtomicReference<T> r2 = new AtomicReference<>();
-		neo4jTemplate.findById(id1, type)
-				.doOnNext(r1::set)
-				.as(StepVerifier::create).expectNextCount(1L).verifyComplete();
-		neo4jTemplate.findById(id2, type)
-				.doOnNext(r2::set)
-				.as(StepVerifier::create).expectNextCount(1L).verifyComplete();
+		this.neo4jTemplate.findById(id1, type)
+			.doOnNext(r1::set)
+			.as(StepVerifier::create)
+			.expectNextCount(1L)
+			.verifyComplete();
+		this.neo4jTemplate.findById(id2, type)
+			.doOnNext(r2::set)
+			.as(StepVerifier::create)
+			.expectNextCount(1L)
+			.verifyComplete();
 
 		r1.get().relate(r2.get());
 
-		neo4jTemplate.save(r1.get())
-				.as(StepVerifier::create).expectNextCount(1L).verifyComplete();
+		this.neo4jTemplate.save(r1.get()).as(StepVerifier::create).expectNextCount(1L).verifyComplete();
 
 		assertDatabase(1L, type, r1.get());
 		assertDatabase(1L, type, r2.get());
@@ -132,17 +135,24 @@ class ReactiveOptimisticLockingOfSelfReferencesIT extends TestBase {
 
 		AtomicReference<T> r1 = new AtomicReference<>();
 		AtomicReference<T> r2 = new AtomicReference<>();
-		neo4jTemplate.findById(id1, type)
-				.doOnNext(r1::set)
-				.as(StepVerifier::create).expectNextCount(1L).verifyComplete();
-		neo4jTemplate.findById(id2, type)
-				.doOnNext(r2::set)
-				.as(StepVerifier::create).expectNextCount(1L).verifyComplete();
+		this.neo4jTemplate.findById(id1, type)
+			.doOnNext(r1::set)
+			.as(StepVerifier::create)
+			.expectNextCount(1L)
+			.verifyComplete();
+		this.neo4jTemplate.findById(id2, type)
+			.doOnNext(r2::set)
+			.as(StepVerifier::create)
+			.expectNextCount(1L)
+			.verifyComplete();
 
 		r1.get().relate(r2.get());
 
-		neo4jTemplate.saveAll(Collections.singletonList(r1).stream().map(AtomicReference::get).collect(Collectors.toList()))
-				.as(StepVerifier::create).expectNextCount(1L).verifyComplete();
+		this.neo4jTemplate
+			.saveAll(Collections.singletonList(r1).stream().map(AtomicReference::get).collect(Collectors.toList()))
+			.as(StepVerifier::create)
+			.expectNextCount(1L)
+			.verifyComplete();
 
 		assertDatabase(1L, type, r1.get());
 		assertDatabase(1L, type, r2.get());
@@ -158,17 +168,24 @@ class ReactiveOptimisticLockingOfSelfReferencesIT extends TestBase {
 
 		AtomicReference<T> r1 = new AtomicReference<>();
 		AtomicReference<T> r2 = new AtomicReference<>();
-		neo4jTemplate.findById(id1, type)
-				.doOnNext(r1::set)
-				.as(StepVerifier::create).expectNextCount(1L).verifyComplete();
-		neo4jTemplate.findById(id2, type)
-				.doOnNext(r2::set)
-				.as(StepVerifier::create).expectNextCount(1L).verifyComplete();
+		this.neo4jTemplate.findById(id1, type)
+			.doOnNext(r1::set)
+			.as(StepVerifier::create)
+			.expectNextCount(1L)
+			.verifyComplete();
+		this.neo4jTemplate.findById(id2, type)
+			.doOnNext(r2::set)
+			.as(StepVerifier::create)
+			.expectNextCount(1L)
+			.verifyComplete();
 
 		r1.get().relate(r2.get());
 
-		neo4jTemplate.saveAll(Arrays.asList(r1, r2).stream().map(AtomicReference::get).collect(Collectors.toList()))
-				.as(StepVerifier::create).expectNextCount(2L).verifyComplete();
+		this.neo4jTemplate
+			.saveAll(Arrays.asList(r1, r2).stream().map(AtomicReference::get).collect(Collectors.toList()))
+			.as(StepVerifier::create)
+			.expectNextCount(2L)
+			.verifyComplete();
 
 		assertDatabase(1L, type, r1.get());
 		assertDatabase(1L, type, r2.get());
@@ -183,17 +200,20 @@ class ReactiveOptimisticLockingOfSelfReferencesIT extends TestBase {
 
 		AtomicReference<T> r1 = new AtomicReference<>();
 		AtomicReference<T> r2 = new AtomicReference<>();
-		neo4jTemplate.findById(ids[0], type)
-				.doOnNext(r1::set)
-				.as(StepVerifier::create).expectNextCount(1L).verifyComplete();
-		neo4jTemplate.findById(ids[1], type)
-				.doOnNext(r2::set)
-				.as(StepVerifier::create).expectNextCount(1L).verifyComplete();
+		this.neo4jTemplate.findById(ids[0], type)
+			.doOnNext(r1::set)
+			.as(StepVerifier::create)
+			.expectNextCount(1L)
+			.verifyComplete();
+		this.neo4jTemplate.findById(ids[1], type)
+			.doOnNext(r2::set)
+			.as(StepVerifier::create)
+			.expectNextCount(1L)
+			.verifyComplete();
 
 		r1.get().relate(r2.get());
 
-		neo4jTemplate.save(r1.get())
-				.as(StepVerifier::create).expectNextCount(1L).verifyComplete();
+		this.neo4jTemplate.save(r1.get()).as(StepVerifier::create).expectNextCount(1L).verifyComplete();
 
 		assertDatabase(1L, type, r1.get());
 		assertDatabase(1L, type, r2.get());
@@ -208,17 +228,24 @@ class ReactiveOptimisticLockingOfSelfReferencesIT extends TestBase {
 
 		AtomicReference<T> r1 = new AtomicReference<>();
 		AtomicReference<T> r2 = new AtomicReference<>();
-		neo4jTemplate.findById(ids[0], type)
-				.doOnNext(r1::set)
-				.as(StepVerifier::create).expectNextCount(1L).verifyComplete();
-		neo4jTemplate.findById(ids[1], type)
-				.doOnNext(r2::set)
-				.as(StepVerifier::create).expectNextCount(1L).verifyComplete();
+		this.neo4jTemplate.findById(ids[0], type)
+			.doOnNext(r1::set)
+			.as(StepVerifier::create)
+			.expectNextCount(1L)
+			.verifyComplete();
+		this.neo4jTemplate.findById(ids[1], type)
+			.doOnNext(r2::set)
+			.as(StepVerifier::create)
+			.expectNextCount(1L)
+			.verifyComplete();
 
 		r1.get().relate(r2.get());
 
-		neo4jTemplate.saveAll(Arrays.asList(r1, r2).stream().map(AtomicReference::get).collect(Collectors.toList()))
-				.as(StepVerifier::create).expectNextCount(2L).verifyComplete();
+		this.neo4jTemplate
+			.saveAll(Arrays.asList(r1, r2).stream().map(AtomicReference::get).collect(Collectors.toList()))
+			.as(StepVerifier::create)
+			.expectNextCount(2L)
+			.verifyComplete();
 
 		assertDatabase(1L, type, r1.get());
 		assertDatabase(1L, type, r2.get());
@@ -233,17 +260,24 @@ class ReactiveOptimisticLockingOfSelfReferencesIT extends TestBase {
 
 		AtomicReference<T> r1 = new AtomicReference<>();
 		AtomicReference<T> r2 = new AtomicReference<>();
-		neo4jTemplate.findById(ids[0], type)
-				.doOnNext(r1::set)
-				.as(StepVerifier::create).expectNextCount(1L).verifyComplete();
-		neo4jTemplate.findById(ids[1], type)
-				.doOnNext(r2::set)
-				.as(StepVerifier::create).expectNextCount(1L).verifyComplete();
+		this.neo4jTemplate.findById(ids[0], type)
+			.doOnNext(r1::set)
+			.as(StepVerifier::create)
+			.expectNextCount(1L)
+			.verifyComplete();
+		this.neo4jTemplate.findById(ids[1], type)
+			.doOnNext(r2::set)
+			.as(StepVerifier::create)
+			.expectNextCount(1L)
+			.verifyComplete();
 
 		r1.get().relate(r2.get());
 
-		neo4jTemplate.saveAll(Collections.singletonList(r1).stream().map(AtomicReference::get).collect(Collectors.toList()))
-				.as(StepVerifier::create).expectNextCount(1L).verifyComplete();
+		this.neo4jTemplate
+			.saveAll(Collections.singletonList(r1).stream().map(AtomicReference::get).collect(Collectors.toList()))
+			.as(StepVerifier::create)
+			.expectNextCount(1L)
+			.verifyComplete();
 
 		assertDatabase(1L, type, r1.get());
 		assertDatabase(1L, type, r2.get());
@@ -257,48 +291,46 @@ class ReactiveOptimisticLockingOfSelfReferencesIT extends TestBase {
 		AtomicReference<VersionedExternalIdWithEquals> ref = new AtomicReference<>();
 
 		VersionedExternalIdWithEquals start = createRing(ringSize);
-		neo4jTemplate.save(start)
-				.doOnNext(ref::set)
-				.as(StepVerifier::create).expectNextCount(1L).verifyComplete();
+		this.neo4jTemplate.save(start).doOnNext(ref::set).as(StepVerifier::create).expectNextCount(1L).verifyComplete();
 
 		start = ref.get();
 
-		neo4jTemplate.findById(start.getId(), VersionedExternalIdWithEquals.class)
-				.as(StepVerifier::create)
-				.expectNextMatches(root -> {
-					int traversedObjects = traverseRing(root, next -> {
-						assertThat(next.getRelatedObjects()).hasSize(2);
-						assertThat(next.getVersion()).isEqualTo(0L);
-					});
-					assertThat(traversedObjects).isEqualTo(ringSize);
-					return true;
-				})
-				.verifyComplete();
+		this.neo4jTemplate.findById(start.getId(), VersionedExternalIdWithEquals.class)
+			.as(StepVerifier::create)
+			.expectNextMatches(root -> {
+				int traversedObjects = traverseRing(root, next -> {
+					assertThat(next.getRelatedObjects()).hasSize(2);
+					assertThat(next.getVersion()).isEqualTo(0L);
+				});
+				assertThat(traversedObjects).isEqualTo(ringSize);
+				return true;
+			})
+			.verifyComplete();
 
 		String newName = "A new beginning";
 		start.setName(newName);
-		neo4jTemplate.saveAs(start, NameOnly.class).as(StepVerifier::create).expectNextCount(1L).verifyComplete();
+		this.neo4jTemplate.saveAs(start, NameOnly.class).as(StepVerifier::create).expectNextCount(1L).verifyComplete();
 
-		neo4jTemplate.findById(start.getId(), VersionedExternalIdWithEquals.class)
-				.as(StepVerifier::create)
-				.expectNextMatches(root -> {
-					assertThat(root.getName()).isEqualTo(newName);
-					assertThat(root.getVersion()).isEqualTo(1L);
+		this.neo4jTemplate.findById(start.getId(), VersionedExternalIdWithEquals.class)
+			.as(StepVerifier::create)
+			.expectNextMatches(root -> {
+				assertThat(root.getName()).isEqualTo(newName);
+				assertThat(root.getVersion()).isEqualTo(1L);
 
-					int traversedObjects = traverseRing(root, next -> {
-						assertThat(next.getRelatedObjects()).hasSize(2);
-						assertThat(next.getVersion()).isEqualTo(next.getName().equals(newName) ? 1L : 0L);
-					});
-					assertThat(traversedObjects).isEqualTo(ringSize);
-					return true;
-				})
-				.verifyComplete();
+				int traversedObjects = traverseRing(root, next -> {
+					assertThat(next.getRelatedObjects()).hasSize(2);
+					assertThat(next.getVersion()).isEqualTo(next.getName().equals(newName) ? 1L : 0L);
+				});
+				assertThat(traversedObjects).isEqualTo(ringSize);
+				return true;
+			})
+			.verifyComplete();
 	}
 
 	private <T extends Relatable<T>> void assertLoadingViaSDN(Class<T> type, Long... ids) {
 
 		for (Long id : ids) {
-			neo4jTemplate.findById(id, type).as(StepVerifier::create).expectNextCount(1L).verifyComplete();
+			this.neo4jTemplate.findById(id, type).as(StepVerifier::create).expectNextCount(1L).verifyComplete();
 		}
 	}
 
@@ -307,7 +339,7 @@ class ReactiveOptimisticLockingOfSelfReferencesIT extends TestBase {
 	static class Config extends Neo4jReactiveTestConfiguration {
 
 		@Bean
-		public BookmarkCapture bookmarkCapture() {
+		BookmarkCapture bookmarkCapture() {
 			return new BookmarkCapture();
 		}
 
@@ -320,6 +352,7 @@ class ReactiveOptimisticLockingOfSelfReferencesIT extends TestBase {
 		}
 
 		@Bean
+		@Override
 		public Driver driver() {
 
 			return neo4jConnectionSupport.getDriver();
@@ -329,5 +362,7 @@ class ReactiveOptimisticLockingOfSelfReferencesIT extends TestBase {
 		public boolean isCypher5Compatible() {
 			return neo4jConnectionSupport.isCypher5SyntaxCompatible();
 		}
+
 	}
+
 }

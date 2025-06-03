@@ -20,5 +20,6 @@ package org.springframework.data.neo4j.core.transaction;
  *
  * @author Michael J. Simons
  */
-non-sealed abstract class AbstractBookmarkManager implements Neo4jBookmarkManager {
+abstract non-sealed class AbstractBookmarkManager implements Neo4jBookmarkManager {
+
 }

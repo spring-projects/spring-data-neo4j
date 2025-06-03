@@ -38,18 +38,19 @@ public class ClubRelationship {
 	}
 
 	public String getPlace() {
-		return place;
+		return this.place;
 	}
 
 	public void setPlace(String place) {
 		this.place = place;
 	}
 
+	public Club getClub() {
+		return this.club;
+	}
+
 	public void setClub(Club club) {
 		this.club = club;
 	}
 
-	public Club getClub() {
-		return club;
-	}
 }

@@ -24,6 +24,7 @@ import java.util.stream.Collectors;
 
 import org.apiguardian.api.API;
 import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
@@ -36,14 +37,26 @@ import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 
 /**
- * A utility class providing a way to discover an initial entity set for a {@link org.springframework.data.neo4j.core.mapping.Neo4jMappingContext}.
+ * A utility class providing a way to discover an initial entity set for a
+ * {@link org.springframework.data.neo4j.core.mapping.Neo4jMappingContext}.
  *
  * @author Michael J. Simons
- * @soundtrack Kelis - Tasty
  * @since 6.0.2
  */
 @API(status = API.Status.STABLE, since = "6.0.2")
 public final class Neo4jEntityScanner {
+
+	@Nullable
+	private final ResourceLoader resourceLoader;
+
+	/**
+	 * Create a new {@link Neo4jEntityScanner} instance.
+	 * @param resourceLoader an optional resource loader used for class scanning.
+	 */
+	private Neo4jEntityScanner(@Nullable ResourceLoader resourceLoader) {
+
+		this.resourceLoader = resourceLoader;
+	}
 
 	public static Neo4jEntityScanner get() {
 
@@ -55,22 +68,30 @@ public final class Neo4jEntityScanner {
 		return new Neo4jEntityScanner(resourceLoader);
 	}
 
-	@Nullable
-	private final ResourceLoader resourceLoader;
-
 	/**
-	 * Create a new {@link Neo4jEntityScanner} instance.
-	 *
-	 * @param resourceLoader an optional resource loader used for class scanning.
+	 * Create a {@link ClassPathScanningCandidateComponentProvider} to scan entities based
+	 * on the specified {@link ApplicationContext}.
+	 * @param resourceLoader an optional {@link ResourceLoader} to use
+	 * @return a {@link ClassPathScanningCandidateComponentProvider} suitable to scan for
+	 * Neo4j entities
 	 */
-	private Neo4jEntityScanner(@Nullable ResourceLoader resourceLoader) {
+	private static ClassPathScanningCandidateComponentProvider createClassPathScanningCandidateComponentProvider(
+			@Nullable ResourceLoader resourceLoader) {
 
-		this.resourceLoader = resourceLoader;
+		ClassPathScanningCandidateComponentProvider delegate = new ClassPathScanningCandidateComponentProvider(false);
+		if (resourceLoader != null) {
+			delegate.setResourceLoader(resourceLoader);
+		}
+
+		delegate.addIncludeFilter(new AnnotationTypeFilter(Node.class));
+		delegate.addIncludeFilter(new AnnotationTypeFilter(Persistent.class));
+		delegate.addIncludeFilter(new AnnotationTypeFilter(RelationshipProperties.class));
+
+		return delegate;
 	}
 
 	/**
 	 * Scan for entities with the specified annotations.
-	 *
 	 * @param basePackages the list of base packages to scan.
 	 * @return a set of entity classes
 	 * @throws ClassNotFoundException if an entity class cannot be loaded
@@ -81,7 +102,6 @@ public final class Neo4jEntityScanner {
 
 	/**
 	 * Scan for entities with the specified annotations.
-	 *
 	 * @param packages the list of base packages to scan.
 	 * @return a set of entity classes
 	 * @throws ClassNotFoundException if an entity class cannot be loaded
@@ -93,13 +113,11 @@ public final class Neo4jEntityScanner {
 			return Collections.emptySet();
 		}
 
-		ClassPathScanningCandidateComponentProvider scanner =
-				createClassPathScanningCandidateComponentProvider(this.resourceLoader);
+		ClassPathScanningCandidateComponentProvider scanner = createClassPathScanningCandidateComponentProvider(
+				this.resourceLoader);
 
-		ClassLoader classLoader =
-				this.resourceLoader == null ?
-						Neo4jConfigurationSupport.class.getClassLoader() :
-						this.resourceLoader.getClassLoader();
+		ClassLoader classLoader = (this.resourceLoader != null) ? this.resourceLoader.getClassLoader()
+				: Neo4jConfigurationSupport.class.getClassLoader();
 
 		Set<Class<?>> entitySet = new HashSet<>();
 		for (String basePackage : packages) {
@@ -115,24 +133,4 @@ public final class Neo4jEntityScanner {
 		return entitySet;
 	}
 
-	/**
-	 * Create a {@link ClassPathScanningCandidateComponentProvider} to scan entities based
-	 * on the specified {@link ApplicationContext}.
-	 *
-	 * @param resourceLoader an optional {@link ResourceLoader} to use
-	 * @return a {@link ClassPathScanningCandidateComponentProvider} suitable to scan for Neo4j entities
-	 */
-	private static ClassPathScanningCandidateComponentProvider createClassPathScanningCandidateComponentProvider(@Nullable ResourceLoader resourceLoader) {
-
-		ClassPathScanningCandidateComponentProvider delegate = new ClassPathScanningCandidateComponentProvider(false);
-		if (resourceLoader != null) {
-			delegate.setResourceLoader(resourceLoader);
-		}
-
-		delegate.addIncludeFilter(new AnnotationTypeFilter(Node.class));
-		delegate.addIncludeFilter(new AnnotationTypeFilter(Persistent.class));
-		delegate.addIncludeFilter(new AnnotationTypeFilter(RelationshipProperties.class));
-
-		return delegate;
-	}
 }

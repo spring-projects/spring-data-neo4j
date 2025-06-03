@@ -15,17 +15,18 @@
  */
 package org.springframework.data.neo4j.integration.reactive;
 
-import static org.assertj.core.api.Assumptions.assumeThat;
-
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Tag;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.SessionConfig;
 import org.neo4j.driver.Values;
+
 import org.springframework.data.neo4j.core.UserSelection;
 import org.springframework.data.neo4j.core.transaction.Neo4jTransactionUtils;
 import org.springframework.data.neo4j.test.Neo4jExtension;
+
+import static org.assertj.core.api.Assumptions.assumeThat;
 
 /**
  * @author Michael J. Simons
@@ -36,6 +37,7 @@ import org.springframework.data.neo4j.test.Neo4jExtension;
 class ReactiveRepositoryWithADifferentUserIT extends ReactiveRepositoryIT {
 
 	private static final String TEST_USER = "sdn62";
+
 	private static final String TEST_DATABASE_NAME = "sdn62db";
 
 	@BeforeAll
@@ -46,12 +48,13 @@ class ReactiveRepositoryWithADifferentUserIT extends ReactiveRepositoryIT {
 		try (Session session = neo4jConnectionSupport.getDriver().session(SessionConfig.forDatabase("system"))) {
 
 			session.run("CREATE DATABASE $db", Values.parameters("db", TEST_DATABASE_NAME)).consume();
-			session.run("CREATE USER $user SET PASSWORD $password CHANGE NOT REQUIRED SET HOME DATABASE $database",
-							Values.parameters("user", TEST_USER, "password", TEST_USER + "_password", "database", TEST_DATABASE_NAME))
-					.consume();
+			session
+				.run("CREATE USER $user SET PASSWORD $password CHANGE NOT REQUIRED SET HOME DATABASE $database", Values
+					.parameters("user", TEST_USER, "password", TEST_USER + "_password", "database", TEST_DATABASE_NAME))
+				.consume();
 			session.run("GRANT ROLE publisher TO $user", Values.parameters("user", TEST_USER)).consume();
 			session.run("GRANT IMPERSONATE ($targetUser) ON DBMS TO admin", Values.parameters("targetUser", TEST_USER))
-					.consume();
+				.consume();
 		}
 
 		userSelection.set(UserSelection.impersonate(TEST_USER));
@@ -62,12 +65,14 @@ class ReactiveRepositoryWithADifferentUserIT extends ReactiveRepositoryIT {
 
 		try (Session session = neo4jConnectionSupport.getDriver().session(SessionConfig.forDatabase("system"))) {
 
-			session.run("REVOKE IMPERSONATE ($targetUser) ON DBMS FROM admin",
-					Values.parameters("targetUser", TEST_USER)).consume();
+			session
+				.run("REVOKE IMPERSONATE ($targetUser) ON DBMS FROM admin", Values.parameters("targetUser", TEST_USER))
+				.consume();
 			session.run("DROP USER $user", Values.parameters("user", TEST_USER)).consume();
 			session.run("DROP DATABASE $db", Values.parameters("db", TEST_DATABASE_NAME)).consume();
 		}
 
 		userSelection.set(UserSelection.connectedUser());
 	}
+
 }

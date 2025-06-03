@@ -29,8 +29,10 @@ import org.springframework.data.neo4j.core.schema.Node;
  */
 @Node
 public class ImmutablePerson {
+
 	@Id
 	private final String name;
+
 	private final List<ImmutablePerson> wasOnboardedBy;
 
 	public ImmutablePerson(String name, List<ImmutablePerson> wasOnboardedBy) {
@@ -39,10 +41,11 @@ public class ImmutablePerson {
 	}
 
 	public String getName() {
-		return name;
+		return this.name;
 	}
 
 	public List<ImmutablePerson> getWasOnboardedBy() {
-		return wasOnboardedBy;
+		return this.wasOnboardedBy;
 	}
+
 }

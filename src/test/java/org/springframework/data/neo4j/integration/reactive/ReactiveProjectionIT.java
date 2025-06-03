@@ -15,13 +15,6 @@
  */
 package org.springframework.data.neo4j.integration.reactive;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import org.springframework.data.neo4j.test.Neo4jReactiveTestConfiguration;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
-import reactor.test.StepVerifier;
-
 import java.util.Collections;
 import java.util.List;
 
@@ -36,6 +29,10 @@ import org.neo4j.driver.Record;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.Transaction;
 import org.neo4j.driver.types.MapAccessor;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -59,9 +56,12 @@ import org.springframework.data.neo4j.repository.support.ReactiveCypherdslStatem
 import org.springframework.data.neo4j.test.BookmarkCapture;
 import org.springframework.data.neo4j.test.Neo4jExtension;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
+import org.springframework.data.neo4j.test.Neo4jReactiveTestConfiguration;
 import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.ReactiveTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Gerrit Meier
@@ -71,14 +71,19 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 class ReactiveProjectionIT {
 
 	private static final String FIRST_NAME = "Hans";
+
 	private static final String LAST_NAME = "Mueller";
+
 	private static final String CITY = "Braunschweig";
 
 	private static Neo4jExtension.Neo4jConnectionSupport neo4jConnectionSupport;
 
 	private final Driver driver;
+
 	private Long projectionTestRootId;
+
 	private Long projectionTest1O1Id;
+
 	private Long projectionTestLevel1Id;
 
 	@Autowired
@@ -86,15 +91,25 @@ class ReactiveProjectionIT {
 		this.driver = driver;
 	}
 
+	private static Statement whoHasFirstName(String firstName) {
+		Node p = Cypher.node("Person").named("p");
+		return Cypher.match(p)
+			.where(p.property("firstName").isEqualTo(Cypher.anonParameter(firstName)))
+			.returning(p.getRequiredSymbolicName())
+			.build();
+	}
+
 	@BeforeEach
 	void setup(@Autowired BookmarkCapture bookmarkCapture) {
-		Session session = driver.session(bookmarkCapture.createSessionConfig());
+		Session session = this.driver.session(bookmarkCapture.createSessionConfig());
 		Transaction transaction = session.beginTransaction();
 
 		transaction.run("MATCH (n) detach delete n");
 
-		transaction.run("CREATE (:Person{firstName:'%s', lastName:'%s'})-[:LIVES_AT]->(:Address{city:'%s'})" .formatted(FIRST_NAME, LAST_NAME, CITY));
-		transaction.run("CREATE (p:PersonWithNoConstructor {name: 'meistermeier', first_name: 'Gerrit', mittlererName: 'unknown'}) RETURN p");
+		transaction.run("CREATE (:Person{firstName:'%s', lastName:'%s'})-[:LIVES_AT]->(:Address{city:'%s'})"
+			.formatted(FIRST_NAME, LAST_NAME, CITY));
+		transaction.run(
+				"CREATE (p:PersonWithNoConstructor {name: 'meistermeier', first_name: 'Gerrit', mittlererName: 'unknown'}) RETURN p");
 
 		Record result = transaction.run("""
 				create (r:ProjectionTestRoot {name: 'root'})
@@ -113,9 +128,9 @@ class ReactiveProjectionIT {
 				return id(r), id(l11), id(o)
 				""").single();
 
-		projectionTestRootId = result.get(0).asLong();
-		projectionTestLevel1Id = result.get(1).asLong();
-		projectionTest1O1Id = result.get(2).asLong();
+		this.projectionTestRootId = result.get(0).asLong();
+		this.projectionTestLevel1Id = result.get(1).asLong();
+		this.projectionTest1O1Id = result.get(2).asLong();
 		transaction.commit();
 		transaction.close();
 		bookmarkCapture.seedWith(session.lastBookmarks());
@@ -160,152 +175,140 @@ class ReactiveProjectionIT {
 	void findDynamicProjectionForNamesOnly(@Autowired ReactiveProjectionPersonRepository repository) {
 
 		StepVerifier.create(repository.findByLastNameAndFirstName(LAST_NAME, FIRST_NAME, NamesOnly.class))
-				.assertNext(person -> {
-					assertThat(person.getFirstName()).isEqualTo(FIRST_NAME);
-					assertThat(person.getLastName()).isEqualTo(LAST_NAME);
+			.assertNext(person -> {
+				assertThat(person.getFirstName()).isEqualTo(FIRST_NAME);
+				assertThat(person.getLastName()).isEqualTo(LAST_NAME);
 
-					String expectedFullName = FIRST_NAME + " " + LAST_NAME;
-					assertThat(person.getFullName()).isEqualTo(expectedFullName);
-				}).verifyComplete();
+				String expectedFullName = FIRST_NAME + " " + LAST_NAME;
+				assertThat(person.getFullName()).isEqualTo(expectedFullName);
+			})
+			.verifyComplete();
 	}
 
 	@Test
 	void findDynamicProjectionForPersonSummary(@Autowired ReactiveProjectionPersonRepository repository) {
 
 		StepVerifier.create(repository.findByLastNameAndFirstName(LAST_NAME, FIRST_NAME, PersonSummary.class))
-				.assertNext(person -> {
-					assertThat(person.getFirstName()).isEqualTo(FIRST_NAME);
-					assertThat(person.getLastName()).isEqualTo(LAST_NAME);
-					assertThat(person.getAddress()).isNotNull();
+			.assertNext(person -> {
+				assertThat(person.getFirstName()).isEqualTo(FIRST_NAME);
+				assertThat(person.getLastName()).isEqualTo(LAST_NAME);
+				assertThat(person.getAddress()).isNotNull();
 
-					PersonSummary.AddressSummary address = person.getAddress();
-					assertThat(address.getCity()).isEqualTo(CITY);
-				}).verifyComplete();
+				PersonSummary.AddressSummary address = person.getAddress();
+				assertThat(address.getCity()).isEqualTo(CITY);
+			})
+			.verifyComplete();
 	}
 
 	@Test
 	void findDynamicProjectionForNamesOnlyDto(@Autowired ReactiveProjectionPersonRepository repository) {
 
 		StepVerifier.create(repository.findByLastNameAndFirstName(LAST_NAME, FIRST_NAME, NamesOnlyDto.class))
-				.assertNext(person -> {
-					assertThat(person.getFirstName()).isEqualTo(FIRST_NAME);
-					assertThat(person.getLastName()).isEqualTo(LAST_NAME);
-				}).verifyComplete();
+			.assertNext(person -> {
+				assertThat(person.getFirstName()).isEqualTo(FIRST_NAME);
+				assertThat(person.getLastName()).isEqualTo(LAST_NAME);
+			})
+			.verifyComplete();
 	}
 
 	@Test
 	void findStringBasedClosedProjection(@Autowired ReactiveProjectionPersonRepository repository) {
 
-		StepVerifier.create(repository.customQueryByFirstName(FIRST_NAME))
-				.assertNext(personSummary -> {
-					assertThat(personSummary).isNotNull();
-					assertThat(personSummary.getFirstName()).isEqualTo(FIRST_NAME);
-					assertThat(personSummary.getLastName()).isEqualTo(LAST_NAME);
-				})
-				.verifyComplete();
+		StepVerifier.create(repository.customQueryByFirstName(FIRST_NAME)).assertNext(personSummary -> {
+			assertThat(personSummary).isNotNull();
+			assertThat(personSummary.getFirstName()).isEqualTo(FIRST_NAME);
+			assertThat(personSummary.getLastName()).isEqualTo(LAST_NAME);
+		}).verifyComplete();
 	}
 
 	@Test
 	void findCypherDSLClosedProjection(@Autowired ReactiveProjectionPersonRepository repository) {
 
 		StepVerifier.create(repository.findOne(whoHasFirstName(FIRST_NAME), PersonSummary.class))
-				.assertNext(personSummary -> {
-					assertThat(personSummary).isNotNull();
-					assertThat(personSummary.getFirstName()).isEqualTo(FIRST_NAME);
-					assertThat(personSummary.getLastName()).isEqualTo(LAST_NAME);
-				})
-				.verifyComplete();
-	}
-
-	private static Statement whoHasFirstName(String firstName) {
-		Node p = Cypher.node("Person").named("p");
-		return Cypher.match(p)
-				.where(p.property("firstName").isEqualTo(Cypher.anonParameter(firstName)))
-				.returning(
-						p.getRequiredSymbolicName()
-				)
-				.build();
+			.assertNext(personSummary -> {
+				assertThat(personSummary).isNotNull();
+				assertThat(personSummary.getFirstName()).isEqualTo(FIRST_NAME);
+				assertThat(personSummary.getLastName()).isEqualTo(LAST_NAME);
+			})
+			.verifyComplete();
 	}
 
 	@Test // GH-2164
 	void findByIdWithProjectionShouldWork(@Autowired TreestructureRepository repository) {
 
-		StepVerifier.create(repository.findById(projectionTestRootId, SimpleProjection.class))
-				.assertNext(projection -> {
-					assertThat(projection.getName()).isEqualTo("root");
-				})
-				.verifyComplete();
+		StepVerifier.create(repository.findById(this.projectionTestRootId, SimpleProjection.class))
+			.assertNext(projection -> {
+				assertThat(projection.getName()).isEqualTo("root");
+			})
+			.verifyComplete();
 	}
 
 	@Test // GH-2165
 	void relationshipsShouldBeIncludedInProjections(@Autowired TreestructureRepository repository) {
 
-		StepVerifier.create(repository.findById(projectionTestRootId, SimpleProjectionWithLevelAndLower.class))
-				.assertNext(projection ->
-						assertThat(projection).satisfies(p -> {
-							assertThat(p.getName()).isEqualTo("root");
-							assertThat(p.getOneOone()).extracting(ProjectionTest1O1::getName).isEqualTo("1o1");
-							assertThat(p.getLevel1()).hasSize(2);
-							assertThat(p.getLevel1().stream())
-									.anyMatch(e -> e.getId().equals(projectionTestLevel1Id) && e.getLevel2().size() == 2);
-				}))
-				.verifyComplete();
+		StepVerifier.create(repository.findById(this.projectionTestRootId, SimpleProjectionWithLevelAndLower.class))
+			.assertNext(projection -> assertThat(projection).satisfies(p -> {
+				assertThat(p.getName()).isEqualTo("root");
+				assertThat(p.getOneOone()).extracting(ProjectionTest1O1::getName).isEqualTo("1o1");
+				assertThat(p.getLevel1()).hasSize(2);
+				assertThat(p.getLevel1().stream())
+					.anyMatch(e -> e.getId().equals(this.projectionTestLevel1Id) && e.getLevel2().size() == 2);
+			}))
+			.verifyComplete();
 	}
 
 	@Test // GH-2165
 	void nested1to1ProjectionsShouldWork(@Autowired TreestructureRepository repository) {
 
-		StepVerifier.create(repository.findById(projectionTestRootId, ProjectedOneToOne.class))
-				.assertNext(projection ->
-					assertThat(projection).satisfies(p -> {
-						assertThat(p.getName()).isEqualTo("root");
-						assertThat(p.getOneOone()).extracting(ProjectedOneToOne.Subprojection::getFullName)
-								.isEqualTo(projectionTest1O1Id + " 1o1");
-				}))
-				.verifyComplete();
+		StepVerifier.create(repository.findById(this.projectionTestRootId, ProjectedOneToOne.class))
+			.assertNext(projection -> assertThat(projection).satisfies(p -> {
+				assertThat(p.getName()).isEqualTo("root");
+				assertThat(p.getOneOone()).extracting(ProjectedOneToOne.Subprojection::getFullName)
+					.isEqualTo(this.projectionTest1O1Id + " 1o1");
+			}))
+			.verifyComplete();
 	}
 
 	@Test
 	void nested1to1ProjectionsWithNestedProjectionShouldWork(@Autowired TreestructureRepository repository) {
 
-		StepVerifier.create(repository.findById(projectionTestRootId, ProjectionWithNestedProjection.class))
-				.assertNext(projection ->
-						assertThat(projection).satisfies(p -> {
-							assertThat(p.getName()).isEqualTo("root");
-							assertThat(p.getLevel1()).extracting("name").containsExactlyInAnyOrder("level11", "level12");
-							assertThat(p.getLevel1()).flatExtracting("level2").extracting("name")
-									.containsExactlyInAnyOrder("level21", "level22", "level23");
-						}))
-				.verifyComplete();
+		StepVerifier.create(repository.findById(this.projectionTestRootId, ProjectionWithNestedProjection.class))
+			.assertNext(projection -> assertThat(projection).satisfies(p -> {
+				assertThat(p.getName()).isEqualTo("root");
+				assertThat(p.getLevel1()).extracting("name").containsExactlyInAnyOrder("level11", "level12");
+				assertThat(p.getLevel1()).flatExtracting("level2")
+					.extracting("name")
+					.containsExactlyInAnyOrder("level21", "level22", "level23");
+			}))
+			.verifyComplete();
 	}
 
 	@Test // GH-2165
 	void nested1toManyProjectionsShouldWork(@Autowired TreestructureRepository repository) {
 
-		StepVerifier.create(repository.findById(projectionTestRootId, ProjectedOneToMany.class))
-				.assertNext(projection ->
-						assertThat(projection).satisfies(p -> {
-							assertThat(p.getName()).isEqualTo("root");
-							assertThat(p.getLevel1()).hasSize(2);
-						}))
-				.verifyComplete();
+		StepVerifier.create(repository.findById(this.projectionTestRootId, ProjectedOneToMany.class))
+			.assertNext(projection -> assertThat(projection).satisfies(p -> {
+				assertThat(p.getName()).isEqualTo("root");
+				assertThat(p.getLevel1()).hasSize(2);
+			}))
+			.verifyComplete();
 	}
 
 	@Test // GH-2164
 	void findByIdInDerivedFinderMethodInRelatedObjectShouldWork(@Autowired TreestructureRepository repository) {
 
-		StepVerifier.create(repository.findOneByLevel1Id(projectionTestLevel1Id))
-				.assertNext(projection -> assertThat(projection.getName()).isEqualTo("root"))
-				.verifyComplete();
+		StepVerifier.create(repository.findOneByLevel1Id(this.projectionTestLevel1Id))
+			.assertNext(projection -> assertThat(projection.getName()).isEqualTo("root"))
+			.verifyComplete();
 	}
 
 	@Test // GH-2164
 	void findByIdInDerivedFinderMethodInRelatedObjectWithProjectionShouldWork(
 			@Autowired TreestructureRepository repository) {
 
-		StepVerifier.create(repository.findOneByLevel1Id(projectionTestLevel1Id, SimpleProjection.class))
-				.assertNext(projection -> assertThat(projection.getName()).isEqualTo("root"))
-				.verifyComplete();
+		StepVerifier.create(repository.findOneByLevel1Id(this.projectionTestLevel1Id, SimpleProjection.class))
+			.assertNext(projection -> assertThat(projection.getName()).isEqualTo("root"))
+			.verifyComplete();
 	}
 
 	@Test // GH-2371
@@ -313,35 +316,31 @@ class ReactiveProjectionIT {
 
 		repository.findAll().as(StepVerifier::create).expectNextCount(1L);
 
-		repository.findByName("meistermeier")
-				.as(StepVerifier::create)
-				.assertNext(person -> {
-					assertThat(person.getFirstName()).isEqualTo("Gerrit");
-					assertThat(person.getMittlererName()).isEqualTo("unknown");
-				})
-				.verifyComplete();
+		repository.findByName("meistermeier").as(StepVerifier::create).assertNext(person -> {
+			assertThat(person.getFirstName()).isEqualTo("Gerrit");
+			assertThat(person.getMittlererName()).isEqualTo("unknown");
+		}).verifyComplete();
 	}
 
 	@Test // GH-2371
-	void saveWithCustomPropertyNameWorks(@Autowired BookmarkCapture bookmarkCapture, @Autowired ReactiveNeo4jTemplate neo4jTemplate) {
+	void saveWithCustomPropertyNameWorks(@Autowired BookmarkCapture bookmarkCapture,
+			@Autowired ReactiveNeo4jTemplate neo4jTemplate) {
 
 		neo4jTemplate
-				.findOne("MATCH (p:PersonWithNoConstructor {name: 'meistermeier'}) RETURN p", Collections.emptyMap(), PersonWithNoConstructor.class)
-				.doOnNext(person -> {
-					person.setName("rotnroll666");
-					person.setFirstName("Michael");
-					person.setMiddleName("foo");
-				}).flatMap(p -> neo4jTemplate.saveAs(p, ProjectedPersonWithNoConstructor.class))
-				.as(StepVerifier::create)
-				.expectNextCount(1L)
-				.verifyComplete();
+			.findOne("MATCH (p:PersonWithNoConstructor {name: 'meistermeier'}) RETURN p", Collections.emptyMap(),
+					PersonWithNoConstructor.class)
+			.doOnNext(person -> {
+				person.setName("rotnroll666");
+				person.setFirstName("Michael");
+				person.setMiddleName("foo");
+			})
+			.flatMap(p -> neo4jTemplate.saveAs(p, ProjectedPersonWithNoConstructor.class))
+			.as(StepVerifier::create)
+			.expectNextCount(1L)
+			.verifyComplete();
 
-
-
-		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
-			Record record = session
-					.run("MATCH (p:PersonWithNoConstructor {name: 'rotnroll666'}) RETURN p")
-					.single();
+		try (Session session = this.driver.session(bookmarkCapture.createSessionConfig())) {
+			Record record = session.run("MATCH (p:PersonWithNoConstructor {name: 'rotnroll666'}) RETURN p").single();
 
 			MapAccessor p = record.get("p").asNode();
 			assertThat(p.get("first_name").asString()).isEqualTo("Michael");
@@ -356,16 +355,17 @@ class ReactiveProjectionIT {
 		String getFirstName();
 
 		String getMittlererName();
+
 	}
 
 	interface PersonWithNoConstructorRepository extends ReactiveNeo4jRepository<PersonWithNoConstructor, Long> {
 
 		Mono<ProjectedPersonWithNoConstructor> findByName(String name);
+
 	}
 
-
-	interface ReactiveProjectionPersonRepository extends ReactiveNeo4jRepository<Person, Long>,
-			ReactiveCypherdslStatementExecutor<Person> {
+	interface ReactiveProjectionPersonRepository
+			extends ReactiveNeo4jRepository<Person, Long>, ReactiveCypherdslStatementExecutor<Person> {
 
 		Flux<NamesOnly> findByLastName(String lastName);
 
@@ -377,6 +377,7 @@ class ReactiveProjectionIT {
 
 		@Query("MATCH (n:Person) where n.firstName = $firstName return n")
 		Mono<PersonSummary> customQueryByFirstName(@Param("firstName") String firstName);
+
 	}
 
 	interface TreestructureRepository extends ReactiveNeo4jRepository<ProjectionTestRoot, Long> {
@@ -386,11 +387,13 @@ class ReactiveProjectionIT {
 		Mono<ProjectionTestRoot> findOneByLevel1Id(Long idOfLevel1);
 
 		<T> Mono<T> findOneByLevel1Id(Long idOfLevel1, Class<T> typeOfProjection);
+
 	}
 
 	interface SimpleProjection {
 
 		String getName();
+
 	}
 
 	interface SimpleProjectionWithLevelAndLower {
@@ -400,6 +403,7 @@ class ReactiveProjectionIT {
 		ProjectionTest1O1 getOneOone();
 
 		List<ProjectionTestLevel1> getLevel1();
+
 	}
 
 	interface ProjectedOneToOne {
@@ -411,11 +415,14 @@ class ReactiveProjectionIT {
 		interface Subprojection {
 
 			/**
-			 * @return Some arbitrary computed projection result to make sure that machinery works as well
+			 * @return Some arbitrary computed projection result to make sure that
+			 * machinery works as well
 			 */
 			@Value("#{target.id + ' ' + target.name}")
 			String getFullName();
+
 		}
+
 	}
 
 	interface ProjectedOneToMany {
@@ -427,11 +434,14 @@ class ReactiveProjectionIT {
 		interface Subprojection {
 
 			/**
-			 * @return Some arbitrary computed projection result to make sure that machinery works as well
+			 * @return Some arbitrary computed projection result to make sure that
+			 * machinery works as well
 			 */
 			@Value("#{target.id + ' ' + target.name}")
 			String getFullName();
+
 		}
+
 	}
 
 	interface ProjectionWithNestedProjection {
@@ -441,13 +451,19 @@ class ReactiveProjectionIT {
 		List<Subprojection1> getLevel1();
 
 		interface Subprojection1 {
+
 			String getName();
+
 			List<Subprojection2> getLevel2();
+
 		}
 
 		interface Subprojection2 {
+
 			String getName();
+
 		}
+
 	}
 
 	@Configuration
@@ -456,26 +472,30 @@ class ReactiveProjectionIT {
 	static class Config extends Neo4jReactiveTestConfiguration {
 
 		@Bean
+		@Override
 		public Driver driver() {
 			return neo4jConnectionSupport.getDriver();
 		}
 
 		@Bean
-		public BookmarkCapture bookmarkCapture() {
+		BookmarkCapture bookmarkCapture() {
 			return new BookmarkCapture();
 		}
 
 		@Override
-		public ReactiveTransactionManager reactiveTransactionManager(Driver driver, ReactiveDatabaseSelectionProvider databaseSelectionProvider) {
+		public ReactiveTransactionManager reactiveTransactionManager(Driver driver,
+				ReactiveDatabaseSelectionProvider databaseSelectionProvider) {
 
 			BookmarkCapture bookmarkCapture = bookmarkCapture();
-			return new ReactiveNeo4jTransactionManager(driver, databaseSelectionProvider, Neo4jBookmarkManager.createReactive(bookmarkCapture));
+			return new ReactiveNeo4jTransactionManager(driver, databaseSelectionProvider,
+					Neo4jBookmarkManager.createReactive(bookmarkCapture));
 		}
 
 		@Override
 		public boolean isCypher5Compatible() {
 			return neo4jConnectionSupport.isCypher5SyntaxCompatible();
 		}
+
 	}
 
 }

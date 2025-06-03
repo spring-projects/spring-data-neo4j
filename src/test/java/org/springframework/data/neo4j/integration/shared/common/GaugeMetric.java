@@ -17,7 +17,6 @@ package org.springframework.data.neo4j.integration.shared.common;
 
 import org.springframework.data.neo4j.core.schema.Node;
 
-
 /**
  * @author Michael J. Simons
  */
@@ -27,4 +26,5 @@ public class GaugeMetric extends Metric {
 	public GaugeMetric(String name) {
 		super(name);
 	}
+
 }

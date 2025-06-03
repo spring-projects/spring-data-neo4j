@@ -25,11 +25,13 @@ import org.apiguardian.api.API;
 import org.jspecify.annotations.Nullable;
 import org.neo4j.driver.types.MapAccessor;
 import org.neo4j.driver.types.TypeSystem;
+
 import org.springframework.data.mapping.MappingException;
 import org.springframework.data.neo4j.core.schema.IdGenerator;
 
 /**
- * Contains the descriptions of all nodes, their properties and relationships known to SDN.
+ * Contains the descriptions of all nodes, their properties and relationships known to
+ * SDN.
  *
  * @author Michael J. Simons
  * @since 6.0
@@ -39,21 +41,17 @@ public interface Schema {
 
 	/**
 	 * Retrieves a node's description by its primary label.
-	 *
-	 * @param primaryLabel The primary label under which the node is described
-	 * @return The description if any, null otherwise
+	 * @param primaryLabel the primary label under which the node is described
+	 * @return the description if any, null otherwise
 	 */
-	@Nullable
-	NodeDescription<?> getNodeDescription(String primaryLabel);
+	@Nullable NodeDescription<?> getNodeDescription(String primaryLabel);
 
 	/**
 	 * Retrieves a node's description by its underlying class.
-	 *
-	 * @param underlyingClass The underlying class of the node description to be retrieved
-	 * @return The description if any, null otherwise
+	 * @param underlyingClass the underlying class of the node description to be retrieved
+	 * @return the description if any, null otherwise
 	 */
-	@Nullable
-	NodeDescription<?> getNodeDescription(Class<?> underlyingClass);
+	@Nullable NodeDescription<?> getNodeDescription(Class<?> underlyingClass);
 
 	default NodeDescription<?> getRequiredNodeDescription(Class<?> underlyingClass) {
 		NodeDescription<?> nodeDescription = getNodeDescription(underlyingClass);
@@ -73,19 +71,21 @@ public interface Schema {
 	}
 
 	/**
-	 * Retrieves a schema based mapping function for the {@code targetClass}. The mapping function will expect a record
-	 * containing all the nodes and relationships necessary to fully populate an instance of the given class. It will not
-	 * try to fetch data from any other records or queries. The mapping function is free to throw a
-	 * {@link RuntimeException}, most likely a {@code org.springframework.data.mapping.MappingException} or
+	 * Retrieves a schema based mapping function for the {@code targetClass}. The mapping
+	 * function will expect a record containing all the nodes and relationships necessary
+	 * to fully populate an instance of the given class. It will not try to fetch data
+	 * from any other records or queries. The mapping function is free to throw a
+	 * {@link RuntimeException}, most likely a
+	 * {@code org.springframework.data.mapping.MappingException} or
 	 * {@link IllegalStateException} when mapping is not possible.
 	 * <p>
-	 * In case the mapping function returns a {@literal null}, the Neo4j client will throw an exception and prevent
-	 * further processing.
-	 *
-	 * @param targetClass The target class to which to map to.
-	 * @param <T> Type of the target class
-	 * @return The default, stateless and reusable mapping function for the given target class
-	 * @throws UnknownEntityException When {@code targetClass} is not a managed class
+	 * In case the mapping function returns a {@literal null}, the Neo4j client will throw
+	 * an exception and prevent further processing.
+	 * @param targetClass the target class to which to map to.
+	 * @param <T> the type of the target class
+	 * @return the default, stateless and reusable mapping function for the given target
+	 * class
+	 * @throws UnknownEntityException when {@code targetClass} is not a managed class
 	 */
 	default <T> BiFunction<TypeSystem, MapAccessor, T> getRequiredMappingFunctionFor(Class<T> targetClass) {
 		NodeDescription<?> nodeDescription = getNodeDescription(targetClass);
@@ -96,14 +96,17 @@ public interface Schema {
 		return (typeSystem, record) -> {
 			try {
 				return entityConverter.read(targetClass, record);
-			} catch (IllegalStateException ex) {
+			}
+			catch (IllegalStateException ex) {
 				return null;
 			}
 		};
 	}
 
 	/**
-	 * @return The (reading and writing) converter used to read records into entities and write entities into maps.
+	 * Returns the (reading and writing) converter used to read records into entities and
+	 * write entities into maps.
+	 * @return the entity converter for the schema
 	 */
 	Neo4jEntityConverter getEntityConverter();
 
@@ -122,13 +125,15 @@ public interface Schema {
 	}
 
 	/**
-	 * Creates or retrieves an instance of the given id generator class. During the lifetime of the schema, this method
-	 * returns the same instance of reoccurring requests of the same type.
-	 *
-	 * @param idGeneratorType The type of the ID generator to return
-	 * @return The id generator.
+	 * Creates or retrieves an instance of the given id generator class. During the
+	 * lifetime of the schema, this method returns the same instance of reoccurring
+	 * requests of the same type.
+	 * @param idGeneratorType the type of the ID generator to return
+	 * @param <T> the class type
+	 * @return the id generator.
 	 */
 	<T extends IdGenerator<?>> T getOrCreateIdGeneratorOfType(Class<T> idGeneratorType);
 
 	<T extends IdGenerator<?>> Optional<T> getIdGenerator(String reference);
+
 }

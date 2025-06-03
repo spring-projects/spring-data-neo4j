@@ -22,16 +22,18 @@ import org.neo4j.driver.types.MapAccessor;
 import org.neo4j.driver.types.TypeSystem;
 
 /**
- * Used to keep the raw result around in case of a DTO based projection so that missing properties can be filled later on.
+ * Used to keep the raw result around in case of a DTO based projection so that missing
+ * properties can be filled later on.
  *
  * @author Michael J. Simons
- * @soundtrack The Prodigy - Music For The Jilted Generation
  */
 @API(status = API.Status.INTERNAL, since = "6.1.2")
 public final class EntityInstanceWithSource {
 
 	/**
-	 * An instance of the original {@link org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity source entity}
+	 * An instance of the original.
+	 * {@link org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity source
+	 * entity}
 	 */
 	private final Object entityInstance;
 
@@ -41,13 +43,10 @@ public final class EntityInstanceWithSource {
 	private final TypeSystem typeSystem;
 
 	/**
-	 * The record from which the source above was hydrated and which might contain top level properties that are eligible to mapping.
+	 * The record from which the source above was hydrated and which might contain top
+	 * level properties that are eligible to mapping.
 	 */
 	private final MapAccessor sourceRecord;
-
-	public static BiFunction<TypeSystem, MapAccessor, ?> decorateMappingFunction(BiFunction<TypeSystem, MapAccessor, ?> target) {
-		return (t, r) -> new EntityInstanceWithSource(target.apply(t, r), t, r);
-	}
 
 	private EntityInstanceWithSource(Object entityInstance, TypeSystem typeSystem, MapAccessor sourceRecord) {
 
@@ -56,15 +55,21 @@ public final class EntityInstanceWithSource {
 		this.sourceRecord = sourceRecord;
 	}
 
+	public static BiFunction<TypeSystem, MapAccessor, ?> decorateMappingFunction(
+			BiFunction<TypeSystem, MapAccessor, ?> target) {
+		return (t, r) -> new EntityInstanceWithSource(target.apply(t, r), t, r);
+	}
+
 	public Object getEntityInstance() {
-		return entityInstance;
+		return this.entityInstance;
 	}
 
 	public TypeSystem getTypeSystem() {
-		return typeSystem;
+		return this.typeSystem;
 	}
 
 	public MapAccessor getSourceRecord() {
-		return sourceRecord;
+		return this.sourceRecord;
 	}
+
 }

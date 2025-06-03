@@ -19,4 +19,5 @@ package org.springframework.data.neo4j.integration.issues.gh2727;
  * @author Gerrit Meier
  */
 public class SecondLevelEntityRelationship extends OrderedRelation<SecondLevelEntity> {
+
 }

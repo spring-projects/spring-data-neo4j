@@ -15,9 +15,9 @@
  */
 package org.springframework.data.neo4j.integration.issues.gh2530;
 
-import org.springframework.data.neo4j.core.schema.IdGenerator;
-
 import java.util.UUID;
+
+import org.springframework.data.neo4j.core.schema.IdGenerator;
 
 /**
  * Generator to mimic the reported behaviour.
@@ -28,4 +28,5 @@ public class SomeStringGenerator implements IdGenerator<String> {
 	public String generateId(String primaryLabel, Object entity) {
 		return primaryLabel + UUID.randomUUID();
 	}
+
 }

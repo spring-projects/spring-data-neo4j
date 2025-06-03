@@ -15,8 +15,6 @@
  */
 package org.springframework.data.neo4j.core.transaction;
 
-import reactor.core.publisher.Mono;
-
 import java.util.Collection;
 import java.util.Set;
 
@@ -24,11 +22,16 @@ import org.jspecify.annotations.Nullable;
 import org.neo4j.driver.Bookmark;
 import org.neo4j.driver.reactivestreams.ReactiveSession;
 import org.neo4j.driver.reactivestreams.ReactiveTransaction;
+import reactor.core.publisher.Mono;
+
 import org.springframework.data.neo4j.core.DatabaseSelection;
 import org.springframework.data.neo4j.core.UserSelection;
 import org.springframework.transaction.support.ResourceHolderSupport;
 
 /**
+ * Neo4j specific {@link ResourceHolderSupport resource holder}, wrapping a
+ * {@link org.neo4j.driver.reactive.ReactiveTransaction}.
+ *
  * @author Gerrit Meier
  * @author Michael J. Simons
  * @since 6.0
@@ -36,10 +39,13 @@ import org.springframework.transaction.support.ResourceHolderSupport;
 final class ReactiveNeo4jTransactionHolder extends ResourceHolderSupport {
 
 	private final Neo4jTransactionContext context;
+
 	private final ReactiveSession session;
+
 	private final ReactiveTransaction transaction;
 
-	ReactiveNeo4jTransactionHolder(Neo4jTransactionContext context, ReactiveSession session, ReactiveTransaction transaction) {
+	ReactiveNeo4jTransactionHolder(Neo4jTransactionContext context, ReactiveSession session,
+			ReactiveTransaction transaction) {
 
 		this.context = context;
 		this.session = session;
@@ -47,36 +53,36 @@ final class ReactiveNeo4jTransactionHolder extends ResourceHolderSupport {
 	}
 
 	ReactiveSession getSession() {
-		return session;
+		return this.session;
 	}
 
-	@Nullable
-	ReactiveTransaction getTransaction(DatabaseSelection inDatabase, UserSelection asUser) {
+	@Nullable ReactiveTransaction getTransaction(DatabaseSelection inDatabase, UserSelection asUser) {
 
-		return this.context.isForDatabaseAndUser(inDatabase, asUser) ? transaction : null;
+		return this.context.isForDatabaseAndUser(inDatabase, asUser) ? this.transaction : null;
 	}
 
 	Mono<Set<Bookmark>> commit() {
-		return Mono.fromDirect(transaction.commit()).then(Mono.fromSupplier(session::lastBookmarks));
+		return Mono.fromDirect(this.transaction.commit()).then(Mono.fromSupplier(this.session::lastBookmarks));
 	}
 
 	Mono<Void> rollback() {
-		return Mono.fromDirect(transaction.rollback()).then();
+		return Mono.fromDirect(this.transaction.rollback()).then();
 	}
 
 	Mono<Void> close() {
-		return Mono.fromDirect(session.close()).then();
+		return Mono.fromDirect(this.session.close()).then();
 	}
 
 	DatabaseSelection getDatabaseSelection() {
-		return context.getDatabaseSelection();
+		return this.context.getDatabaseSelection();
 	}
 
 	UserSelection getUserSelection() {
-		return context.getUserSelection();
+		return this.context.getUserSelection();
 	}
 
 	Collection<Bookmark> getBookmarks() {
-		return context.getBookmarks();
+		return this.context.getBookmarks();
 	}
+
 }

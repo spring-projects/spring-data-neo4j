@@ -28,7 +28,8 @@ import org.springframework.data.neo4j.core.schema.Node;
 @Node("Person")
 public class PersonEntity {
 
-	@Id private final String name;
+	@Id
+	private final String name;
 
 	private final Integer born;
 
@@ -38,11 +39,11 @@ public class PersonEntity {
 	}
 
 	public Integer getBorn() {
-		return born;
+		return this.born;
 	}
 
 	public String getName() {
-		return name;
+		return this.name;
 	}
 
 }

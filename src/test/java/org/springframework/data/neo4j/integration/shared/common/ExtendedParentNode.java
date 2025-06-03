@@ -22,7 +22,6 @@ import org.springframework.data.neo4j.core.schema.Relationship;
 
 /**
  * @author Michael J. Simons
- * @soundtrack Die Toten Hosen - Zurück zum Glück
  */
 @Node
 public class ExtendedParentNode extends ParentNode {
@@ -33,7 +32,7 @@ public class ExtendedParentNode extends ParentNode {
 	private List<PersonWithAllConstructor> people;
 
 	public String getSomeOtherAttribute() {
-		return someOtherAttribute;
+		return this.someOtherAttribute;
 	}
 
 	public void setSomeOtherAttribute(String someOtherAttribute) {
@@ -41,10 +40,11 @@ public class ExtendedParentNode extends ParentNode {
 	}
 
 	public List<PersonWithAllConstructor> getPeople() {
-		return people;
+		return this.people;
 	}
 
 	public void setPeople(List<PersonWithAllConstructor> people) {
 		this.people = people;
 	}
+
 }

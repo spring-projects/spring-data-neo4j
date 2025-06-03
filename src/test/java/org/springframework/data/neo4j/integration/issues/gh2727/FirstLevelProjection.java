@@ -21,6 +21,7 @@ import java.util.Set;
  * @author Gerrit Meier
  */
 public interface FirstLevelProjection {
+
 	Long getId();
 
 	Set<SecondLevelRelationshipProjection> getSecondLevelEntityRelationshipProperties();
@@ -29,10 +30,13 @@ public interface FirstLevelProjection {
 	 *
 	 */
 	interface SecondLevelRelationshipProjection {
+
 		Long getId();
 
 		SecondLevelProjection getTarget();
 
 		Integer getOrder();
+
 	}
+
 }

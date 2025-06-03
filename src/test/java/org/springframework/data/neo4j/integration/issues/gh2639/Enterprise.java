@@ -15,9 +15,9 @@
  */
 package org.springframework.data.neo4j.integration.issues.gh2639;
 
-import org.springframework.data.neo4j.core.schema.Node;
-
 import java.util.Objects;
+
+import org.springframework.data.neo4j.core.schema.Node;
 
 /**
  * @author Gerrit Meier
@@ -41,11 +41,12 @@ public class Enterprise extends Inventor {
 			return false;
 		}
 		Enterprise that = (Enterprise) o;
-		return someEnterpriseProperty.equals(that.someEnterpriseProperty);
+		return this.someEnterpriseProperty.equals(that.someEnterpriseProperty);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(someEnterpriseProperty);
+		return Objects.hash(this.someEnterpriseProperty);
 	}
+
 }

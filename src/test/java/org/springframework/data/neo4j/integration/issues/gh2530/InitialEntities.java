@@ -25,9 +25,17 @@ import org.springframework.data.neo4j.core.schema.Node;
 public class InitialEntities {
 
 	/**
+	 * Parallel node type
+	 */
+	@Node
+	public interface SpecialKind {
+
+	}
+
+	/**
 	 * Base
 	 */
-	public static abstract class AbstractBase {
+	public abstract static class AbstractBase {
 
 		@Id
 		@GeneratedValue(generatorClass = SomeStringGenerator.class)
@@ -39,15 +47,9 @@ public class InitialEntities {
 	 * This is where the repository accesses the domain.
 	 */
 	@Node
-	public static abstract class SomethingInBetween extends AbstractBase {
-		public String name;
-	}
+	public abstract static class SomethingInBetween extends AbstractBase {
 
-	/**
-	 * Parallel node type
-	 */
-	@Node
-	public interface SpecialKind {
+		public String name;
 
 	}
 

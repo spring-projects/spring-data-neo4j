@@ -19,12 +19,13 @@ import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
 
 /**
+ * @param <T> the concrete type
  * @author Michael J. Simons
- * @param <T> The concrete type
  */
 abstract class GH2572BaseEntity<T extends GH2572BaseEntity<T>> {
 
 	@Id
-	@GeneratedValue(value = MyStrategy.class)
+	@GeneratedValue(MyStrategy.class)
 	protected String id;
+
 }

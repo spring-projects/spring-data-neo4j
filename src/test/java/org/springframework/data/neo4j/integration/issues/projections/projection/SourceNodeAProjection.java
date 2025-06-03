@@ -19,6 +19,7 @@ package org.springframework.data.neo4j.integration.issues.projections.projection
  * @author Michael J. Simons
  */
 public interface SourceNodeAProjection {
+
 	String getValue();
 
 	CentralNode getCentralNode();
@@ -27,8 +28,11 @@ public interface SourceNodeAProjection {
 	 * Nested projection.
 	 */
 	interface CentralNode {
+
 		String getId();
 
 		String getName();
+
 	}
+
 }

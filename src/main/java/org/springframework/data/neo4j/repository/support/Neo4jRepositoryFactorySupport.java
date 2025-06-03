@@ -22,6 +22,9 @@ package org.springframework.data.neo4j.repository.support;
  */
 final class Neo4jRepositoryFactorySupport {
 
+	private Neo4jRepositoryFactorySupport() {
+	}
+
 	static void assertIdentifierType(Class<?> repositoryIdType, Class<?> entityIdType) {
 
 		if (repositoryIdType.equals(entityIdType) || isCompatibleType(repositoryIdType, entityIdType)) {
@@ -49,6 +52,4 @@ final class Neo4jRepositoryFactorySupport {
 				|| repositoryIdType.equals(int.class) && entityIdType.equals(Integer.class);
 	}
 
-	private Neo4jRepositoryFactorySupport() {
-	}
 }

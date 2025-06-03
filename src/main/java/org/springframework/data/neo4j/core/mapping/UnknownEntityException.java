@@ -18,11 +18,12 @@ package org.springframework.data.neo4j.core.mapping;
 import java.io.Serial;
 
 import org.apiguardian.api.API;
+
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 
 /**
- * Thrown when required information about a class or primary label is requested from the {@link Schema} and that
- * information is not available.
+ * Thrown when required information about a class or primary label is requested from the
+ * {@link Schema} and that information is not available.
  *
  * @author Michael J. Simons
  * @since 6.0
@@ -32,6 +33,7 @@ public final class UnknownEntityException extends InvalidDataAccessApiUsageExcep
 
 	@Serial
 	private static final long serialVersionUID = -1769937352513022599L;
+
 	private final Class<?> targetClass;
 
 	public UnknownEntityException(Class<?> targetClass) {
@@ -40,6 +42,7 @@ public final class UnknownEntityException extends InvalidDataAccessApiUsageExcep
 	}
 
 	public Class<?> getTargetClass() {
-		return targetClass;
+		return this.targetClass;
 	}
+
 }

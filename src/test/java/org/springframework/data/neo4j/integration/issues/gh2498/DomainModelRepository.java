@@ -23,5 +23,7 @@ import org.springframework.data.neo4j.repository.support.CypherdslConditionExecu
 /**
  * @author Michael J. Simons
  */
-public interface DomainModelRepository extends Neo4jRepository<DomainModel, UUID>, CypherdslConditionExecutor<DomainModel> {
+public interface DomainModelRepository
+		extends Neo4jRepository<DomainModel, UUID>, CypherdslConditionExecutor<DomainModel> {
+
 }

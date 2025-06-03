@@ -15,9 +15,9 @@
  */
 package org.springframework.data.neo4j.integration.issues.gh2639;
 
-import org.springframework.data.neo4j.core.schema.Node;
-
 import java.util.StringJoiner;
+
+import org.springframework.data.neo4j.core.schema.Node;
 
 /**
  * Sales person, some noise for the developer and company's generic person relationship.
@@ -32,13 +32,13 @@ public class Sales extends CompanyPerson {
 	}
 
 	public String getName() {
-		return name;
+		return this.name;
 	}
 
 	@Override
 	public String toString() {
-		return new StringJoiner(", ", Sales.class.getSimpleName() + "[", "]")
-				.add("name='" + name + "'")
-				.toString();
+		return new StringJoiner(", ", Sales.class.getSimpleName() + "[", "]").add("name='" + this.name + "'")
+			.toString();
 	}
+
 }

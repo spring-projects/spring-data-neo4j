@@ -24,18 +24,17 @@ import org.springframework.data.neo4j.core.schema.TargetNode;
 
 /**
  * @author Michael J. Simons
- * @soundtrack Body Count - Manslaughter
  */
 @RelationshipProperties
 public final class Actor {
-
-	@RelationshipId
-	private Long id;
 
 	@TargetNode
 	private final Person person;
 
 	private final List<String> roles;
+
+	@RelationshipId
+	private Long id;
 
 	public Actor(Person person, List<String> roles) {
 		this.person = person;
@@ -43,21 +42,20 @@ public final class Actor {
 	}
 
 	public Person getPerson() {
-		return person;
+		return this.person;
 	}
 
 	public String getName() {
-		return person.getName();
+		return this.person.getName();
 	}
 
 	public List<String> getRoles() {
-		return Collections.unmodifiableList(roles);
+		return Collections.unmodifiableList(this.roles);
 	}
 
-	@Override public String toString() {
-		return "Actor{" +
-			   "person=" + person +
-			   ", roles=" + roles +
-			   '}';
+	@Override
+	public String toString() {
+		return "Actor{" + "person=" + this.person + ", roles=" + this.roles + '}';
 	}
+
 }

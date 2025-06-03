@@ -15,25 +15,16 @@
  */
 package org.springframework.data.neo4j.integration.imperative;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 import org.neo4j.driver.Driver;
+
 import org.springframework.beans.factory.annotation.Autowired;
-// tag::faq.entities.auditing[]
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import org.springframework.data.auditing.DateTimeProvider;
-import org.springframework.data.domain.AuditorAware;
-
-// end::faq.entities.auditing[]
-import org.springframework.data.neo4j.test.Neo4jImperativeTestConfiguration;
-import org.springframework.data.neo4j.config.EnableNeo4jAuditing;
 import org.springframework.data.neo4j.core.DatabaseSelectionProvider;
 import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
 import org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager;
@@ -43,8 +34,11 @@ import org.springframework.data.neo4j.integration.shared.common.ImmutableAuditab
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.data.neo4j.test.BookmarkCapture;
+import org.springframework.data.neo4j.test.Neo4jImperativeTestConfiguration;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Michael J. Simons
@@ -74,7 +68,7 @@ class AuditingIT extends AuditingITBase {
 	@Test
 	void auditingOfModificationShouldWork(@Autowired ImmutableEntityTestRepository repository) {
 
-		ImmutableAuditableThing thing = repository.findById(idOfExistingThing).get();
+		ImmutableAuditableThing thing = repository.findById(this.idOfExistingThing).get();
 		thing = thing.withName("A new name");
 		thing = repository.save(thing);
 
@@ -86,7 +80,7 @@ class AuditingIT extends AuditingITBase {
 
 		assertThat(thing.getName()).isEqualTo("A new name");
 
-		verifyDatabase(idOfExistingThing, thing);
+		verifyDatabase(this.idOfExistingThing, thing);
 	}
 
 	@Test
@@ -109,7 +103,7 @@ class AuditingIT extends AuditingITBase {
 	void auditingOfEntityWithGeneratedIdModificationShouldWork(
 			@Autowired ImmutableEntityWithGeneratedIdRepository repository) {
 
-		ImmutableAuditableThingWithGeneratedId thing = repository.findById(idOfExistingThingWithGeneratedId).get();
+		ImmutableAuditableThingWithGeneratedId thing = repository.findById(this.idOfExistingThingWithGeneratedId).get();
 
 		thing = thing.withName("A new name");
 		thing = repository.save(thing);
@@ -122,13 +116,17 @@ class AuditingIT extends AuditingITBase {
 
 		assertThat(thing.getName()).isEqualTo("A new name");
 
-		verifyDatabase(idOfExistingThingWithGeneratedId, thing);
+		verifyDatabase(this.idOfExistingThingWithGeneratedId, thing);
 	}
 
-	interface ImmutableEntityTestRepository extends Neo4jRepository<ImmutableAuditableThing, Long> {}
+	interface ImmutableEntityTestRepository extends Neo4jRepository<ImmutableAuditableThing, Long> {
+
+	}
 
 	interface ImmutableEntityWithGeneratedIdRepository
-			extends Neo4jRepository<ImmutableAuditableThingWithGeneratedId, String> {}
+			extends Neo4jRepository<ImmutableAuditableThingWithGeneratedId, String> {
+
+	}
 
 	@Configuration
 	@Import(AuditingConfig.class)
@@ -137,6 +135,7 @@ class AuditingIT extends AuditingITBase {
 	static class Config extends Neo4jImperativeTestConfiguration {
 
 		@Bean
+		@Override
 		public Driver driver() {
 			return neo4jConnectionSupport.getDriver();
 		}
@@ -147,41 +146,24 @@ class AuditingIT extends AuditingITBase {
 		}
 
 		@Bean
-		public BookmarkCapture bookmarkCapture() {
+		BookmarkCapture bookmarkCapture() {
 			return new BookmarkCapture();
 		}
 
 		@Override
-		public PlatformTransactionManager transactionManager(Driver driver, DatabaseSelectionProvider databaseNameProvider) {
+		public PlatformTransactionManager transactionManager(Driver driver,
+				DatabaseSelectionProvider databaseNameProvider) {
 
 			BookmarkCapture bookmarkCapture = bookmarkCapture();
-			return new Neo4jTransactionManager(driver, databaseNameProvider, Neo4jBookmarkManager.create(bookmarkCapture));
+			return new Neo4jTransactionManager(driver, databaseNameProvider,
+					Neo4jBookmarkManager.create(bookmarkCapture));
 		}
 
 		@Override
 		public boolean isCypher5Compatible() {
 			return neo4jConnectionSupport.isCypher5SyntaxCompatible();
 		}
+
 	}
+
 }
-
-// tag::faq.entities.auditing[]
-@Configuration
-@EnableNeo4jAuditing(
-		modifyOnCreate = false, // <.>
-		auditorAwareRef = "auditorProvider", // <.>
-		dateTimeProviderRef = "fixedDateTimeProvider" // <.>
-)
-class AuditingConfig {
-
-	@Bean
-	public AuditorAware<String> auditorProvider() {
-		return () -> Optional.of("A user");
-	}
-
-	@Bean
-	public DateTimeProvider fixedDateTimeProvider() {
-		return () -> Optional.of(AuditingITBase.DEFAULT_CREATION_AND_MODIFICATION_DATE);
-	}
-}
-// end::faq.entities.auditing[]

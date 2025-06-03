@@ -24,8 +24,8 @@ import java.lang.annotation.Target;
 import org.apiguardian.api.API;
 
 /**
- * Informs SDN that the method annotated with this should be run once the object is loaded from the database and
- * fully hydrated.
+ * Informs SDN that the method annotated with this should be run once the object is loaded
+ * from the database and fully hydrated.
  *
  * @author Michael J. Simons
  * @since 6.3.0
@@ -35,4 +35,5 @@ import org.apiguardian.api.API;
 @Inherited
 @API(status = API.Status.STABLE, since = "6.3.0")
 public @interface PostLoad {
+
 }

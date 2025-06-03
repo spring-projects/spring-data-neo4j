@@ -15,6 +15,11 @@
  */
 package org.springframework.data.neo4j.integration.issues.gh2289;
 
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+
 import org.springframework.data.annotation.ReadOnlyProperty;
 import org.springframework.data.neo4j.core.schema.CompositeProperty;
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
@@ -22,10 +27,6 @@ import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Property;
 import org.springframework.data.neo4j.core.schema.Relationship;
-
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * @author Michael J. Simons
@@ -60,7 +61,7 @@ public class SkuRO {
 
 	public RangeRelationRO rangeRelationTo(SkuRO sku, double minDelta, double maxDelta, RelationType relationType) {
 		RangeRelationRO relationOut = new RangeRelationRO(sku, minDelta, maxDelta, relationType);
-		rangeRelationsOut.add(relationOut);
+		this.rangeRelationsOut.add(relationOut);
 		return relationOut;
 	}
 
@@ -68,36 +69,36 @@ public class SkuRO {
 		return this.id;
 	}
 
-	public Long getNumber() {
-		return this.number;
-	}
-
-	public String getName() {
-		return this.name;
-	}
-
-	public Set<RangeRelationRO> getRangeRelationsOut() {
-		return this.rangeRelationsOut;
-	}
-
-	public Set<RangeRelationRO> getRangeRelationsIn() {
-		return this.rangeRelationsIn;
-	}
-
 	public void setId(Long id) {
 		this.id = id;
+	}
+
+	public Long getNumber() {
+		return this.number;
 	}
 
 	public void setNumber(Long number) {
 		this.number = number;
 	}
 
+	public String getName() {
+		return this.name;
+	}
+
 	public void setName(String name) {
 		this.name = name;
 	}
 
+	public Set<RangeRelationRO> getRangeRelationsOut() {
+		return this.rangeRelationsOut;
+	}
+
 	public void setRangeRelationsOut(Set<RangeRelationRO> rangeRelationsOut) {
 		this.rangeRelationsOut = rangeRelationsOut;
+	}
+
+	public Set<RangeRelationRO> getRangeRelationsIn() {
+		return this.rangeRelationsIn;
 	}
 
 	public void setRangeRelationsIn(Set<RangeRelationRO> rangeRelationsIn) {
@@ -105,13 +106,18 @@ public class SkuRO {
 	}
 
 	public Map<String, Integer> getComposite() {
-		return composite;
+		return this.composite;
 	}
 
 	public void setComposite(Map<String, Integer> composite) {
 		this.composite = composite;
 	}
 
+	protected boolean canEqual(final Object other) {
+		return other instanceof SkuRO;
+	}
+
+	@Override
 	public boolean equals(final Object o) {
 		if (o == this) {
 			return true;
@@ -125,35 +131,30 @@ public class SkuRO {
 		}
 		final Object this$id = this.getId();
 		final Object other$id = other.getId();
-		if (this$id == null ? other$id != null : !this$id.equals(other$id)) {
+		if (!Objects.equals(this$id, other$id)) {
 			return false;
 		}
 		final Object this$number = this.getNumber();
 		final Object other$number = other.getNumber();
-		if (this$number == null ? other$number != null : !this$number.equals(other$number)) {
+		if (!Objects.equals(this$number, other$number)) {
 			return false;
 		}
 		final Object this$name = this.getName();
 		final Object other$name = other.getName();
-		if (this$name == null ? other$name != null : !this$name.equals(other$name)) {
-			return false;
-		}
-		return true;
+		return Objects.equals(this$name, other$name);
 	}
 
-	protected boolean canEqual(final Object other) {
-		return other instanceof SkuRO;
-	}
-
+	@Override
 	public int hashCode() {
 		final int PRIME = 59;
 		int result = 1;
 		final Object $id = this.getId();
-		result = result * PRIME + ($id == null ? 43 : $id.hashCode());
+		result = result * PRIME + (($id != null) ? $id.hashCode() : 43);
 		final Object $number = this.getNumber();
-		result = result * PRIME + ($number == null ? 43 : $number.hashCode());
+		result = result * PRIME + (($number != null) ? $number.hashCode() : 43);
 		final Object $name = this.getName();
-		result = result * PRIME + ($name == null ? 43 : $name.hashCode());
+		result = result * PRIME + (($name != null) ? $name.hashCode() : 43);
 		return result;
 	}
+
 }

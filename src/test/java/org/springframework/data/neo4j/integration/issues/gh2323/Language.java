@@ -32,6 +32,7 @@ public class Language {
 	}
 
 	public String getName() {
-		return name;
+		return this.name;
 	}
+
 }

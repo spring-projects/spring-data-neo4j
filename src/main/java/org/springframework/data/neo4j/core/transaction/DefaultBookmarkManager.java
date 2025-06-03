@@ -26,13 +26,13 @@ import java.util.function.Supplier;
 
 import org.jspecify.annotations.Nullable;
 import org.neo4j.driver.Bookmark;
+
 import org.springframework.context.ApplicationEventPublisher;
 
 /**
  * Default bookmark manager.
  *
  * @author Michael J. Simons
- * @soundtrack Helge Schneider - The Last Jazz
  * @since 7.0
  */
 final class DefaultBookmarkManager extends AbstractBookmarkManager {
@@ -40,8 +40,10 @@ final class DefaultBookmarkManager extends AbstractBookmarkManager {
 	private final Set<Bookmark> bookmarks = new HashSet<>();
 
 	private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
-	private final Lock read = lock.readLock();
-	private final Lock write = lock.writeLock();
+
+	private final Lock read = this.lock.readLock();
+
+	private final Lock write = this.lock.writeLock();
 
 	private final Supplier<Set<Bookmark>> bookmarksSupplier;
 
@@ -49,19 +51,20 @@ final class DefaultBookmarkManager extends AbstractBookmarkManager {
 	private ApplicationEventPublisher applicationEventPublisher;
 
 	DefaultBookmarkManager(@Nullable Supplier<Set<Bookmark>> bookmarksSupplier) {
-		this.bookmarksSupplier = bookmarksSupplier == null ? Collections::emptySet : bookmarksSupplier;
+		this.bookmarksSupplier = (bookmarksSupplier != null) ? bookmarksSupplier : Collections::emptySet;
 	}
 
 	@Override
 	public Collection<Bookmark> getBookmarks() {
 
 		try {
-			read.lock();
+			this.read.lock();
 			HashSet<Bookmark> bookmarksToUse = new HashSet<>(this.bookmarks);
-			bookmarksToUse.addAll(bookmarksSupplier.get());
+			bookmarksToUse.addAll(this.bookmarksSupplier.get());
 			return Collections.unmodifiableSet(bookmarksToUse);
-		} finally {
-			read.unlock();
+		}
+		finally {
+			this.read.unlock();
 		}
 	}
 
@@ -69,14 +72,16 @@ final class DefaultBookmarkManager extends AbstractBookmarkManager {
 	public void updateBookmarks(Collection<Bookmark> usedBookmarks, Collection<Bookmark> newBookmarks) {
 
 		try {
-			write.lock();
-			bookmarks.removeAll(usedBookmarks);
-			newBookmarks.stream().filter(Objects::nonNull).forEach(bookmarks::add);
-			if (applicationEventPublisher != null) {
-				applicationEventPublisher.publishEvent(new Neo4jBookmarksUpdatedEvent(new HashSet<>(bookmarks)));
+			this.write.lock();
+			this.bookmarks.removeAll(usedBookmarks);
+			newBookmarks.stream().filter(Objects::nonNull).forEach(this.bookmarks::add);
+			if (this.applicationEventPublisher != null) {
+				this.applicationEventPublisher
+					.publishEvent(new Neo4jBookmarksUpdatedEvent(new HashSet<>(this.bookmarks)));
 			}
-		} finally {
-			write.unlock();
+		}
+		finally {
+			this.write.unlock();
 		}
 	}
 
@@ -84,4 +89,5 @@ final class DefaultBookmarkManager extends AbstractBookmarkManager {
 	public void setApplicationEventPublisher(@Nullable ApplicationEventPublisher applicationEventPublisher) {
 		this.applicationEventPublisher = applicationEventPublisher;
 	}
+
 }

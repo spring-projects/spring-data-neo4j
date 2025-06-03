@@ -19,12 +19,14 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apiguardian.api.API;
+
 import org.springframework.data.mapping.AssociationHandler;
 import org.springframework.data.mapping.PropertyHandler;
 import org.springframework.data.neo4j.core.schema.TargetNode;
 
 /**
- * <strong>Warning</strong> Internal API, might change without further notice, even in patch releases.
+ * <strong>Warning</strong> Internal API, might change without further notice, even in
+ * patch releases.
  * <p>
  * This class adds {@link TargetNode @TargetNode} properties back to properties.
  *
@@ -34,11 +36,7 @@ import org.springframework.data.neo4j.core.schema.TargetNode;
 @API(status = API.Status.INTERNAL, since = "6.3")
 public final class PropertyHandlerSupport {
 
-	private final static Map<Neo4jPersistentEntity<?>, PropertyHandlerSupport> CACHE = new ConcurrentHashMap<>();
-
-	public static PropertyHandlerSupport of(Neo4jPersistentEntity<?> entity) {
-		return CACHE.computeIfAbsent(entity, PropertyHandlerSupport::new);
-	}
+	private static final Map<Neo4jPersistentEntity<?>, PropertyHandlerSupport> CACHE = new ConcurrentHashMap<>();
 
 	private final Neo4jPersistentEntity<?> entity;
 
@@ -46,13 +44,18 @@ public final class PropertyHandlerSupport {
 		this.entity = entity;
 	}
 
+	public static PropertyHandlerSupport of(Neo4jPersistentEntity<?> entity) {
+		return CACHE.computeIfAbsent(entity, PropertyHandlerSupport::new);
+	}
+
 	public Neo4jPersistentEntity<?> doWithProperties(PropertyHandler<Neo4jPersistentProperty> handler) {
-		entity.doWithProperties(handler);
-		entity.doWithAssociations((AssociationHandler<Neo4jPersistentProperty>) association -> {
+		this.entity.doWithProperties(handler);
+		this.entity.doWithAssociations((AssociationHandler<Neo4jPersistentProperty>) association -> {
 			if (association.getInverse().isAnnotationPresent(TargetNode.class)) {
 				handler.doWithPersistentProperty(association.getInverse());
 			}
 		});
-		return entity;
+		return this.entity;
 	}
+
 }

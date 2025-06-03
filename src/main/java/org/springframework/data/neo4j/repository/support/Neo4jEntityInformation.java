@@ -21,16 +21,17 @@ import org.springframework.data.repository.core.EntityInformation;
 /**
  * Neo4j specific contract for {@link EntityInformation entity informations}.
  *
+ * @param <T> the type of the entity
+ * @param <ID> the type of the id
  * @author Michael J. Simons
- * @param <T> The type of the entity
- * @param <ID> The type of the id
- * @soundtrack Bear McCreary - Battlestar Galactica Season 1
  * @since 6.0
  */
 public interface Neo4jEntityInformation<T, ID> extends EntityInformation<T, ID> {
 
 	/**
-	 * @return The full schema based description for the underlying entity.
+	 * Returns the full schema based description for the underlying entity.
+	 * @return the full schema based description for the underlying entity
 	 */
 	Neo4jPersistentEntity<T> getEntityMetaData();
+
 }

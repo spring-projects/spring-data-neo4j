@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.neo4j.driver.Value;
+
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.repository.query.Query;
 
@@ -31,15 +32,14 @@ public interface CollegeRepository extends Neo4jRepository<College, String> {
 			UNWIND $0 AS row
 			MATCH (student:Student{guid:row.stuGuid})
 			MATCH (college:College{guid:row.collegeGuid})
-			CREATE (student)<-[:STUDENT_OF]-(college) RETURN student.guid"""
-	)
+			CREATE (student)<-[:STUDENT_OF]-(college) RETURN student.guid""")
 	List<String> addStudentToCollege(List<Map<String, String>> list);
 
 	@Query("""
 			UNWIND $0 AS row
 			MATCH (student:Student{guid:row.stuGuid})
 			MATCH (college:College{guid:row.collegeGuid})
-			CREATE (student)<-[:STUDENT_OF]-(college) RETURN student.guid"""
-	)
+			CREATE (student)<-[:STUDENT_OF]-(college) RETURN student.guid""")
 	List<String> addStudentToCollegeWorkaround(List<Value> list);
+
 }

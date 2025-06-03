@@ -26,7 +26,7 @@ import org.springframework.data.repository.query.Param;
  */
 public interface TableRepository extends Neo4jRepository<TableNode, Long> {
 
-	@Query(value = """
+	@Query("""
 			UNWIND :#{#froms} AS col
 			WITH col.__properties__ AS col, :#{#to}.__properties__ AS to
 			MERGE (c:Column {
@@ -40,7 +40,7 @@ public interface TableRepository extends Neo4jRepository<TableNode, Long> {
 				schemaName: to.schemaName,
 				name: to.name
 			})
-			MERGE (c) -[r:BELONG]-> (t)"""
-	)
+			MERGE (c) -[r:BELONG]-> (t)""")
 	void mergeTableAndColumnRelations(@Param("froms") List<ColumnNode> froms, @Param("to") TableNode to);
+
 }

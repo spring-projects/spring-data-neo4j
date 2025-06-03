@@ -22,13 +22,15 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 import org.apiguardian.api.API;
+
 import org.springframework.data.annotation.QueryAnnotation;
 
 /**
- * Annotation to provide Cypher statements that will be used for executing the method. The Cypher statement may contain
- * named parameters as supported by the
- * <a href="https://neo4j.com/docs/driver-manual/1.7/get-started/#driver-get-started-hello-world-example">>Neo4j Java
- * Driver</a>. Those parameters will get bound to the arguments of the annotated method.
+ * Annotation to provide Cypher statements that will be used for executing the method. The
+ * Cypher statement may contain named parameters as supported by the <a href=
+ * "https://neo4j.com/docs/driver-manual/1.7/get-started/#driver-get-started-hello-world-example">>Neo4j
+ * Java Driver</a>. Those parameters will get bound to the arguments of the annotated
+ * method.
  *
  * @author Michael J. Simons
  * @since 6.0
@@ -41,27 +43,35 @@ import org.springframework.data.annotation.QueryAnnotation;
 public @interface Query {
 
 	/**
-	 * The custom Cypher query to get executed and mapped back, if any return type is defined.
+	 * The custom Cypher query to get executed and mapped back, if any return type is
+	 * defined.
+	 * @return a Cypher query
 	 */
 	String value() default "";
 
 	/**
-	 * The Cypher statement for counting the total number of expected results. Only needed for methods returning pages or slices based on custom queries.
+	 * The Cypher statement for counting the total number of expected results. Only needed
+	 * for methods returning pages or slices based on custom queries.
+	 * @return a Cypher query for counting entities
 	 */
 	String countQuery() default "";
 
 	/**
+	 * A flag if the {@link #value()} should be used as counting query.
 	 * @return whether the query defined should be executed as count projection.
 	 */
 	boolean count() default false;
 
 	/**
+	 * A flag if the {@link #value()} should be used as existential query.
 	 * @return whether the query defined should be executed as exists projection.
 	 */
 	boolean exists() default false;
 
 	/**
+	 * A flag if the {@link #value()} should be used as deletion query.
 	 * @return whether the query defined should be used to delete nodes or relationships.
 	 */
 	boolean delete() default false;
+
 }

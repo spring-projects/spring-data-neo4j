@@ -23,7 +23,6 @@ import org.springframework.data.neo4j.core.schema.Node;
 
 /**
  * @author Michael J. Simons
- * @soundtrack Samy Deluxe - Samy Deluxe
  */
 @Node
 public class ThingWithUUIDID {
@@ -41,18 +40,19 @@ public class ThingWithUUIDID {
 	}
 
 	public UUID getId() {
-		return id;
+		return this.id;
 	}
 
 	public String getName() {
-		return name;
+		return this.name;
 	}
 
 	public ThingWithUUIDID getAnotherThing() {
-		return anotherThing;
+		return this.anotherThing;
 	}
 
 	public void setAnotherThing(ThingWithUUIDID anotherThing) {
 		this.anotherThing = anotherThing;
 	}
+
 }

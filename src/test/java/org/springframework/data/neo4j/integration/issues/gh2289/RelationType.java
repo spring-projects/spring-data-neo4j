@@ -19,5 +19,7 @@ package org.springframework.data.neo4j.integration.issues.gh2289;
  * @author Michael J. Simons
  */
 public enum RelationType {
+
 	MULTIPLICATIVE
+
 }

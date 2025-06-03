@@ -135,7 +135,21 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 
-include::example$documentation/Neo4jConfig.java[tags=faq.multidatabase]
+@Configuration
+public class Neo4jConfig {
+	@Bean
+	DatabaseSelectionProvider databaseSelectionProvider() {
+
+		return () -> Optional.ofNullable(SecurityContextHolder.getContext())
+			.map(SecurityContext::getAuthentication)
+			.filter(Authentication::isAuthenticated)
+			.map(Authentication::getPrincipal)
+			.map(User.class::cast)
+			.map(User::getUsername)
+			.map(DatabaseSelection::byName)
+			.orElseGet(DatabaseSelection::undecided);
+	}
+}
 ----
 
 NOTE: Be careful that you don't mix up entities retrieved from one database with another database.
@@ -842,9 +856,47 @@ This is our canonical movie example with the imperative template:
 [[imperative-template-example]]
 .TemplateExampleTest.java
 ----
-include::example$documentation/spring_boot/TemplateExampleTest.java[tags=faq.template-imperative-pt1]
+import java.util.Collections;
+import java.util.Optional;
+
+import org.junit.jupiter.api.Test;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.data.neo4j.DataNeo4jTest;
+import org.springframework.data.neo4j.core.Neo4jTemplate;
+import org.springframework.data.neo4j.documentation.domain.MovieEntity;
+import org.springframework.data.neo4j.documentation.domain.PersonEntity;
+import org.springframework.data.neo4j.documentation.domain.Roles;
+import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+@Neo4jIntegrationTest
 @DataNeo4jTest
-include::example$documentation/spring_boot/TemplateExampleTest.java[tags=faq.template-imperative-pt2]
+public class TemplateExampleTest {
+
+	@Test
+	void shouldSaveAndReadEntities(@Autowired Neo4jTemplate neo4jTemplate) {
+
+		MovieEntity movie = new MovieEntity("The Love Bug",
+				"A movie that follows the adventures of Herbie, Herbie's driver, "
+						+ "Jim Douglas (Dean Jones), and Jim's love interest, " + "Carole Bennett (Michele Lee)");
+
+		Roles roles1 = new Roles(new PersonEntity(1931, "Dean Jones"), Collections.singletonList("Didi"));
+		Roles roles2 = new Roles(new PersonEntity(1942, "Michele Lee"), Collections.singletonList("Michi"));
+		movie.getActorsAndRoles().add(roles1);
+		movie.getActorsAndRoles().add(roles2);
+
+		MovieEntity result = neo4jTemplate.save(movie);
+		assertThat(result.getActorsAndRoles()).allSatisfy(relationship -> assertThat(relationship.getId()).isNotNull());
+
+		Optional<PersonEntity> person = neo4jTemplate.findById("Dean Jones", PersonEntity.class);
+		assertThat(person).map(PersonEntity::getBorn).hasValue(1931);
+
+		assertThat(neo4jTemplate.count(PersonEntity.class)).isEqualTo(2L);
+	}
+
+}
 ----
 
 And here is the reactive version, omitting the setup for brevity:
@@ -853,9 +905,58 @@ And here is the reactive version, omitting the setup for brevity:
 [[reactive-template-example]]
 .ReactiveTemplateExampleTest.java
 ----
-include::example$documentation/spring_boot/ReactiveTemplateExampleTest.java[tags=faq.template-reactive-pt1]
+import java.util.Collections;
+
+import org.junit.jupiter.api.Test;
+import org.testcontainers.containers.Neo4jContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
+import reactor.test.StepVerifier;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.data.neo4j.DataNeo4jTest;
+import org.springframework.data.neo4j.core.ReactiveNeo4jTemplate;
+import org.springframework.data.neo4j.documentation.domain.MovieEntity;
+import org.springframework.data.neo4j.documentation.domain.PersonEntity;
+import org.springframework.data.neo4j.documentation.domain.Roles;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
+
+@Testcontainers
 @DataNeo4jTest
-include::example$documentation/spring_boot/ReactiveTemplateExampleTest.java[tags=faq.template-reactive-pt2]
+class ReactiveTemplateExampleTest {
+
+	@Container
+	private static Neo4jContainer<?> neo4jContainer = new Neo4jContainer<>("neo4j:5");
+
+	@DynamicPropertySource
+	static void neo4jProperties(DynamicPropertyRegistry registry) {
+		registry.add("org.neo4j.driver.uri", neo4jContainer::getBoltUrl);
+		registry.add("org.neo4j.driver.authentication.username", () -> "neo4j");
+		registry.add("org.neo4j.driver.authentication.password", neo4jContainer::getAdminPassword);
+	}
+
+	@Test
+	void shouldSaveAndReadEntities(@Autowired ReactiveNeo4jTemplate neo4jTemplate) {
+
+		MovieEntity movie = new MovieEntity("The Love Bug",
+				"A movie that follows the adventures of Herbie, Herbie's driver, Jim Douglas (Dean Jones), and Jim's love interest, Carole Bennett (Michele Lee)");
+
+		Roles role1 = new Roles(new PersonEntity(1931, "Dean Jones"), Collections.singletonList("Didi"));
+		Roles role2 = new Roles(new PersonEntity(1942, "Michele Lee"), Collections.singletonList("Michi"));
+		movie.getActorsAndRoles().add(role1);
+		movie.getActorsAndRoles().add(role2);
+
+		StepVerifier.create(neo4jTemplate.save(movie)).expectNextCount(1L).verifyComplete();
+
+		StepVerifier.create(neo4jTemplate.findById("Dean Jones", PersonEntity.class).map(PersonEntity::getBorn))
+			.expectNext(1931)
+			.verifyComplete();
+
+		StepVerifier.create(neo4jTemplate.count(PersonEntity.class)).expectNext(2L).verifyComplete();
+	}
+
+}
 ----
 
 Please note that both examples use `@DataNeo4jTest` from Spring Boot.
@@ -1075,7 +1176,7 @@ Assume the following repository _declaration_ that basically aggregates one base
 [[aggregating-repository]]
 .A repository composed of several fragments
 ----
-include::example$documentation/repositories/custom_queries/MovieRepository.java[tags=aggregating-interface]
+include::example$documentation/repositories/custom_queries/MovieRepository.java[lines=18..]
 ----
 
 The repository contains xref:getting-started.adoc#movie-entity[Movies] as shown in xref:getting-started.adoc#example-node-spring-boot-project[the getting started section].
@@ -1091,7 +1192,7 @@ The fragment `DomainResults` declares one additional method `findMoviesAlongShor
 [[domain-results]]
 .DomainResults fragment
 ----
-include::example$documentation/repositories/custom_queries/MovieRepository.java[tags=domain-results]
+include::example$documentation/repositories/custom_queries/DomainResults.java[lines=18..]
 ----
 
 This method is annotated with `@Transactional(readOnly = true)` to indicate that readers can answer it.
@@ -1103,7 +1204,7 @@ The implementation has the same name with the suffix `Impl`:
 [[domain-results-impl]]
 .A fragment implementation using the Neo4jTemplate
 ----
-include::example$documentation/repositories/custom_queries/MovieRepository.java[tags=domain-results-impl]
+include::example$documentation/repositories/custom_queries/DomainResultsImpl.java[lines=18..]
 ----
 <.> The `Neo4jTemplate` is injected by the runtime through the constructor of `DomainResultsImpl`. No need for `@Autowired`.
 <.> The Cypher-DSL is used to build a complex statement (pretty much the same as shown in <<faq.path-mapping,path mapping>>.)
@@ -1137,7 +1238,7 @@ Declaring the fragment is exactly the same as before:
 [[non-domain-results]]
 .A fragment declaring non-domain-type results
 ----
-include::example$documentation/repositories/custom_queries/MovieRepository.java[tags=non-domain-results]
+include::example$documentation/repositories/custom_queries/NonDomainResults.java[lines=18..]
 ----
 <.> This is a made up non-domain result. A real world query result would probably look more complex.
 <.> The method this fragment adds. Again, the method is annotated with Spring's `@Transactional`
@@ -1148,7 +1249,7 @@ Without an implementation for that fragment, startup would fail, so here it is:
 [[non-domain-results-impl]]
 .A fragment implementation using the Neo4jClient
 ----
-include::example$documentation/repositories/custom_queries/MovieRepository.java[tags=non-domain-results-impl]
+include::example$documentation/repositories/custom_queries/NonDomainResultsImpl.java[lines=18..]
 ----
 <.> Here we use the `Neo4jClient`, as provided by the infrastructure.
 <.> The client takes only in Strings, but the Cypher-DSL can still be used when rendering into a String
@@ -1168,7 +1269,9 @@ with the Neo4j Java-Driver. This is possible as well. The following example show
 [[low-level-interactions]]
 .Fragments using the plain driver
 ----
-include::example$documentation/repositories/custom_queries/MovieRepository.java[tags=lowlevel-interactions]
+include::example$documentation/repositories/custom_queries/LowlevelInteractions.java[lines=18..]
+
+include::example$documentation/repositories/custom_queries/LowlevelInteractionsImpl.java[lines=18..]
 ----
 <.> Work with the driver directly. As with all the examples: There is no need for `@Autowired` magic. All the fragments
 are actually testable on their own.
@@ -1234,7 +1337,24 @@ The following listing presents every configuration option provided by Spring Dat
 [source,java,indent=0,tabsize=4]
 .Enabling and configuring Neo4j auditing
 ----
-include::example$integration/imperative/AuditingIT.java[tags=faq.entities.auditing]
+@Configuration
+@EnableNeo4jAuditing(modifyOnCreate = false, // <.>
+		auditorAwareRef = "auditorProvider", // <.>
+		dateTimeProviderRef = "fixedDateTimeProvider" // <.>
+)
+class AuditingConfig {
+
+	@Bean
+	AuditorAware<String> auditorProvider() {
+		return () -> Optional.of("A user");
+	}
+
+	@Bean
+	DateTimeProvider fixedDateTimeProvider() {
+		return () -> Optional.of(AuditingITBase.DEFAULT_CREATION_AND_MODIFICATION_DATE);
+	}
+
+}
 ----
 <.> Set to true if you want the modification data to be written during creating as well
 <.> Use this attribute to specify the name of the bean that provides the auditor (i.e. a user name)
@@ -1254,7 +1374,35 @@ The following example adds one callback to the context that changes one attribut
 [source,java,indent=0,tabsize=4]
 .Modifying entities before save
 ----
-include::example$integration/imperative/CallbacksIT.java[tags=faq.entities.auditing.callbacks]
+import java.util.UUID;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.data.neo4j.core.mapping.callback.AfterConvertCallback;
+import org.springframework.data.neo4j.core.mapping.callback.BeforeBindCallback;
+import org.springframework.data.neo4j.integration.shared.common.ThingWithAssignedId;
+
+@Configuration
+class CallbacksConfig {
+
+	@Bean
+	BeforeBindCallback<ThingWithAssignedId> nameChanger() {
+		return entity -> {
+			ThingWithAssignedId updatedThing = new ThingWithAssignedId(entity.getTheId(),
+					entity.getName() + " (Edited)");
+			return updatedThing;
+		};
+	}
+
+	@Bean
+	AfterConvertCallback<ThingWithAssignedId> randomValueAssigner() {
+		return (entity, definition, source) -> {
+			entity.setRandomValue(UUID.randomUUID().toString());
+			return entity;
+		};
+	}
+
+}
 ----
 
 No additional configuration is required.

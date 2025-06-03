@@ -15,12 +15,6 @@
  */
 package org.springframework.data.neo4j.integration.reactive;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import org.springframework.data.neo4j.test.Neo4jReactiveTestConfiguration;
-import reactor.core.publisher.Mono;
-import reactor.test.StepVerifier;
-
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -31,6 +25,9 @@ import java.util.stream.IntStream;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.neo4j.driver.Driver;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -44,10 +41,13 @@ import org.springframework.data.neo4j.integration.shared.common.ThingWithIdGener
 import org.springframework.data.neo4j.repository.config.EnableReactiveNeo4jRepositories;
 import org.springframework.data.neo4j.test.BookmarkCapture;
 import org.springframework.data.neo4j.test.Neo4jExtension;
+import org.springframework.data.neo4j.test.Neo4jReactiveTestConfiguration;
 import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 import org.springframework.transaction.ReactiveTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.reactive.TransactionalOperator;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Michael J. Simons
@@ -58,7 +58,8 @@ class ReactiveIdGeneratorsIT extends IdGeneratorsITBase {
 	private final ReactiveTransactionManager transactionManager;
 
 	@Autowired
-	ReactiveIdGeneratorsIT(Driver driver, BookmarkCapture bookmarkCapture, ReactiveTransactionManager transactionManager) {
+	ReactiveIdGeneratorsIT(Driver driver, BookmarkCapture bookmarkCapture,
+			ReactiveTransactionManager transactionManager) {
 
 		super(driver, bookmarkCapture);
 		this.transactionManager = transactionManager;
@@ -68,13 +69,16 @@ class ReactiveIdGeneratorsIT extends IdGeneratorsITBase {
 	void idGenerationWithNewEntityShouldWork(@Autowired ThingWithGeneratedIdRepository repository) {
 
 		List<ThingWithGeneratedId> savedThings = new ArrayList<>();
-		TransactionalOperator transactionalOperator = TransactionalOperator.create(transactionManager);
+		TransactionalOperator transactionalOperator = TransactionalOperator.create(this.transactionManager);
 		transactionalOperator.execute(t -> repository.save(new ThingWithGeneratedId("WrapperService")))
-				.as(StepVerifier::create).recordWith(() -> savedThings).consumeNextWith(savedThing -> {
+			.as(StepVerifier::create)
+			.recordWith(() -> savedThings)
+			.consumeNextWith(savedThing -> {
 
-					assertThat(savedThing.getName()).isEqualTo("WrapperService");
-					assertThat(savedThing.getTheId()).isNotBlank().matches("thingWithGeneratedId-\\d+");
-				}).verifyComplete();
+				assertThat(savedThing.getName()).isEqualTo("WrapperService");
+				assertThat(savedThing.getTheId()).isNotBlank().matches("thingWithGeneratedId-\\d+");
+			})
+			.verifyComplete();
 
 		verifyDatabase(savedThings.get(0).getTheId(), savedThings.get(0).getName());
 	}
@@ -83,13 +87,16 @@ class ReactiveIdGeneratorsIT extends IdGeneratorsITBase {
 	void idGenerationByBeansShouldWorkWork(@Autowired ThingWithIdGeneratedByBeanRepository repository) {
 
 		List<ThingWithIdGeneratedByBean> savedThings = new ArrayList<>();
-		TransactionalOperator transactionalOperator = TransactionalOperator.create(transactionManager);
+		TransactionalOperator transactionalOperator = TransactionalOperator.create(this.transactionManager);
 		transactionalOperator.execute(t -> repository.save(new ThingWithIdGeneratedByBean("WrapperService")))
-				.as(StepVerifier::create).recordWith(() -> savedThings).consumeNextWith(savedThing -> {
+			.as(StepVerifier::create)
+			.recordWith(() -> savedThings)
+			.consumeNextWith(savedThing -> {
 
-					assertThat(savedThing.getName()).isEqualTo("WrapperService");
-					assertThat(savedThing.getTheId()).isEqualTo("ReactiveID.");
-				}).verifyComplete();
+				assertThat(savedThing.getName()).isEqualTo("WrapperService");
+				assertThat(savedThing.getTheId()).isEqualTo("ReactiveID.");
+			})
+			.verifyComplete();
 
 		verifyDatabase(savedThings.get(0).getTheId(), savedThings.get(0).getName());
 	}
@@ -97,18 +104,23 @@ class ReactiveIdGeneratorsIT extends IdGeneratorsITBase {
 	@Test
 	void idGenerationWithNewEntitiesShouldWork(@Autowired ThingWithGeneratedIdRepository repository) {
 
-		List<ThingWithGeneratedId> things = IntStream.rangeClosed(1, 10).mapToObj(i -> new ThingWithGeneratedId("name" + i))
-				.collect(Collectors.toList());
+		List<ThingWithGeneratedId> things = IntStream.rangeClosed(1, 10)
+			.mapToObj(i -> new ThingWithGeneratedId("name" + i))
+			.collect(Collectors.toList());
 
 		Set<String> generatedIds = new HashSet<>();
-		TransactionalOperator transactionalOperator = TransactionalOperator.create(transactionManager);
-		transactionalOperator.execute(t -> repository.saveAll(things)).map(ThingWithGeneratedId::getTheId)
-				.as(StepVerifier::create).recordWith(() -> generatedIds).expectNextCount(things.size())
-				.expectRecordedMatches(recorded -> {
-					assertThat(recorded).hasSize(things.size())
-							.allMatch(generatedId -> generatedId.matches("thingWithGeneratedId-\\d+"));
-					return true;
-				}).verifyComplete();
+		TransactionalOperator transactionalOperator = TransactionalOperator.create(this.transactionManager);
+		transactionalOperator.execute(t -> repository.saveAll(things))
+			.map(ThingWithGeneratedId::getTheId)
+			.as(StepVerifier::create)
+			.recordWith(() -> generatedIds)
+			.expectNextCount(things.size())
+			.expectRecordedMatches(recorded -> {
+				assertThat(recorded).hasSize(things.size())
+					.allMatch(generatedId -> generatedId.matches("thingWithGeneratedId-\\d+"));
+				return true;
+			})
+			.verifyComplete();
 	}
 
 	@Test
@@ -120,20 +132,27 @@ class ReactiveIdGeneratorsIT extends IdGeneratorsITBase {
 		});
 
 		List<ThingWithGeneratedId> savedThings = new ArrayList<>();
-		TransactionalOperator transactionalOperator = TransactionalOperator.create(transactionManager);
-		transactionalOperator.execute(t -> findAndUpdateAThing).as(StepVerifier::create).recordWith(() -> savedThings)
-				.consumeNextWith(savedThing -> {
+		TransactionalOperator transactionalOperator = TransactionalOperator.create(this.transactionManager);
+		transactionalOperator.execute(t -> findAndUpdateAThing)
+			.as(StepVerifier::create)
+			.recordWith(() -> savedThings)
+			.consumeNextWith(savedThing -> {
 
-					assertThat(savedThing.getName()).isEqualTo("changed");
-					assertThat(savedThing.getTheId()).isEqualTo(ID_OF_EXISTING_THING);
-				}).verifyComplete();
+				assertThat(savedThing.getName()).isEqualTo("changed");
+				assertThat(savedThing.getTheId()).isEqualTo(ID_OF_EXISTING_THING);
+			})
+			.verifyComplete();
 
 		verifyDatabase(savedThings.get(0).getTheId(), savedThings.get(0).getName());
 	}
 
-	interface ThingWithGeneratedIdRepository extends ReactiveCrudRepository<ThingWithGeneratedId, String> {}
+	interface ThingWithGeneratedIdRepository extends ReactiveCrudRepository<ThingWithGeneratedId, String> {
 
-	interface ThingWithIdGeneratedByBeanRepository extends ReactiveCrudRepository<ThingWithIdGeneratedByBean, String> {}
+	}
+
+	interface ThingWithIdGeneratedByBeanRepository extends ReactiveCrudRepository<ThingWithIdGeneratedByBean, String> {
+
+	}
 
 	@Configuration
 	@EnableTransactionManagement
@@ -141,30 +160,35 @@ class ReactiveIdGeneratorsIT extends IdGeneratorsITBase {
 	static class Config extends Neo4jReactiveTestConfiguration {
 
 		@Bean
+		@Override
 		public Driver driver() {
 			return neo4jConnectionSupport.getDriver();
 		}
 
 		@Bean
-		public IdGenerator<String> aFancyIdGenerator() {
+		IdGenerator<String> aFancyIdGenerator() {
 			return (label, entity) -> "ReactiveID.";
 		}
 
 		@Bean
-		public BookmarkCapture bookmarkCapture() {
+		BookmarkCapture bookmarkCapture() {
 			return new BookmarkCapture();
 		}
 
 		@Override
-		public ReactiveTransactionManager reactiveTransactionManager(Driver driver, ReactiveDatabaseSelectionProvider databaseSelectionProvider) {
+		public ReactiveTransactionManager reactiveTransactionManager(Driver driver,
+				ReactiveDatabaseSelectionProvider databaseSelectionProvider) {
 
 			BookmarkCapture bookmarkCapture = bookmarkCapture();
-			return new ReactiveNeo4jTransactionManager(driver, databaseSelectionProvider, Neo4jBookmarkManager.createReactive(bookmarkCapture));
+			return new ReactiveNeo4jTransactionManager(driver, databaseSelectionProvider,
+					Neo4jBookmarkManager.createReactive(bookmarkCapture));
 		}
 
 		@Override
 		public boolean isCypher5Compatible() {
 			return neo4jConnectionSupport.isCypher5SyntaxCompatible();
 		}
+
 	}
+
 }

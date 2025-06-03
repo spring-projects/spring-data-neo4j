@@ -15,7 +15,10 @@
  */
 package org.springframework.data.neo4j.aot;
 
+import java.util.Arrays;
+
 import org.jspecify.annotations.Nullable;
+
 import org.springframework.aot.hint.MemberCategory;
 import org.springframework.aot.hint.RuntimeHints;
 import org.springframework.aot.hint.RuntimeHintsRegistrar;
@@ -36,41 +39,54 @@ import org.springframework.data.neo4j.repository.support.SimpleReactiveNeo4jRepo
 import org.springframework.data.querydsl.QuerydslUtils;
 import org.springframework.data.util.ReactiveWrappers;
 
-import java.util.Arrays;
-
 /**
+ * AoT runtime hints registering various types for reflection.
+ *
  * @author Gerrit Meier
  * @since 7.0.0
  */
-public class Neo4jRuntimeHints implements RuntimeHintsRegistrar {
+public final class Neo4jRuntimeHints implements RuntimeHintsRegistrar {
+
+	private static void registerQuerydslHints(RuntimeHints hints) {
+
+		hints.reflection()
+			.registerType(QuerydslNeo4jPredicateExecutor.class, MemberCategory.INVOKE_PUBLIC_METHODS,
+					MemberCategory.INVOKE_DECLARED_CONSTRUCTORS);
+
+		if (ReactiveWrappers.isAvailable(ReactiveWrappers.ReactiveLibrary.PROJECT_REACTOR)) {
+			hints.reflection()
+				.registerType(ReactiveQuerydslNeo4jPredicateExecutor.class, MemberCategory.INVOKE_PUBLIC_METHODS,
+						MemberCategory.INVOKE_DECLARED_CONSTRUCTORS);
+		}
+
+	}
 
 	@Override
 	public void registerHints(RuntimeHints hints, @Nullable ClassLoader classLoader) {
 
-		hints.reflection().registerTypes(
-				Arrays.asList(
-						TypeReference.of(SimpleNeo4jRepository.class),
-						TypeReference.of(SimpleQueryByExampleExecutor.class),
-						TypeReference.of(CypherdslConditionExecutorImpl.class),
-						TypeReference.of(BeforeBindCallback.class),
-						TypeReference.of(AfterConvertCallback.class),
-						// todo "temporary" fix, should get resolved when class parameters in annotations getting discovered
-						TypeReference.of(UUIDStringGenerator.class),
-						TypeReference.of(GeneratedValue.InternalIdGenerator.class),
-						TypeReference.of(GeneratedValue.UUIDGenerator.class)
-				),
-				builder -> builder.withMembers(MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
-						MemberCategory.INVOKE_PUBLIC_METHODS));
+		hints.reflection()
+			.registerTypes(
+					Arrays.asList(TypeReference.of(SimpleNeo4jRepository.class),
+							TypeReference.of(SimpleQueryByExampleExecutor.class),
+							TypeReference.of(CypherdslConditionExecutorImpl.class),
+							TypeReference.of(BeforeBindCallback.class), TypeReference.of(AfterConvertCallback.class),
+							// todo "temporary" fix, should get resolved when class
+							// parameters in annotations getting discovered
+							TypeReference.of(UUIDStringGenerator.class),
+							TypeReference.of(GeneratedValue.InternalIdGenerator.class),
+							TypeReference.of(GeneratedValue.UUIDGenerator.class)),
+					builder -> builder.withMembers(MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
+							MemberCategory.INVOKE_PUBLIC_METHODS));
 
 		if (ReactiveWrappers.isAvailable(ReactiveWrappers.ReactiveLibrary.PROJECT_REACTOR)) {
-			hints.reflection().registerTypes(
-					Arrays.asList(
-							TypeReference.of(SimpleReactiveNeo4jRepository.class),
-							TypeReference.of(SimpleReactiveQueryByExampleExecutor.class),
-							TypeReference.of(ReactiveCypherdslConditionExecutorImpl.class),
-							TypeReference.of(ReactiveBeforeBindCallback.class)
-					),
-					builder -> builder.withMembers(MemberCategory.INVOKE_DECLARED_CONSTRUCTORS, MemberCategory.INVOKE_PUBLIC_METHODS));
+			hints.reflection()
+				.registerTypes(
+						Arrays.asList(TypeReference.of(SimpleReactiveNeo4jRepository.class),
+								TypeReference.of(SimpleReactiveQueryByExampleExecutor.class),
+								TypeReference.of(ReactiveCypherdslConditionExecutorImpl.class),
+								TypeReference.of(ReactiveBeforeBindCallback.class)),
+						builder -> builder.withMembers(MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
+								MemberCategory.INVOKE_PUBLIC_METHODS));
 		}
 
 		if (QuerydslUtils.QUERY_DSL_PRESENT) {
@@ -78,15 +94,4 @@ public class Neo4jRuntimeHints implements RuntimeHintsRegistrar {
 		}
 	}
 
-	private static void registerQuerydslHints(RuntimeHints hints) {
-
-		hints.reflection().registerType(QuerydslNeo4jPredicateExecutor.class,
-				MemberCategory.INVOKE_PUBLIC_METHODS, MemberCategory.INVOKE_DECLARED_CONSTRUCTORS);
-
-		if (ReactiveWrappers.isAvailable(ReactiveWrappers.ReactiveLibrary.PROJECT_REACTOR)) {
-			hints.reflection().registerType(ReactiveQuerydslNeo4jPredicateExecutor.class,
-					MemberCategory.INVOKE_PUBLIC_METHODS, MemberCategory.INVOKE_DECLARED_CONSTRUCTORS);
-		}
-
-	}
 }

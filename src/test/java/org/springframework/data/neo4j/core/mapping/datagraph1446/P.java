@@ -26,27 +26,28 @@ import org.springframework.data.neo4j.core.schema.Relationship;
 @Node
 public class P {
 
-	@Id @GeneratedValue
+	@Relationship("R")
+	R1 b;
+
+	@Relationship("R")
+	R2 c;
+
+	@Id
+	@GeneratedValue
 	private Long id;
 
 	private String name;
-
-	@Relationship(value = "R")
-	R1 b;
-
-	@Relationship(value = "R")
-	R2 c;
 
 	public P(String name) {
 		this.name = name;
 	}
 
 	public Long getId() {
-		return id;
+		return this.id;
 	}
 
 	public String getName() {
-		return name;
+		return this.name;
 	}
 
 	public void setName(String name) {
@@ -54,7 +55,7 @@ public class P {
 	}
 
 	public R1 getB() {
-		return b;
+		return this.b;
 	}
 
 	public void setB(R1 b) {
@@ -62,19 +63,16 @@ public class P {
 	}
 
 	public R2 getC() {
-		return c;
+		return this.c;
 	}
 
 	public void setC(R2 c) {
 		this.c = c;
 	}
 
-	@Override public String toString() {
-		return "A{" +
-			   "id=" + id +
-			   ", name='" + name + '\'' +
-			   ", b=" + b +
-			   ", c=" + c +
-			   '}';
+	@Override
+	public String toString() {
+		return "A{" + "id=" + this.id + ", name='" + this.name + '\'' + ", b=" + this.b + ", c=" + this.c + '}';
 	}
+
 }

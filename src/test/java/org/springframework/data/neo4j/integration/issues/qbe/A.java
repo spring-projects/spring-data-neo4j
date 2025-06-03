@@ -40,11 +40,11 @@ public class A {
 	private B b;
 
 	public UUID getId() {
-		return id;
+		return this.id;
 	}
 
 	public String getName() {
-		return name;
+		return this.name;
 	}
 
 	public void setName(String name) {
@@ -52,10 +52,11 @@ public class A {
 	}
 
 	public B getB() {
-		return b;
+		return this.b;
 	}
 
 	public void setB(B b) {
 		this.b = b;
 	}
+
 }

@@ -15,12 +15,12 @@
  */
 package org.springframework.data.neo4j.integration.shared.common;
 
+import java.util.List;
+
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Relationship;
-
-import java.util.List;
 
 /**
  * @author Gerrit Meier
@@ -28,11 +28,11 @@ import java.util.List;
 @Node
 public class Friend {
 
+	private final String name;
+
 	@Id
 	@GeneratedValue
 	private Long id;
-
-	private final String name;
 
 	@Relationship("KNOWS")
 	private List<FriendshipRelationship> friends;
@@ -42,10 +42,11 @@ public class Friend {
 	}
 
 	public String getName() {
-		return name;
+		return this.name;
 	}
 
 	public List<FriendshipRelationship> getFriends() {
-		return friends;
+		return this.friends;
 	}
+
 }

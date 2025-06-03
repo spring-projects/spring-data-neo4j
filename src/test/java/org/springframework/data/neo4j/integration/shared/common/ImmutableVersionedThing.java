@@ -15,6 +15,8 @@
  */
 package org.springframework.data.neo4j.integration.shared.common;
 
+import java.util.Objects;
+
 import org.springframework.data.annotation.Version;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
@@ -57,10 +59,12 @@ public class ImmutableVersionedThing {
 	}
 
 	public ImmutableVersionedThing withMyVersion(Long myVersion) {
-		return this.myVersion == myVersion ? this : new ImmutableVersionedThing(this.id, myVersion, this.name);
+		return Objects.equals(this.myVersion, myVersion) ? this
+				: new ImmutableVersionedThing(this.id, myVersion, this.name);
 	}
 
 	public ImmutableVersionedThing withName(String name) {
-		return this.name == name ? this : new ImmutableVersionedThing(this.id, this.myVersion, name);
+		return Objects.equals(this.name, name) ? this : new ImmutableVersionedThing(this.id, this.myVersion, name);
 	}
+
 }

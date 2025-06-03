@@ -20,28 +20,28 @@ import org.springframework.data.neo4j.core.schema.RelationshipProperties;
 import org.springframework.data.neo4j.core.schema.TargetNode;
 
 /**
- * @author Michael J. Simons
  * @param <T> The type of the target entity
+ * @author Michael J. Simons
  */
 @RelationshipProperties
 public abstract class AbstractR<T> {
 
-	@RelationshipId
-	private Long id;
-
 	@TargetNode
 	T target;
 
-	public AbstractR(T target) {
-		this.target = target;
-	}
+	@RelationshipId
+	private Long id;
 
 	private String p1;
 
 	private String p2;
 
+	public AbstractR(T target) {
+		this.target = target;
+	}
+
 	public String getP1() {
-		return p1;
+		return this.p1;
 	}
 
 	public void setP1(String p1) {
@@ -49,18 +49,16 @@ public abstract class AbstractR<T> {
 	}
 
 	public String getP2() {
-		return p2;
+		return this.p2;
 	}
 
 	public void setP2(String p2) {
 		this.p2 = p2;
 	}
 
-	@Override public String toString() {
-		return "AbstractR{" +
-			   "target=" + target +
-			   ", p1='" + p1 + '\'' +
-			   ", p2='" + p2 + '\'' +
-			   '}';
+	@Override
+	public String toString() {
+		return "AbstractR{" + "target=" + this.target + ", p1='" + this.p1 + '\'' + ", p2='" + this.p2 + '\'' + '}';
 	}
+
 }

@@ -38,10 +38,11 @@ public class ThingWithFixedGeneratedId extends AbstractNamedThing {
 	}
 
 	public String getTheId() {
-		return theId;
+		return this.theId;
 	}
 
 	public void setPerson(SimplePerson person) {
 		this.person = person;
 	}
+
 }

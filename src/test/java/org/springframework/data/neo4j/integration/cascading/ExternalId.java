@@ -19,4 +19,5 @@ package org.springframework.data.neo4j.integration.cascading;
  * Marker for external id.
  */
 public interface ExternalId {
+
 }

@@ -22,13 +22,15 @@ import org.springframework.data.neo4j.core.schema.RelationshipProperties;
  */
 @RelationshipProperties(persistTypeInfo = true)
 public class RelationshipB extends BaseRelationship {
+
 	String b;
 
 	public String getB() {
-		return b;
+		return this.b;
 	}
 
 	public void setB(String b) {
 		this.b = b;
 	}
+
 }

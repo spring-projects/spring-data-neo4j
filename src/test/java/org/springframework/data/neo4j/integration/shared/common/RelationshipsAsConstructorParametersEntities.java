@@ -25,41 +25,46 @@ import org.springframework.data.neo4j.core.schema.Relationship;
  */
 public final class RelationshipsAsConstructorParametersEntities {
 
+	private RelationshipsAsConstructorParametersEntities() {
+	}
+
 	/**
 	 * Parent or master node.
 	 */
 	@Node
 	public static class NodeTypeA {
 
+		private final String name;
+
 		@Id
 		@GeneratedValue
 		private Long id;
-
-		private final String name;
 
 		public NodeTypeA(String name) {
 			this.name = name;
 		}
 
 		public String getName() {
-			return name;
+			return this.name;
 		}
+
 	}
 
 	/**
-	 * Child node having two immutable fields assigned via ctor and a generated id that is assigend from SDN.
+	 * Child node having two immutable fields assigned via ctor and a generated id that is
+	 * assigend from SDN.
 	 */
 	@Node
 	public static class NodeTypeB {
-
-		@Id
-		@GeneratedValue
-		private Long id;
 
 		@Relationship("BELONGS_TO")
 		private final NodeTypeA nodeTypeA;
 
 		private final String name;
+
+		@Id
+		@GeneratedValue
+		private Long id;
 
 		public NodeTypeB(NodeTypeA nodeTypeA, String name) {
 			this.nodeTypeA = nodeTypeA;
@@ -67,14 +72,13 @@ public final class RelationshipsAsConstructorParametersEntities {
 		}
 
 		public NodeTypeA getNodeTypeA() {
-			return nodeTypeA;
+			return this.nodeTypeA;
 		}
 
 		public String getName() {
-			return name;
+			return this.name;
 		}
+
 	}
 
-	private RelationshipsAsConstructorParametersEntities() {
-	}
 }

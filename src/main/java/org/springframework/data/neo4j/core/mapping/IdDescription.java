@@ -23,6 +23,7 @@ import org.neo4j.cypherdsl.core.Cypher;
 import org.neo4j.cypherdsl.core.Expression;
 import org.neo4j.cypherdsl.core.Node;
 import org.neo4j.cypherdsl.core.SymbolicName;
+
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.IdGenerator;
 import org.springframework.data.util.Lazy;
@@ -54,9 +55,32 @@ public final class IdDescription {
 	 */
 	@Nullable
 	private final String graphPropertyName;
+
 	private final boolean isDeprecated;
 
 	private final Lazy<Expression> idExpression;
+
+	@SuppressWarnings("deprecation")
+	private IdDescription(SymbolicName symbolicName, @Nullable Class<? extends IdGenerator<?>> idGeneratorClass,
+			@Nullable String idGeneratorRef, @Nullable String graphPropertyName, boolean isDeprecated) {
+
+		this.idGeneratorClass = idGeneratorClass;
+		this.idGeneratorRef = (idGeneratorRef != null && idGeneratorRef.isEmpty()) ? null : idGeneratorRef;
+		this.graphPropertyName = graphPropertyName;
+		this.isDeprecated = isDeprecated;
+
+		this.idExpression = Lazy.of(() -> {
+			final Node rootNode = Cypher.anyNode(symbolicName);
+			if (this.isInternallyGeneratedId()) {
+				return isDeprecated ? rootNode.internalId() : rootNode.elementId();
+			}
+			else {
+				return this.getOptionalGraphPropertyName()
+					.map(propertyName -> Cypher.property(symbolicName, propertyName))
+					.get();
+			}
+		});
+	}
 
 	public static IdDescription forAssignedIds(SymbolicName symbolicName, String graphPropertyName) {
 
@@ -73,15 +97,15 @@ public final class IdDescription {
 	}
 
 	public static IdDescription forExternallyGeneratedIds(SymbolicName symbolicName,
-		    Class<? extends IdGenerator<?>> idGeneratorClass,
-			String idGeneratorRef, String graphPropertyName) {
+			Class<? extends IdGenerator<?>> idGeneratorClass, String idGeneratorRef, String graphPropertyName) {
 
 		Assert.notNull(graphPropertyName, "Graph property name is required");
 		try {
 			Assert.hasText(idGeneratorRef, "Reference to an ID generator has precedence");
 
 			return new IdDescription(symbolicName, null, idGeneratorRef, graphPropertyName, false);
-		} catch (IllegalArgumentException e) {
+		}
+		catch (IllegalArgumentException ex) {
 			Assert.notNull(idGeneratorClass, "Class of id generator is required");
 			Assert.isTrue(idGeneratorClass != GeneratedValue.InternalIdGenerator.class,
 					"Cannot use InternalIdGenerator for externally generated ids");
@@ -90,73 +114,57 @@ public final class IdDescription {
 		}
 	}
 
-	@SuppressWarnings("deprecation")
-	private IdDescription(SymbolicName symbolicName, @Nullable Class<? extends IdGenerator<?>> idGeneratorClass,
-		@Nullable String idGeneratorRef, @Nullable String graphPropertyName, boolean isDeprecated) {
-
-		this.idGeneratorClass = idGeneratorClass;
-		this.idGeneratorRef = idGeneratorRef != null && idGeneratorRef.isEmpty() ? null : idGeneratorRef;
-		this.graphPropertyName = graphPropertyName;
-		this.isDeprecated = isDeprecated;
-
-		this.idExpression = Lazy.of(() -> {
-			final Node rootNode = Cypher.anyNode(symbolicName);
-			if (this.isInternallyGeneratedId()) {
-				return isDeprecated ? rootNode.internalId() : rootNode.elementId();
-			} else {
-				return this.getOptionalGraphPropertyName()
-						.map(propertyName -> Cypher.property(symbolicName, propertyName)).get();
-			}
-		});
-	}
-
 	public Expression asIdExpression() {
 		return this.idExpression.get();
 	}
 
 	/**
-	 * Creates the right identifier expression for this node entity.
-	 * Note: This enforces a recalculation of the name on invoke.
-	 *
+	 * Creates the right identifier expression for this node entity. Note: This enforces a
+	 * recalculation of the name on invoke.
 	 * @param nodeName use this name as the symbolic name of the node in the query
-	 * @return An expression that represents the right identifier type.
+	 * @return an expression that represents the right identifier type
 	 */
 	@SuppressWarnings("deprecation")
 	public Expression asIdExpression(String nodeName) {
 		final Node rootNode = Cypher.anyNode(nodeName);
 		if (this.isInternallyGeneratedId()) {
-			return isDeprecated ? rootNode.internalId() : rootNode.elementId();
-		} else {
+			return this.isDeprecated ? rootNode.internalId() : rootNode.elementId();
+		}
+		else {
 			return this.getOptionalGraphPropertyName()
-					.map(propertyName -> Cypher.property(nodeName, propertyName)).orElseThrow();
+				.map(propertyName -> Cypher.property(nodeName, propertyName))
+				.orElseThrow();
 		}
 	}
 
 	public Optional<Class<? extends IdGenerator<?>>> getIdGeneratorClass() {
-		return Optional.ofNullable(idGeneratorClass);
+		return Optional.ofNullable(this.idGeneratorClass);
 	}
 
 	public Optional<String> getIdGeneratorRef() {
-		return Optional.ofNullable(idGeneratorRef);
+		return Optional.ofNullable(this.idGeneratorRef);
 	}
 
 	/**
-	 * @return True, if the ID is assigned to the entity before the entity hits the database, either manually or through a
-	 *         generator.
+	 * Flag, if this is an assigned id.
+	 * @return true, if the ID is assigned to the entity before the entity hits the
+	 * database, either manually or through a generator.
 	 */
 	public boolean isAssignedId() {
 		return this.idGeneratorClass == null && this.idGeneratorRef == null;
 	}
 
 	/**
-	 * @return True, if the database generated the ID.
+	 * Flag, if this is a database generated id.
+	 * @return true, if the database generated the ID.
 	 */
 	public boolean isInternallyGeneratedId() {
 		return this.idGeneratorClass == GeneratedValue.InternalIdGenerator.class;
 	}
 
 	/**
-	 * @return True, if the ID is externally generated.
+	 * Flag, if this is an externally generated id.
+	 * @return true, if the ID is externally generated
 	 */
 	public boolean isExternallyGeneratedId() {
 		return (this.idGeneratorClass != null && this.idGeneratorClass != GeneratedValue.InternalIdGenerator.class)
@@ -164,13 +172,13 @@ public final class IdDescription {
 	}
 
 	/**
-	 * An ID description has only a corresponding graph property name when it's bas on an external assigment. An internal
-	 * id has no corresponding graph property and therefore this method will return an empty {@link Optional} in such
-	 * cases.
-	 *
-	 * @return The name of an optional graph property.
+	 * An ID description has only a corresponding graph property name when it's bas on an
+	 * external assigment. An internal id has no corresponding graph property and
+	 * therefore this method will return an empty {@link Optional} in such cases.
+	 * @return the name of an optional graph property
 	 */
 	public Optional<String> getOptionalGraphPropertyName() {
-		return Optional.ofNullable(graphPropertyName);
+		return Optional.ofNullable(this.graphPropertyName);
 	}
+
 }

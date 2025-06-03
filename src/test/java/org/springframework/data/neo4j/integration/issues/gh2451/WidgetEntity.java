@@ -32,18 +32,20 @@ public class WidgetEntity {
 	@GeneratedValue
 	@Id
 	private Long id;
+
 	private String code;
+
 	private String label;
 
 	@CompositeProperty
 	private Map<String, String> additionalFields = new HashMap<>();
 
 	public Long getId() {
-		return id;
+		return this.id;
 	}
 
 	public String getCode() {
-		return code;
+		return this.code;
 	}
 
 	public void setCode(String code) {
@@ -51,7 +53,7 @@ public class WidgetEntity {
 	}
 
 	public String getLabel() {
-		return label;
+		return this.label;
 	}
 
 	public void setLabel(String label) {
@@ -59,10 +61,11 @@ public class WidgetEntity {
 	}
 
 	public Map<String, String> getAdditionalFields() {
-		return additionalFields;
+		return this.additionalFields;
 	}
 
 	public void setAdditionalFields(Map<String, String> additionalFields) {
 		this.additionalFields = additionalFields;
 	}
+
 }

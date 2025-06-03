@@ -15,6 +15,10 @@
  */
 package org.springframework.data.neo4j.integration.imperative;
 
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.neo4j.cypherdsl.core.Cypher;
@@ -24,6 +28,7 @@ import org.neo4j.driver.Driver;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.Transaction;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -41,10 +46,6 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.support.TransactionTemplate;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -58,10 +59,8 @@ class Neo4jClientIT {
 	@BeforeEach
 	void setupData(@Autowired BookmarkCapture bookmarkCapture, @Autowired Driver driver) {
 
-		try (
-				Session session = driver.session(bookmarkCapture.createSessionConfig());
-				Transaction transaction = session.beginTransaction()
-		) {
+		try (Session session = driver.session(bookmarkCapture.createSessionConfig());
+				Transaction transaction = session.beginTransaction()) {
 			transaction.run("MATCH (n) detach delete n");
 			transaction.commit();
 		}
@@ -69,28 +68,31 @@ class Neo4jClientIT {
 
 	@Test // GH-2238
 	void clientShouldIntegrateWithCypherDSL(@Autowired TransactionTemplate transactionTemplate,
-			@Autowired Neo4jClient client,
-			@Autowired BookmarkCapture bookmarkCapture) {
+			@Autowired Neo4jClient client, @Autowired BookmarkCapture bookmarkCapture) {
 
-		Node namedAnswer = Cypher.node("TheAnswer", Cypher.mapOf("value",
-				Cypher.literalOf(23).multiply(Cypher.literalOf(2)).subtract(Cypher.literalOf(4)))).named("n");
-		Statement statement = Cypher.create(namedAnswer)
-				.returning(namedAnswer)
-				.build();
+		Node namedAnswer = Cypher
+			.node("TheAnswer",
+					Cypher.mapOf("value",
+							Cypher.literalOf(23).multiply(Cypher.literalOf(2)).subtract(Cypher.literalOf(4))))
+			.named("n");
+		Statement statement = Cypher.create(namedAnswer).returning(namedAnswer).build();
 
 		Long vanishedId = transactionTemplate.execute(transactionStatus -> {
 			List<Record> records = client.getQueryRunner().run(statement.getCypher()).list();
-			assertThat(records).hasSize(1)
-					.first().extracting(r -> r.get("n").get("value").asLong()).isEqualTo(42L);
+			assertThat(records).hasSize(1).first().extracting(r -> r.get("n").get("value").asLong()).isEqualTo(42L);
 
 			transactionStatus.setRollbackOnly();
 			return TestIdentitySupport.getInternalId(records.get(0).get("n").asNode());
 		});
 
-		// Make sure we actually interacted with the managed transaction (that had been rolled back)
+		// Make sure we actually interacted with the managed transaction (that had been
+		// rolled back)
 		try (Session session = neo4jConnectionSupport.getDriver().session(bookmarkCapture.createSessionConfig())) {
-			long cnt = session.run("MATCH (n) WHERE id(n) = $id RETURN count(n)",
-					Collections.singletonMap("id", vanishedId)).single().get(0).asLong();
+			long cnt = session
+				.run("MATCH (n) WHERE id(n) = $id RETURN count(n)", Collections.singletonMap("id", vanishedId))
+				.single()
+				.get(0)
+				.asLong();
 			assertThat(cnt).isEqualTo(0L);
 		}
 	}
@@ -105,13 +107,14 @@ class Neo4jClientIT {
 			return neo4jConnectionSupport.getDriver();
 		}
 
-		@Override // needed here because there is no implicit registration of entities upfront some methods under test
+		@Override // needed here because there is no implicit registration of entities
+					// upfront some methods under test
 		protected Collection<String> getMappingBasePackages() {
 			return Collections.singletonList(PersonWithAllConstructor.class.getPackage().getName());
 		}
 
 		@Bean
-		public BookmarkCapture bookmarkCapture() {
+		BookmarkCapture bookmarkCapture() {
 			return new BookmarkCapture();
 		}
 
@@ -125,7 +128,7 @@ class Neo4jClientIT {
 		}
 
 		@Bean
-		public TransactionTemplate transactionTemplate(PlatformTransactionManager transactionManager) {
+		TransactionTemplate transactionTemplate(PlatformTransactionManager transactionManager) {
 			return new TransactionTemplate(transactionManager);
 		}
 
@@ -133,5 +136,7 @@ class Neo4jClientIT {
 		public boolean isCypher5Compatible() {
 			return neo4jConnectionSupport.isCypher5SyntaxCompatible();
 		}
+
 	}
+
 }

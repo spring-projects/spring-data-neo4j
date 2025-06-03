@@ -37,28 +37,80 @@ public class Inheritance {
 	/**
 	 * An interface as someone would define in an api package
 	 */
-	// tag::interface1[]
-	public interface SomeInterface { // <.>
+	public interface SomeInterface {
 
 		String getName();
 
 		SomeInterface getRelated();
+
 	}
 
-	// end::interface1[]
+	/**
+	 * A case where the label was specified on the interface, unsure if this is meaningful
+	 */
+	@Node("PrimaryLabelWN")
+	public interface SomeInterface2 {
+
+		String getName();
+
+		SomeInterface2 getRelated();
+
+	}
+
+	/**
+	 * Concrete interface name here, `@Node` is required, label can be omitted in that
+	 * case
+	 */
+	@Node("SomeInterface3")
+	public interface SomeInterface3 {
+
+		String getName();
+
+		SomeInterface3 getRelated();
+
+	}
+
+	/**
+	 * Interface to get implemented with the one below.
+	 */
+	@Node("Mix1")
+	public interface MixIt1 {
+
+		String getName();
+
+	}
+
+	/**
+	 * Interface to get implemented with one above.
+	 */
+	@Node("Mix2")
+	public interface MixIt2 {
+
+		String getValue();
+
+	}
+
+	/**
+	 * Interface for relationship
+	 */
+	@Node("GH-2788-Interface")
+	public interface Gh2788Interface {
+
+		String getName();
+
+	}
 
 	/**
 	 * Implementation of the above, to be found in a Neo4j or Mongo or whatever module.
 	 */
-	// tag::interface1[]
-	@Node("SomeInterface") // <.>
+	@Node("SomeInterface")
 	public static class SomeInterfaceEntity implements SomeInterface {
+
+		private final String name;
 
 		@Id
 		@GeneratedValue
 		private Long id;
-
-		private final String name;
 
 		private SomeInterface related;
 
@@ -68,54 +120,36 @@ public class Inheritance {
 
 		@Override
 		public String getName() {
-			return name;
+			return this.name;
 		}
 
 		@Override
 		public SomeInterface getRelated() {
-			return related;
-		}
-		// end::interface1[]
-
-		public Long getId() {
-			return id;
+			return this.related;
 		}
 
 		public void setRelated(SomeInterface related) {
 			this.related = related;
 		}
 
-		// tag::interface1[]
+		public Long getId() {
+			return this.id;
+		}
+
 	}
-	// end::interface1[]
-
-	/**
-	 * A case where the label was specified on the interface, unsure if this is meaningful
-	 */
-	// tag::interface2[]
-	@Node("PrimaryLabelWN") // <.>
-	public interface SomeInterface2 {
-
-		String getName();
-
-		SomeInterface2 getRelated();
-	}
-
-	// end::interface2[]
 
 	/**
 	 * Implementation of the above
 	 */
-	// tag::interface2[]
 	public static class SomeInterfaceEntity2 implements SomeInterface2 {
 
+		private final String name;
+
 		// Overrides omitted for brevity
-		// end::interface2[]
+
 		@Id
 		@GeneratedValue
 		private Long id;
-
-		private final String name;
 
 		private SomeInterface2 related;
 
@@ -124,56 +158,41 @@ public class Inheritance {
 		}
 
 		public Long getId() {
-			return id;
+			return this.id;
 		}
 
 		@Override
 		public String getName() {
-			return name;
+			return this.name;
 		}
 
 		@Override
 		public SomeInterface2 getRelated() {
-			return related;
+			return this.related;
 		}
 
 		public void setRelated(SomeInterface2 related) {
 			this.related = related;
 		}
-		// tag::interface2[]
+
 	}
-	// end::interface2[]
-
-	/**
-	 * Concrete interface name here, `@Node` is required, label can be omitted in that case
-	 */
-	// tag::interface3[]
-	@Node("SomeInterface3") // <.>
-	public interface SomeInterface3 {
-
-		String getName();
-
-		SomeInterface3 getRelated();
-	}
-
-	// end::interface3[]
 
 	/**
 	 * One implementation of the above.
 	 */
-	// tag::interface3[]
-	@Node("SomeInterface3a") // <.>
+
+	@Node("SomeInterface3a")
 	public static class SomeInterfaceImpl3a implements SomeInterface3 {
 
+		private final String name;
+
 		// Overrides omitted for brevity
-		// end::interface3[]
+
 		@Id
 		@GeneratedValue
 		private Long id;
 
 		private SomeInterfaceImpl3b related;
-
-		private final String name;
 
 		public SomeInterfaceImpl3a(String name) {
 			this.name = name;
@@ -181,34 +200,32 @@ public class Inheritance {
 
 		@Override
 		public SomeInterface3 getRelated() {
-			return related;
+			return this.related;
 		}
 
 		@Override
 		public String getName() {
-			return name;
+			return this.name;
 		}
 
-		// tag::interface3[]
 	}
-	// end::interface3[]
 
 	/**
 	 * Another implementation of the above.
 	 */
-	// tag::interface3[]
-	@Node("SomeInterface3b") // <.>
+
+	@Node("SomeInterface3b")
 	public static class SomeInterfaceImpl3b implements SomeInterface3 {
 
+		private final String name;
+
 		// Overrides omitted for brevity
-		// end::interface3[]
+
 		@Id
 		@GeneratedValue
 		private Long id;
 
 		private SomeInterfaceImpl3a related;
-
-		private final String name;
 
 		public SomeInterfaceImpl3b(String name) {
 			this.name = name;
@@ -216,44 +233,39 @@ public class Inheritance {
 
 		@Override
 		public SomeInterface3 getRelated() {
-			return related;
+			return this.related;
 		}
 
 		@Override
 		public String getName() {
-			return name;
+			return this.name;
 		}
 
-		// tag::interface3[]
 	}
-
-	// end::interface3[]
-
 
 	/**
 	 * A thing having different relationships with the same type.
 	 */
-	// tag::interface3[]
+
 	@Node
-	public static class ParentModel { // <.>
+	public static class ParentModel {
+
+		private final String name;
 
 		@Id
 		@GeneratedValue
 		private Long id;
 
-		private SomeInterface3 related1; // <.>
+		private SomeInterface3 related1;
 
 		private SomeInterface3 related2;
-		// end::interface3[]
-
-		private final String name;
 
 		public ParentModel(String name) {
 			this.name = name;
 		}
 
 		public Long getId() {
-			return id;
+			return this.id;
 		}
 
 		public void setId(Long id) {
@@ -261,11 +273,11 @@ public class Inheritance {
 		}
 
 		public String getName() {
-			return name;
+			return this.name;
 		}
 
 		public SomeInterface3 getRelated1() {
-			return related1;
+			return this.related1;
 		}
 
 		public void setRelated1(SomeInterface3 related1) {
@@ -273,16 +285,14 @@ public class Inheritance {
 		}
 
 		public SomeInterface3 getRelated2() {
-			return related2;
+			return this.related2;
 		}
 
 		public void setRelated2(SomeInterface3 related2) {
 			this.related2 = related2;
 		}
 
-		// tag::interface3[]
 	}
-	// end::interface3[]
 
 	/**
 	 * A holder for a list of different interface implementations, see GH-2262.
@@ -297,32 +307,17 @@ public class Inheritance {
 		private List<SomeInterface3> isRelatedTo;
 
 		public Long getId() {
-			return id;
+			return this.id;
 		}
 
 		public List<SomeInterface3> getIsRelatedTo() {
-			return isRelatedTo;
+			return this.isRelatedTo;
 		}
 
 		public void setIsRelatedTo(List<SomeInterface3> isRelatedTo) {
 			this.isRelatedTo = isRelatedTo;
 		}
-	}
 
-	/**
-	 * Interface to get implemented with the one below.
-	 */
-	@Node("Mix1")
-	public interface MixIt1 {
-		String getName();
-	}
-
-	/**
-	 * Interface to get implemented with one above.
-	 */
-	@Node("Mix2")
-	public interface MixIt2 {
-		String getValue();
 	}
 
 	/**
@@ -331,12 +326,13 @@ public class Inheritance {
 	@Node
 	public static class Mix1AndMix2 implements MixIt1, MixIt2 {
 
+		private final String name;
+
+		private final String value;
+
 		@Id
 		@GeneratedValue
 		private Long id;
-
-		private final String name;
-		private final String value;
 
 		public Mix1AndMix2(String name, String value) {
 			this.name = name;
@@ -345,34 +341,37 @@ public class Inheritance {
 
 		@Override
 		public String getName() {
-			return name;
+			return this.name;
 		}
 
 		@Override
 		public String getValue() {
-			return value;
+			return this.value;
 		}
+
 	}
 
 	/**
 	 * super base class
 	 */
 	@Node
-	public static abstract class SuperBaseClass {
+	public abstract static class SuperBaseClass {
+
 		@Id
 		@GeneratedValue
 		private Long id;
 
 		public Long getId() {
-			return id;
+			return this.id;
 		}
+
 	}
 
 	/**
 	 * base class
 	 */
 	@Node
-	public static abstract class BaseClass extends SuperBaseClass {
+	public abstract static class BaseClass extends SuperBaseClass {
 
 		private final String name;
 
@@ -381,8 +380,9 @@ public class Inheritance {
 		}
 
 		public String getName() {
-			return name;
+			return this.name;
 		}
+
 	}
 
 	/**
@@ -402,7 +402,7 @@ public class Inheritance {
 		}
 
 		public String getConcreteSomething() {
-			return concreteSomething;
+			return this.concreteSomething;
 		}
 
 		@Override
@@ -414,13 +414,14 @@ public class Inheritance {
 				return false;
 			}
 			ConcreteClassA that = (ConcreteClassA) o;
-			return concreteSomething.equals(that.concreteSomething);
+			return this.concreteSomething.equals(that.concreteSomething);
 		}
 
 		@Override
 		public int hashCode() {
-			return Objects.hash(concreteSomething);
+			return Objects.hash(this.concreteSomething);
 		}
+
 	}
 
 	/**
@@ -445,30 +446,32 @@ public class Inheritance {
 				return false;
 			}
 			ConcreteClassB that = (ConcreteClassB) o;
-			return age.equals(that.age);
+			return this.age.equals(that.age);
 		}
 
 		@Override
 		public int hashCode() {
-			return Objects.hash(age);
+			return Objects.hash(this.age);
 		}
+
 	}
 
 	/**
 	 * Base class with explicit primary and additional labels.
 	 */
-	@Node({"LabeledBaseClass", "And_another_one"})
-	public static abstract class BaseClassWithLabels {
+	@Node({ "LabeledBaseClass", "And_another_one" })
+	public abstract static class BaseClassWithLabels {
 
 		@Id
 		@GeneratedValue
 		private Long id;
+
 	}
 
 	/**
 	 * Class that also has explicit labels
 	 */
-	@Node({"ExtendingClassA", "And_yet_more_labels"})
+	@Node({ "ExtendingClassA", "And_yet_more_labels" })
 	public static class ExtendingClassWithLabelsA extends BaseClassWithLabels {
 
 		private final String name;
@@ -478,7 +481,7 @@ public class Inheritance {
 		}
 
 		public String getName() {
-			return name;
+			return this.name;
 		}
 
 		@Override
@@ -490,19 +493,20 @@ public class Inheritance {
 				return false;
 			}
 			ExtendingClassWithLabelsA that = (ExtendingClassWithLabelsA) o;
-			return name.equals(that.name);
+			return this.name.equals(that.name);
 		}
 
 		@Override
 		public int hashCode() {
-			return Objects.hash(name);
+			return Objects.hash(this.name);
 		}
+
 	}
 
 	/**
 	 * Another class that also has explicit labels
 	 */
-	@Node({"ExtendingClassB", "And_other_labels"})
+	@Node({ "ExtendingClassB", "And_other_labels" })
 	public static class ExtendingClassWithLabelsB extends BaseClassWithLabels {
 
 		private final String somethingElse;
@@ -512,7 +516,7 @@ public class Inheritance {
 		}
 
 		public String getSomethingElse() {
-			return somethingElse;
+			return this.somethingElse;
 		}
 
 		@Override
@@ -524,13 +528,14 @@ public class Inheritance {
 				return false;
 			}
 			ExtendingClassWithLabelsB that = (ExtendingClassWithLabelsB) o;
-			return somethingElse.equals(that.somethingElse);
+			return this.somethingElse.equals(that.somethingElse);
 		}
 
 		@Override
 		public int hashCode() {
-			return Objects.hash(somethingElse);
+			return Objects.hash(this.somethingElse);
 		}
+
 	}
 
 	/**
@@ -546,20 +551,22 @@ public class Inheritance {
 		@Relationship("HAS")
 		private List<SuperBaseClass> things;
 
+		public List<SuperBaseClass> getThings() {
+			return this.things;
+		}
+
 		public void setThings(List<SuperBaseClass> things) {
 			this.things = things;
 		}
 
-		public List<SuperBaseClass> getThings() {
-			return things;
-		}
 	}
 
 	/**
 	 * Abstract super base class with relationships
 	 */
 	@Node("SuperBaseClassWithRelationship")
-	public static abstract class SuperBaseClassWithRelationship {
+	public abstract static class SuperBaseClassWithRelationship {
+
 		@Id
 		@GeneratedValue
 		private Long id;
@@ -567,32 +574,37 @@ public class Inheritance {
 		@Relationship("RELATED_TO")
 		private List<ConcreteClassB> boing;
 
+		public List<ConcreteClassB> getBoing() {
+			return this.boing;
+		}
+
 		public void setBoing(List<ConcreteClassB> boing) {
 			this.boing = boing;
 		}
 
-		public List<ConcreteClassB> getBoing() {
-			return boing;
-		}
 	}
 
 	/**
 	 * Abstract base class with relationships
 	 */
 	@Node("BaseClassWithRelationship")
-	public static abstract class BaseClassWithRelationship extends SuperBaseClassWithRelationship {
+	public abstract static class BaseClassWithRelationship extends SuperBaseClassWithRelationship {
 
 		@Relationship("HAS")
 		private List<SuperBaseClass> things;
+
+		public List<SuperBaseClass> getThings() {
+			return this.things;
+		}
 
 		public void setThings(List<SuperBaseClass> things) {
 			this.things = things;
 		}
 
-		public List<SuperBaseClass> getThings() {
-			return things;
-		}
 	}
+
+	// Same as above but with relationship properties instead of direct relationship
+	// links.
 
 	/**
 	 * Concrete implementation
@@ -603,22 +615,22 @@ public class Inheritance {
 		@Relationship("SOMETHING_ELSE")
 		private List<ConcreteClassA> somethingConcrete;
 
+		public List<ConcreteClassA> getSomethingConcrete() {
+			return this.somethingConcrete;
+		}
+
 		public void setSomethingConcrete(List<ConcreteClassA> somethingConcrete) {
 			this.somethingConcrete = somethingConcrete;
 		}
 
-		public List<ConcreteClassA> getSomethingConcrete() {
-			return somethingConcrete;
-		}
 	}
-
-	// Same as above but with relationship properties instead of direct relationship links.
 
 	/**
 	 * Abstract super base class with relationship properties
 	 */
 	@Node("SuperBaseClassWithRelationshipProperties")
-	public static abstract class SuperBaseClassWithRelationshipProperties {
+	public abstract static class SuperBaseClassWithRelationshipProperties {
+
 		@Id
 		@GeneratedValue
 		private Long id;
@@ -626,31 +638,33 @@ public class Inheritance {
 		@Relationship("RELATED_TO")
 		private List<ConcreteBRelationshipProperties> boing;
 
+		public List<ConcreteBRelationshipProperties> getBoing() {
+			return this.boing;
+		}
+
 		public void setBoing(List<ConcreteBRelationshipProperties> boing) {
 			this.boing = boing;
 		}
 
-		public List<ConcreteBRelationshipProperties> getBoing() {
-			return boing;
-		}
 	}
 
 	/**
 	 * Abstract base class with relationship properties
 	 */
 	@Node("BaseClassWithRelationshipProperties")
-	public static abstract class BaseClassWithRelationshipProperties extends SuperBaseClassWithRelationshipProperties {
+	public abstract static class BaseClassWithRelationshipProperties extends SuperBaseClassWithRelationshipProperties {
 
 		@Relationship("HAS")
 		private List<SuperBaseClassRelationshipProperties> things;
+
+		public List<SuperBaseClassRelationshipProperties> getThings() {
+			return this.things;
+		}
 
 		public void setThings(List<SuperBaseClassRelationshipProperties> things) {
 			this.things = things;
 		}
 
-		public List<SuperBaseClassRelationshipProperties> getThings() {
-			return things;
-		}
 	}
 
 	/**
@@ -662,13 +676,14 @@ public class Inheritance {
 		@Relationship("SOMETHING_ELSE")
 		private List<ConcreteARelationshipProperties> somethingConcrete;
 
+		public List<ConcreteARelationshipProperties> getSomethingConcrete() {
+			return this.somethingConcrete;
+		}
+
 		public void setSomethingConcrete(List<ConcreteARelationshipProperties> somethingConcrete) {
 			this.somethingConcrete = somethingConcrete;
 		}
 
-		public List<ConcreteARelationshipProperties> getSomethingConcrete() {
-			return somethingConcrete;
-		}
 	}
 
 	/**
@@ -696,13 +711,14 @@ public class Inheritance {
 				return false;
 			}
 			ConcreteARelationshipProperties that = (ConcreteARelationshipProperties) o;
-			return target.equals(that.target);
+			return this.target.equals(that.target);
 		}
 
 		@Override
 		public int hashCode() {
-			return Objects.hash(target);
+			return Objects.hash(this.target);
 		}
+
 	}
 
 	/**
@@ -730,13 +746,14 @@ public class Inheritance {
 				return false;
 			}
 			ConcreteBRelationshipProperties that = (ConcreteBRelationshipProperties) o;
-			return target.equals(that.target);
+			return this.target.equals(that.target);
 		}
 
 		@Override
 		public int hashCode() {
-			return Objects.hash(target);
+			return Objects.hash(this.target);
 		}
+
 	}
 
 	/**
@@ -764,27 +781,31 @@ public class Inheritance {
 				return false;
 			}
 			SuperBaseClassRelationshipProperties that = (SuperBaseClassRelationshipProperties) o;
-			return target.equals(that.target);
+			return this.target.equals(that.target);
 		}
 
 		@Override
 		public int hashCode() {
-			return Objects.hash(target);
+			return Objects.hash(this.target);
 		}
+
 	}
 
 	/**
 	 * Base entity for GH-2138 generic relationships tests
 	 */
 	@Node("Entity")
-	public static abstract class Entity {
+	public abstract static class Entity {
+
 		@org.springframework.data.annotation.Id
 		@GeneratedValue
 		public Long id;
+
 		public String name;
 
 		@Relationship(type = "IS_CHILD")
 		public Entity parent;
+
 	}
 
 	/**
@@ -792,6 +813,7 @@ public class Inheritance {
 	 */
 	@Node("Company")
 	public static class Company extends Entity {
+
 	}
 
 	/**
@@ -799,6 +821,7 @@ public class Inheritance {
 	 */
 	@Node("Site")
 	public static class Site extends Entity {
+
 	}
 
 	/**
@@ -806,33 +829,39 @@ public class Inheritance {
 	 */
 	@Node("Building")
 	public static class Building extends Entity {
+
 	}
 
 	/**
 	 * Base entity for GH-2138 generic relationship in child class tests
 	 */
 	@Node
-	public static abstract class BaseEntity {
+	public abstract static class BaseEntity {
+
 		@Id
 		@GeneratedValue
 		public Long id;
+
 		public String name;
+
 	}
 
 	/**
 	 * BaseTerritory
 	 */
 	@Node
-	public static abstract class BaseTerritory extends BaseEntity {
-		public String nameEs;
+	public abstract static class BaseTerritory extends BaseEntity {
+
 		public final String nameEn;
+
+		public String nameEs;
 
 		public BaseTerritory(String nameEn) {
 			this.nameEn = nameEn;
 		}
 
 		public String getNameEn() {
-			return nameEn;
+			return this.nameEn;
 		}
 
 		@Override
@@ -844,13 +873,14 @@ public class Inheritance {
 				return false;
 			}
 			BaseTerritory that = (BaseTerritory) o;
-			return nameEn.equals(that.nameEn);
+			return this.nameEn.equals(that.nameEn);
 		}
 
 		@Override
 		public int hashCode() {
-			return Objects.hash(nameEn);
+			return Objects.hash(this.nameEn);
 		}
+
 	}
 
 	/**
@@ -858,9 +888,11 @@ public class Inheritance {
 	 */
 	@Node
 	public static class GenericTerritory extends BaseTerritory {
+
 		public GenericTerritory(String nameEn) {
 			super(nameEn);
 		}
+
 	}
 
 	/**
@@ -868,6 +900,7 @@ public class Inheritance {
 	 */
 	@Node
 	public static class Country extends BaseTerritory {
+
 		public final String countryProperty;
 
 		@Relationship(type = "LINK", direction = Relationship.Direction.OUTGOING)
@@ -890,13 +923,14 @@ public class Inheritance {
 				return false;
 			}
 			Country country = (Country) o;
-			return countryProperty.equals(country.countryProperty);
+			return this.countryProperty.equals(country.countryProperty);
 		}
 
 		@Override
 		public int hashCode() {
-			return Objects.hash(super.hashCode(), countryProperty);
+			return Objects.hash(super.hashCode(), this.countryProperty);
 		}
+
 	}
 
 	/**
@@ -904,6 +938,7 @@ public class Inheritance {
 	 */
 	@Node
 	public static class Continent extends BaseTerritory {
+
 		public final String continentProperty;
 
 		public Continent(String nameEn, String continentProperty) {
@@ -923,17 +958,19 @@ public class Inheritance {
 				return false;
 			}
 			Continent continent = (Continent) o;
-			return continentProperty.equals(continent.continentProperty);
+			return this.continentProperty.equals(continent.continentProperty);
 		}
 
 		@Override
 		public int hashCode() {
-			return Objects.hash(super.hashCode(), continentProperty);
+			return Objects.hash(super.hashCode(), this.continentProperty);
 		}
+
 	}
 
 	/**
-	 * A parent object for some territories, used to test whether those are loaded correct in a polymorphic way.
+	 * A parent object for some territories, used to test whether those are loaded correct
+	 * in a polymorphic way.
 	 */
 	@Node
 	public static class Division extends BaseEntity {
@@ -942,20 +979,20 @@ public class Inheritance {
 		List<BaseTerritory> isActiveIn;
 
 		public List<BaseTerritory> getIsActiveIn() {
-			return isActiveIn;
+			return this.isActiveIn;
 		}
 
-		public void setIsActiveIn(
-				List<BaseTerritory> isActiveIn) {
+		public void setIsActiveIn(List<BaseTerritory> isActiveIn) {
 			this.isActiveIn = isActiveIn;
 		}
+
 	}
 
 	/**
 	 * Parent class with relationship definition in the constructor
 	 */
 	@Node("PCWR")
-	public static abstract class ParentClassWithRelationship {
+	public abstract static class ParentClassWithRelationship {
 
 		@Id
 		@GeneratedValue
@@ -968,6 +1005,7 @@ public class Inheritance {
 			this.id = id;
 			this.continent = continent;
 		}
+
 	}
 
 	/**
@@ -981,24 +1019,22 @@ public class Inheritance {
 		public ChildClassWithRelationship(Long id, Continent continent) {
 			super(id, continent);
 		}
+
 	}
 
 	/**
-	 * Entity that has an interface-based relationship.
-	 * For testing that the properties and relationships of the implementing classes will also get fetched.
+	 * Entity that has an interface-based relationship. For testing that the properties
+	 * and relationships of the implementing classes will also get fetched.
 	 */
 	@Node("GH-2788-Entity")
 	public static class Gh2788Entity {
-		@Id @GeneratedValue public String id;
-		public List<Gh2788Interface> relatedTo;
-	}
 
-	/**
-	 * Interface for relationship
-	 */
-	@Node("GH-2788-Interface")
-	public interface Gh2788Interface {
-		String getName();
+		@Id
+		@GeneratedValue
+		public String id;
+
+		public List<Gh2788Interface> relatedTo;
+
 	}
 
 	/**
@@ -1006,11 +1042,16 @@ public class Inheritance {
 	 */
 	@Node("GH-2788-A")
 	public static class Gh2788A implements Gh2788Interface {
-		@Id @GeneratedValue String id;
 
 		public final String name;
+
 		public final String aValue;
+
 		public final List<Gh2788ArelatedEntity> relatedTo;
+
+		@Id
+		@GeneratedValue
+		String id;
 
 		public Gh2788A(String name, String aValue, List<Gh2788ArelatedEntity> relatedTo) {
 			this.name = name;
@@ -1020,8 +1061,9 @@ public class Inheritance {
 
 		@Override
 		public String getName() {
-			return name;
+			return this.name;
 		}
+
 	}
 
 	/**
@@ -1029,7 +1071,11 @@ public class Inheritance {
 	 */
 	@Node
 	public static class Gh2788ArelatedEntity {
-		@Id @GeneratedValue String id;
+
+		@Id
+		@GeneratedValue
+		String id;
+
 	}
 
 	/**
@@ -1037,11 +1083,16 @@ public class Inheritance {
 	 */
 	@Node("GH-2788-B")
 	public static class Gh2788B implements Gh2788Interface {
-		@Id @GeneratedValue String id;
 
 		public final String name;
+
 		public final String bValue;
+
 		public final List<Gh2788BrelatedEntity> relatedTo;
+
+		@Id
+		@GeneratedValue
+		String id;
 
 		public Gh2788B(String name, String bValue, List<Gh2788BrelatedEntity> relatedTo) {
 			this.name = name;
@@ -1051,8 +1102,9 @@ public class Inheritance {
 
 		@Override
 		public String getName() {
-			return name;
+			return this.name;
 		}
+
 	}
 
 	/**
@@ -1060,7 +1112,11 @@ public class Inheritance {
 	 */
 	@Node
 	public static class Gh2788BrelatedEntity {
-		@Id @GeneratedValue String id;
+
+		@Id
+		@GeneratedValue
+		String id;
+
 	}
 
 }

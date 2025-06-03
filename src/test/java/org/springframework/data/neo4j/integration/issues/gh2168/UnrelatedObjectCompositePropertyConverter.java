@@ -21,15 +21,18 @@ import java.util.Optional;
 
 import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
+
 import org.springframework.data.neo4j.core.convert.Neo4jConversionService;
 import org.springframework.data.neo4j.core.convert.Neo4jPersistentPropertyToMapConverter;
 
 /**
  * @author Michael J. Simons
  */
-public final class UnrelatedObjectCompositePropertyConverter implements Neo4jPersistentPropertyToMapConverter<String, UnrelatedObject> {
+public final class UnrelatedObjectCompositePropertyConverter
+		implements Neo4jPersistentPropertyToMapConverter<String, UnrelatedObject> {
 
 	private static final String A_BOOLEAN_VALUE = "aBooleanValue";
+
 	private static final String A_LONG_VALUE = "aLongValue";
 
 	@Override
@@ -42,14 +45,11 @@ public final class UnrelatedObjectCompositePropertyConverter implements Neo4jPer
 
 	@Override
 	public UnrelatedObject compose(Map<String, Value> source, Neo4jConversionService neo4jConversionService) {
-		boolean aBooleanValue = Optional.ofNullable(source.get(A_BOOLEAN_VALUE))
-				.map(Value::asBoolean)
-				.orElse(false);
+		boolean aBooleanValue = Optional.ofNullable(source.get(A_BOOLEAN_VALUE)).map(Value::asBoolean).orElse(false);
 
-		Long aLongValue = Optional.ofNullable(source.get(A_LONG_VALUE))
-				.map(Value::asLong)
-				.orElse(0L);
+		Long aLongValue = Optional.ofNullable(source.get(A_LONG_VALUE)).map(Value::asLong).orElse(0L);
 
 		return new UnrelatedObject(aBooleanValue, aLongValue);
 	}
+
 }

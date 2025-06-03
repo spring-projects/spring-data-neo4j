@@ -25,4 +25,5 @@ import org.springframework.data.neo4j.repository.Neo4jRepository;
 public interface WidgetRepository extends Neo4jRepository<WidgetEntity, Long> {
 
 	Optional<WidgetEntity> findByCode(String code);
+
 }

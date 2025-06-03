@@ -15,6 +15,9 @@
  */
 package org.springframework.data.neo4j.integration.issues.gh2533;
 
+import java.util.List;
+import java.util.Map;
+
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
@@ -23,19 +26,67 @@ import org.springframework.data.neo4j.core.schema.RelationshipId;
 import org.springframework.data.neo4j.core.schema.RelationshipProperties;
 import org.springframework.data.neo4j.core.schema.TargetNode;
 
-import java.util.List;
-import java.util.Map;
-
 /**
  * Collection of entities for GH2533.
  */
 public class EntitiesAndProjections {
 
 	/**
+	 * Projection breaking the infinite loop
+	 */
+	public interface GH2533EntityWithoutRelationship {
+
+		Long getId();
+
+		String getName();
+
+	}
+
+	/**
+	 * Projection with one level of relationship
+	 */
+	public interface GH2533EntityNodeWithOneLevelLinks {
+
+		Long getId();
+
+		String getName();
+
+		Map<String, List<GH2533RelationshipWithoutTargetRelationships>> getRelationships();
+
+	}
+
+	/**
+	 * Projection of the relationship properties
+	 */
+	public interface GH2533RelationshipWithoutTargetRelationships {
+
+		Long getId();
+
+		boolean isActive();
+
+		GH2533EntityWithoutRelationship getTarget();
+
+	}
+
+	/**
+	 * Projection to entity
+	 */
+	public interface GH2533EntityWithRelationshipToEntity {
+
+		Long getId();
+
+		String getName();
+
+		Map<String, List<GH2533Relationship>> getRelationships();
+
+	}
+
+	/**
 	 * Entity
 	 */
 	@Node
 	public static class GH2533Entity {
+
 		@Id
 		@GeneratedValue
 		public Long id;
@@ -44,6 +95,7 @@ public class EntitiesAndProjections {
 
 		@Relationship
 		public Map<String, List<GH2533Relationship>> relationships;
+
 	}
 
 	/**
@@ -51,52 +103,13 @@ public class EntitiesAndProjections {
 	 */
 	@RelationshipProperties
 	public static class GH2533Relationship {
+
 		@RelationshipId
 		public Long id;
 
 		@TargetNode
 		public GH2533Entity target;
+
 	}
 
-	/**
-	 * Projection breaking the infinite loop
-	 */
-	public interface GH2533EntityWithoutRelationship {
-		Long getId();
-
-		String getName();
-	}
-
-	/**
-	 * Projection with one level of relationship
-	 */
-	public interface GH2533EntityNodeWithOneLevelLinks {
-		Long getId();
-
-		String getName();
-
-		Map<String, List<GH2533RelationshipWithoutTargetRelationships>> getRelationships();
-	}
-
-	/**
-	 * Projection of the relationship properties
-	 */
-	public interface GH2533RelationshipWithoutTargetRelationships {
-		Long getId();
-
-		boolean isActive();
-
-		GH2533EntityWithoutRelationship getTarget();
-	}
-
-	/**
-	 * Projection to entity
-	 */
-	public interface GH2533EntityWithRelationshipToEntity {
-		Long getId();
-
-		String getName();
-
-		Map<String, List<GH2533Relationship>> getRelationships();
-	}
 }

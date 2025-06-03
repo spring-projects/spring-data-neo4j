@@ -28,23 +28,30 @@ import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
 
 /**
- * This annotation can be used to define either custom conversions for single attributes by specifying a custom
- * {@link Neo4jPersistentPropertyConverter} and if needed, a custom factory to create that converter or the annotation
- * can be used to build custom meta-annotated annotations like {@code @org.springframework.data.neo4j.core.support.DateLong}.
+ * This annotation can be used to define either custom conversions for single attributes
+ * by specifying a custom {@link Neo4jPersistentPropertyConverter} and if needed, a custom
+ * factory to create that converter or the annotation can be used to build custom
+ * meta-annotated annotations like
+ * {@code @org.springframework.data.neo4j.core.support.DateLong}.
  *
- * <p>Custom conversions are applied to both attributes of entities and parameters of repository methods that map to those
- * attributes (which does apply to all derived queries and queries by example but not to string based queries).
+ * <p>
+ * Custom conversions are applied to both attributes of entities and parameters of
+ * repository methods that map to those attributes (which does apply to all derived
+ * queries and queries by example but not to string based queries).
  *
- * <p>Converters that have a default constructor don't need a dedicated factory. A dedicated factory will be provided with
- * either this annotation and its values or with the meta annotated annotation, including all configuration
- * available.
+ * <p>
+ * Converters that have a default constructor don't need a dedicated factory. A dedicated
+ * factory will be provided with either this annotation and its values or with the meta
+ * annotated annotation, including all configuration available.
  *
- * <p>In case {@link ConvertWith#converterRef()} is set to a non {@literal null} and non-empty value, the mapping context
- * will try to lookup a bean under the given name of type {@link Neo4jPersistentPropertyConverter} in the application context.
- * If no such bean is found an exception will be thrown. This attribute has precedence over {@link ConvertWith#converter()}.
+ * <p>
+ * In case {@link ConvertWith#converterRef()} is set to a non {@literal null} and
+ * non-empty value, the mapping context will try to lookup a bean under the given name of
+ * type {@link Neo4jPersistentPropertyConverter} in the application context. If no such
+ * bean is found an exception will be thrown. This attribute has precedence over
+ * {@link ConvertWith#converter()}.
  *
  * @author Michael J. Simons
- * @soundtrack Antilopen Gang - Abwasser
  * @since 6.0
  */
 @Retention(RetentionPolicy.RUNTIME)
@@ -55,17 +62,24 @@ import org.neo4j.driver.Values;
 public @interface ConvertWith {
 
 	/**
-	 * @return The converter to instantiated for converting attributes to properties and vice versa.
+	 * The converter to instantiated for converting attributes to properties and vice
+	 * versa.
+	 * @return The converter to instantiated for converting attributes to properties and
+	 * vice versa
 	 */
 	Class<? extends Neo4jPersistentPropertyConverter<?>> converter() default UnsetConverter.class;
 
 	/**
-	 * @return An alternative to {@link #converter()}, for all the scenarios in which constructing a converter is more effort than a constructor call.
+	 * Allows to specify a factory for creating converters.
+	 * @return An alternative to {@link #converter()}, for all the scenarios in which
+	 * constructing a converter is more effort than a constructor call.
 	 */
 	Class<? extends Neo4jPersistentPropertyConverterFactory> converterFactory() default DefaultNeo4jPersistentPropertyConverterFactory.class;
 
 	/**
-	 * @return An optional reference to a bean to be used as converter, must implement {@link Neo4jPersistentPropertyConverter}.
+	 * Reference to a Spring bean to be used as converter.
+	 * @return An optional reference to a bean to be used as converter, must implement
+	 * {@link Neo4jPersistentPropertyConverter}.
 	 */
 	String converterRef() default "";
 
@@ -74,14 +88,16 @@ public @interface ConvertWith {
 	 */
 	final class UnsetConverter implements Neo4jPersistentPropertyConverter<Object> {
 
-		@Override public Value write(@Nullable Object source) {
+		@Override
+		public Value write(@Nullable Object source) {
 			return Values.NULL;
 		}
 
 		@Override
-		@Nullable
-		public Object read(@Nullable Value source) {
+		@Nullable public Object read(@Nullable Value source) {
 			return null;
 		}
+
 	}
+
 }

@@ -24,14 +24,15 @@ import java.lang.annotation.Target;
 import java.util.UUID;
 
 import org.apiguardian.api.API;
+
 import org.springframework.core.annotation.AliasFor;
 
 /**
- * Indicates a generated id. Ids can be generated internally. by the database itself or by an external generator. This
- * annotation defaults to the internally generated ids.
+ * Indicates a generated id. Ids can be generated internally. by the database itself or by
+ * an external generator. This annotation defaults to the internally generated ids.
  * <p>
- * An internal id has no corresponding property on a node. It can only be retrieved via the built-in Cypher function
- * {@code id()}.
+ * An internal id has no corresponding property on a node. It can only be retrieved via
+ * the built-in Cypher function {@code id()}.
  * <p>
  * To use an external id generator, specify on the
  *
@@ -39,13 +40,14 @@ import org.springframework.core.annotation.AliasFor;
  * @since 6.0
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.FIELD, ElementType.ANNOTATION_TYPE})
+@Target({ ElementType.FIELD, ElementType.ANNOTATION_TYPE })
 @Documented
 @Inherited
 @API(status = API.Status.STABLE, since = "6.0")
 public @interface GeneratedValue {
 
 	/**
+	 * Configures the ID generator to use.
 	 * @return The generator to use.
 	 * @see #generatorClass()
 	 */
@@ -53,18 +55,22 @@ public @interface GeneratedValue {
 	Class<? extends IdGenerator<?>> value() default GeneratedValue.InternalIdGenerator.class;
 
 	/**
-	 * @return The generator to use. Defaults to {@link InternalIdGenerator}, which indicates database generated values.
+	 * Configures the ID generator to use.
+	 * @return The generator to use. Defaults to {@link InternalIdGenerator}, which
+	 * indicates database generated values.
 	 */
 	@AliasFor("value")
 	Class<? extends IdGenerator<?>> generatorClass() default GeneratedValue.InternalIdGenerator.class;
 
 	/**
+	 * Configures a bean reference to a bean used as ID generator.
 	 * @return An optional reference to a bean to be used as ID generator.
 	 */
 	String generatorRef() default "";
 
 	/**
-	 * This {@link IdGenerator} does nothing. It is used for relying on the internal, database-side created id.
+	 * This {@link IdGenerator} does nothing. It is used for relying on the internal,
+	 * database-side created id.
 	 */
 	final class InternalIdGenerator implements IdGenerator<Void> {
 
@@ -72,11 +78,12 @@ public @interface GeneratedValue {
 		public Void generateId(String primaryLabel, Object entity) {
 			return null;
 		}
+
 	}
 
 	/**
-	 * This generator is automatically applied when a field of type {@link java.util.UUID} is annotated with
-	 * {@link Id @Id} and {@link GeneratedValue @GeneratedValue}.
+	 * This generator is automatically applied when a field of type {@link java.util.UUID}
+	 * is annotated with {@link Id @Id} and {@link GeneratedValue @GeneratedValue}.
 	 *
 	 */
 	final class UUIDGenerator implements IdGenerator<UUID> {
@@ -85,5 +92,7 @@ public @interface GeneratedValue {
 		public UUID generateId(String primaryLabel, Object entity) {
 			return UUID.randomUUID();
 		}
+
 	}
+
 }

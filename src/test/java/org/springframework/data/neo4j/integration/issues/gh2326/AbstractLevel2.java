@@ -27,13 +27,14 @@ public abstract class AbstractLevel2 extends BaseEntity {
 	 * Provides label `AbstractLevel3`
 	 */
 	@Node
-	public static abstract class AbstractLevel3 extends AbstractLevel2 {
+	public abstract static class AbstractLevel3 extends AbstractLevel2 {
 
 		/**
 		 * Provides label `Concrete1`
 		 */
 		@Node
 		public static class Concrete1 extends AbstractLevel3 {
+
 		}
 
 		/**
@@ -41,6 +42,9 @@ public abstract class AbstractLevel2 extends BaseEntity {
 		 */
 		@Node
 		public static class Concrete2 extends AbstractLevel3 {
+
 		}
+
 	}
+
 }

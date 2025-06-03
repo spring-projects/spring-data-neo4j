@@ -20,6 +20,8 @@ import java.util.Objects;
 import org.apiguardian.api.API;
 
 /**
+ * A concrete, 3-dimensional geographic point with a specific coordinate system.
+ *
  * @author Michael J. Simons
  * @since 6.0
  */
@@ -35,15 +37,16 @@ public final class GeographicPoint3d extends AbstractPoint {
 	}
 
 	public double getLongitude() {
-		return coordinate.getX();
+		return this.coordinate.getX();
 	}
 
 	public double getLatitude() {
-		return coordinate.getY();
+		return this.coordinate.getY();
 	}
 
 	public double getHeight() {
-		return Objects.requireNonNull(coordinate.getZ(), "The underlying coordinate does not have a z-value (height)");
+		return Objects.requireNonNull(this.coordinate.getZ(),
+				"The underlying coordinate does not have a z-value (height)");
 	}
 
 	@Override
@@ -51,4 +54,5 @@ public final class GeographicPoint3d extends AbstractPoint {
 		return "GeographicPoint3d{" + "longitude=" + getLongitude() + ", latitude=" + getLatitude() + ", height="
 				+ getHeight() + ", srid=" + getSrid() + '}';
 	}
+
 }

@@ -15,6 +15,8 @@
  */
 package org.springframework.data.neo4j.integration.issues.gh2579;
 
+import java.util.Objects;
+
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
@@ -44,42 +46,47 @@ public class ColumnNode {
 		return this.id;
 	}
 
-	public String getSourceName() {
-		return this.sourceName;
-	}
-
-	public String getSchemaName() {
-		return this.schemaName;
-	}
-
-	public String getTableName() {
-		return this.tableName;
-	}
-
-	public String getName() {
-		return this.name;
-	}
-
 	public void setId(Long id) {
 		this.id = id;
+	}
+
+	public String getSourceName() {
+		return this.sourceName;
 	}
 
 	public void setSourceName(String sourceName) {
 		this.sourceName = sourceName;
 	}
 
+	public String getSchemaName() {
+		return this.schemaName;
+	}
+
 	public void setSchemaName(String schemaName) {
 		this.schemaName = schemaName;
+	}
+
+	public String getTableName() {
+		return this.tableName;
 	}
 
 	public void setTableName(String tableName) {
 		this.tableName = tableName;
 	}
 
+	public String getName() {
+		return this.name;
+	}
+
 	public void setName(String name) {
 		this.name = name;
 	}
 
+	protected boolean canEqual(final Object other) {
+		return other instanceof ColumnNode;
+	}
+
+	@Override
 	public boolean equals(final Object o) {
 		if (o == this) {
 			return true;
@@ -93,53 +100,50 @@ public class ColumnNode {
 		}
 		final Object this$id = this.getId();
 		final Object other$id = other.getId();
-		if (this$id == null ? other$id != null : !this$id.equals(other$id)) {
+		if (!Objects.equals(this$id, other$id)) {
 			return false;
 		}
 		final Object this$sourceName = this.getSourceName();
 		final Object other$sourceName = other.getSourceName();
-		if (this$sourceName == null ? other$sourceName != null : !this$sourceName.equals(other$sourceName)) {
+		if (!Objects.equals(this$sourceName, other$sourceName)) {
 			return false;
 		}
 		final Object this$schemaName = this.getSchemaName();
 		final Object other$schemaName = other.getSchemaName();
-		if (this$schemaName == null ? other$schemaName != null : !this$schemaName.equals(other$schemaName)) {
+		if (!Objects.equals(this$schemaName, other$schemaName)) {
 			return false;
 		}
 		final Object this$tableName = this.getTableName();
 		final Object other$tableName = other.getTableName();
-		if (this$tableName == null ? other$tableName != null : !this$tableName.equals(other$tableName)) {
+		if (!Objects.equals(this$tableName, other$tableName)) {
 			return false;
 		}
 		final Object this$name = this.getName();
 		final Object other$name = other.getName();
-		if (this$name == null ? other$name != null : !this$name.equals(other$name)) {
-			return false;
-		}
-		return true;
+		return Objects.equals(this$name, other$name);
 	}
 
-	protected boolean canEqual(final Object other) {
-		return other instanceof ColumnNode;
-	}
-
+	@Override
 	public int hashCode() {
 		final int PRIME = 59;
 		int result = 1;
 		final Object $id = this.getId();
-		result = result * PRIME + ($id == null ? 43 : $id.hashCode());
+		result = result * PRIME + (($id != null) ? $id.hashCode() : 43);
 		final Object $sourceName = this.getSourceName();
-		result = result * PRIME + ($sourceName == null ? 43 : $sourceName.hashCode());
+		result = result * PRIME + (($sourceName != null) ? $sourceName.hashCode() : 43);
 		final Object $schemaName = this.getSchemaName();
-		result = result * PRIME + ($schemaName == null ? 43 : $schemaName.hashCode());
+		result = result * PRIME + (($schemaName != null) ? $schemaName.hashCode() : 43);
 		final Object $tableName = this.getTableName();
-		result = result * PRIME + ($tableName == null ? 43 : $tableName.hashCode());
+		result = result * PRIME + (($tableName != null) ? $tableName.hashCode() : 43);
 		final Object $name = this.getName();
-		result = result * PRIME + ($name == null ? 43 : $name.hashCode());
+		result = result * PRIME + (($name != null) ? $name.hashCode() : 43);
 		return result;
 	}
 
+	@Override
 	public String toString() {
-		return "ColumnNode(id=" + this.getId() + ", sourceName=" + this.getSourceName() + ", schemaName=" + this.getSchemaName() + ", tableName=" + this.getTableName() + ", name=" + this.getName() + ")";
+		return "ColumnNode(id=" + this.getId() + ", sourceName=" + this.getSourceName() + ", schemaName="
+				+ this.getSchemaName() + ", tableName=" + this.getTableName() + ", name=" + this.getName() + ")";
 	}
+
 }

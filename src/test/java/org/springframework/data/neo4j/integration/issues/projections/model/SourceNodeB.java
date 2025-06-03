@@ -15,15 +15,16 @@
  */
 package org.springframework.data.neo4j.integration.issues.projections.model;
 
+import java.util.List;
+import java.util.Objects;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import org.springframework.data.annotation.Version;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Property;
 import org.springframework.data.neo4j.core.schema.Relationship;
-
-import java.util.List;
-import java.util.Objects;
 
 /**
  * @author Michael J. Simons
@@ -32,12 +33,12 @@ import java.util.Objects;
 @Node
 public class SourceNodeB {
 
+	@Version
+	Long version;
+
 	@Id
 	@Property(name = "id")
 	private String id;
-
-	@Version
-	Long version;
 
 	private String name;
 
@@ -59,23 +60,6 @@ public class SourceNodeB {
 		return new SourceNodeBBuilder();
 	}
 
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) {
-			return true;
-		}
-		if (o == null || getClass() != o.getClass()) {
-			return false;
-		}
-		SourceNodeB sourceNodeB = (SourceNodeB) o;
-		return Objects.equals(id, sourceNodeB.id) && Objects.equals(name, sourceNodeB.name);
-	}
-
-	@Override
-	public int hashCode() {
-		return Objects.hash(id, name);
-	}
-
 	public String getId() {
 		return this.id;
 	}
@@ -92,13 +76,34 @@ public class SourceNodeB {
 		return this.centralNodes;
 	}
 
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
+		SourceNodeB sourceNodeB = (SourceNodeB) o;
+		return Objects.equals(this.id, sourceNodeB.id) && Objects.equals(this.name, sourceNodeB.name);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(this.id, this.name);
+	}
+
 	/**
 	 * the builder
 	 */
 	public static class SourceNodeBBuilder {
+
 		private String id;
+
 		private Long version;
+
 		private String name;
+
 		private List<CentralNode> centralNodes;
 
 		SourceNodeBBuilder() {
@@ -129,8 +134,12 @@ public class SourceNodeB {
 			return new SourceNodeB(this.id, this.version, this.name, this.centralNodes);
 		}
 
+		@Override
 		public String toString() {
-			return "SourceNodeB.SourceNodeBBuilder(id=" + this.id + ", version=" + this.version + ", name=" + this.name + ", centralNodes=" + this.centralNodes + ")";
+			return "SourceNodeB.SourceNodeBBuilder(id=" + this.id + ", version=" + this.version + ", name=" + this.name
+					+ ", centralNodes=" + this.centralNodes + ")";
 		}
+
 	}
+
 }

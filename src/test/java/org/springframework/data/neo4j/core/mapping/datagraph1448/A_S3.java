@@ -28,7 +28,8 @@ import org.springframework.data.neo4j.core.schema.Node;
 @Node
 public class A_S3 {
 
-	@Id @GeneratedValue
+	@Id
+	@GeneratedValue
 	private Long id;
 
 	private String name;
@@ -38,4 +39,5 @@ public class A_S3 {
 	public A_S3(String name) {
 		this.name = name;
 	}
+
 }

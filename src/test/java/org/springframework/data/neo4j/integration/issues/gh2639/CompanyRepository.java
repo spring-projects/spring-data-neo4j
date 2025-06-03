@@ -21,5 +21,7 @@ import org.springframework.data.neo4j.repository.Neo4jRepository;
  * @author Gerrit Meier
  */
 public interface CompanyRepository extends Neo4jRepository<Company, Long> {
+
 	Company findByName(String name);
+
 }

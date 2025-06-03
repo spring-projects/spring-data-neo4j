@@ -15,9 +15,6 @@
  */
 package org.springframework.data.neo4j.integration.imperative;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assumptions.assumeThat;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -27,10 +24,10 @@ import org.junit.jupiter.api.Test;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Transaction;
 import org.neo4j.driver.Values;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.neo4j.test.Neo4jImperativeTestConfiguration;
 import org.springframework.data.neo4j.core.DatabaseSelectionProvider;
 import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
 import org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager;
@@ -49,11 +46,15 @@ import org.springframework.data.neo4j.integration.shared.common.Pet;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.data.neo4j.repository.query.Query;
 import org.springframework.data.neo4j.test.BookmarkCapture;
+import org.springframework.data.neo4j.test.Neo4jImperativeTestConfiguration;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assumptions.assumeThat;
 
 /**
  * @author Michael J. Simons
@@ -68,7 +69,7 @@ class DynamicRelationshipsIT extends DynamicRelationshipsITBase<PersonWithRelati
 	@Test
 	void shouldReadDynamicRelationships(@Autowired PersonWithRelativesRepository repository) {
 
-		PersonWithRelatives person = repository.findById(idOfExistingPerson).get();
+		PersonWithRelatives person = repository.findById(this.idOfExistingPerson).get();
 		assertThat(person).isNotNull();
 		assertThat(person.getName()).isEqualTo("A");
 
@@ -86,7 +87,7 @@ class DynamicRelationshipsIT extends DynamicRelationshipsITBase<PersonWithRelati
 	@Test // GH-216
 	void shouldReadDynamicCollectionRelationships(@Autowired PersonWithRelativesRepository repository) {
 
-		PersonWithRelatives person = repository.findById(idOfExistingPerson).get();
+		PersonWithRelatives person = repository.findById(this.idOfExistingPerson).get();
 		assertThat(person).isNotNull();
 		assertThat(person.getName()).isEqualTo("A");
 
@@ -96,14 +97,17 @@ class DynamicRelationshipsIT extends DynamicRelationshipsITBase<PersonWithRelati
 		assertThat(pets.get(TypeOfPet.DOGS)).extracting(Pet::getName).containsExactlyInAnyOrder("Benji", "Lassie");
 
 		Map<TypeOfHobby, List<HobbyRelationship>> hobbies = person.getHobbies();
-		assertThat(hobbies.get(TypeOfHobby.ACTIVE)).extracting(HobbyRelationship::getPerformance).containsExactly("average");
-		assertThat(hobbies.get(TypeOfHobby.ACTIVE)).extracting(HobbyRelationship::getHobby).extracting(Hobby::getName).containsExactly("Biking");
+		assertThat(hobbies.get(TypeOfHobby.ACTIVE)).extracting(HobbyRelationship::getPerformance)
+			.containsExactly("average");
+		assertThat(hobbies.get(TypeOfHobby.ACTIVE)).extracting(HobbyRelationship::getHobby)
+			.extracting(Hobby::getName)
+			.containsExactly("Biking");
 	}
 
 	@Test // DATAGRAPH-1449
 	void shouldUpdateDynamicRelationships(@Autowired PersonWithRelativesRepository repository) {
 
-		PersonWithRelatives person = repository.findById(idOfExistingPerson).get();
+		PersonWithRelatives person = repository.findById(this.idOfExistingPerson).get();
 		assumeThat(person).isNotNull();
 		assumeThat(person.getName()).isEqualTo("A");
 
@@ -126,7 +130,7 @@ class DynamicRelationshipsIT extends DynamicRelationshipsITBase<PersonWithRelati
 
 		repository.save(person);
 
-		person = repository.findById(idOfExistingPerson).get();
+		person = repository.findById(this.idOfExistingPerson).get();
 
 		relatives = person.getRelatives();
 		assertThat(relatives).containsOnlyKeys(TypeOfRelative.HAS_DAUGHTER, TypeOfRelative.HAS_SON);
@@ -137,16 +141,17 @@ class DynamicRelationshipsIT extends DynamicRelationshipsITBase<PersonWithRelati
 		assertThat(clubs).containsOnlyKeys(TypeOfClub.BASEBALL);
 		assertThat(clubs.get(TypeOfClub.BASEBALL)).extracting(ClubRelationship::getPlace).isEqualTo("Boston");
 		assertThat(clubs.get(TypeOfClub.BASEBALL)).extracting(ClubRelationship::getClub)
-				.extracting(Club::getName).isEqualTo("Red Sox");
+			.extracting(Club::getName)
+			.isEqualTo("Red Sox");
 	}
 
 	@Test
 	void shouldUpdateDynamicRelationshipsProperties(@Autowired PersonWithRelativesRepository repository) {
-		PersonWithRelatives person = repository.findById(idOfExistingPerson).get();
+		PersonWithRelatives person = repository.findById(this.idOfExistingPerson).get();
 		person.getClubs().get(TypeOfClub.FOOTBALL).setPlace("Braunschweig");
 		repository.save(person);
 
-		person = repository.findById(idOfExistingPerson).get();
+		person = repository.findById(this.idOfExistingPerson).get();
 		Map<TypeOfClub, ClubRelationship> clubs = person.getClubs();
 		assertThat(clubs).containsOnlyKeys(TypeOfClub.FOOTBALL);
 		assertThat(clubs.get(TypeOfClub.FOOTBALL).getPlace()).isEqualTo("Braunschweig");
@@ -155,7 +160,7 @@ class DynamicRelationshipsIT extends DynamicRelationshipsITBase<PersonWithRelati
 	@Test // GH-216 // DATAGRAPH-1449
 	void shouldUpdateDynamicCollectionRelationships(@Autowired PersonWithRelativesRepository repository) {
 
-		PersonWithRelatives person = repository.findById(idOfExistingPerson).get();
+		PersonWithRelatives person = repository.findById(this.idOfExistingPerson).get();
 		assertThat(person).isNotNull();
 		assertThat(person.getName()).isEqualTo("A");
 
@@ -178,20 +183,21 @@ class DynamicRelationshipsIT extends DynamicRelationshipsITBase<PersonWithRelati
 
 		repository.save(person);
 
-		person = repository.findById(idOfExistingPerson).get();
+		person = repository.findById(this.idOfExistingPerson).get();
 
 		pets = person.getPets();
 		assertThat(pets).containsOnlyKeys(TypeOfPet.CATS, TypeOfPet.FISH);
-		assertThat(pets.get(TypeOfPet.CATS)).extracting(Pet::getName).containsExactlyInAnyOrder("Tom", "Garfield",
-				"Delilah");
+		assertThat(pets.get(TypeOfPet.CATS)).extracting(Pet::getName)
+			.containsExactlyInAnyOrder("Tom", "Garfield", "Delilah");
 		assertThat(pets.get(TypeOfPet.FISH)).extracting(Pet::getName).containsExactlyInAnyOrder("Nemo");
 
 		hobbies = person.getHobbies();
 		assertThat(hobbies).containsOnlyKeys(TypeOfHobby.WATCHING);
 		assertThat(hobbies.get(TypeOfHobby.WATCHING)).extracting(HobbyRelationship::getPerformance)
-				.containsExactly("average");
+			.containsExactly("average");
 		assertThat(hobbies.get(TypeOfHobby.WATCHING)).extracting(HobbyRelationship::getHobby)
-				.extracting(Hobby::getName).containsExactly("Football");
+			.extracting(Hobby::getName)
+			.containsExactly("Football");
 	}
 
 	@Test // DATAGRAPH-1447
@@ -226,14 +232,21 @@ class DynamicRelationshipsIT extends DynamicRelationshipsITBase<PersonWithRelati
 		assertThat(newPerson.getRelatives()).containsOnlyKeys(TypeOfRelative.RELATIVE_1, TypeOfRelative.RELATIVE_2);
 		assertThat(newPerson.getClubs()).containsOnlyKeys(TypeOfClub.BASEBALL, TypeOfClub.FOOTBALL);
 
-		try (Transaction transaction = driver.session(bookmarkCapture.createSessionConfig()).beginTransaction()) {
+		try (Transaction transaction = this.driver.session(this.bookmarkCapture.createSessionConfig())
+			.beginTransaction()) {
 			long numberOfRelations = transaction
-					.run(("MATCH (t:%s)-[r]->(:Person) WHERE id(t) = $id RETURN count(r) as numberOfRelations").formatted(labelOfTestSubject), Values.parameters("id", newPerson.getId()))
-					.single().get("numberOfRelations").asLong();
+				.run(("MATCH (t:%s)-[r]->(:Person) WHERE id(t) = $id RETURN count(r) as numberOfRelations")
+					.formatted(this.labelOfTestSubject), Values.parameters("id", newPerson.getId()))
+				.single()
+				.get("numberOfRelations")
+				.asLong();
 			assertThat(numberOfRelations).isEqualTo(2L);
 			numberOfRelations = transaction
-					.run(("MATCH (t:%s)-[r]->(:Club) WHERE id(t) = $id RETURN count(r) as numberOfRelations").formatted(labelOfTestSubject), Values.parameters("id", newPerson.getId()))
-					.single().get("numberOfRelations").asLong();
+				.run(("MATCH (t:%s)-[r]->(:Club) WHERE id(t) = $id RETURN count(r) as numberOfRelations")
+					.formatted(this.labelOfTestSubject), Values.parameters("id", newPerson.getId()))
+				.single()
+				.get("numberOfRelations")
+				.asLong();
 			assertThat(numberOfRelations).isEqualTo(2L);
 		}
 	}
@@ -252,8 +265,8 @@ class DynamicRelationshipsIT extends DynamicRelationshipsITBase<PersonWithRelati
 		List<Pet> fish = pets.computeIfAbsent(TypeOfPet.FISH, s -> new ArrayList<>());
 		fish.add(new Pet("Nemo"));
 
-		List<HobbyRelationship> hobbyRelationships = hobbies
-				.computeIfAbsent(TypeOfHobby.ACTIVE, s -> new ArrayList<>());
+		List<HobbyRelationship> hobbyRelationships = hobbies.computeIfAbsent(TypeOfHobby.ACTIVE,
+				s -> new ArrayList<>());
 		HobbyRelationship hobbyRelationship = new HobbyRelationship("ok");
 		Hobby hobby1 = new Hobby();
 		hobby1.setName("Football");
@@ -272,16 +285,21 @@ class DynamicRelationshipsIT extends DynamicRelationshipsITBase<PersonWithRelati
 		pets = newPerson.getPets();
 		assertThat(pets).containsOnlyKeys(TypeOfPet.MONSTERS, TypeOfPet.FISH);
 
-		try (Transaction transaction = driver.session(bookmarkCapture.createSessionConfig()).beginTransaction()) {
+		try (Transaction transaction = this.driver.session(this.bookmarkCapture.createSessionConfig())
+			.beginTransaction()) {
 			long numberOfRelations = transaction
-					.run(("MATCH (t:%s)-[r]->(:Pet) WHERE id(t) = $id RETURN count(r) as numberOfRelations").formatted(labelOfTestSubject),
-							Values.parameters("id", newPerson.getId()))
-					.single().get("numberOfRelations").asLong();
+				.run(("MATCH (t:%s)-[r]->(:Pet) WHERE id(t) = $id RETURN count(r) as numberOfRelations")
+					.formatted(this.labelOfTestSubject), Values.parameters("id", newPerson.getId()))
+				.single()
+				.get("numberOfRelations")
+				.asLong();
 			assertThat(numberOfRelations).isEqualTo(3L);
 			numberOfRelations = transaction
-					.run(("MATCH (t:%s)-[r]->(:Hobby) WHERE id(t) = $id RETURN count(r) as numberOfRelations").formatted(labelOfTestSubject),
-							Values.parameters("id", newPerson.getId()))
-					.single().get("numberOfRelations").asLong();
+				.run(("MATCH (t:%s)-[r]->(:Hobby) WHERE id(t) = $id RETURN count(r) as numberOfRelations")
+					.formatted(this.labelOfTestSubject), Values.parameters("id", newPerson.getId()))
+				.single()
+				.get("numberOfRelations")
+				.asLong();
 			assertThat(numberOfRelations).isEqualTo(2L);
 		}
 	}
@@ -289,7 +307,7 @@ class DynamicRelationshipsIT extends DynamicRelationshipsITBase<PersonWithRelati
 	@Test // DATAGRAPH-1411
 	void shouldReadDynamicRelationshipsWithCustomQuery(@Autowired PersonWithRelativesRepository repository) {
 
-		PersonWithRelatives person = repository.byCustomQuery(idOfExistingPerson);
+		PersonWithRelatives person = repository.byCustomQuery(this.idOfExistingPerson);
 		assertThat(person).isNotNull();
 		assertThat(person.getName()).isEqualTo("A");
 
@@ -307,7 +325,7 @@ class DynamicRelationshipsIT extends DynamicRelationshipsITBase<PersonWithRelati
 	@Test // DATAGRAPH-1411
 	void shouldReadDynamicCollectionRelationshipsWithCustomQuery(@Autowired PersonWithRelativesRepository repository) {
 
-		PersonWithRelatives person = repository.byCustomQuery(idOfExistingPerson);
+		PersonWithRelatives person = repository.byCustomQuery(this.idOfExistingPerson);
 		assertThat(person).isNotNull();
 		assertThat(person.getName()).isEqualTo("A");
 
@@ -317,8 +335,11 @@ class DynamicRelationshipsIT extends DynamicRelationshipsITBase<PersonWithRelati
 		assertThat(pets.get(TypeOfPet.DOGS)).extracting(Pet::getName).containsExactlyInAnyOrder("Benji", "Lassie");
 
 		Map<TypeOfHobby, List<HobbyRelationship>> hobbies = person.getHobbies();
-		assertThat(hobbies.get(TypeOfHobby.ACTIVE)).extracting(HobbyRelationship::getPerformance).containsExactly("average");
-		assertThat(hobbies.get(TypeOfHobby.ACTIVE)).extracting(HobbyRelationship::getHobby).extracting(Hobby::getName).containsExactly("Biking");
+		assertThat(hobbies.get(TypeOfHobby.ACTIVE)).extracting(HobbyRelationship::getPerformance)
+			.containsExactly("average");
+		assertThat(hobbies.get(TypeOfHobby.ACTIVE)).extracting(HobbyRelationship::getHobby)
+			.extracting(Hobby::getName)
+			.containsExactly("Biking");
 	}
 
 	interface PersonWithRelativesRepository extends CrudRepository<PersonWithRelatives, Long> {
@@ -334,25 +355,30 @@ class DynamicRelationshipsIT extends DynamicRelationshipsITBase<PersonWithRelati
 	static class Config extends Neo4jImperativeTestConfiguration {
 
 		@Bean
+		@Override
 		public Driver driver() {
 			return neo4jConnectionSupport.getDriver();
 		}
 
 		@Bean
-		public BookmarkCapture bookmarkCapture() {
+		BookmarkCapture bookmarkCapture() {
 			return new BookmarkCapture();
 		}
 
 		@Override
-		public PlatformTransactionManager transactionManager(Driver driver, DatabaseSelectionProvider databaseNameProvider) {
+		public PlatformTransactionManager transactionManager(Driver driver,
+				DatabaseSelectionProvider databaseNameProvider) {
 
 			BookmarkCapture bookmarkCapture = bookmarkCapture();
-			return new Neo4jTransactionManager(driver, databaseNameProvider, Neo4jBookmarkManager.create(bookmarkCapture));
+			return new Neo4jTransactionManager(driver, databaseNameProvider,
+					Neo4jBookmarkManager.create(bookmarkCapture));
 		}
 
 		@Override
 		public boolean isCypher5Compatible() {
 			return neo4jConnectionSupport.isCypher5SyntaxCompatible();
 		}
+
 	}
+
 }

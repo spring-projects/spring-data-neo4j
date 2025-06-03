@@ -15,8 +15,6 @@
  */
 package org.springframework.data.neo4j.repository.query;
 
-import static org.neo4j.cypherdsl.core.Cypher.asterisk;
-
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -29,6 +27,7 @@ import org.neo4j.cypherdsl.core.Condition;
 import org.neo4j.cypherdsl.core.Cypher;
 import org.neo4j.cypherdsl.core.SortItem;
 import org.neo4j.cypherdsl.core.Statement;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -40,9 +39,13 @@ import org.springframework.data.neo4j.repository.support.CypherdslConditionExecu
 import org.springframework.data.neo4j.repository.support.Neo4jEntityInformation;
 import org.springframework.data.support.PageableExecutionUtils;
 
+import static org.neo4j.cypherdsl.core.Cypher.asterisk;
+
 /**
+ * Imperative variant of the {@link CypherdslConditionExecutor}.
+ *
+ * @param <T> the returned domain type
  * @author Michael J. Simons
- * @param <T> The returned domain type.
  * @since 6.1
  */
 @API(status = API.Status.INTERNAL, since = "6.1")
@@ -65,61 +68,59 @@ public final class CypherdslConditionExecutorImpl<T> implements CypherdslConditi
 	@Override
 	public Optional<T> findOne(Condition condition) {
 
-		return this.neo4jOperations.toExecutableQuery(
-				this.metaData.getType(),
-				QueryFragmentsAndParameters.forCondition(this.metaData, condition)
-		).getSingleResult();
+		return this.neo4jOperations
+			.toExecutableQuery(this.metaData.getType(),
+					QueryFragmentsAndParameters.forCondition(this.metaData, condition))
+			.getSingleResult();
 	}
 
 	@Override
 	public Collection<T> findAll(Condition condition) {
 
-		return this.neo4jOperations.toExecutableQuery(
-				this.metaData.getType(),
-				QueryFragmentsAndParameters.forCondition(this.metaData, condition)
-		).getResults();
+		return this.neo4jOperations
+			.toExecutableQuery(this.metaData.getType(),
+					QueryFragmentsAndParameters.forCondition(this.metaData, condition))
+			.getResults();
 	}
 
 	@Override
 	public Collection<T> findAll(Condition condition, Sort sort) {
 
 		Predicate<PropertyFilter.RelaxedPropertyPath> noFilter = PropertyFilter.NO_FILTER;
-		return this.neo4jOperations.toExecutableQuery(
-				metaData.getType(),
-				QueryFragmentsAndParameters.forConditionAndSort(
-						this.metaData, condition, sort, null, noFilter
-				)
-		).getResults();
+		return this.neo4jOperations
+			.toExecutableQuery(this.metaData.getType(),
+					QueryFragmentsAndParameters.forConditionAndSort(this.metaData, condition, sort, null, noFilter))
+			.getResults();
 	}
 
 	@Override
 	public Collection<T> findAll(Condition condition, SortItem... sortItems) {
 
-		return this.neo4jOperations.toExecutableQuery(
-				this.metaData.getType(),
-				QueryFragmentsAndParameters.forConditionAndSortItems(
-						this.metaData, condition, Arrays.asList(sortItems)
-				)
-		).getResults();
+		return this.neo4jOperations
+			.toExecutableQuery(this.metaData.getType(),
+					QueryFragmentsAndParameters.forConditionAndSortItems(this.metaData, condition,
+							Arrays.asList(sortItems)))
+			.getResults();
 	}
 
 	@Override
 	public Collection<T> findAll(SortItem... sortItems) {
 
-		return this.neo4jOperations.toExecutableQuery(
-				this.metaData.getType(),
-				QueryFragmentsAndParameters.forConditionAndSortItems(this.metaData, Cypher.noCondition(), Arrays.asList(sortItems))
-		).getResults();
+		return this.neo4jOperations
+			.toExecutableQuery(this.metaData.getType(),
+					QueryFragmentsAndParameters.forConditionAndSortItems(this.metaData, Cypher.noCondition(),
+							Arrays.asList(sortItems)))
+			.getResults();
 	}
 
 	@Override
 	public Page<T> findAll(Condition condition, Pageable pageable) {
 
 		Predicate<PropertyFilter.RelaxedPropertyPath> noFilter = PropertyFilter.NO_FILTER;
-		List<T> page = this.neo4jOperations.toExecutableQuery(
-				this.metaData.getType(),
-				QueryFragmentsAndParameters.forConditionAndPageable(this.metaData, condition, pageable, noFilter)
-		).getResults();
+		List<T> page = this.neo4jOperations
+			.toExecutableQuery(this.metaData.getType(),
+					QueryFragmentsAndParameters.forConditionAndPageable(this.metaData, condition, pageable, noFilter))
+			.getResults();
 		LongSupplier totalCountSupplier = () -> this.count(condition);
 		return PageableExecutionUtils.getPage(page, pageable, totalCountSupplier);
 	}
@@ -128,7 +129,8 @@ public final class CypherdslConditionExecutorImpl<T> implements CypherdslConditi
 	public long count(Condition condition) {
 
 		Statement statement = CypherGenerator.INSTANCE.prepareMatchOf(this.metaData, condition)
-				.returning(Cypher.count(asterisk())).build();
+			.returning(Cypher.count(asterisk()))
+			.build();
 		return this.neo4jOperations.count(statement, statement.getCatalog().getParameters());
 	}
 
@@ -136,4 +138,5 @@ public final class CypherdslConditionExecutorImpl<T> implements CypherdslConditi
 	public boolean exists(Condition condition) {
 		return count(condition) > 0;
 	}
+
 }

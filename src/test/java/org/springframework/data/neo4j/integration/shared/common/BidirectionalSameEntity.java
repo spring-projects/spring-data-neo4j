@@ -15,6 +15,8 @@
  */
 package org.springframework.data.neo4j.integration.shared.common;
 
+import java.util.List;
+
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Relationship;
@@ -22,8 +24,6 @@ import org.springframework.data.neo4j.core.schema.Relationship.Direction;
 import org.springframework.data.neo4j.core.schema.RelationshipId;
 import org.springframework.data.neo4j.core.schema.RelationshipProperties;
 import org.springframework.data.neo4j.core.schema.TargetNode;
-
-import java.util.List;
 
 /**
  * @author Gerrit Meier
@@ -51,6 +51,9 @@ public class BidirectionalSameEntity {
 	@RelationshipProperties
 	public static class BidirectionalSameRelationship {
 
+		@TargetNode
+		BidirectionalSameEntity entity;
+
 		@RelationshipId
 		private Long id;
 
@@ -58,7 +61,6 @@ public class BidirectionalSameEntity {
 			this.entity = entity;
 		}
 
-		@TargetNode
-		BidirectionalSameEntity entity;
 	}
+
 }

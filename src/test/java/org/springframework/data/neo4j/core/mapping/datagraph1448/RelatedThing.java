@@ -25,6 +25,8 @@ import org.springframework.data.neo4j.core.schema.Node;
 @Node
 public abstract class RelatedThing {
 
-	@Id @GeneratedValue
+	@Id
+	@GeneratedValue
 	private Long id;
+
 }

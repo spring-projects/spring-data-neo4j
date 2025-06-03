@@ -23,6 +23,7 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import org.apiguardian.api.API;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -39,12 +40,12 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * Repository base implementation for Neo4j.
  *
+ * @param <T> the type of the domain class managed by this repository
+ * @param <ID> the type of the unique identifier of the domain class
  * @author Gerrit Meier
  * @author Michael J. Simons
  * @author Ján Šúr
  * @author Jens Schauder
- * @param <T> the type of the domain class managed by this repository
- * @param <ID> the type of the unique identifier of the domain class
  * @since 6.0
  */
 @Repository
@@ -68,13 +69,13 @@ public class SimpleNeo4jRepository<T, ID> implements PagingAndSortingRepository<
 	@Override
 	public Optional<T> findById(ID id) {
 
-		return neo4jOperations.findById(id, this.entityInformation.getJavaType());
+		return this.neo4jOperations.findById(id, this.entityInformation.getJavaType());
 	}
 
 	@Override
 	public List<T> findAllById(Iterable<ID> ids) {
 
-		return neo4jOperations.findAllById(ids, this.entityInformation.getJavaType());
+		return this.neo4jOperations.findAllById(ids, this.entityInformation.getJavaType());
 	}
 
 	@Override
@@ -86,16 +87,18 @@ public class SimpleNeo4jRepository<T, ID> implements PagingAndSortingRepository<
 	@Override
 	public List<T> findAll(Sort sort) {
 
-		return this.neo4jOperations.toExecutableQuery(entityInformation.getJavaType(),
-				QueryFragmentsAndParameters.forPageableAndSort(entityMetaData, null, sort))
-				.getResults();
+		return this.neo4jOperations
+			.toExecutableQuery(this.entityInformation.getJavaType(),
+					QueryFragmentsAndParameters.forPageableAndSort(this.entityMetaData, null, sort))
+			.getResults();
 	}
 
 	@Override
 	public Page<T> findAll(Pageable pageable) {
-		List<T> allResult = this.neo4jOperations.toExecutableQuery(entityInformation.getJavaType(),
-				QueryFragmentsAndParameters.forPageableAndSort(entityMetaData, pageable, null))
-				.getResults();
+		List<T> allResult = this.neo4jOperations
+			.toExecutableQuery(this.entityInformation.getJavaType(),
+					QueryFragmentsAndParameters.forPageableAndSort(this.entityMetaData, pageable, null))
+			.getResults();
 
 		LongSupplier totalCountSupplier = this::count;
 		return PageableExecutionUtils.getPage(allResult, pageable, totalCountSupplier);
@@ -104,7 +107,7 @@ public class SimpleNeo4jRepository<T, ID> implements PagingAndSortingRepository<
 	@Override
 	public long count() {
 
-		return neo4jOperations.count(this.entityInformation.getJavaType());
+		return this.neo4jOperations.count(this.entityInformation.getJavaType());
 	}
 
 	@Override
@@ -138,12 +141,15 @@ public class SimpleNeo4jRepository<T, ID> implements PagingAndSortingRepository<
 	@Transactional
 	public void delete(T entity) {
 
-		ID id = Objects.requireNonNull(this.entityInformation.getId(entity), "Cannot delete individual nodes without an id");
-		if (entityMetaData.hasVersionProperty()) {
-			Neo4jPersistentProperty versionProperty = entityMetaData.getRequiredVersionProperty();
-			Object versionValue = entityMetaData.getPropertyAccessor(entity).getProperty(versionProperty);
-			this.neo4jOperations.deleteByIdWithVersion(id, this.entityInformation.getJavaType(), versionProperty, versionValue);
-		} else {
+		ID id = Objects.requireNonNull(this.entityInformation.getId(entity),
+				"Cannot delete individual nodes without an id");
+		if (this.entityMetaData.hasVersionProperty()) {
+			Neo4jPersistentProperty versionProperty = this.entityMetaData.getRequiredVersionProperty();
+			Object versionValue = this.entityMetaData.getPropertyAccessor(entity).getProperty(versionProperty);
+			this.neo4jOperations.deleteByIdWithVersion(id, this.entityInformation.getJavaType(), versionProperty,
+					versionValue);
+		}
+		else {
 			this.deleteById(id);
 		}
 	}
@@ -159,8 +165,9 @@ public class SimpleNeo4jRepository<T, ID> implements PagingAndSortingRepository<
 	@Transactional
 	public void deleteAll(Iterable<? extends T> entities) {
 
-		List<Object> ids = StreamSupport.stream(entities.spliterator(), false).map(this.entityInformation::getId)
-				.collect(Collectors.toList());
+		List<Object> ids = StreamSupport.stream(entities.spliterator(), false)
+			.map(this.entityInformation::getId)
+			.collect(Collectors.toList());
 
 		this.neo4jOperations.deleteAllById(ids, this.entityInformation.getJavaType());
 	}
@@ -171,4 +178,5 @@ public class SimpleNeo4jRepository<T, ID> implements PagingAndSortingRepository<
 
 		this.neo4jOperations.deleteAll(this.entityInformation.getJavaType());
 	}
+
 }

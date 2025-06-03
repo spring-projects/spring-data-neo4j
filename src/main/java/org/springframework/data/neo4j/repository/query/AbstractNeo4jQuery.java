@@ -27,6 +27,7 @@ import java.util.function.UnaryOperator;
 import org.jspecify.annotations.Nullable;
 import org.neo4j.driver.types.MapAccessor;
 import org.neo4j.driver.types.TypeSystem;
+
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -61,11 +62,11 @@ import org.springframework.util.Assert;
 abstract class AbstractNeo4jQuery extends Neo4jQuerySupport implements RepositoryQuery {
 
 	protected final Neo4jOperations neo4jOperations;
+
 	private final ProjectionFactory factory;
 
 	AbstractNeo4jQuery(Neo4jOperations neo4jOperations, Neo4jMappingContext mappingContext,
-			Neo4jQueryMethod queryMethod,
-			Neo4jQueryType queryType, ProjectionFactory factory) {
+			Neo4jQueryMethod queryMethod, Neo4jQueryType queryType, ProjectionFactory factory) {
 
 		super(mappingContext, queryMethod, queryType);
 		this.factory = factory;
@@ -79,11 +80,8 @@ abstract class AbstractNeo4jQuery extends Neo4jQuerySupport implements Repositor
 		return this.queryMethod;
 	}
 
-	/**
-	 * {@return whether the query is a geo near query}
-	 */
 	boolean isGeoNearQuery() {
-		var repositoryMethod = queryMethod.getMethod();
+		var repositoryMethod = this.queryMethod.getMethod();
 		Class<?> returnType = repositoryMethod.getReturnType();
 
 		for (Class<?> type : Neo4jQueryMethod.GEO_NEAR_RESULTS) {
@@ -101,41 +99,48 @@ abstract class AbstractNeo4jQuery extends Neo4jQuerySupport implements Repositor
 	}
 
 	@Override
-	@Nullable
-	public final Object execute(Object[] parameters) {
+	@Nullable public final Object execute(Object[] parameters) {
 
-		boolean incrementLimit = queryMethod.incrementLimit();
+		boolean incrementLimit = this.queryMethod.incrementLimit();
 		boolean geoNearQuery = isGeoNearQuery();
 		Neo4jParameterAccessor parameterAccessor = new Neo4jParameterAccessor(
-				(Neo4jQueryMethod.Neo4jParameters) this.queryMethod.getParameters(),
-				parameters);
+				(Neo4jQueryMethod.Neo4jParameters) this.queryMethod.getParameters(), parameters);
 
-		ResultProcessor resultProcessor = queryMethod.getResultProcessor().withDynamicProjection(parameterAccessor);
+		ResultProcessor resultProcessor = this.queryMethod.getResultProcessor()
+			.withDynamicProjection(parameterAccessor);
 		ReturnedType returnedType = resultProcessor.getReturnedType();
 		PreparedQuery<?> preparedQuery = prepareQuery(returnedType.getReturnedType(),
-				PropertyFilterSupport.getInputProperties(resultProcessor, factory, mappingContext), parameterAccessor,
-				null, getMappingFunction(resultProcessor, geoNearQuery), incrementLimit ? l -> l + 1 : UnaryOperator.identity());
+				PropertyFilterSupport.getInputProperties(resultProcessor, this.factory, this.mappingContext),
+				parameterAccessor, null, getMappingFunction(resultProcessor, geoNearQuery),
+				incrementLimit ? l -> l + 1 : UnaryOperator.identity());
 
-		Object rawResult = new Neo4jQueryExecution.DefaultQueryExecution(neo4jOperations).execute(preparedQuery, queryMethod.asCollectionQuery());
+		Object rawResult = new Neo4jQueryExecution.DefaultQueryExecution(this.neo4jOperations).execute(preparedQuery,
+				this.queryMethod.asCollectionQuery());
 
 		Converter<Object, Object> preparingConverter = OptionalUnwrappingConverter.INSTANCE;
 		if (returnedType.isProjecting()) {
-			DtoInstantiatingConverter converter = new DtoInstantiatingConverter(returnedType.getReturnedType(), mappingContext);
+			DtoInstantiatingConverter converter = new DtoInstantiatingConverter(returnedType.getReturnedType(),
+					this.mappingContext);
 
-			// Neo4jQuerySupport ensure we will get an EntityInstanceWithSource in the projecting case
+			// Neo4jQuerySupport ensure we will get an EntityInstanceWithSource in the
+			// projecting case
 			preparingConverter = source -> {
 				var unwrapped = (EntityInstanceWithSource) OptionalUnwrappingConverter.INSTANCE.convert(source);
-				return (unwrapped == null) ? null : converter.convert(unwrapped);
+				return (unwrapped != null) ? converter.convert(unwrapped) : null;
 			};
 		}
 
-		if (queryMethod.isPageQuery()) {
+		if (this.queryMethod.isPageQuery()) {
 			rawResult = createPage(parameterAccessor, (List<?>) rawResult);
-		} else if (queryMethod.isSliceQuery()) {
+		}
+		else if (this.queryMethod.isSliceQuery()) {
 			rawResult = createSlice(incrementLimit, parameterAccessor, (List<?>) rawResult);
-		} else if (queryMethod.isScrollQuery()) {
-			rawResult = createWindow(resultProcessor, incrementLimit, parameterAccessor, (List<?>) rawResult, preparedQuery.getQueryFragmentsAndParameters());
-		} else if (geoNearQuery) {
+		}
+		else if (this.queryMethod.isScrollQuery()) {
+			rawResult = createWindow(resultProcessor, incrementLimit, parameterAccessor, (List<?>) rawResult,
+					preparedQuery.getQueryFragmentsAndParameters());
+		}
+		else if (geoNearQuery) {
 			rawResult = newGeoResults(rawResult);
 		}
 
@@ -146,11 +151,11 @@ abstract class AbstractNeo4jQuery extends Neo4jQuerySupport implements Repositor
 
 		LongSupplier totalSupplier = () -> {
 
-			Supplier<PreparedQuery<Long>> defaultCountQuery = () -> prepareQuery(Long.class,
-					Collections.emptySet(), parameterAccessor, Neo4jQueryType.COUNT, null, UnaryOperator.identity());
+			Supplier<PreparedQuery<Long>> defaultCountQuery = () -> prepareQuery(Long.class, Collections.emptySet(),
+					parameterAccessor, Neo4jQueryType.COUNT, null, UnaryOperator.identity());
 			PreparedQuery<Long> countQuery = getCountQuery(parameterAccessor).orElseGet(defaultCountQuery);
 
-			return neo4jOperations.toExecutableQuery(countQuery).getRequiredSingleResult();
+			return this.neo4jOperations.toExecutableQuery(countQuery).getRequiredSingleResult();
 		};
 
 		if (isGeoNearQuery()) {
@@ -165,21 +170,15 @@ abstract class AbstractNeo4jQuery extends Neo4jQuerySupport implements Repositor
 		Pageable pageable = parameterAccessor.getPageable();
 
 		if (incrementLimit) {
-			 return new SliceImpl<>(
-					rawResult.subList(0, Math.min(rawResult.size(), pageable.getPageSize())),
+			return new SliceImpl<>(rawResult.subList(0, Math.min(rawResult.size(), pageable.getPageSize())),
 					PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), pageable.getSort()),
-					rawResult.size() > pageable.getPageSize()
-			);
-		} else {
-			PreparedQuery<Long> countQuery = getCountQuery(parameterAccessor)
-					.orElseGet(() -> prepareQuery(Long.class, Collections.emptySet(), parameterAccessor,
-							Neo4jQueryType.COUNT, null, UnaryOperator.identity()));
-			long total = neo4jOperations.toExecutableQuery(countQuery).getRequiredSingleResult();
-			return new SliceImpl<>(
-					rawResult,
-					pageable,
-					pageable.getOffset() + pageable.getPageSize() < total
-			);
+					rawResult.size() > pageable.getPageSize());
+		}
+		else {
+			PreparedQuery<Long> countQuery = getCountQuery(parameterAccessor).orElseGet(() -> prepareQuery(Long.class,
+					Collections.emptySet(), parameterAccessor, Neo4jQueryType.COUNT, null, UnaryOperator.identity()));
+			long total = this.neo4jOperations.toExecutableQuery(countQuery).getRequiredSingleResult();
+			return new SliceImpl<>(rawResult, pageable, pageable.getOffset() + pageable.getPageSize() < total);
 		}
 	}
 
@@ -192,4 +191,5 @@ abstract class AbstractNeo4jQuery extends Neo4jQuerySupport implements Repositor
 	protected Optional<PreparedQuery<Long>> getCountQuery(Neo4jParameterAccessor parameterAccessor) {
 		return Optional.empty();
 	}
+
 }

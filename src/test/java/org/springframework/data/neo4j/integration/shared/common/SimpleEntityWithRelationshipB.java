@@ -36,6 +36,7 @@ public class SimpleEntityWithRelationshipB {
 	private List<SimpleEntityWithRelationshipC> cs;
 
 	public List<SimpleEntityWithRelationshipC> getCs() {
-		return cs;
+		return this.cs;
 	}
+
 }

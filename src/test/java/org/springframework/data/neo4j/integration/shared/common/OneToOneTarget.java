@@ -15,6 +15,8 @@
  */
 package org.springframework.data.neo4j.integration.shared.common;
 
+import java.util.Objects;
+
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
 
@@ -40,6 +42,11 @@ public class OneToOneTarget {
 		this.name = name;
 	}
 
+	protected boolean canEqual(final Object other) {
+		return other instanceof OneToOneTarget;
+	}
+
+	@Override
 	public boolean equals(final Object o) {
 		if (o == this) {
 			return true;
@@ -53,25 +60,21 @@ public class OneToOneTarget {
 		}
 		final Object this$name = this.getName();
 		final Object other$name = other.getName();
-		if (this$name == null ? other$name != null : !this$name.equals(other$name)) {
-			return false;
-		}
-		return true;
+		return Objects.equals(this$name, other$name);
 	}
 
-	protected boolean canEqual(final Object other) {
-		return other instanceof OneToOneTarget;
-	}
-
+	@Override
 	public int hashCode() {
 		final int PRIME = 59;
 		int result = 1;
 		final Object $name = this.getName();
-		result = result * PRIME + ($name == null ? 43 : $name.hashCode());
+		result = (result * PRIME) + (($name != null) ? $name.hashCode() : 43);
 		return result;
 	}
 
+	@Override
 	public String toString() {
 		return "OneToOneTarget(name=" + this.getName() + ")";
 	}
+
 }

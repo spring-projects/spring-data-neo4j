@@ -18,12 +18,12 @@ package org.springframework.data.neo4j.core.mapping;
 import java.util.Collection;
 
 /**
- * Wraps a resolved node description together with the complete list of labels returned from the database and the list
- * of labels not statically defined in the resolved node hierarchy.
+ * Wraps a resolved node description together with the complete list of labels returned
+ * from the database and the list of labels not statically defined in the resolved node
+ * hierarchy.
  *
  * @author Michael J. Simons
  * @since 6.0
- * @soundtrack The Rolling Stones - Living In A Ghost Town
  */
 final class NodeDescriptionAndLabels {
 
@@ -36,11 +36,12 @@ final class NodeDescriptionAndLabels {
 		this.dynamicLabels = dynamicLabels;
 	}
 
-	public NodeDescription<?> getNodeDescription() {
-		return nodeDescription;
+	NodeDescription<?> getNodeDescription() {
+		return this.nodeDescription;
 	}
 
-	public Collection<String> getDynamicLabels() {
-		return dynamicLabels;
+	Collection<String> getDynamicLabels() {
+		return this.dynamicLabels;
 	}
+
 }

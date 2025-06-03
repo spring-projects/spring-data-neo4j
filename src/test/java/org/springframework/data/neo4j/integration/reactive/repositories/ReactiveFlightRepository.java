@@ -22,4 +22,5 @@ import org.springframework.data.neo4j.repository.ReactiveNeo4jRepository;
  * @author Gerrit Meier
  */
 public interface ReactiveFlightRepository extends ReactiveNeo4jRepository<Flight, Long> {
+
 }

@@ -23,4 +23,5 @@ public interface VariableProjection {
 	BaseNodeFieldsProjection getMeasurement();
 
 	String getVariable();
+
 }

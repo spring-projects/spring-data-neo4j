@@ -15,11 +15,12 @@
  */
 package org.springframework.data.neo4j.integration.issues.gh2415;
 
+import java.util.Set;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Relationship;
-
-import java.util.Set;
 
 /**
  * @author Andreas Berger
@@ -48,17 +49,8 @@ public class NodeEntity extends BaseNodeEntity implements NodeWithDefinedCredent
 		return new NodeEntityBuilderImpl();
 	}
 
-	@Override
-	public String toString() {
-		return super.toString();
-	}
-
 	public Set<BaseNodeEntity> getChildren() {
 		return this.children;
-	}
-
-	public Set<Credential> getDefinedCredentials() {
-		return this.definedCredentials;
 	}
 
 	@JsonIgnore
@@ -66,10 +58,26 @@ public class NodeEntity extends BaseNodeEntity implements NodeWithDefinedCredent
 		this.children = children;
 	}
 
+	@Override
+	public Set<Credential> getDefinedCredentials() {
+		return this.definedCredentials;
+	}
+
 	private void setDefinedCredentials(Set<Credential> definedCredentials) {
 		this.definedCredentials = definedCredentials;
 	}
 
+	@Override
+	protected boolean canEqual(final Object other) {
+		return other instanceof NodeEntity;
+	}
+
+	@Override
+	public NodeEntityBuilder<?, ?> toBuilder() {
+		return new NodeEntityBuilderImpl().$fillValuesFrom(this);
+	}
+
+	@Override
 	public boolean equals(final Object o) {
 		if (o == this) {
 			return true;
@@ -81,32 +89,31 @@ public class NodeEntity extends BaseNodeEntity implements NodeWithDefinedCredent
 		if (!other.canEqual((Object) this)) {
 			return false;
 		}
-		if (!super.equals(o)) {
-			return false;
-		}
-		return true;
+		return super.equals(o);
 	}
 
-	protected boolean canEqual(final Object other) {
-		return other instanceof NodeEntity;
-	}
-
+	@Override
 	public int hashCode() {
 		int result = super.hashCode();
 		return result;
 	}
 
-	public NodeEntityBuilder<?, ?> toBuilder() {
-		return new NodeEntityBuilderImpl().$fillValuesFrom(this);
+	@Override
+	public String toString() {
+		return super.toString();
 	}
 
 	/**
 	 * the builder
+	 *
 	 * @param <C> needed c type
 	 * @param <B> needed b type
 	 */
-	public static abstract class NodeEntityBuilder<C extends NodeEntity, B extends NodeEntityBuilder<C, B>> extends BaseNodeEntityBuilder<C, B> {
+	public abstract static class NodeEntityBuilder<C extends NodeEntity, B extends NodeEntityBuilder<C, B>>
+			extends BaseNodeEntityBuilder<C, B> {
+
 		private Set<BaseNodeEntity> children;
+
 		private Set<Credential> definedCredentials;
 
 		private static void $fillValuesFromInstanceIntoBuilder(NodeEntity instance, NodeEntityBuilder<?, ?> b) {
@@ -125,31 +132,42 @@ public class NodeEntity extends BaseNodeEntity implements NodeWithDefinedCredent
 			return self();
 		}
 
+		@Override
 		protected B $fillValuesFrom(C instance) {
 			super.$fillValuesFrom(instance);
 			NodeEntityBuilder.$fillValuesFromInstanceIntoBuilder(instance, this);
 			return self();
 		}
 
+		@Override
 		protected abstract B self();
 
+		@Override
 		public abstract C build();
 
+		@Override
 		public String toString() {
-			return "NodeEntity.NodeEntityBuilder(super=" + super.toString() + ", children=" + this.children + ", definedCredentials=" + this.definedCredentials + ")";
+			return "NodeEntity.NodeEntityBuilder(super=" + super.toString() + ", children=" + this.children
+					+ ", definedCredentials=" + this.definedCredentials + ")";
 		}
+
 	}
 
 	private static final class NodeEntityBuilderImpl extends NodeEntityBuilder<NodeEntity, NodeEntityBuilderImpl> {
+
 		private NodeEntityBuilderImpl() {
 		}
 
+		@Override
 		protected NodeEntityBuilderImpl self() {
 			return this;
 		}
 
+		@Override
 		public NodeEntity build() {
 			return new NodeEntity(this);
 		}
+
 	}
+
 }

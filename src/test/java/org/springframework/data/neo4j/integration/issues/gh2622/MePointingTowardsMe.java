@@ -15,13 +15,13 @@
  */
 package org.springframework.data.neo4j.integration.issues.gh2622;
 
+import java.util.List;
+import java.util.Objects;
+
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Relationship;
-
-import java.util.List;
-import java.util.Objects;
 
 /**
  * @author Gerrit Meier
@@ -29,14 +29,14 @@ import java.util.Objects;
 @Node
 public class MePointingTowardsMe {
 
-	@Id
-	@GeneratedValue
-	Long id;
+	@Relationship
+	public final List<MePointingTowardsMe> others;
 
 	final String name;
 
-	@Relationship
-	public final List<MePointingTowardsMe> others;
+	@Id
+	@GeneratedValue
+	Long id;
 
 	public MePointingTowardsMe(String name, List<MePointingTowardsMe> others) {
 		this.name = name;
@@ -52,11 +52,12 @@ public class MePointingTowardsMe {
 			return false;
 		}
 		MePointingTowardsMe that = (MePointingTowardsMe) o;
-		return name.equals(that.name);
+		return this.name.equals(that.name);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(name);
+		return Objects.hash(this.name);
 	}
+
 }

@@ -26,6 +26,7 @@ import org.jspecify.annotations.Nullable;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.types.MapAccessor;
 import org.neo4j.driver.types.TypeSystem;
+
 import org.springframework.core.CollectionFactory;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.log.LogAccessor;
@@ -40,12 +41,11 @@ import org.springframework.data.util.TypeInformation;
 import org.springframework.util.Assert;
 
 /**
- * {@link Converter} to instantiate DTOs from fully equipped domain objects.
- * The original idea of this converter and it's usage is to be found in Spring Data Mongo. Thanks to the original
- * authors Oliver Drotbohm and Mark Paluch.
+ * {@link Converter} to instantiate DTOs from fully equipped domain objects. The original
+ * idea of this converter and it's usage is to be found in Spring Data Mongo. Thanks to
+ * the original authors Oliver Drotbohm and Mark Paluch.
  *
  * @author Michael J. Simons
- * @soundtrack Gustavo Santaolalla - The Last Of Us
  */
 @API(status = API.Status.INTERNAL, since = "6.1.2")
 public final class DtoInstantiatingConverter implements Converter<EntityInstanceWithSource, Object> {
@@ -53,11 +53,11 @@ public final class DtoInstantiatingConverter implements Converter<EntityInstance
 	private static final LogAccessor log = new LogAccessor(LogFactory.getLog(DtoInstantiatingConverter.class));
 
 	private final Class<?> targetType;
+
 	private final Neo4jMappingContext context;
 
 	/**
 	 * Creates a new {@link Converter} to instantiate DTOs.
-	 *
 	 * @param dtoType must not be {@literal null}.
 	 * @param context must not be {@literal null}.
 	 */
@@ -71,18 +71,16 @@ public final class DtoInstantiatingConverter implements Converter<EntityInstance
 	}
 
 	public Object convertDirectly(Object entityInstance) {
-		Neo4jPersistentEntity<?> sourceEntity = context.getRequiredPersistentEntity(entityInstance.getClass());
+		Neo4jPersistentEntity<?> sourceEntity = this.context.getRequiredPersistentEntity(entityInstance.getClass());
 		PersistentPropertyAccessor<Object> sourceAccessor = sourceEntity.getPropertyAccessor(entityInstance);
 
-		Neo4jPersistentEntity<?> targetEntity = context.addPersistentEntity(TypeInformation.of(targetType)).orElseThrow(() -> new IllegalStateException("Target entity could not be created for a DTO"));
+		Neo4jPersistentEntity<?> targetEntity = this.context.addPersistentEntity(TypeInformation.of(this.targetType))
+			.orElseThrow(() -> new IllegalStateException("Target entity could not be created for a DTO"));
 		InstanceCreatorMetadata<?> creator = targetEntity.getInstanceCreatorMetadata();
 
-		Object dto = context.getInstantiatorFor(targetEntity)
-				.createInstance(targetEntity,
-						getParameterValueProvider(
-								targetEntity,
-								targetProperty -> getPropertyValueDirectlyFor(targetProperty, sourceEntity, sourceAccessor))
-				);
+		Object dto = this.context.getInstantiatorFor(targetEntity)
+			.createInstance(targetEntity, getParameterValueProvider(targetEntity,
+					targetProperty -> getPropertyValueDirectlyFor(targetProperty, sourceEntity, sourceAccessor)));
 
 		PersistentPropertyAccessor<Object> dtoAccessor = targetEntity.getPropertyAccessor(dto);
 		PropertyHandlerSupport.of(targetEntity).doWithProperties(property -> {
@@ -98,9 +96,8 @@ public final class DtoInstantiatingConverter implements Converter<EntityInstance
 		return dto;
 	}
 
-	@Nullable
-	Object getPropertyValueDirectlyFor(PersistentProperty<?> targetProperty, PersistentEntity<?, ?> sourceEntity,
-							   PersistentPropertyAccessor<?> sourceAccessor) {
+	@Nullable Object getPropertyValueDirectlyFor(PersistentProperty<?> targetProperty, PersistentEntity<?, ?> sourceEntity,
+			PersistentPropertyAccessor<?> sourceAccessor) {
 
 		String targetPropertyName = targetProperty.getName();
 		PersistentProperty<?> sourceProperty = sourceEntity.getPersistentProperty(targetPropertyName);
@@ -110,35 +107,34 @@ public final class DtoInstantiatingConverter implements Converter<EntityInstance
 		}
 
 		Object result = sourceAccessor.getProperty(sourceProperty);
-		if (result != null && targetProperty.isEntity() && !targetProperty.getTypeInformation().isAssignableFrom(sourceProperty.getTypeInformation())) {
+		if (result != null && targetProperty.isEntity()
+				&& !targetProperty.getTypeInformation().isAssignableFrom(sourceProperty.getTypeInformation())) {
 			return new DtoInstantiatingConverter(targetProperty.getType(), this.context).convertDirectly(result);
 		}
 		return result;
 	}
 
 	@Override
-	@Nullable
-	public Object convert(EntityInstanceWithSource entityInstanceAndSource) {
+	@Nullable public Object convert(EntityInstanceWithSource entityInstanceAndSource) {
 
 		Object entityInstance = entityInstanceAndSource.getEntityInstance();
-		if (targetType.isInterface() || targetType.isInstance(entityInstance)) {
+		if (this.targetType.isInterface() || this.targetType.isInstance(entityInstance)) {
 			return entityInstance;
 		}
 
-		Neo4jPersistentEntity<?> sourceEntity = context.getRequiredPersistentEntity(entityInstance.getClass());
+		Neo4jPersistentEntity<?> sourceEntity = this.context.getRequiredPersistentEntity(entityInstance.getClass());
 		PersistentPropertyAccessor<Object> sourceAccessor = sourceEntity.getPropertyAccessor(entityInstance);
 
-		Neo4jPersistentEntity<?> targetEntity = context.addPersistentEntity(TypeInformation.of(targetType))
-				.orElseThrow(() -> new MappingException(
-						"Could not add a persistent entity for the projection target type '" + targetType.getName() + "'"));
-		InstanceCreatorMetadata<@NonNull ? extends PersistentProperty<?>> creator = targetEntity.getInstanceCreatorMetadata();
+		Neo4jPersistentEntity<?> targetEntity = this.context.addPersistentEntity(TypeInformation.of(this.targetType))
+			.orElseThrow(() -> new MappingException("Could not add a persistent entity for the projection target type '"
+					+ this.targetType.getName() + "'"));
+		InstanceCreatorMetadata<@NonNull ? extends PersistentProperty<?>> creator = targetEntity
+			.getInstanceCreatorMetadata();
 
-		Object dto = context.getInstantiatorFor(targetEntity)
-				.createInstance(targetEntity,
-						getParameterValueProvider(
-								targetEntity,
-								targetProperty -> getPropertyValueFor(targetProperty, sourceEntity, sourceAccessor, entityInstanceAndSource))
-				);
+		Object dto = this.context.getInstantiatorFor(targetEntity)
+			.createInstance(targetEntity,
+					getParameterValueProvider(targetEntity, targetProperty -> getPropertyValueFor(targetProperty,
+							sourceEntity, sourceAccessor, entityInstanceAndSource)));
 
 		PersistentPropertyAccessor<Object> dtoAccessor = targetEntity.getPropertyAccessor(dto);
 		targetEntity.doWithAll(property -> setPropertyOnDtoObject(entityInstanceAndSource, sourceEntity, sourceAccessor,
@@ -148,11 +144,11 @@ public final class DtoInstantiatingConverter implements Converter<EntityInstance
 	}
 
 	private ParameterValueProvider<Neo4jPersistentProperty> getParameterValueProvider(
-			Neo4jPersistentEntity<?> targetEntity,
-			Function<Neo4jPersistentProperty, Object> extractFromSource
-	) {
+			Neo4jPersistentEntity<?> targetEntity, Function<Neo4jPersistentProperty, Object> extractFromSource) {
 		return new ParameterValueProvider<>() {
-			@SuppressWarnings("unchecked") // Needed for the last cast. It's easier that way than using the parameter type info and checking for primitives
+			@SuppressWarnings("unchecked") // Needed for the last cast. It's easier that
+											// way than using the parameter type info and
+											// checking for primitives
 			@Override
 			public <T> T getParameterValue(Parameter<T, Neo4jPersistentProperty> parameter) {
 				String parameterName = parameter.getName();
@@ -163,7 +159,7 @@ public final class DtoInstantiatingConverter implements Converter<EntityInstance
 				Neo4jPersistentProperty targetProperty = targetEntity.getPersistentProperty(parameterName);
 				if (targetProperty == null) {
 					throw new MappingException("Cannot map constructor parameter " + parameterName
-											   + " to a property of class " + targetType);
+							+ " to a property of class " + DtoInstantiatingConverter.this.targetType);
 				}
 				return (T) extractFromSource.apply(targetProperty);
 			}
@@ -183,8 +179,7 @@ public final class DtoInstantiatingConverter implements Converter<EntityInstance
 		dtoAccessor.setProperty(property, propertyValue);
 	}
 
-	@Nullable
-	Object getPropertyValueFor(Neo4jPersistentProperty targetProperty, PersistentEntity<?, ?> sourceEntity,
+	@Nullable Object getPropertyValueFor(Neo4jPersistentProperty targetProperty, PersistentEntity<?, ?> sourceEntity,
 			PersistentPropertyAccessor<?> sourceAccessor, EntityInstanceWithSource entityInstanceAndSource) {
 
 		TypeSystem typeSystem = entityInstanceAndSource.getTypeSystem();
@@ -197,18 +192,23 @@ public final class DtoInstantiatingConverter implements Converter<EntityInstance
 		}
 
 		if (!sourceRecord.containsKey(targetPropertyName)) {
-			log.warn(() -> String.format(""
-					+ "Cannot retrieve a value for property `%s` of DTO `%s` and the property will always be null. "
-					+ "Make sure to project only properties of the domain type or use a custom query that "
-					+ "returns a mappable data under the name `%1$s`.", targetPropertyName, targetType.getName()));
-		} else if (targetProperty.isMap()) {
-			log.warn(() -> String.format(""
-					+ "%s is an additional property to be projected. "
-					+ "However, map properties cannot be projected and the property will always be null.",
+			log.warn(() -> String.format(
+					"" + "Cannot retrieve a value for property `%s` of DTO `%s` and the property will always be null. "
+							+ "Make sure to project only properties of the domain type or use a custom query that "
+							+ "returns a mappable data under the name `%1$s`.",
+					targetPropertyName, this.targetType.getName()));
+		}
+		else if (targetProperty.isMap()) {
+			log.warn(() -> String.format(
+					"" + "%s is an additional property to be projected. "
+							+ "However, map properties cannot be projected and the property will always be null.",
 					targetPropertyName));
-		} else {
-			// We don't support associations on the top level of DTO projects which is somewhat inline with the restrictions
-			// regarding DTO projections as described in https://docs.spring.io/spring-data/jpa/docs/2.4.0-RC1/reference/html/#projections.dtos
+		}
+		else {
+			// We don't support associations on the top level of DTO projects which is
+			// somewhat inline with the restrictions
+			// regarding DTO projections as described in
+			// https://docs.spring.io/spring-data/jpa/docs/2.4.0-RC1/reference/html/#projections.dtos
 			// > except that no proxying happens and no nested projections can be applied
 			// Therefore, we extract associations kinda half-manual.
 
@@ -217,24 +217,28 @@ public final class DtoInstantiatingConverter implements Converter<EntityInstance
 				log.warn(() -> String.format(""
 						+ "%s is a list property but the selected value is not a list and the property will always be null.",
 						targetPropertyName));
-			} else {
+			}
+			else {
 				Class<?> actualType = targetProperty.getActualType();
 
 				Function<Value, Object> singleValue;
-				if (context.hasPersistentEntityFor(actualType)) {
-					singleValue = p -> context.getEntityConverter().read(actualType, p);
-				} else {
+				if (this.context.hasPersistentEntityFor(actualType)) {
+					singleValue = p -> this.context.getEntityConverter().read(actualType, p);
+				}
+				else {
 					TypeInformation<?> actualTargetType = TypeInformation.of(actualType);
-					singleValue = p -> context.getConversionService().readValue(p, actualTargetType, targetProperty.getOptionalConverter());
+					singleValue = p -> this.context.getConversionService()
+						.readValue(p, actualTargetType, targetProperty.getOptionalConverter());
 				}
 
 				if (targetProperty.isCollectionLike()) {
 					List<Object> returnedValues = property.asList(singleValue);
-					Collection<Object> target = CollectionFactory
-							.createCollection(targetProperty.getType(), actualType, returnedValues.size());
+					Collection<Object> target = CollectionFactory.createCollection(targetProperty.getType(), actualType,
+							returnedValues.size());
 					target.addAll(returnedValues);
 					return target;
-				} else {
+				}
+				else {
 					return singleValue.apply(property);
 				}
 			}
@@ -242,4 +246,5 @@ public final class DtoInstantiatingConverter implements Converter<EntityInstance
 
 		return null;
 	}
+
 }

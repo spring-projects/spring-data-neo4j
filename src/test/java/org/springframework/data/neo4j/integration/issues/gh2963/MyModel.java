@@ -27,17 +27,18 @@ import org.springframework.data.neo4j.core.support.UUIDStringGenerator;
  */
 @Node
 public class MyModel {
+
 	@Id
 	@GeneratedValue(generatorClass = UUIDStringGenerator.class)
 	private String uuid;
 
 	private String name;
 
-	@Relationship(value = "REL_TO_MY_NESTED_MODEL")
+	@Relationship("REL_TO_MY_NESTED_MODEL")
 	private MyModel myNestedModel;
 
 	public MyModel getMyNestedModel() {
-		return myNestedModel;
+		return this.myNestedModel;
 	}
 
 	public void setMyNestedModel(MyModel myNestedModel) {
@@ -45,7 +46,7 @@ public class MyModel {
 	}
 
 	public String getName() {
-		return name;
+		return this.name;
 	}
 
 	public void setName(String name) {
@@ -53,10 +54,11 @@ public class MyModel {
 	}
 
 	public String getUuid() {
-		return uuid;
+		return this.uuid;
 	}
 
 	public void setUuid(String uuid) {
 		this.uuid = uuid;
 	}
+
 }

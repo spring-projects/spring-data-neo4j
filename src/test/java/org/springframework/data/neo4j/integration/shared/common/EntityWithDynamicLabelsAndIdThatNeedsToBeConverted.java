@@ -26,12 +26,14 @@ import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
 
 /**
- * Provided via Github as reproducer for entities with dynamic labels and ids that are subject to conversion. Needed for GH-2296.
+ * Provided via Github as reproducer for entities with dynamic labels and ids that are
+ * subject to conversion. Needed for GH-2296.
  *
  * @author Michael J. Simons
  */
 @Node
 public class EntityWithDynamicLabelsAndIdThatNeedsToBeConverted {
+
 	@Id
 	@GeneratedValue
 	private UUID id;
@@ -45,24 +47,25 @@ public class EntityWithDynamicLabelsAndIdThatNeedsToBeConverted {
 		setValue(value);
 	}
 
+	public String getValue() {
+		return this.value;
+	}
+
 	public void setValue(String value) {
 		this.value = value;
 
-		if (Objects.isNull(extraLabels)) {
-			extraLabels = new HashSet<>();
+		if (Objects.isNull(this.extraLabels)) {
+			this.extraLabels = new HashSet<>();
 		}
-		extraLabels.add(value);
-	}
-
-	public String getValue() {
-		return value;
+		this.extraLabels.add(value);
 	}
 
 	public Set<String> getExtraLabels() {
-		return extraLabels;
+		return this.extraLabels;
 	}
 
 	public UUID getId() {
-		return id;
+		return this.id;
 	}
+
 }

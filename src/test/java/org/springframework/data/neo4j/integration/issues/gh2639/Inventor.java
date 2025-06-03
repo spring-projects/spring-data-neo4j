@@ -30,4 +30,5 @@ public abstract class Inventor {
 	public Inventor(String name) {
 		this.name = name;
 	}
+
 }

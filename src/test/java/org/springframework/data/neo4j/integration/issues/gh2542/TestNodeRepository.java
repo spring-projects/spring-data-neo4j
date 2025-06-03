@@ -21,4 +21,5 @@ import org.springframework.data.neo4j.repository.Neo4jRepository;
  * @author Michael J. Simons
  */
 public interface TestNodeRepository extends Neo4jRepository<TestNode, Long> {
+
 }

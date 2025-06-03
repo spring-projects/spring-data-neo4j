@@ -36,6 +36,7 @@ public class SimplePerson {
 	}
 
 	public String getName() {
-		return name;
+		return this.name;
 	}
+
 }

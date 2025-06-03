@@ -15,25 +15,27 @@
  */
 package org.springframework.data.neo4j.integration.issues.gh2583;
 
+import java.util.List;
+
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Relationship;
-
-import java.util.List;
 
 /**
  * A simple node with bidirectional relationship mapping to the very same type.
  */
 @Node
 public class GH2583Node {
-	@Id
-	@GeneratedValue
-	Long id;
 
 	@Relationship(type = "LINKED", direction = Relationship.Direction.OUTGOING)
 	public List<GH2583Node> outgoingNodes;
 
 	@Relationship(type = "LINKED", direction = Relationship.Direction.INCOMING)
 	public List<GH2583Node> incomingNodes;
+
+	@Id
+	@GeneratedValue
+	Long id;
+
 }

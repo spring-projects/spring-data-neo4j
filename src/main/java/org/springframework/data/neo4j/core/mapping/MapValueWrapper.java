@@ -19,11 +19,12 @@ import org.apiguardian.api.API;
 import org.neo4j.driver.Value;
 
 /**
- * A wrapper or marker for a Neo4j {@code org.neo4j.driver.internal.value.MapValue} that needs to be unwrapped when used
- * for properties.
- * This class exists solely for projection / filtering purposes: It allows the {@link DefaultNeo4jEntityConverter} to keep
- * the composite properties together as long as possible (in the form of above's {@code MapValue}. Thus, the key in the
- * {@link Constants#NAME_OF_PROPERTIES_PARAM} fits the filter so that we can continue filtering after binding.
+ * A wrapper or marker for a Neo4j {@code org.neo4j.driver.internal.value.MapValue} that
+ * needs to be unwrapped when used for properties. This class exists solely for projection
+ * / filtering purposes: It allows the {@link DefaultNeo4jEntityConverter} to keep the
+ * composite properties together as long as possible (in the form of above's
+ * {@code MapValue}. Thus, the key in the {@link Constants#NAME_OF_PROPERTIES_PARAM} fits
+ * the filter so that we can continue filtering after binding.
  *
  * @author Michael J. Simons
  */
@@ -37,6 +38,7 @@ public final class MapValueWrapper {
 	}
 
 	public Value getMapValue() {
-		return mapValue;
+		return this.mapValue;
 	}
+
 }

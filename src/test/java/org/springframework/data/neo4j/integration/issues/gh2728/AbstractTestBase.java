@@ -15,9 +15,9 @@
  */
 package org.springframework.data.neo4j.integration.issues.gh2728;
 
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.neo4j.driver.Driver;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.neo4j.core.DatabaseSelectionProvider;
@@ -29,6 +29,8 @@ import org.springframework.data.neo4j.test.Neo4jExtension;
 import org.springframework.data.neo4j.test.Neo4jImperativeTestConfiguration;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 import org.springframework.transaction.PlatformTransactionManager;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Gerrit Meier
@@ -49,56 +51,65 @@ public abstract class AbstractTestBase {
 		TestEntityWithGeneratedDeprecatedId2 t2 = new TestEntityWithGeneratedDeprecatedId2(null, "v2");
 		TestEntityWithGeneratedDeprecatedId1 t1 = new TestEntityWithGeneratedDeprecatedId1(null, "v1", t2);
 
-		TestEntityWithGeneratedDeprecatedId1 result = generatedDeprecatedIdRepository.save(t1);
+		TestEntityWithGeneratedDeprecatedId1 result = this.generatedDeprecatedIdRepository.save(t1);
 
-		TestEntityWithGeneratedDeprecatedId1 freshRetrieved = generatedDeprecatedIdRepository.findById(result.getId()).get();
+		TestEntityWithGeneratedDeprecatedId1 freshRetrieved = this.generatedDeprecatedIdRepository
+			.findById(result.getId())
+			.get();
 
-		Assertions.assertNotNull(result.getRelatedEntity());
-		Assertions.assertNotNull(freshRetrieved.getRelatedEntity());
+		assertThat(result.getRelatedEntity()).isNotNull();
+		assertThat(freshRetrieved.getRelatedEntity()).isNotNull();
 	}
 
 	/**
-	 * This is a test to ensure if the fix for the failing test above will continue to work for
-	 * assigned ids. For broader test cases please return false for isCypher5Compatible in (Reactive)RepositoryIT
+	 * This is a test to ensure if the fix for the failing test above will continue to
+	 * work for assigned ids. For broader test cases please return false for
+	 * isCypher5Compatible in (Reactive)RepositoryIT
 	 */
 	@Test
 	public void testAssignedIds() {
 		TestEntityWithAssignedId2 t2 = new TestEntityWithAssignedId2("second", "v2");
 		TestEntityWithAssignedId1 t1 = new TestEntityWithAssignedId1("first", "v1", t2);
 
-		TestEntityWithAssignedId1 result = assignedIdRepository.save(t1);
+		TestEntityWithAssignedId1 result = this.assignedIdRepository.save(t1);
 
-		TestEntityWithAssignedId1 freshRetrieved = assignedIdRepository.findById(result.getAssignedId()).get();
+		TestEntityWithAssignedId1 freshRetrieved = this.assignedIdRepository.findById(result.getAssignedId()).get();
 
-		Assertions.assertNotNull(result.getRelatedEntity());
-		Assertions.assertNotNull(freshRetrieved.getRelatedEntity());
+		assertThat(result.getRelatedEntity()).isNotNull();
+		assertThat(freshRetrieved.getRelatedEntity()).isNotNull();
 	}
 
-	interface TestEntityWithGeneratedDeprecatedId1Repository extends Neo4jRepository<TestEntityWithGeneratedDeprecatedId1, Long> {
+	interface TestEntityWithGeneratedDeprecatedId1Repository
+			extends Neo4jRepository<TestEntityWithGeneratedDeprecatedId1, Long> {
+
 	}
 
 	interface TestEntityWithAssignedId1Repository extends Neo4jRepository<TestEntityWithAssignedId1, String> {
+
 	}
 
 	abstract static class Config extends Neo4jImperativeTestConfiguration {
 
 		@Bean
+		@Override
 		public Driver driver() {
 
 			return neo4jConnectionSupport.getDriver();
 		}
 
 		@Bean
-		public BookmarkCapture bookmarkCapture() {
+		BookmarkCapture bookmarkCapture() {
 			return new BookmarkCapture();
 		}
 
 		@Override
 		public PlatformTransactionManager transactionManager(Driver driver,
-															 DatabaseSelectionProvider databaseNameProvider) {
+				DatabaseSelectionProvider databaseNameProvider) {
 			BookmarkCapture bookmarkCapture = bookmarkCapture();
 			return new Neo4jTransactionManager(driver, databaseNameProvider,
 					Neo4jBookmarkManager.create(bookmarkCapture));
 		}
+
 	}
+
 }

@@ -28,7 +28,6 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Tag;
 import org.neo4j.driver.AuthTokens;
@@ -41,20 +40,23 @@ import org.neo4j.junit.jupiter.causal_cluster.CausalCluster;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.neo4j.test.Neo4jImperativeTestConfiguration;
 import org.springframework.data.neo4j.core.Neo4jClient;
 import org.springframework.data.neo4j.integration.shared.common.ThingWithSequence;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.data.neo4j.test.CausalClusterIntegrationTest;
 import org.springframework.data.neo4j.test.Neo4jExtension;
+import org.springframework.data.neo4j.test.Neo4jImperativeTestConfiguration;
 import org.springframework.data.neo4j.test.ServerVersion;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.annotation.Transactional;
 
+import static org.assertj.core.api.Assertions.fail;
+
 /**
- * This tests needs a Neo4j causal cluster. We run them based on Testcontainers. It requires some resources as well as
- * acceptance of the commercial license, so this test is disabled by default.
+ * This tests needs a Neo4j causal cluster. We run them based on Testcontainers. It
+ * requires some resources as well as acceptance of the commercial license, so this test
+ * is disabled by default.
  *
  * @author Michael J. Simons
  */
@@ -62,7 +64,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Tag(Neo4jExtension.INCOMPATIBLE_WITH_CLUSTERS)
 class CausalClusterLoadTestIT {
 
-	@CausalCluster private static URI neo4jUri;
+	@CausalCluster
+	private static URI neo4jUri;
 
 	@RepeatedTest(20)
 	void transactionsShouldBeSerializable(@Autowired ThingService thingService) throws InterruptedException {
@@ -72,31 +75,39 @@ class CausalClusterLoadTestIT {
 
 		Callable<ThingWithSequence> createAndRead = () -> {
 			ThingWithSequence newThing = thingService.newThing(sequence.incrementAndGet());
-			Optional<ThingWithSequence> optionalThing = thingService.findOneBySequenceNumber(newThing.getSequenceNumber());
+			Optional<ThingWithSequence> optionalThing = thingService
+				.findOneBySequenceNumber(newThing.getSequenceNumber());
 			return optionalThing.orElseThrow(() -> new RuntimeException("Did not read my own write :("));
 		};
 
 		ExecutorService executor = Executors.newCachedThreadPool();
 		List<Future<ThingWithSequence>> executedWrites = executor
-				.invokeAll(IntStream.range(0, numberOfRequests).mapToObj(i -> createAndRead).collect(Collectors.toList()));
+			.invokeAll(IntStream.range(0, numberOfRequests).mapToObj(i -> createAndRead).collect(Collectors.toList()));
 		try {
 			executedWrites.forEach(request -> {
 				try {
 					request.get();
-				} catch (InterruptedException e) {} catch (ExecutionException e) {
-					Assertions.fail("At least one request failed " + e.getMessage());
+				}
+				catch (InterruptedException ex) {
+				}
+				catch (ExecutionException ex) {
+					fail("At least one request failed " + ex.getMessage());
 				}
 			});
-		} finally {
+		}
+		finally {
 			executor.shutdown();
 		}
 	}
 
 	interface ThingRepository extends Neo4jRepository<ThingWithSequence, Long> {
+
 		Optional<ThingWithSequence> findOneBySequenceNumber(long sequenceNumber);
+
 	}
 
 	static class ThingService {
+
 		private final Neo4jClient neo4jClient;
 
 		private final ThingRepository thingRepository;
@@ -106,20 +117,24 @@ class CausalClusterLoadTestIT {
 			this.thingRepository = thingRepository;
 		}
 
-		public long getMaxInstance() {
-			return neo4jClient.query("MATCH (t:ThingWithSequence) RETURN COALESCE(MAX(t.sequenceNumber), -1) AS maxInstance")
-					.fetchAs(Long.class).one().get();
+		long getMaxInstance() {
+			return this.neo4jClient
+				.query("MATCH (t:ThingWithSequence) RETURN COALESCE(MAX(t.sequenceNumber), -1) AS maxInstance")
+				.fetchAs(Long.class)
+				.one()
+				.get();
 		}
 
 		@Transactional
-		public ThingWithSequence newThing(long i) {
+		ThingWithSequence newThing(long i) {
 			return this.thingRepository.save(new ThingWithSequence(i));
 		}
 
 		@Transactional(readOnly = true)
-		public Optional<ThingWithSequence> findOneBySequenceNumber(long sequenceNumber) {
-			return thingRepository.findOneBySequenceNumber(sequenceNumber);
+		Optional<ThingWithSequence> findOneBySequenceNumber(long sequenceNumber) {
+			return this.thingRepository.findOneBySequenceNumber(sequenceNumber);
 		}
+
 	}
 
 	@Configuration
@@ -128,6 +143,7 @@ class CausalClusterLoadTestIT {
 	static class TestConfig extends Neo4jImperativeTestConfiguration {
 
 		@Bean
+		@Override
 		public Driver driver() {
 
 			Driver driver = GraphDatabase.driver(neo4jUri, AuthTokens.basic("neo4j", "secret"),
@@ -137,20 +153,23 @@ class CausalClusterLoadTestIT {
 		}
 
 		@Bean
-		public ThingService thingService(Neo4jClient neo4jClient, ThingRepository thingRepository) {
+		ThingService thingService(Neo4jClient neo4jClient, ThingRepository thingRepository) {
 			return new ThingService(neo4jClient, thingRepository);
 		}
 
 		@Override
 		public boolean isCypher5Compatible() {
 			try (Session session = driver().session()) {
-				String version = session
-						.run("CALL dbms.components() YIELD name, versions WHERE name = 'Neo4j Kernel' RETURN 'Neo4j/' + versions[0] as version")
-						.single()
-						.get("version").asString();
+				String version = session.run(
+						"CALL dbms.components() YIELD name, versions WHERE name = 'Neo4j Kernel' RETURN 'Neo4j/' + versions[0] as version")
+					.single()
+					.get("version")
+					.asString();
 
 				return ServerVersion.version(version).greaterThanOrEqual(ServerVersion.v4_4_0);
 			}
 		}
+
 	}
+
 }

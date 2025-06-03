@@ -15,6 +15,8 @@
  */
 package org.springframework.data.neo4j.integration.shared.common;
 
+import java.util.Objects;
+
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Relationship;
@@ -40,18 +42,23 @@ public class OneToOneSource {
 		return this.name;
 	}
 
-	public OneToOneTarget getTarget() {
-		return this.target;
-	}
-
 	public void setName(String name) {
 		this.name = name;
+	}
+
+	public OneToOneTarget getTarget() {
+		return this.target;
 	}
 
 	public void setTarget(OneToOneTarget target) {
 		this.target = target;
 	}
 
+	protected boolean canEqual(final Object other) {
+		return other instanceof OneToOneSource;
+	}
+
+	@Override
 	public boolean equals(final Object o) {
 		if (o == this) {
 			return true;
@@ -65,31 +72,26 @@ public class OneToOneSource {
 		}
 		final Object this$name = this.getName();
 		final Object other$name = other.getName();
-		if (this$name == null ? other$name != null : !this$name.equals(other$name)) {
+		if (!Objects.equals(this$name, other$name)) {
 			return false;
 		}
 		final Object this$target = this.getTarget();
 		final Object other$target = other.getTarget();
-		if (this$target == null ? other$target != null : !this$target.equals(other$target)) {
-			return false;
-		}
-		return true;
+		return Objects.equals(this$target, other$target);
 	}
 
-	protected boolean canEqual(final Object other) {
-		return other instanceof OneToOneSource;
-	}
-
+	@Override
 	public int hashCode() {
 		final int PRIME = 59;
 		int result = 1;
 		final Object $name = this.getName();
-		result = result * PRIME + ($name == null ? 43 : $name.hashCode());
+		result = (result * PRIME) + (($name != null) ? $name.hashCode() : 43);
 		final Object $target = this.getTarget();
-		result = result * PRIME + ($target == null ? 43 : $target.hashCode());
+		result = (result * PRIME) + (($target != null) ? $target.hashCode() : 43);
 		return result;
 	}
 
+	@Override
 	public String toString() {
 		return "OneToOneSource(name=" + this.getName() + ", target=" + this.getTarget() + ")";
 	}
@@ -98,7 +100,9 @@ public class OneToOneSource {
 	 * Simple DTO projection for OneToOneSource
 	 */
 	public static class OneToOneSourceProjection {
+
 		String name;
+
 		OneToOneTarget target;
 
 		public OneToOneSourceProjection() {
@@ -108,18 +112,23 @@ public class OneToOneSource {
 			return this.name;
 		}
 
-		public OneToOneTarget getTarget() {
-			return this.target;
-		}
-
 		public void setName(String name) {
 			this.name = name;
+		}
+
+		public OneToOneTarget getTarget() {
+			return this.target;
 		}
 
 		public void setTarget(OneToOneTarget target) {
 			this.target = target;
 		}
 
+		protected boolean canEqual(final Object other) {
+			return other instanceof OneToOneSourceProjection;
+		}
+
+		@Override
 		public boolean equals(final Object o) {
 			if (o == this) {
 				return true;
@@ -133,33 +142,31 @@ public class OneToOneSource {
 			}
 			final Object this$name = this.getName();
 			final Object other$name = other.getName();
-			if (this$name == null ? other$name != null : !this$name.equals(other$name)) {
+			if (!Objects.equals(this$name, other$name)) {
 				return false;
 			}
 			final Object this$target = this.getTarget();
 			final Object other$target = other.getTarget();
-			if (this$target == null ? other$target != null : !this$target.equals(other$target)) {
-				return false;
-			}
-			return true;
+			return Objects.equals(this$target, other$target);
 		}
 
-		protected boolean canEqual(final Object other) {
-			return other instanceof OneToOneSourceProjection;
-		}
-
+		@Override
 		public int hashCode() {
 			final int PRIME = 59;
 			int result = 1;
 			final Object $name = this.getName();
-			result = result * PRIME + ($name == null ? 43 : $name.hashCode());
+			result = (result * PRIME) + (($name != null) ? $name.hashCode() : 43);
 			final Object $target = this.getTarget();
-			result = result * PRIME + ($target == null ? 43 : $target.hashCode());
+			result = (result * PRIME) + (($target != null) ? $target.hashCode() : 43);
 			return result;
 		}
 
+		@Override
 		public String toString() {
-			return "OneToOneSource.OneToOneSourceProjection(name=" + this.getName() + ", target=" + this.getTarget() + ")";
+			return "OneToOneSource.OneToOneSourceProjection(name=" + this.getName() + ", target=" + this.getTarget()
+					+ ")";
 		}
+
 	}
+
 }

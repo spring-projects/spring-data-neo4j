@@ -21,18 +21,22 @@ import java.util.Collections;
 import java.util.List;
 
 import org.apiguardian.api.API;
+
 import org.springframework.core.convert.converter.ConverterRegistry;
 import org.springframework.data.convert.CustomConversions;
 
 /**
+ * Manages all build-in Neo4j conversions: Cypher types, some additional types and the
+ * shared set of Spring Data and Neo4j spatial types.
+ *
  * @author Michael J. Simons
- * @soundtrack The Kleptones - A Night At The Hip-Hopera
  * @since 6.0
  */
 @API(status = API.Status.STABLE, since = "6.0")
 public final class Neo4jConversions extends CustomConversions {
 
 	private static final StoreConversions STORE_CONVERSIONS;
+
 	private static final List<Object> STORE_CONVERTERS;
 
 	static {
@@ -56,7 +60,6 @@ public final class Neo4jConversions extends CustomConversions {
 
 	/**
 	 * Creates a new {@link CustomConversions} instance registering the given converters.
-	 *
 	 * @param converters must not be {@literal null}.
 	 */
 	public Neo4jConversions(Collection<?> converters) {
@@ -68,4 +71,5 @@ public final class Neo4jConversions extends CustomConversions {
 		super.registerConvertersIn(conversionService);
 		conversionService.addConverter(new AdditionalTypes.EnumArrayConverter());
 	}
+
 }

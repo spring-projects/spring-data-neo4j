@@ -15,9 +15,6 @@
  */
 package org.springframework.data.neo4j.integration.versioned_self_references;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,17 +28,20 @@ import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.params.provider.Arguments;
 import org.neo4j.cypherdsl.core.Cypher;
-
 import org.neo4j.cypherdsl.core.Node;
 import org.neo4j.cypherdsl.core.ResultStatement;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.Transaction;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.test.BookmarkCapture;
 import org.springframework.data.neo4j.test.Neo4jExtension;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 /**
  * @author Michael J. Simons
@@ -50,23 +50,23 @@ import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 @TestMethodOrder(MethodOrderer.DisplayName.class)
 abstract class TestBase {
 
-	protected static Neo4jExtension.Neo4jConnectionSupport neo4jConnectionSupport;
-
 	private static final Supplier<Long> sequenceGenerator = new Supplier<>() {
 
 		private final AtomicLong source = new AtomicLong(0L);
 
 		@Override
 		public Long get() {
-			return source.incrementAndGet();
+			return this.source.incrementAndGet();
 		}
 	};
 
-	@Autowired
-	private Driver driver;
+	protected static Neo4jExtension.Neo4jConnectionSupport neo4jConnectionSupport;
 
 	@Autowired
 	BookmarkCapture bookmarkCapture;
+
+	@Autowired
+	private Driver driver;
 
 	@BeforeAll
 	protected static void clearDatabase(@Autowired BookmarkCapture bookmarkCapture) {
@@ -78,12 +78,11 @@ abstract class TestBase {
 	}
 
 	static Stream<Arguments> typeAndNewInstanceSupplier() {
-		return Stream.of(
-				Arguments.arguments(VersionedExternalIdWithEquals.class,
-						(Supplier<VersionedExternalIdWithEquals>) () -> {
-							long id = sequenceGenerator.get();
-							return new VersionedExternalIdWithEquals(id, "Instance" + id);
-						}),
+		return Stream.of(Arguments.arguments(VersionedExternalIdWithEquals.class,
+				(Supplier<VersionedExternalIdWithEquals>) () -> {
+					long id = sequenceGenerator.get();
+					return new VersionedExternalIdWithEquals(id, "Instance" + id);
+				}),
 
 				Arguments.arguments(VersionedExternalIdWithoutEquals.class,
 						(Supplier<VersionedExternalIdWithoutEquals>) () -> {
@@ -106,20 +105,20 @@ abstract class TestBase {
 
 				Arguments.arguments(VersionedInternalIdListBased.class,
 						(Supplier<VersionedInternalIdListBased>) () -> new VersionedInternalIdListBased(
-								"An object " + System.currentTimeMillis()))
-		);
+								"An object " + System.currentTimeMillis())));
 	}
 
 	static Stream<Arguments> typesForExistingInstanceSupplier() {
 
-		return Stream.of(VersionedExternalIdWithEquals.class, VersionedExternalIdWithoutEquals.class,
-				VersionedExternalIdListBased.class,
-				VersionedInternalIdWithEquals.class, VersionedInternalIdWithoutEquals.class,
-				VersionedInternalIdListBased.class).map(Arguments::of);
+		return Stream
+			.of(VersionedExternalIdWithEquals.class, VersionedExternalIdWithoutEquals.class,
+					VersionedExternalIdListBased.class, VersionedInternalIdWithEquals.class,
+					VersionedInternalIdWithoutEquals.class, VersionedInternalIdListBased.class)
+			.map(Arguments::of);
 	}
 
 	Long createInstance(Class<?> type) {
-		try (Session session = driver.session(bookmarkCapture.createSessionConfig());
+		try (Session session = this.driver.session(this.bookmarkCapture.createSessionConfig());
 				Transaction tx = session.beginTransaction()) {
 
 			Map<String, Object> properties = new HashMap<>();
@@ -134,8 +133,9 @@ abstract class TestBase {
 			ResultStatement statement;
 			if (isExternal) {
 				statement = Cypher.create(nodeTemplate).returning(nodeTemplate.property("id")).build();
-			} else {
-				//noinspection deprecation
+			}
+			else {
+				// noinspection deprecation
 				statement = Cypher.create(nodeTemplate).returning(nodeTemplate.internalId()).build();
 			}
 
@@ -147,7 +147,7 @@ abstract class TestBase {
 	}
 
 	long[] createRelatedInstances(Class<?> type) {
-		try (Session session = driver.session(bookmarkCapture.createSessionConfig());
+		try (Session session = this.driver.session(this.bookmarkCapture.createSessionConfig());
 				Transaction tx = session.beginTransaction()) {
 
 			String simpleName = type.getSimpleName();
@@ -167,18 +167,21 @@ abstract class TestBase {
 			Node n2 = nodeTemplate.named("n2").withProperties(propertySupplier.get());
 			ResultStatement statement;
 			if (isExternal) {
-				statement = Cypher.create(n1).create(n2)
-						.merge(n1.relationshipTo(n2, "RELATED"))
-						.merge(n2.relationshipTo(n1, "RELATED"))
-						.returning(n1.property("id"), n2.property("id"))
-						.build();
-			} else {
-				//noinspection deprecation
-				statement = Cypher.create(n1).create(n2)
-						.merge(n1.relationshipTo(n2, "RELATED"))
-						.merge(n2.relationshipTo(n1, "RELATED"))
-						.returning(n1.internalId(), n2.internalId())
-						.build();
+				statement = Cypher.create(n1)
+					.create(n2)
+					.merge(n1.relationshipTo(n2, "RELATED"))
+					.merge(n2.relationshipTo(n1, "RELATED"))
+					.returning(n1.property("id"), n2.property("id"))
+					.build();
+			}
+			else {
+				// noinspection deprecation
+				statement = Cypher.create(n1)
+					.create(n2)
+					.merge(n1.relationshipTo(n2, "RELATED"))
+					.merge(n2.relationshipTo(n1, "RELATED"))
+					.returning(n1.internalId(), n2.internalId())
+					.build();
 			}
 
 			Record record = tx.run(statement.getCypher(), statement.getCatalog().getParameters()).single();
@@ -195,9 +198,11 @@ abstract class TestBase {
 		String simpleName = type.getSimpleName();
 		if (simpleName.contains("External")) {
 			assertExternal(expectedVersion, type, root.getId());
-		} else if (simpleName.contains("Internal")) {
+		}
+		else if (simpleName.contains("Internal")) {
 			assertInternal(expectedVersion, type, root.getId());
-		} else {
+		}
+		else {
 			fail("Unsupported type: " + type);
 		}
 	}
@@ -206,7 +211,8 @@ abstract class TestBase {
 		VersionedExternalIdWithEquals start = new VersionedExternalIdWithEquals(sequenceGenerator.get(), "start");
 		VersionedExternalIdWithEquals previous = start;
 		for (int i = 0; i < ringSize - 1; ++i) {
-			VersionedExternalIdWithEquals next = new VersionedExternalIdWithEquals(sequenceGenerator.get(), Integer.toString(i));
+			VersionedExternalIdWithEquals next = new VersionedExternalIdWithEquals(sequenceGenerator.get(),
+					Integer.toString(i));
 			previous.relate(next);
 			previous = next;
 		}
@@ -222,21 +228,20 @@ abstract class TestBase {
 			assertion.accept(next);
 
 			VersionedExternalIdWithEquals[] relatedObjects = next.getRelatedObjects()
-					.toArray(new VersionedExternalIdWithEquals[0]);
+				.toArray(new VersionedExternalIdWithEquals[0]);
 			String nextName = Integer.toString(cnt++);
 			if (relatedObjects[0].getName().equals(nextName)) {
 				next = relatedObjects[0];
-			} else if (relatedObjects[1].getName().equals(nextName)) {
+			}
+			else if (relatedObjects[1].getName().equals(nextName)) {
 				next = relatedObjects[1];
-			} else {
+			}
+			else {
 				next = null;
 			}
-		} while (next != null);
+		}
+		while (next != null);
 		return cnt;
-	}
-
-	interface NameOnly {
-		String getName();
 	}
 
 	private void assertExternal(Long expectedVersion, Class<?> type, Long id) {
@@ -244,11 +249,10 @@ abstract class TestBase {
 		Node nodeTemplate = Cypher.node(type.getSimpleName());
 		Node n1 = nodeTemplate.named("n1");
 		Node n2 = nodeTemplate.named("n2");
-		ResultStatement statement =
-				Cypher.match(n1.relationshipTo(n2, "RELATED"))
-						.where(n1.property("id").isEqualTo(Cypher.anonParameter(id))
-								.and(n2.relationshipTo(n1, "RELATED")))
-						.returning(n1.property("version")).build();
+		ResultStatement statement = Cypher.match(n1.relationshipTo(n2, "RELATED"))
+			.where(n1.property("id").isEqualTo(Cypher.anonParameter(id)).and(n2.relationshipTo(n1, "RELATED")))
+			.returning(n1.property("version"))
+			.build();
 
 		assertImpl(expectedVersion, statement);
 	}
@@ -258,23 +262,30 @@ abstract class TestBase {
 		Node nodeTemplate = Cypher.node(type.getSimpleName());
 		Node n1 = nodeTemplate.named("n1");
 		Node n2 = nodeTemplate.named("n2");
-		@SuppressWarnings("deprecation") ResultStatement statement =
-				Cypher.match(n1.relationshipTo(n2, "RELATED"))
-						.where(n1.internalId().isEqualTo(Cypher.anonParameter(id))
-								.and(n2.relationshipTo(n1, "RELATED")))
-						.returning(n1.property("version")).build();
+		@SuppressWarnings("deprecation")
+		ResultStatement statement = Cypher.match(n1.relationshipTo(n2, "RELATED"))
+			.where(n1.internalId().isEqualTo(Cypher.anonParameter(id)).and(n2.relationshipTo(n1, "RELATED")))
+			.returning(n1.property("version"))
+			.build();
 
 		assertImpl(expectedVersion, statement);
 	}
 
 	private void assertImpl(Long expectedVersion, ResultStatement resultStatement) {
-		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
-			List<Record> result = session.run(resultStatement.getCypher(), resultStatement.getCatalog().getParameters()).list();
-			assertThat(result).hasSize(1)
-					.first().satisfies(record -> {
-						long version = record.get(0).asLong();
-						assertThat(version).isEqualTo(expectedVersion);
-					});
+		try (Session session = this.driver.session(this.bookmarkCapture.createSessionConfig())) {
+			List<Record> result = session.run(resultStatement.getCypher(), resultStatement.getCatalog().getParameters())
+				.list();
+			assertThat(result).hasSize(1).first().satisfies(record -> {
+				long version = record.get(0).asLong();
+				assertThat(version).isEqualTo(expectedVersion);
+			});
 		}
 	}
+
+	interface NameOnly {
+
+		String getName();
+
+	}
+
 }

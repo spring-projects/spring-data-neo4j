@@ -32,10 +32,13 @@ import org.neo4j.driver.Value;
 import org.neo4j.driver.types.Node;
 import org.neo4j.driver.types.Relationship;
 import org.neo4j.driver.types.Type;
+
 import org.springframework.data.mapping.PersistentPropertyAccessor;
 import org.springframework.data.neo4j.core.schema.TargetNode;
 
 /**
+ * Utility methods for the actual object mapping.
+ *
  * @author Michael J. Simons
  * @author Philipp Tölle
  * @author Gerrit Meier
@@ -44,14 +47,18 @@ import org.springframework.data.neo4j.core.schema.TargetNode;
 @API(status = API.Status.INTERNAL, since = "6.0")
 public final class MappingSupport {
 
+	private MappingSupport() {
+	}
+
 	/**
-	 * The value for a relationship can be a scalar object (1:1), a collection (1:n), a map (1:n, but with dynamic
-	 * relationship types) or a map (1:n) with properties for each relationship. This method unifies the type into
-	 * something iterable, depending on the given inverse type.
-	 *
-	 * @param rawValue The raw value to unify
-	 * @return A unified collection (Either a collection of Map.Entry for dynamic and relationships with properties or a
-	 *         list of related values)
+	 * The value for a relationship can be a scalar object (1:1), a collection (1:n), a
+	 * map (1:n, but with dynamic relationship types) or a map (1:n) with properties for
+	 * each relationship. This method unifies the type into something iterable, depending
+	 * on the given inverse type.
+	 * @param property the property that constitutes the relationship
+	 * @param rawValue the raw value to unify
+	 * @return a unified collection (Either a collection of Map.Entry for dynamic and
+	 * relationships with properties or a list of related values)
 	 */
 	public static Collection<?> unifyRelationshipValue(Neo4jPersistentProperty property, @Nullable Object rawValue) {
 
@@ -62,43 +69,47 @@ public final class MappingSupport {
 		Collection<?> unifiedValue;
 		if (property.isDynamicAssociation()) {
 			if (property.isDynamicOneToManyAssociation()) {
-				unifiedValue = ((Map<?, ?>) rawValue)
-						.entrySet().stream()
-						.flatMap(e -> ((Collection<?>) e.getValue()).stream().map(v -> new SimpleEntry<>(e.getKey(), v)))
-						.collect(Collectors.toList());
-			} else {
+				unifiedValue = ((Map<?, ?>) rawValue).entrySet()
+					.stream()
+					.flatMap(e -> ((Collection<?>) e.getValue()).stream().map(v -> new SimpleEntry<>(e.getKey(), v)))
+					.collect(Collectors.toList());
+			}
+			else {
 				unifiedValue = ((Map<?, ?>) rawValue).entrySet();
 			}
-		} else if (property.isCollectionLike()) {
+		}
+		else if (property.isCollectionLike()) {
 			unifiedValue = (Collection<?>) rawValue;
-		} else {
+		}
+		else {
 			unifiedValue = Collections.singleton(rawValue);
 		}
 		return unifiedValue;
 	}
 
 	/**
-	 * A helper that produces a predicate to check whether a {@link Value} is a list value and contains only other
-	 * values with a given type.
-	 *
-	 * @param collectionType The required collection type system
-	 * @param requiredType   The required type
-	 * @return A predicate
+	 * A helper that produces a predicate to check whether a {@link Value} is a list value
+	 * and contains only other values with a given type.
+	 * @param collectionType the required collection type system
+	 * @param requiredType the required type
+	 * @return a2 predicate
 	 */
 	public static Predicate<Value> isListContainingOnly(Type collectionType, Type requiredType) {
 
 		Predicate<Value> containsOnlyRequiredType = entry -> {
-			// either this is a list containing other list of possible the same required type
+			// either this is a list containing other list of possible the same required
+			// type
 			// or the type exists directly in the list
 			for (Value listEntry : entry.values()) {
 				if (listEntry.hasType(collectionType)) {
 					boolean listInListCorrectType = true;
 					for (Value listInListEntry : entry.asList(Function.identity())) {
-						listInListCorrectType = listInListCorrectType && isListContainingOnly(collectionType, requiredType)
-								.test(listInListEntry);
+						listInListCorrectType = listInListCorrectType
+								&& isListContainingOnly(collectionType, requiredType).test(listInListEntry);
 					}
 					return listInListCorrectType;
-				} else if (!listEntry.hasType(requiredType)) {
+				}
+				else if (!listEntry.hasType(requiredType)) {
 					return false;
 				}
 			}
@@ -116,11 +127,13 @@ public final class MappingSupport {
 			for (Value listWithRelationshipsOrRelationship : entry.values()) {
 				if (listWithRelationshipsOrRelationship.hasType(collectionType)) {
 					relationships.addAll(listWithRelationshipsOrRelationship.asList(Value::asRelationship));
-				} else {
+				}
+				else {
 					relationships.add(listWithRelationshipsOrRelationship.asRelationship());
 				}
 			}
-		} else {
+		}
+		else {
 			relationships.add(entry.asRelationship());
 		}
 		return relationships;
@@ -135,95 +148,97 @@ public final class MappingSupport {
 			for (Value listWithNodesOrNode : entry.values()) {
 				if (listWithNodesOrNode.hasType(collectionType)) {
 					nodes.addAll(listWithNodesOrNode.asList(Value::asNode));
-				} else {
+				}
+				else {
 					nodes.add(listWithNodesOrNode.asNode());
 				}
 			}
-		} else {
+		}
+		else {
 			nodes.add(entry.asNode());
 		}
 		return nodes;
 	}
 
 	/**
-	 * Extract the relationship properties or just the related object if there are no relationship properties
-	 * attached.
-	 *
+	 * Extract the relationship properties or just the related object if there are no
+	 * relationship properties attached.
 	 * @param neo4jMappingContext - current mapping context
 	 * @param hasRelationshipProperties - does this relationship has properties
 	 * @param isDynamicAssociation - is the defined relationship a dynamic association
-	 * @param valueToStore - either a plain object or {@link RelationshipPropertiesWithEntityHolder}
+	 * @param valueToStore - either a plain object or
+	 * {@link RelationshipPropertiesWithEntityHolder}
 	 * @param propertyAccessor - PropertyAccessor for the value
-	 *
 	 * @return extracted related object or relationship properties
 	 */
 	public static Object getRelationshipOrRelationshipPropertiesObject(Neo4jMappingContext neo4jMappingContext,
-																	   boolean hasRelationshipProperties,
-																	   boolean isDynamicAssociation,
-																	   Object valueToStore,
-																	   PersistentPropertyAccessor<?> propertyAccessor) {
+			boolean hasRelationshipProperties, boolean isDynamicAssociation, Object valueToStore,
+			PersistentPropertyAccessor<?> propertyAccessor) {
 
 		Object newRelationshipObject = propertyAccessor.getBean();
 		if (hasRelationshipProperties) {
-			MappingSupport.RelationshipPropertiesWithEntityHolder entityHolder =
-					(RelationshipPropertiesWithEntityHolder)
-							(isDynamicAssociation
-								? ((Map.Entry<?, ?>) valueToStore).getValue()
-								: valueToStore);
+			MappingSupport.RelationshipPropertiesWithEntityHolder entityHolder = (RelationshipPropertiesWithEntityHolder) (isDynamicAssociation
+					? ((Map.Entry<?, ?>) valueToStore).getValue() : valueToStore);
 
 			Object relationshipPropertiesValue = entityHolder.getRelationshipProperties();
 
-			Neo4jPersistentEntity<?> persistentEntity =
-					Objects.requireNonNull(neo4jMappingContext.getPersistentEntity(relationshipPropertiesValue.getClass()));
+			Neo4jPersistentEntity<?> persistentEntity = Objects
+				.requireNonNull(neo4jMappingContext.getPersistentEntity(relationshipPropertiesValue.getClass()));
 
-			PersistentPropertyAccessor<Object> relationshipPropertiesAccessor = persistentEntity.getPropertyAccessor(relationshipPropertiesValue);
-			relationshipPropertiesAccessor.setProperty(Objects.requireNonNull(persistentEntity.getPersistentProperty(TargetNode.class)), newRelationshipObject);
+			PersistentPropertyAccessor<Object> relationshipPropertiesAccessor = persistentEntity
+				.getPropertyAccessor(relationshipPropertiesValue);
+			relationshipPropertiesAccessor.setProperty(
+					Objects.requireNonNull(persistentEntity.getPersistentProperty(TargetNode.class)),
+					newRelationshipObject);
 			newRelationshipObject = relationshipPropertiesAccessor.getBean();
 
-			// If we recreate or manipulate the object including it's accessor, we must update it in the holder as well.
+			// If we recreate or manipulate the object including it's accessor, we must
+			// update it in the holder as well.
 			entityHolder.setRelationshipProperties(newRelationshipObject);
 		}
 		return newRelationshipObject;
 	}
 
-	private MappingSupport() {}
-
 	/**
-	 * Class that defines a tuple of relationship with properties and the connected target entity.
+	 * Class that defines a tuple of relationship with properties and the connected target
+	 * entity.
 	 */
 	@API(status = API.Status.INTERNAL)
-	public final static class RelationshipPropertiesWithEntityHolder {
+	public static final class RelationshipPropertiesWithEntityHolder {
 
 		private final Neo4jPersistentEntity<?> relationshipPropertiesEntity;
-		private PersistentPropertyAccessor<?> relationshipPropertiesPropertyAccessor;
-		private Object relationshipProperties;
+
 		private final Object relatedEntity;
 
-		RelationshipPropertiesWithEntityHolder(
-				Neo4jPersistentEntity<?> relationshipPropertiesEntity,
-				Object relationshipProperties, Object relatedEntity
-		) {
+		private PersistentPropertyAccessor<?> relationshipPropertiesPropertyAccessor;
+
+		private Object relationshipProperties;
+
+		RelationshipPropertiesWithEntityHolder(Neo4jPersistentEntity<?> relationshipPropertiesEntity,
+				Object relationshipProperties, Object relatedEntity) {
 			this.relationshipPropertiesEntity = relationshipPropertiesEntity;
-			this.relationshipPropertiesPropertyAccessor = relationshipPropertiesEntity.getPropertyAccessor(relationshipProperties);
+			this.relationshipPropertiesPropertyAccessor = relationshipPropertiesEntity
+				.getPropertyAccessor(relationshipProperties);
 			this.relationshipProperties = relationshipProperties;
 			this.relatedEntity = relatedEntity;
 		}
 
 		public PersistentPropertyAccessor<?> getRelationshipPropertiesPropertyAccessor() {
-			return relationshipPropertiesPropertyAccessor;
+			return this.relationshipPropertiesPropertyAccessor;
 		}
 
 		public Object getRelationshipProperties() {
-			return relationshipProperties;
+			return this.relationshipProperties;
 		}
 
 		private void setRelationshipProperties(Object relationshipProperties) {
 			this.relationshipProperties = relationshipProperties;
-			this.relationshipPropertiesPropertyAccessor = relationshipPropertiesEntity.getPropertyAccessor(this.relationshipProperties);
+			this.relationshipPropertiesPropertyAccessor = this.relationshipPropertiesEntity
+				.getPropertyAccessor(this.relationshipProperties);
 		}
 
 		public Object getRelatedEntity() {
-			return relatedEntity;
+			return this.relatedEntity;
 		}
 
 		@Override
@@ -235,19 +250,21 @@ public final class MappingSupport {
 				return false;
 			}
 			RelationshipPropertiesWithEntityHolder that = (RelationshipPropertiesWithEntityHolder) o;
-			return relationshipProperties.equals(that.relationshipProperties) && relatedEntity.equals(that.relatedEntity);
+			return this.relationshipProperties.equals(that.relationshipProperties)
+					&& this.relatedEntity.equals(that.relatedEntity);
 		}
 
 		@Override
 		public int hashCode() {
-			return Objects.hash(relationshipProperties, relatedEntity);
+			return Objects.hash(this.relationshipProperties, this.relatedEntity);
 		}
 
 		@Override
 		public String toString() {
-			return "RelationshipPropertiesWithEntityHolder{" +
-					"relationshipProperties=" + relationshipProperties +
-					'}';
+			return "RelationshipPropertiesWithEntityHolder{" + "relationshipProperties=" + this.relationshipProperties
+					+ '}';
 		}
+
 	}
+
 }

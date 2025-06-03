@@ -31,10 +31,9 @@ public interface CityModelRepository extends Neo4jRepository<CityModel, UUID> {
 
 	Optional<CityModelDTO> findByCityId(UUID cityId);
 
-	@Query(""
-			+ "MATCH (n:CityModel)"
-			+ "RETURN n :#{orderBy(#sort)}")
+	@Query("" + "MATCH (n:CityModel)" + "RETURN n :#{orderBy(#sort)}")
 	List<CityModel> customQuery(Sort sort);
 
 	long deleteAllByExoticProperty(String property);
+
 }

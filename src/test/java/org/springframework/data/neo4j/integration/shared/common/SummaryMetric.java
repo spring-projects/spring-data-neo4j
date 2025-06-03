@@ -26,4 +26,5 @@ public class SummaryMetric extends Metric {
 	public SummaryMetric(String name) {
 		super(name);
 	}
+
 }

@@ -15,10 +15,15 @@
  */
 package org.springframework.data.neo4j.repository.query;
 
-import org.apiguardian.api.API;
+import java.util.List;
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.function.LongSupplier;
 
+import org.apiguardian.api.API;
 import org.neo4j.cypherdsl.core.Cypher;
 import org.neo4j.cypherdsl.core.Statement;
+
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -32,19 +37,14 @@ import org.springframework.data.repository.query.FluentQuery.FetchableFluentQuer
 import org.springframework.data.repository.query.QueryByExampleExecutor;
 import org.springframework.data.support.PageableExecutionUtils;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.function.Function;
-import java.util.function.LongSupplier;
-
 import static org.neo4j.cypherdsl.core.Cypher.asterisk;
 
 /**
  * A fragment for repositories providing "Query by example" functionality.
  *
+ * @param <T> type of the domain class
  * @author Michael J. Simons
  * @author Ján Šúr
- * @param <T> type of the domain class
  * @since 6.0
  */
 @API(status = API.Status.INTERNAL, since = "6.0")
@@ -65,27 +65,37 @@ public final class SimpleQueryByExampleExecutor<T> implements QueryByExampleExec
 
 	@Override
 	public <S extends T> Optional<S> findOne(Example<S> example) {
-		return this.neo4jOperations.toExecutableQuery(example.getProbeType(),
-				QueryFragmentsAndParameters.forExample(mappingContext, example)).getSingleResult();
+		return this.neo4jOperations
+			.toExecutableQuery(example.getProbeType(),
+					QueryFragmentsAndParameters.forExample(this.mappingContext, example))
+			.getSingleResult();
 	}
 
 	@Override
 	public <S extends T> List<S> findAll(Example<S> example) {
-		return this.neo4jOperations.toExecutableQuery(example.getProbeType(),
-				QueryFragmentsAndParameters.forExample(mappingContext, example)).getResults();
+		return this.neo4jOperations
+			.toExecutableQuery(example.getProbeType(),
+					QueryFragmentsAndParameters.forExample(this.mappingContext, example))
+			.getResults();
 	}
 
 	@Override
 	public <S extends T> List<S> findAll(Example<S> example, Sort sort) {
-		return this.neo4jOperations.toExecutableQuery(example.getProbeType(),
-				QueryFragmentsAndParameters.forExampleWithSort(mappingContext, example, sort, null, PropertyFilter.NO_FILTER)).getResults();
+		return this.neo4jOperations
+			.toExecutableQuery(example.getProbeType(),
+					QueryFragmentsAndParameters.forExampleWithSort(this.mappingContext, example, sort, null,
+							PropertyFilter.NO_FILTER))
+			.getResults();
 	}
 
 	@Override
 	public <S extends T> Page<S> findAll(Example<S> example, Pageable pageable) {
 
-		List<S> page = this.neo4jOperations.toExecutableQuery(example.getProbeType(),
-				QueryFragmentsAndParameters.forExampleWithPageable(mappingContext, example, pageable, PropertyFilter.NO_FILTER)).getResults();
+		List<S> page = this.neo4jOperations
+			.toExecutableQuery(example.getProbeType(),
+					QueryFragmentsAndParameters.forExampleWithPageable(this.mappingContext, example, pageable,
+							PropertyFilter.NO_FILTER))
+			.getResults();
 
 		LongSupplier totalCountSupplier = () -> this.count(example);
 		return PageableExecutionUtils.getPage(page, pageable, totalCountSupplier);
@@ -94,9 +104,10 @@ public final class SimpleQueryByExampleExecutor<T> implements QueryByExampleExec
 	@Override
 	public <S extends T> long count(Example<S> example) {
 
-		Predicate predicate = Predicate.create(mappingContext, example);
-		Statement statement = predicate.useWithReadingFragment(cypherGenerator::prepareMatchOf)
-				.returning(Cypher.count(asterisk())).build();
+		Predicate predicate = Predicate.create(this.mappingContext, example);
+		Statement statement = predicate.useWithReadingFragment(this.cypherGenerator::prepareMatchOf)
+			.returning(Cypher.count(asterisk()))
+			.build();
 
 		return this.neo4jOperations.count(statement, predicate.getParameters());
 	}
@@ -104,9 +115,10 @@ public final class SimpleQueryByExampleExecutor<T> implements QueryByExampleExec
 	@Override
 	public <S extends T> boolean exists(Example<S> example) {
 
-		Predicate predicate = Predicate.create(mappingContext, example);
-		Statement statement = predicate.useWithReadingFragment(cypherGenerator::prepareMatchOf)
-				.returning(Cypher.count(asterisk())).build();
+		Predicate predicate = Predicate.create(this.mappingContext, example);
+		Statement statement = predicate.useWithReadingFragment(this.cypherGenerator::prepareMatchOf)
+			.returning(Cypher.count(asterisk()))
+			.build();
 
 		return this.neo4jOperations.count(statement, predicate.getParameters()) > 0;
 	}
@@ -116,10 +128,11 @@ public final class SimpleQueryByExampleExecutor<T> implements QueryByExampleExec
 
 		if (this.neo4jOperations instanceof FluentFindOperation ops) {
 			FetchableFluentQuery<S> fluentQuery = new FetchableFluentQueryByExample<>(example, example.getProbeType(),
-					mappingContext, ops, this::count, this::exists);
+					this.mappingContext, ops, this::count, this::exists);
 			return queryFunction.apply(fluentQuery);
 		}
 		throw new UnsupportedOperationException(
 				"Fluent find by example not supported with standard Neo4jOperations, must support fluent queries too");
 	}
+
 }

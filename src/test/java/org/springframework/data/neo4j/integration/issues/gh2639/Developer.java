@@ -15,19 +15,19 @@
  */
 package org.springframework.data.neo4j.integration.issues.gh2639;
 
-import org.springframework.data.neo4j.core.schema.Node;
-
 import java.util.List;
 import java.util.StringJoiner;
 
+import org.springframework.data.neo4j.core.schema.Node;
+
 /**
- * Developer holds the specific relationship we are trying to map
- * in this test case.
+ * Developer holds the specific relationship we are trying to map in this test case.
  */
 @Node
 public class Developer extends CompanyPerson {
 
 	private final List<LanguageRelationship> programmingLanguages;
+
 	private final String name;
 
 	public Developer(String name, List<LanguageRelationship> programmingLanguages) {
@@ -36,18 +36,18 @@ public class Developer extends CompanyPerson {
 	}
 
 	public List<LanguageRelationship> getProgrammingLanguages() {
-		return programmingLanguages;
+		return this.programmingLanguages;
 	}
 
 	public String getName() {
-		return name;
+		return this.name;
 	}
 
 	@Override
 	public String toString() {
-		return new StringJoiner(", ", Developer.class.getSimpleName() + "[", "]")
-				.add("name='" + name + "'")
-				.add("programmingLanguages=" + programmingLanguages)
-				.toString();
+		return new StringJoiner(", ", Developer.class.getSimpleName() + "[", "]").add("name='" + this.name + "'")
+			.add("programmingLanguages=" + this.programmingLanguages)
+			.toString();
 	}
+
 }

@@ -15,32 +15,33 @@
  */
 package org.springframework.data.neo4j.test;
 
-import ch.qos.logback.classic.Level;
-import ch.qos.logback.classic.Logger;
-import ch.qos.logback.classic.spi.ILoggingEvent;
-import ch.qos.logback.core.read.ListAppender;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import org.junit.jupiter.api.extension.ExtensionContext;
 
 /**
  * Provides access to the formatted message captured from Logback during test run.
  *
  * @author Michael J. Simons
- * @soundtrack Various - Just The Best 90s
  */
 public final class LogbackCapture implements ExtensionContext.Store.CloseableResource {
 
 	private final ListAppender<ILoggingEvent> listAppender;
+
 	private final Logger logger;
+
 	private final Map<Logger, Level> additionalLoggers = new HashMap<>();
 
 	LogbackCapture() {
 		this.listAppender = new ListAppender<>();
-		// While forbidden by our checkstyle, we must go that route to get the logback root logger.
+		// While forbidden by our checkstyle, we must go that route to get the logback
+		// root logger.
 		this.logger = (Logger) org.slf4j.LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
 	}
 
@@ -53,11 +54,11 @@ public final class LogbackCapture implements ExtensionContext.Store.CloseableRes
 	}
 
 	public List<String> getFormattedMessages() {
-		return listAppender.list.stream().map(ILoggingEvent::getFormattedMessage).toList();
+		return this.listAppender.list.stream().map(ILoggingEvent::getFormattedMessage).toList();
 	}
 
 	void start() {
-		this.logger.addAppender(listAppender);
+		this.logger.addAppender(this.listAppender);
 		this.listAppender.start();
 	}
 
@@ -70,10 +71,11 @@ public final class LogbackCapture implements ExtensionContext.Store.CloseableRes
 	public void close() {
 		this.resetLogLevel();
 		this.listAppender.stop();
-		this.logger.detachAppender(listAppender);
+		this.logger.detachAppender(this.listAppender);
 	}
 
 	public void resetLogLevel() {
 		this.additionalLoggers.forEach(Logger::setLevel);
 	}
+
 }

@@ -18,13 +18,13 @@ package org.springframework.data.neo4j.repository;
 import java.io.Serial;
 
 import org.apiguardian.api.API;
+
 import org.springframework.dao.EmptyResultDataAccessException;
 
 /**
  * Throw when a query doesn't return a required result.
  *
  * @author Michael J. Simons
- * @soundtrack Deichkind - Niveau weshalb warum
  * @since 6.0
  */
 @API(status = API.Status.STABLE, since = "6.0")
@@ -32,6 +32,7 @@ public final class NoResultException extends EmptyResultDataAccessException {
 
 	@Serial
 	private static final long serialVersionUID = -1508370436250180391L;
+
 	private final String query;
 
 	public NoResultException(int expectedNumberOfResults, String query) {
@@ -40,6 +41,7 @@ public final class NoResultException extends EmptyResultDataAccessException {
 	}
 
 	public String getQuery() {
-		return query;
+		return this.query;
 	}
+
 }

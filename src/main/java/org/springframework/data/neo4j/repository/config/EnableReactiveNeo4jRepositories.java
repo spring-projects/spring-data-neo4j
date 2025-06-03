@@ -33,8 +33,9 @@ import org.springframework.data.neo4j.repository.support.ReactiveNeo4jRepository
 import org.springframework.data.repository.config.DefaultRepositoryBaseClass;
 
 /**
- * Annotation to activate reactive Neo4j repositories. If no base package is configured through either {@link #value()},
- * {@link #basePackages()} or {@link #basePackageClasses()} it will trigger scanning of the package of annotated
+ * Annotation to activate reactive Neo4j repositories. If no base package is configured
+ * through either {@link #value()}, {@link #basePackages()} or
+ * {@link #basePackageClasses()} it will trigger scanning of the package of annotated
  * configuration class.
  *
  * @author Gerrit Meier
@@ -49,82 +50,104 @@ import org.springframework.data.repository.config.DefaultRepositoryBaseClass;
 public @interface EnableReactiveNeo4jRepositories {
 
 	/**
-	 * Alias for the {@link #basePackages()} attribute. Allows for more concise annotation declarations e.g.:
-	 * {@code @EnableReactiveNeo4jRepositories("org.my.pkg")} instead of
-	 * {@code @EnableReactiveNeo4jRepositories(basePackages="org.my.pkg")}.
+	 * Alias for the {@link #basePackages()} attribute. Allows for more concise annotation
+	 * declarations e.g.: {@code @EnableReactiveNeo4jRepositories("org.my.pkg")} instead
+	 * of {@code @EnableReactiveNeo4jRepositories(basePackages="org.my.pkg")}.
+	 * @return alias for {@link #basePackages()}
 	 */
 	@AliasFor("basePackages")
 	String[] value() default {};
 
 	/**
-	 * Base packages to scan for annotated components. {@link #value()} is an alias for (and mutually exclusive with) this
-	 * attribute. Use {@link #basePackageClasses()} for a type-safe alternative to String-based package names.
+	 * Base packages to scan for annotated components. {@link #value()} is an alias for
+	 * (and mutually exclusive with) this attribute. Use {@link #basePackageClasses()} for
+	 * a type-safe alternative to String-based package names.
+	 * @return the base packages to scan
 	 */
 	@AliasFor("value")
 	String[] basePackages() default {};
 
 	/**
-	 * Type-safe alternative to {@link #basePackages()} for specifying the packages to scan for annotated components. The
-	 * package of each class specified will be scanned. Consider creating a special no-op marker class or interface in
-	 * each package that serves no purpose other than being referenced by this attribute.
+	 * Type-safe alternative to {@link #basePackages()} for specifying the packages to
+	 * scan for annotated components. The package of each class specified will be scanned.
+	 * Consider creating a special no-op marker class or interface in each package that
+	 * serves no purpose other than being referenced by this attribute.
+	 * @return the base packages to scan
 	 */
 	Class<?>[] basePackageClasses() default {};
 
 	/**
-	 * Returns the {@link FactoryBean} class to be used for each repository instance. Defaults to
-	 * {@link ReactiveNeo4jRepositoryFactoryBean}.
+	 * Returns the {@link FactoryBean} class to be used for each repository instance.
+	 * Defaults to {@link ReactiveNeo4jRepositoryFactoryBean}.
+	 * @return the repository factory bean class
 	 */
 	Class<?> repositoryFactoryBeanClass() default ReactiveNeo4jRepositoryFactoryBean.class;
 
 	/**
-	 * Configure the repository base class to be used to create repository proxies for this particular configuration.
-	 *
+	 * Configure the repository base class to be used to create repository proxies for
+	 * this particular configuration.
 	 * @return The base class to be used when creating repository proxies.
 	 */
 	Class<?> repositoryBaseClass() default DefaultRepositoryBaseClass.class;
 
 	/**
-	 * Configures the name of the {@link Neo4jMappingContext} bean to be used with the repositories detected.
+	 * Configures the name of the {@link Neo4jMappingContext} bean to be used with the
+	 * repositories detected.
+	 * @return reference to the {@link Neo4jMappingContext}
 	 */
 	String neo4jMappingContextRef() default ReactiveNeo4jRepositoryConfigurationExtension.DEFAULT_MAPPING_CONTEXT_BEAN_NAME;
 
 	/**
-	 * Configures the name of the {@link ReactiveNeo4jTemplate} bean to be used with the repositories detected.
+	 * Configures the name of the {@link ReactiveNeo4jTemplate} bean to be used with the
+	 * repositories detected.
+	 * @return reference to the {@link ReactiveNeo4jTemplate}
 	 */
 	String neo4jTemplateRef() default ReactiveNeo4jRepositoryConfigurationExtension.DEFAULT_NEO4J_TEMPLATE_BEAN_NAME;
 
 	/**
-	 * Configures the name of the {@link ReactiveNeo4jTransactionManager} bean to be used with the repositories detected.
+	 * Configures the name of the {@link ReactiveNeo4jTransactionManager} bean to be used
+	 * with the repositories detected.
+	 * @return reference to the {@link ReactiveNeo4jTransactionManager}
 	 */
 	String transactionManagerRef() default ReactiveNeo4jRepositoryConfigurationExtension.DEFAULT_TRANSACTION_MANAGER_BEAN_NAME;
 
 	/**
-	 * Specifies which types are eligible for component scanning. Further narrows the set of candidate components from
-	 * everything in {@link #basePackages()} to everything in the base packages that matches the given filter or filters.
+	 * Specifies which types are eligible for component scanning. Further narrows the set
+	 * of candidate components from everything in {@link #basePackages()} to everything in
+	 * the base packages that matches the given filter or filters.
+	 * @return filters for components that should be included while scanning for
+	 * repositories and entities
 	 */
 	ComponentScan.Filter[] includeFilters() default {};
 
 	/**
 	 * Specifies which types are not eligible for component scanning.
+	 * @return filters for components that should be excluded while scanning for
+	 * repositories and entities
 	 */
 	ComponentScan.Filter[] excludeFilters() default {};
 
 	/**
-	 * Configures the location of where to find the Spring Data named queries properties file. Will default to
-	 * {@code META-INFO/neo4j-named-queries.properties}.
+	 * Configures the location of where to find the Spring Data named queries properties
+	 * file. Will default to {@code META-INFO/neo4j-named-queries.properties}.
+	 * @return location of a resource containing named queries
 	 */
 	String namedQueriesLocation() default "";
 
 	/**
-	 * Returns the postfix to be used when looking up custom repository implementations. Defaults to {@literal Impl}. So
-	 * for a repository named {@code PersonRepository} the corresponding implementation class will be looked up scanning
-	 * for {@code PersonRepositoryImpl}.
+	 * Returns the postfix to be used when looking up custom repository implementations.
+	 * Defaults to {@literal Impl}. So for a repository named {@code PersonRepository} the
+	 * corresponding implementation class will be looked up scanning for
+	 * {@code PersonRepositoryImpl}.
+	 * @return postfix of specific repository implementations
 	 */
 	String repositoryImplementationPostfix() default "Impl";
 
 	/**
-	 * Configures whether nested repository-interfaces (e.g. defined as inner classes) should be discovered by the
-	 * repositories infrastructure.
+	 * Configures whether nested repository-interfaces (e.g. defined as inner classes)
+	 * should be discovered by the repositories' infrastructure.
+	 * @return flag if nested repositories should be considered
 	 */
 	boolean considerNestedRepositories() default false;
+
 }

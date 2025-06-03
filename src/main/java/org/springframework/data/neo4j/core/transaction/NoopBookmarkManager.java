@@ -24,7 +24,6 @@ import org.neo4j.driver.Bookmark;
  * A bookmark manager that drops all bookmarks and never provides any bookmarks.
  *
  * @author Michael J. Simons
- * @soundtrack Helge Schneider - The Last Jazz
  * @since 7.0
  */
 enum NoopBookmarkManager implements Neo4jBookmarkManager {
@@ -39,4 +38,5 @@ enum NoopBookmarkManager implements Neo4jBookmarkManager {
 	@Override
 	public void updateBookmarks(Collection<Bookmark> usedBookmarks, Collection<Bookmark> newBookmarks) {
 	}
+
 }

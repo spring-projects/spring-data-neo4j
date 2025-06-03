@@ -19,7 +19,9 @@ package org.springframework.data.neo4j.integration.issues.gh2727;
  * @author Gerrit Meier
  */
 public interface ThirdLevelProjection {
+
 	Long getId();
 
 	String getSomeValue();
+
 }

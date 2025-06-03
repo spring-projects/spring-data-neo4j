@@ -15,17 +15,19 @@
  */
 package org.springframework.data.neo4j.core.mapping.callback;
 
-import static org.apiguardian.api.API.Status.INTERNAL;
-
 import org.apiguardian.api.API;
 import org.neo4j.driver.types.MapAccessor;
+
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.data.mapping.callback.EntityCallbacks;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
 
+import static org.apiguardian.api.API.Status.INTERNAL;
+
 /**
- * Utility class that orchestrates {@link EntityCallbacks}. Not to be used outside the framework.
+ * Utility class that orchestrates {@link EntityCallbacks}. Not to be used outside the
+ * framework.
  *
  * @author Michael J. Simons
  * @since 6.0.2
@@ -33,13 +35,18 @@ import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
 @API(status = INTERNAL, since = "6.0.2")
 public final class EventSupport {
 
+	private final EntityCallbacks entityCallbacks;
+
+	private EventSupport(EntityCallbacks entityCallbacks) {
+		this.entityCallbacks = entityCallbacks;
+	}
+
 	/**
-	 * Creates event support containing the required default events plus all entity callbacks discoverable through
-	 * the {@link BeanFactory}.
-	 *
-	 * @param context The mapping context that is used in some of the callbacks.
-	 * @param beanFactory The bean factory used to discover additional callbacks.
-	 * @return A new instance of the event support
+	 * Creates event support containing the required default events plus all entity
+	 * callbacks discoverable through the {@link BeanFactory}.
+	 * @param context the mapping context that is used in some of the callbacks
+	 * @param beanFactory the bean factory used to discover additional callbacks
+	 * @return a new instance of the event support
 	 */
 	public static EventSupport discoverCallbacks(Neo4jMappingContext context, BeanFactory beanFactory) {
 
@@ -49,11 +56,11 @@ public final class EventSupport {
 	}
 
 	/**
-	 * Creates event support containing the required default events plus all explicitly defined events.
-	 *
-	 * @param context The mapping context that is used in some of the callbacks.
+	 * Creates event support containing the required default events plus all explicitly
+	 * defined events.
+	 * @param context the mapping context that is used in some of the callbacks
 	 * @param entityCallbacks predefined callbacks.
-	 * @return A new instance of the event support
+	 * @return a new instance of the event support
 	 */
 	public static EventSupport useExistingCallbacks(Neo4jMappingContext context, EntityCallbacks entityCallbacks) {
 
@@ -67,32 +74,28 @@ public final class EventSupport {
 		entityCallbacks.addEntityCallback(new PostLoadInvocation(context));
 	}
 
-	private final EntityCallbacks entityCallbacks;
-
-	private EventSupport(EntityCallbacks entityCallbacks) {
-		this.entityCallbacks = entityCallbacks;
-	}
-
 	public <T> T maybeCallBeforeBind(T object) {
 
 		if (object == null) {
 			return object;
 		}
-		return entityCallbacks.callback(BeforeBindCallback.class, object);
+		return this.entityCallbacks.callback(BeforeBindCallback.class, object);
 	}
 
 	/**
-	 * @param object The freshly converted instance
-	 * @param entity The entity
-	 * @param source The source of the instance
-	 * @param <T>    Expected type
-	 * @return The instance to which the callback was applied to
+	 * Will be called after any conversion.
+	 * @param object the freshly converted instance
+	 * @param entity the entity
+	 * @param source the source of the instance
+	 * @param <T> the expected type
+	 * @return the instance to which the callback was applied to
 	 */
 	public <T> T maybeCallAfterConvert(T object, Neo4jPersistentEntity<T> entity, MapAccessor source) {
 
 		if (object == null) {
 			return object;
 		}
-		return entityCallbacks.callback(AfterConvertCallback.class, object, entity, source);
+		return this.entityCallbacks.callback(AfterConvertCallback.class, object, entity, source);
 	}
+
 }

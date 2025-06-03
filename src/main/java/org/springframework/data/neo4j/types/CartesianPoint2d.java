@@ -18,6 +18,8 @@ package org.springframework.data.neo4j.types;
 import org.apiguardian.api.API;
 
 /**
+ * A concrete, 2-dimensional cartesian point.
+ *
  * @author Michael J. Simons
  * @since 6.0
  */
@@ -35,15 +37,16 @@ public final class CartesianPoint2d extends AbstractPoint {
 	}
 
 	public double getX() {
-		return coordinate.getX();
+		return this.coordinate.getX();
 	}
 
 	public double getY() {
-		return coordinate.getY();
+		return this.coordinate.getY();
 	}
 
 	@Override
 	public String toString() {
 		return "CartesianPoint2d{" + "x=" + getX() + ", y=" + getY() + '}';
 	}
+
 }

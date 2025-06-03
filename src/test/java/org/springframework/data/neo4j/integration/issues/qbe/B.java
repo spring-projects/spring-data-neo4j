@@ -28,6 +28,7 @@ import org.springframework.data.neo4j.core.schema.Node;
  */
 @Node
 public class B {
+
 	@Id
 	@GeneratedValue(GeneratedValue.UUIDGenerator.class)
 	UUID id;
@@ -39,14 +40,15 @@ public class B {
 	}
 
 	public UUID getId() {
-		return id;
+		return this.id;
 	}
 
 	public String getAnotherName() {
-		return anotherName;
+		return this.anotherName;
 	}
 
 	public void setAnotherName(String anotherName) {
 		this.anotherName = anotherName;
 	}
+
 }

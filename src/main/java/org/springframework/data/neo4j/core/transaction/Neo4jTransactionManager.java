@@ -28,6 +28,7 @@ import org.neo4j.driver.Transaction;
 import org.neo4j.driver.TransactionConfig;
 import org.neo4j.driver.exceptions.Neo4jException;
 import org.neo4j.driver.exceptions.RetryableException;
+
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -47,22 +48,88 @@ import org.springframework.transaction.support.TransactionSynchronizationUtils;
 import org.springframework.util.Assert;
 
 /**
- * Dedicated {@link org.springframework.transaction.PlatformTransactionManager} for native Neo4j transactions. This
- * transaction manager will synchronize a pair of a native Neo4j session/transaction with the transaction.
+ * Dedicated {@link org.springframework.transaction.PlatformTransactionManager} for native
+ * Neo4j transactions. This transaction manager will synchronize a pair of a native Neo4j
+ * session/transaction with the transaction.
  *
  * @author Michael J. Simons
  * @since 6.0
  */
 @API(status = API.Status.STABLE, since = "6.0")
-public final class Neo4jTransactionManager extends AbstractPlatformTransactionManager implements ApplicationContextAware {
+public final class Neo4jTransactionManager extends AbstractPlatformTransactionManager
+		implements ApplicationContextAware {
 
 	@Serial
 	private static final long serialVersionUID = 7971369288503005574L;
 
 	/**
+	 * The underlying driver, which is also the synchronisation object.
+	 */
+	private final transient Driver driver;
+
+	/**
+	 * Database name provider.
+	 */
+	private final transient DatabaseSelectionProvider databaseSelectionProvider;
+
+	/**
+	 * Provider for user impersonation.
+	 */
+	private final transient UserSelectionProvider userSelectionProvider;
+
+	private final transient BookmarkManagerReference bookmarkManager;
+
+	/**
+	 * This will create a transaction manager for the default database.
+	 * @param driver a driver instance
+	 */
+	public Neo4jTransactionManager(Driver driver) {
+
+		this(with(driver));
+	}
+
+	/**
+	 * This will create a transaction manager targeting whatever the database selection
+	 * provider determines.
+	 * @param driver a driver instance
+	 * @param databaseSelectionProvider the database selection provider to determine the
+	 * database in which the transactions should happen
+	 */
+	public Neo4jTransactionManager(Driver driver, DatabaseSelectionProvider databaseSelectionProvider) {
+
+		this(with(driver).withDatabaseSelectionProvider(databaseSelectionProvider));
+	}
+
+	/**
+	 * This constructor can be used to configure the bookmark manager being used. It is
+	 * useful when you need to seed the bookmark manager or if you want to capture new
+	 * bookmarks.
+	 * @param driver a driver instance
+	 * @param databaseSelectionProvider the database selection provider to determine the
+	 * database in which the transactions should happen
+	 * @param bookmarkManager a bookmark manager
+	 */
+	public Neo4jTransactionManager(Driver driver, DatabaseSelectionProvider databaseSelectionProvider,
+			Neo4jBookmarkManager bookmarkManager) {
+
+		this(with(driver).withDatabaseSelectionProvider(databaseSelectionProvider)
+			.withBookmarkManager(bookmarkManager));
+	}
+
+	private Neo4jTransactionManager(Builder builder) {
+
+		this.driver = builder.driver;
+		this.databaseSelectionProvider = (builder.databaseSelectionProvider != null) ? builder.databaseSelectionProvider
+				: DatabaseSelectionProvider.getDefaultSelectionProvider();
+		this.userSelectionProvider = (builder.userSelectionProvider != null) ? builder.userSelectionProvider
+				: UserSelectionProvider.getDefaultSelectionProvider();
+		this.bookmarkManager = new BookmarkManagerReference(Neo4jBookmarkManager::create, builder.bookmarkManager);
+	}
+
+	/**
 	 * Start building a new transaction manager for the given driver instance.
-	 * @param driver A fixed driver instance.
-	 * @return A builder for a transaction manager
+	 * @param driver a fixed driver instance.
+	 * @return a builder for a transaction manager
 	 */
 	@API(status = API.Status.STABLE, since = "6.2")
 	public static Builder with(Driver driver) {
@@ -71,150 +138,20 @@ public final class Neo4jTransactionManager extends AbstractPlatformTransactionMa
 	}
 
 	/**
-	 * A builder for {@link Neo4jTransactionManager}.
+	 * This method provides a native Neo4j transaction to be used from within a
+	 * {@link org.springframework.data.neo4j.core.Neo4jClient}. In most cases this the
+	 * native transaction will be controlled from the Neo4j specific
+	 * {@link org.springframework.transaction.PlatformTransactionManager}. However, SDN
+	 * provides support for other transaction managers as well. This method registers a
+	 * session synchronization in such cases on the foreign transaction manager.
+	 * @param driver the driver that has been used as a synchronization object.
+	 * @param targetDatabase the target database
+	 * @param asUser the user for which the tx is being retrieved
+	 * @return an optional managed transaction or {@literal null} if the method hasn't
+	 * been called inside an ongoing Spring transaction
 	 */
-	@API(status = API.Status.STABLE, since = "6.2")
-	@SuppressWarnings("HiddenField")
-	public static final class Builder {
-
-		private final Driver driver;
-
-		@Nullable
-		private DatabaseSelectionProvider databaseSelectionProvider;
-
-		@Nullable
-		private UserSelectionProvider userSelectionProvider;
-
-		@Nullable
-		private Neo4jBookmarkManager bookmarkManager;
-
-		private Builder(Driver driver) {
-			this.driver = driver;
-		}
-
-		/**
-		 * Configures the database selection provider. Make sure to use the same instance as for a possible
-		 * {@link org.springframework.data.neo4j.core.Neo4jClient}. During runtime, it will be checked if a call is made
-		 * for the same database when happening in a managed transaction.
-		 *
-		 * @param databaseSelectionProvider The database selection provider
-		 * @return The builder
-		 */
-		public Builder withDatabaseSelectionProvider(@Nullable DatabaseSelectionProvider databaseSelectionProvider) {
-			this.databaseSelectionProvider = databaseSelectionProvider;
-			return this;
-		}
-
-		/**
-		 * Configures a provider for impersonated users. Make sure to use the same instance as for a possible
-		 * {@link org.springframework.data.neo4j.core.Neo4jClient}. During runtime, it will be checked if a call is made
-		 * for the same user when happening in a managed transaction.
-		 *
-		 * @param userSelectionProvider The provider for impersonated users
-		 * @return The builder
-		 */
-		public Builder withUserSelectionProvider(@Nullable UserSelectionProvider userSelectionProvider) {
-			this.userSelectionProvider = userSelectionProvider;
-			return this;
-		}
-
-		public Builder withBookmarkManager(Neo4jBookmarkManager bookmarkManager) {
-			this.bookmarkManager = bookmarkManager;
-			return this;
-		}
-
-		public Neo4jTransactionManager build() {
-			return new Neo4jTransactionManager(this);
-		}
-	}
-
-	/**
-	 * The underlying driver, which is also the synchronisation object.
-	 */
-	private transient final Driver driver;
-
-	/**
-	 * Database name provider.
-	 */
-	private transient final DatabaseSelectionProvider databaseSelectionProvider;
-
-	/**
-	 * Provider for user impersonation.
-	 */
-	private transient final UserSelectionProvider userSelectionProvider;
-
-	private transient final BookmarkManagerReference bookmarkManager;
-
-	/**
-	 * This will create a transaction manager for the default database.
-	 *
-	 * @param driver A driver instance
-	 */
-	public Neo4jTransactionManager(Driver driver) {
-
-		this(with(driver));
-	}
-
-	/**
-	 * This will create a transaction manager targeting whatever the database selection provider determines.
-	 *
-	 * @param driver A driver instance
-	 * @param databaseSelectionProvider The database selection provider to determine the database in which the transactions should happen
-	 */
-	public Neo4jTransactionManager(Driver driver, DatabaseSelectionProvider databaseSelectionProvider) {
-
-		this(with(driver).withDatabaseSelectionProvider(databaseSelectionProvider));
-	}
-
-	/**
-	 * This constructor can be used to configure the bookmark manager being used. It is useful when you need to seed
-	 * the bookmark manager or if you want to capture new bookmarks.
-	 *
-	 * @param driver A driver instance
-	 * @param databaseSelectionProvider The database selection provider to determine the database in which the transactions should happen
-	 * @param bookmarkManager A bookmark manager
-	 */
-	public Neo4jTransactionManager(Driver driver, DatabaseSelectionProvider databaseSelectionProvider, Neo4jBookmarkManager bookmarkManager) {
-
-		this(with(driver).withDatabaseSelectionProvider(databaseSelectionProvider).withBookmarkManager(bookmarkManager));
-	}
-
-	private Neo4jTransactionManager(Builder builder) {
-
-		this.driver = builder.driver;
-		this.databaseSelectionProvider = builder.databaseSelectionProvider == null ?
-				DatabaseSelectionProvider.getDefaultSelectionProvider() :
-				builder.databaseSelectionProvider;
-		this.userSelectionProvider = builder.userSelectionProvider == null ?
-				UserSelectionProvider.getDefaultSelectionProvider() :
-				builder.userSelectionProvider;
-		this.bookmarkManager =  new BookmarkManagerReference(Neo4jBookmarkManager::create, builder.bookmarkManager);
-	}
-
-	@Override
-	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-
-		this.bookmarkManager.setApplicationContext(applicationContext);
-	}
-
-	/**
-	 * This method provides a native Neo4j transaction to be used from within a {@link org.springframework.data.neo4j.core.Neo4jClient}.
-	 * In most cases this the native transaction will be controlled from the Neo4j specific {@link org.springframework.transaction.PlatformTransactionManager}.
-	 * However, SDN provides support for other transaction managers as well. This method registers a session synchronization
-	 * in such cases on the foreign transaction manager.
-	 *
-	 * @param driver The driver that has been used as a synchronization object.
-	 * @param targetDatabase The target database
-	 * @param asUser The user for which the tx is being retrieved
-	 * @return An optional managed transaction or {@literal null} if the method hasn't been called inside an ongoing
-	 *         Spring transaction
-	 */
-	@Nullable
-	public static Transaction retrieveTransaction(
-			final Driver driver,
-			final DatabaseSelection targetDatabase,
-			final UserSelection asUser
-	) {
+	@Nullable public static Transaction retrieveTransaction(final Driver driver, final DatabaseSelection targetDatabase,
+			final UserSelection asUser) {
 
 		if (!TransactionSynchronizationManager.isSynchronizationActive()) {
 			return null;
@@ -222,7 +159,7 @@ public final class Neo4jTransactionManager extends AbstractPlatformTransactionMa
 
 		// Check whether we have a transaction managed by a Neo4j transaction manager
 		Neo4jTransactionHolder connectionHolder = (Neo4jTransactionHolder) TransactionSynchronizationManager
-				.getResource(driver);
+			.getResource(driver);
 
 		if (connectionHolder != null) {
 			Transaction optionalOngoingTransaction = connectionHolder.getTransaction(targetDatabase, asUser);
@@ -231,21 +168,22 @@ public final class Neo4jTransactionManager extends AbstractPlatformTransactionMa
 				return optionalOngoingTransaction;
 			}
 
-			throw new IllegalStateException(
-					Neo4jTransactionUtils.formatOngoingTxInAnotherDbErrorMessage(
-							connectionHolder.getDatabaseSelection(), targetDatabase,
-							connectionHolder.getUserSelection(), asUser));
+			throw new IllegalStateException(Neo4jTransactionUtils.formatOngoingTxInAnotherDbErrorMessage(
+					connectionHolder.getDatabaseSelection(), targetDatabase, connectionHolder.getUserSelection(),
+					asUser));
 		}
 
 		// Otherwise we open a session and synchronize it.
 		Session session = driver.session(Neo4jTransactionUtils.defaultSessionConfig(targetDatabase, asUser));
-		Transaction transaction = session.beginTransaction(Neo4jTransactionUtils.createTransactionConfigFrom(TransactionDefinition.withDefaults(), -1));
+		Transaction transaction = session.beginTransaction(
+				Neo4jTransactionUtils.createTransactionConfigFrom(TransactionDefinition.withDefaults(), -1));
 		// Manually create a new synchronization
-		connectionHolder = new Neo4jTransactionHolder(new Neo4jTransactionContext(targetDatabase, asUser), session, transaction);
+		connectionHolder = new Neo4jTransactionHolder(new Neo4jTransactionContext(targetDatabase, asUser), session,
+				transaction);
 		connectionHolder.setSynchronizedWithTransaction(true);
 
 		TransactionSynchronizationManager
-				.registerSynchronization(new Neo4jSessionSynchronization(connectionHolder, driver));
+			.registerSynchronization(new Neo4jSessionSynchronization(connectionHolder, driver));
 
 		TransactionSynchronizationManager.bindResource(driver, connectionHolder);
 		return Objects.requireNonNull(connectionHolder.getTransaction(targetDatabase, asUser));
@@ -266,10 +204,16 @@ public final class Neo4jTransactionManager extends AbstractPlatformTransactionMa
 	}
 
 	@Override
+	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+
+		this.bookmarkManager.setApplicationContext(applicationContext);
+	}
+
+	@Override
 	protected Object doGetTransaction() throws TransactionException {
 
 		Neo4jTransactionHolder resourceHolder = (Neo4jTransactionHolder) TransactionSynchronizationManager
-				.getResource(driver);
+			.getResource(this.driver);
 		return new Neo4jTransactionObject(resourceHolder);
 	}
 
@@ -283,7 +227,8 @@ public final class Neo4jTransactionManager extends AbstractPlatformTransactionMa
 	protected void doBegin(Object transaction, TransactionDefinition definition) throws TransactionException {
 		Neo4jTransactionObject transactionObject = extractNeo4jTransaction(transaction);
 
-		TransactionConfig transactionConfig = Neo4jTransactionUtils.createTransactionConfigFrom(definition, super.getDefaultTimeout());
+		TransactionConfig transactionConfig = Neo4jTransactionUtils.createTransactionConfigFrom(definition,
+				super.getDefaultTimeout());
 		boolean readOnly = definition.isReadOnly();
 
 		TransactionSynchronizationManager.setCurrentTransactionReadOnly(readOnly);
@@ -291,11 +236,12 @@ public final class Neo4jTransactionManager extends AbstractPlatformTransactionMa
 		try {
 			// Prepare configuration data
 			Neo4jTransactionContext context = new Neo4jTransactionContext(
-					databaseSelectionProvider.getDatabaseSelection(), userSelectionProvider.getUserSelection(), bookmarkManager.resolve().getBookmarks());
+					this.databaseSelectionProvider.getDatabaseSelection(),
+					this.userSelectionProvider.getUserSelection(), this.bookmarkManager.resolve().getBookmarks());
 
 			// Configure and open session together with a native transaction
-			Session session = this.driver.session(
-					Neo4jTransactionUtils.sessionConfig(readOnly, context.getBookmarks(), context.getDatabaseSelection(), context.getUserSelection()));
+			Session session = this.driver.session(Neo4jTransactionUtils.sessionConfig(readOnly, context.getBookmarks(),
+					context.getDatabaseSelection(), context.getUserSelection()));
 			Transaction nativeTransaction = session.beginTransaction(transactionConfig);
 
 			// Synchronize on that
@@ -304,9 +250,10 @@ public final class Neo4jTransactionManager extends AbstractPlatformTransactionMa
 			transactionObject.setResourceHolder(transactionHolder);
 
 			TransactionSynchronizationManager.bindResource(this.driver, transactionHolder);
-		} catch (Exception ex) {
-			throw new TransactionSystemException(String.format("Could not open a new Neo4j session: %s", ex.getMessage()),
-					ex);
+		}
+		catch (Exception ex) {
+			throw new TransactionSystemException(
+					String.format("Could not open a new Neo4j session: %s", ex.getMessage()), ex);
 		}
 	}
 
@@ -316,7 +263,7 @@ public final class Neo4jTransactionManager extends AbstractPlatformTransactionMa
 		Neo4jTransactionObject transactionObject = extractNeo4jTransaction(transaction);
 		transactionObject.setResourceHolder(null);
 
-		return TransactionSynchronizationManager.unbindResource(driver);
+		return TransactionSynchronizationManager.unbindResource(this.driver);
 	}
 
 	@Override
@@ -325,7 +272,7 @@ public final class Neo4jTransactionManager extends AbstractPlatformTransactionMa
 		Neo4jTransactionObject transactionObject = extractNeo4jTransaction(Objects.requireNonNull(transaction));
 		transactionObject.setResourceHolder((Neo4jTransactionHolder) suspendedResources);
 
-		TransactionSynchronizationManager.bindResource(driver, suspendedResources);
+		TransactionSynchronizationManager.bindResource(this.driver, suspendedResources);
 	}
 
 	@Override
@@ -336,9 +283,11 @@ public final class Neo4jTransactionManager extends AbstractPlatformTransactionMa
 			Neo4jTransactionHolder transactionHolder = transactionObject.getRequiredResourceHolder();
 			Collection<Bookmark> newBookmarks = transactionHolder.commit();
 			this.bookmarkManager.resolve().updateBookmarks(transactionHolder.getBookmarks(), newBookmarks);
-		} catch (Neo4jException ex) {
+		}
+		catch (Neo4jException ex) {
 			if (ex instanceof RetryableException) {
-				throw new TransactionSystemException(Objects.requireNonNullElse(ex.getMessage(), "Caught a retryable exception"), ex);
+				throw new TransactionSystemException(
+						Objects.requireNonNullElse(ex.getMessage(), "Caught a retryable exception"), ex);
 			}
 			throw ex;
 		}
@@ -364,15 +313,77 @@ public final class Neo4jTransactionManager extends AbstractPlatformTransactionMa
 		Neo4jTransactionObject transactionObject = extractNeo4jTransaction(transaction);
 		transactionObject.getRequiredResourceHolder().close();
 		transactionObject.setResourceHolder(null);
-		TransactionSynchronizationManager.unbindResource(driver);
+		TransactionSynchronizationManager.unbindResource(this.driver);
+	}
+
+	/**
+	 * A builder for {@link Neo4jTransactionManager}.
+	 */
+	@API(status = API.Status.STABLE, since = "6.2")
+	@SuppressWarnings("HiddenField")
+	public static final class Builder {
+
+		private final Driver driver;
+
+		@Nullable
+		private DatabaseSelectionProvider databaseSelectionProvider;
+
+		@Nullable
+		private UserSelectionProvider userSelectionProvider;
+
+		@Nullable
+		private Neo4jBookmarkManager bookmarkManager;
+
+		private Builder(Driver driver) {
+			this.driver = driver;
+		}
+
+		/**
+		 * Configures the database selection provider. Make sure to use the same instance
+		 * as for a possible {@link org.springframework.data.neo4j.core.Neo4jClient}.
+		 * During runtime, it will be checked if a call is made for the same database when
+		 * happening in a managed transaction.
+		 * @param databaseSelectionProvider the database selection provider
+		 * @return the builder
+		 */
+		public Builder withDatabaseSelectionProvider(@Nullable DatabaseSelectionProvider databaseSelectionProvider) {
+			this.databaseSelectionProvider = databaseSelectionProvider;
+			return this;
+		}
+
+		/**
+		 * Configures a provider for impersonated users. Make sure to use the same
+		 * instance as for a possible
+		 * {@link org.springframework.data.neo4j.core.Neo4jClient}. During runtime, it
+		 * will be checked if a call is made for the same user when happening in a managed
+		 * transaction.
+		 * @param userSelectionProvider the provider for impersonated users
+		 * @return the builder
+		 */
+		public Builder withUserSelectionProvider(@Nullable UserSelectionProvider userSelectionProvider) {
+			this.userSelectionProvider = userSelectionProvider;
+			return this;
+		}
+
+		public Builder withBookmarkManager(Neo4jBookmarkManager bookmarkManager) {
+			this.bookmarkManager = bookmarkManager;
+			return this;
+		}
+
+		public Neo4jTransactionManager build() {
+			return new Neo4jTransactionManager(this);
+		}
+
 	}
 
 	static class Neo4jTransactionObject implements SmartTransactionObject {
 
 		private static final String RESOURCE_HOLDER_NOT_PRESENT_MESSAGE = "Neo4jConnectionHolder is required but not present. o_O";
 
-		// The resource holder is null when the call to TransactionSynchronizationManager.getResource
-		// in Neo4jTransactionManager.doGetTransaction didn't return a corresponding resource holder.
+		// The resource holder is null when the call to
+		// TransactionSynchronizationManager.getResource
+		// in Neo4jTransactionManager.doGetTransaction didn't return a corresponding
+		// resource holder.
 		// If it is null, there's no existing session / transaction.
 		@Nullable
 		private Neo4jTransactionHolder resourceHolder;
@@ -381,23 +392,23 @@ public final class Neo4jTransactionManager extends AbstractPlatformTransactionMa
 			this.resourceHolder = resourceHolder;
 		}
 
+		@Nullable Neo4jTransactionHolder getResourceHolder() {
+			return this.resourceHolder;
+		}
+
 		/**
-		 * Usually called in {@link #doBegin(Object, TransactionDefinition)} which is called when there's no existing
-		 * transaction.
-		 *
-		 * @param resourceHolder A newly created resource holder with a fresh drivers' session,
+		 * Usually called in {@link #doBegin(Object, TransactionDefinition)} which is
+		 * called when there's no existing transaction.
+		 * @param resourceHolder a newly created resource holder with a fresh drivers'
+		 * session
 		 */
 		void setResourceHolder(@Nullable Neo4jTransactionHolder resourceHolder) {
 			this.resourceHolder = resourceHolder;
 		}
 
-		@Nullable Neo4jTransactionHolder getResourceHolder() {
-			return resourceHolder;
-		}
-
 		Neo4jTransactionHolder getRequiredResourceHolder() {
 
-			return Objects.requireNonNull(resourceHolder, RESOURCE_HOLDER_NOT_PRESENT_MESSAGE);
+			return Objects.requireNonNull(this.resourceHolder, RESOURCE_HOLDER_NOT_PRESENT_MESSAGE);
 		}
 
 		void setRollbackOnly() {
@@ -415,5 +426,7 @@ public final class Neo4jTransactionManager extends AbstractPlatformTransactionMa
 
 			TransactionSynchronizationUtils.triggerFlush();
 		}
+
 	}
+
 }

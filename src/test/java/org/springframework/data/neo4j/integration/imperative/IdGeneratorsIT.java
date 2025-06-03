@@ -15,8 +15,6 @@
  */
 package org.springframework.data.neo4j.integration.imperative;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -25,10 +23,10 @@ import java.util.stream.StreamSupport;
 
 import org.junit.jupiter.api.Test;
 import org.neo4j.driver.Driver;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.neo4j.test.Neo4jImperativeTestConfiguration;
 import org.springframework.data.neo4j.core.DatabaseSelectionProvider;
 import org.springframework.data.neo4j.core.schema.IdGenerator;
 import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
@@ -38,9 +36,12 @@ import org.springframework.data.neo4j.integration.shared.common.ThingWithGenerat
 import org.springframework.data.neo4j.integration.shared.common.ThingWithIdGeneratedByBean;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.data.neo4j.test.BookmarkCapture;
+import org.springframework.data.neo4j.test.Neo4jImperativeTestConfiguration;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Michael J. Simons
@@ -77,15 +78,18 @@ class IdGeneratorsIT extends IdGeneratorsITBase {
 	@Test
 	void idGenerationWithNewEntitiesShouldWork(@Autowired ThingWithGeneratedIdRepository repository) {
 
-		List<ThingWithGeneratedId> things = IntStream.rangeClosed(1, 10).mapToObj(i -> new ThingWithGeneratedId("name" + i))
-				.collect(Collectors.toList());
+		List<ThingWithGeneratedId> things = IntStream.rangeClosed(1, 10)
+			.mapToObj(i -> new ThingWithGeneratedId("name" + i))
+			.collect(Collectors.toList());
 
 		Iterable<ThingWithGeneratedId> savedThings = repository.saveAll(things);
-		assertThat(savedThings).hasSize(things.size()).extracting(ThingWithGeneratedId::getTheId)
-				.allMatch(s -> s.matches("thingWithGeneratedId-\\d+"));
+		assertThat(savedThings).hasSize(things.size())
+			.extracting(ThingWithGeneratedId::getTheId)
+			.allMatch(s -> s.matches("thingWithGeneratedId-\\d+"));
 
-		Set<String> distinctIds = StreamSupport.stream(savedThings.spliterator(), false).map(ThingWithGeneratedId::getTheId)
-				.collect(Collectors.toSet());
+		Set<String> distinctIds = StreamSupport.stream(savedThings.spliterator(), false)
+			.map(ThingWithGeneratedId::getTheId)
+			.collect(Collectors.toSet());
 
 		assertThat(distinctIds).hasSize(things.size());
 	}
@@ -102,9 +106,13 @@ class IdGeneratorsIT extends IdGeneratorsITBase {
 		verifyDatabase(t.getTheId(), t.getName());
 	}
 
-	interface ThingWithGeneratedIdRepository extends CrudRepository<ThingWithGeneratedId, String> {}
+	interface ThingWithGeneratedIdRepository extends CrudRepository<ThingWithGeneratedId, String> {
 
-	interface ThingWithIdGeneratedByBeanRepository extends CrudRepository<ThingWithIdGeneratedByBean, String> {}
+	}
+
+	interface ThingWithIdGeneratedByBeanRepository extends CrudRepository<ThingWithIdGeneratedByBean, String> {
+
+	}
 
 	@Configuration
 	@EnableTransactionManagement
@@ -112,30 +120,35 @@ class IdGeneratorsIT extends IdGeneratorsITBase {
 	static class Config extends Neo4jImperativeTestConfiguration {
 
 		@Bean
+		@Override
 		public Driver driver() {
 			return neo4jConnectionSupport.getDriver();
 		}
 
 		@Bean
-		public IdGenerator<String> aFancyIdGenerator() {
+		IdGenerator<String> aFancyIdGenerator() {
 			return (label, entity) -> "ImperativeID.";
 		}
 
 		@Bean
-		public BookmarkCapture bookmarkCapture() {
+		BookmarkCapture bookmarkCapture() {
 			return new BookmarkCapture();
 		}
 
 		@Override
-		public PlatformTransactionManager transactionManager(Driver driver, DatabaseSelectionProvider databaseNameProvider) {
+		public PlatformTransactionManager transactionManager(Driver driver,
+				DatabaseSelectionProvider databaseNameProvider) {
 
 			BookmarkCapture bookmarkCapture = bookmarkCapture();
-			return new Neo4jTransactionManager(driver, databaseNameProvider, Neo4jBookmarkManager.create(bookmarkCapture));
+			return new Neo4jTransactionManager(driver, databaseNameProvider,
+					Neo4jBookmarkManager.create(bookmarkCapture));
 		}
 
 		@Override
 		public boolean isCypher5Compatible() {
 			return neo4jConnectionSupport.isCypher5SyntaxCompatible();
 		}
+
 	}
+
 }

@@ -19,11 +19,13 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apiguardian.api.API;
+
 import org.springframework.data.mapping.AssociationHandler;
 import org.springframework.data.neo4j.core.schema.TargetNode;
 
 /**
- * <strong>Warning</strong> Internal API, might change without further notice, even in patch releases.
+ * <strong>Warning</strong> Internal API, might change without further notice, even in
+ * patch releases.
  * <p>
  * This class removes {@link TargetNode @TargetNode} properties again from associations.
  *
@@ -33,11 +35,7 @@ import org.springframework.data.neo4j.core.schema.TargetNode;
 @API(status = API.Status.INTERNAL, since = "6.3")
 public final class AssociationHandlerSupport {
 
-	private final static Map<Neo4jPersistentEntity<?>, AssociationHandlerSupport> CACHE = new ConcurrentHashMap<>();
-
-	public static AssociationHandlerSupport of(Neo4jPersistentEntity<?> entity) {
-		return CACHE.computeIfAbsent(entity, AssociationHandlerSupport::new);
-	}
+	private static final Map<Neo4jPersistentEntity<?>, AssociationHandlerSupport> CACHE = new ConcurrentHashMap<>();
 
 	private final Neo4jPersistentEntity<?> entity;
 
@@ -45,12 +43,17 @@ public final class AssociationHandlerSupport {
 		this.entity = entity;
 	}
 
+	public static AssociationHandlerSupport of(Neo4jPersistentEntity<?> entity) {
+		return CACHE.computeIfAbsent(entity, AssociationHandlerSupport::new);
+	}
+
 	public Neo4jPersistentEntity<?> doWithAssociations(AssociationHandler<Neo4jPersistentProperty> handler) {
-		entity.doWithAssociations((AssociationHandler<Neo4jPersistentProperty>) association -> {
+		this.entity.doWithAssociations((AssociationHandler<Neo4jPersistentProperty>) association -> {
 			if (!association.getInverse().isAnnotationPresent(TargetNode.class)) {
 				handler.doWithAssociation(association);
 			}
 		});
-		return entity;
+		return this.entity;
 	}
+
 }

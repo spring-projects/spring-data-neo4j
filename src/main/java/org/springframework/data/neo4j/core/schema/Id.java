@@ -25,9 +25,10 @@ import java.lang.annotation.Target;
 import org.apiguardian.api.API;
 
 /**
- * This annotation is included here for completeness. It marks an attribute as the primary id of a node entity. It can
- * be used as an alternative to {@link org.springframework.data.annotation.Id} and it may provide additional features in
- * the future.
+ * This annotation is included here for completeness. It marks an attribute as the primary
+ * id of a node entity. It can be used as an alternative to
+ * {@link org.springframework.data.annotation.Id} and it may provide additional features
+ * in the future.
  * <p>
  * To use assigned ids, annotate an arbitrary attribute of your domain class with
  * {@link org.springframework.data.annotation.Id} or this annotation:
@@ -39,11 +40,12 @@ import org.apiguardian.api.API;
  * }
  * </pre>
  *
- * You can combine {@code @Id} with {@code @Property} with assigned ids to rename the node property in which the
- * assigned id is stored.
+ * You can combine {@code @Id} with {@code @Property} with assigned ids to rename the node
+ * property in which the assigned id is stored.
  * <p>
- * To use internally generated ids, annotate an arbitrary attribute of type {@code java.lang.long} or
- * {@code java.lang.Long} with {@code @Id} and {@link GeneratedValue @GeneratedValue}.
+ * To use internally generated ids, annotate an arbitrary attribute of type
+ * {@code java.lang.long} or {@code java.lang.Long} with {@code @Id} and
+ * {@link GeneratedValue @GeneratedValue}.
  *
  * <pre>
  * &#64;Node
@@ -52,11 +54,13 @@ import org.apiguardian.api.API;
  * }
  * </pre>
  *
- * It does not need to be named {@code id}, but most people chose this as the attribute in the class. As the attribute
- * does not correspond to a node property, it cannot be renamed via {@code @Property}.
+ * It does not need to be named {@code id}, but most people chose this as the attribute in
+ * the class. As the attribute does not correspond to a node property, it cannot be
+ * renamed via {@code @Property}.
  * <p>
- * To use externally generated ids, annotate an arbitrary attribute with a type that your generated returns with
- * {@code @Id} and {@link GeneratedValue @GeneratedValue} and specify the generator class.
+ * To use externally generated ids, annotate an arbitrary attribute with a type that your
+ * generated returns with {@code @Id} and {@link GeneratedValue @GeneratedValue} and
+ * specify the generator class.
  *
  * <pre>
  * &#64;Node
@@ -65,17 +69,18 @@ import org.apiguardian.api.API;
  * }
  * </pre>
  *
- * Externally generated ids are indistinguishable to assigned ids from the database perspective and thus can be
- * arbitrarily named via {@code @Property}.
+ * Externally generated ids are indistinguishable to assigned ids from the database
+ * perspective and thus can be arbitrarily named via {@code @Property}.
  *
  * @author Michael J. Simons
  * @since 6.0
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.FIELD, ElementType.ANNOTATION_TYPE})
+@Target({ ElementType.FIELD, ElementType.ANNOTATION_TYPE })
 @Documented
 @Inherited
 @org.springframework.data.annotation.Id
 @API(status = API.Status.STABLE, since = "6.0")
 public @interface Id {
+
 }

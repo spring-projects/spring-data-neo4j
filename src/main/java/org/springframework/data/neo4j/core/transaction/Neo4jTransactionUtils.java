@@ -25,6 +25,7 @@ import org.neo4j.driver.AccessMode;
 import org.neo4j.driver.Bookmark;
 import org.neo4j.driver.SessionConfig;
 import org.neo4j.driver.TransactionConfig;
+
 import org.springframework.data.neo4j.core.DatabaseSelection;
 import org.springframework.data.neo4j.core.UserSelection;
 import org.springframework.data.neo4j.core.support.UserAgent;
@@ -36,23 +37,28 @@ import org.springframework.util.ReflectionUtils;
 /**
  * Internal use only.
  *
+ * @author Michael J. Simons
+ * @author Gerrit Meier
  * @since 6.0
  */
 public final class Neo4jTransactionUtils {
 
 	@Nullable
-	private static final Method WITH_IMPERSONATED_USER
-			= ReflectionUtils.findMethod(SessionConfig.Builder.class, "withImpersonatedUser", String.class);
+	private static final Method WITH_IMPERSONATED_USER = ReflectionUtils.findMethod(SessionConfig.Builder.class,
+			"withImpersonatedUser", String.class);
+
+	private Neo4jTransactionUtils() {
+	}
 
 	public static boolean driverSupportsImpersonation() {
 		return WITH_IMPERSONATED_USER != null;
 	}
 
-	@SuppressWarnings({"UnusedReturnValue", "NullAway"})
+	@SuppressWarnings({ "UnusedReturnValue", "NullAway" })
 	public static SessionConfig.Builder withImpersonatedUser(SessionConfig.Builder builder, String user) {
 
 		if (driverSupportsImpersonation()) {
-			//noinspection ConstantConditions
+			// noinspection ConstantConditions
 			return (SessionConfig.Builder) ReflectionUtils.invokeMethod(WITH_IMPERSONATED_USER, builder, user);
 		}
 		return builder;
@@ -60,18 +66,19 @@ public final class Neo4jTransactionUtils {
 
 	/**
 	 * The default session uses {@link AccessMode#WRITE} and an empty list of bookmarks.
-	 *
-	 * @param databaseSelection The database to use.
-	 * @param asUser An impersonated user.
-	 * @return Session parameters to configure the default session used
+	 * @param databaseSelection the database to use.
+	 * @param asUser an impersonated user.
+	 * @return aession parameters to configure the default session used
 	 */
 	public static SessionConfig defaultSessionConfig(DatabaseSelection databaseSelection, UserSelection asUser) {
 		return sessionConfig(false, Collections.emptyList(), databaseSelection, asUser);
 	}
 
-	public static SessionConfig sessionConfig(boolean readOnly, Collection<Bookmark> bookmarks, DatabaseSelection databaseSelection, UserSelection asUser) {
+	public static SessionConfig sessionConfig(boolean readOnly, Collection<Bookmark> bookmarks,
+			DatabaseSelection databaseSelection, UserSelection asUser) {
 		SessionConfig.Builder builder = SessionConfig.builder()
-				.withDefaultAccessMode(readOnly ? AccessMode.READ : AccessMode.WRITE).withBookmarks(bookmarks);
+			.withDefaultAccessMode(readOnly ? AccessMode.READ : AccessMode.WRITE)
+			.withBookmarks(bookmarks);
 
 		if (databaseSelection.getValue() != null) {
 			builder.withDatabase(databaseSelection.getValue());
@@ -85,15 +92,18 @@ public final class Neo4jTransactionUtils {
 	}
 
 	/**
-	 * Maps a Spring {@link TransactionDefinition transaction definition} to a native Neo4j driver transaction. Only the
-	 * default isolation leven ({@link TransactionDefinition#ISOLATION_DEFAULT}) and
-	 * {@link TransactionDefinition#PROPAGATION_REQUIRED propagation required} behaviour are supported.
-	 *
-	 * @param definition The transaction definition passed to a Neo4j transaction manager
-	 * @param defaultTxManagerTimeout Default timeout from the tx manager (if available, if not, use something negative)
-	 * @return A Neo4j native transaction configuration
+	 * Maps a Spring {@link TransactionDefinition transaction definition} to a native
+	 * Neo4j driver transaction. Only the default isolation leven
+	 * ({@link TransactionDefinition#ISOLATION_DEFAULT}) and
+	 * {@link TransactionDefinition#PROPAGATION_REQUIRED propagation required} behaviour
+	 * are supported.
+	 * @param definition the transaction definition passed to a Neo4j transaction manager
+	 * @param defaultTxManagerTimeout default timeout from the tx manager (if available,
+	 * if not, use something negative)
+	 * @return a Neo4j native transaction configuration
 	 */
-	static TransactionConfig createTransactionConfigFrom(TransactionDefinition definition, int defaultTxManagerTimeout) {
+	static TransactionConfig createTransactionConfigFrom(TransactionDefinition definition,
+			int defaultTxManagerTimeout) {
 
 		if (definition.getIsolationLevel() != TransactionDefinition.ISOLATION_DEFAULT) {
 			throw new InvalidIsolationLevelException(
@@ -110,32 +120,32 @@ public final class Neo4jTransactionUtils {
 		TransactionConfig.Builder builder = TransactionConfig.builder();
 		if (definition.getTimeout() > 0) {
 			builder = builder.withTimeout(Duration.ofSeconds(definition.getTimeout()));
-		} else if (defaultTxManagerTimeout > 0) {
+		}
+		else if (defaultTxManagerTimeout > 0) {
 			builder = builder.withTimeout(Duration.ofSeconds(defaultTxManagerTimeout));
 		}
 
-		return builder
-				.withMetadata(Collections.singletonMap("app", UserAgent.INSTANCE.toString()))
-				.build();
+		return builder.withMetadata(Collections.singletonMap("app", UserAgent.INSTANCE.toString())).build();
 	}
 
-	static String formatOngoingTxInAnotherDbErrorMessage(
-			DatabaseSelection currentDb, DatabaseSelection requestedDb,
-			UserSelection currentUser, UserSelection requestedUser
-	) {
+	static String formatOngoingTxInAnotherDbErrorMessage(DatabaseSelection currentDb, DatabaseSelection requestedDb,
+			UserSelection currentUser, UserSelection requestedUser) {
 		String defaultDatabase = "the default database";
 		String defaultUser = "the default user";
 
-		String _currentDb = currentDb.getValue() == null ? defaultDatabase : String.format("'%s'", currentDb.getValue());
-		String _requestedDb = requestedDb.getValue() == null ? defaultDatabase : String.format("'%s'", requestedDb.getValue());
+		String _currentDb = (currentDb.getValue() != null) ? String.format("'%s'", currentDb.getValue())
+				: defaultDatabase;
+		String _requestedDb = (requestedDb.getValue() != null) ? String.format("'%s'", requestedDb.getValue())
+				: defaultDatabase;
 
-		String _currentUser = currentUser.getValue() == null ? defaultUser : String.format("'%s'", currentUser.getValue());
-		String _requestedUser = requestedUser.getValue() == null ? defaultUser : String.format("'%s'", requestedUser.getValue());
+		String _currentUser = (currentUser.getValue() != null) ? String.format("'%s'", currentUser.getValue())
+				: defaultUser;
+		String _requestedUser = (requestedUser.getValue() != null) ? String.format("'%s'", requestedUser.getValue())
+				: defaultUser;
 
-		return String.format("There is already an ongoing Spring transaction for %s of %s, but you requested %s of %s", _currentUser, _currentDb,
-				_requestedUser, _requestedDb);
+		return String.format("There is already an ongoing Spring transaction for %s of %s, but you requested %s of %s",
+				_currentUser, _currentDb, _requestedUser, _requestedDb);
 
 	}
 
-	private Neo4jTransactionUtils() {}
 }

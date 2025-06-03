@@ -22,6 +22,9 @@ import org.neo4j.driver.types.Entity;
  */
 public final class TestIdentitySupport {
 
+	private TestIdentitySupport() {
+	}
+
 	/**
 	 * @param entity The entity container as received from the server.
 	 * @return The internal id
@@ -31,6 +34,4 @@ public final class TestIdentitySupport {
 		return entity.id();
 	}
 
-	private TestIdentitySupport() {
-	}
 }

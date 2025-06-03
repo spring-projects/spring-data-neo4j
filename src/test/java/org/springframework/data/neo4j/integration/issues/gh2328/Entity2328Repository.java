@@ -26,7 +26,9 @@ public interface Entity2328Repository extends Neo4jRepository<Entity2328, UUID> 
 
 	// Without a custom query, repository creation would fail with
 	// Could not create query for
-	// public abstract org.springframework.data.neo4j.integration.issues.gh2328.SomeEntity org.springframework.data.neo4j.integration.issues.gh2328.GH2328IT$SomeRepository.getSomeEntityViaNamedQuery()!
+	// public abstract org.springframework.data.neo4j.integration.issues.gh2328.SomeEntity
+	// org.springframework.data.neo4j.integration.issues.gh2328.GH2328IT$SomeRepository.getSomeEntityViaNamedQuery()!
 	// Reason: No property getSomeEntityViaNamedQuery found for type SomeEntity!;
 	Entity2328 getSomeEntityViaNamedQuery();
+
 }

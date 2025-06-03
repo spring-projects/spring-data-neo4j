@@ -22,6 +22,7 @@ import java.util.Set;
  */
 @SuppressWarnings("HiddenField") // Not worth cleaning up the Delomboked version
 public class BugTargetV1 extends BugTargetBaseV1 {
+
 	private String type;
 
 	BugTargetV1(String uuid, String name, Set<BugFromV1> relatedBugs, String type) {
@@ -37,9 +38,13 @@ public class BugTargetV1 extends BugTargetBaseV1 {
 	 * Builder
 	 */
 	public static class BugTargetBuilder {
+
 		private String uuid;
+
 		private String name;
+
 		private Set<BugFromV1> relatedBugs;
+
 		private String type;
 
 		BugTargetBuilder() {
@@ -69,8 +74,12 @@ public class BugTargetV1 extends BugTargetBaseV1 {
 			return new BugTargetV1(this.uuid, this.name, this.relatedBugs, this.type);
 		}
 
+		@Override
 		public String toString() {
-			return "BugTarget.BugTargetBuilder(uuid=" + this.uuid + ", name=" + this.name + ", relatedBugs=" + this.relatedBugs + ", type=" + this.type + ")";
+			return "BugTarget.BugTargetBuilder(uuid=" + this.uuid + ", name=" + this.name + ", relatedBugs="
+					+ this.relatedBugs + ", type=" + this.type + ")";
 		}
+
 	}
+
 }

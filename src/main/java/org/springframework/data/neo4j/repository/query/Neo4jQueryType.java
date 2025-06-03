@@ -20,7 +20,7 @@ import java.util.function.Function;
 import org.springframework.data.repository.query.parser.PartTree;
 
 /**
- * Describes the type of a query. The types are mutually exclusive.
+ * Describes the query type. All types are mutually exclusive.
  *
  * @author Michael J. Simons
  */
@@ -54,11 +54,11 @@ enum Neo4jQueryType {
 	}
 
 	/**
-	 * Gets the corresponding query type or throws an exception if the definition is not unique.
-	 *
-	 * @param countQuery True if you want a query with count projection.
-	 * @param existsQuery True if you want a query with exists projection.
-	 * @param deleteQuery True if you want a delete query.
+	 * Gets the corresponding query type or throws an exception if the definition is not
+	 * unique.
+	 * @param countQuery true if you want a query with count projection.
+	 * @param existsQuery true if you want a query with exists projection.
+	 * @param deleteQuery true if you want a delete query.
 	 * @return the query type
 	 * @throws IllegalArgumentException in case more than one parameter is true.
 	 */
@@ -89,4 +89,5 @@ enum Neo4jQueryType {
 
 		return queryType;
 	}
+
 }

@@ -20,6 +20,8 @@ import java.util.Objects;
 import org.apiguardian.api.API;
 
 /**
+ * A concrete, 3-dimensional cartesian point.
+ *
  * @author Michael J. Simons
  * @since 6.0
  */
@@ -37,19 +39,21 @@ public final class CartesianPoint3d extends AbstractPoint {
 	}
 
 	public double getX() {
-		return coordinate.getX();
+		return this.coordinate.getX();
 	}
 
 	public double getY() {
-		return coordinate.getY();
+		return this.coordinate.getY();
 	}
 
 	public Double getZ() {
-		return Objects.requireNonNull(coordinate.getZ(), "The underlying coordinate does not have a z-value (height)");
+		return Objects.requireNonNull(this.coordinate.getZ(),
+				"The underlying coordinate does not have a z-value (height)");
 	}
 
 	@Override
 	public String toString() {
 		return "CartesianPoint3d{" + "x=" + getX() + ", y=" + getY() + ", z=" + getZ() + '}';
 	}
+
 }

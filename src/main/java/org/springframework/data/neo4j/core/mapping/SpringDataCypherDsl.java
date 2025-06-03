@@ -15,6 +15,8 @@
  */
 package org.springframework.data.neo4j.core.mapping;
 
+import java.util.function.Function;
+
 import org.apiguardian.api.API;
 import org.neo4j.cypherdsl.core.Cypher;
 import org.neo4j.cypherdsl.core.FunctionInvocation;
@@ -22,8 +24,6 @@ import org.neo4j.cypherdsl.core.Named;
 import org.neo4j.cypherdsl.core.Node;
 import org.neo4j.cypherdsl.core.Relationship;
 import org.neo4j.cypherdsl.core.renderer.Dialect;
-
-import java.util.function.Function;
 
 /**
  * Supporting class for CypherDSL related customizations.
@@ -33,33 +33,42 @@ import java.util.function.Function;
 @API(status = API.Status.INTERNAL)
 public final class SpringDataCypherDsl {
 
-	private SpringDataCypherDsl() {
-	}
-
+	/**
+	 * Will return different delegates for the computing an internal id.
+	 */
 	public static Function<Dialect, Function<Named, FunctionInvocation>> elementIdOrIdFunction = dialect -> {
 		if (dialect == Dialect.NEO4J_5) {
 			return SpringDataCypherDsl::elementId;
-		} else if (dialect == Dialect.NEO4J_4) {
+		}
+		else if (dialect == Dialect.NEO4J_4) {
 			return SpringDataCypherDsl::id;
-		} else {
+		}
+		else {
 			return named -> {
 				if (named instanceof Node node) {
 					return Cypher.elementId(node);
-				} else if (named instanceof Relationship relationship) {
+				}
+				else if (named instanceof Relationship relationship) {
 					return Cypher.elementId(relationship);
-				} else {
+				}
+				else {
 					throw new IllegalArgumentException("Unsupported CypherDSL type: " + named.getClass());
 				}
 			};
 		}
 	};
 
+	private SpringDataCypherDsl() {
+	}
+
 	private static FunctionInvocation id(Named expression) {
-		return FunctionInvocation.create(new ElementIdOrIdFunctionDefinition("id"), expression.getRequiredSymbolicName());
+		return FunctionInvocation.create(new ElementIdOrIdFunctionDefinition("id"),
+				expression.getRequiredSymbolicName());
 	}
 
 	private static FunctionInvocation elementId(Named expression) {
-		return FunctionInvocation.create(new ElementIdOrIdFunctionDefinition("elementId"), expression.getRequiredSymbolicName());
+		return FunctionInvocation.create(new ElementIdOrIdFunctionDefinition("elementId"),
+				expression.getRequiredSymbolicName());
 	}
 
 	private static final class ElementIdOrIdFunctionDefinition implements FunctionInvocation.FunctionDefinition {
@@ -72,7 +81,7 @@ public final class SpringDataCypherDsl {
 
 		@Override
 		public String getImplementationName() {
-			return identifierFunction;
+			return this.identifierFunction;
 		}
 
 		@Override
@@ -81,4 +90,5 @@ public final class SpringDataCypherDsl {
 		}
 
 	}
+
 }

@@ -18,6 +18,7 @@ package org.springframework.data.neo4j.integration.shared.common;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.neo4j.driver.Driver;
+
 import org.springframework.data.neo4j.core.schema.IdGenerator;
 import org.springframework.util.StringUtils;
 
@@ -31,8 +32,8 @@ public class TestSequenceGenerator implements IdGenerator<String> {
 	private final AtomicInteger sequence = new AtomicInteger(0);
 
 	/**
-	 * Use an instance of the {@link Driver} bean here to ensure that also injection works when the {@link IdGenerator}
-	 * gets created.
+	 * Use an instance of the {@link Driver} bean here to ensure that also injection works
+	 * when the {@link IdGenerator} gets created.
 	 **/
 	private final Driver driver;
 
@@ -42,6 +43,7 @@ public class TestSequenceGenerator implements IdGenerator<String> {
 
 	@Override
 	public String generateId(String primaryLabel, Object entity) {
-		return StringUtils.uncapitalize(primaryLabel) + "-" + sequence.incrementAndGet();
+		return StringUtils.uncapitalize(primaryLabel) + "-" + this.sequence.incrementAndGet();
 	}
+
 }

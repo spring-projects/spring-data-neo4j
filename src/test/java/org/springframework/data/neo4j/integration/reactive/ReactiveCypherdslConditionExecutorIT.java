@@ -24,6 +24,8 @@ import org.neo4j.cypherdsl.core.Property;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.Transaction;
+import reactor.test.StepVerifier;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -41,7 +43,6 @@ import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 import org.springframework.data.neo4j.test.Neo4jReactiveTestConfiguration;
 import org.springframework.transaction.ReactiveTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
-import reactor.test.StepVerifier;
 
 /**
  * @author Niklas Krieger
@@ -54,18 +55,20 @@ class ReactiveCypherdslConditionExecutorIT {
 	protected static Neo4jExtension.Neo4jConnectionSupport neo4jConnectionSupport;
 
 	private final Node person = Cypher.node("Person").named("person");
-	private final Property firstName = person.property("firstName");
-	private final Property lastName = person.property("lastName");
+
+	private final Property firstName = this.person.property("firstName");
+
+	private final Property lastName = this.person.property("lastName");
 
 	@BeforeAll
 	protected static void setupData(@Autowired BookmarkCapture bookmarkCapture) {
 		try (Session session = neo4jConnectionSupport.getDriver().session(bookmarkCapture.createSessionConfig());
-			 Transaction transaction = session.beginTransaction()) {
+				Transaction transaction = session.beginTransaction()) {
 			transaction.run("MATCH (n) detach delete n");
 			transaction.run("CREATE (p:Person{firstName: 'A', lastName: 'LA'})");
 			transaction.run("CREATE (p:Person{firstName: 'B', lastName: 'LB'})");
-			transaction
-					.run("CREATE (p:Person{firstName: 'Helge', lastName: 'Schneider'}) -[:LIVES_AT]-> (a:Address {city: 'Mülheim an der Ruhr'})");
+			transaction.run(
+					"CREATE (p:Person{firstName: 'Helge', lastName: 'Schneider'}) -[:LIVES_AT]-> (a:Address {city: 'Mülheim an der Ruhr'})");
 			transaction.run("CREATE (p:Person{firstName: 'Bela', lastName: 'B.'})");
 			transaction.commit();
 			bookmarkCapture.seedWith(session.lastBookmarks());
@@ -75,90 +78,88 @@ class ReactiveCypherdslConditionExecutorIT {
 	@Test
 	void findOneShouldWork(@Autowired PersonRepository repository) {
 
-		repository.findOne(firstName.eq(Cypher.literalOf("Helge")))
-				.as(StepVerifier::create)
-				.expectNextMatches(p -> p.getLastName().equals("Schneider"))
-				.verifyComplete();
+		repository.findOne(this.firstName.eq(Cypher.literalOf("Helge")))
+			.as(StepVerifier::create)
+			.expectNextMatches(p -> p.getLastName().equals("Schneider"))
+			.verifyComplete();
 	}
 
 	@Test
 	void findAllShouldWork(@Autowired PersonRepository repository) {
 
-		repository.findAll(firstName.eq(Cypher.literalOf("Helge")).or(lastName.eq(Cypher.literalOf("B."))))
-				.map(Person::getFirstName)
-				.sort()
-				.as(StepVerifier::create)
-				.expectNext("Bela", "Helge")
-				.verifyComplete();
+		repository.findAll(this.firstName.eq(Cypher.literalOf("Helge")).or(this.lastName.eq(Cypher.literalOf("B."))))
+			.map(Person::getFirstName)
+			.sort()
+			.as(StepVerifier::create)
+			.expectNext("Bela", "Helge")
+			.verifyComplete();
 	}
 
 	@Test
 	void sortedFindAllShouldWork(@Autowired PersonRepository repository) {
 
-		repository.findAll(firstName.eq(Cypher.literalOf("Helge")).or(lastName.eq(Cypher.literalOf("B."))),
-						Sort.by("lastName").descending()
-				)
-				.map(Person::getFirstName)
-				.as(StepVerifier::create)
-				.expectNext("Helge", "Bela")
-				.verifyComplete();
+		repository
+			.findAll(this.firstName.eq(Cypher.literalOf("Helge")).or(this.lastName.eq(Cypher.literalOf("B."))),
+					Sort.by("lastName").descending())
+			.map(Person::getFirstName)
+			.as(StepVerifier::create)
+			.expectNext("Helge", "Bela")
+			.verifyComplete();
 	}
 
 	@Test
 	void sortedFindAllShouldWorkWithParameter(@Autowired PersonRepository repository) {
 
 		repository.findAll(
-				firstName.eq(Cypher.anonParameter("Helge"))
-						.or(lastName.eq(Cypher.parameter("someName", "B."))), // <.>
-				lastName.descending() // <.>
-		)
-				.map(Person::getFirstName)
-				.as(StepVerifier::create)
-				.expectNext("Helge", "Bela")
-				.verifyComplete();
+				this.firstName.eq(Cypher.anonParameter("Helge"))
+					.or(this.lastName.eq(Cypher.parameter("someName", "B."))), // <.>
+				this.lastName.descending() // <.>
+		).map(Person::getFirstName).as(StepVerifier::create).expectNext("Helge", "Bela").verifyComplete();
 	}
 
 	@Test
 	void orderedFindAllShouldWork(@Autowired PersonRepository repository) {
 
-			repository.findAll(firstName.eq(Cypher.literalOf("Helge")).or(lastName.eq(Cypher.literalOf("B."))),
-					Sort.by("lastName").descending()
-			)
-					.map(Person::getFirstName)
-					.as(StepVerifier::create)
-					.expectNext("Helge", "Bela")
-					.verifyComplete();
+		repository
+			.findAll(this.firstName.eq(Cypher.literalOf("Helge")).or(this.lastName.eq(Cypher.literalOf("B."))),
+					Sort.by("lastName").descending())
+			.map(Person::getFirstName)
+			.as(StepVerifier::create)
+			.expectNext("Helge", "Bela")
+			.verifyComplete();
 	}
 
 	@Test
 	void orderedFindAllWithoutPredicateShouldWork(@Autowired PersonRepository repository) {
 
-		repository.findAll(lastName.descending())
-				.map(Person::getFirstName)
-				.as(StepVerifier::create)
-				.expectNext("Helge", "B", "A", "Bela")
-				.verifyComplete();
+		repository.findAll(this.lastName.descending())
+			.map(Person::getFirstName)
+			.as(StepVerifier::create)
+			.expectNext("Helge", "B", "A", "Bela")
+			.verifyComplete();
 	}
 
 	@Test
 	void countShouldWork(@Autowired PersonRepository repository) {
 
-		repository.count(firstName.eq(Cypher.literalOf("Helge")).or(lastName.eq(Cypher.literalOf("B."))))
-				.as(StepVerifier::create)
-				.expectNext(2L)
-				.verifyComplete();
+		repository.count(this.firstName.eq(Cypher.literalOf("Helge")).or(this.lastName.eq(Cypher.literalOf("B."))))
+			.as(StepVerifier::create)
+			.expectNext(2L)
+			.verifyComplete();
 	}
 
 	@Test
 	void existsShouldWork(@Autowired PersonRepository repository) {
 
-		repository.exists(firstName.eq(Cypher.literalOf("A")))
-				.as(StepVerifier::create)
-				.expectNext(true)
-				.verifyComplete();
+		repository.exists(this.firstName.eq(Cypher.literalOf("A")))
+			.as(StepVerifier::create)
+			.expectNext(true)
+			.verifyComplete();
 	}
 
-	interface PersonRepository extends ReactiveNeo4jRepository<Person, Long>, ReactiveCypherdslConditionExecutor<Person> {
+	interface PersonRepository
+			extends ReactiveNeo4jRepository<Person, Long>, ReactiveCypherdslConditionExecutor<Person> {
+
 	}
 
 	@Configuration
@@ -167,26 +168,31 @@ class ReactiveCypherdslConditionExecutorIT {
 	static class Config extends Neo4jReactiveTestConfiguration {
 
 		@Bean
+		@Override
 		public Driver driver() {
 
 			return neo4jConnectionSupport.getDriver();
 		}
 
 		@Bean
-		public BookmarkCapture bookmarkCapture() {
+		BookmarkCapture bookmarkCapture() {
 			return new BookmarkCapture();
 		}
 
 		@Override
-		public ReactiveTransactionManager reactiveTransactionManager(Driver driver, ReactiveDatabaseSelectionProvider databaseSelectionProvider) {
+		public ReactiveTransactionManager reactiveTransactionManager(Driver driver,
+				ReactiveDatabaseSelectionProvider databaseSelectionProvider) {
 
 			BookmarkCapture bookmarkCapture = bookmarkCapture();
-			return new ReactiveNeo4jTransactionManager(driver, databaseSelectionProvider, Neo4jBookmarkManager.createReactive(bookmarkCapture));
+			return new ReactiveNeo4jTransactionManager(driver, databaseSelectionProvider,
+					Neo4jBookmarkManager.createReactive(bookmarkCapture));
 		}
 
 		@Override
 		public boolean isCypher5Compatible() {
 			return neo4jConnectionSupport.isCypher5SyntaxCompatible();
 		}
+
 	}
+
 }

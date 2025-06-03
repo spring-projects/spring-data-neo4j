@@ -42,22 +42,23 @@ public class NodeWithGeneratedId2 {
 	}
 
 	public String getId() {
-		return id;
+		return this.id;
 	}
 
 	public String getValue() {
-		return value;
+		return this.value;
+	}
+
+	public void setValue(String value) {
+		this.value = value;
 	}
 
 	public List<NodeWithGeneratedId1> getRelatedNodes() {
-		return relatedNodes;
+		return this.relatedNodes;
 	}
 
 	public void setRelatedNodes(List<NodeWithGeneratedId1> relatedNodes) {
 		this.relatedNodes = relatedNodes;
 	}
 
-	public void setValue(String value) {
-		this.value = value;
-	}
 }

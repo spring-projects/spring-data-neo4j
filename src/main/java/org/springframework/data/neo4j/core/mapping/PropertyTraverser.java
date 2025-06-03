@@ -24,14 +24,16 @@ import java.util.function.BiPredicate;
 
 import org.apiguardian.api.API;
 import org.jspecify.annotations.Nullable;
+
 import org.springframework.data.mapping.Association;
 import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.neo4j.core.schema.TargetNode;
 
 /**
- * A strategy for traversing all properties (including association) once, without going in circles with cyclic mappings.
- * Uses the same idea of relationship isomorphism like Cypher does (Relationship isomorphism means that one relationship
- * or association cannot be returned more than once for each entity).
+ * A strategy for traversing all properties (including association) once, without going in
+ * circles with cyclic mappings. Uses the same idea of relationship isomorphism like
+ * Cypher does (Relationship isomorphism means that one relationship or association cannot
+ * be returned more than once for each entity).
  *
  * @author Michael J. Simons
  * @since 6.3
@@ -40,40 +42,32 @@ import org.springframework.data.neo4j.core.schema.TargetNode;
 public final class PropertyTraverser {
 
 	private final Neo4jMappingContext ctx;
+
 	private final Set<Association<?>> pathsTraversed = new HashSet<>();
 
 	public PropertyTraverser(Neo4jMappingContext ctx) {
 		this.ctx = ctx;
 	}
 
-	public void traverse(
-			Class<?> root,
-			BiConsumer<PropertyPath, Neo4jPersistentProperty> sink
-	) {
+	public void traverse(Class<?> root, BiConsumer<PropertyPath, Neo4jPersistentProperty> sink) {
 		traverse(root, (path, toProperty) -> true, sink);
 	}
 
-	public synchronized void traverse(
-			Class<?> root,
-			BiPredicate<PropertyPath, Neo4jPersistentProperty> predicate,
-			BiConsumer<PropertyPath, Neo4jPersistentProperty> sink
-	) {
+	public synchronized void traverse(Class<?> root, BiPredicate<PropertyPath, Neo4jPersistentProperty> predicate,
+			BiConsumer<PropertyPath, Neo4jPersistentProperty> sink) {
 		this.pathsTraversed.clear();
-		traverseImpl(ctx.getRequiredPersistentEntity(root), null, predicate, sink, false);
+		traverseImpl(this.ctx.getRequiredPersistentEntity(root), null, predicate, sink, false);
 	}
 
-	private void traverseImpl(
-			Neo4jPersistentEntity<?> root,
-			@Nullable PropertyPath base,
+	private void traverseImpl(Neo4jPersistentEntity<?> root, @Nullable PropertyPath base,
 			BiPredicate<PropertyPath, Neo4jPersistentProperty> predicate,
-			BiConsumer<PropertyPath, Neo4jPersistentProperty> sink,
-			boolean pathAlreadyVisited
-	) {
-		Set<Neo4jPersistentProperty> sortedProperties = new TreeSet<>(Comparator.comparing(Neo4jPersistentProperty::getName));
+			BiConsumer<PropertyPath, Neo4jPersistentProperty> sink, boolean pathAlreadyVisited) {
+		Set<Neo4jPersistentProperty> sortedProperties = new TreeSet<>(
+				Comparator.comparing(Neo4jPersistentProperty::getName));
 		root.doWithAll(sortedProperties::add);
 		sortedProperties.forEach(p -> {
-			PropertyPath path =
-					base == null ? PropertyPath.from(p.getName(), p.getOwner().getType()) : base.nested(p.getName());
+			PropertyPath path = (base != null) ? base.nested(p.getName())
+					: PropertyPath.from(p.getName(), p.getOwner().getType());
 
 			if (!predicate.test(path, p)) {
 				return;
@@ -86,11 +80,12 @@ public final class PropertyTraverser {
 					return;
 				}
 
-				Neo4jPersistentEntity<?> targetEntity = ctx.getRequiredPersistentEntity(associationTargetType);
-				boolean recalledForProperties = pathsTraversed.contains(p.getAssociation());
-				pathsTraversed.add(p.getAssociation());
+				Neo4jPersistentEntity<?> targetEntity = this.ctx.getRequiredPersistentEntity(associationTargetType);
+				boolean recalledForProperties = this.pathsTraversed.contains(p.getAssociation());
+				this.pathsTraversed.add(p.getAssociation());
 				traverseImpl(targetEntity, path, predicate, sink, recalledForProperties);
 			}
 		});
 	}
+
 }

@@ -15,9 +15,6 @@
  */
 package org.springframework.data.neo4j.integration.conversion_imperative;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.time.ZoneId;
@@ -45,6 +42,7 @@ import org.neo4j.driver.Driver;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
+
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -76,10 +74,12 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+
 /**
  * @author Michael J. Simons
  * @author Dennis Crissman
- * @soundtrack Tool - Fear Inoculum
  */
 @Neo4jIntegrationTest
 class TypeConversionIT extends Neo4jConversionsITBase {
@@ -94,16 +94,16 @@ class TypeConversionIT extends Neo4jConversionsITBase {
 
 	private final DefaultConversionService defaultConversionService;
 
-	@Autowired TypeConversionIT(CypherTypesRepository cypherTypesRepository,
-			AdditionalTypesRepository additionalTypesRepository, SpatialTypesRepository spatialTypesRepository,
-			CustomTypesRepository customTypesRepository,
+	@Autowired
+	TypeConversionIT(CypherTypesRepository cypherTypesRepository, AdditionalTypesRepository additionalTypesRepository,
+			SpatialTypesRepository spatialTypesRepository, CustomTypesRepository customTypesRepository,
 			Neo4jConversions neo4jConversions) {
 		this.cypherTypesRepository = cypherTypesRepository;
 		this.additionalTypesRepository = additionalTypesRepository;
 		this.spatialTypesRepository = spatialTypesRepository;
 		this.customTypesRepository = customTypesRepository;
 		this.defaultConversionService = new DefaultConversionService();
-		neo4jConversions.registerConvertersIn(defaultConversionService);
+		neo4jConversions.registerConvertersIn(this.defaultConversionService);
 	}
 
 	@Test
@@ -112,15 +112,16 @@ class TypeConversionIT extends Neo4jConversionsITBase {
 		Long id;
 		try (Session session = neo4jConnectionSupport.getDriver().session(bookmarkCapture.createSessionConfig())) {
 
-			id = session.executeWrite(tx -> tx.run("CREATE (n:AllArgsCtorNoBuilder) RETURN id(n)").single().get(0).asLong());
+			id = session
+				.executeWrite(tx -> tx.run("CREATE (n:AllArgsCtorNoBuilder) RETURN id(n)").single().get(0).asLong());
 			bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 
 		assertThatExceptionOfType(MappingException.class)
-				.isThrownBy(() -> template.findById(id, AllArgsCtorNoBuilder.class))
-				.withMessageMatching("Error mapping Record<\\{.+: .*>")
-				.withRootCauseInstanceOf(IllegalArgumentException.class)
-				.withStackTraceContaining("Parameter aBoolean must not be null");
+			.isThrownBy(() -> template.findById(id, AllArgsCtorNoBuilder.class))
+			.withMessageMatching("Error mapping Record<\\{.+: .*>")
+			.withRootCauseInstanceOf(IllegalArgumentException.class)
+			.withStackTraceContaining("Parameter aBoolean must not be null");
 	}
 
 	@TestFactory
@@ -138,47 +139,51 @@ class TypeConversionIT extends Neo4jConversionsITBase {
 			Object copyOfThing;
 			switch (entry.getKey()) {
 				case "CypherTypes" -> {
-					ThingWithAllCypherTypes hlp = cypherTypesRepository.findById(ID_OF_CYPHER_TYPES_NODE).get();
-					copyOfThing = cypherTypesRepository.save(hlp.withId(null));
+					ThingWithAllCypherTypes hlp = this.cypherTypesRepository.findById(ID_OF_CYPHER_TYPES_NODE).get();
+					copyOfThing = this.cypherTypesRepository.save(hlp.withId(null));
 					thing = hlp;
 				}
 				case "AdditionalTypes" -> {
-					ThingWithAllAdditionalTypes hlp2 = additionalTypesRepository.findById(ID_OF_ADDITIONAL_TYPES_NODE)
-							.get();
-					copyOfThing = additionalTypesRepository.save(hlp2.withId(null));
+					ThingWithAllAdditionalTypes hlp2 = this.additionalTypesRepository
+						.findById(ID_OF_ADDITIONAL_TYPES_NODE)
+						.get();
+					copyOfThing = this.additionalTypesRepository.save(hlp2.withId(null));
 					thing = hlp2;
 				}
 				case "SpatialTypes" -> {
-					ThingWithAllSpatialTypes hlp3 = spatialTypesRepository.findById(ID_OF_SPATIAL_TYPES_NODE).get();
-					copyOfThing = spatialTypesRepository.save(hlp3.withId(null));
+					ThingWithAllSpatialTypes hlp3 = this.spatialTypesRepository.findById(ID_OF_SPATIAL_TYPES_NODE)
+						.get();
+					copyOfThing = this.spatialTypesRepository.save(hlp3.withId(null));
 					thing = hlp3;
 				}
 				case "CustomTypes" -> {
-					ThingWithCustomTypes hlp4 = customTypesRepository.findById(ID_OF_CUSTOM_TYPE_NODE).get();
-					copyOfThing = customTypesRepository.save(hlp4.withId(null));
+					ThingWithCustomTypes hlp4 = this.customTypesRepository.findById(ID_OF_CUSTOM_TYPE_NODE).get();
+					copyOfThing = this.customTypesRepository.save(hlp4.withId(null));
 					thing = hlp4;
 				}
 				default -> throw new UnsupportedOperationException("Unsupported types: " + entry.getKey());
 			}
 
 			DynamicContainer reads = DynamicContainer.dynamicContainer("read",
-					entry.getValue().entrySet().stream().map(a -> DynamicTest.dynamicTest(a.getKey(),
-							() -> {
-								Object actual = ReflectionTestUtils.getField(thing, a.getKey());
-								Object expected = a.getValue();
-								if (actual instanceof URL && expected instanceof URL) {
-									// The host has been chosen to avoid interaction with the URLStreamHandler
-									// Should be enough for our comparision.
-									actual = ((URL) actual).getHost();
-									expected = ((URL) expected).getHost();
-								}
-								assertThat(actual).isEqualTo(expected);
-							})));
+					entry.getValue().entrySet().stream().map(a -> DynamicTest.dynamicTest(a.getKey(), () -> {
+						Object actual = ReflectionTestUtils.getField(thing, a.getKey());
+						Object expected = a.getValue();
+						if (actual instanceof URL && expected instanceof URL) {
+							// The host has been chosen to avoid interaction with the
+							// URLStreamHandler
+							// Should be enough for our comparision.
+							actual = ((URL) actual).getHost();
+							expected = ((URL) expected).getHost();
+						}
+						assertThat(actual).isEqualTo(expected);
+					})));
 
-			DynamicContainer writes = DynamicContainer.dynamicContainer("write", entry.getValue().keySet().stream()
-					.map(o -> DynamicTest
-							.dynamicTest(o,
-									() -> assertWrite(copyOfThing, o, defaultConversionService))));
+			DynamicContainer writes = DynamicContainer.dynamicContainer("write",
+					entry.getValue()
+						.keySet()
+						.stream()
+						.map(o -> DynamicTest.dynamicTest(o,
+								() -> assertWrite(copyOfThing, o, this.defaultConversionService))));
 
 			return DynamicContainer.dynamicContainer(entry.getKey(), Arrays.asList(reads, writes));
 		});
@@ -192,9 +197,11 @@ class TypeConversionIT extends Neo4jConversionsITBase {
 		Function<Object, Value> conversion;
 		if (fieldName.equals("dateAsLong")) {
 			conversion = o -> Values.value(((Date) o).getTime());
-		} else if (fieldName.equals("dateAsString")) {
+		}
+		else if (fieldName.equals("dateAsString")) {
 			conversion = o -> Values.value(new SimpleDateFormat("yyyy-MM-dd").format(o));
-		} else {
+		}
+		else {
 			conversion = o -> conversionService.convert(o, Value.class);
 		}
 		Value driverValue;
@@ -202,7 +209,8 @@ class TypeConversionIT extends Neo4jConversionsITBase {
 			Collection<?> sourceCollection = (Collection<?>) domainValue;
 			Object[] targetCollection = (sourceCollection).stream().map(conversion).toArray();
 			driverValue = Values.value(targetCollection);
-		} else {
+		}
+		else {
 			driverValue = conversion.apply(domainValue);
 		}
 
@@ -220,23 +228,23 @@ class TypeConversionIT extends Neo4jConversionsITBase {
 				parameters.put("v2_lower", doubleList.get(1) - 0.000001d);
 				parameters.put("v1_upper", doubleList.get(0) + 0.000001d);
 				parameters.put("v2_upper", doubleList.get(1) + 0.000001d);
-				cnt = session
-						.run("""
+				cnt = session.run("""
 							MATCH (n) WHERE id(n) = $id
 							AND n[$attribute][0] > $v1_lower
 							AND n[$attribute][1] > $v2_lower
 							AND n[$attribute][0] < $v1_upper
 							AND n[$attribute][1] < $v2_upper
 							RETURN COUNT(n) AS cnt
-						""",
-						parameters)
-						.single().get("cnt").asLong();
-			} else {
+						""", parameters).single().get("cnt").asLong();
+			}
+			else {
 				parameters.put("v", driverValue);
 
 				cnt = session
-						.run("MATCH (n) WHERE id(n) = $id AND n[$attribute] = $v RETURN COUNT(n) AS cnt", parameters)
-						.single().get("cnt").asLong();
+					.run("MATCH (n) WHERE id(n) = $id AND n[$attribute] = $v RETURN COUNT(n) AS cnt", parameters)
+					.single()
+					.get("cnt")
+					.asLong();
 			}
 			assertThat(cnt).isEqualTo(1L);
 		}
@@ -268,9 +276,11 @@ class TypeConversionIT extends Neo4jConversionsITBase {
 	@Test
 	void parametersTargetingConvertedAttributesMustBeConverted(@Autowired CustomTypesRepository repository) {
 
-		assertThat(repository.findAllByDateAsString(Date.from(ZonedDateTime.of(2013, 5, 6,
-				12, 0, 0, 0, ZoneId.of("Europe/Berlin")).toInstant().truncatedTo(ChronoUnit.DAYS))))
-				.hasSizeGreaterThan(0);
+		assertThat(repository
+			.findAllByDateAsString(Date.from(ZonedDateTime.of(2013, 5, 6, 12, 0, 0, 0, ZoneId.of("Europe/Berlin"))
+				.toInstant()
+				.truncatedTo(ChronoUnit.DAYS))))
+			.hasSizeGreaterThan(0);
 	}
 
 	@Test // GH-2348
@@ -278,7 +288,8 @@ class TypeConversionIT extends Neo4jConversionsITBase {
 		Long id;
 		try (Session session = neo4jConnectionSupport.getDriver().session(bookmarkCapture.createSessionConfig())) {
 
-			id = session.executeWrite(tx -> tx.run("CREATE (n:ThingWithAllCypherTypes2) RETURN id(n)").single().get(0).asLong());
+			id = session.executeWrite(
+					tx -> tx.run("CREATE (n:ThingWithAllCypherTypes2) RETURN id(n)").single().get(0).asLong());
 			bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 
@@ -306,25 +317,31 @@ class TypeConversionIT extends Neo4jConversionsITBase {
 	void clientShouldUseCustomType(@Autowired Neo4jClient client) {
 
 		Optional<ThingWithCustomTypes.CustomType> value = client.query("RETURN 'whatever'")
-				.fetchAs(ThingWithCustomTypes.CustomType.class).first();
+			.fetchAs(ThingWithCustomTypes.CustomType.class)
+			.first();
 		assertThat(value).map(ThingWithCustomTypes.CustomType::getValue).hasValue("whatever");
 	}
 
 	public interface ConvertedIDsRepository extends Neo4jRepository<ThingWithUUIDID, UUID> {
+
 	}
 
 	public interface CypherTypesRepository extends Neo4jRepository<ThingWithAllCypherTypes, Long> {
+
 	}
 
 	public interface AdditionalTypesRepository extends Neo4jRepository<ThingWithAllAdditionalTypes, Long> {
+
 	}
 
 	public interface SpatialTypesRepository extends Neo4jRepository<ThingWithAllSpatialTypes, Long> {
+
 	}
 
 	public interface CustomTypesRepository extends Neo4jRepository<ThingWithCustomTypes, Long> {
 
 		List<ThingWithCustomTypes> findAllByDateAsString(Date theDate);
+
 	}
 
 	@Configuration
@@ -336,6 +353,7 @@ class TypeConversionIT extends Neo4jConversionsITBase {
 		private ObjectProvider<UserSelectionProvider> userSelectionProviders;
 
 		@Bean
+		@Override
 		public Driver driver() {
 			return neo4jConnectionSupport.getDriver();
 		}
@@ -349,27 +367,31 @@ class TypeConversionIT extends Neo4jConversionsITBase {
 		public Neo4jClient neo4jClient(Driver driver, DatabaseSelectionProvider databaseSelectionProvider) {
 
 			return Neo4jClient.with(driver)
-					.withDatabaseSelectionProvider(databaseSelectionProvider)
-					.withUserSelectionProvider(userSelectionProviders.getIfUnique())
-					.withNeo4jConversions(neo4jConversions())
-					.build();
+				.withDatabaseSelectionProvider(databaseSelectionProvider)
+				.withUserSelectionProvider(this.userSelectionProviders.getIfUnique())
+				.withNeo4jConversions(neo4jConversions())
+				.build();
 		}
 
 		@Bean
-		public BookmarkCapture bookmarkCapture() {
+		BookmarkCapture bookmarkCapture() {
 			return Neo4jConversionsITBase.bookmarkCapture;
 		}
 
 		@Override
-		public PlatformTransactionManager transactionManager(Driver driver, DatabaseSelectionProvider databaseNameProvider) {
+		public PlatformTransactionManager transactionManager(Driver driver,
+				DatabaseSelectionProvider databaseNameProvider) {
 
 			BookmarkCapture bookmarkCapture = bookmarkCapture();
-			return new Neo4jTransactionManager(driver, databaseNameProvider, Neo4jBookmarkManager.create(bookmarkCapture));
+			return new Neo4jTransactionManager(driver, databaseNameProvider,
+					Neo4jBookmarkManager.create(bookmarkCapture));
 		}
 
 		@Override
 		public boolean isCypher5Compatible() {
 			return neo4jConnectionSupport.isCypher5SyntaxCompatible();
 		}
+
 	}
+
 }

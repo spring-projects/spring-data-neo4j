@@ -24,10 +24,10 @@ import java.lang.annotation.Target;
  * Marks an entity in a {@link RelationshipProperties} as the target node.
  *
  * @author Gerrit Meier
- * @soundtrack Goldfinger - Here in your bedroom
  * @since 6.0
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
 public @interface TargetNode {
+
 }

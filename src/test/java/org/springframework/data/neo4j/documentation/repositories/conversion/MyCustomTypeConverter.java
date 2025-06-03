@@ -20,6 +20,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.neo4j.driver.Value;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.core.convert.converter.GenericConverter;
@@ -44,7 +45,8 @@ public class MyCustomTypeConverter implements GenericConverter {
 		if (MyCustomType.class.isAssignableFrom(sourceType.getType())) {
 			// convert to Neo4j Driver Value
 			return convertToNeo4jValue(source);
-		} else {
+		}
+		else {
 			// convert to MyCustomType
 			return convertToMyCustomType(source);
 		}
@@ -59,8 +61,6 @@ public class MyCustomTypeConverter implements GenericConverter {
 	}
 	// end::custom-converter.neo4jConversions[]
 
-	private static class MyCustomType {}
-
 	private Object convertToNeo4jValue(Object source) {
 		return null;
 	}
@@ -68,6 +68,11 @@ public class MyCustomTypeConverter implements GenericConverter {
 	private Object convertToMyCustomType(Object source) {
 		return null;
 	}
+
+	private static final class MyCustomType {
+
+	}
 	// tag::custom-converter.implementation[]
+
 }
 // end::custom-converter.implementation[]

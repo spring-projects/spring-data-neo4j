@@ -15,11 +15,11 @@
  */
 package org.springframework.data.neo4j.integration.issues.events;
 
+import java.util.Optional;
+
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Optional;
 
 /**
  * @author Michael J. Simons
@@ -29,20 +29,23 @@ import java.util.Optional;
 public class Neo4jObjectService {
 
 	private final EventsPublisherIT.Neo4jObjectRepository neo4jObjectRepository;
+
 	private final ApplicationEventPublisher publisher;
 
-	public Neo4jObjectService(EventsPublisherIT.Neo4jObjectRepository neo4jObjectRepository, ApplicationEventPublisher publisher) {
+	public Neo4jObjectService(EventsPublisherIT.Neo4jObjectRepository neo4jObjectRepository,
+			ApplicationEventPublisher publisher) {
 		this.neo4jObjectRepository = neo4jObjectRepository;
 		this.publisher = publisher;
 	}
 
 	public Optional<Neo4jObject> findById(String id) {
-		return neo4jObjectRepository.findById(id);
+		return this.neo4jObjectRepository.findById(id);
 	}
 
 	public Neo4jObject save(String id) {
-		Neo4jObject saved = neo4jObjectRepository.save(new Neo4jObject(id));
-		publisher.publishEvent(new EventsPublisherIT.Neo4jMessage(id));
+		Neo4jObject saved = this.neo4jObjectRepository.save(new Neo4jObject(id));
+		this.publisher.publishEvent(new EventsPublisherIT.Neo4jMessage(id));
 		return saved;
 	}
+
 }

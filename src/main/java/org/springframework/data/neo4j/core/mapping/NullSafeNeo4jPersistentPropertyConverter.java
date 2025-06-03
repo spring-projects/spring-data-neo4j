@@ -18,15 +18,15 @@ package org.springframework.data.neo4j.core.mapping;
 import org.jspecify.annotations.Nullable;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
+
 import org.springframework.data.neo4j.core.convert.Neo4jPersistentPropertyConverter;
 
 /**
- * All property converters will be wrapped by this class. It adds the information if a converter needs to be applied to
- * a complete collection or to individual values.
+ * All property converters will be wrapped by this class. It adds the information if a
+ * converter needs to be applied to a complete collection or to individual values.
  *
+ * @param <T> the type of the property this converter converts.
  * @author Michael J. Simons
- * @param <T> The type of the property this converter converts.
- * @soundtrack Roger Taylor - The Outsider
  */
 final class NullSafeNeo4jPersistentPropertyConverter<T> implements Neo4jPersistentPropertyConverter<T> {
 
@@ -36,7 +36,8 @@ final class NullSafeNeo4jPersistentPropertyConverter<T> implements Neo4jPersiste
 	private final Neo4jPersistentPropertyConverter<T> delegate;
 
 	/**
-	 * {@literal false} for all non-composite converters. If true, {@literal null} will be passed to the writing converter
+	 * {@literal false} for all non-composite converters. If true, {@literal null} will be
+	 * passed to the writing converter
 	 */
 	private final boolean passNullOnWrite;
 
@@ -55,18 +56,18 @@ final class NullSafeNeo4jPersistentPropertyConverter<T> implements Neo4jPersiste
 	@Override
 	public Value write(@Nullable T source) {
 		if (source == null) {
-			return passNullOnWrite ? delegate.write(source) : Values.NULL;
+			return this.passNullOnWrite ? this.delegate.write(source) : Values.NULL;
 		}
-		return delegate.write(source);
+		return this.delegate.write(source);
 	}
 
 	@Override
-	@Nullable
-	public T read(@Nullable Value source) {
-		return source == null || source.isNull() ? null : delegate.read(source);
+	@Nullable public T read(@Nullable Value source) {
+		return (source == null || source.isNull()) ? null : this.delegate.read(source);
 	}
 
-	public boolean isForCollection() {
-		return forCollection;
+	boolean isForCollection() {
+		return this.forCollection;
 	}
+
 }

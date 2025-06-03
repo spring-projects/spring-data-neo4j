@@ -20,8 +20,8 @@ import org.apiguardian.api.API;
 /**
  * Interface for generating ids for entities.
  *
+ * @param <T> type of the id to generate
  * @author Michael J. Simons
- * @param <T> Type of the id to generate
  * @since 6.0
  */
 @FunctionalInterface
@@ -30,9 +30,10 @@ public interface IdGenerator<T> {
 
 	/**
 	 * Generates a new id for given entity.
-	 *
+	 * @param primaryLabel the primary label under which the entity is registered
 	 * @param entity the entity to be saved
 	 * @return id to be assigned to the entity
 	 */
 	T generateId(String primaryLabel, Object entity);
+
 }

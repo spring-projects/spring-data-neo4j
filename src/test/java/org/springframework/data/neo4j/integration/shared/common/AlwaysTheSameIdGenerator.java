@@ -28,4 +28,5 @@ public class AlwaysTheSameIdGenerator implements IdGenerator<String> {
 	public String generateId(String primaryLabel, Object entity) {
 		return primaryLabel;
 	}
+
 }

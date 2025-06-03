@@ -21,16 +21,18 @@ import java.util.Optional;
 import org.apiguardian.api.API;
 import org.neo4j.cypherdsl.core.Condition;
 import org.neo4j.cypherdsl.core.SortItem;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
 /**
- * An interface that can be added to any repository so that queries can be enriched by {@link Condition conditions} of the
- * Cypher-DSL. This interface behaves the same as the {@link org.springframework.data.querydsl.QuerydslPredicateExecutor}.
+ * An interface that can be added to any repository so that queries can be enriched by
+ * {@link Condition conditions} of the Cypher-DSL. This interface behaves the same as the
+ * {@link org.springframework.data.querydsl.QuerydslPredicateExecutor}.
  *
+ * @param <T> type of the domain
  * @author Michael J. Simons
- * @param <T> Type of the domain
  * @since 6.1
  */
 @API(status = API.Status.STABLE, since = "6.1")
@@ -51,5 +53,5 @@ public interface CypherdslConditionExecutor<T> {
 	long count(Condition condition);
 
 	boolean exists(Condition condition);
-}
 
+}

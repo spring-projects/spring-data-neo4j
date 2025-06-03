@@ -39,10 +39,11 @@ public class Application {
 	}
 
 	public String getId() {
-		return id;
+		return this.id;
 	}
 
 	public List<Workflow> getWorkflows() {
-		return workflows;
+		return this.workflows;
 	}
+
 }

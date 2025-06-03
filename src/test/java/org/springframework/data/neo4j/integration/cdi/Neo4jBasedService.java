@@ -16,12 +16,10 @@
 package org.springframework.data.neo4j.integration.cdi;
 
 import jakarta.inject.Inject;
-
 import org.neo4j.driver.Driver;
 
 /**
  * @author Michael J. Simons
- * @soundtrack Various - TRON Legacy R3conf1gur3d
  */
 class Neo4jBasedService {
 
@@ -34,4 +32,5 @@ class Neo4jBasedService {
 		this.driver = driver;
 		this.personRepository = personRepository;
 	}
+
 }

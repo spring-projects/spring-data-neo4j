@@ -28,10 +28,14 @@ import org.springframework.data.neo4j.core.schema.Node;
  */
 @Node("Port")
 public class Port {
+
 	@Id
 	@GeneratedValue
 	private UUID id;
+
 	private String code;
+
 	@DynamicLabels
 	private List<String> labels;
+
 }

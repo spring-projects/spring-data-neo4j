@@ -27,10 +27,12 @@ public class DomainEventsApplication {
 	// tag::domain-events[]
 	@Bean
 	ApplicationListener<SomeEvent> someEventListener() {
-		return event -> log("someOtherValue changed from '" + event.getOldValue() + "' to '" + event.getNewValue() + "' at "
-				+ event.getChangeHappenedAt());
+		return event -> log("someOtherValue changed from '" + event.getOldValue() + "' to '" + event.getNewValue()
+				+ "' at " + event.getChangeHappenedAt());
 	}
 	// end::domain-events[]
 
-	void log(String message) {}
+	void log(String message) {
+	}
+
 }

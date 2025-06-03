@@ -18,6 +18,7 @@ package org.springframework.data.neo4j.repository.config;
 import java.util.Optional;
 
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.core.log.LogAccessor;
 import org.springframework.data.neo4j.core.support.UserAgent;
 
@@ -25,19 +26,8 @@ import org.springframework.data.neo4j.core.support.UserAgent;
  * Logs startup information.
  *
  * @author Michael J. Simons
- * @soundtrack Helge & Hardcore - Jazz
  */
 final class StartupLogger {
-
-	enum Mode {
-		IMPERATIVE("imperative"), REACTIVE("reactive");
-
-		final String displayValue;
-
-		Mode(String displayValue) {
-			this.displayValue = displayValue;
-		}
-	}
 
 	private static final LogAccessor logger = new LogAccessor(LogFactory.getLog(StartupLogger.class));
 
@@ -60,16 +50,39 @@ final class StartupLogger {
 		StringBuilder sb = new StringBuilder();
 		UserAgent userAgent = UserAgent.INSTANCE;
 
-		String sdnRx = Optional.ofNullable(userAgent.getSdnVersion()).map(v -> "SDN v" + v)
-				.orElse("an unknown version of SDN");
-		String sdC = Optional.ofNullable(userAgent.getSpringDataVersion()).map(v -> "Spring Data Commons v" + v)
-				.orElse("an unknown version of Spring Data Commons");
-		String driver = Optional.ofNullable(userAgent.getDriverVersion()).map(v -> "Neo4j Driver v" + v)
-				.orElse("an unknown version of the Neo4j Java Driver");
+		String sdnRx = Optional.ofNullable(userAgent.getSdnVersion())
+			.map(v -> "SDN v" + v)
+			.orElse("an unknown version of SDN");
+		String sdC = Optional.ofNullable(userAgent.getSpringDataVersion())
+			.map(v -> "Spring Data Commons v" + v)
+			.orElse("an unknown version of Spring Data Commons");
+		String driver = Optional.ofNullable(userAgent.getDriverVersion())
+			.map(v -> "Neo4j Driver v" + v)
+			.orElse("an unknown version of the Neo4j Java Driver");
 
-		sb.append("Bootstrapping ").append(mode.displayValue).append(" Neo4j repositories based on ").append(sdnRx)
-				.append(" with ").append(sdC).append(" and ").append(driver).append(".");
+		sb.append("Bootstrapping ")
+			.append(this.mode.displayValue)
+			.append(" Neo4j repositories based on ")
+			.append(sdnRx)
+			.append(" with ")
+			.append(sdC)
+			.append(" and ")
+			.append(driver)
+			.append(".");
 
 		return sb.toString();
 	}
+
+	enum Mode {
+
+		IMPERATIVE("imperative"), REACTIVE("reactive");
+
+		final String displayValue;
+
+		Mode(String displayValue) {
+			this.displayValue = displayValue;
+		}
+
+	}
+
 }

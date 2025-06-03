@@ -23,6 +23,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 import org.apiguardian.api.API;
+
 import org.springframework.core.annotation.AliasFor;
 
 /**
@@ -39,19 +40,24 @@ import org.springframework.core.annotation.AliasFor;
 public @interface Property {
 
 	/**
+	 * The name of this property in the graph.
 	 * @return See {@link #name()}.
 	 */
 	@AliasFor("name")
 	String value() default "";
 
 	/**
+	 * The name of this property in the graph.
 	 * @return The name of the property in the graph.
 	 */
 	@AliasFor("value")
 	String name() default "";
 
 	/**
-	 * @return Set this attribute to {@literal true} to prevent writing any value of this property to the graph.
+	 * A flag if this property should be treated as read only.
+	 * @return Set this attribute to {@literal true} to prevent writing any value of this
+	 * property to the graph.
 	 */
 	boolean readOnly() default false;
+
 }

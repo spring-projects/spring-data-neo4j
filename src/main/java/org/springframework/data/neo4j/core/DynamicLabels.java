@@ -25,11 +25,13 @@ import org.jspecify.annotations.Nullable;
 import org.neo4j.cypherdsl.core.Cypher;
 import org.neo4j.cypherdsl.core.Node;
 import org.neo4j.cypherdsl.core.StatementBuilder.OngoingMatchAndUpdate;
+
 import org.springframework.data.neo4j.core.mapping.Constants;
 import org.springframework.data.neo4j.core.mapping.NodeDescription;
 
 /**
- * Decorator for an ongoing update statement that removes obsolete dynamic labels and adds new ones.
+ * Decorator for an ongoing update statement that removes obsolete dynamic labels and adds
+ * new ones.
  *
  * @author Michael J. Simons
  */
@@ -40,9 +42,11 @@ final class DynamicLabels implements UnaryOperator<OngoingMatchAndUpdate> {
 	private final Node rootNode;
 
 	private final List<String> oldLabels;
+
 	private final List<String> newLabels;
 
-	DynamicLabels(@Nullable NodeDescription<?> nodeDescription, Collection<String> oldLabels, @Nullable Collection<String> newLabels) {
+	DynamicLabels(@Nullable NodeDescription<?> nodeDescription, Collection<String> oldLabels,
+			@Nullable Collection<String> newLabels) {
 		this.oldLabels = new ArrayList<>(oldLabels);
 		this.newLabels = (newLabels != null) ? new ArrayList<>(newLabels) : List.of();
 		this.rootNode = Cypher.anyNode(Constants.NAME_OF_TYPED_ROOT_NODE.apply(nodeDescription));
@@ -52,12 +56,14 @@ final class DynamicLabels implements UnaryOperator<OngoingMatchAndUpdate> {
 	public OngoingMatchAndUpdate apply(OngoingMatchAndUpdate ongoingMatchAndUpdate) {
 
 		OngoingMatchAndUpdate decoratedMatchAndUpdate = ongoingMatchAndUpdate;
-		if (!oldLabels.isEmpty()) {
-			decoratedMatchAndUpdate = decoratedMatchAndUpdate.remove(rootNode, oldLabels.toArray(new String[0]));
+		if (!this.oldLabels.isEmpty()) {
+			decoratedMatchAndUpdate = decoratedMatchAndUpdate.remove(this.rootNode,
+					this.oldLabels.toArray(new String[0]));
 		}
-		if (!newLabels.isEmpty()) {
-			decoratedMatchAndUpdate = decoratedMatchAndUpdate.set(rootNode, newLabels.toArray(new String[0]));
+		if (!this.newLabels.isEmpty()) {
+			decoratedMatchAndUpdate = decoratedMatchAndUpdate.set(this.rootNode, this.newLabels.toArray(new String[0]));
 		}
 		return decoratedMatchAndUpdate;
 	}
+
 }

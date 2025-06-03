@@ -15,11 +15,6 @@
  */
 package org.springframework.data.neo4j.integration.reactive;
 
-import org.neo4j.driver.Session;
-import org.springframework.data.neo4j.test.Neo4jReactiveTestConfiguration;
-import reactor.core.publisher.Mono;
-import reactor.test.StepVerifier;
-
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
@@ -33,14 +28,16 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Tag;
 import org.neo4j.driver.AuthTokens;
 import org.neo4j.driver.Config;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.GraphDatabase;
+import org.neo4j.driver.Session;
 import org.neo4j.junit.jupiter.causal_cluster.CausalCluster;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -51,13 +48,17 @@ import org.springframework.data.neo4j.repository.ReactiveNeo4jRepository;
 import org.springframework.data.neo4j.repository.config.EnableReactiveNeo4jRepositories;
 import org.springframework.data.neo4j.test.CausalClusterIntegrationTest;
 import org.springframework.data.neo4j.test.Neo4jExtension;
+import org.springframework.data.neo4j.test.Neo4jReactiveTestConfiguration;
 import org.springframework.data.neo4j.test.ServerVersion;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.annotation.Transactional;
 
+import static org.assertj.core.api.Assertions.fail;
+
 /**
- * This tests needs a Neo4j causal cluster. We run them based on Testcontainers. It requires some resources as well as
- * acceptance of the commercial license, so this test is disabled by default.
+ * This tests needs a Neo4j causal cluster. We run them based on Testcontainers. It
+ * requires some resources as well as acceptance of the commercial license, so this test
+ * is disabled by default.
  *
  * @author Michael J. Simons
  */
@@ -65,7 +66,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Tag(Neo4jExtension.INCOMPATIBLE_WITH_CLUSTERS)
 class ReactiveCausalClusterLoadTestIT {
 
-	@CausalCluster private static URI neo4jUri;
+	@CausalCluster
+	private static URI neo4jUri;
 
 	@RepeatedTest(20)
 	void transactionsShouldBeSerializable(@Autowired ThingService thingService) throws InterruptedException {
@@ -77,33 +79,43 @@ class ReactiveCausalClusterLoadTestIT {
 		Callable<ThingWithSequence> createAndRead = () -> {
 			List<ThingWithSequence> result = new ArrayList<>();
 			long sequenceNumber = sequence.incrementAndGet();
-			thingService.newThing(sequenceNumber).then(thingService.findOneBySequenceNumber(sequenceNumber))
-					.as(StepVerifier::create).recordWith((() -> result))
-					.expectNextMatches(t -> t.getSequenceNumber().equals(sequenceNumber)).verifyComplete();
+			thingService.newThing(sequenceNumber)
+				.then(thingService.findOneBySequenceNumber(sequenceNumber))
+				.as(StepVerifier::create)
+				.recordWith((() -> result))
+				.expectNextMatches(t -> t.getSequenceNumber().equals(sequenceNumber))
+				.verifyComplete();
 			return result.get(0);
 		};
 
 		ExecutorService executor = Executors.newCachedThreadPool();
 		List<Future<ThingWithSequence>> executedWrites = executor
-				.invokeAll(IntStream.range(0, numberOfRequests).mapToObj(i -> createAndRead).collect(Collectors.toList()));
+			.invokeAll(IntStream.range(0, numberOfRequests).mapToObj(i -> createAndRead).collect(Collectors.toList()));
 		try {
 			executedWrites.forEach(request -> {
 				try {
 					request.get();
-				} catch (InterruptedException e) {} catch (ExecutionException e) {
-					Assertions.fail("At least one request failed " + e.getMessage());
+				}
+				catch (InterruptedException ex) {
+				}
+				catch (ExecutionException ex) {
+					fail("At least one request failed " + ex.getMessage());
 				}
 			});
-		} finally {
+		}
+		finally {
 			executor.shutdown();
 		}
 	}
 
 	interface ThingRepository extends ReactiveNeo4jRepository<ThingWithSequence, Long> {
+
 		Mono<ThingWithSequence> findOneBySequenceNumber(long sequenceNumber);
+
 	}
 
 	static class ThingService {
+
 		private final ReactiveNeo4jClient neo4jClient;
 
 		private final ThingRepository thingRepository;
@@ -113,20 +125,23 @@ class ReactiveCausalClusterLoadTestIT {
 			this.thingRepository = thingRepository;
 		}
 
-		public Mono<Long> getMaxInstance() {
-			return neo4jClient.query("MATCH (t:ThingWithSequence) RETURN COALESCE(MAX(t.sequenceNumber), -1) AS maxInstance")
-					.fetchAs(Long.class).one();
+		Mono<Long> getMaxInstance() {
+			return this.neo4jClient
+				.query("MATCH (t:ThingWithSequence) RETURN COALESCE(MAX(t.sequenceNumber), -1) AS maxInstance")
+				.fetchAs(Long.class)
+				.one();
 		}
 
 		@Transactional
-		public Mono<ThingWithSequence> newThing(long i) {
+		Mono<ThingWithSequence> newThing(long i) {
 			return this.thingRepository.save(new ThingWithSequence(i));
 		}
 
 		@Transactional(readOnly = true)
-		public Mono<ThingWithSequence> findOneBySequenceNumber(long sequenceNumber) {
-			return thingRepository.findOneBySequenceNumber(sequenceNumber);
+		Mono<ThingWithSequence> findOneBySequenceNumber(long sequenceNumber) {
+			return this.thingRepository.findOneBySequenceNumber(sequenceNumber);
 		}
+
 	}
 
 	@Configuration
@@ -135,6 +150,7 @@ class ReactiveCausalClusterLoadTestIT {
 	static class TestConfig extends Neo4jReactiveTestConfiguration {
 
 		@Bean
+		@Override
 		public Driver driver() {
 
 			Driver driver = GraphDatabase.driver(neo4jUri, AuthTokens.basic("neo4j", "secret"),
@@ -144,20 +160,23 @@ class ReactiveCausalClusterLoadTestIT {
 		}
 
 		@Bean
-		public ThingService thingService(ReactiveNeo4jClient neo4jClient, ThingRepository thingRepository) {
+		ThingService thingService(ReactiveNeo4jClient neo4jClient, ThingRepository thingRepository) {
 			return new ThingService(neo4jClient, thingRepository);
 		}
 
 		@Override
 		public boolean isCypher5Compatible() {
 			try (Session session = driver().session()) {
-				String version = session
-						.run("CALL dbms.components() YIELD name, versions WHERE name = 'Neo4j Kernel' RETURN 'Neo4j/' + versions[0] as version")
-						.single()
-						.get("version").asString();
+				String version = session.run(
+						"CALL dbms.components() YIELD name, versions WHERE name = 'Neo4j Kernel' RETURN 'Neo4j/' + versions[0] as version")
+					.single()
+					.get("version")
+					.asString();
 
 				return ServerVersion.version(version).greaterThanOrEqual(ServerVersion.v4_4_0);
 			}
 		}
+
 	}
+
 }

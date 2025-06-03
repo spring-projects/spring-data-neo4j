@@ -32,12 +32,12 @@ record BookmarkForTesting(String value) implements Bookmark {
 	@Override
 	@SuppressWarnings({ "deprecation", "RedundantSuppression" })
 	public Set<String> values() {
-		return Set.of(value);
+		return Set.of(this.value);
 	}
 
 	@Override
 	@SuppressWarnings({ "deprecation", "RedundantSuppression" })
 	public boolean isEmpty() {
-		return value.isBlank();
+		return this.value.isBlank();
 	}
 }

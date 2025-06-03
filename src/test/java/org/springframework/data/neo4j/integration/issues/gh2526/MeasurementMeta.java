@@ -15,11 +15,11 @@
  */
 package org.springframework.data.neo4j.integration.issues.gh2526;
 
+import java.util.Set;
+
 import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Relationship;
 import org.springframework.data.neo4j.integration.issues.gh2415.BaseNodeEntity;
-
-import java.util.Set;
 
 /**
  * Defining relationship to measurand
@@ -56,22 +56,29 @@ public class MeasurementMeta extends BaseNodeEntity {
 		return this.dataPoints;
 	}
 
-	public Set<Variable> getVariables() {
-		return this.variables;
-	}
-
-	public String toString() {
-		return "MeasurementMeta(dataPoints=" + this.getDataPoints() + ", variables=" + this.getVariables() + ")";
-	}
-
 	private void setDataPoints(Set<DataPoint> dataPoints) {
 		this.dataPoints = dataPoints;
+	}
+
+	public Set<Variable> getVariables() {
+		return this.variables;
 	}
 
 	private void setVariables(Set<Variable> variables) {
 		this.variables = variables;
 	}
 
+	@Override
+	protected boolean canEqual(final Object other) {
+		return other instanceof MeasurementMeta;
+	}
+
+	@Override
+	public MeasurementMetaBuilder<?, ?> toBuilder() {
+		return new MeasurementMetaBuilderImpl().$fillValuesFrom(this);
+	}
+
+	@Override
 	public boolean equals(final Object o) {
 		if (o == this) {
 			return true;
@@ -83,35 +90,35 @@ public class MeasurementMeta extends BaseNodeEntity {
 		if (!other.canEqual((Object) this)) {
 			return false;
 		}
-		if (!super.equals(o)) {
-			return false;
-		}
-		return true;
+		return super.equals(o);
 	}
 
-	protected boolean canEqual(final Object other) {
-		return other instanceof MeasurementMeta;
-	}
-
+	@Override
 	public int hashCode() {
 		int result = super.hashCode();
 		return result;
 	}
 
-	public MeasurementMetaBuilder<?, ?> toBuilder() {
-		return new MeasurementMetaBuilderImpl().$fillValuesFrom(this);
+	@Override
+	public String toString() {
+		return "MeasurementMeta(dataPoints=" + this.getDataPoints() + ", variables=" + this.getVariables() + ")";
 	}
 
 	/**
 	 * the builder
+	 *
 	 * @param <C> needed c type
 	 * @param <B> needed b type
 	 */
-	public static abstract class MeasurementMetaBuilder<C extends MeasurementMeta, B extends MeasurementMetaBuilder<C, B>> extends BaseNodeEntityBuilder<C, B> {
+	public abstract static class MeasurementMetaBuilder<C extends MeasurementMeta, B extends MeasurementMetaBuilder<C, B>>
+			extends BaseNodeEntityBuilder<C, B> {
+
 		private Set<DataPoint> dataPoints;
+
 		private Set<Variable> variables;
 
-		private static void $fillValuesFromInstanceIntoBuilder(MeasurementMeta instance, MeasurementMetaBuilder<?, ?> b) {
+		private static void $fillValuesFromInstanceIntoBuilder(MeasurementMeta instance,
+				MeasurementMetaBuilder<?, ?> b) {
 			b.dataPoints(instance.dataPoints);
 			b.variables(instance.variables);
 		}
@@ -126,31 +133,43 @@ public class MeasurementMeta extends BaseNodeEntity {
 			return self();
 		}
 
+		@Override
 		protected B $fillValuesFrom(C instance) {
 			super.$fillValuesFrom(instance);
 			MeasurementMetaBuilder.$fillValuesFromInstanceIntoBuilder(instance, this);
 			return self();
 		}
 
+		@Override
 		protected abstract B self();
 
+		@Override
 		public abstract C build();
 
+		@Override
 		public String toString() {
-			return "MeasurementMeta.MeasurementMetaBuilder(super=" + super.toString() + ", dataPoints=" + this.dataPoints + ", variables=" + this.variables + ")";
+			return "MeasurementMeta.MeasurementMetaBuilder(super=" + super.toString() + ", dataPoints="
+					+ this.dataPoints + ", variables=" + this.variables + ")";
 		}
+
 	}
 
-	private static final class MeasurementMetaBuilderImpl extends MeasurementMetaBuilder<MeasurementMeta, MeasurementMetaBuilderImpl> {
+	private static final class MeasurementMetaBuilderImpl
+			extends MeasurementMetaBuilder<MeasurementMeta, MeasurementMetaBuilderImpl> {
+
 		private MeasurementMetaBuilderImpl() {
 		}
 
+		@Override
 		protected MeasurementMetaBuilderImpl self() {
 			return this;
 		}
 
+		@Override
 		public MeasurementMeta build() {
 			return new MeasurementMeta(this);
 		}
+
 	}
+
 }

@@ -27,4 +27,5 @@ public interface NodeWithDefinedCredentials {
 	String getName();
 
 	Set<Credential> getDefinedCredentials();
+
 }

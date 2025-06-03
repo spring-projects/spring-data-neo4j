@@ -15,8 +15,6 @@
  */
 package org.springframework.data.neo4j.core.mapping;
 
-import static org.apiguardian.api.API.Status.INTERNAL;
-
 import java.util.function.Function;
 
 import org.apiguardian.api.API;
@@ -28,14 +26,17 @@ import org.neo4j.driver.types.Node;
 import org.neo4j.driver.types.Relationship;
 import org.neo4j.driver.types.TypeSystem;
 
+import static org.apiguardian.api.API.Status.INTERNAL;
+
 /**
- * This class is <strong>not</strong> part of any public API and will be changed without further notice as needed. It's
- * primary goal is to mitigate the changes in Neo4j5, which introduces the notion of an {@literal element id} for both nodes
- * and relationships while deprecating {@literal id} at the same time. The identity support allows to isolate our calls
- * deprecated API in one central place and will exist for SDN 7 only to make SDN 7 work with both Neo4j 4.4 and Neo4j 5.x.
+ * This class is <strong>not</strong> part of any public API and will be changed without
+ * further notice as needed. It's primary goal is to mitigate the changes in Neo4j5, which
+ * introduces the notion of an {@literal element id} for both nodes and relationships
+ * while deprecating {@literal id} at the same time. The identity support allows to
+ * isolate our calls deprecated API in one central place and will exist for SDN 7 only to
+ * make SDN 7 work with both Neo4j 4.4 and Neo4j 5.x.
  *
  * @author Michael J. Simons
- * @soundtrack Buckethead - SIGIL Soundtrack
  * @since 7.0
  */
 @API(status = INTERNAL)
@@ -45,22 +46,21 @@ public final class IdentitySupport {
 	}
 
 	/**
-	 * @param entity The entity container as received from the server.
-	 * @return The internal id
+	 * Retrieves the element id of an entity.
+	 * @param entity the entity container as received from the server.
+	 * @return the internal id
 	 */
 	public static String getElementId(Entity entity) {
 		return entity.elementId();
 	}
 
-
 	/**
-	 * Retrieves an identity either from attributes inside the row or if it is an actual entity, with the dedicated accessors.
-	 *
-	 * @param row A query result row
-	 * @return An internal id
+	 * Retrieves an identity either from attributes inside the row or if it is an actual
+	 * entity, with the dedicated accessors.
+	 * @param row a query result row
+	 * @return an internal id
 	 */
-	@Nullable
-	public static String getElementId(MapAccessor row) {
+	@Nullable public static String getElementId(MapAccessor row) {
 		if (row instanceof Entity entity) {
 			return getElementId(entity);
 		}
@@ -78,8 +78,7 @@ public final class IdentitySupport {
 
 	@SuppressWarnings("DeprecatedIsStillUsed")
 	@Deprecated
-	@Nullable
-	public static Long getInternalId(MapAccessor row) {
+	@Nullable public static Long getInternalId(MapAccessor row) {
 		if (row instanceof Entity entity) {
 			return entity.id();
 		}
@@ -92,13 +91,15 @@ public final class IdentitySupport {
 		return row.get(columnToUse).asLong();
 	}
 
-	@Nullable
-	public static String getPrefixedElementId(MapAccessor queryResult, @Nullable String seed) {
+	@Nullable public static String getPrefixedElementId(MapAccessor queryResult, @Nullable String seed) {
 		if (queryResult instanceof Node) {
 			return "N" + getElementId(queryResult);
-		} else if (queryResult instanceof Relationship) {
+		}
+		else if (queryResult instanceof Relationship) {
 			return "R" + seed + getElementId(queryResult);
-		} else if (!(queryResult.get(Constants.NAME_OF_ELEMENT_ID) == null || queryResult.get(Constants.NAME_OF_ELEMENT_ID).isNull())) {
+		}
+		else if (!(queryResult.get(Constants.NAME_OF_ELEMENT_ID) == null
+				|| queryResult.get(Constants.NAME_OF_ELEMENT_ID).isNull())) {
 			Value value = queryResult.get(Constants.NAME_OF_ELEMENT_ID);
 			if (value.hasType(TypeSystem.getDefault().NUMBER())) {
 				return "N" + value.asNumber();
@@ -110,7 +111,9 @@ public final class IdentitySupport {
 	}
 
 	public static Function<MapAccessor, Object> mapperForRelatedIdValues(@Nullable Neo4jPersistentProperty idProperty) {
-		boolean deprecatedHolder = idProperty != null && Neo4jPersistentEntity.DEPRECATED_GENERATED_ID_TYPES.contains(idProperty.getType());
+		boolean deprecatedHolder = idProperty != null
+				&& Neo4jPersistentEntity.DEPRECATED_GENERATED_ID_TYPES.contains(idProperty.getType());
 		return deprecatedHolder ? IdentitySupport::getInternalId : IdentitySupport::getElementId;
 	}
+
 }
