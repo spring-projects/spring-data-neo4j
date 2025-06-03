@@ -15,17 +15,17 @@
  */
 package org.springframework.data.neo4j.aot;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.aot.generate.GenerationContext;
 import org.springframework.core.ResolvableType;
 import org.springframework.data.aot.ManagedTypesBeanRegistrationAotProcessor;
-import org.springframework.lang.Nullable;
 import org.springframework.util.ClassUtils;
 
 /**
  * @author Gerrit Meier
  * @since 7.0.0
  */
-public class Neo4jManagedTypesBeanRegistrationAotProcessor extends ManagedTypesBeanRegistrationAotProcessor {
+public final class Neo4jManagedTypesBeanRegistrationAotProcessor extends ManagedTypesBeanRegistrationAotProcessor {
 
 	public Neo4jManagedTypesBeanRegistrationAotProcessor() {
 		setModuleIdentifier("neo4j");
@@ -36,7 +36,7 @@ public class Neo4jManagedTypesBeanRegistrationAotProcessor extends ManagedTypesB
 		return isNeo4jManagedTypes(beanType) || super.isMatch(beanType, beanName);
 	}
 
-	protected boolean isNeo4jManagedTypes(@Nullable Class<?> beanType) {
+	boolean isNeo4jManagedTypes(@Nullable Class<?> beanType) {
 		return beanType != null && ClassUtils.isAssignable(Neo4jManagedTypes.class, beanType);
 	}
 

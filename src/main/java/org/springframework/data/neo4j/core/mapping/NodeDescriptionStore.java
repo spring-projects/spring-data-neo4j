@@ -23,12 +23,13 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiFunction;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.mapping.context.AbstractMappingContext;
-import org.springframework.lang.Nullable;
 
 /**
  * This class is more or less just a wrapper around the node description lookup map. It ensures that there is no cyclic
@@ -102,7 +103,7 @@ final class NodeDescriptionStore {
 		return nodeDescriptionAndLabels.apply(entityDescription, labels);
 	}
 
-	private NodeDescriptionAndLabels computeConcreteNodeDescription(NodeDescription<?> entityDescription, @Nullable List<String> labels) {
+	private NodeDescriptionAndLabels computeConcreteNodeDescription(NodeDescription<?> entityDescription, List<String> labels) {
 
 		boolean isConcreteClassThatFulfillsEverything = !Modifier.isAbstract(entityDescription.getUnderlyingClass().getModifiers()) && entityDescription.getStaticLabels().containsAll(labels);
 
@@ -148,14 +149,19 @@ final class NodeDescriptionStore {
 				}
 
 				unmatchedLabelsCache.put(nd, unmatchedLabelsCount);
-				if (mostMatchingNodeDescription == null || unmatchedLabelsCount < unmatchedLabelsCache.get(mostMatchingNodeDescription)) {
+				if (mostMatchingNodeDescription == null || unmatchedLabelsCount < Objects.requireNonNullElse(unmatchedLabelsCache.get(mostMatchingNodeDescription), Integer.MAX_VALUE)) {
 					mostMatchingNodeDescription = nd;
 					mostMatchingStaticLabels = matchingLabels;
 				}
 			}
 
 			Set<String> surplusLabels = new HashSet<>(labels);
-			mostMatchingStaticLabels.forEach(surplusLabels::remove);
+			if (mostMatchingStaticLabels != null) {
+				mostMatchingStaticLabels.forEach(surplusLabels::remove);
+			}
+			if (mostMatchingNodeDescription == null) {
+				throw new IllegalStateException("Could not compute a concrete node description for entity %s and labels %s".formatted(entityDescription, labels));
+			}
 			return new NodeDescriptionAndLabels(mostMatchingNodeDescription, surplusLabels);
 		}
 

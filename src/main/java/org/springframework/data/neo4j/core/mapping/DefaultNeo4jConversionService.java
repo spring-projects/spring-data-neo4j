@@ -16,10 +16,12 @@
 package org.springframework.data.neo4j.core.mapping;
 
 import java.util.Collection;
+import java.util.Objects;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
+import org.jspecify.annotations.Nullable;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
 import org.springframework.core.CollectionFactory;
@@ -32,7 +34,6 @@ import org.springframework.data.neo4j.core.convert.Neo4jConversionService;
 import org.springframework.data.neo4j.core.convert.Neo4jConversions;
 import org.springframework.data.neo4j.core.convert.Neo4jPersistentPropertyConverter;
 import org.springframework.data.util.TypeInformation;
-import org.springframework.lang.Nullable;
 
 /**
  * @author Michael J. Simons
@@ -68,13 +69,12 @@ final class DefaultNeo4jConversionService implements Neo4jConversionService {
 
 	@Override
 	@Nullable
-	public Object readValue(@Nullable Value source, TypeInformation<?> targetType,
-			@Nullable Neo4jPersistentPropertyConverter<?> conversionOverride) {
+	public Object readValue(@Nullable Value source, TypeInformation<?> targetType, @Nullable Neo4jPersistentPropertyConverter<?> conversionOverride) {
 
 		BiFunction<Value, Class<?>, Object> conversion;
 		boolean applyConversionToCompleteCollection = false;
 		if (conversionOverride == null) {
-			conversion = (v, t) -> conversionService.convert(v, t);
+			conversion = conversionService::convert;
 		} else {
 			applyConversionToCompleteCollection = conversionOverride instanceof NullSafeNeo4jPersistentPropertyConverter
 												  && ((NullSafeNeo4jPersistentPropertyConverter<?>) conversionOverride).isForCollection();
@@ -94,8 +94,10 @@ final class DefaultNeo4jConversionService implements Neo4jConversionService {
 			Class<?> rawType = type.getType();
 
 			if (!valueIsLiteralNullOrNullValue && isCollection(type) && !applyConversionToCompleteCollection) {
+				// value can't be null at this point in time
+				@SuppressWarnings("NullAway")
 				Collection<Object> target = CollectionFactory
-						.createCollection(rawType, type.getComponentType().getType(), value.size());
+						.createCollection(rawType, Objects.requireNonNull(type.getComponentType()).getType(), value.size());
 				value.values()
 						.forEach(element -> target.add(conversion.apply(element, type.getComponentType().getType())));
 				return target;

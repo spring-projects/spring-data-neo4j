@@ -24,6 +24,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
 
 import org.apiguardian.api.API;
+import org.jspecify.annotations.Nullable;
 import org.neo4j.cypherdsl.core.Condition;
 import org.neo4j.cypherdsl.core.Cypher;
 import org.neo4j.cypherdsl.core.Expression;
@@ -37,7 +38,6 @@ import org.springframework.data.neo4j.core.mapping.PropertyFilter;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.core.mapping.NodeDescription;
 import org.springframework.data.neo4j.core.schema.Property;
-import org.springframework.lang.Nullable;
 
 /**
  * Collects the parts of a Cypher query to be handed over to the Cypher generator.
@@ -48,18 +48,25 @@ import org.springframework.lang.Nullable;
 @API(status = API.Status.INTERNAL, since = "6.0.4")
 public final class QueryFragments {
 	private List<PatternElement> matchOn = new ArrayList<>();
+	@Nullable
 	private Condition condition;
 	private Collection<Expression> returnExpressions = new ArrayList<>();
+	@Nullable
 	private Collection<SortItem> orderBy;
+	@Nullable
 	private Number limit;
+	@Nullable
 	private Long skip;
+	@Nullable
 	private ReturnTuple returnTuple;
 	private boolean scalarValueReturn = false;
+	@Nullable
 	private Expression deleteExpression;
 	/**
 	 * This flag becomes {@literal true} for backward scrolling keyset pagination. Any {@code AbstractNeo4jQuery} will in turn reverse the result list.
 	 */
 	private boolean requiresReverseSort = false;
+	@Nullable
 	private Predicate<PropertyFilter.RelaxedPropertyPath> projectingPropertyFilter;
 
 	public void addMatchOn(PatternElement match) {
@@ -78,6 +85,7 @@ public final class QueryFragments {
 		this.condition = Optional.ofNullable(condition).orElse(Cypher.noCondition());
 	}
 
+	@Nullable
 	public Condition getCondition() {
 		return condition;
 	}
@@ -86,16 +94,20 @@ public final class QueryFragments {
 		this.returnExpressions = expression;
 	}
 
-	public void setDeleteExpression(Expression expression) {
+	public void setDeleteExpression(@Nullable Expression expression) {
 		this.deleteExpression = expression;
 	}
 
-	public void setReturnExpression(Expression returnExpression, boolean isScalarValue) {
-		this.returnExpressions = Collections.singletonList(returnExpression);
-		this.scalarValueReturn = isScalarValue;
+	public void setReturnExpression(@Nullable Expression returnExpression, boolean isScalarValue) {
+		if (returnExpression != null) {
+			this.returnExpressions = Collections.singletonList(returnExpression);
+			this.scalarValueReturn = isScalarValue;
+		} else {
+			this.returnExpressions = List.of();
+		}
 	}
 
-	public void setProjectingPropertyFilter(Predicate<PropertyFilter.RelaxedPropertyPath> projectingPropertyFilter) {
+	public void setProjectingPropertyFilter(@Nullable Predicate<PropertyFilter.RelaxedPropertyPath> projectingPropertyFilter) {
 		this.projectingPropertyFilter = projectingPropertyFilter;
 	}
 
@@ -104,7 +116,7 @@ public final class QueryFragments {
 				&& (this.returnTuple == null || this.returnTuple.include(fieldName));
 	}
 
-	public void setOrderBy(Collection<SortItem> orderBy) {
+	public void setOrderBy(@Nullable Collection<SortItem> orderBy) {
 		this.orderBy = orderBy;
 	}
 
@@ -131,14 +143,14 @@ public final class QueryFragments {
 
 	public Statement toStatement() {
 
-		StatementBuilder.OngoingReadingWithoutWhere match = null;
+		if (this.matchOn.isEmpty()) {
+			throw new IllegalStateException("No pattern to match on");
+		}
+
+		StatementBuilder.OngoingReadingWithoutWhere match = Cypher.match(matchOn.get(0));
 
 		for (PatternElement patternElement : matchOn) {
-			if (match == null) {
-				match = Cypher.match(matchOn.get(0));
-			} else {
-				match = match.match(patternElement);
-			}
+			match = match.match(patternElement);
 		}
 
 		StatementBuilder.OngoingReadingWithWhere matchWithWhere = match.where(condition);
@@ -161,7 +173,7 @@ public final class QueryFragments {
 	}
 
 	private Collection<Expression> getReturnExpressions() {
-		return returnExpressions.isEmpty() ? CypherGenerator.INSTANCE.createReturnStatementForMatch((Neo4jPersistentEntity<?>) returnTuple.nodeDescription,
+		return returnExpressions.isEmpty() && returnTuple != null ? CypherGenerator.INSTANCE.createReturnStatementForMatch((Neo4jPersistentEntity<?>) returnTuple.nodeDescription,
 			this::includeField, returnTuple.additionalExpressions.toArray(Expression[]::new)) : returnExpressions;
 	}
 
@@ -170,7 +182,7 @@ public final class QueryFragments {
 	}
 
 	private boolean isDistinctReturn() {
-		return returnExpressions.isEmpty() && returnTuple.isDistinct;
+		return returnExpressions.isEmpty() && returnTuple != null && returnTuple.isDistinct;
 	}
 
 	public Collection<SortItem> getOrderBy() {
@@ -203,10 +215,12 @@ public final class QueryFragments {
 		return Cypher.sort(sortedExpression.get(), sortDirection.get());
 	}
 
+	@Nullable
 	public Number getLimit() {
 		return limit;
 	}
 
+	@Nullable
 	public Long getSkip() {
 		return skip;
 	}

@@ -20,6 +20,7 @@ import java.time.Duration;
 import java.util.Collection;
 import java.util.Collections;
 
+import org.jspecify.annotations.Nullable;
 import org.neo4j.driver.AccessMode;
 import org.neo4j.driver.Bookmark;
 import org.neo4j.driver.SessionConfig;
@@ -39,6 +40,7 @@ import org.springframework.util.ReflectionUtils;
  */
 public final class Neo4jTransactionUtils {
 
+	@Nullable
 	private static final Method WITH_IMPERSONATED_USER
 			= ReflectionUtils.findMethod(SessionConfig.Builder.class, "withImpersonatedUser", String.class);
 
@@ -46,7 +48,7 @@ public final class Neo4jTransactionUtils {
 		return WITH_IMPERSONATED_USER != null;
 	}
 
-	@SuppressWarnings("UnusedReturnValue")
+	@SuppressWarnings({"UnusedReturnValue", "NullAway"})
 	public static SessionConfig.Builder withImpersonatedUser(SessionConfig.Builder builder, String user) {
 
 		if (driverSupportsImpersonation()) {

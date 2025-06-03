@@ -18,7 +18,7 @@ package org.springframework.data.neo4j.core;
 import java.util.Objects;
 
 import org.apiguardian.api.API;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A value holder indicating a database selection based on an optional name. {@literal null} indicates to let the server
@@ -33,7 +33,8 @@ public final class DatabaseSelection {
 
 	private static final DatabaseSelection DEFAULT_DATABASE_NAME = new DatabaseSelection(null);
 
-	@Nullable private final String value;
+	@Nullable
+	private final String value;
 
 	public static DatabaseSelection undecided() {
 

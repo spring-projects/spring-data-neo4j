@@ -22,6 +22,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
@@ -32,6 +33,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.data.annotation.Persistent;
@@ -49,8 +52,6 @@ import org.springframework.data.neo4j.core.schema.TargetNode;
 import org.springframework.data.support.IsNewStrategy;
 import org.springframework.data.util.Lazy;
 import org.springframework.data.util.TypeInformation;
-import org.springframework.lang.NonNull;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -85,6 +86,7 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 
 	private final Lazy<Boolean> isRelationshipPropertiesEntity;
 
+	@Nullable
 	private NodeDescription<?> parentNodeDescription;
 
 	private List<NodeDescription<?>> childNodeDescriptionsInHierarchy;
@@ -255,14 +257,14 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 
 	private void verifyDynamicAssociations() {
 
-		Set<Class> targetEntities = new HashSet<>();
-		AssociationHandlerSupport.of(this).doWithAssociations((Association<Neo4jPersistentProperty> association) -> {
+		Set<Class<?>> targetEntities = new HashSet<>();
+		AssociationHandlerSupport.of(this).doWithAssociations((Association<@NonNull Neo4jPersistentProperty> association) -> {
 			Neo4jPersistentProperty inverse = association.getInverse();
 			if (inverse.isDynamicAssociation()) {
 				Relationship relationship = inverse.findAnnotation(Relationship.class);
 				Assert.state(relationship == null || relationship.type().isEmpty(),
 						() -> "Dynamic relationships cannot be used with a fixed type; omit @Relationship or use @Relationship(direction = "
-								+ relationship.direction().name() + ") without a type in " + this.getUnderlyingClass() + " on field "
+								+ Optional.ofNullable(relationship).map(Relationship::direction).orElse(Relationship.Direction.OUTGOING).name() + ") without a type in " + this.getUnderlyingClass() + " on field "
 								+ inverse.getFieldName());
 
 				Assert.state(!targetEntities.contains(inverse.getAssociationTargetType()),
@@ -329,7 +331,6 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 	 * @param type the type of the underlying class
 	 * @return computed primary label
 	 */
-	@Nullable
 	static String computePrimaryLabel(Class<?> type) {
 
 		Node nodeAnnotation = AnnotatedElementUtils.findMergedAnnotation(type, Node.class);
@@ -365,7 +366,6 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 	 *
 	 * @return computed additional labels of the concrete class
 	 */
-	@NonNull
 	private List<String> computeOwnAdditionalLabels() {
 		List<String> result = new ArrayList<>();
 
@@ -398,7 +398,6 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 		return Collections.unmodifiableList(result);
 	}
 
-	@NonNull
 	private List<String> computeParentLabels() {
 		List<String> parentLabels = new ArrayList<>();
 		Neo4jPersistentEntity<?> parentNodeDescriptionCalculated = (Neo4jPersistentEntity<?>) parentNodeDescription;
@@ -430,9 +429,10 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 
 	@Override
 	public boolean hasVectorProperty() {
-		return Optional.ofNullable(getVectorProperty()).map(v -> true).orElse(false);
+		return getVectorProperty() != null;
 	}
 
+	@Nullable
 	public Neo4jPersistentProperty getVectorProperty() {
 		return this.vectorProperty.getNullable();
 	}
@@ -511,13 +511,11 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 		return Collections.unmodifiableCollection(relationships);
 	}
 
-	@NonNull
 	public Collection<RelationshipDescription> getRelationshipsInHierarchy(Predicate<PropertyFilter.RelaxedPropertyPath> propertyFilter) {
 
 		return getRelationshipsInHierarchy(propertyFilter, PropertyFilter.RelaxedPropertyPath.withRootType(this.getUnderlyingClass()));
 	}
 
-	@NonNull
 	public Collection<RelationshipDescription> getRelationshipsInHierarchy(Predicate<PropertyFilter.RelaxedPropertyPath> propertyFilter, PropertyFilter.RelaxedPropertyPath path) {
 
 		Collection<RelationshipDescription> relationships = new HashSet<>(getRelationships());
@@ -599,7 +597,7 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 	}
 
 	@Override
-	public void setParentNodeDescription(NodeDescription<?> parent) {
+	public void setParentNodeDescription(@Nullable NodeDescription<?> parent) {
 		this.parentNodeDescription = parent;
 	}
 
@@ -634,9 +632,14 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 			visitedNodes.add(targetNode);
 
 			// we don't care about the other content of relationship properties and jump straight into the `TargetNode`
-			String relationshipPropertiesPrefix = relationship.hasRelationshipProperties()
-					? "." + ((Neo4jPersistentEntity<?>) relationship.getRelationshipPropertiesEntity()).getPersistentProperty(TargetNode.class).getFieldName()
-					: "";
+			String relationshipPropertiesPrefix;
+			if (!relationship.hasRelationshipProperties()) {
+				relationshipPropertiesPrefix = "";
+			} else {
+				Neo4jPersistentEntity<?> relationshipPropertiesEntity = (Neo4jPersistentEntity<?>) relationship.getRequiredRelationshipPropertiesEntity();
+				var targetNodeProperty = Objects.requireNonNull(relationshipPropertiesEntity.getPersistentProperty(TargetNode.class), () -> "Could not get target node property on %s".formatted(relationshipPropertiesEntity.getType()));
+				relationshipPropertiesPrefix = "." + targetNodeProperty.getFieldName();
+			}
 			PropertyFilter.RelaxedPropertyPath nextPath = relaxedPropertyPath.append(relationship.getFieldName() + relationshipPropertiesPrefix);
 			if (calculatePossibleCircles(targetNode, visitedNodes, includeField, nextPath)) {
 				return true;
@@ -661,8 +664,14 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 			// but don't (!) add them to the visitedNodes yet.
 			// Otherwise, the same "parallel" defined target nodes will report a false circle.
 			branchedVisitedNodes.add(targetNode);
-			String relationshipPropertiesPrefix = relationship.hasRelationshipProperties() ? "." + ((Neo4jPersistentEntity<?>) relationship.getRelationshipPropertiesEntity())
-					.getPersistentProperty(TargetNode.class).getFieldName() : "";
+			String relationshipPropertiesPrefix;
+			if (!relationship.hasRelationshipProperties()) {
+				relationshipPropertiesPrefix = "";
+			} else {
+				Neo4jPersistentEntity<?> relationshipPropertiesEntity = (Neo4jPersistentEntity<?>) relationship.getRequiredRelationshipPropertiesEntity();
+				var targetNodeProperty = Objects.requireNonNull(relationshipPropertiesEntity.getPersistentProperty(TargetNode.class), () -> "Could not get target node property on %s".formatted(relationshipPropertiesEntity.getType()));
+				relationshipPropertiesPrefix = "." + targetNodeProperty.getFieldName();
+			}
 			if (calculatePossibleCircles(targetNode, branchedVisitedNodes, includeField, path.append(relationship.getFieldName() + relationshipPropertiesPrefix))) {
 				return true;
 			}

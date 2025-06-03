@@ -15,10 +15,12 @@
  */
 package org.springframework.data.neo4j.core.transaction;
 
+import java.io.Serial;
 import java.util.Collections;
 import java.util.Set;
 
 import org.apiguardian.api.API;
+import org.jspecify.annotations.Nullable;
 import org.neo4j.driver.Bookmark;
 import org.springframework.context.ApplicationEvent;
 
@@ -33,7 +35,10 @@ import org.springframework.context.ApplicationEvent;
 @API(status = API.Status.STABLE, since = "6.1.1")
 public final class Neo4jBookmarksUpdatedEvent extends ApplicationEvent {
 
-	private final Set<Bookmark> bookmarks;
+	@Serial
+	private static final long serialVersionUID = 2143476552056698819L;
+	@Nullable
+	private transient final Set<Bookmark> bookmarks;
 
 	Neo4jBookmarksUpdatedEvent(Set<Bookmark> bookmarks) {
 		super(bookmarks);
@@ -45,6 +50,6 @@ public final class Neo4jBookmarksUpdatedEvent extends ApplicationEvent {
 	 */
 	public Set<Bookmark> getBookmarks() {
 
-		return Collections.unmodifiableSet(this.bookmarks);
+		return this.bookmarks == null ? Set.of() : Collections.unmodifiableSet(this.bookmarks);
 	}
 }

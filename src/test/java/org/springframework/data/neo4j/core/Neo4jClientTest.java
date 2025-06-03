@@ -62,7 +62,6 @@ import org.neo4j.driver.Values;
 import org.neo4j.driver.summary.ResultSummary;
 import org.neo4j.driver.types.TypeSystem;
 import org.springframework.data.neo4j.core.transaction.Neo4jTransactionUtils;
-import org.springframework.lang.Nullable;
 import org.springframework.util.ReflectionUtils;
 
 /**
@@ -602,7 +601,7 @@ class Neo4jClientTest {
 		}
 	}
 
-	void verifyDatabaseSelection(@Nullable String targetDatabase) {
+	void verifyDatabaseSelection(String targetDatabase) {
 
 		verify(driver).session(configArgumentCaptor.capture());
 		SessionConfig config = configArgumentCaptor.getValue();
@@ -614,7 +613,7 @@ class Neo4jClientTest {
 		}
 	}
 
-	void verifyUserSelection(@Nullable String aUser) {
+	void verifyUserSelection(String aUser) {
 
 		verify(driver).session(configArgumentCaptor.capture());
 		SessionConfig config = configArgumentCaptor.getValue();

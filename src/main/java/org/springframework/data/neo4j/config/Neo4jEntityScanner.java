@@ -23,6 +23,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apiguardian.api.API;
+import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
@@ -31,7 +32,6 @@ import org.springframework.core.type.filter.AnnotationTypeFilter;
 import org.springframework.data.annotation.Persistent;
 import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.RelationshipProperties;
-import org.springframework.lang.Nullable;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 
@@ -55,7 +55,8 @@ public final class Neo4jEntityScanner {
 		return new Neo4jEntityScanner(resourceLoader);
 	}
 
-	private @Nullable final ResourceLoader resourceLoader;
+	@Nullable
+	private final ResourceLoader resourceLoader;
 
 	/**
 	 * Create a new {@link Neo4jEntityScanner} instance.
@@ -121,8 +122,7 @@ public final class Neo4jEntityScanner {
 	 * @param resourceLoader an optional {@link ResourceLoader} to use
 	 * @return a {@link ClassPathScanningCandidateComponentProvider} suitable to scan for Neo4j entities
 	 */
-	private static ClassPathScanningCandidateComponentProvider createClassPathScanningCandidateComponentProvider(
-			@Nullable ResourceLoader resourceLoader) {
+	private static ClassPathScanningCandidateComponentProvider createClassPathScanningCandidateComponentProvider(@Nullable ResourceLoader resourceLoader) {
 
 		ClassPathScanningCandidateComponentProvider delegate = new ClassPathScanningCandidateComponentProvider(false);
 		if (resourceLoader != null) {

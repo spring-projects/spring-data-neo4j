@@ -18,7 +18,6 @@ package org.springframework.data.neo4j.core.convert;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentProperty;
-import org.springframework.lang.Nullable;
 import org.springframework.util.StringUtils;
 
 /**
@@ -28,10 +27,9 @@ import org.springframework.util.StringUtils;
  */
 final class DefaultNeo4jPersistentPropertyConverterFactory implements Neo4jPersistentPropertyConverterFactory {
 
-	@Nullable
 	private final BeanFactory beanFactory;
 
-	DefaultNeo4jPersistentPropertyConverterFactory(@Nullable BeanFactory beanFactory) {
+	DefaultNeo4jPersistentPropertyConverterFactory(BeanFactory beanFactory) {
 
 		this.beanFactory = beanFactory;
 	}

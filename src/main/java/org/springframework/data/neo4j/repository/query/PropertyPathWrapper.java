@@ -15,6 +15,7 @@
  */
 package org.springframework.data.neo4j.repository.query;
 
+import org.jspecify.annotations.Nullable;
 import org.neo4j.cypherdsl.core.Cypher;
 import org.neo4j.cypherdsl.core.ExposesRelationships;
 import org.neo4j.cypherdsl.core.Node;
@@ -25,7 +26,6 @@ import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.core.mapping.NodeDescription;
 import org.springframework.data.neo4j.core.mapping.RelationshipDescription;
 import org.springframework.data.neo4j.core.schema.TargetNode;
-import org.springframework.lang.Nullable;
 
 class PropertyPathWrapper {
 	private static final String NAME_OF_RELATED_FILTER_ENTITY = "m";

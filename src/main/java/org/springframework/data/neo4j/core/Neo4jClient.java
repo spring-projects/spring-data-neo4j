@@ -15,6 +15,7 @@
  */
 package org.springframework.data.neo4j.core;
 
+import java.io.Serial;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
@@ -25,6 +26,7 @@ import java.util.function.Supplier;
 
 import org.apache.commons.logging.LogFactory;
 import org.apiguardian.api.API;
+import org.jspecify.annotations.Nullable;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.QueryRunner;
 import org.neo4j.driver.Record;
@@ -33,7 +35,6 @@ import org.neo4j.driver.types.TypeSystem;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.data.neo4j.core.convert.Neo4jConversions;
 import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
-import org.springframework.lang.Nullable;
 
 /**
  * Definition of a modern Neo4j client.
@@ -127,7 +128,7 @@ public interface Neo4jClient {
 		 * @return The builder
 		 * @since 6.3.3
 		 */
-		public Builder withNeo4jConversions(Neo4jConversions neo4jConversions) {
+		public Builder withNeo4jConversions(@Nullable Neo4jConversions neo4jConversions) {
 			this.neo4jConversions = neo4jConversions;
 			return this;
 		}
@@ -141,7 +142,7 @@ public interface Neo4jClient {
 		 * @return The builder
 		 * @since 7.1.2
 		 */
-		public Builder withNeo4jBookmarkManager(Neo4jBookmarkManager bookmarkManager) {
+		public Builder withNeo4jBookmarkManager(@Nullable Neo4jBookmarkManager bookmarkManager) {
 			this.bookmarkManager = bookmarkManager;
 			return this;
 		}
@@ -266,7 +267,7 @@ public interface Neo4jClient {
 		 * @param targetDatabase selected database to use. A {@literal null} value indicates the default database.
 		 * @return A runnable query specification that is now bound to a given database.
 		 */
-		RunnableSpecBoundToDatabase in(@Nullable String targetDatabase);
+		RunnableSpecBoundToDatabase in(String targetDatabase);
 
 		/**
 		 * Pins the previously defined query to an impersonated user. A value of {@literal null} chooses the user owning
@@ -275,7 +276,7 @@ public interface Neo4jClient {
 		 * @param asUser The name of the user to impersonate. A {@literal null} value indicates the connected user.
 		 * @return A runnable query specification that is now bound to a given database.
 		 */
-		RunnableSpecBoundToUser asUser(@Nullable String asUser);
+		RunnableSpecBoundToUser asUser(String asUser);
 	}
 
 	/**
@@ -408,7 +409,7 @@ public interface Neo4jClient {
 		 * @param targetDatabase selected database to use. A {@literal null} value indicates the default database.
 		 * @return An ongoing delegation
 		 */
-		RunnableDelegation<T> in(@Nullable String targetDatabase);
+		RunnableDelegation<T> in(String targetDatabase);
 	}
 
 	/**
@@ -450,6 +451,9 @@ public interface Neo4jClient {
 	 */
 	@API(status = API.Status.STABLE, since = "6.1.5")
 	class IllegalDatabaseNameException extends IllegalArgumentException {
+
+		@Serial
+		private static final long serialVersionUID = 3496326026855204643L;
 
 		private final String illegalDatabaseName;
 

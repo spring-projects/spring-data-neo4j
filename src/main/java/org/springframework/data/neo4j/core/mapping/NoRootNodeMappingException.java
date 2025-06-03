@@ -15,11 +15,13 @@
  */
 package org.springframework.data.neo4j.core.mapping;
 
+import java.io.Serial;
 import java.util.Formattable;
 import java.util.Formatter;
 import java.util.Locale;
 
 import org.apiguardian.api.API;
+import org.jspecify.annotations.Nullable;
 import org.neo4j.driver.types.MapAccessor;
 import org.springframework.data.mapping.MappingException;
 
@@ -36,9 +38,15 @@ import org.springframework.data.mapping.MappingException;
 @API(status = API.Status.INTERNAL, since = "6.0.2")
 public final class NoRootNodeMappingException extends MappingException implements Formattable {
 
-	private MapAccessor mapAccessor;
-	private Neo4jPersistentEntity<?> entity;
+	@Serial
+	private static final long serialVersionUID = 5742846435191601546L;
 
+	@Nullable
+	private final transient MapAccessor mapAccessor;
+	@Nullable
+	private final transient Neo4jPersistentEntity<?> entity;
+
+	@SuppressWarnings("NullableProblems")
 	public NoRootNodeMappingException(MapAccessor mapAccessor, Neo4jPersistentEntity<?> entity) {
 		super(String.format("Could not find mappable nodes or relationships inside %s for %s", mapAccessor, entity));
 		this.mapAccessor = mapAccessor;
@@ -47,9 +55,13 @@ public final class NoRootNodeMappingException extends MappingException implement
 
 	@Override
 	public void formatTo(Formatter formatter, int flags, int width, int precision) {
-		String className = entity.getUnderlyingClass().getSimpleName();
-		formatter.format("Could not find mappable nodes or relationships inside %s for %s:%s", mapAccessor,
-				className.substring(0, 1).toLowerCase(
-						Locale.ROOT), String.join(":", entity.getStaticLabels()));
+		if (mapAccessor != null && entity != null) {
+			String className = entity.getUnderlyingClass().getSimpleName();
+			formatter.format("Could not find mappable nodes or relationships inside %s for %s:%s", mapAccessor,
+					className.substring(0, 1).toLowerCase(
+							Locale.ROOT), String.join(":", entity.getStaticLabels()));
+		} else {
+			formatter.format("Could not find mappable nodes or relationships inside a record");
+		}
 	}
 }

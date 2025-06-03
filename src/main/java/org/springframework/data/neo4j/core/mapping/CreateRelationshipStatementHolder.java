@@ -22,7 +22,6 @@ import org.apiguardian.api.API;
 import org.neo4j.cypherdsl.core.Statement;
 import org.springframework.data.neo4j.core.Neo4jTemplate;
 import org.springframework.data.neo4j.core.ReactiveNeo4jTemplate;
-import org.springframework.lang.NonNull;
 
 /**
  * The {@link CreateRelationshipStatementHolder} holds the Cypher Statement to create a relationship as well as the optional
@@ -40,7 +39,7 @@ public final class CreateRelationshipStatementHolder {
 	private final Statement statement;
 	private final Map<String, Object> properties;
 
-	CreateRelationshipStatementHolder(@NonNull Statement statement, @NonNull Map<String, Object> properties) {
+	CreateRelationshipStatementHolder(Statement statement, Map<String, Object> properties) {
 		this.statement = statement;
 		this.properties = properties;
 	}

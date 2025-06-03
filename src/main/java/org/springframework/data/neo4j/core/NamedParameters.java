@@ -24,11 +24,11 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.apiguardian.api.API;
+import org.jspecify.annotations.Nullable;
 import org.neo4j.cypherdsl.core.Cypher;
 import org.neo4j.driver.Value;
 import org.springframework.data.neo4j.core.mapping.Constants;
 import org.springframework.data.neo4j.core.mapping.MapValueWrapper;
-import org.springframework.lang.Nullable;
 
 /**
  * @author Michael J. Simons
@@ -141,7 +141,7 @@ final class NamedParameters {
 	}
 
 	@Nullable
-	private static String formatValue(@Nullable Object value) {
+	private static String formatValue(Object value) {
 		if (value == null) {
 			return null;
 		} else if (value instanceof String) {

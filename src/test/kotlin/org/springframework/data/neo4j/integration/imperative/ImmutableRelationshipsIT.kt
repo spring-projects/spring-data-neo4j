@@ -132,9 +132,9 @@ class ImmutableRelationshipsIT @Autowired constructor(
         }
 
         @Bean
-        override fun transactionManager(driver: Driver, databaseNameProvider: DatabaseSelectionProvider): PlatformTransactionManager {
+        override fun transactionManager(driver: Driver, databaseNameProvider: DatabaseSelectionProvider?): PlatformTransactionManager {
             val bookmarkCapture = bookmarkCapture()
-            return Neo4jTransactionManager(driver, databaseNameProvider, Neo4jBookmarkManager.create(bookmarkCapture))
+            return Neo4jTransactionManager(driver, databaseNameProvider!!, Neo4jBookmarkManager.create(bookmarkCapture))
         }
 
         override fun isCypher5Compatible(): Boolean {

@@ -17,13 +17,13 @@ package org.springframework.data.neo4j.core.transaction;
 
 import java.util.Collection;
 
+import org.jspecify.annotations.Nullable;
 import org.neo4j.driver.Bookmark;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.Transaction;
 import org.springframework.data.neo4j.core.DatabaseSelection;
 import org.springframework.data.neo4j.core.UserSelection;
 import org.springframework.data.neo4j.core.support.RetryExceptionPredicate;
-import org.springframework.lang.Nullable;
 import org.springframework.transaction.support.ResourceHolderSupport;
 import org.springframework.util.Assert;
 

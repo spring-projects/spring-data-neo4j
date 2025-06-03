@@ -16,6 +16,7 @@
 package org.springframework.data.neo4j.integration.issues;
 
 import java.lang.reflect.Method;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -31,7 +32,7 @@ import org.junit.platform.commons.util.AnnotationUtils;
 final class SimpleDisplayNameGeneratorWithTags extends DisplayNameGenerator.Simple {
 
 	@Override
-	public String generateDisplayNameForMethod(Class<?> testClass, Method testMethod) {
+	public String generateDisplayNameForMethod(List<Class<?>> enclosingInstanceTypes, Class<?> testClass, Method testMethod) {
 
 		var displayNameForMethod = testMethod.getName();
 		var tags = AnnotationUtils.findRepeatableAnnotations(testMethod, Tag.class);

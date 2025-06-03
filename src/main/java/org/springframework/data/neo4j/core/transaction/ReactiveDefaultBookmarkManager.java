@@ -22,9 +22,9 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.Supplier;
 
+import org.jspecify.annotations.Nullable;
 import org.neo4j.driver.Bookmark;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.lang.Nullable;
 
 /**
  * Default bookmark manager.

@@ -15,9 +15,12 @@
  */
 package org.springframework.data.neo4j.core.transaction;
 
+import java.io.Serial;
 import java.util.Collection;
+import java.util.Objects;
 
 import org.apiguardian.api.API;
+import org.jspecify.annotations.Nullable;
 import org.neo4j.driver.Bookmark;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Session;
@@ -33,7 +36,6 @@ import org.springframework.data.neo4j.core.DatabaseSelectionProvider;
 import org.springframework.data.neo4j.core.UserSelection;
 import org.springframework.data.neo4j.core.UserSelectionProvider;
 import org.springframework.data.neo4j.core.support.BookmarkManagerReference;
-import org.springframework.lang.Nullable;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionException;
 import org.springframework.transaction.TransactionSystemException;
@@ -43,7 +45,6 @@ import org.springframework.transaction.support.SmartTransactionObject;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.transaction.support.TransactionSynchronizationUtils;
 import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
 
 /**
  * Dedicated {@link org.springframework.transaction.PlatformTransactionManager} for native Neo4j transactions. This
@@ -54,6 +55,9 @@ import org.springframework.util.StringUtils;
  */
 @API(status = API.Status.STABLE, since = "6.0")
 public final class Neo4jTransactionManager extends AbstractPlatformTransactionManager implements ApplicationContextAware {
+
+	@Serial
+	private static final long serialVersionUID = 7971369288503005574L;
 
 	/**
 	 * Start building a new transaction manager for the given driver instance.
@@ -114,7 +118,7 @@ public final class Neo4jTransactionManager extends AbstractPlatformTransactionMa
 			return this;
 		}
 
-		public Builder withBookmarkManager(@Nullable Neo4jBookmarkManager bookmarkManager) {
+		public Builder withBookmarkManager(Neo4jBookmarkManager bookmarkManager) {
 			this.bookmarkManager = bookmarkManager;
 			return this;
 		}
@@ -127,19 +131,19 @@ public final class Neo4jTransactionManager extends AbstractPlatformTransactionMa
 	/**
 	 * The underlying driver, which is also the synchronisation object.
 	 */
-	private final Driver driver;
+	private transient final Driver driver;
 
 	/**
 	 * Database name provider.
 	 */
-	private final DatabaseSelectionProvider databaseSelectionProvider;
+	private transient final DatabaseSelectionProvider databaseSelectionProvider;
 
 	/**
 	 * Provider for user impersonation.
 	 */
-	private final UserSelectionProvider userSelectionProvider;
+	private transient final UserSelectionProvider userSelectionProvider;
 
-	private final BookmarkManagerReference bookmarkManager;
+	private transient final BookmarkManagerReference bookmarkManager;
 
 	/**
 	 * This will create a transaction manager for the default database.
@@ -194,20 +198,6 @@ public final class Neo4jTransactionManager extends AbstractPlatformTransactionMa
 	}
 
 	/**
-	 * @param driver The driver that has been used as a synchronization object.
-	 * @param targetDatabase The target database
-	 * @return An optional managed transaction or {@literal null} if the method hasn't been called inside an ongoing
-	 *         Spring transaction
-	 * @see #retrieveTransaction(Driver, DatabaseSelection, UserSelection)
-	 * @deprecated since 6.2, use #retrieveTransaction(Driver, DatabaseSelection, UserSelection)
-	 */
-	@Deprecated
-	public static @Nullable Transaction retrieveTransaction(final Driver driver, @Nullable final String targetDatabase) {
-
-		return retrieveTransaction(driver, StringUtils.hasText(targetDatabase) ? DatabaseSelection.byName(targetDatabase) : DatabaseSelection.undecided(), UserSelection.connectedUser());
-	}
-
-	/**
 	 * This method provides a native Neo4j transaction to be used from within a {@link org.springframework.data.neo4j.core.Neo4jClient}.
 	 * In most cases this the native transaction will be controlled from the Neo4j specific {@link org.springframework.transaction.PlatformTransactionManager}.
 	 * However, SDN provides support for other transaction managers as well. This method registers a session synchronization
@@ -219,7 +209,8 @@ public final class Neo4jTransactionManager extends AbstractPlatformTransactionMa
 	 * @return An optional managed transaction or {@literal null} if the method hasn't been called inside an ongoing
 	 *         Spring transaction
 	 */
-	public static @Nullable Transaction retrieveTransaction(
+	@Nullable
+	public static Transaction retrieveTransaction(
 			final Driver driver,
 			final DatabaseSelection targetDatabase,
 			final UserSelection asUser
@@ -257,7 +248,7 @@ public final class Neo4jTransactionManager extends AbstractPlatformTransactionMa
 				.registerSynchronization(new Neo4jSessionSynchronization(connectionHolder, driver));
 
 		TransactionSynchronizationManager.bindResource(driver, connectionHolder);
-		return connectionHolder.getTransaction(targetDatabase, asUser);
+		return Objects.requireNonNull(connectionHolder.getTransaction(targetDatabase, asUser));
 	}
 
 	private static Neo4jTransactionObject extractNeo4jTransaction(Object transaction) {
@@ -285,7 +276,7 @@ public final class Neo4jTransactionManager extends AbstractPlatformTransactionMa
 	@Override
 	protected boolean isExistingTransaction(Object transaction) throws TransactionException {
 
-		return extractNeo4jTransaction(transaction).hasResourceHolder();
+		return extractNeo4jTransaction(transaction).getResourceHolder() != null;
 	}
 
 	@Override
@@ -331,7 +322,7 @@ public final class Neo4jTransactionManager extends AbstractPlatformTransactionMa
 	@Override
 	protected void doResume(@Nullable Object transaction, Object suspendedResources) {
 
-		Neo4jTransactionObject transactionObject = extractNeo4jTransaction(transaction);
+		Neo4jTransactionObject transactionObject = extractNeo4jTransaction(Objects.requireNonNull(transaction));
 		transactionObject.setResourceHolder((Neo4jTransactionHolder) suspendedResources);
 
 		TransactionSynchronizationManager.bindResource(driver, suspendedResources);
@@ -347,7 +338,7 @@ public final class Neo4jTransactionManager extends AbstractPlatformTransactionMa
 			this.bookmarkManager.resolve().updateBookmarks(transactionHolder.getBookmarks(), newBookmarks);
 		} catch (Neo4jException ex) {
 			if (ex instanceof RetryableException) {
-				throw new TransactionSystemException(ex.getMessage(), ex);
+				throw new TransactionSystemException(Objects.requireNonNullElse(ex.getMessage(), "Caught a retryable exception"), ex);
 			}
 			throw ex;
 		}
@@ -383,7 +374,8 @@ public final class Neo4jTransactionManager extends AbstractPlatformTransactionMa
 		// The resource holder is null when the call to TransactionSynchronizationManager.getResource
 		// in Neo4jTransactionManager.doGetTransaction didn't return a corresponding resource holder.
 		// If it is null, there's no existing session / transaction.
-		@Nullable private Neo4jTransactionHolder resourceHolder;
+		@Nullable
+		private Neo4jTransactionHolder resourceHolder;
 
 		Neo4jTransactionObject(@Nullable Neo4jTransactionHolder resourceHolder) {
 			this.resourceHolder = resourceHolder;
@@ -393,23 +385,19 @@ public final class Neo4jTransactionManager extends AbstractPlatformTransactionMa
 		 * Usually called in {@link #doBegin(Object, TransactionDefinition)} which is called when there's no existing
 		 * transaction.
 		 *
-		 * @param resourceHolder A newly created resource holder with a fresh drivers session,
+		 * @param resourceHolder A newly created resource holder with a fresh drivers' session,
 		 */
 		void setResourceHolder(@Nullable Neo4jTransactionHolder resourceHolder) {
 			this.resourceHolder = resourceHolder;
 		}
 
-		/**
-		 * @return {@literal true} if a {@link Neo4jTransactionHolder} is set.
-		 */
-		boolean hasResourceHolder() {
-			return resourceHolder != null;
+		@Nullable Neo4jTransactionHolder getResourceHolder() {
+			return resourceHolder;
 		}
 
 		Neo4jTransactionHolder getRequiredResourceHolder() {
 
-			Assert.state(hasResourceHolder(), RESOURCE_HOLDER_NOT_PRESENT_MESSAGE);
-			return resourceHolder;
+			return Objects.requireNonNull(resourceHolder, RESOURCE_HOLDER_NOT_PRESENT_MESSAGE);
 		}
 
 		void setRollbackOnly() {
@@ -419,7 +407,7 @@ public final class Neo4jTransactionManager extends AbstractPlatformTransactionMa
 
 		@Override
 		public boolean isRollbackOnly() {
-			return this.hasResourceHolder() && this.resourceHolder.isRollbackOnly();
+			return this.resourceHolder != null && this.resourceHolder.isRollbackOnly();
 		}
 
 		@Override

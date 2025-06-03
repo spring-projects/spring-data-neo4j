@@ -23,6 +23,7 @@ import java.util.function.BiFunction;
 
 import org.apache.commons.logging.LogFactory;
 import org.apiguardian.api.API;
+import org.jspecify.annotations.Nullable;
 import org.neo4j.driver.exceptions.AuthenticationException;
 import org.neo4j.driver.exceptions.ClientException;
 import org.neo4j.driver.exceptions.DatabaseException;
@@ -61,6 +62,7 @@ public final class Neo4jPersistenceExceptionTranslator implements PersistenceExc
 	private static final Map<String, Optional<BiFunction<String, Throwable, DataAccessException>>> ERROR_CODE_MAPPINGS;
 
 	@Override
+	@Nullable
 	public DataAccessException translateExceptionIfPossible(RuntimeException ex) {
 
 		if (ex instanceof DataAccessException) {

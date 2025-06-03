@@ -20,14 +20,16 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import org.apiguardian.api.API;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.annotation.ReadOnlyProperty;
 import org.springframework.data.mapping.Association;
 import org.springframework.data.mapping.MappingException;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
 import org.springframework.data.neo4j.core.schema.TargetNode;
-import org.springframework.lang.Nullable;
 
 /**
  * Working on nested relationships happens in a certain algorithmic context. This context enables a tight cohesion
@@ -42,6 +44,7 @@ import org.springframework.lang.Nullable;
 @API(status = API.Status.INTERNAL, since = "6.0")
 public final class NestedRelationshipContext {
 	private final Neo4jPersistentProperty inverse;
+	@Nullable
 	private final Object value;
 	private final RelationshipDescription relationship;
 
@@ -82,10 +85,9 @@ public final class NestedRelationshipContext {
 
 	public Object identifyAndExtractRelationshipTargetNode(Object relatedValue) {
 		Object valueToBeSaved = relatedValue;
-		if (relatedValue instanceof Map.Entry) {
-			Map.Entry<?, ?> relatedValueMapEntry = (Map.Entry<?, ?>) relatedValue;
+		if (relatedValue instanceof Map.Entry<?, ?> relatedValueMapEntry) {
 			if (this.hasRelationshipWithProperties()) {
-				Object mapValue = ((Map.Entry<?, ?>) relatedValue).getValue();
+				Object mapValue = relatedValueMapEntry.getValue();
 				// it can be either a scalar entity holder or a list of it
 				mapValue = mapValue instanceof List ? ((List<?>) mapValue).get(0) : mapValue;
 				valueToBeSaved = ((MappingSupport.RelationshipPropertiesWithEntityHolder) mapValue).getRelatedEntity();
@@ -100,7 +102,8 @@ public final class NestedRelationshipContext {
 		return valueToBeSaved;
 	}
 
-	public @Nullable PersistentPropertyAccessor<?> getRelationshipPropertiesPropertyAccessor(@Nullable Object relatedValue) {
+	@Nullable
+	public PersistentPropertyAccessor<?> getRelationshipPropertiesPropertyAccessor(Object relatedValue) {
 
 		if (!this.hasRelationshipWithProperties() || relatedValue == null) {
 			return null;
@@ -115,7 +118,7 @@ public final class NestedRelationshipContext {
 		}
 	}
 
-	public static NestedRelationshipContext of(Association<Neo4jPersistentProperty> handler,
+	public static NestedRelationshipContext of(Association<@NonNull Neo4jPersistentProperty> handler,
 			PersistentPropertyAccessor<?> propertyAccessor, Neo4jPersistentEntity<?> neo4jPersistentEntity) {
 
 		Neo4jPersistentProperty inverse = handler.getInverse();
@@ -130,7 +133,7 @@ public final class NestedRelationshipContext {
 						neo4jPersistentEntity.getName() + " does not define a relationship for " + inverse.getFieldName()));
 
 		if (relationship.hasRelationshipProperties() && value != null) {
-			Neo4jPersistentEntity<?> relationshipPropertiesEntity = (Neo4jPersistentEntity<?>) relationship.getRelationshipPropertiesEntity();
+			Neo4jPersistentEntity<?> relationshipPropertiesEntity = (Neo4jPersistentEntity<?>) relationship.getRequiredRelationshipPropertiesEntity();
 
 			// If this is dynamic relationship (Map<Object, Object>), extract the keys as relationship names
 			// and the map values as values.
@@ -187,7 +190,8 @@ public final class NestedRelationshipContext {
 	private static Object getTargetNode(Neo4jPersistentEntity<?> relationshipPropertiesEntity, Object object) {
 
 		PersistentPropertyAccessor<Object> propertyAccessor = relationshipPropertiesEntity.getPropertyAccessor(object);
-		return propertyAccessor.getProperty(relationshipPropertiesEntity.getPersistentProperty(TargetNode.class));
+		var targetNodeProperty = Objects.requireNonNull(relationshipPropertiesEntity.getPersistentProperty(TargetNode.class), () -> "Could not get target node property on %s".formatted(relationshipPropertiesEntity.getType()));
+		return Objects.requireNonNull(propertyAccessor.getProperty(targetNodeProperty));
 
 	}
 }

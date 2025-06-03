@@ -26,6 +26,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
@@ -33,6 +34,7 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 import org.neo4j.driver.Values;
 import org.neo4j.driver.types.MapAccessor;
 import org.neo4j.driver.types.TypeSystem;
@@ -61,7 +63,6 @@ import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.data.repository.query.ResultProcessor;
 import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.data.util.TypeInformation;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -156,7 +157,7 @@ abstract class Neo4jQuerySupport {
 		return VALID_RETURN_TYPES_FOR_DELETE.contains(queryMethod.getResultProcessor().getReturnedType().getReturnedType());
 	}
 
-	static void logParameterIfNull(String name, Object value) {
+	static void logParameterIfNull(String name, @Nullable Object value) {
 
 		if (value != null || !REPOSITORY_QUERY_LOG.isDebugEnabled()) {
 			return;
@@ -177,7 +178,7 @@ abstract class Neo4jQuerySupport {
 	 * @param parameter The parameter to fit into the generated query.
 	 * @return A parameter that fits the placeholders of a generated query
 	 */
-	final Object convertParameter(Object parameter) {
+	final Object convertParameter(@Nullable Object parameter) {
 		return this.convertParameter(parameter, null);
 	}
 
@@ -188,11 +189,11 @@ abstract class Neo4jQuerySupport {
 	 * @param conversionOverride Passed to the entity converter if present.
 	 * @return A parameter that fits the placeholders of a generated query
 	 */
-	final Object convertParameter(Object parameter, @Nullable Neo4jPersistentPropertyConverter<?> conversionOverride) {
+	final Object convertParameter(@Nullable Object parameter, @Nullable Neo4jPersistentPropertyConverter<?> conversionOverride) {
 
 		if (parameter == null) {
 			return Values.NULL;
-		} else if (parameter instanceof Range v) {
+		} else if (parameter instanceof Range<?> v) {
 			return convertRange(v);
 		} else if (parameter instanceof Distance v) {
 			return calculateDistanceInMeter(v);
@@ -301,8 +302,8 @@ abstract class Neo4jQuerySupport {
 	final Window<?> createWindow(ResultProcessor resultProcessor, boolean incrementLimit, Neo4jParameterAccessor parameterAccessor, List<?> rawResult, QueryFragmentsAndParameters orderBy) {
 
 		var domainType = resultProcessor.getReturnedType().getDomainType();
-		var neo4jPersistentEntity = mappingContext.getPersistentEntity(domainType);
-		var limit = orderBy.getQueryFragments().getLimit().intValue() - (incrementLimit ? 1 : 0);
+		var neo4jPersistentEntity = mappingContext.getRequiredPersistentEntity(domainType);
+		var limit = Objects.requireNonNull(orderBy.getQueryFragments().getLimit(), "Can't create a result window without a size (limit)").intValue() - (incrementLimit ? 1 : 0);
 		var scrollPosition = parameterAccessor.getScrollPosition();
 
 		var scrollDirection = scrollPosition instanceof KeysetScrollPosition keysetScrollPosition ? keysetScrollPosition.getDirection() : Direction.FORWARD;

@@ -17,6 +17,7 @@ package org.springframework.data.neo4j.repository.support;
 
 import java.util.Optional;
 
+import org.jspecify.annotations.Nullable;
 import org.neo4j.cypherdsl.core.renderer.Configuration;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
@@ -133,7 +134,7 @@ final class Neo4jRepositoryFactory extends RepositoryFactorySupport {
 	}
 
 	@Override
-	protected Optional<QueryLookupStrategy> getQueryLookupStrategy(Key key,
+	protected Optional<QueryLookupStrategy> getQueryLookupStrategy(@Nullable Key key,
 			ValueExpressionDelegate valueExpressionDelegate) {
 		return Optional.of(new Neo4jQueryLookupStrategy(neo4jOperations, mappingContext, valueExpressionDelegate, cypherDSLConfiguration));
 	}

@@ -22,6 +22,7 @@ import java.util.function.LongSupplier;
 import java.util.stream.Stream;
 
 import org.apiguardian.api.API;
+import org.jspecify.annotations.Nullable;
 import org.neo4j.cypherdsl.core.Cypher;
 import org.springframework.data.domain.KeysetScrollPosition;
 import org.springframework.data.domain.Page;
@@ -34,7 +35,6 @@ import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
 import org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery;
 import org.springframework.data.support.PageableExecutionUtils;
-import org.springframework.lang.Nullable;
 
 import com.querydsl.core.types.Predicate;
 
@@ -129,6 +129,7 @@ final class FetchableFluentQueryByPredicate<S, R> extends FluentQuerySupport<R> 
 	}
 
 	@Override
+	@Nullable
 	public R oneValue() {
 
 		return findOperation.find(metaData.getType())
@@ -143,6 +144,7 @@ final class FetchableFluentQueryByPredicate<S, R> extends FluentQuerySupport<R> 
 	}
 
 	@Override
+	@Nullable
 	public R firstValue() {
 
 		List<R> all = all();

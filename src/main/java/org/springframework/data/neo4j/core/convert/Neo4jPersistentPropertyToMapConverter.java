@@ -18,8 +18,8 @@ package org.springframework.data.neo4j.core.convert;
 import java.util.Map;
 
 import org.apiguardian.api.API;
+import org.jspecify.annotations.Nullable;
 import org.neo4j.driver.Value;
-import org.springframework.lang.Nullable;
 
 /**
  * You need to provide an implementation of this interface in case you want to store a property of an entity as separate

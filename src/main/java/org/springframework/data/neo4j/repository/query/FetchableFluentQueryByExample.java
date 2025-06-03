@@ -15,7 +15,14 @@
  */
 package org.springframework.data.neo4j.repository.query;
 
+import java.util.Collection;
+import java.util.List;
+import java.util.function.Function;
+import java.util.function.LongSupplier;
+import java.util.stream.Stream;
+
 import org.apiguardian.api.API;
+import org.jspecify.annotations.Nullable;
 import org.neo4j.cypherdsl.core.Condition;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.KeysetScrollPosition;
@@ -30,13 +37,6 @@ import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
 import org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery;
 import org.springframework.data.support.PageableExecutionUtils;
-import org.springframework.lang.Nullable;
-
-import java.util.Collection;
-import java.util.List;
-import java.util.function.Function;
-import java.util.function.LongSupplier;
-import java.util.stream.Stream;
 
 /**
  * Immutable implementation of a {@link FetchableFluentQuery}. All
@@ -124,6 +124,7 @@ final class FetchableFluentQueryByExample<S, R> extends FluentQuerySupport<R> im
 	}
 
 	@Override
+	@Nullable
 	public R oneValue() {
 
 		return findOperation.find(example.getProbeType())
@@ -134,6 +135,7 @@ final class FetchableFluentQueryByExample<S, R> extends FluentQuerySupport<R> im
 	}
 
 	@Override
+	@Nullable
 	public R firstValue() {
 
 		List<R> all = all();
@@ -166,7 +168,7 @@ final class FetchableFluentQueryByExample<S, R> extends FluentQuerySupport<R> im
 	@Override
 	public Window<R> scroll(ScrollPosition scrollPosition) {
 		Class<S> domainType = this.example.getProbeType();
-		Neo4jPersistentEntity<?> entity = mappingContext.getPersistentEntity(domainType);
+		Neo4jPersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(domainType);
 
 		var skip = scrollPosition.isInitial()
 				? 0
@@ -174,7 +176,7 @@ final class FetchableFluentQueryByExample<S, R> extends FluentQuerySupport<R> im
 				: 0;
 
 		Condition condition = scrollPosition instanceof KeysetScrollPosition keysetScrollPosition
-				? CypherAdapterUtils.combineKeysetIntoCondition(mappingContext.getPersistentEntity(example.getProbeType()), keysetScrollPosition, sort, mappingContext.getConversionService())
+				? CypherAdapterUtils.combineKeysetIntoCondition(mappingContext.getRequiredPersistentEntity(example.getProbeType()), keysetScrollPosition, sort, mappingContext.getConversionService())
 				: null;
 
 		List<R> rawResult = findOperation.find(domainType)

@@ -15,28 +15,28 @@
  */
 package org.springframework.data.neo4j.repository.query;
 
-import org.neo4j.cypherdsl.core.Condition;
-import org.springframework.data.domain.KeysetScrollPosition;
-import org.springframework.data.domain.OffsetScrollPosition;
-import org.springframework.data.domain.ScrollPosition;
-import org.springframework.data.domain.Window;
-import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
-
 import java.util.Collection;
 import java.util.function.Function;
 
 import org.apiguardian.api.API;
+import org.jspecify.annotations.Nullable;
+import org.neo4j.cypherdsl.core.Condition;
 import org.springframework.data.domain.Example;
+import org.springframework.data.domain.KeysetScrollPosition;
+import org.springframework.data.domain.OffsetScrollPosition;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.ScrollPosition;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Window;
 import org.springframework.data.neo4j.core.ReactiveFluentFindOperation;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
+import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
 import org.springframework.data.repository.query.FluentQuery.ReactiveFluentQuery;
 import org.springframework.data.support.PageableExecutionUtils;
-import org.springframework.lang.Nullable;
+
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 /**
  * Immutable implementation of a {@link ReactiveFluentQuery}. All
@@ -167,7 +167,7 @@ final class ReactiveFluentQueryByExample<S, R> extends FluentQuerySupport<R> imp
 	@Override
 	public Mono<Window<R>> scroll(ScrollPosition scrollPosition) {
 		Class<S> domainType = this.example.getProbeType();
-		Neo4jPersistentEntity<?> entity = mappingContext.getPersistentEntity(domainType);
+		Neo4jPersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(domainType);
 
 		var skip = scrollPosition.isInitial()
 				? 0
@@ -175,7 +175,7 @@ final class ReactiveFluentQueryByExample<S, R> extends FluentQuerySupport<R> imp
 				: 0;
 
 		Condition condition = scrollPosition instanceof KeysetScrollPosition keysetScrollPosition
-				? CypherAdapterUtils.combineKeysetIntoCondition(mappingContext.getPersistentEntity(example.getProbeType()), keysetScrollPosition, sort, mappingContext.getConversionService())
+				? CypherAdapterUtils.combineKeysetIntoCondition(mappingContext.getRequiredPersistentEntity(example.getProbeType()), keysetScrollPosition, sort, mappingContext.getConversionService())
 				: null;
 
 		return findOperation.find(domainType)

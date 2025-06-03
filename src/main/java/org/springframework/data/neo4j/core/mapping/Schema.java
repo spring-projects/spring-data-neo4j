@@ -22,11 +22,11 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import org.apiguardian.api.API;
+import org.jspecify.annotations.Nullable;
 import org.neo4j.driver.types.MapAccessor;
 import org.neo4j.driver.types.TypeSystem;
 import org.springframework.data.mapping.MappingException;
 import org.springframework.data.neo4j.core.schema.IdGenerator;
-import org.springframework.lang.Nullable;
 
 /**
  * Contains the descriptions of all nodes, their properties and relationships known to SDN.
@@ -93,7 +93,13 @@ public interface Schema {
 			throw new UnknownEntityException(targetClass);
 		}
 		Neo4jEntityConverter entityConverter = getEntityConverter();
-		return (typeSystem, record) -> entityConverter.read(targetClass, record);
+		return (typeSystem, record) -> {
+			try {
+				return entityConverter.read(targetClass, record);
+			} catch (IllegalStateException ex) {
+				return null;
+			}
+		};
 	}
 
 	/**

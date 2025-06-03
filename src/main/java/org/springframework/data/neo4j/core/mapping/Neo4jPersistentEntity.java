@@ -19,6 +19,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import org.apiguardian.api.API;
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.mapping.AssociationHandler;
 import org.springframework.data.mapping.PropertyHandler;
 import org.springframework.data.mapping.model.MutablePersistentEntity;
@@ -76,8 +77,21 @@ public interface Neo4jPersistentEntity<T>
 		return isUsingInternalIds() && Neo4jPersistentEntity.DEPRECATED_GENERATED_ID_TYPES.contains(getRequiredIdProperty().getType());
 	}
 
+	/**
+	 * @return true if this entity spots a vector property
+	 */
 	boolean hasVectorProperty();
 
+	/**
+	 * Will return the single supported vector property if {@link #hasVectorProperty()} returns {@literal true}, otherwise {@literal null}.
+	 * @return an optional vector property on this entity
+	 */
+	@Nullable
 	Neo4jPersistentProperty getVectorProperty();
+
+	/**
+	 * Will return the single supported vector property if {@link #hasVectorProperty()} returns {@literal true}, otherwise it will throw an {@link IllegalStateException}.
+	 * @return the vector property on this entity.
+	 */
 	Neo4jPersistentProperty getRequiredVectorProperty();
 }

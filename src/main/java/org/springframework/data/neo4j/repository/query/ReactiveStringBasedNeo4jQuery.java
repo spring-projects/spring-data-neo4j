@@ -23,6 +23,7 @@ import java.util.function.BiFunction;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
+import org.jspecify.annotations.Nullable;
 import org.neo4j.driver.types.MapAccessor;
 import org.neo4j.driver.types.TypeSystem;
 import org.springframework.data.mapping.MappingException;
@@ -36,7 +37,6 @@ import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.data.repository.query.ValueExpressionDelegate;
 import org.springframework.data.repository.query.ValueExpressionQueryRewriter;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -123,8 +123,8 @@ final class ReactiveStringBasedNeo4jQuery extends AbstractReactiveNeo4jQuery {
 	@Override
 	protected <T extends Object> PreparedQuery<T> prepareQuery(Class<T> returnedType,
 			Collection<PropertyFilter.ProjectedPath> includedProperties, Neo4jParameterAccessor parameterAccessor,
-			@Nullable Neo4jQueryType queryType, @Nullable Supplier<BiFunction<TypeSystem, MapAccessor, ?>> mappingFunction,
-			@Nullable UnaryOperator<Integer> limitModifier) {
+			@Nullable Neo4jQueryType queryType, Supplier<BiFunction<TypeSystem, MapAccessor, ?>> mappingFunction,
+			UnaryOperator<Integer> limitModifier) {
 
 		Map<String, Object> boundParameters = bindParameters(parameterAccessor);
 		QueryContext queryContext = new QueryContext(queryMethod.getRepositoryName() + "." + queryMethod.getName(),
@@ -165,24 +165,5 @@ final class ReactiveStringBasedNeo4jQuery extends AbstractReactiveNeo4jQuery {
 		});
 
 		return resolvedParameters;
-	}
-
-	/**
-	 * @param index position of this parameter placeholder
-	 * @param originalSpelExpression Not used for configuring parameter names atm.
-	 * @return A new parameter name for the given index.
-	 */
-	private static String parameterNameSource(int index, @SuppressWarnings("unused") String originalSpelExpression) {
-		return "__SpEL__" + index;
-	}
-
-	/**
-	 * @param originalPrefix The prefix passed to the replacement source is either ':' or '?', so that isn't usable for
-	 *          Cypher templates and therefore ignored.
-	 * @param parameterName name of the parameter
-	 * @return The name of the parameter in its native Cypher form.
-	 */
-	private static String replacementSource(@SuppressWarnings("unused") String originalPrefix, String parameterName) {
-		return "$" + parameterName;
 	}
 }

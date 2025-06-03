@@ -24,7 +24,9 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.apiguardian.api.API;
+import org.jspecify.annotations.Nullable;
 import org.neo4j.cypherdsl.support.schema_name.SchemaNames;
+import org.springframework.core.env.StandardEnvironment;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.expression.ValueEvaluationContext;
@@ -35,7 +37,6 @@ import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
 import org.springframework.data.repository.core.EntityMetadata;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -62,7 +63,8 @@ public final class Neo4jSpelSupport {
 	 * @param arg The {@link Sort sort object} to order the result set of the final query.
 	 * @return A literal replacement for a SpEL placeholder
 	 */
-	public static LiteralReplacement orderBy(@Nullable Object arg) {
+	@Nullable
+	public static LiteralReplacement orderBy(Object arg) {
 
 		Sort sort = null;
 		if (arg instanceof Pageable v) {
@@ -83,21 +85,21 @@ public final class Neo4jSpelSupport {
 	 * @param arg The object that will be inserted as a literal String into the query. It's {@code toString()} method will be used.
 	 * @return A literal replacement for a SpEL placeholder
 	 */
-	public static LiteralReplacement literal(@Nullable Object arg) {
+	public static LiteralReplacement literal(Object arg) {
 
 		return StringBasedLiteralReplacement
 				.withTargetAndValue(LiteralReplacement.Target.UNSPECIFIED, arg == null ? "" : arg.toString());
 	}
 
-	public static LiteralReplacement anyOf(@Nullable Object arg) {
+	public static LiteralReplacement anyOf(Object arg) {
 		return labels(arg, "|");
 	}
 
-	public static LiteralReplacement allOf(@Nullable Object arg) {
+	public static LiteralReplacement allOf(Object arg) {
 		return labels(arg, "&");
 	}
 
-	private static LiteralReplacement labels(@Nullable Object arg, String joinOn) {
+	private static LiteralReplacement labels(Object arg, String joinOn) {
 		return StringBasedLiteralReplacement
 				.withTargetAndValue(LiteralReplacement.Target.UNSPECIFIED,
 						arg == null ? "" : joinStrings(arg, joinOn)
@@ -213,7 +215,6 @@ public final class Neo4jSpelSupport {
 		}
 	}
 
-	private static final Pattern LABEL_AND_TYPE_QUOTATION = Pattern.compile("`");
 	private static final String EXPRESSION_PARAMETER = "$1#{";
 	private static final String QUOTED_EXPRESSION_PARAMETER = "$1__HASH__{";
 
@@ -241,7 +242,7 @@ public final class Neo4jSpelSupport {
 			return query;
 		}
 
-		ValueEvaluationContext evalContext = ValueEvaluationContext.of(null, new StandardEvaluationContext());
+		ValueEvaluationContext evalContext = ValueEvaluationContext.of(new StandardEnvironment(), new StandardEvaluationContext());
 		Neo4jPersistentEntity<?> requiredPersistentEntity = mappingContext
 				.getRequiredPersistentEntity(metadata.getJavaType());
 		evalContext.getEvaluationContext().setVariable(ENTITY_NAME, requiredPersistentEntity.getStaticLabels()

@@ -16,6 +16,7 @@
 package org.springframework.data.neo4j.config;
 
 import org.apiguardian.api.API;
+import org.jspecify.annotations.Nullable;
 import org.neo4j.driver.Driver;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,7 +31,6 @@ import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
 import org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager;
 import org.springframework.data.neo4j.repository.config.Neo4jRepositoryConfigurationExtension;
-import org.springframework.lang.Nullable;
 import org.springframework.transaction.PlatformTransactionManager;
 
 /**
@@ -65,22 +65,17 @@ public abstract class AbstractNeo4jConfig extends Neo4jConfigurationSupport {
 	 * @return A imperative Neo4j client.
 	 */
 	@Bean(Neo4jRepositoryConfigurationExtension.DEFAULT_NEO4J_CLIENT_BEAN_NAME)
-	public Neo4jClient neo4jClient(Driver driver, DatabaseSelectionProvider databaseSelectionProvider) {
+	public Neo4jClient neo4jClient(Driver driver, @Nullable DatabaseSelectionProvider databaseSelectionProvider) {
 
 		return Neo4jClient.with(driver)
 				.withDatabaseSelectionProvider(databaseSelectionProvider)
-				.withUserSelectionProvider(getUserSelectionProvider())
+				.withUserSelectionProvider(this.userSelectionProviders.getIfUnique())
 				.withNeo4jBookmarkManager(getBootBookmarkManager())
 				.build();
 	}
 
 	private Neo4jBookmarkManager getBootBookmarkManager() {
 		return this.bookmarkManagerProviders.getIfAvailable(Neo4jBookmarkManager::create);
-	}
-
-	@Nullable
-	private UserSelectionProvider getUserSelectionProvider() {
-		return this.userSelectionProviders == null ? null : this.userSelectionProviders.getIfUnique();
 	}
 
 	@Bean(Neo4jRepositoryConfigurationExtension.DEFAULT_NEO4J_TEMPLATE_BEAN_NAME)
@@ -97,12 +92,12 @@ public abstract class AbstractNeo4jConfig extends Neo4jConfigurationSupport {
 	 * @return A platform transaction manager
 	 */
 	@Bean(Neo4jRepositoryConfigurationExtension.DEFAULT_TRANSACTION_MANAGER_BEAN_NAME)
-	public PlatformTransactionManager transactionManager(Driver driver, DatabaseSelectionProvider databaseSelectionProvider) {
+	public PlatformTransactionManager transactionManager(Driver driver, @Nullable DatabaseSelectionProvider databaseSelectionProvider) {
 
 		return Neo4jTransactionManager
 				.with(driver)
 				.withDatabaseSelectionProvider(databaseSelectionProvider)
-				.withUserSelectionProvider(getUserSelectionProvider())
+				.withUserSelectionProvider(this.userSelectionProviders.getIfUnique())
 				.withBookmarkManager(getBootBookmarkManager())
 				.build();
 	}

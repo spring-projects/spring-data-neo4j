@@ -20,9 +20,9 @@ import java.util.Set;
 import java.util.function.Supplier;
 
 import org.apiguardian.api.API;
+import org.jspecify.annotations.Nullable;
 import org.neo4j.driver.Bookmark;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.lang.Nullable;
 
 /**
  * Responsible for storing, updating and retrieving the bookmarks of Neo4j's transaction.
@@ -58,7 +58,7 @@ public sealed interface Neo4jBookmarkManager permits AbstractBookmarkManager, No
 	 *                          bookmarks on each call.
 	 * @return A bookmark manager
 	 */
-	static Neo4jBookmarkManager create(@Nullable Supplier<Set<Bookmark>> bookmarksSupplier) {
+	static Neo4jBookmarkManager create(Supplier<Set<Bookmark>> bookmarksSupplier) {
 		return new DefaultBookmarkManager(bookmarksSupplier);
 	}
 
@@ -72,7 +72,7 @@ public sealed interface Neo4jBookmarkManager permits AbstractBookmarkManager, No
 	 *                          bookmarks on each call.
 	 * @return A reactive bookmark manager
 	 */
-	static Neo4jBookmarkManager createReactive(@Nullable Supplier<Set<Bookmark>> bookmarksSupplier) {
+	static Neo4jBookmarkManager createReactive(Supplier<Set<Bookmark>> bookmarksSupplier) {
 		return new ReactiveDefaultBookmarkManager(bookmarksSupplier);
 	}
 

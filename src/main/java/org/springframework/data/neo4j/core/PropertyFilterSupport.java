@@ -16,6 +16,7 @@
 package org.springframework.data.neo4j.core;
 
 import org.apiguardian.api.API;
+import org.springframework.data.mapping.PersistentProperty;
 import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.neo4j.core.mapping.GraphPropertyDescription;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
@@ -27,12 +28,13 @@ import org.springframework.data.projection.ProjectionInformation;
 import org.springframework.data.repository.query.ResultProcessor;
 import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.data.util.TypeInformation;
-import org.springframework.lang.Nullable;
 
 import java.beans.PropertyDescriptor;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Objects;
+import java.util.Optional;
 
 /**
  * This class is responsible for creating a List of {@link PropertyPath} entries that contains all reachable
@@ -85,7 +87,7 @@ public final class PropertyFilterSupport {
 				// try to figure out the right property by name
 				for (GraphPropertyDescription graphProperty : domainEntity.getGraphProperties()) {
 					if (graphProperty.getPropertyName().equals(inputProperty.getName())) {
-						typeInformation = domainEntity.getPersistentProperty(graphProperty.getFieldName()).getTypeInformation();
+						typeInformation = Optional.ofNullable(domainEntity.getPersistentProperty(graphProperty.getFieldName())).map(PersistentProperty::getTypeInformation).orElse(null);
 						break;
 					}
 				}
@@ -93,13 +95,15 @@ public final class PropertyFilterSupport {
 				if (typeInformation == null) {
 					for (RelationshipDescription relationshipDescription : domainEntity.getRelationships()) {
 						if (relationshipDescription.getFieldName().equals(inputProperty.getName())) {
-							typeInformation = domainEntity.getPersistentProperty(relationshipDescription.getFieldName()).getTypeInformation();
+							typeInformation = Optional.ofNullable(domainEntity.getPersistentProperty(relationshipDescription.getFieldName())).map(PersistentProperty::getTypeInformation).orElse(null);
 							break;
 						}
 					}
 				}
 			}
-			addPropertiesFrom(domainType, returnType, projectionFactory, propertyPaths, new ProjectionPathProcessor(inputProperty.getName(), typeInformation), neo4jMappingContext);
+			if (typeInformation != null) {
+				addPropertiesFrom(domainType, returnType, projectionFactory, propertyPaths, new ProjectionPathProcessor(inputProperty.getName(), typeInformation), neo4jMappingContext);
+			}
 		}
 		return propertyPaths;
 	}
@@ -127,15 +131,17 @@ public final class PropertyFilterSupport {
 			TypeInformation<?> mapValueType = projectionPathProcessor.typeInformation.getRequiredMapValueType();
 			if (mapValueType.isCollectionLike()) {
 				currentTypeInformation = projectionPathProcessor.typeInformation.getRequiredMapValueType().getComponentType();
-				propertyType = projectionPathProcessor.typeInformation.getRequiredMapValueType().getComponentType().getType();
+				propertyType = Objects.requireNonNull(currentTypeInformation, "Cannot retrieve collection type").getType();
 			} else {
 				currentTypeInformation = projectionPathProcessor.typeInformation.getRequiredMapValueType();
-				propertyType = projectionPathProcessor.typeInformation.getRequiredMapValueType().getType();
+				propertyType = currentTypeInformation.getType();
 			}
 		} else if (projectionPathProcessor.typeInformation.isCollectionLike()) {
 			currentTypeInformation = projectionPathProcessor.typeInformation.getComponentType();
-			propertyType = projectionPathProcessor.typeInformation.getComponentType().getType();
+			propertyType = Objects.requireNonNull(currentTypeInformation, "Cannot retrieve collection type").getType();
 		}
+
+		Objects.requireNonNull(currentTypeInformation, "Property type is required");
 
 		// 1. Simple types can be added directly
 		// 2. Something that looks like an entity needs to get processed as such
@@ -150,17 +156,18 @@ public final class PropertyFilterSupport {
 			if (nestedProjectionInformation.isClosed()) {
 				filteredProperties.add(new PropertyFilter.ProjectedPath(propertyPath, false));
 				for (PropertyDescriptor nestedInputProperty : nestedProjectionInformation.getInputProperties()) {
-					TypeInformation<?> typeInformation = currentTypeInformation.getProperty(nestedInputProperty.getName());
+					TypeInformation<?> typeInformation = currentTypeInformation.getRequiredProperty(nestedInputProperty.getName());
 					ProjectionPathProcessor nextProjectionPathProcessor = projectionPathProcessor.next(nestedInputProperty, typeInformation);
 
+					TypeInformation<?> actualType = Objects.requireNonNull(nextProjectionPathProcessor.typeInformation.getActualType());
 					if (projectionPathProcessor.isChildLevel() &&
 							(domainType.equals(nextProjectionPathProcessor.typeInformation.getType())
-							|| returnedType.equals(nextProjectionPathProcessor.typeInformation.getActualType().getType())
+							|| returnedType.equals(actualType.getType())
 							|| returnedType.equals(nextProjectionPathProcessor.typeInformation.getType()))) {
 						break;
 					}
 
-					if (projectionPathProcessor.typeInformation.getActualType().getType().equals(nextProjectionPathProcessor.typeInformation.getActualType().getType())
+					if (projectionPathProcessor.typeInformation.getActualType() != null && projectionPathProcessor.typeInformation.getActualType().getType().equals(actualType.getType())
 						|| (!projectionPathProcessor.typeInformation.isCollectionLike() && !projectionPathProcessor.typeInformation.isMap() && projectionPathProcessor.typeInformation.getType().equals(nextProjectionPathProcessor.typeInformation.getType()))) {
 						filteredProperties.add(new PropertyFilter.ProjectedPath(propertyPath, true));
 					} else {
@@ -182,13 +189,13 @@ public final class PropertyFilterSupport {
 		final String path;
 		final String name;
 
-		private ProjectionPathProcessor(String name, String path, @Nullable TypeInformation<?> typeInformation) {
+		private ProjectionPathProcessor(String name, String path, TypeInformation<?> typeInformation) {
 			this.typeInformation = typeInformation;
 			this.path = path;
 			this.name = name;
 		}
 
-		private ProjectionPathProcessor(String name, @Nullable TypeInformation<?> typeInformation) {
+		private ProjectionPathProcessor(String name, TypeInformation<?> typeInformation) {
 			this(name, name, typeInformation);
 		}
 

@@ -20,6 +20,8 @@ import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Optional;
 
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import org.springframework.core.MethodParameter;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.data.geo.GeoPage;
@@ -33,7 +35,6 @@ import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.ParametersSource;
 import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.data.util.TypeInformation;
-import org.springframework.lang.Nullable;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 
@@ -54,7 +55,8 @@ class Neo4jQueryMethod extends QueryMethod {
 	/**
 	 * Optional query annotation of the method.
 	 */
-	private @Nullable final Query queryAnnotation;
+	@Nullable
+	private final Query queryAnnotation;
 
 	private final String repositoryName;
 
@@ -85,7 +87,7 @@ class Neo4jQueryMethod extends QueryMethod {
 	 */
 	Neo4jQueryMethod(Method method, RepositoryMetadata metadata, ProjectionFactory factory,
 			boolean cypherBasedProjection) {
-		super(method, metadata, factory);
+		super(method, metadata, factory, Neo4jParameters::new);
 
 		this.method = method;
 		this.repositoryName = this.method.getDeclaringClass().getName();
@@ -119,12 +121,7 @@ class Neo4jQueryMethod extends QueryMethod {
 		return Optional.ofNullable(this.queryAnnotation);
 	}
 
-	@Override
-	protected Parameters<Neo4jParameters, Neo4jParameter> createParameters(ParametersSource parametersSource) {
-		return new Neo4jParameters(parametersSource);
-	}
-
-	static class Neo4jParameters extends Parameters<Neo4jParameters, Neo4jParameter> {
+	static class Neo4jParameters extends Parameters<@NonNull Neo4jParameters, @NonNull Neo4jParameter> {
 
 		Neo4jParameters(ParametersSource parametersSource) {
 			super(parametersSource, it -> new Neo4jParameter(it, parametersSource.getDomainTypeInformation()));

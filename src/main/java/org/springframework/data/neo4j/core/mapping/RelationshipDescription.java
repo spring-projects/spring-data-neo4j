@@ -15,12 +15,12 @@
  */
 package org.springframework.data.neo4j.core.mapping;
 
+import java.util.Objects;
 import java.util.Optional;
 
 import org.apiguardian.api.API;
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.neo4j.core.schema.Relationship;
-import org.springframework.lang.NonNull;
-import org.springframework.lang.Nullable;
 
 /**
  * Description of a relationship. Those descriptions always describe outgoing relationships. The inverse direction is
@@ -92,6 +92,11 @@ public interface RelationshipDescription {
 	@Nullable
 	NodeDescription<?> getRelationshipPropertiesEntity();
 
+	default NodeDescription<?> getRequiredRelationshipPropertiesEntity() {
+
+		return Objects.requireNonNull(getRelationshipPropertiesEntity(), () -> "Relationship entity %s does not point to an entity holding the relationships' properties".formatted(this.getType()));
+	}
+
 	/**
 	 * Tells if this relationship is a relationship with additional properties. In such cases
 	 * {@code getRelationshipPropertiesClass} will return the type of the properties holding class.
@@ -102,7 +107,7 @@ public interface RelationshipDescription {
 
 	default boolean hasInternalIdProperty() {
 
-		return hasRelationshipProperties() && Optional.ofNullable(getRelationshipPropertiesEntity().getIdDescription())
+		return hasRelationshipProperties() && Optional.ofNullable(getRelationshipPropertiesEntity()).map(NodeDescription::getIdDescription)
 				.filter(IdDescription::isInternallyGeneratedId).isPresent();
 	}
 
@@ -114,7 +119,6 @@ public interface RelationshipDescription {
 		return Relationship.Direction.INCOMING.equals(this.getDirection());
 	}
 
-	@NonNull
 	default String generateRelatedNodesCollectionName(NodeDescription<?> mostAbstractNodeDescription) {
 
 		return this.getSource().getMostAbstractParentLabel(mostAbstractNodeDescription) + "_" + this.getType() + "_" + this.getTarget().getPrimaryLabel() + "_" + this.isOutgoing();
@@ -125,11 +129,12 @@ public interface RelationshipDescription {
 	 *
 	 * @param relationshipObverse logically same relationship definition in the target entity
 	 */
-	void setRelationshipObverse(RelationshipDescription relationshipObverse);
+	void setRelationshipObverse(@Nullable RelationshipDescription relationshipObverse);
 
 	/**
 	 * @return logically same relationship definition in the target entity
 	 */
+	@Nullable
 	RelationshipDescription getRelationshipObverse();
 
 	/**

@@ -20,14 +20,13 @@ import static org.apiguardian.api.API.Status.INTERNAL;
 import java.util.function.Function;
 
 import org.apiguardian.api.API;
+import org.jspecify.annotations.Nullable;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.types.Entity;
 import org.neo4j.driver.types.MapAccessor;
 import org.neo4j.driver.types.Node;
 import org.neo4j.driver.types.Relationship;
 import org.neo4j.driver.types.TypeSystem;
-import org.springframework.lang.NonNull;
-import org.springframework.lang.Nullable;
 
 /**
  * This class is <strong>not</strong> part of any public API and will be changed without further notice as needed. It's
@@ -61,7 +60,7 @@ public final class IdentitySupport {
 	 * @return An internal id
 	 */
 	@Nullable
-	public static String getElementId(@NonNull MapAccessor row) {
+	public static String getElementId(MapAccessor row) {
 		if (row instanceof Entity entity) {
 			return getElementId(entity);
 		}
@@ -77,9 +76,10 @@ public final class IdentitySupport {
 		return value.asString();
 	}
 
-	@Nullable
+	@SuppressWarnings("DeprecatedIsStillUsed")
 	@Deprecated
-	public static Long getInternalId(@NonNull MapAccessor row) {
+	@Nullable
+	public static Long getInternalId(MapAccessor row) {
 		if (row instanceof Entity entity) {
 			return entity.id();
 		}
@@ -93,7 +93,7 @@ public final class IdentitySupport {
 	}
 
 	@Nullable
-	public static String getPrefixedElementId(@NonNull MapAccessor queryResult, @Nullable String seed) {
+	public static String getPrefixedElementId(MapAccessor queryResult, @Nullable String seed) {
 		if (queryResult instanceof Node) {
 			return "N" + getElementId(queryResult);
 		} else if (queryResult instanceof Relationship) {

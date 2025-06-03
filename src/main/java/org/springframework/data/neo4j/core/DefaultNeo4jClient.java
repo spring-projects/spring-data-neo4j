@@ -26,6 +26,7 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.jspecify.annotations.Nullable;
 import org.neo4j.driver.Bookmark;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Query;
@@ -49,7 +50,6 @@ import org.springframework.data.neo4j.core.support.BookmarkManagerReference;
 import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
 import org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager;
 import org.springframework.data.neo4j.core.transaction.Neo4jTransactionUtils;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -64,8 +64,10 @@ import org.springframework.util.StringUtils;
 final class DefaultNeo4jClient implements Neo4jClient, ApplicationContextAware {
 
 	private final Driver driver;
-	private @Nullable final DatabaseSelectionProvider databaseSelectionProvider;
-	private @Nullable final UserSelectionProvider userSelectionProvider;
+	@Nullable
+	private final DatabaseSelectionProvider databaseSelectionProvider;
+	@Nullable
+	private final UserSelectionProvider userSelectionProvider;
 	private final ConversionService conversionService;
 	private final Neo4jPersistenceExceptionTranslator persistenceExceptionTranslator = new Neo4jPersistenceExceptionTranslator();
 
@@ -276,7 +278,7 @@ final class DefaultNeo4jClient implements Neo4jClient, ApplicationContextAware {
 		}
 
 		@Override
-		public <T> OngoingBindSpec<T, RunnableSpec> bind(T value) {
+		public <T> OngoingBindSpec<T, RunnableSpec> bind(@Nullable T value) {
 			return new DefaultOngoingBindSpec<>(value);
 		}
 
@@ -314,7 +316,8 @@ final class DefaultNeo4jClient implements Neo4jClient, ApplicationContextAware {
 
 		class DefaultOngoingBindSpec<T> implements OngoingBindSpec<T, RunnableSpec> {
 
-			@Nullable private final T value;
+			@Nullable
+			private final T value;
 
 			DefaultOngoingBindSpec(@Nullable T value) {
 				this.value = value;
@@ -360,7 +363,7 @@ final class DefaultNeo4jClient implements Neo4jClient, ApplicationContextAware {
 			}
 
 			@Override
-			public <T> OngoingBindSpec<T, RunnableSpec> bind(T value) {
+			public <T> OngoingBindSpec<T, RunnableSpec> bind(@Nullable T value) {
 				return DefaultRunnableSpec.this.bind(value);
 			}
 
@@ -395,7 +398,7 @@ final class DefaultNeo4jClient implements Neo4jClient, ApplicationContextAware {
 			}
 
 			@Override
-			public <T> OngoingBindSpec<T, RunnableSpec> bind(T value) {
+			public <T> OngoingBindSpec<T, RunnableSpec> bind(@Nullable T value) {
 				return DefaultRunnableSpec.this.bind(value);
 			}
 
@@ -410,7 +413,6 @@ final class DefaultNeo4jClient implements Neo4jClient, ApplicationContextAware {
 
 		private final DatabaseSelection databaseSelection;
 
-		@Nullable
 		private final UserSelection impersonatedUser;
 
 		private final RunnableStatement runnableStatement;
@@ -418,7 +420,7 @@ final class DefaultNeo4jClient implements Neo4jClient, ApplicationContextAware {
 		private BiFunction<TypeSystem, Record, T> mappingFunction;
 
 		DefaultRecordFetchSpec(DatabaseSelection databaseSelection,
-				@Nullable UserSelection impersonatedUser,
+				UserSelection impersonatedUser,
 				RunnableStatement runnableStatement,
 				BiFunction<TypeSystem, Record, T> mappingFunction) {
 
@@ -501,7 +503,6 @@ final class DefaultNeo4jClient implements Neo4jClient, ApplicationContextAware {
 
 		private DatabaseSelection databaseSelection;
 
-		@Nullable
 		private UserSelection impersonatedUser;
 
 		private final Function<QueryRunner, Optional<T>> callback;
@@ -513,7 +514,7 @@ final class DefaultNeo4jClient implements Neo4jClient, ApplicationContextAware {
 		}
 
 		@Override
-		public RunnableDelegation<T> in(@Nullable String targetDatabase) {
+		public RunnableDelegation<T> in(String targetDatabase) {
 
 			this.databaseSelection = resolveTargetDatabaseName(targetDatabase);
 			return this;

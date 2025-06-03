@@ -21,12 +21,12 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.UnaryOperator;
 
+import org.jspecify.annotations.Nullable;
 import org.neo4j.cypherdsl.core.Cypher;
 import org.neo4j.cypherdsl.core.Node;
 import org.neo4j.cypherdsl.core.StatementBuilder.OngoingMatchAndUpdate;
 import org.springframework.data.neo4j.core.mapping.Constants;
 import org.springframework.data.neo4j.core.mapping.NodeDescription;
-import org.springframework.lang.Nullable;
 
 /**
  * Decorator for an ongoing update statement that removes obsolete dynamic labels and adds new ones.
@@ -42,9 +42,9 @@ final class DynamicLabels implements UnaryOperator<OngoingMatchAndUpdate> {
 	private final List<String> oldLabels;
 	private final List<String> newLabels;
 
-	DynamicLabels(@Nullable NodeDescription<?> nodeDescription, Collection<String> oldLabels, Collection<String> newLabels) {
+	DynamicLabels(@Nullable NodeDescription<?> nodeDescription, Collection<String> oldLabels, @Nullable Collection<String> newLabels) {
 		this.oldLabels = new ArrayList<>(oldLabels);
-		this.newLabels = new ArrayList<>(newLabels);
+		this.newLabels = (newLabels != null) ? new ArrayList<>(newLabels) : List.of();
 		this.rootNode = Cypher.anyNode(Constants.NAME_OF_TYPED_ROOT_NODE.apply(nodeDescription));
 	}
 

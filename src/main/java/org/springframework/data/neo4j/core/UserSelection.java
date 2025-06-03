@@ -18,7 +18,7 @@ package org.springframework.data.neo4j.core;
 import java.util.Objects;
 
 import org.apiguardian.api.API;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -57,7 +57,8 @@ public final class UserSelection {
 		return new UserSelection(value);
 	}
 
-	@Nullable private final String value;
+	@Nullable
+	private final String value;
 
 	private UserSelection(@Nullable String value) {
 		this.value = value;

@@ -19,6 +19,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import org.jspecify.annotations.Nullable;
 import org.neo4j.cypherdsl.core.Statement;
 import org.springframework.data.neo4j.repository.query.QueryFragmentsAndParameters;
 import org.springframework.util.Assert;
@@ -51,12 +52,15 @@ final class FluentOperationSupport implements FluentFindOperation, FluentSaveOpe
 		private final Neo4jTemplate template;
 		private final Class<?> domainType;
 		private final Class<T> returnType;
+		@Nullable
 		private final String query;
+		@Nullable
 		private final Map<String, Object> parameters;
+		@Nullable
 		private final QueryFragmentsAndParameters queryFragmentsAndParameters;
 
-		ExecutableFindSupport(Neo4jTemplate template, Class<?> domainType, Class<T> returnType, String query,
-				Map<String, Object> parameters) {
+		ExecutableFindSupport(Neo4jTemplate template, Class<?> domainType, Class<T> returnType, @Nullable String query,
+				@Nullable Map<String, Object> parameters) {
 			this.template = template;
 			this.domainType = domainType;
 			this.returnType = returnType;
@@ -65,7 +69,7 @@ final class FluentOperationSupport implements FluentFindOperation, FluentSaveOpe
 			this.queryFragmentsAndParameters = null;
 		}
 
-		ExecutableFindSupport(Neo4jTemplate template, Class<?> domainType, Class<T> returnType, QueryFragmentsAndParameters queryFragmentsAndParameters) {
+		ExecutableFindSupport(Neo4jTemplate template, Class<?> domainType, Class<T> returnType, @Nullable QueryFragmentsAndParameters queryFragmentsAndParameters) {
 			this.template = template;
 			this.domainType = domainType;
 			this.returnType = returnType;
@@ -107,6 +111,7 @@ final class FluentOperationSupport implements FluentFindOperation, FluentSaveOpe
 		}
 
 		@Override
+		@Nullable
 		public T oneValue() {
 
 			List<T> result = doFind(TemplateSupport.FetchType.ONE);
@@ -149,7 +154,7 @@ final class FluentOperationSupport implements FluentFindOperation, FluentSaveOpe
 
 			List<T> result = doSave(Collections.singleton(instance));
 			if (result.isEmpty()) {
-				return null;
+				throw new IllegalStateException("Instance was not saved");
 			}
 			return result.get(0);
 		}

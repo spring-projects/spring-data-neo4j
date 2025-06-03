@@ -23,6 +23,7 @@ import java.util.function.Function;
 
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
+import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.BeanFactoryUtils;
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.dao.DataAccessException;
@@ -59,12 +60,14 @@ final class ReactivePersistenceExceptionTranslationInterceptor implements Method
 	 *
 	 * @param beanFactory the ListableBeanFactory to obtaining all PersistenceExceptionTranslators from
 	 */
+	@SuppressWarnings("NullAway")
 	ReactivePersistenceExceptionTranslationInterceptor(ListableBeanFactory beanFactory) {
 		Assert.notNull(beanFactory, "ListableBeanFactory must not be null");
 		this.beanFactory = beanFactory;
 	}
 
 	@Override
+	@Nullable
 	public Object invoke(MethodInvocation mi) throws Throwable {
 
 		// Invoke the method potentially returning a reactive type

@@ -20,6 +20,7 @@ import java.util.function.BiFunction;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
+import org.jspecify.annotations.Nullable;
 import org.neo4j.driver.types.MapAccessor;
 import org.neo4j.driver.types.TypeSystem;
 import org.springframework.core.convert.converter.Converter;
@@ -37,7 +38,6 @@ import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.data.repository.query.ResultProcessor;
 import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.data.util.TypeInformation;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 import reactor.core.publisher.Flux;
@@ -84,13 +84,15 @@ abstract class AbstractReactiveNeo4jQuery extends Neo4jQuerySupport implements R
 
 		if (Flux.class.isAssignableFrom(returnType)) {
 			TypeInformation<?> from = TypeInformation.fromReturnTypeOf(repositoryMethod);
-			return GeoResult.class.equals(from.getComponentType().getType());
+			TypeInformation<?> componentType = from.getComponentType();
+			return componentType != null && GeoResult.class.equals(componentType.getType());
 		}
 
 		return false;
 	}
 
 	@Override
+	@Nullable
 	public final Object execute(Object[] parameters) {
 
 		boolean incrementLimit = queryMethod.incrementLimit();
@@ -111,8 +113,10 @@ abstract class AbstractReactiveNeo4jQuery extends Neo4jQuerySupport implements R
 			DtoInstantiatingConverter converter = new DtoInstantiatingConverter(returnedType.getReturnedType(), mappingContext);
 
 			// Neo4jQuerySupport ensure we will get an EntityInstanceWithSource in the projecting case
-			preparingConverter = source -> converter.convert(
-					(EntityInstanceWithSource) OptionalUnwrappingConverter.INSTANCE.convert(source));
+			preparingConverter = source -> {
+				var intermediate = (EntityInstanceWithSource) OptionalUnwrappingConverter.INSTANCE.convert(source);
+				return (intermediate == null) ? null : converter.convert(intermediate);
+			};
 		}
 
 		if (queryMethod.isScrollQuery()) {
@@ -125,6 +129,6 @@ abstract class AbstractReactiveNeo4jQuery extends Neo4jQuerySupport implements R
 
 	protected abstract <T extends Object> PreparedQuery<T> prepareQuery(Class<T> returnedType,
 				Collection<PropertyFilter.ProjectedPath> includedProperties, Neo4jParameterAccessor parameterAccessor,
-				@Nullable Neo4jQueryType queryType, @Nullable Supplier<BiFunction<TypeSystem, MapAccessor, ?>> mappingFunction,
-				@Nullable UnaryOperator<Integer> limitModifier);
+				@Nullable Neo4jQueryType queryType, Supplier<BiFunction<TypeSystem, MapAccessor, ?>> mappingFunction,
+				UnaryOperator<Integer> limitModifier);
 }

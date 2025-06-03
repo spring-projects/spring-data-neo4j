@@ -23,6 +23,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 import org.apiguardian.api.API;
+import org.jspecify.annotations.Nullable;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
 
@@ -73,11 +74,13 @@ public @interface ConvertWith {
 	 */
 	final class UnsetConverter implements Neo4jPersistentPropertyConverter<Object> {
 
-		@Override public Value write(Object source) {
+		@Override public Value write(@Nullable Object source) {
 			return Values.NULL;
 		}
 
-		@Override public Object read(Value source) {
+		@Override
+		@Nullable
+		public Object read(@Nullable Value source) {
 			return null;
 		}
 	}

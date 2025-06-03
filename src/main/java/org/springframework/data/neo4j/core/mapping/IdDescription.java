@@ -18,6 +18,7 @@ package org.springframework.data.neo4j.core.mapping;
 import java.util.Optional;
 
 import org.apiguardian.api.API;
+import org.jspecify.annotations.Nullable;
 import org.neo4j.cypherdsl.core.Cypher;
 import org.neo4j.cypherdsl.core.Expression;
 import org.neo4j.cypherdsl.core.Node;
@@ -25,7 +26,6 @@ import org.neo4j.cypherdsl.core.SymbolicName;
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.IdGenerator;
 import org.springframework.data.util.Lazy;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -40,17 +40,20 @@ public final class IdDescription {
 	/**
 	 * The class representing a generator for new ids or null for assigned ids.
 	 */
-	private @Nullable final Class<? extends IdGenerator<?>> idGeneratorClass;
+	@Nullable
+	private final Class<? extends IdGenerator<?>> idGeneratorClass;
 
 	/**
 	 * A reference to an ID generator.
 	 */
-	private @Nullable final String idGeneratorRef;
+	@Nullable
+	private final String idGeneratorRef;
 
 	/**
 	 * The property that stores the id if applicable.
 	 */
-	private @Nullable final String graphPropertyName;
+	@Nullable
+	private final String graphPropertyName;
 	private final boolean isDeprecated;
 
 	private final Lazy<Expression> idExpression;
@@ -70,8 +73,8 @@ public final class IdDescription {
 	}
 
 	public static IdDescription forExternallyGeneratedIds(SymbolicName symbolicName,
-		    @Nullable Class<? extends IdGenerator<?>> idGeneratorClass,
-			@Nullable String idGeneratorRef, String graphPropertyName) {
+		    Class<? extends IdGenerator<?>> idGeneratorClass,
+			String idGeneratorRef, String graphPropertyName) {
 
 		Assert.notNull(graphPropertyName, "Graph property name is required");
 		try {
@@ -87,8 +90,9 @@ public final class IdDescription {
 		}
 	}
 
+	@SuppressWarnings("deprecation")
 	private IdDescription(SymbolicName symbolicName, @Nullable Class<? extends IdGenerator<?>> idGeneratorClass,
-		    @Nullable String idGeneratorRef, @Nullable String graphPropertyName, boolean isDeprecated) {
+		@Nullable String idGeneratorRef, @Nullable String graphPropertyName, boolean isDeprecated) {
 
 		this.idGeneratorClass = idGeneratorClass;
 		this.idGeneratorRef = idGeneratorRef != null && idGeneratorRef.isEmpty() ? null : idGeneratorRef;
@@ -98,7 +102,6 @@ public final class IdDescription {
 		this.idExpression = Lazy.of(() -> {
 			final Node rootNode = Cypher.anyNode(symbolicName);
 			if (this.isInternallyGeneratedId()) {
-				//noinspection deprecation
 				return isDeprecated ? rootNode.internalId() : rootNode.elementId();
 			} else {
 				return this.getOptionalGraphPropertyName()
@@ -118,14 +121,14 @@ public final class IdDescription {
 	 * @param nodeName use this name as the symbolic name of the node in the query
 	 * @return An expression that represents the right identifier type.
 	 */
+	@SuppressWarnings("deprecation")
 	public Expression asIdExpression(String nodeName) {
 		final Node rootNode = Cypher.anyNode(nodeName);
 		if (this.isInternallyGeneratedId()) {
-			//noinspection deprecation
 			return isDeprecated ? rootNode.internalId() : rootNode.elementId();
 		} else {
 			return this.getOptionalGraphPropertyName()
-					.map(propertyName -> Cypher.property(nodeName, propertyName)).get();
+					.map(propertyName -> Cypher.property(nodeName, propertyName)).orElseThrow();
 		}
 	}
 
