@@ -15,16 +15,6 @@
  */
 package org.springframework.data.neo4j.integration.conversion_reactive;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.data.neo4j.core.ReactiveDatabaseSelectionProvider;
-import org.springframework.data.neo4j.core.ReactiveNeo4jClient;
-import org.springframework.data.neo4j.core.ReactiveUserSelectionProvider;
-import org.springframework.data.neo4j.test.Neo4jReactiveTestConfiguration;
-import reactor.core.publisher.Flux;
-import reactor.test.StepVerifier;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -33,21 +23,30 @@ import java.util.UUID;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.neo4j.driver.Driver;
+import reactor.core.publisher.Flux;
+import reactor.test.StepVerifier;
+
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.neo4j.core.ReactiveDatabaseSelectionProvider;
+import org.springframework.data.neo4j.core.ReactiveNeo4jClient;
+import org.springframework.data.neo4j.core.ReactiveUserSelectionProvider;
 import org.springframework.data.neo4j.core.convert.Neo4jConversions;
-import org.springframework.data.neo4j.integration.shared.conversion.ThingWithCustomTypes;
 import org.springframework.data.neo4j.integration.shared.common.ThingWithUUIDID;
+import org.springframework.data.neo4j.integration.shared.conversion.ThingWithCustomTypes;
 import org.springframework.data.neo4j.repository.ReactiveNeo4jRepository;
 import org.springframework.data.neo4j.repository.config.EnableReactiveNeo4jRepositories;
 import org.springframework.data.neo4j.test.Neo4jExtension;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
+import org.springframework.data.neo4j.test.Neo4jReactiveTestConfiguration;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Michael J. Simons
- * @soundtrack Tom Morello - The Atlas Underground
  */
 @Neo4jIntegrationTest
 @Tag(Neo4jExtension.NEEDS_REACTIVE_SUPPORT)
@@ -59,8 +58,10 @@ class ReactiveTypeConversionIT {
 	void idsShouldBeConverted(@Autowired ConvertedIDsRepository repository) {
 
 		List<ThingWithUUIDID> stored = new ArrayList<>();
-		StepVerifier.create(repository.save(new ThingWithUUIDID("a thing"))).recordWith(() -> stored).expectNextCount(1L)
-				.verifyComplete();
+		StepVerifier.create(repository.save(new ThingWithUUIDID("a thing")))
+			.recordWith(() -> stored)
+			.expectNextCount(1L)
+			.verifyComplete();
 
 		StepVerifier.create(repository.findById(stored.get(0).getId())).expectNextCount(1L).verifyComplete();
 	}
@@ -78,24 +79,28 @@ class ReactiveTypeConversionIT {
 		assertThat(savedThing.getId()).isNotNull();
 		assertThat(savedThing.getAnotherThing().getId()).isNotNull();
 
-		StepVerifier.create(
-				Flux.concat(repository.findById(savedThing.getId()), repository.findById(savedThing.getAnotherThing().getId())))
-				.expectNextCount(2L).verifyComplete();
+		StepVerifier
+			.create(Flux.concat(repository.findById(savedThing.getId()),
+					repository.findById(savedThing.getAnotherThing().getId())))
+			.expectNextCount(2L)
+			.verifyComplete();
 	}
 
 	@Test // GH-2594
 	void clientShouldUseCustomType(@Autowired ReactiveNeo4jClient client) {
 
 		client.query("RETURN 'whatever'")
-				.fetchAs(ThingWithCustomTypes.CustomType.class)
-				.first()
-				.map(ThingWithCustomTypes.CustomType::getValue)
-				.as(StepVerifier::create)
-				.expectNext("whatever")
-				.verifyComplete();
+			.fetchAs(ThingWithCustomTypes.CustomType.class)
+			.first()
+			.map(ThingWithCustomTypes.CustomType::getValue)
+			.as(StepVerifier::create)
+			.expectNext("whatever")
+			.verifyComplete();
 	}
 
-	public interface ConvertedIDsRepository extends ReactiveNeo4jRepository<ThingWithUUIDID, UUID> {}
+	public interface ConvertedIDsRepository extends ReactiveNeo4jRepository<ThingWithUUIDID, UUID> {
+
+	}
 
 	@Configuration
 	@EnableReactiveNeo4jRepositories(considerNestedRepositories = true)
@@ -106,6 +111,7 @@ class ReactiveTypeConversionIT {
 		private ObjectProvider<ReactiveUserSelectionProvider> userSelectionProviders;
 
 		@Bean
+		@Override
 		public Driver driver() {
 			return neo4jConnectionSupport.getDriver();
 		}
@@ -121,13 +127,16 @@ class ReactiveTypeConversionIT {
 		}
 
 		@Override
-		public ReactiveNeo4jClient neo4jClient(Driver driver, ReactiveDatabaseSelectionProvider databaseSelectionProvider) {
+		public ReactiveNeo4jClient neo4jClient(Driver driver,
+				ReactiveDatabaseSelectionProvider databaseSelectionProvider) {
 
 			return ReactiveNeo4jClient.with(driver)
-					.withDatabaseSelectionProvider(databaseSelectionProvider)
-					.withUserSelectionProvider(userSelectionProviders.getIfUnique())
-					.withNeo4jConversions(neo4jConversions())
-					.build();
+				.withDatabaseSelectionProvider(databaseSelectionProvider)
+				.withUserSelectionProvider(this.userSelectionProviders.getIfUnique())
+				.withNeo4jConversions(neo4jConversions())
+				.build();
 		}
+
 	}
+
 }

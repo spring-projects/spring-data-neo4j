@@ -20,23 +20,24 @@ import org.springframework.data.neo4j.core.schema.RelationshipProperties;
 import org.springframework.data.neo4j.core.schema.TargetNode;
 
 /**
+ * @param <T> the type of the related thing
  * @author Michael J. Simons
- * @param <T> The type of the related thing
  */
 @RelationshipProperties
 public class R_S3<T extends RelatedThing> {
 
+	@TargetNode
+	T target;
+
 	@RelationshipId
 	private Long id;
 
-	@TargetNode
-	T target;
+	private String p1;
+
+	private String p2;
 
 	public R_S3(T target) {
 		this.target = target;
 	}
 
-	private String p1;
-
-	private String p2;
 }

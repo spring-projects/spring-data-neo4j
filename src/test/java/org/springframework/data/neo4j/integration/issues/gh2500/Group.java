@@ -15,15 +15,15 @@
  */
 package org.springframework.data.neo4j.integration.issues.gh2500;
 
+import java.util.LinkedHashSet;
+import java.util.Set;
+
 import org.springframework.data.annotation.Version;
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Relationship;
 import org.springframework.data.neo4j.core.support.UUIDStringGenerator;
-
-import java.util.LinkedHashSet;
-import java.util.Set;
 
 /**
  * @author Michael J. Simons
@@ -46,6 +46,46 @@ public class Group {
 	@Relationship(type = "GROUP_LINK")
 	private Set<Group> groups = new LinkedHashSet<>();
 
+	public String getId() {
+		return this.id;
+	}
+
+	public void setId(String id) {
+		this.id = id;
+	}
+
+	public Long getVersion() {
+		return this.version;
+	}
+
+	public void setVersion(Long version) {
+		this.version = version;
+	}
+
+	public String getName() {
+		return this.name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public Set<Device> getDevices() {
+		return this.devices;
+	}
+
+	public void setDevices(Set<Device> devices) {
+		this.devices = devices;
+	}
+
+	public Set<Group> getGroups() {
+		return this.groups;
+	}
+
+	public void setGroups(Set<Group> groups) {
+		this.groups = groups;
+	}
+
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) {
@@ -57,57 +97,18 @@ public class Group {
 
 		Group group = (Group) o;
 
-		if (!id.equals(group.id)) {
+		if (!this.id.equals(group.id)) {
 			return false;
 		}
-		return name.equals(group.name);
+		return this.name.equals(group.name);
 	}
 
 	@Override
 	public int hashCode() {
 		int result = 7;
-		result = 31 * result + id.hashCode();
-		result = 31 * result + name.hashCode();
+		result = 31 * result + this.id.hashCode();
+		result = 31 * result + this.name.hashCode();
 		return result;
 	}
 
-	public String getId() {
-		return this.id;
-	}
-
-	public Long getVersion() {
-		return this.version;
-	}
-
-	public String getName() {
-		return this.name;
-	}
-
-	public Set<Device> getDevices() {
-		return this.devices;
-	}
-
-	public Set<Group> getGroups() {
-		return this.groups;
-	}
-
-	public void setId(String id) {
-		this.id = id;
-	}
-
-	public void setVersion(Long version) {
-		this.version = version;
-	}
-
-	public void setName(String name) {
-		this.name = name;
-	}
-
-	public void setDevices(Set<Device> devices) {
-		this.devices = devices;
-	}
-
-	public void setGroups(Set<Group> groups) {
-		this.groups = groups;
-	}
 }

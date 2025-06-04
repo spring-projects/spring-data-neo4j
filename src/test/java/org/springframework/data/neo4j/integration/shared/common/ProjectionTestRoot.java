@@ -31,14 +31,15 @@ public class ProjectionTestRoot extends ProjectionTestBase {
 	private List<ProjectionTestLevel1> level1 = new ArrayList<>();
 
 	public List<ProjectionTestLevel1> getLevel1() {
-		return level1;
+		return this.level1;
 	}
 
 	public ProjectionTest1O1 getOneOone() {
-		return oneOone;
+		return this.oneOone;
 	}
 
 	public void setOneOone(ProjectionTest1O1 oneOone) {
 		this.oneOone = oneOone;
 	}
+
 }

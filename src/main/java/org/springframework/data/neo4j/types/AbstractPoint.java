@@ -35,7 +35,7 @@ abstract non-sealed class AbstractPoint implements Neo4jPoint {
 
 	@Override
 	public final Integer getSrid() {
-		return srid;
+		return this.srid;
 	}
 
 	@Override
@@ -47,11 +47,12 @@ abstract non-sealed class AbstractPoint implements Neo4jPoint {
 			return false;
 		}
 		AbstractPoint that = (AbstractPoint) o;
-		return Objects.equals(coordinate, that.coordinate) && Objects.equals(srid, that.srid);
+		return Objects.equals(this.coordinate, that.coordinate) && Objects.equals(this.srid, that.srid);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(coordinate, srid);
+		return Objects.hash(this.coordinate, this.srid);
 	}
+
 }

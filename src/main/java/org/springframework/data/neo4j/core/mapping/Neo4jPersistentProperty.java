@@ -19,6 +19,7 @@ import java.util.Optional;
 
 import org.apiguardian.api.API;
 import org.jspecify.annotations.Nullable;
+
 import org.springframework.data.domain.Vector;
 import org.springframework.data.mapping.PersistentProperty;
 import org.springframework.data.neo4j.core.convert.Neo4jPersistentPropertyConverter;
@@ -26,8 +27,8 @@ import org.springframework.data.neo4j.core.schema.CompositeProperty;
 import org.springframework.data.neo4j.core.schema.DynamicLabels;
 
 /**
- * A {@link org.springframework.data.mapping.PersistentProperty} interface with additional methods for metadata related
- * to Neo4j.
+ * A {@link org.springframework.data.mapping.PersistentProperty} interface with additional
+ * methods for metadata related to Neo4j.
  *
  * @author Michael J. Simons
  * @author Philipp Tölle
@@ -38,22 +39,23 @@ import org.springframework.data.neo4j.core.schema.DynamicLabels;
 public interface Neo4jPersistentProperty extends PersistentProperty<Neo4jPersistentProperty>, GraphPropertyDescription {
 
 	/**
-	 * Dynamic associations are associations to non-simple types stored in a map with a key type of
-	 * {@literal java.lang.String} or enum.
-	 *
-	 * @return True, if this association is a dynamic association.
+	 * Dynamic associations are associations to non-simple types stored in a map with a
+	 * key type of {@literal java.lang.String} or enum.
+	 * @return true, if this association is a dynamic association.
 	 */
 	default boolean isDynamicAssociation() {
 
 		Class<?> componentType = getComponentType();
-		return isRelationship() && isMap() && (componentType == String.class || (componentType != null && componentType.isEnum()));
+		return isRelationship() && isMap()
+				&& (componentType == String.class || (componentType != null && componentType.isEnum()));
 	}
 
 	/**
-	 * Dynamic one-to-many associations are associations to non-simple types stored in a map with a key type of
-	 * {@literal java.lang.String} and values of {@literal java.util.Collection}.
-	 *
-	 * @return True, if this association is a dynamic association with multiple values per type.
+	 * Dynamic one-to-many associations are associations to non-simple types stored in a
+	 * map with a key type of {@literal java.lang.String} and values of
+	 * {@literal java.util.Collection}.
+	 * @return true, if this association is a dynamic association with multiple values per
+	 * type.
 	 * @since 6.0.1
 	 */
 	default boolean isDynamicOneToManyAssociation() {
@@ -62,6 +64,8 @@ public interface Neo4jPersistentProperty extends PersistentProperty<Neo4jPersist
 	}
 
 	/**
+	 * Flag if this property points to a collection of dynamic labels for the owning
+	 * entity.
 	 * @return whether the property is a property describing dynamic labels
 	 * @since 6.0
 	 */
@@ -73,30 +77,35 @@ public interface Neo4jPersistentProperty extends PersistentProperty<Neo4jPersist
 		return this.getType().isAssignableFrom(Vector.class);
 	}
 
-	@Nullable
-	Neo4jPersistentPropertyConverter<?> getOptionalConverter();
+	@Nullable Neo4jPersistentPropertyConverter<?> getOptionalConverter();
 
 	/**
-	 * @return True if this property targets an entity which is a container for relationship properties.
+	 * Returns true if this property belongs to a relationship.
+	 * @return true if this property targets an entity which is a container for
+	 * relationship properties.
 	 */
 	boolean isEntityWithRelationshipProperties();
 
 	/**
-	 * Computes a prefix to be used on multiple properties on a node when this persistent property is annotated with
-	 * {@link CompositeProperty @CompositeProperty}.
-	 *
-	 * @return A valid prefix
+	 * Computes a prefix to be used on multiple properties on a node when this persistent
+	 * property is annotated with {@link CompositeProperty @CompositeProperty}.
+	 * @return a valid prefix
 	 */
 	default String computePrefixWithDelimiter() {
 		CompositeProperty compositeProperty = getRequiredAnnotation(CompositeProperty.class);
-		return Optional.of(compositeProperty.prefix()).map(String::trim).filter(s -> !s.isEmpty())
-				.orElseGet(this::getFieldName) + compositeProperty.delimiter();
+		return Optional.of(compositeProperty.prefix())
+			.map(String::trim)
+			.filter(s -> !s.isEmpty())
+			.orElseGet(this::getFieldName) + compositeProperty.delimiter();
 	}
 
 	/**
+	 * A flag is this is a read only property, can be changed via
+	 * {@link PersistentPropertyCharacteristics}.
 	 * @return {@literal true} if this is a read only property.
 	 */
 	default boolean isReadOnly() {
 		return false;
 	}
+
 }

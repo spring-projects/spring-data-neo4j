@@ -18,13 +18,13 @@ package org.springframework.data.neo4j.core.support;
 import java.util.UUID;
 
 import org.apiguardian.api.API;
+
 import org.springframework.data.neo4j.core.schema.IdGenerator;
 
 /**
  * A generator providing UUIDs.
  *
  * @author Michael J. Simons
- * @soundtrack Various - Kung Fury (Original Motion Picture Soundtrack)
  * @since 6.0
  */
 @API(status = API.Status.STABLE, since = "6.0")
@@ -34,4 +34,5 @@ public final class UUIDStringGenerator implements IdGenerator<String> {
 	public String generateId(String primaryLabel, Object entity) {
 		return UUID.randomUUID().toString();
 	}
+
 }

@@ -22,37 +22,40 @@ import org.jspecify.annotations.Nullable;
 import org.neo4j.driver.Value;
 
 /**
- * You need to provide an implementation of this interface in case you want to store a property of an entity as separate
- * properties on a node. The entity needs to be decomposed into a map and composed from a map for that purpose.
+ * You need to provide an implementation of this interface in case you want to store a
+ * property of an entity as separate properties on a node. The entity needs to be
+ * decomposed into a map and composed from a map for that purpose.
  *
- * <p>The calling mechanism will take care of adding and removing configured prefixes and transforming keys and values into
- * something that Neo4j can understand.
+ * <p>
+ * The calling mechanism will take care of adding and removing configured prefixes and
+ * transforming keys and values into something that Neo4j can understand.
  *
+ * @param <K> the type of the keys (Only Strings and Enums are supported).
+ * @param <P> the type of the property.
  * @author Michael J. Simons
- * @param <K> The type of the keys (Only Strings and Enums are supported).
- * @param <P> The type of the property.
- * @soundtrack Metallica - Helping Hands… Live & Acoustic At The Masonic
  * @since 6.0
  */
 @API(status = API.Status.STABLE, since = "6.0")
 public interface Neo4jPersistentPropertyToMapConverter<K, P> {
 
 	/**
-	 * Decomposes an object into a map. A conversion service is provided in case delegation is needed.
-	 *
-	 * @param property               The source property
-	 * @param neo4jConversionService The conversion service to delegate to if necessary
-	 * @return The decomposed object.
+	 * Decomposes an object into a map. A conversion service is provided in case
+	 * delegation is needed.
+	 * @param property the source property
+	 * @param neo4jConversionService the conversion service to delegate to if necessary
+	 * @return the decomposed object.
 	 */
 	Map<K, Value> decompose(@Nullable P property, Neo4jConversionService neo4jConversionService);
 
 	/**
-	 * Composes the object back from the map. The map contains the raw driver values, as SDN cannot know how you want to
-	 * handle them. Therefore, the conversion service to convert driver values is provided.
-	 *
-	 * @param source                 The source map
-	 * @param neo4jConversionService The conversion service in case you want to delegate the work for some values in the map
-	 * @return The composed object.
+	 * Composes the object back from the map. The map contains the raw driver values, as
+	 * SDN cannot know how you want to handle them. Therefore, the conversion service to
+	 * convert driver values is provided.
+	 * @param source the source map
+	 * @param neo4jConversionService the conversion service in case you want to delegate
+	 * the work for some values in the map
+	 * @return the composed object.
 	 */
 	P compose(Map<K, Value> source, Neo4jConversionService neo4jConversionService);
+
 }

@@ -22,12 +22,12 @@ import org.springframework.data.neo4j.core.schema.Node;
 
 /**
  * @author Michael J. Simons
- * @soundtrack Kelis - Tasty
  */
 @Node
 public class Domain1Entity {
 
-	@Id @GeneratedValue
+	@Id
+	@GeneratedValue
 	private Long id;
 
 	@Version
@@ -40,11 +40,11 @@ public class Domain1Entity {
 	}
 
 	public Long getId() {
-		return id;
+		return this.id;
 	}
 
 	public Long getVersion() {
-		return version;
+		return this.version;
 	}
 
 	public void setVersion(Long version) {
@@ -52,10 +52,11 @@ public class Domain1Entity {
 	}
 
 	public String getAnAttribute() {
-		return anAttribute;
+		return this.anAttribute;
 	}
 
 	public void setAnAttribute(String anAttribute) {
 		this.anAttribute = anAttribute;
 	}
+
 }

@@ -47,22 +47,23 @@ public class AllArgsCtorNoBuilder {
 	}
 
 	public Long getId() {
-		return id;
+		return this.id;
 	}
 
 	public boolean isaBoolean() {
-		return aBoolean;
+		return this.aBoolean;
 	}
 
 	public long getaLong() {
-		return aLong;
+		return this.aLong;
 	}
 
 	public double getaDouble() {
-		return aDouble;
+		return this.aDouble;
 	}
 
 	public String getaString() {
-		return aString;
+		return this.aString;
 	}
+
 }

@@ -29,11 +29,11 @@ import org.springframework.data.neo4j.core.schema.Node;
 @Node
 public class PersonWithStringlyTypedRelatives {
 
+	private final String name;
+
 	@Id
 	@GeneratedValue
 	private Long id;
-
-	private final String name;
 
 	private Map<String, Person> relatives = new HashMap<>();
 
@@ -48,23 +48,23 @@ public class PersonWithStringlyTypedRelatives {
 	}
 
 	public long getId() {
-		return id;
+		return this.id;
 	}
 
 	public String getName() {
-		return name;
+		return this.name;
 	}
 
 	public Map<String, Person> getRelatives() {
-		return relatives;
+		return this.relatives;
 	}
 
 	public Map<String, List<Pet>> getPets() {
-		return pets;
+		return this.pets;
 	}
 
 	public Map<String, List<HobbyRelationship>> getHobbies() {
-		return hobbies;
+		return this.hobbies;
 	}
 
 	public void setHobbies(Map<String, List<HobbyRelationship>> hobbies) {
@@ -72,10 +72,11 @@ public class PersonWithStringlyTypedRelatives {
 	}
 
 	public Map<String, ClubRelationship> getClubs() {
-		return clubs;
+		return this.clubs;
 	}
 
 	public void setClubs(Map<String, ClubRelationship> clubs) {
 		this.clubs = clubs;
 	}
+
 }

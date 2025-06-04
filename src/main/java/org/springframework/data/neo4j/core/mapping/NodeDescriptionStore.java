@@ -29,11 +29,13 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiFunction;
 
 import org.jspecify.annotations.Nullable;
+
 import org.springframework.data.mapping.context.AbstractMappingContext;
 
 /**
- * This class is more or less just a wrapper around the node description lookup map. It ensures that there is no cyclic
- * dependency between {@link Neo4jMappingContext} and {@link DefaultNeo4jEntityConverter}.
+ * This class is more or less just a wrapper around the node description lookup map. It
+ * ensures that there is no cyclic dependency between {@link Neo4jMappingContext} and
+ * {@link DefaultNeo4jEntityConverter}.
  *
  * @author Gerrit Meier
  * @author Michael J. Simons
@@ -41,56 +43,56 @@ import org.springframework.data.mapping.context.AbstractMappingContext;
 final class NodeDescriptionStore {
 
 	/**
-	 * A lookup of entities based on their primary label. We depend on the locking mechanism provided by the
-	 * {@link AbstractMappingContext}, so this lookup is not synchronized further.
+	 * A lookup of entities based on their primary label. We depend on the locking
+	 * mechanism provided by the {@link AbstractMappingContext}, so this lookup is not
+	 * synchronized further.
 	 */
 	private final Map<String, NodeDescription<?>> nodeDescriptionsByPrimaryLabel = new ConcurrentHashMap<>();
 
 	private final Map<NodeDescription<?>, Map<List<String>, NodeDescriptionAndLabels>> nodeDescriptionAndLabelsCache = new ConcurrentHashMap<>();
 
-	private final BiFunction<NodeDescription<?>, List<String>, NodeDescriptionAndLabels> nodeDescriptionAndLabels =
-			(nodeDescription, labels) -> {
-				Map<List<String>, NodeDescriptionAndLabels> listNodeDescriptionAndLabelsMap = nodeDescriptionAndLabelsCache.get(nodeDescription);
-				if (listNodeDescriptionAndLabelsMap == null) {
-					nodeDescriptionAndLabelsCache.put(nodeDescription, new ConcurrentHashMap<>());
-					listNodeDescriptionAndLabelsMap = nodeDescriptionAndLabelsCache.get(nodeDescription);
-				}
+	private final BiFunction<NodeDescription<?>, List<String>, NodeDescriptionAndLabels> nodeDescriptionAndLabels = (
+			nodeDescription, labels) -> {
+		Map<List<String>, NodeDescriptionAndLabels> listNodeDescriptionAndLabelsMap = this.nodeDescriptionAndLabelsCache
+			.get(nodeDescription);
+		if (listNodeDescriptionAndLabelsMap == null) {
+			this.nodeDescriptionAndLabelsCache.put(nodeDescription, new ConcurrentHashMap<>());
+			listNodeDescriptionAndLabelsMap = this.nodeDescriptionAndLabelsCache.get(nodeDescription);
+		}
 
-				NodeDescriptionAndLabels cachedNodeDescriptionAndLabels = listNodeDescriptionAndLabelsMap.get(labels);
-				if (cachedNodeDescriptionAndLabels == null) {
-					cachedNodeDescriptionAndLabels = computeConcreteNodeDescription(nodeDescription, labels);
-					listNodeDescriptionAndLabelsMap.put(labels, cachedNodeDescriptionAndLabels);
-				}
-				return cachedNodeDescriptionAndLabels;
-			};
+		NodeDescriptionAndLabels cachedNodeDescriptionAndLabels = listNodeDescriptionAndLabelsMap.get(labels);
+		if (cachedNodeDescriptionAndLabels == null) {
+			cachedNodeDescriptionAndLabels = computeConcreteNodeDescription(nodeDescription, labels);
+			listNodeDescriptionAndLabelsMap.put(labels, cachedNodeDescriptionAndLabels);
+		}
+		return cachedNodeDescriptionAndLabels;
+	};
 
-	public boolean containsKey(String primaryLabel) {
-		return nodeDescriptionsByPrimaryLabel.containsKey(primaryLabel);
+	boolean containsKey(String primaryLabel) {
+		return this.nodeDescriptionsByPrimaryLabel.containsKey(primaryLabel);
 	}
 
-	public <T> boolean containsValue(DefaultNeo4jPersistentEntity<T> newEntity) {
-		return nodeDescriptionsByPrimaryLabel.containsValue(newEntity);
+	<T> boolean containsValue(DefaultNeo4jPersistentEntity<T> newEntity) {
+		return this.nodeDescriptionsByPrimaryLabel.containsValue(newEntity);
 	}
 
-	public <T> void put(String primaryLabel, DefaultNeo4jPersistentEntity<T> newEntity) {
-		nodeDescriptionsByPrimaryLabel.put(primaryLabel, newEntity);
+	<T> void put(String primaryLabel, DefaultNeo4jPersistentEntity<T> newEntity) {
+		this.nodeDescriptionsByPrimaryLabel.put(primaryLabel, newEntity);
 	}
 
-	public Set<Map.Entry<String, NodeDescription<?>>> entrySet() {
-		return nodeDescriptionsByPrimaryLabel.entrySet();
+	Set<Map.Entry<String, NodeDescription<?>>> entrySet() {
+		return this.nodeDescriptionsByPrimaryLabel.entrySet();
 	}
 
-	public Collection<NodeDescription<?>> values() {
-		return nodeDescriptionsByPrimaryLabel.values();
+	Collection<NodeDescription<?>> values() {
+		return this.nodeDescriptionsByPrimaryLabel.values();
 	}
 
-	@Nullable
-	public NodeDescription<?> get(String primaryLabel) {
-		return nodeDescriptionsByPrimaryLabel.get(primaryLabel);
+	@Nullable NodeDescription<?> get(String primaryLabel) {
+		return this.nodeDescriptionsByPrimaryLabel.get(primaryLabel);
 	}
 
-	@Nullable
-	public NodeDescription<?> getNodeDescription(Class<?> targetType) {
+	@Nullable NodeDescription<?> getNodeDescription(Class<?> targetType) {
 		for (NodeDescription<?> nodeDescription : values()) {
 			if (nodeDescription.getUnderlyingClass().equals(targetType)) {
 				return nodeDescription;
@@ -99,13 +101,16 @@ final class NodeDescriptionStore {
 		return null;
 	}
 
-	public NodeDescriptionAndLabels deriveConcreteNodeDescription(NodeDescription<?> entityDescription, List<String> labels) {
-		return nodeDescriptionAndLabels.apply(entityDescription, labels);
+	NodeDescriptionAndLabels deriveConcreteNodeDescription(NodeDescription<?> entityDescription, List<String> labels) {
+		return this.nodeDescriptionAndLabels.apply(entityDescription, labels);
 	}
 
-	private NodeDescriptionAndLabels computeConcreteNodeDescription(NodeDescription<?> entityDescription, List<String> labels) {
+	private NodeDescriptionAndLabels computeConcreteNodeDescription(NodeDescription<?> entityDescription,
+			List<String> labels) {
 
-		boolean isConcreteClassThatFulfillsEverything = !Modifier.isAbstract(entityDescription.getUnderlyingClass().getModifiers()) && entityDescription.getStaticLabels().containsAll(labels);
+		boolean isConcreteClassThatFulfillsEverything = !Modifier
+			.isAbstract(entityDescription.getUnderlyingClass().getModifiers())
+				&& entityDescription.getStaticLabels().containsAll(labels);
 
 		if (labels == null || labels.isEmpty() || isConcreteClassThatFulfillsEverything) {
 			return new NodeDescriptionAndLabels(entityDescription, Collections.emptyList());
@@ -114,7 +119,8 @@ final class NodeDescriptionStore {
 		Collection<NodeDescription<?>> haystack;
 		if (entityDescription.describesInterface()) {
 			haystack = this.values();
-		} else {
+		}
+		else {
 			haystack = entityDescription.getChildNodeDescriptionsInHierarchy();
 		}
 
@@ -143,13 +149,15 @@ final class NodeDescriptionStore {
 				for (String label : labels) {
 					if (staticLabels.contains(label)) {
 						matchingLabels.add(label);
-					} else {
+					}
+					else {
 						unmatchedLabelsCount++;
 					}
 				}
 
 				unmatchedLabelsCache.put(nd, unmatchedLabelsCount);
-				if (mostMatchingNodeDescription == null || unmatchedLabelsCount < Objects.requireNonNullElse(unmatchedLabelsCache.get(mostMatchingNodeDescription), Integer.MAX_VALUE)) {
+				if (mostMatchingNodeDescription == null || unmatchedLabelsCount < Objects
+					.requireNonNullElse(unmatchedLabelsCache.get(mostMatchingNodeDescription), Integer.MAX_VALUE)) {
 					mostMatchingNodeDescription = nd;
 					mostMatchingStaticLabels = matchingLabels;
 				}
@@ -160,7 +168,9 @@ final class NodeDescriptionStore {
 				mostMatchingStaticLabels.forEach(surplusLabels::remove);
 			}
 			if (mostMatchingNodeDescription == null) {
-				throw new IllegalStateException("Could not compute a concrete node description for entity %s and labels %s".formatted(entityDescription, labels));
+				throw new IllegalStateException(
+						"Could not compute a concrete node description for entity %s and labels %s"
+							.formatted(entityDescription, labels));
 			}
 			return new NodeDescriptionAndLabels(mostMatchingNodeDescription, surplusLabels);
 		}
@@ -170,4 +180,5 @@ final class NodeDescriptionStore {
 		entityDescription.getAdditionalLabels().forEach(surplusLabels::remove);
 		return new NodeDescriptionAndLabels(entityDescription, surplusLabels);
 	}
+
 }

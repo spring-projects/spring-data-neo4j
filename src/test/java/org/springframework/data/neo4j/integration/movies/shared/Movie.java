@@ -15,19 +15,18 @@
  */
 package org.springframework.data.neo4j.integration.movies.shared;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Property;
 import org.springframework.data.neo4j.core.schema.Relationship;
 import org.springframework.data.neo4j.core.schema.Relationship.Direction;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
 /**
  * @author Michael J. Simons
- * @soundtrack Body Count - Manslaughter
  */
 @Node
 public final class Movie {
@@ -58,11 +57,11 @@ public final class Movie {
 	}
 
 	public String getTitle() {
-		return title;
+		return this.title;
 	}
 
 	public String getDescription() {
-		return description;
+		return this.description;
 	}
 
 	public List<Actor> getActors() {
@@ -74,7 +73,7 @@ public final class Movie {
 	}
 
 	public Integer getReleased() {
-		return released;
+		return this.released;
 	}
 
 	public void setReleased(Integer released) {
@@ -82,6 +81,7 @@ public final class Movie {
 	}
 
 	public Movie getSequel() {
-		return sequel;
+		return this.sequel;
 	}
+
 }

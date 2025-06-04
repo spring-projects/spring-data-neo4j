@@ -33,9 +33,11 @@ public class ImmutableSecondPersonWithGeneratedIdRelationshipProperties {
 	@TargetNode
 	public final ImmutableSecondPersonWithGeneratedId target;
 
-	public ImmutableSecondPersonWithGeneratedIdRelationshipProperties(Long id, String name, ImmutableSecondPersonWithGeneratedId target) {
+	public ImmutableSecondPersonWithGeneratedIdRelationshipProperties(Long id, String name,
+			ImmutableSecondPersonWithGeneratedId target) {
 		this.id = id;
 		this.name = name;
 		this.target = target;
 	}
+
 }

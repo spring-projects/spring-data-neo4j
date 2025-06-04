@@ -22,14 +22,14 @@ import java.util.Set;
 import org.apiguardian.api.API;
 import org.jspecify.annotations.Nullable;
 import org.neo4j.driver.Bookmark;
+
 import org.springframework.context.ApplicationEvent;
 
 /**
- * This event will be published after a Neo4j transaction manager physically committed a transaction without errors
- * and received a new set of bookmarks from the cluster.
+ * This event will be published after a Neo4j transaction manager physically committed a
+ * transaction without errors and received a new set of bookmarks from the cluster.
  *
  * @author Michael J. Simons
- * @soundtrack Black Sabbath - Master Of Reality
  * @since 6.1.1
  */
 @API(status = API.Status.STABLE, since = "6.1.1")
@@ -37,8 +37,8 @@ public final class Neo4jBookmarksUpdatedEvent extends ApplicationEvent {
 
 	@Serial
 	private static final long serialVersionUID = 2143476552056698819L;
-	@Nullable
-	private transient final Set<Bookmark> bookmarks;
+
+	private final transient @Nullable Set<Bookmark> bookmarks;
 
 	Neo4jBookmarksUpdatedEvent(Set<Bookmark> bookmarks) {
 		super(bookmarks);
@@ -46,10 +46,12 @@ public final class Neo4jBookmarksUpdatedEvent extends ApplicationEvent {
 	}
 
 	/**
-	 * @return An unmodifiable views of the new bookmarks.
+	 * Retrieves the set of bookmarks associated with this event.
+	 * @return an unmodifiable views of the new bookmarks
 	 */
 	public Set<Bookmark> getBookmarks() {
 
-		return this.bookmarks == null ? Set.of() : Collections.unmodifiableSet(this.bookmarks);
+		return (this.bookmarks != null) ? Collections.unmodifiableSet(this.bookmarks) : Set.of();
 	}
+
 }

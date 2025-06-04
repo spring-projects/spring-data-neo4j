@@ -20,6 +20,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import org.neo4j.driver.QueryRunner;
+
 import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.core.schema.CompositeProperty;
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
@@ -36,10 +37,26 @@ import org.springframework.data.neo4j.core.schema.Property;
 public class ScrollingEntity {
 
 	/**
-	 * Sorting by b and a will not be unique for 3 and D0, so this will trigger the additional condition based on the id
+	 * Sorting by b and a will not be unique for 3 and D0, so this will trigger the
+	 * additional condition based on the id
 	 */
 	public static final Sort SORT_BY_B_AND_A = Sort.by(Sort.Order.asc("b"), Sort.Order.desc("a"));
+
 	public static final Sort SORT_BY_C = Sort.by(Sort.Order.asc("c"));
+
+	@Id
+	@GeneratedValue
+	private UUID id;
+
+	@Property("foobar")
+	private String a;
+
+	private Integer b;
+
+	private LocalDateTime c;
+
+	@CompositeProperty
+	private Map<String, String> basicComposite;
 
 	public static void createTestData(QueryRunner queryRunner) {
 		queryRunner.run("MATCH (n) DETACH DELETE n").consume();
@@ -69,26 +86,12 @@ public class ScrollingEntity {
 				""").consume();
 	}
 
-	@Id
-	@GeneratedValue
-	private UUID id;
-
-	@Property("foobar")
-	private String a;
-
-	private Integer b;
-
-	private LocalDateTime c;
-
-	@CompositeProperty
-	private Map<String, String> basicComposite;
-
 	public UUID getId() {
-		return id;
+		return this.id;
 	}
 
 	public String getA() {
-		return a;
+		return this.a;
 	}
 
 	public void setA(String a) {
@@ -96,7 +99,7 @@ public class ScrollingEntity {
 	}
 
 	public Integer getB() {
-		return b;
+		return this.b;
 	}
 
 	public void setB(Integer b) {
@@ -104,7 +107,7 @@ public class ScrollingEntity {
 	}
 
 	public LocalDateTime getC() {
-		return c;
+		return this.c;
 	}
 
 	public void setC(LocalDateTime c) {
@@ -113,10 +116,7 @@ public class ScrollingEntity {
 
 	@Override
 	public String toString() {
-		return "ScrollingEntity{" +
-				"a='" + a + '\'' +
-				", b=" + b +
-				", c=" + c +
-				'}';
+		return "ScrollingEntity{" + "a='" + this.a + '\'' + ", b=" + this.b + ", c=" + this.c + '}';
 	}
+
 }

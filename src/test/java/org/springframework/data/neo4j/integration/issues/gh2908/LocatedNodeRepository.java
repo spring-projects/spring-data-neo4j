@@ -21,9 +21,12 @@ import org.springframework.data.neo4j.repository.Neo4jRepository;
 
 /**
  * Repository spotting all supported Geo* results.
+ *
  * @author Michael J. Simons
  */
-public interface LocatedNodeRepository extends HasNameAndPlaceRepository<LocatedNode>, Neo4jRepository<LocatedNode, String> {
+public interface LocatedNodeRepository
+		extends HasNameAndPlaceRepository<LocatedNode>, Neo4jRepository<LocatedNode, String> {
 
 	Page<LocatedNode> findAllByName(String whatever, PageRequest name);
+
 }

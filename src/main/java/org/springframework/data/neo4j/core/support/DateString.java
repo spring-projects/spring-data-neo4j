@@ -20,28 +20,18 @@ import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.TimeZone;
 
 import org.apiguardian.api.API;
-import org.jspecify.annotations.Nullable;
-import org.neo4j.driver.Value;
-import org.neo4j.driver.Values;
-import org.neo4j.driver.types.TypeSystem;
+
 import org.springframework.core.annotation.AliasFor;
 import org.springframework.data.neo4j.core.convert.ConvertWith;
-import org.springframework.data.neo4j.core.convert.Neo4jPersistentPropertyConverterFactory;
-import org.springframework.data.neo4j.core.convert.Neo4jPersistentPropertyConverter;
-import org.springframework.data.neo4j.core.mapping.Neo4jPersistentProperty;
 
 /**
- * Indicates SDN 6 to store dates as {@link String} in the database. Applicable to {@link Date} and
- * {@link java.time.Instant}.
+ * Indicates SDN 6 to store dates as {@link String} in the database. Applicable to
+ * {@link Date} and {@link java.time.Instant}.
  *
  * @author Michael J. Simons
- * @soundtrack Metallica - S&M2
  * @since 6.0
  */
 @Retention(RetentionPolicy.RUNTIME)
@@ -51,8 +41,14 @@ import org.springframework.data.neo4j.core.mapping.Neo4jPersistentProperty;
 @API(status = API.Status.STABLE, since = "6.0")
 public @interface DateString {
 
+	/**
+	 * Pattern conforming to an ISO 8601 date time string (without timezone).
+	 */
 	String ISO_8601 = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX";
 
+	/**
+	 * The ID of the default timezone to use.
+	 */
 	String DEFAULT_ZONE_ID = "UTC";
 
 	@AliasFor("format")
@@ -62,58 +58,13 @@ public @interface DateString {
 	String format() default ISO_8601;
 
 	/**
-	 * Some temporals like {@link java.time.Instant}, representing an instantaneous point in time cannot be formatted
-	 * with a given {@link java.time.ZoneId}. In case you want to format an instant or similar with a default pattern,
-	 * we assume a zone with the given id and default to {@literal UTC} which is the same assumption that the predefined
-	 * patterns in {@link java.time.format.DateTimeFormatter} take.
-	 *
+	 * Some temporals like {@link java.time.Instant}, representing an instantaneous point
+	 * in time cannot be formatted with a given {@link java.time.ZoneId}. In case you want
+	 * to format an instant or similar with a default pattern, we assume a zone with the
+	 * given id and default to {@literal UTC} which is the same assumption that the
+	 * predefined patterns in {@link java.time.format.DateTimeFormatter} take.
 	 * @return The zone id to use when applying a custom pattern to an instant temporal.
 	 */
 	String zoneId() default DEFAULT_ZONE_ID;
-}
-
-final class DateStringConverterFactory implements Neo4jPersistentPropertyConverterFactory {
-
-	@Override
-	public Neo4jPersistentPropertyConverter<?> getPropertyConverterFor(Neo4jPersistentProperty persistentProperty) {
-
-		if (persistentProperty.getActualType() == Date.class) {
-			DateString config = persistentProperty.getRequiredAnnotation(DateString.class);
-			return new DateStringConverter(config.value());
-		} else {
-			throw new UnsupportedOperationException(
-					"Other types than java.util.Date are not yet supported; please file a ticket");
-		}
-	}
-}
-
-final class DateStringConverter implements Neo4jPersistentPropertyConverter<Date> {
-
-	private final String format;
-
-	DateStringConverter(String format) {
-		this.format = format;
-	}
-
-	private SimpleDateFormat getFormat() {
-		SimpleDateFormat simpleDateFormat = new SimpleDateFormat(format);
-		simpleDateFormat.setTimeZone(TimeZone.getTimeZone(DateString.DEFAULT_ZONE_ID));
-		return simpleDateFormat;
-	}
-
-	@Override
-	public Value write(@Nullable Date source) {
-		return source == null ? Values.NULL : Values.value(getFormat().format(source));
-	}
-
-	@Override
-	@Nullable
-	public Date read(@Nullable Value source) {
-		try {
-			return source == null || TypeSystem.getDefault().NULL().isTypeOf(source) ? null : getFormat().parse(source.asString());
-		} catch (ParseException e) {
-			throw new RuntimeException(e);
-		}
-	}
 
 }

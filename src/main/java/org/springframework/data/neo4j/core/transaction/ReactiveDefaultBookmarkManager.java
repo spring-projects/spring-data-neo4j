@@ -24,6 +24,7 @@ import java.util.function.Supplier;
 
 import org.jspecify.annotations.Nullable;
 import org.neo4j.driver.Bookmark;
+
 import org.springframework.context.ApplicationEventPublisher;
 
 /**
@@ -44,13 +45,13 @@ final class ReactiveDefaultBookmarkManager extends AbstractBookmarkManager {
 	private ApplicationEventPublisher applicationEventPublisher;
 
 	ReactiveDefaultBookmarkManager(@Nullable Supplier<Set<Bookmark>> bookmarksSupplier) {
-		this.bookmarksSupplier = bookmarksSupplier == null ? Collections::emptySet : bookmarksSupplier;
+		this.bookmarksSupplier = (bookmarksSupplier != null) ? bookmarksSupplier : Collections::emptySet;
 	}
 
 	@Override
 	public Collection<Bookmark> getBookmarks() {
 		synchronized (this.bookmarks) {
-			this.bookmarks.addAll(bookmarksSupplier.get());
+			this.bookmarks.addAll(this.bookmarksSupplier.get());
 			return Set.copyOf(this.bookmarks);
 		}
 	}
@@ -58,10 +59,11 @@ final class ReactiveDefaultBookmarkManager extends AbstractBookmarkManager {
 	@Override
 	public void updateBookmarks(Collection<Bookmark> usedBookmarks, Collection<Bookmark> newBookmarks) {
 		synchronized (this.bookmarks) {
-			usedBookmarks.stream().filter(Objects::nonNull).forEach(bookmarks::remove);
-			newBookmarks.stream().filter(Objects::nonNull).forEach(bookmarks::add);
-			if (applicationEventPublisher != null) {
-				applicationEventPublisher.publishEvent(new Neo4jBookmarksUpdatedEvent(new HashSet<>(bookmarks)));
+			usedBookmarks.stream().filter(Objects::nonNull).forEach(this.bookmarks::remove);
+			newBookmarks.stream().filter(Objects::nonNull).forEach(this.bookmarks::add);
+			if (this.applicationEventPublisher != null) {
+				this.applicationEventPublisher
+					.publishEvent(new Neo4jBookmarksUpdatedEvent(new HashSet<>(this.bookmarks)));
 			}
 		}
 	}
@@ -70,4 +72,5 @@ final class ReactiveDefaultBookmarkManager extends AbstractBookmarkManager {
 	public void setApplicationEventPublisher(@Nullable ApplicationEventPublisher applicationEventPublisher) {
 		this.applicationEventPublisher = applicationEventPublisher;
 	}
+
 }

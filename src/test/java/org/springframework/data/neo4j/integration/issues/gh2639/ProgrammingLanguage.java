@@ -15,28 +15,29 @@
  */
 package org.springframework.data.neo4j.integration.issues.gh2639;
 
+import java.util.StringJoiner;
+
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Relationship;
 
-import java.util.StringJoiner;
-
 /**
- * Programming language to represent.
- * Only available at the Developer entity.
+ * Programming language to represent. Only available at the Developer entity.
  */
 @Node
 public class ProgrammingLanguage {
 
-	@Id
-	@GeneratedValue
-	private Long id;
 	private final String name;
+
 	private final String version;
 
 	@Relationship("INVENTED_BY")
 	public Inventor inventor;
+
+	@Id
+	@GeneratedValue
+	private Long id;
 
 	public ProgrammingLanguage(String name, String version) {
 		this.name = name;
@@ -44,19 +45,19 @@ public class ProgrammingLanguage {
 	}
 
 	public String getName() {
-		return name;
+		return this.name;
 	}
 
 	public String getVersion() {
-		return version;
+		return this.version;
 	}
 
 	@Override
 	public String toString() {
-		return new StringJoiner(", ", ProgrammingLanguage.class.getSimpleName() + "[", "]")
-				.add("id=" + id)
-				.add("name='" + name + "'")
-				.add("version='" + version + "'")
-				.toString();
+		return new StringJoiner(", ", ProgrammingLanguage.class.getSimpleName() + "[", "]").add("id=" + this.id)
+			.add("name='" + this.name + "'")
+			.add("version='" + this.version + "'")
+			.toString();
 	}
+
 }

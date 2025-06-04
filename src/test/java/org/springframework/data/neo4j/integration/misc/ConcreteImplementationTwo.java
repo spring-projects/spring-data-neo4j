@@ -19,10 +19,11 @@ import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.integration.issues.gh2530.InitialEntities;
 
 /**
- * Moved far away from the issue integration tests so that it actually fulfills its purpose on being the entity to get
- * discovered later.
+ * Moved far away from the issue integration tests so that it actually fulfills its
+ * purpose on being the entity to get discovered later.
  */
 @Node
 public class ConcreteImplementationTwo extends InitialEntities.SomethingInBetween
 		implements InitialEntities.SpecialKind {
+
 }

@@ -37,14 +37,15 @@ public class College {
 	}
 
 	public String getGuid() {
-		return guid;
+		return this.guid;
 	}
 
 	public String getName() {
-		return name;
+		return this.name;
 	}
 
 	public void setName(String name) {
 		this.name = name;
 	}
+
 }

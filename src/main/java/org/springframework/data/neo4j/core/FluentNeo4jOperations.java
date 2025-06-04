@@ -18,13 +18,13 @@ package org.springframework.data.neo4j.core;
 import org.apiguardian.api.API;
 
 /**
- * An additional interface accompanying the {@link Neo4jOperations} and adding a couple of fluent operations, especially
- * around finding and projecting things.
+ * An additional interface accompanying the {@link Neo4jOperations} and adding a couple of
+ * fluent operations, especially around finding and projecting things.
  *
  * @author Michael J. Simons
- * @soundtrack Ozzy Osbourne - Ordinary Man
  * @since 6.1
  */
 @API(status = API.Status.STABLE, since = "6.1")
 public interface FluentNeo4jOperations extends FluentFindOperation, FluentSaveOperation {
+
 }

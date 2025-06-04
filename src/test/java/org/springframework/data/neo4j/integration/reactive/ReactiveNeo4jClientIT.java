@@ -15,8 +15,6 @@
  */
 package org.springframework.data.neo4j.integration.reactive;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -47,6 +45,11 @@ import org.neo4j.driver.reactivestreams.ReactiveResult;
 import org.neo4j.driver.reactivestreams.ReactiveSession;
 import org.neo4j.driver.summary.ResultSummary;
 import org.reactivestreams.Publisher;
+import reactor.blockhound.BlockHound;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -64,10 +67,7 @@ import org.springframework.transaction.ReactiveTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.reactive.TransactionalOperator;
 
-import reactor.blockhound.BlockHound;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
-import reactor.test.StepVerifier;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Michael J. Simons
@@ -85,93 +85,96 @@ class ReactiveNeo4jClientIT {
 
 	@BeforeEach
 	void setupData(@Autowired BookmarkCapture bookmarkCapture, @Autowired Driver driver) {
-		try (
-				Session session = driver.session(bookmarkCapture.createSessionConfig());
-				Transaction transaction = session.beginTransaction()
-		) {
+		try (Session session = driver.session(bookmarkCapture.createSessionConfig());
+				Transaction transaction = session.beginTransaction()) {
 			transaction.run("MATCH (n) detach delete n");
 			transaction.commit();
 		}
 	}
 
 	@Test // GH-2755
-	public void testQueryExecutionNeo4jClient(@Autowired ReactiveNeo4jClient neo4jClient, @Autowired Driver driver, @Autowired BookmarkCapture bookmarkCapture) {
+	void testQueryExecutionNeo4jClient(@Autowired ReactiveNeo4jClient neo4jClient, @Autowired Driver driver,
+			@Autowired BookmarkCapture bookmarkCapture) {
 
 		try (var session = driver.session(bookmarkCapture.createSessionConfig())) {
-			session.run("UNWIND range(1,10000) as count with count CREATE (u:VersionedExternalIdListBased) SET u.numberThing=count").consume();
+			session.run(
+					"UNWIND range(1,10000) as count with count CREATE (u:VersionedExternalIdListBased) SET u.numberThing=count")
+				.consume();
 			bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 
 		String cypher = "MATCH (n) RETURN elementId(n)";
 		String cypher2 = "MATCH (n) WHERE elementId(n) = $elementId RETURN elementId(n)";
 
-		StepVerifier.create(neo4jClient.query(cypher).fetchAs(String.class).all()
-				.flatMap(elementId ->
-						neo4jClient.query(cypher2)
-								.bindAll(Map.of("elementId", elementId))
-								.fetchAs(String.class).one()))
-				.expectNextCount(10000)
-				.verifyComplete();
+		StepVerifier
+			.create(neo4jClient.query(cypher)
+				.fetchAs(String.class)
+				.all()
+				.flatMap(elementId -> neo4jClient.query(cypher2)
+					.bindAll(Map.of("elementId", elementId))
+					.fetchAs(String.class)
+					.one()))
+			.expectNextCount(10000)
+			.verifyComplete();
 	}
 
 	@Test // GH-2755
-	public void testQueryExecutionPureDriver(@Autowired Driver driver, @Autowired BookmarkCapture bookmarkCapture) {
+	void testQueryExecutionPureDriver(@Autowired Driver driver, @Autowired BookmarkCapture bookmarkCapture) {
 
 		try (var session = driver.session(bookmarkCapture.createSessionConfig())) {
-			session.run("UNWIND range(1,10000) as count with count CREATE (u:VersionedExternalIdListBased) SET u.numberThing=count").consume();
+			session.run(
+					"UNWIND range(1,10000) as count with count CREATE (u:VersionedExternalIdListBased) SET u.numberThing=count")
+				.consume();
 			bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 
 		String cypher = "MATCH (n) RETURN elementId(n) as a";
 		String cypher2 = "MATCH (n) WHERE elementId(n) = $elementId RETURN elementId(n) as b";
 
-		StepVerifier.create(Flux.usingWhen(
-						Mono
-								.just(driver.session(ReactiveSession.class)),
-				session ->
-						Flux.from(session.run(cypher))
+		StepVerifier.create(Flux.usingWhen(Mono.just(driver.session(ReactiveSession.class)),
+				session -> Flux.from(session.run(cypher))
+					.flatMap(ReactiveResult::records)
+					.map(a -> a.get(0).asString())
+					.flatMap(elementId -> Flux.usingWhen(Mono.just(driver.session(ReactiveSession.class)),
+							innerSession -> Flux.from(innerSession.run(cypher2, Map.of("elementId", elementId)))
 								.flatMap(ReactiveResult::records)
-								.map(a -> a.get(0).asString())
-						.flatMap(elementId ->
-								Flux.usingWhen(
-										Mono.just(driver.session(ReactiveSession.class)),
-										innerSession ->
-												Flux.from(innerSession.run(cypher2, Map.of("elementId", elementId)))
-														.flatMap(ReactiveResult::records)
-														.map(result -> result.get(0).asString()),
-										innerSession -> Mono.fromDirect(innerSession.close())
-								)),
+								.map(result -> result.get(0).asString()),
+							innerSession -> Mono.fromDirect(innerSession.close()))),
 				session -> Mono.fromDirect(session.close())))
-				.expectNextCount(10000)
-				.verifyComplete();
+			.expectNextCount(10000)
+			.verifyComplete();
 	}
 
 	@Test // GH-2238
 	void clientShouldIntegrateWithCypherDSL(@Autowired TransactionalOperator transactionalOperator,
-			@Autowired ReactiveNeo4jClient client,
-			@Autowired BookmarkCapture bookmarkCapture) {
+			@Autowired ReactiveNeo4jClient client, @Autowired BookmarkCapture bookmarkCapture) {
 
-		Node namedAnswer = Cypher.node("TheAnswer", Cypher.mapOf("value",
-				Cypher.literalOf(23).multiply(Cypher.literalOf(2)).subtract(Cypher.literalOf(4)))).named("n");
+		Node namedAnswer = Cypher
+			.node("TheAnswer",
+					Cypher.mapOf("value",
+							Cypher.literalOf(23).multiply(Cypher.literalOf(2)).subtract(Cypher.literalOf(4))))
+			.named("n");
 		NewReactiveExecutableResultStatement statement = new NewReactiveExecutableResultStatement(namedAnswer);
 
 		AtomicLong vanishedId = new AtomicLong();
 		transactionalOperator.execute(transaction -> {
-					Flux<Long> inner = client.getQueryRunner()
-							.flatMapMany(statement::fetchWith)
-							.doOnNext(r -> vanishedId.set(TestIdentitySupport.getInternalId(r.get("n").asNode())))
-							.map(record -> record.get("n").get("value").asLong());
+			Flux<Long> inner = client.getQueryRunner()
+				.flatMapMany(statement::fetchWith)
+				.doOnNext(r -> vanishedId.set(TestIdentitySupport.getInternalId(r.get("n").asNode())))
+				.map(record -> record.get("n").get("value").asLong());
 
-					transaction.setRollbackOnly();
-					return inner;
-				}).as(StepVerifier::create)
-				.expectNext(42L)
-				.verifyComplete();
+			transaction.setRollbackOnly();
+			return inner;
+		}).as(StepVerifier::create).expectNext(42L).verifyComplete();
 
-		// Make sure we actually interacted with the managed transaction (that had been rolled back)
+		// Make sure we actually interacted with the managed transaction (that had been
+		// rolled back)
 		try (Session session = neo4jConnectionSupport.getDriver().session(bookmarkCapture.createSessionConfig())) {
-			long cnt = session.run("MATCH (n) WHERE id(n) = $id RETURN count(n)",
-					Collections.singletonMap("id", vanishedId.get())).single().get(0).asLong();
+			long cnt = session
+				.run("MATCH (n) WHERE id(n) = $id RETURN count(n)", Collections.singletonMap("id", vanishedId.get()))
+				.single()
+				.get(0)
+				.asLong();
 			assertThat(cnt).isEqualTo(0L);
 		}
 	}
@@ -181,17 +184,19 @@ class ReactiveNeo4jClientIT {
 	static class Config extends Neo4jReactiveTestConfiguration {
 
 		@Bean
+		@Override
 		public Driver driver() {
 			return neo4jConnectionSupport.getDriver();
 		}
 
-		@Override // needed here because there is no implicit registration of entities upfront some methods under test
+		@Override // needed here because there is no implicit registration of entities
+					// upfront some methods under test
 		protected Collection<String> getMappingBasePackages() {
 			return Collections.singletonList(PersonWithAllConstructor.class.getPackage().getName());
 		}
 
 		@Bean
-		public BookmarkCapture bookmarkCapture() {
+		BookmarkCapture bookmarkCapture() {
 			return new BookmarkCapture();
 		}
 
@@ -205,7 +210,7 @@ class ReactiveNeo4jClientIT {
 		}
 
 		@Bean
-		public TransactionalOperator transactionalOperator(ReactiveTransactionManager transactionManager) {
+		TransactionalOperator transactionalOperator(ReactiveTransactionManager transactionManager) {
 			return TransactionalOperator.create(transactionManager);
 		}
 
@@ -213,6 +218,7 @@ class ReactiveNeo4jClientIT {
 		public boolean isCypher5Compatible() {
 			return neo4jConnectionSupport.isCypher5SyntaxCompatible();
 		}
+
 	}
 
 	private static class NewReactiveExecutableResultStatement implements ExecutableResultStatement {
@@ -220,9 +226,7 @@ class ReactiveNeo4jClientIT {
 		private final Statement delegate;
 
 		NewReactiveExecutableResultStatement(Node namedAnswer) {
-			delegate = Cypher.create(namedAnswer)
-					.returning(namedAnswer)
-					.build();
+			this.delegate = Cypher.create(namedAnswer).returning(namedAnswer).build();
 		}
 
 		/**
@@ -230,9 +234,10 @@ class ReactiveNeo4jClientIT {
 		 * @param reactiveQueryRunner The runner to run the statement with
 		 * @return a publisher of records
 		 */
-		public Publisher<Record> fetchWith(ReactiveQueryRunner reactiveQueryRunner) {
-			return Mono.fromCallable(this::createQuery).flatMapMany(reactiveQueryRunner::run)
-					.flatMap(ReactiveResult::records);
+		Publisher<Record> fetchWith(ReactiveQueryRunner reactiveQueryRunner) {
+			return Mono.fromCallable(this::createQuery)
+				.flatMapMany(reactiveQueryRunner::run)
+				.flatMap(ReactiveResult::records);
 		}
 
 		@Override
@@ -240,7 +245,8 @@ class ReactiveNeo4jClientIT {
 			throw new UnsupportedOperationException();
 		}
 
-		@Override public <T> CompletableFuture<List<T>> fetchWith(AsyncQueryRunner asyncQueryRunner,
+		@Override
+		public <T> CompletableFuture<List<T>> fetchWith(AsyncQueryRunner asyncQueryRunner,
 				Function<Record, T> function) {
 			throw new UnsupportedOperationException();
 		}
@@ -278,5 +284,7 @@ class ReactiveNeo4jClientIT {
 		public String getCypher() {
 			return this.delegate.getCypher();
 		}
+
 	}
+
 }

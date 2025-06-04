@@ -29,10 +29,10 @@ import org.springframework.data.neo4j.types.CartesianPoint2d;
 @RelationshipProperties
 public class LikesHobbyRelationship {
 
+	private final Integer since;
+
 	@RelationshipId
 	private Long id;
-
-	private final Integer since;
 
 	private Boolean active;
 
@@ -69,6 +69,18 @@ public class LikesHobbyRelationship {
 		this.point = point;
 	}
 
+	public Hobby getHobby() {
+		return this.hobby;
+	}
+
+	public void setHobby(Hobby hobby) {
+		this.hobby = hobby;
+	}
+
+	public Integer getSince() {
+		return this.since;
+	}
+
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) {
@@ -78,31 +90,23 @@ public class LikesHobbyRelationship {
 			return false;
 		}
 		LikesHobbyRelationship that = (LikesHobbyRelationship) o;
-		return since.equals(that.since) && Objects.equals(active, that.active) && Objects.equals(localDate, that.localDate)
-				&& myEnum == that.myEnum && Objects.equals(point, that.point);
+		return this.since.equals(that.since) && Objects.equals(this.active, that.active)
+				&& Objects.equals(this.localDate, that.localDate) && this.myEnum == that.myEnum
+				&& Objects.equals(this.point, that.point);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(since, active, localDate, myEnum, point);
-	}
-
-	public Hobby getHobby() {
-		return hobby;
-	}
-
-	public void setHobby(Hobby hobby) {
-		this.hobby = hobby;
-	}
-
-	public Integer getSince() {
-		return since;
+		return Objects.hash(this.since, this.active, this.localDate, this.myEnum, this.point);
 	}
 
 	/**
 	 * The missing javadoc
 	 */
 	public enum MyEnum {
+
 		SOMETHING, SOMETHING_DIFFERENT
+
 	}
+
 }

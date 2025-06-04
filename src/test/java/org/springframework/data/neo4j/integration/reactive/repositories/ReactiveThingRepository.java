@@ -28,4 +28,5 @@ public interface ReactiveThingRepository extends ReactiveCrudRepository<ThingWit
 
 	@Query("MATCH (n:Thing{theId:'anId'})-[r:Has]->(b:Thing2) return n, collect(r), collect(b)")
 	Mono<ThingWithAssignedId> getViaQuery();
+
 }

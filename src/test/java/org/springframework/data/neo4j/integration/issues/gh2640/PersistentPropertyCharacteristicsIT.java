@@ -15,8 +15,6 @@
  */
 package org.springframework.data.neo4j.integration.issues.gh2640;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -28,6 +26,7 @@ import org.neo4j.driver.Driver;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.Values;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -48,6 +47,8 @@ import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 /**
  * @author Michael J. Simons
  */
@@ -66,20 +67,23 @@ class PersistentPropertyCharacteristicsIT {
 	}
 
 	@Test
-		// GH-2640
-	void implicitTransientPropertiesShouldNotBeWritten(@Autowired Driver driver, @Autowired BookmarkCapture bookmarkCapture, @Autowired Neo4jTemplate template) {
+	// GH-2640
+	void implicitTransientPropertiesShouldNotBeWritten(@Autowired Driver driver,
+			@Autowired BookmarkCapture bookmarkCapture, @Autowired Neo4jTemplate template) {
 
-		SomeWithImplicitTransientProperties1 node1 = template.save(new SomeWithImplicitTransientProperties1("the name", 1.23));
+		SomeWithImplicitTransientProperties1 node1 = template
+			.save(new SomeWithImplicitTransientProperties1("the name", 1.23));
 		SomeWithImplicitTransientProperties2 node2 = template.save(new SomeWithImplicitTransientProperties2(47.11));
 
 		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
-			List<Record> records = session.run("MATCH (n) WHERE n.id IN $ids RETURN n", Values.parameters("ids", Arrays.asList(node1.id.toString(), node2.id.toString()))).list();
-			assertThat(records)
-					.hasSize(2)
-					.noneMatch(r -> {
-						Map<String, Object> properties = r.get("n").asNode().asMap();
-						return properties.containsKey("foobar") || properties.containsKey("bazbar");
-					});
+			List<Record> records = session
+				.run("MATCH (n) WHERE n.id IN $ids RETURN n",
+						Values.parameters("ids", Arrays.asList(node1.id.toString(), node2.id.toString())))
+				.list();
+			assertThat(records).hasSize(2).noneMatch(r -> {
+				Map<String, Object> properties = r.get("n").asNode().asMap();
+				return properties.containsKey("foobar") || properties.containsKey("bazbar");
+			});
 		}
 	}
 
@@ -98,6 +102,7 @@ class PersistentPropertyCharacteristicsIT {
 			this.name = name;
 			this.foobar = foobar;
 		}
+
 	}
 
 	@Node
@@ -112,6 +117,7 @@ class PersistentPropertyCharacteristicsIT {
 		SomeWithImplicitTransientProperties2(Double bazbar) {
 			this.bazbar = bazbar;
 		}
+
 	}
 
 	@Configuration
@@ -120,13 +126,13 @@ class PersistentPropertyCharacteristicsIT {
 	static class Config extends Neo4jImperativeTestConfiguration {
 
 		@Bean
-		public BookmarkCapture bookmarkCapture() {
+		BookmarkCapture bookmarkCapture() {
 			return new BookmarkCapture();
 		}
 
 		@Override
-		public PlatformTransactionManager transactionManager(
-				Driver driver, DatabaseSelectionProvider databaseNameProvider) {
+		public PlatformTransactionManager transactionManager(Driver driver,
+				DatabaseSelectionProvider databaseNameProvider) {
 
 			BookmarkCapture bookmarkCapture = bookmarkCapture();
 			return new Neo4jTransactionManager(driver, databaseNameProvider,
@@ -134,7 +140,7 @@ class PersistentPropertyCharacteristicsIT {
 		}
 
 		@Bean
-		public PersistentPropertyCharacteristicsProvider persistentPropertyCharacteristicsProvider() {
+		PersistentPropertyCharacteristicsProvider persistentPropertyCharacteristicsProvider() {
 			return (property, owner) -> {
 
 				if (property.getType().equals(Double.class)) {
@@ -146,6 +152,7 @@ class PersistentPropertyCharacteristicsIT {
 		}
 
 		@Bean
+		@Override
 		public Driver driver() {
 
 			return neo4jConnectionSupport.getDriver();
@@ -155,5 +162,7 @@ class PersistentPropertyCharacteristicsIT {
 		public boolean isCypher5Compatible() {
 			return neo4jConnectionSupport.isCypher5SyntaxCompatible();
 		}
+
 	}
+
 }

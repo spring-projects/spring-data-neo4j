@@ -23,20 +23,19 @@ import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Relationship;
 
-/**
- * @soundtrack Guns n' Roses - Appetite For Destruction
- */
 @Node
 public class Partner {
 
-	@Id
-	@GeneratedValue
-	private Long id;
 	private final String code;
+
 	private final String name;
 
 	@Relationship(type = "CHILD_ORGANISATIONS")
 	private final List<Organisation> organisations;
+
+	@Id
+	@GeneratedValue
+	private Long id;
 
 	public Partner(String code, String name, List<Organisation> organisations) {
 		this.code = code;
@@ -55,27 +54,26 @@ public class Partner {
 	}
 
 	public Long getId() {
-		return id;
+		return this.id;
 	}
 
 	public String getCode() {
-		return code;
+		return this.code;
 	}
 
 	public String getName() {
-		return name;
+		return this.name;
 	}
 
 	public List<Organisation> getOrganisations() {
-		return organisations == null ? Collections.emptyList() : Collections.unmodifiableList(organisations);
+		return (this.organisations != null) ? Collections.unmodifiableList(this.organisations)
+				: Collections.emptyList();
 	}
 
-	@Override public String toString() {
-		return "Partner{" +
-			   "id=" + id +
-			   ", code='" + code + '\'' +
-			   ", name='" + name + '\'' +
-			   ", organisations=" + organisations +
-			   '}';
+	@Override
+	public String toString() {
+		return "Partner{" + "id=" + this.id + ", code='" + this.code + '\'' + ", name='" + this.name + '\''
+				+ ", organisations=" + this.organisations + '}';
 	}
+
 }

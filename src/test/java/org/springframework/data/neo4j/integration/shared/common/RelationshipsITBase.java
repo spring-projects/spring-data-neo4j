@@ -19,6 +19,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.Transaction;
+
 import org.springframework.data.neo4j.test.BookmarkCapture;
 import org.springframework.data.neo4j.test.Neo4jExtension;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
@@ -32,6 +33,7 @@ public abstract class RelationshipsITBase {
 	protected static Neo4jExtension.Neo4jConnectionSupport neo4jConnectionSupport;
 
 	protected final Driver driver;
+
 	private final BookmarkCapture bookmarkCapture;
 
 	protected RelationshipsITBase(Driver driver, BookmarkCapture bookmarkCapture) {
@@ -41,10 +43,12 @@ public abstract class RelationshipsITBase {
 
 	@BeforeEach
 	void setup() {
-		try (Session session = driver.session(bookmarkCapture.createSessionConfig()); Transaction transaction = session.beginTransaction()) {
+		try (Session session = this.driver.session(this.bookmarkCapture.createSessionConfig());
+				Transaction transaction = session.beginTransaction()) {
 			transaction.run("MATCH (n) detach delete n").consume();
 			transaction.commit();
-			bookmarkCapture.seedWith(session.lastBookmarks());
+			this.bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 	}
+
 }

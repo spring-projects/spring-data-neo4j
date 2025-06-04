@@ -16,12 +16,16 @@
 package org.springframework.data.neo4j.aot;
 
 import org.jspecify.annotations.Nullable;
+
 import org.springframework.aot.generate.GenerationContext;
 import org.springframework.core.ResolvableType;
 import org.springframework.data.aot.ManagedTypesBeanRegistrationAotProcessor;
 import org.springframework.util.ClassUtils;
 
 /**
+ * Registered managed types and repositories to be included in AoT (native image)
+ * processing.
+ *
  * @author Gerrit Meier
  * @since 7.0.0
  */
@@ -49,4 +53,5 @@ public final class Neo4jManagedTypesBeanRegistrationAotProcessor extends Managed
 
 		super.contributeType(type, generationContext);
 	}
+
 }

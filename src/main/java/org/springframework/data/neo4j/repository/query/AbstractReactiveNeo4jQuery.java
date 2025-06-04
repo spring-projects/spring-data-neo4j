@@ -23,6 +23,8 @@ import java.util.function.UnaryOperator;
 import org.jspecify.annotations.Nullable;
 import org.neo4j.driver.types.MapAccessor;
 import org.neo4j.driver.types.TypeSystem;
+import reactor.core.publisher.Flux;
+
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.geo.GeoResult;
 import org.springframework.data.neo4j.core.PreparedQuery;
@@ -40,8 +42,6 @@ import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.data.util.TypeInformation;
 import org.springframework.util.Assert;
 
-import reactor.core.publisher.Flux;
-
 /**
  * Base class for {@link RepositoryQuery} implementations for Neo4j.
  *
@@ -52,10 +52,11 @@ import reactor.core.publisher.Flux;
 abstract class AbstractReactiveNeo4jQuery extends Neo4jQuerySupport implements RepositoryQuery {
 
 	protected final ReactiveNeo4jOperations neo4jOperations;
+
 	private ProjectionFactory factory;
 
 	AbstractReactiveNeo4jQuery(ReactiveNeo4jOperations neo4jOperations, Neo4jMappingContext mappingContext,
-							   Neo4jQueryMethod queryMethod, Neo4jQueryType queryType, ProjectionFactory factory) {
+			Neo4jQueryMethod queryMethod, Neo4jQueryType queryType, ProjectionFactory factory) {
 
 		super(mappingContext, queryMethod, queryType);
 
@@ -69,11 +70,8 @@ abstract class AbstractReactiveNeo4jQuery extends Neo4jQuerySupport implements R
 		return this.queryMethod;
 	}
 
-	/**
-	 * {@return whether the query is a geo near query}
-	 */
 	boolean isGeoNearQuery() {
-		var repositoryMethod = queryMethod.getMethod();
+		var repositoryMethod = this.queryMethod.getMethod();
 		Class<?> returnType = repositoryMethod.getReturnType();
 
 		for (Class<?> type : Neo4jQueryMethod.GEO_NEAR_RESULTS) {
@@ -92,43 +90,49 @@ abstract class AbstractReactiveNeo4jQuery extends Neo4jQuerySupport implements R
 	}
 
 	@Override
-	@Nullable
-	public final Object execute(Object[] parameters) {
+	@Nullable public final Object execute(Object[] parameters) {
 
-		boolean incrementLimit = queryMethod.incrementLimit();
+		boolean incrementLimit = this.queryMethod.incrementLimit();
 		boolean geoNearQuery = isGeoNearQuery();
-		Neo4jParameterAccessor parameterAccessor = new Neo4jParameterAccessor((Neo4jQueryMethod.Neo4jParameters) this.queryMethod.getParameters(), parameters);
-		ResultProcessor resultProcessor = queryMethod.getResultProcessor().withDynamicProjection(parameterAccessor);
+		Neo4jParameterAccessor parameterAccessor = new Neo4jParameterAccessor(
+				(Neo4jQueryMethod.Neo4jParameters) this.queryMethod.getParameters(), parameters);
+		ResultProcessor resultProcessor = this.queryMethod.getResultProcessor()
+			.withDynamicProjection(parameterAccessor);
 
 		ReturnedType returnedType = resultProcessor.getReturnedType();
 		PreparedQuery<?> preparedQuery = prepareQuery(returnedType.getReturnedType(),
-				PropertyFilterSupport.getInputProperties(resultProcessor, factory, mappingContext), parameterAccessor,
-				null, getMappingFunction(resultProcessor, geoNearQuery), incrementLimit ? l -> l + 1 : UnaryOperator.identity());
+				PropertyFilterSupport.getInputProperties(resultProcessor, this.factory, this.mappingContext),
+				parameterAccessor, null, getMappingFunction(resultProcessor, geoNearQuery),
+				incrementLimit ? l -> l + 1 : UnaryOperator.identity());
 
-		Object rawResult = new Neo4jQueryExecution.ReactiveQueryExecution(neo4jOperations).execute(preparedQuery,
-				queryMethod.asCollectionQuery());
+		Object rawResult = new Neo4jQueryExecution.ReactiveQueryExecution(this.neo4jOperations).execute(preparedQuery,
+				this.queryMethod.asCollectionQuery());
 
 		Converter<Object, Object> preparingConverter = OptionalUnwrappingConverter.INSTANCE;
 		if (returnedType.isProjecting()) {
-			DtoInstantiatingConverter converter = new DtoInstantiatingConverter(returnedType.getReturnedType(), mappingContext);
+			DtoInstantiatingConverter converter = new DtoInstantiatingConverter(returnedType.getReturnedType(),
+					this.mappingContext);
 
-			// Neo4jQuerySupport ensure we will get an EntityInstanceWithSource in the projecting case
+			// Neo4jQuerySupport ensure we will get an EntityInstanceWithSource in the
+			// projecting case
 			preparingConverter = source -> {
 				var intermediate = (EntityInstanceWithSource) OptionalUnwrappingConverter.INSTANCE.convert(source);
-				return (intermediate == null) ? null : converter.convert(intermediate);
+				return (intermediate != null) ? converter.convert(intermediate) : null;
 			};
 		}
 
-		if (queryMethod.isScrollQuery()) {
-			rawResult = ((Flux<?>) rawResult).collectList().map(rawResultList ->
-					createWindow(resultProcessor, incrementLimit, parameterAccessor, rawResultList, preparedQuery.getQueryFragmentsAndParameters()));
+		if (this.queryMethod.isScrollQuery()) {
+			rawResult = ((Flux<?>) rawResult).collectList()
+				.map(rawResultList -> createWindow(resultProcessor, incrementLimit, parameterAccessor, rawResultList,
+						preparedQuery.getQueryFragmentsAndParameters()));
 		}
 
 		return resultProcessor.processResult(rawResult, preparingConverter);
 	}
 
 	protected abstract <T extends Object> PreparedQuery<T> prepareQuery(Class<T> returnedType,
-				Collection<PropertyFilter.ProjectedPath> includedProperties, Neo4jParameterAccessor parameterAccessor,
-				@Nullable Neo4jQueryType queryType, Supplier<BiFunction<TypeSystem, MapAccessor, ?>> mappingFunction,
-				UnaryOperator<Integer> limitModifier);
+			Collection<PropertyFilter.ProjectedPath> includedProperties, Neo4jParameterAccessor parameterAccessor,
+			@Nullable Neo4jQueryType queryType, Supplier<BiFunction<TypeSystem, MapAccessor, ?>> mappingFunction,
+			UnaryOperator<Integer> limitModifier);
+
 }

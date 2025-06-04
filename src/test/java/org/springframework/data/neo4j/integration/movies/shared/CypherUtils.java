@@ -27,6 +27,9 @@ import org.neo4j.driver.Session;
  */
 public final class CypherUtils {
 
+	private CypherUtils() {
+	}
+
 	public static void loadCypherFromResource(String resource, Session session) throws IOException {
 		try (BufferedReader moviesReader = new BufferedReader(
 				new InputStreamReader(CypherUtils.class.getResourceAsStream(resource)))) {
@@ -36,6 +39,4 @@ public final class CypherUtils {
 		}
 	}
 
-	private CypherUtils() {
-	}
 }

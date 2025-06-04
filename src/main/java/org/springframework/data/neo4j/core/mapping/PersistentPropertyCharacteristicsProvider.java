@@ -15,21 +15,24 @@
  */
 package org.springframework.data.neo4j.core.mapping;
 
-import static org.apiguardian.api.API.Status.STABLE;
-
 import java.util.function.BiFunction;
 
 import org.apiguardian.api.API;
+
 import org.springframework.data.mapping.model.Property;
 
+import static org.apiguardian.api.API.Status.STABLE;
+
 /**
- * An instance of such a provider can be registered as a Spring bean and will be consulted by the {@link Neo4jMappingContext}
- * prior to creating and populating {@link Neo4jPersistentProperty persistent properties}.
+ * An instance of such a provider can be registered as a Spring bean and will be consulted
+ * by the {@link Neo4jMappingContext} prior to creating and populating
+ * {@link Neo4jPersistentProperty persistent properties}.
  *
  * @author Michael J. Simons
- * @soundtrack Metallica - Kill 'Em All
  * @since 6.3.7
  */
 @API(status = STABLE, since = "6.3.7")
-public interface PersistentPropertyCharacteristicsProvider extends BiFunction<Property, Neo4jPersistentEntity<?>, PersistentPropertyCharacteristics> {
+public interface PersistentPropertyCharacteristicsProvider
+		extends BiFunction<Property, Neo4jPersistentEntity<?>, PersistentPropertyCharacteristics> {
+
 }

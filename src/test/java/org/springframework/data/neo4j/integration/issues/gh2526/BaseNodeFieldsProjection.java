@@ -21,4 +21,5 @@ package org.springframework.data.neo4j.integration.issues.gh2526;
 public interface BaseNodeFieldsProjection {
 
 	String getNodeId();
+
 }

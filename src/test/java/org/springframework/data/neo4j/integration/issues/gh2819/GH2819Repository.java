@@ -23,4 +23,5 @@ import org.springframework.data.neo4j.repository.Neo4jRepository;
 public interface GH2819Repository extends Neo4jRepository<GH2819Model.ChildA, String> {
 
 	GH2819Model.ChildAProjection findById(String id, Class<?> projectionClass);
+
 }

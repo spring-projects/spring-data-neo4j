@@ -1,19 +1,22 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
- | Copyright 2011-2025 the original author or authors.
- |
- | Licensed under the Apache License, Version 2.0 (the "License");
- | you may not use this file except in compliance with the License.
- | You may obtain a copy of the License at
- |
- |     https://www.apache.org/licenses/LICENSE-2.0
- |
- | Unless required by applicable law or agreed to in writing, software
- | distributed under the License is distributed on an "AS IS" BASIS,
- | WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- | See the License for the specific language governing permissions and
- | limitations under the License.
---><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    Copyright 2011-2025 the original author or authors.
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+         https://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
@@ -73,7 +76,7 @@
 		<archunit.version>0.23.1</archunit.version>
 		<blockhound.version>1.0.8.RELEASE</blockhound.version>
 		<checkstyle.skip>${skipTests}</checkstyle.skip>
-		<checkstyle.version>8.40</checkstyle.version>
+		<checkstyle.version>10.20.1</checkstyle.version>
 		<cypher-dsl.version>2024.5.1</cypher-dsl.version>
 		<dist.id>spring-data-neo4j</dist.id>
 		<dist.key>SDNEO4J</dist.key>
@@ -89,6 +92,8 @@
 		<jsr305.version>3.0.2</jsr305.version>
 		<junit-cc-testcontainer>2021.0.1</junit-cc-testcontainer>
 		<junit-pioneer.version>2.2.0</junit-pioneer.version>
+		<license-maven-plugin.version>5.0.0</license-maven-plugin.version>
+		<maven-checkstyle-plugin.version>3.6.0</maven-checkstyle-plugin.version>
 		<maven-install-plugin.version>3.1.4</maven-install-plugin.version>
 		<maven-site-plugin.version>3.7.1</maven-site-plugin.version>
 		<maven.compiler.release>${java.version}</maven.compiler.release>
@@ -103,14 +108,35 @@
 		<reactive-streams.version>1.2.1</reactive-streams.version>
 		<skipArchitectureTests>true</skipArchitectureTests>
 		<skipIntegrationTests>${skipTests}</skipIntegrationTests>
-
 		<skipUnitTests>${skipTests}</skipUnitTests>
-
+		<sortpom-maven-plugin.version>4.0.0</sortpom-maven-plugin.version>
+		<spring-javaformat.version>0.0.46</spring-javaformat.version>
 		<springdata.commons>4.0.0-SNAPSHOT</springdata.commons>
 	</properties>
 
 	<dependencyManagement>
 		<dependencies>
+			<dependency>
+				<groupId>io.r2dbc</groupId>
+				<artifactId>r2dbc-bom</artifactId>
+				<version>${r2dbc.releasetrain}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.neo4j</groupId>
+				<artifactId>neo4j-cypher-dsl-bom</artifactId>
+				<version>${cypher-dsl.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.testcontainers</groupId>
+				<artifactId>testcontainers-bom</artifactId>
+				<version>${testcontainers}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
 			<dependency>
 				<groupId>com.google.code.findbugs</groupId>
 				<artifactId>jsr305</artifactId>
@@ -122,22 +148,9 @@
 				<version>${archunit.version}</version>
 			</dependency>
 			<dependency>
-				<groupId>eu.michael-simons.neo4j</groupId>
-				<artifactId>junit-jupiter-causal-cluster-testcontainer-extension</artifactId>
-				<version>${junit-cc-testcontainer}</version>
-				<scope>test</scope>
-			</dependency>
-			<dependency>
 				<groupId>io.projectreactor.tools</groupId>
 				<artifactId>blockhound</artifactId>
 				<version>${blockhound.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>io.r2dbc</groupId>
-				<artifactId>r2dbc-bom</artifactId>
-				<version>${r2dbc.releasetrain}</version>
-				<type>pom</type>
-				<scope>import</scope>
 			</dependency>
 			<dependency>
 				<groupId>io.reactivex.rxjava2</groupId>
@@ -148,12 +161,6 @@
 				<groupId>jakarta.interceptor</groupId>
 				<artifactId>jakarta.interceptor-api</artifactId>
 				<version>${jakarta.interceptor-api.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>javax.xml.bind</groupId>
-				<artifactId>jaxb-api</artifactId>
-				<version>${jaxb.version}</version>
-				<scope>provided</scope>
 			</dependency>
 			<dependency>
 				<groupId>net.java.dev.jna</groupId>
@@ -179,13 +186,6 @@
 				<groupId>org.neo4j</groupId>
 				<artifactId>neo4j</artifactId>
 				<version>${neo4j.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.neo4j</groupId>
-				<artifactId>neo4j-cypher-dsl-bom</artifactId>
-				<version>${cypher-dsl.version}</version>
-				<type>pom</type>
-				<scope>import</scope>
 			</dependency>
 			<dependency>
 				<groupId>org.neo4j.driver</groupId>
@@ -218,107 +218,35 @@
 				<version>${springdata.commons}</version>
 			</dependency>
 			<dependency>
-				<groupId>org.testcontainers</groupId>
-				<artifactId>testcontainers-bom</artifactId>
-				<version>${testcontainers}</version>
-				<type>pom</type>
-				<scope>import</scope>
+				<groupId>javax.xml.bind</groupId>
+				<artifactId>jaxb-api</artifactId>
+				<version>${jaxb.version}</version>
+				<scope>provided</scope>
+			</dependency>
+			<dependency>
+				<groupId>eu.michael-simons.neo4j</groupId>
+				<artifactId>junit-jupiter-causal-cluster-testcontainer-extension</artifactId>
+				<version>${junit-cc-testcontainer}</version>
+				<scope>test</scope>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
 
 	<dependencies>
 		<dependency>
-			<groupId>com.fasterxml.jackson.core</groupId>
-			<artifactId>jackson-databind</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<!-- Including this explicitly in test scope makes
-			[WARNING] unknown enum constant When.MAYBE
-			[WARNING]   reason: class file for javax.annotation.meta.When not found
-			go away
-			-->
-			<groupId>com.google.code.findbugs</groupId>
-			<artifactId>jsr305</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.querydsl</groupId>
-			<artifactId>querydsl-core</artifactId>
-			<version>${querydsl}</version>
-			<scope>provided</scope>
-			<exclusions>
-				<exclusion>
-					<artifactId>annotations</artifactId>
-					<groupId>org.jetbrains</groupId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-		<dependency>
-			<groupId>com.tngtech.archunit</groupId>
-			<artifactId>archunit</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>eu.michael-simons.neo4j</groupId>
-			<artifactId>junit-jupiter-causal-cluster-testcontainer-extension</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>eu.michael-simons.neo4j</groupId>
-			<artifactId>neo4j-migrations</artifactId>
-			<version>${neo4j-migrations.version}</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>io.mockk</groupId>
-			<artifactId>mockk-jvm</artifactId>
-			<version>${mockk}</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
 			<groupId>io.projectreactor</groupId>
 			<artifactId>reactor-core</artifactId>
 			<optional>true</optional>
-		</dependency>
-		<dependency>
-			<groupId>io.projectreactor</groupId>
-			<artifactId>reactor-test</artifactId>
-			<scope>test</scope>
-			<optional>true</optional>
-		</dependency>
-		<dependency>
-			<groupId>io.projectreactor.tools</groupId>
-			<artifactId>blockhound</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>io.r2dbc</groupId>
-			<artifactId>r2dbc-h2</artifactId>
-			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>io.reactivex.rxjava2</groupId>
 			<artifactId>rxjava</artifactId>
 			<optional>true</optional>
 		</dependency>
-
-		<dependency>
-			<groupId>jakarta.enterprise</groupId>
-			<artifactId>jakarta.enterprise.cdi-api</artifactId>
-			<scope>provided</scope>
-		</dependency>
 		<dependency>
 			<groupId>jakarta.transaction</groupId>
 			<artifactId>jakarta.transaction-api</artifactId>
 			<version>${jakarta.transaction-api.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.openwebbeans</groupId>
-			<artifactId>openwebbeans-se</artifactId>
-			<version>${webbeans}</version>
-			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.apiguardian</groupId>
@@ -332,13 +260,13 @@
 		<dependency>
 			<groupId>org.jetbrains.kotlin</groupId>
 			<artifactId>kotlin-stdlib</artifactId>
+			<optional>true</optional>
 			<exclusions>
 				<exclusion>
-					<artifactId>annotations</artifactId>
 					<groupId>org.jetbrains</groupId>
+					<artifactId>annotations</artifactId>
 				</exclusion>
 			</exclusions>
-			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>org.jetbrains.kotlin</groupId>
@@ -354,11 +282,6 @@
 			<groupId>org.jetbrains.kotlinx</groupId>
 			<artifactId>kotlinx-coroutines-reactor</artifactId>
 			<optional>true</optional>
-		</dependency>
-		<dependency>
-			<groupId>org.junit-pioneer</groupId>
-			<artifactId>junit-pioneer</artifactId>
-			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.neo4j</groupId>
@@ -393,6 +316,88 @@
 			<artifactId>spring-data-commons</artifactId>
 		</dependency>
 		<dependency>
+			<groupId>com.querydsl</groupId>
+			<artifactId>querydsl-core</artifactId>
+			<version>${querydsl}</version>
+			<scope>provided</scope>
+			<exclusions>
+				<exclusion>
+					<groupId>org.jetbrains</groupId>
+					<artifactId>annotations</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<dependency>
+			<groupId>jakarta.enterprise</groupId>
+			<artifactId>jakarta.enterprise.cdi-api</artifactId>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<!-- Including this explicitly in test scope makes
+			[WARNING] unknown enum constant When.MAYBE
+			[WARNING]   reason: class file for javax.annotation.meta.When not found
+			go away
+			-->
+			<groupId>com.google.code.findbugs</groupId>
+			<artifactId>jsr305</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.tngtech.archunit</groupId>
+			<artifactId>archunit</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>eu.michael-simons.neo4j</groupId>
+			<artifactId>junit-jupiter-causal-cluster-testcontainer-extension</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>eu.michael-simons.neo4j</groupId>
+			<artifactId>neo4j-migrations</artifactId>
+			<version>${neo4j-migrations.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>io.mockk</groupId>
+			<artifactId>mockk-jvm</artifactId>
+			<version>${mockk}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>io.projectreactor</groupId>
+			<artifactId>reactor-test</artifactId>
+			<scope>test</scope>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>io.projectreactor.tools</groupId>
+			<artifactId>blockhound</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>io.r2dbc</groupId>
+			<artifactId>r2dbc-h2</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.openwebbeans</groupId>
+			<artifactId>openwebbeans-se</artifactId>
+			<version>${webbeans}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.junit-pioneer</groupId>
+			<artifactId>junit-pioneer</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
 			<groupId>org.springframework.data</groupId>
 			<artifactId>spring-data-r2dbc</artifactId>
 			<version>1.1.0.RELEASE</version>
@@ -404,8 +409,8 @@
 			<scope>test</scope>
 			<exclusions>
 				<exclusion>
-					<artifactId>annotations</artifactId>
 					<groupId>org.jetbrains</groupId>
+					<artifactId>annotations</artifactId>
 				</exclusion>
 			</exclusions>
 		</dependency>
@@ -421,16 +426,16 @@
 			<!-- Exclusion because there is a Spring Data parent dependency to a newer JUnit version -->
 			<exclusions>
 				<exclusion>
-					<artifactId>junit</artifactId>
 					<groupId>junit</groupId>
+					<artifactId>junit</artifactId>
 				</exclusion>
 				<exclusion>
-					<artifactId>annotations</artifactId>
 					<groupId>org.jetbrains</groupId>
+					<artifactId>annotations</artifactId>
 				</exclusion>
 				<exclusion>
-					<artifactId>lombok</artifactId>
 					<groupId>org.projectlombok</groupId>
+					<artifactId>lombok</artifactId>
 				</exclusion>
 			</exclusions>
 		</dependency>
@@ -459,24 +464,82 @@
 				<plugin>
 					<groupId>com.github.ekryd.sortpom</groupId>
 					<artifactId>sortpom-maven-plugin</artifactId>
-					<version>2.12.0</version>
-					<executions>
-						<execution>
-							<phase>verify</phase>
-							<goals>
-								<goal>sort</goal>
-							</goals>
-						</execution>
-					</executions>
+					<version>${sortpom-maven-plugin.version}</version>
 					<configuration>
 						<encoding>${project.build.sourceEncoding}</encoding>
 						<keepBlankLines>true</keepBlankLines>
 						<nrOfIndentSpace>-1</nrOfIndentSpace>
 						<sortProperties>true</sortProperties>
-						<sortDependencies>groupId,artifactId</sortDependencies>
+						<sortDependencies>scope,groupId,artifactId</sortDependencies>
 						<createBackupFile>false</createBackupFile>
 						<expandEmptyElements>false</expandEmptyElements>
+						<verifyFail>stop</verifyFail>
+						<verifyFailOn>strict</verifyFailOn>
+						<spaceBeforeCloseEmptyElement>true</spaceBeforeCloseEmptyElement>
+						<pomFile>pom.xml</pomFile>
 					</configuration>
+				</plugin>
+				<plugin>
+					<groupId>com.mycila</groupId>
+					<artifactId>license-maven-plugin</artifactId>
+					<version>${license-maven-plugin.version}</version>
+					<configuration>
+						<licenseSets>
+							<licenseSet>
+								<header>${project.basedir}/etc/license.tpl</header>
+								<properties>
+									<year>2025</year>
+								</properties>
+								<includes>
+									<include>**</include>
+								</includes>
+								<excludes>
+									<exclude>**/*.adoc</exclude>
+									<exclude>**/*.cypher</exclude>
+									<exclude>**/*.tpl</exclude>
+									<exclude>**/aot.factories</exclude>
+									<exclude>**/Jenkinsfile</exclude>
+									<exclude>**/license.txt</exclude>
+									<exclude>**/LICENSE.txt</exclude>
+									<exclude>**/notice.txt</exclude>
+									<exclude>**/org.mockito.plugins.MockMaker</exclude>
+									<exclude>**/spring.tooling</exclude>
+								</excludes>
+							</licenseSet>
+						</licenseSets>
+					</configuration>
+				</plugin>
+				<plugin>
+					<groupId>io.spring.javaformat</groupId>
+					<artifactId>spring-javaformat-maven-plugin</artifactId>
+					<version>${spring-javaformat.version}</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-checkstyle-plugin</artifactId>
+					<version>${maven-checkstyle-plugin.version}</version>
+					<configuration>
+						<excludes>**/module-info.java</excludes>
+						<includeTestSourceDirectory>true</includeTestSourceDirectory>
+						<configLocation>etc/checkstyle/config.xml</configLocation>
+						<suppressionsLocation>etc/checkstyle/suppressions.xml</suppressionsLocation>
+						<inputEncoding>${project.build.sourceEncoding}</inputEncoding>
+						<consoleOutput>true</consoleOutput>
+						<failsOnError>true</failsOnError>
+						<includeTestSourceDirectory>true</includeTestSourceDirectory>
+					</configuration>
+					<dependencies>
+						<dependency>
+							<groupId>com.puppycrawl.tools</groupId>
+							<artifactId>checkstyle</artifactId>
+							<version>${checkstyle.version}</version>
+						</dependency>
+						<dependency>
+							<groupId>io.spring.javaformat</groupId>
+							<artifactId>spring-javaformat-checkstyle</artifactId>
+							<version>${spring-javaformat.version}</version>
+						</dependency>
+					</dependencies>
 				</plugin>
 				<plugin>
 					<groupId>org.jacoco</groupId>
@@ -497,43 +560,56 @@
 		</pluginManagement>
 		<plugins>
 			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-assembly-plugin</artifactId>
+				<groupId>com.github.ekryd.sortpom</groupId>
+				<artifactId>sortpom-maven-plugin</artifactId>
+				<executions>
+					<execution>
+						<goals>
+							<goal>verify</goal>
+						</goals>
+						<phase>validate</phase>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>com.mycila</groupId>
+				<artifactId>license-maven-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>validate</id>
+						<goals>
+							<goal>check</goal>
+						</goals>
+						<phase>validate</phase>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>io.spring.javaformat</groupId>
+				<artifactId>spring-javaformat-maven-plugin</artifactId>
+				<executions>
+					<execution>
+						<goals>
+							<goal>validate</goal>
+						</goals>
+						<phase>validate</phase>
+						<inherited>true</inherited>
+					</execution>
+				</executions>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-checkstyle-plugin</artifactId>
 				<executions>
 					<execution>
-						<id>verify</id>
-						<phase>verify</phase>
+						<id>checkstyle-validation</id>
 						<goals>
 							<goal>check</goal>
 						</goals>
+						<phase>validate</phase>
+						<inherited>true</inherited>
 					</execution>
 				</executions>
-				<configuration combine.self="override">
-					<configLocation>${project.basedir}/etc/checkstyle/config.xml</configLocation>
-					<suppressionsLocation>${project.basedir}/etc/checkstyle/suppressions.xml</suppressionsLocation>
-					<headerLocation>${project.basedir}/etc/checkstyle/java-header.txt</headerLocation>
-					<encoding>${project.build.sourceEncoding}</encoding>
-					<consoleOutput>true</consoleOutput>
-					<failsOnError>true</failsOnError>
-					<includeTestSourceDirectory>true</includeTestSourceDirectory>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-javadoc-plugin</artifactId>
-				<configuration combine.self="append">
-					<tags>
-						<tag>
-							<name>soundtrack</name>
-							<placement>X</placement>
-							<head>Soundtrack</head>
-						</tag>
-					</tags>
-				</configuration>
 			</plugin>
 			<plugin>
 				<groupId>org.jacoco</groupId>
@@ -571,10 +647,10 @@
 				<executions>
 					<execution>
 						<id>enforce</id>
-						<phase>validate</phase>
 						<goals>
 							<goal>enforce</goal>
 						</goals>
+						<phase>validate</phase>
 						<configuration>
 							<rules>
 								<requireMavenVersion>
@@ -601,6 +677,9 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-failsafe-plugin</artifactId>
+				<configuration>
+					<skipTests>${skipIntegrationTests}</skipTests>
+				</configuration>
 				<executions>
 					<execution>
 						<goals>
@@ -609,33 +688,30 @@
 						</goals>
 					</execution>
 				</executions>
-				<configuration>
-					<skipTests>${skipIntegrationTests}</skipTests>
-				</configuration>
 			</plugin>
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>flatten-maven-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>flatten</id>
-						<phase>process-resources</phase>
-						<goals>
-							<goal>flatten</goal>
-						</goals>
-					</execution>
-					<execution>
-						<id>flatten.clean</id>
-						<phase>clean</phase>
-						<goals>
-							<goal>clean</goal>
-						</goals>
-					</execution>
-				</executions>
 				<configuration>
 					<updatePomFile>true</updatePomFile>
 					<flattenMode>resolveCiFriendliesOnly</flattenMode>
 				</configuration>
+				<executions>
+					<execution>
+						<id>flatten</id>
+						<goals>
+							<goal>flatten</goal>
+						</goals>
+						<phase>process-resources</phase>
+					</execution>
+					<execution>
+						<id>flatten.clean</id>
+						<goals>
+							<goal>clean</goal>
+						</goals>
+						<phase>clean</phase>
+					</execution>
+				</executions>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -709,6 +785,25 @@
 					</plugin>
 				</plugins>
 			</build>
+		</profile>
+		<profile>
+			<id>fast</id>
+			<activation>
+				<property>
+					<name>fast</name>
+				</property>
+			</activation>
+			<properties>
+				<asciidoctor.skip>true</asciidoctor.skip>
+				<checkstyle.skip>true</checkstyle.skip>
+				<docker.skip>true</docker.skip>
+				<jacoco.skip>true</jacoco.skip>
+				<license.skip>true</license.skip>
+				<maven.javadoc.skip>true</maven.javadoc.skip>
+				<skipTests>true</skipTests>
+				<sort.skip>true</sort.skip>
+				<spring-javaformat.skip>true</spring-javaformat.skip>
+			</properties>
 		</profile>
 	</profiles>
 

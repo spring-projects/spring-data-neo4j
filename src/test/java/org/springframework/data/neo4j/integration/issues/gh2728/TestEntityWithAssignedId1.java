@@ -42,10 +42,11 @@ public class TestEntityWithAssignedId1 {
 	}
 
 	public String getAssignedId() {
-		return assignedId;
+		return this.assignedId;
 	}
 
 	public TestEntityWithAssignedId2 getRelatedEntity() {
-		return relatedEntity;
+		return this.relatedEntity;
 	}
+
 }

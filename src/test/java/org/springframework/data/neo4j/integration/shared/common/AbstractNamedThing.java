@@ -18,15 +18,16 @@ package org.springframework.data.neo4j.integration.shared.common;
 /**
  * @author Michael J. Simons
  */
-abstract class AbstractNamedThing {
+public abstract class AbstractNamedThing {
 
 	private String name;
 
 	public String getName() {
-		return name;
+		return this.name;
 	}
 
 	public void setName(String name) {
 		this.name = name;
 	}
+
 }

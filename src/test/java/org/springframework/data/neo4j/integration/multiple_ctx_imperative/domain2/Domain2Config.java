@@ -18,6 +18,7 @@ package org.springframework.data.neo4j.integration.multiple_ctx_imperative.domai
 import org.neo4j.driver.AuthTokens;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.GraphDatabase;
+
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -36,15 +37,10 @@ import org.springframework.transaction.PlatformTransactionManager;
 
 /**
  * @author Michael J. Simons
- * @soundtrack Kelis - Tasty
  */
 @Configuration(proxyBeanMethods = false)
-@EnableNeo4jRepositories(
-		basePackageClasses = Domain2Config.class,
-		neo4jMappingContextRef = "domain2Context",
-		neo4jTemplateRef = "domain2Template",
-		transactionManagerRef = "domain2Manager"
-)
+@EnableNeo4jRepositories(basePackageClasses = Domain2Config.class, neo4jMappingContextRef = "domain2Context",
+		neo4jTemplateRef = "domain2Template", transactionManagerRef = "domain2Manager")
 public class Domain2Config {
 
 	@Bean
@@ -60,19 +56,15 @@ public class Domain2Config {
 	}
 
 	@Bean
-	public Neo4jOperations domain2Template(
-			@Qualifier("domain2Client") Neo4jClient domain2Client,
+	public Neo4jOperations domain2Template(@Qualifier("domain2Client") Neo4jClient domain2Client,
 			@Qualifier("domain2Context") Neo4jMappingContext domain2Context,
-			@Qualifier("domain2Manager") PlatformTransactionManager domain2TransactionManager
-	) {
+			@Qualifier("domain2Manager") PlatformTransactionManager domain2TransactionManager) {
 		return new Neo4jTemplate(domain2Client, domain2Context, domain2TransactionManager);
 	}
 
 	@Bean
-	public PlatformTransactionManager domain2Manager(
-			@Qualifier("domain2Driver") Driver driver,
-			@Qualifier("domain2Selection") DatabaseSelectionProvider domain2Selection
-	) {
+	public PlatformTransactionManager domain2Manager(@Qualifier("domain2Driver") Driver driver,
+			@Qualifier("domain2Selection") DatabaseSelectionProvider domain2Selection) {
 		return new Neo4jTransactionManager(driver, domain2Selection);
 	}
 
@@ -88,4 +80,5 @@ public class Domain2Config {
 		context.setStrict(true);
 		return context;
 	}
+
 }

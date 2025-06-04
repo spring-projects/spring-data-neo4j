@@ -30,6 +30,9 @@ public interface PersonSummary {
 	 * nested projection
 	 */
 	interface AddressSummary {
+
 		String getCity();
+
 	}
+
 }

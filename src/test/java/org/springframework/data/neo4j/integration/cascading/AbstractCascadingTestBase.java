@@ -15,8 +15,6 @@
  */
 package org.springframework.data.neo4j.integration.cascading;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,14 +22,17 @@ import java.util.Map;
 import org.junit.jupiter.api.BeforeAll;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.types.TypeSystem;
+
 import org.springframework.beans.factory.annotation.Autowired;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 abstract class AbstractCascadingTestBase {
 
+	static Map<Class<? extends Parent>, String> EXISTING_IDS = new HashMap<>();
+
 	@Autowired
 	Driver driver;
-
-	static Map<Class<? extends Parent>, String> EXISTING_IDS = new HashMap<>();
 
 	@BeforeAll
 	static void clean(@Autowired Driver driver) {
@@ -76,52 +77,55 @@ abstract class AbstractCascadingTestBase {
 		}
 	}
 
-
 	<T extends Parent> void assertAllRelationshipsHaveBeenCreated(T instance) {
 
 		var type = instance.getClass();
-		try (var session = driver.session()) {
-			var result = session.run("""
-							MATCH (p:%s WHERE %s)
-							MATCH (p) -[:HAS_SINGLE_CUI]-> (sCUI)
-							MATCH (p) -[:HAS_SINGLE_CUE]-> (sCUE)
-							MATCH (p) -[:HAS_MANY_CUI]->   (mCUI)
-							MATCH (p) -[:HAS_SINGLE_CVI]-> (sCVI {version: 0})
-							MATCH (p) -[:HAS_SINGLE_CVE]-> (sCVE {version: 0})
-							MATCH (p) -[:HAS_MANY_CVI]->    (mCVI {version: 0})
-							MATCH (sCUI) -[:HAS_NESTED_CHILDREN]-> (nc1)
-							MATCH (mCUI) -[:HAS_NESTED_CHILDREN]-> (nc2)
-							RETURN p, sCUI, sCUE, collect(DISTINCT mCUI) AS mCUI, collect(DISTINCT nc1) AS nc1, collect(DISTINCT nc2) AS nc2,
-							          sCVI, sCVE, collect(DISTINCT mCVI) AS mCVI
-							""".formatted(type.getSimpleName(), instance instanceof ExternalId ? "p.id = $id" : "elementId(p) = $id"), Map.of("id", instance.getId()))
-					.list();
+		try (var session = this.driver.session()) {
+			var result = session
+				.run("""
+						MATCH (p:%s WHERE %s)
+						MATCH (p) -[:HAS_SINGLE_CUI]-> (sCUI)
+						MATCH (p) -[:HAS_SINGLE_CUE]-> (sCUE)
+						MATCH (p) -[:HAS_MANY_CUI]->   (mCUI)
+						MATCH (p) -[:HAS_SINGLE_CVI]-> (sCVI {version: 0})
+						MATCH (p) -[:HAS_SINGLE_CVE]-> (sCVE {version: 0})
+						MATCH (p) -[:HAS_MANY_CVI]->    (mCVI {version: 0})
+						MATCH (sCUI) -[:HAS_NESTED_CHILDREN]-> (nc1)
+						MATCH (mCUI) -[:HAS_NESTED_CHILDREN]-> (nc2)
+						RETURN p, sCUI, sCUE, collect(DISTINCT mCUI) AS mCUI, collect(DISTINCT nc1) AS nc1, collect(DISTINCT nc2) AS nc2,
+						          sCVI, sCVE, collect(DISTINCT mCVI) AS mCVI
+						"""
+					.formatted(type.getSimpleName(),
+							(instance instanceof ExternalId) ? "p.id = $id" : "elementId(p) = $id"),
+						Map.of("id", instance.getId()))
+				.list();
 
-			assertThat(result).hasSize(1).element(0)
-					.satisfies(r -> {
-						if (instance instanceof Versioned) {
-							assertThat(r.get("p").asNode().get("version").asLong()).isZero();
-						}
-						if (instance instanceof ExternalId) {
-							assertThat(r.get("p").asNode().get("id").asString()).isEqualTo(instance.getId());
-						} else {
-							assertThat(r.get("p").asNode().elementId()).isEqualTo(instance.getId());
-						}
-						assertThat(r.get("sCUI").hasType(TypeSystem.getDefault().NODE())).isTrue();
-						assertThat(r.get("sCUE").hasType(TypeSystem.getDefault().NODE())).isTrue();
-						assertThat(r.get("mCUI").asList(v -> v.asNode().get("name").asString()))
-								.containsExactlyInAnyOrder("Parent.cUI1", "Parent.cUI2");
-						assertThat(r.get("nc1").asList(v -> v.asNode().get("name").asString()))
-								.containsExactlyInAnyOrder("Parent.singleCUI.cc1", "Parent.singleCUI.cc2");
-						assertThat(r.get("nc2").asList(v -> v.asNode().get("name").asString()))
-								.containsExactlyInAnyOrder("Parent.cUI1.cc1", "Parent.cUI1.cc2", "Parent.cUI2.cc1", "Parent.cUI2.cc2");
-						assertThat(r.get("sCVI").asNode().get("version").asLong()).isZero();
-						assertThat(r.get("sCVE").asNode().get("version").asLong()).isZero();
-						assertThat(r.get("mCVI").asList(v -> {
-							var node = v.asNode();
-							return node.get("name").asString() + "." + node.get("version").asLong();
-						}))
-								.containsExactlyInAnyOrder("Parent.cVI1.0", "Parent.cVI2.0");
-					});
+			assertThat(result).hasSize(1).element(0).satisfies(r -> {
+				if (instance instanceof Versioned) {
+					assertThat(r.get("p").asNode().get("version").asLong()).isZero();
+				}
+				if (instance instanceof ExternalId) {
+					assertThat(r.get("p").asNode().get("id").asString()).isEqualTo(instance.getId());
+				}
+				else {
+					assertThat(r.get("p").asNode().elementId()).isEqualTo(instance.getId());
+				}
+				assertThat(r.get("sCUI").hasType(TypeSystem.getDefault().NODE())).isTrue();
+				assertThat(r.get("sCUE").hasType(TypeSystem.getDefault().NODE())).isTrue();
+				assertThat(r.get("mCUI").asList(v -> v.asNode().get("name").asString()))
+					.containsExactlyInAnyOrder("Parent.cUI1", "Parent.cUI2");
+				assertThat(r.get("nc1").asList(v -> v.asNode().get("name").asString()))
+					.containsExactlyInAnyOrder("Parent.singleCUI.cc1", "Parent.singleCUI.cc2");
+				assertThat(r.get("nc2").asList(v -> v.asNode().get("name").asString())).containsExactlyInAnyOrder(
+						"Parent.cUI1.cc1", "Parent.cUI1.cc2", "Parent.cUI2.cc1", "Parent.cUI2.cc2");
+				assertThat(r.get("sCVI").asNode().get("version").asLong()).isZero();
+				assertThat(r.get("sCVE").asNode().get("version").asLong()).isZero();
+				assertThat(r.get("mCVI").asList(v -> {
+					var node = v.asNode();
+					return node.get("name").asString() + "." + node.get("version").asLong();
+				})).containsExactlyInAnyOrder("Parent.cVI1.0", "Parent.cVI2.0");
+			});
 		}
 	}
+
 }

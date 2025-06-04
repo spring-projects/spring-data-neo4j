@@ -24,15 +24,18 @@ import org.springframework.data.neo4j.core.schema.Node;
  */
 @Node
 public class EntityWithPrimitiveConstructorArguments {
+
+	public final boolean someBooleanValue;
+
+	public final int someIntValue;
+
 	@Id
 	@GeneratedValue
 	public Long id;
-
-	public final boolean someBooleanValue;
-	public final int someIntValue;
 
 	public EntityWithPrimitiveConstructorArguments(boolean someBooleanValue, int someIntValue) {
 		this.someBooleanValue = someBooleanValue;
 		this.someIntValue = someIntValue;
 	}
+
 }

@@ -15,14 +15,14 @@
  */
 package org.springframework.data.neo4j.core;
 
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
-
 import java.util.Collections;
 import java.util.Map;
 
 import org.jspecify.annotations.Nullable;
 import org.neo4j.cypherdsl.core.Statement;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+
 import org.springframework.data.neo4j.repository.query.QueryFragmentsAndParameters;
 import org.springframework.util.Assert;
 
@@ -30,7 +30,6 @@ import org.springframework.util.Assert;
  * Implementation of {@link ReactiveFluentFindOperation}.
  *
  * @author Michael J. Simons
- * @soundtrack Ozzy Osbourne - Ordinary Man
  * @since 6.1
  */
 final class ReactiveFluentOperationSupport implements ReactiveFluentFindOperation, ReactiveFluentSaveOperation {
@@ -46,24 +45,36 @@ final class ReactiveFluentOperationSupport implements ReactiveFluentFindOperatio
 
 		Assert.notNull(domainType, "DomainType must not be null");
 
-		return new ExecutableFindSupport<>(template, domainType, domainType, null, Collections.emptyMap());
+		return new ExecutableFindSupport<>(this.template, domainType, domainType, null, Collections.emptyMap());
+	}
+
+	@Override
+	public <T> ExecutableSave<T> save(Class<T> domainType) {
+		Assert.notNull(domainType, "DomainType must not be null");
+
+		return new ExecutableSaveSupport<>(this.template, domainType);
 	}
 
 	private static class ExecutableFindSupport<T>
 			implements ExecutableFind<T>, FindWithProjection<T>, FindWithQuery<T>, TerminatingFind<T> {
 
 		private final ReactiveNeo4jTemplate template;
+
 		private final Class<?> domainType;
+
 		private final Class<T> returnType;
+
 		@Nullable
 		private final String query;
+
 		@Nullable
 		private final Map<String, Object> parameters;
+
 		@Nullable
 		private final QueryFragmentsAndParameters queryFragmentsAndParameters;
 
-		ExecutableFindSupport(ReactiveNeo4jTemplate template, Class<?> domainType, Class<T> returnType, @Nullable String query,
-				@Nullable Map<String, Object> parameters) {
+		ExecutableFindSupport(ReactiveNeo4jTemplate template, Class<?> domainType, Class<T> returnType,
+				@Nullable String query, @Nullable Map<String, Object> parameters) {
 			this.template = template;
 			this.domainType = domainType;
 			this.returnType = returnType;
@@ -72,7 +83,8 @@ final class ReactiveFluentOperationSupport implements ReactiveFluentFindOperatio
 			this.queryFragmentsAndParameters = null;
 		}
 
-		ExecutableFindSupport(ReactiveNeo4jTemplate template, Class<?> domainType, Class<T> returnType, @Nullable QueryFragmentsAndParameters queryFragmentsAndParameters) {
+		ExecutableFindSupport(ReactiveNeo4jTemplate template, Class<?> domainType, Class<T> returnType,
+				@Nullable QueryFragmentsAndParameters queryFragmentsAndParameters) {
 			this.template = template;
 			this.domainType = domainType;
 			this.returnType = returnType;
@@ -87,7 +99,7 @@ final class ReactiveFluentOperationSupport implements ReactiveFluentFindOperatio
 
 			Assert.notNull(returnType, "ReturnType must not be null");
 
-			return new ExecutableFindSupport<>(template, domainType, returnType, query, parameters);
+			return new ExecutableFindSupport<>(this.template, this.domainType, returnType, this.query, this.parameters);
 		}
 
 		@Override
@@ -96,20 +108,21 @@ final class ReactiveFluentOperationSupport implements ReactiveFluentFindOperatio
 
 			Assert.notNull(query, "Query must not be null");
 
-			return new ExecutableFindSupport<>(template, domainType, returnType, query, parameters);
+			return new ExecutableFindSupport<>(this.template, this.domainType, this.returnType, query, parameters);
 		}
 
 		@Override
 		@SuppressWarnings("HiddenField")
 		public TerminatingFind<T> matching(QueryFragmentsAndParameters queryFragmentsAndParameters) {
 
-			return new ExecutableFindSupport<>(template, domainType, returnType, queryFragmentsAndParameters);
+			return new ExecutableFindSupport<>(this.template, this.domainType, this.returnType,
+					queryFragmentsAndParameters);
 		}
 
 		@Override
 		public TerminatingFind<T> matching(Statement statement, Map<String, Object> parameter) {
 
-			return matching(template.render(statement), TemplateSupport.mergeParameters(statement, parameter));
+			return matching(this.template.render(statement), TemplateSupport.mergeParameters(statement, parameter));
 		}
 
 		@Override
@@ -123,20 +136,16 @@ final class ReactiveFluentOperationSupport implements ReactiveFluentFindOperatio
 		}
 
 		private Flux<T> doFind(TemplateSupport.FetchType fetchType) {
-			return template.doFind(query, parameters, domainType, returnType, fetchType, queryFragmentsAndParameters);
+			return this.template.doFind(this.query, this.parameters, this.domainType, this.returnType, fetchType,
+					this.queryFragmentsAndParameters);
 		}
-	}
 
-	@Override
-	public <T> ExecutableSave<T> save(Class<T> domainType) {
-		Assert.notNull(domainType, "DomainType must not be null");
-
-		return new ExecutableSaveSupport<>(this.template, domainType);
 	}
 
 	private static class ExecutableSaveSupport<DT> implements ReactiveFluentSaveOperation.ExecutableSave<DT> {
 
 		private final ReactiveNeo4jTemplate template;
+
 		private final Class<DT> domainType;
 
 		ExecutableSaveSupport(ReactiveNeo4jTemplate template, Class<DT> domainType) {
@@ -157,7 +166,9 @@ final class ReactiveFluentOperationSupport implements ReactiveFluentFindOperatio
 		}
 
 		private <T> Flux<T> doSave(Iterable<T> instances) {
-			return template.doSave(instances, domainType);
+			return this.template.doSave(instances, this.domainType);
 		}
+
 	}
+
 }

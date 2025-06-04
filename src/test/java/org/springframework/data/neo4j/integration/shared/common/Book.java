@@ -43,10 +43,13 @@ public class Book {
 
 	@CreatedDate
 	private LocalDateTime createdAt;
+
 	@CreatedBy
 	private String createdBy;
+
 	@LastModifiedDate
 	private LocalDateTime modifiedAt;
+
 	@LastModifiedBy
 	private String modifiedBy;
 
@@ -58,15 +61,19 @@ public class Book {
 	}
 
 	public UUID getId() {
-		return id;
+		return this.id;
 	}
 
 	public String getTitle() {
-		return title;
+		return this.title;
+	}
+
+	public void setTitle(String title) {
+		this.title = title;
 	}
 
 	public String getContent() {
-		return content;
+		return this.content;
 	}
 
 	public void setContent(String content) {
@@ -74,7 +81,7 @@ public class Book {
 	}
 
 	public LocalDateTime getCreatedAt() {
-		return createdAt;
+		return this.createdAt;
 	}
 
 	public void setCreatedAt(LocalDateTime createdAt) {
@@ -82,7 +89,7 @@ public class Book {
 	}
 
 	public String getCreatedBy() {
-		return createdBy;
+		return this.createdBy;
 	}
 
 	public void setCreatedBy(String createdBy) {
@@ -90,7 +97,7 @@ public class Book {
 	}
 
 	public LocalDateTime getModifiedAt() {
-		return modifiedAt;
+		return this.modifiedAt;
 	}
 
 	public void setModifiedAt(LocalDateTime modifiedAt) {
@@ -98,22 +105,19 @@ public class Book {
 	}
 
 	public String getModifiedBy() {
-		return modifiedBy;
+		return this.modifiedBy;
 	}
 
 	public void setModifiedBy(String modifiedBy) {
 		this.modifiedBy = modifiedBy;
 	}
 
-	public void setTitle(String title) {
-		this.title = title;
-	}
-
 	public Editor getPreviousEditor() {
-		return previousEditor;
+		return this.previousEditor;
 	}
 
 	public void setPreviousEditor(Editor previousEditor) {
 		this.previousEditor = previousEditor;
 	}
+
 }

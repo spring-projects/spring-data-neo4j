@@ -15,13 +15,14 @@
  */
 package org.springframework.data.neo4j.integration.shared.common;
 
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
+
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Property;
 import org.springframework.data.neo4j.core.schema.Relationship;
-
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * @author Michael J. Simons
@@ -48,7 +49,8 @@ public class DoritoEatingPerson {
 		this.name = name;
 	}
 
-	public DoritoEatingPerson(long id, String name, boolean eatsDoritos, boolean friendsAlsoEatDoritos, Set<DoritoEatingPerson> friends) {
+	public DoritoEatingPerson(long id, String name, boolean eatsDoritos, boolean friendsAlsoEatDoritos,
+			Set<DoritoEatingPerson> friends) {
 		this.id = id;
 		this.name = name;
 		this.eatsDoritos = eatsDoritos;
@@ -63,42 +65,47 @@ public class DoritoEatingPerson {
 		return this.id;
 	}
 
-	public String getName() {
-		return this.name;
-	}
-
-	public boolean isEatsDoritos() {
-		return this.eatsDoritos;
-	}
-
-	public boolean isFriendsAlsoEatDoritos() {
-		return this.friendsAlsoEatDoritos;
-	}
-
-	public Set<DoritoEatingPerson> getFriends() {
-		return this.friends;
-	}
-
 	public void setId(long id) {
 		this.id = id;
+	}
+
+	public String getName() {
+		return this.name;
 	}
 
 	public void setName(String name) {
 		this.name = name;
 	}
 
+	public boolean isEatsDoritos() {
+		return this.eatsDoritos;
+	}
+
 	public void setEatsDoritos(boolean eatsDoritos) {
 		this.eatsDoritos = eatsDoritos;
+	}
+
+	public boolean isFriendsAlsoEatDoritos() {
+		return this.friendsAlsoEatDoritos;
 	}
 
 	public void setFriendsAlsoEatDoritos(boolean friendsAlsoEatDoritos) {
 		this.friendsAlsoEatDoritos = friendsAlsoEatDoritos;
 	}
 
+	public Set<DoritoEatingPerson> getFriends() {
+		return this.friends;
+	}
+
 	public void setFriends(Set<DoritoEatingPerson> friends) {
 		this.friends = friends;
 	}
 
+	protected boolean canEqual(final Object other) {
+		return other instanceof DoritoEatingPerson;
+	}
+
+	@Override
 	public boolean equals(final Object o) {
 		if (o == this) {
 			return true;
@@ -115,7 +122,7 @@ public class DoritoEatingPerson {
 		}
 		final Object this$name = this.getName();
 		final Object other$name = other.getName();
-		if (this$name == null ? other$name != null : !this$name.equals(other$name)) {
+		if (!Objects.equals(this$name, other$name)) {
 			return false;
 		}
 		if (this.isEatsDoritos() != other.isEatsDoritos()) {
@@ -126,32 +133,28 @@ public class DoritoEatingPerson {
 		}
 		final Object this$friends = this.getFriends();
 		final Object other$friends = other.getFriends();
-		if (this$friends == null ? other$friends != null : !this$friends.equals(other$friends)) {
-			return false;
-		}
-		return true;
+		return Objects.equals(this$friends, other$friends);
 	}
 
-	protected boolean canEqual(final Object other) {
-		return other instanceof DoritoEatingPerson;
-	}
-
+	@Override
 	public int hashCode() {
 		final int PRIME = 59;
 		int result = 1;
 		final long $id = this.getId();
 		result = result * PRIME + (int) ($id >>> 32 ^ $id);
 		final Object $name = this.getName();
-		result = result * PRIME + ($name == null ? 43 : $name.hashCode());
+		result = result * PRIME + (($name != null) ? $name.hashCode() : 43);
 		result = result * PRIME + (this.isEatsDoritos() ? 79 : 97);
 		result = result * PRIME + (this.isFriendsAlsoEatDoritos() ? 79 : 97);
 		final Object $friends = this.getFriends();
-		result = result * PRIME + ($friends == null ? 43 : $friends.hashCode());
+		result = result * PRIME + (($friends != null) ? $friends.hashCode() : 43);
 		return result;
 	}
 
+	@Override
 	public String toString() {
-		return "DoritoEatingPerson(id=" + this.getId() + ", name=" + this.getName() + ", eatsDoritos=" + this.isEatsDoritos() + ", friendsAlsoEatDoritos=" + this.isFriendsAlsoEatDoritos() + ")";
+		return "DoritoEatingPerson(id=" + this.getId() + ", name=" + this.getName() + ", eatsDoritos="
+				+ this.isEatsDoritos() + ", friendsAlsoEatDoritos=" + this.isFriendsAlsoEatDoritos() + ")";
 	}
 
 	/**
@@ -162,6 +165,7 @@ public class DoritoEatingPerson {
 		boolean getEatsDoritos();
 
 		boolean getFriendsAlsoEatDoritos();
+
 	}
 
 	/**
@@ -170,5 +174,7 @@ public class DoritoEatingPerson {
 	public interface PropertiesProjection2 {
 
 		boolean getEatsDoritos();
+
 	}
+
 }

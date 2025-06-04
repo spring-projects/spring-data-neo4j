@@ -22,10 +22,11 @@ package org.springframework.data.neo4j.integration.issues.gh2168;
 public class UnrelatedObject {
 
 	private boolean aBooleanValue;
+
 	private Long aLongValue;
 
 	public UnrelatedObject() {
-		aLongValue = 0L;
+		this.aLongValue = 0L;
 	}
 
 	public UnrelatedObject(boolean aBooleanValue, Long aLongValue) {
@@ -37,15 +38,16 @@ public class UnrelatedObject {
 		return this.aBooleanValue;
 	}
 
-	public Long getALongValue() {
-		return this.aLongValue;
-	}
-
 	public void setABooleanValue(boolean aBooleanValue) {
 		this.aBooleanValue = aBooleanValue;
+	}
+
+	public Long getALongValue() {
+		return this.aLongValue;
 	}
 
 	public void setALongValue(Long aLongValue) {
 		this.aLongValue = aLongValue;
 	}
+
 }

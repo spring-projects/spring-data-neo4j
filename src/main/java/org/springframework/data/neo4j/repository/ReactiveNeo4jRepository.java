@@ -21,13 +21,16 @@ import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 import org.springframework.data.repository.reactive.ReactiveSortingRepository;
 
 /**
- * Neo4j specific {@link org.springframework.data.repository.Repository} interface with reactive support.
+ * Neo4j specific {@link org.springframework.data.repository.Repository} interface with
+ * reactive support.
  *
- * @author Michael J. Simons
  * @param <T> type of the domain class to map
  * @param <ID> identifier type in the domain class
+ * @author Michael J. Simons
  * @since 6.0
  */
 @NoRepositoryBean
 public interface ReactiveNeo4jRepository<T, ID>
-		extends ReactiveSortingRepository<T, ID>, ReactiveQueryByExampleExecutor<T>, ReactiveCrudRepository<T, ID> {}
+		extends ReactiveSortingRepository<T, ID>, ReactiveQueryByExampleExecutor<T>, ReactiveCrudRepository<T, ID> {
+
+}

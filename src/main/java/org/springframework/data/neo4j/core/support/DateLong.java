@@ -20,22 +20,16 @@ import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import java.util.Date;
 
 import org.apiguardian.api.API;
-import org.jspecify.annotations.Nullable;
-import org.neo4j.driver.Value;
-import org.neo4j.driver.Values;
-import org.neo4j.driver.types.TypeSystem;
+
 import org.springframework.data.neo4j.core.convert.ConvertWith;
-import org.springframework.data.neo4j.core.convert.Neo4jPersistentPropertyConverter;
 
 /**
- * Indicates SDN to store dates as long in the database.
- * Applicable to `java.util.Date` and `java.time.Instant`
+ * Indicates SDN to store dates as long in the database. Applicable to `java.util.Date`
+ * and `java.time.Instant`
  *
  * @author Michael J. Simons
- * @soundtrack Linkin Park - One More Light Live
  * @since 6.0
  */
 @Retention(RetentionPolicy.RUNTIME)
@@ -44,18 +38,5 @@ import org.springframework.data.neo4j.core.convert.Neo4jPersistentPropertyConver
 @ConvertWith(converter = DateLongConverter.class)
 @API(status = API.Status.STABLE, since = "6.0")
 public @interface DateLong {
-}
 
-final class DateLongConverter implements Neo4jPersistentPropertyConverter<Date> {
-
-	@Override
-	public Value write(@Nullable Date source) {
-		return source == null ? Values.NULL : Values.value(source.getTime());
-	}
-
-	@Override
-	@Nullable
-	public Date read(@Nullable Value source) {
-		return source == null || TypeSystem.getDefault().NULL().isTypeOf(source) ? null : new Date(source.asLong());
-	}
 }

@@ -29,7 +29,9 @@ public class Person {
 	@Id
 	@GeneratedValue
 	private Long id;
+
 	private String firstName;
+
 	private String lastName;
 
 	private int primitiveValue; // never used but always null
@@ -37,30 +39,66 @@ public class Person {
 	@Relationship("LIVES_AT")
 	private Address address;
 
+	public Long getId() {
+		return this.id;
+	}
+
+	// The getters are needed for Spring Expression Language in `NamesOnly`
+	public String getFirstName() {
+		return this.firstName;
+	}
+
+	public void setFirstName(String firstName) {
+		this.firstName = firstName;
+	}
+
+	public String getLastName() {
+		return this.lastName;
+	}
+
+	public void setLastName(String lastName) {
+		this.lastName = lastName;
+	}
+
+	public Address getAddress() {
+		return this.address;
+	}
+
+	@Override
+	public String toString() {
+		return "Person{" + "id=" + this.id + ", firstName='" + this.firstName + '\'' + ", lastName='" + this.lastName
+				+ '\'' + ", address=" + this.address + '}';
+	}
+
 	/**
 	 * Address of a person.
 	 */
 	@Node
 	public static class Address {
-		@Id @GeneratedValue
+
+		@Id
+		@GeneratedValue
 		private Long id;
+
 		private String zipCode;
+
 		private String city;
+
 		private String street;
 
 		@Relationship("BASED_IN")
 		private Country country;
 
 		public Long getId() {
-			return id;
+			return this.id;
 		}
 
 		public String getZipCode() {
-			return zipCode;
+			return this.zipCode;
 		}
 
 		public String getCity() {
-			return city;
+			return this.city;
 		}
 
 		public void setCity(String city) {
@@ -68,7 +106,7 @@ public class Person {
 		}
 
 		public String getStreet() {
-			return street;
+			return this.street;
 		}
 
 		public void setStreet(String street) {
@@ -76,7 +114,7 @@ public class Person {
 		}
 
 		public Country getCountry() {
-			return country;
+			return this.country;
 		}
 
 		public void setCountry(Country country) {
@@ -88,14 +126,17 @@ public class Person {
 		 */
 		@Node("YetAnotherCountryEntity")
 		public static class Country {
+
 			@Id
 			@GeneratedValue
 			private Long id;
+
 			private String name;
+
 			private String countryCode;
 
 			public String getCountryCode() {
-				return countryCode;
+				return this.countryCode;
 			}
 
 			public void setCountryCode(String countryCode) {
@@ -103,43 +144,15 @@ public class Person {
 			}
 
 			public String getName() {
-				return name;
+				return this.name;
 			}
 
 			public void setName(String name) {
 				this.name = name;
 			}
+
 		}
+
 	}
 
-	public Long getId() {
-		return id;
-	}
-
-	// The getters are needed for Spring Expression Language in `NamesOnly`
-	public String getFirstName() {
-		return firstName;
-	}
-
-	public String getLastName() {
-		return lastName;
-	}
-
-	public Address getAddress() {
-		return address;
-	}
-
-	public void setFirstName(String firstName) {
-		this.firstName = firstName;
-	}
-
-	public void setLastName(String lastName) {
-		this.lastName = lastName;
-	}
-
-	@Override
-	public String toString() {
-		return "Person{" + "id=" + id + ", firstName='" + firstName + '\'' + ", lastName='" + lastName + '\'' + ", address="
-				+ address + '}';
-	}
 }

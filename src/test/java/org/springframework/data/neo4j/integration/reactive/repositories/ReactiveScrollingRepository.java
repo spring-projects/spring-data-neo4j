@@ -17,14 +17,14 @@ package org.springframework.data.neo4j.integration.reactive.repositories;
 
 import java.util.UUID;
 
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+
 import org.springframework.data.domain.ScrollPosition;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Window;
 import org.springframework.data.neo4j.integration.shared.common.ScrollingEntity;
 import org.springframework.data.neo4j.repository.ReactiveNeo4jRepository;
-
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 
 /**
  * @author Michael J. Simons
@@ -38,4 +38,5 @@ public interface ReactiveScrollingRepository extends ReactiveNeo4jRepository<Scr
 	Mono<ScrollingEntity> findFirstByA(String a);
 
 	Flux<ScrollingEntity> findAllByAOrderById(String a);
+
 }

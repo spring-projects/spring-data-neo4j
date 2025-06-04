@@ -29,20 +29,12 @@ import org.springframework.data.neo4j.core.schema.Node;
 @Node("Metric")
 public abstract class Metric {
 
-	@Id
-	@GeneratedValue
-	Long id;
-
 	@DynamicLabels
 	public List<String> dynamicLabels = new ArrayList<>();
 
-	public Long getId() {
-		return id;
-	}
-
-	public List<String> getDynamicLabels() {
-		return dynamicLabels;
-	}
+	@Id
+	@GeneratedValue
+	Long id;
 
 	private String name;
 
@@ -50,11 +42,20 @@ public abstract class Metric {
 		this.name = name;
 	}
 
+	public Long getId() {
+		return this.id;
+	}
+
+	public List<String> getDynamicLabels() {
+		return this.dynamicLabels;
+	}
+
 	public String getName() {
-		return name;
+		return this.name;
 	}
 
 	public void setName(String name) {
 		this.name = name;
 	}
+
 }

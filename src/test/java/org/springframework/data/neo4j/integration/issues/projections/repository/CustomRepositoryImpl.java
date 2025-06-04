@@ -32,6 +32,7 @@ class CustomRepositoryImpl implements CustomRepository {
 
 	@Override
 	public SourceNodeAProjection saveWithProjection(SourceNodeA sourceNodeA) {
-		return neo4jOperations.saveAs(sourceNodeA, SourceNodeAProjection.class);
+		return this.neo4jOperations.saveAs(sourceNodeA, SourceNodeAProjection.class);
 	}
+
 }

@@ -15,6 +15,8 @@
  */
 package org.springframework.data.neo4j.integration.issues.gh2727;
 
+import java.util.Objects;
+
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
@@ -25,6 +27,7 @@ import org.springframework.data.neo4j.core.schema.Node;
 @SuppressWarnings("HiddenField")
 @Node("ThirdLevel")
 public class ThirdLevelEntity {
+
 	@Id
 	@GeneratedValue
 	private Long id;
@@ -47,18 +50,23 @@ public class ThirdLevelEntity {
 		return this.id;
 	}
 
-	public String getSomeValue() {
-		return this.someValue;
-	}
-
 	public void setId(Long id) {
 		this.id = id;
+	}
+
+	public String getSomeValue() {
+		return this.someValue;
 	}
 
 	public void setSomeValue(String someValue) {
 		this.someValue = someValue;
 	}
 
+	protected boolean canEqual(final Object other) {
+		return other instanceof ThirdLevelEntity;
+	}
+
+	@Override
 	public boolean equals(final Object o) {
 		if (o == this) {
 			return true;
@@ -72,31 +80,28 @@ public class ThirdLevelEntity {
 		}
 		final Object this$id = this.getId();
 		final Object other$id = other.getId();
-		if (this$id == null ? other$id != null : !this$id.equals(other$id)) {
-			return false;
-		}
-		return true;
+		return Objects.equals(this$id, other$id);
 	}
 
-	protected boolean canEqual(final Object other) {
-		return other instanceof ThirdLevelEntity;
-	}
-
+	@Override
 	public int hashCode() {
 		final int PRIME = 59;
 		int result = 1;
 		final Object $id = this.getId();
-		result = result * PRIME + ($id == null ? 43 : $id.hashCode());
+		result = (result * PRIME) + (($id != null) ? $id.hashCode() : 43);
 		return result;
 	}
 
 	/**
 	 * the builder
+	 *
 	 * @param <C> needed c type
 	 * @param <B> needed b type
 	 */
-	public static abstract class ThirdLevelEntityBuilder<C extends ThirdLevelEntity, B extends ThirdLevelEntityBuilder<C, B>> {
+	public abstract static class ThirdLevelEntityBuilder<C extends ThirdLevelEntity, B extends ThirdLevelEntityBuilder<C, B>> {
+
 		private Long id;
+
 		private String someValue;
 
 		public B id(Long id) {
@@ -113,21 +118,29 @@ public class ThirdLevelEntity {
 
 		public abstract C build();
 
+		@Override
 		public String toString() {
 			return "ThirdLevelEntity.ThirdLevelEntityBuilder(id=" + this.id + ", someValue=" + this.someValue + ")";
 		}
+
 	}
 
-	private static final class ThirdLevelEntityBuilderImpl extends ThirdLevelEntityBuilder<ThirdLevelEntity, ThirdLevelEntityBuilderImpl> {
+	private static final class ThirdLevelEntityBuilderImpl
+			extends ThirdLevelEntityBuilder<ThirdLevelEntity, ThirdLevelEntityBuilderImpl> {
+
 		private ThirdLevelEntityBuilderImpl() {
 		}
 
+		@Override
 		protected ThirdLevelEntityBuilderImpl self() {
 			return this;
 		}
 
+		@Override
 		public ThirdLevelEntity build() {
 			return new ThirdLevelEntity(this);
 		}
+
 	}
+
 }

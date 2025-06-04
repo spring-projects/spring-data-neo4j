@@ -15,14 +15,21 @@
  */
 package org.springframework.data.neo4j.aot;
 
-import org.springframework.data.neo4j.core.convert.Neo4jSimpleTypes;
-
 import java.util.function.Predicate;
 
+import org.springframework.data.neo4j.core.convert.Neo4jSimpleTypes;
+
 /**
+ * Predicates used in the AoT (native image) support.
+ *
  * @author Gerrit Meier
  * @since 7.0.0
  */
-public class Neo4jAotPredicates {
+public final class Neo4jAotPredicates {
+
 	static final Predicate<Class<?>> IS_SIMPLE_TYPE = Neo4jSimpleTypes.HOLDER::isSimpleType;
+
+	private Neo4jAotPredicates() {
+	}
+
 }

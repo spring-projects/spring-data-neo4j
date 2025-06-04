@@ -15,6 +15,8 @@
  */
 package org.springframework.data.neo4j.integration.issues.gh2526;
 
+import java.util.Objects;
+
 import org.springframework.data.annotation.Immutable;
 import org.springframework.data.neo4j.core.schema.RelationshipId;
 import org.springframework.data.neo4j.core.schema.RelationshipProperties;
@@ -29,14 +31,12 @@ import org.springframework.data.neo4j.core.schema.TargetNode;
 public final class DataPoint {
 
 	@RelationshipId
-	private final
-	Long id;
+	private final Long id;
 
 	private final boolean manual;
 
 	@TargetNode
-	private final
-	Measurand measurand;
+	private final Measurand measurand;
 
 	public DataPoint(Long id, boolean manual, Measurand measurand) {
 		this.id = id;
@@ -56,22 +56,19 @@ public final class DataPoint {
 		return this.measurand;
 	}
 
-	public String toString() {
-		return "DataPoint(id=" + this.getId() + ", manual=" + this.isManual() + ", measurand=" + this.getMeasurand() + ")";
-	}
-
 	public DataPoint withId(Long id) {
-		return this.id == id ? this : new DataPoint(id, this.manual, this.measurand);
+		return (Objects.equals(this.id, id)) ? this : new DataPoint(id, this.manual, this.measurand);
 	}
 
 	public DataPoint withManual(boolean manual) {
-		return this.manual == manual ? this : new DataPoint(this.id, manual, this.measurand);
+		return (this.manual != manual) ? new DataPoint(this.id, manual, this.measurand) : this;
 	}
 
 	public DataPoint withMeasurand(Measurand measurand) {
-		return this.measurand == measurand ? this : new DataPoint(this.id, this.manual, measurand);
+		return (this.measurand != measurand) ? new DataPoint(this.id, this.manual, measurand) : this;
 	}
 
+	@Override
 	public boolean equals(final Object o) {
 		if (o == this) {
 			return true;
@@ -82,17 +79,22 @@ public final class DataPoint {
 		final DataPoint other = (DataPoint) o;
 		final Object this$measurand = this.getMeasurand();
 		final Object other$measurand = other.getMeasurand();
-		if (this$measurand == null ? other$measurand != null : !this$measurand.equals(other$measurand)) {
-			return false;
-		}
-		return true;
+		return Objects.equals(this$measurand, other$measurand);
 	}
 
+	@Override
 	public int hashCode() {
 		final int PRIME = 59;
 		int result = 1;
 		final Object $measurand = this.getMeasurand();
-		result = result * PRIME + ($measurand == null ? 43 : $measurand.hashCode());
+		result = result * PRIME + (($measurand != null) ? $measurand.hashCode() : 43);
 		return result;
 	}
+
+	@Override
+	public String toString() {
+		return "DataPoint(id=" + this.getId() + ", manual=" + this.isManual() + ", measurand=" + this.getMeasurand()
+				+ ")";
+	}
+
 }

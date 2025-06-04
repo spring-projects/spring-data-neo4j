@@ -20,6 +20,7 @@ import java.util.Map;
 
 import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
+
 import org.springframework.data.neo4j.core.convert.Neo4jConversionService;
 import org.springframework.data.neo4j.core.convert.Neo4jPersistentPropertyToMapConverter;
 
@@ -39,7 +40,8 @@ public record CompositeValue(String value1, Integer value2) {
 			if (property == null) {
 				decomposed.put("value1", Values.NULL);
 				decomposed.put("value2", Values.NULL);
-			} else {
+			}
+			else {
 				decomposed.put("value1", Values.value(property.value1));
 				decomposed.put("value2", Values.value(property.value2));
 			}
@@ -48,9 +50,9 @@ public record CompositeValue(String value1, Integer value2) {
 
 		@Override
 		public CompositeValue compose(Map<String, Value> source, Neo4jConversionService conversionService) {
-			return source.isEmpty() ?
-					null :
-					new CompositeValue(source.get("value1").asString(), source.get("value2").asInt());
+			return source.isEmpty() ? null
+					: new CompositeValue(source.get("value1").asString(), source.get("value2").asInt());
 		}
+
 	}
 }

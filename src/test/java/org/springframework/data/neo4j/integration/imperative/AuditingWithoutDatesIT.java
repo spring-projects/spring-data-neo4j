@@ -15,19 +15,17 @@
  */
 package org.springframework.data.neo4j.integration.imperative;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 import org.neo4j.driver.Driver;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.domain.AuditorAware;
-import org.springframework.data.neo4j.test.Neo4jImperativeTestConfiguration;
 import org.springframework.data.neo4j.config.EnableNeo4jAuditing;
 import org.springframework.data.neo4j.core.DatabaseSelectionProvider;
 import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
@@ -37,15 +35,19 @@ import org.springframework.data.neo4j.integration.shared.common.ImmutableAuditab
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.data.neo4j.test.BookmarkCapture;
+import org.springframework.data.neo4j.test.Neo4jImperativeTestConfiguration;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Michael J. Simons
  */
 class AuditingWithoutDatesIT extends AuditingITBase {
 
-	@Autowired AuditingWithoutDatesIT(Driver driver, BookmarkCapture bookmarkCapture) {
+	@Autowired
+	AuditingWithoutDatesIT(Driver driver, BookmarkCapture bookmarkCapture) {
 		super(driver, bookmarkCapture);
 	}
 
@@ -77,7 +79,9 @@ class AuditingWithoutDatesIT extends AuditingITBase {
 		verifyDatabase(thing.getId(), thing);
 	}
 
-	interface ImmutableEntityTestRepository extends Neo4jRepository<ImmutableAuditableThing, Long> {}
+	interface ImmutableEntityTestRepository extends Neo4jRepository<ImmutableAuditableThing, Long> {
+
+	}
 
 	@Configuration
 	@EnableNeo4jAuditing(setDates = false, auditorAwareRef = "auditorProvider")
@@ -86,6 +90,7 @@ class AuditingWithoutDatesIT extends AuditingITBase {
 	static class Config extends Neo4jImperativeTestConfiguration {
 
 		@Bean
+		@Override
 		public Driver driver() {
 			return neo4jConnectionSupport.getDriver();
 		}
@@ -96,25 +101,29 @@ class AuditingWithoutDatesIT extends AuditingITBase {
 		}
 
 		@Bean
-		public AuditorAware<String> auditorProvider() {
+		AuditorAware<String> auditorProvider() {
 			return () -> Optional.of("A user");
 		}
 
 		@Bean
-		public BookmarkCapture bookmarkCapture() {
+		BookmarkCapture bookmarkCapture() {
 			return new BookmarkCapture();
 		}
 
 		@Override
-		public PlatformTransactionManager transactionManager(Driver driver, DatabaseSelectionProvider databaseNameProvider) {
+		public PlatformTransactionManager transactionManager(Driver driver,
+				DatabaseSelectionProvider databaseNameProvider) {
 
 			BookmarkCapture bookmarkCapture = bookmarkCapture();
-			return new Neo4jTransactionManager(driver, databaseNameProvider, Neo4jBookmarkManager.create(bookmarkCapture));
+			return new Neo4jTransactionManager(driver, databaseNameProvider,
+					Neo4jBookmarkManager.create(bookmarkCapture));
 		}
 
 		@Override
 		public boolean isCypher5Compatible() {
 			return neo4jConnectionSupport.isCypher5SyntaxCompatible();
 		}
+
 	}
+
 }

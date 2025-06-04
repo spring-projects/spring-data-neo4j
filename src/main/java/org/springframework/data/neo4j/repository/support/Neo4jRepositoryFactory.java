@@ -19,6 +19,7 @@ import java.util.Optional;
 
 import org.jspecify.annotations.Nullable;
 import org.neo4j.cypherdsl.core.renderer.Configuration;
+
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.data.neo4j.core.Neo4jOperations;
@@ -66,7 +67,7 @@ final class Neo4jRepositoryFactory extends RepositoryFactorySupport {
 	@Override
 	public Neo4jEntityInformation<?, ?> getEntityInformation(RepositoryMetadata metadata) {
 
-		Neo4jPersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(metadata.getDomainType());
+		Neo4jPersistentEntity<?> entity = this.mappingContext.getRequiredPersistentEntity(metadata.getDomainType());
 		return new DefaultNeo4jEntityInformation<>(entity);
 	}
 
@@ -75,7 +76,7 @@ final class Neo4jRepositoryFactory extends RepositoryFactorySupport {
 
 		Neo4jEntityInformation<?, ?> entityInformation = getEntityInformation(metadata);
 		Neo4jRepositoryFactorySupport.assertIdentifierType(metadata.getIdType(), entityInformation.getIdType());
-		return getTargetRepositoryViaReflection(metadata, neo4jOperations, entityInformation);
+		return getTargetRepositoryViaReflection(metadata, this.neo4jOperations, entityInformation);
 	}
 
 	@Override
@@ -83,17 +84,18 @@ final class Neo4jRepositoryFactory extends RepositoryFactorySupport {
 
 		RepositoryFragments fragments = RepositoryFragments.empty();
 
-		Object byExampleExecutor = instantiateClass(SimpleQueryByExampleExecutor.class, neo4jOperations,
-				mappingContext);
+		Object byExampleExecutor = instantiateClass(SimpleQueryByExampleExecutor.class, this.neo4jOperations,
+				this.mappingContext);
 
 		fragments = fragments.append(RepositoryFragment.implemented(byExampleExecutor));
 
 		boolean isQueryDslRepository = QuerydslUtils.QUERY_DSL_PRESENT
-									   && QuerydslPredicateExecutor.class.isAssignableFrom(metadata.getRepositoryInterface());
+				&& QuerydslPredicateExecutor.class.isAssignableFrom(metadata.getRepositoryInterface());
 
 		if (isQueryDslRepository) {
 
-			fragments = fragments.append(createDSLPredicateExecutorFragment(metadata, QuerydslNeo4jPredicateExecutor.class));
+			fragments = fragments
+				.append(createDSLPredicateExecutorFragment(metadata, QuerydslNeo4jPredicateExecutor.class));
 		}
 
 		if (CypherdslConditionExecutor.class.isAssignableFrom(metadata.getRepositoryInterface())) {
@@ -104,10 +106,12 @@ final class Neo4jRepositoryFactory extends RepositoryFactorySupport {
 		return fragments;
 	}
 
-	private RepositoryFragment<Object> createDSLPredicateExecutorFragment(RepositoryMetadata metadata, Class<?> implementor) {
+	private RepositoryFragment<Object> createDSLPredicateExecutorFragment(RepositoryMetadata metadata,
+			Class<?> implementor) {
 
 		Neo4jEntityInformation<?, ?> entityInformation = getEntityInformation(metadata);
-		Object querydslFragment = instantiateClass(implementor, mappingContext, entityInformation, neo4jOperations);
+		Object querydslFragment = instantiateClass(implementor, this.mappingContext, entityInformation,
+				this.neo4jOperations);
 
 		return RepositoryFragment.implemented(querydslFragment);
 	}
@@ -115,7 +119,7 @@ final class Neo4jRepositoryFactory extends RepositoryFactorySupport {
 	private RepositoryFragment<Object> createDSLExecutorFragment(RepositoryMetadata metadata, Class<?> implementor) {
 
 		Neo4jEntityInformation<?, ?> entityInformation = getEntityInformation(metadata);
-		Object querydslFragment = instantiateClass(implementor, entityInformation, neo4jOperations);
+		Object querydslFragment = instantiateClass(implementor, entityInformation, this.neo4jOperations);
 
 		return RepositoryFragment.implemented(querydslFragment);
 	}
@@ -128,15 +132,15 @@ final class Neo4jRepositoryFactory extends RepositoryFactorySupport {
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
 		super.setBeanFactory(beanFactory);
-		this.cypherDSLConfiguration = beanFactory
-				.getBeanProvider(Configuration.class)
-				.getIfAvailable(Configuration::defaultConfig);
+		this.cypherDSLConfiguration = beanFactory.getBeanProvider(Configuration.class)
+			.getIfAvailable(Configuration::defaultConfig);
 	}
 
 	@Override
 	protected Optional<QueryLookupStrategy> getQueryLookupStrategy(@Nullable Key key,
 			ValueExpressionDelegate valueExpressionDelegate) {
-		return Optional.of(new Neo4jQueryLookupStrategy(neo4jOperations, mappingContext, valueExpressionDelegate, cypherDSLConfiguration));
+		return Optional.of(new Neo4jQueryLookupStrategy(this.neo4jOperations, this.mappingContext,
+				valueExpressionDelegate, this.cypherDSLConfiguration));
 	}
 
 	@Override
@@ -144,9 +148,11 @@ final class Neo4jRepositoryFactory extends RepositoryFactorySupport {
 
 		ProjectionFactory projectionFactory = super.getProjectionFactory();
 		if (projectionFactory instanceof SpelAwareProxyProjectionFactory) {
-			((SpelAwareProxyProjectionFactory) projectionFactory).registerMethodInvokerFactory(
-					EntityAndGraphPropertyAccessingMethodInterceptor.createMethodInterceptorFactory(mappingContext));
+			((SpelAwareProxyProjectionFactory) projectionFactory)
+				.registerMethodInvokerFactory(EntityAndGraphPropertyAccessingMethodInterceptor
+					.createMethodInterceptorFactory(this.mappingContext));
 		}
 		return projectionFactory;
 	}
+
 }

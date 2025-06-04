@@ -16,15 +16,16 @@
 package org.springframework.data.neo4j.integration.issues.gh2908;
 
 import org.neo4j.driver.types.Point;
+import reactor.core.publisher.Flux;
+
 import org.springframework.data.domain.Range;
 import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.GeoResult;
 import org.springframework.data.neo4j.repository.ReactiveNeo4jRepository;
 
-import reactor.core.publisher.Flux;
-
 /**
  * Repository spotting all supported Geo* results.
+ *
  * @author Michael J. Simons
  */
 public interface ReactiveLocatedNodeRepository extends ReactiveNeo4jRepository<LocatedNode, String> {
@@ -34,4 +35,5 @@ public interface ReactiveLocatedNodeRepository extends ReactiveNeo4jRepository<L
 	Flux<GeoResult<LocatedNode>> findAllByPlaceNear(Point p, Distance max);
 
 	Flux<GeoResult<LocatedNode>> findAllByPlaceNear(Point p, Range<Distance> between);
+
 }

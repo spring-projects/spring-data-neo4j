@@ -45,7 +45,7 @@ public abstract class BugTargetBase {
 
 	@Override
 	public String toString() {
-		return String.format("<%s> {uuid: %s, name: %s}", this.getClass().getSimpleName(), uuid, name);
+		return String.format("<%s> {uuid: %s, name: %s}", this.getClass().getSimpleName(), this.uuid, this.name);
 	}
 
 }

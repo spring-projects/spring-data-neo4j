@@ -28,4 +28,5 @@ public interface ReactiveGH2533Repository extends ReactiveNeo4jRepository<Entiti
 
 	@Query("MATCH p=(n)-[*0..1]->(m) WHERE id(n)=$id RETURN n, collect(relationships(p)), collect(m);")
 	Mono<EntitiesAndProjections.GH2533Entity> findByIdWithLevelOneLinks(@Param("id") Long id);
+
 }

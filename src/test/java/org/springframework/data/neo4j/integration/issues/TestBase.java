@@ -15,8 +15,6 @@
  */
 package org.springframework.data.neo4j.integration.issues;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -33,6 +31,7 @@ import org.neo4j.driver.Session;
 import org.neo4j.driver.Transaction;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.integration.issues.gh2328.Entity2328;
 import org.springframework.data.neo4j.integration.issues.gh2347.Application;
@@ -41,91 +40,48 @@ import org.springframework.data.neo4j.integration.issues.gh2908.Place;
 import org.springframework.data.neo4j.test.BookmarkCapture;
 import org.springframework.data.neo4j.test.Neo4jExtension;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 abstract class TestBase {
 
 	protected static Neo4jExtension.Neo4jConnectionSupport neo4jConnectionSupport;
 
 	protected static UUID idOfAnEntity2328;
 
-	@BeforeEach
-	protected final void beforeEach(@Autowired BookmarkCapture bookmarkCapture) {
-		try (Session session = neo4jConnectionSupport.getDriver().session(bookmarkCapture.createSessionConfig());
-			 Transaction transaction = session.beginTransaction()
-		) {
-			List<String> labelsToDelete = List.of("AbstractBase", "AccountingMeasurementMeta", "Application",
-					"BaseNodeEntity", "CityModel", "ConcreteImplementationOne", "ConcreteImplementationTwo",
-					"Credential", "Device",
-					"DomainModel", "GH2533Entity", "Measurand", "MeasurementMeta", "SomethingInBetween", "SpecialKind",
-					"Vertex");
-
-			// Detach delete things
-			transaction.run("""
-							MATCH (n) WHERE any(label IN  labels(n) WHERE label in $labels )
-							DETACH DELETE n
-							""",
-					Map.of("labels", labelsToDelete)
-			).consume();
-			transaction.run("MATCH ()- [r:KNOWS]-() DELETE r").consume();
-
-			// 2498
-			transaction.run(
-							"UNWIND ['A', 'B', 'C'] AS name WITH name CREATE (n:DomainModel {id: randomUUID(), name: name})")
-					.consume();
-			transaction.run("CREATE (n:Vertex {name: 'a'}) -[:CONNECTED_TO] ->(m:Vertex {name: 'b'})").consume();
-
-			// 2498/2500
-			transaction.run("CREATE (d:Device {id: 1, name:'Testdevice', version:0})").consume();
-
-			// 2526
-			transaction.run("""
-					CREATE (o1:Measurand {measurandId: 'o1'})
-					CREATE (acc1:AccountingMeasurementMeta:MeasurementMeta:BaseNodeEntity {nodeId: 'acc1'})
-					CREATE (m1:MeasurementMeta:BaseNodeEntity {nodeId: 'm1'})
-					CREATE (acc1)-[:USES{variable: 'A'}]->(m1)
-					CREATE (o1)-[:IS_MEASURED_BY{ manual: true }]->(acc1)
-					"""
-			).consume();
-
-			// 2415
-			transaction.run("""
-					CREATE (root:NodeEntity:BaseNodeEntity{nodeId: 'root'})
-					CREATE (company:NodeEntity:BaseNodeEntity{nodeId: 'comp'})
-					CREATE (cred:Credential{id: 'uuid-1', name: 'Creds'})
-					CREATE (company)-[:CHILD_OF]->(root)
-					CREATE (root)-[:HAS_CREDENTIAL]->(cred)
-					CREATE (company)-[:WITH_CREDENTIAL]->(cred)
-					""");
-
-			transaction.commit();
-			bookmarkCapture.seedWith(session.lastBookmarks());
-		}
-	}
-
 	protected static void setupGH2289(QueryRunner queryRunner) {
 		queryRunner.run("MATCH (s:SKU_RO) DETACH DELETE s").consume();
 		for (int i = 0; i < 4; ++i) {
-			queryRunner.run("CREATE (s:SKU_RO {number: $i, name: $n, `composite.a`: $a})",
-					Values.parameters("i", i, "n", new String(new char[]{(char) ('A' + i)}), "a", 10 - i)).consume();
+			queryRunner
+				.run("CREATE (s:SKU_RO {number: $i, name: $n, `composite.a`: $a})",
+						Values.parameters("i", i, "n", new String(new char[] { (char) ('A' + i) }), "a", 10 - i))
+				.consume();
 		}
 	}
 
 	protected static void setupGH2328(QueryRunner queryRunner) {
-		idOfAnEntity2328 = UUID.fromString(
-				queryRunner.run("CREATE (f:Entity2328 {name: 'A name', id: randomUUID()}) RETURN f.id").single()
-						.get(0).asString());
+		idOfAnEntity2328 = UUID
+			.fromString(queryRunner.run("CREATE (f:Entity2328 {name: 'A name', id: randomUUID()}) RETURN f.id")
+				.single()
+				.get(0)
+				.asString());
 	}
 
 	protected static void setupGH2572(QueryRunner queryRunner) {
 		queryRunner.run("CREATE (p:GH2572Parent {id: 'GH2572Parent-1', name:'no-pets'})");
-		queryRunner.run("CREATE (p:GH2572Parent {id: 'GH2572Parent-2', name:'one-pet'}) <-[:IS_PET]- (:GH2572Child {id: 'GH2572Child-3', name: 'a-pet'})");
-		queryRunner.run("MATCH (p:GH2572Parent {id: 'GH2572Parent-2'}) CREATE (p) <-[:IS_PET]- (:GH2572Child {id: 'GH2572Child-4', name: 'another-pet'})");
+		queryRunner.run(
+				"CREATE (p:GH2572Parent {id: 'GH2572Parent-2', name:'one-pet'}) <-[:IS_PET]- (:GH2572Child {id: 'GH2572Child-3', name: 'a-pet'})");
+		queryRunner.run(
+				"MATCH (p:GH2572Parent {id: 'GH2572Parent-2'}) CREATE (p) <-[:IS_PET]- (:GH2572Child {id: 'GH2572Child-4', name: 'another-pet'})");
 	}
 
 	protected static void setupGH2908(QueryRunner queryRunner) {
 		EnumSet<Place> places = EnumSet.of(Place.NEO4J_HQ, Place.SFO);
 		for (Place value : places) {
-			queryRunner.run("CREATE (l:LocatedNode {name: $name, place: $place})", Map.of("name", value.name(), "place", value.getValue()));
-			queryRunner.run("CREATE (l:LocatedNodeWithSelfRef {name: $name, place: $place})-[:NEXT]->(n:LocatedNodeWithSelfRef {name: $name + 'next'})", Map.of("name", value.name(), "place", value.getValue()));
+			queryRunner.run("CREATE (l:LocatedNode {name: $name, place: $place})",
+					Map.of("name", value.name(), "place", value.getValue()));
+			queryRunner.run(
+					"CREATE (l:LocatedNodeWithSelfRef {name: $name, place: $place})-[:NEXT]->(n:LocatedNodeWithSelfRef {name: $name + 'next'})",
+					Map.of("name", value.name(), "place", value.getValue()));
 		}
 	}
 
@@ -134,12 +90,12 @@ abstract class TestBase {
 			for (String id : ids) {
 				List<String> labels = session.executeRead(
 						tx -> tx.run("MATCH (n) WHERE n.id = $id RETURN labels(n)", Collections.singletonMap("id", id))
-								.single().get(0).asList(
-										Value::asString));
-				assertThat(labels)
-						.hasSize(3)
-						.contains("AbstractLevel2", "AbstractLevel3")
-						.containsAnyOf("Concrete1", "Concrete2");
+							.single()
+							.get(0)
+							.asList(Value::asString));
+				assertThat(labels).hasSize(3)
+					.contains("AbstractLevel2", "AbstractLevel3")
+					.containsAnyOf("Concrete1", "Concrete2");
 
 			}
 		}
@@ -181,31 +137,81 @@ abstract class TestBase {
 	}
 
 	protected static void assertSingleApplicationNodeWithMultipleWorkflows(Driver driver,
-																		   BookmarkCapture bookmarkCapture) {
+			BookmarkCapture bookmarkCapture) {
 
 		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
-			Record record = session.executeRead(
-					tx -> tx.run("MATCH (a:Application)-->(w) RETURN a, collect(w) as workflows").single());
+			Record record = session
+				.executeRead(tx -> tx.run("MATCH (a:Application)-->(w) RETURN a, collect(w) as workflows").single());
 			assertThat(record.get("a").asNode().get("id").asString()).isEqualTo("app-1");
-			assertThat(record.get("workflows").asList(v -> v.asNode().get("id").asString())).containsExactlyInAnyOrder(
-					"wf-1", "wf-2");
+			assertThat(record.get("workflows").asList(v -> v.asNode().get("id").asString()))
+				.containsExactlyInAnyOrder("wf-1", "wf-2");
 		}
 	}
 
 	protected static void assertMultipleApplicationsNodeWithASingleWorkflow(Driver driver,
-																			BookmarkCapture bookmarkCapture) {
+			BookmarkCapture bookmarkCapture) {
 
 		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
 			List<Record> records = session.executeRead(
 					tx -> tx.run("MATCH (a:Application)-->(w) RETURN a, collect(w) as workflows ORDER by a.id ASC")
-							.list());
+						.list());
 			assertThat(records).hasSize(2);
 			assertThat(records.get(0).get("a").asNode().get("id").asString()).isEqualTo("app-1");
-			assertThat(records.get(0).get("workflows")
-					.asList(v -> v.asNode().get("id").asString())).containsExactlyInAnyOrder("wf-1");
+			assertThat(records.get(0).get("workflows").asList(v -> v.asNode().get("id").asString()))
+				.containsExactlyInAnyOrder("wf-1");
 			assertThat(records.get(1).get("a").asNode().get("id").asString()).isEqualTo("app-2");
-			assertThat(records.get(1).get("workflows")
-					.asList(v -> v.asNode().get("id").asString())).containsExactlyInAnyOrder("wf-2");
+			assertThat(records.get(1).get("workflows").asList(v -> v.asNode().get("id").asString()))
+				.containsExactlyInAnyOrder("wf-2");
 		}
 	}
+
+	@BeforeEach
+	protected final void beforeEach(@Autowired BookmarkCapture bookmarkCapture) {
+		try (Session session = neo4jConnectionSupport.getDriver().session(bookmarkCapture.createSessionConfig());
+				Transaction transaction = session.beginTransaction()) {
+			List<String> labelsToDelete = List.of("AbstractBase", "AccountingMeasurementMeta", "Application",
+					"BaseNodeEntity", "CityModel", "ConcreteImplementationOne", "ConcreteImplementationTwo",
+					"Credential", "Device", "DomainModel", "GH2533Entity", "Measurand", "MeasurementMeta",
+					"SomethingInBetween", "SpecialKind", "Vertex");
+
+			// Detach delete things
+			transaction.run("""
+					MATCH (n) WHERE any(label IN  labels(n) WHERE label in $labels )
+					DETACH DELETE n
+					""", Map.of("labels", labelsToDelete)).consume();
+			transaction.run("MATCH ()- [r:KNOWS]-() DELETE r").consume();
+
+			// 2498
+			transaction
+				.run("UNWIND ['A', 'B', 'C'] AS name WITH name CREATE (n:DomainModel {id: randomUUID(), name: name})")
+				.consume();
+			transaction.run("CREATE (n:Vertex {name: 'a'}) -[:CONNECTED_TO] ->(m:Vertex {name: 'b'})").consume();
+
+			// 2498/2500
+			transaction.run("CREATE (d:Device {id: 1, name:'Testdevice', version:0})").consume();
+
+			// 2526
+			transaction.run("""
+					CREATE (o1:Measurand {measurandId: 'o1'})
+					CREATE (acc1:AccountingMeasurementMeta:MeasurementMeta:BaseNodeEntity {nodeId: 'acc1'})
+					CREATE (m1:MeasurementMeta:BaseNodeEntity {nodeId: 'm1'})
+					CREATE (acc1)-[:USES{variable: 'A'}]->(m1)
+					CREATE (o1)-[:IS_MEASURED_BY{ manual: true }]->(acc1)
+					""").consume();
+
+			// 2415
+			transaction.run("""
+					CREATE (root:NodeEntity:BaseNodeEntity{nodeId: 'root'})
+					CREATE (company:NodeEntity:BaseNodeEntity{nodeId: 'comp'})
+					CREATE (cred:Credential{id: 'uuid-1', name: 'Creds'})
+					CREATE (company)-[:CHILD_OF]->(root)
+					CREATE (root)-[:HAS_CREDENTIAL]->(cred)
+					CREATE (company)-[:WITH_CREDENTIAL]->(cred)
+					""");
+
+			transaction.commit();
+			bookmarkCapture.seedWith(session.lastBookmarks());
+		}
+	}
+
 }

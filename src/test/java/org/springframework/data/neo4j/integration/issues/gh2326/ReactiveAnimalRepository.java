@@ -21,4 +21,5 @@ import org.springframework.data.neo4j.repository.ReactiveNeo4jRepository;
  * @author Michael J. Simons
  */
 public interface ReactiveAnimalRepository extends ReactiveNeo4jRepository<AbstractLevel2, String> {
+
 }

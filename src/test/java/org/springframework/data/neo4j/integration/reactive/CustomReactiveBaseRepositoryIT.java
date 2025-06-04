@@ -15,16 +15,13 @@
  */
 package org.springframework.data.neo4j.integration.reactive;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import org.springframework.data.neo4j.test.Neo4jReactiveTestConfiguration;
-import reactor.core.publisher.Flux;
-import reactor.test.StepVerifier;
-
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.neo4j.driver.Driver;
+import reactor.core.publisher.Flux;
+import reactor.test.StepVerifier;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan.Filter;
@@ -37,8 +34,11 @@ import org.springframework.data.neo4j.repository.config.EnableReactiveNeo4jRepos
 import org.springframework.data.neo4j.repository.support.Neo4jEntityInformation;
 import org.springframework.data.neo4j.repository.support.SimpleReactiveNeo4jRepository;
 import org.springframework.data.neo4j.test.DriverMocks;
+import org.springframework.data.neo4j.test.Neo4jReactiveTestConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Make sure custom base repositories can be used in reactive configurations.
@@ -51,11 +51,14 @@ public class CustomReactiveBaseRepositoryIT {
 	@Test
 	public void customBaseRepositoryShouldBeInUse(@Autowired MyPersonRepository repository) {
 
-		StepVerifier.create(repository.findAll()).expectErrorMatches(e -> e instanceof UnsupportedOperationException
-				&& e.getMessage().equals("This implementation does not support `findAll`"));
+		StepVerifier.create(repository.findAll())
+			.expectErrorMatches(e -> e instanceof UnsupportedOperationException
+					&& e.getMessage().equals("This implementation does not support `findAll`"));
 	}
 
-	interface MyPersonRepository extends ReactiveNeo4jRepository<PersonWithAllConstructor, Long> {}
+	interface MyPersonRepository extends ReactiveNeo4jRepository<PersonWithAllConstructor, Long> {
+
+	}
 
 	static class MyRepositoryImpl<T, ID> extends SimpleReactiveNeo4jRepository<T, ID> {
 
@@ -65,13 +68,14 @@ public class CustomReactiveBaseRepositoryIT {
 			assertThat(neo4jOperations).isNotNull();
 			assertThat(entityInformation).isNotNull();
 			Assertions.assertThat(entityInformation.getEntityMetaData().getUnderlyingClass())
-					.isEqualTo(PersonWithAllConstructor.class);
+				.isEqualTo(PersonWithAllConstructor.class);
 		}
 
 		@Override
 		public Flux<T> findAll() {
 			throw new UnsupportedOperationException("This implementation does not support `findAll`");
 		}
+
 	}
 
 	@Configuration
@@ -81,6 +85,7 @@ public class CustomReactiveBaseRepositoryIT {
 	static class Config extends Neo4jReactiveTestConfiguration {
 
 		@Bean
+		@Override
 		public Driver driver() {
 			return DriverMocks.withOpenReactiveSessionAndTransaction();
 		}
@@ -89,5 +94,7 @@ public class CustomReactiveBaseRepositoryIT {
 		public boolean isCypher5Compatible() {
 			return false;
 		}
+
 	}
+
 }

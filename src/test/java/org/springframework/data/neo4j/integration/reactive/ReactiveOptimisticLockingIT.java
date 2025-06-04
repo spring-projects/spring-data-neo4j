@@ -15,12 +15,6 @@
  */
 package org.springframework.data.neo4j.integration.reactive;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import org.springframework.data.neo4j.test.Neo4jReactiveTestConfiguration;
-import reactor.core.publisher.Flux;
-import reactor.test.StepVerifier;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -33,6 +27,9 @@ import org.neo4j.driver.Driver;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.Transaction;
+import reactor.core.publisher.Flux;
+import reactor.test.StepVerifier;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -47,8 +44,11 @@ import org.springframework.data.neo4j.repository.config.EnableReactiveNeo4jRepos
 import org.springframework.data.neo4j.test.BookmarkCapture;
 import org.springframework.data.neo4j.test.Neo4jExtension;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
+import org.springframework.data.neo4j.test.Neo4jReactiveTestConfiguration;
 import org.springframework.transaction.ReactiveTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Gerrit Meier
@@ -72,11 +72,11 @@ class ReactiveOptimisticLockingIT {
 	@BeforeEach
 	void setup() {
 
-		try (Session session = driver.session(bookmarkCapture.createSessionConfig());
+		try (Session session = this.driver.session(this.bookmarkCapture.createSessionConfig());
 				Transaction transaction = session.beginTransaction()) {
 			transaction.run("MATCH (n) detach delete n");
 			transaction.commit();
-			bookmarkCapture.seedWith(session.lastBookmarks());
+			this.bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 	}
 
@@ -86,7 +86,8 @@ class ReactiveOptimisticLockingIT {
 		// would love to verify version change null -> 0 and 0 -> 1 within one test
 		VersionedThing thing1 = repository.save(new VersionedThing("Thing1")).block();
 		StepVerifier.create(repository.save(thing1))
-				.assertNext(versionedThing -> assertThat(versionedThing.getMyVersion()).isEqualTo(1L)).verifyComplete();
+			.assertNext(versionedThing -> assertThat(versionedThing.getMyVersion()).isEqualTo(1L))
+			.verifyComplete();
 
 	}
 
@@ -97,10 +98,12 @@ class ReactiveOptimisticLockingIT {
 		VersionedThing thing2 = new VersionedThing("Thing2");
 		List<VersionedThing> thingsToSave = Arrays.asList(thing1, thing2);
 
-		StepVerifier.create(repository.saveAll(thingsToSave)).recordWith(ArrayList::new).expectNextCount(2)
-				.consumeRecordedWith(versionedThings -> assertThat(versionedThings)
-						.allMatch(versionedThing -> versionedThing.getMyVersion().equals(0L)))
-				.verifyComplete();
+		StepVerifier.create(repository.saveAll(thingsToSave))
+			.recordWith(ArrayList::new)
+			.expectNextCount(2)
+			.consumeRecordedWith(versionedThings -> assertThat(versionedThings)
+				.allMatch(versionedThing -> versionedThing.getMyVersion().equals(0L)))
+			.verifyComplete();
 
 	}
 
@@ -113,9 +116,9 @@ class ReactiveOptimisticLockingIT {
 		parentThing.setOtherVersionedThings(Collections.singletonList(childThing));
 
 		StepVerifier.create(repository.save(parentThing))
-				.assertNext(
-						versionedThing -> assertThat(versionedThing.getOtherVersionedThings().get(0).getMyVersion()).isEqualTo(0L))
-				.verifyComplete();
+			.assertNext(versionedThing -> assertThat(versionedThing.getOtherVersionedThings().get(0).getMyVersion())
+				.isEqualTo(0L))
+			.verifyComplete();
 	}
 
 	@Test
@@ -141,16 +144,19 @@ class ReactiveOptimisticLockingIT {
 		savedThings.get(1).setMyVersion(1L); // Version in DB is 0
 
 		StepVerifier.create(repository.saveAll(savedThings))
-				.expectNextCount(1L)
-				.expectError(OptimisticLockingFailureException.class)
-				.verify();
+			.expectNextCount(1L)
+			.expectError(OptimisticLockingFailureException.class)
+			.verify();
 
-		// Make sure the first object that has the correct version number doesn't get persisted either
-		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
-			long cnt = session.run(
-					"MATCH (n:VersionedThing) WHERE id(n) = $id AND n.mutableProperty = 'changed' RETURN count(*)",
-					Collections.singletonMap("id", savedThings.get(0).getId())
-			).single().get(0).asLong();
+		// Make sure the first object that has the correct version number doesn't get
+		// persisted either
+		try (Session session = this.driver.session(this.bookmarkCapture.createSessionConfig())) {
+			long cnt = session
+				.run("MATCH (n:VersionedThing) WHERE id(n) = $id AND n.mutableProperty = 'changed' RETURN count(*)",
+						Collections.singletonMap("id", savedThings.get(0).getId()))
+				.single()
+				.get(0)
+				.asLong();
 			assertThat(cnt).isEqualTo(0L);
 		}
 	}
@@ -162,7 +168,8 @@ class ReactiveOptimisticLockingIT {
 		VersionedThing childThing = new VersionedThing("Thing2");
 		thing.setOtherVersionedThings(Collections.singletonList(childThing));
 		VersionedThing savedThing = repository.save(thing).block();
-		savedThing.getOtherVersionedThings().get(0).setMyVersion(1L); // Version in DB is 0
+		savedThing.getOtherVersionedThings().get(0).setMyVersion(1L); // Version in DB is
+																		// 0
 
 		StepVerifier.create(repository.save(savedThing)).expectError(OptimisticLockingFailureException.class).verify();
 
@@ -177,7 +184,8 @@ class ReactiveOptimisticLockingIT {
 		assertThat(thing.getMyVersion()).isEqualTo(0L);
 
 		StepVerifier.create(repository.save(thing))
-				.assertNext(savedThing -> assertThat(savedThing.getMyVersion()).isEqualTo(1L)).verifyComplete();
+			.assertNext(savedThing -> assertThat(savedThing.getMyVersion()).isEqualTo(1L))
+			.verifyComplete();
 
 	}
 
@@ -191,10 +199,12 @@ class ReactiveOptimisticLockingIT {
 
 		List<VersionedThingWithAssignedId> versionedThings = repository.saveAll(thingsToSave).collectList().block();
 
-		StepVerifier.create(repository.saveAll(versionedThings)).recordWith(ArrayList::new).expectNextCount(2)
-				.consumeRecordedWith(
-						savedThings -> assertThat(savedThings).allMatch(versionedThing -> versionedThing.getMyVersion().equals(1L)))
-				.verifyComplete();
+		StepVerifier.create(repository.saveAll(versionedThings))
+			.recordWith(ArrayList::new)
+			.expectNextCount(2)
+			.consumeRecordedWith(savedThings -> assertThat(savedThings)
+				.allMatch(versionedThing -> versionedThing.getMyVersion().equals(1L)))
+			.verifyComplete();
 	}
 
 	@Test
@@ -221,24 +231,26 @@ class ReactiveOptimisticLockingIT {
 
 		versionedThings.get(0).setMyVersion(1L); // Version in DB is 0
 
-		StepVerifier.create(repository.saveAll(versionedThings)).expectError(OptimisticLockingFailureException.class)
-				.verify();
+		StepVerifier.create(repository.saveAll(versionedThings))
+			.expectError(OptimisticLockingFailureException.class)
+			.verify();
 
 	}
 
 	@Test
 	void shouldNotFailOnDeleteByIdWithNullVersion(@Autowired VersionedThingWithAssignedIdRepository repository) {
-		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
+		try (Session session = this.driver.session(this.bookmarkCapture.createSessionConfig())) {
 			session.run("CREATE (v:VersionedThingWithAssignedId {id:1})").consume();
-			bookmarkCapture.seedWith(session.lastBookmarks());
+			this.bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 
-		StepVerifier.create(repository.deleteById(1L))
-				.verifyComplete();
+		StepVerifier.create(repository.deleteById(1L)).verifyComplete();
 
-		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
-			long count = session.run("MATCH (v:VersionedThingWithAssignedId) return count(v) as vCount").single()
-							.get("vCount").asLong();
+		try (Session session = this.driver.session(this.bookmarkCapture.createSessionConfig())) {
+			long count = session.run("MATCH (v:VersionedThingWithAssignedId) return count(v) as vCount")
+				.single()
+				.get("vCount")
+				.asLong();
 
 			assertThat(count).isEqualTo(0);
 		}
@@ -246,30 +258,31 @@ class ReactiveOptimisticLockingIT {
 
 	@Test
 	void shouldNotFailOnDeleteByEntityWithNullVersion(@Autowired VersionedThingWithAssignedIdRepository repository) {
-		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
+		try (Session session = this.driver.session(this.bookmarkCapture.createSessionConfig())) {
 			session.run("CREATE (v:VersionedThingWithAssignedId {id:1})").consume();
-			bookmarkCapture.seedWith(session.lastBookmarks());
+			this.bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 
 		StepVerifier.create(repository.findById(1L).map(thing -> repository.deleteById(1L)))
-				.expectNextCount(1L)
-				.verifyComplete();
+			.expectNextCount(1L)
+			.verifyComplete();
 
 	}
 
 	@Test
 	void shouldNotFailOnDeleteByIdWithAnyVersion(@Autowired VersionedThingWithAssignedIdRepository repository) {
-		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
+		try (Session session = this.driver.session(this.bookmarkCapture.createSessionConfig())) {
 			session.run("CREATE (v:VersionedThingWithAssignedId {id:1, myVersion:3})").consume();
-			bookmarkCapture.seedWith(session.lastBookmarks());
+			this.bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 
-		StepVerifier.create(repository.deleteById(1L))
-				.verifyComplete();
+		StepVerifier.create(repository.deleteById(1L)).verifyComplete();
 
-		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
-			long count = session.run("MATCH (v:VersionedThingWithAssignedId) return count(v) as vCount").single()
-							.get("vCount").asLong();
+		try (Session session = this.driver.session(this.bookmarkCapture.createSessionConfig())) {
+			long count = session.run("MATCH (v:VersionedThingWithAssignedId) return count(v) as vCount")
+				.single()
+				.get("vCount")
+				.asLong();
 
 			assertThat(count).isEqualTo(0);
 		}
@@ -277,15 +290,14 @@ class ReactiveOptimisticLockingIT {
 
 	@Test
 	void shouldFailOnDeleteByEntityWithWrongVersion(@Autowired VersionedThingWithAssignedIdRepository repository) {
-		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
+		try (Session session = this.driver.session(this.bookmarkCapture.createSessionConfig())) {
 			session.run("CREATE (v:VersionedThingWithAssignedId {id:1, myVersion:2})").consume();
-			bookmarkCapture.seedWith(session.lastBookmarks());
+			this.bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 
-		StepVerifier.create(repository.findById(1L)
-				.flatMap(thing -> {
-					thing.setMyVersion(3L);
-					return repository.delete(thing);
+		StepVerifier.create(repository.findById(1L).flatMap(thing -> {
+			thing.setMyVersion(3L);
+			return repository.delete(thing);
 		})).verifyError(OptimisticLockingFailureException.class);
 
 	}
@@ -297,27 +309,20 @@ class ReactiveOptimisticLockingIT {
 		VersionedThing thing2 = new VersionedThing("Thing2");
 
 		thing1.setOtherVersionedThings(Collections.singletonList(thing2));
-		repository.save(thing1)
-				.as(StepVerifier::create)
-				.expectNextCount(1L)
-				.verifyComplete();
+		repository.save(thing1).as(StepVerifier::create).expectNextCount(1L).verifyComplete();
 
-		Flux.zip(repository.findById(thing1.getId()), (repository.findById(thing2.getId())))
-				.flatMap(t -> {
-					VersionedThing thing1n = t.getT1();
-					VersionedThing thing2n = t.getT2();
+		Flux.zip(repository.findById(thing1.getId()), (repository.findById(thing2.getId()))).flatMap(t -> {
+			VersionedThing thing1n = t.getT1();
+			VersionedThing thing2n = t.getT2();
 
-					thing2n.setOtherVersionedThings(Collections.singletonList(thing1n));
-					return repository.save(thing2n);
-				})
-				.as(StepVerifier::create)
-				.expectNextCount(1L)
-				.verifyComplete();
+			thing2n.setOtherVersionedThings(Collections.singletonList(thing1n));
+			return repository.save(thing2n);
+		}).as(StepVerifier::create).expectNextCount(1L).verifyComplete();
 
-		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
+		try (Session session = this.driver.session(this.bookmarkCapture.createSessionConfig())) {
 			List<Record> result = session
-					.run("MATCH (t:VersionedThing{name:'Thing1'})-[:HAS]->(:VersionedThing{name:'Thing2'}) return t")
-					.list();
+				.run("MATCH (t:VersionedThing{name:'Thing1'})-[:HAS]->(:VersionedThing{name:'Thing2'}) return t")
+				.list();
 			assertThat(result).hasSize(1);
 		}
 	}
@@ -335,31 +340,31 @@ class ReactiveOptimisticLockingIT {
 		thing1Relationships.add(thing3);
 		thing1Relationships.add(thing4);
 		thing1.setOtherVersionedThings(thing1Relationships);
-		StepVerifier.create(repository.save(thing1))
-				.expectNextCount(1)
-				.verifyComplete();
+		StepVerifier.create(repository.save(thing1)).expectNextCount(1).verifyComplete();
 
-		Flux.zip(repository.findById(thing1.getId()), repository.findById(thing3.getId()))
-				.flatMap(tuple -> {
-				tuple.getT2().setOtherVersionedThings(Collections.singletonList(tuple.getT1()));
-				return repository.save(tuple.getT2());
-				})
-				.as(StepVerifier::create)
-				.expectNextCount(1)
-				.verifyComplete();
+		Flux.zip(repository.findById(thing1.getId()), repository.findById(thing3.getId())).flatMap(tuple -> {
+			tuple.getT2().setOtherVersionedThings(Collections.singletonList(tuple.getT1()));
+			return repository.save(tuple.getT2());
+		}).as(StepVerifier::create).expectNextCount(1).verifyComplete();
 
-		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
+		try (Session session = this.driver.session(this.bookmarkCapture.createSessionConfig())) {
 			Long relationshipCount = session
-					.run("MATCH (:VersionedThing)-[r:HAS]->(:VersionedThing) return count(r) as relationshipCount")
-					.single().get("relationshipCount").asLong();
+				.run("MATCH (:VersionedThing)-[r:HAS]->(:VersionedThing) return count(r) as relationshipCount")
+				.single()
+				.get("relationshipCount")
+				.asLong();
 			assertThat(relationshipCount).isEqualTo(4);
 		}
 	}
 
-	interface VersionedThingRepository extends ReactiveNeo4jRepository<VersionedThing, Long> {}
+	interface VersionedThingRepository extends ReactiveNeo4jRepository<VersionedThing, Long> {
+
+	}
 
 	interface VersionedThingWithAssignedIdRepository
-			extends ReactiveNeo4jRepository<VersionedThingWithAssignedId, Long> {}
+			extends ReactiveNeo4jRepository<VersionedThingWithAssignedId, Long> {
+
+	}
 
 	@Configuration
 	@EnableTransactionManagement
@@ -367,25 +372,30 @@ class ReactiveOptimisticLockingIT {
 	static class Config extends Neo4jReactiveTestConfiguration {
 
 		@Bean
+		@Override
 		public Driver driver() {
 			return neo4jConnectionSupport.getDriver();
 		}
 
 		@Bean
-		public BookmarkCapture bookmarkCapture() {
+		BookmarkCapture bookmarkCapture() {
 			return new BookmarkCapture();
 		}
 
 		@Override
-		public ReactiveTransactionManager reactiveTransactionManager(Driver driver, ReactiveDatabaseSelectionProvider databaseSelectionProvider) {
+		public ReactiveTransactionManager reactiveTransactionManager(Driver driver,
+				ReactiveDatabaseSelectionProvider databaseSelectionProvider) {
 
 			BookmarkCapture bookmarkCapture = bookmarkCapture();
-			return new ReactiveNeo4jTransactionManager(driver, databaseSelectionProvider, Neo4jBookmarkManager.createReactive(bookmarkCapture));
+			return new ReactiveNeo4jTransactionManager(driver, databaseSelectionProvider,
+					Neo4jBookmarkManager.createReactive(bookmarkCapture));
 		}
 
 		@Override
 		public boolean isCypher5Compatible() {
 			return neo4jConnectionSupport.isCypher5SyntaxCompatible();
 		}
+
 	}
+
 }

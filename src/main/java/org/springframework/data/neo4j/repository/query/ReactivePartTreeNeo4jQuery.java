@@ -24,6 +24,7 @@ import java.util.function.UnaryOperator;
 import org.jspecify.annotations.Nullable;
 import org.neo4j.driver.types.MapAccessor;
 import org.neo4j.driver.types.TypeSystem;
+
 import org.springframework.data.neo4j.core.PreparedQuery;
 import org.springframework.data.neo4j.core.ReactiveNeo4jOperations;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
@@ -44,12 +45,6 @@ final class ReactivePartTreeNeo4jQuery extends AbstractReactiveNeo4jQuery {
 
 	private final PartTree tree;
 
-	public static RepositoryQuery create(ReactiveNeo4jOperations neo4jOperations, Neo4jMappingContext mappingContext,
-			Neo4jQueryMethod queryMethod, ProjectionFactory factory) {
-		return new ReactivePartTreeNeo4jQuery(neo4jOperations, mappingContext, queryMethod,
-				new PartTree(queryMethod.getName(), getDomainType(queryMethod)), factory);
-	}
-
 	private ReactivePartTreeNeo4jQuery(ReactiveNeo4jOperations neo4jOperations, Neo4jMappingContext mappingContext,
 			Neo4jQueryMethod queryMethod, PartTree tree, ProjectionFactory factory) {
 		super(neo4jOperations, mappingContext, queryMethod, Neo4jQueryType.fromPartTree(tree), factory);
@@ -60,18 +55,29 @@ final class ReactivePartTreeNeo4jQuery extends AbstractReactiveNeo4jQuery {
 		this.tree.flatMap(OrPart::stream).forEach(validator::validatePart);
 	}
 
-	@Override
-	protected <T extends Object> PreparedQuery<T> prepareQuery(Class<T> returnedType, Collection<PropertyFilter.ProjectedPath> includedProperties,
-			Neo4jParameterAccessor parameterAccessor, @Nullable Neo4jQueryType queryType,
-			Supplier<BiFunction<TypeSystem, MapAccessor, ?>> mappingFunction, UnaryOperator<Integer> limitModifier) {
+	static RepositoryQuery create(ReactiveNeo4jOperations neo4jOperations, Neo4jMappingContext mappingContext,
+			Neo4jQueryMethod queryMethod, ProjectionFactory factory) {
+		return new ReactivePartTreeNeo4jQuery(neo4jOperations, mappingContext, queryMethod,
+				new PartTree(queryMethod.getName(), getDomainType(queryMethod)), factory);
+	}
 
-		CypherQueryCreator queryCreator = new CypherQueryCreator(mappingContext, queryMethod, getDomainType(queryMethod),
-				Optional.ofNullable(queryType).orElseGet(() -> Neo4jQueryType.fromPartTree(tree)), tree, parameterAccessor,
-				includedProperties, this::convertParameter, limitModifier);
+	@Override
+	protected <T extends Object> PreparedQuery<T> prepareQuery(Class<T> returnedType,
+			Collection<PropertyFilter.ProjectedPath> includedProperties, Neo4jParameterAccessor parameterAccessor,
+			@Nullable Neo4jQueryType queryType, Supplier<BiFunction<TypeSystem, MapAccessor, ?>> mappingFunction,
+			UnaryOperator<Integer> limitModifier) {
+
+		CypherQueryCreator queryCreator = new CypherQueryCreator(this.mappingContext, this.queryMethod,
+				getDomainType(this.queryMethod),
+				Optional.ofNullable(queryType).orElseGet(() -> Neo4jQueryType.fromPartTree(this.tree)), this.tree,
+				parameterAccessor, includedProperties, this::convertParameter, limitModifier);
 
 		QueryFragmentsAndParameters queryAndParameters = queryCreator.createQuery();
 
-		return PreparedQuery.queryFor(returnedType).withQueryFragmentsAndParameters(queryAndParameters)
-				.usingMappingFunction(mappingFunction).build();
+		return PreparedQuery.queryFor(returnedType)
+			.withQueryFragmentsAndParameters(queryAndParameters)
+			.usingMappingFunction(mappingFunction)
+			.build();
 	}
+
 }

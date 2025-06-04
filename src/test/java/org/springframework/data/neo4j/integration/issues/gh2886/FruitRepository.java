@@ -26,6 +26,8 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface FruitRepository extends Neo4jRepository<Fruit, String> {
+
 	@Query("MATCH (f:Fruit) RETURN f")
 	List<Fruit> findAllFruits();
+
 }

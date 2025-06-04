@@ -29,6 +29,7 @@ public class ProjectionTestLevel1 extends ProjectionTestBase {
 	private List<ProjectionTestLevel2> level2 = new ArrayList<>();
 
 	public List<ProjectionTestLevel2> getLevel2() {
-		return level2;
+		return this.level2;
 	}
+
 }

@@ -33,6 +33,7 @@ import org.apiguardian.api.API;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.types.IsoDuration;
 import org.neo4j.driver.types.Point;
+
 import org.springframework.data.mapping.model.SimpleTypeHolder;
 import org.springframework.data.neo4j.types.CartesianPoint2d;
 import org.springframework.data.neo4j.types.CartesianPoint3d;
@@ -40,13 +41,14 @@ import org.springframework.data.neo4j.types.GeographicPoint2d;
 import org.springframework.data.neo4j.types.GeographicPoint3d;
 
 /**
- * A list of Neo4j simple types: All attributes that can be mapped to a property. Some special logic has to be applied
- * for domain attributes of the collection types {@link java.util.List} and {@link java.util.Map}. Those can be mapped
- * to simple properties as well as to relationships to other things.
+ * A list of Neo4j simple types: All attributes that can be mapped to a property. Some
+ * special logic has to be applied for domain attributes of the collection types
+ * {@link java.util.List} and {@link java.util.Map}. Those can be mapped to simple
+ * properties as well as to relationships to other things.
  * <p>
- * The Java driver itself has a good overview of the supported types:
- * <a href="https://neo4j.com/docs/driver-manual/1.7/cypher-values/#driver-neo4j-type-system">The Cypher type
- * system</a>.
+ * The Java driver itself has a good overview of the supported types: <a href=
+ * "https://neo4j.com/docs/driver-manual/1.7/cypher-values/#driver-neo4j-type-system">The
+ * Cypher type system</a>.
  *
  * @author Michael J. Simons
  * @since 6.0
@@ -87,9 +89,12 @@ public final class Neo4jSimpleTypes {
 	}
 
 	/**
-	 * The simple types we support plus all the simple types recognized by Spring. Not taking custom conversions into account.
+	 * The simple types we support plus all the simple types recognized by Spring. Not
+	 * taking custom conversions into account.
 	 */
 	public static final SimpleTypeHolder HOLDER = new SimpleTypeHolder(NEO4J_NATIVE_TYPES, true);
 
-	private Neo4jSimpleTypes() {}
+	private Neo4jSimpleTypes() {
+	}
+
 }

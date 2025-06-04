@@ -23,15 +23,17 @@ import java.util.Optional;
 import org.apiguardian.api.API;
 import org.jspecify.annotations.Nullable;
 import org.neo4j.cypherdsl.core.Statement;
+
 import org.springframework.data.neo4j.repository.query.QueryFragmentsAndParameters;
 
 /**
- * {@link FluentFindOperation} allows creation and execution of Neo4j find operations in a fluent API style.
+ * {@link FluentFindOperation} allows creation and execution of Neo4j find operations in a
+ * fluent API style.
  * <p>
- * The starting {@literal domainType} is used for mapping the query provided via {@code by} into the
- * Neo4j specific representation. By default, the originating {@literal domainType} is also used for mapping back the
- * result. However, it is possible to define a different {@literal returnType} via
- * {@code as} to mapping the result.
+ * The starting {@literal domainType} is used for mapping the query provided via
+ * {@code by} into the Neo4j specific representation. By default, the originating
+ * {@literal domainType} is also used for mapping back the result. However, it is possible
+ * to define a different {@literal returnType} via {@code as} to mapping the result.
  *
  * @author Michael Simons
  * @since 6.1
@@ -41,15 +43,16 @@ public interface FluentFindOperation {
 
 	/**
 	 * Start creating a find operation for the given {@literal domainType}.
-	 *
 	 * @param domainType must not be {@literal null}.
+	 * @param <T> the domain tyoe
 	 * @return new instance of {@link ExecutableFind}.
 	 * @throws IllegalArgumentException if domainType is {@literal null}.
 	 */
 	<T> ExecutableFind<T> find(Class<T> domainType);
 
 	/**
-	 * Trigger find execution by calling one of the terminating methods from a state where no query is yet defined.
+	 * Trigger find execution by calling one of the terminating methods from a state where
+	 * no query is yet defined.
 	 *
 	 * @param <T> returned type
 	 */
@@ -57,10 +60,10 @@ public interface FluentFindOperation {
 
 		/**
 		 * Get all matching elements.
-		 *
 		 * @return never {@literal null}.
 		 */
 		List<T> all();
+
 	}
 
 	/**
@@ -72,9 +75,9 @@ public interface FluentFindOperation {
 
 		/**
 		 * Get exactly zero or one result.
-		 *
 		 * @return {@link Optional#empty()} if no match found.
-		 * @throws org.springframework.dao.IncorrectResultSizeDataAccessException if more than one match found.
+		 * @throws org.springframework.dao.IncorrectResultSizeDataAccessException if more
+		 * than one match found.
 		 */
 		default Optional<T> one() {
 			return Optional.ofNullable(oneValue());
@@ -82,12 +85,12 @@ public interface FluentFindOperation {
 
 		/**
 		 * Get exactly zero or one result.
-		 *
 		 * @return {@literal null} if no match found.
-		 * @throws org.springframework.dao.IncorrectResultSizeDataAccessException if more than one match found.
+		 * @throws org.springframework.dao.IncorrectResultSizeDataAccessException if more
+		 * than one match found.
 		 */
-		@Nullable
-		T oneValue();
+		@Nullable T oneValue();
+
 	}
 
 	/**
@@ -99,27 +102,26 @@ public interface FluentFindOperation {
 
 		/**
 		 * Set the filter query to be used.
-		 *
 		 * @param query must not be {@literal null}.
-		 * @param parameter Optional parameter map
+		 * @param parameter an optional parameter map
 		 * @return new instance of {@link TerminatingFind}.
 		 * @throws IllegalArgumentException if query is {@literal null}.
 		 */
 		TerminatingFind<T> matching(String query, Map<String, Object> parameter);
 
 		/**
-		 * Creates an executable query based on fragments and parameters. Hardly useful outside framework-code
-		 * and we actively discourage using this method.
-		 *
-		 * @param queryFragmentsAndParameters Encapsulated query fragments and parameters as created by the repository abstraction.
+		 * Creates an executable query based on fragments and parameters. Hardly useful
+		 * outside framework-code and we actively discourage using this method.
+		 * @param queryFragmentsAndParameters encapsulated query fragments and parameters
+		 * as created by the repository abstraction
 		 * @return new instance of {@link TerminatingFind}.
-		 * @throws IllegalArgumentException if queryFragmentsAndParameters is {@literal null}.
+		 * @throws IllegalArgumentException if queryFragmentsAndParameters is
+		 * {@literal null}.
 		 */
 		TerminatingFind<T> matching(QueryFragmentsAndParameters queryFragmentsAndParameters);
 
 		/**
 		 * Set the filter query to be used.
-		 *
 		 * @param query must not be {@literal null}.
 		 * @return new instance of {@link TerminatingFind}.
 		 * @throws IllegalArgumentException if query is {@literal null}.
@@ -130,9 +132,9 @@ public interface FluentFindOperation {
 
 		/**
 		 * Set the filter {@link Statement statement} to be used.
-		 *
 		 * @param statement must not be {@literal null}.
-		 * @param parameter Will be merged with parameters in the statement. Parameters in {@code parameter} have precedence.
+		 * @param parameter will be merged with parameters in the statement. Parameters in
+		 * {@code parameter} have precedence
 		 * @return new instance of {@link TerminatingFind}.
 		 * @throws IllegalArgumentException if statement is {@literal null}.
 		 */
@@ -140,7 +142,6 @@ public interface FluentFindOperation {
 
 		/**
 		 * Set the filter {@link Statement statement} to be used.
-		 *
 		 * @param statement must not be {@literal null}.
 		 * @return new instance of {@link TerminatingFind}.
 		 * @throws IllegalArgumentException if criteria is {@literal null}.
@@ -148,6 +149,7 @@ public interface FluentFindOperation {
 		default TerminatingFind<T> matching(Statement statement) {
 			return matching(statement, Collections.emptyMap());
 		}
+
 	}
 
 	/**
@@ -160,13 +162,13 @@ public interface FluentFindOperation {
 		/**
 		 * Define the target type fields should be mapped to. <br />
 		 * Skip this step if you are anyway only interested in the original domain type.
-		 *
 		 * @param resultType must not be {@literal null}.
-		 * @param <R>        result type.
+		 * @param <R> result type.
 		 * @return new instance of {@link FindWithProjection}.
 		 * @throws IllegalArgumentException if resultType is {@literal null}.
 		 */
 		<R> FindWithQuery<R> as(Class<R> resultType);
+
 	}
 
 	/**
@@ -175,5 +177,7 @@ public interface FluentFindOperation {
 	 * @param <T> returned type
 	 */
 	interface ExecutableFind<T> extends FindWithProjection<T> {
+
 	}
+
 }

@@ -56,25 +56,20 @@ public class PUI implements Parent {
 		this.name = name;
 		this.singleCUI = new CUI(name + ".singleCUI");
 		this.singleCUE = new CUE(name + ".singleCUE");
-		this.manyCUI = List.of(
-				new CUI(name + ".cUI1"),
-				new CUI(name + ".cUI2")
-		);
+		this.manyCUI = List.of(new CUI(name + ".cUI1"), new CUI(name + ".cUI2"));
 		this.singleCVI = new CVI(name + ".singleCVI");
 		this.singleCVE = new CVE(name + ".singleCVE");
-		this.manyCVI = List.of(
-				new CVI(name + ".cVI1"),
-				new CVI(name + ".cVI2")
-		);
+		this.manyCVI = List.of(new CVI(name + ".cVI1"), new CVI(name + ".cVI2"));
 	}
 
+	@Override
 	public String getId() {
-		return id;
+		return this.id;
 	}
 
 	@Override
 	public String getName() {
-		return name;
+		return this.name;
 	}
 
 	@Override
@@ -84,31 +79,32 @@ public class PUI implements Parent {
 
 	@Override
 	public List<CUI> getManyCUI() {
-		return manyCUI;
+		return this.manyCUI;
 	}
 
 	@Override
 	public List<CVI> getManyCVI() {
-		return manyCVI;
+		return this.manyCVI;
 	}
 
 	@Override
 	public CUE getSingleCUE() {
-		return singleCUE;
+		return this.singleCUE;
 	}
 
 	@Override
 	public CUI getSingleCUI() {
-		return singleCUI;
+		return this.singleCUI;
 	}
 
 	@Override
 	public CVE getSingleCVE() {
-		return singleCVE;
+		return this.singleCVE;
 	}
 
 	@Override
 	public CVI getSingleCVI() {
-		return singleCVI;
+		return this.singleCVI;
 	}
+
 }

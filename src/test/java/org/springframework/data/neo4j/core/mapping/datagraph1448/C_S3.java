@@ -28,4 +28,5 @@ public class C_S3 extends RelatedThing {
 	public C_S3(String name) {
 		this.name = name;
 	}
+
 }

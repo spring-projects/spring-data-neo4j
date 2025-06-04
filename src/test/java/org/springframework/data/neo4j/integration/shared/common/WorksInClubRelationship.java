@@ -25,13 +25,13 @@ import org.springframework.data.neo4j.core.schema.TargetNode;
 @RelationshipProperties
 public class WorksInClubRelationship {
 
-	@RelationshipId
-	private Long id;
-
 	private final Integer since;
 
 	@TargetNode
 	private final Club club;
+
+	@RelationshipId
+	private Long id;
 
 	public WorksInClubRelationship(Integer since, Club club) {
 		this.since = since;
@@ -39,10 +39,11 @@ public class WorksInClubRelationship {
 	}
 
 	public Integer getSince() {
-		return since;
+		return this.since;
 	}
 
 	public Club getClub() {
-		return club;
+		return this.club;
 	}
+
 }

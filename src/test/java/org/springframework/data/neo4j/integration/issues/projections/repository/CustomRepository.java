@@ -22,5 +22,7 @@ import org.springframework.data.neo4j.integration.issues.projections.projection.
  * @author Michael J. Simons
  */
 public interface CustomRepository {
+
 	SourceNodeAProjection saveWithProjection(SourceNodeA sourceNodeA);
+
 }

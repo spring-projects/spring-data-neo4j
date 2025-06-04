@@ -15,8 +15,6 @@
  */
 package org.springframework.data.neo4j.integration.shared.common;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -29,9 +27,12 @@ import org.neo4j.driver.Transaction;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
 import org.neo4j.driver.types.Node;
+
 import org.springframework.data.neo4j.test.BookmarkCapture;
 import org.springframework.data.neo4j.test.Neo4jExtension;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Shared information for both imperative and reactive callbacks tests.
@@ -42,6 +43,7 @@ import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 public abstract class CallbacksITBase {
 
 	protected static Neo4jExtension.Neo4jConnectionSupport neo4jConnectionSupport;
+
 	private final BookmarkCapture bookmarkCapture;
 
 	private final Driver driver;
@@ -54,26 +56,28 @@ public abstract class CallbacksITBase {
 	@BeforeEach
 	protected void setupData() {
 
-		try (Session session = driver.session()) {
+		try (Session session = this.driver.session()) {
 			try (Transaction transaction = session.beginTransaction()) {
 				transaction.run("MATCH (n) detach delete n");
 				transaction.run("UNWIND ['E1', 'E2'] AS id WITH id CREATE (t:Thing {theId: id, name: 'Egal'})");
 				transaction.commit();
 			}
-			bookmarkCapture.seedWith(session.lastBookmarks());
+			this.bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 	}
 
 	protected void verifyDatabase(Iterable<ThingWithAssignedId> expectedValues) {
 
-		List<String> ids = StreamSupport.stream(expectedValues.spliterator(), false).map(ThingWithAssignedId::getTheId)
-				.collect(Collectors.toList());
-		List<String> names = StreamSupport.stream(expectedValues.spliterator(), false).map(ThingWithAssignedId::getName)
-				.collect(Collectors.toList());
-		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
+		List<String> ids = StreamSupport.stream(expectedValues.spliterator(), false)
+			.map(ThingWithAssignedId::getTheId)
+			.collect(Collectors.toList());
+		List<String> names = StreamSupport.stream(expectedValues.spliterator(), false)
+			.map(ThingWithAssignedId::getName)
+			.collect(Collectors.toList());
+		try (Session session = this.driver.session(this.bookmarkCapture.createSessionConfig())) {
 			Record record = session
-					.run("MATCH (n:Thing) WHERE n.theId in $ids RETURN COLLECT(n) as things", Values.parameters("ids", ids))
-					.single();
+				.run("MATCH (n:Thing) WHERE n.theId in $ids RETURN COLLECT(n) as things", Values.parameters("ids", ids))
+				.single();
 
 			List<Node> nodes = record.get("things").asList(Value::asNode);
 			assertThat(nodes).extracting(n -> n.get("theId").asString()).containsAll(ids);
@@ -81,7 +85,8 @@ public abstract class CallbacksITBase {
 			assertThat(nodes).allMatch(n -> n.get("randomValue").isNull());
 			assertThat(nodes).allMatch(n -> n.get("anotherRandomValue").isNull());
 
-			bookmarkCapture.seedWith(session.lastBookmarks());
+			this.bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 	}
+
 }

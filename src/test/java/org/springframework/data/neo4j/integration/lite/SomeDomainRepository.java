@@ -60,4 +60,5 @@ public interface SomeDomainRepository extends Neo4jRepository<SomeDomainObject, 
 	// language=cypher
 	@Query("RETURN 'av' AS outer, {inner: 'bv'} AS nested")
 	Optional<A> getOneNestedDTO();
+
 }

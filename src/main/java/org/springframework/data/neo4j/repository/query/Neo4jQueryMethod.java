@@ -22,6 +22,7 @@ import java.util.Optional;
 
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
+
 import org.springframework.core.MethodParameter;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.data.geo.GeoPage;
@@ -39,9 +40,10 @@ import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 
 /**
- * Neo4j specific implementation of {@link QueryMethod}. It contains a custom implementation of {@link Parameter} which
- * supports Neo4js specific placeholder as well as a convenient method to return either the parameters index or name
- * without placeholder.
+ * Neo4j specific implementation of {@link QueryMethod}. It contains a custom
+ * implementation of {@link Parameter} which supports Neo4js specific placeholder as well
+ * as a convenient method to return either the parameters index or name without
+ * placeholder.
  *
  * @author Gerrit Meier
  * @author Michael J. Simons
@@ -50,7 +52,8 @@ import org.springframework.util.StringUtils;
  */
 class Neo4jQueryMethod extends QueryMethod {
 
-	static final List<Class<? extends Serializable>> GEO_NEAR_RESULTS = List.of(GeoResult.class, GeoResults.class, GeoPage.class);
+	static final List<Class<? extends Serializable>> GEO_NEAR_RESULTS = List.of(GeoResult.class, GeoResults.class,
+			GeoPage.class);
 
 	/**
 	 * Optional query annotation of the method.
@@ -65,9 +68,8 @@ class Neo4jQueryMethod extends QueryMethod {
 	private final Method method;
 
 	/**
-	 * Creates a new {@link Neo4jQueryMethod} from the given parameters. Looks up the correct query to use for following
-	 * invocations of the method given.
-	 *
+	 * Creates a new {@link Neo4jQueryMethod} from the given parameters. Looks up the
+	 * correct query to use for following invocations of the method given.
 	 * @param method must not be {@literal null}.
 	 * @param metadata must not be {@literal null}.
 	 * @param factory must not be {@literal null}.
@@ -77,13 +79,12 @@ class Neo4jQueryMethod extends QueryMethod {
 	}
 
 	/**
-	 * Allows configuring {@link #cypherBasedProjection} from inheriting classes. Not meant to be called outside the
-	 * inheritance tree.
-	 *
+	 * Allows configuring {@link #cypherBasedProjection} from inheriting classes. Not
+	 * meant to be called outside the inheritance tree.
 	 * @param method must not be {@literal null}.
 	 * @param metadata must not be {@literal null}.
 	 * @param factory must not be {@literal null}.
-	 * @param cypherBasedProjection True if this points to a Cypher-DSL based projection.
+	 * @param cypherBasedProjection true if this points to a Cypher-DSL based projection.
 	 */
 	Neo4jQueryMethod(Method method, RepositoryMetadata metadata, ProjectionFactory factory,
 			boolean cypherBasedProjection) {
@@ -96,7 +97,7 @@ class Neo4jQueryMethod extends QueryMethod {
 	}
 
 	String getRepositoryName() {
-		return repositoryName;
+		return this.repositoryName;
 	}
 
 	boolean isCollectionLikeQuery() {
@@ -104,21 +105,49 @@ class Neo4jQueryMethod extends QueryMethod {
 	}
 
 	boolean isCypherBasedProjection() {
-		return cypherBasedProjection;
+		return this.cypherBasedProjection;
 	}
 
 	/**
-	 * @return True if the underlying method has been annotated with {@code @Query}.
+	 * A flag if the query points to an annotated method that defines a query.
+	 * @return true if the underlying method has been annotated with {@code @Query}.
 	 */
 	boolean hasQueryAnnotation() {
 		return this.queryAnnotation != null;
 	}
 
 	/**
-	 * @return the {@link Query} annotation that is applied to the method or an empty {@link Optional} if none available.
+	 * If {@link #hasQueryAnnotation()} returns true, the query can be retrieved with this
+	 * method.
+	 * @return the {@link Query} annotation that is applied to the method or an empty
+	 * {@link Optional} if none available.
 	 */
 	Optional<Query> getQueryAnnotation() {
 		return Optional.ofNullable(this.queryAnnotation);
+	}
+
+	@Override
+	public Class<?> getReturnedObjectType() {
+		Class<?> returnedObjectType = super.getReturnedObjectType();
+		if (returnedObjectType.equals(GeoResult.class)) {
+			return getDomainClass();
+		}
+		return returnedObjectType;
+	}
+
+	boolean incrementLimit() {
+		return (this.isSliceQuery()
+				&& this.getQueryAnnotation().map(Query::countQuery).filter(StringUtils::hasText).isEmpty())
+				|| this.isScrollQuery();
+	}
+
+	boolean asCollectionQuery() {
+		return this.isCollectionLikeQuery() || this.isPageQuery() || this.isSliceQuery() || this.isScrollQuery()
+				|| GeoResults.class.isAssignableFrom(this.method.getReturnType());
+	}
+
+	Method getMethod() {
+		return this.method;
 	}
 
 	static class Neo4jParameters extends Parameters<@NonNull Neo4jParameters, @NonNull Neo4jParameter> {
@@ -135,25 +164,18 @@ class Neo4jQueryMethod extends QueryMethod {
 		protected Neo4jParameters createFrom(List<Neo4jParameter> parameters) {
 			return new Neo4jParameters(parameters);
 		}
-	}
 
-	@Override
-	public Class<?> getReturnedObjectType() {
-		Class<?> returnedObjectType = super.getReturnedObjectType();
-		if (returnedObjectType.equals(GeoResult.class)) {
-			return getDomainClass();
-		}
-		return returnedObjectType;
 	}
 
 	static class Neo4jParameter extends Parameter {
 
 		private static final String NAMED_PARAMETER_TEMPLATE = "$%s";
+
 		private static final String POSITION_PARAMETER_TEMPLATE = "$%d";
 
 		/**
-		 * Creates a new {@link Parameter} for the given {@link MethodParameter} and {@link TypeInformation}.
-		 *
+		 * Creates a new {@link Parameter} for the given {@link MethodParameter} and
+		 * {@link TypeInformation}.
 		 * @param parameter must not be {@literal null}.
 		 * @param domainType must not be {@literal null}.
 		 */
@@ -161,26 +183,17 @@ class Neo4jQueryMethod extends QueryMethod {
 			super(parameter, domainType);
 		}
 
+		@Override
 		public String getPlaceholder() {
 
 			if (isNamedParameter()) {
 				return String.format(NAMED_PARAMETER_TEMPLATE, getName().orElseThrow());
-			} else {
+			}
+			else {
 				return String.format(POSITION_PARAMETER_TEMPLATE, getIndex());
 			}
 		}
+
 	}
 
-	boolean incrementLimit() {
-		return (this.isSliceQuery() && this.getQueryAnnotation().map(Query::countQuery).filter(StringUtils::hasText).isEmpty()) || this.isScrollQuery();
-	}
-
-	boolean asCollectionQuery() {
-		return this.isCollectionLikeQuery() || this.isPageQuery() || this.isSliceQuery() || this.isScrollQuery() ||
-			GeoResults.class.isAssignableFrom(this.method.getReturnType());
-	}
-
-	Method getMethod() {
-		return method;
-	}
 }

@@ -23,7 +23,6 @@ import org.springframework.data.neo4j.core.schema.Relationship
 
 /**
  * @author Michael J. Simons
- * @soundtrack Genesis - Invisible Touch
  */
 @Node
 abstract class AbstractKotlinBase(open val name: String) {

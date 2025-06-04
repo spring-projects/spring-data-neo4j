@@ -19,6 +19,7 @@ import java.util.Map;
 
 import org.apiguardian.api.API;
 import org.neo4j.driver.types.MapAccessor;
+
 import org.springframework.data.convert.EntityReader;
 import org.springframework.data.convert.EntityWriter;
 
@@ -26,9 +27,10 @@ import org.springframework.data.convert.EntityWriter;
  * This orchestrates the built-in store conversions and any additional Spring converters.
  *
  * @author Michael J. Simons
- * @soundtrack The Kleptones - A Night At The Hip-Hopera
  * @since 6.0
  */
 @API(status = API.Status.INTERNAL, since = "6.0")
-public interface Neo4jEntityConverter extends EntityReader<Object, MapAccessor>, EntityWriter<Object, Map<String, Object>> {
+public interface Neo4jEntityConverter
+		extends EntityReader<Object, MapAccessor>, EntityWriter<Object, Map<String, Object>> {
+
 }

@@ -24,4 +24,5 @@ public class Source {
 
 	@Relationship("IS_RELATED_TO")
 	private Properties<Target> target;
+
 }

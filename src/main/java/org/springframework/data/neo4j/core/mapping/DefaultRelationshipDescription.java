@@ -19,15 +19,20 @@ import java.util.Objects;
 
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
+
 import org.springframework.data.mapping.Association;
 import org.springframework.data.neo4j.core.schema.Relationship;
 
 /**
+ * Default implementation of the Neo4j specific association
+ * {@link RelationshipDescription}.
+ *
  * @author Michael J. Simons
  * @author Gerrit Meier
  * @since 6.0
  */
-final class DefaultRelationshipDescription extends Association<@NonNull Neo4jPersistentProperty> implements RelationshipDescription {
+final class DefaultRelationshipDescription extends Association<@NonNull Neo4jPersistentProperty>
+		implements RelationshipDescription {
 
 	private final String type;
 
@@ -44,17 +49,18 @@ final class DefaultRelationshipDescription extends Association<@NonNull Neo4jPer
 	@Nullable
 	private final NodeDescription<?> relationshipPropertiesClass;
 
+	private final boolean cascadeUpdates;
+
 	@Nullable
 	private RelationshipDescription relationshipObverse;
 
-	private final boolean cascadeUpdates;
+	DefaultRelationshipDescription(Neo4jPersistentProperty inverse,
+			@Nullable RelationshipDescription relationshipObverse, String type, boolean dynamic,
+			NodeDescription<?> source, String fieldName, NodeDescription<?> target, Relationship.Direction direction,
+			@Nullable NodeDescription<?> relationshipProperties, boolean cascadeUpdates) {
 
-	DefaultRelationshipDescription(Neo4jPersistentProperty inverse, @Nullable RelationshipDescription relationshipObverse,
-			String type, boolean dynamic, NodeDescription<?> source, String fieldName, NodeDescription<?> target,
-			Relationship.Direction direction, @Nullable NodeDescription<?> relationshipProperties,
-			boolean cascadeUpdates) {
-
-		// the immutable obverse association-wise is always null because we cannot determine them on both sides
+		// the immutable obverse association-wise is always null because we cannot
+		// determine them on both sides
 		// if we consider to support bidirectional relationships.
 		super(inverse, null);
 
@@ -71,38 +77,37 @@ final class DefaultRelationshipDescription extends Association<@NonNull Neo4jPer
 
 	@Override
 	public String getType() {
-		return type;
+		return this.type;
 	}
 
 	@Override
 	public boolean isDynamic() {
-		return dynamic;
+		return this.dynamic;
 	}
 
 	@Override
 	public NodeDescription<?> getTarget() {
-		return target;
+		return this.target;
 	}
 
 	@Override
 	public NodeDescription<?> getSource() {
-		return source;
+		return this.source;
 	}
 
 	@Override
 	public String getFieldName() {
-		return fieldName;
+		return this.fieldName;
 	}
 
 	@Override
 	public Relationship.Direction getDirection() {
-		return direction;
+		return this.direction;
 	}
 
 	@Override
-	@Nullable
-	public NodeDescription<?> getRelationshipPropertiesEntity() {
-		return relationshipPropertiesClass;
+	@Nullable public NodeDescription<?> getRelationshipPropertiesEntity() {
+		return this.relationshipPropertiesClass;
 	}
 
 	@Override
@@ -111,14 +116,13 @@ final class DefaultRelationshipDescription extends Association<@NonNull Neo4jPer
 	}
 
 	@Override
-	public void setRelationshipObverse(@Nullable RelationshipDescription relationshipObverse) {
-		this.relationshipObverse = relationshipObverse;
+	@Nullable public RelationshipDescription getRelationshipObverse() {
+		return this.relationshipObverse;
 	}
 
 	@Override
-	@Nullable
-	public RelationshipDescription getRelationshipObverse() {
-		return relationshipObverse;
+	public void setRelationshipObverse(@Nullable RelationshipDescription relationshipObverse) {
+		this.relationshipObverse = relationshipObverse;
 	}
 
 	@Override
@@ -128,13 +132,7 @@ final class DefaultRelationshipDescription extends Association<@NonNull Neo4jPer
 
 	@Override
 	public boolean cascadeUpdates() {
-		return cascadeUpdates;
-	}
-
-	@Override
-	public String toString() {
-		return "DefaultRelationshipDescription{" + "type='" + type + '\'' + ", source='" + source + '\'' + ", direction='"
-				+ direction + '\'' + ", target='" + target + '}';
+		return this.cascadeUpdates;
 	}
 
 	@Override
@@ -142,16 +140,23 @@ final class DefaultRelationshipDescription extends Association<@NonNull Neo4jPer
 		if (this == o) {
 			return true;
 		}
-		if (!(o instanceof DefaultRelationshipDescription)) {
+		if (!(o instanceof DefaultRelationshipDescription that)) {
 			return false;
 		}
-		DefaultRelationshipDescription that = (DefaultRelationshipDescription) o;
-		return (isDynamic() ? getFieldName().equals(that.getFieldName()) : getType().equals(that.getType())) && getTarget().equals(that.getTarget())
-				&& getSource().equals(that.getSource()) && getDirection().equals(that.getDirection());
+		return (isDynamic() ? getFieldName().equals(that.getFieldName()) : getType().equals(that.getType()))
+				&& getTarget().equals(that.getTarget()) && getSource().equals(that.getSource())
+				&& getDirection().equals(that.getDirection());
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(fieldName, type, target, source, direction);
+		return Objects.hash(this.fieldName, this.type, this.target, this.source, this.direction);
 	}
+
+	@Override
+	public String toString() {
+		return "DefaultRelationshipDescription{" + "type='" + this.type + '\'' + ", source='" + this.source + '\''
+				+ ", direction='" + this.direction + '\'' + ", target='" + this.target + '}';
+	}
+
 }

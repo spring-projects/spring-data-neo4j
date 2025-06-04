@@ -15,7 +15,15 @@
  */
 package org.springframework.data.neo4j.core;
 
+import java.beans.PropertyDescriptor;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Optional;
+
 import org.apiguardian.api.API;
+
 import org.springframework.data.mapping.PersistentProperty;
 import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.neo4j.core.mapping.GraphPropertyDescription;
@@ -29,22 +37,21 @@ import org.springframework.data.repository.query.ResultProcessor;
 import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.data.util.TypeInformation;
 
-import java.beans.PropertyDescriptor;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Optional;
-
 /**
- * This class is responsible for creating a List of {@link PropertyPath} entries that contains all reachable
- * properties (w/o circles).
+ * This class is responsible for creating a List of {@link PropertyPath} entries that
+ * contains all reachable properties (w/o circles).
+ *
+ * @author Michael J. Simons
+ * @author Gerrit Meier
  */
 @API(status = API.Status.INTERNAL, since = "6.1.3")
 public final class PropertyFilterSupport {
 
-	public static Collection<PropertyFilter.ProjectedPath> getInputProperties(ResultProcessor resultProcessor, ProjectionFactory factory,
-																			  Neo4jMappingContext mappingContext) {
+	private PropertyFilterSupport() {
+	}
+
+	public static Collection<PropertyFilter.ProjectedPath> getInputProperties(ResultProcessor resultProcessor,
+			ProjectionFactory factory, Neo4jMappingContext mappingContext) {
 
 		ReturnedType returnedType = resultProcessor.getReturnedType();
 		Class<?> potentiallyProjectedType = returnedType.getReturnedType();
@@ -60,20 +67,25 @@ public final class PropertyFilterSupport {
 		}
 
 		for (String inputProperty : returnedType.getInputProperties()) {
-			addPropertiesFrom(domainType, potentiallyProjectedType, factory,
-					filteredProperties, new ProjectionPathProcessor(inputProperty, PropertyPath.from(inputProperty, potentiallyProjectedType).getLeafProperty().getTypeInformation()), mappingContext);
+			addPropertiesFrom(domainType, potentiallyProjectedType, factory, filteredProperties,
+					new ProjectionPathProcessor(inputProperty,
+							PropertyPath.from(inputProperty, potentiallyProjectedType)
+								.getLeafProperty()
+								.getTypeInformation()),
+					mappingContext);
 		}
 		for (String inputProperty : KPropertyFilterSupport.getRequiredProperties(domainType)) {
-			addPropertiesFrom(domainType, potentiallyProjectedType, factory,
-					filteredProperties, new ProjectionPathProcessor(inputProperty, PropertyPath.from(inputProperty, domainType).getLeafProperty().getTypeInformation()), mappingContext);
+			addPropertiesFrom(domainType, potentiallyProjectedType, factory, filteredProperties,
+					new ProjectionPathProcessor(inputProperty,
+							PropertyPath.from(inputProperty, domainType).getLeafProperty().getTypeInformation()),
+					mappingContext);
 		}
 
 		return filteredProperties;
 	}
 
 	static Collection<PropertyFilter.ProjectedPath> addPropertiesFrom(Class<?> domainType, Class<?> returnType,
-																			  ProjectionFactory projectionFactory,
-																			  Neo4jMappingContext neo4jMappingContext) {
+			ProjectionFactory projectionFactory, Neo4jMappingContext neo4jMappingContext) {
 
 		ProjectionInformation projectionInformation = projectionFactory.getProjectionInformation(returnType);
 		Collection<PropertyFilter.ProjectedPath> propertyPaths = new HashSet<>();
@@ -83,11 +95,15 @@ public final class PropertyFilterSupport {
 			TypeInformation<?> typeInformation = null;
 			if (projectionInformation.isClosed()) {
 				typeInformation = PropertyPath.from(inputProperty.getName(), returnType).getTypeInformation();
-			} else {
+			}
+			else {
 				// try to figure out the right property by name
 				for (GraphPropertyDescription graphProperty : domainEntity.getGraphProperties()) {
 					if (graphProperty.getPropertyName().equals(inputProperty.getName())) {
-						typeInformation = Optional.ofNullable(domainEntity.getPersistentProperty(graphProperty.getFieldName())).map(PersistentProperty::getTypeInformation).orElse(null);
+						typeInformation = Optional
+							.ofNullable(domainEntity.getPersistentProperty(graphProperty.getFieldName()))
+							.map(PersistentProperty::getTypeInformation)
+							.orElse(null);
 						break;
 					}
 				}
@@ -95,33 +111,41 @@ public final class PropertyFilterSupport {
 				if (typeInformation == null) {
 					for (RelationshipDescription relationshipDescription : domainEntity.getRelationships()) {
 						if (relationshipDescription.getFieldName().equals(inputProperty.getName())) {
-							typeInformation = Optional.ofNullable(domainEntity.getPersistentProperty(relationshipDescription.getFieldName())).map(PersistentProperty::getTypeInformation).orElse(null);
+							typeInformation = Optional
+								.ofNullable(domainEntity.getPersistentProperty(relationshipDescription.getFieldName()))
+								.map(PersistentProperty::getTypeInformation)
+								.orElse(null);
 							break;
 						}
 					}
 				}
 			}
 			if (typeInformation != null) {
-				addPropertiesFrom(domainType, returnType, projectionFactory, propertyPaths, new ProjectionPathProcessor(inputProperty.getName(), typeInformation), neo4jMappingContext);
+				addPropertiesFrom(domainType, returnType, projectionFactory, propertyPaths,
+						new ProjectionPathProcessor(inputProperty.getName(), typeInformation), neo4jMappingContext);
 			}
 		}
 		return propertyPaths;
 	}
 
 	private static void addPropertiesFrom(Class<?> domainType, Class<?> returnedType, ProjectionFactory factory,
-										  Collection<PropertyFilter.ProjectedPath> filteredProperties, ProjectionPathProcessor projectionPathProcessor,
-										  Neo4jMappingContext mappingContext) {
+			Collection<PropertyFilter.ProjectedPath> filteredProperties,
+			ProjectionPathProcessor projectionPathProcessor, Neo4jMappingContext mappingContext) {
 
 		ProjectionInformation projectionInformation = factory.getProjectionInformation(returnedType);
 		PropertyFilter.RelaxedPropertyPath propertyPath;
 
-		// If this is a closed projection we can assume that the return type (possible projection type) contains
+		// If this is a closed projection we can assume that the return type (possible
+		// projection type) contains
 		// only fields accessible with a property path.
 		if (projectionInformation.isClosed()) {
-			propertyPath = PropertyFilter.RelaxedPropertyPath.withRootType(returnedType).append(projectionPathProcessor.path);
-		} else {
+			propertyPath = PropertyFilter.RelaxedPropertyPath.withRootType(returnedType)
+				.append(projectionPathProcessor.path);
+		}
+		else {
 			// otherwise the domain type is used right from the start
-			propertyPath = PropertyFilter.RelaxedPropertyPath.withRootType(domainType).append(projectionPathProcessor.path);
+			propertyPath = PropertyFilter.RelaxedPropertyPath.withRootType(domainType)
+				.append(projectionPathProcessor.path);
 		}
 
 		Class<?> propertyType = projectionPathProcessor.typeInformation.getType();
@@ -130,13 +154,17 @@ public final class PropertyFilterSupport {
 			// deep inspection into the map to look for the related entity type.
 			TypeInformation<?> mapValueType = projectionPathProcessor.typeInformation.getRequiredMapValueType();
 			if (mapValueType.isCollectionLike()) {
-				currentTypeInformation = projectionPathProcessor.typeInformation.getRequiredMapValueType().getComponentType();
-				propertyType = Objects.requireNonNull(currentTypeInformation, "Cannot retrieve collection type").getType();
-			} else {
+				currentTypeInformation = projectionPathProcessor.typeInformation.getRequiredMapValueType()
+					.getComponentType();
+				propertyType = Objects.requireNonNull(currentTypeInformation, "Cannot retrieve collection type")
+					.getType();
+			}
+			else {
 				currentTypeInformation = projectionPathProcessor.typeInformation.getRequiredMapValueType();
 				propertyType = currentTypeInformation.getType();
 			}
-		} else if (projectionPathProcessor.typeInformation.isCollectionLike()) {
+		}
+		else if (projectionPathProcessor.typeInformation.isCollectionLike()) {
 			currentTypeInformation = projectionPathProcessor.typeInformation.getComponentType();
 			propertyType = Objects.requireNonNull(currentTypeInformation, "Cannot retrieve collection type").getType();
 		}
@@ -148,45 +176,64 @@ public final class PropertyFilterSupport {
 		// 3. Embedded projection
 		if (mappingContext.getConversionService().isSimpleType(propertyType)) {
 			filteredProperties.add(new PropertyFilter.ProjectedPath(propertyPath, false));
-		} else if (mappingContext.hasPersistentEntityFor(propertyType)) {
+		}
+		else if (mappingContext.hasPersistentEntityFor(propertyType)) {
 			filteredProperties.add(new PropertyFilter.ProjectedPath(propertyPath, true));
-		} else {
+		}
+		else {
 			ProjectionInformation nestedProjectionInformation = factory.getProjectionInformation(propertyType);
 			// Closed projection should get handled as above (recursion)
 			if (nestedProjectionInformation.isClosed()) {
 				filteredProperties.add(new PropertyFilter.ProjectedPath(propertyPath, false));
 				for (PropertyDescriptor nestedInputProperty : nestedProjectionInformation.getInputProperties()) {
-					TypeInformation<?> typeInformation = currentTypeInformation.getRequiredProperty(nestedInputProperty.getName());
-					ProjectionPathProcessor nextProjectionPathProcessor = projectionPathProcessor.next(nestedInputProperty, typeInformation);
+					TypeInformation<?> typeInformation = currentTypeInformation
+						.getRequiredProperty(nestedInputProperty.getName());
+					ProjectionPathProcessor nextProjectionPathProcessor = projectionPathProcessor
+						.next(nestedInputProperty, typeInformation);
 
-					TypeInformation<?> actualType = Objects.requireNonNull(nextProjectionPathProcessor.typeInformation.getActualType());
-					if (projectionPathProcessor.isChildLevel() &&
-							(domainType.equals(nextProjectionPathProcessor.typeInformation.getType())
-							|| returnedType.equals(actualType.getType())
-							|| returnedType.equals(nextProjectionPathProcessor.typeInformation.getType()))) {
+					TypeInformation<?> actualType = Objects
+						.requireNonNull(nextProjectionPathProcessor.typeInformation.getActualType());
+					if (projectionPathProcessor.isChildLevel()
+							&& (domainType.equals(nextProjectionPathProcessor.typeInformation.getType())
+									|| returnedType.equals(actualType.getType())
+									|| returnedType.equals(nextProjectionPathProcessor.typeInformation.getType()))) {
 						break;
 					}
 
-					if (projectionPathProcessor.typeInformation.getActualType() != null && projectionPathProcessor.typeInformation.getActualType().getType().equals(actualType.getType())
-						|| (!projectionPathProcessor.typeInformation.isCollectionLike() && !projectionPathProcessor.typeInformation.isMap() && projectionPathProcessor.typeInformation.getType().equals(nextProjectionPathProcessor.typeInformation.getType()))) {
+					if (projectionPathProcessor.typeInformation.getActualType() != null
+							&& projectionPathProcessor.typeInformation.getActualType()
+								.getType()
+								.equals(actualType.getType())
+							|| (!projectionPathProcessor.typeInformation.isCollectionLike()
+									&& !projectionPathProcessor.typeInformation.isMap()
+									&& projectionPathProcessor.typeInformation.getType()
+										.equals(nextProjectionPathProcessor.typeInformation.getType()))) {
 						filteredProperties.add(new PropertyFilter.ProjectedPath(propertyPath, true));
-					} else {
+					}
+					else {
 						addPropertiesFrom(domainType, returnedType, factory, filteredProperties,
 								nextProjectionPathProcessor, mappingContext);
 					}
 				}
-			} else {
-				// An open projection at this place needs to get replaced with the matching (real) entity
+			}
+			else {
+				// An open projection at this place needs to get replaced with the
+				// matching (real) entity
 				// Use domain type as root type for the property path
-				PropertyFilter.RelaxedPropertyPath domainBasedPropertyPath = PropertyFilter.RelaxedPropertyPath.withRootType(domainType).append(projectionPathProcessor.path);
+				PropertyFilter.RelaxedPropertyPath domainBasedPropertyPath = PropertyFilter.RelaxedPropertyPath
+					.withRootType(domainType)
+					.append(projectionPathProcessor.path);
 				filteredProperties.add(new PropertyFilter.ProjectedPath(domainBasedPropertyPath, true));
 			}
 		}
 	}
 
-	private static class ProjectionPathProcessor {
+	private static final class ProjectionPathProcessor {
+
 		final TypeInformation<?> typeInformation;
+
 		final String path;
+
 		final String name;
 
 		private ProjectionPathProcessor(String name, String path, TypeInformation<?> typeInformation) {
@@ -199,14 +246,16 @@ public final class PropertyFilterSupport {
 			this(name, name, typeInformation);
 		}
 
-		public ProjectionPathProcessor next(PropertyDescriptor nextProperty, TypeInformation<?> nextTypeInformation) {
+		ProjectionPathProcessor next(PropertyDescriptor nextProperty, TypeInformation<?> nextTypeInformation) {
 			String nextPropertyName = nextProperty.getName();
-			return new ProjectionPathProcessor(nextPropertyName, path + "." + nextPropertyName, nextTypeInformation);
+			return new ProjectionPathProcessor(nextPropertyName, this.path + "." + nextPropertyName,
+					nextTypeInformation);
 		}
 
-		public boolean isChildLevel() {
-			return path.contains(".");
+		boolean isChildLevel() {
+			return this.path.contains(".");
 		}
+
 	}
 
 }

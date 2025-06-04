@@ -30,4 +30,5 @@ public abstract class FailureRelationship {
 
 	@TargetNode
 	public FailureNode target;
+
 }

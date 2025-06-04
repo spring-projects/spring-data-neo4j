@@ -37,17 +37,19 @@ public class TestEntityWithGeneratedDeprecatedId1 {
 	@Relationship("related_to")
 	private TestEntityWithGeneratedDeprecatedId2 relatedEntity;
 
-	public TestEntityWithGeneratedDeprecatedId1(Long id, String valueOne, TestEntityWithGeneratedDeprecatedId2 relatedEntity) {
+	public TestEntityWithGeneratedDeprecatedId1(Long id, String valueOne,
+			TestEntityWithGeneratedDeprecatedId2 relatedEntity) {
 		this.id = id;
 		this.valueOne = valueOne;
 		this.relatedEntity = relatedEntity;
 	}
 
 	public Long getId() {
-		return id;
+		return this.id;
 	}
 
 	public TestEntityWithGeneratedDeprecatedId2 getRelatedEntity() {
-		return relatedEntity;
+		return this.relatedEntity;
 	}
+
 }

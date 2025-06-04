@@ -41,11 +41,11 @@ public class ThingWithCompositeId {
 	}
 
 	public CompositeValue getId() {
-		return id;
+		return this.id;
 	}
 
 	public String getName() {
-		return name;
+		return this.name;
 	}
 
 	public void setName(String name) {
@@ -53,6 +53,7 @@ public class ThingWithCompositeId {
 	}
 
 	public Long getVersion() {
-		return version;
+		return this.version;
 	}
+
 }

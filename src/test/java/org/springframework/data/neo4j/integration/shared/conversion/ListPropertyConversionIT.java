@@ -15,8 +15,6 @@
  */
 package org.springframework.data.neo4j.integration.shared.conversion;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -34,10 +32,10 @@ import org.neo4j.driver.Driver;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.neo4j.test.Neo4jImperativeTestConfiguration;
 import org.springframework.data.neo4j.core.DatabaseSelectionProvider;
 import org.springframework.data.neo4j.core.Neo4jTemplate;
 import org.springframework.data.neo4j.core.convert.ConvertWith;
@@ -54,9 +52,12 @@ import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
 import org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager;
 import org.springframework.data.neo4j.test.BookmarkCapture;
 import org.springframework.data.neo4j.test.Neo4jExtension;
+import org.springframework.data.neo4j.test.Neo4jImperativeTestConfiguration;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Test around collections to be converted as a whole and not as individual elements.
@@ -76,11 +77,12 @@ class ListPropertyConversionIT {
 		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
 			session.run("MATCH (n) DETACH DELETE n").consume();
 			existingNodeId = session.run("CREATE (n:DomainObjectWithListOfConvertables {"
-										 + "someprefixA_0: '1', someprefixB_0: '2', someprefixA_1: '3', someprefixB_1: '4', "
-										 + "`moreCollectedData.A_0`: '11', `moreCollectedData.B_0`: '22', `moreCollectedData.A_1`: '33', `moreCollectedData.B_1`: '44', "
-										 + "anotherSet: '1;2,3;4'"
-										 + "}) RETURN id(n)")
-					.single().get(0).asLong();
+					+ "someprefixA_0: '1', someprefixB_0: '2', someprefixA_1: '3', someprefixB_1: '4', "
+					+ "`moreCollectedData.A_0`: '11', `moreCollectedData.B_0`: '22', `moreCollectedData.A_1`: '33', `moreCollectedData.B_1`: '44', "
+					+ "anotherSet: '1;2,3;4'" + "}) RETURN id(n)")
+				.single()
+				.get(0)
+				.asLong();
 			bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 	}
@@ -93,15 +95,17 @@ class ListPropertyConversionIT {
 		object.collectedData = Arrays.asList(
 				new SomeConvertableClass(new BigDecimal("523.6"), new BigDecimal("67689.7")),
 				new SomeConvertableClass(new BigDecimal("4456.3"), new BigDecimal("3109.6")),
-				new SomeConvertableClass(new BigDecimal("100.6"), new BigDecimal("3050.6"))
-		);
+				new SomeConvertableClass(new BigDecimal("100.6"), new BigDecimal("3050.6")));
 
 		object = template.save(object);
 
 		try (Session session = neo4jConnectionSupport.getDriver().session(bookmarkCapture.createSessionConfig())) {
-			org.neo4j.driver.types.Node node =
-					session.run("MATCH (n:DomainObjectWithListOfConvertables) WHERE id(n) = $id RETURN n",
-							Collections.singletonMap("id", object.id)).single().get(0).asNode();
+			org.neo4j.driver.types.Node node = session
+				.run("MATCH (n:DomainObjectWithListOfConvertables) WHERE id(n) = $id RETURN n",
+						Collections.singletonMap("id", object.id))
+				.single()
+				.get(0)
+				.asNode();
 
 			assertThat(node.get("someprefixA_0").asString()).isEqualTo("523.6");
 			assertThat(node.get("someprefixA_1").asString()).isEqualTo("4456.3");
@@ -118,17 +122,18 @@ class ListPropertyConversionIT {
 			@Autowired BookmarkCapture bookmarkCapture) {
 
 		DomainObjectWithListOfConvertables object = new DomainObjectWithListOfConvertables();
-		object.moreCollectedData = Arrays.asList(
-				new SomeConvertableClass(new BigDecimal("42"), new BigDecimal("23")),
-				new SomeConvertableClass(new BigDecimal("666"), new BigDecimal("665"))
-		);
+		object.moreCollectedData = Arrays.asList(new SomeConvertableClass(new BigDecimal("42"), new BigDecimal("23")),
+				new SomeConvertableClass(new BigDecimal("666"), new BigDecimal("665")));
 
 		object = template.save(object);
 
 		try (Session session = neo4jConnectionSupport.getDriver().session(bookmarkCapture.createSessionConfig())) {
-			org.neo4j.driver.types.Node node =
-					session.run("MATCH (n:DomainObjectWithListOfConvertables) WHERE id(n) = $id RETURN n",
-							Collections.singletonMap("id", object.id)).single().get(0).asNode();
+			org.neo4j.driver.types.Node node = session
+				.run("MATCH (n:DomainObjectWithListOfConvertables) WHERE id(n) = $id RETURN n",
+						Collections.singletonMap("id", object.id))
+				.single()
+				.get(0)
+				.asNode();
 
 			assertThat(node.get("moreCollectedData.A_0").asString()).isEqualTo("42");
 			assertThat(node.get("moreCollectedData.A_1").asString()).isEqualTo("666");
@@ -143,17 +148,18 @@ class ListPropertyConversionIT {
 			@Autowired BookmarkCapture bookmarkCapture) {
 
 		DomainObjectWithListOfConvertables object = new DomainObjectWithListOfConvertables();
-		object.anotherSet = Arrays.asList(
-				new SomeConvertableClass(new BigDecimal("523.6"), new BigDecimal("67689.7")),
+		object.anotherSet = Arrays.asList(new SomeConvertableClass(new BigDecimal("523.6"), new BigDecimal("67689.7")),
 				new SomeConvertableClass(new BigDecimal("4456.3"), new BigDecimal("3109.6")),
-				new SomeConvertableClass(new BigDecimal("100.6"), new BigDecimal("3050.6"))
-		);
+				new SomeConvertableClass(new BigDecimal("100.6"), new BigDecimal("3050.6")));
 
 		object = template.save(object);
 		try (Session session = neo4jConnectionSupport.getDriver().session(bookmarkCapture.createSessionConfig())) {
-			org.neo4j.driver.types.Node node =
-					session.run("MATCH (n:DomainObjectWithListOfConvertables) WHERE id(n) = $id RETURN n",
-							Collections.singletonMap("id", object.id)).single().get(0).asNode();
+			org.neo4j.driver.types.Node node = session
+				.run("MATCH (n:DomainObjectWithListOfConvertables) WHERE id(n) = $id RETURN n",
+						Collections.singletonMap("id", object.id))
+				.single()
+				.get(0)
+				.asNode();
 			assertThat(node.get("anotherSet").asString()).isEqualTo("523.6;67689.7,4456.3;3109.6,100.6;3050.6");
 		}
 	}
@@ -168,8 +174,7 @@ class ListPropertyConversionIT {
 			assertThat(object.collectedData).hasSize(2);
 			assertThat(object.collectedData).containsExactlyInAnyOrder(
 					new SomeConvertableClass(new BigDecimal("1"), new BigDecimal("2")),
-					new SomeConvertableClass(new BigDecimal("3"), new BigDecimal("4"))
-			);
+					new SomeConvertableClass(new BigDecimal("3"), new BigDecimal("4")));
 		});
 	}
 
@@ -183,8 +188,7 @@ class ListPropertyConversionIT {
 			assertThat(object.moreCollectedData).hasSize(2);
 			assertThat(object.moreCollectedData).containsExactlyInAnyOrder(
 					new SomeConvertableClass(new BigDecimal("11"), new BigDecimal("22")),
-					new SomeConvertableClass(new BigDecimal("33"), new BigDecimal("44"))
-			);
+					new SomeConvertableClass(new BigDecimal("33"), new BigDecimal("44")));
 		});
 	}
 
@@ -198,15 +202,15 @@ class ListPropertyConversionIT {
 			assertThat(object.anotherSet).hasSize(2);
 			assertThat(object.anotherSet).containsExactlyInAnyOrder(
 					new SomeConvertableClass(new BigDecimal("1"), new BigDecimal("2")),
-					new SomeConvertableClass(new BigDecimal("3"), new BigDecimal("4"))
-			);
+					new SomeConvertableClass(new BigDecimal("3"), new BigDecimal("4")));
 		});
 	}
 
 	@Node
 	static class DomainObjectWithListOfConvertables {
 
-		@Id @GeneratedValue
+		@Id
+		@GeneratedValue
 		private Long id;
 
 		@CompositeProperty(converter = ListDecomposingConverter.class, delimiter = "", prefix = "someprefix")
@@ -217,11 +221,13 @@ class ListPropertyConversionIT {
 
 		@CompositeProperty(converterRef = "listDecomposingConverterBean")
 		private List<SomeConvertableClass> moreCollectedData;
+
 	}
 
 	static class SomeConvertableClass {
 
 		private final BigDecimal x;
+
 		private final BigDecimal y;
 
 		SomeConvertableClass(BigDecimal x, BigDecimal y) {
@@ -229,15 +235,16 @@ class ListPropertyConversionIT {
 			this.y = y;
 		}
 
-		public BigDecimal getX() {
-			return x;
+		BigDecimal getX() {
+			return this.x;
 		}
 
-		public BigDecimal getY() {
-			return y;
+		BigDecimal getY() {
+			return this.y;
 		}
 
-		@Override public boolean equals(Object o) {
+		@Override
+		public boolean equals(Object o) {
 			if (this == o) {
 				return true;
 			}
@@ -245,16 +252,18 @@ class ListPropertyConversionIT {
 				return false;
 			}
 			SomeConvertableClass that = (SomeConvertableClass) o;
-			return x.equals(that.x) && y.equals(that.y);
+			return this.x.equals(that.x) && this.y.equals(that.y);
 		}
 
-		@Override public int hashCode() {
-			return Objects.hash(x, y);
+		@Override
+		public int hashCode() {
+			return Objects.hash(this.x, this.y);
 		}
+
 	}
 
-	static class ListDecomposingConverter implements
-			Neo4jPersistentPropertyToMapConverter<String, List<SomeConvertableClass>> {
+	static class ListDecomposingConverter
+			implements Neo4jPersistentPropertyToMapConverter<String, List<SomeConvertableClass>> {
 
 		@Override
 		public Map<String, Value> decompose(List<SomeConvertableClass> property,
@@ -286,27 +295,27 @@ class ListPropertyConversionIT {
 
 			List<SomeConvertableClass> result = new ArrayList<>(source.size() / 2);
 			for (int i = 0; i < source.size() / 2; ++i) {
-				result.add(new SomeConvertableClass(
-						new BigDecimal(source.get("A_" + i).asString()),
-						new BigDecimal(source.get("B_" + i).asString())
-				));
+				result.add(new SomeConvertableClass(new BigDecimal(source.get("A_" + i).asString()),
+						new BigDecimal(source.get("B_" + i).asString())));
 			}
 
 			return result;
 		}
+
 	}
 
 	static class SomeconvertableClassConverter implements Neo4jPersistentPropertyConverter<List<SomeConvertableClass>> {
 
-		@Override public Value write(List<SomeConvertableClass> source) {
+		@Override
+		public Value write(List<SomeConvertableClass> source) {
 
 			if (source == null) {
 				return Values.NULL;
 			}
 
-			return Values.value(source.stream().map(v ->
-							String.format("%s;%s", v.x.toString(), v.y.toString()))
-					.collect(Collectors.joining(",")));
+			return Values.value(source.stream()
+				.map(v -> String.format("%s;%s", v.x.toString(), v.y.toString()))
+				.collect(Collectors.joining(",")));
 		}
 
 		@Override
@@ -317,6 +326,7 @@ class ListPropertyConversionIT {
 				return new SomeConvertableClass(new BigDecimal(pair[0]), new BigDecimal(pair[1]));
 			}).collect(Collectors.toList());
 		}
+
 	}
 
 	@Configuration
@@ -324,6 +334,7 @@ class ListPropertyConversionIT {
 	static class Config extends Neo4jImperativeTestConfiguration {
 
 		@Bean
+		@Override
 		public Driver driver() {
 			return neo4jConnectionSupport.getDriver();
 		}
@@ -338,12 +349,12 @@ class ListPropertyConversionIT {
 		}
 
 		@Bean
-		public ListDecomposingConverter listDecomposingConverterBean() {
+		ListDecomposingConverter listDecomposingConverterBean() {
 			return new ListDecomposingConverter();
 		}
 
 		@Bean
-		public BookmarkCapture bookmarkCapture() {
+		BookmarkCapture bookmarkCapture() {
 			return new BookmarkCapture();
 		}
 
@@ -360,5 +371,7 @@ class ListPropertyConversionIT {
 		public boolean isCypher5Compatible() {
 			return neo4jConnectionSupport.isCypher5SyntaxCompatible();
 		}
+
 	}
+
 }

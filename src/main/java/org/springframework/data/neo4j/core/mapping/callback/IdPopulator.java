@@ -18,10 +18,10 @@ package org.springframework.data.neo4j.core.mapping.callback;
 import java.util.Optional;
 
 import org.springframework.data.mapping.PersistentPropertyAccessor;
+import org.springframework.data.neo4j.core.mapping.IdDescription;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentProperty;
-import org.springframework.data.neo4j.core.mapping.IdDescription;
 import org.springframework.data.neo4j.core.schema.IdGenerator;
 import org.springframework.util.Assert;
 
@@ -45,15 +45,17 @@ final class IdPopulator {
 
 		Assert.notNull(entity, "Entity may not be null");
 
-		Neo4jPersistentEntity<?> nodeDescription = neo4jMappingContext.getRequiredPersistentEntity(entity.getClass());
+		Neo4jPersistentEntity<?> nodeDescription = this.neo4jMappingContext
+			.getRequiredPersistentEntity(entity.getClass());
 		IdDescription idDescription = nodeDescription.getIdDescription();
 
 		if (idDescription == null) {
 			if (nodeDescription.isRelationshipPropertiesEntity()) {
 				return entity;
-			} else {
-				throw new IllegalStateException(
-						"Cannot persist implicit entity due to missing id property on " + nodeDescription.getUnderlyingClass());
+			}
+			else {
+				throw new IllegalStateException("Cannot persist implicit entity due to missing id property on "
+						+ nodeDescription.getUnderlyingClass());
 			}
 		}
 
@@ -77,15 +79,19 @@ final class IdPopulator {
 		Optional<String> optionalIdGeneratorRef = idDescription.getIdGeneratorRef();
 		if (optionalIdGeneratorRef.isPresent()) {
 
-			idGenerator = neo4jMappingContext.getIdGenerator(optionalIdGeneratorRef.get()).orElseThrow(
-					() -> new IllegalStateException("Id generator named " + optionalIdGeneratorRef.get() + " not found"));
-		} else {
+			idGenerator = this.neo4jMappingContext.getIdGenerator(optionalIdGeneratorRef.get())
+				.orElseThrow(() -> new IllegalStateException(
+						"Id generator named " + optionalIdGeneratorRef.get() + " not found"));
+		}
+		else {
 
-			idGenerator = neo4jMappingContext.getOrCreateIdGeneratorOfType(idDescription.getIdGeneratorClass().orElseThrow(
-					() -> new IllegalStateException("Neither generator reference nor generator class configured")));
+			idGenerator = this.neo4jMappingContext.getOrCreateIdGeneratorOfType(idDescription.getIdGeneratorClass()
+				.orElseThrow(
+						() -> new IllegalStateException("Neither generator reference nor generator class configured")));
 		}
 
 		propertyAccessor.setProperty(idProperty, idGenerator.generateId(nodeDescription.getPrimaryLabel(), entity));
 		return propertyAccessor.getBean();
 	}
+
 }

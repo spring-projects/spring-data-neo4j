@@ -20,6 +20,7 @@ import java.io.UncheckedIOException;
 
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Session;
+
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.data.neo4j.integration.movies.shared.CypherUtils;
 
@@ -36,11 +37,13 @@ public final class DatabaseInitializer implements InitializingBean {
 
 	@Override
 	public void afterPropertiesSet() {
-		try (Session session = driver.session()) {
+		try (Session session = this.driver.session()) {
 			session.run("MATCH (n) DETACH DELETE n").consume();
 			CypherUtils.loadCypherFromResource("/data/movies.cypher", session);
-		} catch (IOException e) {
-			throw new UncheckedIOException(e);
+		}
+		catch (IOException ex) {
+			throw new UncheckedIOException(ex);
 		}
 	}
+
 }

@@ -76,12 +76,6 @@ public interface ReactivePersonRepository extends ReactiveNeo4jRepository<Person
 
 	Flux<PersonWithAllConstructor> findAllByPlace(SomethingThatIsNotKnownAsEntity p);
 
-	/**
-	 * Needed to have something that is not mapped in to a map.
-	 */
-	class SomethingThatIsNotKnownAsEntity {
-	}
-
 	@Query("MATCH (n:PersonWithAllConstructor) where n.name = $name return n{.name}")
 	Mono<PersonProjection> findByNameWithCustomQueryAndMapProjection(@Param("name") String name);
 
@@ -110,4 +104,12 @@ public interface ReactivePersonRepository extends ReactiveNeo4jRepository<Person
 	Mono<Void> deleteAllByName(String name);
 
 	Mono<Long> deleteAllByNameOrName(String name, String otherName);
+
+	/**
+	 * Needed to have something that is not mapped in to a map.
+	 */
+	class SomethingThatIsNotKnownAsEntity {
+
+	}
+
 }

@@ -30,11 +30,14 @@ public class WrongConfigIT extends AbstractTestBase {
 	@EnableTransactionManagement
 	@EnableNeo4jRepositories(considerNestedRepositories = true)
 	static class Config extends AbstractTestBase.Config {
+
 		@Override
 		public boolean isCypher5Compatible() {
 			// explicitly not compatible with Neo4j 5 although connected to one
 			// same as default Cypher-DSL configuration / dialect
 			return false;
 		}
+
 	}
+
 }

@@ -26,9 +26,11 @@ import org.springframework.data.neo4j.core.schema.TargetNode;
 @SuppressWarnings("HiddenField")
 @RelationshipProperties
 public class Edge {
+
 	@Id
 	@GeneratedValue
 	Long id;
+
 	@TargetNode
 	Vertex vertex;
 
@@ -48,12 +50,12 @@ public class Edge {
 		return this.id;
 	}
 
-	public Vertex getVertex() {
-		return this.vertex;
-	}
-
 	public void setId(Long id) {
 		this.id = id;
+	}
+
+	public Vertex getVertex() {
+		return this.vertex;
 	}
 
 	public void setVertex(Vertex vertex) {
@@ -68,7 +70,9 @@ public class Edge {
 	 * the builder
 	 */
 	public static class EdgeBuilder {
+
 		private Long id;
+
 		private Vertex vertex;
 
 		EdgeBuilder() {
@@ -88,8 +92,11 @@ public class Edge {
 			return new Edge(this.id, this.vertex);
 		}
 
+		@Override
 		public String toString() {
 			return "Edge.EdgeBuilder(id=" + this.id + ", vertex=" + this.vertex + ")";
 		}
+
 	}
+
 }

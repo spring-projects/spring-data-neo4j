@@ -38,14 +38,15 @@ public class HobbyRelationship {
 	}
 
 	public String getPerformance() {
-		return performance;
+		return this.performance;
 	}
 
 	public Hobby getHobby() {
-		return hobby;
+		return this.hobby;
 	}
 
 	public void setHobby(Hobby hobby) {
 		this.hobby = hobby;
 	}
+
 }

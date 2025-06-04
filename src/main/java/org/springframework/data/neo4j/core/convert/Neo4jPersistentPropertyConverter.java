@@ -20,26 +20,32 @@ import org.jspecify.annotations.Nullable;
 import org.neo4j.driver.Value;
 
 /**
- * This interface represents a pair of methods capable of converting values of type {@code T} to and from {@link Value values}.
+ * This interface represents a pair of methods capable of converting values of type
+ * {@code T} to and from {@link Value values}.
  *
+ * @param <T> the type of the property to convert (the type of the actual attribute).
  * @author Michael J. Simons
- * @param <T> The type of the property to convert (the type of the actual attribute).
- * @soundtrack Antilopen Gang - Adrenochrom
  * @since 6.0
  */
 @API(status = API.Status.STABLE, since = "6.0")
 public interface Neo4jPersistentPropertyConverter<T> {
 
 	/**
-	 * @param source The value to store. We might pass {@literal null}, if your converter is not able to handle that,
-	 *                  this is ok, we do handle {@link NullPointerException null pointer exceptions}
-	 * @return The converted value, never null. To represent {@literal null}, use {@link org.neo4j.driver.Values#NULL}
+	 * Writes a property to a Neo4j value.
+	 * @param source the value to store. We might pass {@literal null}, if your converter
+	 * is not able to handle that, this is ok, we do handle {@link NullPointerException
+	 * null pointer exceptions}
+	 * @return the converted value, never null. To represent {@literal null}, use
+	 * {@link org.neo4j.driver.Values#NULL}
 	 */
 	Value write(@Nullable T source);
 
 	/**
-	 * @param source The value to read, never null or {@link org.neo4j.driver.Values#NULL}
-	 * @return The converted value, maybe null if {@code source} was equals to {@link org.neo4j.driver.Values#NULL}.
+	 * Reads a property from a Neo4j value.
+	 * @param source the value to read, never null or {@link org.neo4j.driver.Values#NULL}
+	 * @return the converted value, maybe null if {@code source} was equals to
+	 * {@link org.neo4j.driver.Values#NULL}.
 	 */
 	@Nullable T read(@Nullable Value source);
+
 }

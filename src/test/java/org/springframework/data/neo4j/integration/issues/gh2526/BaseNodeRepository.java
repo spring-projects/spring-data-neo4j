@@ -24,4 +24,5 @@ import org.springframework.data.neo4j.repository.Neo4jRepository;
 public interface BaseNodeRepository extends Neo4jRepository<BaseNodeEntity, String> {
 
 	<R> R findByNodeId(String nodeIds, Class<R> clazz);
+
 }

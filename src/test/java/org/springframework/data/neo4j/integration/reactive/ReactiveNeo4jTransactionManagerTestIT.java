@@ -15,34 +15,34 @@
  */
 package org.springframework.data.neo4j.integration.reactive;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import org.springframework.data.neo4j.core.ReactiveDatabaseSelectionProvider;
-import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
-import org.springframework.data.neo4j.test.BookmarkCapture;
-import org.springframework.data.neo4j.test.Neo4jReactiveTestConfiguration;
-import org.springframework.transaction.ReactiveTransactionManager;
-import reactor.core.publisher.Mono;
-import reactor.test.StepVerifier;
-
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Session;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
+import org.springframework.data.neo4j.core.ReactiveDatabaseSelectionProvider;
 import org.springframework.data.neo4j.core.ReactiveNeo4jClient;
+import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
 import org.springframework.data.neo4j.core.transaction.ReactiveNeo4jTransactionManager;
 import org.springframework.data.neo4j.integration.shared.common.Person;
 import org.springframework.data.neo4j.repository.ReactiveNeo4jRepository;
 import org.springframework.data.neo4j.repository.config.EnableReactiveNeo4jRepositories;
 import org.springframework.data.neo4j.repository.query.Query;
+import org.springframework.data.neo4j.test.BookmarkCapture;
 import org.springframework.data.neo4j.test.Neo4jExtension;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
+import org.springframework.data.neo4j.test.Neo4jReactiveTestConfiguration;
+import org.springframework.transaction.ReactiveTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.reactive.TransactionalOperator;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Michael J. Simons
@@ -61,21 +61,21 @@ class ReactiveNeo4jTransactionManagerTestIT {
 	}
 
 	@Test // GH-2193
-	void exceptionShouldNotBeShadowed(
-			@Autowired ReactiveNeo4jTransactionManager transactionManager,
-			@Autowired ReactiveNeo4jClient client,
-			@Autowired SomeRepository someRepository) {
+	void exceptionShouldNotBeShadowed(@Autowired ReactiveNeo4jTransactionManager transactionManager,
+			@Autowired ReactiveNeo4jClient client, @Autowired SomeRepository someRepository) {
 
 		TransactionalOperator rxtx = TransactionalOperator.create(transactionManager);
 
-		rxtx.execute(txStatus -> client.query("CREATE (n:ShouldNotBeThere)").run()
-				.then(someRepository.broken().as(rxtx::transactional))
-		).then().as(StepVerifier::create).verifyError(InvalidDataAccessResourceUsageException.class);
+		rxtx.execute(txStatus -> client.query("CREATE (n:ShouldNotBeThere)")
+			.run()
+			.then(someRepository.broken().as(rxtx::transactional)))
+			.then()
+			.as(StepVerifier::create)
+			.verifyError(InvalidDataAccessResourceUsageException.class);
 
 		try (Session session = neo4jConnectionSupport.getDriver().session()) {
-			long cnt = session
-					.executeRead(tx -> tx.run("MATCH (n:ShouldNotBeThere) RETURN count(n)").single().get(0))
-					.asLong();
+			long cnt = session.executeRead(tx -> tx.run("MATCH (n:ShouldNotBeThere) RETURN count(n)").single().get(0))
+				.asLong();
 			assertThat(cnt).isEqualTo(0L);
 		}
 	}
@@ -84,6 +84,7 @@ class ReactiveNeo4jTransactionManagerTestIT {
 
 		@Query("Kaputt")
 		Mono<Person> broken();
+
 	}
 
 	@Configuration
@@ -92,26 +93,31 @@ class ReactiveNeo4jTransactionManagerTestIT {
 	static class Config extends Neo4jReactiveTestConfiguration {
 
 		@Bean
+		@Override
 		public Driver driver() {
 
 			return neo4jConnectionSupport.getDriver();
 		}
 
 		@Bean
-		public BookmarkCapture bookmarkCapture() {
+		BookmarkCapture bookmarkCapture() {
 			return new BookmarkCapture();
 		}
 
 		@Override
-		public ReactiveTransactionManager reactiveTransactionManager(Driver driver, ReactiveDatabaseSelectionProvider databaseSelectionProvider) {
+		public ReactiveTransactionManager reactiveTransactionManager(Driver driver,
+				ReactiveDatabaseSelectionProvider databaseSelectionProvider) {
 
 			BookmarkCapture bookmarkCapture = bookmarkCapture();
-			return new ReactiveNeo4jTransactionManager(driver, databaseSelectionProvider, Neo4jBookmarkManager.createReactive(bookmarkCapture));
+			return new ReactiveNeo4jTransactionManager(driver, databaseSelectionProvider,
+					Neo4jBookmarkManager.createReactive(bookmarkCapture));
 		}
 
 		@Override
 		public boolean isCypher5Compatible() {
 			return neo4jConnectionSupport.isCypher5SyntaxCompatible();
 		}
+
 	}
+
 }

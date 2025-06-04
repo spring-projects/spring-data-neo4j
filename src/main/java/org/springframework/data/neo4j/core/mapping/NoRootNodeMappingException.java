@@ -23,16 +23,16 @@ import java.util.Locale;
 import org.apiguardian.api.API;
 import org.jspecify.annotations.Nullable;
 import org.neo4j.driver.types.MapAccessor;
+
 import org.springframework.data.mapping.MappingException;
 
 /**
- * A {@link NoRootNodeMappingException} is thrown when the entity converter cannot find a node or map like structure
- * that can be mapped.
- * Nodes eligible for mapping are actual nodes with at least the primary label attached or exactly one map structure
- * that is neither a node nor relationship itself.
+ * A {@link NoRootNodeMappingException} is thrown when the entity converter cannot find a
+ * node or map like structure that can be mapped. Nodes eligible for mapping are actual
+ * nodes with at least the primary label attached or exactly one map structure that is
+ * neither a node nor relationship itself.
  *
  * @author Michael J. Simons
- * @soundtrack Helge Schneider - Sammlung Schneider! Musik und Lifeshows!
  * @since 6.0.2
  */
 @API(status = API.Status.INTERNAL, since = "6.0.2")
@@ -43,6 +43,7 @@ public final class NoRootNodeMappingException extends MappingException implement
 
 	@Nullable
 	private final transient MapAccessor mapAccessor;
+
 	@Nullable
 	private final transient Neo4jPersistentEntity<?> entity;
 
@@ -55,13 +56,15 @@ public final class NoRootNodeMappingException extends MappingException implement
 
 	@Override
 	public void formatTo(Formatter formatter, int flags, int width, int precision) {
-		if (mapAccessor != null && entity != null) {
-			String className = entity.getUnderlyingClass().getSimpleName();
-			formatter.format("Could not find mappable nodes or relationships inside %s for %s:%s", mapAccessor,
-					className.substring(0, 1).toLowerCase(
-							Locale.ROOT), String.join(":", entity.getStaticLabels()));
-		} else {
+		if (this.mapAccessor != null && this.entity != null) {
+			String className = this.entity.getUnderlyingClass().getSimpleName();
+			formatter.format("Could not find mappable nodes or relationships inside %s for %s:%s", this.mapAccessor,
+					className.substring(0, 1).toLowerCase(Locale.ROOT),
+					String.join(":", this.entity.getStaticLabels()));
+		}
+		else {
 			formatter.format("Could not find mappable nodes or relationships inside a record");
 		}
 	}
+
 }

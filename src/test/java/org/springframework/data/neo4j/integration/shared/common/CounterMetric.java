@@ -26,4 +26,5 @@ public class CounterMetric extends Metric {
 	public CounterMetric(String name) {
 		super(name);
 	}
+
 }

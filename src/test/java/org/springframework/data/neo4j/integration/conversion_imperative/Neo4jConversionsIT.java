@@ -15,8 +15,6 @@
  */
 package org.springframework.data.neo4j.integration.conversion_imperative;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Collection;
@@ -37,12 +35,15 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
+
 import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.data.convert.ConverterBuilder;
 import org.springframework.data.neo4j.core.convert.Neo4jConversions;
 import org.springframework.data.neo4j.integration.shared.conversion.Neo4jConversionsITBase;
 import org.springframework.data.neo4j.test.Neo4jExtension;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Michael J. Simons
@@ -51,11 +52,65 @@ import org.springframework.data.neo4j.test.Neo4jExtension;
 class Neo4jConversionsIT extends Neo4jConversionsITBase {
 
 	private static final TypeDescriptor TYPE_DESCRIPTOR_OF_VALUE = TypeDescriptor.valueOf(Value.class);
+
 	private static final DefaultConversionService DEFAULT_CONVERSION_SERVICE = new DefaultConversionService();
 
 	@BeforeAll
 	static void prepareDefaultConversionService() {
 		new Neo4jConversions().registerConvertersIn(DEFAULT_CONVERSION_SERVICE);
+	}
+
+	static void assertRead(String label, String attribute, Object t) {
+		try (Session session = neo4jConnectionSupport.getDriver().session(bookmarkCapture.createSessionConfig())) {
+			Value v = session
+				.run("MATCH (n) WHERE labels(n) = [$label] RETURN n[$attribute] as r",
+						Values.parameters("label", label, "attribute", attribute))
+				.single()
+				.get("r");
+
+			TypeDescriptor typeDescriptor = TypeDescriptor.forObject(t);
+			if (typeDescriptor.isCollection()) {
+				Collection<?> collection = (Collection<?>) t;
+				Class<?> targetType = collection.stream().map(Object::getClass).findFirst().get();
+				List<Object> convertedObjects = v.asList(elem -> DEFAULT_CONVERSION_SERVICE.convert(elem, targetType));
+				assertThat(convertedObjects).containsAll(collection);
+			}
+			else {
+				Object converted = DEFAULT_CONVERSION_SERVICE.convert(v, typeDescriptor.getType());
+				assertThat(converted).isEqualTo(t);
+			}
+			bookmarkCapture.seedWith(session.lastBookmarks());
+		}
+	}
+
+	static void assertWrite(String label, String attribute, Object t) {
+
+		Value driverValue;
+		if (t != null && Collection.class.isAssignableFrom(t.getClass())) {
+			Collection<?> sourceCollection = (Collection<?>) t;
+			Object[] targetCollection = (sourceCollection).stream()
+				.map(element -> DEFAULT_CONVERSION_SERVICE.convert(element, Value.class))
+				.toArray();
+			driverValue = Values.value(targetCollection);
+		}
+		else {
+			driverValue = DEFAULT_CONVERSION_SERVICE.convert(t, Value.class);
+		}
+
+		try (Session session = neo4jConnectionSupport.getDriver().session(bookmarkCapture.createSessionConfig())) {
+			Map<String, Object> parameters = new HashMap<>();
+			parameters.put("label", label);
+			parameters.put("attribute", attribute);
+			parameters.put("v", driverValue);
+
+			long cnt = session
+				.run("MATCH (n) WHERE labels(n) = [$label]  AND n[$attribute] = $v RETURN COUNT(n) AS cnt", parameters)
+				.single()
+				.get("cnt")
+				.asLong();
+			assertThat(cnt).isEqualTo(1L);
+			bookmarkCapture.seedWith(session.lastBookmarks());
+		}
 	}
 
 	@TestFactory
@@ -68,13 +123,19 @@ class Neo4jConversionsIT extends Neo4jConversionsITBase {
 
 		return supportedTypes.entrySet().stream().map(types -> {
 
-			DynamicContainer reads = DynamicContainer.dynamicContainer("read", types.getValue().entrySet().stream().map(
-					a -> DynamicTest
-							.dynamicTest(a.getKey(), () -> Neo4jConversionsIT.assertRead(types.getKey(), a.getKey(), a.getValue()))));
+			DynamicContainer reads = DynamicContainer.dynamicContainer("read",
+					types.getValue()
+						.entrySet()
+						.stream()
+						.map(a -> DynamicTest.dynamicTest(a.getKey(),
+								() -> Neo4jConversionsIT.assertRead(types.getKey(), a.getKey(), a.getValue()))));
 
 			DynamicContainer writes = DynamicContainer.dynamicContainer("write",
-					types.getValue().entrySet().stream().map(a -> DynamicTest.dynamicTest(a.getKey(),
-							() -> Neo4jConversionsIT.assertWrite(types.getKey(), a.getKey(), a.getValue()))));
+					types.getValue()
+						.entrySet()
+						.stream()
+						.map(a -> DynamicTest.dynamicTest(a.getKey(),
+								() -> Neo4jConversionsIT.assertWrite(types.getKey(), a.getKey(), a.getValue()))));
 
 			return DynamicContainer.dynamicContainer(types.getKey(), Arrays.asList(reads, writes));
 		});
@@ -96,9 +157,11 @@ class Neo4jConversionsIT extends Neo4jConversionsITBase {
 		}).andWriting(d -> {
 			if (d.isBefore(LocalDate.now())) {
 				return Values.value("gestern");
-			} else if (d.isAfter(LocalDate.now())) {
+			}
+			else if (d.isAfter(LocalDate.now())) {
 				return Values.value("morgen");
-			} else {
+			}
+			else {
 				return Values.value("heute");
 			}
 		});
@@ -107,10 +170,11 @@ class Neo4jConversionsIT extends Neo4jConversionsITBase {
 		return Stream.of(
 				DynamicTest.dynamicTest("read",
 						() -> assertThat(customConversionService.convert(Values.value("gestern"), LocalDate.class))
-								.isEqualTo(LocalDate.now().minusDays(1))),
+							.isEqualTo(LocalDate.now().minusDays(1))),
 				DynamicTest.dynamicTest("write",
-						() -> assertThat(customConversionService.convert(LocalDate.now().plusDays(1), TYPE_DESCRIPTOR_OF_VALUE))
-								.isEqualTo(Values.value("morgen"))));
+						() -> assertThat(
+								customConversionService.convert(LocalDate.now().plusDays(1), TYPE_DESCRIPTOR_OF_VALUE))
+							.isEqualTo(Values.value("morgen"))));
 	}
 
 	@Nested
@@ -146,50 +210,7 @@ class Neo4jConversionsIT extends Neo4jConversionsITBase {
 			short s = DEFAULT_CONVERSION_SERVICE.convert(Values.value((short) 127), short.class);
 			assertThat(s).isEqualTo((short) 127);
 		}
+
 	}
 
-	static void assertRead(String label, String attribute, Object t) {
-		try (Session session = neo4jConnectionSupport.getDriver().session(bookmarkCapture.createSessionConfig())) {
-			Value v = session.run("MATCH (n) WHERE labels(n) = [$label] RETURN n[$attribute] as r",
-					Values.parameters("label", label, "attribute", attribute)).single().get("r");
-
-			TypeDescriptor typeDescriptor = TypeDescriptor.forObject(t);
-			if (typeDescriptor.isCollection()) {
-				Collection<?> collection = (Collection<?>) t;
-				Class<?> targetType = collection.stream().map(Object::getClass).findFirst().get();
-				List<Object> convertedObjects = v.asList(elem -> DEFAULT_CONVERSION_SERVICE.convert(elem, targetType));
-				assertThat(convertedObjects).containsAll(collection);
-			} else {
-				Object converted = DEFAULT_CONVERSION_SERVICE.convert(v, typeDescriptor.getType());
-				assertThat(converted).isEqualTo(t);
-			}
-			bookmarkCapture.seedWith(session.lastBookmarks());
-		}
-	}
-
-	static void assertWrite(String label, String attribute, Object t) {
-
-		Value driverValue;
-		if (t != null && Collection.class.isAssignableFrom(t.getClass())) {
-			Collection<?> sourceCollection = (Collection<?>) t;
-			Object[] targetCollection = (sourceCollection).stream()
-					.map(element -> DEFAULT_CONVERSION_SERVICE.convert(element, Value.class)).toArray();
-			driverValue = Values.value(targetCollection);
-		} else {
-			driverValue = DEFAULT_CONVERSION_SERVICE.convert(t, Value.class);
-		}
-
-		try (Session session = neo4jConnectionSupport.getDriver().session(bookmarkCapture.createSessionConfig())) {
-			Map<String, Object> parameters = new HashMap<>();
-			parameters.put("label", label);
-			parameters.put("attribute", attribute);
-			parameters.put("v", driverValue);
-
-			long cnt = session
-					.run("MATCH (n) WHERE labels(n) = [$label]  AND n[$attribute] = $v RETURN COUNT(n) AS cnt", parameters)
-					.single().get("cnt").asLong();
-			assertThat(cnt).isEqualTo(1L);
-			bookmarkCapture.seedWith(session.lastBookmarks());
-		}
-	}
 }

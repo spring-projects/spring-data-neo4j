@@ -24,7 +24,6 @@ import org.springframework.data.neo4j.core.schema.Relationship;
 
 /**
  * @author Michael J. Simons
- * @soundtrack Sodom - Sodom
  */
 // tag::custom-query.paths.dm[]
 @Node
@@ -37,23 +36,25 @@ public class SomeEntity {
 
 	@Relationship(type = "SOME_RELATION_TO", direction = Relationship.Direction.OUTGOING)
 	private Set<SomeRelation> someRelationsOut = new HashSet<>();
+
 	// end::custom-query.paths.dm[]
-
-	public Long getNumber() {
-		return number;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public Set<SomeRelation> getSomeRelationsOut() {
-		return someRelationsOut;
-	}
 
 	SomeEntity(Long number) {
 		this.number = number;
 	}
+
+	public Long getNumber() {
+		return this.number;
+	}
+
+	public String getName() {
+		return this.name;
+	}
+
+	public Set<SomeRelation> getSomeRelationsOut() {
+		return this.someRelationsOut;
+	}
 	// tag::custom-query.paths.dm[]
+
 }
 // end::custom-query.paths.dm[]

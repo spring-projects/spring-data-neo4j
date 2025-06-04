@@ -28,4 +28,5 @@ public interface NamesOnly {
 
 	@Value("#{target.firstName + ' ' + target.lastName}")
 	String getFullName();
+
 }

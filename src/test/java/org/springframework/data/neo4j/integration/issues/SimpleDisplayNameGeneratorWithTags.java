@@ -27,12 +27,12 @@ import org.junit.platform.commons.util.AnnotationUtils;
  * Prepends the value of any tags defined for a given test method to the display name.
  *
  * @author Michael J. Simons
- * @soundtrack Stranger Things: Music From The Netflix Original Series, Season 1
  */
 final class SimpleDisplayNameGeneratorWithTags extends DisplayNameGenerator.Simple {
 
 	@Override
-	public String generateDisplayNameForMethod(List<Class<?>> enclosingInstanceTypes, Class<?> testClass, Method testMethod) {
+	public String generateDisplayNameForMethod(List<Class<?>> enclosingInstanceTypes, Class<?> testClass,
+			Method testMethod) {
 
 		var displayNameForMethod = testMethod.getName();
 		var tags = AnnotationUtils.findRepeatableAnnotations(testMethod, Tag.class);
@@ -42,4 +42,5 @@ final class SimpleDisplayNameGeneratorWithTags extends DisplayNameGenerator.Simp
 
 		return tags.stream().map(Tag::value).collect(Collectors.joining(", ", "", ": " + displayNameForMethod));
 	}
+
 }

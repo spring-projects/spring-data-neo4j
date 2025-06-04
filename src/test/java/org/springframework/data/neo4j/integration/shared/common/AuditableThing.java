@@ -31,4 +31,5 @@ public interface AuditableThing {
 	String getModifiedBy();
 
 	String getName();
+
 }

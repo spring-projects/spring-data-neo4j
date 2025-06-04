@@ -23,4 +23,5 @@ public class OutgoingBugRelationship extends BugRelationship<BugFrom> {
 	public OutgoingBugRelationship(String comment, BugFrom target) {
 		super(comment, target);
 	}
+
 }

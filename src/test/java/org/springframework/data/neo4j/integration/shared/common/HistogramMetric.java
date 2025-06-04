@@ -26,4 +26,5 @@ public class HistogramMetric extends Metric {
 	public HistogramMetric(String name) {
 		super(name);
 	}
+
 }

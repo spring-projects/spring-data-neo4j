@@ -52,22 +52,29 @@ public class AccountingMeasurementMeta extends MeasurementMeta {
 		return this.formula;
 	}
 
-	public MeasurementMeta getBaseMeasurement() {
-		return this.baseMeasurement;
-	}
-
-	public String toString() {
-		return "AccountingMeasurementMeta(formula=" + this.getFormula() + ", baseMeasurement=" + this.getBaseMeasurement() + ")";
-	}
-
 	private void setFormula(String formula) {
 		this.formula = formula;
+	}
+
+	public MeasurementMeta getBaseMeasurement() {
+		return this.baseMeasurement;
 	}
 
 	private void setBaseMeasurement(MeasurementMeta baseMeasurement) {
 		this.baseMeasurement = baseMeasurement;
 	}
 
+	@Override
+	protected boolean canEqual(final Object other) {
+		return other instanceof AccountingMeasurementMeta;
+	}
+
+	@Override
+	public AccountingMeasurementMetaBuilder<?, ?> toBuilder() {
+		return new AccountingMeasurementMetaBuilderImpl().$fillValuesFrom(this);
+	}
+
+	@Override
 	public boolean equals(final Object o) {
 		if (o == this) {
 			return true;
@@ -79,35 +86,36 @@ public class AccountingMeasurementMeta extends MeasurementMeta {
 		if (!other.canEqual((Object) this)) {
 			return false;
 		}
-		if (!super.equals(o)) {
-			return false;
-		}
-		return true;
+		return super.equals(o);
 	}
 
-	protected boolean canEqual(final Object other) {
-		return other instanceof AccountingMeasurementMeta;
-	}
-
+	@Override
 	public int hashCode() {
 		int result = super.hashCode();
 		return result;
 	}
 
-	public AccountingMeasurementMetaBuilder<?, ?> toBuilder() {
-		return new AccountingMeasurementMetaBuilderImpl().$fillValuesFrom(this);
+	@Override
+	public String toString() {
+		return "AccountingMeasurementMeta(formula=" + this.getFormula() + ", baseMeasurement="
+				+ this.getBaseMeasurement() + ")";
 	}
 
 	/**
 	 * the builder
+	 *
 	 * @param <C> needed c type
 	 * @param <B> needed b type
 	 */
-	public static abstract class AccountingMeasurementMetaBuilder<C extends AccountingMeasurementMeta, B extends AccountingMeasurementMetaBuilder<C, B>> extends MeasurementMetaBuilder<C, B> {
+	public abstract static class AccountingMeasurementMetaBuilder<C extends AccountingMeasurementMeta, B extends AccountingMeasurementMetaBuilder<C, B>>
+			extends MeasurementMetaBuilder<C, B> {
+
 		private String formula;
+
 		private MeasurementMeta baseMeasurement;
 
-		private static void $fillValuesFromInstanceIntoBuilder(AccountingMeasurementMeta instance, AccountingMeasurementMetaBuilder<?, ?> b) {
+		private static void $fillValuesFromInstanceIntoBuilder(AccountingMeasurementMeta instance,
+				AccountingMeasurementMetaBuilder<?, ?> b) {
 			b.formula(instance.formula);
 			b.baseMeasurement(instance.baseMeasurement);
 		}
@@ -122,31 +130,43 @@ public class AccountingMeasurementMeta extends MeasurementMeta {
 			return self();
 		}
 
+		@Override
 		protected B $fillValuesFrom(C instance) {
 			super.$fillValuesFrom(instance);
 			AccountingMeasurementMetaBuilder.$fillValuesFromInstanceIntoBuilder(instance, this);
 			return self();
 		}
 
+		@Override
 		protected abstract B self();
 
+		@Override
 		public abstract C build();
 
+		@Override
 		public String toString() {
-			return "AccountingMeasurementMeta.AccountingMeasurementMetaBuilder(super=" + super.toString() + ", formula=" + this.formula + ", baseMeasurement=" + this.baseMeasurement + ")";
+			return "AccountingMeasurementMeta.AccountingMeasurementMetaBuilder(super=" + super.toString() + ", formula="
+					+ this.formula + ", baseMeasurement=" + this.baseMeasurement + ")";
 		}
+
 	}
 
-	private static final class AccountingMeasurementMetaBuilderImpl extends AccountingMeasurementMetaBuilder<AccountingMeasurementMeta, AccountingMeasurementMetaBuilderImpl> {
+	private static final class AccountingMeasurementMetaBuilderImpl
+			extends AccountingMeasurementMetaBuilder<AccountingMeasurementMeta, AccountingMeasurementMetaBuilderImpl> {
+
 		private AccountingMeasurementMetaBuilderImpl() {
 		}
 
+		@Override
 		protected AccountingMeasurementMetaBuilderImpl self() {
 			return this;
 		}
 
+		@Override
 		public AccountingMeasurementMeta build() {
 			return new AccountingMeasurementMeta(this);
 		}
+
 	}
+
 }

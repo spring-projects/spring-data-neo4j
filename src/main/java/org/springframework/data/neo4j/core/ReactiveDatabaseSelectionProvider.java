@@ -15,17 +15,17 @@
  */
 package org.springframework.data.neo4j.core;
 
+import org.apiguardian.api.API;
 import reactor.core.publisher.Mono;
 
-import org.apiguardian.api.API;
 import org.springframework.util.Assert;
 
 /**
- * This is the reactive version of a the {@link DatabaseSelectionProvider} and it works in the same way but uses
- * reactive return types containing the target database name. An empty mono indicates the default database.
+ * This is the reactive version of a the {@link DatabaseSelectionProvider} and it works in
+ * the same way but uses reactive return types containing the target database name. An
+ * empty mono indicates the default database.
  *
  * @author Michael J. Simons
- * @soundtrack Rage - Reign Of Fear
  * @since 6.0
  */
 @API(status = API.Status.STABLE, since = "6.0")
@@ -33,16 +33,10 @@ import org.springframework.util.Assert;
 public interface ReactiveDatabaseSelectionProvider {
 
 	/**
-	 * @return The selected database to interact with.
-	 */
-	Mono<DatabaseSelection> getDatabaseSelection();
-
-	/**
-	 * Creates a statically configured database selection provider always selecting the database with the given name
-	 * {@code databaseName}.
-	 *
-	 * @param databaseName The database name to use, must not be null nor empty.
-	 * @return A statically configured database name provider.
+	 * Creates a statically configured database selection provider always selecting the
+	 * database with the given name {@code databaseName}.
+	 * @param databaseName the database name to use, must not be null nor empty.
+	 * @return a statically configured database name provider.
 	 */
 	static ReactiveDatabaseSelectionProvider createStaticDatabaseSelectionProvider(String databaseName) {
 
@@ -54,20 +48,17 @@ public interface ReactiveDatabaseSelectionProvider {
 
 	/**
 	 * A database selector always selecting the default database.
-	 *
-	 * @return A provider for the default database name.
+	 * @return a provider for the default database name.
 	 */
 	static ReactiveDatabaseSelectionProvider getDefaultSelectionProvider() {
 
 		return DefaultReactiveDatabaseSelectionProvider.INSTANCE;
 	}
-}
 
-enum DefaultReactiveDatabaseSelectionProvider implements ReactiveDatabaseSelectionProvider {
-	INSTANCE;
+	/**
+	 * Returns the selected database to interact with.
+	 * @return the selected database to interact with
+	 */
+	Mono<DatabaseSelection> getDatabaseSelection();
 
-	@Override
-	public Mono<DatabaseSelection> getDatabaseSelection() {
-		return Mono.just(DatabaseSelection.undecided());
-	}
 }

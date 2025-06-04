@@ -22,7 +22,6 @@ import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
  * Callback used to call the ID generator configured for an entity just before binding.
  *
  * @author Michael J. Simons
- * @soundtrack Various - Kung Fury (Original Motion Picture Soundtrack)
  * @since 6.0.2
  */
 final class IdGeneratingBeforeBindCallback implements BeforeBindCallback<Object>, Ordered {
@@ -35,11 +34,12 @@ final class IdGeneratingBeforeBindCallback implements BeforeBindCallback<Object>
 
 	@Override
 	public Object onBeforeBind(Object entity) {
-		return idPopulator.populateIfNecessary(entity);
+		return this.idPopulator.populateIfNecessary(entity);
 	}
 
 	@Override
 	public int getOrder() {
 		return AuditingBeforeBindCallback.NEO4J_AUDITING_ORDER + 10;
 	}
+
 }

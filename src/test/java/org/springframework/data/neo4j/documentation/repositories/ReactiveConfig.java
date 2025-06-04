@@ -16,9 +16,11 @@
 package org.springframework.data.neo4j.documentation.repositories;
 
 // tag::java-config-reactive[]
+
 import org.neo4j.driver.AuthTokens;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.GraphDatabase;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.neo4j.config.AbstractReactiveNeo4jConfig;
@@ -34,8 +36,10 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 public class ReactiveConfig extends AbstractReactiveNeo4jConfig {
 
 	@Bean
+	@Override
 	public Driver driver() {
 		return GraphDatabase.driver("bolt://localhost:7687", AuthTokens.basic("neo4j", "secret"));
 	}
+
 }
 // end::java-config-reactive[]

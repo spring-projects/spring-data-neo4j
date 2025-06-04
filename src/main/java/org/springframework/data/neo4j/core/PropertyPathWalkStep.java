@@ -18,23 +18,27 @@ package org.springframework.data.neo4j.core;
 import org.apiguardian.api.API;
 
 /**
- * Wrapper class for simple propertyPath specific modification.
- * Returns new instances on modification and hides the ugly empty String.
+ * Wrapper class for simple propertyPath specific modification. Returns new instances on
+ * modification and hides the ugly empty String.
+ *
+ * @author Gerrit Meier
+ * @author Michael J. Simons
  */
 @API(status = API.Status.INTERNAL)
-class PropertyPathWalkStep {
+final class PropertyPathWalkStep {
 
 	final String path;
+
+	private PropertyPathWalkStep(String path) {
+		this.path = path;
+	}
 
 	static PropertyPathWalkStep empty() {
 		return new PropertyPathWalkStep("");
 	}
 
-	public PropertyPathWalkStep with(String addition) {
-		return new PropertyPathWalkStep(path.isEmpty() ? addition : path + "." + addition);
+	PropertyPathWalkStep with(String addition) {
+		return new PropertyPathWalkStep(this.path.isEmpty() ? addition : this.path + "." + addition);
 	}
 
-	private PropertyPathWalkStep(String path) {
-		this.path = path;
-	}
 }

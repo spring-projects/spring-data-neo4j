@@ -23,4 +23,5 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface SkuRepository extends Neo4jRepository<Sku, Long> {
+
 }

@@ -21,4 +21,5 @@ import org.springframework.data.neo4j.repository.Neo4jRepository;
  * @author Mathias Kühn
  */
 public interface ConditionRepository extends Neo4jRepository<ConditionNode, String> {
+
 }

@@ -21,7 +21,6 @@ import org.springframework.data.neo4j.core.schema.TargetNode;
 
 /**
  * @author Michael J. Simons
- * @soundtrack Sodom - Sodom
  */
 // tag::custom-query.paths.dm[]
 @RelationshipProperties
@@ -34,19 +33,21 @@ public class SomeRelation {
 
 	@TargetNode
 	private SomeEntity targetPerson;
+
 	// end::custom-query.paths.dm[]
 
 	public Long getId() {
-		return id;
+		return this.id;
 	}
 
 	public String getSomeData() {
-		return someData;
+		return this.someData;
 	}
 
 	public SomeEntity getTargetPerson() {
-		return targetPerson;
+		return this.targetPerson;
 	}
 	// tag::custom-query.paths.dm[]
+
 }
 // end::custom-query.paths.dm[]

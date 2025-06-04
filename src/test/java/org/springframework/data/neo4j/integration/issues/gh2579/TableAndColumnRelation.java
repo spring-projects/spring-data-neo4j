@@ -15,6 +15,8 @@
  */
 package org.springframework.data.neo4j.integration.issues.gh2579;
 
+import java.util.Objects;
+
 import org.springframework.data.neo4j.core.schema.RelationshipId;
 import org.springframework.data.neo4j.core.schema.RelationshipProperties;
 import org.springframework.data.neo4j.core.schema.TargetNode;
@@ -38,18 +40,23 @@ public class TableAndColumnRelation {
 		return this.id;
 	}
 
-	public ColumnNode getColumnNode() {
-		return this.columnNode;
-	}
-
 	public void setId(Long id) {
 		this.id = id;
+	}
+
+	public ColumnNode getColumnNode() {
+		return this.columnNode;
 	}
 
 	public void setColumnNode(ColumnNode columnNode) {
 		this.columnNode = columnNode;
 	}
 
+	protected boolean canEqual(final Object other) {
+		return other instanceof TableAndColumnRelation;
+	}
+
+	@Override
 	public boolean equals(final Object o) {
 		if (o == this) {
 			return true;
@@ -63,32 +70,28 @@ public class TableAndColumnRelation {
 		}
 		final Object this$id = this.getId();
 		final Object other$id = other.getId();
-		if (this$id == null ? other$id != null : !this$id.equals(other$id)) {
+		if (!Objects.equals(this$id, other$id)) {
 			return false;
 		}
 		final Object this$columnNode = this.getColumnNode();
 		final Object other$columnNode = other.getColumnNode();
-		if (this$columnNode == null ? other$columnNode != null : !this$columnNode.equals(other$columnNode)) {
-			return false;
-		}
-		return true;
+		return Objects.equals(this$columnNode, other$columnNode);
 	}
 
-	protected boolean canEqual(final Object other) {
-		return other instanceof TableAndColumnRelation;
-	}
-
+	@Override
 	public int hashCode() {
 		final int PRIME = 59;
 		int result = 1;
 		final Object $id = this.getId();
-		result = result * PRIME + ($id == null ? 43 : $id.hashCode());
+		result = (result * PRIME) + (($id != null) ? $id.hashCode() : 43);
 		final Object $columnNode = this.getColumnNode();
-		result = result * PRIME + ($columnNode == null ? 43 : $columnNode.hashCode());
+		result = (result * PRIME) + (($columnNode != null) ? $columnNode.hashCode() : 43);
 		return result;
 	}
 
+	@Override
 	public String toString() {
 		return "TableAndColumnRelation(id=" + this.getId() + ", columnNode=" + this.getColumnNode() + ")";
 	}
+
 }

@@ -18,10 +18,12 @@ package org.springframework.data.neo4j.core.mapping;
 import org.apiguardian.api.API;
 
 /**
- * Provides minimal information how to map class attributes to the properties of a node or a relationship.
+ * Provides minimal information how to map class attributes to the properties of a node or
+ * a relationship.
  * <p>
- * Spring Data's persistent properties have slightly different semantics. They have an entity centric approach of
- * properties. Spring Data properties contain - if not marked otherwise - also associations.
+ * Spring Data's persistent properties have slightly different semantics. They have an
+ * entity centric approach of properties. Spring Data properties contain - if not marked
+ * otherwise - also associations.
  * <p>
  * Associations between different node types can be queried on the {@link Schema} itself.
  *
@@ -32,39 +34,47 @@ import org.apiguardian.api.API;
 public interface GraphPropertyDescription {
 
 	/**
-	 * @return The name of the attribute of the mapped class
+	 * The name of the attribute of the mapped class.
+	 * @return the name of the attribute of the mapped class
 	 */
 	String getFieldName();
 
 	/**
-	 * @return The name of the property as stored in the graph.
+	 * The name of the property as stored in the graph.
+	 * @return the name of the property as stored in the graph
 	 */
 	String getPropertyName();
 
 	/**
-	 * @return True if this property is the id property.
+	 * True if this property is the id property.
+	 * @return true if this property is the id property
 	 */
 	boolean isIdProperty();
 
 	/**
-	 * @return True, if this property is the id property and the owner uses internal ids.
+	 * Flag, if this is an internal id property.
+	 * @return true, if this property is the id property and the owner uses internal ids
 	 */
 	boolean isInternalIdProperty();
 
 	/**
-	 * This will return the type of a simple property or the component type of a collection like property.
-	 *
-	 * @return The type of this property.
+	 * This will return the type of a simple property or the component type of a
+	 * collection like property.
+	 * @return the type of this property.
 	 */
 	Class<?> getActualType();
 
 	/**
-	 * @return Whether this property describes a relationship or not.
+	 * Flag, if this is a relationship.
+	 * @return whether this property describes a relationship or not.
 	 */
 	boolean isRelationship();
 
 	/**
-	 * @return True if the entity's property (this object) is stored as multiple properties on a node or relationship.
+	 * Flag, if this is a composite property.
+	 * @return true if the entity's property (this object) is stored as multiple
+	 * properties on a node or relationship.
 	 */
 	boolean isComposite();
+
 }

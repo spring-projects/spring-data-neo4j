@@ -15,12 +15,11 @@
  */
 package org.springframework.data.neo4j.repository.config;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 import org.neo4j.driver.Driver;
+
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -31,6 +30,8 @@ import org.springframework.data.neo4j.config.AbstractNeo4jConfig;
 import org.springframework.data.neo4j.repository.ReactiveNeo4jRepository;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Michael J. Simons
@@ -47,10 +48,13 @@ class EnableReactiveNeo4jRepositoriesTests {
 		}
 
 		interface RepositoryToBeExcluded extends ReactiveNeo4jRepository<AnEntity, String> {
+
 		}
 
 		@Configuration
-		@EnableReactiveNeo4jRepositories(considerNestedRepositories = true, excludeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = RepositoryToBeExcluded.class))
+		@EnableReactiveNeo4jRepositories(considerNestedRepositories = true,
+				excludeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE,
+						classes = RepositoryToBeExcluded.class))
 		static class Config extends AbstractNeo4jConfig {
 
 			@Bean
@@ -58,6 +62,9 @@ class EnableReactiveNeo4jRepositoriesTests {
 			public Driver driver() {
 				return Mockito.mock(Driver.class);
 			}
+
 		}
+
 	}
+
 }

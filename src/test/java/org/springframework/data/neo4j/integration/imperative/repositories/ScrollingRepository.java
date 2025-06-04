@@ -36,4 +36,5 @@ public interface ScrollingRepository extends Neo4jRepository<ScrollingEntity, UU
 	ScrollingEntity findFirstByA(String a);
 
 	List<ScrollingEntity> findAllByAOrderById(String a);
+
 }

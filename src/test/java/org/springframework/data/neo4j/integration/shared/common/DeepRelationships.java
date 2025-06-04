@@ -32,10 +32,13 @@ public class DeepRelationships {
 	 */
 	@Node
 	public static class LoopingType1 {
+
 		public LoopingType2 nextType;
+
 		@Id
 		@GeneratedValue
 		private Long id;
+
 	}
 
 	/**
@@ -43,10 +46,13 @@ public class DeepRelationships {
 	 */
 	@Node
 	public static class LoopingType2 {
+
 		public LoopingType3 nextType;
+
 		@Id
 		@GeneratedValue
 		private Long id;
+
 	}
 
 	/**
@@ -54,9 +60,13 @@ public class DeepRelationships {
 	 */
 	@Node
 	public static class LoopingType3 {
+
 		public LoopingType1 nextType;
+
 		@Id
 		@GeneratedValue
 		private Long id;
+
 	}
+
 }

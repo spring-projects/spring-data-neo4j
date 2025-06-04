@@ -22,4 +22,5 @@ import org.springframework.data.neo4j.core.schema.Node;
  */
 @Node
 public class ProjectionTest1O1 extends ProjectionTestBase {
+
 }

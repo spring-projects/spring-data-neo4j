@@ -26,11 +26,12 @@ import org.springframework.data.neo4j.core.schema.Node;
 @Node
 public class ThingWithCompositeProperty {
 
-	@Id @GeneratedValue
-	private Long id;
-
 	@CompositeProperty(converter = CompositeValue.Converter.class)
 	private final CompositeValue compositeValue;
+
+	@Id
+	@GeneratedValue
+	private Long id;
 
 	private String name;
 
@@ -40,11 +41,11 @@ public class ThingWithCompositeProperty {
 	}
 
 	public CompositeValue getCompositeValue() {
-		return compositeValue;
+		return this.compositeValue;
 	}
 
 	public String getName() {
-		return name;
+		return this.name;
 	}
 
 	public void setName(String name) {

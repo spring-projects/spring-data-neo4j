@@ -19,7 +19,10 @@ import org.springframework.data.neo4j.repository.Neo4jRepository;
 
 /**
  * Repository spotting all supported Geo* results.
+ *
  * @author Michael J. Simons
  */
-public interface LocatedNodeWithSelfRefRepository extends HasNameAndPlaceRepository<LocatedNodeWithSelfRef>, Neo4jRepository<LocatedNodeWithSelfRef, String> {
+public interface LocatedNodeWithSelfRefRepository
+		extends HasNameAndPlaceRepository<LocatedNodeWithSelfRef>, Neo4jRepository<LocatedNodeWithSelfRef, String> {
+
 }

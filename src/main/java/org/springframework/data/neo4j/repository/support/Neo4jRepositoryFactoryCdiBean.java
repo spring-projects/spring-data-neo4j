@@ -23,8 +23,8 @@ import java.util.stream.Collectors;
 import jakarta.enterprise.context.spi.CreationalContext;
 import jakarta.enterprise.inject.spi.Bean;
 import jakarta.enterprise.inject.spi.BeanManager;
-
 import org.apiguardian.api.API;
+
 import org.springframework.data.neo4j.config.Neo4jCdiExtension;
 import org.springframework.data.neo4j.core.Neo4jOperations;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
@@ -32,11 +32,11 @@ import org.springframework.data.repository.cdi.CdiRepositoryBean;
 import org.springframework.data.repository.config.CustomRepositoryImplementationDetector;
 
 /**
- * The CDI pendant to the {@link Neo4jRepositoryFactoryBean}. It creates instances of {@link Neo4jRepositoryFactory}.
+ * The CDI pendant to the {@link Neo4jRepositoryFactoryBean}. It creates instances of
+ * {@link Neo4jRepositoryFactory}.
  *
+ * @param <T> the type of the repository being created
  * @author Michael J. Simons
- * @param <T> The type of the repository being created
- * @soundtrack Various - TRON Legacy R3conf1gur3d
  * @since 6.0
  */
 @API(status = API.Status.INTERNAL, since = "6.0")
@@ -44,8 +44,8 @@ public final class Neo4jRepositoryFactoryCdiBean<T> extends CdiRepositoryBean<T>
 
 	private final BeanManager beanManager;
 
-	public Neo4jRepositoryFactoryCdiBean(Set<Annotation> qualifiers, Class<T> repositoryType,
-			BeanManager beanManager, CustomRepositoryImplementationDetector detector) {
+	public Neo4jRepositoryFactoryCdiBean(Set<Annotation> qualifiers, Class<T> repositoryType, BeanManager beanManager,
+			CustomRepositoryImplementationDetector detector) {
 		super(qualifiers, repositoryType, beanManager, Optional.of(detector));
 
 		this.beanManager = beanManager;
@@ -62,15 +62,17 @@ public final class Neo4jRepositoryFactoryCdiBean<T> extends CdiRepositoryBean<T>
 
 	private <RT> RT getReference(Class<RT> clazz, CreationalContext<?> creationalContext) {
 
-		Set<Bean<?>> beans = beanManager.getBeans(clazz, Neo4jCdiExtension.ANY_BEAN);
+		Set<Bean<?>> beans = this.beanManager.getBeans(clazz, Neo4jCdiExtension.ANY_BEAN);
 		if (beans.size() > 1) {
 			beans = beans.stream()
-					.filter(b -> b.getQualifiers().contains(Neo4jCdiExtension.DEFAULT_BEAN))
-					.collect(Collectors.toSet());
+				.filter(b -> b.getQualifiers().contains(Neo4jCdiExtension.DEFAULT_BEAN))
+				.collect(Collectors.toSet());
 		}
 
 		@SuppressWarnings("unchecked")
-		RT beanReference = (RT) beanManager.getReference(beanManager.resolve(beans), clazz, creationalContext);
+		RT beanReference = (RT) this.beanManager.getReference(this.beanManager.resolve(beans), clazz,
+				creationalContext);
 		return beanReference;
 	}
+
 }

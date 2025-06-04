@@ -21,8 +21,8 @@ import org.springframework.data.neo4j.core.schema.RelationshipProperties;
 import org.springframework.data.neo4j.core.schema.TargetNode;
 
 /**
+ * @param <T> the crux of this class
  * @author Michael J. Simons
- * @param <T> The crux of this class
  */
 @RelationshipProperties
 public class Properties<T> {
@@ -33,4 +33,5 @@ public class Properties<T> {
 
 	@TargetNode
 	T target;
+
 }

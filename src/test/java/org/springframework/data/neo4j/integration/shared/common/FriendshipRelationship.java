@@ -25,10 +25,10 @@ import org.springframework.data.neo4j.core.schema.TargetNode;
 @RelationshipProperties
 public class FriendshipRelationship {
 
+	private final Integer since;
+
 	@RelationshipId
 	private Long id;
-
-	private final Integer since;
 
 	@TargetNode
 	private Friend friend;
@@ -38,14 +38,15 @@ public class FriendshipRelationship {
 	}
 
 	public Integer getSince() {
-		return since;
+		return this.since;
 	}
 
 	public Friend getFriend() {
-		return friend;
+		return this.friend;
 	}
 
 	public void setFriend(Friend friend) {
 		this.friend = friend;
 	}
+
 }

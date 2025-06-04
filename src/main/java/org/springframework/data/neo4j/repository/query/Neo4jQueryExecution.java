@@ -22,9 +22,9 @@ import org.springframework.data.neo4j.core.PreparedQuery;
 import org.springframework.data.neo4j.core.ReactiveNeo4jOperations;
 
 /**
- * Set of classes to contain query execution strategies. Depending (mostly) on the return type of a
- * {@link org.springframework.data.repository.query.QueryMethod} a {@link AbstractNeo4jQuery} can be executed in various
- * flavors.
+ * Set of classes to contain query execution strategies. Depending (mostly) on the return
+ * type of a {@link org.springframework.data.repository.query.QueryMethod} a
+ * {@link AbstractNeo4jQuery} can be executed in various flavors.
  *
  * @author Michael J. Simons
  * @author Gerrit Meier
@@ -46,13 +46,15 @@ interface Neo4jQueryExecution {
 		@Override
 		public Object execute(PreparedQuery<?> preparedQuery, boolean asCollectionQuery) {
 
-			Neo4jOperations.ExecutableQuery<?> executableQuery = neo4jOperations.toExecutableQuery(preparedQuery);
+			Neo4jOperations.ExecutableQuery<?> executableQuery = this.neo4jOperations.toExecutableQuery(preparedQuery);
 			if (asCollectionQuery) {
 				return executableQuery.getResults();
-			} else {
+			}
+			else {
 				return executableQuery.getSingleResult();
 			}
 		}
+
 	}
 
 	class ReactiveQueryExecution implements Neo4jQueryExecution {
@@ -66,14 +68,17 @@ interface Neo4jQueryExecution {
 		@Override
 		public Object execute(PreparedQuery<?> preparedQuery, boolean asCollectionQuery) {
 
-			Mono<? extends ReactiveNeo4jOperations.ExecutableQuery<?>> executableQuery =
-					neo4jOperations.toExecutableQuery(preparedQuery);
+			Mono<? extends ReactiveNeo4jOperations.ExecutableQuery<?>> executableQuery = this.neo4jOperations
+				.toExecutableQuery(preparedQuery);
 
 			if (asCollectionQuery) {
 				return executableQuery.flatMapMany(q -> q.getResults());
-			} else {
+			}
+			else {
 				return executableQuery.flatMap(q -> q.getSingleResult());
 			}
 		}
+
 	}
+
 }

@@ -23,10 +23,10 @@ import org.junit.jupiter.api.extension.ParameterContext;
 import org.junit.jupiter.api.extension.ParameterResolver;
 
 /**
- * Naive extension to capture logging output. It assumes that logback is used during tests as logger binding.
+ * Naive extension to capture logging output. It assumes that logback is used during tests
+ * as logger binding.
  *
  * @author Michael J. Simons
- * @soundtrack Various - Just The Best 90s
  */
 public final class LogbackCapturingExtension implements BeforeAllCallback, AfterEachCallback, ParameterResolver {
 
@@ -57,4 +57,5 @@ public final class LogbackCapturingExtension implements BeforeAllCallback, After
 	public void afterEach(ExtensionContext context) {
 		getOutputCapture(context).clear();
 	}
+
 }

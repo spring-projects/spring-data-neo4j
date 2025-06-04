@@ -27,4 +27,5 @@ public interface WidgetProjection {
 	String getLabel();
 
 	Map<String, Object> getAdditionalFields();
+
 }

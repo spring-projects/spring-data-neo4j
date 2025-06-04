@@ -15,12 +15,13 @@
  */
 package org.springframework.data.neo4j.integration.issues.gh2727;
 
+import java.util.List;
+import java.util.Objects;
+
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Relationship;
-
-import java.util.List;
 
 /**
  * @author Gerrit Meier
@@ -28,6 +29,7 @@ import java.util.List;
 @SuppressWarnings("HiddenField")
 @Node("FirstLevel")
 public class FirstLevelEntity {
+
 	@Id
 	@GeneratedValue
 	private Long id;
@@ -54,26 +56,32 @@ public class FirstLevelEntity {
 		return this.id;
 	}
 
-	public String getName() {
-		return this.name;
-	}
-
-	public List<SecondLevelEntityRelationship> getSecondLevelEntityRelationshipProperties() {
-		return this.secondLevelEntityRelationshipProperties;
-	}
-
 	public void setId(Long id) {
 		this.id = id;
+	}
+
+	public String getName() {
+		return this.name;
 	}
 
 	public void setName(String name) {
 		this.name = name;
 	}
 
-	public void setSecondLevelEntityRelationshipProperties(List<SecondLevelEntityRelationship> secondLevelEntityRelationshipProperties) {
+	public List<SecondLevelEntityRelationship> getSecondLevelEntityRelationshipProperties() {
+		return this.secondLevelEntityRelationshipProperties;
+	}
+
+	public void setSecondLevelEntityRelationshipProperties(
+			List<SecondLevelEntityRelationship> secondLevelEntityRelationshipProperties) {
 		this.secondLevelEntityRelationshipProperties = secondLevelEntityRelationshipProperties;
 	}
 
+	protected boolean canEqual(final Object other) {
+		return other instanceof FirstLevelEntity;
+	}
+
+	@Override
 	public boolean equals(final Object o) {
 		if (o == this) {
 			return true;
@@ -87,32 +95,30 @@ public class FirstLevelEntity {
 		}
 		final Object this$id = this.getId();
 		final Object other$id = other.getId();
-		if (this$id == null ? other$id != null : !this$id.equals(other$id)) {
-			return false;
-		}
-		return true;
+		return Objects.equals(this$id, other$id);
 	}
 
-	protected boolean canEqual(final Object other) {
-		return other instanceof FirstLevelEntity;
-	}
-
+	@Override
 	public int hashCode() {
 		final int PRIME = 59;
 		int result = 1;
 		final Object $id = this.getId();
-		result = result * PRIME + ($id == null ? 43 : $id.hashCode());
+		result = result * PRIME + (($id != null) ? $id.hashCode() : 43);
 		return result;
 	}
 
 	/**
 	 * the builder
+	 *
 	 * @param <C> needed c type
 	 * @param <B> needed b type
 	 */
-	public static abstract class FirstLevelEntityBuilder<C extends FirstLevelEntity, B extends FirstLevelEntityBuilder<C, B>> {
+	public abstract static class FirstLevelEntityBuilder<C extends FirstLevelEntity, B extends FirstLevelEntityBuilder<C, B>> {
+
 		private Long id;
+
 		private String name;
+
 		private List<SecondLevelEntityRelationship> secondLevelEntityRelationshipProperties;
 
 		public B id(Long id) {
@@ -125,7 +131,8 @@ public class FirstLevelEntity {
 			return self();
 		}
 
-		public B secondLevelEntityRelationshipProperties(List<SecondLevelEntityRelationship> secondLevelEntityRelationshipProperties) {
+		public B secondLevelEntityRelationshipProperties(
+				List<SecondLevelEntityRelationship> secondLevelEntityRelationshipProperties) {
 			this.secondLevelEntityRelationshipProperties = secondLevelEntityRelationshipProperties;
 			return self();
 		}
@@ -134,21 +141,30 @@ public class FirstLevelEntity {
 
 		public abstract C build();
 
+		@Override
 		public String toString() {
-			return "FirstLevelEntity.FirstLevelEntityBuilder(id=" + this.id + ", name=" + this.name + ", secondLevelEntityRelationshipProperties=" + this.secondLevelEntityRelationshipProperties + ")";
+			return "FirstLevelEntity.FirstLevelEntityBuilder(id=" + this.id + ", name=" + this.name
+					+ ", secondLevelEntityRelationshipProperties=" + this.secondLevelEntityRelationshipProperties + ")";
 		}
+
 	}
 
-	private static final class FirstLevelEntityBuilderImpl extends FirstLevelEntityBuilder<FirstLevelEntity, FirstLevelEntityBuilderImpl> {
+	private static final class FirstLevelEntityBuilderImpl
+			extends FirstLevelEntityBuilder<FirstLevelEntity, FirstLevelEntityBuilderImpl> {
+
 		private FirstLevelEntityBuilderImpl() {
 		}
 
+		@Override
 		protected FirstLevelEntityBuilderImpl self() {
 			return this;
 		}
 
+		@Override
 		public FirstLevelEntity build() {
 			return new FirstLevelEntity(this);
 		}
+
 	}
+
 }

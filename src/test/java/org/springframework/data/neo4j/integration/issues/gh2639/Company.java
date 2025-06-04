@@ -15,13 +15,13 @@
  */
 package org.springframework.data.neo4j.integration.issues.gh2639;
 
+import java.util.List;
+import java.util.StringJoiner;
+
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Relationship;
-
-import java.util.List;
-import java.util.StringJoiner;
 
 /**
  * Root node
@@ -29,14 +29,14 @@ import java.util.StringJoiner;
 @Node
 public class Company {
 
-	@Id
-	@GeneratedValue
-	private Long id;
-
 	private final String name;
+
 	@Relationship(type = "EMPLOYEE")
 	private final List<CompanyPerson> employees;
 
+	@Id
+	@GeneratedValue
+	private Long id;
 
 	public Company(String name, List<CompanyPerson> employees) {
 		this.name = name;
@@ -44,19 +44,19 @@ public class Company {
 	}
 
 	public void addEmployee(CompanyPerson person) {
-		employees.add(person);
+		this.employees.add(person);
 	}
 
 	public List<CompanyPerson> getEmployees() {
-		return employees;
+		return this.employees;
 	}
 
 	@Override
 	public String toString() {
-		return new StringJoiner(", ", Company.class.getSimpleName() + "[", "]")
-				.add("id=" + id)
-				.add("name='" + name + "'")
-				.add("employees=" + employees)
-				.toString();
+		return new StringJoiner(", ", Company.class.getSimpleName() + "[", "]").add("id=" + this.id)
+			.add("name='" + this.name + "'")
+			.add("employees=" + this.employees)
+			.toString();
 	}
+
 }

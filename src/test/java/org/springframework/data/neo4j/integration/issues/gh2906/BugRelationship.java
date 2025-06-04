@@ -20,11 +20,11 @@ import org.springframework.data.neo4j.core.schema.RelationshipProperties;
 import org.springframework.data.neo4j.core.schema.TargetNode;
 
 /**
- * @author Mathias Kühn
  * @param <T> The crux of this thing
+ * @author Mathias Kühn
  */
 @RelationshipProperties
-public abstract class BugRelationship<T>  {
+public abstract class BugRelationship<T> {
 
 	@RelationshipId
 	public Long id;
@@ -41,7 +41,7 @@ public abstract class BugRelationship<T>  {
 
 	@Override
 	public String toString() {
-		return String.format("<%s> {id: %d, comment: %s}", this.getClass().getSimpleName(), id, comment);
+		return String.format("<%s> {id: %d, comment: %s}", this.getClass().getSimpleName(), this.id, this.comment);
 	}
 
 }

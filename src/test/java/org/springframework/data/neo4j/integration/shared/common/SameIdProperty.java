@@ -15,6 +15,10 @@
  */
 package org.springframework.data.neo4j.integration.shared.common;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Relationship;
@@ -22,19 +26,18 @@ import org.springframework.data.neo4j.core.schema.RelationshipId;
 import org.springframework.data.neo4j.core.schema.RelationshipProperties;
 import org.springframework.data.neo4j.core.schema.TargetNode;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * @author Gerrit Meier
  */
 @SuppressWarnings("HiddenField")
 public class SameIdProperty {
+
 	/**
 	 * @author Gerrit Meier
 	 */
 	@Node("Pod")
 	public static class PodEntity {
+
 		@Id
 		private String code;
 
@@ -53,44 +56,44 @@ public class SameIdProperty {
 			this.code = code;
 		}
 
-		public boolean equals(final Object o) {
-			if (o == this) {
-				return true;
-			}
-			if (!(o instanceof PodEntity)) {
-				return false;
-			}
-			final PodEntity other = (PodEntity) o;
-			if (!other.canEqual((Object) this)) {
-				return false;
-			}
-			final Object this$code = this.getCode();
-			final Object other$code = other.getCode();
-			if (this$code == null ? other$code != null : !this$code.equals(other$code)) {
-				return false;
-			}
-			return true;
-		}
-
 		protected boolean canEqual(final Object other) {
 			return other instanceof PodEntity;
 		}
 
+		public PodEntity withCode(String code) {
+			return Objects.equals(this.code, code) ? this : new PodEntity(code);
+		}
+
+		@Override
+		public boolean equals(final Object o) {
+			if (o == this) {
+				return true;
+			}
+			if (!(o instanceof PodEntity other)) {
+				return false;
+			}
+			if (!other.canEqual(this)) {
+				return false;
+			}
+			final Object this$code = this.getCode();
+			final Object other$code = other.getCode();
+			return Objects.equals(this$code, other$code);
+		}
+
+		@Override
 		public int hashCode() {
 			final int PRIME = 59;
 			int result = 1;
 			final Object $code = this.getCode();
-			result = result * PRIME + ($code == null ? 43 : $code.hashCode());
+			result = result * PRIME + (($code != null) ? $code.hashCode() : 43);
 			return result;
 		}
 
+		@Override
 		public String toString() {
 			return "SameIdProperty.PodEntity(code=" + this.getCode() + ")";
 		}
 
-		public PodEntity withCode(String code) {
-			return this.code == code ? this : new PodEntity(code);
-		}
 	}
 
 	/**
@@ -98,6 +101,7 @@ public class SameIdProperty {
 	 */
 	@Node("Pol")
 	public static class PolEntity {
+
 		@Id
 		private String code;
 
@@ -116,18 +120,31 @@ public class SameIdProperty {
 			return this.code;
 		}
 
-		public List<PodEntity> getRoutes() {
-			return this.routes;
-		}
-
 		public void setCode(String code) {
 			this.code = code;
+		}
+
+		public List<PodEntity> getRoutes() {
+			return this.routes;
 		}
 
 		public void setRoutes(List<PodEntity> routes) {
 			this.routes = routes;
 		}
 
+		protected boolean canEqual(final Object other) {
+			return other instanceof PolEntity;
+		}
+
+		public PolEntity withCode(String code) {
+			return (this.code != code) ? new PolEntity(code, this.routes) : this;
+		}
+
+		public PolEntity withRoutes(List<PodEntity> routes) {
+			return Objects.equals(this.routes, routes) ? this : new PolEntity(this.code, routes);
+		}
+
+		@Override
 		public boolean equals(final Object o) {
 			if (o == this) {
 				return true;
@@ -141,42 +158,30 @@ public class SameIdProperty {
 			}
 			final Object this$code = this.getCode();
 			final Object other$code = other.getCode();
-			if (this$code == null ? other$code != null : !this$code.equals(other$code)) {
+			if (!Objects.equals(this$code, other$code)) {
 				return false;
 			}
 			final Object this$routes = this.getRoutes();
 			final Object other$routes = other.getRoutes();
-			if (this$routes == null ? other$routes != null : !this$routes.equals(other$routes)) {
-				return false;
-			}
-			return true;
+			return Objects.equals(this$routes, other$routes);
 		}
 
-		protected boolean canEqual(final Object other) {
-			return other instanceof PolEntity;
-		}
-
+		@Override
 		public int hashCode() {
 			final int PRIME = 59;
 			int result = 1;
 			final Object $code = this.getCode();
-			result = result * PRIME + ($code == null ? 43 : $code.hashCode());
+			result = result * PRIME + (($code != null) ? $code.hashCode() : 43);
 			final Object $routes = this.getRoutes();
-			result = result * PRIME + ($routes == null ? 43 : $routes.hashCode());
+			result = result * PRIME + (($routes != null) ? $routes.hashCode() : 43);
 			return result;
 		}
 
+		@Override
 		public String toString() {
 			return "SameIdProperty.PolEntity(code=" + this.getCode() + ", routes=" + this.getRoutes() + ")";
 		}
 
-		public PolEntity withCode(String code) {
-			return this.code == code ? this : new PolEntity(code, this.routes);
-		}
-
-		public PolEntity withRoutes(List<PodEntity> routes) {
-			return this.routes == routes ? this : new PolEntity(this.code, routes);
-		}
 	}
 
 	/**
@@ -184,6 +189,7 @@ public class SameIdProperty {
 	 */
 	@Node("PolWithRP")
 	public static class PolEntityWithRelationshipProperties {
+
 		@Id
 		private String code;
 
@@ -202,18 +208,31 @@ public class SameIdProperty {
 			return this.code;
 		}
 
-		public List<RouteProperties> getRoutes() {
-			return this.routes;
-		}
-
 		public void setCode(String code) {
 			this.code = code;
+		}
+
+		public List<RouteProperties> getRoutes() {
+			return this.routes;
 		}
 
 		public void setRoutes(List<RouteProperties> routes) {
 			this.routes = routes;
 		}
 
+		protected boolean canEqual(final Object other) {
+			return other instanceof PolEntityWithRelationshipProperties;
+		}
+
+		public PolEntityWithRelationshipProperties withCode(String code) {
+			return (this.code != code) ? new PolEntityWithRelationshipProperties(code, this.routes) : this;
+		}
+
+		public PolEntityWithRelationshipProperties withRoutes(List<RouteProperties> routes) {
+			return (this.routes != routes) ? new PolEntityWithRelationshipProperties(this.code, routes) : this;
+		}
+
+		@Override
 		public boolean equals(final Object o) {
 			if (o == this) {
 				return true;
@@ -227,42 +246,31 @@ public class SameIdProperty {
 			}
 			final Object this$code = this.getCode();
 			final Object other$code = other.getCode();
-			if (this$code == null ? other$code != null : !this$code.equals(other$code)) {
+			if (!Objects.equals(this$code, other$code)) {
 				return false;
 			}
 			final Object this$routes = this.getRoutes();
 			final Object other$routes = other.getRoutes();
-			if (this$routes == null ? other$routes != null : !this$routes.equals(other$routes)) {
-				return false;
-			}
-			return true;
+			return Objects.equals(this$routes, other$routes);
 		}
 
-		protected boolean canEqual(final Object other) {
-			return other instanceof PolEntityWithRelationshipProperties;
-		}
-
+		@Override
 		public int hashCode() {
 			final int PRIME = 59;
 			int result = 1;
 			final Object $code = this.getCode();
-			result = result * PRIME + ($code == null ? 43 : $code.hashCode());
+			result = result * PRIME + (($code != null) ? $code.hashCode() : 43);
 			final Object $routes = this.getRoutes();
-			result = result * PRIME + ($routes == null ? 43 : $routes.hashCode());
+			result = result * PRIME + (($routes != null) ? $routes.hashCode() : 43);
 			return result;
 		}
 
+		@Override
 		public String toString() {
-			return "SameIdProperty.PolEntityWithRelationshipProperties(code=" + this.getCode() + ", routes=" + this.getRoutes() + ")";
+			return "SameIdProperty.PolEntityWithRelationshipProperties(code=" + this.getCode() + ", routes="
+					+ this.getRoutes() + ")";
 		}
 
-		public PolEntityWithRelationshipProperties withCode(String code) {
-			return this.code == code ? this : new PolEntityWithRelationshipProperties(code, this.routes);
-		}
-
-		public PolEntityWithRelationshipProperties withRoutes(List<RouteProperties> routes) {
-			return this.routes == routes ? this : new PolEntityWithRelationshipProperties(this.code, routes);
-		}
 	}
 
 	/**
@@ -275,22 +283,26 @@ public class SameIdProperty {
 		private Long id;
 
 		private Double truck;
+
 		private String truckCurrency;
 
 		private Double ft20;
+
 		private String ft20Currency;
 
 		private Double ft40;
+
 		private String ft40Currency;
 
 		private Double ft40HC;
-		private String ft40HCCurrency;
 
+		private String ft40HCCurrency;
 
 		@TargetNode
 		private PodEntity pod;
 
-		private RouteProperties(Long id, Double truck, String truckCurrency, Double ft20, String ft20Currency, Double ft40, String ft40Currency, Double ft40HC, String ft40HCCurrency, PodEntity pod) {
+		private RouteProperties(Long id, Double truck, String truckCurrency, Double ft20, String ft20Currency,
+				Double ft40, String ft40Currency, Double ft40HC, String ft40HCCurrency, PodEntity pod) {
 			this.id = id;
 			this.truck = truck;
 			this.truckCurrency = truckCurrency;
@@ -310,82 +322,143 @@ public class SameIdProperty {
 			return this.id;
 		}
 
-		public Double getTruck() {
-			return this.truck;
-		}
-
-		public String getTruckCurrency() {
-			return this.truckCurrency;
-		}
-
-		public Double getFt20() {
-			return this.ft20;
-		}
-
-		public String getFt20Currency() {
-			return this.ft20Currency;
-		}
-
-		public Double getFt40() {
-			return this.ft40;
-		}
-
-		public String getFt40Currency() {
-			return this.ft40Currency;
-		}
-
-		public Double getFt40HC() {
-			return this.ft40HC;
-		}
-
-		public String getFt40HCCurrency() {
-			return this.ft40HCCurrency;
-		}
-
-		public PodEntity getPod() {
-			return this.pod;
-		}
-
 		public void setId(Long id) {
 			this.id = id;
+		}
+
+		public Double getTruck() {
+			return this.truck;
 		}
 
 		public void setTruck(Double truck) {
 			this.truck = truck;
 		}
 
+		public String getTruckCurrency() {
+			return this.truckCurrency;
+		}
+
 		public void setTruckCurrency(String truckCurrency) {
 			this.truckCurrency = truckCurrency;
+		}
+
+		public Double getFt20() {
+			return this.ft20;
 		}
 
 		public void setFt20(Double ft20) {
 			this.ft20 = ft20;
 		}
 
+		public String getFt20Currency() {
+			return this.ft20Currency;
+		}
+
 		public void setFt20Currency(String ft20Currency) {
 			this.ft20Currency = ft20Currency;
+		}
+
+		public Double getFt40() {
+			return this.ft40;
 		}
 
 		public void setFt40(Double ft40) {
 			this.ft40 = ft40;
 		}
 
+		public String getFt40Currency() {
+			return this.ft40Currency;
+		}
+
 		public void setFt40Currency(String ft40Currency) {
 			this.ft40Currency = ft40Currency;
+		}
+
+		public Double getFt40HC() {
+			return this.ft40HC;
 		}
 
 		public void setFt40HC(Double ft40HC) {
 			this.ft40HC = ft40HC;
 		}
 
+		public String getFt40HCCurrency() {
+			return this.ft40HCCurrency;
+		}
+
 		public void setFt40HCCurrency(String ft40HCCurrency) {
 			this.ft40HCCurrency = ft40HCCurrency;
+		}
+
+		public PodEntity getPod() {
+			return this.pod;
 		}
 
 		public void setPod(PodEntity pod) {
 			this.pod = pod;
 		}
 
+		protected boolean canEqual(final Object other) {
+			return other instanceof RouteProperties;
+		}
+
+		public RouteProperties withId(Long id) {
+			return (this.id != id) ? new RouteProperties(id, this.truck, this.truckCurrency, this.ft20,
+					this.ft20Currency, this.ft40, this.ft40Currency, this.ft40HC, this.ft40HCCurrency, this.pod) : this;
+		}
+
+		public RouteProperties withTruck(Double truck) {
+			return (this.truck != truck) ? new RouteProperties(this.id, truck, this.truckCurrency, this.ft20,
+					this.ft20Currency, this.ft40, this.ft40Currency, this.ft40HC, this.ft40HCCurrency, this.pod) : this;
+		}
+
+		public RouteProperties withTruckCurrency(String truckCurrency) {
+			return Objects.equals(this.truckCurrency, truckCurrency) ? this
+					: new RouteProperties(this.id, this.truck, truckCurrency, this.ft20, this.ft20Currency, this.ft40,
+							this.ft40Currency, this.ft40HC, this.ft40HCCurrency, this.pod);
+		}
+
+		public RouteProperties withFt20(Double ft20) {
+			return (this.ft20 != ft20) ? new RouteProperties(this.id, this.truck, this.truckCurrency, ft20,
+					this.ft20Currency, this.ft40, this.ft40Currency, this.ft40HC, this.ft40HCCurrency, this.pod) : this;
+		}
+
+		public RouteProperties withFt20Currency(String ft20Currency) {
+			return (this.ft20Currency != ft20Currency) ? new RouteProperties(this.id, this.truck, this.truckCurrency,
+					this.ft20, ft20Currency, this.ft40, this.ft40Currency, this.ft40HC, this.ft40HCCurrency, this.pod)
+					: this;
+		}
+
+		public RouteProperties withFt40(Double ft40) {
+			return (this.ft40 != ft40) ? new RouteProperties(this.id, this.truck, this.truckCurrency, this.ft20,
+					this.ft20Currency, ft40, this.ft40Currency, this.ft40HC, this.ft40HCCurrency, this.pod) : this;
+		}
+
+		public RouteProperties withFt40Currency(String ft40Currency) {
+			return (this.ft40Currency != ft40Currency) ? new RouteProperties(this.id, this.truck, this.truckCurrency,
+					this.ft20, this.ft20Currency, this.ft40, ft40Currency, this.ft40HC, this.ft40HCCurrency, this.pod)
+					: this;
+		}
+
+		public RouteProperties withFt40HC(Double ft40HC) {
+			return Objects.equals(this.ft40HC, ft40HC) ? this
+					: new RouteProperties(this.id, this.truck, this.truckCurrency, this.ft20, this.ft20Currency,
+							this.ft40, this.ft40Currency, ft40HC, this.ft40HCCurrency, this.pod);
+		}
+
+		public RouteProperties withFt40HCCurrency(String ft40HCCurrency) {
+			return (this.ft40HCCurrency != ft40HCCurrency)
+					? new RouteProperties(this.id, this.truck, this.truckCurrency, this.ft20, this.ft20Currency,
+							this.ft40, this.ft40Currency, this.ft40HC, ft40HCCurrency, this.pod)
+					: this;
+		}
+
+		public RouteProperties withPod(PodEntity pod) {
+			return (this.pod != pod) ? new RouteProperties(this.id, this.truck, this.truckCurrency, this.ft20,
+					this.ft20Currency, this.ft40, this.ft40Currency, this.ft40HC, this.ft40HCCurrency, pod) : this;
+		}
+
+		@Override
 		public boolean equals(final Object o) {
 			if (o == this) {
 				return true;
@@ -399,129 +472,90 @@ public class SameIdProperty {
 			}
 			final Object this$id = this.getId();
 			final Object other$id = other.getId();
-			if (this$id == null ? other$id != null : !this$id.equals(other$id)) {
+			if (!Objects.equals(this$id, other$id)) {
 				return false;
 			}
 			final Object this$truck = this.getTruck();
 			final Object other$truck = other.getTruck();
-			if (this$truck == null ? other$truck != null : !this$truck.equals(other$truck)) {
+			if (!Objects.equals(this$truck, other$truck)) {
 				return false;
 			}
 			final Object this$truckCurrency = this.getTruckCurrency();
 			final Object other$truckCurrency = other.getTruckCurrency();
-			if (this$truckCurrency == null ? other$truckCurrency != null : !this$truckCurrency.equals(other$truckCurrency)) {
+			if (!Objects.equals(this$truckCurrency, other$truckCurrency)) {
 				return false;
 			}
 			final Object this$ft20 = this.getFt20();
 			final Object other$ft20 = other.getFt20();
-			if (this$ft20 == null ? other$ft20 != null : !this$ft20.equals(other$ft20)) {
+			if (!Objects.equals(this$ft20, other$ft20)) {
 				return false;
 			}
 			final Object this$ft20Currency = this.getFt20Currency();
 			final Object other$ft20Currency = other.getFt20Currency();
-			if (this$ft20Currency == null ? other$ft20Currency != null : !this$ft20Currency.equals(other$ft20Currency)) {
+			if (!Objects.equals(this$ft20Currency, other$ft20Currency)) {
 				return false;
 			}
 			final Object this$ft40 = this.getFt40();
 			final Object other$ft40 = other.getFt40();
-			if (this$ft40 == null ? other$ft40 != null : !this$ft40.equals(other$ft40)) {
+			if (!Objects.equals(this$ft40, other$ft40)) {
 				return false;
 			}
 			final Object this$ft40Currency = this.getFt40Currency();
 			final Object other$ft40Currency = other.getFt40Currency();
-			if (this$ft40Currency == null ? other$ft40Currency != null : !this$ft40Currency.equals(other$ft40Currency)) {
+			if (!Objects.equals(this$ft40Currency, other$ft40Currency)) {
 				return false;
 			}
 			final Object this$ft40HC = this.getFt40HC();
 			final Object other$ft40HC = other.getFt40HC();
-			if (this$ft40HC == null ? other$ft40HC != null : !this$ft40HC.equals(other$ft40HC)) {
+			if (!Objects.equals(this$ft40HC, other$ft40HC)) {
 				return false;
 			}
 			final Object this$ft40HCCurrency = this.getFt40HCCurrency();
 			final Object other$ft40HCCurrency = other.getFt40HCCurrency();
-			if (this$ft40HCCurrency == null ? other$ft40HCCurrency != null : !this$ft40HCCurrency.equals(other$ft40HCCurrency)) {
+			if (!Objects.equals(this$ft40HCCurrency, other$ft40HCCurrency)) {
 				return false;
 			}
 			final Object this$pod = this.getPod();
 			final Object other$pod = other.getPod();
-			if (this$pod == null ? other$pod != null : !this$pod.equals(other$pod)) {
-				return false;
-			}
-			return true;
+			return Objects.equals(this$pod, other$pod);
 		}
 
-		protected boolean canEqual(final Object other) {
-			return other instanceof RouteProperties;
-		}
-
+		@Override
 		public int hashCode() {
 			final int PRIME = 59;
 			int result = 1;
 			final Object $id = this.getId();
-			result = result * PRIME + ($id == null ? 43 : $id.hashCode());
+			result = (result * PRIME) + (($id != null) ? $id.hashCode() : 43);
 			final Object $truck = this.getTruck();
-			result = result * PRIME + ($truck == null ? 43 : $truck.hashCode());
+			result = (result * PRIME) + (($truck != null) ? $truck.hashCode() : 43);
 			final Object $truckCurrency = this.getTruckCurrency();
-			result = result * PRIME + ($truckCurrency == null ? 43 : $truckCurrency.hashCode());
+			result = (result * PRIME) + (($truckCurrency != null) ? $truckCurrency.hashCode() : 43);
 			final Object $ft20 = this.getFt20();
-			result = result * PRIME + ($ft20 == null ? 43 : $ft20.hashCode());
+			result = (result * PRIME) + (($ft20 != null) ? $ft20.hashCode() : 43);
 			final Object $ft20Currency = this.getFt20Currency();
-			result = result * PRIME + ($ft20Currency == null ? 43 : $ft20Currency.hashCode());
+			result = (result * PRIME) + (($ft20Currency != null) ? $ft20Currency.hashCode() : 43);
 			final Object $ft40 = this.getFt40();
-			result = result * PRIME + ($ft40 == null ? 43 : $ft40.hashCode());
+			result = (result * PRIME) + (($ft40 != null) ? $ft40.hashCode() : 43);
 			final Object $ft40Currency = this.getFt40Currency();
-			result = result * PRIME + ($ft40Currency == null ? 43 : $ft40Currency.hashCode());
+			result = (result * PRIME) + (($ft40Currency != null) ? $ft40Currency.hashCode() : 43);
 			final Object $ft40HC = this.getFt40HC();
-			result = result * PRIME + ($ft40HC == null ? 43 : $ft40HC.hashCode());
+			result = (result * PRIME) + (($ft40HC != null) ? $ft40HC.hashCode() : 43);
 			final Object $ft40HCCurrency = this.getFt40HCCurrency();
-			result = result * PRIME + ($ft40HCCurrency == null ? 43 : $ft40HCCurrency.hashCode());
+			result = (result * PRIME) + (($ft40HCCurrency != null) ? $ft40HCCurrency.hashCode() : 43);
 			final Object $pod = this.getPod();
-			result = result * PRIME + ($pod == null ? 43 : $pod.hashCode());
+			result = (result * PRIME) + (($pod != null) ? $pod.hashCode() : 43);
 			return result;
 		}
 
+		@Override
 		public String toString() {
-			return "SameIdProperty.RouteProperties(id=" + this.getId() + ", truck=" + this.getTruck() + ", truckCurrency=" + this.getTruckCurrency() + ", ft20=" + this.getFt20() + ", ft20Currency=" + this.getFt20Currency() + ", ft40=" + this.getFt40() + ", ft40Currency=" + this.getFt40Currency() + ", ft40HC=" + this.getFt40HC() + ", ft40HCCurrency=" + this.getFt40HCCurrency() + ", pod=" + this.getPod() + ")";
+			return "SameIdProperty.RouteProperties(id=" + this.getId() + ", truck=" + this.getTruck()
+					+ ", truckCurrency=" + this.getTruckCurrency() + ", ft20=" + this.getFt20() + ", ft20Currency="
+					+ this.getFt20Currency() + ", ft40=" + this.getFt40() + ", ft40Currency=" + this.getFt40Currency()
+					+ ", ft40HC=" + this.getFt40HC() + ", ft40HCCurrency=" + this.getFt40HCCurrency() + ", pod="
+					+ this.getPod() + ")";
 		}
 
-		public RouteProperties withId(Long id) {
-			return this.id == id ? this : new RouteProperties(id, this.truck, this.truckCurrency, this.ft20, this.ft20Currency, this.ft40, this.ft40Currency, this.ft40HC, this.ft40HCCurrency, this.pod);
-		}
-
-		public RouteProperties withTruck(Double truck) {
-			return this.truck == truck ? this : new RouteProperties(this.id, truck, this.truckCurrency, this.ft20, this.ft20Currency, this.ft40, this.ft40Currency, this.ft40HC, this.ft40HCCurrency, this.pod);
-		}
-
-		public RouteProperties withTruckCurrency(String truckCurrency) {
-			return this.truckCurrency == truckCurrency ? this : new RouteProperties(this.id, this.truck, truckCurrency, this.ft20, this.ft20Currency, this.ft40, this.ft40Currency, this.ft40HC, this.ft40HCCurrency, this.pod);
-		}
-
-		public RouteProperties withFt20(Double ft20) {
-			return this.ft20 == ft20 ? this : new RouteProperties(this.id, this.truck, this.truckCurrency, ft20, this.ft20Currency, this.ft40, this.ft40Currency, this.ft40HC, this.ft40HCCurrency, this.pod);
-		}
-
-		public RouteProperties withFt20Currency(String ft20Currency) {
-			return this.ft20Currency == ft20Currency ? this : new RouteProperties(this.id, this.truck, this.truckCurrency, this.ft20, ft20Currency, this.ft40, this.ft40Currency, this.ft40HC, this.ft40HCCurrency, this.pod);
-		}
-
-		public RouteProperties withFt40(Double ft40) {
-			return this.ft40 == ft40 ? this : new RouteProperties(this.id, this.truck, this.truckCurrency, this.ft20, this.ft20Currency, ft40, this.ft40Currency, this.ft40HC, this.ft40HCCurrency, this.pod);
-		}
-
-		public RouteProperties withFt40Currency(String ft40Currency) {
-			return this.ft40Currency == ft40Currency ? this : new RouteProperties(this.id, this.truck, this.truckCurrency, this.ft20, this.ft20Currency, this.ft40, ft40Currency, this.ft40HC, this.ft40HCCurrency, this.pod);
-		}
-
-		public RouteProperties withFt40HC(Double ft40HC) {
-			return this.ft40HC == ft40HC ? this : new RouteProperties(this.id, this.truck, this.truckCurrency, this.ft20, this.ft20Currency, this.ft40, this.ft40Currency, ft40HC, this.ft40HCCurrency, this.pod);
-		}
-
-		public RouteProperties withFt40HCCurrency(String ft40HCCurrency) {
-			return this.ft40HCCurrency == ft40HCCurrency ? this : new RouteProperties(this.id, this.truck, this.truckCurrency, this.ft20, this.ft20Currency, this.ft40, this.ft40Currency, this.ft40HC, ft40HCCurrency, this.pod);
-		}
-
-		public RouteProperties withPod(PodEntity pod) {
-			return this.pod == pod ? this : new RouteProperties(this.id, this.truck, this.truckCurrency, this.ft20, this.ft20Currency, this.ft40, this.ft40Currency, this.ft40HC, this.ft40HCCurrency, pod);
-		}
 	}
+
 }

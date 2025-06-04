@@ -22,7 +22,11 @@ import org.springframework.data.neo4j.core.schema.GeneratedValue;
  * @author Michael J. Simons
  */
 class TestEntity {
-	@Id @GeneratedValue private Long id;
+
+	@Id
+	@GeneratedValue
+	private Long id;
 
 	private String name;
+
 }

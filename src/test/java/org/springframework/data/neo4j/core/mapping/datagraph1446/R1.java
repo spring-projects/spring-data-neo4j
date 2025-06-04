@@ -23,4 +23,5 @@ public class R1 extends AbstractR<B> {
 	public R1(B target) {
 		super(target);
 	}
+
 }

@@ -18,26 +18,33 @@ package org.springframework.data.neo4j.core.convert;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentProperty;
 
 /**
- * This interface needs to be implemented to provide custom configuration for a {@link Neo4jPersistentPropertyConverter}. Use cases may
- * be specific date formats or the like. The build method will receive the whole property. It is safe to assume that at
- * least  the {@link ConvertWith @ConvertWith} annotation is present on the property, either directly or meta-annotated.
+ * This interface needs to be implemented to provide custom configuration for a
+ * {@link Neo4jPersistentPropertyConverter}. Use cases may be specific date formats or the
+ * like. The build method will receive the whole property. It is safe to assume that at
+ * least the {@link ConvertWith @ConvertWith} annotation is present on the property,
+ * either directly or meta-annotated.
  *
- * <p>Classes implementing this interface should have a default constructor. In case they provide a constructor asking for
- * an instance of {@link Neo4jConversionService}, such service is provided. This allows for conversions delegating part
- * of the conversion.
+ * <p>
+ * Classes implementing this interface should have a default constructor. In case they
+ * provide a constructor asking for an instance of {@link Neo4jConversionService}, such
+ * service is provided. This allows for conversions delegating part of the conversion.
  *
- * <p>In same cases a factory might be interested in having access to a {@link org.springframework.beans.factory.BeanFactory}.
- * In case SDN can provide it, it will prefer such a constructor to the default one or the one taken a {@link Neo4jConversionService}.
+ * <p>
+ * In same cases a factory might be interested in having access to a
+ * {@link org.springframework.beans.factory.BeanFactory}. In case SDN can provide it, it
+ * will prefer such a constructor to the default one or the one taken a
+ * {@link Neo4jConversionService}.
  *
  * @author Michael J. Simons
- * @soundtrack Antilopen Gang - Abwasser
  * @since 6.0
  */
 public interface Neo4jPersistentPropertyConverterFactory {
 
 	/**
-	 * @param persistentProperty The property for which the converter should be build.
-	 * @return The new or existing converter
+	 * Finds fitting {@link Neo4jPersistentPropertyConverter} for a given property.
+	 * @param persistentProperty the property for which the converter should be built
+	 * @return the new or existing converter
 	 */
 	Neo4jPersistentPropertyConverter<?> getPropertyConverterFor(Neo4jPersistentProperty persistentProperty);
+
 }

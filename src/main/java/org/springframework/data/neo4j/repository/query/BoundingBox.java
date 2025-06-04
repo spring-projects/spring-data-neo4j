@@ -23,13 +23,22 @@ import org.springframework.data.geo.Point;
 import org.springframework.data.geo.Polygon;
 
 /**
- * This is a utility class that computes the bounding box of a polygon as a rectangle defined by the lower left and
- * upper right point.
+ * This is a utility class that computes the bounding box of a polygon as a rectangle
+ * defined by the lower left and upper right point.
  *
  * @author Michael J. Simons
  * @since 6.0
  */
 public final class BoundingBox {
+
+	private final Point lowerLeft;
+
+	private final Point upperRight;
+
+	private BoundingBox(Point lowerLeft, Point upperRight) {
+		this.lowerLeft = lowerLeft;
+		this.upperRight = upperRight;
+	}
 
 	public static BoundingBox of(Polygon p) {
 
@@ -61,20 +70,12 @@ public final class BoundingBox {
 		return new BoundingBox(new Point(minX, minY), new Point(maxX, maxY));
 	}
 
-	private final Point lowerLeft;
-	private final Point upperRight;
-
-	private BoundingBox(Point lowerLeft, Point upperRight) {
-		this.lowerLeft = lowerLeft;
-		this.upperRight = upperRight;
-	}
-
 	public Point getLowerLeft() {
-		return lowerLeft;
+		return this.lowerLeft;
 	}
 
 	public Point getUpperRight() {
-		return upperRight;
+		return this.upperRight;
 	}
 
 	@Override
@@ -86,16 +87,17 @@ public final class BoundingBox {
 			return false;
 		}
 		BoundingBox that = (BoundingBox) o;
-		return lowerLeft.equals(that.lowerLeft) && upperRight.equals(that.upperRight);
+		return this.lowerLeft.equals(that.lowerLeft) && this.upperRight.equals(that.upperRight);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(lowerLeft, upperRight);
+		return Objects.hash(this.lowerLeft, this.upperRight);
 	}
 
 	@Override
 	public String toString() {
-		return "BoundingBox{" + "ll=" + lowerLeft + ", ur=" + upperRight + '}';
+		return "BoundingBox{" + "ll=" + this.lowerLeft + ", ur=" + this.upperRight + '}';
 	}
+
 }

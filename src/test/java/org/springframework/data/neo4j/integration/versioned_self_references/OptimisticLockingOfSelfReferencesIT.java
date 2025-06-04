@@ -15,8 +15,6 @@
  */
 package org.springframework.data.neo4j.integration.versioned_self_references;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.function.Supplier;
@@ -25,17 +23,20 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.neo4j.driver.Driver;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.neo4j.test.Neo4jImperativeTestConfiguration;
 import org.springframework.data.neo4j.core.DatabaseSelectionProvider;
 import org.springframework.data.neo4j.core.Neo4jTemplate;
 import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
 import org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager;
 import org.springframework.data.neo4j.test.BookmarkCapture;
+import org.springframework.data.neo4j.test.Neo4jImperativeTestConfiguration;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Michael J. Simons
@@ -53,7 +54,7 @@ class OptimisticLockingOfSelfReferencesIT extends TestBase {
 		T r2 = f.get();
 		r1.relate(r2);
 
-		neo4jTemplate.save(r1);
+		this.neo4jTemplate.save(r1);
 
 		assertDatabase(0L, type, r1);
 		assertDatabase(0L, type, r2);
@@ -68,7 +69,7 @@ class OptimisticLockingOfSelfReferencesIT extends TestBase {
 		T r2 = f.get();
 		r1.relate(r2);
 
-		neo4jTemplate.saveAll(Collections.singletonList(r1));
+		this.neo4jTemplate.saveAll(Collections.singletonList(r1));
 
 		assertDatabase(0L, type, r1);
 		assertDatabase(0L, type, r2);
@@ -83,7 +84,7 @@ class OptimisticLockingOfSelfReferencesIT extends TestBase {
 		T r2 = f.get();
 		r1.relate(r2);
 
-		neo4jTemplate.saveAll(Arrays.asList(r1, r2));
+		this.neo4jTemplate.saveAll(Arrays.asList(r1, r2));
 
 		assertDatabase(0L, type, r1);
 		assertDatabase(0L, type, r2);
@@ -97,12 +98,12 @@ class OptimisticLockingOfSelfReferencesIT extends TestBase {
 		Long id1 = createInstance(type);
 		Long id2 = createInstance(type);
 
-		T r1 = neo4jTemplate.findById(id1, type).get();
-		T r2 = neo4jTemplate.findById(id2, type).get();
+		T r1 = this.neo4jTemplate.findById(id1, type).get();
+		T r2 = this.neo4jTemplate.findById(id2, type).get();
 
 		r1.relate(r2);
 
-		neo4jTemplate.save(r1);
+		this.neo4jTemplate.save(r1);
 
 		assertDatabase(1L, type, r1);
 		assertDatabase(1L, type, r2);
@@ -116,12 +117,12 @@ class OptimisticLockingOfSelfReferencesIT extends TestBase {
 		Long id1 = createInstance(type);
 		Long id2 = createInstance(type);
 
-		T r1 = neo4jTemplate.findById(id1, type).get();
-		T r2 = neo4jTemplate.findById(id2, type).get();
+		T r1 = this.neo4jTemplate.findById(id1, type).get();
+		T r2 = this.neo4jTemplate.findById(id2, type).get();
 
 		r1.relate(r2);
 
-		neo4jTemplate.saveAll(Collections.singletonList(r1));
+		this.neo4jTemplate.saveAll(Collections.singletonList(r1));
 
 		assertDatabase(1L, type, r1);
 		assertDatabase(1L, type, r2);
@@ -135,12 +136,12 @@ class OptimisticLockingOfSelfReferencesIT extends TestBase {
 		Long id1 = createInstance(type);
 		Long id2 = createInstance(type);
 
-		T r1 = neo4jTemplate.findById(id1, type).get();
-		T r2 = neo4jTemplate.findById(id2, type).get();
+		T r1 = this.neo4jTemplate.findById(id1, type).get();
+		T r2 = this.neo4jTemplate.findById(id2, type).get();
 
 		r1.relate(r2);
 
-		neo4jTemplate.saveAll(Arrays.asList(r1, r2));
+		this.neo4jTemplate.saveAll(Arrays.asList(r1, r2));
 
 		assertDatabase(1L, type, r1);
 		assertDatabase(1L, type, r2);
@@ -153,12 +154,12 @@ class OptimisticLockingOfSelfReferencesIT extends TestBase {
 
 		long[] ids = createRelatedInstances(type);
 
-		T r1 = neo4jTemplate.findById(ids[0], type).get();
-		T r2 = neo4jTemplate.findById(ids[1], type).get();
+		T r1 = this.neo4jTemplate.findById(ids[0], type).get();
+		T r2 = this.neo4jTemplate.findById(ids[1], type).get();
 
 		r1.relate(r2);
 
-		neo4jTemplate.save(r1);
+		this.neo4jTemplate.save(r1);
 
 		assertDatabase(1L, type, r1);
 		assertDatabase(1L, type, r2);
@@ -171,12 +172,12 @@ class OptimisticLockingOfSelfReferencesIT extends TestBase {
 
 		long[] ids = createRelatedInstances(type);
 
-		T r1 = neo4jTemplate.findById(ids[0], type).get();
-		T r2 = neo4jTemplate.findById(ids[1], type).get();
+		T r1 = this.neo4jTemplate.findById(ids[0], type).get();
+		T r2 = this.neo4jTemplate.findById(ids[1], type).get();
 
 		r1.relate(r2);
 
-		neo4jTemplate.saveAll(Collections.singletonList(r1));
+		this.neo4jTemplate.saveAll(Collections.singletonList(r1));
 
 		assertDatabase(1L, type, r1);
 		assertDatabase(1L, type, r2);
@@ -189,12 +190,12 @@ class OptimisticLockingOfSelfReferencesIT extends TestBase {
 
 		long[] ids = createRelatedInstances(type);
 
-		T r1 = neo4jTemplate.findById(ids[0], type).get();
-		T r2 = neo4jTemplate.findById(ids[1], type).get();
+		T r1 = this.neo4jTemplate.findById(ids[0], type).get();
+		T r2 = this.neo4jTemplate.findById(ids[1], type).get();
 
 		r1.relate(r2);
 
-		neo4jTemplate.saveAll(Arrays.asList(r1, r2));
+		this.neo4jTemplate.saveAll(Arrays.asList(r1, r2));
 
 		assertDatabase(1L, type, r1);
 		assertDatabase(1L, type, r2);
@@ -206,38 +207,38 @@ class OptimisticLockingOfSelfReferencesIT extends TestBase {
 		int ringSize = 5;
 
 		VersionedExternalIdWithEquals start = createRing(ringSize);
-		start = neo4jTemplate.save(start);
+		start = this.neo4jTemplate.save(start);
 
-		assertThat(neo4jTemplate.findById(start.getId(), VersionedExternalIdWithEquals.class)).hasValueSatisfying(
-				root -> {
-					int traversedObjects = traverseRing(root, next -> {
-						assertThat(next.getRelatedObjects()).hasSize(2);
-						assertThat(next.getVersion()).isEqualTo(0L);
-					});
-					assertThat(traversedObjects).isEqualTo(ringSize);
+		assertThat(this.neo4jTemplate.findById(start.getId(), VersionedExternalIdWithEquals.class))
+			.hasValueSatisfying(root -> {
+				int traversedObjects = traverseRing(root, next -> {
+					assertThat(next.getRelatedObjects()).hasSize(2);
+					assertThat(next.getVersion()).isEqualTo(0L);
 				});
+				assertThat(traversedObjects).isEqualTo(ringSize);
+			});
 
 		String newName = "A new beginning";
 		start.setName(newName);
-		neo4jTemplate.saveAs(start, NameOnly.class);
+		this.neo4jTemplate.saveAs(start, NameOnly.class);
 
-		assertThat(neo4jTemplate.findById(start.getId(), VersionedExternalIdWithEquals.class)).hasValueSatisfying(
-				root -> {
-					assertThat(root.getName()).isEqualTo(newName);
-					assertThat(root.getVersion()).isEqualTo(1L);
+		assertThat(this.neo4jTemplate.findById(start.getId(), VersionedExternalIdWithEquals.class))
+			.hasValueSatisfying(root -> {
+				assertThat(root.getName()).isEqualTo(newName);
+				assertThat(root.getVersion()).isEqualTo(1L);
 
-					int traversedObjects = traverseRing(root, next -> {
-						assertThat(next.getRelatedObjects()).hasSize(2);
-						assertThat(next.getVersion()).isEqualTo(next.getName().equals(newName) ? 1L : 0L);
-					});
-					assertThat(traversedObjects).isEqualTo(ringSize);
+				int traversedObjects = traverseRing(root, next -> {
+					assertThat(next.getRelatedObjects()).hasSize(2);
+					assertThat(next.getVersion()).isEqualTo(next.getName().equals(newName) ? 1L : 0L);
 				});
+				assertThat(traversedObjects).isEqualTo(ringSize);
+			});
 	}
 
 	private <T extends Relatable<T>> void assertLoadingViaSDN(Class<T> type, Long... ids) {
 
 		for (Long id : ids) {
-			assertThat(neo4jTemplate.findById(id, type)).isPresent();
+			assertThat(this.neo4jTemplate.findById(id, type)).isPresent();
 		}
 	}
 
@@ -246,7 +247,7 @@ class OptimisticLockingOfSelfReferencesIT extends TestBase {
 	static class Config extends Neo4jImperativeTestConfiguration {
 
 		@Bean
-		public BookmarkCapture bookmarkCapture() {
+		BookmarkCapture bookmarkCapture() {
 			return new BookmarkCapture();
 		}
 
@@ -260,6 +261,7 @@ class OptimisticLockingOfSelfReferencesIT extends TestBase {
 		}
 
 		@Bean
+		@Override
 		public Driver driver() {
 
 			return neo4jConnectionSupport.getDriver();
@@ -269,5 +271,7 @@ class OptimisticLockingOfSelfReferencesIT extends TestBase {
 		public boolean isCypher5Compatible() {
 			return neo4jConnectionSupport.isCypher5SyntaxCompatible();
 		}
+
 	}
+
 }

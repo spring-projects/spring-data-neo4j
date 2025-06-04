@@ -36,8 +36,7 @@ public interface PersonRepository extends Neo4jRepository<Person, String> {
 			 MATCH (t:Language {name: rel.__target__.__id__})
 			CREATE (f)- [r:KNOWS {description: rel.__properties__.description}] -> (t)
 			RETURN f, collect(r), collect(t)
-			"""
-	)
+			""")
 	Person updateRel(@Param("from") String from, @Param("relations") List<Knows> relations);
 
 	// Using the whole person object
@@ -47,8 +46,7 @@ public interface PersonRepository extends Neo4jRepository<Person, String> {
 			MATCH  (t:Language {name: rel.__target__.__id__})
 			CREATE (f) - [r:KNOWS {description: rel.__properties__.description}] -> (t)
 			RETURN f, collect(r), collect(t)
-			"""
-	)
+			""")
 	Person updateRel2(@Param("person") Person person);
 
 	@Query("""
@@ -69,4 +67,5 @@ public interface PersonRepository extends Neo4jRepository<Person, String> {
 			RETURN p
 			   """)
 	Person queryWithMapOfRelationship(@Param("relationships") Map<String, List<Knows>> relationshipList);
+
 }

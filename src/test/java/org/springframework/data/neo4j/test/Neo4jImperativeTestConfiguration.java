@@ -16,6 +16,7 @@
 package org.springframework.data.neo4j.test;
 
 import org.neo4j.cypherdsl.core.renderer.Configuration;
+
 import org.springframework.data.neo4j.config.AbstractNeo4jConfig;
 
 /**

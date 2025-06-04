@@ -17,6 +17,7 @@ package org.springframework.data.neo4j.integration.issues.gh2168;
 
 import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
+
 import org.springframework.data.neo4j.core.convert.Neo4jPersistentPropertyConverter;
 
 /**
@@ -35,8 +36,10 @@ public final class UnrelatedObjectPropertyConverter implements Neo4jPersistentPr
 
 		String[] concatenatedValues = source.asString().split(";");
 		if (concatenatedValues.length == 2) {
-			return new UnrelatedObject(Boolean.parseBoolean(concatenatedValues[0]), Long.parseLong(concatenatedValues[1]));
+			return new UnrelatedObject(Boolean.parseBoolean(concatenatedValues[0]),
+					Long.parseLong(concatenatedValues[1]));
 		}
 		return null;
 	}
+
 }

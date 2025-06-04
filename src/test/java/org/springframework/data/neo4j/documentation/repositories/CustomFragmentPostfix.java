@@ -23,5 +23,7 @@ import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
  * Custom fragment postfix definition
  */
 @EnableNeo4jRepositories(repositoryImplementationPostfix = "MyPostfix")
-public class CustomFragmentPostfix {}
+public class CustomFragmentPostfix {
+
+}
 // end::all[]

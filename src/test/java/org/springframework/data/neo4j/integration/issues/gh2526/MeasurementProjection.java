@@ -25,4 +25,5 @@ public interface MeasurementProjection extends BaseNodeFieldsProjection {
 	Set<DataPoint> getDataPoints();
 
 	Set<VariableProjection> getVariables();
+
 }

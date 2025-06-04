@@ -15,12 +15,12 @@
  */
 package org.springframework.data.neo4j.integration.shared.common;
 
+import java.util.List;
+
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Relationship;
-
-import java.util.List;
 
 /**
  * @author Gerrit Meier
@@ -36,6 +36,7 @@ public class SimpleEntityWithRelationshipA {
 	private List<SimpleEntityWithRelationshipB> bs;
 
 	public List<SimpleEntityWithRelationshipB> getBs() {
-		return bs;
+		return this.bs;
 	}
+
 }

@@ -28,29 +28,34 @@ public class MultipleLabels {
 	/**
 	 * An entity
 	 */
-	@Node({"A", "B", "C"})
+	@Node({ "A", "B", "C" })
 	public static class MultipleLabelsEntity {
+
+		@Relationship(type = "HAS")
+		public MultipleLabelsEntity otherMultipleLabelEntity;
+
 		@Id
 		@GeneratedValue
 		private Long id;
 
-		@Relationship(type = "HAS")
-		public MultipleLabelsEntity otherMultipleLabelEntity;
 	}
 
 	/**
 	 * An entity
 	 */
-	@Node({"X", "Y", "Z"})
+	@Node({ "X", "Y", "Z" })
 	public static class MultipleLabelsEntityWithAssignedId {
+
 		@Id
 		public Long id;
+
+		@Relationship(type = "HAS")
+		public MultipleLabelsEntityWithAssignedId otherMultipleLabelEntity;
 
 		public MultipleLabelsEntityWithAssignedId(Long id) {
 			this.id = id;
 		}
 
-		@Relationship(type = "HAS")
-		public MultipleLabelsEntityWithAssignedId otherMultipleLabelEntity;
 	}
+
 }

@@ -22,6 +22,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.Transaction;
+
 import org.springframework.data.neo4j.test.BookmarkCapture;
 import org.springframework.data.neo4j.test.Neo4jExtension;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
@@ -29,9 +30,8 @@ import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 /**
  * Make sure that dynamic relationships can be loaded and stored.
  *
- * @author Michael J. Simons
  * @param <T> Type of the person with relatives
- * @soundtrack Helge Schneider - Live At The Grugahalle
+ * @author Michael J. Simons
  */
 @Neo4jIntegrationTest
 public abstract class DynamicRelationshipsITBase<T> {
@@ -39,11 +39,12 @@ public abstract class DynamicRelationshipsITBase<T> {
 	protected static Neo4jExtension.Neo4jConnectionSupport neo4jConnectionSupport;
 
 	protected final Driver driver;
+
 	protected final BookmarkCapture bookmarkCapture;
 
-	protected long idOfExistingPerson;
-
 	protected final String labelOfTestSubject;
+
+	protected long idOfExistingPerson;
 
 	protected DynamicRelationshipsITBase(Driver driver, BookmarkCapture bookmarkCapture) {
 		this.driver = driver;
@@ -56,7 +57,7 @@ public abstract class DynamicRelationshipsITBase<T> {
 
 	@BeforeEach
 	protected void setupData() {
-		try (Session session = driver.session(); Transaction transaction = session.beginTransaction()) {
+		try (Session session = this.driver.session(); Transaction transaction = session.beginTransaction()) {
 			transaction.run("MATCH (n) detach delete n");
 			var cypher = """
 					CREATE (t:%s {name: 'A'}) WITH t\s
@@ -67,11 +68,11 @@ public abstract class DynamicRelationshipsITBase<T> {
 					UNWIND ['Tom', 'Garfield'] AS cat CREATE (t) - [:CATS] -> (w:Pet {name: cat})\s
 					WITH DISTINCT t UNWIND ['Benji', 'Lassie'] AS dog\s
 					CREATE (t) - [:DOGS] -> (w:Pet {name: dog}) RETURN DISTINCT id(t) as id
-					""".formatted(labelOfTestSubject);
-			idOfExistingPerson = transaction.run(cypher)
-					.single().get("id").asLong();
+					""".formatted(this.labelOfTestSubject);
+			this.idOfExistingPerson = transaction.run(cypher).single().get("id").asLong();
 			transaction.commit();
-			bookmarkCapture.seedWith(session.lastBookmarks());
+			this.bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 	}
+
 }

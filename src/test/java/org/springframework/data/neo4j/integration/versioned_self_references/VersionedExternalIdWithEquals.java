@@ -49,31 +49,31 @@ class VersionedExternalIdWithEquals implements Relatable<VersionedExternalIdWith
 
 	@Override
 	public Long getId() {
-		return id;
+		return this.id;
 	}
 
-	public Long getVersion() {
-		return version;
+	Long getVersion() {
+		return this.version;
 	}
 
-	public String getName() {
-		return name;
+	String getName() {
+		return this.name;
 	}
 
-	public void setName(String name) {
+	void setName(String name) {
 		this.name = name;
 	}
 
 	@Override
 	public Set<VersionedExternalIdWithEquals> getRelatedObjects() {
-		return Collections.unmodifiableSet(relatedObjects);
+		return Collections.unmodifiableSet(this.relatedObjects);
 	}
 
 	/**
-	 * Called by SDN to set the related objects. In case of cyclic mapping, this can't be done via constructor.
-	 * I personally would want the {@link #getRelatedObjects()} not to return a modifiable list, so that
-	 * {@link #relate(VersionedExternalIdWithEquals)} cannot be ignored. In case that doesn't matter, a getter is enough.
-	 *
+	 * Called by SDN to set the related objects. In case of cyclic mapping, this can't be
+	 * done via constructor. I personally would want the {@link #getRelatedObjects()} not
+	 * to return a modifiable list, so that {@link #relate(VersionedExternalIdWithEquals)}
+	 * cannot be ignored. In case that doesn't matter, a getter is enough.
 	 * @param relatedObjects New collection of related objects
 	 */
 	@SuppressWarnings("unused")
@@ -96,19 +96,17 @@ class VersionedExternalIdWithEquals implements Relatable<VersionedExternalIdWith
 			return false;
 		}
 		VersionedExternalIdWithEquals that = (VersionedExternalIdWithEquals) o;
-		return id.equals(that.id);
+		return this.id.equals(that.id);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(id);
+		return Objects.hash(this.id);
 	}
 
 	@Override
 	public String toString() {
-		return "VersionedExternalIdWithEquals{" +
-			   "version=" + version +
-			   ", name='" + name + '\'' +
-			   '}';
+		return "VersionedExternalIdWithEquals{" + "version=" + this.version + ", name='" + this.name + '\'' + '}';
 	}
+
 }

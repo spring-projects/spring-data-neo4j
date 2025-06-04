@@ -22,13 +22,15 @@ import org.neo4j.driver.Record;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
 import org.neo4j.driver.types.TypeSystem;
+
 import org.springframework.core.convert.ConversionService;
 
 /**
- * Used to automatically map single valued records to a sensible Java type based on {@link Value#asObject()}.
+ * Used to automatically map single valued records to a sensible Java type based on
+ * {@link Value#asObject()}.
  *
- * @author Michael J. Simons
  * @param <T> type of the domain class to map
+ * @author Michael J. Simons
  * @since 6.0
  */
 final class SingleValueMappingFunction<T> implements BiFunction<TypeSystem, Record, T> {
@@ -43,8 +45,7 @@ final class SingleValueMappingFunction<T> implements BiFunction<TypeSystem, Reco
 	}
 
 	@Override
-	@Nullable
-	public T apply(TypeSystem typeSystem, Record record) {
+	@Nullable public T apply(TypeSystem typeSystem, Record record) {
 
 		if (record.size() == 0) {
 			throw new IllegalArgumentException("Record has no elements, cannot map nothing");
@@ -57,11 +58,12 @@ final class SingleValueMappingFunction<T> implements BiFunction<TypeSystem, Reco
 		return convertValue(record.get(0));
 	}
 
-	@Nullable
-	T convertValue(Value source) {
-		if (targetClass == Void.class || targetClass == void.class) {
+	@Nullable T convertValue(Value source) {
+		if (this.targetClass == Void.class || this.targetClass == void.class) {
 			return null;
 		}
-		return source == null || source == Values.NULL ? null : conversionService.convert(source, targetClass);
+		return (source == null || source == Values.NULL) ? null
+				: this.conversionService.convert(source, this.targetClass);
 	}
+
 }

@@ -15,11 +15,6 @@
  */
 package org.springframework.data.neo4j.integration.bookmarks.reactive;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
@@ -30,6 +25,10 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.SessionConfig;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -46,9 +45,10 @@ import org.springframework.data.neo4j.test.Neo4jReactiveTestConfiguration;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
-import reactor.test.StepVerifier;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 /**
  * @author Michael J. Simons
@@ -58,6 +58,38 @@ import reactor.test.StepVerifier;
 public class ReactiveNoopBookmarkmanagerIT {
 
 	protected static Neo4jExtension.Neo4jConnectionSupport neo4jConnectionSupport;
+
+	@Test
+	void mustNotUseBookmarks(@Autowired PersonService personService, @Autowired Driver driver) {
+
+		AtomicReference<List<String>> result = new AtomicReference<>();
+		personService.getMoviesByActorNameLike("Bill")
+			.as(StepVerifier::create)
+			.consumeNextWith(result::set)
+			.verifyComplete();
+
+		assertThat(result).hasValueSatisfying(movies -> assertThat(movies).hasSize(5));
+
+		var sessionConfigCaptor = ArgumentCaptor.forClass(SessionConfig.class);
+		verify(driver, times(5)).session(any(), sessionConfigCaptor.capture());
+		assertThat(sessionConfigCaptor.getAllValues()).allMatch(cfg -> {
+			var bookmarks = new ArrayList<>();
+			if (cfg.bookmarks() != null) {
+				cfg.bookmarks().forEach(bookmarks::add);
+			}
+			return bookmarks.isEmpty();
+		});
+	}
+
+	interface PersonRepository extends ReactiveNeo4jRepository<Person, String> {
+
+		@Query("MATCH (p:Person) WHERE p.name =~ (('.*' + $name) + '.*') RETURN p.name")
+		Flux<String> findMatchingNames(String name);
+
+		@Query("MATCH (m:Movie)<-[:ACTED_IN]-(p:Person) WHERE p.name= $name return m.title")
+		Flux<String> getPersonMovies(String name);
+
+	}
 
 	@Configuration
 	@EnableReactiveNeo4jRepositories(considerNestedRepositories = true)
@@ -71,6 +103,7 @@ public class ReactiveNoopBookmarkmanagerIT {
 		}
 
 		@Bean
+		@Override
 		public Driver driver() {
 			var driver = neo4jConnectionSupport.getDriver();
 			return Mockito.spy(driver);
@@ -85,53 +118,24 @@ public class ReactiveNoopBookmarkmanagerIT {
 		public boolean isCypher5Compatible() {
 			return neo4jConnectionSupport.isCypher5SyntaxCompatible();
 		}
-	}
 
-	@Test
-	void mustNotUseBookmarks(@Autowired PersonService personService, @Autowired Driver driver) {
-
-		AtomicReference<List<String>> result = new AtomicReference<>();
-		personService.getMoviesByActorNameLike("Bill")
-				.as(StepVerifier::create)
-				.consumeNextWith(result::set)
-				.verifyComplete();
-
-		assertThat(result)
-				.hasValueSatisfying(movies -> assertThat(movies).hasSize(5));
-
-		var sessionConfigCaptor = ArgumentCaptor.forClass(SessionConfig.class);
-		verify(driver, times(5)).session(any(), sessionConfigCaptor.capture());
-		assertThat(sessionConfigCaptor.getAllValues())
-				.allMatch(cfg -> {
-					var bookmarks = new ArrayList<>();
-					if (cfg.bookmarks() != null) {
-						cfg.bookmarks().forEach(bookmarks::add);
-					}
-					return bookmarks.isEmpty();
-				});
-	}
-
-	interface PersonRepository extends ReactiveNeo4jRepository<Person, String> {
-
-		@Query("MATCH (p:Person) WHERE p.name =~ (('.*' + $name) + '.*') RETURN p.name")
-		Flux<String> findMatchingNames(String name);
-
-		@Query("MATCH (m:Movie)<-[:ACTED_IN]-(p:Person) WHERE p.name= $name return m.title")
-		Flux<String> getPersonMovies(String name);
 	}
 
 	@Service
 	static class PersonService {
+
 		private final PersonRepository personRepository;
 
 		PersonService(PersonRepository personRepository) {
 			this.personRepository = personRepository;
 		}
 
-		public Mono<List<String>> getMoviesByActorNameLike(String namePattern) {
-			return personRepository.findMatchingNames(namePattern)
-					.flatMap(personRepository::getPersonMovies, 2)
-					.collectList();
+		Mono<List<String>> getMoviesByActorNameLike(String namePattern) {
+			return this.personRepository.findMatchingNames(namePattern)
+				.flatMap(this.personRepository::getPersonMovies, 2)
+				.collectList();
 		}
+
 	}
+
 }

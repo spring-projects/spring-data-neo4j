@@ -15,9 +15,6 @@
  */
 package org.springframework.data.neo4j.integration.imperative;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -37,11 +34,11 @@ import org.neo4j.driver.Driver;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.Transaction;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.dao.OptimisticLockingFailureException;
-import org.springframework.data.neo4j.test.Neo4jImperativeTestConfiguration;
 import org.springframework.data.neo4j.core.DatabaseSelectionProvider;
 import org.springframework.data.neo4j.core.Neo4jTemplate;
 import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
@@ -53,10 +50,14 @@ import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.data.neo4j.test.BookmarkCapture;
 import org.springframework.data.neo4j.test.Neo4jExtension;
+import org.springframework.data.neo4j.test.Neo4jImperativeTestConfiguration;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.support.TransactionTemplate;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 /**
  * @author Gerrit Meier
@@ -79,11 +80,11 @@ class OptimisticLockingIT {
 	@BeforeEach
 	void setup() {
 
-		try (Session session = driver.session(bookmarkCapture.createSessionConfig());
+		try (Session session = this.driver.session(this.bookmarkCapture.createSessionConfig());
 				Transaction tx = session.beginTransaction()) {
 			tx.run("MATCH (n) detach delete n");
 			tx.commit();
-			bookmarkCapture.seedWith(session.lastBookmarks());
+			this.bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 	}
 
@@ -152,7 +153,7 @@ class OptimisticLockingIT {
 		versionedThings.get(0).setMyVersion(1L); // Version in DB is 0
 
 		assertThatExceptionOfType(OptimisticLockingFailureException.class)
-				.isThrownBy(() -> repository.saveAll(versionedThings));
+			.isThrownBy(() -> repository.saveAll(versionedThings));
 
 	}
 
@@ -223,22 +224,24 @@ class OptimisticLockingIT {
 		versionedThings.get(0).setMyVersion(1L); // Version in DB is 0
 
 		assertThatExceptionOfType(OptimisticLockingFailureException.class)
-				.isThrownBy(() -> repository.saveAll(versionedThings));
+			.isThrownBy(() -> repository.saveAll(versionedThings));
 
 	}
 
 	@Test
 	void shouldNotFailOnDeleteByIdWithNullVersion(@Autowired VersionedThingWithAssignedIdRepository repository) {
-		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
+		try (Session session = this.driver.session(this.bookmarkCapture.createSessionConfig())) {
 			session.run("CREATE (v:VersionedThingWithAssignedId {id:1})").consume();
-			bookmarkCapture.seedWith(session.lastBookmarks());
+			this.bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 
 		repository.deleteById(1L);
 
-		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
-			long count = session.run("MATCH (v:VersionedThingWithAssignedId) return count(v) as vCount").single()
-							.get("vCount").asLong();
+		try (Session session = this.driver.session(this.bookmarkCapture.createSessionConfig())) {
+			long count = session.run("MATCH (v:VersionedThingWithAssignedId) return count(v) as vCount")
+				.single()
+				.get("vCount")
+				.asLong();
 
 			assertThat(count).isEqualTo(0);
 		}
@@ -246,17 +249,19 @@ class OptimisticLockingIT {
 
 	@Test
 	void shouldNotFailOnDeleteByEntityWithNullVersion(@Autowired VersionedThingWithAssignedIdRepository repository) {
-		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
+		try (Session session = this.driver.session(this.bookmarkCapture.createSessionConfig())) {
 			session.run("CREATE (v:VersionedThingWithAssignedId {id:1})").consume();
-			bookmarkCapture.seedWith(session.lastBookmarks());
+			this.bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 
 		VersionedThingWithAssignedId thing = repository.findById(1L).get();
 		repository.delete(thing);
 
-		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
-			long count = session.run("MATCH (v:VersionedThingWithAssignedId) return count(v) as vCount").single()
-							.get("vCount").asLong();
+		try (Session session = this.driver.session(this.bookmarkCapture.createSessionConfig())) {
+			long count = session.run("MATCH (v:VersionedThingWithAssignedId) return count(v) as vCount")
+				.single()
+				.get("vCount")
+				.asLong();
 
 			assertThat(count).isEqualTo(0);
 		}
@@ -264,16 +269,18 @@ class OptimisticLockingIT {
 
 	@Test
 	void shouldNotFailOnDeleteByIdWithAnyVersion(@Autowired VersionedThingWithAssignedIdRepository repository) {
-		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
+		try (Session session = this.driver.session(this.bookmarkCapture.createSessionConfig())) {
 			session.run("CREATE (v:VersionedThingWithAssignedId {id:1, myVersion:3})").consume();
-			bookmarkCapture.seedWith(session.lastBookmarks());
+			this.bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 
 		repository.deleteById(1L);
 
-		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
-			long count = session.run("MATCH (v:VersionedThingWithAssignedId) return count(v) as vCount").single()
-							.get("vCount").asLong();
+		try (Session session = this.driver.session(this.bookmarkCapture.createSessionConfig())) {
+			long count = session.run("MATCH (v:VersionedThingWithAssignedId) return count(v) as vCount")
+				.single()
+				.get("vCount")
+				.asLong();
 
 			assertThat(count).isEqualTo(0);
 		}
@@ -281,9 +288,9 @@ class OptimisticLockingIT {
 
 	@Test
 	void shouldFailOnDeleteByEntityWithWrongVersion(@Autowired VersionedThingWithAssignedIdRepository repository) {
-		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
+		try (Session session = this.driver.session(this.bookmarkCapture.createSessionConfig())) {
 			session.run("CREATE (v:VersionedThingWithAssignedId {id:1, myVersion:2})").consume();
-			bookmarkCapture.seedWith(session.lastBookmarks());
+			this.bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 
 		VersionedThingWithAssignedId thing = repository.findById(1L).get();
@@ -318,10 +325,10 @@ class OptimisticLockingIT {
 		thing2.setOtherVersionedThings(Collections.singletonList(thing1));
 		repository.save(thing2);
 
-		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
+		try (Session session = this.driver.session(this.bookmarkCapture.createSessionConfig())) {
 			List<Record> result = session
-					.run("MATCH (t:VersionedThing{name:'Thing1'})-[:HAS]->(:VersionedThing{name:'Thing2'}) return t")
-					.list();
+				.run("MATCH (t:VersionedThing{name:'Thing1'})-[:HAS]->(:VersionedThing{name:'Thing2'}) return t")
+				.list();
 			assertThat(result).hasSize(1);
 		}
 	}
@@ -351,38 +358,32 @@ class OptimisticLockingIT {
 		// adds
 		// Thing3-[:HAS]->Thing1
 
-		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
+		try (Session session = this.driver.session(this.bookmarkCapture.createSessionConfig())) {
 			Long relationshipCount = session
-					.run("MATCH (:VersionedThing)-[r:HAS]->(:VersionedThing) return count(r) as relationshipCount")
-					.single().get("relationshipCount").asLong();
+				.run("MATCH (:VersionedThing)-[r:HAS]->(:VersionedThing) return count(r) as relationshipCount")
+				.single()
+				.get("relationshipCount")
+				.asLong();
 			assertThat(relationshipCount).isEqualTo(4);
 		}
 	}
 
 	@Test // GH-2259
 	@Tag(Neo4jExtension.INCOMPATIBLE_WITH_CLUSTERS)
-	void shouldLockConcurrentOnAssignedId(@Autowired TransactionTemplate transactionTemplate, @Autowired VersionedThingWithAssignedIdRepository repo)
-			throws Exception {
+	void shouldLockConcurrentOnAssignedId(@Autowired TransactionTemplate transactionTemplate,
+			@Autowired VersionedThingWithAssignedIdRepository repo) throws Exception {
 
-		assertVersionLock(
-				transactionTemplate,
-				() -> repo.save(new VersionedThingWithAssignedId(1L, "a")),
-				repo::save,
-				"MERGE (n:VersionedThingWithAssignedId {id: 1}) ON MATCH SET n.version = 23  RETURN n"
-		);
+		assertVersionLock(transactionTemplate, () -> repo.save(new VersionedThingWithAssignedId(1L, "a")), repo::save,
+				"MERGE (n:VersionedThingWithAssignedId {id: 1}) ON MATCH SET n.version = 23  RETURN n");
 	}
 
 	@Test // GH-2259
 	@Tag(Neo4jExtension.INCOMPATIBLE_WITH_CLUSTERS)
-	void shouldLockConcurrentOnGeneratedId(@Autowired TransactionTemplate transactionTemplate, @Autowired VersionedThingRepository repo)
-			throws Exception {
+	void shouldLockConcurrentOnGeneratedId(@Autowired TransactionTemplate transactionTemplate,
+			@Autowired VersionedThingRepository repo) throws Exception {
 
-		assertVersionLock(
-				transactionTemplate,
-				() -> repo.save(new VersionedThing("a")),
-				repo::save,
-				"MERGE (n:VersionedThing {name: 'a'}) ON MATCH SET n.version = 23 RETURN n"
-		);
+		assertVersionLock(transactionTemplate, () -> repo.save(new VersionedThing("a")), repo::save,
+				"MERGE (n:VersionedThing {name: 'a'}) ON MATCH SET n.version = 23 RETURN n");
 	}
 
 	private <T> void assertVersionLock(TransactionTemplate transactionTemplate, Callable<T> createInitialEntity,
@@ -398,30 +399,37 @@ class OptimisticLockingIT {
 				latch.countDown(); // Trigger the match below but keep tx running
 				try {
 					Thread.sleep(sleep);
-				} catch (InterruptedException e) {
+				}
+				catch (InterruptedException ex) {
 					Thread.currentThread().interrupt();
 				}
 			});
 		});
 
 		latch.await(); // Wait until the above thread sleeps
-		assertThatExceptionOfType(OptimisticLockingFailureException.class).isThrownBy(() -> updateEntity.accept(entity));
+		assertThatExceptionOfType(OptimisticLockingFailureException.class)
+			.isThrownBy(() -> updateEntity.accept(entity));
 		boolean timedOut = false;
 		try {
 			executorService.submit(() -> {
-				try (Session session = driver.session()) {
+				try (Session session = this.driver.session()) {
 					return session.executeWrite(tx -> tx.run(blockedUpdate).single().get(0).asNode().elementId());
 				}
 			}).get(sleep / 2, TimeUnit.MILLISECONDS);
-		} catch (TimeoutException e) {
+		}
+		catch (TimeoutException ex) {
 			timedOut = true;
 		}
 		assertThat(timedOut).isTrue();
 	}
 
-	interface VersionedThingRepository extends Neo4jRepository<VersionedThing, Long> {}
+	interface VersionedThingRepository extends Neo4jRepository<VersionedThing, Long> {
 
-	interface VersionedThingWithAssignedIdRepository extends Neo4jRepository<VersionedThingWithAssignedId, Long> {}
+	}
+
+	interface VersionedThingWithAssignedIdRepository extends Neo4jRepository<VersionedThingWithAssignedId, Long> {
+
+	}
 
 	@Configuration
 	@EnableNeo4jRepositories(considerNestedRepositories = true)
@@ -429,30 +437,35 @@ class OptimisticLockingIT {
 	static class Config extends Neo4jImperativeTestConfiguration {
 
 		@Bean
+		@Override
 		public Driver driver() {
 			return neo4jConnectionSupport.getDriver();
 		}
 
 		@Bean
-		public BookmarkCapture bookmarkCapture() {
+		BookmarkCapture bookmarkCapture() {
 			return new BookmarkCapture();
 		}
 
 		@Bean
-		public TransactionTemplate transactionTemplate(PlatformTransactionManager transactionManager) {
+		TransactionTemplate transactionTemplate(PlatformTransactionManager transactionManager) {
 			return new TransactionTemplate(transactionManager);
 		}
 
 		@Override
-		public PlatformTransactionManager transactionManager(Driver driver, DatabaseSelectionProvider databaseNameProvider) {
+		public PlatformTransactionManager transactionManager(Driver driver,
+				DatabaseSelectionProvider databaseNameProvider) {
 
 			BookmarkCapture bookmarkCapture = bookmarkCapture();
-			return new Neo4jTransactionManager(driver, databaseNameProvider, Neo4jBookmarkManager.create(bookmarkCapture));
+			return new Neo4jTransactionManager(driver, databaseNameProvider,
+					Neo4jBookmarkManager.create(bookmarkCapture));
 		}
 
 		@Override
 		public boolean isCypher5Compatible() {
 			return neo4jConnectionSupport.isCypher5SyntaxCompatible();
 		}
+
 	}
+
 }

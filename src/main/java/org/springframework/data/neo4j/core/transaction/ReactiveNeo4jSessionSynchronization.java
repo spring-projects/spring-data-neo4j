@@ -15,14 +15,16 @@
  */
 package org.springframework.data.neo4j.core.transaction;
 
+import org.neo4j.driver.Driver;
 import reactor.core.publisher.Mono;
 
-import org.neo4j.driver.Driver;
 import org.springframework.transaction.reactive.ReactiveResourceSynchronization;
 import org.springframework.transaction.reactive.TransactionSynchronization;
 import org.springframework.transaction.reactive.TransactionSynchronizationManager;
 
 /**
+ * Neo4j specific resource synchronization.
+ *
  * @author Gerrit Meier
  * @author Michael J. Simons
  * @since 6.0
@@ -40,44 +42,29 @@ final class ReactiveNeo4jSessionSynchronization
 		this.transactionHolder = transactionHolder;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.transaction.reactive.ReactiveResourceSynchronization#shouldReleaseBeforeCompletion()
-	 */
 	@Override
 	protected boolean shouldReleaseBeforeCompletion() {
 		return false;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.transaction.reactive.ReactiveResourceSynchronization#processResourceAfterCommit(java.lang.Object)
-	 */
 	@Override
 	protected Mono<Void> processResourceAfterCommit(ReactiveNeo4jTransactionHolder resourceHolder) {
 		return Mono.defer(() -> super.processResourceAfterCommit(resourceHolder).then(resourceHolder.commit())).then();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.transaction.reactive.ReactiveResourceSynchronization#afterCompletion(int)
-	 */
 	@Override
 	public Mono<Void> afterCompletion(int status) {
 		return Mono.defer(() -> {
 			if (status == TransactionSynchronization.STATUS_ROLLED_BACK) {
-				return transactionHolder.rollback().then(super.afterCompletion(status));
+				return this.transactionHolder.rollback().then(super.afterCompletion(status));
 			}
 			return super.afterCompletion(status);
 		});
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.transaction.reactive.ReactiveResourceSynchronization#releaseResource(java.lang.Object, java.lang.Object)
-	 */
 	@Override
 	protected Mono<Void> releaseResource(ReactiveNeo4jTransactionHolder resourceHolder, Object resourceKey) {
 		return Mono.defer(() -> Mono.fromDirect(resourceHolder.getSession().close()).then());
 	}
+
 }

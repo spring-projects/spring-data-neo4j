@@ -15,10 +15,6 @@
  */
 package org.springframework.data.neo4j.repository.support;
 
-import org.springframework.data.repository.reactive.ReactiveCrudRepository;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
-
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -26,12 +22,15 @@ import java.util.stream.StreamSupport;
 
 import org.apiguardian.api.API;
 import org.reactivestreams.Publisher;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.core.ReactiveNeo4jOperations;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.repository.query.QueryFragmentsAndParameters;
+import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 import org.springframework.data.repository.reactive.ReactiveSortingRepository;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,18 +39,18 @@ import org.springframework.util.Assert;
 /**
  * Repository base implementation for Neo4j.
  *
+ * @param <T> the type of the domain class managed by this repository
+ * @param <ID> the type of the unique identifier of the domain class
  * @author Gerrit Meier
  * @author Michael J. Simons
  * @author Jens Schauder
- * @param <T> the type of the domain class managed by this repository
- * @param <ID> the type of the unique identifier of the domain class
  * @since 6.0
  */
 @Repository
 @Transactional(readOnly = true)
 @API(status = API.Status.STABLE, since = "6.0")
-public class SimpleReactiveNeo4jRepository<T, ID> implements ReactiveSortingRepository<T, ID>,
-		ReactiveCrudRepository<T, ID> {
+public class SimpleReactiveNeo4jRepository<T, ID>
+		implements ReactiveSortingRepository<T, ID>, ReactiveCrudRepository<T, ID> {
 
 	private final ReactiveNeo4jOperations neo4jOperations;
 
@@ -70,7 +69,7 @@ public class SimpleReactiveNeo4jRepository<T, ID> implements ReactiveSortingRepo
 	@Override
 	public Mono<T> findById(ID id) {
 
-		return neo4jOperations.findById(id, this.entityInformation.getJavaType());
+		return this.neo4jOperations.findById(id, this.entityInformation.getJavaType());
 	}
 
 	@Override
@@ -97,9 +96,10 @@ public class SimpleReactiveNeo4jRepository<T, ID> implements ReactiveSortingRepo
 
 	@Override
 	public Flux<T> findAll(Sort sort) {
-		return this.neo4jOperations.toExecutableQuery(entityInformation.getJavaType(),
-				QueryFragmentsAndParameters.forPageableAndSort(entityMetaData, null, sort))
-				.flatMapMany(ReactiveNeo4jOperations.ExecutableQuery::getResults);
+		return this.neo4jOperations
+			.toExecutableQuery(this.entityInformation.getJavaType(),
+					QueryFragmentsAndParameters.forPageableAndSort(this.entityMetaData, null, sort))
+			.flatMapMany(ReactiveNeo4jOperations.ExecutableQuery::getResults);
 	}
 
 	@Override
@@ -139,10 +139,6 @@ public class SimpleReactiveNeo4jRepository<T, ID> implements ReactiveSortingRepo
 		return Flux.from(entityStream).concatMap(this::save);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.reactive.ReactiveCrudRepository#deleteById(java.lang.Object)
-	 */
 	@Override
 	@Transactional
 	public Mono<Void> deleteById(ID id) {
@@ -150,10 +146,6 @@ public class SimpleReactiveNeo4jRepository<T, ID> implements ReactiveSortingRepo
 		return this.neo4jOperations.deleteById(id, this.entityInformation.getJavaType());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.reactive.ReactiveCrudRepository#deleteById(org.reactivestreams.Publisher)
-	 */
 	@Override
 	@Transactional
 	public Mono<Void> deleteById(Publisher<ID> idPublisher) {
@@ -162,29 +154,24 @@ public class SimpleReactiveNeo4jRepository<T, ID> implements ReactiveSortingRepo
 		return Mono.from(idPublisher).flatMap(this::deleteById);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.reactive.ReactiveCrudRepository#delete(java.lang.Object)
-	 */
 	@Override
 	@Transactional
 	public Mono<Void> delete(T entity) {
 		Objects.requireNonNull(entity, "The given entity must not be null");
 
-		ID id = Objects.requireNonNull(this.entityInformation.getId(entity), "Cannot delete individual nodes without an id");
-		if (entityMetaData.hasVersionProperty()) {
-			Neo4jPersistentProperty versionProperty = entityMetaData.getRequiredVersionProperty();
-			Object versionValue = entityMetaData.getPropertyAccessor(entity).getProperty(versionProperty);
-			return this.neo4jOperations.deleteByIdWithVersion(id, this.entityInformation.getJavaType(), versionProperty, versionValue);
-		} else {
+		ID id = Objects.requireNonNull(this.entityInformation.getId(entity),
+				"Cannot delete individual nodes without an id");
+		if (this.entityMetaData.hasVersionProperty()) {
+			Neo4jPersistentProperty versionProperty = this.entityMetaData.getRequiredVersionProperty();
+			Object versionValue = this.entityMetaData.getPropertyAccessor(entity).getProperty(versionProperty);
+			return this.neo4jOperations.deleteByIdWithVersion(id, this.entityInformation.getJavaType(), versionProperty,
+					versionValue);
+		}
+		else {
 			return this.deleteById(id);
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.reactive.ReactiveCrudRepository#deleteAllById(java.lang.Iterable)
-	 */
 	@Override
 	@Transactional
 	public Mono<Void> deleteAllById(Iterable<? extends ID> ids) {
@@ -194,25 +181,18 @@ public class SimpleReactiveNeo4jRepository<T, ID> implements ReactiveSortingRepo
 		return this.neo4jOperations.deleteAllById(ids, this.entityInformation.getJavaType());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.reactive.ReactiveCrudRepository#deleteAll(java.lang.Iterable)
-	 */
 	@Override
 	@Transactional
 	public Mono<Void> deleteAll(Iterable<? extends T> entities) {
 
 		Assert.notNull(entities, "The given Iterable of entities must not be null");
 
-		List<ID> ids = StreamSupport.stream(entities.spliterator(), false).map(this.entityInformation::getId)
-				.collect(Collectors.toList());
+		List<ID> ids = StreamSupport.stream(entities.spliterator(), false)
+			.map(this.entityInformation::getId)
+			.collect(Collectors.toList());
 		return this.neo4jOperations.deleteAllById(ids, this.entityInformation.getJavaType());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.reactive.ReactiveCrudRepository#deleteAll(org.reactivestreams.Publisher)
-	 */
 	@Override
 	@Transactional
 	public Mono<Void> deleteAll(Publisher<? extends T> entitiesPublisher) {
@@ -221,14 +201,11 @@ public class SimpleReactiveNeo4jRepository<T, ID> implements ReactiveSortingRepo
 		return Flux.from(entitiesPublisher).concatMap(this::delete).then();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.reactive.ReactiveCrudRepository#deleteAll()
-	 */
 	@Override
 	@Transactional
 	public Mono<Void> deleteAll() {
 
 		return this.neo4jOperations.deleteAll(this.entityInformation.getJavaType());
 	}
+
 }

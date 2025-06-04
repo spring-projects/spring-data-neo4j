@@ -25,6 +25,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Session;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.test.BookmarkCapture;
 import org.springframework.data.neo4j.test.LogbackCapture;
@@ -35,10 +36,33 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Tag(Neo4jExtension.NEEDS_VERSION_SUPPORTING_ELEMENT_ID)
 abstract class AbstractElementIdTestBase {
 
+	private static final Pattern NEO5J_ELEMENT_ID_PATTERN = Pattern.compile("\\d+:.+:\\d+");
+
 	protected static Neo4jExtension.Neo4jConnectionSupport neo4jConnectionSupport;
 
+	static String adaptQueryTo44IfNecessary(String query) {
+		if (!neo4jConnectionSupport.isCypher5SyntaxCompatible()) {
+			query = query.replaceAll("elementId\\((.+?)\\)", "toString(id($1))");
+		}
+		return query;
+	}
+
+	static void assertThatLogMessageDoNotIndicateIDUsage(LogbackCapture logbackCapture) {
+		List<String> formattedMessages = logbackCapture.getFormattedMessages();
+		assertThat(formattedMessages)
+			.noneMatch(s -> s.contains("Neo.ClientNotification.Statement.FeatureDeprecationWarning")
+					|| s.contains("The query used a deprecated function. ('id' is no longer supported)")
+					|| s.contains("The query used a deprecated function: `id`.")
+					|| s.matches("(?s).*toString\\(id\\(.*")); // No deprecations are
+																// logged when deprecated
+																// function call is
+																// nested. Anzeige ist
+																// raus.
+	}
+
 	@BeforeEach
-	void setupData(LogbackCapture logbackCapture, @Autowired Driver driver, @Autowired BookmarkCapture bookmarkCapture) {
+	void setupData(LogbackCapture logbackCapture, @Autowired Driver driver,
+			@Autowired BookmarkCapture bookmarkCapture) {
 
 		logbackCapture.addLogger("org.springframework.data.neo4j.cypher.deprecation", Level.WARN);
 		logbackCapture.addLogger("org.springframework.data.neo4j.cypher", Level.DEBUG);
@@ -47,8 +71,6 @@ abstract class AbstractElementIdTestBase {
 			bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 	}
-
-	private static final Pattern NEO5J_ELEMENT_ID_PATTERN = Pattern.compile("\\d+:.+:\\d+");
 
 	Predicate<String> validIdForCurrentNeo4j() {
 		Predicate<String> nonNull = Objects::nonNull;
@@ -61,26 +83,12 @@ abstract class AbstractElementIdTestBase {
 		return nonNull.and(v -> {
 			try {
 				Long.parseLong(v);
-			} catch (NumberFormatException e) {
+			}
+			catch (NumberFormatException ex) {
 				return false;
 			}
 			return true;
 		});
 	}
 
-	static String adaptQueryTo44IfNecessary(String query) {
-		if (!neo4jConnectionSupport.isCypher5SyntaxCompatible()) {
-			query = query.replaceAll("elementId\\((.+?)\\)", "toString(id($1))");
-		}
-		return query;
-	}
-
-	static void assertThatLogMessageDoNotIndicateIDUsage(LogbackCapture logbackCapture) {
-		List<String> formattedMessages = logbackCapture.getFormattedMessages();
-		assertThat(formattedMessages)
-				.noneMatch(s -> s.contains("Neo.ClientNotification.Statement.FeatureDeprecationWarning") ||
-						s.contains("The query used a deprecated function. ('id' is no longer supported)") ||
-						s.contains("The query used a deprecated function: `id`.") ||
-						s.matches("(?s).*toString\\(id\\(.*")); // No deprecations are logged when deprecated function call is nested. Anzeige ist raus.
-	}
 }

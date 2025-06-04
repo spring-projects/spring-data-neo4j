@@ -38,10 +38,7 @@ public class CUI {
 
 	public CUI(String name) {
 		this.name = name;
-		this.nested = List.of(
-				new CUI(name + ".cc1", List.of()),
-				new CUI(name + ".cc2", List.of())
-				);
+		this.nested = List.of(new CUI(name + ".cc1", List.of()), new CUI(name + ".cc2", List.of()));
 	}
 
 	@PersistenceCreator
@@ -51,11 +48,11 @@ public class CUI {
 	}
 
 	public String getId() {
-		return id;
+		return this.id;
 	}
 
 	public String getName() {
-		return name;
+		return this.name;
 	}
 
 	public void setName(String name) {
@@ -63,6 +60,7 @@ public class CUI {
 	}
 
 	public List<CUI> getNested() {
-		return nested;
+		return this.nested;
 	}
+
 }

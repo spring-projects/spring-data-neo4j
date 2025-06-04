@@ -21,8 +21,9 @@ import org.springframework.data.repository.core.support.PersistentEntityInformat
 /**
  * Default implementation of Neo4j specific entity information.
  *
+ * @param <T> the entity type
+ * @param <ID> the ID type
  * @author Michael J. Simons
- * @soundtrack Bear McCreary - Battlestar Galactica Season 1
  * @since 6.0
  */
 final class DefaultNeo4jEntityInformation<T, ID> extends PersistentEntityInformation<T, ID>
@@ -35,12 +36,9 @@ final class DefaultNeo4jEntityInformation<T, ID> extends PersistentEntityInforma
 		this.entityMetaData = entityMetaData;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see Neo4jEntityInformation#getEntityMetaData()
-	 */
 	@Override
 	public Neo4jPersistentEntity<T> getEntityMetaData() {
 		return this.entityMetaData;
 	}
+
 }

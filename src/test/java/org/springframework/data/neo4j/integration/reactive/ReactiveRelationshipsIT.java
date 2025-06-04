@@ -15,16 +15,6 @@
  */
 package org.springframework.data.neo4j.integration.reactive;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import org.springframework.data.neo4j.core.ReactiveDatabaseSelectionProvider;
-import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
-import org.springframework.data.neo4j.core.transaction.ReactiveNeo4jTransactionManager;
-import org.springframework.data.neo4j.test.BookmarkCapture;
-import org.springframework.data.neo4j.test.Neo4jReactiveTestConfiguration;
-import org.springframework.transaction.ReactiveTransactionManager;
-import reactor.test.StepVerifier;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
@@ -34,18 +24,29 @@ import org.junit.jupiter.api.Test;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Session;
+import reactor.test.StepVerifier;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.neo4j.core.ReactiveDatabaseSelectionProvider;
+import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
+import org.springframework.data.neo4j.core.transaction.ReactiveNeo4jTransactionManager;
 import org.springframework.data.neo4j.integration.shared.common.MultipleRelationshipsThing;
 import org.springframework.data.neo4j.integration.shared.common.RelationshipsITBase;
 import org.springframework.data.neo4j.repository.config.EnableReactiveNeo4jRepositories;
+import org.springframework.data.neo4j.test.BookmarkCapture;
 import org.springframework.data.neo4j.test.Neo4jExtension;
+import org.springframework.data.neo4j.test.Neo4jReactiveTestConfiguration;
 import org.springframework.data.repository.reactive.ReactiveCrudRepository;
+import org.springframework.transaction.ReactiveTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 /**
- * Test cases for various relationship scenarios (self references, multiple times to same instance).
+ * Test cases for various relationship scenarios (self references, multiple times to same
+ * instance).
  *
  * @author Michael J. Simons
  */
@@ -59,89 +60,99 @@ class ReactiveRelationshipsIT extends RelationshipsITBase {
 
 	@Test
 	void shouldSaveSingleRelationship(@Autowired MultipleRelationshipsThingRepository repository,
-									  @Autowired BookmarkCapture bookmarkCapture) {
+			@Autowired BookmarkCapture bookmarkCapture) {
 
 		MultipleRelationshipsThing p = new MultipleRelationshipsThing("p");
 		p.setTypeA(new MultipleRelationshipsThing("c"));
 
-		repository.save(p).map(MultipleRelationshipsThing::getId).flatMap(repository::findById).as(StepVerifier::create)
-				.assertNext(loadedThing -> assertThat(loadedThing).extracting(MultipleRelationshipsThing::getTypeA)
-						.extracting(MultipleRelationshipsThing::getName).isEqualTo("c"))
-				.verifyComplete();
+		repository.save(p)
+			.map(MultipleRelationshipsThing::getId)
+			.flatMap(repository::findById)
+			.as(StepVerifier::create)
+			.assertNext(loadedThing -> assertThat(loadedThing).extracting(MultipleRelationshipsThing::getTypeA)
+				.extracting(MultipleRelationshipsThing::getName)
+				.isEqualTo("c"))
+			.verifyComplete();
 
-		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
+		try (Session session = this.driver.session(bookmarkCapture.createSessionConfig())) {
 			List<String> names = session.run("MATCH (n:MultipleRelationshipsThing) RETURN n.name AS name")
-					.list(r -> r.get("name").asString());
+				.list(r -> r.get("name").asString());
 			assertThat(names).hasSize(2).containsExactlyInAnyOrder("p", "c");
 		}
 	}
 
 	@Test
 	void shouldSaveSingleRelationshipInList(@Autowired MultipleRelationshipsThingRepository repository,
-											@Autowired BookmarkCapture bookmarkCapture) {
+			@Autowired BookmarkCapture bookmarkCapture) {
 
 		MultipleRelationshipsThing p = new MultipleRelationshipsThing("p");
 		p.setTypeB(Collections.singletonList(new MultipleRelationshipsThing("c")));
 
-		repository.save(p).map(MultipleRelationshipsThing::getId).flatMap(repository::findById).as(StepVerifier::create)
-				.assertNext(loadedThing -> assertThat(loadedThing.getTypeB()).extracting(MultipleRelationshipsThing::getName)
+		repository.save(p)
+			.map(MultipleRelationshipsThing::getId)
+			.flatMap(repository::findById)
+			.as(StepVerifier::create)
+			.assertNext(
+					loadedThing -> assertThat(loadedThing.getTypeB()).extracting(MultipleRelationshipsThing::getName)
 						.containsExactly("c"))
-				.verifyComplete();
+			.verifyComplete();
 
-		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
+		try (Session session = this.driver.session(bookmarkCapture.createSessionConfig())) {
 			List<String> names = session.run("MATCH (n:MultipleRelationshipsThing) RETURN n.name AS name")
-					.list(r -> r.get("name").asString());
+				.list(r -> r.get("name").asString());
 			assertThat(names).hasSize(2).containsExactlyInAnyOrder("p", "c");
 		}
 	}
 
 	/**
 	 * This stores multiple, different instances.
-	 *
 	 * @param repository The repository to use.
 	 */
 	@Test
 	void shouldSaveMultipleRelationshipsOfSameObjectType(@Autowired MultipleRelationshipsThingRepository repository,
-														 @Autowired BookmarkCapture bookmarkCapture) {
+			@Autowired BookmarkCapture bookmarkCapture) {
 
 		MultipleRelationshipsThing p = new MultipleRelationshipsThing("p");
 		p.setTypeA(new MultipleRelationshipsThing("c1"));
 		p.setTypeB(Collections.singletonList(new MultipleRelationshipsThing("c2")));
 		p.setTypeC(Collections.singletonList(new MultipleRelationshipsThing("c3")));
 
-		repository.save(p).map(MultipleRelationshipsThing::getId).flatMap(repository::findById).as(StepVerifier::create)
-				.assertNext(loadedThing -> {
-					MultipleRelationshipsThing typeA = loadedThing.getTypeA();
-					List<MultipleRelationshipsThing> typeB = loadedThing.getTypeB();
-					List<MultipleRelationshipsThing> typeC = loadedThing.getTypeC();
+		repository.save(p)
+			.map(MultipleRelationshipsThing::getId)
+			.flatMap(repository::findById)
+			.as(StepVerifier::create)
+			.assertNext(loadedThing -> {
+				MultipleRelationshipsThing typeA = loadedThing.getTypeA();
+				List<MultipleRelationshipsThing> typeB = loadedThing.getTypeB();
+				List<MultipleRelationshipsThing> typeC = loadedThing.getTypeC();
 
-					assertThat(typeA).isNotNull();
-					assertThat(typeA).extracting(MultipleRelationshipsThing::getName).isEqualTo("c1");
-					assertThat(typeB).extracting(MultipleRelationshipsThing::getName).containsExactly("c2");
-					assertThat(typeC).extracting(MultipleRelationshipsThing::getName).containsExactly("c3");
-				}).verifyComplete();
+				assertThat(typeA).isNotNull();
+				assertThat(typeA).extracting(MultipleRelationshipsThing::getName).isEqualTo("c1");
+				assertThat(typeB).extracting(MultipleRelationshipsThing::getName).containsExactly("c2");
+				assertThat(typeC).extracting(MultipleRelationshipsThing::getName).containsExactly("c3");
+			})
+			.verifyComplete();
 
-		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
+		try (Session session = this.driver.session(bookmarkCapture.createSessionConfig())) {
 
 			List<String> names = session
-					.run("MATCH (n:MultipleRelationshipsThing {name: 'p'}) - [r:TYPE_A|TYPE_B|TYPE_C] -> (o) RETURN r, o")
-					.list(record -> {
-						String type = record.get("r").asRelationship().type();
-						String name = record.get("o").get("name").asString();
-						return type + "_" + name;
-					});
+				.run("MATCH (n:MultipleRelationshipsThing {name: 'p'}) - [r:TYPE_A|TYPE_B|TYPE_C] -> (o) RETURN r, o")
+				.list(record -> {
+					String type = record.get("r").asRelationship().type();
+					String name = record.get("o").get("name").asString();
+					return type + "_" + name;
+				});
 			assertThat(names).containsExactlyInAnyOrder("TYPE_A_c1", "TYPE_B_c2", "TYPE_C_c3");
 		}
 	}
 
 	/**
 	 * This stores the same instance in different relationships
-	 *
 	 * @param repository The repository to use.
 	 */
 	@Test
 	void shouldSaveMultipleRelationshipsOfSameInstance(@Autowired MultipleRelationshipsThingRepository repository,
-													   @Autowired BookmarkCapture bookmarkCapture) {
+			@Autowired BookmarkCapture bookmarkCapture) {
 
 		MultipleRelationshipsThing p = new MultipleRelationshipsThing("p");
 		MultipleRelationshipsThing c = new MultipleRelationshipsThing("c1");
@@ -149,41 +160,43 @@ class ReactiveRelationshipsIT extends RelationshipsITBase {
 		p.setTypeB(Collections.singletonList(c));
 		p.setTypeC(Collections.singletonList(c));
 
-		repository.save(p).map(MultipleRelationshipsThing::getId).flatMap(repository::findById).as(StepVerifier::create)
-				.assertNext(loadedThing -> {
+		repository.save(p)
+			.map(MultipleRelationshipsThing::getId)
+			.flatMap(repository::findById)
+			.as(StepVerifier::create)
+			.assertNext(loadedThing -> {
 
-					MultipleRelationshipsThing typeA = loadedThing.getTypeA();
-					List<MultipleRelationshipsThing> typeB = loadedThing.getTypeB();
-					List<MultipleRelationshipsThing> typeC = loadedThing.getTypeC();
+				MultipleRelationshipsThing typeA = loadedThing.getTypeA();
+				List<MultipleRelationshipsThing> typeB = loadedThing.getTypeB();
+				List<MultipleRelationshipsThing> typeC = loadedThing.getTypeC();
 
-					assertThat(typeA).isNotNull();
-					assertThat(typeA).extracting(MultipleRelationshipsThing::getName).isEqualTo("c1");
-					assertThat(typeB).extracting(MultipleRelationshipsThing::getName).containsExactly("c1");
-					assertThat(typeC).extracting(MultipleRelationshipsThing::getName).containsExactly("c1");
-				}).verifyComplete();
+				assertThat(typeA).isNotNull();
+				assertThat(typeA).extracting(MultipleRelationshipsThing::getName).isEqualTo("c1");
+				assertThat(typeB).extracting(MultipleRelationshipsThing::getName).containsExactly("c1");
+				assertThat(typeC).extracting(MultipleRelationshipsThing::getName).containsExactly("c1");
+			})
+			.verifyComplete();
 
-		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
+		try (Session session = this.driver.session(bookmarkCapture.createSessionConfig())) {
 
 			List<String> names = session
-					.run("MATCH (n:MultipleRelationshipsThing {name: 'p'}) - [r:TYPE_A|TYPE_B|TYPE_C] -> (o) RETURN r, o")
-					.list(record -> {
-						String type = record.get("r").asRelationship().type();
-						String name = record.get("o").get("name").asString();
-						return type + "_" + name;
-					});
+				.run("MATCH (n:MultipleRelationshipsThing {name: 'p'}) - [r:TYPE_A|TYPE_B|TYPE_C] -> (o) RETURN r, o")
+				.list(record -> {
+					String type = record.get("r").asRelationship().type();
+					String name = record.get("o").get("name").asString();
+					return type + "_" + name;
+				});
 			assertThat(names).containsExactlyInAnyOrder("TYPE_A_c1", "TYPE_B_c1", "TYPE_C_c1");
 		}
 	}
 
 	/**
 	 * This stores the same instance in different relationships
-	 *
 	 * @param repository The repository to use.
 	 */
 	@Test
 	void shouldSaveMultipleRelationshipsOfSameInstanceWithBackReference(
-			@Autowired MultipleRelationshipsThingRepository repository,
-			@Autowired BookmarkCapture bookmarkCapture) {
+			@Autowired MultipleRelationshipsThingRepository repository, @Autowired BookmarkCapture bookmarkCapture) {
 
 		MultipleRelationshipsThing p = new MultipleRelationshipsThing("p");
 		MultipleRelationshipsThing c = new MultipleRelationshipsThing("c1");
@@ -193,20 +206,24 @@ class ReactiveRelationshipsIT extends RelationshipsITBase {
 
 		c.setTypeA(p);
 
-		repository.save(p).map(MultipleRelationshipsThing::getId).flatMap(repository::findById).as(StepVerifier::create)
-				.assertNext(loadedThing -> {
+		repository.save(p)
+			.map(MultipleRelationshipsThing::getId)
+			.flatMap(repository::findById)
+			.as(StepVerifier::create)
+			.assertNext(loadedThing -> {
 
-					MultipleRelationshipsThing typeA = loadedThing.getTypeA();
-					List<MultipleRelationshipsThing> typeB = loadedThing.getTypeB();
-					List<MultipleRelationshipsThing> typeC = loadedThing.getTypeC();
+				MultipleRelationshipsThing typeA = loadedThing.getTypeA();
+				List<MultipleRelationshipsThing> typeB = loadedThing.getTypeB();
+				List<MultipleRelationshipsThing> typeC = loadedThing.getTypeC();
 
-					assertThat(typeA).isNotNull();
-					assertThat(typeA).extracting(MultipleRelationshipsThing::getName).isEqualTo("c1");
-					assertThat(typeB).extracting(MultipleRelationshipsThing::getName).containsExactly("c1");
-					assertThat(typeC).extracting(MultipleRelationshipsThing::getName).containsExactly("c1");
-				}).verifyComplete();
+				assertThat(typeA).isNotNull();
+				assertThat(typeA).extracting(MultipleRelationshipsThing::getName).isEqualTo("c1");
+				assertThat(typeB).extracting(MultipleRelationshipsThing::getName).containsExactly("c1");
+				assertThat(typeC).extracting(MultipleRelationshipsThing::getName).containsExactly("c1");
+			})
+			.verifyComplete();
 
-		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
+		try (Session session = this.driver.session(bookmarkCapture.createSessionConfig())) {
 
 			Function<Record, String> withMapper = record -> {
 				String type = record.get("r").asRelationship().type();
@@ -223,7 +240,9 @@ class ReactiveRelationshipsIT extends RelationshipsITBase {
 		}
 	}
 
-	interface MultipleRelationshipsThingRepository extends ReactiveCrudRepository<MultipleRelationshipsThing, Long> {}
+	interface MultipleRelationshipsThingRepository extends ReactiveCrudRepository<MultipleRelationshipsThing, Long> {
+
+	}
 
 	@Configuration
 	@EnableTransactionManagement
@@ -231,25 +250,30 @@ class ReactiveRelationshipsIT extends RelationshipsITBase {
 	static class Config extends Neo4jReactiveTestConfiguration {
 
 		@Bean
+		@Override
 		public Driver driver() {
 			return neo4jConnectionSupport.getDriver();
 		}
 
 		@Bean
-		public BookmarkCapture bookmarkCapture() {
+		BookmarkCapture bookmarkCapture() {
 			return new BookmarkCapture();
 		}
 
 		@Override
-		public ReactiveTransactionManager reactiveTransactionManager(Driver driver, ReactiveDatabaseSelectionProvider databaseSelectionProvider) {
+		public ReactiveTransactionManager reactiveTransactionManager(Driver driver,
+				ReactiveDatabaseSelectionProvider databaseSelectionProvider) {
 
 			BookmarkCapture bookmarkCapture = bookmarkCapture();
-			return new ReactiveNeo4jTransactionManager(driver, databaseSelectionProvider, Neo4jBookmarkManager.createReactive(bookmarkCapture));
+			return new ReactiveNeo4jTransactionManager(driver, databaseSelectionProvider,
+					Neo4jBookmarkManager.createReactive(bookmarkCapture));
 		}
 
 		@Override
 		public boolean isCypher5Compatible() {
 			return neo4jConnectionSupport.isCypher5SyntaxCompatible();
 		}
+
 	}
+
 }

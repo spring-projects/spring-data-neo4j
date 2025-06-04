@@ -24,4 +24,5 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface VertexRepository extends Neo4jRepository<Vertex, Long>, CypherdslConditionExecutor<Vertex> {
+
 }

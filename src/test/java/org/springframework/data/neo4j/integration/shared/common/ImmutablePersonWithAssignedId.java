@@ -15,16 +15,16 @@
  */
 package org.springframework.data.neo4j.integration.shared.common;
 
-import org.springframework.data.annotation.PersistenceCreator;
-import org.springframework.data.neo4j.core.schema.Id;
-import org.springframework.data.neo4j.core.schema.Node;
-import org.springframework.data.neo4j.core.schema.Relationship;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
+
+import org.springframework.data.annotation.PersistenceCreator;
+import org.springframework.data.neo4j.core.schema.Id;
+import org.springframework.data.neo4j.core.schema.Node;
+import org.springframework.data.neo4j.core.schema.Relationship;
 
 /**
  * @author Gerrit Meier
@@ -35,14 +35,14 @@ public class ImmutablePersonWithAssignedId {
 	@Id
 	public final Long id;
 
-	public String someValue;
-
 	@Relationship("ONBOARDED_BY")
 	public final List<ImmutablePersonWithAssignedId> wasOnboardedBy;
+
 	@Relationship("KNOWN_BY")
 	public final Set<ImmutablePersonWithAssignedId> knownBy;
 
 	public final Map<String, ImmutablePersonWithAssignedId> ratedBy;
+
 	public final Map<String, List<ImmutableSecondPersonWithAssignedId>> ratedByCollection;
 
 	@Relationship("FALLBACK")
@@ -55,14 +55,14 @@ public class ImmutablePersonWithAssignedId {
 	public final List<ImmutablePersonWithAssignedIdRelationshipProperties> relationshipPropertiesCollection;
 
 	public final Map<String, ImmutablePersonWithAssignedIdRelationshipProperties> relationshipPropertiesDynamic;
+
 	public final Map<String, List<ImmutableSecondPersonWithAssignedIdRelationshipProperties>> relationshipPropertiesDynamicCollection;
 
+	public String someValue;
+
 	@PersistenceCreator
-	public ImmutablePersonWithAssignedId(
-			Long id,
-			List<ImmutablePersonWithAssignedId> wasOnboardedBy,
-			Set<ImmutablePersonWithAssignedId> knownBy,
-			Map<String, ImmutablePersonWithAssignedId> ratedBy,
+	public ImmutablePersonWithAssignedId(Long id, List<ImmutablePersonWithAssignedId> wasOnboardedBy,
+			Set<ImmutablePersonWithAssignedId> knownBy, Map<String, ImmutablePersonWithAssignedId> ratedBy,
 			Map<String, List<ImmutableSecondPersonWithAssignedId>> ratedByCollection,
 			ImmutablePersonWithAssignedId fallback,
 			ImmutablePersonWithAssignedIdRelationshipProperties relationshipProperties,
@@ -83,143 +83,67 @@ public class ImmutablePersonWithAssignedId {
 	}
 
 	public ImmutablePersonWithAssignedId() {
-		this(null,
-				Collections.emptyList(),
-				Collections.emptySet(),
-				Collections.emptyMap(),
-				Collections.emptyMap(),
-				null,
-				null,
-				Collections.emptyList(),
-				Collections.emptyMap(),
-				Collections.emptyMap()
-		);
+		this(null, Collections.emptyList(), Collections.emptySet(), Collections.emptyMap(), Collections.emptyMap(),
+				null, null, Collections.emptyList(), Collections.emptyMap(), Collections.emptyMap());
 	}
 
 	public static ImmutablePersonWithAssignedId wasOnboardedBy(List<ImmutablePersonWithAssignedId> wasOnboardedBy) {
-		return new ImmutablePersonWithAssignedId(null,
-				wasOnboardedBy,
-				Collections.emptySet(),
-				Collections.emptyMap(),
-				Collections.emptyMap(),
-				null,
-				null,
-				Collections.emptyList(),
-				Collections.emptyMap(),
-				Collections.emptyMap()
-		);
+		return new ImmutablePersonWithAssignedId(null, wasOnboardedBy, Collections.emptySet(), Collections.emptyMap(),
+				Collections.emptyMap(), null, null, Collections.emptyList(), Collections.emptyMap(),
+				Collections.emptyMap());
 	}
 
 	public static ImmutablePersonWithAssignedId knownBy(Set<ImmutablePersonWithAssignedId> knownBy) {
-		return new ImmutablePersonWithAssignedId(null,
-				Collections.emptyList(),
-				knownBy,
-				Collections.emptyMap(),
-				Collections.emptyMap(),
-				null,
-				null,
-				Collections.emptyList(),
-				Collections.emptyMap(),
-				Collections.emptyMap()
-		);
+		return new ImmutablePersonWithAssignedId(null, Collections.emptyList(), knownBy, Collections.emptyMap(),
+				Collections.emptyMap(), null, null, Collections.emptyList(), Collections.emptyMap(),
+				Collections.emptyMap());
 	}
 
 	public static ImmutablePersonWithAssignedId ratedBy(Map<String, ImmutablePersonWithAssignedId> ratedBy) {
-		return new ImmutablePersonWithAssignedId(null,
-				Collections.emptyList(),
-				Collections.emptySet(),
-				ratedBy,
-				Collections.emptyMap(),
-				null,
-				null,
-				Collections.emptyList(),
-				Collections.emptyMap(),
-				Collections.emptyMap()
-		);
+		return new ImmutablePersonWithAssignedId(null, Collections.emptyList(), Collections.emptySet(), ratedBy,
+				Collections.emptyMap(), null, null, Collections.emptyList(), Collections.emptyMap(),
+				Collections.emptyMap());
 	}
 
-	public static ImmutablePersonWithAssignedId ratedByCollection(Map<String, List<ImmutableSecondPersonWithAssignedId>> ratedByCollection) {
-		return new ImmutablePersonWithAssignedId(null,
-				Collections.emptyList(),
-				Collections.emptySet(),
-				Collections.emptyMap(),
-				ratedByCollection,
-				null,
-				null,
-				Collections.emptyList(),
-				Collections.emptyMap(),
-				Collections.emptyMap()
-		);
+	public static ImmutablePersonWithAssignedId ratedByCollection(
+			Map<String, List<ImmutableSecondPersonWithAssignedId>> ratedByCollection) {
+		return new ImmutablePersonWithAssignedId(null, Collections.emptyList(), Collections.emptySet(),
+				Collections.emptyMap(), ratedByCollection, null, null, Collections.emptyList(), Collections.emptyMap(),
+				Collections.emptyMap());
 	}
 
 	public static ImmutablePersonWithAssignedId fallback(ImmutablePersonWithAssignedId fallback) {
-		return new ImmutablePersonWithAssignedId(null,
-				Collections.emptyList(),
-				Collections.emptySet(),
-				Collections.emptyMap(),
-				Collections.emptyMap(),
-				fallback,
-				null,
-				Collections.emptyList(),
-				Collections.emptyMap(),
-				Collections.emptyMap()
-		);
+		return new ImmutablePersonWithAssignedId(null, Collections.emptyList(), Collections.emptySet(),
+				Collections.emptyMap(), Collections.emptyMap(), fallback, null, Collections.emptyList(),
+				Collections.emptyMap(), Collections.emptyMap());
 	}
 
-	public static ImmutablePersonWithAssignedId relationshipProperties(ImmutablePersonWithAssignedIdRelationshipProperties relationshipProperties) {
-		return new ImmutablePersonWithAssignedId(null,
-				Collections.emptyList(),
-				Collections.emptySet(),
-				Collections.emptyMap(),
-				Collections.emptyMap(),
-				null,
-				relationshipProperties,
-				Collections.emptyList(),
-				Collections.emptyMap(),
-				Collections.emptyMap()
-		);
+	public static ImmutablePersonWithAssignedId relationshipProperties(
+			ImmutablePersonWithAssignedIdRelationshipProperties relationshipProperties) {
+		return new ImmutablePersonWithAssignedId(null, Collections.emptyList(), Collections.emptySet(),
+				Collections.emptyMap(), Collections.emptyMap(), null, relationshipProperties, Collections.emptyList(),
+				Collections.emptyMap(), Collections.emptyMap());
 	}
 
-	public static ImmutablePersonWithAssignedId relationshipPropertiesCollection(List<ImmutablePersonWithAssignedIdRelationshipProperties> relationshipPropertiesCollection) {
-		return new ImmutablePersonWithAssignedId(null,
-				Collections.emptyList(),
-				Collections.emptySet(),
-				Collections.emptyMap(),
-				Collections.emptyMap(),
-				null,
-				null,
-				relationshipPropertiesCollection,
-				Collections.emptyMap(),
-				Collections.emptyMap()
-		);
+	public static ImmutablePersonWithAssignedId relationshipPropertiesCollection(
+			List<ImmutablePersonWithAssignedIdRelationshipProperties> relationshipPropertiesCollection) {
+		return new ImmutablePersonWithAssignedId(null, Collections.emptyList(), Collections.emptySet(),
+				Collections.emptyMap(), Collections.emptyMap(), null, null, relationshipPropertiesCollection,
+				Collections.emptyMap(), Collections.emptyMap());
 	}
 
-	public static ImmutablePersonWithAssignedId relationshipPropertiesDynamic(Map<String, ImmutablePersonWithAssignedIdRelationshipProperties> relationshipPropertiesDynamic) {
-		return new ImmutablePersonWithAssignedId(null,
-				Collections.emptyList(),
-				Collections.emptySet(),
-				Collections.emptyMap(),
-				Collections.emptyMap(),
-				null,
-				null,
-				Collections.emptyList(),
-				relationshipPropertiesDynamic,
-				Collections.emptyMap()
-		);
+	public static ImmutablePersonWithAssignedId relationshipPropertiesDynamic(
+			Map<String, ImmutablePersonWithAssignedIdRelationshipProperties> relationshipPropertiesDynamic) {
+		return new ImmutablePersonWithAssignedId(null, Collections.emptyList(), Collections.emptySet(),
+				Collections.emptyMap(), Collections.emptyMap(), null, null, Collections.emptyList(),
+				relationshipPropertiesDynamic, Collections.emptyMap());
 	}
 
-	public static ImmutablePersonWithAssignedId relationshipPropertiesDynamicCollection(Map<String, List<ImmutableSecondPersonWithAssignedIdRelationshipProperties>> relationshipPropertiesDynamicCollection) {
-		return new ImmutablePersonWithAssignedId(null,
-				Collections.emptyList(),
-				Collections.emptySet(),
-				Collections.emptyMap(),
-				Collections.emptyMap(),
-				null,
-				null,
-				Collections.emptyList(),
-				Collections.emptyMap(),
-				relationshipPropertiesDynamicCollection
-		);
+	public static ImmutablePersonWithAssignedId relationshipPropertiesDynamicCollection(
+			Map<String, List<ImmutableSecondPersonWithAssignedIdRelationshipProperties>> relationshipPropertiesDynamicCollection) {
+		return new ImmutablePersonWithAssignedId(null, Collections.emptyList(), Collections.emptySet(),
+				Collections.emptyMap(), Collections.emptyMap(), null, null, Collections.emptyList(),
+				Collections.emptyMap(), relationshipPropertiesDynamicCollection);
 	}
 
 }

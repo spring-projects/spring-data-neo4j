@@ -15,9 +15,8 @@
  */
 package org.springframework.data.neo4j.core.mapping.callback;
 
-import static org.apiguardian.api.API.Status.STABLE;
-
 import org.apiguardian.api.API;
+
 import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.core.Ordered;
 import org.springframework.data.auditing.AuditingHandler;
@@ -25,24 +24,28 @@ import org.springframework.data.auditing.IsNewAwareAuditingHandler;
 import org.springframework.data.mapping.callback.EntityCallback;
 import org.springframework.util.Assert;
 
+import static org.apiguardian.api.API.Status.STABLE;
+
 /**
- * {@link EntityCallback} to populate auditing related fields on an entity about to be bound to a record.
+ * {@link EntityCallback} to populate auditing related fields on an entity about to be
+ * bound to a record.
  *
  * @author Michael J. Simons
- * @soundtrack Iron Maiden - Iron Maiden
  * @since 6.0.2
  */
 @API(status = STABLE, since = "6.0.2")
 public final class AuditingBeforeBindCallback implements BeforeBindCallback<Object>, Ordered {
 
+	/**
+	 * Public constant for the order in which this callback is applied.
+	 */
 	public static final int NEO4J_AUDITING_ORDER = 100;
 
 	private final ObjectFactory<IsNewAwareAuditingHandler> auditingHandlerFactory;
 
 	/**
-	 * Creates a new {@link AuditingBeforeBindCallback} using the given {@link AuditingHandler} provided by the given
-	 * {@link ObjectFactory}.
-	 *
+	 * Creates a new {@link AuditingBeforeBindCallback} using the given
+	 * {@link AuditingHandler} provided by the given {@link ObjectFactory}.
 	 * @param auditingHandlerFactory must not be {@literal null}.
 	 */
 	public AuditingBeforeBindCallback(ObjectFactory<IsNewAwareAuditingHandler> auditingHandlerFactory) {
@@ -51,21 +54,14 @@ public final class AuditingBeforeBindCallback implements BeforeBindCallback<Obje
 		this.auditingHandlerFactory = auditingHandlerFactory;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.neo4j.repository.event.BeforeBindCallback#onBeforeBind(java.lang.Object)
-	 */
 	@Override
 	public Object onBeforeBind(Object entity) {
-		return auditingHandlerFactory.getObject().markAudited(entity);
+		return this.auditingHandlerFactory.getObject().markAudited(entity);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.core.Ordered#getOrder()
-	 */
 	@Override
 	public int getOrder() {
 		return NEO4J_AUDITING_ORDER;
 	}
+
 }

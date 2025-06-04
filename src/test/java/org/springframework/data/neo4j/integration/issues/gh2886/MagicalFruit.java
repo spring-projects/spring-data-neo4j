@@ -31,15 +31,16 @@ public class MagicalFruit extends Fruit {
 		return this.volume;
 	}
 
-	public String getColor() {
-		return this.color;
-	}
-
 	public void setVolume(double volume) {
 		this.volume = volume;
+	}
+
+	public String getColor() {
+		return this.color;
 	}
 
 	public void setColor(String color) {
 		this.color = color;
 	}
+
 }

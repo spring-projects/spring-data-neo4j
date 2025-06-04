@@ -30,4 +30,5 @@ public class BugTarget extends BugTargetBase {
 
 		this.type = type;
 	}
+
 }

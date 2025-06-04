@@ -35,4 +35,5 @@ public class TestEntityWithAssignedId2 {
 		this.assignedId = assignedId;
 		this.valueTwo = valueTwo;
 	}
+
 }

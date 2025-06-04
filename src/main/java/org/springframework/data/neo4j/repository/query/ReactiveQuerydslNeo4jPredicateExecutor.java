@@ -15,43 +15,45 @@
  */
 package org.springframework.data.neo4j.repository.query;
 
-import static org.neo4j.cypherdsl.core.Cypher.asterisk;
-
-import org.jspecify.annotations.Nullable;
-import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
-
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.function.Function;
 
+import com.querydsl.core.types.OrderSpecifier;
+import com.querydsl.core.types.Predicate;
 import org.apiguardian.api.API;
+import org.jspecify.annotations.Nullable;
 import org.neo4j.cypherdsl.core.Condition;
 import org.neo4j.cypherdsl.core.Cypher;
 import org.neo4j.cypherdsl.core.SortItem;
 import org.neo4j.cypherdsl.core.Statement;
 import org.reactivestreams.Publisher;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+
 import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.core.ReactiveFluentFindOperation;
 import org.springframework.data.neo4j.core.ReactiveNeo4jOperations;
 import org.springframework.data.neo4j.core.mapping.CypherGenerator;
+import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.repository.support.Neo4jEntityInformation;
 import org.springframework.data.querydsl.ReactiveQuerydslPredicateExecutor;
 import org.springframework.data.repository.query.FluentQuery.ReactiveFluentQuery;
 
-import com.querydsl.core.types.OrderSpecifier;
-import com.querydsl.core.types.Predicate;
+import static org.neo4j.cypherdsl.core.Cypher.asterisk;
 
 /**
- * Querydsl specific fragment for extending {@link org.springframework.data.neo4j.repository.support.SimpleReactiveNeo4jRepository}
- * with an implementation of {@link ReactiveQuerydslPredicateExecutor}. Provides the necessary infrastructure for translating
- * Query-DSL predicates into conditions that are passed along to the Cypher-DSL and eventually to the template infrastructure.
- * This fragment will be loaded by the repository infrastructure when a repository is declared extending the above interface.
+ * Querydsl specific fragment for extending
+ * {@link org.springframework.data.neo4j.repository.support.SimpleReactiveNeo4jRepository}
+ * with an implementation of {@link ReactiveQuerydslPredicateExecutor}. Provides the
+ * necessary infrastructure for translating Query-DSL predicates into conditions that are
+ * passed along to the Cypher-DSL and eventually to the template infrastructure. This
+ * fragment will be loaded by the repository infrastructure when a repository is declared
+ * extending the above interface.
  *
+ * @param <T> the returned domain type.
  * @author Michael J. Simons
- * @param <T> The returned domain type.
  * @since 6.2
  */
 @API(status = API.Status.INTERNAL, since = "6.2")
@@ -64,12 +66,12 @@ public final class ReactiveQuerydslNeo4jPredicateExecutor<T> implements Reactive
 	private final Neo4jPersistentEntity<T> metaData;
 
 	/**
-	 * Mapping context
+	 * Mapping context.
 	 */
 	private final Neo4jMappingContext mappingContext;
 
-	public ReactiveQuerydslNeo4jPredicateExecutor(Neo4jMappingContext mappingContext, Neo4jEntityInformation<T, Object> entityInformation,
-			ReactiveNeo4jOperations neo4jOperations) {
+	public ReactiveQuerydslNeo4jPredicateExecutor(Neo4jMappingContext mappingContext,
+			Neo4jEntityInformation<T, Object> entityInformation, ReactiveNeo4jOperations neo4jOperations) {
 
 		this.mappingContext = mappingContext;
 		this.entityInformation = entityInformation;
@@ -80,10 +82,10 @@ public final class ReactiveQuerydslNeo4jPredicateExecutor<T> implements Reactive
 	@Override
 	public Mono<T> findOne(Predicate predicate) {
 
-		return this.neo4jOperations.toExecutableQuery(
-				this.metaData.getType(),
-				QueryFragmentsAndParameters.forCondition(this.metaData, Cypher.adapt(predicate).asCondition())
-		).flatMap(ReactiveNeo4jOperations.ExecutableQuery::getSingleResult);
+		return this.neo4jOperations
+			.toExecutableQuery(this.metaData.getType(),
+					QueryFragmentsAndParameters.forCondition(this.metaData, Cypher.adapt(predicate).asCondition()))
+			.flatMap(ReactiveNeo4jOperations.ExecutableQuery::getSingleResult);
 	}
 
 	@Override
@@ -100,7 +102,8 @@ public final class ReactiveQuerydslNeo4jPredicateExecutor<T> implements Reactive
 
 	@Override
 	public Flux<T> findAll(Predicate predicate, OrderSpecifier<?>... orders) {
-		return doFindAll(Cypher.adapt(predicate).asCondition(), Arrays.asList(QuerydslNeo4jPredicateExecutor.toSortItems(orders)));
+		return doFindAll(Cypher.adapt(predicate).asCondition(),
+				Arrays.asList(QuerydslNeo4jPredicateExecutor.toSortItems(orders)));
 
 	}
 
@@ -111,19 +114,19 @@ public final class ReactiveQuerydslNeo4jPredicateExecutor<T> implements Reactive
 	}
 
 	private Flux<T> doFindAll(Condition condition, @Nullable Collection<SortItem> sortItems) {
-		return this.neo4jOperations.toExecutableQuery(
-				this.metaData.getType(),
-				QueryFragmentsAndParameters.forConditionAndSortItems(this.metaData, condition,
-						sortItems)
-		).flatMapMany(ReactiveNeo4jOperations.ExecutableQuery::getResults);
+		return this.neo4jOperations
+			.toExecutableQuery(this.metaData.getType(),
+					QueryFragmentsAndParameters.forConditionAndSortItems(this.metaData, condition, sortItems))
+			.flatMapMany(ReactiveNeo4jOperations.ExecutableQuery::getResults);
 	}
 
 	@Override
 	public Mono<Long> count(Predicate predicate) {
 
-		Statement statement = CypherGenerator.INSTANCE.prepareMatchOf(this.metaData,
-						Cypher.adapt(predicate).asCondition())
-				.returning(Cypher.count(asterisk())).build();
+		Statement statement = CypherGenerator.INSTANCE
+			.prepareMatchOf(this.metaData, Cypher.adapt(predicate).asCondition())
+			.returning(Cypher.count(asterisk()))
+			.build();
 		return this.neo4jOperations.count(statement, statement.getCatalog().getParameters());
 	}
 
@@ -133,15 +136,19 @@ public final class ReactiveQuerydslNeo4jPredicateExecutor<T> implements Reactive
 	}
 
 	@Override
-	public <S extends T, R, P extends Publisher<R>> P findBy(Predicate predicate, Function<ReactiveFluentQuery<S>, P> queryFunction) {
+	public <S extends T, R, P extends Publisher<R>> P findBy(Predicate predicate,
+			Function<ReactiveFluentQuery<S>, P> queryFunction) {
 
 		if (this.neo4jOperations instanceof ReactiveFluentFindOperation ops) {
-			@SuppressWarnings("unchecked") // defaultResultType will be a supertype of S and at this stage, the same.
-			ReactiveFluentQuery<S> fluentQuery = (ReactiveFluentQuery<S>) new ReactiveFluentQueryByPredicate<>(predicate, mappingContext, metaData, metaData.getType(),
-							ops, this::count, this::exists);
+			@SuppressWarnings("unchecked") // defaultResultType will be a supertype of S
+											// and at this stage, the same.
+			ReactiveFluentQuery<S> fluentQuery = (ReactiveFluentQuery<S>) new ReactiveFluentQueryByPredicate<>(
+					predicate, this.mappingContext, this.metaData, this.metaData.getType(), ops, this::count,
+					this::exists);
 			return queryFunction.apply(fluentQuery);
 		}
 		throw new UnsupportedOperationException(
 				"Fluent find by example not supported with standard Neo4jOperations, must support fluent queries too");
 	}
+
 }

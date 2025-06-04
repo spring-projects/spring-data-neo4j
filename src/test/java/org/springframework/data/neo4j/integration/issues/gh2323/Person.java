@@ -29,11 +29,11 @@ import org.springframework.data.neo4j.core.schema.Relationship;
 @Node
 public class Person {
 
+	private final String name;
+
 	@Id
 	@GeneratedValue(GeneratedValue.UUIDGenerator.class)
 	private String id;
-
-	private final String name;
 
 	@Relationship("KNOWS")
 	private List<Knows> knownLanguages = new ArrayList<>();
@@ -46,18 +46,19 @@ public class Person {
 	}
 
 	public String getId() {
-		return id;
+		return this.id;
 	}
 
 	public String getName() {
-		return name;
+		return this.name;
 	}
 
 	public List<Knows> getKnownLanguages() {
-		return knownLanguages;
+		return this.knownLanguages;
 	}
 
 	public void setKnownLanguages(List<Knows> knownLanguages) {
 		this.knownLanguages = knownLanguages;
 	}
+
 }

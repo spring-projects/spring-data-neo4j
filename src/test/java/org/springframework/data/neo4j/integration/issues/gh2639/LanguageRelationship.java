@@ -25,16 +25,17 @@ import org.springframework.data.neo4j.core.schema.TargetNode;
 @RelationshipProperties
 public class LanguageRelationship {
 
-	@RelationshipId
-	private Long id;
-
 	private final int score;
 
 	@TargetNode
 	private final ProgrammingLanguage language;
 
+	@RelationshipId
+	private Long id;
+
 	public LanguageRelationship(int score, ProgrammingLanguage language) {
 		this.score = score;
 		this.language = language;
 	}
+
 }

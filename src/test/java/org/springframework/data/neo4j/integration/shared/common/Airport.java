@@ -25,8 +25,9 @@ import org.springframework.data.neo4j.core.schema.Node;
 public class Airport {
 
 	@Id
-	String code;  // e.g. "LAX"
-	String name;  // e.g. "Los Angeles"
+	String code; // e.g. "LAX"
+
+	String name; // e.g. "Los Angeles"
 
 	public Airport(String code, String name) {
 		this.code = code;
@@ -34,14 +35,15 @@ public class Airport {
 	}
 
 	public String getCode() {
-		return code;
+		return this.code;
 	}
 
 	public String getName() {
-		return name;
+		return this.name;
 	}
 
 	public void setName(String name) {
 		this.name = name;
 	}
+
 }

@@ -32,4 +32,5 @@ public interface Neo4jTestConfiguration {
 
 		return Configuration.defaultConfig();
 	}
+
 }

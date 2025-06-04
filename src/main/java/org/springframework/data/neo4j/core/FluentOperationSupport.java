@@ -21,6 +21,7 @@ import java.util.Map;
 
 import org.jspecify.annotations.Nullable;
 import org.neo4j.cypherdsl.core.Statement;
+
 import org.springframework.data.neo4j.repository.query.QueryFragmentsAndParameters;
 import org.springframework.util.Assert;
 
@@ -43,19 +44,32 @@ final class FluentOperationSupport implements FluentFindOperation, FluentSaveOpe
 
 		Assert.notNull(domainType, "DomainType must not be null");
 
-		return new ExecutableFindSupport<>(template, domainType, domainType, null, Collections.emptyMap());
+		return new ExecutableFindSupport<>(this.template, domainType, domainType, null, Collections.emptyMap());
+	}
+
+	@Override
+	public <T> ExecutableSave<T> save(Class<T> domainType) {
+
+		Assert.notNull(domainType, "DomainType must not be null");
+
+		return new ExecutableSaveSupport<>(this.template, domainType);
 	}
 
 	private static class ExecutableFindSupport<T>
 			implements ExecutableFind<T>, FindWithProjection<T>, FindWithQuery<T>, TerminatingFind<T> {
 
 		private final Neo4jTemplate template;
+
 		private final Class<?> domainType;
+
 		private final Class<T> returnType;
+
 		@Nullable
 		private final String query;
+
 		@Nullable
 		private final Map<String, Object> parameters;
+
 		@Nullable
 		private final QueryFragmentsAndParameters queryFragmentsAndParameters;
 
@@ -69,7 +83,8 @@ final class FluentOperationSupport implements FluentFindOperation, FluentSaveOpe
 			this.queryFragmentsAndParameters = null;
 		}
 
-		ExecutableFindSupport(Neo4jTemplate template, Class<?> domainType, Class<T> returnType, @Nullable QueryFragmentsAndParameters queryFragmentsAndParameters) {
+		ExecutableFindSupport(Neo4jTemplate template, Class<?> domainType, Class<T> returnType,
+				@Nullable QueryFragmentsAndParameters queryFragmentsAndParameters) {
 			this.template = template;
 			this.domainType = domainType;
 			this.returnType = returnType;
@@ -84,7 +99,7 @@ final class FluentOperationSupport implements FluentFindOperation, FluentSaveOpe
 
 			Assert.notNull(returnType, "ReturnType must not be null");
 
-			return new ExecutableFindSupport<>(template, domainType, returnType, query, parameters);
+			return new ExecutableFindSupport<>(this.template, this.domainType, returnType, this.query, this.parameters);
 		}
 
 		@Override
@@ -92,7 +107,7 @@ final class FluentOperationSupport implements FluentFindOperation, FluentSaveOpe
 		public TerminatingFind<T> matching(String query, Map<String, Object> parameters) {
 
 			Assert.notNull(query, "Query must not be null");
-			return new ExecutableFindSupport<>(template, domainType, returnType, query, parameters);
+			return new ExecutableFindSupport<>(this.template, this.domainType, this.returnType, query, parameters);
 		}
 
 		@Override
@@ -101,18 +116,18 @@ final class FluentOperationSupport implements FluentFindOperation, FluentSaveOpe
 
 			Assert.notNull(queryFragmentsAndParameters, "Query fragments must not be null");
 
-			return new ExecutableFindSupport<>(template, domainType, returnType, queryFragmentsAndParameters);
+			return new ExecutableFindSupport<>(this.template, this.domainType, this.returnType,
+					queryFragmentsAndParameters);
 		}
 
 		@Override
 		public TerminatingFind<T> matching(Statement statement, Map<String, Object> parameter) {
 
-			return matching(template.render(statement), TemplateSupport.mergeParameters(statement, parameter));
+			return matching(this.template.render(statement), TemplateSupport.mergeParameters(statement, parameter));
 		}
 
 		@Override
-		@Nullable
-		public T oneValue() {
+		@Nullable public T oneValue() {
 
 			List<T> result = doFind(TemplateSupport.FetchType.ONE);
 			if (result.isEmpty()) {
@@ -127,21 +142,16 @@ final class FluentOperationSupport implements FluentFindOperation, FluentSaveOpe
 		}
 
 		private List<T> doFind(TemplateSupport.FetchType fetchType) {
-			return template.doFind(query, parameters, domainType, returnType, fetchType, queryFragmentsAndParameters);
+			return this.template.doFind(this.query, this.parameters, this.domainType, this.returnType, fetchType,
+					this.queryFragmentsAndParameters);
 		}
-	}
 
-	@Override
-	public <T> ExecutableSave<T> save(Class<T> domainType) {
-
-		Assert.notNull(domainType, "DomainType must not be null");
-
-		return new ExecutableSaveSupport<>(this.template, domainType);
 	}
 
 	private static class ExecutableSaveSupport<DT> implements ExecutableSave<DT> {
 
 		private final Neo4jTemplate template;
+
 		private final Class<DT> domainType;
 
 		ExecutableSaveSupport(Neo4jTemplate template, Class<DT> domainType) {
@@ -166,7 +176,9 @@ final class FluentOperationSupport implements FluentFindOperation, FluentSaveOpe
 		}
 
 		private <T> List<T> doSave(Iterable<T> instances) {
-			return template.doSave(instances, domainType);
+			return this.template.doSave(instances, this.domainType);
 		}
+
 	}
+
 }

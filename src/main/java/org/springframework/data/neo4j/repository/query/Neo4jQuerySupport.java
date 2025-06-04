@@ -38,6 +38,7 @@ import org.jspecify.annotations.Nullable;
 import org.neo4j.driver.Values;
 import org.neo4j.driver.types.MapAccessor;
 import org.neo4j.driver.types.TypeSystem;
+
 import org.springframework.core.log.LogAccessor;
 import org.springframework.data.convert.EntityWriter;
 import org.springframework.data.domain.KeysetScrollPosition;
@@ -66,8 +67,9 @@ import org.springframework.data.util.TypeInformation;
 import org.springframework.util.Assert;
 
 /**
- * Some conversions used by both reactive and imperative Neo4j queries. While we try to separate reactive and imperative
- * flows, it is cumbersome to repeat those conversions all over the place.
+ * Some conversions used by both reactive and imperative Neo4j queries. While we try to
+ * separate reactive and imperative flows, it is cumbersome to repeat those conversions
+ * all over the place.
  *
  * @author Gerrit Meier
  * @author Michael J. Simons
@@ -76,29 +78,19 @@ import org.springframework.util.Assert;
 abstract class Neo4jQuerySupport {
 
 	protected static final ValueExpressionParser SPEL_EXPRESSION_PARSER = ValueExpressionParser.create();
+	static final LogAccessor REPOSITORY_QUERY_LOG = new LogAccessor(LogFactory.getLog(Neo4jQuerySupport.class));
+
+	private static final Set<Class<?>> VALID_RETURN_TYPES_FOR_DELETE = Collections
+		.unmodifiableSet(new HashSet<>(Arrays.asList(Long.class, long.class, Void.class, void.class)));
 
 	protected final Neo4jMappingContext mappingContext;
+
 	protected final Neo4jQueryMethod queryMethod;
+
 	/**
 	 * The query type.
 	 */
 	protected final Neo4jQueryType queryType;
-	private static final Set<Class<?>> VALID_RETURN_TYPES_FOR_DELETE = Collections.unmodifiableSet(new HashSet<>(
-			Arrays.asList(Long.class, long.class, Void.class, void.class)));
-
-	static final LogAccessor REPOSITORY_QUERY_LOG = new LogAccessor(LogFactory.getLog(Neo4jQuerySupport.class));
-
-	/**
-	 * Centralizes inquiry of the domain type to use the result processor of the query method as the point of truth.
-	 * While this could be exposed on the query method itself, we would risk working with another type if at some point
-	 * we osk the result processor only.
-	 *
-	 * @param queryMethod The query method whose domain type is requested
-	 * @return The domain type of the given query method.
-	 */
-	static Class<?> getDomainType(QueryMethod queryMethod) {
-		return queryMethod.getResultProcessor().getReturnedType().getDomainType();
-	}
 
 	Neo4jQuerySupport(Neo4jMappingContext mappingContext, Neo4jQueryMethod queryMethod, Neo4jQueryType queryType) {
 
@@ -106,47 +98,37 @@ abstract class Neo4jQuerySupport {
 		Assert.notNull(queryMethod, "Query method must not be null");
 		Assert.notNull(queryType, "Query type must not be null");
 		Assert.isTrue(queryType != Neo4jQueryType.DELETE || hasValidReturnTypeForDelete(queryMethod),
-				"A derived delete query can only return the number of deleted nodes as a long or void"
-		);
+				"A derived delete query can only return the number of deleted nodes as a long or void");
 
 		this.mappingContext = mappingContext;
 		this.queryMethod = queryMethod;
 		this.queryType = queryType;
 	}
 
-	protected final Supplier<BiFunction<TypeSystem, MapAccessor, ?>> getMappingFunction(final ResultProcessor resultProcessor, boolean isGeoNearQuery) {
-
-		return () -> {
-			final ReturnedType returnedTypeMetadata = resultProcessor.getReturnedType();
-			final Class<?> returnedType = returnedTypeMetadata.getReturnedType();
-			final Class<?> domainType = returnedTypeMetadata.getDomainType();
-
-			final BiFunction<TypeSystem, MapAccessor, ?> mappingFunction;
-
-			if (mappingContext.getConversionService().isSimpleType(returnedType)) {
-				// Clients automatically selects a single value mapping function.
-				// It will throw an error if the query contains more than one column.
-				mappingFunction = null;
-			} else if (returnedTypeMetadata.isProjecting()) {
-				mappingFunction = EntityInstanceWithSource.decorateMappingFunction(
-					this.mappingContext.getRequiredMappingFunctionFor(domainType));
-			} else if (isGeoNearQuery) {
-				mappingFunction = decorateAsGeoResult(this.mappingContext.getRequiredMappingFunctionFor(domainType));
-			} else {
-				mappingFunction = this.mappingContext.getRequiredMappingFunctionFor(domainType);
-			}
-			return mappingFunction;
-		};
+	/**
+	 * Centralizes inquiry of the domain type to use the result processor of the query
+	 * method as the point of truth. While this could be exposed on the query method
+	 * itself, we would risk working with another type if at some point we osk the result
+	 * processor only.
+	 * @param queryMethod the query method whose domain type is requested
+	 * @return the domain type of the given query method.
+	 */
+	static Class<?> getDomainType(QueryMethod queryMethod) {
+		return queryMethod.getResultProcessor().getReturnedType().getDomainType();
 	}
 
-	public static BiFunction<TypeSystem, MapAccessor, ?> decorateAsGeoResult(BiFunction<TypeSystem, MapAccessor, ?> target) {
+	static BiFunction<TypeSystem, MapAccessor, ?> decorateAsGeoResult(BiFunction<TypeSystem, MapAccessor, ?> target) {
 		return (t, r) -> {
 			Object intermediateResult = target.apply(t, r);
-			var distances = StreamSupport.stream(r.keys().spliterator(), false).filter(k -> k.startsWith("__distance_")).toList();
+			var distances = StreamSupport.stream(r.keys().spliterator(), false)
+				.filter(k -> k.startsWith("__distance_"))
+				.toList();
 			if (distances.isEmpty()) {
 				throw new RuntimeException("No distance has been returned by the query, cannot create `GeoResult`");
-			} else if (distances.size() > 1) {
-				throw new RuntimeException("More than one distance has been returned by the query, cannot create `GeoResult`; avoid using multiple near operations when returning `GeoResult`");
+			}
+			else if (distances.size() > 1) {
+				throw new RuntimeException(
+						"More than one distance has been returned by the query, cannot create `GeoResult`; avoid using multiple near operations when returning `GeoResult`");
 			}
 			var distance = new Distance(r.get(distances.get(0)).asDouble() / 1000.0, Metrics.KILOMETERS);
 			return new GeoResult<>(intermediateResult, distance);
@@ -154,7 +136,8 @@ abstract class Neo4jQuerySupport {
 	}
 
 	private static boolean hasValidReturnTypeForDelete(Neo4jQueryMethod queryMethod) {
-		return VALID_RETURN_TYPES_FOR_DELETE.contains(queryMethod.getResultProcessor().getReturnedType().getReturnedType());
+		return VALID_RETURN_TYPES_FOR_DELETE
+			.contains(queryMethod.getResultProcessor().getReturnedType().getReturnedType());
 	}
 
 	static void logParameterIfNull(String name, @Nullable Object value) {
@@ -164,170 +147,13 @@ abstract class Neo4jQuerySupport {
 		}
 
 		Supplier<CharSequence> messageSupplier = () -> {
-			String pointer = name == null || name.trim().isEmpty() ? "An unknown parameter" : "$" + name;
-			return String.format("%s points to a literal `null` value during a comparison. " +
-							"The comparisons will always resolve to false and probably lead to an empty result.",
+			String pointer = (name == null || name.trim().isEmpty()) ? "An unknown parameter" : "$" + name;
+			return String.format(
+					"%s points to a literal `null` value during a comparison. "
+							+ "The comparisons will always resolve to false and probably lead to an empty result.",
 					pointer);
 		};
 		REPOSITORY_QUERY_LOG.debug(messageSupplier);
-	}
-
-	/**
-	 * Converts parameter as needed by the query generated, which is not covered by standard conversion services.
-	 *
-	 * @param parameter The parameter to fit into the generated query.
-	 * @return A parameter that fits the placeholders of a generated query
-	 */
-	final Object convertParameter(@Nullable Object parameter) {
-		return this.convertParameter(parameter, null);
-	}
-
-	/**
-	 * Converts parameter as needed by the query generated, which is not covered by standard conversion services.
-	 *
-	 * @param parameter The parameter to fit into the generated query.
-	 * @param conversionOverride Passed to the entity converter if present.
-	 * @return A parameter that fits the placeholders of a generated query
-	 */
-	final Object convertParameter(@Nullable Object parameter, @Nullable Neo4jPersistentPropertyConverter<?> conversionOverride) {
-
-		if (parameter == null) {
-			return Values.NULL;
-		} else if (parameter instanceof Range<?> v) {
-			return convertRange(v);
-		} else if (parameter instanceof Distance v) {
-			return calculateDistanceInMeter(v);
-		} else if (parameter instanceof Circle v) {
-			return convertCircle(v);
-		} else if (parameter instanceof Instant v) {
-			return v.atOffset(ZoneOffset.UTC);
-		} else if (parameter instanceof Box v) {
-			return convertBox(v);
-		} else if (parameter instanceof BoundingBox v) {
-			return convertBoundingBox(v);
-		}
-
-		if (parameter instanceof Collection<?> col) {
-			Class<?> type = TemplateSupport.findCommonElementType(col);
-			if (type != null && mappingContext.hasPersistentEntityFor(type)) {
-
-				EntityWriter<Object, Map<String, Object>> objectMapEntityWriter = Neo4jNestedMapEntityWriter
-						.forContext(mappingContext);
-
-				return col.stream().map(v -> {
-					Map<String, Object> result = new HashMap<>();
-					objectMapEntityWriter.write(v, result);
-					return result;
-				}).collect(Collectors.toList());
-			}
-		}
-
-		if (mappingContext.hasPersistentEntityFor(parameter.getClass())) {
-
-			Map<String, Object> result = new HashMap<>();
-			Neo4jNestedMapEntityWriter.forContext(mappingContext).write(parameter, result);
-			return result;
-		}
-
-		if (parameter instanceof Map<?, ?> mapValue) {
-			return mapValue.entrySet().stream()
-					.collect(Collectors.toMap(Map.Entry::getKey, v -> convertParameter(v.getValue(), conversionOverride)));
-		}
-
-		return mappingContext.getConversionService().writeValue(parameter,
-				TypeInformation.of(parameter.getClass()), conversionOverride);
-	}
-
-	static class QueryContext {
-
-		final String repositoryMethodName;
-
-		final String template;
-
-		final Map<String, Object> boundParameters;
-
-		final String query;
-
-		private boolean hasLiteralReplacementForSort = false;
-
-		QueryContext(String repositoryMethodName, String template, Map<String, Object> boundParameters) {
-			this.repositoryMethodName = repositoryMethodName;
-			this.template = template;
-			this.boundParameters = boundParameters;
-
-			String cypherQuery = this.template;
-			Comparator<Map.Entry<String, Object>> byLengthDescending = Comparator.comparing(e -> e.getKey().length());
-			byLengthDescending = byLengthDescending.reversed();
-			List<Map.Entry<String, Object>> entries = this.boundParameters.entrySet()
-					.stream().sorted(byLengthDescending)
-					.toList();
-			for (var entry : entries) {
-				Object value = entry.getValue();
-				if (!(value instanceof Neo4jSpelSupport.LiteralReplacement)) {
-					continue;
-				}
-				this.boundParameters.remove(entry.getKey());
-
-				String key = entry.getKey();
-				cypherQuery = cypherQuery.replace("$" + key, ((Neo4jSpelSupport.LiteralReplacement) value).getValue());
-				this.hasLiteralReplacementForSort =
-						this.hasLiteralReplacementForSort ||
-								((Neo4jSpelSupport.LiteralReplacement) value).getTarget() == Neo4jSpelSupport.LiteralReplacement.Target.SORT;
-			}
-			this.query = cypherQuery;
-		}
-	}
-
-	void logWarningsIfNecessary(QueryContext queryContext, Neo4jParameterAccessor parameterAccessor) {
-
-		// Log warning if necessary
-		if (!(queryContext.hasLiteralReplacementForSort || parameterAccessor.getSort().isUnsorted())) {
-
-			Neo4jQuerySupport.REPOSITORY_QUERY_LOG.warn(() ->
-					String.format(
-							"You passed a sorted request to the custom query for '%s'. SDN won't apply any sort information from that object to the query. "
-							+ "Please specify the order in the query itself and use an unsorted request or use the SpEL extension `:#{orderBy(#sort)}`.",
-							queryContext.repositoryMethodName));
-
-			String fragment = CypherGenerator.INSTANCE.createOrderByFragment(parameterAccessor.getSort());
-			if (fragment != null) {
-				Neo4jQuerySupport.REPOSITORY_QUERY_LOG.warn(() ->
-						String.format(
-								"One possible order clause matching your page request would be the following fragment:%n%s",
-								fragment));
-			}
-		}
-	}
-
-	final Window<?> createWindow(ResultProcessor resultProcessor, boolean incrementLimit, Neo4jParameterAccessor parameterAccessor, List<?> rawResult, QueryFragmentsAndParameters orderBy) {
-
-		var domainType = resultProcessor.getReturnedType().getDomainType();
-		var neo4jPersistentEntity = mappingContext.getRequiredPersistentEntity(domainType);
-		var limit = Objects.requireNonNull(orderBy.getQueryFragments().getLimit(), "Can't create a result window without a size (limit)").intValue() - (incrementLimit ? 1 : 0);
-		var scrollPosition = parameterAccessor.getScrollPosition();
-
-		var scrollDirection = scrollPosition instanceof KeysetScrollPosition keysetScrollPosition ? keysetScrollPosition.getDirection() : Direction.FORWARD;
-		if (scrollDirection == Direction.BACKWARD) {
-			Collections.reverse(rawResult);
-		}
-
-		return Window.from(getSubList(rawResult, limit, scrollDirection), v -> {
-			if (scrollPosition instanceof OffsetScrollPosition offsetScrollPosition) {
-				return offsetScrollPosition.advanceBy(v);
-			} else {
-				var accessor = neo4jPersistentEntity.getPropertyAccessor(rawResult.get(v));
-				var keys = new LinkedHashMap<String, Object>();
-				orderBy.getSort().forEach(o -> {
-					// Storing the graph property name here
-					var persistentProperty = neo4jPersistentEntity.getRequiredPersistentProperty(o.getProperty());
-					keys.put(persistentProperty.getPropertyName(), accessor.getProperty(persistentProperty));
-					// keys.put(persistentProperty.getPropertyName(), conversionService.convert(accessor.getProperty(persistentProperty), Value.class));
-				});
-				keys.put(Constants.NAME_OF_ADDITIONAL_SORT, accessor.getProperty(neo4jPersistentEntity.getRequiredIdProperty()));
-				// keys.put(Constants.NAME_OF_ADDITIONAL_SORT, conversionService.convert(accessor.getProperty(neo4jPersistentEntity.getRequiredIdProperty()), Value.class));
-				return ScrollPosition.forward(keys);
-			}
-		}, hasMoreElements(rawResult, limit));
 	}
 
 	@SuppressWarnings("unchecked")
@@ -342,10 +168,191 @@ abstract class Neo4jQuerySupport {
 	private static <T> List<T> getSubList(List<T> result, int limit, Direction scrollDirection) {
 
 		if (limit > 0 && result.size() > limit) {
-			return scrollDirection == Direction.FORWARD ? result.subList(0, limit) : result.subList(1, limit + 1);
+			return (scrollDirection != Direction.FORWARD) ? result.subList(1, limit + 1) : result.subList(0, limit);
 		}
 
 		return result;
+	}
+
+	private static double calculateDistanceInMeter(Distance distance) {
+
+		if (distance.getMetric() == Metrics.KILOMETERS) {
+			double kilometersDivisor = 0.001d;
+			return distance.getValue() / kilometersDivisor;
+
+		}
+		else if (distance.getMetric() == Metrics.MILES) {
+			double milesDivisor = 0.00062137d;
+			return distance.getValue() / milesDivisor;
+
+		}
+		else {
+			return distance.getValue();
+		}
+	}
+
+	protected final Supplier<BiFunction<TypeSystem, MapAccessor, ?>> getMappingFunction(
+			final ResultProcessor resultProcessor, boolean isGeoNearQuery) {
+
+		return () -> {
+			final ReturnedType returnedTypeMetadata = resultProcessor.getReturnedType();
+			final Class<?> returnedType = returnedTypeMetadata.getReturnedType();
+			final Class<?> domainType = returnedTypeMetadata.getDomainType();
+
+			final BiFunction<TypeSystem, MapAccessor, ?> mappingFunction;
+
+			if (this.mappingContext.getConversionService().isSimpleType(returnedType)) {
+				// Clients automatically selects a single value mapping function.
+				// It will throw an error if the query contains more than one column.
+				mappingFunction = null;
+			}
+			else if (returnedTypeMetadata.isProjecting()) {
+				mappingFunction = EntityInstanceWithSource
+					.decorateMappingFunction(this.mappingContext.getRequiredMappingFunctionFor(domainType));
+			}
+			else if (isGeoNearQuery) {
+				mappingFunction = decorateAsGeoResult(this.mappingContext.getRequiredMappingFunctionFor(domainType));
+			}
+			else {
+				mappingFunction = this.mappingContext.getRequiredMappingFunctionFor(domainType);
+			}
+			return mappingFunction;
+		};
+	}
+
+	/**
+	 * Converts parameter as needed by the query generated, which is not covered by
+	 * standard conversion services.
+	 * @param parameter the parameter to fit into the generated query.
+	 * @return a parameter that fits the placeholders of a generated query
+	 */
+	final Object convertParameter(@Nullable Object parameter) {
+		return this.convertParameter(parameter, null);
+	}
+
+	/**
+	 * Converts parameter as needed by the query generated, which is not covered by
+	 * standard conversion services.
+	 * @param parameter the parameter to fit into the generated query.
+	 * @param conversionOverride passed to the entity converter if present.
+	 * @return a parameter that fits the placeholders of a generated query
+	 */
+	final Object convertParameter(@Nullable Object parameter,
+			@Nullable Neo4jPersistentPropertyConverter<?> conversionOverride) {
+
+		if (parameter == null) {
+			return Values.NULL;
+		}
+		else if (parameter instanceof Range<?> v) {
+			return convertRange(v);
+		}
+		else if (parameter instanceof Distance v) {
+			return calculateDistanceInMeter(v);
+		}
+		else if (parameter instanceof Circle v) {
+			return convertCircle(v);
+		}
+		else if (parameter instanceof Instant v) {
+			return v.atOffset(ZoneOffset.UTC);
+		}
+		else if (parameter instanceof Box v) {
+			return convertBox(v);
+		}
+		else if (parameter instanceof BoundingBox v) {
+			return convertBoundingBox(v);
+		}
+
+		if (parameter instanceof Collection<?> col) {
+			Class<?> type = TemplateSupport.findCommonElementType(col);
+			if (type != null && this.mappingContext.hasPersistentEntityFor(type)) {
+
+				EntityWriter<Object, Map<String, Object>> objectMapEntityWriter = Neo4jNestedMapEntityWriter
+					.forContext(this.mappingContext);
+
+				return col.stream().map(v -> {
+					Map<String, Object> result = new HashMap<>();
+					objectMapEntityWriter.write(v, result);
+					return result;
+				}).collect(Collectors.toList());
+			}
+		}
+
+		if (this.mappingContext.hasPersistentEntityFor(parameter.getClass())) {
+
+			Map<String, Object> result = new HashMap<>();
+			Neo4jNestedMapEntityWriter.forContext(this.mappingContext).write(parameter, result);
+			return result;
+		}
+
+		if (parameter instanceof Map<?, ?> mapValue) {
+			return mapValue.entrySet()
+				.stream()
+				.collect(Collectors.toMap(Map.Entry::getKey, v -> convertParameter(v.getValue(), conversionOverride)));
+		}
+
+		return this.mappingContext.getConversionService()
+			.writeValue(parameter, TypeInformation.of(parameter.getClass()), conversionOverride);
+	}
+
+	void logWarningsIfNecessary(QueryContext queryContext, Neo4jParameterAccessor parameterAccessor) {
+
+		// Log warning if necessary
+		if (!(queryContext.hasLiteralReplacementForSort || parameterAccessor.getSort().isUnsorted())) {
+
+			Neo4jQuerySupport.REPOSITORY_QUERY_LOG.warn(() -> String.format(
+					"You passed a sorted request to the custom query for '%s'. SDN won't apply any sort information from that object to the query. "
+							+ "Please specify the order in the query itself and use an unsorted request or use the SpEL extension `:#{orderBy(#sort)}`.",
+					queryContext.repositoryMethodName));
+
+			String fragment = CypherGenerator.INSTANCE.createOrderByFragment(parameterAccessor.getSort());
+			if (fragment != null) {
+				Neo4jQuerySupport.REPOSITORY_QUERY_LOG.warn(() -> String.format(
+						"One possible order clause matching your page request would be the following fragment:%n%s",
+						fragment));
+			}
+		}
+	}
+
+	final Window<?> createWindow(ResultProcessor resultProcessor, boolean incrementLimit,
+			Neo4jParameterAccessor parameterAccessor, List<?> rawResult, QueryFragmentsAndParameters orderBy) {
+
+		var domainType = resultProcessor.getReturnedType().getDomainType();
+		var neo4jPersistentEntity = this.mappingContext.getRequiredPersistentEntity(domainType);
+		var limit = Objects
+			.requireNonNull(orderBy.getQueryFragments().getLimit(),
+					"Can't create a result window without a size (limit)")
+			.intValue() - (incrementLimit ? 1 : 0);
+		var scrollPosition = parameterAccessor.getScrollPosition();
+
+		var scrollDirection = (scrollPosition instanceof KeysetScrollPosition keysetScrollPosition)
+				? keysetScrollPosition.getDirection() : Direction.FORWARD;
+		if (scrollDirection == Direction.BACKWARD) {
+			Collections.reverse(rawResult);
+		}
+
+		return Window.from(getSubList(rawResult, limit, scrollDirection), v -> {
+			if (scrollPosition instanceof OffsetScrollPosition offsetScrollPosition) {
+				return offsetScrollPosition.advanceBy(v);
+			}
+			else {
+				var accessor = neo4jPersistentEntity.getPropertyAccessor(rawResult.get(v));
+				var keys = new LinkedHashMap<String, Object>();
+				orderBy.getSort().forEach(o -> {
+					// Storing the graph property name here
+					var persistentProperty = neo4jPersistentEntity.getRequiredPersistentProperty(o.getProperty());
+					keys.put(persistentProperty.getPropertyName(), accessor.getProperty(persistentProperty));
+					// keys.put(persistentProperty.getPropertyName(),
+					// conversionService.convert(accessor.getProperty(persistentProperty),
+					// Value.class));
+				});
+				keys.put(Constants.NAME_OF_ADDITIONAL_SORT,
+						accessor.getProperty(neo4jPersistentEntity.getRequiredIdProperty()));
+				// keys.put(Constants.NAME_OF_ADDITIONAL_SORT,
+				// conversionService.convert(accessor.getProperty(neo4jPersistentEntity.getRequiredIdProperty()),
+				// Value.class));
+				return ScrollPosition.forward(keys);
+			}
+		}, hasMoreElements(rawResult, limit));
 	}
 
 	private Map<String, Object> convertRange(Range<?> range) {
@@ -381,18 +388,46 @@ abstract class Neo4jQuerySupport {
 		return map;
 	}
 
-	private static double calculateDistanceInMeter(Distance distance) {
+	static class QueryContext {
 
-		if (distance.getMetric() == Metrics.KILOMETERS) {
-			double kilometersDivisor = 0.001d;
-			return distance.getValue() / kilometersDivisor;
+		final String repositoryMethodName;
 
-		} else if (distance.getMetric() == Metrics.MILES) {
-			double milesDivisor = 0.00062137d;
-			return distance.getValue() / milesDivisor;
+		final String template;
 
-		} else {
-			return distance.getValue();
+		final Map<String, Object> boundParameters;
+
+		final String query;
+
+		private boolean hasLiteralReplacementForSort = false;
+
+		QueryContext(String repositoryMethodName, String template, Map<String, Object> boundParameters) {
+			this.repositoryMethodName = repositoryMethodName;
+			this.template = template;
+			this.boundParameters = boundParameters;
+
+			String cypherQuery = this.template;
+			Comparator<Map.Entry<String, Object>> byLengthDescending = Comparator.comparing(e -> e.getKey().length());
+			byLengthDescending = byLengthDescending.reversed();
+			List<Map.Entry<String, Object>> entries = this.boundParameters.entrySet()
+				.stream()
+				.sorted(byLengthDescending)
+				.toList();
+			for (var entry : entries) {
+				Object value = entry.getValue();
+				if (!(value instanceof Neo4jSpelSupport.LiteralReplacement)) {
+					continue;
+				}
+				this.boundParameters.remove(entry.getKey());
+
+				String key = entry.getKey();
+				cypherQuery = cypherQuery.replace("$" + key, ((Neo4jSpelSupport.LiteralReplacement) value).getValue());
+				this.hasLiteralReplacementForSort = this.hasLiteralReplacementForSort
+						|| ((Neo4jSpelSupport.LiteralReplacement) value)
+							.getTarget() == Neo4jSpelSupport.LiteralReplacement.Target.SORT;
+			}
+			this.query = cypherQuery;
 		}
+
 	}
+
 }

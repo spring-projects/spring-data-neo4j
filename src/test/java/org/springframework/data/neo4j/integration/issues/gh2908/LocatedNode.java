@@ -16,24 +16,26 @@
 package org.springframework.data.neo4j.integration.issues.gh2908;
 
 import org.neo4j.driver.types.Point;
+
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
 
 /**
  * A located node without circles.
+ *
  * @author Michael J. Simons
  */
 @Node
 public class LocatedNode implements HasNameAndPlace {
 
-	@Id
-	@GeneratedValue
-	private String id;
-
 	private final String name;
 
 	private final Point place;
+
+	@Id
+	@GeneratedValue
+	private String id;
 
 	public LocatedNode(String name, Point place) {
 		this.name = name;
@@ -41,16 +43,17 @@ public class LocatedNode implements HasNameAndPlace {
 	}
 
 	public String getId() {
-		return id;
+		return this.id;
 	}
 
 	@Override
 	public String getName() {
-		return name;
+		return this.name;
 	}
 
 	@Override
 	public Point getPlace() {
-		return place;
+		return this.place;
 	}
+
 }

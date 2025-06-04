@@ -33,4 +33,5 @@ public class BugTargetContainer extends BugTargetBase {
 	public BugTargetContainer(String name) {
 		super(name);
 	}
+
 }

@@ -15,9 +15,9 @@
  */
 package org.springframework.data.neo4j.integration.issues.gh2328;
 
-import reactor.core.publisher.Mono;
-
 import java.util.UUID;
+
+import reactor.core.publisher.Mono;
 
 import org.springframework.data.neo4j.repository.ReactiveNeo4jRepository;
 
@@ -28,7 +28,9 @@ public interface ReactiveEntity2328Repository extends ReactiveNeo4jRepository<En
 
 	// Without a custom query, repository creation would fail with
 	// Could not create query for
-	// public abstract org.springframework.data.neo4j.integration.issues.gh2328.SomeEntity org.springframework.data.neo4j.integration.issues.gh2328.GH2328IT$SomeRepository.getSomeEntityViaNamedQuery()!
+	// public abstract org.springframework.data.neo4j.integration.issues.gh2328.SomeEntity
+	// org.springframework.data.neo4j.integration.issues.gh2328.GH2328IT$SomeRepository.getSomeEntityViaNamedQuery()!
 	// Reason: No property getSomeEntityViaNamedQuery found for type SomeEntity!;
 	Mono<Entity2328> getSomeEntityViaNamedQuery();
+
 }

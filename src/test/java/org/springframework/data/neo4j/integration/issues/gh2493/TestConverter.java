@@ -19,6 +19,7 @@ import java.util.Map;
 
 import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
+
 import org.springframework.data.neo4j.core.convert.Neo4jConversionService;
 import org.springframework.data.neo4j.core.convert.Neo4jPersistentPropertyToMapConverter;
 
@@ -31,8 +32,7 @@ public class TestConverter implements Neo4jPersistentPropertyToMapConverter<Stri
 	static final String STRING = "String";
 
 	@Override
-	public Map<String, Value> decompose(TestData property,
-										Neo4jConversionService neo4jConversionService) {
+	public Map<String, Value> decompose(TestData property, Neo4jConversionService neo4jConversionService) {
 
 		if (property == null) {
 			return Map.of();
@@ -42,8 +42,7 @@ public class TestConverter implements Neo4jPersistentPropertyToMapConverter<Stri
 	}
 
 	@Override
-	public TestData compose(Map<String, Value> source,
-							Neo4jConversionService neo4jConversionService) {
+	public TestData compose(Map<String, Value> source, Neo4jConversionService neo4jConversionService) {
 		TestData data = new TestData();
 		if (source.get(NUM) != null) {
 			data.setNum(source.get(NUM).asInt());
@@ -53,4 +52,5 @@ public class TestConverter implements Neo4jPersistentPropertyToMapConverter<Stri
 		}
 		return data;
 	}
+
 }

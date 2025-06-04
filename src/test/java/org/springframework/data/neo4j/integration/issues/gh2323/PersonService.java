@@ -36,39 +36,42 @@ public class PersonService {
 
 	public Person updateRel(String from, List<String> languageNames) {
 
-		List<Knows> knownLanguages = languageNames.stream().map(Language::new)
-				.map(language -> new Knows("Some description", language))
-				.collect(Collectors.toList());
-		return personRepository.updateRel(from, knownLanguages);
+		List<Knows> knownLanguages = languageNames.stream()
+			.map(Language::new)
+			.map(language -> new Knows("Some description", language))
+			.collect(Collectors.toList());
+		return this.personRepository.updateRel(from, knownLanguages);
 	}
 
 	public Optional<Person> updateRel2(String id, List<String> languageNames) {
 
-		Optional<Person> original = personRepository.findById(id);
+		Optional<Person> original = this.personRepository.findById(id);
 		if (original.isPresent()) {
 			Person person = original.get();
-			List<Knows> knownLanguages = languageNames.stream().map(Language::new)
-					.map(language -> new Knows("Some description", language))
-					.collect(Collectors.toList());
+			List<Knows> knownLanguages = languageNames.stream()
+				.map(Language::new)
+				.map(language -> new Knows("Some description", language))
+				.collect(Collectors.toList());
 			person.setKnownLanguages(knownLanguages);
-			return Optional.of(personRepository.updateRel2(person));
+			return Optional.of(this.personRepository.updateRel2(person));
 		}
 
 		return original;
 	}
 
 	public Optional<Person> updateRel3(String id) {
-		Optional<Person> original = personRepository.findById(id);
+		Optional<Person> original = this.personRepository.findById(id);
 		if (original.isPresent()) {
 			Person person = original.get();
 			person.setKnownLanguages(List.of(new Knows("Whatever", new Language("German"))));
-			return Optional.of(personRepository.updateRelWith11(person));
+			return Optional.of(this.personRepository.updateRelWith11(person));
 		}
 
 		return original;
 	}
 
 	public Person queryWithMapOfRelationship(String key, Knows knows) {
-		return personRepository.queryWithMapOfRelationship(Map.of(key, List.of(knows)));
+		return this.personRepository.queryWithMapOfRelationship(Map.of(key, List.of(knows)));
 	}
+
 }

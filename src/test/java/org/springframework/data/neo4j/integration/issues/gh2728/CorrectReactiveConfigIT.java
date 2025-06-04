@@ -30,9 +30,12 @@ public class CorrectReactiveConfigIT extends AbstractReactiveTestBase {
 	@EnableTransactionManagement
 	@EnableReactiveNeo4jRepositories(considerNestedRepositories = true)
 	static class Config extends AbstractReactiveTestBase.Config {
+
 		@Override
 		public boolean isCypher5Compatible() {
 			return AbstractReactiveTestBase.neo4jConnectionSupport.isCypher5SyntaxCompatible();
 		}
+
 	}
+
 }

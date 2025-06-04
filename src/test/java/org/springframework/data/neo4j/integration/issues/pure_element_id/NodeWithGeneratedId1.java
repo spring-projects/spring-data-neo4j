@@ -35,19 +35,20 @@ public class NodeWithGeneratedId1 {
 		this.value = value;
 	}
 
+	public String getId() {
+		return this.id;
+	}
+
 	public void setId(String id) {
 		this.id = id;
 	}
 
-	public String getId() {
-		return id;
-	}
-
 	public String getValue() {
-		return value;
+		return this.value;
 	}
 
 	public void setValue(String value) {
 		this.value = value;
 	}
+
 }

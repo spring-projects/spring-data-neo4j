@@ -15,8 +15,6 @@
  */
 package org.springframework.data.neo4j.integration.shared.common;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.time.LocalDateTime;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -26,9 +24,12 @@ import org.neo4j.driver.Transaction;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
 import org.neo4j.driver.types.Node;
+
 import org.springframework.data.neo4j.test.BookmarkCapture;
 import org.springframework.data.neo4j.test.Neo4jExtension;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Shared information for both imperative and reactive auditing tests.
@@ -37,18 +38,23 @@ import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
  */
 @Neo4jIntegrationTest
 public abstract class AuditingITBase {
-	protected static Neo4jExtension.Neo4jConnectionSupport neo4jConnectionSupport;
+
+	public static final LocalDateTime DEFAULT_CREATION_AND_MODIFICATION_DATE = LocalDateTime.of(2018, 7, 1, 8, 0);
 
 	protected static final String EXISTING_THING_NAME = "An old name";
+
 	protected static final String EXISTING_THING_CREATED_BY = "The creator";
+
 	protected static final LocalDateTime EXISTING_THING_CREATED_AT = LocalDateTime.of(2013, 5, 6, 8, 0);
-	public static final LocalDateTime DEFAULT_CREATION_AND_MODIFICATION_DATE = LocalDateTime.of(2018, 7, 1, 8, 0);
+
+	protected static Neo4jExtension.Neo4jConnectionSupport neo4jConnectionSupport;
 
 	private final Driver driver;
 
 	private final BookmarkCapture bookmarkCapture;
 
 	protected Long idOfExistingThing;
+
 	protected String idOfExistingThingWithGeneratedId = "somethingUnique";
 
 	protected AuditingITBase(Driver driver, BookmarkCapture bookmarkCapture) {
@@ -58,32 +64,36 @@ public abstract class AuditingITBase {
 
 	@BeforeEach
 	protected void setupData() {
-		try (Session session = driver.session(bookmarkCapture.createSessionConfig());
-			 Transaction transaction = session.beginTransaction()) {
+		try (Session session = this.driver.session(this.bookmarkCapture.createSessionConfig());
+				Transaction transaction = session.beginTransaction()) {
 			transaction.run("MATCH (n) detach delete n");
 
-			idOfExistingThing = transaction.run(
-							"CREATE (t:ImmutableAuditableThing {name: $name, createdBy: $createdBy, createdAt: $createdAt}) RETURN id(t) as id",
-							Values.parameters("name", EXISTING_THING_NAME, "createdBy", EXISTING_THING_CREATED_BY, "createdAt",
-									EXISTING_THING_CREATED_AT))
-					.single().get("id").asLong();
+			this.idOfExistingThing = transaction.run(
+					"CREATE (t:ImmutableAuditableThing {name: $name, createdBy: $createdBy, createdAt: $createdAt}) RETURN id(t) as id",
+					Values.parameters("name", EXISTING_THING_NAME, "createdBy", EXISTING_THING_CREATED_BY, "createdAt",
+							EXISTING_THING_CREATED_AT))
+				.single()
+				.get("id")
+				.asLong();
 
 			transaction.run(
 					"CREATE (t:ImmutableAuditableThingWithGeneratedId {name: $name, createdBy: $createdBy, createdAt: $createdAt, id: $id}) RETURN t.id as id",
 					Values.parameters("name", EXISTING_THING_NAME, "createdBy", EXISTING_THING_CREATED_BY, "createdAt",
-							EXISTING_THING_CREATED_AT, "id", idOfExistingThingWithGeneratedId));
+							EXISTING_THING_CREATED_AT, "id", this.idOfExistingThingWithGeneratedId));
 
 			transaction.commit();
-			bookmarkCapture.seedWith(session.lastBookmarks());
+			this.bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 	}
 
 	protected void verifyDatabase(long id, ImmutableAuditableThing expectedValues) {
 
-		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
+		try (Session session = this.driver.session(this.bookmarkCapture.createSessionConfig())) {
 			Node node = session
-					.run("MATCH (t:ImmutableAuditableThing) WHERE id(t) = $id RETURN t", Values.parameters("id", id)).single()
-					.get("t").asNode();
+				.run("MATCH (t:ImmutableAuditableThing) WHERE id(t) = $id RETURN t", Values.parameters("id", id))
+				.single()
+				.get("t")
+				.asNode();
 
 			assertDataMatch(expectedValues, node);
 		}
@@ -91,9 +101,13 @@ public abstract class AuditingITBase {
 
 	protected void verifyDatabase(String id, ImmutableAuditableThingWithGeneratedId expectedValues) {
 
-		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
-			Node node = session.run("MATCH (t:ImmutableAuditableThingWithGeneratedId) WHERE t.id = $id RETURN t",
-					Values.parameters("id", id)).single().get("t").asNode();
+		try (Session session = this.driver.session(this.bookmarkCapture.createSessionConfig())) {
+			Node node = session
+				.run("MATCH (t:ImmutableAuditableThingWithGeneratedId) WHERE t.id = $id RETURN t",
+						Values.parameters("id", id))
+				.single()
+				.get("t")
+				.asNode();
 
 			assertDataMatch(expectedValues, node);
 		}
@@ -103,7 +117,8 @@ public abstract class AuditingITBase {
 		assertThat(node.get("name").asString()).isEqualTo(expectedValues.getName());
 		if (expectedValues.getCreatedAt() == null) {
 			assertThat(node.get("createdAt").isNull()).isTrue();
-		} else {
+		}
+		else {
 			assertThat(node.get("createdAt").asLocalDateTime()).isEqualTo(expectedValues.getCreatedAt());
 		}
 		assertThat(node.get("createdBy").asString()).isEqualTo(expectedValues.getCreatedBy());
@@ -113,14 +128,17 @@ public abstract class AuditingITBase {
 
 		if (expectedValues.getModifiedAt() == null) {
 			assertThat(modifiedAt.isNull()).isTrue();
-		} else {
+		}
+		else {
 			assertThat(modifiedAt.asLocalDateTime()).isEqualTo(expectedValues.getModifiedAt());
 		}
 
 		if (expectedValues.getModifiedBy() == null) {
 			assertThat(modifiedBy.isNull()).isTrue();
-		} else {
+		}
+		else {
 			assertThat(modifiedBy.asString()).isEqualTo(expectedValues.getModifiedBy());
 		}
 	}
+
 }

@@ -15,11 +15,6 @@
  */
 package org.springframework.data.neo4j.integration.bookmarks.imperative;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -31,6 +26,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.SessionConfig;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -49,6 +45,11 @@ import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+
 /**
  * @author Michael J. Simons
  */
@@ -56,6 +57,34 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 public class NoopBookmarkmanagerIT {
 
 	protected static Neo4jExtension.Neo4jConnectionSupport neo4jConnectionSupport;
+
+	@Test
+	void mustNotUseBookmarks(@Autowired PersonService personService, @Autowired Driver driver)
+			throws ExecutionException, InterruptedException {
+
+		var movies = personService.getMoviesByActorNameLike("Bill");
+		assertThat(movies).hasSize(5);
+		var sessionConfigCaptor = ArgumentCaptor.forClass(SessionConfig.class);
+		verify(driver, times(5)).session(any(), sessionConfigCaptor.capture());
+		assertThat(sessionConfigCaptor.getAllValues()).allMatch(cfg -> {
+			var bookmarks = new ArrayList<>();
+			if (cfg.bookmarks() != null) {
+				cfg.bookmarks().forEach(bookmarks::add);
+			}
+			return bookmarks.isEmpty();
+		});
+	}
+
+	interface PersonRepository extends Neo4jRepository<Person, String> {
+
+		@Async
+		@Query("MATCH (p:Person) WHERE p.name =~ (('.*' + $name) + '.*') RETURN p.name")
+		CompletableFuture<List<String>> findMatchingNames(String name);
+
+		@Query("MATCH (m:Movie)<-[:ACTED_IN]-(p:Person) WHERE p.name= $name return m.title")
+		CompletableFuture<List<String>> getPersonMovies(String name);
+
+	}
 
 	@Configuration
 	@EnableNeo4jRepositories(considerNestedRepositories = true)
@@ -70,6 +99,7 @@ public class NoopBookmarkmanagerIT {
 		}
 
 		@Bean
+		@Override
 		public Driver driver() {
 			var driver = neo4jConnectionSupport.getDriver();
 			return Mockito.spy(driver);
@@ -84,55 +114,33 @@ public class NoopBookmarkmanagerIT {
 		public boolean isCypher5Compatible() {
 			return neo4jConnectionSupport.isCypher5SyntaxCompatible();
 		}
-	}
 
-	@Test
-	void mustNotUseBookmarks(@Autowired PersonService personService, @Autowired Driver driver) throws ExecutionException, InterruptedException {
-
-		var movies = personService.getMoviesByActorNameLike("Bill");
-		assertThat(movies).hasSize(5);
-		var sessionConfigCaptor = ArgumentCaptor.forClass(SessionConfig.class);
-		verify(driver, times(5)).session(any(), sessionConfigCaptor.capture());
-		assertThat(sessionConfigCaptor.getAllValues())
-				.allMatch(cfg -> {
-					var bookmarks = new ArrayList<>();
-					if (cfg.bookmarks() != null) {
-						cfg.bookmarks().forEach(bookmarks::add);
-					}
-					return bookmarks.isEmpty();
-				});
-	}
-
-	interface PersonRepository extends Neo4jRepository<Person, String> {
-
-		@Async
-		@Query("MATCH (p:Person) WHERE p.name =~ (('.*' + $name) + '.*') RETURN p.name")
-		CompletableFuture<List<String>> findMatchingNames(String name);
-
-		@Query("MATCH (m:Movie)<-[:ACTED_IN]-(p:Person) WHERE p.name= $name return m.title")
-		CompletableFuture<List<String>> getPersonMovies(String name);
 	}
 
 	@Service
 	static class PersonService {
+
 		private final PersonRepository personRepository;
 
 		PersonService(PersonRepository personRepository) {
 			this.personRepository = personRepository;
 		}
 
-		public List<String> getMoviesByActorNameLike(String namePattern) throws ExecutionException, InterruptedException {
+		List<String> getMoviesByActorNameLike(String namePattern) throws ExecutionException, InterruptedException {
 
-			CompletableFuture<List<String>> completableFutureCompletableFuture = personRepository.findMatchingNames(namePattern)
-					.thenCompose(names -> {
-						List<String> result = Collections.synchronizedList(new ArrayList<String>());
-						var futures = names.stream().map(personRepository::getPersonMovies)
-								.map(cf -> cf.thenAccept(result::addAll))
-								.toArray(CompletableFuture[]::new);
-						return CompletableFuture.allOf(futures)
-								.thenApply(__ -> result);
-					});
+			CompletableFuture<List<String>> completableFutureCompletableFuture = this.personRepository
+				.findMatchingNames(namePattern)
+				.thenCompose(names -> {
+					List<String> result = Collections.synchronizedList(new ArrayList<String>());
+					var futures = names.stream()
+						.map(this.personRepository::getPersonMovies)
+						.map(cf -> cf.thenAccept(result::addAll))
+						.toArray(CompletableFuture[]::new);
+					return CompletableFuture.allOf(futures).thenApply(__ -> result);
+				});
 			return completableFutureCompletableFuture.get();
 		}
+
 	}
+
 }

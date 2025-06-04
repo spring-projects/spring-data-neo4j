@@ -35,4 +35,5 @@ import org.apiguardian.api.API;
 @Query(exists = true)
 @API(status = API.Status.STABLE, since = "6.0")
 public @interface ExistsQuery {
+
 }

@@ -31,10 +31,10 @@ public class VersionedThingWithAssignedId {
 	@Id
 	private final Long id;
 
+	private final String name;
+
 	@Version
 	private Long myVersion;
-
-	private final String name;
 
 	@Relationship("HAS")
 	private List<VersionedThingWithAssignedId> otherVersionedThings;
@@ -45,7 +45,7 @@ public class VersionedThingWithAssignedId {
 	}
 
 	public Long getMyVersion() {
-		return myVersion;
+		return this.myVersion;
 	}
 
 	public void setMyVersion(Long myVersion) {
@@ -53,10 +53,11 @@ public class VersionedThingWithAssignedId {
 	}
 
 	public List<VersionedThingWithAssignedId> getOtherVersionedThings() {
-		return otherVersionedThings;
+		return this.otherVersionedThings;
 	}
 
 	public void setOtherVersionedThings(List<VersionedThingWithAssignedId> otherVersionedThings) {
 		this.otherVersionedThings = otherVersionedThings;
 	}
+
 }

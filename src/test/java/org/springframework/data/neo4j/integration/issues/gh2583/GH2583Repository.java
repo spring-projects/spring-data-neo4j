@@ -25,10 +25,9 @@ import org.springframework.data.neo4j.repository.query.Query;
  */
 public interface GH2583Repository extends Neo4jRepository<GH2583Node, Long> {
 
-	@Query(value = "MATCH (s:GH2583Node) " +
-			"WITH s OPTIONAL MATCH (s)-[r:LINKED]->(t:GH2583Node) " +
-			"RETURN s, collect(r), collect(t) " +
-			":#{orderBy(#pageable)} SKIP $skip LIMIT $limit",
+	@Query(value = "MATCH (s:GH2583Node) " + "WITH s OPTIONAL MATCH (s)-[r:LINKED]->(t:GH2583Node) "
+			+ "RETURN s, collect(r), collect(t) " + ":#{orderBy(#pageable)} SKIP $skip LIMIT $limit",
 			countQuery = "MATCH (s:hktxjm) RETURN count(s)")
 	Page<GH2583Node> getNodesByCustomQuery(Pageable pageable);
+
 }

@@ -42,35 +42,38 @@ public class PersonWithNoConstructor {
 		return this.id;
 	}
 
-	public String getName() {
-		return this.name;
-	}
-
-	public String getFirstName() {
-		return this.firstName;
-	}
-
-	public String getMiddleName() {
-		return this.middleName;
-	}
-
 	public void setId(Long id) {
 		this.id = id;
+	}
+
+	public String getName() {
+		return this.name;
 	}
 
 	public void setName(String name) {
 		this.name = name;
 	}
 
+	public String getFirstName() {
+		return this.firstName;
+	}
+
 	public void setFirstName(String firstName) {
 		this.firstName = firstName;
+	}
+
+	public String getMiddleName() {
+		return this.middleName;
 	}
 
 	public void setMiddleName(String middleName) {
 		this.middleName = middleName;
 	}
 
+	@Override
 	public String toString() {
-		return "PersonWithNoConstructor(id=" + this.getId() + ", name=" + this.getName() + ", firstName=" + this.getFirstName() + ", middleName=" + this.getMiddleName() + ")";
+		return "PersonWithNoConstructor(id=" + this.getId() + ", name=" + this.getName() + ", firstName="
+				+ this.getFirstName() + ", middleName=" + this.getMiddleName() + ")";
 	}
+
 }

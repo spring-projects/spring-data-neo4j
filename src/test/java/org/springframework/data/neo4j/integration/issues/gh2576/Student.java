@@ -41,11 +41,11 @@ public class Student {
 	}
 
 	public String getGuid() {
-		return guid;
+		return this.guid;
 	}
 
 	public String getName() {
-		return name;
+		return this.name;
 	}
 
 	public void setName(String name) {
@@ -53,10 +53,11 @@ public class Student {
 	}
 
 	public College getCollege() {
-		return college;
+		return this.college;
 	}
 
 	public void setCollege(College college) {
 		this.college = college;
 	}
+
 }

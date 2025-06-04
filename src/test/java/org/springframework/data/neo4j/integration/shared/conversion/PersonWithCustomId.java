@@ -15,15 +15,17 @@
  */
 package org.springframework.data.neo4j.integration.shared.conversion;
 
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
+
 import org.neo4j.driver.Values;
+
 import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.core.convert.converter.GenericConverter;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
-
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * @author Rosetta Roberts
@@ -31,6 +33,11 @@ import java.util.Set;
  */
 @Node
 public final class PersonWithCustomId {
+
+	@Id
+	private final PersonId id;
+
+	private final String name;
 
 	public PersonWithCustomId(PersonId id, String name) {
 		this.id = id;
@@ -45,6 +52,7 @@ public final class PersonWithCustomId {
 		return this.name;
 	}
 
+	@Override
 	public boolean equals(final Object o) {
 		if (o == this) {
 			return true;
@@ -55,27 +63,26 @@ public final class PersonWithCustomId {
 		final PersonWithCustomId other = (PersonWithCustomId) o;
 		final Object this$id = this.getId();
 		final Object other$id = other.getId();
-		if (this$id == null ? other$id != null : !this$id.equals(other$id)) {
+		if (!Objects.equals(this$id, other$id)) {
 			return false;
 		}
 		final Object this$name = this.getName();
 		final Object other$name = other.getName();
-		if (this$name == null ? other$name != null : !this$name.equals(other$name)) {
-			return false;
-		}
-		return true;
+		return Objects.equals(this$name, other$name);
 	}
 
+	@Override
 	public int hashCode() {
 		final int PRIME = 59;
 		int result = 1;
 		final Object $id = this.getId();
-		result = result * PRIME + ($id == null ? 43 : $id.hashCode());
+		result = (result * PRIME) + (($id != null) ? $id.hashCode() : 43);
 		final Object $name = this.getName();
-		result = result * PRIME + ($name == null ? 43 : $name.hashCode());
+		result = (result * PRIME) + (($name != null) ? $name.hashCode() : 43);
 		return result;
 	}
 
+	@Override
 	public String toString() {
 		return "PersonWithCustomId(id=" + this.getId() + ", name=" + this.getName() + ")";
 	}
@@ -98,6 +105,7 @@ public final class PersonWithCustomId {
 			return this.id;
 		}
 
+		@Override
 		public boolean equals(final Object o) {
 			if (o == this) {
 				return true;
@@ -108,36 +116,35 @@ public final class PersonWithCustomId {
 			final PersonId other = (PersonId) o;
 			final Object this$id = this.getId();
 			final Object other$id = other.getId();
-			if (this$id == null ? other$id != null : !this$id.equals(other$id)) {
-				return false;
-			}
-			return true;
+			return Objects.equals(this$id, other$id);
 		}
 
+		@Override
 		public int hashCode() {
 			final int PRIME = 59;
 			int result = 1;
 			final Object $id = this.getId();
-			result = result * PRIME + ($id == null ? 43 : $id.hashCode());
+			result = (result * PRIME) + (($id != null) ? $id.hashCode() : 43);
 			return result;
 		}
 
+		@Override
 		public String toString() {
 			return "PersonWithCustomId.PersonId(id=" + this.getId() + ")";
 		}
+
 	}
 
 	/**
-	 * Converted needed to deal with the above custom type. Without that converter, an association would be assumed.
+	 * Converted needed to deal with the above custom type. Without that converter, an
+	 * association would be assumed.
 	 */
 	public static class CustomPersonIdConverter implements GenericConverter {
 
 		@Override
 		public Set<ConvertiblePair> getConvertibleTypes() {
-			return new HashSet<>(Arrays.asList(
-					new ConvertiblePair(PersonId.class, org.neo4j.driver.Value.class),
-					new ConvertiblePair(org.neo4j.driver.Value.class, PersonId.class)
-			));
+			return new HashSet<>(Arrays.asList(new ConvertiblePair(PersonId.class, org.neo4j.driver.Value.class),
+					new ConvertiblePair(org.neo4j.driver.Value.class, PersonId.class)));
 		}
 
 		@Override
@@ -148,14 +155,12 @@ public final class PersonWithCustomId {
 
 			if (PersonId.class.isAssignableFrom(type1.getType())) {
 				return Values.value(((PersonId) o).getId());
-			} else {
+			}
+			else {
 				return new PersonId(((org.neo4j.driver.Value) o).asLong());
 			}
 		}
+
 	}
 
-	@Id
-	private final PersonId id;
-
-	private final String name;
 }

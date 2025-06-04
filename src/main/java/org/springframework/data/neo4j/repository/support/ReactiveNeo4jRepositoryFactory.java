@@ -19,6 +19,7 @@ import java.util.Optional;
 
 import org.jspecify.annotations.Nullable;
 import org.neo4j.cypherdsl.core.renderer.Configuration;
+
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.ListableBeanFactory;
@@ -26,10 +27,10 @@ import org.springframework.data.neo4j.core.ReactiveNeo4jOperations;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.repository.ReactiveNeo4jRepository;
+import org.springframework.data.neo4j.repository.query.ReactiveCypherdslConditionExecutorImpl;
 import org.springframework.data.neo4j.repository.query.ReactiveNeo4jQueryLookupStrategy;
 import org.springframework.data.neo4j.repository.query.ReactiveQuerydslNeo4jPredicateExecutor;
 import org.springframework.data.neo4j.repository.query.SimpleReactiveQueryByExampleExecutor;
-import org.springframework.data.neo4j.repository.query.ReactiveCypherdslConditionExecutorImpl;
 import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
 import org.springframework.data.querydsl.QuerydslUtils;
@@ -68,7 +69,7 @@ final class ReactiveNeo4jRepositoryFactory extends ReactiveRepositoryFactorySupp
 	@Override
 	public Neo4jEntityInformation<?, ?> getEntityInformation(RepositoryMetadata metadata) {
 
-		Neo4jPersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(metadata.getDomainType());
+		Neo4jPersistentEntity<?> entity = this.mappingContext.getRequiredPersistentEntity(metadata.getDomainType());
 		return new DefaultNeo4jEntityInformation<>(entity);
 	}
 
@@ -77,7 +78,7 @@ final class ReactiveNeo4jRepositoryFactory extends ReactiveRepositoryFactorySupp
 
 		Neo4jEntityInformation<?, ?> entityInformation = getEntityInformation(metadata);
 		Neo4jRepositoryFactorySupport.assertIdentifierType(metadata.getIdType(), entityInformation.getIdType());
-		return getTargetRepositoryViaReflection(metadata, neo4jOperations, entityInformation);
+		return getTargetRepositoryViaReflection(metadata, this.neo4jOperations, entityInformation);
 	}
 
 	@Override
@@ -86,30 +87,34 @@ final class ReactiveNeo4jRepositoryFactory extends ReactiveRepositoryFactorySupp
 		RepositoryFragments fragments = RepositoryFragments.empty();
 
 		SimpleReactiveQueryByExampleExecutor<?> byExampleExecutor = instantiateClass(
-				SimpleReactiveQueryByExampleExecutor.class, neo4jOperations, mappingContext);
+				SimpleReactiveQueryByExampleExecutor.class, this.neo4jOperations, this.mappingContext);
 
 		fragments = fragments.append(RepositoryFragment.implemented(byExampleExecutor));
 
 		boolean isQueryDslRepository = QuerydslUtils.QUERY_DSL_PRESENT
-									   && ReactiveQuerydslPredicateExecutor.class.isAssignableFrom(metadata.getRepositoryInterface());
+				&& ReactiveQuerydslPredicateExecutor.class.isAssignableFrom(metadata.getRepositoryInterface());
 
 		if (isQueryDslRepository) {
 
-			fragments = fragments.append(createDSLPredicateExecutorFragment(metadata, ReactiveQuerydslNeo4jPredicateExecutor.class));
+			fragments = fragments
+				.append(createDSLPredicateExecutorFragment(metadata, ReactiveQuerydslNeo4jPredicateExecutor.class));
 		}
 
 		if (ReactiveCypherdslConditionExecutor.class.isAssignableFrom(metadata.getRepositoryInterface())) {
 
-			fragments = fragments.append(createDSLExecutorFragment(metadata, ReactiveCypherdslConditionExecutorImpl.class));
+			fragments = fragments
+				.append(createDSLExecutorFragment(metadata, ReactiveCypherdslConditionExecutorImpl.class));
 		}
 
 		return fragments;
 	}
 
-	private RepositoryFragment<Object> createDSLPredicateExecutorFragment(RepositoryMetadata metadata, Class<?> implementor) {
+	private RepositoryFragment<Object> createDSLPredicateExecutorFragment(RepositoryMetadata metadata,
+			Class<?> implementor) {
 
 		Neo4jEntityInformation<?, ?> entityInformation = getEntityInformation(metadata);
-		Object querydslFragment = instantiateClass(implementor, mappingContext, entityInformation, neo4jOperations);
+		Object querydslFragment = instantiateClass(implementor, this.mappingContext, entityInformation,
+				this.neo4jOperations);
 
 		return RepositoryFragment.implemented(querydslFragment);
 	}
@@ -117,7 +122,7 @@ final class ReactiveNeo4jRepositoryFactory extends ReactiveRepositoryFactorySupp
 	private RepositoryFragment<Object> createDSLExecutorFragment(RepositoryMetadata metadata, Class<?> implementor) {
 
 		Neo4jEntityInformation<?, ?> entityInformation = getEntityInformation(metadata);
-		Object querydslFragment = instantiateClass(implementor, entityInformation, neo4jOperations);
+		Object querydslFragment = instantiateClass(implementor, entityInformation, this.neo4jOperations);
 
 		return RepositoryFragment.implemented(querydslFragment);
 	}
@@ -127,11 +132,11 @@ final class ReactiveNeo4jRepositoryFactory extends ReactiveRepositoryFactorySupp
 		return SimpleReactiveNeo4jRepository.class;
 	}
 
-
-	@Override protected Optional<QueryLookupStrategy> getQueryLookupStrategy(@Nullable Key key,
+	@Override
+	protected Optional<QueryLookupStrategy> getQueryLookupStrategy(@Nullable Key key,
 			ValueExpressionDelegate valueExpressionDelegate) {
-		return Optional
-				.of(new ReactiveNeo4jQueryLookupStrategy(neo4jOperations, mappingContext, valueExpressionDelegate, cypherDSLConfiguration));
+		return Optional.of(new ReactiveNeo4jQueryLookupStrategy(this.neo4jOperations, this.mappingContext,
+				valueExpressionDelegate, this.cypherDSLConfiguration));
 	}
 
 	@Override
@@ -147,9 +152,8 @@ final class ReactiveNeo4jRepositoryFactory extends ReactiveRepositoryFactorySupp
 			});
 		}
 
-		this.cypherDSLConfiguration = beanFactory
-				.getBeanProvider(Configuration.class)
-				.getIfAvailable(Configuration::defaultConfig);
+		this.cypherDSLConfiguration = beanFactory.getBeanProvider(Configuration.class)
+			.getIfAvailable(Configuration::defaultConfig);
 	}
 
 	@Override
@@ -157,9 +161,11 @@ final class ReactiveNeo4jRepositoryFactory extends ReactiveRepositoryFactorySupp
 
 		ProjectionFactory projectionFactory = super.getProjectionFactory();
 		if (projectionFactory instanceof SpelAwareProxyProjectionFactory) {
-			((SpelAwareProxyProjectionFactory) projectionFactory).registerMethodInvokerFactory(
-					EntityAndGraphPropertyAccessingMethodInterceptor.createMethodInterceptorFactory(mappingContext));
+			((SpelAwareProxyProjectionFactory) projectionFactory)
+				.registerMethodInvokerFactory(EntityAndGraphPropertyAccessingMethodInterceptor
+					.createMethodInterceptorFactory(this.mappingContext));
 		}
 		return projectionFactory;
 	}
+
 }

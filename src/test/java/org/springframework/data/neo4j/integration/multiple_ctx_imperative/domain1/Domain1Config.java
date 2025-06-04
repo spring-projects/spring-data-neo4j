@@ -18,6 +18,7 @@ package org.springframework.data.neo4j.integration.multiple_ctx_imperative.domai
 import org.neo4j.driver.AuthTokens;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.GraphDatabase;
+
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -37,56 +38,54 @@ import org.springframework.transaction.PlatformTransactionManager;
 
 /**
  * @author Michael J. Simons
- * @soundtrack Kelis - Tasty
  */
 @Configuration(proxyBeanMethods = false)
-@EnableNeo4jRepositories(
-		basePackageClasses = Domain1Config.class,
-		neo4jMappingContextRef = "domain1Context",
-		neo4jTemplateRef = "domain1Template",
-		transactionManagerRef = "domain1Manager"
-)
+@EnableNeo4jRepositories(basePackageClasses = Domain1Config.class, neo4jMappingContextRef = "domain1Context",
+		neo4jTemplateRef = "domain1Template", transactionManagerRef = "domain1Manager")
 public class Domain1Config {
 
-	@Primary @Bean
+	@Primary
+	@Bean
 	public Driver domain1Driver(Environment env) {
 
 		return GraphDatabase.driver(env.getRequiredProperty("database1.url"),
 				AuthTokens.basic("neo4j", env.getRequiredProperty("database1.password")));
 	}
 
-	@Primary @Bean
+	@Primary
+	@Bean
 	public Neo4jClient domain1Client(@Qualifier("domain1Driver") Driver driver) {
 		return Neo4jClient.create(driver);
 	}
 
-	@Primary @Bean
-	public Neo4jOperations domain1Template(
-			@Qualifier("domain1Client") Neo4jClient domain1Client,
+	@Primary
+	@Bean
+	public Neo4jOperations domain1Template(@Qualifier("domain1Client") Neo4jClient domain1Client,
 			@Qualifier("domain1Context") Neo4jMappingContext domain1Context,
-			@Qualifier("domain1Manager") PlatformTransactionManager domain1TransactionManager
-	) {
+			@Qualifier("domain1Manager") PlatformTransactionManager domain1TransactionManager) {
 		return new Neo4jTemplate(domain1Client, domain1Context, domain1TransactionManager);
 	}
 
-	@Primary @Bean
-	public PlatformTransactionManager domain1Manager(
-			@Qualifier("domain1Driver") Driver driver,
-			@Qualifier("domain1Selection") DatabaseSelectionProvider domain1Selection
-	) {
+	@Primary
+	@Bean
+	public PlatformTransactionManager domain1Manager(@Qualifier("domain1Driver") Driver driver,
+			@Qualifier("domain1Selection") DatabaseSelectionProvider domain1Selection) {
 		return new Neo4jTransactionManager(driver, domain1Selection);
 	}
 
-	@Primary @Bean
+	@Primary
+	@Bean
 	public DatabaseSelectionProvider domain1Selection() {
 		return DatabaseSelection::undecided;
 	}
 
-	@Primary @Bean
+	@Primary
+	@Bean
 	public Neo4jMappingContext domain1Context(Neo4jConversions neo4jConversions) throws ClassNotFoundException {
 		Neo4jMappingContext context = new Neo4jMappingContext(neo4jConversions);
 		context.setInitialEntitySet(Neo4jEntityScanner.get().scan(this.getClass().getPackage().getName()));
 		context.setStrict(true);
 		return context;
 	}
+
 }

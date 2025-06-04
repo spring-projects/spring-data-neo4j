@@ -15,8 +15,6 @@
  */
 package org.springframework.data.neo4j.integration.shared.conversion;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.time.LocalDate;
 import java.util.Collections;
 import java.util.HashMap;
@@ -28,28 +26,30 @@ import org.neo4j.driver.Record;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.types.Node;
 import org.neo4j.driver.types.Relationship;
+
 import org.springframework.data.neo4j.integration.shared.common.Club;
 import org.springframework.data.neo4j.test.BookmarkCapture;
 import org.springframework.data.neo4j.test.Neo4jExtension;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 /**
  * @author Michael J. Simons
- * @soundtrack Die Toten Hosen - Learning English, Lesson Two
  */
 public abstract class CompositePropertiesITBase {
 
 	protected static Neo4jExtension.Neo4jConnectionSupport neo4jConnectionSupport;
 
-	private final Function<Map.Entry<String, Object>, String> newKey = e -> e.getKey()
-			.substring(e.getKey().indexOf(".") + 1);
-
 	protected final Driver driver;
-
-	private final BookmarkCapture bookmarkCapture;
 
 	protected final Map<String, Object> nodeProperties;
 
 	protected final Map<String, Object> relationshipProperties;
+
+	private final Function<Map.Entry<String, Object>, String> newKey = e -> e.getKey()
+		.substring(e.getKey().indexOf(".") + 1);
+
+	private final BookmarkCapture bookmarkCapture;
 
 	protected CompositePropertiesITBase(Driver driver, BookmarkCapture bookmarkCapture) {
 
@@ -80,35 +80,39 @@ public abstract class CompositePropertiesITBase {
 		properties.put("dto.x", "A");
 		properties.put("dto.y", 1L);
 		properties.put("dto.z", 4.2);
-		nodeProperties = Collections.unmodifiableMap(properties);
+		this.nodeProperties = Collections.unmodifiableMap(properties);
 
 		properties = new HashMap<>();
 		properties.put("someProperties.a", "B");
 		properties.put("dto.x", "B");
 		properties.put("dto.y", 10L);
 		properties.put("dto.z", 42.0);
-		relationshipProperties = Collections.unmodifiableMap(properties);
+		this.relationshipProperties = Collections.unmodifiableMap(properties);
 	}
 
 	protected long createNodeWithCompositeProperties() {
-		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
+		try (Session session = this.driver.session(this.bookmarkCapture.createSessionConfig())) {
 			long id = session.executeWrite(
-					tx -> tx.run("CREATE (t:CompositeProperties) SET t = $properties RETURN id(t)",
-							Collections.singletonMap("properties", nodeProperties)).single().get(0)
-							.asLong());
-			bookmarkCapture.seedWith(session.lastBookmarks());
+					tx -> tx
+						.run("CREATE (t:CompositeProperties) SET t = $properties RETURN id(t)",
+								Collections.singletonMap("properties", this.nodeProperties))
+						.single()
+						.get(0)
+						.asLong());
+			this.bookmarkCapture.seedWith(session.lastBookmarks());
 			return id;
 		}
 	}
 
 	protected long createRelationshipWithCompositeProperties() {
-		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
-			long id = session.executeWrite(
-					tx -> tx.run(
-							"CREATE (t:CompositeProperties) -[r:IRRELEVANT_TYPE] -> (:Club) SET r = $properties RETURN id(t)",
-							Collections.singletonMap("properties", relationshipProperties)).single().get(0)
-							.asLong());
-			bookmarkCapture.seedWith(session.lastBookmarks());
+		try (Session session = this.driver.session(this.bookmarkCapture.createSessionConfig())) {
+			long id = session.executeWrite(tx -> tx
+				.run("CREATE (t:CompositeProperties) -[r:IRRELEVANT_TYPE] -> (:Club) SET r = $properties RETURN id(t)",
+						Collections.singletonMap("properties", this.relationshipProperties))
+				.single()
+				.get(0)
+				.asLong());
+			this.bookmarkCapture.seedWith(session.lastBookmarks());
 			return id;
 		}
 	}
@@ -117,40 +121,47 @@ public abstract class CompositePropertiesITBase {
 
 		ThingWithCompositeProperties t = new ThingWithCompositeProperties();
 		Map<String, LocalDate> someDates = new HashMap<>();
-		nodeProperties.entrySet().stream().filter(e -> e.getKey().startsWith("someDates."))
-				.forEach(e -> someDates.put(newKey.apply(e), (LocalDate) e.getValue()));
+		this.nodeProperties.entrySet()
+			.stream()
+			.filter(e -> e.getKey().startsWith("someDates."))
+			.forEach(e -> someDates.put(this.newKey.apply(e), (LocalDate) e.getValue()));
 		t.setSomeDates(someDates);
 
-		Map<String, LocalDate> someOtherDates = Collections
-				.singletonMap("t", (LocalDate) nodeProperties.get("in_another_time.t"));
+		Map<String, LocalDate> someOtherDates = Collections.singletonMap("t",
+				(LocalDate) this.nodeProperties.get("in_another_time.t"));
 		t.setSomeOtherDates(someOtherDates);
 
 		Map<String, ThingWithCustomTypes.CustomType> someCustomThings = new HashMap<>();
-		nodeProperties.entrySet().stream().filter(e -> e.getKey().startsWith("customTypeMap."))
-				.forEach(e -> someCustomThings
-						.put(newKey.apply(e), ThingWithCustomTypes.CustomType.of((String) e.getValue())));
+		this.nodeProperties.entrySet()
+			.stream()
+			.filter(e -> e.getKey().startsWith("customTypeMap."))
+			.forEach(e -> someCustomThings.put(this.newKey.apply(e),
+					ThingWithCustomTypes.CustomType.of((String) e.getValue())));
 		t.setCustomTypeMap(someCustomThings);
 
 		Map<ThingWithCompositeProperties.EnumA, LocalDate> someDatesByEnumA = new HashMap<>();
-		nodeProperties.entrySet().stream().filter(e -> e.getKey().startsWith("someDatesByEnumA."))
-				.forEach(e -> someDatesByEnumA
-						.put(ThingWithCompositeProperties.EnumA.valueOf(newKey.apply(e)), (LocalDate) e.getValue()));
+		this.nodeProperties.entrySet()
+			.stream()
+			.filter(e -> e.getKey().startsWith("someDatesByEnumA."))
+			.forEach(e -> someDatesByEnumA.put(ThingWithCompositeProperties.EnumA.valueOf(this.newKey.apply(e)),
+					(LocalDate) e.getValue()));
 		t.setSomeDatesByEnumA(someDatesByEnumA);
 
 		Map<ThingWithCompositeProperties.EnumB, LocalDate> someDatesByEnumB = new HashMap<>();
-		nodeProperties.entrySet().stream().filter(e -> e.getKey().startsWith("someDatesByEnumB."))
-				.forEach(e -> someDatesByEnumB
-						.put(ThingWithCompositeProperties.EnumB.valueOf(newKey.apply(e)), (LocalDate) e.getValue()));
+		this.nodeProperties.entrySet()
+			.stream()
+			.filter(e -> e.getKey().startsWith("someDatesByEnumB."))
+			.forEach(e -> someDatesByEnumB.put(ThingWithCompositeProperties.EnumB.valueOf(this.newKey.apply(e)),
+					(LocalDate) e.getValue()));
 		t.setSomeDatesByEnumB(someDatesByEnumB);
 
-		t.setDatesWithTransformedKey(Collections.singletonMap("TEST", (LocalDate) nodeProperties.get("datesWithTransformedKey.test")));
-		t.setDatesWithTransformedKeyAndEnum(Collections.singletonMap(ThingWithCompositeProperties.EnumB.VALUE_BA, (LocalDate) nodeProperties.get("datesWithTransformedKeyAndEnum.value_ba")));
+		t.setDatesWithTransformedKey(
+				Collections.singletonMap("TEST", (LocalDate) this.nodeProperties.get("datesWithTransformedKey.test")));
+		t.setDatesWithTransformedKeyAndEnum(Collections.singletonMap(ThingWithCompositeProperties.EnumB.VALUE_BA,
+				(LocalDate) this.nodeProperties.get("datesWithTransformedKeyAndEnum.value_ba")));
 
-		t.setSomeOtherDTO(new ThingWithCompositeProperties.SomeOtherDTO(
-				(String) nodeProperties.get("dto.x"),
-				(Long) nodeProperties.get("dto.y"),
-				(Double) nodeProperties.get("dto.z")
-		));
+		t.setSomeOtherDTO(new ThingWithCompositeProperties.SomeOtherDTO((String) this.nodeProperties.get("dto.x"),
+				(Long) this.nodeProperties.get("dto.y"), (Double) this.nodeProperties.get("dto.z")));
 		return t;
 	}
 
@@ -162,16 +173,16 @@ public abstract class CompositePropertiesITBase {
 				target);
 
 		Map<String, String> setSomeProperties = new HashMap<>();
-		nodeProperties.entrySet().stream().filter(e -> e.getKey().startsWith("someProperties."))
-				.forEach(e -> setSomeProperties.put(newKey.apply(e), (String) e.getValue()));
+		this.nodeProperties.entrySet()
+			.stream()
+			.filter(e -> e.getKey().startsWith("someProperties."))
+			.forEach(e -> setSomeProperties.put(this.newKey.apply(e), (String) e.getValue()));
 		relationshipWithCompositeProperties.setSomeProperties(setSomeProperties);
 
 		relationshipWithCompositeProperties.setSomeProperties(Collections.singletonMap("a", "B"));
 		relationshipWithCompositeProperties.setSomeOtherDTO(new ThingWithCompositeProperties.SomeOtherDTO(
-				(String) relationshipProperties.get("dto.x"),
-				(Long) relationshipProperties.get("dto.y"),
-				(Double) relationshipProperties.get("dto.z")
-		));
+				(String) this.relationshipProperties.get("dto.x"), (Long) this.relationshipProperties.get("dto.y"),
+				(Double) this.relationshipProperties.get("dto.z")));
 
 		source.setRelationship(relationshipWithCompositeProperties);
 		return source;
@@ -195,17 +206,18 @@ public abstract class CompositePropertiesITBase {
 		mergedProperties.put("dto.y", t.getSomeOtherDTO().y);
 		mergedProperties.put("dto.z", t.getSomeOtherDTO().z);
 
-		assertThat(mergedProperties).containsExactlyInAnyOrderEntriesOf(nodeProperties);
+		assertThat(mergedProperties).containsExactlyInAnyOrderEntriesOf(this.nodeProperties);
 	}
 
 	protected void assertNodePropertiesInGraph(long id) {
 
-		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
-			Record r = session.executeRead(tx -> tx.run("MATCH (t:CompositeProperties) WHERE id(t) = $id RETURN t",
-					Collections.singletonMap("id", id)).single());
+		try (Session session = this.driver.session(this.bookmarkCapture.createSessionConfig())) {
+			Record r = session.executeRead(tx -> tx
+				.run("MATCH (t:CompositeProperties) WHERE id(t) = $id RETURN t", Collections.singletonMap("id", id))
+				.single());
 			Node n = r.get("t").asNode();
-			assertThat(n.asMap()).containsExactlyInAnyOrderEntriesOf(nodeProperties);
-			bookmarkCapture.seedWith(session.lastBookmarks());
+			assertThat(n.asMap()).containsExactlyInAnyOrderEntriesOf(this.nodeProperties);
+			this.bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 	}
 
@@ -226,13 +238,16 @@ public abstract class CompositePropertiesITBase {
 
 	protected void assertRelationshipPropertiesInGraph(long id) {
 
-		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
+		try (Session session = this.driver.session(this.bookmarkCapture.createSessionConfig())) {
 			Record r = session.executeRead(
-					tx -> tx.run("MATCH (t:CompositeProperties) - [r:IRRELEVANT_TYPE] -> () WHERE id(t) = $id RETURN r",
-							Collections.singletonMap("id", id)).single());
+					tx -> tx
+						.run("MATCH (t:CompositeProperties) - [r:IRRELEVANT_TYPE] -> () WHERE id(t) = $id RETURN r",
+								Collections.singletonMap("id", id))
+						.single());
 			Relationship rel = r.get("r").asRelationship();
-			assertThat(rel.asMap()).containsExactlyInAnyOrderEntriesOf(relationshipProperties);
-			bookmarkCapture.seedWith(session.lastBookmarks());
+			assertThat(rel.asMap()).containsExactlyInAnyOrderEntriesOf(this.relationshipProperties);
+			this.bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 	}
+
 }

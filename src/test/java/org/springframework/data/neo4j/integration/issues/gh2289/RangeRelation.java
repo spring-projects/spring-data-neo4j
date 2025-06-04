@@ -15,6 +15,8 @@
  */
 package org.springframework.data.neo4j.integration.issues.gh2289;
 
+import java.util.Objects;
+
 import org.springframework.data.neo4j.core.schema.Property;
 import org.springframework.data.neo4j.core.schema.RelationshipId;
 import org.springframework.data.neo4j.core.schema.RelationshipProperties;
@@ -25,13 +27,16 @@ import org.springframework.data.neo4j.core.schema.TargetNode;
  */
 @RelationshipProperties
 public class RangeRelation {
+
 	@RelationshipId
 	private Long id;
 
 	@Property
 	private double minDelta;
+
 	@Property
 	private double maxDelta;
+
 	@Property
 	private RelationType relationType;
 
@@ -49,42 +54,47 @@ public class RangeRelation {
 		return this.id;
 	}
 
-	public double getMinDelta() {
-		return this.minDelta;
-	}
-
-	public double getMaxDelta() {
-		return this.maxDelta;
-	}
-
-	public RelationType getRelationType() {
-		return this.relationType;
-	}
-
-	public Sku getTargetSku() {
-		return this.targetSku;
-	}
-
 	public void setId(Long id) {
 		this.id = id;
+	}
+
+	public double getMinDelta() {
+		return this.minDelta;
 	}
 
 	public void setMinDelta(double minDelta) {
 		this.minDelta = minDelta;
 	}
 
+	public double getMaxDelta() {
+		return this.maxDelta;
+	}
+
 	public void setMaxDelta(double maxDelta) {
 		this.maxDelta = maxDelta;
+	}
+
+	public RelationType getRelationType() {
+		return this.relationType;
 	}
 
 	public void setRelationType(RelationType relationType) {
 		this.relationType = relationType;
 	}
 
+	public Sku getTargetSku() {
+		return this.targetSku;
+	}
+
 	public void setTargetSku(Sku targetSku) {
 		this.targetSku = targetSku;
 	}
 
+	protected boolean canEqual(final Object other) {
+		return other instanceof RangeRelation;
+	}
+
+	@Override
 	public boolean equals(final Object o) {
 		if (o == this) {
 			return true;
@@ -98,7 +108,7 @@ public class RangeRelation {
 		}
 		final Object this$id = this.getId();
 		final Object other$id = other.getId();
-		if (this$id == null ? other$id != null : !this$id.equals(other$id)) {
+		if (!Objects.equals(this$id, other$id)) {
 			return false;
 		}
 		if (Double.compare(this.getMinDelta(), other.getMinDelta()) != 0) {
@@ -109,38 +119,36 @@ public class RangeRelation {
 		}
 		final Object this$relationType = this.getRelationType();
 		final Object other$relationType = other.getRelationType();
-		if (this$relationType == null ? other$relationType != null : !this$relationType.equals(other$relationType)) {
+		if (!Objects.equals(this$relationType, other$relationType)) {
 			return false;
 		}
 		final Object this$targetSku = this.getTargetSku();
 		final Object other$targetSku = other.getTargetSku();
-		if (this$targetSku == null ? other$targetSku != null : !this$targetSku.equals(other$targetSku)) {
-			return false;
-		}
-		return true;
+		return Objects.equals(this$targetSku, other$targetSku);
 	}
 
-	protected boolean canEqual(final Object other) {
-		return other instanceof RangeRelation;
-	}
-
+	@Override
 	public int hashCode() {
 		final int PRIME = 59;
 		int result = 1;
 		final Object $id = this.getId();
-		result = result * PRIME + ($id == null ? 43 : $id.hashCode());
+		result = result * PRIME + (($id != null) ? $id.hashCode() : 43);
 		final long $minDelta = Double.doubleToLongBits(this.getMinDelta());
 		result = result * PRIME + (int) ($minDelta >>> 32 ^ $minDelta);
 		final long $maxDelta = Double.doubleToLongBits(this.getMaxDelta());
 		result = result * PRIME + (int) ($maxDelta >>> 32 ^ $maxDelta);
 		final Object $relationType = this.getRelationType();
-		result = result * PRIME + ($relationType == null ? 43 : $relationType.hashCode());
+		result = result * PRIME + (($relationType != null) ? $relationType.hashCode() : 43);
 		final Object $targetSku = this.getTargetSku();
-		result = result * PRIME + ($targetSku == null ? 43 : $targetSku.hashCode());
+		result = result * PRIME + (($targetSku != null) ? $targetSku.hashCode() : 43);
 		return result;
 	}
 
+	@Override
 	public String toString() {
-		return "RangeRelation(id=" + this.getId() + ", minDelta=" + this.getMinDelta() + ", maxDelta=" + this.getMaxDelta() + ", relationType=" + this.getRelationType() + ", targetSku=" + this.getTargetSku() + ")";
+		return "RangeRelation(id=" + this.getId() + ", minDelta=" + this.getMinDelta() + ", maxDelta="
+				+ this.getMaxDelta() + ", relationType=" + this.getRelationType() + ", targetSku=" + this.getTargetSku()
+				+ ")";
 	}
+
 }

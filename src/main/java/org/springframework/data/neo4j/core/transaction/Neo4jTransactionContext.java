@@ -19,15 +19,16 @@ import java.util.Collection;
 import java.util.Collections;
 
 import org.neo4j.driver.Bookmark;
+
 import org.springframework.data.neo4j.core.DatabaseSelection;
 import org.springframework.data.neo4j.core.UserSelection;
 
 /**
- * Represents the context in which a transaction has been opened. The context consists primarily of the target database
- * and the set of bookmarks used to start the session from.
+ * Represents the context in which a transaction has been opened. The context consists
+ * primarily of the target database and the set of bookmarks used to start the session
+ * from.
  *
  * @author Michael J. Simons
- * @soundtrack Evanescence - Fallen
  * @since 6.0
  */
 final class Neo4jTransactionContext {
@@ -52,31 +53,28 @@ final class Neo4jTransactionContext {
 		this(databaseSelection, userSelection, Collections.emptyList());
 	}
 
-	Neo4jTransactionContext(DatabaseSelection databaseSelection, UserSelection userSelection, Collection<Bookmark> bookmarks) {
+	Neo4jTransactionContext(DatabaseSelection databaseSelection, UserSelection userSelection,
+			Collection<Bookmark> bookmarks) {
 		this.databaseSelection = databaseSelection;
 		this.userSelection = userSelection;
 		this.bookmarks = bookmarks;
 	}
 
 	DatabaseSelection getDatabaseSelection() {
-		return databaseSelection;
+		return this.databaseSelection;
 	}
 
 	UserSelection getUserSelection() {
-		return userSelection;
+		return this.userSelection;
 	}
 
 	Collection<Bookmark> getBookmarks() {
-		return bookmarks;
+		return this.bookmarks;
 	}
 
-	/**
-	 * @param inDatabase Target database
-	 * @param asUser A Neo4j user
-	 * @return True if the combination of target database and impersonated user is the same in this context as for the given arguments.
-	 */
 	boolean isForDatabaseAndUser(DatabaseSelection inDatabase, UserSelection asUser) {
 
 		return this.databaseSelection.equals(inDatabase) && this.userSelection.equals(asUser);
 	}
+
 }

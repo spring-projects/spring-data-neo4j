@@ -15,8 +15,6 @@
  */
 package org.springframework.data.neo4j.integration.imperative;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Optional;
@@ -27,6 +25,7 @@ import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.neo4j.driver.Driver;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -49,6 +48,8 @@ import org.springframework.data.neo4j.test.Neo4jImperativeTestConfiguration;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Michael J. Simons
@@ -96,6 +97,7 @@ public class ChainedAuditingIT {
 	}
 
 	interface BookRepository extends Neo4jRepository<Book, UUID> {
+
 	}
 
 	static class BookEditorHistorian implements BeforeBindCallback<Book>, Ordered {
@@ -116,6 +118,7 @@ public class ChainedAuditingIT {
 		public int getOrder() {
 			return AuditingBeforeBindCallback.NEO4J_AUDITING_ORDER - 50;
 		}
+
 	}
 
 	@Configuration
@@ -125,6 +128,7 @@ public class ChainedAuditingIT {
 	static class Config extends Neo4jImperativeTestConfiguration {
 
 		@Bean
+		@Override
 		public Driver driver() {
 			return neo4jConnectionSupport.getDriver();
 		}
@@ -135,7 +139,7 @@ public class ChainedAuditingIT {
 		}
 
 		@Bean
-		public BookmarkCapture bookmarkCapture() {
+		BookmarkCapture bookmarkCapture() {
 			return new BookmarkCapture();
 		}
 
@@ -154,7 +158,7 @@ public class ChainedAuditingIT {
 		}
 
 		@Bean
-		public AuditorAware<String> auditorProvider() {
+		AuditorAware<String> auditorProvider() {
 			var state = new AtomicInteger(0);
 			return () -> {
 				int i = state.compareAndSet(3, 4) ? 3 : state.incrementAndGet();
@@ -163,9 +167,10 @@ public class ChainedAuditingIT {
 		}
 
 		@Bean
-		public BeforeBindCallback<Book> bookEditorHistorian() {
+		BeforeBindCallback<Book> bookEditorHistorian() {
 			return new BookEditorHistorian();
 		}
 
 	}
+
 }

@@ -31,11 +31,11 @@ import org.springframework.data.neo4j.core.schema.Relationship;
 @Node
 public class User {
 
+	private final String login;
+
 	@Id
 	@GeneratedValue
 	private UUID id;
-
-	private final String login;
 
 	@Relationship(direction = Relationship.Direction.OUTGOING, type = "OWNS")
 	private List<SomeDomainObject> ownedObjects;
@@ -45,22 +45,23 @@ public class User {
 	}
 
 	public UUID getId() {
-		return id;
-	}
-
-	public String getLogin() {
-		return login;
+		return this.id;
 	}
 
 	public void setId(UUID id) {
 		this.id = id;
 	}
 
+	public String getLogin() {
+		return this.login;
+	}
+
 	public List<SomeDomainObject> getOwnedObjects() {
-		return ownedObjects;
+		return this.ownedObjects;
 	}
 
 	public void setOwnedObjects(List<SomeDomainObject> ownedObjects) {
 		this.ownedObjects = ownedObjects;
 	}
+
 }

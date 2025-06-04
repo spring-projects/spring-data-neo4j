@@ -29,17 +29,19 @@ import org.neo4j.driver.Bookmark;
  */
 final class AssertableBookmarkManager extends AbstractBookmarkManager {
 
-	boolean getBookmarksCalled = false;
 	final Map<Collection<Bookmark>, Boolean> updateBookmarksCalled = new HashMap<>();
+
+	boolean getBookmarksCalled = false;
 
 	@Override
 	public Collection<Bookmark> getBookmarks() {
-		getBookmarksCalled = true;
+		this.getBookmarksCalled = true;
 		return Collections.emptyList();
 	}
 
 	@Override
 	public void updateBookmarks(Collection<Bookmark> usedBookmarks, Collection<Bookmark> newBookmarks) {
-		updateBookmarksCalled.put(newBookmarks, true);
+		this.updateBookmarksCalled.put(newBookmarks, true);
 	}
+
 }

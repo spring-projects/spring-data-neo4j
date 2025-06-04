@@ -18,32 +18,24 @@ package org.springframework.data.neo4j.core;
 import org.apiguardian.api.API;
 
 /**
+ * Functional interface for dynamic provision of usernames to the system.
+ *
  * @author Michael J. Simons
- * @soundtrack Tori Amos - Strange Little Girls
  * @since 6.2
  */
 @API(status = API.Status.STABLE, since = "6.2")
 @FunctionalInterface
 public interface UserSelectionProvider {
 
-	UserSelection getUserSelection();
-
 	/**
 	 * A user selection provider always selecting the connected user.
-	 *
-	 * @return A provider for using the connected user.
+	 * @return a provider for using the connected user.
 	 */
 	static UserSelectionProvider getDefaultSelectionProvider() {
 
 		return DefaultUserSelectionProvider.INSTANCE;
 	}
-}
 
-enum DefaultUserSelectionProvider implements UserSelectionProvider {
-	INSTANCE;
+	UserSelection getUserSelection();
 
-	@Override
-	public UserSelection getUserSelection() {
-		return UserSelection.connectedUser();
-	}
 }

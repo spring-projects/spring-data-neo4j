@@ -15,12 +15,13 @@
  */
 package org.springframework.data.neo4j.integration.issues.gh2474;
 
-import org.springframework.data.neo4j.repository.Neo4jRepository;
-
 import java.util.UUID;
+
+import org.springframework.data.neo4j.repository.Neo4jRepository;
 
 /**
  * @author Stephen Jackson
  */
 public interface PersonModelRepository extends Neo4jRepository<PersonModel, UUID> {
+
 }

@@ -15,11 +15,11 @@
  */
 package org.springframework.data.neo4j.integration.shared.common;
 
+import java.util.Objects;
+
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
-
-import java.util.Objects;
 
 /**
  * @@author Michael J. Simons
@@ -27,18 +27,18 @@ import java.util.Objects;
 @Node
 public class AltPerson {
 
+	private final String name;
+
 	@Id
 	@GeneratedValue
 	private Long id;
-
-	private final String name;
 
 	public AltPerson(String name) {
 		this.name = name;
 	}
 
 	public Long getId() {
-		return id;
+		return this.id;
 	}
 
 	public void setId(Long id) {
@@ -46,7 +46,7 @@ public class AltPerson {
 	}
 
 	public String getName() {
-		return name;
+		return this.name;
 	}
 
 	@Override
@@ -58,11 +58,12 @@ public class AltPerson {
 			return false;
 		}
 		AltPerson altPerson = (AltPerson) o;
-		return id.equals(altPerson.id) && name.equals(altPerson.name);
+		return this.id.equals(altPerson.id) && this.name.equals(altPerson.name);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(id, name);
+		return Objects.hash(this.id, this.name);
 	}
+
 }

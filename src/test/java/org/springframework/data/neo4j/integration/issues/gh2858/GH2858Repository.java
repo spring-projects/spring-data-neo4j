@@ -23,4 +23,5 @@ import org.springframework.data.neo4j.repository.Neo4jRepository;
 public interface GH2858Repository extends Neo4jRepository<GH2858, String> {
 
 	GH2858.GH2858Projection findOneByName(String name);
+
 }

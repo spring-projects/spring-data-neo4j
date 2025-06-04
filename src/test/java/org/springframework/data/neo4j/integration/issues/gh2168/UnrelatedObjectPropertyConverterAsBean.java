@@ -18,6 +18,7 @@ package org.springframework.data.neo4j.integration.issues.gh2168;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
 import org.neo4j.driver.types.TypeSystem;
+
 import org.springframework.data.neo4j.core.convert.Neo4jPersistentPropertyConverter;
 
 /**
@@ -45,4 +46,5 @@ public class UnrelatedObjectPropertyConverterAsBean implements Neo4jPersistentPr
 		}
 		return null;
 	}
+
 }

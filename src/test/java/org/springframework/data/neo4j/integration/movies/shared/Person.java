@@ -26,12 +26,12 @@ import org.springframework.data.neo4j.core.schema.Relationship;
 
 /**
  * @author Michael J. Simons
- * @soundtrack Body Count - Manslaughter
  */
 @Node
 public final class Person {
 
-	@Id @GeneratedValue
+	@Id
+	@GeneratedValue
 	private final Long id;
 
 	private final String name;
@@ -56,15 +56,15 @@ public final class Person {
 	}
 
 	public Long getId() {
-		return id;
+		return this.id;
 	}
 
 	public String getName() {
-		return name;
+		return this.name;
 	}
 
 	public Integer getBorn() {
-		return born;
+		return this.born;
 	}
 
 	public void setBorn(Integer born) {
@@ -72,14 +72,12 @@ public final class Person {
 	}
 
 	public List<Movie> getReviewed() {
-		return reviewed;
+		return this.reviewed;
 	}
 
-	@Override public String toString() {
-		return "Person{" +
-			   "id=" + id +
-			   ", name='" + name + '\'' +
-			   ", born=" + born +
-			   '}';
+	@Override
+	public String toString() {
+		return "Person{" + "id=" + this.id + ", name='" + this.name + '\'' + ", born=" + this.born + '}';
 	}
+
 }

@@ -15,17 +15,6 @@
  */
 package org.springframework.data.neo4j.integration.properties;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import org.junit.jupiter.api.Tag;
-import org.springframework.data.neo4j.core.ReactiveDatabaseSelectionProvider;
-import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
-import org.springframework.data.neo4j.core.transaction.ReactiveNeo4jTransactionManager;
-import org.springframework.data.neo4j.test.BookmarkCapture;
-import org.springframework.data.neo4j.test.Neo4jReactiveTestConfiguration;
-import org.springframework.transaction.ReactiveTransactionManager;
-import reactor.test.StepVerifier;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -33,28 +22,48 @@ import java.util.Date;
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Session;
+import reactor.test.StepVerifier;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.neo4j.core.ReactiveDatabaseSelectionProvider;
 import org.springframework.data.neo4j.core.ReactiveNeo4jTemplate;
+import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
+import org.springframework.data.neo4j.core.transaction.ReactiveNeo4jTransactionManager;
+import org.springframework.data.neo4j.test.BookmarkCapture;
 import org.springframework.data.neo4j.test.Neo4jExtension;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
+import org.springframework.data.neo4j.test.Neo4jReactiveTestConfiguration;
+import org.springframework.transaction.ReactiveTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Michael J. Simons
- * @soundtrack Metallica - Metallica
  */
 @Neo4jIntegrationTest
-// Not actually incompatible, but not worth the effort adding additional complexity for handling bookmarks
+// Not actually incompatible, but not worth the effort adding additional complexity for
+// handling bookmarks
 // between fixture and test
 @Tag(Neo4jExtension.INCOMPATIBLE_WITH_CLUSTERS)
 class ReactivePropertyIT {
 
 	protected static Neo4jExtension.Neo4jConnectionSupport neo4jConnectionSupport;
+
+	@Autowired
+	BookmarkCapture bookmarkCapture;
+
+	@Autowired
+	private Driver driver;
+
+	@Autowired
+	private ReactiveNeo4jTemplate template;
 
 	@BeforeAll
 	static void setupData(@Autowired Driver driver) {
@@ -64,21 +73,14 @@ class ReactivePropertyIT {
 		}
 	}
 
-	@Autowired
-	private Driver driver;
-	@Autowired
-	BookmarkCapture bookmarkCapture;
-	@Autowired
-	private ReactiveNeo4jTemplate template;
-
 	@Test // GH-2118
 	void assignedIdNoVersionShouldNotOverwriteUnknownProperties() {
 
-		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
+		try (Session session = this.driver.session(this.bookmarkCapture.createSessionConfig())) {
 			session.run(
 					"CREATE (m:SimplePropertyContainer {id: 'id1', knownProperty: 'A', unknownProperty: 'Mr. X'}) RETURN id(m)")
-					.consume();
-			bookmarkCapture.seedWith(session.lastBookmarks());
+				.consume();
+			this.bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 
 		updateKnownAndAssertUnknownProperty(DomainClasses.SimplePropertyContainer.class, "id1");
@@ -87,11 +89,11 @@ class ReactivePropertyIT {
 	@Test // GH-2118
 	void assignedIdWithVersionShouldNotOverwriteUnknownProperties() {
 
-		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
+		try (Session session = this.driver.session(this.bookmarkCapture.createSessionConfig())) {
 			session.run(
 					"CREATE (m:SimplePropertyContainer:SimplePropertyContainerWithVersion {id: 'id1', version: 1, knownProperty: 'A', unknownProperty: 'Mr. X'}) RETURN id(m)")
-					.consume();
-			bookmarkCapture.seedWith(session.lastBookmarks());
+				.consume();
+			this.bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 
 		updateKnownAndAssertUnknownProperty(DomainClasses.SimplePropertyContainerWithVersion.class, "id1");
@@ -101,11 +103,13 @@ class ReactivePropertyIT {
 	void generatedIdNoVersionShouldNotOverwriteUnknownProperties() {
 
 		Long id;
-		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
-			id = session
-					.run("CREATE (m:SimpleGeneratedIDPropertyContainer {knownProperty: 'A', unknownProperty: 'Mr. X'}) RETURN id(m)")
-					.single().get(0).asLong();
-			bookmarkCapture.seedWith(session.lastBookmarks());
+		try (Session session = this.driver.session(this.bookmarkCapture.createSessionConfig())) {
+			id = session.run(
+					"CREATE (m:SimpleGeneratedIDPropertyContainer {knownProperty: 'A', unknownProperty: 'Mr. X'}) RETURN id(m)")
+				.single()
+				.get(0)
+				.asLong();
+			this.bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 
 		updateKnownAndAssertUnknownProperty(DomainClasses.SimpleGeneratedIDPropertyContainer.class, id);
@@ -115,11 +119,13 @@ class ReactivePropertyIT {
 	void generatedIdWithVersionShouldNotOverwriteUnknownProperties() {
 
 		Long id;
-		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
-			id = session
-					.run("CREATE (m:SimpleGeneratedIDPropertyContainer:SimpleGeneratedIDPropertyContainerWithVersion {version: 1, knownProperty: 'A', unknownProperty: 'Mr. X'}) RETURN id(m)")
-					.single().get(0).asLong();
-			bookmarkCapture.seedWith(session.lastBookmarks());
+		try (Session session = this.driver.session(this.bookmarkCapture.createSessionConfig())) {
+			id = session.run(
+					"CREATE (m:SimpleGeneratedIDPropertyContainer:SimpleGeneratedIDPropertyContainerWithVersion {version: 1, knownProperty: 'A', unknownProperty: 'Mr. X'}) RETURN id(m)")
+				.single()
+				.get(0)
+				.asLong();
+			this.bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 
 		updateKnownAndAssertUnknownProperty(DomainClasses.SimpleGeneratedIDPropertyContainerWithVersion.class, id);
@@ -127,21 +133,23 @@ class ReactivePropertyIT {
 
 	private void updateKnownAndAssertUnknownProperty(Class<? extends DomainClasses.BaseClass> type, Object id) {
 
-		template.findById(id, type)
-				.map(m -> {
-					m.setKnownProperty("A2");
-					return m;
-				})
-				.flatMap(template::save)
-				.as(StepVerifier::create)
-				.expectNextMatches(c -> "A2".equals(c.getKnownProperty()))
-				.verifyComplete();
+		this.template.findById(id, type).map(m -> {
+			m.setKnownProperty("A2");
+			return m;
+		})
+			.flatMap(this.template::save)
+			.as(StepVerifier::create)
+			.expectNextMatches(c -> "A2".equals(c.getKnownProperty()))
+			.verifyComplete();
 
-		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
+		try (Session session = this.driver.session(this.bookmarkCapture.createSessionConfig())) {
 			long cnt = session
-					.run("MATCH (m:" + type.getSimpleName() + ") WHERE " + (id instanceof Long ? "id(m) " : "m.id")
-						 + " = $id AND m.knownProperty = 'A2' AND m.unknownProperty = 'Mr. X' RETURN count(m)",
-							Collections.singletonMap("id", id)).single().get(0).asLong();
+				.run("MATCH (m:" + type.getSimpleName() + ") WHERE " + ((id instanceof Long) ? "id(m) " : "m.id")
+						+ " = $id AND m.knownProperty = 'A2' AND m.unknownProperty = 'Mr. X' RETURN count(m)",
+						Collections.singletonMap("id", id))
+				.single()
+				.get(0)
+				.asLong();
 			assertThat(cnt).isEqualTo(1L);
 		}
 	}
@@ -149,31 +157,34 @@ class ReactivePropertyIT {
 	@Test // GH-2118
 	void multipleAssignedIdNoVersionShouldNotOverwriteUnknownProperties() {
 
-		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
+		try (Session session = this.driver.session(this.bookmarkCapture.createSessionConfig())) {
 			session.run(
 					"CREATE (m:SimplePropertyContainer {id: 'a', knownProperty: 'A', unknownProperty: 'Fix'})  RETURN id(m)")
-					.consume();
+				.consume();
 			session.run(
 					"CREATE (m:SimplePropertyContainer {id: 'b', knownProperty: 'B', unknownProperty: 'Foxy'}) RETURN id(m)")
-					.consume();
-			bookmarkCapture.seedWith(session.lastBookmarks());
+				.consume();
+			this.bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 
-		template.findById("a", DomainClasses.SimplePropertyContainer.class)
-				.zipWith(template.findById("b", DomainClasses.SimplePropertyContainer.class))
-				.flatMapMany(t -> {
-					t.getT1().setKnownProperty("A2");
-					t.getT2().setKnownProperty("B2");
-					return template.saveAll(t.toList());
-				})
-				.as(StepVerifier::create)
-				.expectNextCount(2)
-				.verifyComplete();
+		this.template.findById("a", DomainClasses.SimplePropertyContainer.class)
+			.zipWith(this.template.findById("b", DomainClasses.SimplePropertyContainer.class))
+			.flatMapMany(t -> {
+				t.getT1().setKnownProperty("A2");
+				t.getT2().setKnownProperty("B2");
+				return this.template.saveAll(t.toList());
+			})
+			.as(StepVerifier::create)
+			.expectNextCount(2)
+			.verifyComplete();
 
-		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
-			long cnt = session
-					.run("MATCH (m:SimplePropertyContainer) WHERE m.id in $ids AND m.unknownProperty IS NOT NULL RETURN count(m)",
-							Collections.singletonMap("ids", Arrays.asList("a", "b"))).single().get(0).asLong();
+		try (Session session = this.driver.session(this.bookmarkCapture.createSessionConfig())) {
+			long cnt = session.run(
+					"MATCH (m:SimplePropertyContainer) WHERE m.id in $ids AND m.unknownProperty IS NOT NULL RETURN count(m)",
+					Collections.singletonMap("ids", Arrays.asList("a", "b")))
+				.single()
+				.get(0)
+				.asLong();
 			assertThat(cnt).isEqualTo(2L);
 		}
 	}
@@ -182,27 +193,31 @@ class ReactivePropertyIT {
 	void relationshipPropertiesMustNotBeOverwritten() {
 
 		Long id;
-		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
-			id = session
-					.run("CREATE (a:IrrelevantSourceContainer) - [:RELATIONSHIP_PROPERTY_CONTAINER {knownProperty: 'A', unknownProperty: 'Mr. X'}] -> (:IrrelevantTargetContainer) RETURN id(a)")
-					.single().get(0).asLong();
-			bookmarkCapture.seedWith(session.lastBookmarks());
+		try (Session session = this.driver.session(this.bookmarkCapture.createSessionConfig())) {
+			id = session.run(
+					"CREATE (a:IrrelevantSourceContainer) - [:RELATIONSHIP_PROPERTY_CONTAINER {knownProperty: 'A', unknownProperty: 'Mr. X'}] -> (:IrrelevantTargetContainer) RETURN id(a)")
+				.single()
+				.get(0)
+				.asLong();
+			this.bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 
-		template.findById(id, DomainClasses.IrrelevantSourceContainer.class)
-				.map(c -> {
-					c.getRelationshipPropertyContainer().setKnownProperty("A2");
-					return c;
-				})
-				.flatMap(template::save)
-				.as(StepVerifier::create)
-				.expectNextMatches(c -> "A2".equals(c.getRelationshipPropertyContainer().getKnownProperty()))
-				.verifyComplete();
+		this.template.findById(id, DomainClasses.IrrelevantSourceContainer.class).map(c -> {
+			c.getRelationshipPropertyContainer().setKnownProperty("A2");
+			return c;
+		})
+			.flatMap(this.template::save)
+			.as(StepVerifier::create)
+			.expectNextMatches(c -> "A2".equals(c.getRelationshipPropertyContainer().getKnownProperty()))
+			.verifyComplete();
 
-		try (Session session = driver.session()) {
-			long cnt = session
-					.run("MATCH (m) - [r:RELATIONSHIP_PROPERTY_CONTAINER] -> (:IrrelevantTargetContainer) WHERE id(m) = $id AND r.knownProperty = 'A2' AND r.unknownProperty = 'Mr. X' RETURN count(m)",
-							Collections.singletonMap("id", id)).single().get(0).asLong();
+		try (Session session = this.driver.session()) {
+			long cnt = session.run(
+					"MATCH (m) - [r:RELATIONSHIP_PROPERTY_CONTAINER] -> (:IrrelevantTargetContainer) WHERE id(m) = $id AND r.knownProperty = 'A2' AND r.unknownProperty = 'Mr. X' RETURN count(m)",
+					Collections.singletonMap("id", id))
+				.single()
+				.get(0)
+				.asLong();
 			assertThat(cnt).isEqualTo(1L);
 		}
 	}
@@ -215,15 +230,19 @@ class ReactivePropertyIT {
 		rel.setIrrelevantTargetContainer(new DomainClasses.IrrelevantTargetContainer());
 
 		List<DomainClasses.IrrelevantSourceContainer> recorded = new ArrayList<>();
-		template.save(new DomainClasses.IrrelevantSourceContainer(rel))
-				.as(StepVerifier::create)
-				.recordWith(() -> recorded)
-				.expectNextMatches(i -> i.getRelationshipPropertyContainer().getId() != null)
-				.verifyComplete();
+		this.template.save(new DomainClasses.IrrelevantSourceContainer(rel))
+			.as(StepVerifier::create)
+			.recordWith(() -> recorded)
+			.expectNextMatches(i -> i.getRelationshipPropertyContainer().getId() != null)
+			.verifyComplete();
 
-		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
-			long cnt = session.run("MATCH (m) - [r:RELATIONSHIP_PROPERTY_CONTAINER] -> (:IrrelevantTargetContainer) WHERE id(m) = $id AND r.knownProperty = 'A' RETURN count(m)",
-					Collections.singletonMap("id", recorded.get(0).getId())).single().get(0).asLong();
+		try (Session session = this.driver.session(this.bookmarkCapture.createSessionConfig())) {
+			long cnt = session.run(
+					"MATCH (m) - [r:RELATIONSHIP_PROPERTY_CONTAINER] -> (:IrrelevantTargetContainer) WHERE id(m) = $id AND r.knownProperty = 'A' RETURN count(m)",
+					Collections.singletonMap("id", recorded.get(0).getId()))
+				.single()
+				.get(0)
+				.asLong();
 			assertThat(cnt).isEqualTo(1L);
 		}
 	}
@@ -236,10 +255,10 @@ class ReactivePropertyIT {
 		rel.setKnownProperty("A");
 		rel.setIrrelevantTargetContainer(new DomainClasses.IrrelevantTargetContainer());
 		source.rels.put("DYN_REL", Collections.singletonList(rel));
-		template.save(source)
-				.as(StepVerifier::create)
-				.expectNextMatches(s -> s.getRels().get("DYN_REL").get(0).getId() != null)
-				.verifyComplete();
+		this.template.save(source)
+			.as(StepVerifier::create)
+			.expectNextMatches(s -> s.getRels().get("DYN_REL").get(0).getId() != null)
+			.verifyComplete();
 
 		DomainClasses.DynRelSourc2 source2 = new DomainClasses.DynRelSourc2();
 		rel = new DomainClasses.RelationshipPropertyContainer();
@@ -247,25 +266,28 @@ class ReactivePropertyIT {
 		rel.setIrrelevantTargetContainer(new DomainClasses.IrrelevantTargetContainer());
 		source2.rels.put("DYN_REL", rel);
 
-		template.save(source2)
-				.as(StepVerifier::create)
-				.expectNextMatches(s -> s.getRels().get("DYN_REL").getId() != null)
-				.verifyComplete();
+		this.template.save(source2)
+			.as(StepVerifier::create)
+			.expectNextMatches(s -> s.getRels().get("DYN_REL").getId() != null)
+			.verifyComplete();
 	}
 
 	@Test // GH-2123
 	void customConvertersForRelsMustBeTakenIntoAccount() {
 
 		Date now = new Date();
-		template.save(new DomainClasses.WeirdSource(now, new DomainClasses.IrrelevantTargetContainer()))
-				.as(StepVerifier::create)
-				.expectNextCount(1)
-				.verifyComplete();
+		this.template.save(new DomainClasses.WeirdSource(now, new DomainClasses.IrrelevantTargetContainer()))
+			.as(StepVerifier::create)
+			.expectNextCount(1)
+			.verifyComplete();
 
-		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
+		try (Session session = this.driver.session(this.bookmarkCapture.createSessionConfig())) {
 			long cnt = session
-					.run("MATCH (m) - [r:ITS_COMPLICATED] -> (n) WHERE m.id = $id RETURN count(m)",
-							Collections.singletonMap("id", now.getTime())).single().get(0).asLong();
+				.run("MATCH (m) - [r:ITS_COMPLICATED] -> (n) WHERE m.id = $id RETURN count(m)",
+						Collections.singletonMap("id", now.getTime()))
+				.single()
+				.get(0)
+				.asLong();
 			assertThat(cnt).isEqualTo(1L);
 		}
 	}
@@ -274,14 +296,18 @@ class ReactivePropertyIT {
 	void shouldNotFailWithEmptyOrNullRelationshipProperties() {
 
 		List<Long> recorded = new ArrayList<>();
-		template.save(new DomainClasses.LonelySourceContainer())
-				.map(DomainClasses.LonelySourceContainer::getId)
-				.as(StepVerifier::create)
-				.recordWith(() -> recorded)
-				.expectNextCount(1L)
-				.verifyComplete();
-		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
-			long cnt = session.run("MATCH (m) WHERE id(m) = $id RETURN count(m)", Collections.singletonMap("id", recorded.get(0))).single().get(0).asLong();
+		this.template.save(new DomainClasses.LonelySourceContainer())
+			.map(DomainClasses.LonelySourceContainer::getId)
+			.as(StepVerifier::create)
+			.recordWith(() -> recorded)
+			.expectNextCount(1L)
+			.verifyComplete();
+		try (Session session = this.driver.session(this.bookmarkCapture.createSessionConfig())) {
+			long cnt = session
+				.run("MATCH (m) WHERE id(m) = $id RETURN count(m)", Collections.singletonMap("id", recorded.get(0)))
+				.single()
+				.get(0)
+				.asLong();
 			assertThat(cnt).isEqualTo(1L);
 		}
 	}
@@ -291,25 +317,30 @@ class ReactivePropertyIT {
 	static class Config extends Neo4jReactiveTestConfiguration {
 
 		@Bean
+		@Override
 		public Driver driver() {
 			return neo4jConnectionSupport.getDriver();
 		}
 
 		@Bean
-		public BookmarkCapture bookmarkCapture() {
+		BookmarkCapture bookmarkCapture() {
 			return new BookmarkCapture();
 		}
 
 		@Override
-		public ReactiveTransactionManager reactiveTransactionManager(Driver driver, ReactiveDatabaseSelectionProvider databaseSelectionProvider) {
+		public ReactiveTransactionManager reactiveTransactionManager(Driver driver,
+				ReactiveDatabaseSelectionProvider databaseSelectionProvider) {
 
 			BookmarkCapture bookmarkCapture = bookmarkCapture();
-			return new ReactiveNeo4jTransactionManager(driver, databaseSelectionProvider, Neo4jBookmarkManager.createReactive(bookmarkCapture));
+			return new ReactiveNeo4jTransactionManager(driver, databaseSelectionProvider,
+					Neo4jBookmarkManager.createReactive(bookmarkCapture));
 		}
 
 		@Override
 		public boolean isCypher5Compatible() {
 			return neo4jConnectionSupport.isCypher5SyntaxCompatible();
 		}
+
 	}
+
 }

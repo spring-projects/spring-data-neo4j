@@ -21,6 +21,7 @@ package org.springframework.data.neo4j.integration.shared.common;
 public class NamesOnlyDto {
 
 	private final String firstName;
+
 	private final String lastName;
 
 	public NamesOnlyDto(String firstName, String lastName) {
@@ -29,10 +30,11 @@ public class NamesOnlyDto {
 	}
 
 	public String getFirstName() {
-		return firstName;
+		return this.firstName;
 	}
 
 	public String getLastName() {
-		return lastName;
+		return this.lastName;
 	}
+
 }

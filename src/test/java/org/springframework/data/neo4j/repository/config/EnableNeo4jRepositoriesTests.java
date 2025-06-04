@@ -15,12 +15,11 @@
  */
 package org.springframework.data.neo4j.repository.config;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 import org.neo4j.driver.Driver;
+
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -32,6 +31,8 @@ import org.springframework.data.neo4j.config.AbstractNeo4jConfig;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Gerrit Meier
@@ -54,19 +55,13 @@ class EnableNeo4jRepositoriesTests {
 	@Test
 	void basePackagesIsAliasForValue() {
 
-		EnableNeo4jRepositories annotation = AnnotationUtils.findAnnotation(EnableRepositoryConfigWithBasePackages.class,
-				EnableNeo4jRepositories.class);
+		EnableNeo4jRepositories annotation = AnnotationUtils
+			.findAnnotation(EnableRepositoryConfigWithBasePackages.class, EnableNeo4jRepositories.class);
 
 		assertThat(annotation).isNotNull();
 		assertThat(annotation.basePackages()).containsExactly(BASE_PACKAGES_VALUE);
 		assertThat(annotation.basePackages()).containsExactly(annotation.value());
 	}
-
-	@EnableNeo4jRepositories(BASE_PACKAGES_VALUE)
-	private class EnableRepositoryConfigWithValue {}
-
-	@EnableNeo4jRepositories(basePackages = BASE_PACKAGES_VALUE)
-	private class EnableRepositoryConfigWithBasePackages {}
 
 	@ExtendWith({ SpringExtension.class })
 	@ContextConfiguration(classes = ExcludeFilterShouldWork.Config.class)
@@ -77,10 +72,14 @@ class EnableNeo4jRepositoriesTests {
 			assertThat(repos.iterator()).isExhausted();
 		}
 
-		interface RepositoryToBeExcluded extends Neo4jRepository<AnEntity, String> {}
+		interface RepositoryToBeExcluded extends Neo4jRepository<AnEntity, String> {
+
+		}
 
 		@Configuration
-		@EnableNeo4jRepositories(considerNestedRepositories = true, excludeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = RepositoryToBeExcluded.class))
+		@EnableNeo4jRepositories(considerNestedRepositories = true,
+				excludeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE,
+						classes = RepositoryToBeExcluded.class))
 		static class Config extends AbstractNeo4jConfig {
 
 			@Bean
@@ -88,6 +87,19 @@ class EnableNeo4jRepositoriesTests {
 			public Driver driver() {
 				return Mockito.mock(Driver.class);
 			}
+
 		}
+
 	}
+
+	@EnableNeo4jRepositories(BASE_PACKAGES_VALUE)
+	private final class EnableRepositoryConfigWithValue {
+
+	}
+
+	@EnableNeo4jRepositories(basePackages = BASE_PACKAGES_VALUE)
+	private final class EnableRepositoryConfigWithBasePackages {
+
+	}
+
 }

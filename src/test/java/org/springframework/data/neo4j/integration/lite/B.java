@@ -21,13 +21,15 @@ package org.springframework.data.neo4j.integration.lite;
  * @author Michael J. Simons
  */
 public class B {
+
 	private String inner;
 
 	public String getInner() {
-		return inner;
+		return this.inner;
 	}
 
 	public void setInner(String inner) {
 		this.inner = inner;
 	}
+
 }

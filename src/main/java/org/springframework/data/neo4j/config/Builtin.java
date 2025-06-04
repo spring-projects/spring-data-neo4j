@@ -20,26 +20,26 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
 import jakarta.inject.Qualifier;
-
 import org.apiguardian.api.API;
 
 /**
  * An internally used CDI {@link Qualifier} to mark all beans produced by our
- * {@link Neo4jCdiConfigurationSupport configuration support} as built in.
- * When the {@link Neo4jCdiExtension Spring Data Neo4j CDI extension} is used,
- * you can opt in to override any of the following beans by providing a {@link jakarta.enterprise.inject.Produces @Produces} method with the
- * corresponding return type:
+ * {@link Neo4jCdiConfigurationSupport configuration support} as built in. When the
+ * {@link Neo4jCdiExtension Spring Data Neo4j CDI extension} is used, you can opt in to
+ * override any of the following beans by providing a
+ * {@link jakarta.enterprise.inject.Produces @Produces} method with the corresponding
+ * return type:
  * <ul>
- *     <li>{@link org.springframework.data.neo4j.core.convert.Neo4jConversions}</li>
- *     <li>{@link org.springframework.data.neo4j.core.DatabaseSelectionProvider}</li>
- *     <li>{@link org.springframework.data.neo4j.core.Neo4jOperations}</li>
+ * <li>{@link org.springframework.data.neo4j.core.convert.Neo4jConversions}</li>
+ * <li>{@link org.springframework.data.neo4j.core.DatabaseSelectionProvider}</li>
+ * <li>{@link org.springframework.data.neo4j.core.Neo4jOperations}</li>
  * </ul>
- * The order in which the types are presented reflects the usefulness over overriding such a bean.
- * You might want to add additional conversions to the mapping or provide a bean that dynamically selects a Neo4j database.
- * Running a custom bean of the template or client might prove useful if you want to add additional methods.
+ * The order in which the types are presented reflects the usefulness over overriding such
+ * a bean. You might want to add additional conversions to the mapping or provide a bean
+ * that dynamically selects a Neo4j database. Running a custom bean of the template or
+ * client might prove useful if you want to add additional methods.
  *
  * @author Michael J. Simons
- * @soundtrack Buckethead - SIGIL Soundtrack
  * @since 6.0
  */
 @API(status = API.Status.STABLE, since = "6.0")
@@ -47,4 +47,5 @@ import org.apiguardian.api.API;
 @Retention(RetentionPolicy.RUNTIME)
 @Qualifier
 public @interface Builtin {
+
 }

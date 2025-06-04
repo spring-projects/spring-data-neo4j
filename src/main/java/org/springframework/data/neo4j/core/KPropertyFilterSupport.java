@@ -19,21 +19,25 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.function.Predicate;
 
+import kotlin.reflect.KParameter;
+import kotlin.reflect.jvm.ReflectJvmMapping;
+
 import org.springframework.core.KotlinDetector;
 import org.springframework.data.mapping.PreferredConstructor;
 import org.springframework.data.mapping.model.PreferredConstructorDiscoverer;
 
-import kotlin.reflect.KParameter;
-import kotlin.reflect.jvm.ReflectJvmMapping;
-
 /**
+ * Kotlin specific supported functions.
+ *
  * @author Michael J. Simons
  */
 final class KPropertyFilterSupport {
 
+	private KPropertyFilterSupport() {
+	}
+
 	/**
-	 * Determines all required constructor args for a Kotlin type
-	 *
+	 * Determines all required constructor args for a Kotlin type.
 	 * @param type the type for which required constructor args must be determined
 	 * @return a list of property names that need to be fetched
 	 */
@@ -52,12 +56,11 @@ final class KPropertyFilterSupport {
 			return Collections.emptyList();
 		}
 
-		return preferredConstructor.getParameters().stream()
-				.filter(Predicate.not(KParameter::isOptional))
-				.map(KParameter::getName)
-				.toList();
+		return preferredConstructor.getParameters()
+			.stream()
+			.filter(Predicate.not(KParameter::isOptional))
+			.map(KParameter::getName)
+			.toList();
 	}
 
-	private KPropertyFilterSupport() {
-	}
 }

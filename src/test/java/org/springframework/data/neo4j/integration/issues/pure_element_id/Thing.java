@@ -30,5 +30,7 @@ public class Thing {
 	@Id
 	@GeneratedValue
 	String id;
+
 	String name;
+
 }

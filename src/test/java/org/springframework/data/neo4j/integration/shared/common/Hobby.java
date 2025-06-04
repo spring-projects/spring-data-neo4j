@@ -26,6 +26,7 @@ import org.springframework.data.neo4j.core.schema.Node;
  */
 @Node
 public class Hobby {
+
 	@Id
 	@GeneratedValue
 	private Long id;
@@ -33,7 +34,7 @@ public class Hobby {
 	private String name;
 
 	public Long getId() {
-		return id;
+		return this.id;
 	}
 
 	public void setId(Long id) {
@@ -41,16 +42,11 @@ public class Hobby {
 	}
 
 	public String getName() {
-		return name;
+		return this.name;
 	}
 
 	public void setName(String name) {
 		this.name = name;
-	}
-
-	@Override
-	public String toString() {
-		return "Hobby{" + "id=" + id + ", name='" + name + '\'' + '}';
 	}
 
 	@Override
@@ -62,11 +58,17 @@ public class Hobby {
 			return false;
 		}
 		Hobby hobby = (Hobby) o;
-		return id.equals(hobby.id) && name.equals(hobby.name);
+		return this.id.equals(hobby.id) && this.name.equals(hobby.name);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(id, name);
+		return Objects.hash(this.id, this.name);
 	}
+
+	@Override
+	public String toString() {
+		return "Hobby{" + "id=" + this.id + ", name='" + this.name + '\'' + '}';
+	}
+
 }

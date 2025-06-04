@@ -15,14 +15,13 @@
  */
 package org.springframework.data.neo4j.integration.cascading;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
 import org.junitpioneer.jupiter.cartesian.CartesianTest;
 import org.junitpioneer.jupiter.cartesian.CartesianTest.Values;
 import org.neo4j.driver.Driver;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -33,34 +32,22 @@ import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 import org.springframework.data.neo4j.test.Neo4jReactiveTestConfiguration;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 @Neo4jIntegrationTest
 @Import(ReactiveCascadingIT.Config.class)
 class ReactiveCascadingIT extends AbstractCascadingTestBase {
 
 	protected static Neo4jExtension.Neo4jConnectionSupport neo4jConnectionSupport;
 
-	@EnableTransactionManagement
-	@ComponentScan
-	static class Config extends Neo4jReactiveTestConfiguration {
-
-		@Bean
-		public Driver driver() {
-			return neo4jConnectionSupport.getDriver();
-		}
-
-		@Override
-		public boolean isCypher5Compatible() {
-			return neo4jConnectionSupport.isCypher5SyntaxCompatible();
-		}
-	}
-
 	@Autowired
 	ReactiveNeo4jTemplate template;
 
 	@CartesianTest
 	<T extends Parent> void updatesMustNotCascade(
-			@Values(classes = {PUI.class, PUE.class, PVI.class, PVE.class}) Class<T> type,
-			@Values(booleans = {true, false}) boolean single) throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+			@Values(classes = { PUI.class, PUE.class, PVI.class, PVE.class }) Class<T> type,
+			@Values(booleans = { true, false }) boolean single)
+			throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
 
 		var id = EXISTING_IDS.get(type);
 		var instance = this.template.findById(id, type).single().block();
@@ -75,11 +62,15 @@ class ReactiveCascadingIT extends AbstractCascadingTestBase {
 
 		if (single) {
 			this.template.save(instance).block();
-		} else {
-			this.template.saveAll(List.of(instance, type.getDeclaredConstructor(String.class).newInstance("Parent2"))).collectList().block();
+		}
+		else {
+			this.template.saveAll(List.of(instance, type.getDeclaredConstructor(String.class).newInstance("Parent2")))
+				.collectList()
+				.block();
 		}
 
-		// Can't assert on the instance above, as that would ofc be the purposefully modified state
+		// Can't assert on the instance above, as that would ofc be the purposefully
+		// modified state
 		var reloadedInstance = this.template.findById(id, type).singleOptional().block().orElseThrow();
 		assertThat(reloadedInstance.getName()).isEqualTo("Updated parent");
 
@@ -87,25 +78,46 @@ class ReactiveCascadingIT extends AbstractCascadingTestBase {
 		assertThat(reloadedInstance.getSingleCUI().getName()).isEqualTo("ParentDB.singleCUI");
 		assertThat(reloadedInstance.getSingleCVE().getVersion()).isZero();
 		assertThat(reloadedInstance.getSingleCVI().getVersion()).isZero();
-		assertThat(reloadedInstance.getManyCUI()).allMatch(cui -> cui.getName().endsWith(".updatedNested1") && cui.getNested().stream().noneMatch(nested -> nested.getName().endsWith(".updatedNested2")));
+		assertThat(reloadedInstance.getManyCUI()).allMatch(cui -> cui.getName().endsWith(".updatedNested1")
+				&& cui.getNested().stream().noneMatch(nested -> nested.getName().endsWith(".updatedNested2")));
 		assertThat(reloadedInstance.getManyCVI()).allMatch(cvi -> cvi.getVersion() == 0L);
 	}
 
 	@CartesianTest
 	<T extends Parent> void newItemsMustBePersistedRegardlessOfCascadeSingleSave(
-			@Values(classes = {PUI.class, PUE.class, PVI.class, PVE.class}) Class<T> type,
-			@Values(booleans = {true, false}) boolean single) throws Exception {
+			@Values(classes = { PUI.class, PUE.class, PVI.class, PVE.class }) Class<T> type,
+			@Values(booleans = { true, false }) boolean single) throws Exception {
 
 		T instance;
 		if (single) {
-			instance = template.save(type.getDeclaredConstructor(String.class).newInstance("Parent")).block();
-		} else {
-			instance = template.saveAll(List.of(type.getDeclaredConstructor(String.class).newInstance("Parent"), type.getDeclaredConstructor(String.class).newInstance("Parent2")))
-					.collectList()
-					.block()
-					.get(0);
+			instance = this.template.save(type.getDeclaredConstructor(String.class).newInstance("Parent")).block();
+		}
+		else {
+			instance = this.template.saveAll(List.of(type.getDeclaredConstructor(String.class).newInstance("Parent"),
+					type.getDeclaredConstructor(String.class).newInstance("Parent2")))
+				.collectList()
+				.block()
+				.get(0);
 		}
 
 		assertAllRelationshipsHaveBeenCreated(instance);
 	}
+
+	@EnableTransactionManagement
+	@ComponentScan
+	static class Config extends Neo4jReactiveTestConfiguration {
+
+		@Bean
+		@Override
+		public Driver driver() {
+			return neo4jConnectionSupport.getDriver();
+		}
+
+		@Override
+		public boolean isCypher5Compatible() {
+			return neo4jConnectionSupport.isCypher5SyntaxCompatible();
+		}
+
+	}
+
 }

@@ -23,4 +23,5 @@ public class R2 extends AbstractR<C> {
 	public R2(C target) {
 		super(target);
 	}
+
 }

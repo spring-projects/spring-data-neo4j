@@ -20,7 +20,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.springframework.data.neo4j.core.schema.IdGenerator;
 
 /**
- * Not actually needed during the test, but added to recreate the issue scenario as much as possible.
+ * Not actually needed during the test, but added to recreate the issue scenario as much
+ * as possible.
  *
  * @author Michael J. Simons
  */
@@ -30,6 +31,7 @@ public final class MyStrategy implements IdGenerator<String> {
 
 	@Override
 	public String generateId(String primaryLabel, Object entity) {
-		return primaryLabel + sequence.incrementAndGet();
+		return primaryLabel + this.sequence.incrementAndGet();
 	}
+
 }

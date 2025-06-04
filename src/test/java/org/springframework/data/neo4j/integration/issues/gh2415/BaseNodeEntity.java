@@ -15,6 +15,8 @@
  */
 package org.springframework.data.neo4j.integration.issues.gh2415;
 
+import java.util.Objects;
+
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
@@ -45,27 +47,31 @@ public class BaseNodeEntity {
 		return new BaseNodeEntityBuilderImpl();
 	}
 
-	@Override
-	public String toString() {
-		return getClass().getSimpleName() + " - " + getName() + " (" + getNodeId() + ")";
-	}
-
 	public String getNodeId() {
 		return this.nodeId;
-	}
-
-	public String getName() {
-		return this.name;
 	}
 
 	private void setNodeId(String nodeId) {
 		this.nodeId = nodeId;
 	}
 
+	public String getName() {
+		return this.name;
+	}
+
 	private void setName(String name) {
 		this.name = name;
 	}
 
+	protected boolean canEqual(final Object other) {
+		return other instanceof BaseNodeEntity;
+	}
+
+	public BaseNodeEntityBuilder<?, ?> toBuilder() {
+		return new BaseNodeEntityBuilderImpl().$fillValuesFrom(this);
+	}
+
+	@Override
 	public boolean equals(final Object o) {
 		if (o == this) {
 			return true;
@@ -79,35 +85,33 @@ public class BaseNodeEntity {
 		}
 		final Object this$nodeId = this.getNodeId();
 		final Object other$nodeId = other.getNodeId();
-		if (this$nodeId == null ? other$nodeId != null : !this$nodeId.equals(other$nodeId)) {
-			return false;
-		}
-		return true;
+		return Objects.equals(this$nodeId, other$nodeId);
 	}
 
-	protected boolean canEqual(final Object other) {
-		return other instanceof BaseNodeEntity;
-	}
-
+	@Override
 	public int hashCode() {
 		final int PRIME = 59;
 		int result = 1;
 		final Object $nodeId = this.getNodeId();
-		result = result * PRIME + ($nodeId == null ? 43 : $nodeId.hashCode());
+		result = result * PRIME + (($nodeId != null) ? $nodeId.hashCode() : 43);
 		return result;
 	}
 
-	public BaseNodeEntityBuilder<?, ?> toBuilder() {
-		return new BaseNodeEntityBuilderImpl().$fillValuesFrom(this);
+	@Override
+	public String toString() {
+		return getClass().getSimpleName() + " - " + getName() + " (" + getNodeId() + ")";
 	}
 
 	/**
 	 * the builder
+	 *
 	 * @param <C> needed c type
 	 * @param <B> needed b type
 	 */
-	public static abstract class BaseNodeEntityBuilder<C extends BaseNodeEntity, B extends BaseNodeEntityBuilder<C, B>> {
+	public abstract static class BaseNodeEntityBuilder<C extends BaseNodeEntity, B extends BaseNodeEntityBuilder<C, B>> {
+
 		private String nodeId;
+
 		private String name;
 
 		private static void $fillValuesFromInstanceIntoBuilder(BaseNodeEntity instance, BaseNodeEntityBuilder<?, ?> b) {
@@ -134,21 +138,29 @@ public class BaseNodeEntity {
 
 		public abstract C build();
 
+		@Override
 		public String toString() {
 			return "BaseNodeEntity.BaseNodeEntityBuilder(nodeId=" + this.nodeId + ", name=" + this.name + ")";
 		}
+
 	}
 
-	private static final class BaseNodeEntityBuilderImpl extends BaseNodeEntityBuilder<BaseNodeEntity, BaseNodeEntityBuilderImpl> {
+	private static final class BaseNodeEntityBuilderImpl
+			extends BaseNodeEntityBuilder<BaseNodeEntity, BaseNodeEntityBuilderImpl> {
+
 		private BaseNodeEntityBuilderImpl() {
 		}
 
+		@Override
 		protected BaseNodeEntityBuilderImpl self() {
 			return this;
 		}
 
+		@Override
 		public BaseNodeEntity build() {
 			return new BaseNodeEntity(this);
 		}
+
 	}
+
 }

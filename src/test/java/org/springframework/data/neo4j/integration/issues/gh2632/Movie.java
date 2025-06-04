@@ -34,14 +34,15 @@ public class Movie {
 	private String title;
 
 	public UUID getId() {
-		return id;
+		return this.id;
 	}
 
 	public String getTitle() {
-		return title;
+		return this.title;
 	}
 
 	public void setTitle(String title) {
 		this.title = title;
 	}
+
 }

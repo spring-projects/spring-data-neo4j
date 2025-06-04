@@ -15,8 +15,6 @@
  */
 package org.springframework.data.neo4j.integration.multiple_ctx_imperative;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.util.Collections;
 
 import org.junit.jupiter.api.Tag;
@@ -27,6 +25,10 @@ import org.neo4j.driver.Driver;
 import org.neo4j.driver.GraphDatabase;
 import org.neo4j.driver.Logging;
 import org.neo4j.driver.Session;
+import org.testcontainers.containers.Neo4jContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.integration.multiple_ctx_imperative.domain1.Domain1Config;
 import org.springframework.data.neo4j.integration.multiple_ctx_imperative.domain1.Domain1Entity;
@@ -38,9 +40,8 @@ import org.springframework.data.neo4j.test.Neo4jExtension;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
-import org.testcontainers.containers.Neo4jContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Tests whether multiple context are truly separated.
@@ -53,12 +54,10 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 public class MultipleContextsIT {
 
 	@Container
-	private static Neo4jContainer container1 = new Neo4jContainer<>("neo4j:5")
-			.withAdminPassword("verysecret1");
+	private static Neo4jContainer container1 = new Neo4jContainer<>("neo4j:5").withAdminPassword("verysecret1");
 
 	@Container
-	private static Neo4jContainer container2 = new Neo4jContainer<>("neo4j:5")
-			.withAdminPassword("verysecret2");
+	private static Neo4jContainer container2 = new Neo4jContainer<>("neo4j:5").withAdminPassword("verysecret2");
 
 	@DynamicPropertySource
 	static void neo4jSettings(DynamicPropertyRegistry registry) {
@@ -70,11 +69,34 @@ public class MultipleContextsIT {
 		registry.add("database2.password", () -> "verysecret2");
 	}
 
+	/**
+	 * Create drivers independend from the setup under test.
+	 * @param boltUrl Where to connect to
+	 * @param password Which password
+	 * @return Minimal driver instance.
+	 */
+	private static Driver newDriver(String boltUrl, String password) {
+
+		Config driverConfig = Config.builder()
+			.withMaxConnectionPoolSize(1)
+			.withLogging(Logging.none())
+			.withEventLoopThreads(1)
+			.build();
+		return GraphDatabase.driver(boltUrl, AuthTokens.basic("neo4j", password), driverConfig);
+	}
+
+	private static void verifyExistenceAndVersion(long id1, Session session) {
+		Long version = session.executeRead(
+				tx -> tx.run("MATCH (n) WHERE id(n) = $id RETURN n.version", Collections.singletonMap("id", id1))
+					.single()
+					.get(0)
+					.asLong());
+		assertThat(version).isOne();
+	}
+
 	@Test // DATAGRAPH-1441
-	void repositoriesShouldTargetTheCorrectDatabase(
-			@Autowired Domain1Repository repo1,
-			@Autowired Domain2Repository repo2
-	) {
+	void repositoriesShouldTargetTheCorrectDatabase(@Autowired Domain1Repository repo1,
+			@Autowired Domain2Repository repo2) {
 
 		Domain1Entity newEntity1 = repo1.save(new Domain1Entity("For domain 1"));
 		newEntity1.setAnAttribute(newEntity1.getAnAttribute() + " updated");
@@ -97,27 +119,4 @@ public class MultipleContextsIT {
 		}
 	}
 
-	/**
-	 * Create drivers independend from the setup under test.
-	 *
-	 * @param boltUrl  Where to connect to
-	 * @param password Which password
-	 * @return Minimal driver instance.
-	 */
-	private static Driver newDriver(String boltUrl, String password) {
-
-		Config driverConfig = Config.builder()
-				.withMaxConnectionPoolSize(1)
-				.withLogging(Logging.none())
-				.withEventLoopThreads(1)
-				.build();
-		return GraphDatabase.driver(boltUrl, AuthTokens.basic("neo4j", password), driverConfig);
-	}
-
-	private static void verifyExistenceAndVersion(long id1, Session session) {
-		Long version = session
-				.executeRead(tx -> tx.run("MATCH (n) WHERE id(n) = $id RETURN n.version", Collections
-						.singletonMap("id", id1)).single().get(0).asLong());
-		assertThat(version).isOne();
-	}
 }

@@ -81,7 +81,59 @@ We also support interfaces in domain-class-hierarchies for some scenarios:
 .Domain model in a separate module, same primary label like the interface name
 [source,java,indent=0,tabsize=4]
 ----
-include::example$integration/shared/common/Inheritance.java[tag=interface1]
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+
+import org.springframework.data.neo4j.core.schema.GeneratedValue;
+import org.springframework.data.neo4j.core.schema.Id;
+import org.springframework.data.neo4j.core.schema.Node;
+import org.springframework.data.neo4j.core.schema.Relationship;
+import org.springframework.data.neo4j.core.schema.RelationshipId;
+import org.springframework.data.neo4j.core.schema.RelationshipProperties;
+import org.springframework.data.neo4j.core.schema.TargetNode;
+
+public interface SomeInterface { // <.>
+
+	String getName();
+
+	SomeInterface getRelated();
+}
+
+@Node("SomeInterface") // <.>
+public static class SomeInterfaceEntity implements SomeInterface {
+
+    @Id
+    @GeneratedValue
+    private Long id;
+
+    private final String name;
+
+    private SomeInterface related;
+
+    public SomeInterfaceEntity(String name) {
+        this.name = name;
+    }
+
+    @Override
+    public String getName() {
+        return name;
+    }
+
+    @Override
+    public SomeInterface getRelated() {
+        return related;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setRelated(SomeInterface related) {
+        this.related = related;
+    }
+}
 ----
 <.> Just the plain interface name, as you would name your domain
 <.> As we need to synchronize the primary labels, we put `@Node` on the implementing class, which
@@ -93,7 +145,18 @@ Using a different primary label instead of the interface name is possible, too:
 .Different primary label
 [source,java,indent=0,tabsize=4]
 ----
-include::example$integration/shared/common/Inheritance.java[tag=interface2]
+@Node("PrimaryLabelWN") // <.>
+public interface SomeInterface2 {
+
+    String getName();
+
+    SomeInterface2 getRelated();
+}
+
+public static class SomeInterfaceEntity2 implements SomeInterface {
+
+	// Overrides omitted for brevity
+}
 ----
 <.> Put the `@Node` annotation on the interface
 
@@ -103,7 +166,37 @@ When doing so, at least two labels are required: A label determining the interfa
 .Multiple implementations
 [source,java,indent=0,tabsize=4]
 ----
-include::example$integration/shared/common/Inheritance.java[tag=interface3]
+@Node("SomeInterface3") // <.>
+public interface SomeInterface3 {
+
+    String getName();
+
+    SomeInterface3 getRelated();
+}
+
+@Node("SomeInterface3a") // <.>
+public static class SomeInterfaceImpl3a implements SomeInterface3 {
+
+	// Overrides omitted for brevity
+}
+
+@Node("SomeInterface3b") // <.>
+public static class SomeInterfaceImpl3b implements SomeInterface3 {
+
+    // Overrides omitted for brevity
+}
+
+@Node
+public static class ParentModel { // <.>
+
+    @Id
+    @GeneratedValue
+    private Long id;
+
+    private SomeInterface3 related1; // <.>
+
+    private SomeInterface3 related2;
+}
 ----
 <.> Explicitly specifying the label that identifies the interface is required in this scenario
 <.> Which applies for the first…
@@ -111,12 +204,43 @@ include::example$integration/shared/common/Inheritance.java[tag=interface3]
 <.> This is a client or parent model, using `SomeInterface3` transparently for two relationships
 <.> No concrete type is specified
 
-The data structure needed is shown in the following test. The same would be written by the OGM:
+The data structure needed is shown in the following test:
 
 .Data structure needed for using multiple, different interface implementations
 [source,java,indent=0,tabsize=4]
 ----
-include::example$integration/imperative/InheritanceMappingIT.java[tag=interface3]
+void mixedImplementationsRead(@Autowired Neo4jTemplate template) {
+
+	Long id;
+	try (Session session = this.driver.session(this.bookmarkCapture.createSessionConfig());
+			Transaction transaction = session.beginTransaction()) {
+		id = transaction
+			.run("""
+				CREATE (s:ParentModel{name:'s'})
+				CREATE (s)-[:RELATED_1]-> (:SomeInterface3:SomeInterface3b {name:'3b'})
+				CREATE (s)-[:RELATED_2]-> (:SomeInterface3:SomeInterface3a {name:'3a'})
+				RETURN id(s)""")
+			.single()
+			.get(0)
+			.asLong();
+		transaction.commit();
+	}
+
+	Optional<Inheritance.ParentModel> optionalParentModel = this.transactionTemplate
+		.execute(tx -> template.findById(id, Inheritance.ParentModel.class));
+
+	assertThat(optionalParentModel).hasValueSatisfying(v -> {
+		assertThat(v.getName()).isEqualTo("s");
+		assertThat(v).extracting(Inheritance.ParentModel::getRelated1)
+			.isInstanceOf(Inheritance.SomeInterfaceImpl3b.class)
+			.extracting(Inheritance.SomeInterface3::getName)
+			.isEqualTo("3b");
+		assertThat(v).extracting(Inheritance.ParentModel::getRelated2)
+			.isInstanceOf(Inheritance.SomeInterfaceImpl3a.class)
+			.extracting(Inheritance.SomeInterface3::getName)
+			.isEqualTo("3a");
+	});
+}
 ----
 
 NOTE: Interfaces cannot define an identifier field.
@@ -216,7 +340,34 @@ A relationship property class and its usage may look like this:
 .Relationship properties `Roles`
 [source,java]
 ----
-include::example$documentation/domain/Roles.java[tags=mapping.relationship.properties]
+@RelationshipProperties
+public class Roles {
+
+	@RelationshipId
+	private Long id;
+
+	private final List<String> roles;
+
+	@TargetNode
+	private final PersonEntity person;
+
+	public Roles(PersonEntity person, List<String> roles) {
+		this.person = person;
+		this.roles = roles;
+	}
+
+
+	public List<String> getRoles() {
+		return roles;
+	}
+
+	@Override
+	public String toString() {
+		return "Roles{" +
+				"id=" + id +
+				'}' + this.hashCode();
+	}
+}
 ----
 
 You must define a property for the generated, internal ID (`@RelationshipId`) so that SDN can determine during save which relationships
@@ -226,7 +377,8 @@ If SDN does not find a field for storing the internal node id, it will fail duri
 .Defining relationship properties for an entity
 [source,java,indent=0]
 ----
-include::example$documentation/domain/MovieEntity.java[tags=mapping.relationship.properties]
+@Relationship(type = "ACTED_IN", direction = Direction.INCOMING)
+private List<Roles> actorsAndRoles = new ArrayList<>();
 ----
 
 [[mapping.annotations.relationship.remarks]]

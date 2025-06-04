@@ -23,4 +23,5 @@ import org.springframework.data.neo4j.repository.ReactiveNeo4jRepository;
  * @author Michael J. Simons
  */
 public interface MovieRepository extends ReactiveNeo4jRepository<Movie, UUID> {
+
 }

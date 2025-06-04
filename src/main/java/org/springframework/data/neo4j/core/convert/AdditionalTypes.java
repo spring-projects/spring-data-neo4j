@@ -45,6 +45,7 @@ import org.neo4j.driver.exceptions.value.LossyCoercion;
 import org.neo4j.driver.types.Entity;
 import org.neo4j.driver.types.Node;
 import org.neo4j.driver.types.Relationship;
+
 import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.core.convert.converter.ConditionalConverter;
 import org.springframework.core.convert.converter.ConverterRegistry;
@@ -59,7 +60,8 @@ import org.springframework.util.StringUtils;
 
 /**
  * Additional types that are supported out of the box. Mostly all of
- * {@link org.springframework.data.mapping.model.SimpleTypeHolder SimpleTypeHolder's} defaults.
+ * {@link org.springframework.data.mapping.model.SimpleTypeHolder SimpleTypeHolder's}
+ * defaults.
  *
  * @author Michael J. Simons
  * @author Gerrit Meier
@@ -70,45 +72,77 @@ final class AdditionalTypes {
 
 	static final List<?> CONVERTERS;
 
+	private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ISO_OFFSET_DATE_TIME;
+
 	static {
 
 		List<Object> hlp = new ArrayList<>();
-		hlp.add(ConverterBuilder.reading(Value.class, boolean[].class, AdditionalTypes::asBooleanArray).andWriting(Values::value));
-		hlp.add(ConverterBuilder.reading(Value.class, Byte.class, AdditionalTypes::asByte).andWriting(AdditionalTypes::value));
-		hlp.add(ConverterBuilder.reading(Value.class, byte.class, AdditionalTypes::asByte).andWriting(AdditionalTypes::value));
-		hlp.add(ConverterBuilder.reading(Value.class, Character.class, AdditionalTypes::asCharacter).andWriting(Values::value));
-		hlp.add(ConverterBuilder.reading(Value.class, char.class, AdditionalTypes::asCharacter).andWriting(Values::value));
-		hlp.add(ConverterBuilder.reading(Value.class, char[].class, AdditionalTypes::asCharArray).andWriting(Values::value));
-		hlp.add(ConverterBuilder.reading(Value.class, Date.class, AdditionalTypes::asDate).andWriting(AdditionalTypes::value));
-		hlp.add(ConverterBuilder.reading(Value.class, double[].class, AdditionalTypes::asDoubleArray).andWriting(Values::value));
+		hlp.add(ConverterBuilder.reading(Value.class, boolean[].class, AdditionalTypes::asBooleanArray)
+			.andWriting(Values::value));
+		hlp.add(ConverterBuilder.reading(Value.class, Byte.class, AdditionalTypes::asByte)
+			.andWriting(AdditionalTypes::value));
+		hlp.add(ConverterBuilder.reading(Value.class, byte.class, AdditionalTypes::asByte)
+			.andWriting(AdditionalTypes::value));
+		hlp.add(ConverterBuilder.reading(Value.class, Character.class, AdditionalTypes::asCharacter)
+			.andWriting(Values::value));
+		hlp.add(ConverterBuilder.reading(Value.class, char.class, AdditionalTypes::asCharacter)
+			.andWriting(Values::value));
+		hlp.add(ConverterBuilder.reading(Value.class, char[].class, AdditionalTypes::asCharArray)
+			.andWriting(Values::value));
+		hlp.add(ConverterBuilder.reading(Value.class, Date.class, AdditionalTypes::asDate)
+			.andWriting(AdditionalTypes::value));
+		hlp.add(ConverterBuilder.reading(Value.class, double[].class, AdditionalTypes::asDoubleArray)
+			.andWriting(Values::value));
 		hlp.add(new EnumConverter());
-		hlp.add(ConverterBuilder.reading(Value.class, Float.class, AdditionalTypes::asFloat).andWriting(AdditionalTypes::value));
-		hlp.add(ConverterBuilder.reading(Value.class, float.class, AdditionalTypes::asFloat).andWriting(AdditionalTypes::value));
-		hlp.add(ConverterBuilder.reading(Value.class, float[].class, AdditionalTypes::asFloatArray).andWriting(AdditionalTypes::value));
+		hlp.add(ConverterBuilder.reading(Value.class, Float.class, AdditionalTypes::asFloat)
+			.andWriting(AdditionalTypes::value));
+		hlp.add(ConverterBuilder.reading(Value.class, float.class, AdditionalTypes::asFloat)
+			.andWriting(AdditionalTypes::value));
+		hlp.add(ConverterBuilder.reading(Value.class, float[].class, AdditionalTypes::asFloatArray)
+			.andWriting(AdditionalTypes::value));
 		hlp.add(ConverterBuilder.reading(Value.class, Integer.class, Value::asInt).andWriting(Values::value));
 		hlp.add(ConverterBuilder.reading(Value.class, int.class, Value::asInt).andWriting(Values::value));
-		hlp.add(ConverterBuilder.reading(Value.class, int[].class, AdditionalTypes::asIntArray).andWriting(Values::value));
-		hlp.add(ConverterBuilder.reading(Value.class, Locale.class, AdditionalTypes::asLocale).andWriting(AdditionalTypes::value));
-		hlp.add(ConverterBuilder.reading(Value.class, long[].class, AdditionalTypes::asLongArray).andWriting(Values::value));
-		hlp.add(ConverterBuilder.reading(Value.class, Short.class, AdditionalTypes::asShort).andWriting(AdditionalTypes::value));
-		hlp.add(ConverterBuilder.reading(Value.class, short.class, AdditionalTypes::asShort).andWriting(AdditionalTypes::value));
-		hlp.add(ConverterBuilder.reading(Value.class, short[].class, AdditionalTypes::asShortArray).andWriting(AdditionalTypes::value));
-		hlp.add(ConverterBuilder.reading(Value.class, String[].class, AdditionalTypes::asStringArray).andWriting(Values::value));
-		hlp.add(ConverterBuilder.reading(Value.class, BigDecimal.class, AdditionalTypes::asBigDecimal).andWriting(AdditionalTypes::value));
-		hlp.add(ConverterBuilder.reading(Value.class, BigInteger.class, AdditionalTypes::asBigInteger).andWriting(AdditionalTypes::value));
+		hlp.add(ConverterBuilder.reading(Value.class, int[].class, AdditionalTypes::asIntArray)
+			.andWriting(Values::value));
+		hlp.add(ConverterBuilder.reading(Value.class, Locale.class, AdditionalTypes::asLocale)
+			.andWriting(AdditionalTypes::value));
+		hlp.add(ConverterBuilder.reading(Value.class, long[].class, AdditionalTypes::asLongArray)
+			.andWriting(Values::value));
+		hlp.add(ConverterBuilder.reading(Value.class, Short.class, AdditionalTypes::asShort)
+			.andWriting(AdditionalTypes::value));
+		hlp.add(ConverterBuilder.reading(Value.class, short.class, AdditionalTypes::asShort)
+			.andWriting(AdditionalTypes::value));
+		hlp.add(ConverterBuilder.reading(Value.class, short[].class, AdditionalTypes::asShortArray)
+			.andWriting(AdditionalTypes::value));
+		hlp.add(ConverterBuilder.reading(Value.class, String[].class, AdditionalTypes::asStringArray)
+			.andWriting(Values::value));
+		hlp.add(ConverterBuilder.reading(Value.class, BigDecimal.class, AdditionalTypes::asBigDecimal)
+			.andWriting(AdditionalTypes::value));
+		hlp.add(ConverterBuilder.reading(Value.class, BigInteger.class, AdditionalTypes::asBigInteger)
+			.andWriting(AdditionalTypes::value));
 		hlp.add(new TemporalAmountConverter());
-		hlp.add(ConverterBuilder.reading(Value.class, Instant.class, AdditionalTypes::asInstant).andWriting(AdditionalTypes::value));
-		hlp.add(ConverterBuilder.reading(Value.class, UUID.class, AdditionalTypes::asUUID).andWriting(AdditionalTypes::value));
-		hlp.add(ConverterBuilder.reading(Value.class, URL.class, AdditionalTypes::asURL).andWriting(AdditionalTypes::value));
-		hlp.add(ConverterBuilder.reading(Value.class, URI.class, AdditionalTypes::asURI).andWriting(AdditionalTypes::value));
-		hlp.add(ConverterBuilder.reading(Value.class, TimeZone.class, AdditionalTypes::asTimeZone).andWriting(AdditionalTypes::value));
-		hlp.add(ConverterBuilder.reading(Value.class, ZoneId.class, AdditionalTypes::asZoneId).andWriting(AdditionalTypes::value));
+		hlp.add(ConverterBuilder.reading(Value.class, Instant.class, AdditionalTypes::asInstant)
+			.andWriting(AdditionalTypes::value));
+		hlp.add(ConverterBuilder.reading(Value.class, UUID.class, AdditionalTypes::asUUID)
+			.andWriting(AdditionalTypes::value));
+		hlp.add(ConverterBuilder.reading(Value.class, URL.class, AdditionalTypes::asURL)
+			.andWriting(AdditionalTypes::value));
+		hlp.add(ConverterBuilder.reading(Value.class, URI.class, AdditionalTypes::asURI)
+			.andWriting(AdditionalTypes::value));
+		hlp.add(ConverterBuilder.reading(Value.class, TimeZone.class, AdditionalTypes::asTimeZone)
+			.andWriting(AdditionalTypes::value));
+		hlp.add(ConverterBuilder.reading(Value.class, ZoneId.class, AdditionalTypes::asZoneId)
+			.andWriting(AdditionalTypes::value));
 		hlp.add(ConverterBuilder.reading(Value.class, Entity.class, Value::asEntity));
 		hlp.add(ConverterBuilder.reading(Value.class, Node.class, Value::asNode));
 		hlp.add(ConverterBuilder.reading(Value.class, Relationship.class, Value::asRelationship));
 		hlp.add(ConverterBuilder.reading(Value.class, Map.class, Value::asMap).andWriting(AdditionalTypes::value));
-		hlp.add(ConverterBuilder.reading(Value.class, Vector.class, AdditionalTypes::asVector).andWriting(AdditionalTypes::value));
+		hlp.add(ConverterBuilder.reading(Value.class, Vector.class, AdditionalTypes::asVector)
+			.andWriting(AdditionalTypes::value));
 		CONVERTERS = Collections.unmodifiableList(hlp);
+	}
+
+	private AdditionalTypes() {
 	}
 
 	static Value value(Map<?, ?> map) {
@@ -158,8 +192,9 @@ final class AdditionalTypes {
 	static URL asURL(Value value) {
 		try {
 			return new URL(value.asString());
-		} catch (MalformedURLException e) {
-			throw new MappingException("Could not create URL from value: " + value.asString(), e);
+		}
+		catch (MalformedURLException ex) {
+			throw new MappingException("Could not create URL from value: " + value.asString(), ex);
 		}
 	}
 
@@ -234,8 +269,6 @@ final class AdditionalTypes {
 		return chars[0];
 	}
 
-	private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ISO_OFFSET_DATE_TIME;
-
 	static Date asDate(Value value) {
 
 		return Date.from(DATE_TIME_FORMATTER.parse(value.asString(), Instant::from));
@@ -247,108 +280,6 @@ final class AdditionalTypes {
 		}
 
 		return Values.value(DATE_TIME_FORMATTER.format(date.toInstant().atZone(ZoneOffset.UTC.normalized())));
-	}
-
-	@ReadingConverter
-	@WritingConverter
-	static final class EnumConverter implements GenericConverter {
-
-		private final Set<ConvertiblePair> convertibleTypes;
-
-		EnumConverter() {
-			Set<ConvertiblePair> tmp = new HashSet<>();
-			tmp.add(new ConvertiblePair(Value.class, Enum.class));
-			tmp.add(new ConvertiblePair(Enum.class, Value.class));
-			this.convertibleTypes = Collections.unmodifiableSet(tmp);
-		}
-
-		@Override
-		public Set<ConvertiblePair> getConvertibleTypes() {
-			return convertibleTypes;
-		}
-
-		@SuppressWarnings({"raw", "unchecked"}) // Due to dynamic enum retrieval
-		@Override
-		@Nullable
-		public Object convert(@Nullable Object source, TypeDescriptor sourceType, TypeDescriptor targetType) {
-
-			if (source == null) {
-				return Value.class.isAssignableFrom(targetType.getType()) ? Values.NULL : null;
-			}
-
-			if (Value.class.isAssignableFrom(sourceType.getType())) {
-				return Enum.valueOf((Class<Enum>) targetType.getType(), ((Value) source).asString());
-			} else {
-				return Values.value(((Enum<?>) source).name());
-			}
-		}
-	}
-
-	/**
-	 * This is a workaround for the fact that Spring Data Commons requires {@link GenericConverter generic converters} to
-	 * have a non-null convertible pair since 2.3. Without it, they get filtered out and thus not registered in a
-	 * conversion service. We do this as an afterthought in
-	 * {@link Neo4jConversions#registerConvertersIn(ConverterRegistry)}.
-	 * <p>
-	 * This class uses is a {@link GenericConverter} without a concrete pair of convertible types. By making it implement
-	 * {@link ConditionalConverter} it works with Springs conversion service out of the box.
-	 */
-	static final class EnumArrayConverter implements GenericConverter, ConditionalConverter {
-
-		private final EnumConverter delegate;
-
-		EnumArrayConverter() {
-			this.delegate = new EnumConverter();
-		}
-
-		@Override
-		@Nullable
-		public Set<ConvertiblePair> getConvertibleTypes() {
-			return null;
-		}
-
-		@Override
-		public boolean matches(TypeDescriptor sourceType, TypeDescriptor targetType) {
-			if (Value.class.isAssignableFrom(sourceType.getType())) {
-				return describesSupportedEnumVariant(targetType);
-			} else if (Value.class.isAssignableFrom(targetType.getType())) {
-				return describesSupportedEnumVariant(sourceType);
-			} else {
-				return false;
-			}
-		}
-
-		private static boolean describesSupportedEnumVariant(TypeDescriptor typeDescriptor) {
-			var elementTypeDescriptor = typeDescriptor.getElementTypeDescriptor();
-			return typeDescriptor.isArray()
-					&& elementTypeDescriptor != null && Enum.class.isAssignableFrom(elementTypeDescriptor.getType());
-		}
-
-		@Override
-		@Nullable
-		public Object convert(@Nullable Object object, TypeDescriptor sourceType, TypeDescriptor targetType) {
-
-			if (object == null) {
-				return Value.class.isAssignableFrom(targetType.getType()) ? Values.NULL : null;
-			}
-
-			if (Value.class.isAssignableFrom(sourceType.getType())) {
-				Value source = (Value) object;
-
-				TypeDescriptor elementTypeDescriptor = Objects.requireNonNull(targetType.getElementTypeDescriptor());
-				Object[] targetArray = (Object[]) Array.newInstance(elementTypeDescriptor.getType(), source.size());
-
-				Arrays.setAll(targetArray,
-						i -> delegate.convert(source.get(i), TypeDescriptor.valueOf(Value.class), elementTypeDescriptor));
-				return targetArray;
-			} else {
-				Enum<?>[] source = (Enum<?>[]) object;
-
-				return Values.value(Arrays.stream(source)
-						.map(e -> delegate.convert(e, Objects.requireNonNull(sourceType.getElementTypeDescriptor()), TypeDescriptor.valueOf(Value.class)))
-						.toArray());
-			}
-		}
 	}
 
 	static Float asFloat(Value value) {
@@ -363,8 +294,7 @@ final class AdditionalTypes {
 		return Values.value(aFloat.toString());
 	}
 
-	@Nullable
-	static Locale asLocale(Value value) {
+	@Nullable static Locale asLocale(Value value) {
 
 		return StringUtils.parseLocale(value.asString());
 	}
@@ -492,5 +422,112 @@ final class AdditionalTypes {
 		return Values.value(values);
 	}
 
-	private AdditionalTypes() {}
+	@ReadingConverter
+	@WritingConverter
+	static final class EnumConverter implements GenericConverter {
+
+		private final Set<ConvertiblePair> convertibleTypes;
+
+		EnumConverter() {
+			Set<ConvertiblePair> tmp = new HashSet<>();
+			tmp.add(new ConvertiblePair(Value.class, Enum.class));
+			tmp.add(new ConvertiblePair(Enum.class, Value.class));
+			this.convertibleTypes = Collections.unmodifiableSet(tmp);
+		}
+
+		@Override
+		public Set<ConvertiblePair> getConvertibleTypes() {
+			return this.convertibleTypes;
+		}
+
+		@SuppressWarnings({ "raw", "unchecked" }) // Due to dynamic enum retrieval
+		@Override
+		@Nullable public Object convert(@Nullable Object source, TypeDescriptor sourceType, TypeDescriptor targetType) {
+
+			if (source == null) {
+				return Value.class.isAssignableFrom(targetType.getType()) ? Values.NULL : null;
+			}
+
+			if (Value.class.isAssignableFrom(sourceType.getType())) {
+				return Enum.valueOf((Class<Enum>) targetType.getType(), ((Value) source).asString());
+			}
+			else {
+				return Values.value(((Enum<?>) source).name());
+			}
+		}
+
+	}
+
+	/**
+	 * This is a workaround for the fact that Spring Data Commons requires
+	 * {@link GenericConverter generic converters} to have a non-null convertible pair
+	 * since 2.3. Without it, they get filtered out and thus not registered in a
+	 * conversion service. We do this as an afterthought in
+	 * {@link Neo4jConversions#registerConvertersIn(ConverterRegistry)}.
+	 * <p>
+	 * This class uses is a {@link GenericConverter} without a concrete pair of
+	 * convertible types. By making it implement {@link ConditionalConverter} it works
+	 * with Springs conversion service out of the box.
+	 */
+	static final class EnumArrayConverter implements GenericConverter, ConditionalConverter {
+
+		private final EnumConverter delegate;
+
+		EnumArrayConverter() {
+			this.delegate = new EnumConverter();
+		}
+
+		private static boolean describesSupportedEnumVariant(TypeDescriptor typeDescriptor) {
+			var elementTypeDescriptor = typeDescriptor.getElementTypeDescriptor();
+			return typeDescriptor.isArray() && elementTypeDescriptor != null
+					&& Enum.class.isAssignableFrom(elementTypeDescriptor.getType());
+		}
+
+		@Override
+		@Nullable public Set<ConvertiblePair> getConvertibleTypes() {
+			return null;
+		}
+
+		@Override
+		public boolean matches(TypeDescriptor sourceType, TypeDescriptor targetType) {
+			if (Value.class.isAssignableFrom(sourceType.getType())) {
+				return describesSupportedEnumVariant(targetType);
+			}
+			else if (Value.class.isAssignableFrom(targetType.getType())) {
+				return describesSupportedEnumVariant(sourceType);
+			}
+			else {
+				return false;
+			}
+		}
+
+		@Override
+		@Nullable public Object convert(@Nullable Object object, TypeDescriptor sourceType, TypeDescriptor targetType) {
+
+			if (object == null) {
+				return Value.class.isAssignableFrom(targetType.getType()) ? Values.NULL : null;
+			}
+
+			if (Value.class.isAssignableFrom(sourceType.getType())) {
+				Value source = (Value) object;
+
+				TypeDescriptor elementTypeDescriptor = Objects.requireNonNull(targetType.getElementTypeDescriptor());
+				Object[] targetArray = (Object[]) Array.newInstance(elementTypeDescriptor.getType(), source.size());
+
+				Arrays.setAll(targetArray, i -> this.delegate.convert(source.get(i),
+						TypeDescriptor.valueOf(Value.class), elementTypeDescriptor));
+				return targetArray;
+			}
+			else {
+				Enum<?>[] source = (Enum<?>[]) object;
+
+				return Values.value(Arrays.stream(source)
+					.map(e -> this.delegate.convert(e, Objects.requireNonNull(sourceType.getElementTypeDescriptor()),
+							TypeDescriptor.valueOf(Value.class)))
+					.toArray());
+			}
+		}
+
+	}
+
 }

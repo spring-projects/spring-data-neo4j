@@ -15,8 +15,6 @@
  */
 package org.springframework.data.neo4j.integration.issues.gh2632;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.util.Collections;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -31,6 +29,10 @@ import org.neo4j.driver.Transaction;
 import org.neo4j.driver.reactivestreams.ReactiveResult;
 import org.neo4j.driver.reactivestreams.ReactiveSession;
 import org.neo4j.driver.reactivestreams.ReactiveTransaction;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -40,9 +42,7 @@ import org.springframework.data.neo4j.test.Neo4jExtension;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
-import reactor.test.StepVerifier;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Michael J. Simons
@@ -59,23 +59,22 @@ class ReactiveConnectionAcquisitionIT {
 				transaction.run("MATCH (n) detach delete n");
 				transaction.run("""
 						CREATE (m:Movie {title: "I don't want warnings", id: randomUUID()})
-						"""
-				).consume();
+						""").consume();
 				transaction.commit();
 			}
 		}
 	}
 
 	@Test
-		// GH-2632
-	void connectionAcquisitionAfterErrorViaSDNTxManagerShouldWork(@Autowired MovieRepository movieRepository, @Autowired Driver driver) {
+	// GH-2632
+	void connectionAcquisitionAfterErrorViaSDNTxManagerShouldWork(@Autowired MovieRepository movieRepository,
+			@Autowired Driver driver) {
 		UUID id = UUID.randomUUID();
-		Flux
-				.range(1, 5)
-				.flatMap(i -> movieRepository.findById(id).switchIfEmpty(Mono.error(new RuntimeException())))
-				.then()
-				.as(StepVerifier::create)
-				.verifyError();
+		Flux.range(1, 5)
+			.flatMap(i -> movieRepository.findById(id).switchIfEmpty(Mono.error(new RuntimeException())))
+			.then()
+			.as(StepVerifier::create)
+			.verifyError();
 
 		try (Session session = driver.session()) {
 			long aNumber = session.run("RETURN 1").single().get(0).asLong();
@@ -84,25 +83,41 @@ class ReactiveConnectionAcquisitionIT {
 	}
 
 	@Test
-		// GH-2632
+	// GH-2632
 	void connectionAcquisitionAfterErrorViaImplicitTXShouldWork(@Autowired Driver driver) {
-		Flux
-				.range(1, 5)
-				.flatMap(
-						i -> {
-							Query query = new Query("MATCH (p:Product) WHERE p.id = $id RETURN p.title", Collections.singletonMap("id", 0));
-							return Flux.usingWhen(
-									Mono.fromSupplier(() -> driver.session(ReactiveSession.class)),
-									session -> Flux.from(session.run(query))
-											.flatMap(result -> Flux.from(result.records()))
-											.map(record -> record.get(0).asString()),
-									session -> Mono.fromDirect(session.close())
-							).switchIfEmpty(Mono.error(new RuntimeException()));
-						}
-				)
-				.then()
-				.as(StepVerifier::create)
-				.verifyError();
+		Flux.range(1, 5).flatMap(i -> {
+			Query query = new Query("MATCH (p:Product) WHERE p.id = $id RETURN p.title",
+					Collections.singletonMap("id", 0));
+			return Flux
+				.usingWhen(Mono.fromSupplier(() -> driver.session(ReactiveSession.class)),
+						session -> Flux.from(session.run(query))
+							.flatMap(result -> Flux.from(result.records()))
+							.map(record -> record.get(0).asString()),
+						session -> Mono.fromDirect(session.close()))
+				.switchIfEmpty(Mono.error(new RuntimeException()));
+		}).then().as(StepVerifier::create).verifyError();
+
+		try (Session session = driver.session()) {
+			long aNumber = session.run("RETURN 1").single().get(0).asLong();
+			assertThat(aNumber).isOne();
+		}
+	}
+
+	@Test
+	// GH-2632
+	void connectionAcquisitionAfterErrorViaExplicitTXShouldWork(@Autowired Driver driver) {
+		Flux.range(1, 5).flatMap(i -> {
+			Mono<SessionAndTx> f = Mono.just(driver.session(ReactiveSession.class))
+				.flatMap(s -> Mono.fromDirect(s.beginTransaction()).map(tx -> new SessionAndTx(s, tx)));
+			return Flux
+				.usingWhen(f,
+						h -> Flux.from(h.tx.run("MATCH (n) WHERE false = true RETURN n"))
+							.flatMap(ReactiveResult::records),
+						h -> Mono.from(h.tx.commit()).then(Mono.from(h.session.close())),
+						(h, e) -> Mono.from(h.tx.rollback()).then(Mono.from(h.session.close())),
+						h -> Mono.from(h.tx.rollback()).then(Mono.from(h.session.close())))
+				.switchIfEmpty(Mono.error(new RuntimeException()));
+		}).then().as(StepVerifier::create).verifyError();
 
 		try (Session session = driver.session()) {
 			long aNumber = session.run("RETURN 1").single().get(0).asLong();
@@ -113,47 +128,22 @@ class ReactiveConnectionAcquisitionIT {
 	record SessionAndTx(ReactiveSession session, ReactiveTransaction tx) {
 	}
 
-	@Test
-		// GH-2632
-	void connectionAcquisitionAfterErrorViaExplicitTXShouldWork(@Autowired Driver driver) {
-		Flux
-				.range(1, 5)
-				.flatMap(
-						i -> {
-							Mono<SessionAndTx> f = Mono
-									.just(driver.session(ReactiveSession.class))
-									.flatMap(s -> Mono.fromDirect(s.beginTransaction()).map(tx -> new SessionAndTx(s, tx)));
-							return Flux.usingWhen(f,
-									h -> Flux.from(h.tx.run("MATCH (n) WHERE false = true RETURN n")).flatMap(ReactiveResult::records),
-									h -> Mono.from(h.tx.commit()).then(Mono.from(h.session.close())),
-									(h, e) -> Mono.from(h.tx.rollback()).then(Mono.from(h.session.close())),
-									h -> Mono.from(h.tx.rollback()).then(Mono.from(h.session.close()))
-							).switchIfEmpty(Mono.error(new RuntimeException()));
-						}
-				)
-				.then()
-				.as(StepVerifier::create)
-				.verifyError();
-
-		try (Session session = driver.session()) {
-			long aNumber = session.run("RETURN 1").single().get(0).asLong();
-			assertThat(aNumber).isOne();
-		}
-	}
-
 	@Configuration
 	@EnableTransactionManagement
 	@EnableReactiveNeo4jRepositories
 	static class Config extends AbstractReactiveNeo4jConfig {
 
 		@Bean
+		@Override
 		public Driver driver() {
 			var config = org.neo4j.driver.Config.builder()
-					.withMaxConnectionPoolSize(2)
-					.withConnectionAcquisitionTimeout(2, TimeUnit.SECONDS)
-					.withLeakedSessionsLogging()
-					.build();
+				.withMaxConnectionPoolSize(2)
+				.withConnectionAcquisitionTimeout(2, TimeUnit.SECONDS)
+				.withLeakedSessionsLogging()
+				.build();
 			return GraphDatabase.driver(neo4jConnectionSupport.uri, neo4jConnectionSupport.authToken, config);
 		}
+
 	}
+
 }

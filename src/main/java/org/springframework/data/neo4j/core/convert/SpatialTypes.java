@@ -21,6 +21,7 @@ import java.util.List;
 
 import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
+
 import org.springframework.data.convert.ConverterBuilder;
 import org.springframework.data.geo.Point;
 import org.springframework.data.neo4j.types.CartesianPoint2d;
@@ -35,18 +36,20 @@ import org.springframework.util.Assert;
 /**
  * Mapping of spatial types.
  * <p>
- * This replicates the behaviour of SDN+OGM. Spring Data Commons geographic points are x/y based and usually treat x/y
- * as lat/long.
+ * This replicates the behaviour of SDN+OGM. Spring Data Commons geographic points are x/y
+ * based and usually treat x/y as lat/long.
  * <p>
- * Neo4j however stores x/y as long/lat when used with an Srid of 4326 or 4979 (those are geographic points). We take
- * this into account with our dedicated spatial types which can be used alternatively.
+ * Neo4j however stores x/y as long/lat when used with an Srid of 4326 or 4979 (those are
+ * geographic points). We take this into account with our dedicated spatial types which
+ * can be used alternatively.
  * <p>
- * However, when converting an Spring Data Commons point to the internal value, you'll notice that we store y as x and
- * vice versa. This is intentionally. We use a hardcoded WGS-84 Srid during storage, thus you'll get back your x as
- * latitude, y as longitude, as described above.
+ * However, when converting an Spring Data Commons point to the internal value, you'll
+ * notice that we store y as x and vice versa. This is intentionally. We use a hardcoded
+ * WGS-84 Srid during storage, thus you'll get back your x as latitude, y as longitude, as
+ * described above.
  * <p>
- * The biggest degree of freedom will come from using an attribute of type {@link org.neo4j.driver.types.Point}
- * directly. This will be passed on as is.
+ * The biggest degree of freedom will come from using an attribute of type
+ * {@link org.neo4j.driver.types.Point} directly. This will be passed on as is.
  *
  * @author Michael J. Simons
  * @since 6.0
@@ -58,12 +61,18 @@ final class SpatialTypes {
 	static {
 
 		List<ConverterBuilder.ConverterAware> hlp = new ArrayList<>();
-		hlp.add(ConverterBuilder.reading(Value.class, Point.class, SpatialTypes::asSpringDataPoint).andWriting(SpatialTypes::value));
-		hlp.add(ConverterBuilder.reading(Value.class, Point[].class, SpatialTypes::asPointArray).andWriting(SpatialTypes::value));
+		hlp.add(ConverterBuilder.reading(Value.class, Point.class, SpatialTypes::asSpringDataPoint)
+			.andWriting(SpatialTypes::value));
+		hlp.add(ConverterBuilder.reading(Value.class, Point[].class, SpatialTypes::asPointArray)
+			.andWriting(SpatialTypes::value));
 
-		hlp.add(ConverterBuilder.reading(Value.class, Neo4jPoint.class, SpatialTypes::asNeo4jPoint).andWriting(SpatialTypes::value));
+		hlp.add(ConverterBuilder.reading(Value.class, Neo4jPoint.class, SpatialTypes::asNeo4jPoint)
+			.andWriting(SpatialTypes::value));
 
 		CONVERTERS = Collections.unmodifiableList(hlp);
+	}
+
+	private SpatialTypes() {
 	}
 
 	static Neo4jPoint asNeo4jPoint(Value value) {
@@ -79,16 +88,20 @@ final class SpatialTypes {
 		if (object instanceof CartesianPoint2d) {
 			CartesianPoint2d point = (CartesianPoint2d) object;
 			return Values.point(point.getSrid(), point.getX(), point.getY());
-		} else if (object instanceof CartesianPoint3d) {
+		}
+		else if (object instanceof CartesianPoint3d) {
 			CartesianPoint3d point = (CartesianPoint3d) object;
 			return Values.point(point.getSrid(), point.getX(), point.getY(), point.getZ());
-		} else if (object instanceof GeographicPoint2d) {
+		}
+		else if (object instanceof GeographicPoint2d) {
 			GeographicPoint2d point = (GeographicPoint2d) object;
 			return Values.point(point.getSrid(), point.getLongitude(), point.getLatitude());
-		} else if (object instanceof GeographicPoint3d) {
+		}
+		else if (object instanceof GeographicPoint3d) {
 			GeographicPoint3d point = (GeographicPoint3d) object;
 			return Values.point(point.getSrid(), point.getLongitude(), point.getLatitude(), point.getHeight());
-		} else {
+		}
+		else {
 			throw new IllegalArgumentException("Unsupported point implementation: " + object.getClass());
 		}
 	}
@@ -128,5 +141,4 @@ final class SpatialTypes {
 		return Values.value(values);
 	}
 
-	private SpatialTypes() {}
 }

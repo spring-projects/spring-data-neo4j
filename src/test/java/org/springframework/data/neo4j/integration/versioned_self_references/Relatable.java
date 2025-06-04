@@ -28,4 +28,5 @@ interface Relatable<T> {
 	Collection<T> getRelatedObjects();
 
 	void relate(T object);
+
 }

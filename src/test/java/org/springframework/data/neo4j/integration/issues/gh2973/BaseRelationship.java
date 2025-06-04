@@ -25,14 +25,16 @@ import org.springframework.data.neo4j.core.schema.TargetNode;
  */
 @RelationshipProperties
 public abstract class BaseRelationship {
+
 	@RelationshipId
 	@GeneratedValue
 	private Long id;
+
 	@TargetNode
 	private BaseNode targetNode;
 
 	public Long getId() {
-		return id;
+		return this.id;
 	}
 
 	public void setId(Long id) {
@@ -40,10 +42,11 @@ public abstract class BaseRelationship {
 	}
 
 	public BaseNode getTargetNode() {
-		return targetNode;
+		return this.targetNode;
 	}
 
 	public void setTargetNode(BaseNode targetNode) {
 		this.targetNode = targetNode;
 	}
+
 }

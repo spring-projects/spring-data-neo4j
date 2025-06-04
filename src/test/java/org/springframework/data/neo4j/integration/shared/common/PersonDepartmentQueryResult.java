@@ -21,6 +21,7 @@ package org.springframework.data.neo4j.integration.shared.common;
 public class PersonDepartmentQueryResult {
 
 	private final PersonEntity person;
+
 	private final DepartmentEntity department;
 
 	public PersonDepartmentQueryResult(PersonEntity person, DepartmentEntity department) {
@@ -35,4 +36,5 @@ public class PersonDepartmentQueryResult {
 	public DepartmentEntity getDepartment() {
 		return this.department;
 	}
+
 }

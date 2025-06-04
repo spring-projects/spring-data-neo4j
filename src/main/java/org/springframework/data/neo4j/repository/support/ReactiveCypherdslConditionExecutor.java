@@ -18,18 +18,19 @@ package org.springframework.data.neo4j.repository.support;
 import org.apiguardian.api.API;
 import org.neo4j.cypherdsl.core.Condition;
 import org.neo4j.cypherdsl.core.SortItem;
-import org.springframework.data.domain.Sort;
-
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import org.springframework.data.domain.Sort;
+
 /**
- * An interface that can be added to any repository so that queries can be enriched by {@link Condition conditions} of the
- * Cypher-DSL. This interface behaves the same as the {@link org.springframework.data.querydsl.ReactiveQuerydslPredicateExecutor}.
+ * An interface that can be added to any repository so that queries can be enriched by
+ * {@link Condition conditions} of the Cypher-DSL. This interface behaves the same as the
+ * {@link org.springframework.data.querydsl.ReactiveQuerydslPredicateExecutor}.
  *
+ * @param <T> the type of the domain
  * @author Niklas Krieger
  * @author Michael J. Simons
- * @param <T> Type of the domain
  * @since 6.3.3
  */
 @API(status = API.Status.STABLE, since = "6.3.3")
@@ -48,5 +49,5 @@ public interface ReactiveCypherdslConditionExecutor<T> {
 	Mono<Long> count(Condition condition);
 
 	Mono<Boolean> exists(Condition condition);
-}
 
+}

@@ -27,4 +27,5 @@ import org.springframework.stereotype.Repository;
 public interface ReactiveSkuRORepository extends ReactiveNeo4jRepository<SkuRO, Long> {
 
 	Mono<SkuRO> findOneByName(String name);
+
 }

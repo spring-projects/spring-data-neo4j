@@ -15,8 +15,6 @@
  */
 package org.springframework.data.neo4j.integration.conversion_imperative;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.util.Collections;
 
 import org.junit.jupiter.api.Test;
@@ -24,6 +22,7 @@ import org.neo4j.driver.Driver;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.types.Node;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -43,14 +42,16 @@ import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 /**
  * @author Michael J. Simons
- * @soundtrack Die Toten Hosen - Learning English, Lesson Two
  */
 @Neo4jIntegrationTest
 class ImperativeCompositePropertiesIT extends CompositePropertiesITBase {
 
-	@Autowired ImperativeCompositePropertiesIT(Driver driver, BookmarkCapture bookmarkCapture) {
+	@Autowired
+	ImperativeCompositePropertiesIT(Driver driver, BookmarkCapture bookmarkCapture) {
 		super(driver, bookmarkCapture);
 	}
 
@@ -92,25 +93,19 @@ class ImperativeCompositePropertiesIT extends CompositePropertiesITBase {
 		thing.setSomeOtherDTO(null);
 		repository.save(thing);
 
-		try (Session session = driver.session()) {
-			Record r = session.executeRead(tx -> tx.run("MATCH (t:CompositeProperties) WHERE id(t) = $id RETURN t",
-					Collections.singletonMap("id", id)).single());
+		try (Session session = this.driver.session()) {
+			Record r = session.executeRead(tx -> tx
+				.run("MATCH (t:CompositeProperties) WHERE id(t) = $id RETURN t", Collections.singletonMap("id", id))
+				.single());
 			Node n = r.get("t").asNode();
-			assertThat(n.asMap()).doesNotContainKeys(
-					"someDatesByEnumA.VALUE_AA",
-					"datesWithTransformedKey.test",
-					"dto.x", "dto.y", "dto.z"
-			);
+			assertThat(n.asMap()).doesNotContainKeys("someDatesByEnumA.VALUE_AA", "datesWithTransformedKey.test",
+					"dto.x", "dto.y", "dto.z");
 		}
 	}
 
-	public interface ThingProjection {
-
-		ThingWithCompositeProperties.SomeOtherDTO getSomeOtherDTO();
-	}
-
 	@Test // GH-2451
-	void compositePropertiesShouldBeFilterableEvenOnNonMapTypes(@Autowired Repository repository, @Autowired Neo4jTemplate template) {
+	void compositePropertiesShouldBeFilterableEvenOnNonMapTypes(@Autowired Repository repository,
+			@Autowired Neo4jTemplate template) {
 
 		Long id = createNodeWithCompositeProperties();
 		ThingWithCompositeProperties thing = repository.findById(id).get();
@@ -119,20 +114,24 @@ class ImperativeCompositePropertiesIT extends CompositePropertiesITBase {
 		thing.setSomeOtherDTO(null);
 		template.saveAs(thing, ThingProjection.class);
 
-		try (Session session = driver.session()) {
-			Record r = session.executeRead(tx -> tx.run("MATCH (t:CompositeProperties) WHERE id(t) = $id RETURN t",
-					Collections.singletonMap("id", id)).single());
+		try (Session session = this.driver.session()) {
+			Record r = session.executeRead(tx -> tx
+				.run("MATCH (t:CompositeProperties) WHERE id(t) = $id RETURN t", Collections.singletonMap("id", id))
+				.single());
 			Node n = r.get("t").asNode();
-			assertThat(n.asMap())
-					.containsKeys(
-							"someDatesByEnumA.VALUE_AA",
-							"datesWithTransformedKey.test"
-					)
-					.doesNotContainKeys("dto.x", "dto.y", "dto.z");
+			assertThat(n.asMap()).containsKeys("someDatesByEnumA.VALUE_AA", "datesWithTransformedKey.test")
+				.doesNotContainKeys("dto.x", "dto.y", "dto.z");
 		}
 	}
 
+	public interface ThingProjection {
+
+		ThingWithCompositeProperties.SomeOtherDTO getSomeOtherDTO();
+
+	}
+
 	public interface Repository extends Neo4jRepository<ThingWithCompositeProperties, Long> {
+
 	}
 
 	@Configuration
@@ -141,6 +140,7 @@ class ImperativeCompositePropertiesIT extends CompositePropertiesITBase {
 	static class Config extends Neo4jImperativeTestConfiguration {
 
 		@Bean
+		@Override
 		public Driver driver() {
 			return neo4jConnectionSupport.getDriver();
 		}
@@ -151,20 +151,24 @@ class ImperativeCompositePropertiesIT extends CompositePropertiesITBase {
 		}
 
 		@Bean
-		public BookmarkCapture bookmarkCapture() {
+		BookmarkCapture bookmarkCapture() {
 			return new BookmarkCapture();
 		}
 
 		@Override
-		public PlatformTransactionManager transactionManager(Driver driver, DatabaseSelectionProvider databaseNameProvider) {
+		public PlatformTransactionManager transactionManager(Driver driver,
+				DatabaseSelectionProvider databaseNameProvider) {
 
 			BookmarkCapture bookmarkCapture = bookmarkCapture();
-			return new Neo4jTransactionManager(driver, databaseNameProvider, Neo4jBookmarkManager.create(bookmarkCapture));
+			return new Neo4jTransactionManager(driver, databaseNameProvider,
+					Neo4jBookmarkManager.create(bookmarkCapture));
 		}
 
 		@Override
 		public boolean isCypher5Compatible() {
 			return neo4jConnectionSupport.isCypher5SyntaxCompatible();
 		}
+
 	}
+
 }

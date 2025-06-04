@@ -15,14 +15,16 @@
  */
 package org.springframework.data.neo4j.integration.imperative.repositories;
 
+import java.util.List;
+
 import org.springframework.data.neo4j.integration.shared.common.Flight;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
-
-import java.util.List;
 
 /**
  * @author Michael J. Simons
  */
 public interface FlightRepository extends Neo4jRepository<Flight, Long> {
-    List<Flight> findAllByDepartureCodeAndArrivalCode(String departureCode, String arrivalCode);
+
+	List<Flight> findAllByDepartureCodeAndArrivalCode(String departureCode, String arrivalCode);
+
 }

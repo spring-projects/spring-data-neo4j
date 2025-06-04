@@ -21,84 +21,91 @@ import java.util.Optional;
 import org.apiguardian.api.API;
 import org.neo4j.cypherdsl.core.Statement;
 import org.neo4j.cypherdsl.core.StatementBuilder.OngoingReadingAndReturn;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 /**
- * An interface that can be added to any imperative repository so that the repository exposes several methods taking in
- * a {@link Statement} from the Cypher-DSL, that allows for full customization of the queries executed in a programmatic
- * way in contrast to provide custom queries declaratively via {@link org.springframework.data.neo4j.repository.query.Query @Query}
- * annotations.
-
+ * An interface that can be added to any imperative repository so that the repository
+ * exposes several methods taking in a {@link Statement} from the Cypher-DSL, that allows
+ * for full customization of the queries executed in a programmatic way in contrast to
+ * provide custom queries declaratively via
+ * {@link org.springframework.data.neo4j.repository.query.Query @Query} annotations.
+ *
+ * @param <T> the domain type of the repository
  * @author Michael J. Simons
- * @param <T> The domain type of the repository
- * @soundtrack Queen - Queen On Air
  * @since 6.1
  */
 @API(status = API.Status.STABLE, since = "6.1")
 public interface CypherdslStatementExecutor<T> {
 
 	/**
-	 * Find one element of the domain as defined by the {@code statement}. The statement must return either no or exactly
-	 * one mappable record.
-	 *
-	 * @param statement A full Cypher statement, matching and returning all required nodes, relationships and properties
-	 * @return An empty optional or an optional containing the single element
+	 * Find one element of the domain as defined by the {@code statement}. The statement
+	 * must return either no or exactly one mappable record.
+	 * @param statement a full Cypher statement, matching and returning all required
+	 * nodes, relationships and properties
+	 * @return an empty optional or an optional containing the single element
 	 */
 	Optional<T> findOne(Statement statement);
 
 	/**
-	 * Creates a custom projection of the repository type by a Cypher-DSL based statement. The statement must return either
-	 * no or exactly one mappable record.
-	 *
-	 * @param statement       A full Cypher statement, matching and returning all required nodes, relationships and properties
-	 * @param projectionClass The class of the projection type
-	 * @param <PT>            The type of the projection
-	 * @return An empty optional or an optional containing the single, projected element
+	 * Creates a custom projection of the repository type by a Cypher-DSL based statement.
+	 * The statement must return either no or exactly one mappable record.
+	 * @param statement a full Cypher statement, matching and returning all required
+	 * nodes, relationships and properties
+	 * @param projectionClass the class of the projection type
+	 * @param <PT> the type of the projection
+	 * @return an empty optional or an optional containing the single, projected element
 	 */
 	<PT> Optional<PT> findOne(Statement statement, Class<PT> projectionClass);
 
 	/**
 	 * Find all elements of the domain as defined by the {@code statement}.
-	 *
-	 * @param statement A full Cypher statement, matching and returning all required nodes, relationships and properties
-	 * @return An iterable full of domain objects
+	 * @param statement a full Cypher statement, matching and returning all required
+	 * nodes, relationships and properties
+	 * @return an iterable full of domain objects
 	 */
 	Collection<T> findAll(Statement statement);
 
 	/**
 	 * Creates a custom projection of the repository type by a Cypher-DSL based statement.
-	 *
-	 * @param statement       A full Cypher statement, matching and returning all required nodes, relationships and properties
-	 * @param projectionClass The class of the projection type
-	 * @param <PT>            The type of the projection
-	 * @return An iterable full of projections
+	 * @param statement a full Cypher statement, matching and returning all required
+	 * nodes, relationships and properties
+	 * @param projectionClass the class of the projection type
+	 * @param <PT> the type of the projection
+	 * @return an iterable full of projections
 	 */
 	<PT> Collection<PT> findAll(Statement statement, Class<PT> projectionClass);
 
 	/**
 	 * The pages here are built with a fragment of a {@link Statement}: An
-	 * {@link OngoingReadingAndReturn ongoing reading with an attached return}. The next step is ordering the results,
-	 * and that order will be derived from the {@code pageable}. The same applies for the values of skip and limit.
-	 *
-	 * @param statement       The almost complete statement that actually matches and returns the nodes and relationships to be projected
-	 * @param countQuery      The statement that is executed to count the total number of matches for computing the correct number of pages
-	 * @param pageable        The definition of the page
-	 * @return A page full of domain objects
+	 * {@link OngoingReadingAndReturn ongoing reading with an attached return}. The next
+	 * step is ordering the results, and that order will be derived from the
+	 * {@code pageable}. The same applies for the values of skip and limit.
+	 * @param statement the almost complete statement that actually matches and returns
+	 * the nodes and relationships to be projected
+	 * @param countQuery the statement that is executed to count the total number of
+	 * matches for computing the correct number of pages
+	 * @param pageable the definition of the page
+	 * @return a page full of domain objects
 	 */
 	Page<T> findAll(OngoingReadingAndReturn statement, Statement countQuery, Pageable pageable);
 
 	/**
 	 * The pages here are built with a fragment of a {@link Statement}: An
-	 * {@link OngoingReadingAndReturn ongoing reading with an attached return}. The next step is ordering the results,
-	 * and that order will be derived from the {@code pageable}. The same applies for the values of skip and limit.
-	 *
-	 * @param statement       The almost complete statement that actually matches and returns the nodes and relationships to be projected
-	 * @param countQuery      The statement that is executed to count the total number of matches for computing the correct number of pages
-	 * @param pageable        The definition of the page
-	 * @param projectionClass The class of the projection type
-	 * @param <PT>            The type of the projection
-	 * @return A page full of projections
+	 * {@link OngoingReadingAndReturn ongoing reading with an attached return}. The next
+	 * step is ordering the results, and that order will be derived from the
+	 * {@code pageable}. The same applies for the values of skip and limit.
+	 * @param statement the almost complete statement that actually matches and returns
+	 * the nodes and relationships to be projected
+	 * @param countQuery the statement that is executed to count the total number of
+	 * matches for computing the correct number of pages
+	 * @param pageable the definition of the page
+	 * @param projectionClass the class of the projection type
+	 * @param <PT> the type of the projection
+	 * @return a page full of projections
 	 */
-	<PT> Page<PT> findAll(OngoingReadingAndReturn statement, Statement countQuery, Pageable pageable, Class<PT> projectionClass);
+	<PT> Page<PT> findAll(OngoingReadingAndReturn statement, Statement countQuery, Pageable pageable,
+			Class<PT> projectionClass);
+
 }

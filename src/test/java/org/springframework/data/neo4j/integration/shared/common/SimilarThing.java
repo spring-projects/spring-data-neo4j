@@ -28,6 +28,7 @@ import org.springframework.data.neo4j.core.schema.Relationship;
  */
 @Node
 public class SimilarThing {
+
 	@Id
 	@GeneratedValue
 	private Long id;
@@ -45,7 +46,7 @@ public class SimilarThing {
 	private List<SimilarThing> noSimilarThings;
 
 	public Long getId() {
-		return id;
+		return this.id;
 	}
 
 	public void setId(Long id) {
@@ -53,7 +54,7 @@ public class SimilarThing {
 	}
 
 	public String getName() {
-		return name;
+		return this.name;
 	}
 
 	public void setName(String name) {
@@ -76,11 +77,6 @@ public class SimilarThing {
 	}
 
 	@Override
-	public String toString() {
-		return "Similar{" + "id=" + id + ", name='" + name + '\'' + '}';
-	}
-
-	@Override
 	public boolean equals(Object o) {
 		if (this == o) {
 			return true;
@@ -89,11 +85,17 @@ public class SimilarThing {
 			return false;
 		}
 		SimilarThing similarThing = (SimilarThing) o;
-		return id.equals(similarThing.id) && name.equals(similarThing.name);
+		return this.id.equals(similarThing.id) && this.name.equals(similarThing.name);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(id, name);
+		return Objects.hash(this.id, this.name);
 	}
+
+	@Override
+	public String toString() {
+		return "Similar{" + "id=" + this.id + ", name='" + this.name + '\'' + '}';
+	}
+
 }

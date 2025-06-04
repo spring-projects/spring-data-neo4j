@@ -20,6 +20,7 @@ import java.lang.reflect.Method;
 import org.apiguardian.api.API;
 import org.neo4j.cypherdsl.core.renderer.Configuration;
 import org.neo4j.cypherdsl.core.renderer.Renderer;
+
 import org.springframework.data.neo4j.core.Neo4jOperations;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.projection.ProjectionFactory;
@@ -40,8 +41,11 @@ import org.springframework.data.repository.query.ValueExpressionDelegate;
 public final class Neo4jQueryLookupStrategy implements QueryLookupStrategy {
 
 	private final Neo4jMappingContext mappingContext;
+
 	private final Neo4jOperations neo4jOperations;
+
 	private final ValueExpressionDelegate delegate;
+
 	private final Configuration configuration;
 
 	public Neo4jQueryLookupStrategy(Neo4jOperations neo4jOperations, Neo4jMappingContext mappingContext,
@@ -52,9 +56,6 @@ public final class Neo4jQueryLookupStrategy implements QueryLookupStrategy {
 		this.configuration = configuration;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.data.repository.query.QueryLookupStrategy#resolveQuery(java.lang.reflect.Method, org.springframework.data.repository.core.RepositoryMetadata, org.springframework.data.projection.ProjectionFactory, org.springframework.data.repository.core.NamedQueries)
-	 */
 	@Override
 	public RepositoryQuery resolveQuery(Method method, RepositoryMetadata metadata, ProjectionFactory factory,
 			NamedQueries namedQueries) {
@@ -63,15 +64,20 @@ public final class Neo4jQueryLookupStrategy implements QueryLookupStrategy {
 		String namedQueryName = queryMethod.getNamedQueryName();
 
 		if (namedQueries.hasQuery(namedQueryName)) {
-			return StringBasedNeo4jQuery.create(neo4jOperations, mappingContext, delegate, queryMethod,
+			return StringBasedNeo4jQuery.create(this.neo4jOperations, this.mappingContext, this.delegate, queryMethod,
 					namedQueries.getQuery(namedQueryName), factory);
-		} else if (queryMethod.hasQueryAnnotation()) {
-			return StringBasedNeo4jQuery.create(neo4jOperations, mappingContext, delegate, queryMethod,
+		}
+		else if (queryMethod.hasQueryAnnotation()) {
+			return StringBasedNeo4jQuery.create(this.neo4jOperations, this.mappingContext, this.delegate, queryMethod,
 					factory);
-		} else if (queryMethod.isCypherBasedProjection()) {
-			return CypherdslBasedQuery.create(neo4jOperations, mappingContext, queryMethod, factory, Renderer.getRenderer(configuration)::render);
-		} else {
-			return PartTreeNeo4jQuery.create(neo4jOperations, mappingContext, queryMethod, factory);
+		}
+		else if (queryMethod.isCypherBasedProjection()) {
+			return CypherdslBasedQuery.create(this.neo4jOperations, this.mappingContext, queryMethod, factory,
+					Renderer.getRenderer(this.configuration)::render);
+		}
+		else {
+			return PartTreeNeo4jQuery.create(this.neo4jOperations, this.mappingContext, queryMethod, factory);
 		}
 	}
+
 }

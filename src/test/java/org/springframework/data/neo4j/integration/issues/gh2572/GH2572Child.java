@@ -23,6 +23,7 @@ import org.springframework.data.neo4j.core.schema.Relationship;
  */
 @Node
 public class GH2572Child extends GH2572BaseEntity<GH2572Child> {
+
 	private String name;
 
 	@Relationship(value = "IS_PET", direction = Relationship.Direction.OUTGOING)
@@ -40,15 +41,16 @@ public class GH2572Child extends GH2572BaseEntity<GH2572Child> {
 		return this.name;
 	}
 
-	public GH2572Parent getOwner() {
-		return this.owner;
-	}
-
 	public void setName(String name) {
 		this.name = name;
+	}
+
+	public GH2572Parent getOwner() {
+		return this.owner;
 	}
 
 	public void setOwner(GH2572Parent owner) {
 		this.owner = owner;
 	}
+
 }

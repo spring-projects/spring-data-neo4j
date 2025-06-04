@@ -35,4 +35,5 @@ public interface PersonWithNoConstructorRepository extends Neo4jRepository<Perso
 
 	@Query("MATCH (n:PersonWithNoConstructor{name:'Test'}) return n")
 	Optional<PersonWithNoConstructor> getOptionalPersonWithNoConstructorViaQuery();
+
 }

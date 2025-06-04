@@ -15,11 +15,15 @@
  */
 package org.springframework.data.neo4j.repository.query;
 
-import org.apiguardian.api.API;
+import java.util.function.Function;
 
+import org.apiguardian.api.API;
 import org.neo4j.cypherdsl.core.Cypher;
 import org.neo4j.cypherdsl.core.Statement;
 import org.reactivestreams.Publisher;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.core.ReactiveFluentFindOperation;
@@ -29,19 +33,16 @@ import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.mapping.PropertyFilter;
 import org.springframework.data.repository.query.FluentQuery.ReactiveFluentQuery;
 import org.springframework.data.repository.query.ReactiveQueryByExampleExecutor;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 
 import static org.neo4j.cypherdsl.core.Cypher.asterisk;
 
-import java.util.function.Function;
-
 /**
- * A fragment for repositories providing "Query by example" functionality in a reactive way.
+ * A fragment for repositories providing "Query by example" functionality in a reactive
+ * way.
  *
+ * @param <T> type of the domain class
  * @author Gerrit Meier
  * @author Michael J. Simons
- * @param <T> type of the domain class
  * @since 6.0
  */
 @API(status = API.Status.INTERNAL, since = "6.0")
@@ -53,7 +54,8 @@ public final class SimpleReactiveQueryByExampleExecutor<T> implements ReactiveQu
 
 	private final CypherGenerator cypherGenerator;
 
-	public SimpleReactiveQueryByExampleExecutor(ReactiveNeo4jOperations neo4jOperations, Neo4jMappingContext mappingContext) {
+	public SimpleReactiveQueryByExampleExecutor(ReactiveNeo4jOperations neo4jOperations,
+			Neo4jMappingContext mappingContext) {
 
 		this.neo4jOperations = neo4jOperations;
 		this.mappingContext = mappingContext;
@@ -63,30 +65,35 @@ public final class SimpleReactiveQueryByExampleExecutor<T> implements ReactiveQu
 	@Override
 	public <S extends T> Mono<S> findOne(Example<S> example) {
 		return this.neo4jOperations
-				.toExecutableQuery(example.getProbeType(), QueryFragmentsAndParameters.forExample(mappingContext, example))
-				.flatMap(ReactiveNeo4jOperations.ExecutableQuery::getSingleResult);
+			.toExecutableQuery(example.getProbeType(),
+					QueryFragmentsAndParameters.forExample(this.mappingContext, example))
+			.flatMap(ReactiveNeo4jOperations.ExecutableQuery::getSingleResult);
 	}
 
 	@Override
 	public <S extends T> Flux<S> findAll(Example<S> example) {
 		return this.neo4jOperations
-				.toExecutableQuery(example.getProbeType(), QueryFragmentsAndParameters.forExample(mappingContext, example))
-				.flatMapMany(ReactiveNeo4jOperations.ExecutableQuery::getResults);
+			.toExecutableQuery(example.getProbeType(),
+					QueryFragmentsAndParameters.forExample(this.mappingContext, example))
+			.flatMapMany(ReactiveNeo4jOperations.ExecutableQuery::getResults);
 	}
 
 	@Override
 	public <S extends T> Flux<S> findAll(Example<S> example, Sort sort) {
 		return this.neo4jOperations
-				.toExecutableQuery(example.getProbeType(), QueryFragmentsAndParameters.forExampleWithSort(mappingContext, example, sort, null, PropertyFilter.NO_FILTER))
-				.flatMapMany(ReactiveNeo4jOperations.ExecutableQuery::getResults);
+			.toExecutableQuery(example.getProbeType(),
+					QueryFragmentsAndParameters.forExampleWithSort(this.mappingContext, example, sort, null,
+							PropertyFilter.NO_FILTER))
+			.flatMapMany(ReactiveNeo4jOperations.ExecutableQuery::getResults);
 	}
 
 	@Override
 	public <S extends T> Mono<Long> count(Example<S> example) {
 
-		Predicate predicate = Predicate.create(mappingContext, example);
-		Statement statement = predicate.useWithReadingFragment(cypherGenerator::prepareMatchOf)
-				.returning(Cypher.count(asterisk())).build();
+		Predicate predicate = Predicate.create(this.mappingContext, example);
+		Statement statement = predicate.useWithReadingFragment(this.cypherGenerator::prepareMatchOf)
+			.returning(Cypher.count(asterisk()))
+			.build();
 
 		return this.neo4jOperations.count(statement, predicate.getParameters());
 	}
@@ -97,13 +104,15 @@ public final class SimpleReactiveQueryByExampleExecutor<T> implements ReactiveQu
 	}
 
 	@Override
-	public <S extends T, R, P extends Publisher<R>> P findBy(Example<S> example, Function<ReactiveFluentQuery<S>, P> queryFunction) {
+	public <S extends T, R, P extends Publisher<R>> P findBy(Example<S> example,
+			Function<ReactiveFluentQuery<S>, P> queryFunction) {
 		if (this.neo4jOperations instanceof ReactiveFluentFindOperation ops) {
 			ReactiveFluentQuery<S> fluentQuery = new ReactiveFluentQueryByExample<>(example, example.getProbeType(),
-					mappingContext, ops, this::count, this::exists);
+					this.mappingContext, ops, this::count, this::exists);
 			return queryFunction.apply(fluentQuery);
 		}
 		throw new UnsupportedOperationException(
 				"Fluent find by example not supported with standard Neo4jOperations, must support fluent queries too");
 	}
+
 }

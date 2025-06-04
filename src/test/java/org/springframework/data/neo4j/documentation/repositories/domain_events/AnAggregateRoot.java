@@ -33,12 +33,13 @@ import org.springframework.data.neo4j.core.schema.Node;
 @Node
 public class AnAggregateRoot {
 
-	@Id private final String name;
-
-	private String someOtherValue;
+	@Id
+	private final String name;
 
 	@Transient // <1>
 	private final Collection<SomeEvent> events = new ArrayList<>();
+
+	private String someOtherValue;
 
 	public AnAggregateRoot(String name) {
 		this.name = name;
@@ -46,11 +47,11 @@ public class AnAggregateRoot {
 	// end::domain-events[]
 
 	public String getName() {
-		return name;
+		return this.name;
 	}
 
 	public String getSomeOtherValue() {
-		return someOtherValue;
+		return this.someOtherValue;
 	}
 	// tag::domain-events[]
 
@@ -62,7 +63,7 @@ public class AnAggregateRoot {
 	@DomainEvents
 	// <3>
 	Collection<SomeEvent> domainEvents() {
-		return Collections.unmodifiableCollection(events);
+		return Collections.unmodifiableCollection(this.events);
 	}
 
 	@AfterDomainEventPublication
@@ -70,5 +71,6 @@ public class AnAggregateRoot {
 	void callbackMethod() {
 		this.events.clear();
 	}
+
 }
 // end::domain-events[]

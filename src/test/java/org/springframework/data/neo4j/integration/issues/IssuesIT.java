@@ -15,12 +15,6 @@
  */
 package org.springframework.data.neo4j.integration.issues;
 
-import static org.assertj.core.api.Assertions.as;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.assertj.core.api.Assertions.assertThatNoException;
-import static org.assertj.core.api.Assertions.tuple;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -34,6 +28,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import ch.qos.logback.classic.Level;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.assertj.core.api.SoftAssertions;
 import org.assertj.core.api.ThrowingConsumer;
@@ -62,6 +57,7 @@ import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
 import org.neo4j.driver.types.Relationship;
 import org.neo4j.driver.types.TypeSystem;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -140,8 +136,8 @@ import org.springframework.data.neo4j.integration.issues.gh2533.EntitiesAndProje
 import org.springframework.data.neo4j.integration.issues.gh2533.GH2533Repository;
 import org.springframework.data.neo4j.integration.issues.gh2542.TestNode;
 import org.springframework.data.neo4j.integration.issues.gh2542.TestNodeRepository;
-import org.springframework.data.neo4j.integration.issues.gh2572.GH2572Repository;
 import org.springframework.data.neo4j.integration.issues.gh2572.GH2572Child;
+import org.springframework.data.neo4j.integration.issues.gh2572.GH2572Repository;
 import org.springframework.data.neo4j.integration.issues.gh2576.College;
 import org.springframework.data.neo4j.integration.issues.gh2576.CollegeRepository;
 import org.springframework.data.neo4j.integration.issues.gh2576.Student;
@@ -162,6 +158,13 @@ import org.springframework.data.neo4j.integration.issues.gh2639.Individual;
 import org.springframework.data.neo4j.integration.issues.gh2639.LanguageRelationship;
 import org.springframework.data.neo4j.integration.issues.gh2639.ProgrammingLanguage;
 import org.springframework.data.neo4j.integration.issues.gh2639.Sales;
+import org.springframework.data.neo4j.integration.issues.gh2727.FirstLevelEntity;
+import org.springframework.data.neo4j.integration.issues.gh2727.FirstLevelEntityRepository;
+import org.springframework.data.neo4j.integration.issues.gh2727.FirstLevelProjection;
+import org.springframework.data.neo4j.integration.issues.gh2727.SecondLevelEntity;
+import org.springframework.data.neo4j.integration.issues.gh2727.SecondLevelEntityRelationship;
+import org.springframework.data.neo4j.integration.issues.gh2727.ThirdLevelEntity;
+import org.springframework.data.neo4j.integration.issues.gh2727.ThirdLevelEntityRelationship;
 import org.springframework.data.neo4j.integration.issues.gh2819.GH2819Model;
 import org.springframework.data.neo4j.integration.issues.gh2819.GH2819Repository;
 import org.springframework.data.neo4j.integration.issues.gh2858.GH2858;
@@ -199,13 +202,6 @@ import org.springframework.data.neo4j.integration.issues.gh2973.RelationshipD;
 import org.springframework.data.neo4j.integration.issues.qbe.A;
 import org.springframework.data.neo4j.integration.issues.qbe.ARepository;
 import org.springframework.data.neo4j.integration.issues.qbe.B;
-import org.springframework.data.neo4j.integration.issues.gh2727.FirstLevelEntity;
-import org.springframework.data.neo4j.integration.issues.gh2727.FirstLevelEntityRepository;
-import org.springframework.data.neo4j.integration.issues.gh2727.FirstLevelProjection;
-import org.springframework.data.neo4j.integration.issues.gh2727.SecondLevelEntity;
-import org.springframework.data.neo4j.integration.issues.gh2727.SecondLevelEntityRelationship;
-import org.springframework.data.neo4j.integration.issues.gh2727.ThirdLevelEntity;
-import org.springframework.data.neo4j.integration.issues.gh2727.ThirdLevelEntityRelationship;
 import org.springframework.data.neo4j.integration.misc.ConcreteImplementationTwo;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.data.neo4j.repository.query.QueryFragmentsAndParameters;
@@ -218,11 +214,14 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.annotation.Transactional;
 
-import ch.qos.logback.classic.Level;
+import static org.assertj.core.api.Assertions.as;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatNoException;
+import static org.assertj.core.api.Assertions.tuple;
 
 /**
  * @author Michael J. Simons
- * @soundtrack Sodom - Sodom
  */
 @Neo4jIntegrationTest
 @DisplayNameGeneration(SimpleDisplayNameGeneratorWithTags.class)
@@ -232,8 +231,11 @@ class IssuesIT extends TestBase {
 
 	// GH-2210
 	private static final Long numberA = 1L;
+
 	private static final Long numberB = 2L;
+
 	private static final Long numberC = 3L;
+
 	private static final Long numberD = 4L;
 
 	// GH-2323
@@ -244,8 +246,9 @@ class IssuesIT extends TestBase {
 		try (Session session = neo4jConnectionSupport.getDriver().session(bookmarkCapture.createSessionConfig())) {
 			if (neo4jConnectionSupport.isCypher5SyntaxCompatible()) {
 				session.run("CREATE CONSTRAINT TNC IF NOT EXISTS FOR (tn:TestNode) REQUIRE tn.name IS UNIQUE")
-						.consume();
-			} else {
+					.consume();
+			}
+			else {
 				session.run("CREATE CONSTRAINT TNC IF NOT EXISTS ON (tn:TestNode) ASSERT tn.name IS UNIQUE").consume();
 			}
 			try (Transaction transaction = session.beginTransaction()) {
@@ -261,7 +264,8 @@ class IssuesIT extends TestBase {
 				setupGH2583(transaction);
 				setupGH2908(transaction);
 
-				transaction.run("CREATE (:A {name: 'A name', id: randomUUID()}) -[:HAS] ->(:B {anotherName: 'Whatever', id: randomUUID()})");
+				transaction.run(
+						"CREATE (:A {name: 'A name', id: randomUUID()}) -[:HAS] ->(:B {anotherName: 'Whatever', id: randomUUID()})");
 
 				transaction.commit();
 			}
@@ -271,53 +275,29 @@ class IssuesIT extends TestBase {
 
 	// clean up known throw-away nodes / rels
 
-	@AfterEach
-	void cleanup(@Autowired BookmarkCapture bookmarkCapture) {
-		List<String> labelsToBeRemoved = List.of("BugFromV1", "BugFrom", "BugTargetV1", "BugTarget", "BugTargetBaseV1", "BugTargetBase", "BugTargetContainer");
-		var labelExpression = new LabelExpression(labelsToBeRemoved.get(0));
-		for (int i = 1; i < labelsToBeRemoved.size(); i++) {
-			labelExpression = labelExpression.or(new LabelExpression(labelsToBeRemoved.get(i)));
-		}
-		try (Session session = neo4jConnectionSupport.getDriver().session(bookmarkCapture.createSessionConfig());
-			 Transaction transaction = session.beginTransaction()) {
-			Node nodes = Cypher.node(labelExpression);
-			String cypher = Cypher.match(nodes).detachDelete(nodes).build().getCypher();
-			transaction.run(cypher).consume();
-			transaction.commit();
-			bookmarkCapture.seedWith(session.lastBookmarks());
-		}
-	}
-
 	private static void setupGH2168(QueryRunner queryRunner) {
 		queryRunner.run("CREATE (:DomainObject{id: 'A'})").consume();
 	}
 
 	private static void setupGH2210(QueryRunner queryRunner) {
 		queryRunner.run("""
-						create (a:SomeEntity {number: $numberA, name: "A"})
-						create (b:SomeEntity {number: $numberB, name: "B"})
-						create (c:SomeEntity {number: $numberC, name: "C"})
-						create (d:SomeEntity {number: $numberD, name: "D"})
-						create (a) -[:SOME_RELATION_TO {someData: "d1"}] -> (b)
-						create (b) <-[:SOME_RELATION_TO {someData: "d2"}] - (c)
-						create (c) <-[:SOME_RELATION_TO {someData: "d3"}] - (d)
-						return *""",
-				Map.of("numberA", numberA,
-						"numberB", numberB,
-						"numberC", numberC,
-						"numberD", numberD)).consume();
+				create (a:SomeEntity {number: $numberA, name: "A"})
+				create (b:SomeEntity {number: $numberB, name: "B"})
+				create (c:SomeEntity {number: $numberC, name: "C"})
+				create (d:SomeEntity {number: $numberD, name: "D"})
+				create (a) -[:SOME_RELATION_TO {someData: "d1"}] -> (b)
+				create (b) <-[:SOME_RELATION_TO {someData: "d2"}] - (c)
+				create (c) <-[:SOME_RELATION_TO {someData: "d3"}] - (d)
+				return *""", Map.of("numberA", numberA, "numberB", numberB, "numberC", numberC, "numberD", numberD))
+			.consume();
 	}
 
 	private static void setupGH2323(QueryRunner queryRunner) {
-		queryRunner.run("unwind ['German', 'English'] as name create (n:Language {name: name}) return name")
-				.consume();
+		queryRunner.run("unwind ['German', 'English'] as name create (n:Language {name: name}) return name").consume();
 		personId = queryRunner.run("""
-						MATCH (l:Language {name: 'German'})
-						CREATE (n:Person {id: randomUUID(), name: 'Helge'}) -[:HAS_MOTHER_TONGUE]-> (l)
-						return n.id"""
-				).single()
-				.get(0)
-				.asString();
+				MATCH (l:Language {name: 'German'})
+				CREATE (n:Person {id: randomUUID(), name: 'Helge'}) -[:HAS_MOTHER_TONGUE]-> (l)
+				return n.id""").single().get(0).asString();
 	}
 
 	private static void setupGH2459(QueryRunner queryRunner) {
@@ -344,10 +324,179 @@ class IssuesIT extends TestBase {
 				-[:LINKED]->(n)-[:LINKED]->(m)-[:LINKED]->(n)-[:LINKED]->(m)""").consume();
 	}
 
+	private static void assertGH2905Graph(Driver driver) {
+		var result = driver.executableQuery("MATCH (t:BugTargetV1) -[:RELI] ->(f:BugFromV1) RETURN t, collect(f) AS f")
+			.execute()
+			.records();
+		assertThat(result).hasSize(1).element(0).satisfies(r -> {
+			assertThat(r.get("t")).matches(TypeSystem.getDefault().NODE()::isTypeOf);
+			assertThat(r.get("f")).matches(TypeSystem.getDefault().LIST()::isTypeOf)
+				.extracting(Value::asList, as(InstanceOfAssertFactories.LIST))
+				.hasSize(3);
+		});
+	}
+
+	private static void assertGH2906Graph(Driver driver) {
+		assertGH2906Graph(driver, 3);
+	}
+
+	private static void assertGH2906Graph(Driver driver, int cnt) {
+
+		var expectedNodes = IntStream.rangeClosed(1, cnt).mapToObj(i -> String.format("F%d", i)).toArray(String[]::new);
+		var expectedRelationships = IntStream.rangeClosed(1, cnt)
+			.mapToObj(i -> String.format("F%d<-T1", i))
+			.toArray(String[]::new);
+
+		var result = driver
+			.executableQuery(
+					"MATCH (t:BugTargetBase) -[r:RELI] ->(f:BugFrom) RETURN t, collect(f) AS f, collect(r) AS r")
+			.execute()
+			.records();
+		assertThat(result).hasSize(1).element(0).satisfies(r -> {
+			assertThat(r.get("t")).matches(TypeSystem.getDefault().NODE()::isTypeOf);
+			assertThat(r.get("f")).matches(TypeSystem.getDefault().LIST()::isTypeOf)
+				.extracting(Value::asList, as(InstanceOfAssertFactories.LIST))
+				.map(node -> ((org.neo4j.driver.types.Node) node).get("name").asString())
+				.containsExactlyInAnyOrder(expectedNodes);
+			assertThat(r.get("r")).matches(TypeSystem.getDefault().LIST()::isTypeOf)
+				.extracting(Value::asList, as(InstanceOfAssertFactories.LIST))
+				.map(rel -> ((Relationship) rel).get("comment").asString())
+				.containsExactlyInAnyOrder(expectedRelationships);
+		});
+	}
+
+	private static void assertWriteAndReadConversionForProperty(Neo4jPersistentEntity<?> entity, String propertyName,
+			DomainObjectRepository repository, Driver driver, BookmarkCapture bookmarkCapture) {
+		Neo4jPersistentProperty property = entity.getPersistentProperty(propertyName);
+		PersistentPropertyAccessor<DomainObject> propertyAccessor = entity.getPropertyAccessor(new DomainObject());
+
+		propertyAccessor.setProperty(property, new UnrelatedObject(true, 4711L));
+		DomainObject domainObject = repository.save(propertyAccessor.getBean());
+
+		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
+			var node = session
+				.run("MATCH (n:DomainObject {id: $id}) RETURN n", Collections.singletonMap("id", domainObject.getId()))
+				.single()
+				.get(0)
+				.asNode();
+			assertThat(node.get(propertyName).asString()).isEqualTo("true;4711");
+		}
+
+		domainObject = repository.findById(domainObject.getId()).get();
+		UnrelatedObject unrelatedObject = (UnrelatedObject) entity.getPropertyAccessor(domainObject)
+			.getProperty(property);
+		assertThat(unrelatedObject).satisfies(t -> {
+			assertThat(t.isABooleanValue()).isTrue();
+			assertThat(t.getALongValue()).isEqualTo(4711L);
+		});
+	}
+
+	private static void assertAll(List<SomeEntity> entities) {
+
+		assertThat(entities).hasSize(4);
+		assertThat(entities).allSatisfy(v -> {
+			switch (v.getName()) {
+				case "A" -> assertA(Optional.of(v));
+				case "B" -> assertB(Optional.of(v));
+				case "D" -> assertD(Optional.of(v));
+			}
+		});
+	}
+
+	private static void assertA(Optional<SomeEntity> a) {
+
+		assertThat(a).hasValueSatisfying(s -> {
+			assertThat(s.getName()).isEqualTo("A");
+			assertThat(s.getSomeRelationsOut()).hasSize(1).first().satisfies(b -> {
+				assertThat(b.getSomeData()).isEqualTo("d1");
+				assertThat(b.getTargetPerson().getName()).isEqualTo("B");
+				assertThat(b.getTargetPerson().getSomeRelationsOut()).isEmpty();
+			});
+		});
+	}
+
+	private static void assertD(Optional<SomeEntity> d) {
+
+		assertThat(d).hasValueSatisfying(s -> {
+			assertThat(s.getName()).isEqualTo("D");
+			assertThat(s.getSomeRelationsOut()).hasSize(1).first().satisfies(c -> {
+				assertThat(c.getSomeData()).isEqualTo("d3");
+				assertThat(c.getTargetPerson().getName()).isEqualTo("C");
+				assertThat(c.getTargetPerson().getSomeRelationsOut()).hasSize(1).first().satisfies(b -> {
+					assertThat(b.getSomeData()).isEqualTo("d2");
+					assertThat(b.getTargetPerson().getName()).isEqualTo("B");
+					assertThat(b.getTargetPerson().getSomeRelationsOut()).isEmpty();
+				});
+			});
+		});
+	}
+
+	private static void assertB(Optional<SomeEntity> b) {
+
+		assertThat(b).hasValueSatisfying(s -> {
+			assertThat(s.getName()).isEqualTo("B");
+			assertThat(s.getSomeRelationsOut()).isEmpty();
+		});
+	}
+
+	private static void assertThatTestObjectHasBeenCreated(Driver driver, BookmarkCapture bookmarkCapture,
+			TestObject testObject) {
+		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
+			Map<String, Object> arguments = new HashMap<>();
+			arguments.put("id", testObject.getId());
+			arguments.put("num", testObject.getData().getNum());
+			arguments.put("string", testObject.getData().getString());
+			long cnt = session.run(
+					"MATCH (n:TestObject) WHERE n.id = $id AND n.dataNum = $num AND n.dataString = $string RETURN count(n)",
+					arguments)
+				.single()
+				.get(0)
+				.asLong();
+			assertThat(cnt).isOne();
+		}
+	}
+
+	private static EntitiesAndProjections.GH2533Entity createData(GH2533Repository repository) {
+		EntitiesAndProjections.GH2533Entity n1 = new EntitiesAndProjections.GH2533Entity();
+		EntitiesAndProjections.GH2533Entity n2 = new EntitiesAndProjections.GH2533Entity();
+		EntitiesAndProjections.GH2533Entity n3 = new EntitiesAndProjections.GH2533Entity();
+
+		EntitiesAndProjections.GH2533Relationship r1 = new EntitiesAndProjections.GH2533Relationship();
+		EntitiesAndProjections.GH2533Relationship r2 = new EntitiesAndProjections.GH2533Relationship();
+
+		n1.name = "n1";
+		n2.name = "n2";
+		n3.name = "n3";
+
+		r1.target = n2;
+		r2.target = n3;
+
+		n1.relationships = Collections.singletonMap("has_relationship_with", List.of(r1));
+		n2.relationships = Collections.singletonMap("has_relationship_with", List.of(r2));
+
+		return repository.save(n1);
+	}
+
+	@AfterEach
+	void cleanup(@Autowired BookmarkCapture bookmarkCapture) {
+		List<String> labelsToBeRemoved = List.of("BugFromV1", "BugFrom", "BugTargetV1", "BugTarget", "BugTargetBaseV1",
+				"BugTargetBase", "BugTargetContainer");
+		var labelExpression = new LabelExpression(labelsToBeRemoved.get(0));
+		for (int i = 1; i < labelsToBeRemoved.size(); i++) {
+			labelExpression = labelExpression.or(new LabelExpression(labelsToBeRemoved.get(i)));
+		}
+		try (Session session = neo4jConnectionSupport.getDriver().session(bookmarkCapture.createSessionConfig());
+				Transaction transaction = session.beginTransaction()) {
+			Node nodes = Cypher.node(labelExpression);
+			String cypher = Cypher.match(nodes).detachDelete(nodes).build().getCypher();
+			transaction.run(cypher).consume();
+			transaction.commit();
+			bookmarkCapture.seedWith(session.lastBookmarks());
+		}
+	}
+
 	@BeforeEach
-	protected void prepareIndividual(
-			@Autowired CityModelRepository cityModelRepository
-	) {
+	protected void prepareIndividual(@Autowired CityModelRepository cityModelRepository) {
 		CityModel aachen = new CityModel();
 		aachen.setName("Aachen");
 		aachen.setExoticProperty("Cars");
@@ -381,24 +530,23 @@ class IssuesIT extends TestBase {
 	void findByIdShouldWork(@Autowired DomainObjectRepository domainObjectRepository) {
 
 		Optional<DomainObject> optionalResult = domainObjectRepository.findById("A");
-		assertThat(optionalResult)
-				.map(DomainObject::getId)
-				.hasValue("A");
+		assertThat(optionalResult).map(DomainObject::getId).hasValue("A");
 	}
 
 	@Test
 	@Tag("GH-2415")
 	void saveWithProjectionImplementedByEntity(@Autowired Neo4jMappingContext mappingContext,
-											   @Autowired Neo4jTemplate neo4jTemplate) {
+			@Autowired Neo4jTemplate neo4jTemplate) {
 
 		Neo4jPersistentEntity<?> metaData = mappingContext.getPersistentEntity(BaseNodeEntity.class);
-		NodeEntity nodeEntity = neo4jTemplate
-				.find(BaseNodeEntity.class)
-				.as(NodeEntity.class)
-				.matching(QueryFragmentsAndParameters.forCondition(metaData,
-						Constants.NAME_OF_TYPED_ROOT_NODE.apply(metaData).property("nodeId")
-								.isEqualTo(Cypher.literalOf("root"))))
-				.one().get();
+		NodeEntity nodeEntity = neo4jTemplate.find(BaseNodeEntity.class)
+			.as(NodeEntity.class)
+			.matching(QueryFragmentsAndParameters.forCondition(metaData,
+					Constants.NAME_OF_TYPED_ROOT_NODE.apply(metaData)
+						.property("nodeId")
+						.isEqualTo(Cypher.literalOf("root"))))
+			.one()
+			.get();
 		neo4jTemplate.saveAs(nodeEntity, NodeWithDefinedCredentials.class);
 
 		nodeEntity = neo4jTemplate.findById(nodeEntity.getNodeId(), NodeEntity.class).get();
@@ -407,11 +555,8 @@ class IssuesIT extends TestBase {
 
 	@Test
 	@Tag("GH-2168")
-	void compositePropertyCustomConverterDefaultPrefixShouldWork(
-			@Autowired DomainObjectRepository repository,
-			@Autowired Driver driver,
-			@Autowired BookmarkCapture bookmarkCapture
-	) {
+	void compositePropertyCustomConverterDefaultPrefixShouldWork(@Autowired DomainObjectRepository repository,
+			@Autowired Driver driver, @Autowired BookmarkCapture bookmarkCapture) {
 
 		DomainObject domainObject = new DomainObject();
 		domainObject.setStoredAsMultipleProperties(new UnrelatedObject(true, 4711L));
@@ -419,43 +564,38 @@ class IssuesIT extends TestBase {
 
 		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
 			var node = session
-					.run("MATCH (n:DomainObject {id: $id}) RETURN n",
-							Collections.singletonMap("id", domainObject.getId()))
-					.single().get(0).asNode();
+				.run("MATCH (n:DomainObject {id: $id}) RETURN n", Collections.singletonMap("id", domainObject.getId()))
+				.single()
+				.get(0)
+				.asNode();
 			assertThat(node.get("storedAsMultipleProperties.aBooleanValue").asBoolean()).isTrue();
 			assertThat(node.get("storedAsMultipleProperties.aLongValue").asLong()).isEqualTo(4711L);
 		}
 
 		domainObject = repository.findById(domainObject.getId()).get();
-		assertThat(domainObject.getStoredAsMultipleProperties())
-				.satisfies(t -> {
-					assertThat(t.isABooleanValue()).isTrue();
-					assertThat(t.getALongValue()).isEqualTo(4711L);
-				});
+		assertThat(domainObject.getStoredAsMultipleProperties()).satisfies(t -> {
+			assertThat(t.isABooleanValue()).isTrue();
+			assertThat(t.getALongValue()).isEqualTo(4711L);
+		});
 	}
 
-	// That test and the underlying mapping cause the original issue to fail, as `@ConvertWith` was missing for non-simple
+	// That test and the underlying mapping cause the original issue to fail, as
+	// `@ConvertWith` was missing for non-simple
 	// types in the lookup that checked whether something is an association or not
 	@Test
 	@Tag("GH-2168")
-	void propertyCustomConverterDefaultPrefixShouldWork(
-			@Autowired Neo4jMappingContext ctx,
-			@Autowired DomainObjectRepository repository,
-			@Autowired Driver driver,
-			@Autowired BookmarkCapture bookmarkCapture
-	) {
+	void propertyCustomConverterDefaultPrefixShouldWork(@Autowired Neo4jMappingContext ctx,
+			@Autowired DomainObjectRepository repository, @Autowired Driver driver,
+			@Autowired BookmarkCapture bookmarkCapture) {
 		Neo4jPersistentEntity<?> entity = ctx.getRequiredPersistentEntity(DomainObject.class);
 		assertWriteAndReadConversionForProperty(entity, "storedAsSingleProperty", repository, driver, bookmarkCapture);
 	}
 
 	@Test
 	@Tag("GH-2430")
-	void propertyConversionsWithBeansShouldWork(
-			@Autowired Neo4jMappingContext ctx,
-			@Autowired DomainObjectRepository repository,
-			@Autowired Driver driver,
-			@Autowired BookmarkCapture bookmarkCapture
-	) {
+	void propertyConversionsWithBeansShouldWork(@Autowired Neo4jMappingContext ctx,
+			@Autowired DomainObjectRepository repository, @Autowired Driver driver,
+			@Autowired BookmarkCapture bookmarkCapture) {
 		Neo4jPersistentEntity<?> entity = ctx.getRequiredPersistentEntity(DomainObject.class);
 		assertWriteAndReadConversionForProperty(entity, "storedAsAnotherSingleProperty", repository, driver,
 				bookmarkCapture);
@@ -627,12 +767,14 @@ class IssuesIT extends TestBase {
 	@Test
 	@Tag("GH-2326")
 	void saveShouldAddAllLabels(@Autowired AnimalRepository animalRepository,
-								@Autowired BookmarkCapture bookmarkCapture) {
+			@Autowired BookmarkCapture bookmarkCapture) {
 
 		List<AbstractLevel2> animals = Arrays.asList(new AbstractLevel2.AbstractLevel3.Concrete1(),
 				new AbstractLevel2.AbstractLevel3.Concrete2());
-		List<String> ids = animals.stream().map(animalRepository::save).map(BaseEntity::getId)
-				.collect(Collectors.toList());
+		List<String> ids = animals.stream()
+			.map(animalRepository::save)
+			.map(BaseEntity::getId)
+			.collect(Collectors.toList());
 
 		assertLabels(bookmarkCapture, ids);
 	}
@@ -640,12 +782,14 @@ class IssuesIT extends TestBase {
 	@Test
 	@Tag("GH-2326")
 	void saveAllShouldAddAllLabels(@Autowired AnimalRepository animalRepository,
-								   @Autowired BookmarkCapture bookmarkCapture) {
+			@Autowired BookmarkCapture bookmarkCapture) {
 
 		List<AbstractLevel2> animals = Arrays.asList(new AbstractLevel2.AbstractLevel3.Concrete1(),
 				new AbstractLevel2.AbstractLevel3.Concrete2());
-		List<String> ids = animalRepository.saveAll(animals).stream().map(BaseEntity::getId)
-				.collect(Collectors.toList());
+		List<String> ids = animalRepository.saveAll(animals)
+			.stream()
+			.map(BaseEntity::getId)
+			.collect(Collectors.toList());
 
 		assertLabels(bookmarkCapture, ids);
 	}
@@ -660,10 +804,8 @@ class IssuesIT extends TestBase {
 	@Test
 	@Tag("GH-2347")
 	void entitiesWithAssignedIdsSavedInBatchMustBeIdentifiableWithTheirInternalIds(
-			@Autowired ApplicationRepository applicationRepository,
-			@Autowired Driver driver,
-			@Autowired BookmarkCapture bookmarkCapture
-	) {
+			@Autowired ApplicationRepository applicationRepository, @Autowired Driver driver,
+			@Autowired BookmarkCapture bookmarkCapture) {
 		List<Application> savedApplications = applicationRepository.saveAll(Collections.singletonList(createData()));
 
 		assertThat(savedApplications).hasSize(1);
@@ -673,10 +815,8 @@ class IssuesIT extends TestBase {
 	@Test
 	@Tag("GH-2347")
 	void entitiesWithAssignedIdsMustBeIdentifiableWithTheirInternalIds(
-			@Autowired ApplicationRepository applicationRepository,
-			@Autowired Driver driver,
-			@Autowired BookmarkCapture bookmarkCapture
-	) {
+			@Autowired ApplicationRepository applicationRepository, @Autowired Driver driver,
+			@Autowired BookmarkCapture bookmarkCapture) {
 		applicationRepository.save(createData());
 		assertSingleApplicationNodeWithMultipleWorkflows(driver, bookmarkCapture);
 	}
@@ -684,10 +824,8 @@ class IssuesIT extends TestBase {
 	@Test
 	@Tag("GH-2346")
 	void relationshipsStartingAtEntitiesWithAssignedIdsShouldBeCreated(
-			@Autowired ApplicationRepository applicationRepository,
-			@Autowired Driver driver,
-			@Autowired BookmarkCapture bookmarkCapture
-	) {
+			@Autowired ApplicationRepository applicationRepository, @Autowired Driver driver,
+			@Autowired BookmarkCapture bookmarkCapture) {
 		createData((applications, workflows) -> {
 			List<Application> savedApplications = applicationRepository.saveAll(applications);
 
@@ -699,10 +837,8 @@ class IssuesIT extends TestBase {
 	@Test
 	@Tag("GH-2346")
 	void relationshipsStartingAtEntitiesWithAssignedIdsShouldBeCreatedOtherDirection(
-			@Autowired WorkflowRepository workflowRepository,
-			@Autowired Driver driver,
-			@Autowired BookmarkCapture bookmarkCapture
-	) {
+			@Autowired WorkflowRepository workflowRepository, @Autowired Driver driver,
+			@Autowired BookmarkCapture bookmarkCapture) {
 		createData((applications, workflows) -> {
 			List<Workflow> savedWorkflows = workflowRepository.saveAll(workflows);
 
@@ -716,21 +852,19 @@ class IssuesIT extends TestBase {
 	void dontOverrideAbstractMappedData(@Autowired PetOwnerRepository repository) {
 		Optional<PetOwner> optionalPetOwner = repository.findById("10");
 		assertThat(optionalPetOwner).isPresent()
-				.hasValueSatisfying(petOwner ->
-						assertThat(petOwner.getPets()).hasSize(2));
+			.hasValueSatisfying(petOwner -> assertThat(petOwner.getPets()).hasSize(2));
 	}
 
 	@Test
 	@Tag("GH-2474")
-	public void testStoreExoticProperty(@Autowired CityModelRepository cityModelRepository) {
+	void testStoreExoticProperty(@Autowired CityModelRepository cityModelRepository) {
 
 		CityModel cityModel = new CityModel();
 		cityModel.setName("The Jungle");
 		cityModel.setExoticProperty("lions");
 		cityModel = cityModelRepository.save(cityModel);
 
-		CityModel reloaded = cityModelRepository.findById(cityModel.getCityId())
-				.orElseThrow(RuntimeException::new);
+		CityModel reloaded = cityModelRepository.findById(cityModel.getCityId()).orElseThrow(RuntimeException::new);
 		assertThat(reloaded.getExoticProperty()).isEqualTo("lions");
 
 		long cnt = cityModelRepository.deleteAllByExoticProperty("lions");
@@ -739,7 +873,7 @@ class IssuesIT extends TestBase {
 
 	@Test
 	@Tag("GH-2474")
-	public void testSortOnExoticProperty(@Autowired CityModelRepository cityModelRepository) {
+	void testSortOnExoticProperty(@Autowired CityModelRepository cityModelRepository) {
 
 		Sort sort = Sort.by(Sort.Order.asc("exoticProperty"));
 		List<CityModel> cityModels = cityModelRepository.findAll(sort);
@@ -749,8 +883,7 @@ class IssuesIT extends TestBase {
 
 	@Test
 	@Tag("GH-2474")
-	public void testSortOnExoticPropertyCustomQuery_MakeSureIUnderstand(
-			@Autowired CityModelRepository cityModelRepository) {
+	void testSortOnExoticPropertyCustomQuery_MakeSureIUnderstand(@Autowired CityModelRepository cityModelRepository) {
 
 		Sort sort = Sort.by(Sort.Order.asc("n.name"));
 		List<CityModel> cityModels = cityModelRepository.customQuery(sort);
@@ -760,7 +893,7 @@ class IssuesIT extends TestBase {
 
 	@Test
 	@Tag("GH-2474")
-	public void testSortOnExoticPropertyCustomQuery(@Autowired CityModelRepository cityModelRepository) {
+	void testSortOnExoticPropertyCustomQuery(@Autowired CityModelRepository cityModelRepository) {
 		Sort sort = Sort.by(Sort.Order.asc("n.`exotic.property`"));
 		List<CityModel> cityModels = cityModelRepository.customQuery(sort);
 
@@ -769,11 +902,8 @@ class IssuesIT extends TestBase {
 
 	@Test
 	@Tag("GH-2475")
-	public void testCityModelProjectionPersistence(
-			@Autowired CityModelRepository cityModelRepository,
-			@Autowired PersonModelRepository personModelRepository,
-			@Autowired Neo4jTemplate neo4jTemplate
-	) {
+	void testCityModelProjectionPersistence(@Autowired CityModelRepository cityModelRepository,
+			@Autowired PersonModelRepository personModelRepository, @Autowired Neo4jTemplate neo4jTemplate) {
 		CityModel cityModel = new CityModel();
 		cityModel.setName("New Cool City");
 		cityModel = cityModelRepository.save(cityModel);
@@ -785,7 +915,7 @@ class IssuesIT extends TestBase {
 		personModelRepository.save(personModel);
 
 		CityModelDTO cityModelDTO = cityModelRepository.findByCityId(cityModel.getCityId())
-				.orElseThrow(RuntimeException::new);
+			.orElseThrow(RuntimeException::new);
 		cityModelDTO.setName("Changed name");
 		cityModelDTO.setExoticProperty("tigers");
 
@@ -800,8 +930,7 @@ class IssuesIT extends TestBase {
 		cityModelDTO.setCityEmployees(Collections.singletonList(jobRelationshipDTO));
 		neo4jTemplate.save(CityModel.class).one(cityModelDTO);
 
-		CityModel reloaded = cityModelRepository.findById(cityModel.getCityId())
-				.orElseThrow(RuntimeException::new);
+		CityModel reloaded = cityModelRepository.findById(cityModel.getCityId()).orElseThrow(RuntimeException::new);
 		assertThat(reloaded.getName()).isEqualTo("Changed name");
 		assertThat(reloaded.getMayor()).isNotNull();
 		assertThat(reloaded.getCitizens()).hasSize(1);
@@ -822,7 +951,6 @@ class IssuesIT extends TestBase {
 		assertThat(models).extracting("name").containsExactly("Aachen", "Utrecht");
 	}
 
-
 	@Test
 	@Tag("GH-2884")
 	void sortByCompositePropertyForCyclicDomainReturn(@Autowired SkuRORepository repository) {
@@ -834,7 +962,7 @@ class IssuesIT extends TestBase {
 	@Test
 	@Tag("GH-2493")
 	void saveOneShouldWork(@Autowired Driver driver, @Autowired BookmarkCapture bookmarkCapture,
-						   @Autowired TestObjectRepository repository) {
+			@Autowired TestObjectRepository repository) {
 
 		TestObject testObject = new TestObject(new TestData(4711, "Foobar"));
 		testObject = repository.save(testObject);
@@ -846,7 +974,7 @@ class IssuesIT extends TestBase {
 	@Test
 	@Tag("GH-2493")
 	void saveAllShouldWork(@Autowired Driver driver, @Autowired BookmarkCapture bookmarkCapture,
-						   @Autowired TestObjectRepository repository) {
+			@Autowired TestObjectRepository repository) {
 
 		TestObject testObject = new TestObject(new TestData(4711, "Foobar"));
 		testObject = repository.saveAll(Collections.singletonList(testObject)).get(0);
@@ -864,9 +992,7 @@ class IssuesIT extends TestBase {
 		Parameter<List<String>> parameters = Cypher.anonParameter(List.of("A", "C"));
 		Condition in = name.in(parameters);
 		Collection<DomainModel> result = repository.findAll(in, Cypher.sort(name).descending());
-		assertThat(result).hasSize(2)
-				.map(DomainModel::getName)
-				.containsExactly("C", "A");
+		assertThat(result).hasSize(2).map(DomainModel::getName).containsExactly("C", "A");
 	}
 
 	@Test
@@ -877,9 +1003,7 @@ class IssuesIT extends TestBase {
 		Parameter<List<String>> param = Cypher.anonParameter(List.of("a", "b"));
 		Condition in = name.in(param);
 		Collection<Vertex> people = repository.findAll(in);
-		assertThat(people)
-				.extracting(Vertex::getName)
-				.containsExactlyInAnyOrder("a", "b");
+		assertThat(people).extracting(Vertex::getName).containsExactlyInAnyOrder("a", "b");
 	}
 
 	@Test
@@ -893,10 +1017,12 @@ class IssuesIT extends TestBase {
 		template.save(group);
 
 		try (Session session = driver.session()) {
-			long cnt = session.run(
-							"MATCH (g:Group {name: $name}) <-[:BELONGS_TO]- (d:Device {id: $deviceId}) RETURN count(*)",
-							Map.of("name", group.getName(), "deviceId", 1L))
-					.single().get(0).asLong();
+			long cnt = session
+				.run("MATCH (g:Group {name: $name}) <-[:BELONGS_TO]- (d:Device {id: $deviceId}) RETURN count(*)",
+						Map.of("name", group.getName(), "deviceId", 1L))
+				.single()
+				.get(0)
+				.asLong();
 			assertThat(cnt).isOne();
 		}
 	}
@@ -907,9 +1033,10 @@ class IssuesIT extends TestBase {
 		MeasurementProjection m = repository.findByNodeId("acc1", MeasurementProjection.class);
 		assertThat(m).isNotNull();
 		assertThat(m.getDataPoints()).isNotEmpty();
-		assertThat(m).extracting(MeasurementProjection::getDataPoints,
-						InstanceOfAssertFactories.collection(DataPoint.class))
-				.extracting(DataPoint::isManual, DataPoint::getMeasurand).contains(tuple(true, new Measurand("o1")));
+		assertThat(m)
+			.extracting(MeasurementProjection::getDataPoints, InstanceOfAssertFactories.collection(DataPoint.class))
+			.extracting(DataPoint::isManual, DataPoint::getMeasurand)
+			.contains(tuple(true, new Measurand("o1")));
 	}
 
 	@Test
@@ -935,16 +1062,18 @@ class IssuesIT extends TestBase {
 	@Test
 	@Tag("GH-2533")
 	void projectionWorksForDynamicRelationshipsOnSave(@Autowired GH2533Repository repository,
-													  @Autowired Neo4jTemplate neo4jTemplate) {
+			@Autowired Neo4jTemplate neo4jTemplate) {
 		EntitiesAndProjections.GH2533Entity rootEntity = createData(repository);
 
 		rootEntity = repository.findByIdWithLevelOneLinks(rootEntity.id).get();
 
-		// this had caused the rootEntity -> child -X-> child relationship to get removed (X).
+		// this had caused the rootEntity -> child -X-> child relationship to get removed
+		// (X).
 		neo4jTemplate.saveAs(rootEntity, EntitiesAndProjections.GH2533EntityNodeWithOneLevelLinks.class);
 
-		EntitiesAndProjections.GH2533Entity entity = neo4jTemplate.findById(rootEntity.id,
-				EntitiesAndProjections.GH2533Entity.class).get();
+		EntitiesAndProjections.GH2533Entity entity = neo4jTemplate
+			.findById(rootEntity.id, EntitiesAndProjections.GH2533Entity.class)
+			.get();
 
 		assertThat(entity.relationships).isNotEmpty();
 		assertThat(entity.relationships.get("has_relationship_with")).isNotEmpty();
@@ -955,17 +1084,19 @@ class IssuesIT extends TestBase {
 	@Test
 	@Tag("GH-2533")
 	void saveRelatedEntityWithRelationships(@Autowired GH2533Repository repository,
-											@Autowired Neo4jTemplate neo4jTemplate) {
+			@Autowired Neo4jTemplate neo4jTemplate) {
 		EntitiesAndProjections.GH2533Entity rootEntity = createData(repository);
 
 		neo4jTemplate.saveAs(rootEntity, EntitiesAndProjections.GH2533EntityWithRelationshipToEntity.class);
 
-		EntitiesAndProjections.GH2533Entity entity = neo4jTemplate.findById(rootEntity.id,
-				EntitiesAndProjections.GH2533Entity.class).get();
+		EntitiesAndProjections.GH2533Entity entity = neo4jTemplate
+			.findById(rootEntity.id, EntitiesAndProjections.GH2533Entity.class)
+			.get();
 
 		assertThat(entity.relationships.get("has_relationship_with").get(0).target.name).isEqualTo("n2");
-		assertThat(entity.relationships.get("has_relationship_with").get(0).target.relationships.get(
-				"has_relationship_with").get(0).target.name).isEqualTo("n3");
+		assertThat(entity.relationships.get("has_relationship_with").get(0).target.relationships
+			.get("has_relationship_with")
+			.get(0).target.name).isEqualTo("n3");
 	}
 
 	@Test
@@ -974,8 +1105,7 @@ class IssuesIT extends TestBase {
 
 		repository.save(new TestNode("Bob"));
 		var secondNode = new TestNode("Bob");
-		assertThatExceptionOfType(DataIntegrityViolationException.class)
-				.isThrownBy(() -> repository.save(secondNode));
+		assertThatExceptionOfType(DataIntegrityViolationException.class).isThrownBy(() -> repository.save(secondNode));
 	}
 
 	@Test
@@ -1022,7 +1152,8 @@ class IssuesIT extends TestBase {
 
 	@Test
 	@Tag("GH-2576")
-	void listOfMapsShouldBeUsableAsArguments(@Autowired Neo4jTemplate template, @Autowired CollegeRepository collegeRepository) {
+	void listOfMapsShouldBeUsableAsArguments(@Autowired Neo4jTemplate template,
+			@Autowired CollegeRepository collegeRepository) {
 
 		var student = template.save(new Student("S1"));
 		var college = template.save(new College("C1"));
@@ -1036,7 +1167,8 @@ class IssuesIT extends TestBase {
 
 	@Test
 	@Tag("GH-2576")
-	void listOfMapsShouldBeUsableAsArgumentsWithWorkaround(@Autowired Neo4jTemplate template, @Autowired CollegeRepository collegeRepository) {
+	void listOfMapsShouldBeUsableAsArgumentsWithWorkaround(@Autowired Neo4jTemplate template,
+			@Autowired CollegeRepository collegeRepository) {
 
 		var student = template.save(new Student("S1"));
 		var college = template.save(new College("C1"));
@@ -1075,14 +1207,11 @@ class IssuesIT extends TestBase {
 		tableRepository.mergeTableAndColumnRelations(List.of(c1, c2), tableNode);
 
 		Optional<TableNode> resolvedTableNode = tableRepository.findById(tableNode.getId());
-		assertThat(resolvedTableNode)
-				.map(TableNode::getTableAndColumnRelation)
-				.hasValueSatisfying(l -> {
-					assertThat(l)
-							.map(TableAndColumnRelation::getColumnNode)
-							.map(ColumnNode::getId)
-							.containsExactlyInAnyOrder(c1Id, c2Id);
-				});
+		assertThat(resolvedTableNode).map(TableNode::getTableAndColumnRelation).hasValueSatisfying(l -> {
+			assertThat(l).map(TableAndColumnRelation::getColumnNode)
+				.map(ColumnNode::getId)
+				.containsExactlyInAnyOrder(c1Id, c2Id);
+		});
 	}
 
 	@Test
@@ -1119,24 +1248,20 @@ class IssuesIT extends TestBase {
 
 		Company loadedAcme = companyRepository.findByName("ACME");
 
-		Developer loadedHarry = loadedAcme.getEmployees().stream()
-				.filter(e -> e instanceof Developer)
-				.map(e -> (Developer) e)
-				.filter(developer -> developer.getName().equals("Harry"))
-				.findFirst().get();
+		Developer loadedHarry = loadedAcme.getEmployees()
+			.stream()
+			.filter(e -> e instanceof Developer)
+			.map(e -> (Developer) e)
+			.filter(developer -> developer.getName().equals("Harry"))
+			.findFirst()
+			.get();
 
 		List<LanguageRelationship> programmingLanguages = loadedHarry.getProgrammingLanguages();
-		assertThat(programmingLanguages)
-				.isNotEmpty()
-				.extracting("score")
-				.containsExactlyInAnyOrder(5, 2);
+		assertThat(programmingLanguages).isNotEmpty().extracting("score").containsExactlyInAnyOrder(5, 2);
 
-		assertThat(programmingLanguages)
-				.extracting("language")
-				.extracting("inventor")
-				.containsExactlyInAnyOrder(
-						new Individual("Larry Wall", "larryW"), new Enterprise("Sun", ";(")
-				);
+		assertThat(programmingLanguages).extracting("language")
+			.extracting("inventor")
+			.containsExactlyInAnyOrder(new Individual("Larry Wall", "larryW"), new Enterprise("Sun", ";("));
 	}
 
 	@Test
@@ -1147,15 +1272,16 @@ class IssuesIT extends TestBase {
 		repository.save(entity);
 
 		assertThatExceptionOfType(MappingException.class).isThrownBy(repository::findAll)
-				.withRootCauseInstanceOf(MappingException.class)
-				.extracting(Throwable::getCause, as(InstanceOfAssertFactories.THROWABLE))
-				.hasMessageContaining("has a logical cyclic mapping dependency");
+			.withRootCauseInstanceOf(MappingException.class)
+			.extracting(Throwable::getCause, as(InstanceOfAssertFactories.THROWABLE))
+			.hasMessageContaining("has a logical cyclic mapping dependency");
 
 	}
 
 	@Test
 	@Tag("GH-2727")
-	void mapsProjectionChainWithRelationshipProperties(@Autowired FirstLevelEntityRepository firstLevelEntityRepository) {
+	void mapsProjectionChainWithRelationshipProperties(
+			@Autowired FirstLevelEntityRepository firstLevelEntityRepository) {
 
 		String secondLevelValue = "someSecondLevelValue";
 		String thirdLevelValue = "someThirdLevelValue";
@@ -1173,9 +1299,9 @@ class IssuesIT extends TestBase {
 			}
 
 			final SecondLevelEntity secondLevelEntity = SecondLevelEntity.builder()
-					.thirdLevelEntityRelationshipProperties(thirdLevelEntityRelationships)
-					.someValue(secondLevelValue)
-					.build();
+				.thirdLevelEntityRelationshipProperties(thirdLevelEntityRelationships)
+				.someValue(secondLevelValue)
+				.build();
 
 			final SecondLevelEntityRelationship secondLevelRelationship = new SecondLevelEntityRelationship();
 			secondLevelRelationship.setTarget(secondLevelEntity);
@@ -1184,33 +1310,35 @@ class IssuesIT extends TestBase {
 		}
 
 		final FirstLevelEntity firstLevelEntity = FirstLevelEntity.builder()
-				.secondLevelEntityRelationshipProperties(secondLevelEntityRelationships)
-				.name("Test")
-				.build();
+			.secondLevelEntityRelationshipProperties(secondLevelEntityRelationships)
+			.name("Test")
+			.build();
 
 		firstLevelEntityRepository.save(firstLevelEntity);
 
 		FirstLevelProjection firstLevelProjection = firstLevelEntityRepository.findOneById(firstLevelEntity.getId());
 		assertThat(firstLevelProjection).isNotNull();
 		assertThat(firstLevelProjection.getSecondLevelEntityRelationshipProperties()).hasSize(2)
-				.allSatisfy(secondLevelRelationship -> {
-					assertThat(secondLevelRelationship.getTarget().getSomeValue().equals(secondLevelValue));
-					assertThat(secondLevelRelationship.getOrder()).isGreaterThan(0);
-					assertThat(secondLevelRelationship.getTarget().getThirdLevelEntityRelationshipProperties())
-							.isNotEmpty()
-							.allSatisfy(thirdLevel -> {
-								assertThat(thirdLevel.getOrder()).isGreaterThan(0);
-								assertThat(thirdLevel.getTarget()).isNotNull();
-								assertThat(thirdLevel.getTarget().getSomeValue()).isEqualTo(thirdLevelValue);
-							});
-				});
+			.allSatisfy(secondLevelRelationship -> {
+				assertThat(secondLevelRelationship.getTarget().getSomeValue().equals(secondLevelValue));
+				assertThat(secondLevelRelationship.getOrder()).isGreaterThan(0);
+				assertThat(secondLevelRelationship.getTarget().getThirdLevelEntityRelationshipProperties()).isNotEmpty()
+					.allSatisfy(thirdLevel -> {
+						assertThat(thirdLevel.getOrder()).isGreaterThan(0);
+						assertThat(thirdLevel.getTarget()).isNotNull();
+						assertThat(thirdLevel.getTarget().getSomeValue()).isEqualTo(thirdLevelValue);
+					});
+			});
 	}
 
 	@Test
 	@Tag("GH-2819")
-	void inheritanceAndProjectionShouldMapRelatedNodesCorrectly(@Autowired GH2819Repository repository, @Autowired Driver driver) {
+	void inheritanceAndProjectionShouldMapRelatedNodesCorrectly(@Autowired GH2819Repository repository,
+			@Autowired Driver driver) {
 		try (var session = driver.session()) {
-			session.run("CREATE (a:ParentA:ChildA{name:'parentA', id:'a'})-[:HasBs]->(b:ParentB:ChildB{name:'parentB', id:'b'})-[:HasCs]->(c:ParentC:ChildC{name:'parentC', id:'c'})").consume();
+			session.run(
+					"CREATE (a:ParentA:ChildA{name:'parentA', id:'a'})-[:HasBs]->(b:ParentB:ChildB{name:'parentB', id:'b'})-[:HasCs]->(c:ParentC:ChildC{name:'parentC', id:'c'})")
+				.consume();
 		}
 
 		var childAProjection = repository.findById("a", GH2819Model.ChildAProjection.class);
@@ -1238,8 +1366,8 @@ class IssuesIT extends TestBase {
 		friendAndRelative.name = "friendAndRelative";
 
 		// root -> friend1 -> friendAndRelative
-		//   \                   /|
-		//    -------------------
+		// \ /|
+		// -------------------
 		friend1.friends = List.of(friendAndRelative);
 		entity.relatives = List.of(friendAndRelative);
 		entity.friends = List.of(friend1);
@@ -1293,17 +1421,17 @@ class IssuesIT extends TestBase {
 		var to1 = BugTargetV1.builder().name("T1").type("BUG").build();
 
 		var from1 = BugFromV1.builder()
-				.name("F1")
-				.reli(BugRelationshipV1.builder().target(to1).comment("F1<-T1").build())
-				.build();
+			.name("F1")
+			.reli(BugRelationshipV1.builder().target(to1).comment("F1<-T1").build())
+			.build();
 		var from2 = BugFromV1.builder()
-				.name("F2")
-				.reli(BugRelationshipV1.builder().target(to1).comment("F2<-T1").build())
-				.build();
+			.name("F2")
+			.reli(BugRelationshipV1.builder().target(to1).comment("F2<-T1").build())
+			.build();
 		var from3 = BugFromV1.builder()
-				.name("F3")
-				.reli(BugRelationshipV1.builder().target(to1).comment("F3<-T1").build())
-				.build();
+			.name("F3")
+			.reli(BugRelationshipV1.builder().target(to1).comment("F3<-T1").build())
+			.build();
 
 		to1.relatedBugs = Set.of(from1, from2, from3);
 		toRepositoryV1.save(to1);
@@ -1313,50 +1441,39 @@ class IssuesIT extends TestBase {
 
 	@Test
 	@Tag("GH-2905")
-	void saveSingleEntities(@Autowired FromRepositoryV1 fromRepositoryV1, @Autowired ToRepositoryV1 toRepositoryV1, @Autowired Driver driver) {
+	void saveSingleEntities(@Autowired FromRepositoryV1 fromRepositoryV1, @Autowired ToRepositoryV1 toRepositoryV1,
+			@Autowired Driver driver) {
 		var to1 = BugTargetV1.builder().name("T1").type("BUG").build();
 		to1.relatedBugs = new HashSet<>();
 		to1 = toRepositoryV1.save(to1);
 
 		var from1 = BugFromV1.builder()
-				.name("F1")
-				.reli(BugRelationshipV1.builder().target(to1).comment("F1<-T1").build())
-				.build();
-		// This is the key to solve 2905 when you had the annotation previously, you must maintain both ends of the bidirectional relationship.
+			.name("F1")
+			.reli(BugRelationshipV1.builder().target(to1).comment("F1<-T1").build())
+			.build();
+		// This is the key to solve 2905 when you had the annotation previously, you must
+		// maintain both ends of the bidirectional relationship.
 		// SDN does not do this for you.
 		to1.relatedBugs.add(from1);
 		from1 = fromRepositoryV1.save(from1);
 
 		var from2 = BugFromV1.builder()
-				.name("F2")
-				.reli(BugRelationshipV1.builder().target(to1).comment("F2<-T1").build())
-				.build();
+			.name("F2")
+			.reli(BugRelationshipV1.builder().target(to1).comment("F2<-T1").build())
+			.build();
 		// See above
 		to1.relatedBugs.add(from2);
 
 		var from3 = BugFromV1.builder()
-				.name("F3")
-				.reli(BugRelationshipV1.builder().target(to1).comment("F3<-T1").build())
-				.build();
+			.name("F3")
+			.reli(BugRelationshipV1.builder().target(to1).comment("F3<-T1").build())
+			.build();
 		to1.relatedBugs.add(from3);
 
 		// See above
 		fromRepositoryV1.saveAll(List.of(from1, from2, from3));
 
 		assertGH2905Graph(driver);
-	}
-
-	private static void assertGH2905Graph(Driver driver) {
-		var result = driver.executableQuery("MATCH (t:BugTargetV1) -[:RELI] ->(f:BugFromV1) RETURN t, collect(f) AS f").execute().records();
-		assertThat(result)
-				.hasSize(1)
-				.element(0).satisfies(r -> {
-					assertThat(r.get("t")).matches(TypeSystem.getDefault().NODE()::isTypeOf);
-					assertThat(r.get("f"))
-							.matches(TypeSystem.getDefault().LIST()::isTypeOf)
-							.extracting(Value::asList, as(InstanceOfAssertFactories.LIST))
-							.hasSize(3);
-				});
 	}
 
 	@Test
@@ -1368,16 +1485,13 @@ class IssuesIT extends TestBase {
 		var from2 = new BugFrom("F2", "F2<-T1", to1);
 		var from3 = new BugFrom("F3", "F3<-T1", to1);
 
-		to1.relatedBugs = Set.of(
-				new OutgoingBugRelationship(from1.reli.comment, from1),
+		to1.relatedBugs = Set.of(new OutgoingBugRelationship(from1.reli.comment, from1),
 				new OutgoingBugRelationship(from2.reli.comment, from2),
-				new OutgoingBugRelationship(from3.reli.comment, from3)
-		);
+				new OutgoingBugRelationship(from3.reli.comment, from3));
 		toRepository.save(to1);
 
 		assertGH2906Graph(driver);
 	}
-
 
 	@Test
 	@Tag("GH-2906")
@@ -1394,11 +1508,9 @@ class IssuesIT extends TestBase {
 		var from2 = new BugFrom("F2", "F2<-T1", to1);
 		var from3 = new BugFrom("F3", "F3<-T1", to1);
 
-		to1.relatedBugs = Set.of(
-				new OutgoingBugRelationship(from1.reli.comment, from1),
+		to1.relatedBugs = Set.of(new OutgoingBugRelationship(from1.reli.comment, from1),
 				new OutgoingBugRelationship(from2.reli.comment, from2),
-				new OutgoingBugRelationship(from3.reli.comment, from3)
-		);
+				new OutgoingBugRelationship(from3.reli.comment, from3));
 		toRepository.save(to1);
 
 		assertGH2906Graph(driver);
@@ -1406,7 +1518,8 @@ class IssuesIT extends TestBase {
 
 	@Test
 	@Tag("GH-2906")
-	void saveSingleEntitiesToLeaf(@Autowired FromRepository fromRepository, @Autowired ToRepository toRepository, @Autowired Driver driver) {
+	void saveSingleEntitiesToLeaf(@Autowired FromRepository fromRepository, @Autowired ToRepository toRepository,
+			@Autowired Driver driver) {
 
 		var to1 = new BugTarget("T1", "BUG");
 		to1 = toRepository.save(to1);
@@ -1439,7 +1552,8 @@ class IssuesIT extends TestBase {
 
 	@Test
 	@Tag("GH-2906")
-	void saveSingleEntitiesToContainer(@Autowired FromRepository fromRepository, @Autowired ToRepository toRepository, @Autowired Driver driver) {
+	void saveSingleEntitiesToContainer(@Autowired FromRepository fromRepository, @Autowired ToRepository toRepository,
+			@Autowired Driver driver) {
 
 		var t1 = new BugTarget("T1", "BUG");
 		var t2 = new BugTarget("T2", "BUG");
@@ -1467,7 +1581,8 @@ class IssuesIT extends TestBase {
 
 	@Test
 	@Tag("GH-2906")
-	void saveSingleEntitiesViaServiceToContainer(@Autowired FromRepository fromRepository, @Autowired ToRepository toRepository, @Autowired Driver driver) {
+	void saveSingleEntitiesViaServiceToContainer(@Autowired FromRepository fromRepository,
+			@Autowired ToRepository toRepository, @Autowired Driver driver) {
 
 		var t1 = new BugTarget("T1", "BUG");
 		var t2 = new BugTarget("T2", "BUG");
@@ -1494,7 +1609,8 @@ class IssuesIT extends TestBase {
 
 	@Test
 	@Tag("GH-2906")
-	void saveTwoSingleEntitiesViaServiceToContainer(@Autowired FromRepository fromRepository, @Autowired ToRepository toRepository, @Autowired Driver driver) {
+	void saveTwoSingleEntitiesViaServiceToContainer(@Autowired FromRepository fromRepository,
+			@Autowired ToRepository toRepository, @Autowired Driver driver) {
 
 		var t1 = new BugTarget("T1", "BUG");
 		var t2 = new BugTarget("T2", "BUG");
@@ -1517,7 +1633,8 @@ class IssuesIT extends TestBase {
 
 	@Test
 	@Tag("GH-2906")
-	void saveSingleEntitiesViaServiceToLeaf(@Autowired FromRepository fromRepository, @Autowired ToRepository toRepository, @Autowired Driver driver) {
+	void saveSingleEntitiesViaServiceToLeaf(@Autowired FromRepository fromRepository,
+			@Autowired ToRepository toRepository, @Autowired Driver driver) {
 
 		var uuid = toRepository.save(new BugTarget("T1", "BUG")).uuid;
 
@@ -1539,7 +1656,8 @@ class IssuesIT extends TestBase {
 
 	@Test
 	@Tag("GH-2906")
-	void saveTwoSingleEntitiesViaServiceToLeaf(@Autowired FromRepository fromRepository, @Autowired ToRepository toRepository, @Autowired Driver driver) {
+	void saveTwoSingleEntitiesViaServiceToLeaf(@Autowired FromRepository fromRepository,
+			@Autowired ToRepository toRepository, @Autowired Driver driver) {
 
 		var to1 = new BugTarget("T1", "BUG");
 		to1 = toRepository.save(to1);
@@ -1555,7 +1673,8 @@ class IssuesIT extends TestBase {
 		assertGH2906Graph(driver, 2);
 	}
 
-	private BugFrom saveGH2906Entity(BugFrom from, String uuid, FromRepository fromRepository, ToRepository toRepository) {
+	private BugFrom saveGH2906Entity(BugFrom from, String uuid, FromRepository fromRepository,
+			ToRepository toRepository) {
 		var to = toRepository.findById(uuid).orElseThrow();
 
 		from.reli.target = to;
@@ -1564,41 +1683,17 @@ class IssuesIT extends TestBase {
 		return fromRepository.save(from);
 	}
 
-	private static void assertGH2906Graph(Driver driver) {
-		assertGH2906Graph(driver, 3);
-	}
-
-	private static void assertGH2906Graph(Driver driver, int cnt) {
-
-		var expectedNodes = IntStream.rangeClosed(1, cnt).mapToObj(i -> String.format("F%d", i)).toArray(String[]::new);
-		var expectedRelationships = IntStream.rangeClosed(1, cnt).mapToObj(i -> String.format("F%d<-T1", i)).toArray(String[]::new);
-
-		var result = driver.executableQuery("MATCH (t:BugTargetBase) -[r:RELI] ->(f:BugFrom) RETURN t, collect(f) AS f, collect(r) AS r").execute().records();
-		assertThat(result)
-				.hasSize(1)
-				.element(0).satisfies(r -> {
-					assertThat(r.get("t")).matches(TypeSystem.getDefault().NODE()::isTypeOf);
-					assertThat(r.get("f"))
-							.matches(TypeSystem.getDefault().LIST()::isTypeOf)
-							.extracting(Value::asList, as(InstanceOfAssertFactories.LIST))
-							.map(node -> ((org.neo4j.driver.types.Node) node).get("name").asString())
-							.containsExactlyInAnyOrder(expectedNodes);
-					assertThat(r.get("r"))
-							.matches(TypeSystem.getDefault().LIST()::isTypeOf)
-							.extracting(Value::asList, as(InstanceOfAssertFactories.LIST))
-							.map(rel -> ((Relationship) rel).get("comment").asString())
-							.containsExactlyInAnyOrder(expectedRelationships);
-				});
-	}
-
 	@Test
 	@Tag("GH-2918")
-	void loadCycleFreeWithInAndOutgoingRelationship(@Autowired ConditionRepository conditionRepository, @Autowired Driver driver) {
+	void loadCycleFreeWithInAndOutgoingRelationship(@Autowired ConditionRepository conditionRepository,
+			@Autowired Driver driver) {
 
 		var conditionSaved = conditionRepository.save(new ConditionNode());
 
-		// Condition has both an incoming and outgoing relationship typed CAUSES that will cause a duplicate key
-		// in the map projection for the relationships to load. The fix was to indicate the direction in the name
+		// Condition has both an incoming and outgoing relationship typed CAUSES that will
+		// cause a duplicate key
+		// in the map projection for the relationships to load. The fix was to indicate
+		// the direction in the name
 		// used for projecting the relationship, too
 		assertThatNoException().isThrownBy(() -> conditionRepository.findById(conditionSaved.uuid));
 	}
@@ -1619,36 +1714,35 @@ class IssuesIT extends TestBase {
 		});
 
 		var zeroTo9k = Distance.between(0, Metrics.KILOMETERS, 90000, Metrics.KILOMETERS);
-		GeoPage<? extends HasNameAndPlace> pagedNodes = repository.findAllByPlaceNear(Place.SFO.getValue(), zeroTo9k, Pageable.ofSize(1));
+		GeoPage<? extends HasNameAndPlace> pagedNodes = repository.findAllByPlaceNear(Place.SFO.getValue(), zeroTo9k,
+				Pageable.ofSize(1));
 		assertThat(pagedNodes).hasSize(1);
 		assertThat(pagedNodes.getAverageDistance().getValue()).isCloseTo(0, Percentage.withPercentage(1));
 		assertThat(pagedNodes.getContent().get(0).getContent().getName()).isEqualTo("SFO");
 
 		pagedNodes = repository.findAllByPlaceNear(Place.SFO.getValue(), zeroTo9k, pagedNodes.nextPageable());
 		assertThat(pagedNodes).hasSize(1);
-		assertThat(pagedNodes.getAverageDistance().getValue()).isCloseTo(distanceBetweenSFOAndNeo4jHQ, Percentage.withPercentage(1));
+		assertThat(pagedNodes.getAverageDistance().getValue()).isCloseTo(distanceBetweenSFOAndNeo4jHQ,
+				Percentage.withPercentage(1));
 		assertThat(pagedNodes.getContent().get(0).getContent().getName()).isEqualTo("NEO4J_HQ");
 
 		var distance = new Distance(200.0 / 1000.0, Metrics.KILOMETERS);
 		nodes = repository.findAllByPlaceNear(Place.MINC.getValue(), distance);
-		assertThat(nodes).hasSize(1)
-			.first()
-			.satisfies(neo4jFoundInTheNearDistance);
+		assertThat(nodes).hasSize(1).first().satisfies(neo4jFoundInTheNearDistance);
 
 		nodes = repository.findAllByPlaceNear(Place.CLARION.getValue(), distance);
 		assertThat(nodes).isEmpty();
 
 		nodes = repository.findAllByPlaceNear(Place.MINC.getValue(),
-			Distance.between(60.0 / 1000.0, Metrics.KILOMETERS, 200.0 / 1000.0, Metrics.KILOMETERS));
-		assertThat(nodes).hasSize(1).first()
-			.satisfies(neo4jFoundInTheNearDistance);
+				Distance.between(60.0 / 1000.0, Metrics.KILOMETERS, 200.0 / 1000.0, Metrics.KILOMETERS));
+		assertThat(nodes).hasSize(1).first().satisfies(neo4jFoundInTheNearDistance);
 
 		nodes = repository.findAllByPlaceNear(Place.MINC.getValue(),
-			Distance.between(100.0 / 1000.0, Metrics.KILOMETERS, 200.0 / 1000.0, Metrics.KILOMETERS));
+				Distance.between(100.0 / 1000.0, Metrics.KILOMETERS, 200.0 / 1000.0, Metrics.KILOMETERS));
 		assertThat(nodes).isEmpty();
 
-		final Range<Distance> distanceRange = Range.of(Range.Bound.inclusive(new Distance(100.0 / 1000.0, Metrics.KILOMETERS)),
-			Range.Bound.unbounded());
+		final Range<Distance> distanceRange = Range
+			.of(Range.Bound.inclusive(new Distance(100.0 / 1000.0, Metrics.KILOMETERS)), Range.Bound.unbounded());
 		nodes = repository.findAllByPlaceNear(Place.MINC.getValue(), distanceRange);
 		assertThat(nodes).hasSize(1).first().satisfies(gr -> {
 			var d = gr.getDistance();
@@ -1680,15 +1774,18 @@ class IssuesIT extends TestBase {
 			logbackCapture.addLogger("org.springframework.data.neo4j.cypher", Level.DEBUG);
 			var nodes = repository.findAllByName("NEO4J_HQ", PageRequest.of(0, 10, Sort.by(Sort.Order.asc("name"))));
 			assertThat(nodes).isNotEmpty();
-			assertThat(logbackCapture.getFormattedMessages()).noneMatch(l -> l.contains("locatedNode.name, locatedNode.name"));
-		} finally {
+			assertThat(logbackCapture.getFormattedMessages())
+				.noneMatch(l -> l.contains("locatedNode.name, locatedNode.name"));
+		}
+		finally {
 			logbackCapture.resetLogLevel();
 		}
 	}
 
 	@Tag("GH-2963")
 	@Test
-	void customQueriesShouldKeepWorkingWithoutSpecifyingTheRelDirectionInTheirQueries(@Autowired MyRepository myRepository) {
+	void customQueriesShouldKeepWorkingWithoutSpecifyingTheRelDirectionInTheirQueries(
+			@Autowired MyRepository myRepository) {
 		// set up data in database
 		MyModel myNestedModel = new MyModel();
 		myNestedModel.setName("nested");
@@ -1736,19 +1833,8 @@ class IssuesIT extends TestBase {
 		d1.setTargetNode(new BaseNode());
 		d1.setD("d1");
 
-		node.setRelationships(Map.of(
-				"a", List.of(
-						a1, a2, b2
-				),
-				"b", List.of(
-						b1, a3
-				)
-		));
-		nodeFail.setRelationships(Map.of(
-				"c", List.of(
-						c1, d1
-				)
-		));
+		node.setRelationships(Map.of("a", List.of(a1, a2, b2), "b", List.of(b1, a3)));
+		nodeFail.setRelationships(Map.of("c", List.of(c1, d1)));
 		var persistedNode = gh2973Repository.save(node);
 		var persistedNodeFail = gh2973Repository.save(nodeFail);
 
@@ -1756,16 +1842,13 @@ class IssuesIT extends TestBase {
 		var loadedNode = gh2973Repository.findById(persistedNode.getId()).get();
 		List<BaseRelationship> relationshipsA = loadedNode.getRelationships().get("a");
 		List<BaseRelationship> relationshipsB = loadedNode.getRelationships().get("b");
-		assertThat(relationshipsA).satisfiesExactlyInAnyOrder(
-				r1 -> assertThat(r1).isOfAnyClassIn(RelationshipA.class),
+		assertThat(relationshipsA).satisfiesExactlyInAnyOrder(r1 -> assertThat(r1).isOfAnyClassIn(RelationshipA.class),
 				r2 -> assertThat(r2).isOfAnyClassIn(RelationshipA.class),
-				r3 -> assertThat(r3).isOfAnyClassIn(RelationshipB.class)
-		);
-		assertThat(relationshipsB).satisfiesExactlyInAnyOrder(
-				r1 -> assertThat(r1).isOfAnyClassIn(RelationshipA.class),
-				r2 -> assertThat(r2).isOfAnyClassIn(RelationshipB.class)
-		);
-		// without type info, the relationships are all same type and not the base class BaseRelationship
+				r3 -> assertThat(r3).isOfAnyClassIn(RelationshipB.class));
+		assertThat(relationshipsB).satisfiesExactlyInAnyOrder(r1 -> assertThat(r1).isOfAnyClassIn(RelationshipA.class),
+				r2 -> assertThat(r2).isOfAnyClassIn(RelationshipB.class));
+		// without type info, the relationships are all same type and not the base class
+		// BaseRelationship
 		var loadedNodeFail = gh2973Repository.findById(persistedNodeFail.getId()).get();
 		List<BaseRelationship> relationshipsCFail = loadedNodeFail.getRelationships().get("c");
 		assertThat(relationshipsCFail.get(0)).isNotExactlyInstanceOf(BaseRelationship.class);
@@ -1778,24 +1861,25 @@ class IssuesIT extends TestBase {
 	static class Config extends Neo4jImperativeTestConfiguration {
 
 		@Bean
+		@Override
 		public Driver driver() {
 
 			return neo4jConnectionSupport.getDriver();
 		}
 
 		@Bean
-		public BookmarkCapture bookmarkCapture() {
+		BookmarkCapture bookmarkCapture() {
 			return new BookmarkCapture();
 		}
 
 		@Bean
-		public UnrelatedObjectPropertyConverterAsBean converterBean() {
+		UnrelatedObjectPropertyConverterAsBean converterBean() {
 			return new UnrelatedObjectPropertyConverterAsBean();
 		}
 
 		@Override
 		public PlatformTransactionManager transactionManager(Driver driver,
-															 DatabaseSelectionProvider databaseNameProvider) {
+				DatabaseSelectionProvider databaseNameProvider) {
 
 			BookmarkCapture bookmarkCapture = bookmarkCapture();
 			return new Neo4jTransactionManager(driver, databaseNameProvider,
@@ -1806,128 +1890,7 @@ class IssuesIT extends TestBase {
 		public boolean isCypher5Compatible() {
 			return neo4jConnectionSupport.isCypher5SyntaxCompatible();
 		}
+
 	}
-
-	private static void assertWriteAndReadConversionForProperty(
-			Neo4jPersistentEntity<?> entity,
-			String propertyName,
-			DomainObjectRepository repository,
-			Driver driver,
-			BookmarkCapture bookmarkCapture
-	) {
-		Neo4jPersistentProperty property = entity.getPersistentProperty(propertyName);
-		PersistentPropertyAccessor<DomainObject> propertyAccessor = entity.getPropertyAccessor(new DomainObject());
-
-		propertyAccessor.setProperty(property, new UnrelatedObject(true, 4711L));
-		DomainObject domainObject = repository.save(propertyAccessor.getBean());
-
-		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
-			var node = session
-					.run("MATCH (n:DomainObject {id: $id}) RETURN n",
-							Collections.singletonMap("id", domainObject.getId()))
-					.single().get(0).asNode();
-			assertThat(node.get(propertyName).asString()).isEqualTo("true;4711");
-		}
-
-		domainObject = repository.findById(domainObject.getId()).get();
-		UnrelatedObject unrelatedObject = (UnrelatedObject) entity.getPropertyAccessor(domainObject)
-				.getProperty(property);
-		assertThat(unrelatedObject)
-				.satisfies(t -> {
-					assertThat(t.isABooleanValue()).isTrue();
-					assertThat(t.getALongValue()).isEqualTo(4711L);
-				});
-	}
-
-	private static void assertAll(List<SomeEntity> entities) {
-
-		assertThat(entities).hasSize(4);
-		assertThat(entities).allSatisfy(v -> {
-			switch (v.getName()) {
-				case "A" -> assertA(Optional.of(v));
-				case "B" -> assertB(Optional.of(v));
-				case "D" -> assertD(Optional.of(v));
-			}
-		});
-	}
-
-	private static void assertA(Optional<SomeEntity> a) {
-
-		assertThat(a).hasValueSatisfying(s -> {
-			assertThat(s.getName()).isEqualTo("A");
-			assertThat(s.getSomeRelationsOut())
-					.hasSize(1)
-					.first().satisfies(b -> {
-						assertThat(b.getSomeData()).isEqualTo("d1");
-						assertThat(b.getTargetPerson().getName()).isEqualTo("B");
-						assertThat(b.getTargetPerson().getSomeRelationsOut()).isEmpty();
-					});
-		});
-	}
-
-	private static void assertD(Optional<SomeEntity> d) {
-
-		assertThat(d).hasValueSatisfying(s -> {
-			assertThat(s.getName()).isEqualTo("D");
-			assertThat(s.getSomeRelationsOut())
-					.hasSize(1)
-					.first().satisfies(c -> {
-						assertThat(c.getSomeData()).isEqualTo("d3");
-						assertThat(c.getTargetPerson().getName()).isEqualTo("C");
-						assertThat(c.getTargetPerson().getSomeRelationsOut())
-								.hasSize(1)
-								.first().satisfies(b -> {
-									assertThat(b.getSomeData()).isEqualTo("d2");
-									assertThat(b.getTargetPerson().getName()).isEqualTo("B");
-									assertThat(b.getTargetPerson().getSomeRelationsOut()).isEmpty();
-								});
-					});
-		});
-	}
-
-	private static void assertB(Optional<SomeEntity> b) {
-
-		assertThat(b).hasValueSatisfying(s -> {
-			assertThat(s.getName()).isEqualTo("B");
-			assertThat(s.getSomeRelationsOut()).isEmpty();
-		});
-	}
-
-	private static void assertThatTestObjectHasBeenCreated(Driver driver, BookmarkCapture bookmarkCapture,
-														   TestObject testObject) {
-		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
-			Map<String, Object> arguments = new HashMap<>();
-			arguments.put("id", testObject.getId());
-			arguments.put("num", testObject.getData().getNum());
-			arguments.put("string", testObject.getData().getString());
-			long cnt = session.run(
-							"MATCH (n:TestObject) WHERE n.id = $id AND n.dataNum = $num AND n.dataString = $string RETURN count(n)",
-							arguments)
-					.single().get(0).asLong();
-			assertThat(cnt).isOne();
-		}
-	}
-
-	private static EntitiesAndProjections.GH2533Entity createData(GH2533Repository repository) {
-		EntitiesAndProjections.GH2533Entity n1 = new EntitiesAndProjections.GH2533Entity();
-		EntitiesAndProjections.GH2533Entity n2 = new EntitiesAndProjections.GH2533Entity();
-		EntitiesAndProjections.GH2533Entity n3 = new EntitiesAndProjections.GH2533Entity();
-
-		EntitiesAndProjections.GH2533Relationship r1 = new EntitiesAndProjections.GH2533Relationship();
-		EntitiesAndProjections.GH2533Relationship r2 = new EntitiesAndProjections.GH2533Relationship();
-
-		n1.name = "n1";
-		n2.name = "n2";
-		n3.name = "n3";
-
-		r1.target = n2;
-		r2.target = n3;
-
-		n1.relationships = Collections.singletonMap("has_relationship_with", List.of(r1));
-		n2.relationships = Collections.singletonMap("has_relationship_with", List.of(r2));
-
-		return repository.save(n1);
-	}
-
 
 }

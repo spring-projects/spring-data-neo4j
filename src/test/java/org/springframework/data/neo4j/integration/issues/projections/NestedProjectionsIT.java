@@ -15,8 +15,6 @@
  */
 package org.springframework.data.neo4j.integration.issues.projections;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Optional;
@@ -26,6 +24,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.RepeatedTest;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Session;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -44,6 +43,8 @@ import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 /**
  * @author Michael J. Simons
  */
@@ -56,7 +57,9 @@ class NestedProjectionsIT {
 	static void setupData(@Autowired Driver driver, @Autowired BookmarkCapture bookmarkCapture) {
 		try (Session session = driver.session()) {
 			session.run("MATCH (n) DETACH DELETE n").consume();
-			session.run("CREATE (l:SourceNodeA {id: 'L-l1', version: 1})-[:A_TO_CENTRAL]->(e:CentralNode {id: 'E-l1', version: 1})<-[:B_TO_CENTRAL]-(c:SourceNodeB {id: 'C-l1', version: 1}) RETURN id(l)").consume();
+			session.run(
+					"CREATE (l:SourceNodeA {id: 'L-l1', version: 1})-[:A_TO_CENTRAL]->(e:CentralNode {id: 'E-l1', version: 1})<-[:B_TO_CENTRAL]-(c:SourceNodeB {id: 'C-l1', version: 1}) RETURN id(l)")
+				.consume();
 			bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 	}
@@ -71,7 +74,7 @@ class NestedProjectionsIT {
 	}
 
 	@RepeatedTest(20)
-		// GH-2581
+	// GH-2581
 	void excludedHopMustNotVanish(@Autowired SourceNodeARepository repository) {
 
 		Optional<SourceNodeA> optionalSourceNode = repository.findById("L-l1");
@@ -81,7 +84,6 @@ class NestedProjectionsIT {
 		toUpdate.setValue("newValue");
 		toUpdate.getCentralNode().setName("whatever");
 		SourceNodeAProjection projectedSourceNode = repository.saveWithProjection(toUpdate);
-
 
 		SourceNodeA updatedNode = repository.findById("L-l1").orElseThrow(IllegalStateException::new);
 
@@ -102,13 +104,13 @@ class NestedProjectionsIT {
 	static class Config extends Neo4jImperativeTestConfiguration {
 
 		@Bean
-		public BookmarkCapture bookmarkCapture() {
+		BookmarkCapture bookmarkCapture() {
 			return new BookmarkCapture();
 		}
 
 		@Override
-		public PlatformTransactionManager transactionManager(
-				Driver driver, DatabaseSelectionProvider databaseNameProvider) {
+		public PlatformTransactionManager transactionManager(Driver driver,
+				DatabaseSelectionProvider databaseNameProvider) {
 
 			BookmarkCapture bookmarkCapture = bookmarkCapture();
 			return new Neo4jTransactionManager(driver, databaseNameProvider,
@@ -121,6 +123,7 @@ class NestedProjectionsIT {
 		}
 
 		@Bean
+		@Override
 		public Driver driver() {
 
 			return neo4jConnectionSupport.getDriver();
@@ -130,5 +133,7 @@ class NestedProjectionsIT {
 		public boolean isCypher5Compatible() {
 			return neo4jConnectionSupport.isCypher5SyntaxCompatible();
 		}
+
 	}
+
 }

@@ -15,14 +15,14 @@
  */
 package org.springframework.data.neo4j.integration.issues.gh2289;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Property;
 import org.springframework.data.neo4j.core.schema.Relationship;
-
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * @author Michael J. Simons
@@ -54,57 +54,54 @@ public class Sku {
 	public RangeRelation rangeRelationTo(Sku sku, double minDelta, double maxDelta, RelationType relationType) {
 		RangeRelation relationOut = new RangeRelation(sku, minDelta, maxDelta, relationType);
 		RangeRelation relationIn = new RangeRelation(this, minDelta, maxDelta, relationType);
-		rangeRelationsOut.add(relationOut);
+		this.rangeRelationsOut.add(relationOut);
 		sku.rangeRelationsIn.add(relationIn);
 		return relationOut;
-	}
-
-	@Override
-	public String toString() {
-		return "Sku{" +
-				"id=" + id +
-				", number=" + number +
-				", name='" + name +
-				'}';
 	}
 
 	public Long getId() {
 		return this.id;
 	}
 
-	public Long getNumber() {
-		return this.number;
-	}
-
-	public String getName() {
-		return this.name;
-	}
-
-	public Set<RangeRelation> getRangeRelationsOut() {
-		return this.rangeRelationsOut;
-	}
-
-	public Set<RangeRelation> getRangeRelationsIn() {
-		return this.rangeRelationsIn;
-	}
-
 	public void setId(Long id) {
 		this.id = id;
+	}
+
+	public Long getNumber() {
+		return this.number;
 	}
 
 	public void setNumber(Long number) {
 		this.number = number;
 	}
 
+	public String getName() {
+		return this.name;
+	}
+
 	public void setName(String name) {
 		this.name = name;
+	}
+
+	public Set<RangeRelation> getRangeRelationsOut() {
+		return this.rangeRelationsOut;
 	}
 
 	public void setRangeRelationsOut(Set<RangeRelation> rangeRelationsOut) {
 		this.rangeRelationsOut = rangeRelationsOut;
 	}
 
+	public Set<RangeRelation> getRangeRelationsIn() {
+		return this.rangeRelationsIn;
+	}
+
 	public void setRangeRelationsIn(Set<RangeRelation> rangeRelationsIn) {
 		this.rangeRelationsIn = rangeRelationsIn;
 	}
+
+	@Override
+	public String toString() {
+		return "Sku{" + "id=" + this.id + ", number=" + this.number + ", name='" + this.name + '}';
+	}
+
 }

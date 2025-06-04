@@ -18,34 +18,37 @@ package org.springframework.data.neo4j.core;
 import org.springframework.data.domain.ExampleMatcher;
 
 /**
- * Contains some useful transformers for adding additional, supported transformations to {@link ExampleMatcher example matchers} via
+ * Contains some useful transformers for adding additional, supported transformations to
+ * {@link ExampleMatcher example matchers} via
  * {@link org.springframework.data.domain.ExampleMatcher#withTransformer(String, ExampleMatcher.PropertyValueTransformer)}.
  *
  * @author Michael J. Simons
  * @since 6.3.11
- * @soundtrack Subway To Sally - Herzblut
  */
 public abstract class Neo4jPropertyValueTransformers {
 
+	private Neo4jPropertyValueTransformers() {
+	}
+
 	/**
-	 * A transformer that will indicate that the generated condition for the specific property shall be negated, creating
-	 * a {@code n.property != $property} for the equality operator for example.
-	 *
-	 * @return A value transformer negating values.
+	 * A transformer that will indicate that the generated condition for the specific
+	 * property shall be negated, creating a {@code n.property != $property} for the
+	 * equality operator for example.
+	 * @return a value transformer negating values.
 	 */
 	public static ExampleMatcher.PropertyValueTransformer notMatching() {
 		return o -> o.map(NegatedValue::new);
 	}
 
 	/**
-	 * A wrapper indicating a negated value (will be used as {@code n.property != $parameter} (in case of string properties
-	 * all operators and not only the equality operator are supported, such as {@code not (n.property contains 'x')}.
+	 * A wrapper indicating a negated value; will be used as
+	 * {@code n.property != $parameter} (in case of string properties all operators and
+	 * not only the equality operator are supported, such as
+	 * {@code not (n.property contains 'x')}.
 	 *
 	 * @param value The value used in the negated condition.
 	 */
 	public record NegatedValue(Object value) {
 	}
 
-	private Neo4jPropertyValueTransformers() {
-	}
 }

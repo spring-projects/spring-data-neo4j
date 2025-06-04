@@ -15,9 +15,9 @@
  */
 package org.springframework.data.neo4j.integration.issues.gh2973;
 
-import org.springframework.data.neo4j.repository.Neo4jRepository;
-
 import java.util.UUID;
+
+import org.springframework.data.neo4j.repository.Neo4jRepository;
 
 /**
  * Test repository for GH-2973
@@ -25,4 +25,5 @@ import java.util.UUID;
  * @author yangyaofei
  */
 public interface Gh2973Repository extends Neo4jRepository<BaseNode, UUID> {
+
 }

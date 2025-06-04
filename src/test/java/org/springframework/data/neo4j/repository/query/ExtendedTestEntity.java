@@ -21,4 +21,5 @@ package org.springframework.data.neo4j.repository.query;
 class ExtendedTestEntity extends TestEntity {
 
 	private String otherAttribute;
+
 }

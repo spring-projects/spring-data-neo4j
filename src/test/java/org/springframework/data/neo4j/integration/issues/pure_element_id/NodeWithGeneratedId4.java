@@ -26,33 +26,6 @@ import org.springframework.data.neo4j.core.schema.Relationship;
 @Node
 public class NodeWithGeneratedId4 {
 
-
-	@Node
-	static class Intermediate {
-		@Id
-		@GeneratedValue
-		private String id;
-
-		@Relationship
-		NodeWithGeneratedId4 end;
-
-		String getId() {
-			return id;
-		}
-
-		void setId(String id) {
-			this.id = id;
-		}
-
-		NodeWithGeneratedId4 getEnd() {
-			return end;
-		}
-
-		void setEnd(NodeWithGeneratedId4 end) {
-			this.end = end;
-		}
-	}
-
 	@Id
 	@GeneratedValue
 	private String id;
@@ -67,22 +40,51 @@ public class NodeWithGeneratedId4 {
 	}
 
 	public String getId() {
-		return id;
+		return this.id;
 	}
 
 	public String getValue() {
-		return value;
+		return this.value;
+	}
+
+	public void setValue(String value) {
+		this.value = value;
 	}
 
 	public Intermediate getIntermediate() {
-		return intermediate;
+		return this.intermediate;
 	}
 
 	public void setIntermediate(Intermediate intermediate) {
 		this.intermediate = intermediate;
 	}
 
-	public void setValue(String value) {
-		this.value = value;
+	@Node
+	static class Intermediate {
+
+		@Relationship
+		NodeWithGeneratedId4 end;
+
+		@Id
+		@GeneratedValue
+		private String id;
+
+		String getId() {
+			return this.id;
+		}
+
+		void setId(String id) {
+			this.id = id;
+		}
+
+		NodeWithGeneratedId4 getEnd() {
+			return this.end;
+		}
+
+		void setEnd(NodeWithGeneratedId4 end) {
+			this.end = end;
+		}
+
 	}
+
 }

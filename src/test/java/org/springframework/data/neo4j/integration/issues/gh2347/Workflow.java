@@ -36,14 +36,15 @@ public class Workflow {
 	}
 
 	public String getId() {
-		return id;
+		return this.id;
 	}
 
 	public Application getApplication() {
-		return application;
+		return this.application;
 	}
 
 	public void setApplication(Application application) {
 		this.application = application;
 	}
+
 }

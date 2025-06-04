@@ -15,12 +15,6 @@
  */
 package org.springframework.data.neo4j.integration.reactive;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import org.springframework.data.neo4j.test.Neo4jReactiveTestConfiguration;
-import reactor.core.publisher.Mono;
-import reactor.test.StepVerifier;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -28,6 +22,9 @@ import java.util.Optional;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.neo4j.driver.Driver;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -44,9 +41,12 @@ import org.springframework.data.neo4j.repository.ReactiveNeo4jRepository;
 import org.springframework.data.neo4j.repository.config.EnableReactiveNeo4jRepositories;
 import org.springframework.data.neo4j.test.BookmarkCapture;
 import org.springframework.data.neo4j.test.Neo4jExtension;
+import org.springframework.data.neo4j.test.Neo4jReactiveTestConfiguration;
 import org.springframework.transaction.ReactiveTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.reactive.TransactionalOperator;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Michael J. Simons
@@ -67,9 +67,12 @@ class ReactiveAuditingIT extends AuditingITBase {
 	void auditingOfCreationShouldWork(@Autowired ImmutableEntityTestRepository repository) {
 
 		List<ImmutableAuditableThing> newThings = new ArrayList<>();
-		TransactionalOperator transactionalOperator = TransactionalOperator.create(transactionManager);
-		transactionalOperator.execute(t -> repository.save(new ImmutableAuditableThing("A thing"))).as(StepVerifier::create)
-				.recordWith(() -> newThings).expectNextCount(1L).verifyComplete();
+		TransactionalOperator transactionalOperator = TransactionalOperator.create(this.transactionManager);
+		transactionalOperator.execute(t -> repository.save(new ImmutableAuditableThing("A thing")))
+			.as(StepVerifier::create)
+			.recordWith(() -> newThings)
+			.expectNextCount(1L)
+			.verifyComplete();
 
 		ImmutableAuditableThing savedThing = newThings.get(0);
 		assertThat(savedThing.getCreatedAt()).isEqualTo(DEFAULT_CREATION_AND_MODIFICATION_DATE);
@@ -84,10 +87,10 @@ class ReactiveAuditingIT extends AuditingITBase {
 	@Test
 	void auditingOfModificationShouldWork(@Autowired ImmutableEntityTestRepository repository) {
 
-		Mono<ImmutableAuditableThing> findAndUpdateAThing = repository.findById(idOfExistingThing)
-				.flatMap(thing -> repository.save(thing.withName("A new name")));
+		Mono<ImmutableAuditableThing> findAndUpdateAThing = repository.findById(this.idOfExistingThing)
+			.flatMap(thing -> repository.save(thing.withName("A new name")));
 
-		TransactionalOperator transactionalOperator = TransactionalOperator.create(transactionManager);
+		TransactionalOperator transactionalOperator = TransactionalOperator.create(this.transactionManager);
 		transactionalOperator.execute(t -> findAndUpdateAThing).as(StepVerifier::create).consumeNextWith(savedThing -> {
 
 			assertThat(savedThing.getCreatedAt()).isEqualTo(EXISTING_THING_CREATED_AT);
@@ -99,8 +102,9 @@ class ReactiveAuditingIT extends AuditingITBase {
 			assertThat(savedThing.getName()).isEqualTo("A new name");
 		}).verifyComplete();
 
-		// Need to happen outside the reactive flow, as we use the blocking session to verify the database
-		verifyDatabase(idOfExistingThing, new ImmutableAuditableThing(null, EXISTING_THING_CREATED_AT,
+		// Need to happen outside the reactive flow, as we use the blocking session to
+		// verify the database
+		verifyDatabase(this.idOfExistingThing, new ImmutableAuditableThing(null, EXISTING_THING_CREATED_AT,
 				EXISTING_THING_CREATED_BY, DEFAULT_CREATION_AND_MODIFICATION_DATE, "A user", "A new name"));
 	}
 
@@ -109,9 +113,12 @@ class ReactiveAuditingIT extends AuditingITBase {
 			@Autowired ImmutableEntityWithGeneratedIdTestRepository repository) {
 
 		List<ImmutableAuditableThingWithGeneratedId> newThings = new ArrayList<>();
-		TransactionalOperator transactionalOperator = TransactionalOperator.create(transactionManager);
+		TransactionalOperator transactionalOperator = TransactionalOperator.create(this.transactionManager);
 		transactionalOperator.execute(t -> repository.save(new ImmutableAuditableThingWithGeneratedId("A thing")))
-				.as(StepVerifier::create).recordWith(() -> newThings).expectNextCount(1L).verifyComplete();
+			.as(StepVerifier::create)
+			.recordWith(() -> newThings)
+			.expectNextCount(1L)
+			.verifyComplete();
 
 		ImmutableAuditableThingWithGeneratedId savedThing = newThings.get(0);
 		assertThat(savedThing.getCreatedAt()).isEqualTo(DEFAULT_CREATION_AND_MODIFICATION_DATE);
@@ -128,9 +135,10 @@ class ReactiveAuditingIT extends AuditingITBase {
 			@Autowired ImmutableEntityWithGeneratedIdTestRepository repository) {
 
 		Mono<ImmutableAuditableThingWithGeneratedId> findAndUpdateAThing = repository
-				.findById(idOfExistingThingWithGeneratedId).flatMap(thing -> repository.save(thing.withName("A new name")));
+			.findById(this.idOfExistingThingWithGeneratedId)
+			.flatMap(thing -> repository.save(thing.withName("A new name")));
 
-		TransactionalOperator transactionalOperator = TransactionalOperator.create(transactionManager);
+		TransactionalOperator transactionalOperator = TransactionalOperator.create(this.transactionManager);
 		transactionalOperator.execute(t -> findAndUpdateAThing).as(StepVerifier::create).consumeNextWith(savedThing -> {
 
 			assertThat(savedThing.getCreatedAt()).isEqualTo(EXISTING_THING_CREATED_AT);
@@ -142,16 +150,21 @@ class ReactiveAuditingIT extends AuditingITBase {
 			assertThat(savedThing.getName()).isEqualTo("A new name");
 		}).verifyComplete();
 
-		// Need to happen outside the reactive flow, as we use the blocking session to verify the database
-		verifyDatabase(idOfExistingThingWithGeneratedId,
+		// Need to happen outside the reactive flow, as we use the blocking session to
+		// verify the database
+		verifyDatabase(this.idOfExistingThingWithGeneratedId,
 				new ImmutableAuditableThingWithGeneratedId(null, EXISTING_THING_CREATED_AT, EXISTING_THING_CREATED_BY,
 						DEFAULT_CREATION_AND_MODIFICATION_DATE, "A user", "A new name"));
 	}
 
-	interface ImmutableEntityTestRepository extends ReactiveNeo4jRepository<ImmutableAuditableThing, Long> {}
+	interface ImmutableEntityTestRepository extends ReactiveNeo4jRepository<ImmutableAuditableThing, Long> {
+
+	}
 
 	interface ImmutableEntityWithGeneratedIdTestRepository
-			extends ReactiveNeo4jRepository<ImmutableAuditableThingWithGeneratedId, String> {}
+			extends ReactiveNeo4jRepository<ImmutableAuditableThingWithGeneratedId, String> {
+
+	}
 
 	@Configuration
 	@EnableTransactionManagement
@@ -161,35 +174,40 @@ class ReactiveAuditingIT extends AuditingITBase {
 	static class Config extends Neo4jReactiveTestConfiguration {
 
 		@Bean
+		@Override
 		public Driver driver() {
 			return neo4jConnectionSupport.getDriver();
 		}
 
 		@Bean
-		public ReactiveAuditorAware<String> auditorProvider() {
+		ReactiveAuditorAware<String> auditorProvider() {
 			return () -> Mono.just("A user");
 		}
 
 		@Bean
-		public DateTimeProvider fixedDateTimeProvider() {
+		DateTimeProvider fixedDateTimeProvider() {
 			return () -> Optional.of(DEFAULT_CREATION_AND_MODIFICATION_DATE);
 		}
 
 		@Bean
-		public BookmarkCapture bookmarkCapture() {
+		BookmarkCapture bookmarkCapture() {
 			return new BookmarkCapture();
 		}
 
 		@Override
-		public ReactiveTransactionManager reactiveTransactionManager(Driver driver, ReactiveDatabaseSelectionProvider databaseSelectionProvider) {
+		public ReactiveTransactionManager reactiveTransactionManager(Driver driver,
+				ReactiveDatabaseSelectionProvider databaseSelectionProvider) {
 
 			BookmarkCapture bookmarkCapture = bookmarkCapture();
-			return new ReactiveNeo4jTransactionManager(driver, databaseSelectionProvider, Neo4jBookmarkManager.createReactive(bookmarkCapture));
+			return new ReactiveNeo4jTransactionManager(driver, databaseSelectionProvider,
+					Neo4jBookmarkManager.createReactive(bookmarkCapture));
 		}
 
 		@Override
 		public boolean isCypher5Compatible() {
 			return neo4jConnectionSupport.isCypher5SyntaxCompatible();
 		}
+
 	}
+
 }

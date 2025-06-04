@@ -15,13 +15,13 @@
  */
 package org.springframework.data.neo4j.integration.issues.projections.model;
 
+import java.util.Objects;
+
 import org.springframework.data.annotation.Version;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Property;
 import org.springframework.data.neo4j.core.schema.Relationship;
-
-import java.util.Objects;
 
 /**
  * @author Michael J. Simons
@@ -30,12 +30,12 @@ import java.util.Objects;
 @Node
 public class CentralNode {
 
+	@Version
+	Long version;
+
 	@Id
 	@Property(name = "id")
 	private String id;
-
-	@Version
-	Long version;
 
 	private String name;
 
@@ -56,31 +56,6 @@ public class CentralNode {
 		return new CentralNodeBuilder();
 	}
 
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) {
-			return true;
-		}
-		if (o == null || getClass() != o.getClass()) {
-			return false;
-		}
-		CentralNode centralNode = (CentralNode) o;
-		return Objects.equals(id, centralNode.id) && Objects.equals(name, centralNode.name);
-	}
-
-	@Override
-	public int hashCode() {
-		return Objects.hash(id, name);
-	}
-
-	public void setSourceNodeB(SourceNodeB sourceNodeB) {
-		this.sourceNodeB = sourceNodeB;
-	}
-
-	public void setName(String name) {
-		this.name = name;
-	}
-
 	public String getId() {
 		return this.id;
 	}
@@ -93,17 +68,46 @@ public class CentralNode {
 		return this.name;
 	}
 
+	public void setName(String name) {
+		this.name = name;
+	}
+
 	public SourceNodeB getSourceNodeB() {
 		return this.sourceNodeB;
+	}
+
+	public void setSourceNodeB(SourceNodeB sourceNodeB) {
+		this.sourceNodeB = sourceNodeB;
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
+		CentralNode centralNode = (CentralNode) o;
+		return Objects.equals(this.id, centralNode.id) && Objects.equals(this.name, centralNode.name);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(this.id, this.name);
 	}
 
 	/**
 	 * the builder
 	 */
 	public static class CentralNodeBuilder {
+
 		private String id;
+
 		private Long version;
+
 		private String name;
+
 		private SourceNodeB sourceNodeB;
 
 		CentralNodeBuilder() {
@@ -133,8 +137,12 @@ public class CentralNode {
 			return new CentralNode(this.id, this.version, this.name, this.sourceNodeB);
 		}
 
+		@Override
 		public String toString() {
-			return "CentralNode.CentralNodeBuilder(id=" + this.id + ", version=" + this.version + ", name=" + this.name + ", sourceNodeB=" + this.sourceNodeB + ")";
+			return "CentralNode.CentralNodeBuilder(id=" + this.id + ", version=" + this.version + ", name=" + this.name
+					+ ", sourceNodeB=" + this.sourceNodeB + ")";
 		}
+
 	}
+
 }

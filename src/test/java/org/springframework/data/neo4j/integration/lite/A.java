@@ -21,12 +21,13 @@ package org.springframework.data.neo4j.integration.lite;
  * @author Michael J. Simons
  */
 public class A {
+
 	private String outer;
 
 	private B nested;
 
 	public String getOuter() {
-		return outer;
+		return this.outer;
 	}
 
 	public void setOuter(String outer) {
@@ -34,10 +35,11 @@ public class A {
 	}
 
 	public B getNested() {
-		return nested;
+		return this.nested;
 	}
 
 	public void setNested(B nested) {
 		this.nested = nested;
 	}
+
 }

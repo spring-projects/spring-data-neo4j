@@ -36,11 +36,11 @@ public class AnotherThingWithAssignedId {
 	}
 
 	public Long getTheId() {
-		return theId;
+		return this.theId;
 	}
 
 	public String getName() {
-		return name;
+		return this.name;
 	}
 
 	public void setName(String name) {
@@ -56,11 +56,12 @@ public class AnotherThingWithAssignedId {
 			return false;
 		}
 		AnotherThingWithAssignedId that = (AnotherThingWithAssignedId) o;
-		return theId.equals(that.theId) && Objects.equals(name, that.name);
+		return this.theId.equals(that.theId) && Objects.equals(this.name, that.name);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(theId, name);
+		return Objects.hash(this.theId, this.name);
 	}
+
 }

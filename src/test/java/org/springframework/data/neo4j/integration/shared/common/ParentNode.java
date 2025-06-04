@@ -21,10 +21,10 @@ import org.springframework.data.neo4j.core.schema.Node;
 
 /**
  * @author Michael J. Simons
- * @soundtrack Die Toten Hosen - Zurück zum Glück
  */
 @Node
 public class ParentNode {
+
 	@Id
 	@GeneratedValue
 	private Long id;
@@ -32,14 +32,15 @@ public class ParentNode {
 	private String someAttribute;
 
 	public Long getId() {
-		return id;
+		return this.id;
 	}
 
 	public String getSomeAttribute() {
-		return someAttribute;
+		return this.someAttribute;
 	}
 
 	public void setSomeAttribute(String someAttribute) {
 		this.someAttribute = someAttribute;
 	}
+
 }

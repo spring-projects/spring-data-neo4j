@@ -20,14 +20,16 @@ import java.util.Map;
 
 import org.apiguardian.api.API;
 import org.neo4j.cypherdsl.core.Statement;
+
 import org.springframework.data.neo4j.core.Neo4jTemplate;
 import org.springframework.data.neo4j.core.ReactiveNeo4jTemplate;
 
 /**
- * The {@link CreateRelationshipStatementHolder} holds the Cypher Statement to create a relationship as well as the optional
- * properties that describe the relationship in case of more than a simple relationship. By holding the relationship
- * creation cypher together with the properties, we can reuse the same logic in the {@link Neo4jTemplate} as well as in
- * the {@link ReactiveNeo4jTemplate}.
+ * The {@link CreateRelationshipStatementHolder} holds the Cypher Statement to create a
+ * relationship as well as the optional properties that describe the relationship in case
+ * of more than a simple relationship. By holding the relationship creation cypher
+ * together with the properties, we can reuse the same logic in the {@link Neo4jTemplate}
+ * as well as in the {@link ReactiveNeo4jTemplate}.
  *
  * @author Philipp Tölle
  * @author Michael J. Simons
@@ -37,6 +39,7 @@ import org.springframework.data.neo4j.core.ReactiveNeo4jTemplate;
 public final class CreateRelationshipStatementHolder {
 
 	private final Statement statement;
+
 	private final Map<String, Object> properties;
 
 	CreateRelationshipStatementHolder(Statement statement, Map<String, Object> properties) {
@@ -45,11 +48,11 @@ public final class CreateRelationshipStatementHolder {
 	}
 
 	public Statement getStatement() {
-		return statement;
+		return this.statement;
 	}
 
 	public Map<String, Object> getProperties() {
-		return properties;
+		return this.properties;
 	}
 
 	public CreateRelationshipStatementHolder addProperty(String key, Object property) {
@@ -57,4 +60,5 @@ public final class CreateRelationshipStatementHolder {
 		newProperties.put(key, property);
 		return new CreateRelationshipStatementHolder(this.statement, newProperties);
 	}
+
 }

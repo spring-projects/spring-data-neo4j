@@ -25,7 +25,8 @@ import org.springframework.data.neo4j.core.schema.Node;
 @Node
 public class B {
 
-	@Id @GeneratedValue
+	@Id
+	@GeneratedValue
 	private Long id;
 
 	private String name;
@@ -35,21 +36,20 @@ public class B {
 	}
 
 	public Long getId() {
-		return id;
+		return this.id;
 	}
 
 	public String getName() {
-		return name;
+		return this.name;
 	}
 
 	public void setName(String name) {
 		this.name = name;
 	}
 
-	@Override public String toString() {
-		return "B{" +
-			   "id=" + id +
-			   ", name='" + name + '\'' +
-			   '}';
+	@Override
+	public String toString() {
+		return "B{" + "id=" + this.id + ", name='" + this.name + '\'' + '}';
 	}
+
 }

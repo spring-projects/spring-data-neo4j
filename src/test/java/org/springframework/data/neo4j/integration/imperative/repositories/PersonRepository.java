@@ -25,6 +25,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.neo4j.driver.types.Point;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Range;
@@ -60,22 +61,6 @@ public interface PersonRepository extends Neo4jRepository<PersonWithAllConstruct
 
 	@Query("MATCH (n:PersonWithAllConstructor) return collect(n)")
 	List<PersonWithAllConstructor> aggregateAllPeople();
-
-	/**
-	 * A custom aggregate that allows for something like getFriend1, 2 or other stuff...
-	 */
-	class CustomAggregation implements Streamable<PersonWithAllConstructor> {
-
-		private final Streamable<PersonWithAllConstructor> delegate;
-
-		public CustomAggregation(Streamable<PersonWithAllConstructor> delegate) {
-			this.delegate = delegate;
-		}
-
-		@Override public Iterator<PersonWithAllConstructor> iterator() {
-			return delegate.iterator();
-		}
-	}
 
 	@Query("MATCH (n:PersonWithAllConstructor) return collect(n)")
 	CustomAggregation aggregateAllPeopleCustom();
@@ -121,15 +106,18 @@ public interface PersonRepository extends Neo4jRepository<PersonWithAllConstruct
 	Window<PersonWithAllConstructor> findTop1ByOrderByName(ScrollPosition scrollPosition);
 
 	@Query("MATCH (n:PersonWithAllConstructor) WHERE n.name = $aName OR n.name = $anotherName RETURN n ORDER BY n.name DESC SKIP $skip LIMIT $limit")
-	Slice<PersonWithAllConstructor> findSliceByCustomQueryWithoutCount(@Param("aName") String aName, @Param("anotherName") String anotherName, Pageable pageable);
+	Slice<PersonWithAllConstructor> findSliceByCustomQueryWithoutCount(@Param("aName") String aName,
+			@Param("anotherName") String anotherName, Pageable pageable);
 
 	@Query(value = "MATCH (n:PersonWithAllConstructor) WHERE n.name = $aName OR n.name = $anotherName RETURN n ORDER BY n.name DESC SKIP $skip LIMIT $limit",
-	countQuery = "MATCH (n:PersonWithAllConstructor) WHERE n.name = $aName OR n.name = $anotherName RETURN count(n)")
-	Slice<PersonWithAllConstructor> findSliceByCustomQueryWithCount(@Param("aName") String aName, @Param("anotherName") String anotherName, Pageable pageable);
+			countQuery = "MATCH (n:PersonWithAllConstructor) WHERE n.name = $aName OR n.name = $anotherName RETURN count(n)")
+	Slice<PersonWithAllConstructor> findSliceByCustomQueryWithCount(@Param("aName") String aName,
+			@Param("anotherName") String anotherName, Pageable pageable);
 
 	@Query(value = "MATCH (n:PersonWithAllConstructor) WHERE n.name = $aName OR n.name = $anotherName RETURN n :#{orderBy(#pageable)} SKIP $skip LIMIT $limit",
 			countQuery = "MATCH (n:PersonWithAllConstructor) WHERE n.name = $aName OR n.name = $anotherName RETURN count(n)")
-	Page<PersonWithAllConstructor> findPageByCustomQueryWithCount(@Param("aName") String aName, @Param("anotherName") String anotherName, Pageable pageable);
+	Page<PersonWithAllConstructor> findPageByCustomQueryWithCount(@Param("aName") String aName,
+			@Param("anotherName") String anotherName, Pageable pageable);
 
 	@Query("UNWIND ['a', 'b', 'c'] AS x RETURN x")
 	List<String> noDomainType();
@@ -225,12 +213,6 @@ public interface PersonRepository extends Neo4jRepository<PersonWithAllConstruct
 
 	List<PersonWithAllConstructor> findAllByPlace(SomethingThatIsNotKnownAsEntity p);
 
-	/**
-	 * Needed to have something that is not mapped in to a map.
-	 */
-	class SomethingThatIsNotKnownAsEntity {
-	}
-
 	List<PersonWithAllConstructor> findAllByPlaceNear(Point p);
 
 	List<PersonWithAllConstructor> findAllByPlaceNear(Point p, Distance max);
@@ -253,20 +235,23 @@ public interface PersonRepository extends Neo4jRepository<PersonWithAllConstruct
 
 	List<PersonWithAllConstructor> findAllByOrderByFirstNameAscBornOnDesc();
 
+	PersonProjection findByName(String name);
+
+	List<PersonProjection> findBySameValue(String sameValue);
+
 	// TODO Integration tests for failed validations
 	// List<PersonWithAllConstructor> findAllByBornOnAfter(String date);
-	// List<PersonWithAllConstructor> findAllByNameOrPersonNumberIsBetweenAndFirstNameNotInAndFirstNameEquals(String name,
+	// List<PersonWithAllConstructor>
+	// findAllByNameOrPersonNumberIsBetweenAndFirstNameNotInAndFirstNameEquals(String
+	// name,
 	// Long low, Long high, String wrong, List<String> haystack);
 	// List<PersonWithAllConstructor>
-	// findAllByNameOrPersonNumberIsBetweenAndCoolIsTrueAndFirstNameNotInAndFirstNameEquals(String name, Long low, Long
+	// findAllByNameOrPersonNumberIsBetweenAndCoolIsTrueAndFirstNameNotInAndFirstNameEquals(String
+	// name, Long low, Long
 	// high, String wrong, List<String> haystack);
 	// List<PersonWithAllConstructor> findAllByNameNotEmpty();
 	// List<PersonWithAllConstructor> findAllByPlaceNear(Point p);
 	// List<PersonWithAllConstructor> findAllByPlaceNear(Point p, String);
-
-	PersonProjection findByName(String name);
-
-	List<PersonProjection> findBySameValue(String sameValue);
 
 	List<DtoPersonProjection> findByFirstName(String firstName);
 
@@ -274,40 +259,15 @@ public interface PersonRepository extends Neo4jRepository<PersonWithAllConstruct
 
 	DtoPersonProjection findOneByNullable(String nullable);
 
-	@Query(""
-			+ "MATCH (n:PersonWithAllConstructor) where n.name = $name "
+	@Query("" + "MATCH (n:PersonWithAllConstructor) where n.name = $name "
 			+ "WITH n MATCH(m:PersonWithAllConstructor) WHERE id(n) <> id(m) "
 			+ "RETURN n, collect(m) AS otherPeople, 4711 AS someLongValue, [21.42, 42.21] AS someDoubles")
-	List<DtoPersonProjectionContainingAdditionalFields> findAllDtoProjectionsWithAdditionalProperties(@Param("name") String name);
+	List<DtoPersonProjectionContainingAdditionalFields> findAllDtoProjectionsWithAdditionalProperties(
+			@Param("name") String name);
 
-	/**
-	 * A custom aggregate that allows for something like getFriend1, 2 or other stuff...
-	 */
-	class CustomAggregationOfDto implements Streamable<DtoPersonProjectionContainingAdditionalFields> {
-
-		private final Streamable<DtoPersonProjectionContainingAdditionalFields> delegate;
-
-		public CustomAggregationOfDto(Streamable<DtoPersonProjectionContainingAdditionalFields> delegate) {
-			this.delegate = delegate;
-		}
-
-		@Override public Iterator<DtoPersonProjectionContainingAdditionalFields> iterator() {
-			return delegate.iterator();
-		}
-
-		public DtoPersonProjectionContainingAdditionalFields getBySomeLongValue(long value) {
-
-			return delegate.stream()
-					.collect(Collectors.toMap(DtoPersonProjectionContainingAdditionalFields::getSomeLongValue, Function.identity()))
-					.get(value);
-		}
-	}
-
-	@Query(""
-		   + "MATCH (n:PersonWithAllConstructor) where n.name = $name "
-		   + "WITH n MATCH(m:PersonWithAllConstructor) WHERE id(n) <> id(m)" +
-			" WITH n, collect(m) as ms "
-		   + "RETURN [{n: n, otherPeople: ms, someLongValue: 4711, someDoubles: [21.42, 42.21]}]")
+	@Query("" + "MATCH (n:PersonWithAllConstructor) where n.name = $name "
+			+ "WITH n MATCH(m:PersonWithAllConstructor) WHERE id(n) <> id(m)" + " WITH n, collect(m) as ms "
+			+ "RETURN [{n: n, otherPeople: ms, someLongValue: 4711, someDoubles: [21.42, 42.21]}]")
 	CustomAggregationOfDto findAllDtoProjectionsWithAdditionalPropertiesAsCustomAggregation(@Param("name") String name);
 
 	@Query("MATCH (n:PersonWithAllConstructor) where n.name = $name return n{.name}")
@@ -325,10 +285,62 @@ public interface PersonRepository extends Neo4jRepository<PersonWithAllConstruct
 	@Query("CREATE (n:PersonWithAllConstructor) SET n+= $testNode.__properties__ RETURN n")
 	PersonWithAllConstructor createWithCustomQuery(@Param("testNode") PersonWithAllConstructor testNode);
 
-	@Query(value = "MATCH (n:PersonWithAllConstructor) RETURN n :#{ orderBy (#pageable.sort)} SKIP $skip LIMIT $limit")
+	@Query("MATCH (n:PersonWithAllConstructor) RETURN n :#{ orderBy (#pageable.sort)} SKIP $skip LIMIT $limit")
 	List<PersonWithAllConstructor> orderBySpel(Pageable page);
 
 	void deleteAllByName(String name);
 
 	long deleteAllByNameOrName(String name, String otherName);
+
+	/**
+	 * A custom aggregate that allows for something like getFriend1, 2 or other stuff...
+	 */
+	class CustomAggregation implements Streamable<PersonWithAllConstructor> {
+
+		private final Streamable<PersonWithAllConstructor> delegate;
+
+		public CustomAggregation(Streamable<PersonWithAllConstructor> delegate) {
+			this.delegate = delegate;
+		}
+
+		@Override
+		public Iterator<PersonWithAllConstructor> iterator() {
+			return this.delegate.iterator();
+		}
+
+	}
+
+	/**
+	 * Needed to have something that is not mapped in to a map.
+	 */
+	class SomethingThatIsNotKnownAsEntity {
+
+	}
+
+	/**
+	 * A custom aggregate that allows for something like getFriend1, 2 or other stuff...
+	 */
+	class CustomAggregationOfDto implements Streamable<DtoPersonProjectionContainingAdditionalFields> {
+
+		private final Streamable<DtoPersonProjectionContainingAdditionalFields> delegate;
+
+		public CustomAggregationOfDto(Streamable<DtoPersonProjectionContainingAdditionalFields> delegate) {
+			this.delegate = delegate;
+		}
+
+		@Override
+		public Iterator<DtoPersonProjectionContainingAdditionalFields> iterator() {
+			return this.delegate.iterator();
+		}
+
+		public DtoPersonProjectionContainingAdditionalFields getBySomeLongValue(long value) {
+
+			return this.delegate.stream()
+				.collect(Collectors.toMap(DtoPersonProjectionContainingAdditionalFields::getSomeLongValue,
+						Function.identity()))
+				.get(value);
+		}
+
+	}
+
 }

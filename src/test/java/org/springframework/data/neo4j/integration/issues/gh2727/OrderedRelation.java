@@ -22,16 +22,19 @@ import org.springframework.data.neo4j.core.schema.RelationshipProperties;
 import org.springframework.data.neo4j.core.schema.TargetNode;
 
 /**
- * @author Gerrit Meier
  * @param <T> relationship properties type
+ * @author Gerrit Meier
  */
 @RelationshipProperties
 public class OrderedRelation<T> implements Comparable<OrderedRelation<T>> {
+
 	@RelationshipId
 	@GeneratedValue
 	private Long id;
+
 	@TargetNode
 	private T target;
+
 	@Property
 	private Integer order;
 
@@ -46,30 +49,31 @@ public class OrderedRelation<T> implements Comparable<OrderedRelation<T>> {
 
 	@Override
 	public int compareTo(final OrderedRelation<T> o) {
-		return order - o.order;
+		return this.order - o.order;
 	}
 
 	public Long getId() {
 		return this.id;
 	}
 
-	public T getTarget() {
-		return this.target;
-	}
-
-	public Integer getOrder() {
-		return this.order;
-	}
-
 	public void setId(Long id) {
 		this.id = id;
+	}
+
+	public T getTarget() {
+		return this.target;
 	}
 
 	public void setTarget(T target) {
 		this.target = target;
 	}
 
+	public Integer getOrder() {
+		return this.order;
+	}
+
 	public void setOrder(Integer order) {
 		this.order = order;
 	}
+
 }

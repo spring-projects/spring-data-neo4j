@@ -21,4 +21,5 @@ import org.springframework.data.neo4j.repository.Neo4jRepository;
  * @author Gerrit Meier
  */
 public interface ToRepository extends Neo4jRepository<BugTargetBase, String> {
+
 }

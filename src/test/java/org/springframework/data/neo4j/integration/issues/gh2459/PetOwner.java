@@ -15,11 +15,11 @@
  */
 package org.springframework.data.neo4j.integration.issues.gh2459;
 
+import java.util.List;
+
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Relationship;
-
-import java.util.List;
 
 /**
  * Labels are written out on purpose for the test.
@@ -28,8 +28,10 @@ import java.util.List;
  */
 @Node("PetOwner")
 public abstract class PetOwner {
+
 	@Id
 	private String uuid;
+
 	@Relationship(type = "hasPet")
 	private List<Animal> pets;
 
@@ -37,15 +39,16 @@ public abstract class PetOwner {
 		return this.uuid;
 	}
 
-	public List<Animal> getPets() {
-		return this.pets;
-	}
-
 	public void setUuid(String uuid) {
 		this.uuid = uuid;
+	}
+
+	public List<Animal> getPets() {
+		return this.pets;
 	}
 
 	public void setPets(List<Animal> pets) {
 		this.pets = pets;
 	}
+
 }

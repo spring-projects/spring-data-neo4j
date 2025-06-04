@@ -23,7 +23,9 @@ import org.springframework.context.ApplicationEvent;
  * Some example event.
  */
 // tag::domain-events[]
-public class SomeEvent extends ApplicationEvent { // <1>
+public class SomeEvent extends ApplicationEvent {
+
+	// <1>
 
 	private final LocalDateTime changeHappenedAt = LocalDateTime.now();
 
@@ -41,16 +43,17 @@ public class SomeEvent extends ApplicationEvent { // <1>
 	// end::domain-events[]
 
 	public LocalDateTime getChangeHappenedAt() {
-		return changeHappenedAt;
+		return this.changeHappenedAt;
 	}
 
 	public String getOldValue() {
-		return oldValue;
+		return this.oldValue;
 	}
 
 	public String getNewValue() {
-		return newValue;
+		return this.newValue;
 	}
 	// tag::domain-events[]
+
 }
 // end::domain-events[]

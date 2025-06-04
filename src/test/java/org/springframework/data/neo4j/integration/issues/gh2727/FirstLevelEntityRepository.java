@@ -23,4 +23,5 @@ import org.springframework.data.neo4j.repository.Neo4jRepository;
 public interface FirstLevelEntityRepository extends Neo4jRepository<FirstLevelEntity, Long> {
 
 	FirstLevelProjection findOneById(Long id);
+
 }
