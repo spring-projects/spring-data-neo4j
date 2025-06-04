@@ -518,16 +518,6 @@
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-checkstyle-plugin</artifactId>
 					<version>${maven-checkstyle-plugin.version}</version>
-					<configuration>
-						<excludes>**/module-info.java</excludes>
-						<includeTestSourceDirectory>true</includeTestSourceDirectory>
-						<configLocation>etc/checkstyle/config.xml</configLocation>
-						<suppressionsLocation>etc/checkstyle/suppressions.xml</suppressionsLocation>
-						<inputEncoding>${project.build.sourceEncoding}</inputEncoding>
-						<consoleOutput>true</consoleOutput>
-						<failsOnError>true</failsOnError>
-						<includeTestSourceDirectory>true</includeTestSourceDirectory>
-					</configuration>
 					<dependencies>
 						<dependency>
 							<groupId>com.puppycrawl.tools</groupId>
@@ -608,6 +598,16 @@
 						</goals>
 						<phase>validate</phase>
 						<inherited>true</inherited>
+						<configuration combine.self="override">
+							<excludes>**/module-info.java</excludes>
+							<includeTestSourceDirectory>true</includeTestSourceDirectory>
+							<configLocation>etc/checkstyle/config.xml</configLocation>
+							<suppressionsLocation>etc/checkstyle/suppressions.xml</suppressionsLocation>
+							<inputEncoding>${project.build.sourceEncoding}</inputEncoding>
+							<consoleOutput>true</consoleOutput>
+							<failsOnError>true</failsOnError>
+							<includeTestSourceDirectory>true</includeTestSourceDirectory>
+						</configuration>
 					</execution>
 				</executions>
 			</plugin>

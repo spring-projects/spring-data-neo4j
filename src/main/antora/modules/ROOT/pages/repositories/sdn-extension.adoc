@@ -29,7 +29,7 @@ Additional mixins provided are:
 Both the `QuerydslPredicateExecutor` and `CypherdslConditionExecutor` provide the same concept: SDN generates a query, you
 provide "predicates" (Query DSL) or "conditions" (Cypher DSL) that will be added. We recommend the Cypher DSL, as this is
 what SDN uses natively. You might even want to consider using the
-http://neo4j-contrib.github.io/cypher-dsl/2021.1.1/#thespringdataneo4j6annotationprocessor[annotation processor] that generates
+https://neo4j.github.io/cypher-dsl#thespringdataneo4j6annotationprocessor[annotation processor] that generates
 a static meta model for you.
 
 How does that work? Declare your repository as described above and add *one*  of the following interfaces:

@@ -1151,7 +1151,7 @@ but especially our own variant of it, the `CypherdslConditionExecutor`. Both xre
 the full queries we create for you. Thus, you will have the domain fully populated together with custom conditions.
 Of course, your conditions must work with what we generate. Find the names of the root node, the related nodes and more
 xref:appendix/custom-queries.adoc#custom-queries[here].
-* Use the http://neo4j-contrib.github.io/cypher-dsl/current/[Cypher-DSL] via the `CypherdslStatementExecutor` or the `ReactiveCypherdslStatementExecutor`.
+* Use the https://neo4j.github.io/cypher-dsl[Cypher-DSL] via the `CypherdslStatementExecutor` or the `ReactiveCypherdslStatementExecutor`.
 The Cypher-DSL is predestined to create dynamic queries. In the end, it's what SDN uses under the hood anyway. The corresponding
 mixins work both with the domain type of repository itself and with projections (something that the mixins for adding
 conditions don't).
