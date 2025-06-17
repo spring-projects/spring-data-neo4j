@@ -240,7 +240,7 @@ public class Neo4jExtension implements BeforeAllCallback, BeforeEachCallback {
 				return false;
 			}
 			try {
-				driver.verifyConnectivity();
+				driver.isEncrypted();
 				return true;
 			}
 			catch (Exception ex) {
