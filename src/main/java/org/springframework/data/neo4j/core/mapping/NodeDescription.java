@@ -181,4 +181,9 @@ public interface NodeDescription<T> {
 	 */
 	boolean describesInterface();
 
+	default boolean hasAggregateBoundaries(Class<?> domainType) {
+		return getAggregateBoundaries().contains(domainType);
+	}
+
+	List<Class<?>> getAggregateBoundaries();
 }
