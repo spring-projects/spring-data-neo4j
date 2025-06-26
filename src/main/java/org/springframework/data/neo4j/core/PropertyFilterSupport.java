@@ -16,6 +16,7 @@
 package org.springframework.data.neo4j.core;
 
 import java.beans.PropertyDescriptor;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -29,6 +30,7 @@ import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.neo4j.core.mapping.GraphPropertyDescription;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
+import org.springframework.data.neo4j.core.mapping.NodeDescription;
 import org.springframework.data.neo4j.core.mapping.PropertyFilter;
 import org.springframework.data.neo4j.core.mapping.RelationshipDescription;
 import org.springframework.data.projection.ProjectionFactory;
@@ -61,6 +63,10 @@ public final class PropertyFilterSupport {
 
 		boolean isProjecting = returnedType.isProjecting();
 		boolean isClosedProjection = factory.getProjectionInformation(potentiallyProjectedType).isClosed();
+		if (containsAggregateLimit(domainType, mappingContext)) {
+			Collection<PropertyFilter.ProjectedPath> listForAggregate = createListForAggregate(domainType, mappingContext);
+			return listForAggregate;
+		}
 
 		if (!isProjecting || !isClosedProjection) {
 			return Collections.emptySet();
@@ -70,8 +76,8 @@ public final class PropertyFilterSupport {
 			addPropertiesFrom(domainType, potentiallyProjectedType, factory, filteredProperties,
 					new ProjectionPathProcessor(inputProperty,
 							PropertyPath.from(inputProperty, potentiallyProjectedType)
-								.getLeafProperty()
-								.getTypeInformation()),
+									.getLeafProperty()
+									.getTypeInformation()),
 					mappingContext);
 		}
 		for (String inputProperty : KPropertyFilterSupport.getRequiredProperties(domainType)) {
@@ -82,6 +88,62 @@ public final class PropertyFilterSupport {
 		}
 
 		return filteredProperties;
+	}
+
+	private static Collection<PropertyFilter.ProjectedPath> createListForAggregate(Class<?> domainType, Neo4jMappingContext neo4jMappingContext) {
+		var relaxedPropertyPath = PropertyFilter.RelaxedPropertyPath.withRootType(domainType);
+		var filteredProperties = new ArrayList<PropertyFilter.ProjectedPath>();
+		Neo4jPersistentEntity<?> domainEntity = neo4jMappingContext.getRequiredPersistentEntity(domainType);
+		domainEntity.getGraphProperties().stream().forEach(property -> {
+			filteredProperties.add(new PropertyFilter.ProjectedPath(relaxedPropertyPath.append(property.getFieldName()), false));
+		});
+		for (RelationshipDescription relationshipDescription : domainEntity.getRelationshipsInHierarchy(any -> true)) {
+			var target = relationshipDescription.getTarget();
+			filteredProperties.addAll(createListForAggregate(domainType, target, relaxedPropertyPath.append(relationshipDescription.getFieldName())));
+		}
+		return filteredProperties;
+	}
+
+	private static Collection<PropertyFilter.ProjectedPath> createListForAggregate(Class<?> domainType, NodeDescription<?> nodeDescription, PropertyFilter.RelaxedPropertyPath relaxedPropertyPath) {
+		var filteredProperties = new ArrayList<PropertyFilter.ProjectedPath>();
+		// always add the related entity itself
+		filteredProperties.add(new PropertyFilter.ProjectedPath(relaxedPropertyPath, false));
+		if (nodeDescription.hasAggregateBoundaries(domainType)) {
+			filteredProperties.add(new PropertyFilter.ProjectedPath(relaxedPropertyPath.append(((Neo4jPersistentEntity<?>) nodeDescription).getRequiredIdProperty().getFieldName()), false));
+			return filteredProperties;
+		}
+		nodeDescription.getGraphProperties().stream().forEach(property -> {
+			filteredProperties.add(new PropertyFilter.ProjectedPath(relaxedPropertyPath.append(property.getFieldName()), false));
+		});
+		for (RelationshipDescription relationshipDescription : nodeDescription.getRelationshipsInHierarchy(any -> true)) {
+			var target = relationshipDescription.getTarget();
+			filteredProperties.addAll(createListForAggregate(domainType, target, relaxedPropertyPath.append(relationshipDescription.getFieldName())));
+		}
+		return filteredProperties;
+	}
+
+	private static boolean containsAggregateLimit(Class<?> domainType, Neo4jMappingContext neo4jMappingContext) {
+
+		Neo4jPersistentEntity<?> domainEntity = neo4jMappingContext.getRequiredPersistentEntity(domainType);
+		for (RelationshipDescription relationshipDescription : domainEntity.getRelationshipsInHierarchy(any -> true)) {
+			var target = relationshipDescription.getTarget();
+			if (target.hasAggregateBoundaries(domainType)) {
+				return true;
+			}
+			return containsAggregateLimit(domainType, target);
+		}
+		return false;
+	}
+
+	private static boolean containsAggregateLimit(Class<?> domainType, NodeDescription<?> nodeDescription) {
+		for (RelationshipDescription relationshipDescription : nodeDescription.getRelationshipsInHierarchy(any -> true)) {
+			var target = relationshipDescription.getTarget();
+			if (target.hasAggregateBoundaries(domainType)) {
+				return true;
+			}
+			return containsAggregateLimit(domainType, target);
+		}
+		return false;
 	}
 
 	static Collection<PropertyFilter.ProjectedPath> addPropertiesFrom(Class<?> domainType, Class<?> returnType,
