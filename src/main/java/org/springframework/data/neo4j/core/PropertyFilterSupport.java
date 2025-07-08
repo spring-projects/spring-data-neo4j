@@ -22,6 +22,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 
 import org.apiguardian.api.API;
 
@@ -64,7 +65,8 @@ public final class PropertyFilterSupport {
 		boolean isProjecting = returnedType.isProjecting();
 		boolean isClosedProjection = factory.getProjectionInformation(potentiallyProjectedType).isClosed();
 		if (containsAggregateLimit(domainType, mappingContext)) {
-			Collection<PropertyFilter.ProjectedPath> listForAggregate = createListForAggregate(domainType, mappingContext);
+			Collection<PropertyFilter.ProjectedPath> listForAggregate = createListForAggregate(domainType,
+					mappingContext);
 			return listForAggregate;
 		}
 
@@ -76,8 +78,8 @@ public final class PropertyFilterSupport {
 			addPropertiesFrom(domainType, potentiallyProjectedType, factory, filteredProperties,
 					new ProjectionPathProcessor(inputProperty,
 							PropertyPath.from(inputProperty, potentiallyProjectedType)
-									.getLeafProperty()
-									.getTypeInformation()),
+								.getLeafProperty()
+								.getTypeInformation()),
 					mappingContext);
 		}
 		for (String inputProperty : KPropertyFilterSupport.getRequiredProperties(domainType)) {
@@ -90,58 +92,86 @@ public final class PropertyFilterSupport {
 		return filteredProperties;
 	}
 
-	private static Collection<PropertyFilter.ProjectedPath> createListForAggregate(Class<?> domainType, Neo4jMappingContext neo4jMappingContext) {
+	public static Collection<PropertyFilter.ProjectedPath> getInputPropertiesForAggregateLimit(Class<?> domainType,
+			Neo4jMappingContext mappingContext) {
+		if (containsAggregateLimit(domainType, mappingContext)) {
+			Collection<PropertyFilter.ProjectedPath> listForAggregate = createListForAggregate(domainType,
+					mappingContext);
+			return listForAggregate;
+		}
+		return Collections.emptySet();
+	}
+
+	private static Collection<PropertyFilter.ProjectedPath> createListForAggregate(Class<?> domainType,
+			Neo4jMappingContext neo4jMappingContext) {
 		var relaxedPropertyPath = PropertyFilter.RelaxedPropertyPath.withRootType(domainType);
 		var filteredProperties = new ArrayList<PropertyFilter.ProjectedPath>();
 		Neo4jPersistentEntity<?> domainEntity = neo4jMappingContext.getRequiredPersistentEntity(domainType);
 		domainEntity.getGraphProperties().stream().forEach(property -> {
-			filteredProperties.add(new PropertyFilter.ProjectedPath(relaxedPropertyPath.append(property.getFieldName()), false));
+			filteredProperties
+				.add(new PropertyFilter.ProjectedPath(relaxedPropertyPath.append(property.getFieldName()), false));
 		});
 		for (RelationshipDescription relationshipDescription : domainEntity.getRelationshipsInHierarchy(any -> true)) {
 			var target = relationshipDescription.getTarget();
-			filteredProperties.addAll(createListForAggregate(domainType, target, relaxedPropertyPath.append(relationshipDescription.getFieldName())));
+			filteredProperties.addAll(createListForAggregate(domainType, target,
+					relaxedPropertyPath.append(relationshipDescription.getFieldName())));
 		}
 		return filteredProperties;
 	}
 
-	private static Collection<PropertyFilter.ProjectedPath> createListForAggregate(Class<?> domainType, NodeDescription<?> nodeDescription, PropertyFilter.RelaxedPropertyPath relaxedPropertyPath) {
+	private static Collection<PropertyFilter.ProjectedPath> createListForAggregate(Class<?> domainType,
+			NodeDescription<?> nodeDescription, PropertyFilter.RelaxedPropertyPath relaxedPropertyPath) {
 		var filteredProperties = new ArrayList<PropertyFilter.ProjectedPath>();
 		// always add the related entity itself
 		filteredProperties.add(new PropertyFilter.ProjectedPath(relaxedPropertyPath, false));
 		if (nodeDescription.hasAggregateBoundaries(domainType)) {
-			filteredProperties.add(new PropertyFilter.ProjectedPath(relaxedPropertyPath.append(((Neo4jPersistentEntity<?>) nodeDescription).getRequiredIdProperty().getFieldName()), false));
+			filteredProperties.add(new PropertyFilter.ProjectedPath(
+					relaxedPropertyPath
+						.append(((Neo4jPersistentEntity<?>) nodeDescription).getRequiredIdProperty().getFieldName()),
+					false));
 			return filteredProperties;
 		}
 		nodeDescription.getGraphProperties().stream().forEach(property -> {
-			filteredProperties.add(new PropertyFilter.ProjectedPath(relaxedPropertyPath.append(property.getFieldName()), false));
+			filteredProperties
+				.add(new PropertyFilter.ProjectedPath(relaxedPropertyPath.append(property.getFieldName()), false));
 		});
-		for (RelationshipDescription relationshipDescription : nodeDescription.getRelationshipsInHierarchy(any -> true)) {
+		for (RelationshipDescription relationshipDescription : nodeDescription
+			.getRelationshipsInHierarchy(any -> true)) {
 			var target = relationshipDescription.getTarget();
-			filteredProperties.addAll(createListForAggregate(domainType, target, relaxedPropertyPath.append(relationshipDescription.getFieldName())));
+			filteredProperties.addAll(createListForAggregate(domainType, target,
+					relaxedPropertyPath.append(relationshipDescription.getFieldName())));
 		}
 		return filteredProperties;
 	}
 
 	private static boolean containsAggregateLimit(Class<?> domainType, Neo4jMappingContext neo4jMappingContext) {
-
+		var scannedConnections = new HashSet<RelationshipDescription>();
 		Neo4jPersistentEntity<?> domainEntity = neo4jMappingContext.getRequiredPersistentEntity(domainType);
 		for (RelationshipDescription relationshipDescription : domainEntity.getRelationshipsInHierarchy(any -> true)) {
 			var target = relationshipDescription.getTarget();
 			if (target.hasAggregateBoundaries(domainType)) {
 				return true;
 			}
-			return containsAggregateLimit(domainType, target);
+			scannedConnections.add(relationshipDescription);
+			return containsAggregateLimit(domainType, target, scannedConnections);
 		}
 		return false;
 	}
 
-	private static boolean containsAggregateLimit(Class<?> domainType, NodeDescription<?> nodeDescription) {
-		for (RelationshipDescription relationshipDescription : nodeDescription.getRelationshipsInHierarchy(any -> true)) {
+	private static boolean containsAggregateLimit(Class<?> domainType, NodeDescription<?> nodeDescription,
+			Set<RelationshipDescription> scannedConnections) {
+		for (RelationshipDescription relationshipDescription : nodeDescription
+			.getRelationshipsInHierarchy(any -> true)) {
 			var target = relationshipDescription.getTarget();
+			Class<?> underlyingClass = nodeDescription.getUnderlyingClass();
+			if (scannedConnections.contains(relationshipDescription)) {
+				continue;
+			}
 			if (target.hasAggregateBoundaries(domainType)) {
 				return true;
 			}
-			return containsAggregateLimit(domainType, target);
+			scannedConnections.add(relationshipDescription);
+			return containsAggregateLimit(domainType, target, scannedConnections);
 		}
 		return false;
 	}

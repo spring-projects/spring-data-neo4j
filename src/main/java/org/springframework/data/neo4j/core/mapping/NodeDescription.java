@@ -186,4 +186,5 @@ public interface NodeDescription<T> {
 	}
 
 	List<Class<?>> getAggregateBoundaries();
+
 }
