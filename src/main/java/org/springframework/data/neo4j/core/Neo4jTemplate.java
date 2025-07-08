@@ -389,8 +389,9 @@ public final class Neo4jTemplate
 
 	@Override
 	public <T> T save(T instance) {
-
-		return execute(tx -> saveImpl(instance, Collections.emptySet(), null));
+		Collection<PropertyFilter.ProjectedPath> pps = PropertyFilterSupport
+			.getInputPropertiesForAggregateLimit(instance.getClass(), this.neo4jMappingContext);
+		return execute(tx -> saveImpl(instance, pps, null));
 
 	}
 
@@ -550,9 +551,12 @@ public final class Neo4jTemplate
 
 		Set<Class<?>> types = new HashSet<>();
 		List<T> entities = new ArrayList<>();
+		Map<Class<?>, Collection<PropertyFilter.ProjectedPath>> includedPropertiesByClass = new HashMap<>();
 		instances.forEach(instance -> {
 			entities.add(instance);
 			types.add(instance.getClass());
+			includedPropertiesByClass.put(instance.getClass(), PropertyFilterSupport
+				.getInputPropertiesForAggregateLimit(instance.getClass(), this.neo4jMappingContext));
 		});
 
 		if (entities.isEmpty()) {
@@ -573,7 +577,12 @@ public final class Neo4jTemplate
 
 			NestedRelationshipProcessingStateMachine stateMachine = new NestedRelationshipProcessingStateMachine(
 					this.neo4jMappingContext);
-			return entities.stream().map(e -> saveImpl(e, pps, stateMachine)).collect(Collectors.toList());
+			return entities.stream()
+				.map(e -> saveImpl(e,
+						((includedProperties != null && !includedProperties.isEmpty()) || includeProperty != null) ? pps
+								: includedPropertiesByClass.get(e.getClass()),
+						stateMachine))
+				.collect(Collectors.toList());
 		}
 
 		class Tuple3<T> {

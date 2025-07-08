@@ -122,7 +122,15 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 			.findFirst()
 			.orElse(null));
 
-		this.aggregateBoundaries = Lazy.of(() -> Arrays.stream(AnnotatedElementUtils.findMergedAnnotation(this.getType(), Node.class).stopCascadingFrom()).toList());
+		this.aggregateBoundaries = Lazy.of(this::computeAggregateBoundaries);
+	}
+
+	private List<Class<?>> computeAggregateBoundaries() {
+		Node nodeAnnotation = AnnotatedElementUtils.findMergedAnnotation(this.getType(), Node.class);
+		if (nodeAnnotation == null || nodeAnnotation.stopCascadingFrom().length == 0) {
+			return List.of();
+		}
+		return Arrays.stream(nodeAnnotation.stopCascadingFrom()).toList();
 	}
 
 	/**
