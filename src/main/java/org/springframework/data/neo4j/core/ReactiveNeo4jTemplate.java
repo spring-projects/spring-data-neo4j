@@ -243,7 +243,7 @@ public final class ReactiveNeo4jTemplate
 	private <T> Flux<T> doFindAll(Class<T> domainType, @Nullable Class<?> resultType) {
 
 		Neo4jPersistentEntity<?> entityMetaData = this.neo4jMappingContext.getRequiredPersistentEntity(domainType);
-		return createExecutableQuery(domainType, resultType, QueryFragmentsAndParameters.forFindAll(entityMetaData))
+		return createExecutableQuery(domainType, resultType, QueryFragmentsAndParameters.forFindAll(entityMetaData, neo4jMappingContext))
 			.flatMapMany(ExecutableQuery::getResults);
 	}
 

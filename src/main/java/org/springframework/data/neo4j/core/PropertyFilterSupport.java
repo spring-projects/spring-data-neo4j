@@ -23,6 +23,7 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Predicate;
 
 import org.apiguardian.api.API;
 
@@ -100,6 +101,49 @@ public final class PropertyFilterSupport {
 			return listForAggregate;
 		}
 		return Collections.emptySet();
+	}
+
+	public static Predicate<PropertyFilter.RelaxedPropertyPath> ding(Class<?> domainType, Neo4jMappingContext mappingContext) {
+		return (rpp) -> createRelaxedPropertyPathFilter(domainType, mappingContext).contains(rpp);
+	}
+
+	private static Collection<PropertyFilter.RelaxedPropertyPath> createRelaxedPropertyPathFilter(Class<?> domainType,
+																								  Neo4jMappingContext neo4jMappingContext) {
+		var relaxedPropertyPath = PropertyFilter.RelaxedPropertyPath.withRootType(domainType);
+		var relaxedPropertyPaths = new ArrayList<PropertyFilter.RelaxedPropertyPath>();
+		relaxedPropertyPaths.add(relaxedPropertyPath);
+		Neo4jPersistentEntity<?> domainEntity = neo4jMappingContext.getRequiredPersistentEntity(domainType);
+		domainEntity.getGraphProperties().stream().forEach(property -> {
+			relaxedPropertyPaths.add(relaxedPropertyPath.append(property.getFieldName()));
+		});
+		for (RelationshipDescription relationshipDescription : domainEntity.getRelationshipsInHierarchy(any -> true)) {
+			var target = relationshipDescription.getTarget();
+				relaxedPropertyPaths.add(relaxedPropertyPath.append(relationshipDescription.getFieldName()));
+		}
+		return relaxedPropertyPaths;
+	}
+
+	private static Collection<PropertyFilter.RelaxedPropertyPath> createRelaxedPropertyPathFilter(Class<?> domainType,
+				  NodeDescription<?> nodeDescription, PropertyFilter.RelaxedPropertyPath relaxedPropertyPath, Collection<PropertyFilter.RelaxedPropertyPath> relaxedPropertyPaths) {
+		var filteredProperties = new ArrayList<PropertyFilter.ProjectedPath>();
+		// always add the related entity itself
+		relaxedPropertyPaths.add(relaxedPropertyPath);
+		if (nodeDescription.hasAggregateBoundaries(domainType)) {
+			relaxedPropertyPaths.add(relaxedPropertyPath
+					.append(((Neo4jPersistentEntity<?>) nodeDescription).getRequiredIdProperty().getFieldName()));
+
+			return relaxedPropertyPaths;
+		}
+		nodeDescription.getGraphProperties().stream().forEach(property -> {
+			filteredProperties
+				.add(new PropertyFilter.ProjectedPath(relaxedPropertyPath.append(property.getFieldName()), false));
+		});
+		for (RelationshipDescription relationshipDescription : nodeDescription
+			.getRelationshipsInHierarchy(any -> true)) {
+			var target = relationshipDescription.getTarget();
+			relaxedPropertyPaths.add(relaxedPropertyPath.append(relationshipDescription.getFieldName()));
+		}
+		return relaxedPropertyPaths;
 	}
 
 	private static Collection<PropertyFilter.ProjectedPath> createListForAggregate(Class<?> domainType,

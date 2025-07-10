@@ -84,7 +84,6 @@ public class AggregateLimitingIT {
 	}
 
 	@Test
-	@Disabled // next step
 	void shouldOnlyReportIdForDifferentAggregateEntityWithGenericFindAll(@Autowired AggregateRepository repository) {
 		var startEntity = repository.findAll().get(0);
 

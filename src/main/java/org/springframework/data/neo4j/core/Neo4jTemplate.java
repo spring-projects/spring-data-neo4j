@@ -254,7 +254,7 @@ public final class Neo4jTemplate
 	private <T> List<T> doFindAll(Class<T> domainType, @Nullable Class<?> resultType) {
 		return executeReadOnly(tx -> {
 			Neo4jPersistentEntity<?> entityMetaData = this.neo4jMappingContext.getRequiredPersistentEntity(domainType);
-			return createExecutableQuery(domainType, resultType, QueryFragmentsAndParameters.forFindAll(entityMetaData),
+			return createExecutableQuery(domainType, resultType, QueryFragmentsAndParameters.forFindAll(entityMetaData, neo4jMappingContext),
 					true)
 				.getResults();
 		});
@@ -579,7 +579,8 @@ public final class Neo4jTemplate
 					this.neo4jMappingContext);
 			return entities.stream()
 				.map(e -> saveImpl(e,
-						((includedProperties != null && !includedProperties.isEmpty()) || includeProperty != null) ? pps
+						((includedProperties != null && !includedProperties.isEmpty()) || includeProperty != null)
+								? pps
 								: includedPropertiesByClass.get(e.getClass()),
 						stateMachine))
 				.collect(Collectors.toList());
