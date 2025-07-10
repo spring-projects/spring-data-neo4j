@@ -23,7 +23,7 @@ import java.util.stream.Stream;
 
 import org.apache.commons.logging.LogFactory;
 import org.jspecify.annotations.Nullable;
-import org.neo4j.driver.NotificationClassification;
+import org.neo4j.driver.NotificationCategory;
 import org.neo4j.driver.NotificationSeverity;
 import org.neo4j.driver.summary.InputPosition;
 import org.neo4j.driver.summary.Notification;
@@ -94,8 +94,9 @@ final class ResultSummaries {
 		Predicate<Notification> isDeprecationWarningForId;
 		try {
 			isDeprecationWarningForId = notification -> supressIdDeprecations
-					&& notification.classification()
-						.orElse(NotificationClassification.UNRECOGNIZED) == NotificationClassification.DEPRECATION
+					&& notification.category()
+						.orElse(NotificationCategory.UNRECOGNIZED)
+						.equals(NotificationCategory.DEPRECATION)
 					&& DEPRECATED_ID_PATTERN.matcher(notification.description()).matches();
 		}
 		finally {
@@ -107,7 +108,7 @@ final class ResultSummaries {
 			.stream()
 			.filter(Predicate.not(isDeprecationWarningForId))
 			.forEach(notification -> notification.severityLevel().ifPresent(severityLevel -> {
-				var category = notification.classification().orElse(null);
+				var category = notification.category().orElse(null);
 
 				var logger = getLogAccessor(category);
 				Consumer<String> logFunction;
@@ -129,21 +130,35 @@ final class ResultSummaries {
 			}));
 	}
 
-	private static LogAccessor getLogAccessor(@Nullable NotificationClassification category) {
+	private static LogAccessor getLogAccessor(@Nullable NotificationCategory category) {
 		if (category == null) {
 			return Neo4jClient.cypherLog;
 		}
-		return switch (category) {
-			case HINT -> cypherHintNotificationLog;
-			case DEPRECATION -> cypherDeprecationNotificationLog;
-			case PERFORMANCE -> cypherPerformanceNotificationLog;
-			case GENERIC -> cypherGenericNotificationLog;
-			case UNSUPPORTED -> cypherUnsupportedNotificationLog;
-			case UNRECOGNIZED -> cypherUnrecognizedNotificationLog;
-			case SECURITY -> cypherSecurityNotificationLog;
-			case TOPOLOGY -> cypherTopologyNotificationLog;
-			default -> Neo4jClient.cypherLog;
-		};
+		if (category.equals(NotificationCategory.HINT)) {
+			return cypherHintNotificationLog;
+		}
+		else if (category.equals(NotificationCategory.DEPRECATION)) {
+			return cypherDeprecationNotificationLog;
+		}
+		else if (category.equals(NotificationCategory.PERFORMANCE)) {
+			return cypherPerformanceNotificationLog;
+		}
+		else if (category.equals(NotificationCategory.GENERIC)) {
+			return cypherGenericNotificationLog;
+		}
+		else if (category.equals(NotificationCategory.UNSUPPORTED)) {
+			return cypherUnsupportedNotificationLog;
+		}
+		else if (category.equals(NotificationCategory.UNRECOGNIZED)) {
+			return cypherUnrecognizedNotificationLog;
+		}
+		else if (category.equals(NotificationCategory.SECURITY)) {
+			return cypherSecurityNotificationLog;
+		}
+		else if (category.equals(NotificationCategory.TOPOLOGY)) {
+			return cypherTopologyNotificationLog;
+		}
+		return Neo4jClient.cypherLog;
 	}
 
 	/**
