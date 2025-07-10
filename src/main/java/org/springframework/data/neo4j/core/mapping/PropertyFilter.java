@@ -17,6 +17,7 @@ package org.springframework.data.neo4j.core.mapping;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -243,6 +244,20 @@ public abstract class PropertyFilter {
 			}
 			return new RelaxedPropertyPath(
 					getSegment().equals(this.dotPath) ? lastSegment : getSegment() + "." + lastSegment, this.type);
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (o == null || this.getClass() != o.getClass()) {
+				return false;
+			}
+			RelaxedPropertyPath that = (RelaxedPropertyPath) o;
+			return Objects.equals(this.dotPath, that.dotPath) && Objects.equals(this.type, that.type);
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(this.dotPath, this.type);
 		}
 
 	}

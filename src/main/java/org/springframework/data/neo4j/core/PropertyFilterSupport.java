@@ -51,6 +51,8 @@ import org.springframework.data.util.TypeInformation;
 @API(status = API.Status.INTERNAL, since = "6.1.3")
 public final class PropertyFilterSupport {
 
+	private static final AggregateLimits aggregateLimits = new AggregateLimits();
+
 	private PropertyFilterSupport() {
 	}
 
@@ -95,20 +97,27 @@ public final class PropertyFilterSupport {
 
 	public static Collection<PropertyFilter.ProjectedPath> getInputPropertiesForAggregateLimit(Class<?> domainType,
 			Neo4jMappingContext mappingContext) {
-		if (containsAggregateLimit(domainType, mappingContext)) {
-			Collection<PropertyFilter.ProjectedPath> listForAggregate = createListForAggregate(domainType,
-					mappingContext);
-			return listForAggregate;
+		if (!containsAggregateLimit(domainType, mappingContext)) {
+			return Collections.emptySet();
 		}
-		return Collections.emptySet();
+		Collection<PropertyFilter.ProjectedPath> listForAggregate = createListForAggregate(domainType, mappingContext);
+		return listForAggregate;
 	}
 
-	public static Predicate<PropertyFilter.RelaxedPropertyPath> ding(Class<?> domainType, Neo4jMappingContext mappingContext) {
-		return (rpp) -> createRelaxedPropertyPathFilter(domainType, mappingContext).contains(rpp);
+	public static Predicate<PropertyFilter.RelaxedPropertyPath> createRelaxedPropertyPathFilter(Class<?> domainType,
+			Neo4jMappingContext mappingContext) {
+		if (!containsAggregateLimit(domainType, mappingContext)) {
+			return PropertyFilter.NO_FILTER;
+		}
+		Collection<PropertyFilter.RelaxedPropertyPath> relaxedPropertyPathFilter = createRelaxedPropertyPathFilter(
+				domainType, mappingContext, new HashSet<RelationshipDescription>());
+		return (rpp) -> {
+			return relaxedPropertyPathFilter.contains(rpp);
+		};
 	}
 
 	private static Collection<PropertyFilter.RelaxedPropertyPath> createRelaxedPropertyPathFilter(Class<?> domainType,
-																								  Neo4jMappingContext neo4jMappingContext) {
+			Neo4jMappingContext neo4jMappingContext, Set<RelationshipDescription> processedRelationships) {
 		var relaxedPropertyPath = PropertyFilter.RelaxedPropertyPath.withRootType(domainType);
 		var relaxedPropertyPaths = new ArrayList<PropertyFilter.RelaxedPropertyPath>();
 		relaxedPropertyPaths.add(relaxedPropertyPath);
@@ -118,30 +127,43 @@ public final class PropertyFilterSupport {
 		});
 		for (RelationshipDescription relationshipDescription : domainEntity.getRelationshipsInHierarchy(any -> true)) {
 			var target = relationshipDescription.getTarget();
-				relaxedPropertyPaths.add(relaxedPropertyPath.append(relationshipDescription.getFieldName()));
+			PropertyFilter.RelaxedPropertyPath relationshipPath = relaxedPropertyPath
+				.append(relationshipDescription.getFieldName());
+			relaxedPropertyPaths.add(relationshipPath);
+			processedRelationships.add(relationshipDescription);
+			createRelaxedPropertyPathFilter(domainType, target, relationshipPath, relaxedPropertyPaths,
+					processedRelationships);
 		}
 		return relaxedPropertyPaths;
 	}
 
 	private static Collection<PropertyFilter.RelaxedPropertyPath> createRelaxedPropertyPathFilter(Class<?> domainType,
-				  NodeDescription<?> nodeDescription, PropertyFilter.RelaxedPropertyPath relaxedPropertyPath, Collection<PropertyFilter.RelaxedPropertyPath> relaxedPropertyPaths) {
-		var filteredProperties = new ArrayList<PropertyFilter.ProjectedPath>();
+			NodeDescription<?> nodeDescription, PropertyFilter.RelaxedPropertyPath relaxedPropertyPath,
+			Collection<PropertyFilter.RelaxedPropertyPath> relaxedPropertyPaths,
+			Set<RelationshipDescription> processedRelationships) {
 		// always add the related entity itself
 		relaxedPropertyPaths.add(relaxedPropertyPath);
 		if (nodeDescription.hasAggregateBoundaries(domainType)) {
 			relaxedPropertyPaths.add(relaxedPropertyPath
-					.append(((Neo4jPersistentEntity<?>) nodeDescription).getRequiredIdProperty().getFieldName()));
+				.append(((Neo4jPersistentEntity<?>) nodeDescription).getRequiredIdProperty().getFieldName()));
 
 			return relaxedPropertyPaths;
 		}
 		nodeDescription.getGraphProperties().stream().forEach(property -> {
-			filteredProperties
-				.add(new PropertyFilter.ProjectedPath(relaxedPropertyPath.append(property.getFieldName()), false));
+			relaxedPropertyPaths.add(relaxedPropertyPath.append(property.getFieldName()));
 		});
 		for (RelationshipDescription relationshipDescription : nodeDescription
 			.getRelationshipsInHierarchy(any -> true)) {
+			if (processedRelationships.contains(relationshipDescription)) {
+				continue;
+			}
 			var target = relationshipDescription.getTarget();
-			relaxedPropertyPaths.add(relaxedPropertyPath.append(relationshipDescription.getFieldName()));
+			PropertyFilter.RelaxedPropertyPath relationshipPath = relaxedPropertyPath
+				.append(relationshipDescription.getFieldName());
+			relaxedPropertyPaths.add(relationshipPath);
+			processedRelationships.add(relationshipDescription);
+			createRelaxedPropertyPathFilter(domainType, target, relationshipPath, relaxedPropertyPaths,
+					processedRelationships);
 		}
 		return relaxedPropertyPaths;
 	}
@@ -189,33 +211,40 @@ public final class PropertyFilterSupport {
 	}
 
 	private static boolean containsAggregateLimit(Class<?> domainType, Neo4jMappingContext neo4jMappingContext) {
-		var scannedConnections = new HashSet<RelationshipDescription>();
+		var processedRelationships = new HashSet<RelationshipDescription>();
 		Neo4jPersistentEntity<?> domainEntity = neo4jMappingContext.getRequiredPersistentEntity(domainType);
+		if (aggregateLimits.hasEntry(domainEntity, domainType)) {
+			return aggregateLimits.getCachedStatus(domainEntity, domainType);
+		}
 		for (RelationshipDescription relationshipDescription : domainEntity.getRelationshipsInHierarchy(any -> true)) {
 			var target = relationshipDescription.getTarget();
 			if (target.hasAggregateBoundaries(domainType)) {
+				aggregateLimits.add(domainEntity, domainType, true);
 				return true;
 			}
-			scannedConnections.add(relationshipDescription);
-			return containsAggregateLimit(domainType, target, scannedConnections);
+			processedRelationships.add(relationshipDescription);
+			boolean containsAggregateLimit = containsAggregateLimit(domainType, target, processedRelationships);
+			aggregateLimits.add(domainEntity, domainType, containsAggregateLimit);
+			return containsAggregateLimit;
 		}
+		aggregateLimits.add(domainEntity, domainType, false);
 		return false;
 	}
 
 	private static boolean containsAggregateLimit(Class<?> domainType, NodeDescription<?> nodeDescription,
-			Set<RelationshipDescription> scannedConnections) {
+			Set<RelationshipDescription> processedRelationships) {
 		for (RelationshipDescription relationshipDescription : nodeDescription
 			.getRelationshipsInHierarchy(any -> true)) {
 			var target = relationshipDescription.getTarget();
 			Class<?> underlyingClass = nodeDescription.getUnderlyingClass();
-			if (scannedConnections.contains(relationshipDescription)) {
+			if (processedRelationships.contains(relationshipDescription)) {
 				continue;
 			}
 			if (target.hasAggregateBoundaries(domainType)) {
 				return true;
 			}
-			scannedConnections.add(relationshipDescription);
-			return containsAggregateLimit(domainType, target, scannedConnections);
+			processedRelationships.add(relationshipDescription);
+			return containsAggregateLimit(domainType, target, processedRelationships);
 		}
 		return false;
 	}
@@ -390,6 +419,43 @@ public final class PropertyFilterSupport {
 
 		boolean isChildLevel() {
 			return this.path.contains(".");
+		}
+
+	}
+
+	record AggregateLimit(Neo4jPersistentEntity<?> entity, Class<?> domainType, boolean status) {
+
+	}
+
+	private static final class AggregateLimits {
+
+		final Set<AggregateLimit> aggregateLimits = new HashSet<>();
+
+		void add(Neo4jPersistentEntity<?> entity, Class<?> domainType, boolean status) {
+			for (AggregateLimit aggregateLimit : this.aggregateLimits) {
+				if (aggregateLimit.domainType().equals(domainType) && aggregateLimit.entity().equals(entity)) {
+					throw new IllegalStateException("Cannot have the same status again");
+				}
+			}
+			this.aggregateLimits.add(new AggregateLimit(entity, domainType, status));
+		}
+
+		boolean hasEntry(Neo4jPersistentEntity<?> entity, Class<?> domainType) {
+			for (AggregateLimit aggregateLimit : this.aggregateLimits) {
+				if (aggregateLimit.domainType().equals(domainType) && aggregateLimit.entity().equals(entity)) {
+					return true;
+				}
+			}
+			return false;
+		}
+
+		boolean getCachedStatus(Neo4jPersistentEntity<?> entity, Class<?> domainType) {
+			for (AggregateLimit aggregateLimit : this.aggregateLimits) {
+				if (aggregateLimit.domainType().equals(domainType) && aggregateLimit.entity().equals(entity)) {
+					return aggregateLimit.status();
+				}
+			}
+			return false;
 		}
 
 	}

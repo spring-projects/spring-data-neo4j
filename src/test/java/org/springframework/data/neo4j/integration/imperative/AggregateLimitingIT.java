@@ -21,7 +21,6 @@ import java.util.List;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.neo4j.driver.Driver;
 
@@ -97,13 +96,21 @@ public class AggregateLimitingIT {
 	}
 
 	@Test
-	void shouldOnlyPersistUntilLimit(@Autowired AggregateRepository repository) {
+	void shouldOnlyPersistUntilLimit(@Autowired AggregateRepository repository, @Autowired Driver driver,
+			@Autowired BookmarkCapture bookmarkCapture) {
 		var startEntity = repository.findAllBy().get(0);
 		startEntity.getIntermediateEntity().getDifferentAggregateEntity().setName("different");
 		repository.save(startEntity);
 
-		startEntity = repository.findAll().get(0);
-		assertThat(startEntity.getIntermediateEntity().getDifferentAggregateEntity().getName()).isEqualTo("some_name");
+		try (var session = driver.session(bookmarkCapture.createSessionConfig())) {
+			var name = session.executeRead(tx -> tx.run(
+					"MATCH (:StartEntity)-[:CONNECTED]->(:IntermediateEntity)-[:CONNECTED]->(dae:DifferentAggregateEntity) return dae.name as name")
+				.single()
+				.get("name")
+				.asString());
+			bookmarkCapture.seedWith(session.lastBookmarks());
+			assertThat(name).isEqualTo("some_name");
+		}
 	}
 
 	interface StartEntityProjection {

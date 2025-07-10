@@ -147,11 +147,14 @@ public final class QueryFragmentsAndParameters {
 		return new QueryFragmentsAndParameters(entityMetaData, queryFragments, parameters, null);
 	}
 
-	public static QueryFragmentsAndParameters forFindAll(Neo4jPersistentEntity<?> entityMetaData, Neo4jMappingContext mappingContext) {
+	public static QueryFragmentsAndParameters forFindAll(Neo4jPersistentEntity<?> entityMetaData,
+			Neo4jMappingContext mappingContext) {
 		QueryFragments queryFragments = new QueryFragments();
 		queryFragments.addMatchOn(cypherGenerator.createRootNode(entityMetaData));
 		queryFragments.setCondition(Cypher.noCondition());
-		queryFragments.setReturnExpressions(cypherGenerator.createReturnStatementForMatch(entityMetaData, PropertyFilterSupport.ding(entityMetaData.getUnderlyingClass(), mappingContext)));
+		queryFragments
+			.setReturnExpressions(cypherGenerator.createReturnStatementForMatch(entityMetaData, PropertyFilterSupport
+				.createRelaxedPropertyPathFilter(entityMetaData.getUnderlyingClass(), mappingContext)));
 		return new QueryFragmentsAndParameters(entityMetaData, queryFragments, Map.of(), null);
 	}
 
