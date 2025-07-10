@@ -40,6 +40,7 @@ import org.springframework.data.domain.OffsetScrollPosition;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.ScrollPosition;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.neo4j.core.PropertyFilterSupport;
 import org.springframework.data.neo4j.core.mapping.Constants;
 import org.springframework.data.neo4j.core.mapping.CypherGenerator;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
@@ -146,11 +147,11 @@ public final class QueryFragmentsAndParameters {
 		return new QueryFragmentsAndParameters(entityMetaData, queryFragments, parameters, null);
 	}
 
-	public static QueryFragmentsAndParameters forFindAll(Neo4jPersistentEntity<?> entityMetaData) {
+	public static QueryFragmentsAndParameters forFindAll(Neo4jPersistentEntity<?> entityMetaData, Neo4jMappingContext mappingContext) {
 		QueryFragments queryFragments = new QueryFragments();
 		queryFragments.addMatchOn(cypherGenerator.createRootNode(entityMetaData));
 		queryFragments.setCondition(Cypher.noCondition());
-		queryFragments.setReturnExpressions(cypherGenerator.createReturnStatementForMatch(entityMetaData));
+		queryFragments.setReturnExpressions(cypherGenerator.createReturnStatementForMatch(entityMetaData, PropertyFilterSupport.ding(entityMetaData.getUnderlyingClass(), mappingContext)));
 		return new QueryFragmentsAndParameters(entityMetaData, queryFragments, Map.of(), null);
 	}
 
