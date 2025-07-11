@@ -50,13 +50,20 @@ public class AggregateLimitingIT {
 
 	protected static Neo4jExtension.Neo4jConnectionSupport neo4jConnectionSupport;
 
+	private String startEntityId;
+
 	@BeforeEach
 	void setup(@Autowired Driver driver, @Autowired BookmarkCapture bookmarkCapture) {
 		try (var session = driver.session(bookmarkCapture.createSessionConfig())) {
 			session.run("MATCH (n) detach delete n").consume();
-			session.run(
-					"CREATE (se:StartEntity)-[:CONNECTED]->(ie:IntermediateEntity)-[:CONNECTED]->(dae:DifferentAggregateEntity{name:'some_name'})")
-				.consume();
+			this.startEntityId = session
+				.run("""
+						CREATE (se:StartEntity{name:'start'})-[:CONNECTED]->(ie:IntermediateEntity)-[:CONNECTED]->(dae:DifferentAggregateEntity{name:'some_name'})
+						RETURN elementId(se) as id;
+						""")
+				.single()
+				.get("id")
+				.asString();
 			bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 	}
@@ -70,7 +77,61 @@ public class AggregateLimitingIT {
 	}
 
 	@Test
-	void shouldOnlyReportIdForDifferentAggregateEntityWithPartTree(@Autowired AggregateRepository repository) {
+	void shouldOnlyReportIdForDifferentAggregateEntityWithGenericFindAll(@Autowired AggregateRepository repository) {
+		var startEntity = repository.findAll().get(0);
+
+		assertThat(startEntity).isNotNull();
+		assertThat(startEntity.getId()).isNotNull();
+		assertThat(startEntity.getIntermediateEntity()).isNotNull();
+		assertThat(startEntity.getIntermediateEntity().getId()).isNotNull();
+		assertThat(startEntity.getIntermediateEntity().getDifferentAggregateEntity()).isNotNull();
+		assertThat(startEntity.getIntermediateEntity().getDifferentAggregateEntity().getId()).isNotNull();
+		assertThat(startEntity.getIntermediateEntity().getDifferentAggregateEntity().getName()).isNull();
+	}
+
+	@Test
+	void shouldOnlyReportIdForDifferentAggregateEntityWithGenericFindAllById(
+			@Autowired AggregateRepository repository) {
+		var startEntity = repository.findAllById(List.of(this.startEntityId)).get(0);
+
+		assertThat(startEntity).isNotNull();
+		assertThat(startEntity.getId()).isNotNull();
+		assertThat(startEntity.getIntermediateEntity()).isNotNull();
+		assertThat(startEntity.getIntermediateEntity().getId()).isNotNull();
+		assertThat(startEntity.getIntermediateEntity().getDifferentAggregateEntity()).isNotNull();
+		assertThat(startEntity.getIntermediateEntity().getDifferentAggregateEntity().getId()).isNotNull();
+		assertThat(startEntity.getIntermediateEntity().getDifferentAggregateEntity().getName()).isNull();
+	}
+
+	@Test
+	void shouldOnlyReportIdForDifferentAggregateEntityWithGenericFindById(@Autowired AggregateRepository repository) {
+		var startEntity = repository.findById(this.startEntityId).get();
+
+		assertThat(startEntity).isNotNull();
+		assertThat(startEntity.getId()).isNotNull();
+		assertThat(startEntity.getIntermediateEntity()).isNotNull();
+		assertThat(startEntity.getIntermediateEntity().getId()).isNotNull();
+		assertThat(startEntity.getIntermediateEntity().getDifferentAggregateEntity()).isNotNull();
+		assertThat(startEntity.getIntermediateEntity().getDifferentAggregateEntity().getId()).isNotNull();
+		assertThat(startEntity.getIntermediateEntity().getDifferentAggregateEntity().getName()).isNull();
+	}
+
+	@Test
+	void shouldOnlyReportIdForDifferentAggregateEntityWithPartTreeFindAll(@Autowired AggregateRepository repository) {
+		var startEntity = repository.findAllByName("start").get(0);
+
+		assertThat(startEntity).isNotNull();
+		assertThat(startEntity.getId()).isNotNull();
+		assertThat(startEntity.getIntermediateEntity()).isNotNull();
+		assertThat(startEntity.getIntermediateEntity().getId()).isNotNull();
+		assertThat(startEntity.getIntermediateEntity().getDifferentAggregateEntity()).isNotNull();
+		assertThat(startEntity.getIntermediateEntity().getDifferentAggregateEntity().getId()).isNotNull();
+		assertThat(startEntity.getIntermediateEntity().getDifferentAggregateEntity().getName()).isNull();
+	}
+
+	@Test
+	void shouldOnlyReportIdForDifferentAggregateEntityWithEmptyParameterPartTreeFindAll(
+			@Autowired AggregateRepository repository) {
 		var startEntity = repository.findAllBy().get(0);
 
 		assertThat(startEntity).isNotNull();
@@ -83,8 +144,22 @@ public class AggregateLimitingIT {
 	}
 
 	@Test
-	void shouldOnlyReportIdForDifferentAggregateEntityWithGenericFindAll(@Autowired AggregateRepository repository) {
-		var startEntity = repository.findAll().get(0);
+	void shouldOnlyReportIdForDifferentAggregateEntityWithPartTreeFindOne(@Autowired AggregateRepository repository) {
+		var startEntity = repository.findByName("start");
+
+		assertThat(startEntity).isNotNull();
+		assertThat(startEntity.getId()).isNotNull();
+		assertThat(startEntity.getIntermediateEntity()).isNotNull();
+		assertThat(startEntity.getIntermediateEntity().getId()).isNotNull();
+		assertThat(startEntity.getIntermediateEntity().getDifferentAggregateEntity()).isNotNull();
+		assertThat(startEntity.getIntermediateEntity().getDifferentAggregateEntity().getId()).isNotNull();
+		assertThat(startEntity.getIntermediateEntity().getDifferentAggregateEntity().getName()).isNull();
+	}
+
+	@Test
+	void shouldOnlyReportIdForDifferentAggregateEntityWithEmptyParameterPartTreeFindOne(
+			@Autowired AggregateRepository repository) {
+		var startEntity = repository.findBy();
 
 		assertThat(startEntity).isNotNull();
 		assertThat(startEntity.getId()).isNotNull();
@@ -113,27 +188,15 @@ public class AggregateLimitingIT {
 		}
 	}
 
-	interface StartEntityProjection {
-
-		IntermediateEntityProjection getIntermediateEntity();
-
-	}
-
-	interface IntermediateEntityProjection {
-
-		DifferentAggregateEntityProjection getDifferentAggregateEntity();
-
-	}
-
-	interface DifferentAggregateEntityProjection {
-
-		String getId();
-
-	}
-
 	interface AggregateRepository extends Neo4jRepository<StartEntity, String> {
 
 		List<StartEntity> findAllBy();
+
+		List<StartEntity> findAllByName(String name);
+
+		StartEntity findBy();
+
+		StartEntity findByName(String name);
 
 	}
 

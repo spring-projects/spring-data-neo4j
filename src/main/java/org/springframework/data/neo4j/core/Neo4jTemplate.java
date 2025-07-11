@@ -367,8 +367,10 @@ public final class Neo4jTemplate
 			Neo4jPersistentEntity<?> entityMetaData = this.neo4jMappingContext.getRequiredPersistentEntity(domainType);
 
 			return createExecutableQuery(domainType, null,
-					QueryFragmentsAndParameters.forFindById(entityMetaData, TemplateSupport
-						.convertIdValues(this.neo4jMappingContext, entityMetaData.getRequiredIdProperty(), id)),
+					QueryFragmentsAndParameters.forFindById(entityMetaData,
+							TemplateSupport.convertIdValues(this.neo4jMappingContext,
+									entityMetaData.getRequiredIdProperty(), id),
+							this.neo4jMappingContext),
 					true)
 				.getSingleResult();
 		});
@@ -380,8 +382,10 @@ public final class Neo4jTemplate
 			Neo4jPersistentEntity<?> entityMetaData = this.neo4jMappingContext.getRequiredPersistentEntity(domainType);
 
 			return createExecutableQuery(domainType, null,
-					QueryFragmentsAndParameters.forFindByAllId(entityMetaData, TemplateSupport
-						.convertIdValues(this.neo4jMappingContext, entityMetaData.getRequiredIdProperty(), ids)),
+					QueryFragmentsAndParameters.forFindByAllId(entityMetaData,
+							TemplateSupport.convertIdValues(this.neo4jMappingContext,
+									entityMetaData.getRequiredIdProperty(), ids),
+							this.neo4jMappingContext),
 					true)
 				.getResults();
 		});
@@ -1191,9 +1195,11 @@ public final class Neo4jTemplate
 	private Entity loadRelatedNode(NodeDescription<?> targetNodeDescription, @Nullable Object relatedInternalId) {
 
 		var targetPersistentEntity = (Neo4jPersistentEntity<?>) targetNodeDescription;
-		var queryFragmentsAndParameters = QueryFragmentsAndParameters.forFindById(targetPersistentEntity,
-				TemplateSupport.convertIdValues(this.neo4jMappingContext,
-						targetPersistentEntity.getRequiredIdProperty(), relatedInternalId));
+		var queryFragmentsAndParameters = QueryFragmentsAndParameters
+			.forFindById(targetPersistentEntity,
+					TemplateSupport.convertIdValues(this.neo4jMappingContext,
+							targetPersistentEntity.getRequiredIdProperty(), relatedInternalId),
+					this.neo4jMappingContext);
 		var nodeName = Constants.NAME_OF_TYPED_ROOT_NODE.apply(targetNodeDescription).getValue();
 
 		return this.neo4jClient

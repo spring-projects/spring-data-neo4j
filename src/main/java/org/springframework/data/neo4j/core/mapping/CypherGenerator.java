@@ -743,6 +743,12 @@ public enum CypherGenerator {
 		return Collections.singleton(Cypher.count(Constants.NAME_OF_TYPED_ROOT_NODE.apply(nodeDescription)));
 	}
 
+	/**
+	 * Used for create statements from the (Reactive)Neo4jTemplate. This shouldn't be used
+	 * for any find operations.
+	 * @param nodeDescription persistentEntity
+	 * @return return expression for entity
+	 */
 	public Collection<Expression> createReturnStatementForMatch(Neo4jPersistentEntity<?> nodeDescription) {
 		return createReturnStatementForMatch(nodeDescription, PropertyFilter.NO_FILTER);
 	}

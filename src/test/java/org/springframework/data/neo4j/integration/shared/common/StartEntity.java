@@ -27,6 +27,8 @@ public class StartEntity {
 	@GeneratedValue
 	public String id;
 
+	private String name;
+
 	@Relationship("CONNECTED")
 	IntermediateEntity intermediateEntity;
 
@@ -36,6 +38,14 @@ public class StartEntity {
 
 	public String getId() {
 		return this.id;
+	}
+
+	public String getName() {
+		return this.name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
 	}
 
 }

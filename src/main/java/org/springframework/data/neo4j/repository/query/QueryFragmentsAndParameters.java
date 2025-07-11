@@ -96,11 +96,14 @@ public final class QueryFragmentsAndParameters {
 	/*
 	 * Convenience methods that are used by the (Reactive)Neo4jTemplate
 	 */
-	public static QueryFragmentsAndParameters forFindById(Neo4jPersistentEntity<?> entityMetaData, Object idValues) {
+	public static QueryFragmentsAndParameters forFindById(Neo4jPersistentEntity<?> entityMetaData, Object idValues,
+			Neo4jMappingContext mappingContext) {
 		Map<String, Object> parameters = Collections.singletonMap(Constants.NAME_OF_ID, idValues);
 
 		QueryFragments queryFragments = forFindOrExistsById(entityMetaData);
-		queryFragments.setReturnExpressions(cypherGenerator.createReturnStatementForMatch(entityMetaData));
+		queryFragments
+			.setReturnExpressions(cypherGenerator.createReturnStatementForMatch(entityMetaData, PropertyFilterSupport
+				.createRelaxedPropertyPathFilter(entityMetaData.getUnderlyingClass(), mappingContext)));
 		return new QueryFragmentsAndParameters(entityMetaData, queryFragments, parameters, null);
 	}
 
@@ -122,7 +125,8 @@ public final class QueryFragmentsAndParameters {
 		return queryFragments;
 	}
 
-	public static QueryFragmentsAndParameters forFindByAllId(Neo4jPersistentEntity<?> entityMetaData, Object idValues) {
+	public static QueryFragmentsAndParameters forFindByAllId(Neo4jPersistentEntity<?> entityMetaData, Object idValues,
+			Neo4jMappingContext mappingContext) {
 		Map<String, Object> parameters = Collections.singletonMap(Constants.NAME_OF_IDS, idValues);
 
 		Node container = cypherGenerator.createRootNode(entityMetaData);
@@ -143,7 +147,9 @@ public final class QueryFragmentsAndParameters {
 		QueryFragments queryFragments = new QueryFragments();
 		queryFragments.addMatchOn(container);
 		queryFragments.setCondition(condition);
-		queryFragments.setReturnExpressions(cypherGenerator.createReturnStatementForMatch(entityMetaData));
+		queryFragments
+			.setReturnExpressions(cypherGenerator.createReturnStatementForMatch(entityMetaData, PropertyFilterSupport
+				.createRelaxedPropertyPathFilter(entityMetaData.getUnderlyingClass(), mappingContext)));
 		return new QueryFragmentsAndParameters(entityMetaData, queryFragments, parameters, null);
 	}
 
