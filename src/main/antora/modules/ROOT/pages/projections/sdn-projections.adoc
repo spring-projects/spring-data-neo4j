@@ -28,6 +28,9 @@ additional properties - via accessors or fields - Spring Data Neo4j looks in the
 Properties must match exactly by name and can be of simple types (as defined in `org.springframework.data.neo4j.core.convert.Neo4jSimpleTypes`)
 or of known persistent entities. Collections of those are supported, but maps are not.
 
+There is also an additional mechanism built into Spring Data Neo4j which allows defining loading and persisting limits on the entity definition level.
+Read more about this in the <<projections.sdn.aggregate-limit>> section.
+
 [[projections.sdn.multi-level]]
 == Multi-level projections
 
@@ -212,3 +215,10 @@ The key to a dynamic projection is to specify the desired projection type as the
 in a repository like this: `<T> Collection<T> findByName(String name, Class<T> type)`. This is a declaration that
 could be added to the `TestRepository` above and allow for different projections retrieved by the same method, without
 to repeat a possible `@Query` annotation on several methods.
+
+[[projections.sdn.aggregate-limit]]
+== Aggregate limits
+
+Reflecting multiple levels of relationships by introducing multiple projections can be cumbersome.
+To simplify this already on the entity level, it's possible to add an additional parameter `limitAggregateFrom` and supply 1..n classes.
+If this entity gets loaded via a relationship chain from one of the given classes, it will only report the field annotated with `@Id`.

@@ -51,6 +51,7 @@ import org.springframework.data.util.TypeInformation;
 @API(status = API.Status.INTERNAL, since = "6.1.3")
 public final class PropertyFilterSupport {
 
+	// A cache to look up if there are aggregate limits between two entities.
 	private static final AggregateLimits aggregateLimits = new AggregateLimits();
 
 	private PropertyFilterSupport() {

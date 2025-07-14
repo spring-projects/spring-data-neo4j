@@ -72,7 +72,7 @@ public final class AggregateEntitiesWithInternalIds {
 
 	}
 
-	@Node(stopCascadingFrom = StartEntityInternalId.class)
+	@Node(limitAggregateFrom = StartEntityInternalId.class)
 	public static class DifferentAggregateEntityInternalId {
 
 		@Id

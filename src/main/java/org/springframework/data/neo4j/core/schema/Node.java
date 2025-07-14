@@ -62,6 +62,6 @@ public @interface Node {
 	 */
 	String primaryLabel() default "";
 
-	Class<?>[] stopCascadingFrom() default {};
+	Class<?>[] limitAggregateFrom() default {};
 
 }
