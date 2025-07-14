@@ -357,6 +357,12 @@ public class AggregateLimitingIT {
 		}
 	}
 
+	@Test
+	void shouldAllowWiderProjectionThanDomain(@Autowired AggregateRepositoryWithGeneratedIdId repository) {
+		var startEntity = repository.findProjectionBy();
+		assertThat(startEntity.getIntermediateEntity().getDifferentAggregateEntity().getName()).isEqualTo("some_name");
+	}
+
 	interface AggregateRepositoryWithInternalId extends Neo4jRepository<StartEntityInternalId, String> {
 
 		List<StartEntityInternalId> findAllBy();
@@ -378,6 +384,28 @@ public class AggregateLimitingIT {
 		StartEntity findBy();
 
 		StartEntity findByName(String name);
+
+		StartEntityProjection findProjectionBy();
+
+	}
+
+	interface StartEntityProjection {
+
+		String getName();
+
+		IntermediateEntityProjection getIntermediateEntity();
+
+	}
+
+	interface IntermediateEntityProjection {
+
+		DifferentAggregateEntityProjection getDifferentAggregateEntity();
+
+	}
+
+	interface DifferentAggregateEntityProjection {
+
+		String getName();
 
 	}
 

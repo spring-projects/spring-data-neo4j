@@ -67,7 +67,7 @@ public final class PropertyFilterSupport {
 
 		boolean isProjecting = returnedType.isProjecting();
 		boolean isClosedProjection = factory.getProjectionInformation(potentiallyProjectedType).isClosed();
-		if (containsAggregateLimit(domainType, mappingContext)) {
+		if (!isProjecting && containsAggregateLimit(domainType, mappingContext)) {
 			Collection<PropertyFilter.ProjectedPath> listForAggregate = createListForAggregate(domainType,
 					mappingContext);
 			return listForAggregate;
