@@ -641,7 +641,10 @@ public final class Neo4jTemplate
 			String internalId = Objects.requireNonNull(idToInternalIdMapping.get(id));
 			stateMachine.registerInitialObject(t.originalInstance, internalId);
 			return this.<T>processRelations(entityMetaData, propertyAccessor, t.wasNew, stateMachine,
-					TemplateSupport.computeIncludePropertyPredicate(pps, entityMetaData));
+					TemplateSupport.computeIncludePropertyPredicate(
+							((includedProperties != null && !includedProperties.isEmpty()) || includeProperty != null)
+									? pps : includedPropertiesByClass.get(t.modifiedInstance.getClass()),
+							entityMetaData));
 		}).collect(Collectors.toList());
 	}
 

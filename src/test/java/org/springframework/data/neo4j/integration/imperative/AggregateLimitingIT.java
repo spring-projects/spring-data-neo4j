@@ -18,6 +18,8 @@ package org.springframework.data.neo4j.integration.imperative;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -30,7 +32,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.neo4j.core.DatabaseSelectionProvider;
 import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
 import org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager;
-import org.springframework.data.neo4j.integration.shared.common.StartEntity;
+import org.springframework.data.neo4j.integration.shared.common.AggregateEntitiesWithGeneratedIds.StartEntity;
+import org.springframework.data.neo4j.integration.shared.common.AggregateEntitiesWithInternalIds.StartEntityInternalId;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.data.neo4j.test.BookmarkCapture;
@@ -50,20 +53,30 @@ public class AggregateLimitingIT {
 
 	protected static Neo4jExtension.Neo4jConnectionSupport neo4jConnectionSupport;
 
-	private String startEntityId;
+	private final String startEntityUuid = "1476db91-10e2-4202-a63f-524be2dcb7fe";
+
+	private String startEntityInternalId;
 
 	@BeforeEach
 	void setup(@Autowired Driver driver, @Autowired BookmarkCapture bookmarkCapture) {
 		try (var session = driver.session(bookmarkCapture.createSessionConfig())) {
 			session.run("MATCH (n) detach delete n").consume();
-			this.startEntityId = session
+			this.startEntityInternalId = session
 				.run("""
-						CREATE (se:StartEntity{name:'start'})-[:CONNECTED]->(ie:IntermediateEntity)-[:CONNECTED]->(dae:DifferentAggregateEntity{name:'some_name'})
+						CREATE (se:StartEntityInternalId{name:'start'})-[:CONNECTED]->(ie:IntermediateEntityInternalId)-[:CONNECTED]->(dae:DifferentAggregateEntityInternalId{name:'some_name'})
 						RETURN elementId(se) as id;
 						""")
 				.single()
 				.get("id")
 				.asString();
+			session
+				.run("""
+						CREATE (se:StartEntity{name:'start'})-[:CONNECTED]->(ie:IntermediateEntity)-[:CONNECTED]->(dae:DifferentAggregateEntity{name:'some_name'})
+						SET se.id = $uuid1, ie.id = $uuid2, dae.id = $uuid3;
+						""",
+						Map.of("uuid1", this.startEntityInternalId, "uuid2", UUID.randomUUID().toString(), "uuid3",
+								UUID.randomUUID().toString()))
+				.consume();
 			bookmarkCapture.seedWith(session.lastBookmarks());
 		}
 	}
@@ -77,7 +90,8 @@ public class AggregateLimitingIT {
 	}
 
 	@Test
-	void shouldOnlyReportIdForDifferentAggregateEntityWithGenericFindAll(@Autowired AggregateRepository repository) {
+	void shouldOnlyReportIdForDifferentAggregateEntityWithGenericFindAll(
+			@Autowired AggregateRepositoryWithInternalId repository) {
 		var startEntity = repository.findAll().get(0);
 
 		assertThat(startEntity).isNotNull();
@@ -91,8 +105,8 @@ public class AggregateLimitingIT {
 
 	@Test
 	void shouldOnlyReportIdForDifferentAggregateEntityWithGenericFindAllById(
-			@Autowired AggregateRepository repository) {
-		var startEntity = repository.findAllById(List.of(this.startEntityId)).get(0);
+			@Autowired AggregateRepositoryWithInternalId repository) {
+		var startEntity = repository.findAllById(List.of(this.startEntityInternalId)).get(0);
 
 		assertThat(startEntity).isNotNull();
 		assertThat(startEntity.getId()).isNotNull();
@@ -104,8 +118,9 @@ public class AggregateLimitingIT {
 	}
 
 	@Test
-	void shouldOnlyReportIdForDifferentAggregateEntityWithGenericFindById(@Autowired AggregateRepository repository) {
-		var startEntity = repository.findById(this.startEntityId).get();
+	void shouldOnlyReportIdForDifferentAggregateEntityWithGenericFindById(
+			@Autowired AggregateRepositoryWithInternalId repository) {
+		var startEntity = repository.findById(this.startEntityInternalId).get();
 
 		assertThat(startEntity).isNotNull();
 		assertThat(startEntity.getId()).isNotNull();
@@ -117,7 +132,8 @@ public class AggregateLimitingIT {
 	}
 
 	@Test
-	void shouldOnlyReportIdForDifferentAggregateEntityWithPartTreeFindAll(@Autowired AggregateRepository repository) {
+	void shouldOnlyReportIdForDifferentAggregateEntityWithPartTreeFindAll(
+			@Autowired AggregateRepositoryWithInternalId repository) {
 		var startEntity = repository.findAllByName("start").get(0);
 
 		assertThat(startEntity).isNotNull();
@@ -131,7 +147,7 @@ public class AggregateLimitingIT {
 
 	@Test
 	void shouldOnlyReportIdForDifferentAggregateEntityWithEmptyParameterPartTreeFindAll(
-			@Autowired AggregateRepository repository) {
+			@Autowired AggregateRepositoryWithInternalId repository) {
 		var startEntity = repository.findAllBy().get(0);
 
 		assertThat(startEntity).isNotNull();
@@ -144,7 +160,8 @@ public class AggregateLimitingIT {
 	}
 
 	@Test
-	void shouldOnlyReportIdForDifferentAggregateEntityWithPartTreeFindOne(@Autowired AggregateRepository repository) {
+	void shouldOnlyReportIdForDifferentAggregateEntityWithPartTreeFindOne(
+			@Autowired AggregateRepositoryWithInternalId repository) {
 		var startEntity = repository.findByName("start");
 
 		assertThat(startEntity).isNotNull();
@@ -158,7 +175,7 @@ public class AggregateLimitingIT {
 
 	@Test
 	void shouldOnlyReportIdForDifferentAggregateEntityWithEmptyParameterPartTreeFindOne(
-			@Autowired AggregateRepository repository) {
+			@Autowired AggregateRepositoryWithInternalId repository) {
 		var startEntity = repository.findBy();
 
 		assertThat(startEntity).isNotNull();
@@ -171,8 +188,142 @@ public class AggregateLimitingIT {
 	}
 
 	@Test
-	void shouldOnlyPersistUntilLimit(@Autowired AggregateRepository repository, @Autowired Driver driver,
-			@Autowired BookmarkCapture bookmarkCapture) {
+	void shouldOnlyPersistUntilLimitWithSave(@Autowired AggregateRepositoryWithInternalId repository,
+			@Autowired Driver driver, @Autowired BookmarkCapture bookmarkCapture) {
+		var startEntity = repository.findAllBy().get(0);
+		startEntity.getIntermediateEntity().getDifferentAggregateEntity().setName("different");
+		repository.save(startEntity);
+
+		try (var session = driver.session(bookmarkCapture.createSessionConfig())) {
+			var name = session.executeRead(tx -> tx.run(
+					"MATCH (:StartEntityInternalId)-[:CONNECTED]->(:IntermediateEntityInternalId)-[:CONNECTED]->(dae:DifferentAggregateEntityInternalId) return dae.name as name")
+				.single()
+				.get("name")
+				.asString());
+			bookmarkCapture.seedWith(session.lastBookmarks());
+			assertThat(name).isEqualTo("some_name");
+		}
+	}
+
+	@Test
+	void shouldOnlyPersistUntilLimitWithSaveAll(@Autowired AggregateRepositoryWithInternalId repository,
+			@Autowired Driver driver, @Autowired BookmarkCapture bookmarkCapture) {
+		var startEntity = repository.findAllBy().get(0);
+		startEntity.getIntermediateEntity().getDifferentAggregateEntity().setName("different");
+		repository.saveAll(List.of(startEntity));
+
+		try (var session = driver.session(bookmarkCapture.createSessionConfig())) {
+			var name = session.executeRead(tx -> tx.run(
+					"MATCH (:StartEntityInternalId)-[:CONNECTED]->(:IntermediateEntityInternalId)-[:CONNECTED]->(dae:DifferentAggregateEntityInternalId) return dae.name as name")
+				.single()
+				.get("name")
+				.asString());
+			bookmarkCapture.seedWith(session.lastBookmarks());
+			assertThat(name).isEqualTo("some_name");
+		}
+	}
+
+	@Test
+	void shouldOnlyReportIdForDifferentAggregateEntityWithGenericFindAllGeneratedId(
+			@Autowired AggregateRepositoryWithGeneratedIdId repository) {
+		var startEntity = repository.findAll().get(0);
+
+		assertThat(startEntity).isNotNull();
+		assertThat(startEntity.getId()).isNotNull();
+		assertThat(startEntity.getIntermediateEntity()).isNotNull();
+		assertThat(startEntity.getIntermediateEntity().getId()).isNotNull();
+		assertThat(startEntity.getIntermediateEntity().getDifferentAggregateEntity()).isNotNull();
+		assertThat(startEntity.getIntermediateEntity().getDifferentAggregateEntity().getId()).isNotNull();
+		assertThat(startEntity.getIntermediateEntity().getDifferentAggregateEntity().getName()).isNull();
+	}
+
+	@Test
+	void shouldOnlyReportIdForDifferentAggregateEntityWithGenericFindAllByIdGeneratedId(
+			@Autowired AggregateRepositoryWithGeneratedIdId repository) {
+		var startEntity = repository.findAllById(List.of(this.startEntityInternalId)).get(0);
+
+		assertThat(startEntity).isNotNull();
+		assertThat(startEntity.getId()).isNotNull();
+		assertThat(startEntity.getIntermediateEntity()).isNotNull();
+		assertThat(startEntity.getIntermediateEntity().getId()).isNotNull();
+		assertThat(startEntity.getIntermediateEntity().getDifferentAggregateEntity()).isNotNull();
+		assertThat(startEntity.getIntermediateEntity().getDifferentAggregateEntity().getId()).isNotNull();
+		assertThat(startEntity.getIntermediateEntity().getDifferentAggregateEntity().getName()).isNull();
+	}
+
+	@Test
+	void shouldOnlyReportIdForDifferentAggregateEntityWithGenericFindByIdGeneratedId(
+			@Autowired AggregateRepositoryWithGeneratedIdId repository) {
+		var startEntity = repository.findById(this.startEntityInternalId).get();
+
+		assertThat(startEntity).isNotNull();
+		assertThat(startEntity.getId()).isNotNull();
+		assertThat(startEntity.getIntermediateEntity()).isNotNull();
+		assertThat(startEntity.getIntermediateEntity().getId()).isNotNull();
+		assertThat(startEntity.getIntermediateEntity().getDifferentAggregateEntity()).isNotNull();
+		assertThat(startEntity.getIntermediateEntity().getDifferentAggregateEntity().getId()).isNotNull();
+		assertThat(startEntity.getIntermediateEntity().getDifferentAggregateEntity().getName()).isNull();
+	}
+
+	@Test
+	void shouldOnlyReportIdForDifferentAggregateEntityWithPartTreeFindAllGeneratedId(
+			@Autowired AggregateRepositoryWithGeneratedIdId repository) {
+		var startEntity = repository.findAllByName("start").get(0);
+
+		assertThat(startEntity).isNotNull();
+		assertThat(startEntity.getId()).isNotNull();
+		assertThat(startEntity.getIntermediateEntity()).isNotNull();
+		assertThat(startEntity.getIntermediateEntity().getId()).isNotNull();
+		assertThat(startEntity.getIntermediateEntity().getDifferentAggregateEntity()).isNotNull();
+		assertThat(startEntity.getIntermediateEntity().getDifferentAggregateEntity().getId()).isNotNull();
+		assertThat(startEntity.getIntermediateEntity().getDifferentAggregateEntity().getName()).isNull();
+	}
+
+	@Test
+	void shouldOnlyReportIdForDifferentAggregateEntityWithEmptyParameterPartTreeFindAllGeneratedId(
+			@Autowired AggregateRepositoryWithGeneratedIdId repository) {
+		var startEntity = repository.findAllBy().get(0);
+
+		assertThat(startEntity).isNotNull();
+		assertThat(startEntity.getId()).isNotNull();
+		assertThat(startEntity.getIntermediateEntity()).isNotNull();
+		assertThat(startEntity.getIntermediateEntity().getId()).isNotNull();
+		assertThat(startEntity.getIntermediateEntity().getDifferentAggregateEntity()).isNotNull();
+		assertThat(startEntity.getIntermediateEntity().getDifferentAggregateEntity().getId()).isNotNull();
+		assertThat(startEntity.getIntermediateEntity().getDifferentAggregateEntity().getName()).isNull();
+	}
+
+	@Test
+	void shouldOnlyReportIdForDifferentAggregateEntityWithPartTreeFindOneGeneratedId(
+			@Autowired AggregateRepositoryWithGeneratedIdId repository) {
+		var startEntity = repository.findByName("start");
+
+		assertThat(startEntity).isNotNull();
+		assertThat(startEntity.getId()).isNotNull();
+		assertThat(startEntity.getIntermediateEntity()).isNotNull();
+		assertThat(startEntity.getIntermediateEntity().getId()).isNotNull();
+		assertThat(startEntity.getIntermediateEntity().getDifferentAggregateEntity()).isNotNull();
+		assertThat(startEntity.getIntermediateEntity().getDifferentAggregateEntity().getId()).isNotNull();
+		assertThat(startEntity.getIntermediateEntity().getDifferentAggregateEntity().getName()).isNull();
+	}
+
+	@Test
+	void shouldOnlyReportIdForDifferentAggregateEntityWithEmptyParameterPartTreeFindOneGeneratedId(
+			@Autowired AggregateRepositoryWithGeneratedIdId repository) {
+		var startEntity = repository.findBy();
+
+		assertThat(startEntity).isNotNull();
+		assertThat(startEntity.getId()).isNotNull();
+		assertThat(startEntity.getIntermediateEntity()).isNotNull();
+		assertThat(startEntity.getIntermediateEntity().getId()).isNotNull();
+		assertThat(startEntity.getIntermediateEntity().getDifferentAggregateEntity()).isNotNull();
+		assertThat(startEntity.getIntermediateEntity().getDifferentAggregateEntity().getId()).isNotNull();
+		assertThat(startEntity.getIntermediateEntity().getDifferentAggregateEntity().getName()).isNull();
+	}
+
+	@Test
+	void shouldOnlyPersistUntilLimitWithSaveGeneratedId(@Autowired AggregateRepositoryWithGeneratedIdId repository,
+			@Autowired Driver driver, @Autowired BookmarkCapture bookmarkCapture) {
 		var startEntity = repository.findAllBy().get(0);
 		startEntity.getIntermediateEntity().getDifferentAggregateEntity().setName("different");
 		repository.save(startEntity);
@@ -188,7 +339,37 @@ public class AggregateLimitingIT {
 		}
 	}
 
-	interface AggregateRepository extends Neo4jRepository<StartEntity, String> {
+	@Test
+	void shouldOnlyPersistUntilLimitWithSaveAllGeneratedId(@Autowired AggregateRepositoryWithGeneratedIdId repository,
+			@Autowired Driver driver, @Autowired BookmarkCapture bookmarkCapture) {
+		var startEntity = repository.findAllBy().get(0);
+		startEntity.getIntermediateEntity().getDifferentAggregateEntity().setName("different");
+		repository.saveAll(List.of(startEntity));
+
+		try (var session = driver.session(bookmarkCapture.createSessionConfig())) {
+			var name = session.executeRead(tx -> tx.run(
+					"MATCH (:StartEntity)-[:CONNECTED]->(:IntermediateEntity)-[:CONNECTED]->(dae:DifferentAggregateEntity) return dae.name as name")
+				.single()
+				.get("name")
+				.asString());
+			bookmarkCapture.seedWith(session.lastBookmarks());
+			assertThat(name).isEqualTo("some_name");
+		}
+	}
+
+	interface AggregateRepositoryWithInternalId extends Neo4jRepository<StartEntityInternalId, String> {
+
+		List<StartEntityInternalId> findAllBy();
+
+		List<StartEntityInternalId> findAllByName(String name);
+
+		StartEntityInternalId findBy();
+
+		StartEntityInternalId findByName(String name);
+
+	}
+
+	interface AggregateRepositoryWithGeneratedIdId extends Neo4jRepository<StartEntity, String> {
 
 		List<StartEntity> findAllBy();
 
