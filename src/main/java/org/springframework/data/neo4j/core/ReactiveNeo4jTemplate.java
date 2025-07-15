@@ -376,8 +376,9 @@ public final class ReactiveNeo4jTemplate
 
 	@Override
 	public <T> Mono<T> save(T instance) {
-
-		return execute(saveImpl(instance, Collections.emptySet(), null));
+		Collection<PropertyFilter.ProjectedPath> pps = PropertyFilterSupport
+			.getInputPropertiesForAggregateLimit(instance.getClass(), this.neo4jMappingContext);
+		return execute(saveImpl(instance, pps, null));
 	}
 
 	@Override
@@ -628,9 +629,12 @@ public final class ReactiveNeo4jTemplate
 
 		Set<Class<?>> types = new HashSet<>();
 		List<T> entities = new ArrayList<>();
+		Map<Class<?>, Collection<PropertyFilter.ProjectedPath>> includedPropertiesByClass = new HashMap<>();
 		instances.forEach(instance -> {
 			entities.add(instance);
 			types.add(instance.getClass());
+			includedPropertiesByClass.put(instance.getClass(), PropertyFilterSupport
+				.getInputPropertiesForAggregateLimit(instance.getClass(), this.neo4jMappingContext));
 		});
 
 		if (entities.isEmpty()) {
@@ -651,7 +655,12 @@ public final class ReactiveNeo4jTemplate
 
 			NestedRelationshipProcessingStateMachine stateMachine = new NestedRelationshipProcessingStateMachine(
 					this.neo4jMappingContext);
-			return Flux.fromIterable(entities).concatMap(e -> this.saveImpl(e, pps, stateMachine));
+
+			return Flux.fromIterable(entities)
+				.concatMap(e -> this.saveImpl(e,
+						((includedProperties != null && !includedProperties.isEmpty()) || includeProperty != null) ? pps
+								: includedPropertiesByClass.get(e.getClass()),
+						stateMachine));
 		}
 
 		@SuppressWarnings("unchecked") // We can safely assume here that we have a
@@ -688,7 +697,13 @@ public final class ReactiveNeo4jTemplate
 				PersistentPropertyAccessor<T> propertyAccessor = entityMetaData.getPropertyAccessor(t.getT3());
 				Neo4jPersistentProperty idProperty = entityMetaData.getRequiredIdProperty();
 				return processRelations(entityMetaData, propertyAccessor, t.getT2(), ctx.get("stateMachine"),
-						ctx.get("knownRelIds"), TemplateSupport.computeIncludePropertyPredicate(pps, entityMetaData));
+						ctx.get("knownRelIds"),
+						TemplateSupport
+							.computeIncludePropertyPredicate(
+									((includedProperties != null && !includedProperties.isEmpty())
+											|| includeProperty != null) ? pps
+													: includedPropertiesByClass.get(t.getT3().getClass()),
+									entityMetaData));
 			}))))
 			.contextWrite(ctx -> ctx
 				.put("stateMachine", new NestedRelationshipProcessingStateMachine(this.neo4jMappingContext, null, null))
