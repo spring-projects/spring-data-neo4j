@@ -49,7 +49,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Gerrit Meier
  */
 @Neo4jIntegrationTest
-public class AggregateLimitingIT {
+class AggregateLimitingIT {
 
 	protected static Neo4jExtension.Neo4jConnectionSupport neo4jConnectionSupport;
 
@@ -93,98 +93,49 @@ public class AggregateLimitingIT {
 	void shouldOnlyReportIdForDifferentAggregateEntityWithGenericFindAll(
 			@Autowired AggregateRepositoryWithInternalId repository) {
 		var startEntity = repository.findAll().get(0);
-
-		assertThat(startEntity).isNotNull();
-		assertThat(startEntity.getId()).isNotNull();
-		assertThat(startEntity.getIntermediateEntity()).isNotNull();
-		assertThat(startEntity.getIntermediateEntity().getId()).isNotNull();
-		assertThat(startEntity.getIntermediateEntity().getDifferentAggregateEntity()).isNotNull();
-		assertThat(startEntity.getIntermediateEntity().getDifferentAggregateEntity().getId()).isNotNull();
-		assertThat(startEntity.getIntermediateEntity().getDifferentAggregateEntity().getName()).isNull();
+		assertThatLimitingWorks(startEntity);
 	}
 
 	@Test
 	void shouldOnlyReportIdForDifferentAggregateEntityWithGenericFindAllById(
 			@Autowired AggregateRepositoryWithInternalId repository) {
 		var startEntity = repository.findAllById(List.of(this.startEntityInternalId)).get(0);
-
-		assertThat(startEntity).isNotNull();
-		assertThat(startEntity.getId()).isNotNull();
-		assertThat(startEntity.getIntermediateEntity()).isNotNull();
-		assertThat(startEntity.getIntermediateEntity().getId()).isNotNull();
-		assertThat(startEntity.getIntermediateEntity().getDifferentAggregateEntity()).isNotNull();
-		assertThat(startEntity.getIntermediateEntity().getDifferentAggregateEntity().getId()).isNotNull();
-		assertThat(startEntity.getIntermediateEntity().getDifferentAggregateEntity().getName()).isNull();
+		assertThatLimitingWorks(startEntity);
 	}
 
 	@Test
 	void shouldOnlyReportIdForDifferentAggregateEntityWithGenericFindById(
 			@Autowired AggregateRepositoryWithInternalId repository) {
 		var startEntity = repository.findById(this.startEntityInternalId).get();
-
-		assertThat(startEntity).isNotNull();
-		assertThat(startEntity.getId()).isNotNull();
-		assertThat(startEntity.getIntermediateEntity()).isNotNull();
-		assertThat(startEntity.getIntermediateEntity().getId()).isNotNull();
-		assertThat(startEntity.getIntermediateEntity().getDifferentAggregateEntity()).isNotNull();
-		assertThat(startEntity.getIntermediateEntity().getDifferentAggregateEntity().getId()).isNotNull();
-		assertThat(startEntity.getIntermediateEntity().getDifferentAggregateEntity().getName()).isNull();
+		assertThatLimitingWorks(startEntity);
 	}
 
 	@Test
 	void shouldOnlyReportIdForDifferentAggregateEntityWithPartTreeFindAll(
 			@Autowired AggregateRepositoryWithInternalId repository) {
 		var startEntity = repository.findAllByName("start").get(0);
-
-		assertThat(startEntity).isNotNull();
-		assertThat(startEntity.getId()).isNotNull();
-		assertThat(startEntity.getIntermediateEntity()).isNotNull();
-		assertThat(startEntity.getIntermediateEntity().getId()).isNotNull();
-		assertThat(startEntity.getIntermediateEntity().getDifferentAggregateEntity()).isNotNull();
-		assertThat(startEntity.getIntermediateEntity().getDifferentAggregateEntity().getId()).isNotNull();
-		assertThat(startEntity.getIntermediateEntity().getDifferentAggregateEntity().getName()).isNull();
+		assertThatLimitingWorks(startEntity);
 	}
 
 	@Test
 	void shouldOnlyReportIdForDifferentAggregateEntityWithEmptyParameterPartTreeFindAll(
 			@Autowired AggregateRepositoryWithInternalId repository) {
 		var startEntity = repository.findAllBy().get(0);
-
-		assertThat(startEntity).isNotNull();
-		assertThat(startEntity.getId()).isNotNull();
-		assertThat(startEntity.getIntermediateEntity()).isNotNull();
-		assertThat(startEntity.getIntermediateEntity().getId()).isNotNull();
-		assertThat(startEntity.getIntermediateEntity().getDifferentAggregateEntity()).isNotNull();
-		assertThat(startEntity.getIntermediateEntity().getDifferentAggregateEntity().getId()).isNotNull();
-		assertThat(startEntity.getIntermediateEntity().getDifferentAggregateEntity().getName()).isNull();
+		assertThatLimitingWorks(startEntity);
 	}
 
 	@Test
 	void shouldOnlyReportIdForDifferentAggregateEntityWithPartTreeFindOne(
 			@Autowired AggregateRepositoryWithInternalId repository) {
 		var startEntity = repository.findByName("start");
-
-		assertThat(startEntity).isNotNull();
-		assertThat(startEntity.getId()).isNotNull();
-		assertThat(startEntity.getIntermediateEntity()).isNotNull();
-		assertThat(startEntity.getIntermediateEntity().getId()).isNotNull();
-		assertThat(startEntity.getIntermediateEntity().getDifferentAggregateEntity()).isNotNull();
-		assertThat(startEntity.getIntermediateEntity().getDifferentAggregateEntity().getId()).isNotNull();
-		assertThat(startEntity.getIntermediateEntity().getDifferentAggregateEntity().getName()).isNull();
+		assertThatLimitingWorks(startEntity);
 	}
 
 	@Test
 	void shouldOnlyReportIdForDifferentAggregateEntityWithEmptyParameterPartTreeFindOne(
 			@Autowired AggregateRepositoryWithInternalId repository) {
 		var startEntity = repository.findBy();
-
-		assertThat(startEntity).isNotNull();
-		assertThat(startEntity.getId()).isNotNull();
-		assertThat(startEntity.getIntermediateEntity()).isNotNull();
-		assertThat(startEntity.getIntermediateEntity().getId()).isNotNull();
-		assertThat(startEntity.getIntermediateEntity().getDifferentAggregateEntity()).isNotNull();
-		assertThat(startEntity.getIntermediateEntity().getDifferentAggregateEntity().getId()).isNotNull();
-		assertThat(startEntity.getIntermediateEntity().getDifferentAggregateEntity().getName()).isNull();
+		assertThatLimitingWorks(startEntity);
 	}
 
 	@Test
@@ -227,98 +178,49 @@ public class AggregateLimitingIT {
 	void shouldOnlyReportIdForDifferentAggregateEntityWithGenericFindAllGeneratedId(
 			@Autowired AggregateRepositoryWithGeneratedIdId repository) {
 		var startEntity = repository.findAll().get(0);
-
-		assertThat(startEntity).isNotNull();
-		assertThat(startEntity.getId()).isNotNull();
-		assertThat(startEntity.getIntermediateEntity()).isNotNull();
-		assertThat(startEntity.getIntermediateEntity().getId()).isNotNull();
-		assertThat(startEntity.getIntermediateEntity().getDifferentAggregateEntity()).isNotNull();
-		assertThat(startEntity.getIntermediateEntity().getDifferentAggregateEntity().getId()).isNotNull();
-		assertThat(startEntity.getIntermediateEntity().getDifferentAggregateEntity().getName()).isNull();
+		assertThatLimitingWorks(startEntity);
 	}
 
 	@Test
 	void shouldOnlyReportIdForDifferentAggregateEntityWithGenericFindAllByIdGeneratedId(
 			@Autowired AggregateRepositoryWithGeneratedIdId repository) {
 		var startEntity = repository.findAllById(List.of(this.startEntityInternalId)).get(0);
-
-		assertThat(startEntity).isNotNull();
-		assertThat(startEntity.getId()).isNotNull();
-		assertThat(startEntity.getIntermediateEntity()).isNotNull();
-		assertThat(startEntity.getIntermediateEntity().getId()).isNotNull();
-		assertThat(startEntity.getIntermediateEntity().getDifferentAggregateEntity()).isNotNull();
-		assertThat(startEntity.getIntermediateEntity().getDifferentAggregateEntity().getId()).isNotNull();
-		assertThat(startEntity.getIntermediateEntity().getDifferentAggregateEntity().getName()).isNull();
+		assertThatLimitingWorks(startEntity);
 	}
 
 	@Test
 	void shouldOnlyReportIdForDifferentAggregateEntityWithGenericFindByIdGeneratedId(
 			@Autowired AggregateRepositoryWithGeneratedIdId repository) {
 		var startEntity = repository.findById(this.startEntityInternalId).get();
-
-		assertThat(startEntity).isNotNull();
-		assertThat(startEntity.getId()).isNotNull();
-		assertThat(startEntity.getIntermediateEntity()).isNotNull();
-		assertThat(startEntity.getIntermediateEntity().getId()).isNotNull();
-		assertThat(startEntity.getIntermediateEntity().getDifferentAggregateEntity()).isNotNull();
-		assertThat(startEntity.getIntermediateEntity().getDifferentAggregateEntity().getId()).isNotNull();
-		assertThat(startEntity.getIntermediateEntity().getDifferentAggregateEntity().getName()).isNull();
+		assertThatLimitingWorks(startEntity);
 	}
 
 	@Test
 	void shouldOnlyReportIdForDifferentAggregateEntityWithPartTreeFindAllGeneratedId(
 			@Autowired AggregateRepositoryWithGeneratedIdId repository) {
 		var startEntity = repository.findAllByName("start").get(0);
-
-		assertThat(startEntity).isNotNull();
-		assertThat(startEntity.getId()).isNotNull();
-		assertThat(startEntity.getIntermediateEntity()).isNotNull();
-		assertThat(startEntity.getIntermediateEntity().getId()).isNotNull();
-		assertThat(startEntity.getIntermediateEntity().getDifferentAggregateEntity()).isNotNull();
-		assertThat(startEntity.getIntermediateEntity().getDifferentAggregateEntity().getId()).isNotNull();
-		assertThat(startEntity.getIntermediateEntity().getDifferentAggregateEntity().getName()).isNull();
+		assertThatLimitingWorks(startEntity);
 	}
 
 	@Test
 	void shouldOnlyReportIdForDifferentAggregateEntityWithEmptyParameterPartTreeFindAllGeneratedId(
 			@Autowired AggregateRepositoryWithGeneratedIdId repository) {
 		var startEntity = repository.findAllBy().get(0);
-
-		assertThat(startEntity).isNotNull();
-		assertThat(startEntity.getId()).isNotNull();
-		assertThat(startEntity.getIntermediateEntity()).isNotNull();
-		assertThat(startEntity.getIntermediateEntity().getId()).isNotNull();
-		assertThat(startEntity.getIntermediateEntity().getDifferentAggregateEntity()).isNotNull();
-		assertThat(startEntity.getIntermediateEntity().getDifferentAggregateEntity().getId()).isNotNull();
-		assertThat(startEntity.getIntermediateEntity().getDifferentAggregateEntity().getName()).isNull();
+		assertThatLimitingWorks(startEntity);
 	}
 
 	@Test
 	void shouldOnlyReportIdForDifferentAggregateEntityWithPartTreeFindOneGeneratedId(
 			@Autowired AggregateRepositoryWithGeneratedIdId repository) {
 		var startEntity = repository.findByName("start");
-
-		assertThat(startEntity).isNotNull();
-		assertThat(startEntity.getId()).isNotNull();
-		assertThat(startEntity.getIntermediateEntity()).isNotNull();
-		assertThat(startEntity.getIntermediateEntity().getId()).isNotNull();
-		assertThat(startEntity.getIntermediateEntity().getDifferentAggregateEntity()).isNotNull();
-		assertThat(startEntity.getIntermediateEntity().getDifferentAggregateEntity().getId()).isNotNull();
-		assertThat(startEntity.getIntermediateEntity().getDifferentAggregateEntity().getName()).isNull();
+		assertThatLimitingWorks(startEntity);
 	}
 
 	@Test
 	void shouldOnlyReportIdForDifferentAggregateEntityWithEmptyParameterPartTreeFindOneGeneratedId(
 			@Autowired AggregateRepositoryWithGeneratedIdId repository) {
 		var startEntity = repository.findBy();
-
-		assertThat(startEntity).isNotNull();
-		assertThat(startEntity.getId()).isNotNull();
-		assertThat(startEntity.getIntermediateEntity()).isNotNull();
-		assertThat(startEntity.getIntermediateEntity().getId()).isNotNull();
-		assertThat(startEntity.getIntermediateEntity().getDifferentAggregateEntity()).isNotNull();
-		assertThat(startEntity.getIntermediateEntity().getDifferentAggregateEntity().getId()).isNotNull();
-		assertThat(startEntity.getIntermediateEntity().getDifferentAggregateEntity().getName()).isNull();
+		assertThatLimitingWorks(startEntity);
 	}
 
 	@Test
@@ -361,6 +263,26 @@ public class AggregateLimitingIT {
 	void shouldAllowWiderProjectionThanDomain(@Autowired AggregateRepositoryWithGeneratedIdId repository) {
 		var startEntity = repository.findProjectionBy();
 		assertThat(startEntity.getIntermediateEntity().getDifferentAggregateEntity().getName()).isEqualTo("some_name");
+	}
+
+	private void assertThatLimitingWorks(StartEntity startEntity) {
+		assertThat(startEntity).isNotNull();
+		assertThat(startEntity.getId()).isNotNull();
+		assertThat(startEntity.getIntermediateEntity()).isNotNull();
+		assertThat(startEntity.getIntermediateEntity().getId()).isNotNull();
+		assertThat(startEntity.getIntermediateEntity().getDifferentAggregateEntity()).isNotNull();
+		assertThat(startEntity.getIntermediateEntity().getDifferentAggregateEntity().getId()).isNotNull();
+		assertThat(startEntity.getIntermediateEntity().getDifferentAggregateEntity().getName()).isNull();
+	}
+
+	private void assertThatLimitingWorks(StartEntityInternalId startEntity) {
+		assertThat(startEntity).isNotNull();
+		assertThat(startEntity.getId()).isNotNull();
+		assertThat(startEntity.getIntermediateEntity()).isNotNull();
+		assertThat(startEntity.getIntermediateEntity().getId()).isNotNull();
+		assertThat(startEntity.getIntermediateEntity().getDifferentAggregateEntity()).isNotNull();
+		assertThat(startEntity.getIntermediateEntity().getDifferentAggregateEntity().getId()).isNotNull();
+		assertThat(startEntity.getIntermediateEntity().getDifferentAggregateEntity().getName()).isNull();
 	}
 
 	interface AggregateRepositoryWithInternalId extends Neo4jRepository<StartEntityInternalId, String> {
