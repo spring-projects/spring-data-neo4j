@@ -72,7 +72,7 @@ public final class AggregateEntitiesWithInternalIds {
 
 	}
 
-	@Node(limitAggregateFrom = StartEntityInternalId.class)
+	@Node(aggregateBoundary = StartEntityInternalId.class)
 	public static class DifferentAggregateEntityInternalId {
 
 		@Id

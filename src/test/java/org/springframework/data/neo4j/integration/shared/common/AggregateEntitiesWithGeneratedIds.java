@@ -73,7 +73,7 @@ public final class AggregateEntitiesWithGeneratedIds {
 
 	}
 
-	@Node(limitAggregateFrom = StartEntity.class)
+	@Node(aggregateBoundary = StartEntity.class)
 	public static class DifferentAggregateEntity {
 
 		@Id

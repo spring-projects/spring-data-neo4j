@@ -377,7 +377,7 @@ public final class ReactiveNeo4jTemplate
 	@Override
 	public <T> Mono<T> save(T instance) {
 		Collection<PropertyFilter.ProjectedPath> pps = PropertyFilterSupport
-			.getInputPropertiesForAggregateLimit(instance.getClass(), this.neo4jMappingContext);
+			.getInputPropertiesForAggregateBoundary(instance.getClass(), this.neo4jMappingContext);
 		return execute(saveImpl(instance, pps, null));
 	}
 
@@ -634,7 +634,7 @@ public final class ReactiveNeo4jTemplate
 			entities.add(instance);
 			types.add(instance.getClass());
 			includedPropertiesByClass.put(instance.getClass(), PropertyFilterSupport
-				.getInputPropertiesForAggregateLimit(instance.getClass(), this.neo4jMappingContext));
+				.getInputPropertiesForAggregateBoundary(instance.getClass(), this.neo4jMappingContext));
 		});
 
 		if (entities.isEmpty()) {

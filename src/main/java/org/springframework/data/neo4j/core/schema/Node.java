@@ -62,6 +62,6 @@ public @interface Node {
 	 */
 	String primaryLabel() default "";
 
-	Class<?>[] limitAggregateFrom() default {};
+	Class<?>[] aggregateBoundary() default {};
 
 }

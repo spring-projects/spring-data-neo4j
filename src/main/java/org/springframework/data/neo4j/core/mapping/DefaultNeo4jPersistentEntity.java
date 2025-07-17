@@ -127,10 +127,10 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 
 	private List<Class<?>> computeAggregateBoundaries() {
 		Node nodeAnnotation = AnnotatedElementUtils.findMergedAnnotation(this.getType(), Node.class);
-		if (nodeAnnotation == null || nodeAnnotation.limitAggregateFrom().length == 0) {
+		if (nodeAnnotation == null || nodeAnnotation.aggregateBoundary().length == 0) {
 			return List.of();
 		}
-		return Arrays.stream(nodeAnnotation.limitAggregateFrom()).toList();
+		return Arrays.stream(nodeAnnotation.aggregateBoundary()).toList();
 	}
 
 	/**

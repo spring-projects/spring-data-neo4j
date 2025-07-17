@@ -15,41 +15,35 @@
  */
 package org.springframework.data.neo4j.integration.reactive;
 
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.neo4j.driver.Driver;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.data.neo4j.core.DatabaseSelectionProvider;
-import org.springframework.data.neo4j.core.ReactiveDatabaseSelectionProvider;
-import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
-import org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager;
-import org.springframework.data.neo4j.core.transaction.ReactiveNeo4jTransactionManager;
-import org.springframework.data.neo4j.integration.shared.common.AggregateEntitiesWithGeneratedIds.StartEntity;
-import org.springframework.data.neo4j.integration.shared.common.AggregateEntitiesWithInternalIds.StartEntityInternalId;
-import org.springframework.data.neo4j.repository.Neo4jRepository;
-import org.springframework.data.neo4j.repository.ReactiveNeo4jRepository;
-import org.springframework.data.neo4j.repository.config.EnableReactiveNeo4jRepositories;
-import org.springframework.data.neo4j.test.BookmarkCapture;
-import org.springframework.data.neo4j.test.Neo4jExtension;
-import org.springframework.data.neo4j.test.Neo4jImperativeTestConfiguration;
-import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
-import org.springframework.data.neo4j.test.Neo4jReactiveTestConfiguration;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.ReactiveTransactionManager;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.data.neo4j.core.ReactiveDatabaseSelectionProvider;
+import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
+import org.springframework.data.neo4j.core.transaction.ReactiveNeo4jTransactionManager;
+import org.springframework.data.neo4j.integration.shared.common.AggregateEntitiesWithGeneratedIds.StartEntity;
+import org.springframework.data.neo4j.integration.shared.common.AggregateEntitiesWithInternalIds.StartEntityInternalId;
+import org.springframework.data.neo4j.repository.ReactiveNeo4jRepository;
+import org.springframework.data.neo4j.repository.config.EnableReactiveNeo4jRepositories;
+import org.springframework.data.neo4j.test.BookmarkCapture;
+import org.springframework.data.neo4j.test.Neo4jExtension;
+import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
+import org.springframework.data.neo4j.test.Neo4jReactiveTestConfiguration;
+import org.springframework.transaction.ReactiveTransactionManager;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

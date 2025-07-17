@@ -394,7 +394,7 @@ public final class Neo4jTemplate
 	@Override
 	public <T> T save(T instance) {
 		Collection<PropertyFilter.ProjectedPath> pps = PropertyFilterSupport
-			.getInputPropertiesForAggregateLimit(instance.getClass(), this.neo4jMappingContext);
+			.getInputPropertiesForAggregateBoundary(instance.getClass(), this.neo4jMappingContext);
 		return execute(tx -> saveImpl(instance, pps, null));
 
 	}
@@ -560,7 +560,7 @@ public final class Neo4jTemplate
 			entities.add(instance);
 			types.add(instance.getClass());
 			includedPropertiesByClass.put(instance.getClass(), PropertyFilterSupport
-				.getInputPropertiesForAggregateLimit(instance.getClass(), this.neo4jMappingContext));
+				.getInputPropertiesForAggregateBoundary(instance.getClass(), this.neo4jMappingContext));
 		});
 
 		if (entities.isEmpty()) {
