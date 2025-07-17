@@ -32,6 +32,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.neo4j.core.DatabaseSelectionProvider;
 import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
 import org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager;
+import org.springframework.data.neo4j.integration.shared.common.AggregateEntitiesWithGeneratedIds.IntermediateEntity;
 import org.springframework.data.neo4j.integration.shared.common.AggregateEntitiesWithGeneratedIds.StartEntity;
 import org.springframework.data.neo4j.integration.shared.common.AggregateEntitiesWithInternalIds.StartEntityInternalId;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
@@ -49,7 +50,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Gerrit Meier
  */
 @Neo4jIntegrationTest
-class AggregateLimitingIT {
+class AggregateBoundaryIT {
 
 	protected static Neo4jExtension.Neo4jConnectionSupport neo4jConnectionSupport;
 
@@ -265,6 +266,12 @@ class AggregateLimitingIT {
 		assertThat(startEntity.getIntermediateEntity().getDifferentAggregateEntity().getName()).isEqualTo("some_name");
 	}
 
+	@Test
+	void shouldLoadCompleteEntityWhenQueriedFromDifferentEntity(@Autowired IntermediateEntityRepository repository) {
+		var intermediateEntity = repository.findAll().get(0);
+		assertThat(intermediateEntity.getDifferentAggregateEntity().getName()).isEqualTo("some_name");
+	}
+
 	private void assertThatLimitingWorks(StartEntity startEntity) {
 		assertThat(startEntity).isNotNull();
 		assertThat(startEntity.getId()).isNotNull();
@@ -311,6 +318,10 @@ class AggregateLimitingIT {
 
 	}
 
+	interface IntermediateEntityRepository extends Neo4jRepository<IntermediateEntity, String> {
+
+	}
+
 	interface StartEntityProjection {
 
 		String getName();
@@ -344,7 +355,7 @@ class AggregateLimitingIT {
 
 		@Override
 		protected Collection<String> getMappingBasePackages() {
-			return Collections.singleton(AggregateLimitingIT.class.getPackage().getName());
+			return Collections.singleton(AggregateBoundaryIT.class.getPackage().getName());
 		}
 
 		@Bean

@@ -221,4 +221,7 @@ to repeat a possible `@Query` annotation on several methods.
 
 Reflecting multiple levels of relationships by introducing multiple projections can be cumbersome.
 To simplify this already on the entity level, it's possible to add an additional parameter `aggregateBoundary` and supply 1..n classes.
-If this entity gets loaded via a relationship chain from one of the given classes, it will only report the field annotated with `@Id`.
+With this the parameterized entity will only report its `@Id` field back and SDN won't follow its relationships or fetch other properties.
+
+It's still possible to use interface-based projections for those entities.
+Those projections can be even broader as the declared aggregate boundaries and e.g. include properties or relationships.

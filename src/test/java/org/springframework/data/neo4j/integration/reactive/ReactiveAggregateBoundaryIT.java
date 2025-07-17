@@ -34,6 +34,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.neo4j.core.ReactiveDatabaseSelectionProvider;
 import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
 import org.springframework.data.neo4j.core.transaction.ReactiveNeo4jTransactionManager;
+import org.springframework.data.neo4j.integration.shared.common.AggregateEntitiesWithGeneratedIds.IntermediateEntity;
 import org.springframework.data.neo4j.integration.shared.common.AggregateEntitiesWithGeneratedIds.StartEntity;
 import org.springframework.data.neo4j.integration.shared.common.AggregateEntitiesWithInternalIds.StartEntityInternalId;
 import org.springframework.data.neo4j.repository.ReactiveNeo4jRepository;
@@ -52,7 +53,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @Neo4jIntegrationTest
 @Tag(Neo4jExtension.NEEDS_REACTIVE_SUPPORT)
-class ReactiveAggregateLimitingIT {
+class ReactiveAggregateBoundaryIT {
 
 	protected static Neo4jExtension.Neo4jConnectionSupport neo4jConnectionSupport;
 
@@ -287,6 +288,18 @@ class ReactiveAggregateLimitingIT {
 			.verifyComplete();
 	}
 
+	@Test
+	void shouldLoadCompleteEntityWhenQueriedFromDifferentEntity(
+			@Autowired ReactiveIntermediateEntityRepository repository) {
+		StepVerifier.create(repository.findAll()).assertNext(intermediateEntity -> {
+			assertThat(intermediateEntity).isNotNull();
+			assertThat(intermediateEntity.getId()).isNotNull();
+			assertThat(intermediateEntity.getDifferentAggregateEntity()).isNotNull();
+			assertThat(intermediateEntity.getDifferentAggregateEntity().getId()).isNotNull();
+			assertThat(intermediateEntity.getDifferentAggregateEntity().getName()).isEqualTo("some_name");
+		}).verifyComplete();
+	}
+
 	private void assertThatLimitingWorks(StartEntity startEntity) {
 		assertThat(startEntity).isNotNull();
 		assertThat(startEntity.getId()).isNotNull();
@@ -330,6 +343,10 @@ class ReactiveAggregateLimitingIT {
 		Mono<StartEntity> findByName(String name);
 
 		Mono<StartEntityProjection> findProjectionBy();
+
+	}
+
+	interface ReactiveIntermediateEntityRepository extends ReactiveNeo4jRepository<IntermediateEntity, String> {
 
 	}
 
