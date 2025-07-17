@@ -254,8 +254,8 @@ public final class Neo4jTemplate
 	private <T> List<T> doFindAll(Class<T> domainType, @Nullable Class<?> resultType) {
 		return executeReadOnly(tx -> {
 			Neo4jPersistentEntity<?> entityMetaData = this.neo4jMappingContext.getRequiredPersistentEntity(domainType);
-			return createExecutableQuery(domainType, resultType, QueryFragmentsAndParameters.forFindAll(entityMetaData),
-					true)
+			return createExecutableQuery(domainType, resultType,
+					QueryFragmentsAndParameters.forFindAll(entityMetaData, this.neo4jMappingContext), true)
 				.getResults();
 		});
 	}
@@ -367,8 +367,10 @@ public final class Neo4jTemplate
 			Neo4jPersistentEntity<?> entityMetaData = this.neo4jMappingContext.getRequiredPersistentEntity(domainType);
 
 			return createExecutableQuery(domainType, null,
-					QueryFragmentsAndParameters.forFindById(entityMetaData, TemplateSupport
-						.convertIdValues(this.neo4jMappingContext, entityMetaData.getRequiredIdProperty(), id)),
+					QueryFragmentsAndParameters.forFindById(entityMetaData,
+							TemplateSupport.convertIdValues(this.neo4jMappingContext,
+									entityMetaData.getRequiredIdProperty(), id),
+							this.neo4jMappingContext),
 					true)
 				.getSingleResult();
 		});
@@ -380,8 +382,10 @@ public final class Neo4jTemplate
 			Neo4jPersistentEntity<?> entityMetaData = this.neo4jMappingContext.getRequiredPersistentEntity(domainType);
 
 			return createExecutableQuery(domainType, null,
-					QueryFragmentsAndParameters.forFindByAllId(entityMetaData, TemplateSupport
-						.convertIdValues(this.neo4jMappingContext, entityMetaData.getRequiredIdProperty(), ids)),
+					QueryFragmentsAndParameters.forFindByAllId(entityMetaData,
+							TemplateSupport.convertIdValues(this.neo4jMappingContext,
+									entityMetaData.getRequiredIdProperty(), ids),
+							this.neo4jMappingContext),
 					true)
 				.getResults();
 		});
@@ -389,8 +393,9 @@ public final class Neo4jTemplate
 
 	@Override
 	public <T> T save(T instance) {
-
-		return execute(tx -> saveImpl(instance, Collections.emptySet(), null));
+		Collection<PropertyFilter.ProjectedPath> pps = PropertyFilterSupport
+			.getInputPropertiesForAggregateBoundary(instance.getClass(), this.neo4jMappingContext);
+		return execute(tx -> saveImpl(instance, pps, null));
 
 	}
 
@@ -550,9 +555,12 @@ public final class Neo4jTemplate
 
 		Set<Class<?>> types = new HashSet<>();
 		List<T> entities = new ArrayList<>();
+		Map<Class<?>, Collection<PropertyFilter.ProjectedPath>> includedPropertiesByClass = new HashMap<>();
 		instances.forEach(instance -> {
 			entities.add(instance);
 			types.add(instance.getClass());
+			includedPropertiesByClass.put(instance.getClass(), PropertyFilterSupport
+				.getInputPropertiesForAggregateBoundary(instance.getClass(), this.neo4jMappingContext));
 		});
 
 		if (entities.isEmpty()) {
@@ -573,7 +581,12 @@ public final class Neo4jTemplate
 
 			NestedRelationshipProcessingStateMachine stateMachine = new NestedRelationshipProcessingStateMachine(
 					this.neo4jMappingContext);
-			return entities.stream().map(e -> saveImpl(e, pps, stateMachine)).collect(Collectors.toList());
+			return entities.stream()
+				.map(e -> saveImpl(e,
+						((includedProperties != null && !includedProperties.isEmpty()) || includeProperty != null) ? pps
+								: includedPropertiesByClass.get(e.getClass()),
+						stateMachine))
+				.collect(Collectors.toList());
 		}
 
 		class Tuple3<T> {
@@ -628,7 +641,10 @@ public final class Neo4jTemplate
 			String internalId = Objects.requireNonNull(idToInternalIdMapping.get(id));
 			stateMachine.registerInitialObject(t.originalInstance, internalId);
 			return this.<T>processRelations(entityMetaData, propertyAccessor, t.wasNew, stateMachine,
-					TemplateSupport.computeIncludePropertyPredicate(pps, entityMetaData));
+					TemplateSupport.computeIncludePropertyPredicate(
+							((includedProperties != null && !includedProperties.isEmpty()) || includeProperty != null)
+									? pps : includedPropertiesByClass.get(t.modifiedInstance.getClass()),
+							entityMetaData));
 		}).collect(Collectors.toList());
 	}
 
@@ -1182,9 +1198,11 @@ public final class Neo4jTemplate
 	private Entity loadRelatedNode(NodeDescription<?> targetNodeDescription, @Nullable Object relatedInternalId) {
 
 		var targetPersistentEntity = (Neo4jPersistentEntity<?>) targetNodeDescription;
-		var queryFragmentsAndParameters = QueryFragmentsAndParameters.forFindById(targetPersistentEntity,
-				TemplateSupport.convertIdValues(this.neo4jMappingContext,
-						targetPersistentEntity.getRequiredIdProperty(), relatedInternalId));
+		var queryFragmentsAndParameters = QueryFragmentsAndParameters
+			.forFindById(targetPersistentEntity,
+					TemplateSupport.convertIdValues(this.neo4jMappingContext,
+							targetPersistentEntity.getRequiredIdProperty(), relatedInternalId),
+					this.neo4jMappingContext);
 		var nodeName = Constants.NAME_OF_TYPED_ROOT_NODE.apply(targetNodeDescription).getValue();
 
 		return this.neo4jClient

@@ -95,6 +95,8 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 
 	private final Lazy<Neo4jPersistentProperty> vectorProperty;
 
+	private final Lazy<List<Class<?>>> aggregateBoundaries;
+
 	@Nullable
 	private NodeDescription<?> parentNodeDescription;
 
@@ -119,6 +121,16 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 			.filter(Neo4jPersistentProperty::isVectorProperty)
 			.findFirst()
 			.orElse(null));
+
+		this.aggregateBoundaries = Lazy.of(this::computeAggregateBoundaries);
+	}
+
+	private List<Class<?>> computeAggregateBoundaries() {
+		Node nodeAnnotation = AnnotatedElementUtils.findMergedAnnotation(this.getType(), Node.class);
+		if (nodeAnnotation == null || nodeAnnotation.aggregateBoundary().length == 0) {
+			return List.of();
+		}
+		return Arrays.stream(nodeAnnotation.aggregateBoundary()).toList();
 	}
 
 	/**
@@ -627,6 +639,11 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 	@Override
 	public boolean containsPossibleCircles(Predicate<PropertyFilter.RelaxedPropertyPath> includeField) {
 		return calculatePossibleCircles(includeField);
+	}
+
+	@Override
+	public List<Class<?>> getAggregateBoundaries() {
+		return this.aggregateBoundaries.get();
 	}
 
 	private boolean calculatePossibleCircles(Predicate<PropertyFilter.RelaxedPropertyPath> includeField) {
