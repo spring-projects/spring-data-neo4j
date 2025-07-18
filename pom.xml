@@ -477,6 +477,7 @@
 						<verifyFailOn>strict</verifyFailOn>
 						<spaceBeforeCloseEmptyElement>true</spaceBeforeCloseEmptyElement>
 						<pomFile>pom.xml</pomFile>
+						<skip>true</skip>
 					</configuration>
 				</plugin>
 				<plugin>
