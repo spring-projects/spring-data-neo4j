@@ -441,6 +441,8 @@
 		</dependency>
 	</dependencies>
 
+	<!-- The Spring Data Commons tooling removes this (ok), but adds it back unsorted, so we just ignore this part completely. -->
+	<?SORTPOM IGNORE?>
 	<repositories>
 		<repository>
 			<id>spring-snapshot</id>
@@ -457,6 +459,7 @@
 			<url>https://repo.spring.io/milestone</url>
 		</repository>
 	</repositories>
+	<?SORTPOM RESUME?>
 
 	<build>
 		<pluginManagement>
@@ -477,7 +480,6 @@
 						<verifyFailOn>strict</verifyFailOn>
 						<spaceBeforeCloseEmptyElement>true</spaceBeforeCloseEmptyElement>
 						<pomFile>pom.xml</pomFile>
-						<skip>true</skip>
 					</configuration>
 				</plugin>
 				<plugin>
@@ -497,6 +499,7 @@
 								<excludes>
 									<exclude>**/*.adoc</exclude>
 									<exclude>**/*.cypher</exclude>
+									<exclude>**/.flattened-pom.xml</exclude>
 									<exclude>**/*.tpl</exclude>
 									<exclude>**/aot.factories</exclude>
 									<exclude>**/Jenkinsfile</exclude>
@@ -805,6 +808,20 @@
 				<sort.skip>true</sort.skip>
 				<spring-javaformat.skip>true</spring-javaformat.skip>
 			</properties>
+		</profile>
+		<profile>
+			<id>release</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>com.github.ekryd.sortpom</groupId>
+						<artifactId>sortpom-maven-plugin</artifactId>
+						<configuration>
+							<skip>true</skip>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
 		</profile>
 	</profiles>
 
