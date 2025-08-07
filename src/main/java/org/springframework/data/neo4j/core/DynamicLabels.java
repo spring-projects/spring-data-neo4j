@@ -52,6 +52,11 @@ final class DynamicLabels implements UnaryOperator<OngoingMatchAndUpdate> {
 	public OngoingMatchAndUpdate apply(OngoingMatchAndUpdate ongoingMatchAndUpdate) {
 
 		OngoingMatchAndUpdate decoratedMatchAndUpdate = ongoingMatchAndUpdate;
+		if (oldLabels.equals(newLabels) || oldLabels.isEmpty()) {
+			// Returning if old label equals new label or old labels are empty, nothing to do here
+			return decoratedMatchAndUpdate;
+		}
+
 		if (!oldLabels.isEmpty()) {
 			decoratedMatchAndUpdate = decoratedMatchAndUpdate.remove(rootNode, oldLabels.toArray(new String[0]));
 		}
