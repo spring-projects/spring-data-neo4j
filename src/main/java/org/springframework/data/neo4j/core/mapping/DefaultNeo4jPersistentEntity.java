@@ -71,6 +71,8 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 
 	private final Lazy<List<String>> additionalLabels;
 
+	private List<String>  dynamicLabels;
+
 	/**
 	 * Projections need to be also be eligible entities but don't define id fields.
 	 */
@@ -90,8 +92,8 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 
 	DefaultNeo4jPersistentEntity(TypeInformation<T> information) {
 		super(information);
-
-		this.primaryLabel = computePrimaryLabel(this.getType());
+        this.dynamicLabels = new ArrayList<>();
+        this.primaryLabel = computePrimaryLabel(this.getType());
 		this.additionalLabels = Lazy.of(this::computeAdditionalLabels);
 		this.graphProperties = Lazy.of(this::computeGraphProperties);
 		this.dynamicLabelsProperty = Lazy.of(() -> getGraphProperties().stream().map(Neo4jPersistentProperty.class::cast)
@@ -164,6 +166,11 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 	@Override
 	public List<String> getAdditionalLabels() {
 		return this.additionalLabels.get();
+	}
+
+	@Override
+	public List<String> getDynamicLabels() {
+		return this.dynamicLabels;
 	}
 
 	/*

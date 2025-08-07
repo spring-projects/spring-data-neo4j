@@ -458,6 +458,10 @@ public final class ReactiveNeo4jTemplate implements
 
 					DynamicLabels dynamicLabels = t.getT2();
 
+					// Clear existing dynamic labels and populate the list with the updated set of labels.
+					entityMetaData.getDynamicLabels().clear();
+					entityMetaData.getDynamicLabels().addAll(dynamicLabels.getNewLabels());
+
 					@SuppressWarnings("unchecked")
 					FilteredBinderFunction<T> binderFunction = TemplateSupport.createAndApplyPropertyFilter(
 							includedProperties, entityMetaData,

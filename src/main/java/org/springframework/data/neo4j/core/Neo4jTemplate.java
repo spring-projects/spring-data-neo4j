@@ -443,6 +443,10 @@ public final class Neo4jTemplate implements
 
 		DynamicLabels dynamicLabels = determineDynamicLabels(entityToBeSaved, entityMetaData);
 
+		// Clear existing dynamic labels and populate the list with the updated set of labels.
+		entityMetaData.getDynamicLabels().clear();
+		entityMetaData.getDynamicLabels().addAll(dynamicLabels.getNewLabels());
+
 		@SuppressWarnings("unchecked") // Applies to retrieving the meta data
 		TemplateSupport.FilteredBinderFunction<T> binderFunction = TemplateSupport.createAndApplyPropertyFilter(
 				includedProperties, entityMetaData,
