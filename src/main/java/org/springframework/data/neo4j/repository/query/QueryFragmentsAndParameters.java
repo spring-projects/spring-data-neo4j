@@ -63,6 +63,8 @@ public final class QueryFragmentsAndParameters {
 
 	private final QueryFragments queryFragments;
 
+	private final VectorSearchFragment vectorSearchFragment;
+
 	@Nullable
 	private final String cypherQuery;
 
@@ -74,9 +76,20 @@ public final class QueryFragmentsAndParameters {
 	private NodeDescription<?> nodeDescription;
 
 	public QueryFragmentsAndParameters(@Nullable NodeDescription<?> nodeDescription, QueryFragments queryFragments,
+			VectorSearchFragment vectorSearchFragment, Map<String, Object> parameters, @Nullable Sort sort) {
+		this.nodeDescription = nodeDescription;
+		this.queryFragments = queryFragments;
+		this.vectorSearchFragment = vectorSearchFragment;
+		this.parameters = parameters;
+		this.cypherQuery = null;
+		this.sort = (sort != null) ? sort : Sort.unsorted();
+	}
+
+	public QueryFragmentsAndParameters(@Nullable NodeDescription<?> nodeDescription, QueryFragments queryFragments,
 			Map<String, Object> parameters, @Nullable Sort sort) {
 		this.nodeDescription = nodeDescription;
 		this.queryFragments = queryFragments;
+		this.vectorSearchFragment = null;
 		this.parameters = parameters;
 		this.cypherQuery = null;
 		this.sort = (sort != null) ? sort : Sort.unsorted();
@@ -89,6 +102,7 @@ public final class QueryFragmentsAndParameters {
 	public QueryFragmentsAndParameters(@NonNull String cypherQuery, Map<String, Object> parameters) {
 		this.cypherQuery = cypherQuery;
 		this.queryFragments = new QueryFragments();
+		this.vectorSearchFragment = null;
 		this.parameters = parameters;
 		this.sort = Sort.unsorted();
 	}
@@ -382,6 +396,14 @@ public final class QueryFragmentsAndParameters {
 
 	public QueryFragments getQueryFragments() {
 		return this.queryFragments;
+	}
+
+	public boolean hasVectorSearchFragment() {
+		return this.vectorSearchFragment != null;
+	}
+
+	public VectorSearchFragment getVectorSearchFragment() {
+		return this.vectorSearchFragment;
 	}
 
 	@Nullable public String getCypherQuery() {

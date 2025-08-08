@@ -163,6 +163,21 @@ public final class Constants {
 	 */
 	public static final String TO_ID_PARAMETER_NAME = "toId";
 
+	/**
+	 * The name SDN uses for vector search score.
+	 */
+	public static final String NAME_OF_SCORE = "__score__";
+
+	/**
+	 * Vector search vector parameter name.
+	 */
+	public static final String VECTOR_SEARCH_VECTOR_PARAMETER = "__vector_search__";
+
+	/**
+	 * Vector search score parameter name.
+	 */
+	public static final String VECTOR_SEARCH_SCORE_PARAMETER = "__score__";
+
 	private Constants() {
 	}
 

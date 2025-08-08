@@ -44,8 +44,10 @@ import org.springframework.data.convert.EntityWriter;
 import org.springframework.data.domain.KeysetScrollPosition;
 import org.springframework.data.domain.OffsetScrollPosition;
 import org.springframework.data.domain.Range;
+import org.springframework.data.domain.Score;
 import org.springframework.data.domain.ScrollPosition;
 import org.springframework.data.domain.ScrollPosition.Direction;
+import org.springframework.data.domain.SearchResult;
 import org.springframework.data.domain.Window;
 import org.springframework.data.expression.ValueExpressionParser;
 import org.springframework.data.geo.Box;
@@ -135,6 +137,25 @@ abstract class Neo4jQuerySupport {
 		};
 	}
 
+	static BiFunction<TypeSystem, MapAccessor, ?> decorateAsVectorSearchResult(
+			BiFunction<TypeSystem, MapAccessor, ?> target) {
+		return (t, r) -> {
+			Object intermediateResult = target.apply(t, r);
+			var distances = StreamSupport.stream(r.keys().spliterator(), false)
+				.filter(k -> k.equals(Constants.NAME_OF_SCORE))
+				.toList();
+			if (distances.isEmpty()) {
+				throw new RuntimeException("No score has been returned by the query, cannot create `SearchResult`");
+			}
+			else if (distances.size() > 1) {
+				throw new RuntimeException(
+						"More than one score has been returned by the query, cannot create `SearchResult`");
+			}
+			var searchResult = Score.of(r.get(distances.get(0)).asDouble());
+			return new SearchResult<>(intermediateResult, searchResult);
+		};
+	}
+
 	private static boolean hasValidReturnTypeForDelete(Neo4jQueryMethod queryMethod) {
 		return VALID_RETURN_TYPES_FOR_DELETE
 			.contains(queryMethod.getResultProcessor().getReturnedType().getReturnedType());
@@ -192,7 +213,7 @@ abstract class Neo4jQuerySupport {
 	}
 
 	protected final Supplier<BiFunction<TypeSystem, MapAccessor, ?>> getMappingFunction(
-			final ResultProcessor resultProcessor, boolean isGeoNearQuery) {
+			final ResultProcessor resultProcessor, boolean isGeoNearQuery, boolean isVectorSearchQuery) {
 
 		return () -> {
 			final ReturnedType returnedTypeMetadata = resultProcessor.getReturnedType();
@@ -212,6 +233,10 @@ abstract class Neo4jQuerySupport {
 			}
 			else if (isGeoNearQuery) {
 				mappingFunction = decorateAsGeoResult(this.mappingContext.getRequiredMappingFunctionFor(domainType));
+			}
+			else if (isVectorSearchQuery) {
+				mappingFunction = decorateAsVectorSearchResult(
+						this.mappingContext.getRequiredMappingFunctionFor(domainType));
 			}
 			else {
 				mappingFunction = this.mappingContext.getRequiredMappingFunctionFor(domainType);

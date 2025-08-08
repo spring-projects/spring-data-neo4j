@@ -26,6 +26,7 @@ import org.neo4j.driver.types.TypeSystem;
 import reactor.core.publisher.Flux;
 
 import org.springframework.core.convert.converter.Converter;
+import org.springframework.data.domain.SearchResult;
 import org.springframework.data.geo.GeoResult;
 import org.springframework.data.neo4j.core.PreparedQuery;
 import org.springframework.data.neo4j.core.PropertyFilterSupport;
@@ -89,11 +90,31 @@ abstract class AbstractReactiveNeo4jQuery extends Neo4jQuerySupport implements R
 		return false;
 	}
 
+	boolean isVectorSearchQuery() {
+		var repositoryMethod = this.queryMethod.getMethod();
+		Class<?> returnType = repositoryMethod.getReturnType();
+
+		for (Class<?> type : Neo4jQueryMethod.VECTOR_SEARCH_RESULTS) {
+			if (type.isAssignableFrom(returnType)) {
+				return true;
+			}
+		}
+
+		if (Flux.class.isAssignableFrom(returnType)) {
+			TypeInformation<?> from = TypeInformation.fromReturnTypeOf(repositoryMethod);
+			TypeInformation<?> componentType = from.getComponentType();
+			return componentType != null && SearchResult.class.equals(componentType.getType());
+		}
+
+		return false;
+	}
+
 	@Override
 	@Nullable public final Object execute(Object[] parameters) {
 
 		boolean incrementLimit = this.queryMethod.incrementLimit();
 		boolean geoNearQuery = isGeoNearQuery();
+		boolean vectorSearchQuery = isVectorSearchQuery();
 		Neo4jParameterAccessor parameterAccessor = new Neo4jParameterAccessor(
 				(Neo4jQueryMethod.Neo4jParameters) this.queryMethod.getParameters(), parameters);
 		ResultProcessor resultProcessor = this.queryMethod.getResultProcessor()
@@ -102,7 +123,7 @@ abstract class AbstractReactiveNeo4jQuery extends Neo4jQuerySupport implements R
 		ReturnedType returnedType = resultProcessor.getReturnedType();
 		PreparedQuery<?> preparedQuery = prepareQuery(returnedType.getReturnedType(),
 				PropertyFilterSupport.getInputProperties(resultProcessor, this.factory, this.mappingContext),
-				parameterAccessor, null, getMappingFunction(resultProcessor, geoNearQuery),
+				parameterAccessor, null, getMappingFunction(resultProcessor, geoNearQuery, vectorSearchQuery),
 				incrementLimit ? l -> l + 1 : UnaryOperator.identity());
 
 		Object rawResult = new Neo4jQueryExecution.ReactiveQueryExecution(this.neo4jOperations).execute(preparedQuery,
