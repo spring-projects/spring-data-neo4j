@@ -23,6 +23,7 @@ import java.util.function.BiFunction;
 import java.util.function.LongSupplier;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
+import java.util.stream.Collectors;
 
 import org.jspecify.annotations.Nullable;
 import org.neo4j.driver.types.MapAccessor;
@@ -32,6 +33,8 @@ import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.SearchResult;
+import org.springframework.data.domain.SearchResults;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
 import org.springframework.data.geo.GeoPage;
@@ -98,11 +101,30 @@ abstract class AbstractNeo4jQuery extends Neo4jQuerySupport implements Repositor
 		return GeoPage.class.isAssignableFrom(returnType);
 	}
 
+	boolean isVectorSearchQuery() {
+		var repositoryMethod = this.queryMethod.getMethod();
+		Class<?> returnType = repositoryMethod.getReturnType();
+
+		for (Class<?> type : Neo4jQueryMethod.VECTOR_SEARCH_RESULTS) {
+			if (type.isAssignableFrom(returnType)) {
+				return true;
+			}
+		}
+
+		if (Iterable.class.isAssignableFrom(returnType)) {
+			TypeInformation<?> from = TypeInformation.fromReturnTypeOf(repositoryMethod);
+			return from.getComponentType() != null && SearchResult.class.equals(from.getComponentType().getType());
+		}
+
+		return false;
+	}
+
 	@Override
 	@Nullable public final Object execute(Object[] parameters) {
 
 		boolean incrementLimit = this.queryMethod.incrementLimit();
 		boolean geoNearQuery = isGeoNearQuery();
+		boolean vectorSearchQuery = isVectorSearchQuery();
 		Neo4jParameterAccessor parameterAccessor = new Neo4jParameterAccessor(
 				(Neo4jQueryMethod.Neo4jParameters) this.queryMethod.getParameters(), parameters);
 
@@ -111,7 +133,7 @@ abstract class AbstractNeo4jQuery extends Neo4jQuerySupport implements Repositor
 		ReturnedType returnedType = resultProcessor.getReturnedType();
 		PreparedQuery<?> preparedQuery = prepareQuery(returnedType.getReturnedType(),
 				PropertyFilterSupport.getInputProperties(resultProcessor, this.factory, this.mappingContext),
-				parameterAccessor, null, getMappingFunction(resultProcessor, geoNearQuery),
+				parameterAccessor, null, getMappingFunction(resultProcessor, geoNearQuery, vectorSearchQuery),
 				incrementLimit ? l -> l + 1 : UnaryOperator.identity());
 
 		Object rawResult = new Neo4jQueryExecution.DefaultQueryExecution(this.neo4jOperations).execute(preparedQuery,
@@ -142,6 +164,9 @@ abstract class AbstractNeo4jQuery extends Neo4jQuerySupport implements Repositor
 		}
 		else if (geoNearQuery) {
 			rawResult = newGeoResults(rawResult);
+		}
+		else if (this.queryMethod.isSearchQuery()) {
+			rawResult = createSearchResult((List<?>) rawResult, returnedType.getReturnedType());
 		}
 
 		return resultProcessor.processResult(rawResult, preparingConverter);
@@ -180,6 +205,13 @@ abstract class AbstractNeo4jQuery extends Neo4jQuerySupport implements Repositor
 			long total = this.neo4jOperations.toExecutableQuery(countQuery).getRequiredSingleResult();
 			return new SliceImpl<>(rawResult, pageable, pageable.getOffset() + pageable.getPageSize() < total);
 		}
+	}
+
+	private <T> SearchResults<?> createSearchResult(List<?> rawResult, Class<T> returnedType) {
+		List<SearchResult<T>> searchResults = rawResult.stream()
+			.map(rawValue -> (SearchResult<T>) rawValue)
+			.collect(Collectors.toUnmodifiableList());
+		return new SearchResults<>(searchResults);
 	}
 
 	protected abstract <T> PreparedQuery<T> prepareQuery(Class<T> returnedType,

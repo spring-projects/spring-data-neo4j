@@ -1489,7 +1489,12 @@ public final class Neo4jTemplate
 					statement = nodesAndRelationshipsById.toStatement(entityMetaData);
 				}
 				else {
-					statement = queryFragments.toStatement();
+					if (queryFragmentsAndParameters.hasVectorSearchFragment()) {
+						statement = queryFragments.toStatement(queryFragmentsAndParameters.getVectorSearchFragment());
+					}
+					else {
+						statement = queryFragments.toStatement();
+					}
 				}
 				cypherQuery = Neo4jTemplate.this.renderer.render(statement);
 				finalParameters = TemplateSupport.mergeParameters(statement, finalParameters);

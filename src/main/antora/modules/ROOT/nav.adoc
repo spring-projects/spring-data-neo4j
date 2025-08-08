@@ -26,6 +26,7 @@
 ** xref:repositories/sdn-extension.adoc[]
 ** xref:repositories/query-keywords-reference.adoc[]
 ** xref:repositories/query-return-types-reference.adoc[]
+** xref:repositories/vector-search.adoc[]
 
 * xref:repositories/projections.adoc[]
 ** xref:projections/sdn-projections.adoc[]

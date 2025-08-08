@@ -45,8 +45,10 @@ import org.springframework.data.domain.KeysetScrollPosition;
 import org.springframework.data.domain.OffsetScrollPosition;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Range;
+import org.springframework.data.domain.Score;
 import org.springframework.data.domain.ScrollPosition;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Vector;
 import org.springframework.data.geo.Box;
 import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.Distance;
@@ -60,7 +62,6 @@ import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.core.mapping.NodeDescription;
 import org.springframework.data.neo4j.core.mapping.PropertyFilter;
-import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.data.repository.query.parser.AbstractQueryCreator;
 import org.springframework.data.repository.query.parser.Part;
 import org.springframework.data.repository.query.parser.PartTree;
@@ -119,14 +120,22 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndPar
 
 	private final boolean keysetRequiresSort;
 
-	private final List<Expression> distanceExpressions = new ArrayList<>();
+	private final List<Expression> additionalReturnExpression = new ArrayList<>();
 
 	/**
 	 * Can be used to modify the limit of a paged or sliced query.
 	 */
 	private final UnaryOperator<Integer> limitModifier;
 
-	CypherQueryCreator(Neo4jMappingContext mappingContext, QueryMethod queryMethod, Class<?> domainType,
+	private final Neo4jQueryMethod queryMethod;
+
+	@Nullable
+	private final Vector vectorSearchParameter;
+
+	@Nullable
+	private final Score scoreParameter;
+
+	CypherQueryCreator(Neo4jMappingContext mappingContext, Neo4jQueryMethod queryMethod, Class<?> domainType,
 			Neo4jQueryType queryType, PartTree tree, Neo4jParameterAccessor actualParameters,
 			Collection<PropertyFilter.ProjectedPath> includedProperties,
 			BiFunction<Object, Neo4jPersistentPropertyConverter<?>, Object> parameterConversion,
@@ -148,6 +157,8 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndPar
 
 		this.pagingParameter = actualParameters.getPageable();
 		this.scrollPosition = actualParameters.getScrollPosition();
+		this.vectorSearchParameter = actualParameters.getVector();
+		this.scoreParameter = actualParameters.getScore();
 		this.limitModifier = limitModifier;
 
 		AtomicInteger symbolicNameIndex = new AtomicInteger();
@@ -160,6 +171,7 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndPar
 
 		this.keysetRequiresSort = queryMethod.isScrollQuery()
 				&& actualParameters.getScrollPosition() instanceof KeysetScrollPosition;
+		this.queryMethod = queryMethod;
 	}
 
 	@Override
@@ -195,6 +207,21 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndPar
 		var theSort = this.pagingParameter.getSort().and(sort);
 		if (this.keysetRequiresSort && theSort.isUnsorted()) {
 			throw new UnsupportedOperationException("Unsorted keyset based scrolling is not supported.");
+		}
+		if (this.queryMethod.hasVectorSearchAnnotation()) {
+			var vectorSearchAnnotation = this.queryMethod.getVectorSearchAnnotation().orElseThrow();
+			var indexName = vectorSearchAnnotation.indexName();
+			var numberOfNodes = vectorSearchAnnotation.numberOfNodes();
+			convertedParameters.put(Constants.VECTOR_SEARCH_VECTOR_PARAMETER,
+					this.vectorSearchParameter.toDoubleArray());
+			if (this.scoreParameter != null) {
+				convertedParameters.put(Constants.VECTOR_SEARCH_SCORE_PARAMETER, this.scoreParameter.getValue());
+			}
+			var vectorSearchFragment = new VectorSearchFragment(indexName, numberOfNodes,
+					(this.scoreParameter != null) ? this.scoreParameter.getValue() : null);
+			var queryFragmentsAndParameters = new QueryFragmentsAndParameters(this.nodeDescription, queryFragments,
+					vectorSearchFragment, convertedParameters, theSort);
+			return queryFragmentsAndParameters;
 		}
 		return new QueryFragmentsAndParameters(this.nodeDescription, queryFragments, convertedParameters, theSort);
 	}
@@ -274,11 +301,14 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndPar
 							? this.maxResults.intValue() : this.pagingParameter.getPageSize()));
 			}
 
+			if (this.queryMethod.hasVectorSearchAnnotation()) {
+				this.additionalReturnExpression.add(Cypher.name(Constants.NAME_OF_SCORE));
+			}
 			var finalSortItems = new ArrayList<>(this.sortItems);
 			theSort.stream().map(CypherAdapterUtils.sortAdapterFor(this.nodeDescription)).forEach(finalSortItems::add);
 
 			queryFragments.setReturnBasedOn(this.nodeDescription, this.includedProperties, this.isDistinct,
-					this.distanceExpressions);
+					this.additionalReturnExpression);
 			queryFragments.setOrderBy(finalSortItems);
 		}
 
@@ -438,7 +468,7 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndPar
 		// property to be later retrieved and mapped
 		Neo4jPersistentEntity<?> owner = (Neo4jPersistentEntity<?>) leafProperty.getOwner();
 		String containerName = getContainerName(path, owner);
-		this.distanceExpressions
+		this.additionalReturnExpression
 			.add(distanceFunction.as("__distance_" + containerName + "_" + leafProperty.getPropertyName() + "__"));
 
 		this.sortItems.add(distanceFunction.ascending());

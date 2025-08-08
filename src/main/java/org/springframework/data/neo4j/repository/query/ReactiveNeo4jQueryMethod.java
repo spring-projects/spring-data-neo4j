@@ -15,11 +15,14 @@
  */
 package org.springframework.data.neo4j.repository.query;
 
+import java.io.Serializable;
 import java.lang.reflect.Method;
+import java.util.List;
 
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.SearchResult;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.neo4j.repository.support.ReactiveCypherdslStatementExecutor;
 import org.springframework.data.projection.ProjectionFactory;
@@ -42,6 +45,8 @@ import org.springframework.util.ClassUtils;
  * @since 6.0
  */
 final class ReactiveNeo4jQueryMethod extends Neo4jQueryMethod {
+
+	static final List<Class<? extends Serializable>> VECTOR_SEARCH_RESULTS = List.of(SearchResult.class);
 
 	@SuppressWarnings("rawtypes")
 	private static final TypeInformation<Page> PAGE_TYPE = TypeInformation.of(Page.class);

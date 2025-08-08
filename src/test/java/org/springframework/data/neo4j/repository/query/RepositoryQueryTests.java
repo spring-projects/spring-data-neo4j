@@ -50,6 +50,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Vector;
 import org.springframework.data.expression.ValueExpressionParser;
 import org.springframework.data.mapping.MappingException;
 import org.springframework.data.neo4j.core.Neo4jOperations;
@@ -166,6 +167,12 @@ final class RepositoryQueryTests {
 		@Query("MATCH (n:Test) WHERE n.name = $0 OR n.name = $1")
 		List<TestEntity> annotatedQueryWithValidTemplate(String name, String anotherName);
 
+		@VectorSearch(indexName = "testIndex", numberOfNodes = 2)
+		List<TestEntity> annotatedVectorSearch(Vector vector);
+
+		@VectorSearch(indexName = "testIndex", numberOfNodes = 0)
+		List<TestEntity> illegalAnnotatedVectorSearch(Vector vector);
+
 		@Query(CUSTOM_CYPHER_QUERY)
 		List<TestEntity> annotatedQueryWithValidTemplate();
 
@@ -269,6 +276,29 @@ final class RepositoryQueryTests {
 
 			Optional<Query> optionalQueryAnnotation = neo4jQueryMethod.getQueryAnnotation();
 			assertThat(optionalQueryAnnotation).isPresent();
+		}
+
+		@Test
+		void findVectorSearchAnnotation() {
+
+			Neo4jQueryMethod neo4jQueryMethod = neo4jQueryMethod("annotatedVectorSearch", Vector.class);
+
+			Optional<VectorSearch> optionalVectorSearchAnnotation = neo4jQueryMethod.getVectorSearchAnnotation();
+			assertThat(optionalVectorSearchAnnotation).isPresent();
+		}
+
+		@Test
+		void failOnZeroNodesVectorSearchAnnotation() {
+			final Neo4jQueryLookupStrategy lookupStrategy = new Neo4jQueryLookupStrategy(
+					RepositoryQueryTests.this.neo4jOperations, RepositoryQueryTests.this.neo4jMappingContext,
+					ValueExpressionDelegate.create(), Configuration.defaultConfig());
+
+			assertThatExceptionOfType(IllegalArgumentException.class)
+				.isThrownBy(() -> lookupStrategy.resolveQuery(queryMethod("illegalAnnotatedVectorSearch", Vector.class),
+						TEST_REPOSITORY_METADATA, PROJECTION_FACTORY, RepositoryQueryTests.this.namedQueries))
+				.withMessage("Number of nodes in the vector search "
+						+ "org.springframework.data.neo4j.repository.query.RepositoryQueryTests$TestRepository#illegalAnnotatedVectorSearch "
+						+ "has to be greater than zero.");
 		}
 
 		@Test
