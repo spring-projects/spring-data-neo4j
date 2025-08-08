@@ -28,11 +28,13 @@ import org.jspecify.annotations.Nullable;
 import org.neo4j.cypherdsl.core.Condition;
 import org.neo4j.cypherdsl.core.Cypher;
 import org.neo4j.cypherdsl.core.Expression;
+import org.neo4j.cypherdsl.core.Node;
 import org.neo4j.cypherdsl.core.PatternElement;
 import org.neo4j.cypherdsl.core.SortItem;
 import org.neo4j.cypherdsl.core.Statement;
 import org.neo4j.cypherdsl.core.StatementBuilder;
 
+import org.springframework.data.neo4j.core.mapping.Constants;
 import org.springframework.data.neo4j.core.mapping.CypherGenerator;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentProperty;
@@ -191,6 +193,60 @@ public final class QueryFragments {
 
 		statement.setRenderConstantsAsParameters(false);
 		return statement;
+	}
+
+	public Statement toStatement(VectorSearchFragment vectorSearchFragment) {
+
+		if (this.matchOn.isEmpty()) {
+			throw new IllegalStateException("No pattern to match on");
+		}
+		var vectorSearch = Cypher.call("db.index.vector.queryNodes")
+			.withArgs(Cypher.literalOf(vectorSearchFragment.indexName()),
+					Cypher.literalOf(vectorSearchFragment.numberOfNodes()),
+					Cypher.parameter(Constants.VECTOR_SEARCH_VECTOR_PARAMETER))
+			.yield("node", "score")
+			.with(Cypher.name("node").as(((Node) this.matchOn.get(0)).getRequiredSymbolicName().getValue()),
+					Cypher.name("score").as(Constants.NAME_OF_SCORE));
+
+		StatementBuilder.OngoingReadingWithoutWhere match = null;
+		if (vectorSearchFragment.hasScore()) {
+			match = vectorSearch
+				.where(Cypher.raw(Constants.NAME_OF_SCORE)
+					.gte(Cypher.parameter(Constants.VECTOR_SEARCH_SCORE_PARAMETER)))
+				.match(this.matchOn.get(0));
+		}
+		else {
+			match = vectorSearch.match(this.matchOn.get(0));
+		}
+
+		if (this.matchOn.size() > 1) {
+			for (PatternElement patternElement : this.matchOn.subList(1, this.matchOn.size())) {
+				match = match.match(patternElement);
+			}
+		}
+
+		StatementBuilder.OngoingReadingWithWhere matchWithWhere = match.where(this.condition);
+
+		if (this.deleteExpression != null) {
+			matchWithWhere = (StatementBuilder.OngoingReadingWithWhere) matchWithWhere
+				.detachDelete(this.deleteExpression);
+		}
+
+		StatementBuilder.OngoingReadingAndReturn returnPart = isDistinctReturn()
+				? matchWithWhere.returningDistinct(getReturnExpressionsForVectorSearch())
+				: matchWithWhere.returning(getReturnExpressionsForVectorSearch());
+
+		Statement statement = returnPart.orderBy(getOrderBy()).skip(this.skip).limit(this.limit).build();
+
+		statement.setRenderConstantsAsParameters(false);
+		return statement;
+	}
+
+	private Collection<Expression> getReturnExpressionsForVectorSearch() {
+		return (this.returnExpressions.isEmpty() && this.returnTuple != null) ? CypherGenerator.INSTANCE
+			.createReturnStatementForMatch((Neo4jPersistentEntity<?>) this.returnTuple.nodeDescription,
+					this::includeField, this.returnTuple.additionalExpressions.toArray(Expression[]::new))
+				: this.returnExpressions;
 	}
 
 	private Collection<Expression> getReturnExpressions() {

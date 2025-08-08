@@ -57,6 +57,11 @@ final class PartTreeNeo4jQuery extends AbstractNeo4jQuery {
 
 	static RepositoryQuery create(Neo4jOperations neo4jOperations, Neo4jMappingContext mappingContext,
 			Neo4jQueryMethod queryMethod, ProjectionFactory factory) {
+		if (queryMethod.hasVectorSearchAnnotation()
+				&& queryMethod.getVectorSearchAnnotation().get().numberOfNodes() < 1) {
+			throw new IllegalArgumentException("Number of nodes in the vector search %s#%s has to be greater than zero."
+				.formatted(queryMethod.getRepositoryName(), queryMethod.getMethod().getName()));
+		}
 		return new PartTreeNeo4jQuery(neo4jOperations, mappingContext, queryMethod,
 				new PartTree(queryMethod.getName(), getDomainType(queryMethod)), factory);
 	}

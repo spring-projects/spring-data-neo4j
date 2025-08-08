@@ -19,6 +19,7 @@ import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.UnaryOperator;
 import java.util.regex.Pattern;
 
@@ -29,6 +30,7 @@ import org.mockito.Answers;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.neo4j.cypherdsl.core.renderer.Configuration;
 import org.neo4j.driver.Values;
 import org.neo4j.driver.types.Point;
 import reactor.core.publisher.Flux;
@@ -39,6 +41,7 @@ import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Vector;
 import org.springframework.data.mapping.MappingException;
 import org.springframework.data.neo4j.core.PreparedQuery;
 import org.springframework.data.neo4j.core.ReactiveNeo4jOperations;
@@ -48,6 +51,7 @@ import org.springframework.data.neo4j.test.LogbackCapture;
 import org.springframework.data.neo4j.test.LogbackCapturingExtension;
 import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
+import org.springframework.data.repository.core.NamedQueries;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.core.support.DefaultRepositoryMetadata;
 import org.springframework.data.repository.query.Param;
@@ -86,6 +90,9 @@ final class ReactiveRepositoryQueryTests {
 
 	@Mock
 	private ProjectionFactory projectionFactory;
+
+	@Mock
+	NamedQueries namedQueries;
 
 	private ReactiveRepositoryQueryTests() {
 	}
@@ -132,6 +139,41 @@ final class ReactiveRepositoryQueryTests {
 		@Query("MATCH (n:Test) WHERE n.name = $name AND n.firstName = :#{#firstName} AND n.fullName = ?#{#name + #firstName} AND p.location = $location return n")
 		Mono<TestEntity> findByDontDoThisInRealLiveNamed(@Param("location") org.neo4j.driver.types.Point location,
 				@Param("name") String name, @Param("firstName") String aFirstName);
+
+		@VectorSearch(indexName = "testIndex", numberOfNodes = 2)
+		Flux<TestEntity> annotatedVectorSearch(Vector vector);
+
+		@VectorSearch(indexName = "testIndex", numberOfNodes = 0)
+		Flux<TestEntity> illegalAnnotatedVectorSearch(Vector vector);
+
+	}
+
+	@Nested
+	class ReactiveNeo4jPartTreeTest {
+
+		@Test
+		void findVectorSearchAnnotation() {
+
+			Neo4jQueryMethod neo4jQueryMethod = reactiveNeo4jQueryMethod("annotatedVectorSearch", Vector.class);
+
+			Optional<VectorSearch> optionalVectorSearchAnnotation = neo4jQueryMethod.getVectorSearchAnnotation();
+			assertThat(optionalVectorSearchAnnotation).isPresent();
+		}
+
+		@Test
+		void failOnZeroNodesVectorSearchAnnotation() {
+			var lookupStrategy = new ReactiveNeo4jQueryLookupStrategy(ReactiveRepositoryQueryTests.this.neo4jOperations,
+					ReactiveRepositoryQueryTests.this.neo4jMappingContext, ValueExpressionDelegate.create(),
+					Configuration.defaultConfig());
+
+			assertThatExceptionOfType(IllegalArgumentException.class)
+				.isThrownBy(() -> lookupStrategy.resolveQuery(
+						reactiveNeo4jQueryMethod("illegalAnnotatedVectorSearch", Vector.class).getMethod(),
+						TEST_REPOSITORY_METADATA, PROJECTION_FACTORY, ReactiveRepositoryQueryTests.this.namedQueries))
+				.withMessage("Number of nodes in the vector search "
+						+ "org.springframework.data.neo4j.repository.query.ReactiveRepositoryQueryTests$TestRepository#illegalAnnotatedVectorSearch "
+						+ "has to be greater than zero.");
+		}
 
 	}
 
