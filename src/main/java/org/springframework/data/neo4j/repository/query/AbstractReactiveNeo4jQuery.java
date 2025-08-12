@@ -24,6 +24,7 @@ import org.jspecify.annotations.Nullable;
 import org.neo4j.driver.types.MapAccessor;
 import org.neo4j.driver.types.TypeSystem;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.domain.SearchResult;
@@ -94,13 +95,13 @@ abstract class AbstractReactiveNeo4jQuery extends Neo4jQuerySupport implements R
 		var repositoryMethod = this.queryMethod.getMethod();
 		Class<?> returnType = repositoryMethod.getReturnType();
 
-		for (Class<?> type : Neo4jQueryMethod.VECTOR_SEARCH_RESULTS) {
+		for (Class<?> type : ReactiveNeo4jQueryMethod.VECTOR_SEARCH_RESULTS) {
 			if (type.isAssignableFrom(returnType)) {
 				return true;
 			}
 		}
 
-		if (Flux.class.isAssignableFrom(returnType)) {
+		if (Flux.class.isAssignableFrom(returnType) || Mono.class.isAssignableFrom(returnType)) {
 			TypeInformation<?> from = TypeInformation.fromReturnTypeOf(repositoryMethod);
 			TypeInformation<?> componentType = from.getComponentType();
 			return componentType != null && SearchResult.class.equals(componentType.getType());
@@ -147,8 +148,15 @@ abstract class AbstractReactiveNeo4jQuery extends Neo4jQuerySupport implements R
 				.map(rawResultList -> createWindow(resultProcessor, incrementLimit, parameterAccessor, rawResultList,
 						preparedQuery.getQueryFragmentsAndParameters()));
 		}
+		else if (this.queryMethod.isSearchQuery()) {
+			rawResult = createSearchResult((Flux<?>) rawResult, returnedType.getReturnedType());
+		}
 
 		return resultProcessor.processResult(rawResult, preparingConverter);
+	}
+
+	private <T> Flux<SearchResult<?>> createSearchResult(Flux<?> rawResult, Class<T> returnedType) {
+		return rawResult.map(rawValue -> (SearchResult<T>) rawValue);
 	}
 
 	protected abstract <T extends Object> PreparedQuery<T> prepareQuery(Class<T> returnedType,

@@ -1408,8 +1408,13 @@ public final class ReactiveNeo4jTemplate
 							return new DefaultReactiveExecutableQuery<>(preparedQuery, fetchSpec);
 						});
 				}
-
-				Statement statement = queryFragments.toStatement();
+				Statement statement = null;
+				if (queryFragmentsAndParameters.hasVectorSearchFragment()) {
+					statement = queryFragments.toStatement(queryFragmentsAndParameters.getVectorSearchFragment());
+				}
+				else {
+					statement = queryFragments.toStatement();
+				}
 				cypherQuery = this.renderer.render(statement);
 				finalParameters = TemplateSupport.mergeParameters(statement, finalParameters);
 			}
