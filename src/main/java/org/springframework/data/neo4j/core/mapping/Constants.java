@@ -171,12 +171,12 @@ public final class Constants {
 	/**
 	 * Vector search vector parameter name.
 	 */
-	public static final String VECTOR_SEARCH_VECTOR_PARAMETER = "__vector_search__";
+	public static final String VECTOR_SEARCH_VECTOR_PARAMETER = "vectorSearchParam";
 
 	/**
 	 * Vector search score parameter name.
 	 */
-	public static final String VECTOR_SEARCH_SCORE_PARAMETER = "__score__";
+	public static final String VECTOR_SEARCH_SCORE_PARAMETER = "scoreParam";
 
 	private Constants() {
 	}
