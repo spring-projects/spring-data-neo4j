@@ -170,8 +170,10 @@ public final class QueryFragments {
 
 		StatementBuilder.OngoingReadingWithoutWhere match = Cypher.match(this.matchOn.get(0));
 
-		for (PatternElement patternElement : this.matchOn) {
-			match = match.match(patternElement);
+		if (this.matchOn.size() > 1) {
+			for (PatternElement patternElement : this.matchOn.subList(1, this.matchOn.size())) {
+				match = match.match(patternElement);
+			}
 		}
 
 		StatementBuilder.OngoingReadingWithWhere matchWithWhere = match.where(this.condition);
