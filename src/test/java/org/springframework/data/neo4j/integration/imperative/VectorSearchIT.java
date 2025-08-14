@@ -60,7 +60,7 @@ class VectorSearchIT {
 		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
 			session.run("MATCH (n) detach delete n");
 			session.run("""
-					CREATE VECTOR INDEX dingsIndex IF NOT EXISTS
+					CREATE VECTOR INDEX entityIndex IF NOT EXISTS
 					FOR (m:EntityWithVector)
 					ON m.myVector
 					OPTIONS { indexConfig: {
@@ -81,7 +81,7 @@ class VectorSearchIT {
 	@AfterEach
 	void removeIndex(@Autowired BookmarkCapture bookmarkCapture, @Autowired Driver driver) {
 		try (Session session = driver.session(bookmarkCapture.createSessionConfig())) {
-			session.run("DROP INDEX `dingsIndex` IF EXISTS");
+			session.run("DROP INDEX `entityIndex` IF EXISTS");
 		}
 	}
 
@@ -128,24 +128,33 @@ class VectorSearchIT {
 		assertThat(result).hasSize(0);
 	}
 
+	// tag::sdn-vector-search.usage[]
 	interface VectorSearchRepository extends Neo4jRepository<EntityWithVector, String> {
 
-		@VectorSearch(indexName = "dingsIndex", numberOfNodes = 2)
+		// end::sdn-vector-search.usage[]
+		// tag::sdn-vector-search.usage.findall[]
+		@VectorSearch(indexName = "entityIndex", numberOfNodes = 2)
 		List<EntityWithVector> findBy(String name, Vector searchVector);
+		// end::sdn-vector-search.usage.findall[]
 
-		@VectorSearch(indexName = "dingsIndex", numberOfNodes = 1)
+		// tag::sdn-vector-search.usage.findbyproperty[]
+		@VectorSearch(indexName = "entityIndex", numberOfNodes = 1)
 		List<EntityWithVector> findByName(String name, Vector searchVector);
+		// end::sdn-vector-search.usage.findbyproperty[]
 
-		@VectorSearch(indexName = "dingsIndex", numberOfNodes = 2)
+		@VectorSearch(indexName = "entityIndex", numberOfNodes = 2)
 		List<EntityWithVector> findByName(String name, Vector searchVector, Score score);
 
-		@VectorSearch(indexName = "dingsIndex", numberOfNodes = 2)
+		@VectorSearch(indexName = "entityIndex", numberOfNodes = 2)
 		SearchResults<EntityWithVector> findAllBy(Vector searchVector);
 
-		@VectorSearch(indexName = "dingsIndex", numberOfNodes = 2)
+		@VectorSearch(indexName = "entityIndex", numberOfNodes = 2)
 		SearchResult<EntityWithVector> findBy(Vector searchVector, Score score);
 
+		// tag::sdn-vector-search.usage[]
+
 	}
+	// end::sdn-vector-search.usage[]
 
 	@Configuration
 	@EnableTransactionManagement

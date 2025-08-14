@@ -1,0 +1,30 @@
+[[sdn-vector-search]]
+= Neo4j Vector Search
+
+== The `@VectorSearch` annotation
+Spring Data Neo4j supports Neo4j's vector search on the repository level by using the `@VectorSearch` annotation.
+For this to work, Neo4j needs to have a vector index in place.
+How to create a vector index is explained in the https://neo4j.com/docs/cypher-manual/current/indexes/search-performance-indexes/managing-indexes/[Neo4j documentation].
+
+NOTE: It's not required to have any (Spring Data) Vector typed property be defined in the domain entities for this to work
+because the search operates exclusively on the index.
+
+The `@VectorSearch` annotation requires two arguments:
+The name of the vector index to be used and the number of nearest neighbours.
+
+For a general vector search over the whole domain, it's possible to use a derived finder method without any property.
+[source,java,indent=0,tabsize=4]
+----
+include::example$integration/imperative/VectorSearchIT.java[tags=sdn-vector-search.usage;sdn-vector-search.usage.findall]
+----
+
+The vector index can be combined with any property-based finder method to filter down the results.
+
+NOTE: For technical reasons, the vector search will always be executed before the property search gets invoked.
+E.g. if the property filter looks for a person named "Helge",
+but the vector search only yields "Hannes", there won't be a result.
+
+[source,java,indent=0,tabsize=4]
+----
+include::example$integration/imperative/VectorSearchIT.java[tags=sdn-vector-search.usage;sdn-vector-search.usage.findbyproperty]
+----
