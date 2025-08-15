@@ -57,6 +57,10 @@ final class ReactivePartTreeNeo4jQuery extends AbstractReactiveNeo4jQuery {
 
 	static RepositoryQuery create(ReactiveNeo4jOperations neo4jOperations, Neo4jMappingContext mappingContext,
 			Neo4jQueryMethod queryMethod, ProjectionFactory factory) {
+		if (queryMethod.hasVectorSearchAnnotation()
+				&& queryMethod.getVectorSearchAnnotation().get().numberOfNodes() < 1) {
+			throw new IllegalArgumentException("Number of nodes in a vector search has to be greater than zero.");
+		}
 		return new ReactivePartTreeNeo4jQuery(neo4jOperations, mappingContext, queryMethod,
 				new PartTree(queryMethod.getName(), getDomainType(queryMethod)), factory);
 	}

@@ -25,6 +25,8 @@ import org.jspecify.annotations.Nullable;
 
 import org.springframework.core.MethodParameter;
 import org.springframework.core.annotation.AnnotatedElementUtils;
+import org.springframework.data.domain.SearchResult;
+import org.springframework.data.domain.SearchResults;
 import org.springframework.data.geo.GeoPage;
 import org.springframework.data.geo.GeoResult;
 import org.springframework.data.geo.GeoResults;
@@ -55,11 +57,17 @@ class Neo4jQueryMethod extends QueryMethod {
 	static final List<Class<? extends Serializable>> GEO_NEAR_RESULTS = List.of(GeoResult.class, GeoResults.class,
 			GeoPage.class);
 
+	static final List<Class<? extends Serializable>> VECTOR_SEARCH_RESULTS = List.of(SearchResults.class,
+			SearchResult.class);
+
 	/**
 	 * Optional query annotation of the method.
 	 */
 	@Nullable
 	private final Query queryAnnotation;
+
+	@Nullable
+	private final VectorSearch vectorSearchAnnotation;
 
 	private final String repositoryName;
 
@@ -94,6 +102,7 @@ class Neo4jQueryMethod extends QueryMethod {
 		this.repositoryName = this.method.getDeclaringClass().getName();
 		this.cypherBasedProjection = cypherBasedProjection;
 		this.queryAnnotation = AnnotatedElementUtils.findMergedAnnotation(this.method, Query.class);
+		this.vectorSearchAnnotation = AnnotatedElementUtils.findMergedAnnotation(this.method, VectorSearch.class);
 	}
 
 	String getRepositoryName() {
@@ -126,6 +135,14 @@ class Neo4jQueryMethod extends QueryMethod {
 		return Optional.ofNullable(this.queryAnnotation);
 	}
 
+	boolean hasVectorSearchAnnotation() {
+		return this.vectorSearchAnnotation != null;
+	}
+
+	Optional<VectorSearch> getVectorSearchAnnotation() {
+		return Optional.ofNullable(this.vectorSearchAnnotation);
+	}
+
 	@Override
 	public Class<?> getReturnedObjectType() {
 		Class<?> returnedObjectType = super.getReturnedObjectType();
@@ -143,7 +160,7 @@ class Neo4jQueryMethod extends QueryMethod {
 
 	boolean asCollectionQuery() {
 		return this.isCollectionLikeQuery() || this.isPageQuery() || this.isSliceQuery() || this.isScrollQuery()
-				|| GeoResults.class.isAssignableFrom(this.method.getReturnType());
+				|| GeoResults.class.isAssignableFrom(this.method.getReturnType()) || this.isSearchQuery();
 	}
 
 	Method getMethod() {
