@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
  | Copyright 2011-2025 the original author or authors.
  |
@@ -13,13 +13,14 @@
  | WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  | See the License for the specific language governing permissions and
  | limitations under the License.
---><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
 		<groupId>org.springframework.data.build</groupId>
 		<artifactId>spring-data-parent</artifactId>
-		<version>3.5.3-SNAPSHOT</version>
+		<version>3.5.3</version>
 	</parent>
 
 	<groupId>org.springframework.data</groupId>
@@ -101,7 +102,7 @@
 
 		<skipUnitTests>${skipTests}</skipUnitTests>
 
-		<springdata.commons>3.5.3-SNAPSHOT</springdata.commons>
+		<springdata.commons>3.5.3</springdata.commons>
 		<junit-pioneer.version>2.2.0</junit-pioneer.version>
 	</properties>
 
@@ -428,20 +429,8 @@
 	</dependencies>
 
 	<repositories>
-		<repository>
-			<id>spring-snapshot</id>
-			<url>https://repo.spring.io/snapshot</url>
-			<snapshots>
-				<enabled>true</enabled>
-			</snapshots>
-			<releases>
-				<enabled>false</enabled>
-			</releases>
-		</repository>
-		<repository>
-			<id>spring-milestone</id>
-			<url>https://repo.spring.io/milestone</url>
-		</repository>
+		
+		
 	</repositories>
 
 	<build>
