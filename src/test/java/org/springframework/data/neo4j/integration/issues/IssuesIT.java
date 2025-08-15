@@ -196,6 +196,8 @@ import org.springframework.data.neo4j.integration.issues.gh2973.RelationshipA;
 import org.springframework.data.neo4j.integration.issues.gh2973.RelationshipB;
 import org.springframework.data.neo4j.integration.issues.gh2973.RelationshipC;
 import org.springframework.data.neo4j.integration.issues.gh2973.RelationshipD;
+import org.springframework.data.neo4j.integration.issues.gh3036.Vehicle;
+import org.springframework.data.neo4j.integration.issues.gh3036.VehicleRepository;
 import org.springframework.data.neo4j.integration.issues.qbe.A;
 import org.springframework.data.neo4j.integration.issues.qbe.ARepository;
 import org.springframework.data.neo4j.integration.issues.qbe.B;
@@ -1769,6 +1771,22 @@ class IssuesIT extends TestBase {
 		var loadedNodeFail = gh2973Repository.findById(persistedNodeFail.getId()).get();
 		List<BaseRelationship> relationshipsCFail = loadedNodeFail.getRelationships().get("c");
 		assertThat(relationshipsCFail.get(0)).isNotExactlyInstanceOf(BaseRelationship.class);
+	}
+
+	@Tag("GH-3036")
+	@Test
+	void asdf(@Autowired VehicleRepository repository) {
+		var vehicleWithoutDynamicLabels = new Vehicle();
+		var vehicleWithOneDynamicLabel = new Vehicle();
+		vehicleWithOneDynamicLabel.setLabels(Set.of("label1"));
+		var vehicleWithTwoDynamicLabels = new Vehicle();
+		vehicleWithTwoDynamicLabels.setLabels(Set.of("label1", "label2"));
+
+		repository.saveAll(List.of(vehicleWithoutDynamicLabels, vehicleWithOneDynamicLabel, vehicleWithTwoDynamicLabels));
+
+		var vehicles = repository.findAllVehicles();
+		assertThat(vehicles).hasOnlyElementsOfType(Vehicle.class);
+
 	}
 
 	@Configuration

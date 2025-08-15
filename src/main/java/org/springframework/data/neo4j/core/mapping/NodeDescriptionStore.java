@@ -104,7 +104,8 @@ final class NodeDescriptionStore {
 
 	private NodeDescriptionAndLabels computeConcreteNodeDescription(NodeDescription<?> entityDescription, @Nullable List<String> labels) {
 
-		boolean isConcreteClassThatFulfillsEverything = !Modifier.isAbstract(entityDescription.getUnderlyingClass().getModifiers()) && entityDescription.getStaticLabels().containsAll(labels);
+		var isAbstractClassOrInterface = Modifier.isAbstract(entityDescription.getUnderlyingClass().getModifiers());
+		boolean isConcreteClassThatFulfillsEverything = !isAbstractClassOrInterface && entityDescription.getStaticLabels().containsAll(labels);
 
 		if (labels == null || labels.isEmpty() || isConcreteClassThatFulfillsEverything) {
 			return new NodeDescriptionAndLabels(entityDescription, Collections.emptyList());
@@ -119,9 +120,12 @@ final class NodeDescriptionStore {
 
 		if (!haystack.isEmpty()) {
 
-			NodeDescription<?> mostMatchingNodeDescription = null;
+			NodeDescription<?> mostMatchingNodeDescription = !isAbstractClassOrInterface ? entityDescription : null;
+			List<String> mostMatchingStaticLabels = !isAbstractClassOrInterface ? entityDescription.getStaticLabels() : null;
 			Map<NodeDescription<?>, Integer> unmatchedLabelsCache = new HashMap<>();
-			List<String> mostMatchingStaticLabels = null;
+			if (!isAbstractClassOrInterface) {
+				unmatchedLabelsCache.put(mostMatchingNodeDescription, labels.size() - mostMatchingStaticLabels.size());
+			}
 
 			for (NodeDescription<?> nd : haystack) {
 
