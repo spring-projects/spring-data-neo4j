@@ -303,6 +303,10 @@ public enum CypherGenerator {
 		String primaryLabel = nodeDescription.getPrimaryLabel();
 		List<String> additionalLabels = nodeDescription.getAdditionalLabels();
 
+		List<String> additionalLabelsNew = new ArrayList<>(additionalLabels);
+		additionalLabelsNew.addAll(nodeDescription.getDynamicLabels());
+		Node rootNodeWithDynamicLabels = node(primaryLabel, additionalLabelsNew).named(Constants.NAME_OF_TYPED_ROOT_NODE.apply(nodeDescription));
+
 		Node rootNode = node(primaryLabel, additionalLabels).named(Constants.NAME_OF_TYPED_ROOT_NODE.apply(nodeDescription));
 		IdDescription idDescription = nodeDescription.getIdDescription();
 		Assert.notNull(idDescription, "Cannot save individual nodes without an id attribute");
@@ -320,9 +324,9 @@ public enum CypherGenerator {
 						.where(createCompositePropertyCondition(idPropertyDescription, possibleExistingNode.getRequiredSymbolicName(), idParameter))
 						.with(possibleExistingNode)
 						.where(possibleExistingNode.isNull())
-						.create(rootNode.withProperties(versionProperty, literalOf(0)))
-						.with(rootNode)
-						.mutate(rootNode, parameter(Constants.NAME_OF_PROPERTIES_PARAM))).returning(rootNode)
+						.create(rootNodeWithDynamicLabels.withProperties(versionProperty, literalOf(0)))
+						.with(rootNodeWithDynamicLabels)
+						.mutate(rootNodeWithDynamicLabels, parameter(Constants.NAME_OF_PROPERTIES_PARAM))).returning(rootNodeWithDynamicLabels)
 						.build();
 
 				Statement updateIfExists = updateDecorator.apply(match(rootNode)
@@ -345,9 +349,9 @@ public enum CypherGenerator {
 								.where(createCompositePropertyCondition(idPropertyDescription, possibleExistingNode.getRequiredSymbolicName(), idParameter))
 								.with(possibleExistingNode)
 								.where(possibleExistingNode.isNull())
-								.create(rootNode)
-								.with(rootNode)
-								.mutate(rootNode, parameter(Constants.NAME_OF_PROPERTIES_PARAM))).returning(rootNode)
+								.create(rootNodeWithDynamicLabels)
+								.with(rootNodeWithDynamicLabels)
+								.mutate(rootNodeWithDynamicLabels, parameter(Constants.NAME_OF_PROPERTIES_PARAM))).returning(rootNodeWithDynamicLabels)
 						.build();
 
 				Statement updateIfExists = updateDecorator.apply(match(rootNode)
@@ -375,10 +379,10 @@ public enum CypherGenerator {
 						.where(nodeIdFunction.apply(possibleExistingNode).isEqualTo(idParameter))
 						.with(possibleExistingNode)
 						.where(possibleExistingNode.isNull())
-						.create(rootNode.withProperties(versionProperty, literalOf(0)))
-						.with(rootNode)
-						.mutate(rootNode, parameter(Constants.NAME_OF_PROPERTIES_PARAM)))
-						.returning(rootNode)
+						.create(rootNodeWithDynamicLabels.withProperties(versionProperty, literalOf(0)))
+						.with(rootNodeWithDynamicLabels)
+						.mutate(rootNodeWithDynamicLabels, parameter(Constants.NAME_OF_PROPERTIES_PARAM)))
+						.returning(rootNodeWithDynamicLabels)
 						.build();
 
 				updateIfExists = updateDecorator.apply(match(rootNode)
@@ -393,9 +397,9 @@ public enum CypherGenerator {
 			} else {
 				createIfNew = updateDecorator
 						.apply(optionalMatch(possibleExistingNode).where(nodeIdFunction.apply(possibleExistingNode).isEqualTo(idParameter))
-								.with(possibleExistingNode).where(possibleExistingNode.isNull()).create(rootNode)
-								.set(rootNode, parameter(Constants.NAME_OF_PROPERTIES_PARAM)))
-						.returning(rootNode).build();
+								.with(possibleExistingNode).where(possibleExistingNode.isNull()).create(rootNodeWithDynamicLabels)
+								.set(rootNodeWithDynamicLabels, parameter(Constants.NAME_OF_PROPERTIES_PARAM)))
+						.returning(rootNodeWithDynamicLabels).build();
 
 				updateIfExists = updateDecorator.apply(match(rootNode).where(nodeIdFunction.apply(rootNode).isEqualTo(idParameter))
 						.mutate(rootNode, parameter(Constants.NAME_OF_PROPERTIES_PARAM))).returning(rootNode).build();
