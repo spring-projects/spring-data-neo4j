@@ -30,7 +30,6 @@ import static org.neo4j.cypherdsl.core.Cypher.listWith;
 import static org.neo4j.cypherdsl.core.Cypher.name;
 import static org.neo4j.cypherdsl.core.Cypher.node;
 import static org.neo4j.cypherdsl.core.Cypher.parameter;
-import static org.neo4j.cypherdsl.core.Cypher.shortestPath;
 
 class DomainResultsImpl implements DomainResults {
 
@@ -45,7 +44,7 @@ class DomainResultsImpl implements DomainResults {
 
 		var p1 = node("Person").withProperties("name", parameter("person1"));
 		var p2 = node("Person").withProperties("name", parameter("person2"));
-		var shortestPath = shortestPath("p").definedBy(p1.relationshipBetween(p2).unbounded());
+		var shortestPath = Cypher.shortestK(1).named("p").definedBy(p1.relationshipBetween(p2).unbounded());
 		var p = shortestPath.getRequiredSymbolicName();
 		var statement = Cypher.match(shortestPath)
 			.with(p, listWith(name("n")).in(Cypher.nodes(shortestPath))
