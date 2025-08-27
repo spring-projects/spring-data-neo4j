@@ -137,10 +137,10 @@ public final class TemplateSupport {
 		return candidate;
 	}
 
-	static PropertyFilter computeIncludePropertyPredicate(Collection<PropertyFilter.ProjectedPath> includedProperties,
-			NodeDescription<?> nodeDescription) {
+	static PropertyFilter computeIncludePropertyPredicate(
+			@Nullable Collection<PropertyFilter.ProjectedPath> includedProperties, NodeDescription<?> nodeDescription) {
 
-		return PropertyFilter.from(includedProperties, nodeDescription);
+		return PropertyFilter.from(Objects.requireNonNullElseGet(includedProperties, List::of), nodeDescription);
 	}
 
 	static void updateVersionPropertyIfPossible(Neo4jPersistentEntity<?> entityMetaData,
@@ -207,8 +207,8 @@ public final class TemplateSupport {
 	 * @return a new binder function that only works on the included properties.
 	 */
 	static <T> FilteredBinderFunction<T> createAndApplyPropertyFilter(
-			Collection<PropertyFilter.ProjectedPath> includedProperties, Neo4jPersistentEntity<?> entityMetaData,
-			Function<T, Map<String, Object>> binderFunction) {
+			@Nullable Collection<PropertyFilter.ProjectedPath> includedProperties,
+			Neo4jPersistentEntity<?> entityMetaData, Function<T, Map<String, Object>> binderFunction) {
 
 		PropertyFilter includeProperty = TemplateSupport.computeIncludePropertyPredicate(includedProperties,
 				entityMetaData);

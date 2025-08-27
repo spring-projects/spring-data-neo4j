@@ -208,7 +208,7 @@ public final class QueryFragments {
 			.with(Cypher.name("node").as(((Node) this.matchOn.get(0)).getRequiredSymbolicName().getValue()),
 					Cypher.name("score").as(Constants.NAME_OF_SCORE));
 
-		StatementBuilder.OngoingReadingWithoutWhere match = null;
+		StatementBuilder.OngoingReadingWithoutWhere match;
 		if (vectorSearchFragment.hasScore()) {
 			match = vectorSearch
 				.where(Cypher.raw(Constants.NAME_OF_SCORE)

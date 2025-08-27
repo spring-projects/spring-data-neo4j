@@ -449,7 +449,7 @@ public final class Neo4jTemplate
 		});
 	}
 
-	private <T> T saveImpl(T instance, Collection<PropertyFilter.ProjectedPath> includedProperties,
+	private <T> T saveImpl(T instance, @Nullable Collection<PropertyFilter.ProjectedPath> includedProperties,
 			@Nullable NestedRelationshipProcessingStateMachine stateMachine) {
 
 		if (stateMachine != null && stateMachine.hasProcessedValue(instance)) {
@@ -1489,12 +1489,7 @@ public final class Neo4jTemplate
 					statement = nodesAndRelationshipsById.toStatement(entityMetaData);
 				}
 				else {
-					if (queryFragmentsAndParameters.hasVectorSearchFragment()) {
-						statement = queryFragments.toStatement(queryFragmentsAndParameters.getVectorSearchFragment());
-					}
-					else {
-						statement = queryFragments.toStatement();
-					}
+					statement = queryFragmentsAndParameters.toStatement();
 				}
 				cypherQuery = Neo4jTemplate.this.renderer.render(statement);
 				finalParameters = TemplateSupport.mergeParameters(statement, finalParameters);

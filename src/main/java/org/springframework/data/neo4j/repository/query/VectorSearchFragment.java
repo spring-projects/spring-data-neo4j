@@ -25,7 +25,7 @@ import org.jspecify.annotations.Nullable;
  * @param numberOfNodes number of nodes to fetch from the index search
  * @param score score filter
  */
-record VectorSearchFragment(String indexName, int numberOfNodes, @Nullable Double score) {
+public record VectorSearchFragment(String indexName, int numberOfNodes, @Nullable Double score) {
 
 	boolean hasScore() {
 		return this.score != null;
