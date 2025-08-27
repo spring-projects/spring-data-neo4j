@@ -33,6 +33,7 @@ import org.neo4j.cypherdsl.core.Node;
 import org.neo4j.cypherdsl.core.PatternElement;
 import org.neo4j.cypherdsl.core.RelationshipPattern;
 import org.neo4j.cypherdsl.core.SortItem;
+import org.neo4j.cypherdsl.core.Statement;
 
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.KeysetScrollPosition;
@@ -63,6 +64,7 @@ public final class QueryFragmentsAndParameters {
 
 	private final QueryFragments queryFragments;
 
+	@Nullable
 	private final VectorSearchFragment vectorSearchFragment;
 
 	@Nullable
@@ -76,7 +78,7 @@ public final class QueryFragmentsAndParameters {
 	private NodeDescription<?> nodeDescription;
 
 	public QueryFragmentsAndParameters(@Nullable NodeDescription<?> nodeDescription, QueryFragments queryFragments,
-			VectorSearchFragment vectorSearchFragment, Map<String, Object> parameters, @Nullable Sort sort) {
+			@Nullable VectorSearchFragment vectorSearchFragment, Map<String, Object> parameters, @Nullable Sort sort) {
 		this.nodeDescription = nodeDescription;
 		this.queryFragments = queryFragments;
 		this.vectorSearchFragment = vectorSearchFragment;
@@ -402,10 +404,6 @@ public final class QueryFragmentsAndParameters {
 		return this.vectorSearchFragment != null;
 	}
 
-	public VectorSearchFragment getVectorSearchFragment() {
-		return this.vectorSearchFragment;
-	}
-
 	@Nullable public String getCypherQuery() {
 		return this.cypherQuery;
 	}
@@ -416,6 +414,13 @@ public final class QueryFragmentsAndParameters {
 
 	public Sort getSort() {
 		return this.sort;
+	}
+
+	public Statement toStatement() {
+		if (this.hasVectorSearchFragment()) {
+			return this.queryFragments.toStatement(Objects.requireNonNull(this.vectorSearchFragment));
+		}
+		return this.queryFragments.toStatement();
 	}
 
 }

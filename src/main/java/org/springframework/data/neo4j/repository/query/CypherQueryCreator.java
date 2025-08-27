@@ -208,7 +208,7 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndPar
 		if (this.keysetRequiresSort && theSort.isUnsorted()) {
 			throw new UnsupportedOperationException("Unsorted keyset based scrolling is not supported.");
 		}
-		if (this.queryMethod.hasVectorSearchAnnotation()) {
+		if (this.queryMethod.hasVectorSearchAnnotation() && this.vectorSearchParameter != null) {
 			var vectorSearchAnnotation = this.queryMethod.getVectorSearchAnnotation().orElseThrow();
 			var indexName = vectorSearchAnnotation.indexName();
 			var numberOfNodes = vectorSearchAnnotation.numberOfNodes();
@@ -219,9 +219,8 @@ final class CypherQueryCreator extends AbstractQueryCreator<QueryFragmentsAndPar
 			}
 			var vectorSearchFragment = new VectorSearchFragment(indexName, numberOfNodes,
 					(this.scoreParameter != null) ? this.scoreParameter.getValue() : null);
-			var queryFragmentsAndParameters = new QueryFragmentsAndParameters(this.nodeDescription, queryFragments,
-					vectorSearchFragment, convertedParameters, theSort);
-			return queryFragmentsAndParameters;
+			return new QueryFragmentsAndParameters(this.nodeDescription, queryFragments, vectorSearchFragment,
+					convertedParameters, theSort);
 		}
 		return new QueryFragmentsAndParameters(this.nodeDescription, queryFragments, convertedParameters, theSort);
 	}

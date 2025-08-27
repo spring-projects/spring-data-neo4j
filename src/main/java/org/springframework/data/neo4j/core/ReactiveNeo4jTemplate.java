@@ -469,13 +469,13 @@ public final class ReactiveNeo4jTemplate
 		});
 	}
 
-	private <T> Mono<T> saveImpl(T instance, Collection<PropertyFilter.ProjectedPath> includedProperties,
+	private <T> Mono<T> saveImpl(T instance, @Nullable Collection<PropertyFilter.ProjectedPath> includedProperties,
 			@Nullable NestedRelationshipProcessingStateMachine stateMachine) {
 		return saveImpl(instance, includedProperties, stateMachine, new HashSet<>());
 	}
 
 	@SuppressWarnings("deprecation")
-	private <T> Mono<T> saveImpl(T instance, Collection<PropertyFilter.ProjectedPath> includedProperties,
+	private <T> Mono<T> saveImpl(T instance, @Nullable Collection<PropertyFilter.ProjectedPath> includedProperties,
 			@Nullable NestedRelationshipProcessingStateMachine stateMachine, Collection<Object> knownRelationshipsIds) {
 
 		if (stateMachine != null && stateMachine.hasProcessedValue(instance)) {
@@ -1408,13 +1408,7 @@ public final class ReactiveNeo4jTemplate
 							return new DefaultReactiveExecutableQuery<>(preparedQuery, fetchSpec);
 						});
 				}
-				Statement statement = null;
-				if (queryFragmentsAndParameters.hasVectorSearchFragment()) {
-					statement = queryFragments.toStatement(queryFragmentsAndParameters.getVectorSearchFragment());
-				}
-				else {
-					statement = queryFragments.toStatement();
-				}
+				Statement statement = queryFragmentsAndParameters.toStatement();
 				cypherQuery = this.renderer.render(statement);
 				finalParameters = TemplateSupport.mergeParameters(statement, finalParameters);
 			}
