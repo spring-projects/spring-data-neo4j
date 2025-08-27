@@ -23,14 +23,13 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
-import org.junit.jupiter.api.extension.ExtensionContext;
 
 /**
  * Provides access to the formatted message captured from Logback during test run.
  *
  * @author Michael J. Simons
  */
-public final class LogbackCapture implements ExtensionContext.Store.CloseableResource {
+public final class LogbackCapture implements AutoCloseable {
 
 	private final ListAppender<ILoggingEvent> listAppender;
 

@@ -15,13 +15,18 @@
  */
 package org.springframework.data.neo4j.core;
 
+import java.util.Optional;
 import java.util.stream.Stream;
 
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.neo4j.driver.NotificationClassification;
+import org.neo4j.driver.NotificationSeverity;
+import org.neo4j.driver.internal.summary.InternalGqlNotification;
+import org.neo4j.driver.summary.GqlNotification;
 import org.neo4j.driver.summary.InputPosition;
-import org.neo4j.driver.summary.Notification;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
@@ -56,7 +61,7 @@ class ResultSummariesTests {
 
 	@ParameterizedTest(name = "{index}: Notifications for \"{0}\"")
 	@MethodSource("params")
-	void shouldFormatNotifications(String query, Integer line, Integer column, String expected) {
+	void shouldFormatNotifications(String query, @Nullable Integer line, @Nullable Integer column, String expected) {
 
 		InputPosition inputPosition;
 		if (line == null || column == null) {
@@ -68,16 +73,22 @@ class ResultSummariesTests {
 			given(inputPosition.column()).willReturn(column);
 		}
 
-		Notification notification = mock(Notification.class);
-		given(notification.severity()).willReturn("WARNING");
-		given(notification.code()).willReturn("KGQ.Warning");
-		given(notification.title()).willReturn("Das ist keine gute Query.");
-		given(notification.description()).willReturn("Das solltest Du besser nicht mehr machen.");
-		given(notification.position()).willReturn(inputPosition);
+		// Mockito cannot mock this class: interface
+		// org.neo4j.driver.summary.GqlNotification.
+		// Sealed interfaces or abstract classes can't be mocked. Interfaces cannot be
+		// instantiated and cannot be subclassed for mocking purposes.
+		// Instead of mocking a sealed interface or an abstract class, a non-abstract
+		// class can be mocked and used to represent the interface.
+		GqlNotification notification = mock(InternalGqlNotification.class);
+		given(notification.severity()).willReturn(Optional.of(NotificationSeverity.WARNING));
+		given(notification.gqlStatus()).willReturn("KGQ.Warning");
+		given(notification.classification()).willReturn(Optional.of(NotificationClassification.UNRECOGNIZED));
+		given(notification.statusDescription()).willReturn("Das solltest Du besser nicht mehr machen.");
+		given(notification.position()).willReturn(Optional.ofNullable(inputPosition));
 
 		String formattedNotification = ResultSummaries.format(notification, query);
-		assertThat(formattedNotification).isEqualTo("KGQ.Warning: Das ist keine gute Query." + LINE_SEPARATOR + expected
-				+ "Das solltest Du besser nicht mehr machen.");
+		assertThat(formattedNotification)
+			.isEqualTo("Das solltest Du besser nicht mehr machen. (KGQ.Warning):" + LINE_SEPARATOR + expected);
 	}
 
 }

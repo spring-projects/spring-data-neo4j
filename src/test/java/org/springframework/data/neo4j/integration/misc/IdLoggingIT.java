@@ -71,8 +71,9 @@ class IdLoggingIT {
 			try {
 				assertThatCode(() -> neo4jClient.query("CREATE (n:XXXIdTest) RETURN id(n)").fetch().all())
 					.doesNotThrowAnyException();
-				Predicate<String> stringPredicate = msg -> msg
-					.contains("Neo.ClientNotification.Statement.FeatureDeprecationWarning");
+				// 01N42 is the old polyfill (spotted in 5.21)
+				Predicate<String> stringPredicate = msg -> msg.contains("01N00") || msg.contains("01N02")
+						|| msg.contains("01N42");
 
 				if (enabled == null || enabled) {
 					assertThat(logbackCapture.getFormattedMessages()).noneMatch(stringPredicate);
@@ -104,10 +105,9 @@ class IdLoggingIT {
 			assertThatCode(
 					() -> neo4jClient.query("MATCH (n) CALL {WITH n RETURN count(n) AS cnt} RETURN *").fetch().all())
 				.doesNotThrowAnyException();
-			assertThat(logbackCapture.getFormattedMessages())
-				.anyMatch(msg -> msg.contains("Neo.ClientNotification.Statement.FeatureDeprecationWarning"))
+			assertThat(logbackCapture.getFormattedMessages()).anyMatch(msg -> msg.contains("01N00"))
 				.anyMatch(msg -> msg
-					.contains("CALL subquery without a variable scope clause is now deprecated. Use CALL (n) { ... }"));
+					.contains("CALL subquery without a variable scope clause is deprecated. Use CALL (n) { ... }"));
 		}
 		finally {
 			logger.setLevel(originalLevel);

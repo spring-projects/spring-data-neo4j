@@ -23,7 +23,6 @@ import java.util.function.BiFunction;
 import java.util.function.LongSupplier;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
-import java.util.stream.Collectors;
 
 import org.jspecify.annotations.Nullable;
 import org.neo4j.driver.types.MapAccessor;
@@ -166,7 +165,7 @@ abstract class AbstractNeo4jQuery extends Neo4jQuerySupport implements Repositor
 			rawResult = newGeoResults(rawResult);
 		}
 		else if (this.queryMethod.isSearchQuery()) {
-			rawResult = createSearchResult((List<?>) rawResult, returnedType.getReturnedType());
+			rawResult = createSearchResult((List<?>) rawResult);
 		}
 
 		return resultProcessor.processResult(rawResult, preparingConverter);
@@ -207,11 +206,9 @@ abstract class AbstractNeo4jQuery extends Neo4jQuerySupport implements Repositor
 		}
 	}
 
-	private <T> SearchResults<?> createSearchResult(List<?> rawResult, Class<T> returnedType) {
-		List<SearchResult<T>> searchResults = rawResult.stream()
-			.map(rawValue -> (SearchResult<T>) rawValue)
-			.collect(Collectors.toUnmodifiableList());
-		return new SearchResults<>(searchResults);
+	@SuppressWarnings("unchecked")
+	private <T> SearchResults<?> createSearchResult(List<?> rawResult) {
+		return new SearchResults<>(rawResult.stream().map(rawValue -> (SearchResult<T>) rawValue).toList());
 	}
 
 	protected abstract <T> PreparedQuery<T> prepareQuery(Class<T> returnedType,
