@@ -15,6 +15,7 @@
  */
 package org.springframework.data.neo4j.core;
 
+import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
@@ -23,10 +24,9 @@ import java.util.stream.Stream;
 
 import org.apache.commons.logging.LogFactory;
 import org.jspecify.annotations.Nullable;
-import org.neo4j.driver.NotificationCategory;
+import org.neo4j.driver.NotificationClassification;
 import org.neo4j.driver.NotificationSeverity;
-import org.neo4j.driver.summary.InputPosition;
-import org.neo4j.driver.summary.Notification;
+import org.neo4j.driver.summary.GqlNotification;
 import org.neo4j.driver.summary.Plan;
 import org.neo4j.driver.summary.ResultSummary;
 
@@ -66,8 +66,15 @@ final class ResultSummaries {
 	private static final LogAccessor cypherTopologyNotificationLog = new LogAccessor(
 			LogFactory.getLog("org.springframework.data.neo4j.cypher.topology"));
 
-	private static final Pattern DEPRECATED_ID_PATTERN = Pattern
-		.compile("(?im)The query used a deprecated function[.:] \\(?[`']id.+");
+	private static final LogAccessor cypherSchemaNotificationLog = new LogAccessor(
+			LogFactory.getLog("org.springframework.data.neo4j.cypher.schema"));
+
+	private static final List<Pattern> STUFF_THAT_MIGHT_INFORM_THAT_THE_ID_FUNCTION_IS_PROBLEMATIC = Stream.of(
+			"(?im)The query used a deprecated function[.:] \\(?[`']id.+",
+			"(?im).*id is deprecated and will be removed without a replacement\\.",
+			"(?im).*feature deprecated with replacement\\. id is deprecated\\. It is replaced by elementId or consider using an application-generated id\\.")
+		.map(Pattern::compile)
+		.toList();
 
 	private ResultSummaries() {
 	}
@@ -86,29 +93,33 @@ final class ResultSummaries {
 
 	private static void logNotifications(ResultSummary resultSummary) {
 
-		if (resultSummary.notifications().isEmpty() || !Neo4jClient.cypherLog.isWarnEnabled()) {
+		if (resultSummary.gqlStatusObjects().isEmpty() || !Neo4jClient.cypherLog.isWarnEnabled()) {
 			return;
 		}
 
 		boolean supressIdDeprecations = Neo4jClient.SUPPRESS_ID_DEPRECATIONS.getAcquire();
-		Predicate<Notification> isDeprecationWarningForId;
+		Predicate<GqlNotification> isDeprecationWarningForId;
 		try {
 			isDeprecationWarningForId = notification -> supressIdDeprecations
-					&& notification.category()
-						.orElse(NotificationCategory.UNRECOGNIZED)
-						.equals(NotificationCategory.DEPRECATION)
-					&& DEPRECATED_ID_PATTERN.matcher(notification.description()).matches();
+					&& notification.classification()
+						.filter(cat -> cat == NotificationClassification.UNRECOGNIZED
+								|| cat == NotificationClassification.DEPRECATION)
+						.isPresent()
+					&& STUFF_THAT_MIGHT_INFORM_THAT_THE_ID_FUNCTION_IS_PROBLEMATIC.stream()
+						.anyMatch(p -> p.matcher(notification.statusDescription()).matches());
 		}
 		finally {
 			Neo4jClient.SUPPRESS_ID_DEPRECATIONS.setRelease(supressIdDeprecations);
 		}
 
 		String query = resultSummary.query().text();
-		resultSummary.notifications()
+		resultSummary.gqlStatusObjects()
 			.stream()
+			.filter(GqlNotification.class::isInstance)
+			.map(GqlNotification.class::cast)
 			.filter(Predicate.not(isDeprecationWarningForId))
-			.forEach(notification -> notification.severityLevel().ifPresent(severityLevel -> {
-				var category = notification.category().orElse(null);
+			.forEach(notification -> notification.severity().ifPresent(severityLevel -> {
+				var category = notification.classification().orElse(null);
 
 				var logger = getLogAccessor(category);
 				Consumer<String> logFunction;
@@ -130,35 +141,22 @@ final class ResultSummaries {
 			}));
 	}
 
-	private static LogAccessor getLogAccessor(@Nullable NotificationCategory category) {
-		if (category == null) {
+	private static LogAccessor getLogAccessor(@Nullable NotificationClassification classification) {
+		if (classification == null) {
 			return Neo4jClient.cypherLog;
 		}
-		if (category.equals(NotificationCategory.HINT)) {
-			return cypherHintNotificationLog;
-		}
-		else if (category.equals(NotificationCategory.DEPRECATION)) {
-			return cypherDeprecationNotificationLog;
-		}
-		else if (category.equals(NotificationCategory.PERFORMANCE)) {
-			return cypherPerformanceNotificationLog;
-		}
-		else if (category.equals(NotificationCategory.GENERIC)) {
-			return cypherGenericNotificationLog;
-		}
-		else if (category.equals(NotificationCategory.UNSUPPORTED)) {
-			return cypherUnsupportedNotificationLog;
-		}
-		else if (category.equals(NotificationCategory.UNRECOGNIZED)) {
-			return cypherUnrecognizedNotificationLog;
-		}
-		else if (category.equals(NotificationCategory.SECURITY)) {
-			return cypherSecurityNotificationLog;
-		}
-		else if (category.equals(NotificationCategory.TOPOLOGY)) {
-			return cypherTopologyNotificationLog;
-		}
-		return Neo4jClient.cypherLog;
+
+		return switch (classification) {
+			case HINT -> cypherHintNotificationLog;
+			case UNRECOGNIZED -> cypherUnrecognizedNotificationLog;
+			case UNSUPPORTED -> cypherUnsupportedNotificationLog;
+			case PERFORMANCE -> cypherPerformanceNotificationLog;
+			case DEPRECATION -> cypherDeprecationNotificationLog;
+			case SECURITY -> cypherSecurityNotificationLog;
+			case TOPOLOGY -> cypherTopologyNotificationLog;
+			case GENERIC -> cypherGenericNotificationLog;
+			case SCHEMA -> cypherSchemaNotificationLog;
+		};
 	}
 
 	/**
@@ -167,25 +165,23 @@ final class ResultSummaries {
 	 * @param forQuery the query that caused the notification
 	 * @return a formatted string
 	 */
-	static String format(Notification notification, String forQuery) {
+	static String format(GqlNotification notification, String forQuery) {
 
-		InputPosition position = notification.position();
-		boolean hasPosition = position != null;
+		var position = notification.position().orElse(null);
 
 		StringBuilder queryHint = new StringBuilder();
 		String[] lines = forQuery.split("(\r\n|\n)");
 		for (int i = 0; i < lines.length; i++) {
 			String line = lines[i];
 			queryHint.append("\t").append(line).append(LINE_SEPARATOR);
-			if (hasPosition && i + 1 == position.line()) {
+			if (position != null && i + 1 == position.line()) {
 				queryHint.append("\t")
 					.append(Stream.generate(() -> " ").limit(position.column() - 1).collect(Collectors.joining()))
 					.append("^")
 					.append(System.lineSeparator());
 			}
 		}
-		return String.format("%s: %s%n%s%s", notification.code(), notification.title(), queryHint,
-				notification.description());
+		return String.format("%s (%s):%n%s", notification.statusDescription(), notification.gqlStatus(), queryHint);
 	}
 
 	/**

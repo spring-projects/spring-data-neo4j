@@ -97,7 +97,7 @@
 		<maven-install-plugin.version>3.1.4</maven-install-plugin.version>
 		<maven-site-plugin.version>3.7.1</maven-site-plugin.version>
 		<maven.compiler.release>${java.version}</maven.compiler.release>
-		<neo4j-java-driver.version>5.28.9</neo4j-java-driver.version>
+		<neo4j-java-driver.version>6.0.0</neo4j-java-driver.version>
 		<neo4j-migrations.version>2.17.3</neo4j-migrations.version>
 		<neo4j.version>5.26.12</neo4j.version>
 		<objenesis.version>3.0.1</objenesis.version>

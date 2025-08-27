@@ -141,7 +141,7 @@ class Neo4jClientTests {
 		verify(this.session).run(eq(cypher), MockitoHamcrest.argThat(new MapAssertionMatcher(expectedParameters)));
 		verify(this.result).stream();
 		verify(this.result).consume();
-		verify(this.resultSummary).notifications();
+		verify(this.resultSummary).gqlStatusObjects();
 		verify(this.resultSummary).hasPlan();
 		verify(this.record1).asMap();
 		verify(this.session).close();
@@ -181,7 +181,7 @@ class Neo4jClientTests {
 		verify(this.session).run(eq(cypher), MockitoHamcrest.argThat(new MapAssertionMatcher(expectedParameters)));
 		verify(this.result).stream();
 		verify(this.result).consume();
-		verify(this.resultSummary).notifications();
+		verify(this.resultSummary).gqlStatusObjects();
 		verify(this.resultSummary).hasPlan();
 		verify(this.record1).asMap();
 		verify(this.session).close();
@@ -220,7 +220,7 @@ class Neo4jClientTests {
 		verify(this.session).run(eq(cypher), MockitoHamcrest.argThat(new MapAssertionMatcher(expectedParameters)));
 		verify(this.result).stream();
 		verify(this.result).consume();
-		verify(this.resultSummary).notifications();
+		verify(this.resultSummary).gqlStatusObjects();
 		verify(this.resultSummary).hasPlan();
 		verify(this.record1).asMap();
 		verify(this.session).close();
@@ -268,7 +268,7 @@ class Neo4jClientTests {
 
 		verify(this.result).stream();
 		verify(this.result).consume();
-		verify(this.resultSummary).notifications();
+		verify(this.resultSummary).gqlStatusObjects();
 		verify(this.resultSummary).hasPlan();
 		verify(this.record1).asMap();
 		verify(this.record2).asMap();
@@ -305,7 +305,7 @@ class Neo4jClientTests {
 		verify(this.session).run(eq(cypher), MockitoHamcrest.argThat(new MapAssertionMatcher(expectedParameters)));
 		verify(this.result).stream();
 		verify(this.result).consume();
-		verify(this.resultSummary).notifications();
+		verify(this.resultSummary).gqlStatusObjects();
 		verify(this.resultSummary).hasPlan();
 		verify(this.record1).asMap();
 		verify(this.session).close();
@@ -350,7 +350,7 @@ class Neo4jClientTests {
 		verify(this.session).run(eq(query), anyMap());
 		verify(this.result).stream();
 		verify(this.result).consume();
-		verify(this.resultSummary).notifications();
+		verify(this.resultSummary).gqlStatusObjects();
 		verify(this.resultSummary).hasPlan();
 		verify(this.record1).asMap();
 		verify(this.session).close();
@@ -379,7 +379,7 @@ class Neo4jClientTests {
 
 		verify(this.session).run(eq(cypher), MockitoHamcrest.argThat(new MapAssertionMatcher(expectedParameters)));
 		verify(this.result).consume();
-		verify(this.resultSummary).notifications();
+		verify(this.resultSummary).gqlStatusObjects();
 		verify(this.resultSummary).hasPlan();
 		verify(this.session).close();
 	}
@@ -577,7 +577,7 @@ class Neo4jClientTests {
 					MockitoHamcrest.argThat(new MapAssertionMatcher(expectedParameters)));
 			verify(Neo4jClientTests.this.result).stream();
 			verify(Neo4jClientTests.this.result).consume();
-			verify(Neo4jClientTests.this.resultSummary).notifications();
+			verify(Neo4jClientTests.this.resultSummary).gqlStatusObjects();
 			verify(Neo4jClientTests.this.resultSummary).hasPlan();
 			verify(Neo4jClientTests.this.record1).get("name");
 			verify(Neo4jClientTests.this.session).close();
@@ -614,7 +614,7 @@ class Neo4jClientTests {
 					MockitoHamcrest.argThat(new MapAssertionMatcher(Collections.emptyMap())));
 			verify(Neo4jClientTests.this.result).stream();
 			verify(Neo4jClientTests.this.result).consume();
-			verify(Neo4jClientTests.this.resultSummary).notifications();
+			verify(Neo4jClientTests.this.resultSummary).gqlStatusObjects();
 			verify(Neo4jClientTests.this.resultSummary).hasPlan();
 			verify(Neo4jClientTests.this.record1).get("name");
 			verify(Neo4jClientTests.this.session).close();
@@ -646,7 +646,7 @@ class Neo4jClientTests {
 			verify(Neo4jClientTests.this.session).run(eq(cypher),
 					MockitoHamcrest.argThat(new MapAssertionMatcher(expectedParameters)));
 			verify(Neo4jClientTests.this.result).consume();
-			verify(Neo4jClientTests.this.resultSummary).notifications();
+			verify(Neo4jClientTests.this.resultSummary).gqlStatusObjects();
 			verify(Neo4jClientTests.this.resultSummary).hasPlan();
 			verify(Neo4jClientTests.this.session).close();
 		}
@@ -677,7 +677,7 @@ class Neo4jClientTests {
 			verify(Neo4jClientTests.this.result).hasNext();
 			verify(Neo4jClientTests.this.result).single();
 			verify(Neo4jClientTests.this.result).consume();
-			verify(Neo4jClientTests.this.resultSummary).notifications();
+			verify(Neo4jClientTests.this.resultSummary).gqlStatusObjects();
 			verify(Neo4jClientTests.this.resultSummary).hasPlan();
 			verify(Neo4jClientTests.this.session).close();
 		}
