@@ -16,7 +16,6 @@
 package org.springframework.data.neo4j.core.transaction;
 
 import java.util.Objects;
-import java.util.Set;
 
 import org.neo4j.driver.Bookmark;
 
@@ -27,17 +26,5 @@ record BookmarkForTesting(String value) implements Bookmark {
 
 	BookmarkForTesting {
 		value = Objects.requireNonNull(value);
-	}
-
-	@Override
-	@SuppressWarnings({ "deprecation", "RedundantSuppression" })
-	public Set<String> values() {
-		return Set.of(this.value);
-	}
-
-	@Override
-	@SuppressWarnings({ "deprecation", "RedundantSuppression" })
-	public boolean isEmpty() {
-		return this.value.isBlank();
 	}
 }

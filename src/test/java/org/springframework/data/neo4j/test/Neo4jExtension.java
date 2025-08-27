@@ -205,7 +205,7 @@ public class Neo4jExtension implements BeforeAllCallback, BeforeEachCallback {
 	 *
 	 * @since 6.0
 	 */
-	public static final class Neo4jConnectionSupport implements ExtensionContext.Store.CloseableResource {
+	public static final class Neo4jConnectionSupport implements AutoCloseable {
 
 		public final URI uri;
 
@@ -227,11 +227,13 @@ public class Neo4jExtension implements BeforeAllCallback, BeforeEachCallback {
 		public Neo4jConnectionSupport(String url, AuthToken authToken) {
 			this.uri = URI.create(url);
 			this.authToken = authToken;
+			// noinspection deprecation
 			this.config = Config.builder()
 				.withLogging(Logging.slf4j())
 				.withMaxConnectionPoolSize(Runtime.getRuntime().availableProcessors())
 				.build();
 			var settings = new SecuritySettings(this.config.encrypted(), this.config.trustStrategy());
+			// noinspection deprecation
 			this.securityPlan = SecurityPlans.createSecurityPlan(settings, this.uri.getScheme(), null, Logging.none());
 			this.driverFactory = new DriverFactory();
 		}
@@ -366,7 +368,7 @@ public class Neo4jExtension implements BeforeAllCallback, BeforeEachCallback {
 
 	}
 
-	static class ContainerAdapter implements ExtensionContext.Store.CloseableResource {
+	static class ContainerAdapter implements AutoCloseable {
 
 		private static final String repository = Optional.ofNullable(System.getenv(SYS_PROPERTY_NEO4J_REPOSITORY))
 			.orElse("neo4j");
