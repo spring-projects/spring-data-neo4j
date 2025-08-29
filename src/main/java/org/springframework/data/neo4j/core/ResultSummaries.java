@@ -15,6 +15,7 @@
  */
 package org.springframework.data.neo4j.core;
 
+import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
@@ -68,11 +69,12 @@ final class ResultSummaries {
 	private static final LogAccessor cypherSchemaNotificationLog = new LogAccessor(
 			LogFactory.getLog("org.springframework.data.neo4j.cypher.schema"));
 
-	private static final Pattern DEPRECATED_ID_PATTERN = Pattern
-		.compile("(?im)The query used a deprecated function[.:] \\(?[`']id.+");
-
-	private static final Pattern DEPRECATED_ID_PATTERN_GQL = Pattern
-		.compile("(?im).*id is deprecated and will be removed without a replacement\\.");
+	private static final List<Pattern> STUFF_THAT_MIGHT_INFORM_THAT_THE_ID_FUNCTION_IS_PROBLEMATIC = Stream.of(
+			"(?im)The query used a deprecated function[.:] \\(?[`']id.+",
+			"(?im).*id is deprecated and will be removed without a replacement\\.",
+			"(?im).*feature deprecated with replacement\\. id is deprecated\\. It is replaced by elementId or consider using an application-generated id\\.")
+		.map(Pattern::compile)
+		.toList();
 
 	private ResultSummaries() {
 	}
@@ -103,8 +105,8 @@ final class ResultSummaries {
 						.filter(cat -> cat == NotificationClassification.UNRECOGNIZED
 								|| cat == NotificationClassification.DEPRECATION)
 						.isPresent()
-					&& (DEPRECATED_ID_PATTERN.matcher(notification.statusDescription()).matches()
-							|| DEPRECATED_ID_PATTERN_GQL.matcher(notification.statusDescription()).matches());
+					&& STUFF_THAT_MIGHT_INFORM_THAT_THE_ID_FUNCTION_IS_PROBLEMATIC.stream()
+						.anyMatch(p -> p.matcher(notification.statusDescription()).matches());
 		}
 		finally {
 			Neo4jClient.SUPPRESS_ID_DEPRECATIONS.setRelease(supressIdDeprecations);

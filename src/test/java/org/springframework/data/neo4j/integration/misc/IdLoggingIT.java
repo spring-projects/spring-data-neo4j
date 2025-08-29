@@ -15,6 +15,7 @@
  */
 package org.springframework.data.neo4j.integration.misc;
 
+import java.util.Set;
 import java.util.function.Predicate;
 
 import ch.qos.logback.classic.Level;
@@ -72,8 +73,8 @@ class IdLoggingIT {
 				assertThatCode(() -> neo4jClient.query("CREATE (n:XXXIdTest) RETURN id(n)").fetch().all())
 					.doesNotThrowAnyException();
 				// 01N42 is the old polyfill (spotted in 5.21)
-				Predicate<String> stringPredicate = msg -> msg.contains("01N00") || msg.contains("01N02")
-						|| msg.contains("01N42");
+				var expectedCodes = Set.of("01N00", "01N01", "01N02", "01N42");
+				Predicate<String> stringPredicate = msg -> expectedCodes.stream().anyMatch(msg::contains);
 
 				if (enabled == null || enabled) {
 					assertThat(logbackCapture.getFormattedMessages()).noneMatch(stringPredicate);
