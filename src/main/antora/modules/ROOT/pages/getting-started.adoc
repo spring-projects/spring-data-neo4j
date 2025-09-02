@@ -126,16 +126,17 @@ SDN repositories will be automatically enabled by this starter.
 
 Depending on the Neo4j version you are running your application with,
 it is advised to configure the dialect Neo4j Cypher-DSL runs with.
-The default dialect that is used is targeting Neo4j 4.4. as the LTS version of Neo4j.
+The default dialect that is used is targeting Neo4j 5 as the LTS version of Neo4j.
+It's compatible with Neo4j 5.23+ and Neo4j 2025.x.
 This can be changed by defining a Cypher-DSL `Configuration` bean.
 
-.Make Cypher-DSL use the Neo4j 5 dialect
+.Make Cypher-DSL use the Neo4j 4 dialect
 [source,java]
 ----
 @Bean
 Configuration cypherDslConfiguration() {
 	return Configuration.newConfig()
-                .withDialect(Dialect.NEO4J_5).build();
+                .withDialect(Dialect.NEO4J_4).build();
 }
 ----
 
