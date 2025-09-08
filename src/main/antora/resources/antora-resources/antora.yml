@@ -20,6 +20,8 @@ asciidoc:
     springhateoasversion: '${spring-hateoas}'
     releasetrainversion: '${releasetrain}'
     store: Neo4j
+    neo4jGroupId: ${project.groupId}
+    artifactId: ${project.artifactId}
     groupIdStarter: org.springframework.boot
     artifactIdStarter: spring-boot-starter-data-neo4j
     docs-neo4j-docker-version: 5
