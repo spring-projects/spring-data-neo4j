@@ -44,6 +44,7 @@ import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.core.convert.converter.GenericConverter;
 import org.springframework.data.annotation.Transient;
 import org.springframework.data.mapping.Association;
+import org.springframework.data.mapping.MappingException;
 import org.springframework.data.mapping.SimpleAssociationHandler;
 import org.springframework.data.neo4j.config.Neo4jEntityScanner;
 import org.springframework.data.neo4j.core.convert.Neo4jConversionService;
@@ -77,8 +78,8 @@ import org.springframework.data.neo4j.test.LogbackCapture;
 import org.springframework.data.neo4j.test.LogbackCapturingExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
-import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 
 /**
  * @author Michael J. Simons
@@ -158,7 +159,9 @@ class Neo4jMappingContextTests {
 
 		Neo4jMappingContext schema = new Neo4jMappingContext();
 		schema.setInitialEntitySet(new HashSet<>(Arrays.asList(InvalidId.class)));
-		assertThatIllegalArgumentException().isThrownBy(() -> schema.initialize())
+		assertThatExceptionOfType(MappingException.class).isThrownBy(() -> schema.initialize())
+			.withCauseInstanceOf(IllegalArgumentException.class)
+			.havingCause()
 			.withMessageMatching(
 					"Cannot use internal id strategy with custom property getMappingFunctionFor on entity .*");
 	}
@@ -168,7 +171,9 @@ class Neo4jMappingContextTests {
 
 		Neo4jMappingContext schema = new Neo4jMappingContext();
 		schema.setInitialEntitySet(new HashSet<>(Arrays.asList(InvalidIdType.class)));
-		assertThatIllegalArgumentException().isThrownBy(schema::initialize)
+		assertThatExceptionOfType(MappingException.class).isThrownBy(schema::initialize)
+			.withCauseInstanceOf(IllegalArgumentException.class)
+			.havingCause()
 			.withMessageMatching("Internally generated ids can only be assigned to one of .*");
 	}
 
@@ -176,7 +181,9 @@ class Neo4jMappingContextTests {
 	void missingIdDefinitionShouldRaiseError() {
 
 		Neo4jMappingContext schema = new Neo4jMappingContext();
-		assertThatIllegalStateException().isThrownBy(() -> schema.getPersistentEntity(MissingId.class))
+		assertThatExceptionOfType(MappingException.class).isThrownBy(() -> schema.getPersistentEntity(MissingId.class))
+			.withCauseInstanceOf(IllegalStateException.class)
+			.havingCause()
 			.withMessage("Missing id property on " + MissingId.class);
 	}
 
@@ -383,11 +390,14 @@ class Neo4jMappingContextTests {
 			InvalidMultiDynamics4.class })
 	void shouldDetectAllVariantsOfMultipleDynamicRelationships(Class<?> thingWithRelations) {
 
-		assertThatIllegalStateException().isThrownBy(() -> {
+		assertThatExceptionOfType(MappingException.class).isThrownBy(() -> {
 			Neo4jMappingContext schema = new Neo4jMappingContext();
 			schema.setInitialEntitySet(new HashSet<>(Arrays.asList(TripNode.class, thingWithRelations)));
 			schema.initialize();
-		}).withMessageMatching(".*; only one dynamic relationship between to entities is permitted");
+		})
+			.withCauseInstanceOf(IllegalStateException.class)
+			.havingCause()
+			.withMessageMatching(".*; only one dynamic relationship between to entities is permitted");
 	}
 
 	@ParameterizedTest // GH-2201
@@ -1237,11 +1247,12 @@ class Neo4jMappingContextTests {
 		void startupWithoutInternallyGeneratedIDShouldFail() {
 
 			Neo4jMappingContext schema = new Neo4jMappingContext();
-			assertThatIllegalStateException().isThrownBy(() -> {
+			assertThatExceptionOfType(MappingException.class).isThrownBy(() -> {
 				schema.setInitialEntitySet(new HashSet<>(Arrays.asList(IrrelevantSourceContainer.class,
 						InvalidRelationshipPropertyContainer.class, IrrelevantTargetContainer.class)));
 				schema.initialize();
 			})
+				.havingRootCause()
 				.withMessage(
 						"The class `org.springframework.data.neo4j.core.mapping.Neo4jMappingContextTests$InvalidRelationshipPropertyContainer` for the properties of a relationship is missing a property for the generated, internal ID (`@Id @GeneratedValue Long id` or `@Id @GeneratedValue String id`) which is needed for safely updating properties");
 		}
@@ -1250,11 +1261,12 @@ class Neo4jMappingContextTests {
 		void startupWithWrongKindOfGeneratedIDShouldFail() {
 
 			Neo4jMappingContext schema = new Neo4jMappingContext();
-			assertThatIllegalStateException().isThrownBy(() -> {
+			assertThatExceptionOfType(MappingException.class).isThrownBy(() -> {
 				schema.setInitialEntitySet(new HashSet<>(Arrays.asList(IrrelevantSourceContainer3.class,
 						InvalidRelationshipPropertyContainer2.class, IrrelevantTargetContainer.class)));
 				schema.initialize();
 			})
+				.havingRootCause()
 				.withMessage(
 						"The class `org.springframework.data.neo4j.core.mapping.Neo4jMappingContextTests$InvalidRelationshipPropertyContainer2` for the properties of a relationship is missing a property for the generated, internal ID (`@Id @GeneratedValue Long id` or `@Id @GeneratedValue String id`) which is needed for safely updating properties");
 		}

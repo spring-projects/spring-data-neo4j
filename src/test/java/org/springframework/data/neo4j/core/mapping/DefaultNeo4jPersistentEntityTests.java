@@ -45,7 +45,6 @@ import org.springframework.data.neo4j.core.schema.TargetNode;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 
 /**
  * @author Gerrit Meier
@@ -608,25 +607,32 @@ class DefaultNeo4jPersistentEntityTests {
 
 		@Test
 		void failsOnDuplicatedProperties() {
-			assertThatIllegalStateException()
+			assertThatExceptionOfType(MappingException.class)
 				.isThrownBy(() -> new Neo4jMappingContext().getPersistentEntity(EntityWithDuplicatedProperties.class))
+				.withCauseInstanceOf(IllegalStateException.class)
+				.havingCause()
 				.withMessage("Duplicate definition of property [name] in entity class "
 						+ "org.springframework.data.neo4j.core.mapping.DefaultNeo4jPersistentEntityTests$EntityWithDuplicatedProperties");
 		}
 
 		@Test
 		void failsOnMultipleDuplicatedProperties() {
-			assertThatIllegalStateException().isThrownBy(
-					() -> new Neo4jMappingContext().getPersistentEntity(EntityWithMultipleDuplicatedProperties.class))
+			assertThatExceptionOfType(MappingException.class)
+				.isThrownBy(() -> new Neo4jMappingContext()
+					.getPersistentEntity(EntityWithMultipleDuplicatedProperties.class))
+				.withCauseInstanceOf(IllegalStateException.class)
+				.havingCause()
 				.withMessage("Duplicate definition of properties [foo, name] in entity class "
 						+ "org.springframework.data.neo4j.core.mapping.DefaultNeo4jPersistentEntityTests$EntityWithMultipleDuplicatedProperties");
 		}
 
 		@Test // GH-1903
 		void failsOnMultipleInheritedDuplicatedProperties() {
-			assertThatIllegalStateException()
+			assertThatExceptionOfType(MappingException.class)
 				.isThrownBy(() -> new Neo4jMappingContext()
 					.getPersistentEntity(EntityWithInheritedMultipleDuplicatedProperties.class))
+				.withCauseInstanceOf(IllegalStateException.class)
+				.havingCause()
 				.withMessage("Duplicate definition of property [name] in entity class "
 						+ "org.springframework.data.neo4j.core.mapping.DefaultNeo4jPersistentEntityTests$EntityWithInheritedMultipleDuplicatedProperties");
 		}
@@ -651,8 +657,10 @@ class DefaultNeo4jPersistentEntityTests {
 		void failsOnDynamicRelationshipsWithExplicitType(Class<?> entityToTest) {
 
 			String expectedMessage = "Dynamic relationships cannot be used with a fixed type\\; omit @Relationship or use @Relationship\\(direction = (OUTGOING|INCOMING)\\) without a type in class .*MixedDynamicAndExplicitRelationship\\d on field dynamicRelationships";
-			assertThatIllegalStateException()
+			assertThatExceptionOfType(MappingException.class)
 				.isThrownBy(() -> new Neo4jMappingContext().getPersistentEntity(entityToTest))
+				.withCauseInstanceOf(IllegalStateException.class)
+				.havingCause()
 				.withMessageMatching(expectedMessage);
 		}
 
@@ -664,7 +672,9 @@ class DefaultNeo4jPersistentEntityTests {
 			String expectedMessage = ".*TypeWithInvalidDynamicRelationshipMappings\\d already contains a dynamic relationship to class org\\.springframework\\.data\\.neo4j\\.core\\.mapping\\.Neo4jMappingContextTests\\$BikeNode; only one dynamic relationship between to entities is permitted";
 			Neo4jMappingContext schema = new Neo4jMappingContext();
 			schema.setInitialEntitySet(new HashSet<>(Arrays.asList(entityToTest)));
-			assertThatIllegalStateException().isThrownBy(() -> schema.initialize())
+			assertThatExceptionOfType(MappingException.class).isThrownBy(() -> schema.initialize())
+				.withCauseInstanceOf(IllegalStateException.class)
+				.havingCause()
 				.withMessageMatching(expectedMessage);
 		}
 
@@ -682,6 +692,7 @@ class DefaultNeo4jPersistentEntityTests {
 			assertThatExceptionOfType(MappingException.class)
 				.isThrownBy(() -> new Neo4jMappingContext()
 					.getPersistentEntity(EntityWithInCorrectRelationshipProperties.class))
+				.havingCause()
 				.withMessageContaining("Missing @TargetNode declaration in");
 		}
 
@@ -870,8 +881,10 @@ class DefaultNeo4jPersistentEntityTests {
 		@Test
 		void shouldDetectInvalidInheritedDynamicLabels() {
 
-			assertThatIllegalStateException()
+			assertThatExceptionOfType(MappingException.class)
 				.isThrownBy(() -> new Neo4jMappingContext().getPersistentEntity(InvalidInheritedDynamicLabels.class))
+				.withCauseInstanceOf(IllegalStateException.class)
+				.havingCause()
 				.withMessageMatching(
 						"Multiple properties in entity class .*DefaultNeo4jPersistentEntityTests\\$InvalidInheritedDynamicLabels are annotated with @DynamicLabels: \\[dynamicLabels, localDynamicLabels]");
 		}
@@ -879,8 +892,10 @@ class DefaultNeo4jPersistentEntityTests {
 		@Test
 		void shouldDetectInvalidDynamicLabels() {
 
-			assertThatIllegalStateException()
+			assertThatExceptionOfType(MappingException.class)
 				.isThrownBy(() -> new Neo4jMappingContext().getPersistentEntity(NodeWithInvalidDynamicLabels.class))
+				.withCauseInstanceOf(IllegalStateException.class)
+				.havingCause()
 				.withMessageMatching(
 						"Multiple properties in entity class .*DefaultNeo4jPersistentEntityTests\\$NodeWithInvalidDynamicLabels are annotated with @DynamicLabels: \\[dynamicLabels, moarDynamicLabels]");
 		}
@@ -888,8 +903,10 @@ class DefaultNeo4jPersistentEntityTests {
 		@Test
 		void shouldDetectInvalidDynamicLabelsTarget() {
 
-			assertThatIllegalStateException()
+			assertThatExceptionOfType(MappingException.class)
 				.isThrownBy(() -> new Neo4jMappingContext().getPersistentEntity(InvalidDynamicLabels.class))
+				.withCauseInstanceOf(IllegalStateException.class)
+				.havingCause()
 				.withMessageMatching(
 						"Property dynamicLabels on class .*DefaultNeo4jPersistentEntityTests\\$InvalidDynamicLabels must extends java\\.util\\.Collection");
 		}
@@ -909,8 +926,10 @@ class DefaultNeo4jPersistentEntityTests {
 
 		@Test
 		void invalidVectorProperties() {
-			assertThatIllegalStateException()
+			assertThatExceptionOfType(MappingException.class)
 				.isThrownBy(() -> new Neo4jMappingContext().getPersistentEntity(VectorInvalid.class))
+				.withCauseInstanceOf(IllegalStateException.class)
+				.havingCause()
 				.withMessageContaining(
 						"There are multiple fields of type interface org.springframework.data.domain.Vector in entity org.springframework.data.neo4j.core.mapping.DefaultNeo4jPersistentEntityTests$VectorInvalid:")
 				// the order of properties might be not the same all the time
