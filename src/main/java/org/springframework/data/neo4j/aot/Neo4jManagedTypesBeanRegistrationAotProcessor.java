@@ -19,6 +19,7 @@ import org.jspecify.annotations.Nullable;
 
 import org.springframework.aot.generate.GenerationContext;
 import org.springframework.core.ResolvableType;
+import org.springframework.data.aot.AotContext;
 import org.springframework.data.aot.ManagedTypesBeanRegistrationAotProcessor;
 import org.springframework.util.ClassUtils;
 
@@ -45,13 +46,13 @@ public final class Neo4jManagedTypesBeanRegistrationAotProcessor extends Managed
 	}
 
 	@Override
-	protected void contributeType(ResolvableType type, GenerationContext generationContext) {
+	protected void contributeType(ResolvableType type, GenerationContext generationContext, AotContext aotContext) {
 
 		if (Neo4jAotPredicates.IS_SIMPLE_TYPE.test(type.toClass())) {
 			return;
 		}
 
-		super.contributeType(type, generationContext);
+		super.contributeType(type, generationContext, aotContext);
 	}
 
 }
