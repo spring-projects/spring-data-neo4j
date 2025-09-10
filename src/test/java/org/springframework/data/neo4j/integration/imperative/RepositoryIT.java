@@ -697,6 +697,7 @@ class RepositoryIT {
 
 	@Nested
 	@TestPropertySource(properties = "foo=Test")
+	@DirtiesContext
 	class Find extends IntegrationTestBase {
 
 		static Stream<Arguments> basicScrollSupportFor(@Autowired PersonRepository repository) {
@@ -1051,7 +1052,7 @@ class RepositoryIT {
 		}
 
 		@Test
-		void loadOptionalPersonWithAllConstructorWithPropertyPlacholder(@Autowired PersonRepository repository) {
+		void loadOptionalPersonWithAllConstructorWithPropertyPlaceholder(@Autowired PersonRepository repository) {
 
 			Optional<PersonWithAllConstructor> person = repository.getOptionalPersonViaPropertyPlaceholder();
 			assertThat(person).isPresent();
