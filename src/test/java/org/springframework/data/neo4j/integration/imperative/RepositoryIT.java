@@ -577,6 +577,7 @@ class RepositoryIT {
 	}
 
 	@SpringJUnitConfig(Config.class)
+	@TestPropertySource(properties = "foo=Test")
 	abstract static class IntegrationTestBase {
 
 		@Autowired
@@ -696,8 +697,6 @@ class RepositoryIT {
 	}
 
 	@Nested
-	@TestPropertySource(properties = "foo=Test")
-	@DirtiesContext
 	class Find extends IntegrationTestBase {
 
 		static Stream<Arguments> basicScrollSupportFor(@Autowired PersonRepository repository) {
