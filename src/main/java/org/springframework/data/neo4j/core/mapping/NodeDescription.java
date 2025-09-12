@@ -49,6 +49,11 @@ public interface NodeDescription<T> {
 	List<String> getAdditionalLabels();
 
 	/**
+	 * @return a list of dynamic label names applied to the entity
+	 */
+	List<String> getDynamicLabels();
+
+	/**
 	 * @return The list of all static labels, that is the union of {@link #getPrimaryLabel()} +
 	 *         {@link #getAdditionalLabels()}. Order is guaranteed to be the primary first, then the others.
 	 * @since 6.0
