@@ -25,6 +25,7 @@ import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIf;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Session;
@@ -51,6 +52,7 @@ import org.springframework.data.neo4j.test.BookmarkCapture;
 import org.springframework.data.neo4j.test.Neo4jExtension;
 import org.springframework.data.neo4j.test.Neo4jImperativeTestConfiguration;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
+import org.springframework.data.neo4j.test.ServerVersion;
 import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
@@ -352,7 +354,12 @@ public class InheritanceMappingIT {
 		}
 	}
 
+	static boolean isGreaterThanOrEqualNeo4j5() {
+		return neo4jConnectionSupport.getServerVersion().greaterThanOrEqual(ServerVersion.v5_0_0);
+	}
+
 	@Test // GH-2788
+	@EnabledIf("isGreaterThanOrEqualNeo4j5")
 	void detectPropertiesAndRelationshipsOfImplementingEntities(@Autowired Neo4jTemplate template) {
 		String id;
 		try (Session session = this.driver.session(this.bookmarkCapture.createSessionConfig());

@@ -18,10 +18,12 @@ package org.springframework.data.neo4j.integration.imperative
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
+import org.neo4j.cypherdsl.core.renderer.Dialect
 import org.neo4j.driver.Driver
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Primary
 import org.springframework.data.neo4j.config.AbstractNeo4jConfig
 import org.springframework.data.neo4j.core.DatabaseSelectionProvider
 import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager
@@ -37,7 +39,7 @@ import org.springframework.transaction.PlatformTransactionManager
 import org.springframework.transaction.annotation.EnableTransactionManagement
 
 @Neo4jIntegrationTest
-class Neo4jListContainsTest {
+class Neo4jListContainsIT {
 
 	companion object {
 		@JvmStatic
@@ -93,6 +95,17 @@ class Neo4jListContainsTest {
 		override fun transactionManager(driver: Driver, databaseNameProvider: DatabaseSelectionProvider?): PlatformTransactionManager {
 			val bookmarkCapture = bookmarkCapture()
 			return Neo4jTransactionManager(driver, databaseNameProvider!!, Neo4jBookmarkManager.create(bookmarkCapture))
+		}
+
+		@Bean
+		@Primary
+		open fun getConfiguration(): org.neo4j.cypherdsl.core.renderer.Configuration? {
+			if (neo4jConnectionSupport.isCypher5SyntaxCompatible) {
+				return org.neo4j.cypherdsl.core.renderer.Configuration.newConfig()
+					.withDialect(Dialect.NEO4J_5_DEFAULT_CYPHER).build()
+			}
+
+			return org.neo4j.cypherdsl.core.renderer.Configuration.newConfig().withDialect(Dialect.NEO4J_4).build()
 		}
 	}
 }

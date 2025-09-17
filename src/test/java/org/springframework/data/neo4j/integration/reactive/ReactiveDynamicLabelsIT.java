@@ -31,9 +31,13 @@ import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.Parameter;
+import org.junit.jupiter.params.ParameterizedClass;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.neo4j.cypherdsl.core.Condition;
 import org.neo4j.cypherdsl.core.Cypher;
 import org.neo4j.cypherdsl.core.Node;
+import org.neo4j.cypherdsl.core.renderer.Dialect;
 import org.neo4j.cypherdsl.core.renderer.Renderer;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Record;
@@ -48,6 +52,7 @@ import reactor.test.StepVerifier;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.data.neo4j.core.ReactiveDatabaseSelectionProvider;
 import org.springframework.data.neo4j.core.ReactiveNeo4jTemplate;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
@@ -86,15 +91,34 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @Tag(Neo4jExtension.NEEDS_REACTIVE_SUPPORT)
 @ExtendWith(Neo4jExtension.class)
+@ParameterizedClass
+@EnumSource(value = Dialect.class, names = { "NEO4J_5", "NEO4J_5_CYPHER_5" })
 public final class ReactiveDynamicLabelsIT {
+
+	@Parameter
+	static Dialect dialect;
 
 	protected static Neo4jExtension.Neo4jConnectionSupport neo4jConnectionSupport;
 
 	private ReactiveDynamicLabelsIT() {
 	}
 
+	public static class DialectConfig extends SpringTestBase.Config {
+
+		@Bean
+		@Primary
+		public org.neo4j.cypherdsl.core.renderer.Configuration getConfiguration() {
+			if (neo4jConnectionSupport.isCypher5SyntaxCompatible()) {
+				return org.neo4j.cypherdsl.core.renderer.Configuration.newConfig().withDialect(dialect).build();
+			}
+
+			return org.neo4j.cypherdsl.core.renderer.Configuration.newConfig().withDialect(Dialect.NEO4J_4).build();
+		}
+
+	}
+
 	@ExtendWith(SpringExtension.class)
-	@ContextConfiguration(classes = SpringTestBase.Config.class)
+	@ContextConfiguration(classes = DialectConfig.class)
 	@DirtiesContext
 	abstract static class SpringTestBase {
 

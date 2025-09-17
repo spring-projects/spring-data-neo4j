@@ -21,6 +21,7 @@ import java.util.Optional;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -28,6 +29,7 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mockito;
 import org.neo4j.cypherdsl.core.Cypher;
+import org.neo4j.cypherdsl.core.FunctionInvocation;
 import org.neo4j.cypherdsl.core.Statement;
 import org.neo4j.cypherdsl.core.renderer.Configuration;
 import org.neo4j.cypherdsl.core.renderer.Dialect;
@@ -55,6 +57,12 @@ class CypherGeneratorTests {
 						Optional.of("ORDER BY a ASC, b ASC, foo ASC, bar DESC")),
 				Arguments.of(null, Optional.empty()), Arguments.of(Sort.unsorted(), Optional.empty()),
 				Arguments.of(Sort.by("n.a").ascending(), Optional.of("ORDER BY n.a ASC")));
+	}
+
+	@BeforeAll
+	static void fixTheAbusOfASingleton() {
+		CypherGenerator.INSTANCE
+			.setElementIdOrIdFunction(n -> FunctionInvocation.create(() -> "elementId", n.getRequiredSymbolicName()));
 	}
 
 	@Test

@@ -70,6 +70,8 @@ public class Neo4jExtension implements BeforeAllCallback, BeforeEachCallback {
 
 	public static final String NEEDS_VERSION_SUPPORTING_ELEMENT_ID = "elementid-test";
 
+	public static final String NEEDS_VECTOR_INDEX = "vectorindex-test";
+
 	public static final String COMMUNITY_EDITION_ONLY = "community-edition";
 
 	public static final String COMMERCIAL_EDITION_ONLY = "commercial-edition";
@@ -180,6 +182,13 @@ public class Neo4jExtension implements BeforeAllCallback, BeforeEachCallback {
 		if (tags.contains(COMMERCIAL_EDITION_ONLY)) {
 			assumeThat(neo4jConnectionSupport.isCommercialEdition())
 				.describedAs("This test should be run on the commercial edition only")
+				.isTrue();
+		}
+
+		if (tags.contains(NEEDS_VECTOR_INDEX)) {
+			assumeThat(
+					neo4jConnectionSupport.getServerVersion().greaterThanOrEqual(ServerVersion.version("Neo4j/5.13.0")))
+				.describedAs("This tests needs a Neo4j version supporting Vector indexes")
 				.isTrue();
 		}
 

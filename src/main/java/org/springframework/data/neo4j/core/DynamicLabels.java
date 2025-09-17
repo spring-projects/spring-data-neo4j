@@ -54,14 +54,14 @@ final class DynamicLabels implements UnaryOperator<OngoingMatchAndUpdate> {
 
 	@Override
 	public OngoingMatchAndUpdate apply(OngoingMatchAndUpdate ongoingMatchAndUpdate) {
-
 		OngoingMatchAndUpdate decoratedMatchAndUpdate = ongoingMatchAndUpdate;
 		if (!this.oldLabels.isEmpty()) {
 			decoratedMatchAndUpdate = decoratedMatchAndUpdate.remove(this.rootNode,
-					this.oldLabels.toArray(new String[0]));
+					Cypher.allLabels(Cypher.anonParameter(this.oldLabels)));
 		}
 		if (!this.newLabels.isEmpty()) {
-			decoratedMatchAndUpdate = decoratedMatchAndUpdate.set(this.rootNode, this.newLabels.toArray(new String[0]));
+			decoratedMatchAndUpdate = decoratedMatchAndUpdate.set(this.rootNode,
+					Cypher.allLabels(Cypher.anonParameter(this.newLabels)));
 		}
 		return decoratedMatchAndUpdate;
 	}

@@ -19,10 +19,12 @@ package org.springframework.data.neo4j.integration.k
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
+import org.neo4j.cypherdsl.core.renderer.Dialect
 import org.neo4j.driver.Driver
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Primary
 import org.springframework.data.neo4j.config.AbstractNeo4jConfig
 import org.springframework.data.neo4j.core.DatabaseSelectionProvider
 import org.springframework.data.neo4j.core.Neo4jTemplate
@@ -30,6 +32,7 @@ import org.springframework.data.neo4j.core.schema.Id
 import org.springframework.data.neo4j.core.schema.Node
 import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager
 import org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager
+import org.springframework.data.neo4j.integration.imperative.Neo4jListContainsIT
 import org.springframework.data.neo4j.repository.Neo4jRepository
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories
 import org.springframework.data.neo4j.test.BookmarkCapture
@@ -111,5 +114,16 @@ internal class KotlinIssuesIT {
 		open fun transactionTemplate(transactionManager: PlatformTransactionManager): TransactionTemplate {
 			return TransactionTemplate(transactionManager)
 		}
+
+        @Bean
+        @Primary
+        open fun getConfiguration(): org.neo4j.cypherdsl.core.renderer.Configuration? {
+            if (neo4jConnectionSupport.isCypher5SyntaxCompatible) {
+                return org.neo4j.cypherdsl.core.renderer.Configuration.newConfig()
+                    .withDialect(Dialect.NEO4J_5_DEFAULT_CYPHER).build()
+            }
+
+            return org.neo4j.cypherdsl.core.renderer.Configuration.newConfig().withDialect(Dialect.NEO4J_4).build()
+        }
 	}
 }

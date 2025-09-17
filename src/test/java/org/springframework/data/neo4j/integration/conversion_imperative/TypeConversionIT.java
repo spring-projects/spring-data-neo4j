@@ -36,6 +36,7 @@ import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DynamicContainer;
 import org.junit.jupiter.api.DynamicNode;
 import org.junit.jupiter.api.DynamicTest;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestFactory;
 import org.neo4j.driver.Driver;
@@ -68,6 +69,7 @@ import org.springframework.data.neo4j.integration.shared.conversion.ThingWithCus
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.data.neo4j.test.BookmarkCapture;
+import org.springframework.data.neo4j.test.Neo4jExtension;
 import org.springframework.data.neo4j.test.Neo4jImperativeTestConfiguration;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -78,10 +80,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 /**
+ * Tag due to the requirements on db.create.setNodeVectorProperty
+ *
  * @author Michael J. Simons
  * @author Dennis Crissman
  */
 @Neo4jIntegrationTest
+@Tag(Neo4jExtension.NEEDS_VECTOR_INDEX)
 class TypeConversionIT extends Neo4jConversionsITBase {
 
 	private final CypherTypesRepository cypherTypesRepository;

@@ -468,11 +468,12 @@ public final class Neo4jTemplate
 		TemplateSupport.FilteredBinderFunction<T> binderFunction = TemplateSupport.createAndApplyPropertyFilter(
 				includedProperties, entityMetaData,
 				this.neo4jMappingContext.getRequiredBinderFunctionFor((Class<T>) entityToBeSaved.getClass()));
-		Optional<Entity> newOrUpdatedNode = this.neo4jClient
-			.query(() -> this.renderer.render(this.cypherGenerator.prepareSaveOf(entityMetaData, dynamicLabels,
-					TemplateSupport.rendererRendersElementId(this.renderer))))
+		var statement = this.cypherGenerator.prepareSaveOf(entityMetaData, dynamicLabels,
+				TemplateSupport.rendererRendersElementId(this.renderer));
+		Optional<Entity> newOrUpdatedNode = this.neo4jClient.query(() -> this.renderer.render(statement))
 			.bind(entityToBeSaved)
 			.with(binderFunction)
+			.bindAll(statement.getCatalog().getParameters())
 			.fetchAs(Entity.class)
 			.one();
 
@@ -516,14 +517,16 @@ public final class Neo4jTemplate
 
 			PersistentPropertyAccessor<T> propertyAccessor = entityMetaData.getPropertyAccessor(entityToBeSaved);
 			Neo4jPersistentProperty idProperty = entityMetaData.getRequiredIdProperty();
+			var statementReturningDynamicLabels = this.cypherGenerator
+				.createStatementReturningDynamicLabels(entityMetaData);
 			Neo4jClient.RunnableSpec runnableQuery = this.neo4jClient
-				.query(() -> this.renderer
-					.render(this.cypherGenerator.createStatementReturningDynamicLabels(entityMetaData)))
+				.query(() -> this.renderer.render(statementReturningDynamicLabels))
 				.bind(TemplateSupport.convertIdValues(this.neo4jMappingContext, idProperty,
 						propertyAccessor.getProperty(idProperty)))
 				.to(Constants.NAME_OF_ID)
 				.bind(entityMetaData.getStaticLabels())
-				.to(Constants.NAME_OF_STATIC_LABELS_PARAM);
+				.to(Constants.NAME_OF_STATIC_LABELS_PARAM)
+				.bindAll(statementReturningDynamicLabels.getCatalog().getParameters());
 
 			if (entityMetaData.hasVersionProperty()) {
 				runnableQuery = runnableQuery
@@ -620,10 +623,11 @@ public final class Neo4jTemplate
 			.map(h -> h.modifiedInstance)
 			.map(binderFunction)
 			.collect(Collectors.toList());
-		Map<Value, String> idToInternalIdMapping = this.neo4jClient
-			.query(() -> this.renderer.render(this.cypherGenerator.prepareSaveOfMultipleInstancesOf(entityMetaData)))
+		var statement = this.cypherGenerator.prepareSaveOfMultipleInstancesOf(entityMetaData);
+		Map<Value, String> idToInternalIdMapping = this.neo4jClient.query(() -> this.renderer.render(statement))
 			.bind(entityList)
 			.to(Constants.NAME_OF_ENTITY_LIST_PARAM)
+			.bindAll(statement.getCatalog().getParameters())
 			.fetchAs(Map.Entry.class)
 			.mappedBy((t, r) -> new AbstractMap.SimpleEntry<>(r.get(Constants.NAME_OF_ID),
 					TemplateSupport.convertIdOrElementIdToString(r.get(Constants.NAME_OF_ELEMENT_ID))))
@@ -726,6 +730,7 @@ public final class Neo4jTemplate
 				.bind(TemplateSupport.convertIdValues(this.neo4jMappingContext, entityMetaData.getRequiredIdProperty(),
 						id))
 				.to(nameOfParameter)
+				.bindAll(statement.getCatalog().getParameters())
 				.run();
 
 			log.debug(() -> String.format("Deleted %d nodes and %d relationships.", summary.counters().nodesDeleted(),
@@ -786,6 +791,7 @@ public final class Neo4jTemplate
 				.bind(TemplateSupport.convertIdValues(this.neo4jMappingContext, entityMetaData.getRequiredIdProperty(),
 						ids))
 				.to(nameOfParameter)
+				.bindAll(statement.getCatalog().getParameters())
 				.run();
 
 			log.debug(() -> String.format("Deleted %d nodes and %d relationships.", summary.counters().nodesDeleted(),
@@ -944,6 +950,7 @@ public final class Neo4jTemplate
 					.to(Constants.FROM_ID_PARAMETER_NAME) //
 					.bind(knownRelationshipsIds) //
 					.to(Constants.NAME_OF_KNOWN_RELATIONSHIPS_PARAM) //
+					.bindAll(relationshipRemoveQuery.getCatalog().getParameters())
 					.run();
 			}
 
@@ -1132,6 +1139,7 @@ public final class Neo4jTemplate
 						plainRelationshipRows);
 				this.neo4jClient.query(this.renderer.render(statementHolder.getStatement()))
 					.bindAll(statementHolder.getProperties())
+					.bindAll(statementHolder.getStatement().getCatalog().getParameters())
 					.run();
 			}
 			else if (relationshipDescription.hasRelationshipProperties()) {
@@ -1145,6 +1153,7 @@ public final class Neo4jTemplate
 
 					this.neo4jClient.query(this.renderer.render(statementHolder.getStatement()))
 						.bindAll(statementHolder.getProperties())
+						.bindAll(statementHolder.getStatement().getCatalog().getParameters())
 						.run();
 				}
 				if (!(newRelationshipPropertiesToStore.isEmpty() || idProperty == null)) {
@@ -1155,6 +1164,7 @@ public final class Neo4jTemplate
 					List<Object> all = new ArrayList<>(
 							this.neo4jClient.query(this.renderer.render(statementHolder.getStatement()))
 								.bindAll(statementHolder.getProperties())
+								.bindAll(statementHolder.getStatement().getCatalog().getParameters())
 								.fetchAs(Object.class)
 								.mappedBy((t, r) -> IdentitySupport.mapperForRelatedIdValues(idProperty).apply(r))
 								.all());
@@ -1187,6 +1197,7 @@ public final class Neo4jTemplate
 			.to(Constants.FROM_ID_PARAMETER_NAME) //
 			.bind(toId) //
 			.to(Constants.TO_ID_PARAMETER_NAME) //
+			.bindAll(statement.getCatalog().getParameters())
 			.fetchAs(Object.class)
 			.mappedBy((t, r) -> IdentitySupport.mapperForRelatedIdValues(idProperty).apply(r))
 			.one();
@@ -1255,11 +1266,12 @@ public final class Neo4jTemplate
 			}
 			return tree;
 		});
-		Optional<Entity> optionalSavedNode = this.neo4jClient
-			.query(() -> this.renderer.render(this.cypherGenerator.prepareSaveOf(targetNodeDescription, dynamicLabels,
-					TemplateSupport.rendererRendersElementId(this.renderer))))
+		var statement = this.cypherGenerator.prepareSaveOf(targetNodeDescription, dynamicLabels,
+				TemplateSupport.rendererRendersElementId(this.renderer));
+		Optional<Entity> optionalSavedNode = this.neo4jClient.query(() -> this.renderer.render(statement))
 			.bind(entity)
 			.with(binderFunction)
+			.bindAll(statement.getCatalog().getParameters())
 			.fetchAs(Entity.class)
 			.one();
 
@@ -1605,6 +1617,7 @@ public final class Neo4jTemplate
 				Neo4jTemplate.this.neo4jClient.query(Neo4jTemplate.this.renderer.render(statement))
 					.bindAll(Collections.singletonMap(Constants.NAME_OF_IDS,
 							TemplateSupport.convertToLongIdOrStringElementId(nodeIds)))
+					.bindAll(statement.getCatalog().getParameters())
 					.fetch()
 					.one()
 					.ifPresent(

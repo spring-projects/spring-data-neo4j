@@ -17,6 +17,7 @@ package org.springframework.data.neo4j.integration.reactive;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Session;
@@ -50,6 +51,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Gerrit Meier
  */
 @Neo4jIntegrationTest
+@Tag(Neo4jExtension.NEEDS_VECTOR_INDEX)
 class ReactiveVectorSearchIT {
 
 	protected static Neo4jExtension.Neo4jConnectionSupport neo4jConnectionSupport;

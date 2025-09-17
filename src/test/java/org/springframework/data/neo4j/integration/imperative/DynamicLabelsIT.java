@@ -26,9 +26,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.Parameter;
+import org.junit.jupiter.params.ParameterizedClass;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.neo4j.cypherdsl.core.Condition;
 import org.neo4j.cypherdsl.core.Cypher;
 import org.neo4j.cypherdsl.core.Node;
+import org.neo4j.cypherdsl.core.renderer.Dialect;
 import org.neo4j.cypherdsl.core.renderer.Renderer;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Record;
@@ -39,6 +43,7 @@ import org.neo4j.driver.Value;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.data.neo4j.config.Neo4jEntityScanner;
 import org.springframework.data.neo4j.core.DatabaseSelectionProvider;
 import org.springframework.data.neo4j.core.Neo4jTemplate;
@@ -78,7 +83,12 @@ import static org.neo4j.cypherdsl.core.Cypher.parameter;
  * @author Michael J. Simons
  */
 @ExtendWith(Neo4jExtension.class)
+@ParameterizedClass
+@EnumSource(value = Dialect.class, names = { "NEO4J_5", "NEO4J_5_DEFAULT_CYPHER" })
 final class DynamicLabelsIT {
+
+	@Parameter
+	static Dialect dialect;
 
 	private static Neo4jExtension.Neo4jConnectionSupport neo4jConnectionSupport;
 
@@ -96,8 +106,22 @@ final class DynamicLabelsIT {
 
 	}
 
+	public static class DialectConfig extends SpringTestBase.Config {
+
+		@Bean
+		@Primary
+		public org.neo4j.cypherdsl.core.renderer.Configuration getConfiguration() {
+			if (neo4jConnectionSupport.isCypher5SyntaxCompatible()) {
+				return org.neo4j.cypherdsl.core.renderer.Configuration.newConfig().withDialect(dialect).build();
+			}
+
+			return org.neo4j.cypherdsl.core.renderer.Configuration.newConfig().withDialect(Dialect.NEO4J_4).build();
+		}
+
+	}
+
 	@ExtendWith(SpringExtension.class)
-	@ContextConfiguration(classes = SpringTestBase.Config.class)
+	@ContextConfiguration(classes = DialectConfig.class)
 	@DirtiesContext
 	abstract static class SpringTestBase {
 
@@ -376,6 +400,34 @@ final class DynamicLabelsIT {
 
 			List<String> labels = getLabels(Cypher.anyNode("n").property("id").isEqualTo(parameter("id")), result.id);
 			assertThat(labels).containsExactlyInAnyOrder("SimpleDynamicLabelsWithBusinessId", "A", "B", "C");
+		}
+
+		@Test
+		void saveAllShouldWork(@Autowired Neo4jTemplate template) {
+			var newId = executeInTransaction(() -> {
+				SimpleDynamicLabelsWithBusinessId entity = template
+					.findById("E1", SimpleDynamicLabelsWithBusinessId.class)
+					.orElseThrow();
+				entity.moreLabels.remove("Foo");
+				entity.moreLabels.add("Fizz");
+
+				SimpleDynamicLabelsWithBusinessId entity2 = new SimpleDynamicLabelsWithBusinessId();
+				entity2.id = UUID.randomUUID().toString();
+				entity2.moreLabels = new HashSet<>();
+				entity2.moreLabels.add("A");
+				entity2.moreLabels.add("B");
+				entity2.moreLabels.add("C");
+
+				template.saveAll(List.of(entity, entity2));
+
+				return entity2.id;
+			});
+
+			assertThat(getLabels(this.existingEntityId)).containsExactlyInAnyOrder("SimpleDynamicLabelsWithBusinessId",
+					"Fizz", "Bar", "Baz", "Foobar");
+
+			assertThat(getLabels(Cypher.anyNode("n").property("id").isEqualTo(parameter("id")), newId))
+				.containsExactlyInAnyOrder("SimpleDynamicLabelsWithBusinessId", "A", "B", "C");
 		}
 
 	}

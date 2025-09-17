@@ -508,11 +508,11 @@ public final class ReactiveNeo4jTemplate
 						this.neo4jMappingContext.getRequiredBinderFunctionFor((Class<T>) entityToBeSaved.getClass()));
 
 				boolean canUseElementId = TemplateSupport.rendererRendersElementId(this.renderer);
-				Mono<Entity> idMono = this.neo4jClient
-					.query(() -> this.renderer
-						.render(this.cypherGenerator.prepareSaveOf(entityMetaData, dynamicLabels, canUseElementId)))
+				var statement = this.cypherGenerator.prepareSaveOf(entityMetaData, dynamicLabels, canUseElementId);
+				Mono<Entity> idMono = this.neo4jClient.query(() -> this.renderer.render(statement))
 					.bind(entityToBeSaved)
 					.with(binderFunction)
+					.bindAll(statement.getCatalog().getParameters())
 					.fetchAs(Entity.class)
 					.one()
 					.switchIfEmpty(Mono.defer(() -> {
@@ -545,14 +545,16 @@ public final class ReactiveNeo4jTemplate
 
 			PersistentPropertyAccessor<?> propertyAccessor = entityMetaData.getPropertyAccessor(entityToBeSaved);
 			Neo4jPersistentProperty idProperty = entityMetaData.getRequiredIdProperty();
+			var statementReturningDynamicLabels = this.cypherGenerator
+				.createStatementReturningDynamicLabels(entityMetaData);
 			ReactiveNeo4jClient.RunnableSpec runnableQuery = this.neo4jClient
-				.query(() -> this.renderer
-					.render(this.cypherGenerator.createStatementReturningDynamicLabels(entityMetaData)))
+				.query(() -> this.renderer.render(statementReturningDynamicLabels))
 				.bind(TemplateSupport.convertIdValues(this.neo4jMappingContext, idProperty,
 						propertyAccessor.getProperty(idProperty)))
 				.to(Constants.NAME_OF_ID)
 				.bind(entityMetaData.getStaticLabels())
-				.to(Constants.NAME_OF_STATIC_LABELS_PARAM);
+				.to(Constants.NAME_OF_STATIC_LABELS_PARAM)
+				.bindAll(statementReturningDynamicLabels.getCatalog().getParameters());
 
 			if (entityMetaData.hasVersionProperty()) {
 				runnableQuery = runnableQuery
@@ -683,11 +685,11 @@ public final class ReactiveNeo4jTemplate
 					.map(Tuple3::getT3) // extract PotentiallyModified
 					.map(binderFunction)
 					.collect(Collectors.toList());
-				return this.neo4jClient
-					.query(() -> this.renderer
-						.render(this.cypherGenerator.prepareSaveOfMultipleInstancesOf(entityMetaData)))
+				var statement = this.cypherGenerator.prepareSaveOfMultipleInstancesOf(entityMetaData);
+				return this.neo4jClient.query(() -> this.renderer.render(statement))
 					.bind(boundedEntityList)
 					.to(Constants.NAME_OF_ENTITY_LIST_PARAM)
+					.bindAll(statement.getCatalog().getParameters())
 					.fetchAs(Tuple2.class)
 					.mappedBy((t, r) -> Tuples.of(r.get(Constants.NAME_OF_ID),
 							TemplateSupport.convertIdOrElementIdToString(r.get(Constants.NAME_OF_ELEMENT_ID))))
@@ -695,7 +697,6 @@ public final class ReactiveNeo4jTemplate
 					.collectMap(m -> (Value) m.getT1(), m -> (String) m.getT2());
 			}).flatMapMany(idToInternalIdMapping -> Flux.fromIterable(entitiesToBeSaved).concatMap(t -> {
 				PersistentPropertyAccessor<T> propertyAccessor = entityMetaData.getPropertyAccessor(t.getT3());
-				Neo4jPersistentProperty idProperty = entityMetaData.getRequiredIdProperty();
 				return processRelations(entityMetaData, propertyAccessor, t.getT2(), ctx.get("stateMachine"),
 						ctx.get("knownRelIds"),
 						TemplateSupport
@@ -722,6 +723,7 @@ public final class ReactiveNeo4jTemplate
 			.bind(TemplateSupport.convertIdValues(this.neo4jMappingContext, entityMetaData.getRequiredIdProperty(),
 					ids))
 			.to(nameOfParameter)
+			.bindAll(statement.getCatalog().getParameters())
 			.run()
 			.then()));
 	}
@@ -739,6 +741,7 @@ public final class ReactiveNeo4jTemplate
 		return execute(Mono.defer(() -> this.neo4jClient.query(() -> this.renderer.render(statement))
 			.bind(TemplateSupport.convertIdValues(this.neo4jMappingContext, entityMetaData.getRequiredIdProperty(), id))
 			.to(nameOfParameter)
+			.bindAll(statement.getCatalog().getParameters())
 			.run()
 			.then()));
 	}
@@ -1089,6 +1092,7 @@ public final class ReactiveNeo4jTemplate
 					.to(Constants.FROM_ID_PARAMETER_NAME) //
 					.bind(knownRelationshipsIds) //
 					.to(Constants.NAME_OF_KNOWN_RELATIONSHIPS_PARAM) //
+					.bindAll(relationshipRemoveQuery.getCatalog().getParameters())
 					.run()
 					.checkpoint("delete relationships")
 					.then());
@@ -1227,6 +1231,7 @@ public final class ReactiveNeo4jTemplate
 									.bind(idValue) //
 									.to(Constants.NAME_OF_KNOWN_RELATIONSHIP_PARAM) //
 									.bindAll(statementHolder.getProperties())
+									.bindAll(statementHolder.getStatement().getCatalog().getParameters())
 									.fetchAs(Object.class)
 									.mappedBy((t, r) -> IdentitySupport.mapperForRelatedIdValues(idProperty).apply(r))
 									.one()
@@ -1298,6 +1303,7 @@ public final class ReactiveNeo4jTemplate
 			.to(Constants.FROM_ID_PARAMETER_NAME) //
 			.bind(toId) //
 			.to(Constants.TO_ID_PARAMETER_NAME) //
+			.bindAll(statement.getCatalog().getParameters())
 			.fetchAs(Object.class)
 			.mappedBy((t, r) -> IdentitySupport.mapperForRelatedIdValues(idProperty).apply(r))
 			.one();
@@ -1358,11 +1364,12 @@ public final class ReactiveNeo4jTemplate
 				}
 				return tree;
 			});
-			return this.neo4jClient
-				.query(() -> this.renderer.render(this.cypherGenerator.prepareSaveOf(targetNodeDescription,
-						dynamicLabels, TemplateSupport.rendererRendersElementId(this.renderer))))
+			var statement = this.cypherGenerator.prepareSaveOf(targetNodeDescription, dynamicLabels,
+					TemplateSupport.rendererRendersElementId(this.renderer));
+			return this.neo4jClient.query(() -> this.renderer.render(statement))
 				.bind(entity)
 				.with(binderFunction)
+				.bindAll(statement.getCatalog().getParameters())
 				.fetchAs(Entity.class)
 				.one();
 		}).switchIfEmpty(Mono.defer(() -> {

@@ -23,6 +23,7 @@ import java.util.UUID;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.neo4j.driver.Driver;
 
@@ -50,6 +51,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Gerrit Meier
  */
 @Neo4jIntegrationTest
+@Tag(Neo4jExtension.NEEDS_VERSION_SUPPORTING_ELEMENT_ID)
 class AggregateBoundaryIT {
 
 	protected static Neo4jExtension.Neo4jConnectionSupport neo4jConnectionSupport;

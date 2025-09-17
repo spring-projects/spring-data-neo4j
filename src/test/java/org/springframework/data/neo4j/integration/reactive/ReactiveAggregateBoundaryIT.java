@@ -53,6 +53,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @Neo4jIntegrationTest
 @Tag(Neo4jExtension.NEEDS_REACTIVE_SUPPORT)
+@Tag(Neo4jExtension.NEEDS_VERSION_SUPPORTING_ELEMENT_ID)
 class ReactiveAggregateBoundaryIT {
 
 	protected static Neo4jExtension.Neo4jConnectionSupport neo4jConnectionSupport;

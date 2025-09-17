@@ -20,13 +20,16 @@ import java.util.List;
 import java.util.Map;
 
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Tag;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.types.TypeSystem;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.neo4j.test.Neo4jExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@Tag(Neo4jExtension.NEEDS_VERSION_SUPPORTING_ELEMENT_ID)
 abstract class AbstractCascadingTestBase {
 
 	static Map<Class<? extends Parent>, String> EXISTING_IDS = new HashMap<>();

@@ -65,7 +65,6 @@ import static org.neo4j.cypherdsl.core.Cypher.collect;
 import static org.neo4j.cypherdsl.core.Cypher.listBasedOn;
 import static org.neo4j.cypherdsl.core.Cypher.literalOf;
 import static org.neo4j.cypherdsl.core.Cypher.match;
-import static org.neo4j.cypherdsl.core.Cypher.node;
 import static org.neo4j.cypherdsl.core.Cypher.optionalMatch;
 import static org.neo4j.cypherdsl.core.Cypher.parameter;
 
@@ -164,6 +163,14 @@ public enum CypherGenerator {
 			}
 		}
 		return result;
+	}
+
+	private static Node node(String primaryLabel, List<String> additionalLabels) {
+		var labels = Cypher.exactlyLabel(primaryLabel);
+		if (!additionalLabels.isEmpty()) {
+			labels = labels.conjunctionWith(Cypher.allLabels(Cypher.anonParameter(additionalLabels)));
+		}
+		return Cypher.node(labels);
 	}
 
 	private static Condition conditionOrNoCondition(@Nullable Condition condition) {
