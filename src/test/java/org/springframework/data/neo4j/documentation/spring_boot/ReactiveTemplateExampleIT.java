@@ -37,7 +37,7 @@ import org.springframework.test.context.DynamicPropertySource;
  */
 @Disabled
 @Testcontainers
-class ReactiveTemplateExampleTests {
+class ReactiveTemplateExampleIT {
 
 	@Container
 	private static Neo4jContainer<?> neo4jContainer = new Neo4jContainer<>("neo4j:5");

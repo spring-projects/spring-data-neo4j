@@ -63,7 +63,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 // handling bookmarks
 // between fixture and test
 @Tag(Neo4jExtension.INCOMPATIBLE_WITH_CLUSTERS)
-class ReactiveExceptionTranslationTests {
+class ReactiveExceptionTranslationIT {
 
 	protected static Neo4jExtension.Neo4jConnectionSupport neo4jConnectionSupport;
 

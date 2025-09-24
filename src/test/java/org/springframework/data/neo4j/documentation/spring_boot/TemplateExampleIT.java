@@ -46,7 +46,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Michael J. Simons
  */
 @Neo4jIntegrationTest
-public class TemplateExampleTests {
+public class TemplateExampleIT {
 
 	protected static Neo4jExtension.Neo4jConnectionSupport neo4jConnectionSupport;
 

@@ -1862,7 +1862,7 @@ class IssuesIT extends TestBase {
 	@Tag("GH-3036")
 	@Test
 	@EnabledIf("is5OrLater")
-	void asdf(@Autowired VehicleRepository repository) {
+	void instantiateCorrectEntitiesIfDynamicLabelsAreUsed(@Autowired VehicleRepository repository) {
 		var vehicleWithoutDynamicLabels = new Vehicle();
 		var vehicleWithOneDynamicLabel = new Vehicle();
 		vehicleWithOneDynamicLabel.setLabels(Set.of("label1"));
