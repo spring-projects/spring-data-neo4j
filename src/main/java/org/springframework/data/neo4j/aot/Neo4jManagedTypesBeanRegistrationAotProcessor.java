@@ -13,13 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.data.neo4j.aot;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.aot.generate.GenerationContext;
-import org.springframework.core.ResolvableType;
-import org.springframework.data.aot.AotContext;
 import org.springframework.data.aot.ManagedTypesBeanRegistrationAotProcessor;
 import org.springframework.util.ClassUtils;
 
@@ -43,16 +41,6 @@ public final class Neo4jManagedTypesBeanRegistrationAotProcessor extends Managed
 
 	boolean isNeo4jManagedTypes(@Nullable Class<?> beanType) {
 		return beanType != null && ClassUtils.isAssignable(Neo4jManagedTypes.class, beanType);
-	}
-
-	@Override
-	protected void contributeType(ResolvableType type, GenerationContext generationContext, AotContext aotContext) {
-
-		if (Neo4jAotPredicates.IS_SIMPLE_TYPE.test(type.toClass())) {
-			return;
-		}
-
-		super.contributeType(type, generationContext, aotContext);
 	}
 
 }
