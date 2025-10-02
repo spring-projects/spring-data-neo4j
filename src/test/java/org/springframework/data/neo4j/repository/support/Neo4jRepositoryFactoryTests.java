@@ -160,7 +160,7 @@ class Neo4jRepositoryFactoryTests {
 			assertThatExceptionOfType(QueryCreationException.class)
 				.isThrownBy(() -> this.repositoryFactory.getRepository(InvalidIgnoreCase.class))
 				.withMessageMatching(
-						"Could not create query for .*: Only the case of String based properties can be ignored within the following keywords: \\[IsNotLike, NotLike, IsLike, Like, IsStartingWith, StartingWith, StartsWith, IsEndingWith, EndingWith, EndsWith, IsNotContaining, NotContaining, NotContains, IsContaining, Containing, Contains, IsNot, Not, Is, Equals]");
+						".+ derive query for .*: Only the case of String based properties can be ignored within the following keywords: \\[IsNotLike, NotLike, IsLike, Like, IsStartingWith, StartingWith, StartsWith, IsEndingWith, EndingWith, EndsWith, IsNotContaining, NotContaining, NotContains, IsContaining, Containing, Contains, IsNot, Not, Is, Equals]");
 		}
 
 		@Test
@@ -169,7 +169,7 @@ class Neo4jRepositoryFactoryTests {
 			assertThatExceptionOfType(QueryCreationException.class)
 				.isThrownBy(() -> this.repositoryFactory.getRepository(InvalidTemporal.class))
 				.withMessageMatching(
-						"Could not create query for .*: The keywords \\[IsAfter, After] work only with properties with one of the following types: \\[class java.time.Instant, class java.time.LocalDate, class java.time.LocalDateTime, class java.time.LocalTime, class java.time.OffsetDateTime, class java.time.OffsetTime, class java.time.ZonedDateTime]");
+						".+ derive query for .*: The keywords \\[IsAfter, After] work only with properties with one of the following types: \\[class java.time.Instant, class java.time.LocalDate, class java.time.LocalDateTime, class java.time.LocalTime, class java.time.OffsetDateTime, class java.time.OffsetTime, class java.time.ZonedDateTime]");
 		}
 
 		@Test
@@ -178,7 +178,7 @@ class Neo4jRepositoryFactoryTests {
 			assertThatExceptionOfType(QueryCreationException.class)
 				.isThrownBy(() -> this.repositoryFactory.getRepository(InvalidCollection.class))
 				.withMessageMatching(
-						"Could not create query for .*: The keywords \\[IsEmpty, Empty] work only with collection properties");
+						".+ derive query for .*: The keywords \\[IsEmpty, Empty] work only with collection properties");
 		}
 
 		@Test
@@ -186,8 +186,7 @@ class Neo4jRepositoryFactoryTests {
 
 			assertThatExceptionOfType(QueryCreationException.class)
 				.isThrownBy(() -> this.repositoryFactory.getRepository(InvalidSpatial.class))
-				.withMessageMatching(
-						"Could not create query for .* \\[IsNear, Near] works only with spatial properties");
+				.withMessageMatching(".+ derive query for .* \\[IsNear, Near] works only with spatial properties");
 		}
 
 		@Test
@@ -196,7 +195,7 @@ class Neo4jRepositoryFactoryTests {
 			assertThatExceptionOfType(QueryCreationException.class)
 				.isThrownBy(() -> this.repositoryFactory.getRepository(DerivedWithComposite.class))
 				.withMessageMatching(
-						"Could not create query for .*: Derived queries are not supported for composite properties");
+						".+ derive query for .*: Derived queries are not supported for composite properties");
 		}
 
 		@Test // GH-2281
@@ -205,7 +204,7 @@ class Neo4jRepositoryFactoryTests {
 			assertThatExceptionOfType(QueryCreationException.class)
 				.isThrownBy(() -> this.repositoryFactory.getRepository(InvalidDeleteBy.class))
 				.withMessageMatching(
-						"Could not create query for .*: A derived delete query can only return the number of deleted nodes as a long or void");
+						"A derived delete query can only return the number of deleted nodes as a long or void");
 		}
 
 	}
