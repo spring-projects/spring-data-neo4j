@@ -87,6 +87,8 @@ import org.springframework.data.neo4j.core.mapping.RelationshipDescription;
 import org.springframework.data.neo4j.core.mapping.SpringDataCypherDsl;
 import org.springframework.data.neo4j.core.mapping.callback.EventSupport;
 import org.springframework.data.neo4j.core.schema.TargetNode;
+import org.springframework.data.neo4j.core.support.UserDefinedChangeEvaluator;
+import org.springframework.data.neo4j.core.support.UserDefinedChangeSupport;
 import org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager;
 import org.springframework.data.neo4j.repository.NoResultException;
 import org.springframework.data.neo4j.repository.query.QueryFragments;
@@ -156,6 +158,7 @@ public final class Neo4jTemplate
 
 	@Nullable
 	private TransactionTemplate transactionTemplateReadOnly;
+	private final Map<Class, UserDefinedChangeEvaluator> userDefinedChangeEvaluators = new HashMap<>();
 
 	public Neo4jTemplate(Neo4jClient neo4jClient) {
 		this(neo4jClient, new Neo4jMappingContext());
@@ -452,7 +455,9 @@ public final class Neo4jTemplate
 	private <T> T saveImpl(T instance, @Nullable Collection<PropertyFilter.ProjectedPath> includedProperties,
 			@Nullable NestedRelationshipProcessingStateMachine stateMachine) {
 
-		if (stateMachine != null && stateMachine.hasProcessedValue(instance)) {
+		if ((stateMachine != null && stateMachine.hasProcessedValue(instance))
+			|| (instance instanceof UserDefinedChangeSupport udcs && !udcs.needsUpdate())
+			|| (this.userDefinedChangeEvaluators.containsKey(instance.getClass()) && !this.userDefinedChangeEvaluators.get(instance.getClass()).needsUpdate(instance))) {
 			return instance;
 		}
 
@@ -977,11 +982,26 @@ public final class Neo4jTemplate
 					.identifyAndExtractRelationshipTargetNode(relatedValueToStore);
 				Neo4jPersistentEntity<?> targetEntity = this.neo4jMappingContext
 					.getRequiredPersistentEntity(relatedObjectBeforeCallbacksApplied.getClass());
-				boolean isNewEntity = targetEntity.isNew(relatedObjectBeforeCallbacksApplied);
+				var isNewEntity = targetEntity.isNew(relatedObjectBeforeCallbacksApplied);
+				var skipUpdateOfEntity = false;
+				if (relatedValueToStore instanceof UserDefinedChangeSupport udcs) {
+					skipUpdateOfEntity = !isNewEntity && !udcs.needsUpdate();
+				}
+				if (relatedValueToStore instanceof MappingSupport.RelationshipPropertiesWithEntityHolder rpweh) {
+					var relatedEntity = rpweh.getRelatedEntity();
+					if (relatedEntity instanceof UserDefinedChangeSupport udcs) {
+						skipUpdateOfEntity = !isNewEntity && !udcs.needsUpdate();
+					}
+				}
+				else if (!skipUpdateOfEntity) {
+					skipUpdateOfEntity = this.userDefinedChangeEvaluators.containsKey(relatedValueToStore.getClass());
+				}
 
 				Object newRelatedObject = stateMachine.hasProcessedValue(relatedObjectBeforeCallbacksApplied)
 						? stateMachine.getProcessedAs(relatedObjectBeforeCallbacksApplied)
-						: this.eventSupport.maybeCallBeforeBind(relatedObjectBeforeCallbacksApplied);
+						: skipUpdateOfEntity
+							? relatedObjectBeforeCallbacksApplied
+							: this.eventSupport.maybeCallBeforeBind(relatedObjectBeforeCallbacksApplied);
 
 				Object relatedInternalId;
 				Entity savedEntity = null;
@@ -990,7 +1010,7 @@ public final class Neo4jTemplate
 					relatedInternalId = stateMachine.getObjectId(relatedValueToStore);
 				}
 				else {
-					if (isNewEntity || relationshipDescription.cascadeUpdates()) {
+					if ((isNewEntity || relationshipDescription.cascadeUpdates()) && !skipUpdateOfEntity) {
 						savedEntity = saveRelatedNode(newRelatedObject, targetEntity, includeProperty,
 								currentPropertyPath);
 					}
@@ -1101,7 +1121,9 @@ public final class Neo4jTemplate
 					else {
 						if (isNewRelationship && idProperty != null) {
 							newRelationshipPropertiesRows.add(properties);
-							newRelationshipPropertiesToStore.add(relatedValueToStore);
+							if (!skipUpdateOfEntity) {
+								newRelationshipPropertiesToStore.add(relatedValueToStore);
+							}
 						}
 						else {
 							this.neo4jMappingContext.getEntityConverter()
@@ -1325,6 +1347,8 @@ public final class Neo4jTemplate
 			}
 		}
 		setTransactionManager(transactionManager);
+		this.userDefinedChangeEvaluators.putAll(beanFactory.getBeanProvider(UserDefinedChangeEvaluator.class).stream()
+				.collect(Collectors.toMap(e -> e.getEvaluatingClass(), e -> e)));
 	}
 
 	// only used for the CDI configuration
