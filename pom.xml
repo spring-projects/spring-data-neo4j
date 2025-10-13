@@ -77,7 +77,7 @@
 		<blockhound.version>1.0.8.RELEASE</blockhound.version>
 		<checkstyle.skip>${skipTests}</checkstyle.skip>
 		<checkstyle.version>10.20.1</checkstyle.version>
-		<cypher-dsl.version>2025.0.2</cypher-dsl.version>
+		<cypher-dsl.version>2025.1.0</cypher-dsl.version>
 		<dist.id>spring-data-neo4j</dist.id>
 		<dist.key>SDNEO4J</dist.key>
 		<flatten-maven-plugin.version>1.7.0</flatten-maven-plugin.version>
@@ -97,9 +97,9 @@
 		<maven-install-plugin.version>3.1.4</maven-install-plugin.version>
 		<maven-site-plugin.version>3.7.1</maven-site-plugin.version>
 		<maven.compiler.release>${java.version}</maven.compiler.release>
-		<neo4j-java-driver.version>6.0.0</neo4j-java-driver.version>
+		<neo4j-java-driver.version>6.0.1</neo4j-java-driver.version>
 		<neo4j-migrations.version>2.17.3</neo4j-migrations.version>
-		<neo4j.version>5.26.12</neo4j.version>
+		<neo4j.version>5.26.13</neo4j.version>
 		<objenesis.version>3.0.1</objenesis.version>
 		<org.osgi.core.version>6.0.0</org.osgi.core.version>
 		<project.build.docs>${project.build.directory}/docs</project.build.docs>
