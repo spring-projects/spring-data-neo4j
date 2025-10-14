@@ -1,1 +1,0 @@
-include::{commons}@data-commons::page$repositories/definition.adoc[]

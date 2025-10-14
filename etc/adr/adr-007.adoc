@@ -27,4 +27,4 @@ Otherwise, we would initialize the version actively to just delete the node.
 === Consequences
 
 A clean line between what is supposed to work with optimistic locking and what does not.
-Additionally, this aligns the Neo4j module with the other Spring Data modules.
+Additionally, this aligns the FalkorDB module with the other Spring Data modules.

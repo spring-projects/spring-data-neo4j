@@ -14,4 +14,4 @@
 # limitations under the License.
 #
 
-org.springframework.data.repository.core.support.RepositoryFactorySupport=org.springframework.data.neo4j.repository.core.Neo4jRepositoryFactory
+org.springframework.data.repository.core.support.RepositoryFactorySupport=org.springframework.data.falkordb.repository.support.FalkorDBRepositoryFactory

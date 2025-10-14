@@ -1,3 +1,0 @@
-[[testing]]
-= Testing
-:page-section-summary-toc: 1

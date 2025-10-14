@@ -25,26 +25,26 @@
         </encoder>
     </appender>
 
-    <logger name="org.neo4j.driver" level="info"/>
+    <logger name="com.falkordb.driver" level="info"/>
     <logger name="GraphDatabase" level="info"/>
     <logger name="Driver" level="info"/>
     <logger name="OutboundMessageHandler" level="info"/>
     <logger name="InboundMessageDispatcher" level="info"/>
 
-    <logger name="org.springframework.data.neo4j.cypher" level="info"/>
-    <logger name="org.springframework.data.neo4j.cypher.performance" level="error"/>
-    <logger name="org.springframework.data.neo4j.cypher.hint" level="error"/>
-    <logger name="org.springframework.data.neo4j.cypher.unrecognized" level="error"/>
-    <logger name="org.springframework.data.neo4j.cypher.unsupported" level="error"/>
+    <logger name="org.springframework.data.falkordb.cypher" level="info"/>
+    <logger name="org.springframework.data.falkordb.cypher.performance" level="error"/>
+    <logger name="org.springframework.data.falkordb.cypher.hint" level="error"/>
+    <logger name="org.springframework.data.falkordb.cypher.unrecognized" level="error"/>
+    <logger name="org.springframework.data.falkordb.cypher.unsupported" level="error"/>
     <!--  if deprecation gets set to "warn" or finer, all id() deprecation will get logged  -->
-    <logger name="org.springframework.data.neo4j.cypher.deprecation" level="error"/>
-    <logger name="org.springframework.data.neo4j.cypher.generic" level="error"/>
-    <logger name="org.springframework.data.neo4j.cypher.security" level="error"/>
-    <logger name="org.springframework.data.neo4j.cypher.topology" level="error"/>
-    <logger name="org.springframework.data.neo4j" level="info"/>
-    <logger name="org.springframework.data.neo4j.test" level="info"/>
-    <logger name="org.springframework.data.neo4j.repository.query.Neo4jQuerySupport" level="debug" />
-    <logger name="org.springframework.data.neo4j.core.mapping.Neo4jPersistentEntity" level="error" />
+    <logger name="org.springframework.data.falkordb.cypher.deprecation" level="error"/>
+    <logger name="org.springframework.data.falkordb.cypher.generic" level="error"/>
+    <logger name="org.springframework.data.falkordb.cypher.security" level="error"/>
+    <logger name="org.springframework.data.falkordb.cypher.topology" level="error"/>
+    <logger name="org.springframework.data.falkordb" level="info"/>
+    <logger name="org.springframework.data.falkordb.test" level="info"/>
+    <logger name="org.springframework.data.falkordb.repository.query.FalkorDBQuerySupport" level="debug" />
+    <logger name="org.springframework.data.falkordb.core.mapping.FalkorDBPersistentEntity" level="error" />
 
     <root level="warn">
         <appender-ref ref="console"/>

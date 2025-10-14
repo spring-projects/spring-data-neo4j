@@ -57,7 +57,7 @@
                     com.tngtech.archunit.core.domain.JavaClass.Predicates.*,
                     com.tngtech.archunit.lang.conditions.ArchPredicates.*,
                     com.tngtech.archunit.lang.syntax.ArchRuleDefinition.*,
-                    org.neo4j.cypherdsl.core.Cypher.*,
+                    com.falkordb.core.Cypher.*,
                     org.apiguardian.api.API.Status.*
                 "
 			/>

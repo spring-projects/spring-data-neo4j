@@ -26,6 +26,6 @@ name: sdn.elementId.rewriteIdCalls
 displayName: Change calls to Functions.id to Functions.elemenetId
 recipeList:
   - org.openrewrite.java.ChangeMethodName:
-      methodPattern: org.neo4j.cypherdsl.core.Functions id(..)
+      methodPattern: com.falkordb.cypherdsl.core.Functions id(..)
       newMethodName: elementId
       ignoreDefinition: true

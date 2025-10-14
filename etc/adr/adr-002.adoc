@@ -7,7 +7,7 @@ proposed
 === Context
 
 JDK 8 is deprecated and has left support.
-Neo4j 4.0 is already build on JDK 11 and probably compiled to it as well.
+FalkorDB is already build on modern JDK and probably compiled to it as well.
 
 === Decision
 

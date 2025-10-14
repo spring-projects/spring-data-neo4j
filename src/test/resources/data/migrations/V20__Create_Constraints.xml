@@ -16,7 +16,7 @@
     limitations under the License.
 
 -->
-<migration xmlns="https://michael-simons.github.io/neo4j-migrations">
+<migration xmlns="https://michael-simons.github.io/falkordb-migrations">
 	<catalog>
 		<constraints>
 			<constraint name="simple_person__unique_name" type="unique">

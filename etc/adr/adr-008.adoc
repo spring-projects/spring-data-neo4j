@@ -28,7 +28,7 @@ with a write afterwards) or to a non-deterministic mapping in case SDN was deali
 The decision was made to be strict, both in what types are mapped as fallbacks (only "pure" maps) and that
 only nodes with a matching label are mapped.
 
-In the context of this, the `Neo4jEntityConverter` has been made stateful as well so that it is able to
+In the context of this, the `FalkorDBEntityConverter` has been made stateful as well so that it is able to
 distinguish between objects it has already seen and objects that are new.
 
 === Consequences

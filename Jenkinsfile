@@ -34,7 +34,7 @@ pipeline {
 			environment {
 				ARTIFACTORY = credentials("${p['artifactory.credentials']}")
 				DEVELOCITY_ACCESS_KEY = credentials("${p['develocity.access-key']}")
-				TESTCONTAINERS_IMAGE_SUBSTITUTOR = 'org.springframework.data.neo4j.support.ProxyImageNameSubstitutor'
+				TESTCONTAINERS_IMAGE_SUBSTITUTOR = 'org.springframework.data.falkordb.support.ProxyImageNameSubstitutor'
 			}
 
 			steps {
@@ -66,7 +66,7 @@ pipeline {
 					environment {
 						ARTIFACTORY = credentials("${p['artifactory.credentials']}")
 						DEVELOCITY_ACCESS_KEY = credentials("${p['develocity.access-key']}")
-						TESTCONTAINERS_IMAGE_SUBSTITUTOR = 'org.springframework.data.neo4j.support.ProxyImageNameSubstitutor'
+						TESTCONTAINERS_IMAGE_SUBSTITUTOR = 'org.springframework.data.falkordb.support.ProxyImageNameSubstitutor'
 					}
 					steps {
 						script {
@@ -111,9 +111,9 @@ pipeline {
 								"-Dartifactory.username=${ARTIFACTORY_USR} " +
 								"-Dartifactory.password=${ARTIFACTORY_PSW} " +
 								"-Dartifactory.staging-repository=${p['artifactory.repository.snapshot']} " +
-								"-Dartifactory.build-name=spring-data-neo4j " +
-								"-Dartifactory.build-number=spring-data-neo4j-${BRANCH_NAME}-build-${BUILD_NUMBER} " +
-								"-Dmaven.repo.local=/tmp/jenkins-home/.m2/spring-data-neo4j " +
+								"-Dartifactory.build-name=spring-data-falkordb " +
+								"-Dartifactory.build-number=spring-data-falkordb-${BRANCH_NAME}-build-${BUILD_NUMBER} " +
+								"-Dmaven.repo.local=/tmp/jenkins-home/.m2/spring-data-falkordb " +
 								"-Dmaven.test.skip=true clean deploy -U -B"
 						}
 					}

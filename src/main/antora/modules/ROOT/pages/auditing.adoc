@@ -1,2 +1,0 @@
-[[auditing]]
-include::{commons}@data-commons::page$auditing.adoc[]

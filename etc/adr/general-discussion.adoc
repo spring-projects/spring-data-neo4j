@@ -1,19 +1,19 @@
-= General architectural discussions about Spring Data Neo4j
+= General architectural discussions about Spring Data FalkorDB
 
 [abstract]
 --
-This is a work in progress project determining a possible future form of Spring Data Neo4j.
+This is a work in progress project determining a possible future form of Spring Data FalkorDB.
 Expect the README and even more the project to change quite a lot in the future weeks.
 --
 
 == Architectural guidelines and principles
 
-The next version of Spring Data Neo4j should be designed with the following principles in mind:
+The next version of Spring Data FalkorDB should be designed with the following principles in mind:
 
-* Rely completely on the https://github.com/neo4j/neo4j-java-driver[Neo4j Java Driver], without introducing another "driver" or "transport" layer between the mapping framework and the driver.
+* Rely completely on the https://github.com/falkordb/jfalkordb[JFalkorDB Driver], without introducing another "driver" or "transport" layer between the mapping framework and the driver.
 * Immutable entities and thus full support for Kotlin's data classes right from the start.
 * Work result item / record and not result set oriented, thus not reading the complete result set before the mapping starts, but make a "row" the foundation for any mapping.
-This encourages generation of optimized queries, which should greatly reduce the object graph impedance mismatch we see in some projects using Neo4j-OGM.
+This encourages generation of optimized queries, which should greatly reduce the object graph impedance mismatch we see in some projects using graph databases.
 * Follow up on the reactive story for database access in general. Being immutable and row oriented are two main requirements for making things possible.
 
 === Modules
@@ -25,7 +25,7 @@ So far we have identified the following modules:
 * Lifecycle: Lifecycle must not depend directly on mapping, but should only care whether an Object and its Relations are managed or not
 * Querying: Generates cypher queries, depends on schema
 
-Those will be reassembled as packages inside Spring Data Neo4j.
+Those will be reassembled as packages inside Spring Data FalkorDB.
 There are no short-term planes to create additional artifacts from those.
 
 [[schema]]
@@ -35,15 +35,15 @@ We used the new Spring Data JDBC project as blueprint for some ideas now.
 Spring Data JDBC doesn't build up the schema upfront.
 Each time, a persistent entity is requested from the mapping context, that entity is read and fully described, including properties and all associations.
 We can implement it in the same way.
-The mapping context would return instances of `Neo4jPersistentEntity` which implements a Spring Data interface.
+The mapping context would return instances of `FalkorDBPersistentEntity` which implements a Spring Data interface.
 To fulfill the contract however, we would read the classes and store them in a schema that is free of Spring dependencies.
 That way we we can avoid a compile time dependency to Spring Data and have an independent schema module, in which the mapping context is the connecting adapter.
 
 Spring Data JDBC doesn't restrict the supported or scanned classes from Spring Data sides.
 Our schema should also support non-annotated classes and be smart about naming things, but we will require at least the `@Node` or `@Relationship` annotation to the outside world.
 
-The schema will life independent from Spring classes in `org.springframework.data.neo4j.core.schema`.
-Each property of a class that is not identified as a simple type by `org.springframework.data.neo4j.core.schema.Neo4jSimpleTypes` will be considered describing a relationship and thus required to be part of the schema as well.
+The schema will life independent from Spring classes in `org.springframework.data.falkordb.core.schema`.
+Each property of a class that is not identified as a simple type by `org.springframework.data.falkordb.core.schema.FalkorDBSimpleTypes` will be considered describing a relationship and thus required to be part of the schema as well.
 
 ==== Context
 
@@ -53,7 +53,7 @@ We decided against a context for tracking changes, much like Spring Data JDBC di
 
 === Other principles
 
-* Ensure that the underlying store (Neo4j) leaks as little as possible into the mapping.
+* Ensure that the underlying store (FalkorDB) leaks as little as possible into the mapping.
   I.e. reuse `@Id` etc. and avoid adding custom variants of annotation whenever possible.
 
 === The embedded "problem"
@@ -140,13 +140,13 @@ Integration tests will get executed withing the `verify` goal and their class na
 
 == Configuration
 
-Spring Data Neo4j takes a "ready to use" drivers instance and uses that.
+Spring Data FalkorDB takes a "ready to use" drivers instance and uses that.
 We won't provide any additional configuration for aspects that are configurable through the driver.
 We will however provide support to configure the drivers instance in Spring Boot.
-The current SDN Spring Boot Starter only configures the Neo4j-OGM transport and not the "real" driver.
+The current SDN Spring Boot Starter only configures the FalkorDB-OGM transport and not the "real" driver.
 Our plans for a future starter a have been <<starter,described separately>>.
 
-Closing the driver is not the the concern of Spring Data Neo4j.
+Closing the driver is not the the concern of Spring Data FalkorDB.
 The lifecycle of that bean should be managed by the application.
 Therefore, the starter need to take care of register the drivers instance with the application.
 
@@ -162,10 +162,10 @@ It is only meant to be a basic for discussions.
 ----
 @startuml
 note "Implementation of Spring Data Commons SPI" as SDC_note
-package "org.springframework.data.neo4j" {
+package "org.springframework.data.falkordb" {
 package "core" {
-    interface Neo4jClient
-    interface ReactiveNeo4jClient
+    interface FalkorDBClient
+    interface ReactiveFalkorDBClient
     package "schema" {
             package "internal" {
                 note "Schema description" as schemaDescription
@@ -174,11 +174,11 @@ package "core" {
             annotation Property
         }
     package "mapping" {
-            interface Neo4jPersistentEntity
-            interface Neo4jPersistentProperty
+            interface FalkorDBPersistentEntity
+            interface FalkorDBPersistentProperty
         }
     package "transaction" {
-        class Neo4jTransactionManager
+        class FalkorDBTransactionManager
     }
     package "convert" {
         note "conversion support" as conversionNote
@@ -188,20 +188,20 @@ package "core" {
 package "repository" {
 SDC_note..config
     package "config" {
-        class EnableNeo4jRepository
-        class Neo4jRepositoryRegistrar
-        class Neo4jRepositoryConfigExtension
+        class EnableFalkorDBRepositories
+        class FalkorDBRepositoryRegistrar
+        class FalkorDBRepositoryConfigExtension
     }
     package "query" {
         annotation Query
     }
     package "support" {
-        class Neo4jRepositoryFactoryBean
-        class SimpleNeo4jRepository
-        class Neo4jQueryLookupStrategy
+        class FalkorDBRepositoryFactoryBean
+        class SimpleFalkorDBRepository
+        class FalkorDBQueryLookupStrategy
     }
-    interface Neo4jRepository
-    interface ReactiveNeo4jRepository
+    interface FalkorDBRepository
+    interface ReactiveFalkorDBRepository
 }
 
 core-[hidden]--->repository
@@ -214,67 +214,67 @@ core-[hidden]--->repository
 |===
 |Package|Comment
 |core
-|`Neo4jTemplate` and related classes.
+|`FalkorDBTemplate` and related classes.
 |core.schema
 |Annotations for marking classes as nodes to be saved as well as internal schema description.
 |Infrastructure for dirty tracking etc.
 |core.mapping
 |Spring mapping information.
 |core.mapping.internal
-|Neo4j data mapping.
+|FalkorDB data mapping.
 |core.session
 |Connection to the `Driver` instance.
 |core.convert
 |_not used yet_  place for conversion related classes.
 
 |repository
-|Repository interfaces like `Neo4jRepository`.
+|Repository interfaces like `FalkorDBRepository`.
 |repository.config
 |Register all needed beans for Spring context.
 |repository.query
 |Place where `@Query` and other query method related annotations go in.
 |repository.support
-|"Glue code" like `Neo4jRepositoryFactoryBean`, `SimpleNeo4jRepository` etc.
+|"Glue code" like `FalkorDBRepositoryFactoryBean`, `SimpleFalkorDBRepository` etc.
 |===
 
 === Architecture validation
-In favour of lightweight builds and JDK restriction of Neo4j, we moved away from https://jqassistant.org[jQAssistant] (still a great tool) and
+In favour of lightweight builds and JDK restriction of FalkorDB, we moved away from https://jqassistant.org[jQAssistant] (still a great tool) and
 have now https://www.archunit.org[ArchUnit] in place.
 
-=== `SimpleNeo4jRepository` initialization
-. `@EnableNeo4jRepositories` defines
- ** the `repositoryFactoryBeanClass` that defaults to `Neo4jRepositoryFactoryBean.class`. (I)
- ** `Neo4jRepositoriesRegistrar` as a configuration via the `@Import` annotation.
-. `Neo4jRepositoriesRegistrar` connects `@EnableNeo4jRepositories` with `Neo4jRepositoryConfigurationExtension`.
-. `Neo4jRepositoryConfigurationExtension` creates `Neo4jRepositoryFactoryBean` (the class defined (I)).
-** Adds manually created `Neo4jTemplate` (as an implementation of `Neo4jOperations`) bean by setting it (`setNeo4jOperations`) in the `Neo4jRepositoryFactoryBean`. (II)
-** Defines the default/fallback `RepositoryFactoryBeanClassName` as `Neo4jRepositoryFactoryBean.class.getName()` in `getRepositoryFactoryBeanClassName`.
-. `Neo4jRepositoryFactoryBean` has a super constructor that gets called from the infrastructure code.
-As a consequence the `neo4jOperations` property has to get set in (II) after initialization.
-** Creates a new instance of `Neo4jRepositoryFactory` with the in (II) provided `Neo4jOperations` in `doCreateRepositoryFactory`.
-. `Neo4jRepositoryFactory` will then create a `SimpleNeo4jRepository`.
-** It does this by calling `getTargetRepositoryViaReflection` in `getTargetRepository` and providing the `neo4jOperations`.
-. `SimpleNeo4jRepository` (the repository behind every user defined repository) is initialized.
+=== `SimpleFalkorDBRepository` initialization
+. `@EnableFalkorDBRepositories` defines
+ ** the `repositoryFactoryBeanClass` that defaults to `FalkorDBRepositoryFactoryBean.class`. (I)
+ ** `FalkorDBRepositoriesRegistrar` as a configuration via the `@Import` annotation.
+. `FalkorDBRepositoriesRegistrar` connects `@EnableFalkorDBRepositories` with `FalkorDBRepositoryConfigurationExtension`.
+. `FalkorDBRepositoryConfigurationExtension` creates `FalkorDBRepositoryFactoryBean` (the class defined (I)).
+** Adds manually created `FalkorDBTemplate` (as an implementation of `FalkorDBOperations`) bean by setting it (`setFalkorDBOperations`) in the `FalkorDBRepositoryFactoryBean`. (II)
+** Defines the default/fallback `RepositoryFactoryBeanClassName` as `FalkorDBRepositoryFactoryBean.class.getName()` in `getRepositoryFactoryBeanClassName`.
+. `FalkorDBRepositoryFactoryBean` has a super constructor that gets called from the infrastructure code.
+As a consequence the `falkordbOperations` property has to get set in (II) after initialization.
+** Creates a new instance of `FalkorDBRepositoryFactory` with the in (II) provided `FalkorDBOperations` in `doCreateRepositoryFactory`.
+. `FalkorDBRepositoryFactory` will then create a `SimpleFalkorDBRepository`.
+** It does this by calling `getTargetRepositoryViaReflection` in `getTargetRepository` and providing the `falkordbOperations`.
+. `SimpleFalkorDBRepository` (the repository behind every user defined repository) is initialized.
 
 === Query execution
 
 NOTE: This section contains the already straight-forward implemented support for custom queries via `@Query`.
 The other execution paths are only drafts right now and marked with a `*`.
 
-`Neo4jRepositoryFactory` overrides the `getQueryLookupStrategy` method to provide the `Neo4jQueryLookupStrategy`.
+`FalkorDBRepositoryFactory` overrides the `getQueryLookupStrategy` method to provide the `FalkorDBQueryLookupStrategy`.
 From our previous experience and handling in other Spring Data stores this would branch off in two (technical three) directions:
 
-. `StringBasedNeo4jQuery` for custom Cypher queries that are provided with the `@Query` annotation.
-. `StringBasedNeo4jQuery` for named queries that are outsourced in property files.
-. `PartTreeNeo4jQuery` for derived finder methods.
+. `StringBasedFalkorDBQuery` for custom Cypher queries that are provided with the `@Query` annotation.
+. `StringBasedFalkorDBQuery` for named queries that are outsourced in property files.
+. `PartTreeFalkorDBQuery` for derived finder methods.
 
-All three of them will get a custom `Neo4jQueryMethod` besides `Neo4jClient` and `QueryMethodEvaluationContextProvider` (not used yet) provided.
-This is a wrapper around the `java.lang.reflect.Method` passed into the `resolveQuery` method of the `Neo4jQueryLookupStrategy` to provide additional metadata.
+All three of them will get a custom `FalkorDBQueryMethod` besides `FalkorDBClient` and `QueryMethodEvaluationContextProvider` (not used yet) provided.
+This is a wrapper around the `java.lang.reflect.Method` passed into the `resolveQuery` method of the `FalkorDBQueryLookupStrategy` to provide additional metadata.
 
-==== `StringBasedNeo4jQuery` execution
+==== `StringBasedFalkorDBQuery` execution
 
-At the moment the implementation just takes the value of the provided `@Query` annotation by calling `getAnnotatedQuery` on the `Neo4jQueryMethod`
-and executes it through the `neo4jOperations` (`Neo4jTemplate`) class.
+At the moment the implementation just takes the value of the provided `@Query` annotation by calling `getAnnotatedQuery` on the `FalkorDBQueryMethod`
+and executes it through the `falkordbOperations` (`FalkorDBTemplate`) class.
 
 === Dirty tracking
 
@@ -291,12 +291,12 @@ We considered several approaches of dirty tracking in SDN:
 We have settled with option 1 (See ADR-004), analogue to Spring Data JDBC.
 
 [[starter]]
-== Spring Data Neo4j Spring Boot Starter
+== Spring Data FalkorDB Spring Boot Starter
 
-The Spring Data Neo4j Spring Boot Starter provides automatic configuration to
+The Spring Data FalkorDB Spring Boot Starter provides automatic configuration to
 
-* Create an instance of the https://github.com/neo4j/neo4j-java-driver[neo4j-java-driver]
-* Configure Spring Data Neo4j itself inside a Spring Boot application and enabling Spring Data repositories
+* Create an instance of the https://github.com/falkordb/jfalkordb[jfalkordb-driver]
+* Configure Spring Data FalkorDB itself inside a Spring Boot application and enabling Spring Data repositories
 
 === Architectural guidelines and principles
 
@@ -310,21 +310,21 @@ Thus we stay consistent with all other Spring Boot starters, that are actually p
 
 ==== Responsibilities
 
-The starter and its automatic configuration is responsible for configuring Spring Data Neo4j repositories and infrastructure.
-It needs a configured Neo4j Java Driver and therefor is itself dependent on `org.neo4j.driver:neo4j-java-driver-spring-boot-starter`,
-the official starter for the Neo4j Java Driver.
+The starter and its automatic configuration is responsible for configuring Spring Data FalkorDB repositories and infrastructure.
+It needs a configured FalkorDB Java Driver and therefor is itself dependent on `com.falkordb:jfalkordb-spring-boot-starter`,
+the official starter for the FalkorDB Java Driver.
 
-Having the starter provide automatic configuration is in accordance with the plans for Spring Data Neo4j.
-Spring Data Neo4j should only deal with configured, ready to use driver objects and not be responsible for configuring those.
+Having the starter provide automatic configuration is in accordance with the plans for Spring Data FalkorDB.
+Spring Data FalkorDB should only deal with configured, ready to use driver objects and not be responsible for configuring those.
 
 === Future plans
 
 It would be nice having this starter here moved into https://github.com/spring-projects/spring-boot[Spring Boot] itself at some point.
-Regardless of that, we might suggest backporting `Neo4jDriverAutoConfiguration` alone to Spring Boot and enhance https://github.com/spring-projects/spring-boot/blob/master/spring-boot-project/spring-boot-autoconfigure/src/main/java/org/springframework/boot/autoconfigure/data/neo4j/Neo4jDataAutoConfiguration.java[the existing `Neo4jDataAutoConfiguration`] to check whether there's a Driver bean available
+Regardless of that, we might suggest backporting `FalkorDBDriverAutoConfiguration` alone to Spring Boot and enhance the existing `FalkorDBDataAutoConfiguration` to check whether there's a Driver bean available
 and if so, pass this one to OGM instead of creating a new driver.
 That would also remove the need for being able to unwrap the native driver.
 
-See related discussion: https://github.com/spring-projects/spring-boot/issues/17610[Provide dedicated Neo4j driver auto-configuration].
+See related discussion: https://github.com/spring-projects/spring-boot/issues/17610[Provide dedicated FalkorDB driver auto-configuration].
 
 
 

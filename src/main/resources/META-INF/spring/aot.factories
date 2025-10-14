@@ -1,6 +1,6 @@
 org.springframework.aot.hint.RuntimeHintsRegistrar=\
- 	org.springframework.data.neo4j.aot.Neo4jRuntimeHints
+ 	org.springframework.data.falkordb.aot.FalkorDBRuntimeHints
  org.springframework.beans.factory.aot.BeanRegistrationAotProcessor=\
- 	org.springframework.data.neo4j.aot.Neo4jManagedTypesBeanRegistrationAotProcessor
+ 	org.springframework.data.falkordb.aot.FalkorDBManagedTypesBeanRegistrationAotProcessor
 org.springframework.data.util.TypeCollector$TypeCollectorFilters=\
-	org.springframework.data.neo4j.aot.Neo4jTypeFilters
+	org.springframework.data.falkordb.aot.FalkorDBTypeFilters

@@ -26,16 +26,16 @@
 	</parent>
 
 	<groupId>org.springframework.data</groupId>
-	<artifactId>spring-data-neo4j</artifactId>
-	<version>8.0.0-SNAPSHOT</version>
+	<artifactId>spring-data-falkordb</artifactId>
+	<version>1.0.0-SNAPSHOT</version>
 
-	<name>Spring Data Neo4j</name>
-	<description>Next generation Object-Graph-Mapping for Spring Data.</description>
-	<url>https://projects.spring.io/spring-data-neo4j</url>
+	<name>Spring Data FalkorDB</name>
+	<description>Object-Graph-Mapping for FalkorDB using Spring Data.</description>
+	<url>https://github.com/falkordb/spring-data-falkordb</url>
 	<inceptionYear>2019</inceptionYear>
 	<organization>
-		<name>Neo4j, Neo4j Sweden AB</name>
-		<url>https://neo4j.com</url>
+		<name>FalkorDB</name>
+		<url>https://falkordb.com</url>
 	</organization>
 	<licenses>
 		<license>
@@ -47,26 +47,15 @@
 
 	<developers>
 		<developer>
-			<id>gmeier</id>
-			<name>Gerrit Meier</name>
-			<email>gerrit.meier at neo4j.com</email>
-			<organization>Neo Technology</organization>
-			<organizationUrl>https://www.neotechnology.com</organizationUrl>
+			<id>shaharbiron</id>
+			<name>Shahar Biron</name>
+			<email>shahar at falkordb.com</email>
+			<organization>FalkorDB</organization>
+			<organizationUrl>https://falkordb.com</organizationUrl>
 			<roles>
 				<role>Project Lead</role>
 			</roles>
-			<timezone>+1</timezone>
-		</developer>
-		<developer>
-			<id>msimons</id>
-			<name>Michael Simons</name>
-			<email>michael.simons at neo4j.com</email>
-			<organization>Neo Technology</organization>
-			<organizationUrl>https://www.neotechnology.com</organizationUrl>
-			<roles>
-				<role>Project Lead</role>
-			</roles>
-			<timezone>+1</timezone>
+			<timezone>+2</timezone>
 		</developer>
 	</developers>
 
@@ -77,29 +66,25 @@
 		<blockhound.version>1.0.8.RELEASE</blockhound.version>
 		<checkstyle.skip>${skipTests}</checkstyle.skip>
 		<checkstyle.version>10.20.1</checkstyle.version>
-		<cypher-dsl.version>2025.0.2</cypher-dsl.version>
-		<dist.id>spring-data-neo4j</dist.id>
-		<dist.key>SDNEO4J</dist.key>
+		<dist.id>spring-data-falkordb</dist.id>
+		<dist.key>SDFALKORDB</dist.key>
 		<flatten-maven-plugin.version>1.7.0</flatten-maven-plugin.version>
 		<jacoco-maven-plugin.version>${jacoco}</jacoco-maven-plugin.version>
 		<jakarta.interceptor-api.version>2.0.1</jakarta.interceptor-api.version>
 		<jakarta.transaction-api.version>2.0.0</jakarta.transaction-api.version>
-		<java-module-name>spring.data.neo4j</java-module-name>
+		<java-module-name>spring.data.falkordb</java-module-name>
 		<java.version>17</java.version>
 		<jaxb.version>2.3.1</jaxb.version>
+		<jfalkordb.version>0.5.1</jfalkordb.version>
 		<jna.version>5.8.0</jna.version>
 		<jspecify.version>1.0.0</jspecify.version>
 		<jsr305.version>3.0.2</jsr305.version>
-		<junit-cc-testcontainer>2021.0.1</junit-cc-testcontainer>
 		<junit-pioneer.version>2.2.0</junit-pioneer.version>
 		<license-maven-plugin.version>5.0.0</license-maven-plugin.version>
 		<maven-checkstyle-plugin.version>3.6.0</maven-checkstyle-plugin.version>
 		<maven-install-plugin.version>3.1.4</maven-install-plugin.version>
 		<maven-site-plugin.version>3.7.1</maven-site-plugin.version>
 		<maven.compiler.release>${java.version}</maven.compiler.release>
-		<neo4j-java-driver.version>6.0.0</neo4j-java-driver.version>
-		<neo4j-migrations.version>2.17.3</neo4j-migrations.version>
-		<neo4j.version>5.26.12</neo4j.version>
 		<objenesis.version>3.0.1</objenesis.version>
 		<org.osgi.core.version>6.0.0</org.osgi.core.version>
 		<project.build.docs>${project.build.directory}/docs</project.build.docs>
@@ -120,13 +105,6 @@
 				<groupId>io.r2dbc</groupId>
 				<artifactId>r2dbc-bom</artifactId>
 				<version>${r2dbc.releasetrain}</version>
-				<type>pom</type>
-				<scope>import</scope>
-			</dependency>
-			<dependency>
-				<groupId>org.neo4j</groupId>
-				<artifactId>neo4j-cypher-dsl-bom</artifactId>
-				<version>${cypher-dsl.version}</version>
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
@@ -183,21 +161,6 @@
 				<version>${junit-pioneer.version}</version>
 			</dependency>
 			<dependency>
-				<groupId>org.neo4j</groupId>
-				<artifactId>neo4j</artifactId>
-				<version>${neo4j.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.neo4j.driver</groupId>
-				<artifactId>neo4j-java-driver</artifactId>
-				<version>${neo4j-java-driver.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.neo4j.test</groupId>
-				<artifactId>neo4j-harness</artifactId>
-				<version>${neo4j.version}</version>
-			</dependency>
-			<dependency>
 				<groupId>org.objenesis</groupId>
 				<artifactId>objenesis</artifactId>
 				<version>${objenesis.version}</version>
@@ -223,16 +186,15 @@
 				<version>${jaxb.version}</version>
 				<scope>provided</scope>
 			</dependency>
-			<dependency>
-				<groupId>eu.michael-simons.neo4j</groupId>
-				<artifactId>junit-jupiter-causal-cluster-testcontainer-extension</artifactId>
-				<version>${junit-cc-testcontainer}</version>
-				<scope>test</scope>
-			</dependency>
 		</dependencies>
 	</dependencyManagement>
 
 	<dependencies>
+		<dependency>
+			<groupId>com.falkordb</groupId>
+			<artifactId>jfalkordb</artifactId>
+			<version>${jfalkordb.version}</version>
+		</dependency>
 		<dependency>
 			<groupId>io.projectreactor</groupId>
 			<artifactId>reactor-core</artifactId>
@@ -282,18 +244,6 @@
 			<groupId>org.jetbrains.kotlinx</groupId>
 			<artifactId>kotlinx-coroutines-reactor</artifactId>
 			<optional>true</optional>
-		</dependency>
-		<dependency>
-			<groupId>org.neo4j</groupId>
-			<artifactId>neo4j-cypher-dsl</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.neo4j</groupId>
-			<artifactId>neo4j-cypher-dsl-schema-name-support</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.neo4j.driver</groupId>
-			<artifactId>neo4j-java-driver</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
@@ -354,17 +304,6 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>eu.michael-simons.neo4j</groupId>
-			<artifactId>junit-jupiter-causal-cluster-testcontainer-extension</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>eu.michael-simons.neo4j</groupId>
-			<artifactId>neo4j-migrations</artifactId>
-			<version>${neo4j-migrations.version}</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
 			<groupId>io.mockk</groupId>
 			<artifactId>mockk-jvm</artifactId>
 			<version>${mockk}</version>
@@ -413,11 +352,6 @@
 					<artifactId>annotations</artifactId>
 				</exclusion>
 			</exclusions>
-		</dependency>
-		<dependency>
-			<groupId>org.testcontainers</groupId>
-			<artifactId>neo4j</artifactId>
-			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.testcontainers</groupId>
