@@ -36,7 +36,7 @@ import org.apiguardian.api.API;
  * <pre>
  * &#64;Node
  * public class MyEntity {
- * 	&#64;Id String theId;
+ *     &#64;Id String theId;
  * }
  * </pre>
  *
@@ -51,7 +51,7 @@ import org.apiguardian.api.API;
  * <pre>
  * &#64;Node
  * public class MyEntity {
- * 	&#64;Id &#64;GeneratedValue Long id;
+ *     &#64;Id &#64;GeneratedValue Long id;
  * }
  * </pre>
  *
@@ -67,7 +67,7 @@ import org.apiguardian.api.API;
  * <pre>
  * &#64;Node
  * public class MyEntity {
- * 	&#64;Id &#64;GeneratedValue(UUIDStringGenerator.class) String theId;
+ *     &#64;Id &#64;GeneratedValue(UUIDStringGenerator.class) String theId;
  * }
  * </pre>
  *

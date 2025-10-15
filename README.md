@@ -302,7 +302,7 @@ redis-server --port 6379 --loadmodule /path/to/falkordb.so
 mvn clean compile test-compile -Dcheckstyle.skip=true
 
 # Run specific Twitter integration test
-mvn test -Dtest=FalkorDBTwitterIntegrationTest -Dcheckstyle.skip=true
+mvn test -Dtest=FalkorDBTwitterIntegrationTests -Dcheckstyle.skip=true
 
 # Run all integration tests
 mvn test -Dcheckstyle.skip=true
@@ -310,53 +310,162 @@ mvn test -Dcheckstyle.skip=true
 
 ### What the Test Demonstrates
 
-The Twitter integration test showcases the following features:
+The Twitter integration test (`FalkorDBTwitterIntegrationTests.java`) showcases the following features with complete entity definitions:
 
 #### 🎭 Entity Types
-- **TwitterUser**: Users with profiles and basic information
-- **Tweet**: Tweets with content and metadata (demonstrated via raw Cypher)
-- **Hashtag**: Hashtags and trending topics (demonstrated via raw Cypher)
 
-#### 🔗 Relationship Types  
+##### TwitterUser Entity
+Users with profiles, follower counts, verification status, and bio information:
+
+```java
+@Node(labels = { "User", "TwitterUser" })
+public class TwitterUser {
+    @Id @GeneratedValue
+    private Long id;
+    
+    @Property("username") private String username;
+    @Property("display_name") private String displayName;
+    @Property("email") private String email;
+    @Property("bio") private String bio;
+    @Property("follower_count") private Integer followerCount;
+    @Property("following_count") private Integer followingCount;
+    @Property("tweet_count") private Integer tweetCount;
+    @Property("verified") private Boolean verified;
+    @Property("created_at") private LocalDateTime createdAt;
+    @Property("location") private String location;
+    
+    // Relationships
+    @Relationship(value = "FOLLOWS", direction = OUTGOING)
+    private List<TwitterUser> following;
+    @Relationship(value = "FOLLOWS", direction = INCOMING)
+    private List<TwitterUser> followers;
+    @Relationship(value = "POSTED", direction = OUTGOING)
+    private List<Tweet> tweets;
+    @Relationship(value = "LIKED", direction = OUTGOING)
+    private List<Tweet> likedTweets;
+    @Relationship(value = "RETWEETED", direction = OUTGOING)
+    private List<Tweet> retweetedTweets;
+}
+```
+
+##### Tweet Entity
+Complete tweet entities with content, metadata, engagement counts, and reply/retweet flags:
+
+```java
+@Node(labels = { "Tweet" })
+public class Tweet {
+    @Id @GeneratedValue
+    private Long id;
+    
+    @Property("text") private String text;
+    @Property("created_at") private LocalDateTime createdAt;
+    @Property("like_count") private Integer likeCount;
+    @Property("retweet_count") private Integer retweetCount;
+    @Property("reply_count") private Integer replyCount;
+    @Property("is_retweet") private Boolean isRetweet;
+    @Property("is_reply") private Boolean isReply;
+    
+    // Relationships
+    @Relationship(value = "POSTED", direction = INCOMING)
+    private TwitterUser author;
+    @Relationship(value = "LIKED", direction = INCOMING)
+    private List<TwitterUser> likedBy;
+    @Relationship(value = "RETWEETED", direction = INCOMING)
+    private List<TwitterUser> retweetedBy;
+    @Relationship(value = "MENTIONS", direction = OUTGOING)
+    private List<TwitterUser> mentions;
+    @Relationship(value = "REPLIES_TO", direction = OUTGOING)
+    private Tweet replyToTweet;
+    @Relationship(value = "REPLIES_TO", direction = INCOMING)
+    private List<Tweet> replies;
+    @Relationship(value = "RETWEET_OF", direction = OUTGOING)
+    private Tweet originalTweet;
+    @Relationship(value = "HAS_HASHTAG", direction = OUTGOING)
+    private List<Hashtag> hashtags;
+}
+```
+
+##### Hashtag Entity
+Hashtag entities with usage tracking and tweet associations:
+
+```java
+@Node(labels = { "Hashtag" })
+public class Hashtag {
+    @Id @GeneratedValue
+    private Long id;
+    
+    @Property("tag") private String tag;
+    @Property("usage_count") private Integer usageCount;
+    
+    // Relationships
+    @Relationship(value = "HAS_HASHTAG", direction = INCOMING)
+    private List<Tweet> tweets;
+}
+```
+
+##### TwitterUserRepository Interface
+Repository interface demonstrating Spring Data query method patterns:
+
+```java
+public interface TwitterUserRepository extends FalkorDBRepository<TwitterUser, Long> {
+    // Derived query methods
+    Optional<TwitterUser> findByUsername(String username);
+    List<TwitterUser> findByDisplayNameContaining(String displayName);
+    List<TwitterUser> findByVerified(Boolean verified);
+    List<TwitterUser> findByFollowerCountGreaterThan(Integer followerCount);
+    List<TwitterUser> findByLocationContaining(String location);
+    
+    // Custom query methods can be added with @Query annotation
+    // @Query("MATCH (u:User)-[:FOLLOWS]->(f:User) WHERE u.username = $username RETURN f")
+    // List<TwitterUser> findFollowing(@Param("username") String username);
+}
+```
+
+#### 🔗 Relationship Types
 - **`FOLLOWS`**: User following relationships (✅ **Fully Implemented**)
-- **`POSTED`**: Users posting tweets (demonstrated via raw Cypher)
-- **`LIKED`**: Users liking tweets (planned)
-- **`RETWEETED`**: Users retweeting content (planned)
-- **`MENTIONS`**: Tweets mentioning users (planned)
-- **`HAS_HASHTAG`**: Tweets containing hashtags (planned)
-- **`REPLIES_TO`**: Tweet reply threads (planned)
+- **`POSTED`**: Users posting tweets (✅ **Entity Defined**, demonstrated via raw Cypher)
+- **`LIKED`**: Users liking tweets (✅ **Entity Defined**)
+- **`RETWEETED`**: Users retweeting content (✅ **Entity Defined**)
+- **`MENTIONS`**: Tweets mentioning users (✅ **Entity Defined**)
+- **`HAS_HASHTAG`**: Tweets containing hashtags (✅ **Entity Defined**)
+- **`REPLIES_TO`**: Tweet reply threads (✅ **Entity Defined**)
+- **`RETWEET_OF`**: Original tweet relationships (✅ **Entity Defined**)
 
 #### 📊 Test Scenarios
 
-1. **Connection & Basic Operations**
+1. **`testConnectionAndBasicOperations()`**
    - Connect to FalkorDB instance
-   - Create and save entities  
+   - Create and save TwitterUser entities  
    - Retrieve entities by ID
+   - Verify basic CRUD operations
 
-2. **Social Network Creation**
+2. **`testTwitterGraphCreationAndTraversal()`**
+   - Create influential users (elonmusk, billgates, oprah)
+   - Set up verified profiles with follower counts
+   - Create tweets with hashtags via raw Cypher
+   - Create follow relationships and test traversal queries
+
+3. **`testRelationshipTraversal()`**  
    - Create test users (alice, bob, charlie)
-   - Set up user profiles and relationships
-   - Demonstrate entity persistence and retrieval
+   - Create FOLLOWS relationships via raw Cypher
+   - Test relationship queries: who follows whom, mutual connections
+   - Navigate complex relationship paths
 
-3. **Graph Traversal**  
-   - Follow relationships between users
-   - Find mutual connections
-   - Navigate relationship paths
-
-4. **Analytics Queries**
-   - Count users and relationships
-   - Query graph structure
-   - Verify data integrity
+4. **`testComplexQueries()`**
+   - Create sample tweets with hashtags and mentions
+   - Test analytics queries: count users, tweets, relationships
+   - Find most followed users and verified accounts
+   - Demonstrate graph structure analysis
 
 ### Sample Test Output
 
 ```bash
-$ mvn test -Dtest=FalkorDBTwitterIntegrationTest -Dcheckstyle.skip=true
+$ mvn test -Dtest=FalkorDBTwitterIntegrationTests -Dcheckstyle.skip=true
 
 [INFO] -------------------------------------------------------
 [INFO]  T E S T S
 [INFO] -------------------------------------------------------
-[INFO] Running org.springframework.data.falkordb.integration.FalkorDBTwitterIntegrationTest
+[INFO] Running org.springframework.data.falkordb.integration.FalkorDBTwitterIntegrationTests
 [INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.339 s
 [INFO] 
 [INFO] Results:
@@ -466,7 +575,7 @@ To verify everything is working correctly:
 
 3. **Run Integration Tests**:
    ```bash
-   mvn test -Dtest=FalkorDBTwitterIntegrationTest -Dcheckstyle.skip=true
+   mvn test -Dtest=FalkorDBTwitterIntegrationTests -Dcheckstyle.skip=true
    # Should show: Tests run: 4, Failures: 0, Errors: 0, Skipped: 0
    ```
 
@@ -480,9 +589,12 @@ To verify everything is working correctly:
 - ✅ Entity persistence (save/retrieve operations)
 - ✅ Raw Cypher query execution with parameters
 - ✅ Spring Data repository interfaces
-- ✅ Integration test suite (Twitter social graph)
+- ✅ Integration test suite (Twitter social graph with 4 test scenarios)
+- ✅ Complete Twitter entity definitions (TwitterUser, Tweet, Hashtag)
+- ✅ Comprehensive relationship mapping definitions
 - ✅ Graph relationship creation via raw Cypher
 - ✅ Query result mapping and conversion
+- ✅ Complex analytics and traversal queries
 
 ### 🚧 **In Progress**  
 - 🔄 `@Relationship` annotation automatic handling

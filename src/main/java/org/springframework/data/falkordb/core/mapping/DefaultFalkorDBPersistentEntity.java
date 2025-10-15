@@ -84,7 +84,7 @@ public class DefaultFalkorDBPersistentEntity<T> extends BasicPersistentEntity<T,
 
 	@Override
 	public String[] getLabels() {
-		return labels.clone();
+		return this.labels.clone();
 	}
 
 	@Override

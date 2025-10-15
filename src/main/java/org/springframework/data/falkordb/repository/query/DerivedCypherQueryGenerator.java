@@ -21,7 +21,6 @@ import java.util.Map;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.falkordb.core.mapping.DefaultFalkorDBPersistentEntity;
 import org.springframework.data.falkordb.core.mapping.FalkorDBMappingContext;
-import org.springframework.data.repository.query.parser.Part;
 import org.springframework.data.repository.query.parser.PartTree;
 
 /**
@@ -89,130 +88,6 @@ public class DerivedCypherQueryGenerator {
 		}
 
 		return new CypherQuery(cypher.toString(), queryParameters);
-	}
-
-}
-
-/**
- * Represents a Cypher query with parameters.
- *
- * @author Shahar Biron (FalkorDB adaptation)
- * @since 1.0
- */
-class CypherQuery {
-
-	private final String query;
-
-	private final Map<String, Object> parameters;
-
-	/**
-	 * Creates a new CypherQuery.
-	 * @param query the Cypher query string
-	 * @param parameters the query parameters
-	 */
-	CypherQuery(String query, Map<String, Object> parameters) {
-		this.query = query;
-		this.parameters = (parameters != null) ? parameters : new HashMap<>();
-	}
-
-	/**
-	 * Gets the Cypher query string.
-	 * @return the query string
-	 */
-	String getQuery() {
-		return this.query;
-	}
-
-	/**
-	 * Gets the query parameters.
-	 * @return the parameters map
-	 */
-	Map<String, Object> getParameters() {
-		return this.parameters;
-	}
-
-}
-
-/**
- * Represents a condition in a Cypher query.
- *
- * @author Shahar Biron (FalkorDB adaptation)
- * @since 1.0
- */
-class CypherCondition {
-
-	private final String fragment;
-
-	private final Map<String, Object> parameters;
-
-	private static int paramCounter = 0;
-
-	CypherCondition(Part part, Object value, DefaultFalkorDBPersistentEntity<?> entity) {
-		this.parameters = new HashMap<>();
-		String paramName = "param" + (++paramCounter);
-		String propertyName = part.getProperty().getSegment();
-
-		this.fragment = buildCondition(part, propertyName, paramName);
-		this.parameters.put(paramName, value);
-	}
-
-	private CypherCondition(String fragment, Map<String, Object> parameters) {
-		this.fragment = fragment;
-		this.parameters = parameters;
-	}
-
-	private String buildCondition(Part part, String propertyName, String paramName) {
-		switch (part.getType()) {
-			case SIMPLE_PROPERTY:
-				return "n." + propertyName + " = $" + paramName;
-			case GREATER_THAN:
-				return "n." + propertyName + " > $" + paramName;
-			case GREATER_THAN_EQUAL:
-				return "n." + propertyName + " >= $" + paramName;
-			case LESS_THAN:
-				return "n." + propertyName + " < $" + paramName;
-			case LESS_THAN_EQUAL:
-				return "n." + propertyName + " <= $" + paramName;
-			case LIKE:
-				return "n." + propertyName + " CONTAINS $" + paramName;
-			case CONTAINING:
-				return "n." + propertyName + " CONTAINS $" + paramName;
-			case STARTING_WITH:
-				return "n." + propertyName + " STARTS WITH $" + paramName;
-			case ENDING_WITH:
-				return "n." + propertyName + " ENDS WITH $" + paramName;
-			case IS_NULL:
-				return "n." + propertyName + " IS NULL";
-			case IS_NOT_NULL:
-				return "n." + propertyName + " IS NOT NULL";
-			case BETWEEN:
-				// This would need special handling for two parameters
-				return "n." + propertyName + " >= $" + paramName + " AND n." + propertyName + " <= $" + paramName;
-			default:
-				return "n." + propertyName + " = $" + paramName;
-		}
-	}
-
-	CypherCondition and(CypherCondition other) {
-		Map<String, Object> combinedParams = new HashMap<>(this.parameters);
-		combinedParams.putAll(other.parameters);
-		String combinedFragment = "(" + this.fragment + " AND " + other.fragment + ")";
-		return new CypherCondition(combinedFragment, combinedParams);
-	}
-
-	CypherCondition or(CypherCondition other) {
-		Map<String, Object> combinedParams = new HashMap<>(this.parameters);
-		combinedParams.putAll(other.parameters);
-		String combinedFragment = "(" + this.fragment + " OR " + other.fragment + ")";
-		return new CypherCondition(combinedFragment, combinedParams);
-	}
-
-	String getCypherFragment() {
-		return this.fragment;
-	}
-
-	Map<String, Object> getParameters() {
-		return this.parameters;
 	}
 
 }

@@ -16,7 +16,6 @@
 package org.springframework.data.falkordb.integration;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatCode;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -24,6 +23,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+
+import com.falkordb.Driver;
+import com.falkordb.impl.api.DriverImpl;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -38,9 +40,6 @@ import org.springframework.data.falkordb.core.mapping.FalkorDBEntityConverter;
 import org.springframework.data.falkordb.core.mapping.FalkorDBMappingContext;
 import org.springframework.data.mapping.model.EntityInstantiators;
 
-import com.falkordb.Driver;
-import com.falkordb.impl.api.DriverImpl;
-
 /**
  * Integration test for FalkorDB Spring Data library using Twitter graph. Connects to
  * local FalkorDB on port 6379 with graph name "TWITTER".
@@ -48,7 +47,7 @@ import com.falkordb.impl.api.DriverImpl;
  * @author Shahar Biron (FalkorDB adaptation)
  * @since 1.0
  */
-public class FalkorDBTwitterIntegrationTest {
+public class FalkorDBTwitterIntegrationTests {
 
 	private FalkorDBClient falkorDBClient;
 

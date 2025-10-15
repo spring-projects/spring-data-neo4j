@@ -15,6 +15,6 @@
  */
 
 /**
- * Support infrastructure for the FalkorDB repository abstraction.
+ * Core Spring Data FalkorDB concepts.
  */
-package org.springframework.data.falkordb.repository.support;
+package org.springframework.data.falkordb.core;

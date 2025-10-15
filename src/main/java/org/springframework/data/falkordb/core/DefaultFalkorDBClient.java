@@ -25,10 +25,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Function;
 
-import org.apiguardian.api.API;
-
 import com.falkordb.Driver;
 import com.falkordb.Graph;
+import org.apiguardian.api.API;
 
 /**
  * Default implementation of {@link FalkorDBClient} using the JFalkorDB Java client. This

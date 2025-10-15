@@ -193,6 +193,7 @@ public class DefaultFalkorDBEntityConverter implements FalkorDBEntityConverter {
 
 	/**
 	 * Read a primitive value directly from the record.
+	 * @param <R> the target type for conversion
 	 * @param type the target primitive/wrapper type
 	 * @param record the FalkorDB record
 	 * @return the value converted to the target type

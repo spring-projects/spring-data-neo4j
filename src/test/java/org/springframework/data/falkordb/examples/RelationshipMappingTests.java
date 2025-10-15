@@ -33,7 +33,7 @@ import org.springframework.data.mapping.model.EntityInstantiators;
  * @author Shahar Biron (FalkorDB adaptation)
  * @since 1.0
  */
-public class RelationshipMappingTest {
+public class RelationshipMappingTests {
 
 	@Test
 	public void testEntityConverterWithRelationships() {

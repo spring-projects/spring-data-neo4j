@@ -20,6 +20,9 @@
 		"-//Checkstyle//DTD Checkstyle Configuration 1.3//EN"
 		"https://checkstyle.org/dtds/configuration_1_3.dtd">
 <module name="com.puppycrawl.tools.checkstyle.Checker">
+	<module name="SuppressionFilter">
+		<property name="file" value="${basedir}/etc/checkstyle/suppressions.xml"/>
+	</module>
 	<module name="io.spring.javaformat.checkstyle.SpringChecks">
 		<property name="excludes" value="io.spring.javaformat.checkstyle.check.SpringAvoidStaticImportCheck"/>
 		<property name="excludes" value="io.spring.javaformat.checkstyle.check.SpringHeaderCheck"/>

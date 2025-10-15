@@ -1,0 +1,138 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Tests (Java ${{ matrix.java }})
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        java: [17, 21]
+        
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up JDK ${{ matrix.java }}
+      uses: actions/setup-java@v4
+      with:
+        java-version: ${{ matrix.java }}
+        distribution: 'temurin'
+        
+    - name: Cache Maven dependencies
+      uses: actions/cache@v4
+      with:
+        path: ~/.m2/repository
+        key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+        restore-keys: |
+          ${{ runner.os }}-maven-
+          
+    - name: Install Redis CLI
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y redis-tools
+        
+    - name: Start FalkorDB
+      run: |
+        docker run -d --name falkordb -p 6379:6379 falkordb/falkordb:latest
+        # Wait for FalkorDB to be ready
+        echo "Waiting for FalkorDB to start..."
+        timeout 60 bash -c 'until nc -z localhost 6379; do sleep 1; done'
+        echo "FalkorDB is ready"
+        
+    - name: Verify FalkorDB connection
+      run: |
+        # Test basic Redis/FalkorDB connectivity
+        redis-cli -p 6379 ping || (echo "FalkorDB not responding" && exit 1)
+        # Test FalkorDB graph functionality
+        redis-cli -p 6379 GRAPH.QUERY test "RETURN 'Hello FalkorDB' as greeting" || (echo "FalkorDB graph functionality not working" && exit 1)
+        
+    - name: Run tests
+      run: ./mvnw clean verify -B -Dcheckstyle.skip=true
+      env:
+        MAVEN_OPTS: -Xmx1024m
+        
+    - name: Run Twitter integration tests specifically
+      run: ./mvnw test -Dtest=FalkorDBTwitterIntegrationTests -Dcheckstyle.skip=true
+      
+    - name: Run all integration tests
+      run: ./mvnw test -Dtest="*IntegrationTest*" -Dcheckstyle.skip=true
+      
+    - name: Show FalkorDB logs on failure
+      if: failure()
+      run: docker logs falkordb
+      
+    - name: Upload test reports
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-reports-java-${{ matrix.java }}
+        path: |
+          **/target/surefire-reports/
+          **/target/failsafe-reports/
+        retention-days: 7
+
+  build:
+    name: Build and Package
+    runs-on: ubuntu-latest
+    needs: test
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: 17
+        distribution: 'temurin'
+        
+    - name: Cache Maven dependencies
+      uses: actions/cache@v4
+      with:
+        path: ~/.m2/repository
+        key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+        restore-keys: |
+          ${{ runner.os }}-maven-
+          
+    - name: Build package
+      run: ./mvnw clean package -DskipTests -B -Dcheckstyle.skip=true
+      
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-artifacts
+        path: target/*.jar
+        retention-days: 7
+
+  checkstyle:
+    name: Code Style Check
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: 17
+        distribution: 'temurin'
+        
+    - name: Cache Maven dependencies
+      uses: actions/cache@v4
+      with:
+        path: ~/.m2/repository
+        key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+        restore-keys: |
+          ${{ runner.os }}-maven-
+          
+    - name: Run Checkstyle
+      run: ./mvnw checkstyle:check -B

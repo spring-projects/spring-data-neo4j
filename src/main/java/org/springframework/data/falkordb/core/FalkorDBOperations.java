@@ -86,6 +86,7 @@ public interface FalkorDBOperations {
 
 	/**
 	 * Counts entities of a given type.
+	 * @param <T> the type of the entities
 	 * @param clazz the class of the entities
 	 * @return the number of entities
 	 */
@@ -93,6 +94,7 @@ public interface FalkorDBOperations {
 
 	/**
 	 * Checks if an entity with the given id exists.
+	 * @param <T> the type of the entity
 	 * @param id the id to check
 	 * @param clazz the class of the entity
 	 * @return {@literal true} if the entity exists
@@ -101,6 +103,7 @@ public interface FalkorDBOperations {
 
 	/**
 	 * Deletes an entity by its id.
+	 * @param <T> the type of the entity
 	 * @param id the id of the entity
 	 * @param clazz the class of the entity
 	 */
@@ -108,6 +111,7 @@ public interface FalkorDBOperations {
 
 	/**
 	 * Deletes multiple entities by their ids.
+	 * @param <T> the type of the entities
 	 * @param ids the ids of the entities
 	 * @param clazz the class of the entities
 	 */
@@ -115,6 +119,7 @@ public interface FalkorDBOperations {
 
 	/**
 	 * Deletes all entities of a given type.
+	 * @param <T> the type of the entities
 	 * @param clazz the class of the entities
 	 */
 	<T> void deleteAll(Class<T> clazz);
