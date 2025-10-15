@@ -284,7 +284,7 @@ public class FalkorDBTwitterIntegrationTests {
 	 */
 	public static void main(String[] args) {
 
-		FalkorDBTwitterIntegrationTest test = new FalkorDBTwitterIntegrationTest();
+		FalkorDBTwitterIntegrationTests test = new FalkorDBTwitterIntegrationTests();
 
 		try {
 			test.setUp();
