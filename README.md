@@ -1,5 +1,6 @@
 # Spring Data FalkorDB
 
+[![Build & Test](https://github.com/FalkorDB/spring-data-falkordb/actions/workflows/build.yml/badge.svg)](https://github.com/FalkorDB/spring-data-falkordb/actions/workflows/build.yml)
 [![Maven Central](https://img.shields.io/maven-central/v/org.springframework.data/spring-data-falkordb.svg)](https://search.maven.org/artifact/org.springframework.data/spring-data-falkordb)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Java Version](https://img.shields.io/badge/Java-17+-brightgreen.svg)](https://openjdk.java.net/projects/jdk/17/)
@@ -707,6 +708,19 @@ cd spring-data-falkordb
 mvn clean compile
 mvn test
 ```
+
+### CI/CD
+
+This project uses GitHub Actions for continuous integration and deployment:
+
+- **Build & Test**: Automatically runs on all PRs and pushes to main/release branches
+  - Validates code with checkstyle
+  - Runs full test suite with FalkorDB integration tests
+  - Publishes test reports
+  
+- **Publish**: Automatically publishes SNAPSHOT artifacts to Maven repository on merges to main
+
+See [ci/README.md](ci/README.md) for detailed CI/CD documentation.
 
 ### Areas Needing Help
 
