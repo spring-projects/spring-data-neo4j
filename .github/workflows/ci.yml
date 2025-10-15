@@ -135,4 +135,4 @@ jobs:
           ${{ runner.os }}-maven-
           
     - name: Run Checkstyle
-      run: ./mvnw checkstyle:check -B
+      run: ./mvnw checkstyle:check -B -Dcheckstyle.config.location=etc/checkstyle/config.xml -Dcheckstyle.suppressions.location=etc/checkstyle/suppressions.xml
