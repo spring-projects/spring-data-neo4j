@@ -30,9 +30,10 @@
 	<version>1.0.0-SNAPSHOT</version>
 
 	<name>Spring Data FalkorDB</name>
-	<description>Object-Graph-Mapping for FalkorDB using Spring Data.</description>
-	<url>https://github.com/falkordb/spring-data-falkordb</url>
+	<description>Spring Data integration for FalkorDB - Object-Graph-Mapping for the world's fastest graph database.</description>
+	<url>https://github.com/FalkorDB/spring-data-falkordb</url>
 	<inceptionYear>2019</inceptionYear>
+
 	<organization>
 		<name>FalkorDB</name>
 		<url>https://falkordb.com</url>
@@ -58,6 +59,26 @@
 			<timezone>+2</timezone>
 		</developer>
 	</developers>
+
+	<scm>
+		<connection>scm:git:https://github.com/FalkorDB/spring-data-falkordb.git</connection>
+		<developerConnection>scm:git:https://github.com/FalkorDB/spring-data-falkordb.git</developerConnection>
+		<tag>HEAD</tag>
+		<url>https://github.com/FalkorDB/spring-data-falkordb</url>
+	</scm>
+
+	<distributionManagement>
+		<repository>
+			<id>spring-libs-release</id>
+			<name>Spring Release Repository</name>
+			<url>https://repo.spring.io/libs-release-local</url>
+		</repository>
+		<snapshotRepository>
+			<id>spring-libs-snapshot</id>
+			<name>Spring Snapshot Repository</name>
+			<url>https://repo.spring.io/libs-snapshot-local</url>
+		</snapshotRepository>
+	</distributionManagement>
 
 	<properties>
 		<antora.playbook>${project.basedir}/src/main/antora/antora-playbook.yml</antora.playbook>
@@ -757,6 +778,30 @@
 						<configuration>
 							<skip>true</skip>
 						</configuration>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-source-plugin</artifactId>
+						<executions>
+							<execution>
+								<id>attach-sources</id>
+								<goals>
+									<goal>jar-no-fork</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-javadoc-plugin</artifactId>
+						<executions>
+							<execution>
+								<id>attach-javadocs</id>
+								<goals>
+									<goal>jar</goal>
+								</goals>
+							</execution>
+						</executions>
 					</plugin>
 				</plugins>
 			</build>
