@@ -34,26 +34,6 @@
 	<url>https://github.com/FalkorDB/spring-data-falkordb</url>
 	<inceptionYear>2019</inceptionYear>
 
-	<scm>
-		<connection>scm:git:https://github.com/FalkorDB/spring-data-falkordb.git</connection>
-		<developerConnection>scm:git:https://github.com/FalkorDB/spring-data-falkordb.git</developerConnection>
-		<url>https://github.com/FalkorDB/spring-data-falkordb</url>
-		<tag>HEAD</tag>
-	</scm>
-
-	<distributionManagement>
-		<repository>
-			<id>spring-libs-release</id>
-			<name>Spring Release Repository</name>
-			<url>https://repo.spring.io/libs-release-local</url>
-		</repository>
-		<snapshotRepository>
-			<id>spring-libs-snapshot</id>
-			<name>Spring Snapshot Repository</name>
-			<url>https://repo.spring.io/libs-snapshot-local</url>
-		</snapshotRepository>
-	</distributionManagement>
-
 	<organization>
 		<name>FalkorDB</name>
 		<url>https://falkordb.com</url>
@@ -79,6 +59,26 @@
 			<timezone>+2</timezone>
 		</developer>
 	</developers>
+
+	<scm>
+		<connection>scm:git:https://github.com/FalkorDB/spring-data-falkordb.git</connection>
+		<developerConnection>scm:git:https://github.com/FalkorDB/spring-data-falkordb.git</developerConnection>
+		<tag>HEAD</tag>
+		<url>https://github.com/FalkorDB/spring-data-falkordb</url>
+	</scm>
+
+	<distributionManagement>
+		<repository>
+			<id>spring-libs-release</id>
+			<name>Spring Release Repository</name>
+			<url>https://repo.spring.io/libs-release-local</url>
+		</repository>
+		<snapshotRepository>
+			<id>spring-libs-snapshot</id>
+			<name>Spring Snapshot Repository</name>
+			<url>https://repo.spring.io/libs-snapshot-local</url>
+		</snapshotRepository>
+	</distributionManagement>
 
 	<properties>
 		<antora.playbook>${project.basedir}/src/main/antora/antora-playbook.yml</antora.playbook>
