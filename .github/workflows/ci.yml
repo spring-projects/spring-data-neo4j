@@ -135,4 +135,4 @@ jobs:
           ${{ runner.os }}-maven-
           
     - name: Run Checkstyle
-      run: ./mvnw checkstyle:check -B
+      run: ./mvnw validate -B
