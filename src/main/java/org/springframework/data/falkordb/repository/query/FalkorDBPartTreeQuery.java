@@ -33,30 +33,46 @@ import org.springframework.data.repository.query.parser.PartTree;
  */
 public class FalkorDBPartTreeQuery implements RepositoryQuery {
 
+	/**
+	 * The query method.
+	 */
 	private final FalkorDBQueryMethod queryMethod;
 
-	private final FalkorDBOperations falkorDBOperations;
+	/**
+	 * The FalkorDB operations.
+	 */
+	private final FalkorDBOperations operations;
 
+	/**
+	 * The parsed method name tree.
+	 */
 	private final PartTree partTree;
 
+	/**
+	 * The entity information.
+	 */
 	private final DefaultFalkorDBPersistentEntity<?> entity;
 
 	/**
 	 * Creates a new {@link FalkorDBPartTreeQuery}.
-	 * @param queryMethod must not be {@literal null}.
+	 * @param method must not be {@literal null}.
 	 * @param falkorDBOperations must not be {@literal null}.
 	 */
-	public FalkorDBPartTreeQuery(FalkorDBQueryMethod queryMethod, FalkorDBOperations falkorDBOperations) {
-		this.queryMethod = queryMethod;
-		this.falkorDBOperations = falkorDBOperations;
-		this.partTree = new PartTree(queryMethod.getName(),
-				queryMethod.getResultProcessor().getReturnedType().getDomainType());
-		this.entity = queryMethod.getMappingContext()
-			.getRequiredPersistentEntity(queryMethod.getResultProcessor().getReturnedType().getDomainType());
+	public FalkorDBPartTreeQuery(final FalkorDBQueryMethod method, final FalkorDBOperations falkorDBOperations) {
+		this.queryMethod = method;
+		this.operations = falkorDBOperations;
+		this.partTree = new PartTree(method.getName(), method.getResultProcessor().getReturnedType().getDomainType());
+		this.entity = method.getMappingContext()
+			.getRequiredPersistentEntity(method.getResultProcessor().getReturnedType().getDomainType());
 	}
 
+	/**
+	 * Executes the derived query.
+	 * @param parameters the method parameters
+	 * @return the query result
+	 */
 	@Override
-	public Object execute(Object[] parameters) {
+	public final Object execute(final Object[] parameters) {
 		ParametersParameterAccessor accessor = new ParametersParameterAccessor(this.queryMethod.getParameters(),
 				parameters);
 
@@ -75,35 +91,37 @@ public class FalkorDBPartTreeQuery implements RepositoryQuery {
 
 		if (this.partTree.isDelete()) {
 			// Handle delete queries
-			this.falkorDBOperations.query(cypherQuery.getQuery(), cypherQuery.getParameters(), domainType);
+			this.operations.query(cypherQuery.getQuery(), cypherQuery.getParameters(), domainType);
 			return null;
 		}
 		else if (this.partTree.isCountProjection()) {
 			// Handle count queries - modify query to return count
 			String countQuery = cypherQuery.getQuery().replace("RETURN n", "RETURN count(n) as count");
-			return this.falkorDBOperations.queryForObject(countQuery, cypherQuery.getParameters(), Long.class)
-				.orElse(0L);
+			return this.operations.queryForObject(countQuery, cypherQuery.getParameters(), Long.class).orElse(0L);
 		}
 		else if (this.partTree.isExistsProjection()) {
 			// Handle exists queries - modify query to return boolean
 			String existsQuery = cypherQuery.getQuery().replace("RETURN n", "RETURN count(n) > 0 as exists");
-			return this.falkorDBOperations.queryForObject(existsQuery, cypherQuery.getParameters(), Boolean.class)
+			return this.operations.queryForObject(existsQuery, cypherQuery.getParameters(), Boolean.class)
 				.orElse(false);
 		}
 		else if (this.queryMethod.isCollectionQuery()) {
 			// Handle collection returns (findBy...)
-			return this.falkorDBOperations.query(cypherQuery.getQuery(), cypherQuery.getParameters(), domainType);
+			return this.operations.query(cypherQuery.getQuery(), cypherQuery.getParameters(), domainType);
 		}
 		else {
 			// Handle single entity returns (findOneBy...)
-			return this.falkorDBOperations
-				.queryForObject(cypherQuery.getQuery(), cypherQuery.getParameters(), domainType)
+			return this.operations.queryForObject(cypherQuery.getQuery(), cypherQuery.getParameters(), domainType)
 				.orElse(null);
 		}
 	}
 
+	/**
+	 * Returns the query method.
+	 * @return the query method
+	 */
 	@Override
-	public FalkorDBQueryMethod getQueryMethod() {
+	public final FalkorDBQueryMethod getQueryMethod() {
 		return this.queryMethod;
 	}
 

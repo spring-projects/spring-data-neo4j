@@ -60,23 +60,39 @@ public class DefaultFalkorDBPersistentProperty extends AnnotationBasedPersistent
 		return getName();
 	}
 
+	/**
+	 * Checks if this property is a relationship.
+	 * @return true if this is a relationship property
+	 */
 	@Override
-	public boolean isRelationship() {
+	public final boolean isRelationship() {
 		return isAnnotationPresent(Relationship.class);
 	}
 
+	/**
+	 * Checks if this property is an internal ID property.
+	 * @return true if this is an internal ID property
+	 */
 	@Override
-	public boolean isInternalIdProperty() {
+	public final boolean isInternalIdProperty() {
 		return isIdProperty() && isGeneratedValue() && (getType().equals(Long.class) || getType().equals(long.class));
 	}
 
+	/**
+	 * Checks if this property has a generated value.
+	 * @return true if this property has a generated value
+	 */
 	@Override
-	public boolean isGeneratedValue() {
+	public final boolean isGeneratedValue() {
 		return isAnnotationPresent(GeneratedValue.class);
 	}
 
+	/**
+	 * Gets the relationship type for this property.
+	 * @return the relationship type or null
+	 */
 	@Override
-	public String getRelationshipType() {
+	public final String getRelationshipType() {
 		Relationship relationshipAnnotation = findAnnotation(Relationship.class);
 
 		if (relationshipAnnotation != null) {
@@ -91,8 +107,12 @@ public class DefaultFalkorDBPersistentProperty extends AnnotationBasedPersistent
 		return null;
 	}
 
+	/**
+	 * Creates an association for this property.
+	 * @return the association
+	 */
 	@Override
-	protected Association<FalkorDBPersistentProperty> createAssociation() {
+	protected final Association<FalkorDBPersistentProperty> createAssociation() {
 		return new Association<>(this, null);
 	}
 

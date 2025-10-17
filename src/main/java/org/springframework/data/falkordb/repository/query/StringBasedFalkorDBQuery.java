@@ -34,22 +34,28 @@ import org.springframework.data.repository.query.ReturnedType;
  */
 class StringBasedFalkorDBQuery implements RepositoryQuery {
 
+	/**
+	 * The query method.
+	 */
 	private final FalkorDBQueryMethod queryMethod;
 
+	/**
+	 * The FalkorDB operations.
+	 */
 	private final FalkorDBOperations operations;
 
 	/**
 	 * Creates a new {@link StringBasedFalkorDBQuery}.
-	 * @param queryMethod must not be {@literal null}.
-	 * @param operations must not be {@literal null}.
+	 * @param method must not be {@literal null}.
+	 * @param falkorDBOperations must not be {@literal null}.
 	 */
-	StringBasedFalkorDBQuery(FalkorDBQueryMethod queryMethod, FalkorDBOperations operations) {
-		this.queryMethod = queryMethod;
-		this.operations = operations;
+	StringBasedFalkorDBQuery(final FalkorDBQueryMethod method, final FalkorDBOperations falkorDBOperations) {
+		this.queryMethod = method;
+		this.operations = falkorDBOperations;
 	}
 
 	@Override
-	public Object execute(Object[] parameters) {
+	public Object execute(final Object[] parameters) {
 
 		String query = queryMethod.getAnnotatedQuery();
 		if (query == null) {
@@ -58,7 +64,8 @@ class StringBasedFalkorDBQuery implements RepositoryQuery {
 
 		Map<String, Object> parameterMap = createParameterMap(parameters);
 
-		// Create a simple parameter accessor - for now we'll handle this differently
+		// Create a simple parameter accessor - for now we'll handle this
+		// differently
 		// ResultProcessor processor =
 		// queryMethod.getResultProcessor().withDynamicProjection(parameters);
 		ResultProcessor processor = queryMethod.getResultProcessor();
@@ -72,7 +79,8 @@ class StringBasedFalkorDBQuery implements RepositoryQuery {
 		}
 
 		if (queryMethod.isExistsQuery()) {
-			// For exists queries, execute the query and return the boolean result
+			// For exists queries, execute the query and return the boolean
+			// result
 			List<Boolean> results = operations.query(query, parameterMap, Boolean.class);
 			Boolean exists = results.isEmpty() ? false : results.get(0);
 			return processor.processResult(exists);
@@ -96,7 +104,7 @@ class StringBasedFalkorDBQuery implements RepositoryQuery {
 	 * @param parameters the method arguments
 	 * @return the parameter map
 	 */
-	private Map<String, Object> createParameterMap(Object[] parameters) {
+	private Map<String, Object> createParameterMap(final Object[] parameters) {
 		Map<String, Object> parameterMap = new HashMap<>();
 
 		// Add indexed parameters ($0, $1, ...)

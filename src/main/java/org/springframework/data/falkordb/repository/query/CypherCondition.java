@@ -30,12 +30,27 @@ import org.springframework.data.repository.query.parser.Part;
  */
 class CypherCondition {
 
+	/**
+	 * The cypher fragment for this condition.
+	 */
 	private final String fragment;
 
+	/**
+	 * The parameters for this condition.
+	 */
 	private final Map<String, Object> parameters;
 
+	/**
+	 * Parameter counter for unique parameter names.
+	 */
 	private static int paramCounter = 0;
 
+	/**
+	 * Creates a new condition from a query part.
+	 * @param part the query part
+	 * @param value the parameter value
+	 * @param entity the entity information
+	 */
 	CypherCondition(final Part part, final Object value, final DefaultFalkorDBPersistentEntity<?> entity) {
 		this.parameters = new HashMap<>();
 		String paramName = "param" + (++paramCounter);
@@ -45,11 +60,23 @@ class CypherCondition {
 		this.parameters.put(paramName, value);
 	}
 
-	private CypherCondition(final String fragment, final Map<String, Object> parameters) {
-		this.fragment = fragment;
-		this.parameters = parameters;
+	/**
+	 * Creates a condition with explicit fragment and parameters.
+	 * @param conditionFragment the cypher fragment
+	 * @param conditionParams the parameters
+	 */
+	private CypherCondition(final String conditionFragment, final Map<String, Object> conditionParams) {
+		this.fragment = conditionFragment;
+		this.parameters = conditionParams;
 	}
 
+	/**
+	 * Builds a cypher condition from a query part.
+	 * @param part the query part
+	 * @param propertyName the property name
+	 * @param paramName the parameter name
+	 * @return the cypher condition fragment
+	 */
 	private String buildCondition(final Part part, final String propertyName, final String paramName) {
 		switch (part.getType()) {
 			case SIMPLE_PROPERTY:
@@ -82,6 +109,11 @@ class CypherCondition {
 		}
 	}
 
+	/**
+	 * Combines this condition with another using AND logic.
+	 * @param other the other condition
+	 * @return the combined condition
+	 */
 	CypherCondition and(final CypherCondition other) {
 		Map<String, Object> combinedParams = new HashMap<>(this.parameters);
 		combinedParams.putAll(other.parameters);
@@ -89,6 +121,11 @@ class CypherCondition {
 		return new CypherCondition(combinedFragment, combinedParams);
 	}
 
+	/**
+	 * Combines this condition with another using OR logic.
+	 * @param other the other condition
+	 * @return the combined condition
+	 */
 	CypherCondition or(final CypherCondition other) {
 		Map<String, Object> combinedParams = new HashMap<>(this.parameters);
 		combinedParams.putAll(other.parameters);

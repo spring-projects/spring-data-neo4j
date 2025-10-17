@@ -32,22 +32,28 @@ import org.springframework.util.StringUtils;
  */
 public class FalkorDBQueryMethod extends QueryMethod {
 
+	/**
+	 * The FalkorDB mapping context.
+	 */
 	private final FalkorDBMappingContext mappingContext;
 
-	private final Method method;
+	/**
+	 * The repository method.
+	 */
+	private final Method repositoryMethod;
 
 	/**
 	 * Creates a new {@link FalkorDBQueryMethod}.
 	 * @param method must not be {@literal null}.
 	 * @param metadata must not be {@literal null}.
 	 * @param projectionFactory must not be {@literal null}.
-	 * @param mappingContext must not be {@literal null}.
+	 * @param context must not be {@literal null}.
 	 */
-	public FalkorDBQueryMethod(Method method, RepositoryMetadata metadata, ProjectionFactory projectionFactory,
-			FalkorDBMappingContext mappingContext) {
+	public FalkorDBQueryMethod(final Method method, final RepositoryMetadata metadata,
+			final ProjectionFactory projectionFactory, final FalkorDBMappingContext context) {
 		super(method, metadata, projectionFactory);
-		this.mappingContext = mappingContext;
-		this.method = method;
+		this.mappingContext = context;
+		this.repositoryMethod = method;
 	}
 
 	/**
@@ -73,7 +79,7 @@ public class FalkorDBQueryMethod extends QueryMethod {
 	 */
 	@Nullable
 	public String getAnnotatedQuery() {
-		Query query = this.method.getAnnotation(Query.class);
+		Query query = this.repositoryMethod.getAnnotation(Query.class);
 		if (query == null) {
 			return null;
 		}
@@ -91,7 +97,7 @@ public class FalkorDBQueryMethod extends QueryMethod {
 	 * @return {@literal true} if the query is marked as count query.
 	 */
 	public boolean isCountQuery() {
-		Query query = this.method.getAnnotation(Query.class);
+		Query query = this.repositoryMethod.getAnnotation(Query.class);
 		return query != null && query.count();
 	}
 
@@ -100,7 +106,7 @@ public class FalkorDBQueryMethod extends QueryMethod {
 	 * @return {@literal true} if the query is marked as exists query.
 	 */
 	public boolean isExistsQuery() {
-		Query query = this.method.getAnnotation(Query.class);
+		Query query = this.repositoryMethod.getAnnotation(Query.class);
 		return query != null && query.exists();
 	}
 
@@ -109,7 +115,7 @@ public class FalkorDBQueryMethod extends QueryMethod {
 	 * @return {@literal true} if the query is marked as write operation.
 	 */
 	public boolean isWriteQuery() {
-		Query query = this.method.getAnnotation(Query.class);
+		Query query = this.repositoryMethod.getAnnotation(Query.class);
 		return query != null && query.write();
 	}
 

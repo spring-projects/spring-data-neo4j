@@ -33,15 +33,18 @@ import org.springframework.core.annotation.AliasFor;
  * {@link org.springframework.data.repository.query.Param @Param} annotation.
  * <p>
  * Example usage: <pre>
- * public interface UserRepository extends FalkorDBRepository&lt;User, Long&gt; {
+ * public interface UserRepository
+ *         extends FalkorDBRepository&lt;User, Long&gt; {
  *
- *     &#64;Query("MATCH (u:User)-[:FOLLOWS]->(f:User) WHERE u.username = $username RETURN f")
+ *     &#64;Query("MATCH (u:User)-[:FOLLOWS]->(f:User) "
+ *            + "WHERE u.username = $username RETURN f")
  *     List&lt;User&gt; findFollowing(&#64;Param("username") String username);
  *
  *     &#64;Query("MATCH (u:User) WHERE u.age > $0 RETURN u")
  *     List&lt;User&gt; findUsersOlderThan(int age);
  *
- *     &#64;Query("MATCH (u:User {id: $user.__id__})-[:FOLLOWS]->(f) RETURN u, collect(f)")
+ *     &#64;Query("MATCH (u:User {id: $user.__id__})-[:FOLLOWS]->(f) "
+ *            + "RETURN u, collect(f)")
  *     User findUserWithFollowing(&#64;Param("user") User user);
  * }
  * </pre>

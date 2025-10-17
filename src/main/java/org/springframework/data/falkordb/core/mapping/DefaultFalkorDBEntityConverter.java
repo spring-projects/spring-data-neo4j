@@ -41,24 +41,33 @@ import org.springframework.util.Assert;
  */
 public class DefaultFalkorDBEntityConverter implements FalkorDBEntityConverter {
 
+	/**
+	 * The mapping context.
+	 */
 	private final FalkorDBMappingContext mappingContext;
 
+	/**
+	 * The entity instantiators.
+	 */
 	private final EntityInstantiators entityInstantiators;
 
-	private FalkorDBClient falkorDBClient; // Optional for relationship loading
+	/**
+	 * Optional FalkorDB client for relationship loading.
+	 */
+	private FalkorDBClient falkorDBClient;
 
 	/**
 	 * Creates a new {@link DefaultFalkorDBEntityConverter}.
-	 * @param mappingContext must not be {@literal null}.
-	 * @param entityInstantiators must not be {@literal null}.
+	 * @param context must not be {@literal null}.
+	 * @param instantiators must not be {@literal null}.
 	 */
-	public DefaultFalkorDBEntityConverter(FalkorDBMappingContext mappingContext,
-			EntityInstantiators entityInstantiators) {
-		Assert.notNull(mappingContext, "MappingContext must not be null");
-		Assert.notNull(entityInstantiators, "EntityInstantiators must not be null");
+	public DefaultFalkorDBEntityConverter(final FalkorDBMappingContext context,
+			final EntityInstantiators instantiators) {
+		Assert.notNull(context, "MappingContext must not be null");
+		Assert.notNull(instantiators, "EntityInstantiators must not be null");
 
-		this.mappingContext = mappingContext;
-		this.entityInstantiators = entityInstantiators;
+		this.mappingContext = context;
+		this.entityInstantiators = instantiators;
 	}
 
 	/**
@@ -69,14 +78,20 @@ public class DefaultFalkorDBEntityConverter implements FalkorDBEntityConverter {
 	 * @param falkorDBClient the client for executing relationship queries, may be
 	 * {@literal null}.
 	 */
-	public DefaultFalkorDBEntityConverter(FalkorDBMappingContext mappingContext,
-			EntityInstantiators entityInstantiators, FalkorDBClient falkorDBClient) {
+	public DefaultFalkorDBEntityConverter(final FalkorDBMappingContext mappingContext,
+			final EntityInstantiators entityInstantiators, final FalkorDBClient client) {
 		this(mappingContext, entityInstantiators);
-		this.falkorDBClient = falkorDBClient;
+		this.falkorDBClient = client;
 	}
 
+	/**
+	 * Reads a record into the specified type.
+	 * @param type the target type
+	 * @param record the FalkorDB record
+	 * @return the converted object
+	 */
 	@Override
-	public <R> R read(Class<R> type, FalkorDBClient.Record record) {
+	public final <R> R read(final Class<R> type, final FalkorDBClient.Record record) {
 		if (record == null) {
 			return null;
 		}
@@ -93,8 +108,8 @@ public class DefaultFalkorDBEntityConverter implements FalkorDBEntityConverter {
 		return read(typeInfo, record, entity);
 	}
 
-	private <R> R read(TypeInformation<? extends R> type, FalkorDBClient.Record record,
-			FalkorDBPersistentEntity<R> entity) {
+	private <R> R read(final TypeInformation<? extends R> type, final FalkorDBClient.Record record,
+			final FalkorDBPersistentEntity<R> entity) {
 
 		// Create parameter value provider for constructor parameters
 		ParameterValueProvider<FalkorDBPersistentProperty> parameterProvider = new FalkorDBParameterValueProvider(
@@ -134,8 +149,13 @@ public class DefaultFalkorDBEntityConverter implements FalkorDBEntityConverter {
 		return instance;
 	}
 
+	/**
+	 * Writes an object to a property map.
+	 * @param source the source object
+	 * @param sink the target property map
+	 */
 	@Override
-	public void write(Object source, Map<String, Object> sink) {
+	public final void write(final Object source, final Map<String, Object> sink) {
 		if (source == null) {
 			return;
 		}
@@ -170,10 +190,10 @@ public class DefaultFalkorDBEntityConverter implements FalkorDBEntityConverter {
 	 * @param value the value to convert
 	 * @return the converted value compatible with FalkorDB
 	 */
-	private Object convertValueForFalkorDB(Object value) {
+	private Object convertValueForFalkorDB(final Object value) {
 		if (value instanceof LocalDateTime) {
-			// Convert LocalDateTime to ISO string format that FalkorDB can handle
-			// Using ISO_LOCAL_DATE_TIME format: "2025-10-14T16:56:15.926694"
+			// Convert LocalDateTime to ISO string format that FalkorDB
+			// can handle. Using ISO_LOCAL_DATE_TIME format.
 			return ((LocalDateTime) value).format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
 		}
 		// Add more type conversions as needed
@@ -185,7 +205,7 @@ public class DefaultFalkorDBEntityConverter implements FalkorDBEntityConverter {
 	 * @param type the type to check
 	 * @return true if the type is a primitive or wrapper type
 	 */
-	private boolean isPrimitiveOrWrapperType(Class<?> type) {
+	private boolean isPrimitiveOrWrapperType(final Class<?> type) {
 		return type.isPrimitive() || type == Boolean.class || type == Byte.class || type == Character.class
 				|| type == Short.class || type == Integer.class || type == Long.class || type == Float.class
 				|| type == Double.class || type == String.class;
@@ -199,9 +219,10 @@ public class DefaultFalkorDBEntityConverter implements FalkorDBEntityConverter {
 	 * @return the value converted to the target type
 	 */
 	@SuppressWarnings("unchecked")
-	private <R> R readPrimitiveValue(Class<R> type, FalkorDBClient.Record record) {
-		// For aggregate queries like count(), the result is usually in the first column
-		// Try common column names first, then fall back to the first available value
+	private <R> R readPrimitiveValue(final Class<R> type, final FalkorDBClient.Record record) {
+		// For aggregate queries like count(), the result is usually in the
+		// first column. Try common column names first, then fall back to the
+		// first available value
 		Object value = null;
 
 		// Try common aggregate column names
@@ -310,11 +331,12 @@ public class DefaultFalkorDBEntityConverter implements FalkorDBEntityConverter {
 		return value;
 	}
 
-	private Object getValueFromRecord(FalkorDBClient.Record record, FalkorDBPersistentProperty property) {
+	private Object getValueFromRecord(final FalkorDBClient.Record record, final FalkorDBPersistentProperty property) {
 		try {
 			String propertyName = property.getGraphPropertyName();
 
-			// Handle ID property specially - it comes from nodeId or internal id
+			// Handle ID property specially - it comes from nodeId or
+			// internal id
 			if (property.isIdProperty()) {
 				// Try to get nodeId first (internal FalkorDB ID)
 				Object nodeId = record.get("nodeId");
@@ -351,8 +373,8 @@ public class DefaultFalkorDBEntityConverter implements FalkorDBEntityConverter {
 	 * @param entity the entity metadata
 	 * @return the loaded relationship value or null
 	 */
-	private Object loadRelationship(FalkorDBClient.Record record, FalkorDBPersistentProperty property,
-			FalkorDBPersistentEntity<?> entity) {
+	private Object loadRelationship(final FalkorDBClient.Record record, final FalkorDBPersistentProperty property,
+			final FalkorDBPersistentEntity<?> entity) {
 		Relationship relationshipAnnotation = property.findAnnotation(Relationship.class);
 		if (relationshipAnnotation == null) {
 			return null;

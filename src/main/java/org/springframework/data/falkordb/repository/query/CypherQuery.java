@@ -27,18 +27,24 @@ import java.util.Map;
  */
 class CypherQuery {
 
+	/**
+	 * The Cypher query string.
+	 */
 	private final String query;
 
+	/**
+	 * The query parameters.
+	 */
 	private final Map<String, Object> parameters;
 
 	/**
 	 * Creates a new CypherQuery.
-	 * @param query the Cypher query string
-	 * @param parameters the query parameters
+	 * @param queryString the Cypher query string
+	 * @param queryParams the query parameters
 	 */
-	CypherQuery(final String query, final Map<String, Object> parameters) {
-		this.query = query;
-		this.parameters = (parameters != null) ? parameters : new HashMap<>();
+	CypherQuery(final String queryString, final Map<String, Object> queryParams) {
+		this.query = queryString;
+		this.parameters = (queryParams != null) ? queryParams : new HashMap<>();
 	}
 
 	/**

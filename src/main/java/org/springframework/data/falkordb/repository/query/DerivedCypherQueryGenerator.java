@@ -32,23 +32,32 @@ import org.springframework.data.repository.query.parser.PartTree;
  */
 public class DerivedCypherQueryGenerator {
 
+	/**
+	 * The persistent entity.
+	 */
 	private final DefaultFalkorDBPersistentEntity<?> entity;
 
+	/**
+	 * The mapping context.
+	 */
 	private final FalkorDBMappingContext mappingContext;
 
+	/**
+	 * The parsed part tree.
+	 */
 	private final PartTree partTree;
 
 	/**
 	 * Creates a new {@link DerivedCypherQueryGenerator}.
 	 * @param tree the part tree representing the query structure
-	 * @param entity the persistent entity
-	 * @param mappingContext the mapping context
+	 * @param persistentEntity the persistent entity
+	 * @param context the mapping context
 	 */
-	public DerivedCypherQueryGenerator(PartTree tree, DefaultFalkorDBPersistentEntity<?> entity,
-			FalkorDBMappingContext mappingContext) {
+	public DerivedCypherQueryGenerator(final PartTree tree, final DefaultFalkorDBPersistentEntity<?> persistentEntity,
+			final FalkorDBMappingContext context) {
 		this.partTree = tree;
-		this.entity = entity;
-		this.mappingContext = mappingContext;
+		this.entity = persistentEntity;
+		this.mappingContext = context;
 	}
 
 	/**
@@ -57,7 +66,7 @@ public class DerivedCypherQueryGenerator {
 	 * @param parameters the query parameters
 	 * @return the generated Cypher query
 	 */
-	public CypherQuery createQuery(Sort sort, Object... parameters) {
+	public CypherQuery createQuery(final Sort sort, final Object... parameters) {
 		String primaryLabel = this.entity.getPrimaryLabel();
 		StringBuilder cypher = new StringBuilder();
 
@@ -66,7 +75,7 @@ public class DerivedCypherQueryGenerator {
 		Map<String, Object> queryParameters = new HashMap<>();
 
 		// Simple implementation - for now, we'll support basic queries
-		// TODO: Parse PartTree to build WHERE conditions properly
+		// FIXME: Parse PartTree to build WHERE conditions properly
 		if (this.partTree.getParts().iterator().hasNext()) {
 			cypher.append(" WHERE 1=1"); // Placeholder condition
 			// In a full implementation, we would parse the PartTree here
