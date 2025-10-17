@@ -22,8 +22,8 @@ import org.springframework.data.falkordb.core.schema.RelationshipProperties;
 import org.springframework.data.falkordb.core.schema.TargetNode;
 
 /**
- * Example of relationship properties entity using {@link TargetNode} annotation.
- * This class represents the ACTED_IN relationship with its properties.
+ * Example of relationship properties entity using {@link TargetNode} annotation. This
+ * class represents the ACTED_IN relationship with its properties.
  *
  * @author Shahar Biron (FalkorDB adaptation)
  * @since 1.0
@@ -38,11 +38,12 @@ public class ActedIn {
 	private Person actor;
 
 	private List<String> roles;
-	
+
 	private Integer year;
 
 	// Default constructor
-	public ActedIn() {}
+	public ActedIn() {
+	}
 
 	// Constructor
 	public ActedIn(Person actor, List<String> roles, Integer year) {

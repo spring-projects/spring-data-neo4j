@@ -25,46 +25,47 @@ import java.lang.annotation.Target;
 import org.apiguardian.api.API;
 
 /**
- * Annotation to mark a field in a {@link RelationshipProperties} annotated class
- * as the target node of the relationship.
+ * Annotation to mark a field in a {@link RelationshipProperties} annotated class as the
+ * target node of the relationship.
  * <p>
  * This annotation is used in conjunction with {@link RelationshipProperties} to define
- * relationship entities that have properties. The field annotated with {@code @TargetNode}
- * represents the target node of the relationship from the perspective of the source node.
+ * relationship entities that have properties. The field annotated with
+ * {@code @TargetNode} represents the target node of the relationship from the perspective
+ * of the source node.
  * <p>
- * Example usage:
- * <pre>
+ * Example usage: <pre>
  * &#64;RelationshipProperties
  * public class ActedIn {
- *     
+ *
  *     &#64;RelationshipId
  *     private Long id;
- *     
+ *
  *     &#64;TargetNode
  *     private Person actor;
- *     
+ *
  *     private List&lt;String&gt; roles;
  *     private Integer year;
- *     
+ *
  *     // constructors, getters, setters...
  * }
- * 
+ *
  * &#64;Node
  * public class Movie {
- *     
+ *
  *     &#64;Id
  *     private String title;
- *     
+ *
  *     &#64;Relationship(type = "ACTED_IN", direction = Direction.INCOMING)
  *     private List&lt;ActedIn&gt; actors = new ArrayList&lt;&gt;();
- *     
+ *
  *     // other fields...
  * }
  * </pre>
  * <p>
- * In the above example, the {@code ActedIn} class represents a relationship with properties
- * between a {@code Movie} and a {@code Person}. The {@code actor} field marked with
- * {@code @TargetNode} represents the Person node that is the target of the ACTED_IN relationship.
+ * In the above example, the {@code ActedIn} class represents a relationship with
+ * properties between a {@code Movie} and a {@code Person}. The {@code actor} field marked
+ * with {@code @TargetNode} represents the Person node that is the target of the ACTED_IN
+ * relationship.
  * <p>
  * The {@code @TargetNode} annotation helps Spring Data FalkorDB understand the structure
  * of the relationship and properly map the relationship properties and target node when

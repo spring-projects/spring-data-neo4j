@@ -47,7 +47,8 @@ public class Movie {
 	private List<Person> directors = new ArrayList<>();
 
 	// Default constructor
-	public Movie() {}
+	public Movie() {
+	}
 
 	// Constructor
 	public Movie(String title, String description, Integer released) {

@@ -34,6 +34,8 @@ public class FalkorDBQueryMethod extends QueryMethod {
 
 	private final FalkorDBMappingContext mappingContext;
 
+	private final Method method;
+
 	/**
 	 * Creates a new {@link FalkorDBQueryMethod}.
 	 * @param method must not be {@literal null}.
@@ -45,6 +47,7 @@ public class FalkorDBQueryMethod extends QueryMethod {
 			FalkorDBMappingContext mappingContext) {
 		super(method, metadata, projectionFactory);
 		this.mappingContext = mappingContext;
+		this.method = method;
 	}
 
 	/**
@@ -64,13 +67,13 @@ public class FalkorDBQueryMethod extends QueryMethod {
 	}
 
 	/**
-	 * Returns the query string declared in a {@link Query} annotation or {@literal null} if neither the annotation found
-	 * nor the attribute was specified.
+	 * Returns the query string declared in a {@link Query} annotation or {@literal null}
+	 * if neither the annotation found nor the attribute was specified.
 	 * @return the query string or {@literal null}.
 	 */
 	@Nullable
 	public String getAnnotatedQuery() {
-		Query query = getMethod().getAnnotation(Query.class);
+		Query query = this.method.getAnnotation(Query.class);
 		if (query == null) {
 			return null;
 		}
@@ -88,7 +91,7 @@ public class FalkorDBQueryMethod extends QueryMethod {
 	 * @return {@literal true} if the query is marked as count query.
 	 */
 	public boolean isCountQuery() {
-		Query query = getMethod().getAnnotation(Query.class);
+		Query query = this.method.getAnnotation(Query.class);
 		return query != null && query.count();
 	}
 
@@ -97,7 +100,7 @@ public class FalkorDBQueryMethod extends QueryMethod {
 	 * @return {@literal true} if the query is marked as exists query.
 	 */
 	public boolean isExistsQuery() {
-		Query query = getMethod().getAnnotation(Query.class);
+		Query query = this.method.getAnnotation(Query.class);
 		return query != null && query.exists();
 	}
 
@@ -106,7 +109,7 @@ public class FalkorDBQueryMethod extends QueryMethod {
 	 * @return {@literal true} if the query is marked as write operation.
 	 */
 	public boolean isWriteQuery() {
-		Query query = getMethod().getAnnotation(Query.class);
+		Query query = this.method.getAnnotation(Query.class);
 		return query != null && query.write();
 	}
 

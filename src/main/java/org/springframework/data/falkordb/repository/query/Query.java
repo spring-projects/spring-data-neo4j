@@ -27,13 +27,12 @@ import org.springframework.core.annotation.AliasFor;
 /**
  * Annotation to provide a custom Cypher query for repository query methods.
  * <p>
- * This annotation can be used to define custom Cypher queries that cannot be expressed
- * as derived queries. The query can contain parameters that are bound to method arguments
- * using the {@code $parameter} syntax or {@link org.springframework.data.repository.query.Param @Param}
- * annotation.
+ * This annotation can be used to define custom Cypher queries that cannot be expressed as
+ * derived queries. The query can contain parameters that are bound to method arguments
+ * using the {@code $parameter} syntax or
+ * {@link org.springframework.data.repository.query.Param @Param} annotation.
  * <p>
- * Example usage:
- * <pre>
+ * Example usage: <pre>
  * public interface UserRepository extends FalkorDBRepository&lt;User, Long&gt; {
  *
  *     &#64;Query("MATCH (u:User)-[:FOLLOWS]->(f:User) WHERE u.username = $username RETURN f")
@@ -51,7 +50,8 @@ import org.springframework.core.annotation.AliasFor;
  * <ul>
  * <li>By parameter index: {@code $0}, {@code $1}, etc.</li>
  * <li>By parameter name using {@code @Param}: {@code $paramName}</li>
- * <li>By object property: {@code $object.property} or {@code $object.__id__} for entity IDs</li>
+ * <li>By object property: {@code $object.property} or {@code $object.__id__} for entity
+ * IDs</li>
  * </ul>
  *
  * @author Shahar Biron (FalkorDB adaptation)
@@ -81,9 +81,10 @@ public @interface Query {
 	/**
 	 * Defines whether the given query should be executed as count projection.
 	 * <p>
-	 * When set to {@literal true}, the query is expected to project a single numeric value
-	 * that will be returned as the result. This is useful for count queries.
-	 * @return {@literal true} if the query is a count projection, {@literal false} otherwise.
+	 * When set to {@literal true}, the query is expected to project a single numeric
+	 * value that will be returned as the result. This is useful for count queries.
+	 * @return {@literal true} if the query is a count projection, {@literal false}
+	 * otherwise.
 	 */
 	boolean count() default false;
 
@@ -92,16 +93,18 @@ public @interface Query {
 	 * <p>
 	 * When set to {@literal true}, the query is expected to return a boolean value
 	 * indicating the existence of a particular condition.
-	 * @return {@literal true} if the query is an exists projection, {@literal false} otherwise.
+	 * @return {@literal true} if the query is an exists projection, {@literal false}
+	 * otherwise.
 	 */
 	boolean exists() default false;
 
 	/**
 	 * Defines whether the query should be executed as a write operation.
 	 * <p>
-	 * Set this to {@literal true} for queries that modify data (CREATE, UPDATE, DELETE, etc.).
-	 * This affects how the query is executed and how transactions are handled.
-	 * @return {@literal true} if this is a write operation, {@literal false} for read-only queries.
+	 * Set this to {@literal true} for queries that modify data (CREATE, UPDATE, DELETE,
+	 * etc.). This affects how the query is executed and how transactions are handled.
+	 * @return {@literal true} if this is a write operation, {@literal false} for
+	 * read-only queries.
 	 */
 	boolean write() default false;
 

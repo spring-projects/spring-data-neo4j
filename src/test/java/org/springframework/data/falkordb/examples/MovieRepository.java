@@ -59,19 +59,16 @@ public interface MovieRepository extends FalkorDBRepository<Movie, String> {
 	Movie updateMovieTimestamp(@Param("title") String title);
 
 	// Query to find movies by actor name with relationship properties
-	@Query("MATCH (m:Movie)-[r:ACTED_IN]-(p:Person {name: $actorName}) " +
-		   "RETURN m, collect(r), collect(p)")
+	@Query("MATCH (m:Movie)-[r:ACTED_IN]-(p:Person {name: $actorName}) " + "RETURN m, collect(r), collect(p)")
 	List<Movie> findMoviesByActorName(@Param("actorName") String actorName);
 
 	// Query to find co-actors (actors who acted in the same movie)
-	@Query("MATCH (p1:Person {name: $actorName})-[:ACTED_IN]->(m:Movie)<-[:ACTED_IN]-(p2:Person) " +
-		   "WHERE p1 <> p2 " +
-		   "RETURN DISTINCT p2")
+	@Query("MATCH (p1:Person {name: $actorName})-[:ACTED_IN]->(m:Movie)<-[:ACTED_IN]-(p2:Person) " + "WHERE p1 <> p2 "
+			+ "RETURN DISTINCT p2")
 	List<Person> findCoActors(@Param("actorName") String actorName);
 
 	// Query with multiple parameters
 	@Query("MATCH (m:Movie) WHERE m.released >= $startYear AND m.released <= $endYear RETURN m")
-	List<Movie> findMoviesInYearRange(@Param("startYear") Integer startYear, 
-									  @Param("endYear") Integer endYear);
+	List<Movie> findMoviesInYearRange(@Param("startYear") Integer startYear, @Param("endYear") Integer endYear);
 
 }

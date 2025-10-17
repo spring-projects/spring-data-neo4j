@@ -16,17 +16,18 @@
 package org.springframework.data.falkordb.repository.query;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.data.falkordb.core.FalkorDBOperations;
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.data.repository.query.ResultProcessor;
 import org.springframework.data.repository.query.ReturnedType;
-import org.springframework.lang.Nullable;
 
 /**
- * {@link RepositoryQuery} implementation that executes custom Cypher queries
- * defined via the {@link Query} annotation.
+ * {@link RepositoryQuery} implementation that executes custom Cypher queries defined via
+ * the {@link Query} annotation.
  *
  * @author Shahar Biron (FalkorDB adaptation)
  * @since 1.0
@@ -34,6 +35,7 @@ import org.springframework.lang.Nullable;
 class StringBasedFalkorDBQuery implements RepositoryQuery {
 
 	private final FalkorDBQueryMethod queryMethod;
+
 	private final FalkorDBOperations operations;
 
 	/**
@@ -48,39 +50,43 @@ class StringBasedFalkorDBQuery implements RepositoryQuery {
 
 	@Override
 	public Object execute(Object[] parameters) {
-		
+
 		String query = queryMethod.getAnnotatedQuery();
 		if (query == null) {
 			throw new IllegalStateException("No query defined for method " + queryMethod.getName());
 		}
 
 		Map<String, Object> parameterMap = createParameterMap(parameters);
-		
-		ResultProcessor processor = queryMethod.getResultProcessor().withDynamicProjection(parameters);
+
+		// Create a simple parameter accessor - for now we'll handle this differently
+		// ResultProcessor processor =
+		// queryMethod.getResultProcessor().withDynamicProjection(parameters);
+		ResultProcessor processor = queryMethod.getResultProcessor();
 		ReturnedType returnedType = processor.getReturnedType();
 
 		if (queryMethod.isCountQuery()) {
-			Long count = operations.count(query, parameterMap);
+			// For count queries, execute the query and return the count
+			List<Long> results = operations.query(query, parameterMap, Long.class);
+			Long count = results.isEmpty() ? 0L : results.get(0);
 			return processor.processResult(count);
 		}
 
 		if (queryMethod.isExistsQuery()) {
-			Boolean exists = operations.exists(query, parameterMap);
+			// For exists queries, execute the query and return the boolean result
+			List<Boolean> results = operations.query(query, parameterMap, Boolean.class);
+			Boolean exists = results.isEmpty() ? false : results.get(0);
 			return processor.processResult(exists);
 		}
 
 		if (queryMethod.isCollectionQuery()) {
-			return processor.processResult(
-				operations.findAll(returnedType.getDomainType(), query, parameterMap)
-			);
+			return processor.processResult(operations.query(query, parameterMap, returnedType.getDomainType()));
 		}
 
 		// Single result query
-		Object result = operations.findOne(returnedType.getDomainType(), query, parameterMap);
-		return processor.processResult(result);
+		Optional<?> result = operations.queryForObject(query, parameterMap, returnedType.getDomainType());
+		return processor.processResult(result.orElse(null));
 	}
 
-	@Override
 	public FalkorDBQueryMethod getQueryMethod() {
 		return queryMethod;
 	}
@@ -92,7 +98,7 @@ class StringBasedFalkorDBQuery implements RepositoryQuery {
 	 */
 	private Map<String, Object> createParameterMap(Object[] parameters) {
 		Map<String, Object> parameterMap = new HashMap<>();
-		
+
 		// Add indexed parameters ($0, $1, ...)
 		if (parameters != null) {
 			for (int i = 0; i < parameters.length; i++) {
@@ -103,7 +109,7 @@ class StringBasedFalkorDBQuery implements RepositoryQuery {
 		// Add named parameters if available
 		// This would typically involve analyzing @Param annotations
 		// For now, we'll keep it simple with indexed parameters
-		
+
 		return parameterMap;
 	}
 
