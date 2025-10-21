@@ -19,6 +19,8 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.falkordb.repository.FalkorDBRepository;
+import org.springframework.data.falkordb.repository.query.Query;
+import org.springframework.data.repository.query.Param;
 
 /**
  * Repository interface for TwitterUser entities.
@@ -39,9 +41,20 @@ public interface TwitterUserRepository extends FalkorDBRepository<TwitterUser, L
 
 	List<TwitterUser> findByLocationContaining(String location);
 
-	// Custom query methods would be added here using @Query annotation
-	// For example:
-	// @Query("MATCH (u:User)-[:FOLLOWS]->(f:User) WHERE u.username = $username RETURN f")
-	// List<TwitterUser> findFollowing(@Param("username") String username);
+	// Custom query methods using @Query annotation
+	@Query("MATCH (u:User)-[:FOLLOWS]->(f:User) WHERE u.username = $username RETURN f")
+	List<TwitterUser> findFollowing(@Param("username") String username);
+
+	@Query("MATCH (f:User)-[:FOLLOWS]->(u:User) WHERE u.username = $username RETURN f")
+	List<TwitterUser> findFollowers(@Param("username") String username);
+
+	@Query("MATCH (u:User) WHERE u.followerCount > $0 AND u.verified = $1 RETURN u ORDER BY u.followerCount DESC")
+	List<TwitterUser> findTopVerifiedUsers(Integer minFollowers, Boolean verified);
+
+	@Query(value = "MATCH (u:User)-[:FOLLOWS]->() WHERE u.username = $username RETURN count(*)", count = true)
+	Long countFollowing(@Param("username") String username);
+
+	@Query(value = "MATCH ()-[:FOLLOWS]->(u:User) WHERE u.username = $username RETURN count(*)", count = true)
+	Long countFollowers(@Param("username") String username);
 
 }

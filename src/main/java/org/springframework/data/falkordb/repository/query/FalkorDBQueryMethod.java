@@ -21,6 +21,8 @@ import org.springframework.data.falkordb.core.mapping.FalkorDBMappingContext;
 import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.query.QueryMethod;
+import org.springframework.lang.Nullable;
+import org.springframework.util.StringUtils;
 
 /**
  * FalkorDB-specific implementation of {@link QueryMethod}.
@@ -31,6 +33,8 @@ import org.springframework.data.repository.query.QueryMethod;
 public class FalkorDBQueryMethod extends QueryMethod {
 
 	private final FalkorDBMappingContext mappingContext;
+
+	private final Method method;
 
 	/**
 	 * Creates a new {@link FalkorDBQueryMethod}.
@@ -43,6 +47,7 @@ public class FalkorDBQueryMethod extends QueryMethod {
 			FalkorDBMappingContext mappingContext) {
 		super(method, metadata, projectionFactory);
 		this.mappingContext = mappingContext;
+		this.method = method;
 	}
 
 	/**
@@ -51,6 +56,61 @@ public class FalkorDBQueryMethod extends QueryMethod {
 	 */
 	public FalkorDBMappingContext getMappingContext() {
 		return this.mappingContext;
+	}
+
+	/**
+	 * Returns whether the method has an annotated query.
+	 * @return {@literal true} if the method has a {@link Query} annotation.
+	 */
+	public boolean hasAnnotatedQuery() {
+		return getAnnotatedQuery() != null;
+	}
+
+	/**
+	 * Returns the query string declared in a {@link Query} annotation or {@literal null}
+	 * if neither the annotation found nor the attribute was specified.
+	 * @return the query string or {@literal null}.
+	 */
+	@Nullable
+	public String getAnnotatedQuery() {
+		Query query = this.method.getAnnotation(Query.class);
+		if (query == null) {
+			return null;
+		}
+
+		String queryString = query.value();
+		if (!StringUtils.hasText(queryString)) {
+			queryString = query.cypher();
+		}
+
+		return StringUtils.hasText(queryString) ? queryString : null;
+	}
+
+	/**
+	 * Returns whether the query method is a count query.
+	 * @return {@literal true} if the query is marked as count query.
+	 */
+	public boolean isCountQuery() {
+		Query query = this.method.getAnnotation(Query.class);
+		return query != null && query.count();
+	}
+
+	/**
+	 * Returns whether the query method is an exists query.
+	 * @return {@literal true} if the query is marked as exists query.
+	 */
+	public boolean isExistsQuery() {
+		Query query = this.method.getAnnotation(Query.class);
+		return query != null && query.exists();
+	}
+
+	/**
+	 * Returns whether the query method is a write operation.
+	 * @return {@literal true} if the query is marked as write operation.
+	 */
+	public boolean isWriteQuery() {
+		Query query = this.method.getAnnotation(Query.class);
+		return query != null && query.write();
 	}
 
 }
