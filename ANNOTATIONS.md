@@ -216,15 +216,15 @@ public interface MovieRepository extends FalkorDBRepository<Movie, String> {
 3. **Keep relationship properties simple** and avoid deep nesting
 4. **Consider performance implications** of relationship properties in queries
 
-## Migration from Spring Data Neo4j
+## Spring Data Graph Patterns
 
-These annotations are designed to be compatible with Spring Data Neo4j patterns:
+These annotations follow established Spring Data graph database patterns, providing:
 
-- `@Query` works similarly to Neo4j's `@Query` annotation
-- `@TargetNode` replaces Neo4j's `@TargetNode` with the same semantics
-- `@RelationshipId` provides the same functionality as Neo4j's `@RelationshipId`
+- `@Query` for custom Cypher queries with parameter binding
+- `@TargetNode` for clear relationship target identification
+- `@RelationshipId` for relationship entity identification
 
-The main differences are:
-- Package names use `falkordb` instead of `neo4j`
-- FalkorDB-specific optimizations and features
-- Integration with FalkorDB's graph query language
+Key FalkorDB advantages:
+- Optimized for FalkorDB's high-performance graph engine
+- Native integration with FalkorDB's Cypher implementation
+- Leverages FalkorDB's speed as the world's fastest graph database
