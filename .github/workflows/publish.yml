@@ -42,18 +42,21 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
           cache: 'maven'
+          server-id: central
+          server-username: CENTRAL_USERNAME
+          server-password: CENTRAL_TOKEN
       
       - name: Build and Deploy to Maven Repository
         run: |
-          ./mvnw -s settings.xml clean deploy -U -B -Dcheckstyle.skip=true -Dmaven.javadoc.skip=false
+          ./mvnw -DskipTests -Dgpg.skip=true clean deploy -U -B -Dcheckstyle.skip=true
           echo "### Publish Summary :package:" >> $GITHUB_STEP_SUMMARY
-          echo "Successfully published artifacts to Maven repository!" >> $GITHUB_STEP_SUMMARY
+          echo "Successfully published artifacts to Maven Central!" >> $GITHUB_STEP_SUMMARY
           echo "- Version: 1.0.0-SNAPSHOT" >> $GITHUB_STEP_SUMMARY
           echo "- Branch: ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
         env:
           SDF_FALKORDB_VERSION: latest
-          ARTIFACTORY_USR: ${{ secrets.ARTIFACTORY_USERNAME }}
-          ARTIFACTORY_PSW: ${{ secrets.ARTIFACTORY_PASSWORD }}
+          CENTRAL_USERNAME: ${{ secrets.CENTRAL_USERNAME }}
+          CENTRAL_TOKEN: ${{ secrets.CENTRAL_TOKEN }}
       
       - name: Upload Artifacts
         if: success()

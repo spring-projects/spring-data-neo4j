@@ -19,11 +19,15 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
       
-    - name: Set up JDK 17
+    - name: Set up JDK 17 for publishing to Maven Central
       uses: actions/setup-java@v4
       with:
         java-version: 17
         distribution: 'temurin'
+        cache: maven
+        server-id: central
+        server-username: CENTRAL_USERNAME
+        server-password: CENTRAL_TOKEN
         
     - name: Cache Maven dependencies
       uses: actions/cache@v4
@@ -38,6 +42,23 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y redis-tools
         
+    - name: Get version from tag
+      id: get_version
+      run: |
+        realversion="${GITHUB_REF/refs\/tags\/v/}"
+        echo "VERSION=$realversion" >> $GITHUB_OUTPUT
+        
+    - name: Update version in POM
+      if: github.event_name == 'release'
+      run: ./mvnw versions:set -DnewVersion=${{ steps.get_version.outputs.VERSION }}
+      
+    - name: Import GPG key
+      if: github.event_name == 'release'  
+      uses: crazy-max/ghaction-import-gpg@v6
+      with:
+        gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
+        passphrase: ${{ secrets.GPG_PASSPHRASE }}
+        
     - name: Start FalkorDB
       run: |
         docker run -d --name falkordb -p 6379:6379 falkordb/falkordb:latest
@@ -51,16 +72,17 @@ jobs:
       env:
         MAVEN_OPTS: -Xmx1024m
         
-    - name: Build and Package
-      run: ./mvnw clean package -DskipTests -B -P release
-      
-    - name: Upload Release Assets
+    - name: Build and deploy to Maven Central
       if: github.event_name == 'release'
-      uses: actions/upload-release-asset@v1
+      run: |
+        ./mvnw --no-transfer-progress \
+          --batch-mode \
+          clean deploy -P release
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ github.event.release.upload_url }}
-        asset_path: target/spring-data-falkordb-*.jar
-        asset_name: spring-data-falkordb-${{ github.event.release.tag_name }}.jar
-        asset_content_type: application/java-archive
+        CENTRAL_USERNAME: ${{ secrets.CENTRAL_USERNAME }}
+        CENTRAL_TOKEN: ${{ secrets.CENTRAL_TOKEN }}
+        MAVEN_GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+        
+    - name: Build artifacts for workflow dispatch
+      if: github.event_name == 'workflow_dispatch'
+      run: ./mvnw clean package -DskipTests -B -P release
