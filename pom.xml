@@ -442,7 +442,7 @@
 					<configuration>
 						<licenseSets>
 							<licenseSet>
-								<header>${project.basedir}/etc/license.tpl</header>
+								<header>${project.basedir}/license.tpl</header>
 								<properties>
 									<year>2025</year>
 								</properties>
@@ -562,8 +562,8 @@
 						<configuration combine.self="override">
 							<excludes>**/module-info.java</excludes>
 							<includeTestSourceDirectory>true</includeTestSourceDirectory>
-							<configLocation>etc/checkstyle/config.xml</configLocation>
-							<suppressionsLocation>etc/checkstyle/suppressions.xml</suppressionsLocation>
+							<configLocation>checkstyle/config.xml</configLocation>
+							<suppressionsLocation>checkstyle/suppressions.xml</suppressionsLocation>
 							<inputEncoding>${project.build.sourceEncoding}</inputEncoding>
 							<consoleOutput>true</consoleOutput>
 							<failsOnError>true</failsOnError>
