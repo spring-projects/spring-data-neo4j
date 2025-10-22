@@ -61,7 +61,7 @@ public class FalkorDBRepositoryFactoryBean<T extends Repository<S, ID>, S, ID>
 	@Autowired
 	public void setFalkorDBTemplate(FalkorDBTemplate falkorDBTemplate) {
 		this.falkorDBTemplate = falkorDBTemplate;
-		setMappingContext(falkorDBTemplate.getConverter().getMappingContext());
+		setMappingContext(falkorDBTemplate.getMappingContext());
 	}
 
 	@Override

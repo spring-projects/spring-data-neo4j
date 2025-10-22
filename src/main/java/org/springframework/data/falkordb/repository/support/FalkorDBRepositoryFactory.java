@@ -24,17 +24,16 @@ package org.springframework.data.falkordb.repository.support;
 import java.util.Optional;
 
 import org.springframework.data.falkordb.core.FalkorDBTemplate;
+import org.springframework.data.falkordb.core.mapping.FalkorDBMappingContext;
 import org.springframework.data.falkordb.core.mapping.FalkorDBPersistentEntity;
 import org.springframework.data.falkordb.core.mapping.FalkorDBPersistentProperty;
 import org.springframework.data.falkordb.repository.query.FalkorDBQueryMethod;
-import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.repository.core.NamedQueries;
 import org.springframework.data.repository.core.RepositoryInformation;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.core.support.RepositoryFactorySupport;
 import org.springframework.data.repository.query.QueryLookupStrategy;
-import org.springframework.data.repository.query.QueryMethodEvaluationContextProvider;
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
@@ -52,7 +51,7 @@ public class FalkorDBRepositoryFactory extends RepositoryFactorySupport {
 
 	private final FalkorDBTemplate falkorDBTemplate;
 
-	private final MappingContext<? extends FalkorDBPersistentEntity<?>, FalkorDBPersistentProperty> mappingContext;
+	private final FalkorDBMappingContext mappingContext;
 
 	/**
 	 * Creates a new {@link FalkorDBRepositoryFactory} with the given
@@ -64,7 +63,7 @@ public class FalkorDBRepositoryFactory extends RepositoryFactorySupport {
 		Assert.notNull(falkorDBTemplate, "FalkorDBTemplate must not be null");
 
 		this.falkorDBTemplate = falkorDBTemplate;
-		this.mappingContext = falkorDBTemplate.getConverter().getMappingContext();
+		this.mappingContext = falkorDBTemplate.getMappingContext();
 	}
 
 	@Override
@@ -87,9 +86,7 @@ public class FalkorDBRepositoryFactory extends RepositoryFactorySupport {
 		return SimpleFalkorDBRepository.class;
 	}
 
-	@Override
-	protected Optional<QueryLookupStrategy> getQueryLookupStrategy(@Nullable QueryLookupStrategy.Key key,
-			QueryMethodEvaluationContextProvider evaluationContextProvider) {
+	protected Optional<QueryLookupStrategy> getQueryLookupStrategy(@Nullable QueryLookupStrategy.Key key) {
 
 		return Optional.of(new FalkorDBQueryLookupStrategy());
 	}
@@ -104,7 +101,7 @@ public class FalkorDBRepositoryFactory extends RepositoryFactorySupport {
 				NamedQueries namedQueries) {
 
 			FalkorDBQueryMethod queryMethod = new FalkorDBQueryMethod(method, metadata, factory,
-					FalkorDBRepositoryFactory.this.mappingContext);
+					mappingContext);
 
 			// TODO: Implement query resolution logic
 			// For now, return a simple implementation that throws an exception
@@ -153,6 +150,21 @@ public class FalkorDBRepositoryFactory extends RepositoryFactorySupport {
 		@Override
 		public Class<T> getJavaType() {
 			return entity.getType();
+		}
+
+		@Override
+		public String getPrimaryLabel() {
+			return entity.getPrimaryLabel();
+		}
+
+		@Override
+		public String[] getLabels() {
+			return entity.getLabels();
+		}
+
+		@Override
+		public boolean isNew(T t) {
+			return getId(t) == null;
 		}
 
 	}

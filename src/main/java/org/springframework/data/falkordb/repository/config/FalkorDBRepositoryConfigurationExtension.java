@@ -81,13 +81,8 @@ public class FalkorDBRepositoryConfigurationExtension extends RepositoryConfigur
 	}
 
 	@Override
-	protected String getDefaultNamedQueryLocation() {
+	public String getDefaultNamedQueryLocation() {
 		return "META-INF/falkordb-named-queries.properties";
-	}
-
-	@Override
-	protected Class<?> getDefaultMappingContextClass() {
-		return FalkorDBMappingContext.class;
 	}
 
 }
