@@ -29,7 +29,7 @@ import org.springframework.data.neo4j.core.support.UserDefinedChangeEvaluator;
 import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
 import org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager;
 import org.springframework.data.neo4j.integration.shared.common.UserDefinedChangeEntityA;
-import org.springframework.data.neo4j.integration.shared.common.UserDefinedChangeEntityWithBeanA;
+import org.springframework.data.neo4j.integration.shared.common.UserDefinedChangeEntityB;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.data.neo4j.test.BookmarkCapture;
@@ -70,10 +70,6 @@ class UserDefinedChangesIT {
 					CREATE (a:UserDefinedChangeEntityB)<-[:PROPERTY]-(b:UserDefinedChangeEntityA)-[:DIRECT]->(c:UserDefinedChangeEntityB)
 					SET a.name= 'viaProperty', b.name = 'changeMeIfYouCan', c.name = 'direct'
 					""").consume();
-				transaction.run("""
-					CREATE (a:UserDefinedChangeEntityWithBeanB)<-[:PROPERTY]-(b:UserDefinedChangeEntityWithBeanA)-[:DIRECT]->(c:UserDefinedChangeEntityWithBeanB)
-					SET a.name= 'viaProperty', b.name = 'changeMeIfYouCan', c.name = 'direct'
-					""").consume();
 				transaction.commit();
 			}
 			this.bookmarkCapture.seedWith(session.lastBookmarks());
@@ -83,8 +79,7 @@ class UserDefinedChangesIT {
 	@Test
 	void entityShouldBeUpdated(@Autowired UserDefinedChangeARepository repository, @Autowired Driver driver) {
 		var entity = repository.findByName("changeMeIfYouCan");
-		entity.name = "updatedName";
-		entity.needsUpdate = true;
+		entity.name = "please update me";
 		repository.save(entity);
 
 		try (var session = this.driver.session(this.bookmarkCapture.createSessionConfig())) {
@@ -93,7 +88,7 @@ class UserDefinedChangesIT {
 			var node = result.get(0).get("n").asNode();
 			assertThat(node.labels()).hasSize(1);
 			assertThat(node.keys()).hasSize(1);
-			assertThat(node.get("name").asString()).isEqualTo("updatedName");
+			assertThat(node.get("name").asString()).isEqualTo("please update me");
 		}
 	}
 
@@ -101,7 +96,6 @@ class UserDefinedChangesIT {
 	void entityShouldNotBeUpdated(@Autowired UserDefinedChangeARepository repository, @Autowired Driver driver) {
 		var entity = repository.findByName("changeMeIfYouCan");
 		entity.name = "updatedName";
-		entity.needsUpdate = false;
 		repository.save(entity);
 
 		try (var session = this.driver.session(this.bookmarkCapture.createSessionConfig())) {
@@ -118,9 +112,8 @@ class UserDefinedChangesIT {
 	void directRelatedEntityShouldBeUpdated(@Autowired UserDefinedChangeARepository repository, @Autowired Driver driver) {
 		var entity = repository.findByName("changeMeIfYouCan");
 		var firstB = entity.bs.get(0);
-		firstB.name = "changed";
-		entity.needsUpdate = true;
-		firstB.needsUpdate = true;
+		entity.name = "please update me";
+		firstB.name = "please update me";
 		repository.save(entity);
 
 		try (var session = this.driver.session(this.bookmarkCapture.createSessionConfig())) {
@@ -129,7 +122,7 @@ class UserDefinedChangesIT {
 			var node = result.get(0).get("n").asNode();
 			assertThat(node.labels()).hasSize(1);
 			assertThat(node.keys()).hasSize(1);
-			assertThat(node.get("name").asString()).isEqualTo("changed");
+			assertThat(node.get("name").asString()).isEqualTo("please update me");
 		}
 	}
 
@@ -137,9 +130,8 @@ class UserDefinedChangesIT {
 	void directRelatedEntityShouldNotBeUpdated(@Autowired UserDefinedChangeARepository repository, @Autowired Driver driver) {
 		var entity = repository.findByName("changeMeIfYouCan");
 		var firstB = entity.bs.get(0);
+		entity.name = "please update me";
 		firstB.name = "changed";
-		entity.needsUpdate = true;
-		firstB.needsUpdate = false;
 		repository.save(entity);
 
 		try (var session = this.driver.session(this.bookmarkCapture.createSessionConfig())) {
@@ -156,9 +148,8 @@ class UserDefinedChangesIT {
 	void relationshipPropertyRelatedEntityShouldBeUpdated(@Autowired UserDefinedChangeARepository repository, @Autowired Driver driver) {
 		var entity = repository.findByName("changeMeIfYouCan");
 		var firstB = entity.relationshipProperties.get(0).target;
-		firstB.name = "changed";
-		entity.needsUpdate = true;
-		firstB.needsUpdate = true;
+		entity.name = "please update me";
+		firstB.name = "please update me";
 		repository.save(entity);
 
 		try (var session = this.driver.session(this.bookmarkCapture.createSessionConfig())) {
@@ -167,7 +158,7 @@ class UserDefinedChangesIT {
 			var node = result.get(0).get("n").asNode();
 			assertThat(node.labels()).hasSize(1);
 			assertThat(node.keys()).hasSize(1);
-			assertThat(node.get("name").asString()).isEqualTo("changed");
+			assertThat(node.get("name").asString()).isEqualTo("please update me");
 		}
 	}
 
@@ -175,9 +166,8 @@ class UserDefinedChangesIT {
 	void relationshipPropertyRelatedEntityShouldNotBeUpdated(@Autowired UserDefinedChangeARepository repository, @Autowired Driver driver) {
 		var entity = repository.findByName("changeMeIfYouCan");
 		var firstB = entity.relationshipProperties.get(0).target;
+		entity.name = "please update me";
 		firstB.name = "changed";
-		entity.needsUpdate = true;
-		firstB.needsUpdate = false;
 		repository.save(entity);
 
 		try (var session = this.driver.session(this.bookmarkCapture.createSessionConfig())) {
@@ -190,44 +180,8 @@ class UserDefinedChangesIT {
 		}
 	}
 
-	@Test
-	void beanControlledEntityShouldBeUpdated(@Autowired UserDefinedChangeWithBeanARepository repository, @Autowired Driver driver) {
-		var entity = repository.findByName("changeMeIfYouCan");
-		entity.name = "please update me";
-		repository.save(entity);
-
-		try (var session = this.driver.session(this.bookmarkCapture.createSessionConfig())) {
-			var result = session.run("MATCH (n:UserDefinedChangeEntityWithBeanA) return n").list();
-			assertThat(result.size()).isEqualTo(1);
-			var node = result.get(0).get("n").asNode();
-			assertThat(node.labels()).hasSize(1);
-			assertThat(node.keys()).hasSize(1);
-			assertThat(node.get("name").asString()).isEqualTo("please update me");
-		}
-	}
-
-	@Test
-	void beanControlledEntityShouldNotBeUpdated(@Autowired UserDefinedChangeWithBeanARepository repository, @Autowired Driver driver) {
-		var entity = repository.findByName("changeMeIfYouCan");
-		entity.name = "updatedName";
-		repository.save(entity);
-
-		try (var session = this.driver.session(this.bookmarkCapture.createSessionConfig())) {
-			var result = session.run("MATCH (n:UserDefinedChangeEntityWithBeanA) return n").list();
-			assertThat(result.size()).isEqualTo(1);
-			var node = result.get(0).get("n").asNode();
-			assertThat(node.labels()).hasSize(1);
-			assertThat(node.keys()).hasSize(1);
-			assertThat(node.get("name").asString()).isEqualTo("changeMeIfYouCan");
-		}
-	}
-
 	interface UserDefinedChangeARepository extends Neo4jRepository<UserDefinedChangeEntityA, String> {
 		UserDefinedChangeEntityA findByName(String name);
-	}
-
-	interface UserDefinedChangeWithBeanARepository extends Neo4jRepository<UserDefinedChangeEntityWithBeanA, String> {
-		UserDefinedChangeEntityWithBeanA findByName(String name);
 	}
 
 	@Configuration
@@ -256,16 +210,31 @@ class UserDefinedChangesIT {
 		}
 
 		@Bean
-		public UserDefinedChangeEvaluator<UserDefinedChangeEntityWithBeanA> udceForUdcewba() {
-			return new UserDefinedChangeEvaluator<UserDefinedChangeEntityWithBeanA>() {
+		UserDefinedChangeEvaluator<UserDefinedChangeEntityA> udceForUdcewba() {
+			return new UserDefinedChangeEvaluator<UserDefinedChangeEntityA>() {
 				@Override
-				public boolean needsUpdate(UserDefinedChangeEntityWithBeanA instance) {
+				public boolean needsUpdate(UserDefinedChangeEntityA instance) {
 					return instance.name.equals("please update me");
 				}
 
 				@Override
-				public Class<UserDefinedChangeEntityWithBeanA> getEvaluatingClass() {
-					return UserDefinedChangeEntityWithBeanA.class;
+				public Class<UserDefinedChangeEntityA> getEvaluatingClass() {
+					return UserDefinedChangeEntityA.class;
+				}
+			};
+		}
+
+		@Bean
+		UserDefinedChangeEvaluator<UserDefinedChangeEntityB> udceForUdcewbb() {
+			return new UserDefinedChangeEvaluator<UserDefinedChangeEntityB>() {
+				@Override
+				public boolean needsUpdate(UserDefinedChangeEntityB instance) {
+					return instance.name.equals("please update me");
+				}
+
+				@Override
+				public Class<UserDefinedChangeEntityB> getEvaluatingClass() {
+					return UserDefinedChangeEntityB.class;
 				}
 			};
 		}

@@ -17,18 +17,16 @@ package org.springframework.data.neo4j.integration.shared.common;
 
 import java.util.List;
 
-import org.springframework.data.annotation.Transient;
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Relationship;
-import org.springframework.data.neo4j.core.support.UserDefinedChangeSupport;
 
 /**
  * @author Gerrit Meier
  */
 @Node
-public class UserDefinedChangeEntityA implements UserDefinedChangeSupport {
+public class UserDefinedChangeEntityA {
 
 	@Id
 	@GeneratedValue
@@ -42,15 +40,8 @@ public class UserDefinedChangeEntityA implements UserDefinedChangeSupport {
 	@Relationship("PROPERTY")
 	public List<UserDefinedChangeRelationshipProperty> relationshipProperties;
 
-	@Transient
-	public boolean needsUpdate;
-
 	public UserDefinedChangeEntityA(String name) {
 		this.name = name;
 	}
 
-	@Override
-	public boolean needsUpdate() {
-		return this.needsUpdate;
-	}
 }
