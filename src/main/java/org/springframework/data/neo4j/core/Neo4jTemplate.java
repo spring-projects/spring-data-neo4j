@@ -88,7 +88,6 @@ import org.springframework.data.neo4j.core.mapping.SpringDataCypherDsl;
 import org.springframework.data.neo4j.core.mapping.callback.EventSupport;
 import org.springframework.data.neo4j.core.schema.TargetNode;
 import org.springframework.data.neo4j.core.support.UserDefinedChangeEvaluator;
-import org.springframework.data.neo4j.core.support.UserDefinedChangeSupport;
 import org.springframework.data.neo4j.core.transaction.Neo4jTransactionManager;
 import org.springframework.data.neo4j.repository.NoResultException;
 import org.springframework.data.neo4j.repository.query.QueryFragments;
@@ -456,7 +455,6 @@ public final class Neo4jTemplate
 			@Nullable NestedRelationshipProcessingStateMachine stateMachine) {
 
 		if ((stateMachine != null && stateMachine.hasProcessedValue(instance))
-			|| (instance instanceof UserDefinedChangeSupport udcs && !udcs.needsUpdate())
 			|| (this.userDefinedChangeEvaluators.containsKey(instance.getClass()) && !this.userDefinedChangeEvaluators.get(instance.getClass()).needsUpdate(instance))) {
 			return instance;
 		}
@@ -983,20 +981,16 @@ public final class Neo4jTemplate
 				Neo4jPersistentEntity<?> targetEntity = this.neo4jMappingContext
 					.getRequiredPersistentEntity(relatedObjectBeforeCallbacksApplied.getClass());
 				var isNewEntity = targetEntity.isNew(relatedObjectBeforeCallbacksApplied);
-				var skipUpdateOfEntity = false;
-				if (relatedValueToStore instanceof UserDefinedChangeSupport udcs) {
-					skipUpdateOfEntity = !isNewEntity && !udcs.needsUpdate();
-				}
+				var skipUpdateOfEntity = !isNewEntity;
 				if (relatedValueToStore instanceof MappingSupport.RelationshipPropertiesWithEntityHolder rpweh) {
 					var relatedEntity = rpweh.getRelatedEntity();
-					if (relatedEntity instanceof UserDefinedChangeSupport udcs) {
-						skipUpdateOfEntity = !isNewEntity && !udcs.needsUpdate();
-					}
+					skipUpdateOfEntity &= this.userDefinedChangeEvaluators.containsKey(relatedEntity.getClass())
+							&& !this.userDefinedChangeEvaluators.get(relatedEntity.getClass()).needsUpdate(relatedEntity);
 				}
-				else if (!skipUpdateOfEntity) {
-					skipUpdateOfEntity = this.userDefinedChangeEvaluators.containsKey(relatedValueToStore.getClass());
+				else {
+					skipUpdateOfEntity &= this.userDefinedChangeEvaluators.containsKey(relatedValueToStore.getClass())
+							&& !this.userDefinedChangeEvaluators.get(relatedValueToStore.getClass()).needsUpdate(relatedValueToStore);
 				}
-
 				Object newRelatedObject = stateMachine.hasProcessedValue(relatedObjectBeforeCallbacksApplied)
 						? stateMachine.getProcessedAs(relatedObjectBeforeCallbacksApplied)
 						: skipUpdateOfEntity

@@ -15,17 +15,15 @@
  */
 package org.springframework.data.neo4j.integration.shared.common;
 
-import org.springframework.data.annotation.Transient;
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
-import org.springframework.data.neo4j.core.support.UserDefinedChangeSupport;
 
 /**
  * @author Gerrit Meier
  */
 @Node
-public class UserDefinedChangeEntityB implements UserDefinedChangeSupport {
+public class UserDefinedChangeEntityB {
 
 	@Id
 	@GeneratedValue
@@ -33,15 +31,7 @@ public class UserDefinedChangeEntityB implements UserDefinedChangeSupport {
 
 	public String name;
 
-	@Transient
-	public boolean needsUpdate;
-
 	public UserDefinedChangeEntityB(String name) {
 		this.name = name;
-	}
-
-	@Override
-	public boolean needsUpdate() {
-		return this.needsUpdate;
 	}
 }
