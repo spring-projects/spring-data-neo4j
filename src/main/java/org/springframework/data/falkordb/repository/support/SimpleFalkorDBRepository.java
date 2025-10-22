@@ -1,18 +1,25 @@
 /*
- * Copyright 2011-2025 the original author or authors.
+ * Copyright (c) 2023-2024 FalkorDB Ltd.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- *      https://www.apache.org/licenses/LICENSE-2.0
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  */
+
 package org.springframework.data.falkordb.repository.support;
 
 import java.util.List;
@@ -48,12 +55,12 @@ public class SimpleFalkorDBRepository<T, ID> implements FalkorDBRepository<T, ID
 	/**
 	 * The FalkorDB operations template.
 	 */
-	private final FalkorDBOperations falkorDBOperations;
+	private final FalkorDBOperations operations;
 
 	/**
 	 * Entity information for type T.
 	 */
-	private final FalkorDBEntityInformation<T, ID> entityInformation;
+	private final FalkorDBEntityInformation<T, ID> entityInfo;
 
 	/**
 	 * Creates a new {@link SimpleFalkorDBRepository} for the given
@@ -61,34 +68,34 @@ public class SimpleFalkorDBRepository<T, ID> implements FalkorDBRepository<T, ID
 	 * @param falkorDBOperations must not be {@literal null}
 	 * @param entityInformation must not be {@literal null}
 	 */
-	protected SimpleFalkorDBRepository(FalkorDBOperations falkorDBOperations,
-			FalkorDBEntityInformation<T, ID> entityInformation) {
-		this.falkorDBOperations = falkorDBOperations;
-		this.entityInformation = entityInformation;
+	protected SimpleFalkorDBRepository(final FalkorDBOperations falkorDBOperations,
+			final FalkorDBEntityInformation<T, ID> entityInformation) {
+		this.operations = falkorDBOperations;
+		this.entityInfo = entityInformation;
 	}
 
 	@Override
-	public Optional<T> findById(ID id) {
-		return this.falkorDBOperations.findById(id, this.entityInformation.getJavaType());
+	public final Optional<T> findById(final ID id) {
+		return this.operations.findById(id, this.entityInfo.getJavaType());
 	}
 
 	@Override
-	public List<T> findAllById(Iterable<ID> ids) {
-		return this.falkorDBOperations.findAllById(ids, this.entityInformation.getJavaType());
+	public final List<T> findAllById(final Iterable<ID> ids) {
+		return this.operations.findAllById(ids, this.entityInfo.getJavaType());
 	}
 
 	@Override
-	public List<T> findAll() {
-		return this.falkorDBOperations.findAll(this.entityInformation.getJavaType());
+	public final List<T> findAll() {
+		return this.operations.findAll(this.entityInfo.getJavaType());
 	}
 
 	@Override
-	public List<T> findAll(Sort sort) {
-		return this.falkorDBOperations.findAll(this.entityInformation.getJavaType(), sort);
+	public final List<T> findAll(final Sort sort) {
+		return this.operations.findAll(this.entityInfo.getJavaType(), sort);
 	}
 
 	@Override
-	public Page<T> findAll(Pageable pageable) {
+	public final Page<T> findAll(final Pageable pageable) {
 		// For now, we'll implement basic pagination - this could be enhanced
 		// later
 		List<T> allResults = findAll(pageable.getSort());
@@ -100,108 +107,157 @@ public class SimpleFalkorDBRepository<T, ID> implements FalkorDBRepository<T, ID
 	}
 
 	@Override
-	public long count() {
-		return this.falkorDBOperations.count(this.entityInformation.getJavaType());
+	public final long count() {
+		return this.operations.count(this.entityInfo.getJavaType());
 	}
 
 	@Override
-	public boolean existsById(ID id) {
-		return this.falkorDBOperations.existsById(id, this.entityInformation.getJavaType());
-	}
-
-	@Override
-	@Transactional
-	public <S extends T> S save(S entity) {
-		return this.falkorDBOperations.save(entity);
+	public final boolean existsById(final ID id) {
+		return this.operations.existsById(id, this.entityInfo.getJavaType());
 	}
 
 	@Override
 	@Transactional
-	public <S extends T> List<S> saveAll(Iterable<S> entities) {
-		return this.falkorDBOperations.saveAll(entities);
+	public final <S extends T> S save(final S entity) {
+		return this.operations.save(entity);
 	}
 
 	@Override
 	@Transactional
-	public void deleteById(ID id) {
-		this.falkorDBOperations.deleteById(id, this.entityInformation.getJavaType());
+	public final <S extends T> List<S> saveAll(final Iterable<S> entities) {
+		return this.operations.saveAll(entities);
 	}
 
 	@Override
 	@Transactional
-	public void delete(T entity) {
-		ID id = Objects.requireNonNull(this.entityInformation.getId(entity),
+	public final void deleteById(final ID id) {
+		this.operations.deleteById(id, this.entityInfo.getJavaType());
+	}
+
+	@Override
+	@Transactional
+	public final void delete(final T entity) {
+		ID id = Objects.requireNonNull(this.entityInfo.getId(entity),
 				"Cannot delete individual entities without an id");
 		this.deleteById(id);
 	}
 
+	/**
+	 * Deletes all entities by their IDs.
+	 * @param ids the IDs of entities to delete
+	 */
 	@Override
 	@Transactional
-	public void deleteAllById(Iterable<? extends ID> ids) {
-		this.falkorDBOperations.deleteAllById(ids, this.entityInformation.getJavaType());
+	public final void deleteAllById(final Iterable<? extends ID> ids) {
+		this.operations.deleteAllById(ids, this.entityInfo.getJavaType());
 	}
 
+	/**
+	 * Deletes all given entities.
+	 * @param entities the entities to delete
+	 */
 	@Override
 	@Transactional
-	public void deleteAll(Iterable<? extends T> entities) {
+	public final void deleteAll(final Iterable<? extends T> entities) {
 		List<ID> ids = StreamSupport.stream(entities.spliterator(), false)
-			.map(this.entityInformation::getId)
+			.map(this.entityInfo::getId)
 			.collect(Collectors.toList());
 
-		this.falkorDBOperations.deleteAllById(ids, this.entityInformation.getJavaType());
+		this.operations.deleteAllById(ids, this.entityInfo.getJavaType());
 	}
 
+	/**
+	 * Deletes all entities.
+	 */
 	@Override
 	@Transactional
-	public void deleteAll() {
-		this.falkorDBOperations.deleteAll(this.entityInformation.getJavaType());
+	public final void deleteAll() {
+		this.operations.deleteAll(this.entityInfo.getJavaType());
 	}
 
+	/**
+	 * Finds a single entity by example.
+	 * @param example the example to match against
+	 * @return the matching entity or empty
+	 */
 	@Override
-	public <S extends T> Optional<S> findOne(Example<S> example) {
+	public final <S extends T> Optional<S> findOne(final Example<S> example) {
 		// Placeholder implementation - would need to be enhanced with proper
 		// query-by-example support
 		throw new UnsupportedOperationException("Query by example not yet implemented");
 	}
 
+	/**
+	 * Finds all entities by example.
+	 * @param example the example to match against
+	 * @return the matching entities
+	 */
 	@Override
-	public <S extends T> List<S> findAll(Example<S> example) {
+	public final <S extends T> List<S> findAll(final Example<S> example) {
 		// Placeholder implementation - would need to be enhanced with proper
 		// query-by-example support
 		throw new UnsupportedOperationException("Query by example not yet implemented");
 	}
 
+	/**
+	 * Finds all entities by example with sorting.
+	 * @param example the example to match against
+	 * @param sort the sort specification
+	 * @return the matching entities
+	 */
 	@Override
-	public <S extends T> List<S> findAll(Example<S> example, Sort sort) {
+	public final <S extends T> List<S> findAll(final Example<S> example, final Sort sort) {
 		// Placeholder implementation - would need to be enhanced with proper
 		// query-by-example support
 		throw new UnsupportedOperationException("Query by example not yet implemented");
 	}
 
+	/**
+	 * Finds all entities by example with pagination.
+	 * @param example the example to match against
+	 * @param pageable the pagination specification
+	 * @return the matching entities page
+	 */
 	@Override
-	public <S extends T> Page<S> findAll(Example<S> example, Pageable pageable) {
+	public final <S extends T> Page<S> findAll(final Example<S> example, final Pageable pageable) {
 		// Placeholder implementation - would need to be enhanced with proper
 		// query-by-example support
 		throw new UnsupportedOperationException("Query by example not yet implemented");
 	}
 
+	/**
+	 * Counts entities by example.
+	 * @param example the example to match against
+	 * @return the count of matching entities
+	 */
 	@Override
-	public <S extends T> long count(Example<S> example) {
+	public final <S extends T> long count(final Example<S> example) {
 		// Placeholder implementation - would need to be enhanced with proper
 		// query-by-example support
 		throw new UnsupportedOperationException("Query by example not yet implemented");
 	}
 
+	/**
+	 * Checks if entities exist by example.
+	 * @param example the example to match against
+	 * @return true if matching entities exist
+	 */
 	@Override
-	public <S extends T> boolean exists(Example<S> example) {
+	public final <S extends T> boolean exists(final Example<S> example) {
 		// Placeholder implementation - would need to be enhanced with proper
 		// query-by-example support
 		throw new UnsupportedOperationException("Query by example not yet implemented");
 	}
 
+	/**
+	 * Fluent query by example.
+	 * @param example the example to match against
+	 * @param queryFunction the query function
+	 * @return the query result
+	 */
 	@Override
-	public <S extends T, R> R findBy(Example<S> example,
-			java.util.function.Function<org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery<S>, R> queryFunction) {
+	public final <S extends T, R> R findBy(final Example<S> example,
+			final java.util.function.Function<org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery<S>, R> queryFunction) {
 		// Placeholder implementation - would need to be enhanced with proper
 		// fluent query support
 		throw new UnsupportedOperationException("Fluent query API not yet implemented");
@@ -209,19 +265,36 @@ public class SimpleFalkorDBRepository<T, ID> implements FalkorDBRepository<T, ID
 
 	/**
 	 * Simple PageImpl for basic pagination support.
+	 *
+	 * @param <T> the content type
 	 */
 	private static class PageImpl<T> implements Page<T> {
 
+		/**
+		 * The page content.
+		 */
 		private final List<T> content;
 
+		/**
+		 * The pageable information.
+		 */
 		private final Pageable pageable;
 
+		/**
+		 * The total number of elements.
+		 */
 		private final long total;
 
-		PageImpl(List<T> content, Pageable pageable, long total) {
-			this.content = content;
-			this.pageable = pageable;
-			this.total = total;
+		/**
+		 * Creates a new PageImpl.
+		 * @param pageContent the content of this page
+		 * @param pageRequest the paging information
+		 * @param totalElements the total number of elements
+		 */
+		PageImpl(final List<T> pageContent, final Pageable pageRequest, final long totalElements) {
+			this.content = pageContent;
+			this.pageable = pageRequest;
+			this.total = totalElements;
 		}
 
 		@Override
@@ -306,7 +379,7 @@ public class SimpleFalkorDBRepository<T, ID> implements FalkorDBRepository<T, ID
 		}
 
 		@Override
-		public <U> Page<U> map(java.util.function.Function<? super T, ? extends U> converter) {
+		public <U> Page<U> map(final java.util.function.Function<? super T, ? extends U> converter) {
 			List<U> convertedContent = this.content.stream()
 				.map(converter)
 				.collect(java.util.stream.Collectors.toList());

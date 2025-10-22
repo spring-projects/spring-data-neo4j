@@ -1,18 +1,25 @@
 /*
- * Copyright 2011-2025 the original author or authors.
+ * Copyright (c) 2023-2024 FalkorDB Ltd.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- *      https://www.apache.org/licenses/LICENSE-2.0
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  */
+
 package org.springframework.data.falkordb.core.mapping;
 
 import org.springframework.data.falkordb.core.schema.GeneratedValue;
@@ -60,23 +67,39 @@ public class DefaultFalkorDBPersistentProperty extends AnnotationBasedPersistent
 		return getName();
 	}
 
+	/**
+	 * Checks if this property is a relationship.
+	 * @return true if this is a relationship property
+	 */
 	@Override
-	public boolean isRelationship() {
+	public final boolean isRelationship() {
 		return isAnnotationPresent(Relationship.class);
 	}
 
+	/**
+	 * Checks if this property is an internal ID property.
+	 * @return true if this is an internal ID property
+	 */
 	@Override
-	public boolean isInternalIdProperty() {
+	public final boolean isInternalIdProperty() {
 		return isIdProperty() && isGeneratedValue() && (getType().equals(Long.class) || getType().equals(long.class));
 	}
 
+	/**
+	 * Checks if this property has a generated value.
+	 * @return true if this property has a generated value
+	 */
 	@Override
-	public boolean isGeneratedValue() {
+	public final boolean isGeneratedValue() {
 		return isAnnotationPresent(GeneratedValue.class);
 	}
 
+	/**
+	 * Gets the relationship type for this property.
+	 * @return the relationship type or null
+	 */
 	@Override
-	public String getRelationshipType() {
+	public final String getRelationshipType() {
 		Relationship relationshipAnnotation = findAnnotation(Relationship.class);
 
 		if (relationshipAnnotation != null) {
@@ -91,8 +114,12 @@ public class DefaultFalkorDBPersistentProperty extends AnnotationBasedPersistent
 		return null;
 	}
 
+	/**
+	 * Creates an association for this property.
+	 * @return the association
+	 */
 	@Override
-	protected Association<FalkorDBPersistentProperty> createAssociation() {
+	protected final Association<FalkorDBPersistentProperty> createAssociation() {
 		return new Association<>(this, null);
 	}
 

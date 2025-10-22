@@ -1,18 +1,25 @@
 /*
- * Copyright 2011-2025 the original author or authors.
+ * Copyright (c) 2023-2024 FalkorDB Ltd.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- *      https://www.apache.org/licenses/LICENSE-2.0
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  */
+
 package org.springframework.data.falkordb.repository.query;
 
 import java.util.Arrays;
@@ -33,30 +40,46 @@ import org.springframework.data.repository.query.parser.PartTree;
  */
 public class FalkorDBPartTreeQuery implements RepositoryQuery {
 
+	/**
+	 * The query method.
+	 */
 	private final FalkorDBQueryMethod queryMethod;
 
-	private final FalkorDBOperations falkorDBOperations;
+	/**
+	 * The FalkorDB operations.
+	 */
+	private final FalkorDBOperations operations;
 
+	/**
+	 * The parsed method name tree.
+	 */
 	private final PartTree partTree;
 
+	/**
+	 * The entity information.
+	 */
 	private final DefaultFalkorDBPersistentEntity<?> entity;
 
 	/**
 	 * Creates a new {@link FalkorDBPartTreeQuery}.
-	 * @param queryMethod must not be {@literal null}.
+	 * @param method must not be {@literal null}.
 	 * @param falkorDBOperations must not be {@literal null}.
 	 */
-	public FalkorDBPartTreeQuery(FalkorDBQueryMethod queryMethod, FalkorDBOperations falkorDBOperations) {
-		this.queryMethod = queryMethod;
-		this.falkorDBOperations = falkorDBOperations;
-		this.partTree = new PartTree(queryMethod.getName(),
-				queryMethod.getResultProcessor().getReturnedType().getDomainType());
-		this.entity = queryMethod.getMappingContext()
-			.getRequiredPersistentEntity(queryMethod.getResultProcessor().getReturnedType().getDomainType());
+	public FalkorDBPartTreeQuery(final FalkorDBQueryMethod method, final FalkorDBOperations falkorDBOperations) {
+		this.queryMethod = method;
+		this.operations = falkorDBOperations;
+		this.partTree = new PartTree(method.getName(), method.getResultProcessor().getReturnedType().getDomainType());
+		this.entity = method.getMappingContext()
+			.getRequiredPersistentEntity(method.getResultProcessor().getReturnedType().getDomainType());
 	}
 
+	/**
+	 * Executes the derived query.
+	 * @param parameters the method parameters
+	 * @return the query result
+	 */
 	@Override
-	public Object execute(Object[] parameters) {
+	public final Object execute(final Object[] parameters) {
 		ParametersParameterAccessor accessor = new ParametersParameterAccessor(this.queryMethod.getParameters(),
 				parameters);
 
@@ -75,35 +98,37 @@ public class FalkorDBPartTreeQuery implements RepositoryQuery {
 
 		if (this.partTree.isDelete()) {
 			// Handle delete queries
-			this.falkorDBOperations.query(cypherQuery.getQuery(), cypherQuery.getParameters(), domainType);
+			this.operations.query(cypherQuery.getQuery(), cypherQuery.getParameters(), domainType);
 			return null;
 		}
 		else if (this.partTree.isCountProjection()) {
 			// Handle count queries - modify query to return count
 			String countQuery = cypherQuery.getQuery().replace("RETURN n", "RETURN count(n) as count");
-			return this.falkorDBOperations.queryForObject(countQuery, cypherQuery.getParameters(), Long.class)
-				.orElse(0L);
+			return this.operations.queryForObject(countQuery, cypherQuery.getParameters(), Long.class).orElse(0L);
 		}
 		else if (this.partTree.isExistsProjection()) {
 			// Handle exists queries - modify query to return boolean
 			String existsQuery = cypherQuery.getQuery().replace("RETURN n", "RETURN count(n) > 0 as exists");
-			return this.falkorDBOperations.queryForObject(existsQuery, cypherQuery.getParameters(), Boolean.class)
+			return this.operations.queryForObject(existsQuery, cypherQuery.getParameters(), Boolean.class)
 				.orElse(false);
 		}
 		else if (this.queryMethod.isCollectionQuery()) {
 			// Handle collection returns (findBy...)
-			return this.falkorDBOperations.query(cypherQuery.getQuery(), cypherQuery.getParameters(), domainType);
+			return this.operations.query(cypherQuery.getQuery(), cypherQuery.getParameters(), domainType);
 		}
 		else {
 			// Handle single entity returns (findOneBy...)
-			return this.falkorDBOperations
-				.queryForObject(cypherQuery.getQuery(), cypherQuery.getParameters(), domainType)
+			return this.operations.queryForObject(cypherQuery.getQuery(), cypherQuery.getParameters(), domainType)
 				.orElse(null);
 		}
 	}
 
+	/**
+	 * Returns the query method.
+	 * @return the query method
+	 */
 	@Override
-	public FalkorDBQueryMethod getQueryMethod() {
+	public final FalkorDBQueryMethod getQueryMethod() {
 		return this.queryMethod;
 	}
 

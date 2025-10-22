@@ -1,18 +1,25 @@
 /*
- * Copyright 2011-2025 the original author or authors.
+ * Copyright (c) 2023-2024 FalkorDB Ltd.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- *      https://www.apache.org/licenses/LICENSE-2.0
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  */
+
 package org.springframework.data.falkordb.repository.query;
 
 import java.util.HashMap;
@@ -34,22 +41,28 @@ import org.springframework.data.repository.query.ReturnedType;
  */
 class StringBasedFalkorDBQuery implements RepositoryQuery {
 
+	/**
+	 * The query method.
+	 */
 	private final FalkorDBQueryMethod queryMethod;
 
+	/**
+	 * The FalkorDB operations.
+	 */
 	private final FalkorDBOperations operations;
 
 	/**
 	 * Creates a new {@link StringBasedFalkorDBQuery}.
-	 * @param queryMethod must not be {@literal null}.
-	 * @param operations must not be {@literal null}.
+	 * @param method must not be {@literal null}.
+	 * @param falkorDBOperations must not be {@literal null}.
 	 */
-	StringBasedFalkorDBQuery(FalkorDBQueryMethod queryMethod, FalkorDBOperations operations) {
-		this.queryMethod = queryMethod;
-		this.operations = operations;
+	StringBasedFalkorDBQuery(final FalkorDBQueryMethod method, final FalkorDBOperations falkorDBOperations) {
+		this.queryMethod = method;
+		this.operations = falkorDBOperations;
 	}
 
 	@Override
-	public Object execute(Object[] parameters) {
+	public Object execute(final Object[] parameters) {
 
 		String query = queryMethod.getAnnotatedQuery();
 		if (query == null) {
@@ -58,7 +71,8 @@ class StringBasedFalkorDBQuery implements RepositoryQuery {
 
 		Map<String, Object> parameterMap = createParameterMap(parameters);
 
-		// Create a simple parameter accessor - for now we'll handle this differently
+		// Create a simple parameter accessor - for now we'll handle this
+		// differently
 		// ResultProcessor processor =
 		// queryMethod.getResultProcessor().withDynamicProjection(parameters);
 		ResultProcessor processor = queryMethod.getResultProcessor();
@@ -72,7 +86,8 @@ class StringBasedFalkorDBQuery implements RepositoryQuery {
 		}
 
 		if (queryMethod.isExistsQuery()) {
-			// For exists queries, execute the query and return the boolean result
+			// For exists queries, execute the query and return the boolean
+			// result
 			List<Boolean> results = operations.query(query, parameterMap, Boolean.class);
 			Boolean exists = results.isEmpty() ? false : results.get(0);
 			return processor.processResult(exists);
@@ -96,7 +111,7 @@ class StringBasedFalkorDBQuery implements RepositoryQuery {
 	 * @param parameters the method arguments
 	 * @return the parameter map
 	 */
-	private Map<String, Object> createParameterMap(Object[] parameters) {
+	private Map<String, Object> createParameterMap(final Object[] parameters) {
 		Map<String, Object> parameterMap = new HashMap<>();
 
 		// Add indexed parameters ($0, $1, ...)

@@ -1,18 +1,25 @@
 /*
- * Copyright 2011-2025 the original author or authors.
+ * Copyright (c) 2023-2024 FalkorDB Ltd.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- *      https://www.apache.org/licenses/LICENSE-2.0
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  */
+
 package org.springframework.data.falkordb.repository.query;
 
 import java.lang.reflect.Method;
@@ -21,7 +28,6 @@ import org.springframework.data.falkordb.core.mapping.FalkorDBMappingContext;
 import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.query.QueryMethod;
-import org.springframework.lang.Nullable;
 import org.springframework.util.StringUtils;
 
 /**
@@ -32,22 +38,28 @@ import org.springframework.util.StringUtils;
  */
 public class FalkorDBQueryMethod extends QueryMethod {
 
+	/**
+	 * The FalkorDB mapping context.
+	 */
 	private final FalkorDBMappingContext mappingContext;
 
-	private final Method method;
+	/**
+	 * The repository method.
+	 */
+	private final Method repositoryMethod;
 
 	/**
 	 * Creates a new {@link FalkorDBQueryMethod}.
 	 * @param method must not be {@literal null}.
 	 * @param metadata must not be {@literal null}.
 	 * @param projectionFactory must not be {@literal null}.
-	 * @param mappingContext must not be {@literal null}.
+	 * @param context must not be {@literal null}.
 	 */
-	public FalkorDBQueryMethod(Method method, RepositoryMetadata metadata, ProjectionFactory projectionFactory,
-			FalkorDBMappingContext mappingContext) {
+	public FalkorDBQueryMethod(final Method method, final RepositoryMetadata metadata,
+			final ProjectionFactory projectionFactory, final FalkorDBMappingContext context) {
 		super(method, metadata, projectionFactory);
-		this.mappingContext = mappingContext;
-		this.method = method;
+		this.mappingContext = context;
+		this.repositoryMethod = method;
 	}
 
 	/**
@@ -71,9 +83,8 @@ public class FalkorDBQueryMethod extends QueryMethod {
 	 * if neither the annotation found nor the attribute was specified.
 	 * @return the query string or {@literal null}.
 	 */
-	@Nullable
 	public String getAnnotatedQuery() {
-		Query query = this.method.getAnnotation(Query.class);
+		Query query = this.repositoryMethod.getAnnotation(Query.class);
 		if (query == null) {
 			return null;
 		}
@@ -91,7 +102,7 @@ public class FalkorDBQueryMethod extends QueryMethod {
 	 * @return {@literal true} if the query is marked as count query.
 	 */
 	public boolean isCountQuery() {
-		Query query = this.method.getAnnotation(Query.class);
+		Query query = this.repositoryMethod.getAnnotation(Query.class);
 		return query != null && query.count();
 	}
 
@@ -100,7 +111,7 @@ public class FalkorDBQueryMethod extends QueryMethod {
 	 * @return {@literal true} if the query is marked as exists query.
 	 */
 	public boolean isExistsQuery() {
-		Query query = this.method.getAnnotation(Query.class);
+		Query query = this.repositoryMethod.getAnnotation(Query.class);
 		return query != null && query.exists();
 	}
 
@@ -109,7 +120,7 @@ public class FalkorDBQueryMethod extends QueryMethod {
 	 * @return {@literal true} if the query is marked as write operation.
 	 */
 	public boolean isWriteQuery() {
-		Query query = this.method.getAnnotation(Query.class);
+		Query query = this.repositoryMethod.getAnnotation(Query.class);
 		return query != null && query.write();
 	}
 

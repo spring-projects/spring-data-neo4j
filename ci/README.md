@@ -71,7 +71,7 @@ JENKINS_USER_NAME=github-actions PROFILE=none ./test.sh
 **Environment Variables:**
 - `JENKINS_USER_NAME` - User name for Maven operations
 - `PROFILE` - Maven profile to activate (default: none)
-- `SDN_FORCE_REUSE_OF_CONTAINERS` - Reuse testcontainers (default: true)
+- `SDF_FORCE_REUSE_OF_CONTAINERS` - Reuse testcontainers (default: true)
 - `SDF_FALKORDB_VERSION` - FalkorDB version to test against (default: latest)
 
 ### `clean.sh`

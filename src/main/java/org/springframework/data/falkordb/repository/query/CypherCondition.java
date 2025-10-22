@@ -1,17 +1,23 @@
 /*
- * Copyright 2011-2025 the original author or authors.
+ * Copyright (c) 2023-2024 FalkorDB Ltd.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- *      https://www.apache.org/licenses/LICENSE-2.0
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  */
 
 package org.springframework.data.falkordb.repository.query;
@@ -30,12 +36,27 @@ import org.springframework.data.repository.query.parser.Part;
  */
 class CypherCondition {
 
+	/**
+	 * The cypher fragment for this condition.
+	 */
 	private final String fragment;
 
+	/**
+	 * The parameters for this condition.
+	 */
 	private final Map<String, Object> parameters;
 
+	/**
+	 * Parameter counter for unique parameter names.
+	 */
 	private static int paramCounter = 0;
 
+	/**
+	 * Creates a new condition from a query part.
+	 * @param part the query part
+	 * @param value the parameter value
+	 * @param entity the entity information
+	 */
 	CypherCondition(final Part part, final Object value, final DefaultFalkorDBPersistentEntity<?> entity) {
 		this.parameters = new HashMap<>();
 		String paramName = "param" + (++paramCounter);
@@ -45,11 +66,23 @@ class CypherCondition {
 		this.parameters.put(paramName, value);
 	}
 
-	private CypherCondition(final String fragment, final Map<String, Object> parameters) {
-		this.fragment = fragment;
-		this.parameters = parameters;
+	/**
+	 * Creates a condition with explicit fragment and parameters.
+	 * @param conditionFragment the cypher fragment
+	 * @param conditionParams the parameters
+	 */
+	private CypherCondition(final String conditionFragment, final Map<String, Object> conditionParams) {
+		this.fragment = conditionFragment;
+		this.parameters = conditionParams;
 	}
 
+	/**
+	 * Builds a cypher condition from a query part.
+	 * @param part the query part
+	 * @param propertyName the property name
+	 * @param paramName the parameter name
+	 * @return the cypher condition fragment
+	 */
 	private String buildCondition(final Part part, final String propertyName, final String paramName) {
 		switch (part.getType()) {
 			case SIMPLE_PROPERTY:
@@ -82,6 +115,11 @@ class CypherCondition {
 		}
 	}
 
+	/**
+	 * Combines this condition with another using AND logic.
+	 * @param other the other condition
+	 * @return the combined condition
+	 */
 	CypherCondition and(final CypherCondition other) {
 		Map<String, Object> combinedParams = new HashMap<>(this.parameters);
 		combinedParams.putAll(other.parameters);
@@ -89,6 +127,11 @@ class CypherCondition {
 		return new CypherCondition(combinedFragment, combinedParams);
 	}
 
+	/**
+	 * Combines this condition with another using OR logic.
+	 * @param other the other condition
+	 * @return the combined condition
+	 */
 	CypherCondition or(final CypherCondition other) {
 		Map<String, Object> combinedParams = new HashMap<>(this.parameters);
 		combinedParams.putAll(other.parameters);

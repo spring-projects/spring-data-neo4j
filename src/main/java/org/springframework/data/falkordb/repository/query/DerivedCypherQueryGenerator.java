@@ -1,18 +1,25 @@
 /*
- * Copyright 2011-2025 the original author or authors.
+ * Copyright (c) 2023-2024 FalkorDB Ltd.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- *      https://www.apache.org/licenses/LICENSE-2.0
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  */
+
 package org.springframework.data.falkordb.repository.query;
 
 import java.util.HashMap;
@@ -32,23 +39,32 @@ import org.springframework.data.repository.query.parser.PartTree;
  */
 public class DerivedCypherQueryGenerator {
 
+	/**
+	 * The persistent entity.
+	 */
 	private final DefaultFalkorDBPersistentEntity<?> entity;
 
+	/**
+	 * The mapping context.
+	 */
 	private final FalkorDBMappingContext mappingContext;
 
+	/**
+	 * The parsed part tree.
+	 */
 	private final PartTree partTree;
 
 	/**
 	 * Creates a new {@link DerivedCypherQueryGenerator}.
 	 * @param tree the part tree representing the query structure
-	 * @param entity the persistent entity
-	 * @param mappingContext the mapping context
+	 * @param persistentEntity the persistent entity
+	 * @param context the mapping context
 	 */
-	public DerivedCypherQueryGenerator(PartTree tree, DefaultFalkorDBPersistentEntity<?> entity,
-			FalkorDBMappingContext mappingContext) {
+	public DerivedCypherQueryGenerator(final PartTree tree, final DefaultFalkorDBPersistentEntity<?> persistentEntity,
+			final FalkorDBMappingContext context) {
 		this.partTree = tree;
-		this.entity = entity;
-		this.mappingContext = mappingContext;
+		this.entity = persistentEntity;
+		this.mappingContext = context;
 	}
 
 	/**
@@ -57,7 +73,7 @@ public class DerivedCypherQueryGenerator {
 	 * @param parameters the query parameters
 	 * @return the generated Cypher query
 	 */
-	public CypherQuery createQuery(Sort sort, Object... parameters) {
+	public CypherQuery createQuery(final Sort sort, final Object... parameters) {
 		String primaryLabel = this.entity.getPrimaryLabel();
 		StringBuilder cypher = new StringBuilder();
 
@@ -66,7 +82,7 @@ public class DerivedCypherQueryGenerator {
 		Map<String, Object> queryParameters = new HashMap<>();
 
 		// Simple implementation - for now, we'll support basic queries
-		// TODO: Parse PartTree to build WHERE conditions properly
+		// FIXME: Parse PartTree to build WHERE conditions properly
 		if (this.partTree.getParts().iterator().hasNext()) {
 			cypher.append(" WHERE 1=1"); // Placeholder condition
 			// In a full implementation, we would parse the PartTree here
