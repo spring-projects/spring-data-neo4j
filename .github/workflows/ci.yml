@@ -60,10 +60,10 @@ jobs:
         MAVEN_OPTS: -Xmx1024m
         
     - name: Run Twitter integration tests specifically
-      run: ./mvnw test -Dtest=FalkorDBTwitterIntegrationTests -Dcheckstyle.skip=true
+      run: ./mvnw test -Dtest=FalkorDBTwitterIntegrationTests -Dcheckstyle.skip=true -Dlicense.skip=true
       
     - name: Run all integration tests
-      run: ./mvnw test -Dtest="*IntegrationTest*" -Dcheckstyle.skip=true
+      run: ./mvnw test -Dtest="*IntegrationTest*" -Dcheckstyle.skip=true -Dlicense.skip=true
       
     - name: Show FalkorDB logs on failure
       if: failure()
