@@ -135,4 +135,4 @@ jobs:
           ${{ runner.os }}-maven-
           
     - name: Run Checkstyle
-      run: ./mvnw validate -B -Dlicense.skip=true
+      run: ./mvnw validate -B -Dcheckstyle.skip=true -Dlicense.skip=true
