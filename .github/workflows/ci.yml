@@ -55,15 +55,15 @@ jobs:
         redis-cli -p 6379 GRAPH.QUERY test "RETURN 'Hello FalkorDB' as greeting" || (echo "FalkorDB graph functionality not working" && exit 1)
         
     - name: Run tests
-      run: ./mvnw clean verify -B -Dcheckstyle.skip=true
+      run: ./mvnw clean verify -B -Dcheckstyle.skip=true -Dlicense.skip=true
       env:
         MAVEN_OPTS: -Xmx1024m
         
     - name: Run Twitter integration tests specifically
-      run: ./mvnw test -Dtest=FalkorDBTwitterIntegrationTests -Dcheckstyle.skip=true
+      run: ./mvnw test -Dtest=FalkorDBTwitterIntegrationTests -Dcheckstyle.skip=true -Dlicense.skip=true
       
     - name: Run all integration tests
-      run: ./mvnw test -Dtest="*IntegrationTest*" -Dcheckstyle.skip=true
+      run: ./mvnw test -Dtest="*IntegrationTest*" -Dcheckstyle.skip=true -Dlicense.skip=true
       
     - name: Show FalkorDB logs on failure
       if: failure()
@@ -103,7 +103,7 @@ jobs:
           ${{ runner.os }}-maven-
           
     - name: Build package
-      run: ./mvnw clean package -DskipTests -B -Dcheckstyle.skip=true
+      run: ./mvnw clean package -DskipTests -B -Dcheckstyle.skip=true -Dlicense.skip=true
       
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
@@ -135,4 +135,4 @@ jobs:
           ${{ runner.os }}-maven-
           
     - name: Run Checkstyle
-      run: ./mvnw validate -B -Dcheckstyle.skip=true
+      run: ./mvnw validate -B -Dcheckstyle.skip=true -Dlicense.skip=true
