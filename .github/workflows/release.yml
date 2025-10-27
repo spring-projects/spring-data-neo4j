@@ -26,8 +26,8 @@ jobs:
         distribution: 'temurin'
         cache: maven
         server-id: central
-        server-username: CENTRAL_USERNAME
-        server-password: CENTRAL_TOKEN
+        server-username: MAVEN_CENTRAL_USERNAME
+        server-password: MAVEN_CENTRAL_TOKEN
         
     - name: Cache Maven dependencies
       uses: actions/cache@v4
@@ -45,7 +45,8 @@ jobs:
     - name: Get version from tag
       id: get_version
       run: |
-        realversion="${GITHUB_REF/refs\/tags\/v/}"
+        realversion="${GITHUB_REF/refs\/tags\/}"
+        realversion="${realversion//v/}"
         echo "VERSION=$realversion" >> $GITHUB_OUTPUT
         
     - name: Update version in POM
@@ -56,8 +57,8 @@ jobs:
       if: github.event_name == 'release'  
       uses: crazy-max/ghaction-import-gpg@v6
       with:
-        gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
-        passphrase: ${{ secrets.GPG_PASSPHRASE }}
+        gpg_private_key: ${{ secrets.OSSH_GPG_SECRET_KEY }}
+        passphrase: ${{ secrets.OSSH_GPG_SECRET_KEY_PASSWORD }}
         
     - name: Start FalkorDB
       run: |
@@ -79,9 +80,9 @@ jobs:
           --batch-mode \
           clean deploy -P release
       env:
-        CENTRAL_USERNAME: ${{ secrets.CENTRAL_USERNAME }}
-        CENTRAL_TOKEN: ${{ secrets.CENTRAL_TOKEN }}
-        MAVEN_GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+        MAVEN_CENTRAL_USERNAME: ${{ secrets.CENTRAL_USERNAME }}
+        MAVEN_CENTRAL_TOKEN: ${{ secrets.CENTRAL_TOKEN }}
+        MAVEN_GPG_PASSPHRASE: ${{ secrets.OSSH_GPG_SECRET_KEY_PASSWORD }}
         
     - name: Build artifacts for workflow dispatch
       if: github.event_name == 'workflow_dispatch'

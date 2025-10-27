@@ -656,9 +656,10 @@ public class DefaultFalkorDBEntityConverter implements FalkorDBEntityConverter {
 		});
 
 		if (nodeId != null) {
-			// Update the entity's ID property if it exists and is writable
+			// Update the entity's ID property only if it's an internal FalkorDB ID
+			// Never overwrite external @Id properties with internal node IDs
 			FalkorDBPersistentProperty idProperty = persistentEntity.getIdProperty();
-			if (idProperty != null && !idProperty.isImmutable()) {
+			if (idProperty != null && !idProperty.isImmutable() && idProperty.isInternalIdProperty()) {
 				accessor.setProperty(idProperty, nodeId);
 			}
 

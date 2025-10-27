@@ -130,8 +130,9 @@ public class DerivedCypherQueryGenerator {
 			cypher.append(" RETURN n");
 		}
 
-		// Add ORDER BY clause
-		if (sort.isSorted() && !this.partTree.isDelete()) {
+		// Add ORDER BY clause (only for regular SELECT queries, not for count/exists/delete)
+		if (sort.isSorted() && !this.partTree.isDelete() && !this.partTree.isCountProjection()
+				&& !this.partTree.isExistsProjection()) {
 			cypher.append(" ORDER BY ");
 			boolean first = true;
 			for (Sort.Order order : sort) {
@@ -168,6 +169,13 @@ public class DerivedCypherQueryGenerator {
 
 		String property = part.getProperty().toDotPath();
 		String paramName = "param" + parameterIndex.getAndIncrement();
+		int currentParamIndex = parameterIndex.get() - 1;
+
+		// Validate parameter index bounds
+		if (currentParamIndex >= parameters.length) {
+			throw new IllegalArgumentException("Parameter index " + currentParamIndex
+					+ " out of bounds for parameters array of length " + parameters.length);
+		}
 
 		switch (part.getType()) {
 			case SIMPLE_PROPERTY:
@@ -196,26 +204,36 @@ public class DerivedCypherQueryGenerator {
 				break;
 			case LIKE:
 				cypher.append("n.").append(property).append(" =~ $").append(paramName);
-				// Convert SQL LIKE to regex pattern
+				// Convert SQL LIKE to regex pattern with proper escaping
 				String likeValue = String.valueOf(parameters[parameterIndex.get() - 1]);
-				String regexPattern = "(?i)" + likeValue.replace("%", ".*").replace("_", ".");
+				// Split by wildcards, escape each part, then reassemble
+				String regexPattern = likeValue.replace("%", "\u0000").replace("_", "\u0001");
+				regexPattern = java.util.regex.Pattern.quote(regexPattern);
+				regexPattern = regexPattern.replace("\\Q\u0000\\E", ".*").replace("\\Q\u0001\\E", ".");
+				regexPattern = "(?i)" + regexPattern;
 				queryParameters.put(paramName, regexPattern);
 				break;
 			case STARTING_WITH:
 				cypher.append("n.").append(property).append(" =~ $").append(paramName);
-				queryParameters.put(paramName, "(?i)" + parameters[parameterIndex.get() - 1] + ".*");
+				String startValue = String.valueOf(parameters[parameterIndex.get() - 1]);
+				queryParameters.put(paramName, "(?i)" + java.util.regex.Pattern.quote(startValue) + ".*");
 				break;
 			case ENDING_WITH:
 				cypher.append("n.").append(property).append(" =~ $").append(paramName);
-				queryParameters.put(paramName, "(?i).*" + parameters[parameterIndex.get() - 1]);
+				String endValue = String.valueOf(parameters[parameterIndex.get() - 1]);
+				queryParameters.put(paramName, "(?i).*" + java.util.regex.Pattern.quote(endValue));
 				break;
 			case CONTAINING:
 				cypher.append("n.").append(property).append(" =~ $").append(paramName);
-				queryParameters.put(paramName, "(?i).*" + parameters[parameterIndex.get() - 1] + ".*");
+				String containValue = String.valueOf(parameters[parameterIndex.get() - 1]);
+				queryParameters.put(paramName,
+						"(?i).*" + java.util.regex.Pattern.quote(containValue) + ".*");
 				break;
 			case NOT_CONTAINING:
 				cypher.append("NOT n.").append(property).append(" =~ $").append(paramName);
-				queryParameters.put(paramName, "(?i).*" + parameters[parameterIndex.get() - 1] + ".*");
+				String notContainValue = String.valueOf(parameters[parameterIndex.get() - 1]);
+				queryParameters.put(paramName,
+						"(?i).*" + java.util.regex.Pattern.quote(notContainValue) + ".*");
 				break;
 			case IS_NULL:
 				cypher.append("n.").append(property).append(" IS NULL");
