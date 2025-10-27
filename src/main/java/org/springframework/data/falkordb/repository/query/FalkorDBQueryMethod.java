@@ -124,4 +124,12 @@ public class FalkorDBQueryMethod extends QueryMethod {
 		return query != null && query.write();
 	}
 
+	/**
+	 * Returns the repository method.
+	 * @return the method
+	 */
+	public Method getMethod() {
+		return this.repositoryMethod;
+	}
+
 }

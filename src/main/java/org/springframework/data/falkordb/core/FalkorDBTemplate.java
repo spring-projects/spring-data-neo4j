@@ -345,6 +345,24 @@ public class FalkorDBTemplate implements FalkorDBOperations {
 		});
 	}
 
+	/**
+	 * Returns the {@link FalkorDBEntityConverter} used by this template.
+	 *
+	 * @return the entity converter
+	 */
+	public FalkorDBEntityConverter getConverter() {
+		return this.entityConverter;
+	}
+
+	/**
+	 * Returns the {@link FalkorDBMappingContext} used by this template.
+	 *
+	 * @return the mapping context
+	 */
+	public FalkorDBMappingContext getMappingContext() {
+		return this.mappingContext;
+	}
+
 	private String getPrimaryLabel(DefaultFalkorDBPersistentEntity<?> persistentEntity) {
 		// Get the primary label from the @Node annotation
 		Node nodeAnnotation = persistentEntity.getType().getAnnotation(Node.class);
