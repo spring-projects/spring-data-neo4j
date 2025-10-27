@@ -25,7 +25,7 @@
 		<version>4.0.0-RC1</version>
 	</parent>
 
-	<groupId>org.springframework.data</groupId>
+	<groupId>com.falkordb</groupId>
 	<artifactId>spring-data-falkordb</artifactId>
 	<version>1.0.0-SNAPSHOT</version>
 
