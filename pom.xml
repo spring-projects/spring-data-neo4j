@@ -22,7 +22,7 @@
 	<parent>
 		<groupId>org.springframework.data.build</groupId>
 		<artifactId>spring-data-parent</artifactId>
-		<version>4.0.0-SNAPSHOT</version>
+		<version>4.0.0-RC1</version>
 	</parent>
 
 	<groupId>org.springframework.data</groupId>
@@ -115,7 +115,7 @@
 		<skipUnitTests>${skipTests}</skipUnitTests>
 		<sortpom-maven-plugin.version>4.0.0</sortpom-maven-plugin.version>
 		<spring-javaformat.version>0.0.46</spring-javaformat.version>
-		<springdata.commons>4.0.0-SNAPSHOT</springdata.commons>
+		<springdata.commons>4.0.0-RC1</springdata.commons>
 	</properties>
 
 	<dependencyManagement>
@@ -776,18 +776,6 @@
 						<configuration>
 							<skip>true</skip>
 						</configuration>
-					</plugin>
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-source-plugin</artifactId>
-						<executions>
-							<execution>
-								<id>attach-sources</id>
-								<goals>
-									<goal>jar-no-fork</goal>
-								</goals>
-							</execution>
-						</executions>
 					</plugin>
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
