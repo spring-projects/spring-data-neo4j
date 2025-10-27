@@ -86,8 +86,7 @@ public class DefaultFalkorDBEntityConverter implements FalkorDBEntityConverter {
 	 * relationship loading.
 	 * @param mappingContext must not be {@literal null}.
 	 * @param entityInstantiators must not be {@literal null}.
-	 * @param falkorDBClient the client for executing relationship queries, may be
-	 * {@literal null}.
+	 * @param client the client for executing relationship queries, may be {@literal null}.
 	 */
 	public DefaultFalkorDBEntityConverter(final FalkorDBMappingContext mappingContext,
 			final EntityInstantiators entityInstantiators, final FalkorDBClient client) {
