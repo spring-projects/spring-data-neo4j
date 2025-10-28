@@ -47,7 +47,7 @@ import org.neo4j.driver.internal.DriverFactory;
 import org.neo4j.driver.internal.SecuritySettings;
 import org.neo4j.driver.internal.security.SecurityPlan;
 import org.neo4j.driver.internal.security.SecurityPlans;
-import org.testcontainers.containers.Neo4jContainer;
+import org.testcontainers.neo4j.Neo4jContainer;
 import org.testcontainers.utility.TestcontainersConfiguration;
 
 import org.springframework.core.log.LogMessage;
@@ -382,7 +382,7 @@ public class Neo4jExtension implements BeforeAllCallback, BeforeEachCallback {
 		private static final boolean forceReuse = Boolean
 			.parseBoolean(System.getenv(SYS_PROPERTY_FORCE_CONTAINER_REUSE));
 
-		private static final Neo4jContainer<?> neo4jContainer = new Neo4jContainer<>(repository + ":" + imageVersion)
+		private static final Neo4jContainer neo4jContainer = new Neo4jContainer(repository + ":" + imageVersion)
 			.withoutAuthentication()
 			.withEnv("NEO4J_ACCEPT_LICENSE_AGREEMENT",
 					Optional.ofNullable(System.getenv(SYS_PROPERTY_NEO4J_ACCEPT_COMMERCIAL_EDITION)).orElse("no"))

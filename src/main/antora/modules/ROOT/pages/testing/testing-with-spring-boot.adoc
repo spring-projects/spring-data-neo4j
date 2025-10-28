@@ -227,8 +227,8 @@ You need the following dependencies:
 ----
 <dependency>
     <groupId>org.testcontainers</groupId>
-    <artifactId>neo4j</artifactId>
-    <version>1.17.6</version>
+    <artifactId>testcontainers-neo4j</artifactId>
+    <version>${testcontainers.version}</version>
     <scope>test</scope>
 </dependency>
 ----
@@ -251,17 +251,17 @@ import org.springframework.boot.test.autoconfigure.data.neo4j.DataNeo4jTest;
 import org.springframework.data.neo4j.core.Neo4jClient;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
-import org.testcontainers.containers.Neo4jContainer;
+import org.testcontainers.neo4j.Neo4jContainer;
 
 @DataNeo4jTest
 class MovieRepositoryTCTest {
 
-	private static Neo4jContainer<?> neo4jContainer;
+	private static Neo4jContainer neo4jContainer;
 
 	@BeforeAll
 	static void initializeNeo4j() {
 
-		neo4jContainer = new Neo4jContainer<>()
+		neo4jContainer = new Neo4jContainer()
 			.withAdminPassword("somePassword");
 		neo4jContainer.start();
 	}
@@ -322,12 +322,12 @@ If you want to use the properties but cannot use a `@DynamicPropertySource`, you
 @DataNeo4jTest
 class PriorToBoot226Test {
 
-    private static Neo4jContainer<?> neo4jContainer;
+    private static Neo4jContainer neo4jContainer;
 
     @BeforeAll
     static void initializeNeo4j() {
 
-        neo4jContainer = new Neo4jContainer<>()
+        neo4jContainer = new Neo4jContainer()
             .withAdminPassword("somePassword");
         neo4jContainer.start();
     }

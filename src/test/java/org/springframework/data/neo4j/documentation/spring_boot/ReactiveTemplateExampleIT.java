@@ -19,9 +19,9 @@ import java.util.Collections;
 
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.testcontainers.containers.Neo4jContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.neo4j.Neo4jContainer;
 import reactor.test.StepVerifier;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,7 +40,7 @@ import org.springframework.test.context.DynamicPropertySource;
 class ReactiveTemplateExampleIT {
 
 	@Container
-	private static Neo4jContainer<?> neo4jContainer = new Neo4jContainer<>("neo4j:5");
+	private static Neo4jContainer neo4jContainer = new Neo4jContainer("neo4j:5");
 
 	@DynamicPropertySource
 	static void neo4jProperties(DynamicPropertyRegistry registry) {

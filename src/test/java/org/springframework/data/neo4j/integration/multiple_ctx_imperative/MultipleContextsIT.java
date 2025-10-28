@@ -25,9 +25,9 @@ import org.neo4j.driver.Driver;
 import org.neo4j.driver.GraphDatabase;
 import org.neo4j.driver.Logging;
 import org.neo4j.driver.Session;
-import org.testcontainers.containers.Neo4jContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.neo4j.Neo4jContainer;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.neo4j.integration.multiple_ctx_imperative.domain1.Domain1Config;
@@ -54,10 +54,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class MultipleContextsIT {
 
 	@Container
-	private static Neo4jContainer container1 = new Neo4jContainer<>("neo4j:5").withAdminPassword("verysecret1");
+	private static Neo4jContainer container1 = new Neo4jContainer("neo4j:5").withAdminPassword("verysecret1");
 
 	@Container
-	private static Neo4jContainer container2 = new Neo4jContainer<>("neo4j:5").withAdminPassword("verysecret2");
+	private static Neo4jContainer container2 = new Neo4jContainer("neo4j:5").withAdminPassword("verysecret2");
 
 	@DynamicPropertySource
 	static void neo4jSettings(DynamicPropertyRegistry registry) {
