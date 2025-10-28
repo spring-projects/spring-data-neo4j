@@ -24,13 +24,56 @@ Spring Data FalkorDB provides JPA-style object-graph mapping for [FalkorDB](http
 
 ## 📦 Installation
 
-### Maven
+### Spring Boot (Recommended)
 
-Add the following dependencies to your `pom.xml`:
+For Spring Boot 3.x applications, use the Spring Boot Starter for automatic configuration:
+
+#### Maven
 
 ```xml
 <dependency>
-    <groupId>org.springframework.data</groupId>
+    <groupId>com.falkordb</groupId>
+    <artifactId>spring-boot-starter-data-falkordb</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+</dependency>
+```
+
+#### Gradle
+
+```gradle
+dependencies {
+    implementation 'com.falkordb:spring-boot-starter-data-falkordb:1.0.0-SNAPSHOT'
+}
+```
+
+Then configure your connection in `application.properties` or `application.yml`:
+
+```properties
+spring.data.falkordb.uri=falkordb://localhost:6379
+spring.data.falkordb.database=social
+```
+
+Or in `application.yml`:
+
+```yaml
+spring:
+  data:
+    falkordb:
+      uri: falkordb://localhost:6379
+      database: social
+```
+
+With the starter, all beans are auto-configured, and you can start using repositories immediately!
+
+### Standalone Spring (Manual Configuration)
+
+For non-Boot Spring applications, add the core dependencies:
+
+#### Maven
+
+```xml
+<dependency>
+    <groupId>com.falkordb</groupId>
     <artifactId>spring-data-falkordb</artifactId>
     <version>1.0.0-SNAPSHOT</version>
 </dependency>
@@ -42,11 +85,11 @@ Add the following dependencies to your `pom.xml`:
 </dependency>
 ```
 
-### Gradle
+#### Gradle
 
 ```gradle
 dependencies {
-    implementation 'org.springframework.data:spring-data-falkordb:1.0.0-SNAPSHOT'
+    implementation 'com.falkordb:spring-data-falkordb:1.0.0-SNAPSHOT'
     implementation 'com.falkordb:jfalkordb:0.5.1'
 }
 ```
@@ -130,7 +173,23 @@ public interface PersonRepository extends FalkorDBRepository<Person, Long> {
 
 ### 3. Configuration
 
-Configure the FalkorDB connection in your Spring application:
+#### Spring Boot (Auto-Configuration)
+
+With the Spring Boot Starter, no configuration class is needed! Just add your properties and use `@EnableFalkorDBRepositories`:
+
+```java
+@SpringBootApplication
+@EnableFalkorDBRepositories
+public class Application {
+    public static void main(String[] args) {
+        SpringApplication.run(Application.class, args);
+    }
+}
+```
+
+#### Standalone Spring (Manual Configuration)
+
+For non-Boot applications, configure beans manually:
 
 ```java
 @Configuration
@@ -138,15 +197,25 @@ Configure the FalkorDB connection in your Spring application:
 public class FalkorDBConfig {
     
     @Bean
-    public FalkorDBClient falkorDBClient() {
-        Driver driver = FalkorDB.driver("localhost", 6379);
+    public Driver falkorDBDriver() {
+        return new DriverImpl("localhost", 6379);
+    }
+    
+    @Bean
+    public FalkorDBClient falkorDBClient(Driver driver) {
         return new DefaultFalkorDBClient(driver, "social");
     }
     
     @Bean
+    public FalkorDBMappingContext falkorDBMappingContext() {
+        return new DefaultFalkorDBMappingContext();
+    }
+    
+    @Bean
     public FalkorDBTemplate falkorDBTemplate(FalkorDBClient client,
-                                           FalkorDBMappingContext mappingContext,
-                                           FalkorDBEntityConverter converter) {
+                                           FalkorDBMappingContext mappingContext) {
+        DefaultFalkorDBEntityConverter converter = new DefaultFalkorDBEntityConverter(
+            mappingContext, new EntityInstantiators(), client);
         return new FalkorDBTemplate(client, mappingContext, converter);
     }
 }

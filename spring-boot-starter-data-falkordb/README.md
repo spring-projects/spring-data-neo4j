@@ -66,10 +66,11 @@ public interface PersonRepository extends FalkorDBRepository<Person, Long> {
 }
 ```
 
-### 5. Use in Your Application
+### 5. Enable Repositories and Use in Your Application
 
 ```java
 @SpringBootApplication
+@EnableFalkorDBRepositories
 public class MyApplication {
     
     public static void main(String[] args) {
@@ -99,13 +100,8 @@ public class PersonController {
 
 | Property | Description | Default |
 |----------|-------------|---------|
-| `spring.data.falkordb.uri` | FalkorDB server URI | `falkordb://localhost:6379` |
-| `spring.data.falkordb.database` | Database name (required) | - |
-| `spring.data.falkordb.connection-timeout` | Connection timeout in milliseconds | `2000` |
-| `spring.data.falkordb.socket-timeout` | Socket timeout in milliseconds | `2000` |
-| `spring.data.falkordb.username` | Username for authentication | - |
-| `spring.data.falkordb.password` | Password for authentication | - |
-| `spring.data.falkordb.repositories.enabled` | Enable repository auto-configuration | `true` |
+| `spring.data.falkordb.uri` | FalkorDB server URI (format: `falkordb://host:port` or `redis://host:port`) | `falkordb://localhost:6379` |
+| `spring.data.falkordb.database` | Database/graph name **(required)** | - |
 
 ## Health Check
 
@@ -122,26 +118,29 @@ Check health at: `http://localhost:8080/actuator/health`
 
 ## Advanced Usage
 
-### Custom FalkorDBClient
+### Custom Configuration
 
-You can provide your own `FalkorDBClient` bean:
+You can override any auto-configured bean:
 
 ```java
 @Configuration
-public class FalkorDBConfig {
+public class CustomFalkorDBConfig {
     
     @Bean
-    public FalkorDBClient falkorDBClient() {
+    public FalkorDBClient falkorDBClient(Driver driver) {
         // Custom configuration
-        return new MyCustomFalkorDBClient();
+        return new DefaultFalkorDBClient(driver, "my-custom-database");
+    }
+    
+    @Bean
+    public FalkorDBTemplate falkorDBTemplate(FalkorDBClient client,
+                                           FalkorDBMappingContext mappingContext) {
+        // Custom template configuration
+        DefaultFalkorDBEntityConverter converter = new DefaultFalkorDBEntityConverter(
+            mappingContext, new EntityInstantiators(), client);
+        return new FalkorDBTemplate(client, mappingContext, converter);
     }
 }
-```
-
-### Disable Repository Auto-Configuration
-
-```properties
-spring.data.falkordb.repositories.enabled=false
 ```
 
 ## Examples

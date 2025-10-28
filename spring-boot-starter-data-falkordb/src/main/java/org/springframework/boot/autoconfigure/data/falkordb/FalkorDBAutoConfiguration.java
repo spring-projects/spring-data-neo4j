@@ -1,7 +1,7 @@
 package org.springframework.boot.autoconfigure.data.falkordb;
 
 import com.falkordb.Driver;
-import com.falkordb.GraphDatabase;
+import com.falkordb.impl.api.DriverImpl;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -11,6 +11,7 @@ import org.springframework.data.falkordb.core.DefaultFalkorDBClient;
 import org.springframework.data.falkordb.core.FalkorDBClient;
 import org.springframework.data.falkordb.core.FalkorDBTemplate;
 import org.springframework.data.falkordb.core.mapping.DefaultFalkorDBEntityConverter;
+import org.springframework.data.falkordb.core.mapping.DefaultFalkorDBMappingContext;
 import org.springframework.data.falkordb.core.mapping.FalkorDBMappingContext;
 import org.springframework.data.mapping.model.EntityInstantiators;
 
@@ -55,7 +56,7 @@ public class FalkorDBAutoConfiguration {
 			}
 		}
 
-		return GraphDatabase.driver(host, port);
+		return new DriverImpl(host, port);
 	}
 
 	@Bean
@@ -78,14 +79,7 @@ public class FalkorDBAutoConfiguration {
 	@Bean
 	@ConditionalOnMissingBean
 	public FalkorDBMappingContext falkorDBMappingContext() {
-		try {
-			FalkorDBMappingContext context = new FalkorDBMappingContext();
-			context.setInitialEntitySet(java.util.Collections.emptySet());
-			context.initialize();
-			return context;
-		} catch (Exception e) {
-			throw new IllegalStateException("Failed to initialize FalkorDBMappingContext", e);
-		}
+		return new DefaultFalkorDBMappingContext();
 	}
 
 	/**
@@ -99,7 +93,7 @@ public class FalkorDBAutoConfiguration {
 	public FalkorDBTemplate falkorDBTemplate(FalkorDBClient client,
 			FalkorDBMappingContext mappingContext) {
 		DefaultFalkorDBEntityConverter converter = new DefaultFalkorDBEntityConverter(
-				mappingContext, new EntityInstantiators());
-		return new FalkorDBTemplate(client, converter);
+				mappingContext, new EntityInstantiators(), client);
+		return new FalkorDBTemplate(client, mappingContext, converter);
 	}
 }
