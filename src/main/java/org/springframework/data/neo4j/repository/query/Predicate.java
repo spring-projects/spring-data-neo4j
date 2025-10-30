@@ -32,9 +32,9 @@ import org.neo4j.cypherdsl.core.Cypher;
 import org.neo4j.cypherdsl.core.Expression;
 import org.neo4j.cypherdsl.core.StatementBuilder;
 
+import org.springframework.data.core.PropertyPath;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
-import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.neo4j.core.Neo4jPropertyValueTransformers;
 import org.springframework.data.neo4j.core.convert.Neo4jConversionService;
 import org.springframework.data.neo4j.core.mapping.Constants;

@@ -23,6 +23,7 @@ import org.springframework.aot.hint.MemberCategory;
 import org.springframework.aot.hint.RuntimeHints;
 import org.springframework.aot.hint.RuntimeHintsRegistrar;
 import org.springframework.aot.hint.TypeReference;
+import org.springframework.data.core.ReactiveWrappers;
 import org.springframework.data.neo4j.core.mapping.callback.AfterConvertCallback;
 import org.springframework.data.neo4j.core.mapping.callback.BeforeBindCallback;
 import org.springframework.data.neo4j.core.mapping.callback.ReactiveBeforeBindCallback;
@@ -37,7 +38,6 @@ import org.springframework.data.neo4j.repository.query.SimpleReactiveQueryByExam
 import org.springframework.data.neo4j.repository.support.SimpleNeo4jRepository;
 import org.springframework.data.neo4j.repository.support.SimpleReactiveNeo4jRepository;
 import org.springframework.data.querydsl.QuerydslUtils;
-import org.springframework.data.util.ReactiveWrappers;
 
 /**
  * AoT runtime hints registering various types for reflection.

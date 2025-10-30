@@ -25,7 +25,7 @@ import org.jspecify.annotations.Nullable;
 import org.neo4j.cypherdsl.core.Statement;
 
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
-import org.springframework.data.mapping.PropertyPath;
+import org.springframework.data.core.PropertyPath;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentProperty;
 import org.springframework.data.neo4j.repository.NoResultException;
 import org.springframework.data.neo4j.repository.query.QueryFragmentsAndParameters;

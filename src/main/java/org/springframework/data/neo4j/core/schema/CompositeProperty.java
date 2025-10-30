@@ -31,10 +31,10 @@ import org.jspecify.annotations.Nullable;
 import org.neo4j.driver.Value;
 
 import org.springframework.core.annotation.AliasFor;
+import org.springframework.data.core.TypeInformation;
 import org.springframework.data.neo4j.core.convert.ConvertWith;
 import org.springframework.data.neo4j.core.convert.Neo4jConversionService;
 import org.springframework.data.neo4j.core.convert.Neo4jPersistentPropertyToMapConverter;
-import org.springframework.data.util.TypeInformation;
 
 /**
  * This annotation indicates a

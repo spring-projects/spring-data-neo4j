@@ -41,6 +41,7 @@ import org.neo4j.driver.types.TypeSystem;
 
 import org.springframework.core.log.LogAccessor;
 import org.springframework.data.convert.EntityWriter;
+import org.springframework.data.core.TypeInformation;
 import org.springframework.data.domain.KeysetScrollPosition;
 import org.springframework.data.domain.OffsetScrollPosition;
 import org.springframework.data.domain.Range;
@@ -65,7 +66,6 @@ import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.data.repository.query.ResultProcessor;
 import org.springframework.data.repository.query.ReturnedType;
-import org.springframework.data.util.TypeInformation;
 import org.springframework.util.Assert;
 
 /**

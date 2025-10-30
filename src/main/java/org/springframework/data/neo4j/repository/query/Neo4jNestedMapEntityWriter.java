@@ -36,6 +36,7 @@ import org.neo4j.driver.Value;
 import org.neo4j.driver.Values;
 
 import org.springframework.data.convert.EntityWriter;
+import org.springframework.data.core.TypeInformation;
 import org.springframework.data.mapping.MappingException;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
 import org.springframework.data.neo4j.core.convert.Neo4jConversionService;
@@ -50,7 +51,6 @@ import org.springframework.data.neo4j.core.mapping.NestedRelationshipContext;
 import org.springframework.data.neo4j.core.mapping.PropertyHandlerSupport;
 import org.springframework.data.neo4j.core.mapping.RelationshipDescription;
 import org.springframework.data.neo4j.core.schema.TargetNode;
-import org.springframework.data.util.TypeInformation;
 
 /**
  * A specialized version of an {@link EntityWriter} for Neo4j that traverses the entity

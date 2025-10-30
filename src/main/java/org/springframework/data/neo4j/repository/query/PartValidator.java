@@ -33,11 +33,11 @@ import java.util.stream.Collectors;
 
 import org.neo4j.driver.types.Point;
 
+import org.springframework.data.core.TypeInformation;
 import org.springframework.data.mapping.PersistentPropertyPath;
 import org.springframework.data.neo4j.core.mapping.Neo4jMappingContext;
 import org.springframework.data.neo4j.core.mapping.Neo4jPersistentProperty;
 import org.springframework.data.repository.query.parser.Part;
-import org.springframework.data.util.TypeInformation;
 import org.springframework.util.Assert;
 
 /**

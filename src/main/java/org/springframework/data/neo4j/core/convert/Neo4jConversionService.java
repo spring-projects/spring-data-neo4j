@@ -20,7 +20,7 @@ import org.jspecify.annotations.Nullable;
 import org.neo4j.driver.Value;
 
 import org.springframework.dao.TypeMismatchDataAccessException;
-import org.springframework.data.util.TypeInformation;
+import org.springframework.data.core.TypeInformation;
 
 /**
  * This service orchestrates a standard Spring conversion service with

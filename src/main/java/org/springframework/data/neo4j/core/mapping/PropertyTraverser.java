@@ -25,8 +25,8 @@ import java.util.function.BiPredicate;
 import org.apiguardian.api.API;
 import org.jspecify.annotations.Nullable;
 
+import org.springframework.data.core.PropertyPath;
 import org.springframework.data.mapping.Association;
-import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.neo4j.core.schema.TargetNode;
 
 /**

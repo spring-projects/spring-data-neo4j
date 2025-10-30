@@ -29,6 +29,7 @@ import org.neo4j.driver.types.MapAccessor;
 import org.neo4j.driver.types.TypeSystem;
 
 import org.springframework.core.convert.converter.Converter;
+import org.springframework.data.core.TypeInformation;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -51,7 +52,6 @@ import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.data.repository.query.ResultProcessor;
 import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.data.support.PageableExecutionUtils;
-import org.springframework.data.util.TypeInformation;
 import org.springframework.util.Assert;
 
 /**

@@ -31,9 +31,9 @@ import org.neo4j.driver.exceptions.value.Uncoercible;
 import org.springframework.core.convert.ConversionFailedException;
 import org.springframework.core.convert.ConverterNotFoundException;
 import org.springframework.dao.TypeMismatchDataAccessException;
+import org.springframework.data.core.TypeInformation;
 import org.springframework.data.neo4j.core.ReactiveNeo4jClient;
 import org.springframework.data.neo4j.core.convert.Neo4jConversions;
-import org.springframework.data.util.TypeInformation;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;

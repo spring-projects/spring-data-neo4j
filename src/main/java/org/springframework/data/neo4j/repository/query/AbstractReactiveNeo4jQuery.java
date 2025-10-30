@@ -27,6 +27,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import org.springframework.core.convert.converter.Converter;
+import org.springframework.data.core.TypeInformation;
 import org.springframework.data.domain.SearchResult;
 import org.springframework.data.geo.GeoResult;
 import org.springframework.data.neo4j.core.PreparedQuery;
@@ -41,7 +42,6 @@ import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.data.repository.query.ResultProcessor;
 import org.springframework.data.repository.query.ReturnedType;
-import org.springframework.data.util.TypeInformation;
 import org.springframework.util.Assert;
 
 /**

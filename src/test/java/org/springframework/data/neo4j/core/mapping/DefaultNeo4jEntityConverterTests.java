@@ -27,6 +27,7 @@ import org.neo4j.driver.internal.types.InternalTypeSystem;
 import org.neo4j.driver.internal.value.NodeValue;
 import org.neo4j.driver.types.TypeSystem;
 
+import org.springframework.data.core.TypeInformation;
 import org.springframework.data.mapping.callback.EntityCallbacks;
 import org.springframework.data.mapping.model.EntityInstantiators;
 import org.springframework.data.neo4j.core.convert.Neo4jConversions;
@@ -34,7 +35,6 @@ import org.springframework.data.neo4j.core.mapping.callback.EventSupport;
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
-import org.springframework.data.util.TypeInformation;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

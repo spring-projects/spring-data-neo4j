@@ -51,8 +51,9 @@ import org.neo4j.driver.types.Entity;
 import org.neo4j.driver.types.MapAccessor;
 import org.neo4j.driver.types.TypeSystem;
 
+import org.springframework.data.core.PropertyPath;
+import org.springframework.data.core.TypeInformation;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
-import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.neo4j.core.mapping.Constants;
 import org.springframework.data.neo4j.core.mapping.EntityInstanceWithSource;
 import org.springframework.data.neo4j.core.mapping.IdDescription;
@@ -65,7 +66,6 @@ import org.springframework.data.neo4j.core.mapping.PropertyFilter;
 import org.springframework.data.neo4j.core.mapping.PropertyTraverser;
 import org.springframework.data.neo4j.core.mapping.SpringDataCypherDsl;
 import org.springframework.data.neo4j.repository.query.QueryFragments;
-import org.springframework.data.util.TypeInformation;
 import org.springframework.util.Assert;
 
 /**

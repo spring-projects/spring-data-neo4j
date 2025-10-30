@@ -49,6 +49,7 @@ import org.neo4j.driver.types.TypeSystem;
 
 import org.springframework.core.CollectionFactory;
 import org.springframework.core.KotlinDetector;
+import org.springframework.data.core.TypeInformation;
 import org.springframework.data.mapping.AssociationHandler;
 import org.springframework.data.mapping.MappingException;
 import org.springframework.data.mapping.Parameter;
@@ -60,7 +61,6 @@ import org.springframework.data.neo4j.core.convert.Neo4jConversionService;
 import org.springframework.data.neo4j.core.mapping.callback.EventSupport;
 import org.springframework.data.neo4j.core.schema.TargetNode;
 import org.springframework.data.util.ReflectionUtils;
-import org.springframework.data.util.TypeInformation;
 import org.springframework.util.Assert;
 
 /**

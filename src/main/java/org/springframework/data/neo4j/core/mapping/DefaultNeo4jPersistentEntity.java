@@ -39,6 +39,7 @@ import org.jspecify.annotations.Nullable;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.data.annotation.Persistent;
+import org.springframework.data.core.TypeInformation;
 import org.springframework.data.domain.Vector;
 import org.springframework.data.mapping.Association;
 import org.springframework.data.mapping.model.BasicPersistentEntity;
@@ -52,7 +53,6 @@ import org.springframework.data.neo4j.core.schema.RelationshipProperties;
 import org.springframework.data.neo4j.core.schema.TargetNode;
 import org.springframework.data.support.IsNewStrategy;
 import org.springframework.data.util.Lazy;
-import org.springframework.data.util.TypeInformation;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
