@@ -15,23 +15,33 @@
  */
 package org.springframework.data.neo4j.integration.shared.common;
 
+import java.util.List;
+
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
+import org.springframework.data.neo4j.core.schema.Relationship;
+import org.springframework.data.neo4j.core.support.UUIDStringGenerator;
 
 /**
  * @author Gerrit Meier
  */
 @Node
-public class UserDefinedChangeEntityB {
+public class UserDefinedChangeEntityAWithGeneratedId {
 
 	@Id
-	@GeneratedValue
+	@GeneratedValue(generatorClass = UUIDStringGenerator.class)
 	String id;
 
 	public String name;
 
-	public UserDefinedChangeEntityB(String name) {
+	@Relationship("DIRECT")
+	public List<UserDefinedChangeEntityBWithGeneratedId> bs;
+
+	@Relationship("PROPERTY")
+	public List<UserDefinedChangeRelationshipGeneratedIdProperty> relationshipProperties;
+
+	public UserDefinedChangeEntityAWithGeneratedId(String name) {
 		this.name = name;
 	}
 

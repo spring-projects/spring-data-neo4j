@@ -92,6 +92,7 @@ import org.springframework.data.neo4j.core.mapping.RelationshipDescription;
 import org.springframework.data.neo4j.core.mapping.SpringDataCypherDsl;
 import org.springframework.data.neo4j.core.mapping.callback.ReactiveEventSupport;
 import org.springframework.data.neo4j.core.schema.TargetNode;
+import org.springframework.data.neo4j.core.support.NeedsUpdateEvaluator;
 import org.springframework.data.neo4j.core.transaction.ReactiveNeo4jTransactionManager;
 import org.springframework.data.neo4j.repository.query.QueryFragments;
 import org.springframework.data.neo4j.repository.query.QueryFragmentsAndParameters;
@@ -157,6 +158,8 @@ public final class ReactiveNeo4jTemplate
 	private Renderer renderer;
 
 	private Function<Named, FunctionInvocation> elementIdOrIdFunction;
+
+	private final Map<Class, NeedsUpdateEvaluator> needsUpdateEvaluators = new HashMap<>();
 
 	public ReactiveNeo4jTemplate(ReactiveNeo4jClient neo4jClient, Neo4jMappingContext neo4jMappingContext) {
 		this(neo4jClient, neo4jMappingContext, null);
@@ -652,6 +655,19 @@ public final class ReactiveNeo4jTemplate
 				: Objects.requireNonNullElseGet(includedProperties, List::of);
 
 		Neo4jPersistentEntity<?> entityMetaData = this.neo4jMappingContext.getRequiredPersistentEntity(domainClass);
+
+		List<T> entitiesToProcess = entities.stream()
+			.filter(e -> this.neo4jMappingContext.getRequiredPersistentEntity(e.getClass()).isNew(e)
+					|| !this.needsUpdateEvaluators.containsKey(e.getClass())
+					|| this.needsUpdateEvaluators.get(e.getClass()).needsUpdate(e))
+			.collect(Collectors.toList());
+
+		List<T> unprocessedEntities = entities.stream()
+			.filter(e -> !this.neo4jMappingContext.getRequiredPersistentEntity(e.getClass()).isNew(e)
+					&& (this.needsUpdateEvaluators.containsKey(e.getClass())
+							&& !this.needsUpdateEvaluators.get(e.getClass()).needsUpdate(e)))
+			.toList();
+
 		if (heterogeneousCollection || entityMetaData.isUsingInternalIds() || entityMetaData.hasVersionProperty()
 				|| entityMetaData.getDynamicLabelsProperty().isPresent()) {
 			log.debug("Saving entities using single statements.");
@@ -659,11 +675,12 @@ public final class ReactiveNeo4jTemplate
 			NestedRelationshipProcessingStateMachine stateMachine = new NestedRelationshipProcessingStateMachine(
 					this.neo4jMappingContext);
 
-			return Flux.fromIterable(entities)
+			return Flux.fromIterable(entitiesToProcess)
 				.concatMap(e -> this.saveImpl(e,
 						((includedProperties != null && !includedProperties.isEmpty()) || includeProperty != null) ? pps
 								: includedPropertiesByClass.get(e.getClass()),
-						stateMachine));
+						stateMachine))
+				.concatWith(Flux.fromIterable(unprocessedEntities));
 		}
 
 		@SuppressWarnings("unchecked") // We can safely assume here that we have a
@@ -671,12 +688,12 @@ public final class ReactiveNeo4jTemplate
 										// being either T or extending it
 		Function<T, Map<String, Object>> binderFunction = TemplateSupport.createAndApplyPropertyFilter(pps,
 				entityMetaData, this.neo4jMappingContext.getRequiredBinderFunctionFor((Class<T>) domainClass));
-		return (Flux<T>) Flux.deferContextual((ctx) -> Flux.fromIterable(entities)
+		return (Flux<T>) Flux.deferContextual((ctx) -> Flux.fromIterable(entitiesToProcess)
 			// Map all entities into a tuple <Original, OriginalWasNew>
 			.map(e -> Tuples.of(e, entityMetaData.isNew(e)))
 			// Map that tuple into a tuple <<Original, OriginalWasNew>,
 			// PotentiallyModified>
-			.zipWith(Flux.fromIterable(entities).flatMapSequential(this.eventSupport::maybeCallBeforeBind))
+			.zipWith(Flux.fromIterable(entitiesToProcess).flatMapSequential(this.eventSupport::maybeCallBeforeBind))
 			// And for my own sanity, back into a flat Tuple3
 			.map(nested -> Tuples.of(nested.getT1().getT1(), nested.getT1().getT2(), nested.getT2()))
 			.collectList()
@@ -709,7 +726,8 @@ public final class ReactiveNeo4jTemplate
 			}))))
 			.contextWrite(ctx -> ctx
 				.put("stateMachine", new NestedRelationshipProcessingStateMachine(this.neo4jMappingContext, null, null))
-				.put("knownRelIds", new HashSet<>()));
+				.put("knownRelIds", new HashSet<>()))
+			.concatWith(Flux.fromIterable(unprocessedEntities));
 	}
 
 	@Override
@@ -1115,12 +1133,17 @@ public final class ReactiveNeo4jTemplate
 						.getRequiredPersistentEntity(relatedObjectBeforeCallbacksApplied.getClass());
 					boolean isNewEntity = targetEntity.isNew(relatedObjectBeforeCallbacksApplied);
 
+					var related = (relatedValueToStore instanceof MappingSupport.RelationshipPropertiesWithEntityHolder rpweh)
+							? rpweh.getRelatedEntity() : relatedValueToStore;
+
+					var skipUpdateOfEntity = !isNewEntity && this.needsUpdateEvaluators.containsKey(related.getClass())
+							&& !this.needsUpdateEvaluators.get(related.getClass()).needsUpdate(related);
 					return Mono.deferContextual(ctx ->
 
 				(stateMachine.hasProcessedValue(relatedObjectBeforeCallbacksApplied)
 						? Mono.just(stateMachine.getProcessedAs(relatedObjectBeforeCallbacksApplied))
-						: this.eventSupport.maybeCallBeforeBind(relatedObjectBeforeCallbacksApplied))
-
+						: skipUpdateOfEntity ? Mono.just(relatedObjectBeforeCallbacksApplied)
+								: this.eventSupport.maybeCallBeforeBind(relatedObjectBeforeCallbacksApplied))
 					.flatMap(newRelatedObject -> {
 
 						Mono<Tuple2<AtomicReference<Object>, AtomicReference<Entity>>> queryOrSave;
@@ -1134,7 +1157,7 @@ public final class ReactiveNeo4jTemplate
 						}
 						else {
 							Mono<Entity> savedEntity;
-							if (isNewEntity || relationshipDescription.cascadeUpdates()) {
+							if (isNewEntity || (relationshipDescription.cascadeUpdates() && !skipUpdateOfEntity)) {
 								savedEntity = saveRelatedNode(newRelatedObject, targetEntity, includeProperty,
 										currentPropertyPath);
 							}
@@ -1468,6 +1491,9 @@ public final class ReactiveNeo4jTemplate
 			}
 		}
 		setTransactionManager(reactiveTransactionManager);
+		this.needsUpdateEvaluators.putAll(beanFactory.getBeanProvider(NeedsUpdateEvaluator.class)
+			.stream()
+			.collect(Collectors.toMap(e -> e.getEvaluatingClass(), e -> e)));
 	}
 
 	private void setTransactionManager(@Nullable ReactiveTransactionManager reactiveTransactionManager) {

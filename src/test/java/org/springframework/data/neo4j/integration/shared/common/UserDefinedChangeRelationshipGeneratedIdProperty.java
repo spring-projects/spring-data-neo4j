@@ -23,11 +23,12 @@ import org.springframework.data.neo4j.core.schema.TargetNode;
  * @author Gerrit Meier
  */
 @RelationshipProperties
-public class UserDefinedChangeRelationshipPropertyWithBean {
+public class UserDefinedChangeRelationshipGeneratedIdProperty {
 
 	@RelationshipId
 	String id;
 
 	@TargetNode
-	public UserDefinedChangeEntityB target;
+	public UserDefinedChangeEntityBWithGeneratedId target;
+
 }
