@@ -13,22 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.neo4j.integration.shared.common;
-
-import org.springframework.data.neo4j.core.schema.RelationshipId;
-import org.springframework.data.neo4j.core.schema.RelationshipProperties;
-import org.springframework.data.neo4j.core.schema.TargetNode;
+package org.springframework.data.neo4j.core.support;
 
 /**
+ * Interface to implement for a concrete implementation (not an inherited class or
+ * interface). Returns if an entity and its relationships needs to be processed for
+ * updates or not.
+ *
+ * @param <T> type to implement the needs update logic for
  * @author Gerrit Meier
  */
-@RelationshipProperties
-public class UserDefinedChangeRelationshipProperty {
+public interface NeedsUpdateEvaluator<T> {
 
-	@RelationshipId
-	String id;
+	/**
+	 * Report if this entity needs to be considered for an update. This includes possible
+	 * relationships.
+	 * @param instance instance of type `T` to check
+	 * @return true, if it should be processed
+	 */
+	default boolean needsUpdate(T instance) {
+		return true;
+	}
 
-	@TargetNode
-	public UserDefinedChangeEntityB target;
+	Class<T> getEvaluatingClass();
 
 }
