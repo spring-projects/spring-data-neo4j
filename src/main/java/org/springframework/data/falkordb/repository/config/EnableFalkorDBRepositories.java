@@ -131,4 +131,10 @@ public @interface EnableFalkorDBRepositories {
 	 */
 	boolean considerNestedRepositories() default false;
 
+	/**
+	 * Configures the repository factory bean class to be used.
+	 * @return repository factory bean class
+	 */
+	Class<?> repositoryFactoryBeanClass() default org.springframework.data.falkordb.repository.support.FalkorDBRepositoryFactoryBean.class;
+
 }

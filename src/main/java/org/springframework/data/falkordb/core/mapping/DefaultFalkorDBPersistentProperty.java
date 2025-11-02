@@ -23,6 +23,7 @@
 package org.springframework.data.falkordb.core.mapping;
 
 import org.springframework.data.falkordb.core.schema.GeneratedValue;
+import org.springframework.data.falkordb.core.schema.Interned;
 import org.springframework.data.falkordb.core.schema.Property;
 import org.springframework.data.falkordb.core.schema.Relationship;
 import org.springframework.data.mapping.Association;
@@ -112,6 +113,15 @@ public class DefaultFalkorDBPersistentProperty extends AnnotationBasedPersistent
 		}
 
 		return null;
+	}
+
+	/**
+	 * Checks if this property should use FalkorDB's intern() function.
+	 * @return true if this property is marked with @Interned
+	 */
+	@Override
+	public final boolean isInterned() {
+		return isAnnotationPresent(Interned.class);
 	}
 
 	/**

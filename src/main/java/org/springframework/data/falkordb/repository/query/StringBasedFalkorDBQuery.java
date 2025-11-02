@@ -22,6 +22,7 @@
 
 package org.springframework.data.falkordb.repository.query;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -74,39 +75,127 @@ public class StringBasedFalkorDBQuery implements RepositoryQuery {
 
 		Map<String, Object> parameterMap = createParameterMap(parameters);
 
-		// Create a simple parameter accessor - for now we'll handle this
-		// differently
-		// ResultProcessor processor =
-		// queryMethod.getResultProcessor().withDynamicProjection(parameters);
 		ResultProcessor processor = queryMethod.getResultProcessor();
 		ReturnedType returnedType = processor.getReturnedType();
+		Class<?> returnType = returnedType.getReturnedType();
 
 		if (queryMethod.isCountQuery()) {
 			// For count queries, execute the query and return the count
-			List<Long> results = operations.query(query, parameterMap, Long.class);
-			Long count = results.isEmpty() ? 0L : results.get(0);
-			return processor.processResult(count);
+			return processor.processResult(queryForScalar(query, parameterMap, Long.class));
 		}
 
 		if (queryMethod.isExistsQuery()) {
-			// For exists queries, execute the query and return the boolean
-			// result
-			List<Boolean> results = operations.query(query, parameterMap, Boolean.class);
-			Boolean exists = results.isEmpty() ? false : results.get(0);
-			return processor.processResult(exists);
+			// For exists queries, execute the query and return the boolean result
+			return processor.processResult(queryForScalar(query, parameterMap, Boolean.class));
 		}
 
+		// Check if return type is a scalar type or Map
 		if (queryMethod.isCollectionQuery()) {
-			return processor.processResult(operations.query(query, parameterMap, returnedType.getDomainType()));
+			if (isScalarType(returnType) || Map.class.isAssignableFrom(returnType)) {
+				// For scalar or Map collections, query as raw Maps and extract values
+				return processor.processResult(queryForMaps(query, parameterMap));
+			}
+			else {
+				// For entity collections, use normal entity mapping
+				return processor.processResult(operations.query(query, parameterMap, returnedType.getDomainType()));
+			}
 		}
 
 		// Single result query
-		Optional<?> result = operations.queryForObject(query, parameterMap, returnedType.getDomainType());
-		return processor.processResult(result.orElse(null));
+		if (isScalarType(returnType)) {
+			// For scalar types, extract the first column value
+			return processor.processResult(queryForScalar(query, parameterMap, returnType));
+		}
+		else if (Map.class.isAssignableFrom(returnType)) {
+			// For Map types, return as raw map
+			List<Map<String, Object>> maps = queryForMaps(query, parameterMap);
+			return processor.processResult(maps.isEmpty() ? null : maps.get(0));
+		}
+		else {
+			// For entity types, use normal entity mapping
+			Optional<?> result = operations.queryForObject(query, parameterMap, returnedType.getDomainType());
+			return processor.processResult(result.orElse(null));
+		}
 	}
 
 	public FalkorDBQueryMethod getQueryMethod() {
 		return queryMethod;
+	}
+
+	/**
+	 * Checks if the given class is a scalar type (primitive wrapper or String).
+	 */
+	private boolean isScalarType(Class<?> type) {
+		return type.isPrimitive() ||
+				Number.class.isAssignableFrom(type) ||
+				Boolean.class.equals(type) ||
+				String.class.equals(type);
+	}
+
+	/**
+	 * Queries for scalar values (single column result).
+	 */
+	private <T> T queryForScalar(String query, Map<String, Object> parameters, Class<T> targetType) {
+		return operations.query(query, parameters, result -> {
+			for (org.springframework.data.falkordb.core.FalkorDBClient.Record record : result.records()) {
+				// Get the first value from the record
+				if (record.size() > 0) {
+					Object value = record.get(0);
+					return convertValue(value, targetType);
+				}
+			}
+			return null;
+		});
+	}
+
+	/**
+	 * Queries and returns results as raw Maps.
+	 */
+	private List<Map<String, Object>> queryForMaps(String query, Map<String, Object> parameters) {
+		return operations.query(query, parameters, result -> {
+			List<Map<String, Object>> results = new ArrayList<>();
+			for (org.springframework.data.falkordb.core.FalkorDBClient.Record record : result.records()) {
+				Map<String, Object> map = new HashMap<>();
+				for (String key : record.keys()) {
+					map.put(key, record.get(key));
+				}
+				results.add(map);
+			}
+			return results;
+		});
+	}
+
+	/**
+	 * Converts a value to the target type.
+	 */
+	@SuppressWarnings("unchecked")
+	private <T> T convertValue(Object value, Class<T> targetType) {
+		if (value == null) {
+			return null;
+		}
+		
+		if (targetType.isInstance(value)) {
+			return (T) value;
+		}
+		
+		// Handle Number conversions
+		if (value instanceof Number && Number.class.isAssignableFrom(targetType)) {
+			Number num = (Number) value;
+			if (targetType.equals(Long.class) || targetType.equals(long.class)) {
+				return (T) Long.valueOf(num.longValue());
+			}
+			else if (targetType.equals(Integer.class) || targetType.equals(int.class)) {
+				return (T) Integer.valueOf(num.intValue());
+			}
+			else if (targetType.equals(Double.class) || targetType.equals(double.class)) {
+				return (T) Double.valueOf(num.doubleValue());
+			}
+			else if (targetType.equals(Float.class) || targetType.equals(float.class)) {
+				return (T) Float.valueOf(num.floatValue());
+			}
+		}
+		
+		return (T) value;
 	}
 
 	/**
@@ -121,17 +210,16 @@ public class StringBasedFalkorDBQuery implements RepositoryQuery {
 			return parameterMap;
 		}
 
-		// Add indexed parameters ($0, $1, ...)
-		for (int i = 0; i < parameters.length; i++) {
-			parameterMap.put(String.valueOf(i), parameters[i]);
-		}
-
 		// Add named parameters from @Param annotations
 		java.lang.reflect.Parameter[] methodParameters = queryMethod.getMethod().getParameters();
 		for (int i = 0; i < methodParameters.length; i++) {
 			Param paramAnnotation = AnnotationUtils.findAnnotation(methodParameters[i], Param.class);
 			if (paramAnnotation != null && StringUtils.hasText(paramAnnotation.value())) {
 				parameterMap.put(paramAnnotation.value(), parameters[i]);
+			}
+			else {
+				// Fallback to indexed parameters only if no @Param annotation
+				parameterMap.put(String.valueOf(i), parameters[i]);
 			}
 		}
 

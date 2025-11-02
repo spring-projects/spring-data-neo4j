@@ -64,4 +64,11 @@ public interface FalkorDBPersistentProperty extends PersistentProperty<FalkorDBP
 	 */
 	String getRelationshipType();
 
+	/**
+	 * Returns whether this property should use FalkorDB's intern() function for
+	 * low-cardinality string values.
+	 * @return true if this property is marked with @Interned
+	 */
+	boolean isInterned();
+
 }

@@ -225,6 +225,29 @@ private String name;  // Maps to "full_name" property
 private String email;  // Maps to "email" property (default)
 ```
 
+### @Interned
+Marks string properties as low-cardinality, applying FalkorDB's `intern()` function to optimize storage:
+
+```java
+@Interned
+private String status;  // Uses intern() - ideal for limited values like "ACTIVE", "INACTIVE"
+
+@Interned
+private String country;  // Uses intern() - ideal for country codes "US", "UK", "CA"
+
+@Interned
+private String category;  // Uses intern() - ideal for categories like "SPORTS", "NEWS"
+```
+
+The `@Interned` annotation is useful for string properties that have a limited set of possible values (low cardinality). When a property is marked with `@Interned`, FalkorDB's `intern()` function is automatically applied when writing to the database, which keeps only a single copy of frequently repeated string values, optimizing storage and query performance.
+
+**Use cases:**
+- Status codes (ACTIVE, INACTIVE, PENDING)
+- Country/region codes
+- Categories and types
+- Enum-like string values
+- Any string with a limited vocabulary
+
 ### @Relationship
 Maps relationships between entities:
 

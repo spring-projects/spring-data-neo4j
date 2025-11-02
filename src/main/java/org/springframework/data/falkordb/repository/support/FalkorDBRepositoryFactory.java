@@ -92,8 +92,8 @@ public class FalkorDBRepositoryFactory extends RepositoryFactorySupport {
 	@Override
 	protected Optional<QueryLookupStrategy> getQueryLookupStrategy(@Nullable QueryLookupStrategy.Key key,
 			ValueExpressionDelegate valueExpressionDelegate) {
-
-		return Optional.of(new FalkorDBQueryLookupStrategy());
+		// Always return a query lookup strategy to support query methods
+		return Optional.of(new FalkorDBQueryLookupStrategy(falkorDBTemplate, mappingContext));
 	}
 
 	/**
@@ -101,20 +101,27 @@ public class FalkorDBRepositoryFactory extends RepositoryFactorySupport {
 	 */
 	private class FalkorDBQueryLookupStrategy implements QueryLookupStrategy {
 
+		private final FalkorDBTemplate template;
+		private final FalkorDBMappingContext context;
+
+		public FalkorDBQueryLookupStrategy(FalkorDBTemplate template, FalkorDBMappingContext context) {
+			this.template = template;
+			this.context = context;
+		}
+
 		@Override
 		public RepositoryQuery resolveQuery(Method method, RepositoryMetadata metadata, ProjectionFactory factory,
 				NamedQueries namedQueries) {
 
-			FalkorDBQueryMethod queryMethod = new FalkorDBQueryMethod(method, metadata, factory,
-					mappingContext);
+			FalkorDBQueryMethod queryMethod = new FalkorDBQueryMethod(method, metadata, factory, context);
 
 			// Check if the method has an annotated query
 			if (queryMethod.hasAnnotatedQuery()) {
-				return new StringBasedFalkorDBQuery(queryMethod, falkorDBTemplate);
+				return new StringBasedFalkorDBQuery(queryMethod, template);
 			}
 
 			// For derived queries, use DerivedFalkorDBQuery
-			return new DerivedFalkorDBQuery(queryMethod, falkorDBTemplate);
+			return new DerivedFalkorDBQuery(queryMethod, template);
 		}
 
 	}

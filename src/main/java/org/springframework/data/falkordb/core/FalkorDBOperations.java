@@ -151,4 +151,15 @@ public interface FalkorDBOperations {
 	 */
 	<T> Optional<T> queryForObject(String cypher, java.util.Map<String, Object> parameters, Class<T> clazz);
 
+	/**
+	 * Executes a custom Cypher query with a result mapper function.
+	 * @param <T> the type of the result
+	 * @param cypher the Cypher query
+	 * @param parameters the query parameters
+	 * @param resultMapper function to map the query result
+	 * @return the mapped result
+	 */
+	<T> T query(String cypher, java.util.Map<String, Object> parameters,
+				java.util.function.Function<FalkorDBClient.QueryResult, T> resultMapper);
+
 }

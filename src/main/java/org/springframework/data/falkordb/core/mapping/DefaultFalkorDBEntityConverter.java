@@ -188,7 +188,7 @@ public class DefaultFalkorDBEntityConverter implements FalkorDBEntityConverter {
 			Object value = accessor.getProperty(property);
 			if (value != null) {
 				// Convert value to FalkorDB-compatible format
-				Object convertedValue = convertValueForFalkorDB(value);
+				Object convertedValue = convertValueForFalkorDB(value, property);
 				sink.put(property.getGraphPropertyName(), convertedValue);
 			}
 		});
@@ -196,18 +196,44 @@ public class DefaultFalkorDBEntityConverter implements FalkorDBEntityConverter {
 
 	/**
 	 * Convert a value to a format compatible with FalkorDB. This handles special types
-	 * like LocalDateTime that need formatting.
+	 * like LocalDateTime that need formatting and applies intern() for low-cardinality strings.
 	 * @param value the value to convert
+	 * @param property the property metadata (optional, can be null)
 	 * @return the converted value compatible with FalkorDB
 	 */
-	private Object convertValueForFalkorDB(final Object value) {
+	private Object convertValueForFalkorDB(final Object value, final FalkorDBPersistentProperty property) {
 		if (value instanceof LocalDateTime) {
 			// Convert LocalDateTime to ISO string format that FalkorDB
 			// can handle. Using ISO_LOCAL_DATE_TIME format.
 			return ((LocalDateTime) value).format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
 		}
+		
+		// Apply intern() function for low-cardinality string properties
+		if (property != null && property.isInterned() && value instanceof String) {
+			String strValue = (String) value;
+			// Escape backslashes first, then single quotes
+			String escapedValue = strValue.replace("\\", "\\\\").replace("'", "\\'");
+			// Return as a special marker object that will be handled during Cypher generation
+			return new InternedValue(escapedValue);
+		}
+		
 		// Add more type conversions as needed
 		return value;
+	}
+
+	/**
+	 * Marker class to indicate that a value should use FalkorDB's intern() function.
+	 */
+	public static class InternedValue {
+		private final String value;
+
+		public InternedValue(final String value) {
+			this.value = value;
+		}
+
+		public String getValue() {
+			return value;
+		}
 	}
 
 	/**
@@ -311,6 +337,10 @@ public class DefaultFalkorDBEntityConverter implements FalkorDBEntityConverter {
 			}
 			else if (targetType == Byte.class || targetType == byte.class) {
 				return numValue.byteValue();
+			}
+			else if (targetType == String.class) {
+				// Convert number to string (e.g., Long ID to String)
+				return numValue.toString();
 			}
 		}
 
@@ -612,7 +642,7 @@ public class DefaultFalkorDBEntityConverter implements FalkorDBEntityConverter {
 
 			Object value = accessor.getProperty(property);
 			if (value != null) {
-				Object convertedValue = convertValueForFalkorDB(value);
+				Object convertedValue = convertValueForFalkorDB(value, property);
 				properties.put(property.getGraphPropertyName(), convertedValue);
 			}
 		});
@@ -630,24 +660,39 @@ public class DefaultFalkorDBEntityConverter implements FalkorDBEntityConverter {
 			}
 		}
 
-		StringBuilder cypher = new StringBuilder("CREATE (n:");
-		cypher.append(String.join(":", labels));
-		cypher.append(" ");
+	StringBuilder cypher = new StringBuilder("CREATE (n:");
+	cypher.append(String.join(":", labels));
+	cypher.append(" ");
 
-		if (!properties.isEmpty()) {
-			cypher.append("{ ");
-			String propertiesStr = properties.keySet()
-				.stream()
-				.map(key -> key + ": $" + key)
-				.collect(java.util.stream.Collectors.joining(", "));
-			cypher.append(propertiesStr);
-			cypher.append(" }");
+	// Separate regular properties from interned properties
+	Map<String, Object> regularParams = new HashMap<>();
+	List<String> propertyAssignments = new ArrayList<>();
+	
+	for (Map.Entry<String, Object> entry : properties.entrySet()) {
+		String key = entry.getKey();
+		Object value = entry.getValue();
+		
+		if (value instanceof InternedValue) {
+			// For interned values, inline the intern() function call
+			InternedValue internedValue = (InternedValue) value;
+			propertyAssignments.add(key + ": intern('" + internedValue.getValue() + "')");
+		} else {
+			// For regular values, use parameters
+			propertyAssignments.add(key + ": $" + key);
+			regularParams.put(key, value);
 		}
+	}
 
-		cypher.append(") RETURN id(n) as nodeId");
+	if (!propertyAssignments.isEmpty()) {
+		cypher.append("{ ");
+		cypher.append(String.join(", ", propertyAssignments));
+		cypher.append(" }");
+	}
 
-		// Execute save and get the ID
-		Object nodeId = this.falkorDBClient.query(cypher.toString(), properties, result -> {
+	cypher.append(") RETURN id(n) as nodeId");
+
+	// Execute save and get the ID
+	Object nodeId = this.falkorDBClient.query(cypher.toString(), regularParams, result -> {
 			for (FalkorDBClient.Record record : result.records()) {
 				return record.get("nodeId");
 			}
