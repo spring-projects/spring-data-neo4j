@@ -97,7 +97,7 @@ class ReactiveNeo4jClientKotlinInteropIT @Autowired constructor(
                 }.one()
 
         StepVerifier.create(queen)
-                .expectNextMatches { it.name == "Queen" && it.member.size == 4 }
+                .expectNextMatches { it!!.name == "Queen" && it.member.size == 4 }
                 .verifyComplete()
 
         StepVerifier.create(neo4jClient.query("MATCH (n:IDontExists) RETURN id(n)").fetchAs<Long>().one())
