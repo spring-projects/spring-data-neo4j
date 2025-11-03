@@ -566,7 +566,8 @@ public final class ReactiveNeo4jTemplate
 				.one()
 				.map(m -> (Collection<String>) m.get(Constants.NAME_OF_LABELS))
 				.switchIfEmpty(Mono.just(Collections.emptyList()))
-				.zipWith(Mono.just((Collection<String>) propertyAccessor.getProperty(p)))
+				.zipWith(Mono.just(
+						(Collection<String>) Objects.requireNonNullElseGet(propertyAccessor.getProperty(p), List::of)))
 				.map(t -> Tuples.of(entityToBeSaved, new DynamicLabels(entityMetaData, t.getT1(), t.getT2())));
 		}).orElse(Mono.just(Tuples.of(entityToBeSaved, DynamicLabels.EMPTY)));
 	}
