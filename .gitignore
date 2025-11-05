@@ -39,4 +39,5 @@ node
 package-lock.json
 .mvn/.develocity
 .tmp
+.history
 
