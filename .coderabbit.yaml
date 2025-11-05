@@ -1,0 +1,132 @@
+# CodeRabbit AI configuration for Spring Data FalkorDB
+# See: https://docs.coderabbit.ai/guides/configure-coderabbit
+# Schema: https://coderabbit.ai/integrations/schema.v2.json
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+
+# Global settings
+language: en-US
+tone_instructions: "Focus on Spring Data patterns, graph database best practices, and Java code quality. Be concise but thorough."
+early_access: false
+
+# Review settings
+reviews:
+  # Use assertive profile for more detailed feedback
+  profile: assertive
+  
+  # Summary and reporting settings
+  high_level_summary: true
+  high_level_summary_in_walkthrough: true
+  collapse_walkthrough: false
+  review_status: true
+  commit_status: true
+  
+  # Auto review configuration
+  auto_review:
+    enabled: true
+    drafts: false
+  
+  # Pull request enhancements
+  auto_title_instructions: "Use conventional commits: <type>[scope]: <description> - Focus on Spring Data FalkorDB changes"
+  changed_files_summary: true
+  sequence_diagrams: true
+  estimate_code_review_effort: true
+  assess_linked_issues: true
+  suggested_labels: true
+  suggested_reviewers: true
+  
+  # Fun elements (disabled for professional repos)
+  poem: false
+  in_progress_fortune: false
+  
+  # File filtering - include only relevant files
+  path_filters:
+    - "src/**/*.java"
+    - "src/**/*.xml"
+    - "src/**/*.properties"
+    - "src/**/*.yaml"
+    - "src/**/*.yml"
+    - "pom.xml"
+    - "*.md"
+    - "!target/**"
+    - "!**/.mvn/**"
+    - "!**/mvnw*"
+    - "!**/*.class"
+    - "!**/*.jar"
+    - "!**/*.war"
+  
+  # Path-specific instructions for Spring Data FalkorDB
+  path_instructions:
+    - path: "src/main/java/**/repository/**"
+      instructions: "Focus on Spring Data repository patterns, query methods, and FalkorDB-specific annotations"
+    - path: "src/main/java/**/config/**"
+      instructions: "Review Spring configuration, bean definitions, and FalkorDB connection setup"
+    - path: "src/main/java/**/core/**"
+      instructions: "Examine core graph mapping logic, entity relationships, and data conversion"
+    - path: "src/test/java/**"
+      instructions: "Validate test coverage, integration tests with FalkorDB, and proper mocking"
+    - path: "pom.xml"
+      instructions: "Check dependency versions, Spring Data compatibility, and Maven configuration"
+  
+  # Label suggestions for the project
+  labeling_instructions:
+    - label: "enhancement"
+      instructions: "New features or improvements to Spring Data FalkorDB functionality"
+    - label: "bug"
+      instructions: "Fixes for incorrect behavior or errors"
+    - label: "documentation"
+      instructions: "Updates to README, JavaDoc, or other documentation"
+    - label: "dependencies"
+      instructions: "Changes to Maven dependencies or version updates"
+    - label: "spring-data"
+      instructions: "Changes related to Spring Data patterns and abstractions"
+    - label: "falkordb"
+      instructions: "FalkorDB-specific implementations or optimizations"
+    - label: "tests"
+      instructions: "Test additions, improvements, or fixes"
+  
+  # Tools configuration for Java/Spring projects
+  tools:
+    # Java static analysis
+    pmd:
+      enabled: true
+    
+    # Security scanning
+    semgrep:
+      enabled: true
+    
+    # General security scanning
+    gitleaks:
+      enabled: true
+
+# Chat configuration
+chat:
+  auto_reply: true
+  art: false
+
+# Knowledge base configuration
+knowledge_base:
+  opt_out: false
+  
+  # Learn from coding guidelines
+  code_guidelines:
+    enabled: true
+    filePatterns:
+      - "**/CONTRIBUTING.md"
+      - "**/README.md"
+      - "**/SPRING_DATA_FALKORDB_README.md"
+      - "**/.cursorrules"
+
+# Code generation settings
+code_generation:
+  docstrings:
+    language: en-US
+    path_instructions:
+      - path: "src/main/java/**"
+        instructions: "Generate comprehensive JavaDoc with @param, @return, @throws. Include examples for Spring Data repository methods and FalkorDB-specific functionality."
+  
+  unit_tests:
+    path_instructions:
+      - path: "src/main/java/**/repository/**"
+        instructions: "Generate integration tests using @DataFalkorDBTest. Include tests for custom query methods and repository behavior."
+      - path: "src/main/java/**/core/**"
+        instructions: "Generate unit tests with proper mocking. Focus on entity mapping and data conversion logic."
