@@ -1,0 +1,3 @@
+org.springframework.boot.autoconfigure.data.falkordb.FalkorDBAutoConfiguration
+org.springframework.boot.autoconfigure.data.falkordb.FalkorDBRepositoriesAutoConfiguration
+org.springframework.boot.autoconfigure.data.falkordb.FalkorDBHealthContributorAutoConfiguration

@@ -24,9 +24,52 @@ Spring Data FalkorDB provides JPA-style object-graph mapping for [FalkorDB](http
 
 ## 📦 Installation
 
-### Maven
+### Spring Boot (Recommended)
 
-Add the following dependencies to your `pom.xml`:
+For Spring Boot 3.x applications, use the Spring Boot Starter for automatic configuration:
+
+#### Maven
+
+```xml
+<dependency>
+    <groupId>com.falkordb</groupId>
+    <artifactId>spring-boot-starter-data-falkordb</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+</dependency>
+```
+
+#### Gradle
+
+```gradle
+dependencies {
+    implementation 'com.falkordb:spring-boot-starter-data-falkordb:1.0.0-SNAPSHOT'
+}
+```
+
+Then configure your connection in `application.properties` or `application.yml`:
+
+```properties
+spring.data.falkordb.uri=falkordb://localhost:6379
+spring.data.falkordb.database=social
+```
+
+Or in `application.yml`:
+
+```yaml
+spring:
+  data:
+    falkordb:
+      uri: falkordb://localhost:6379
+      database: social
+```
+
+With the starter, all beans are auto-configured, and you can start using repositories immediately!
+
+### Standalone Spring (Manual Configuration)
+
+For non-Boot Spring applications, add the core dependencies:
+
+#### Maven
 
 ```xml
 <dependency>
@@ -42,7 +85,7 @@ Add the following dependencies to your `pom.xml`:
 </dependency>
 ```
 
-### Gradle
+#### Gradle
 
 ```gradle
 dependencies {
@@ -130,7 +173,28 @@ public interface PersonRepository extends FalkorDBRepository<Person, Long> {
 
 ### 3. Configuration
 
-Configure the FalkorDB connection in your Spring application:
+#### Spring Boot (Auto-Configuration)
+
+With the Spring Boot Starter, no configuration class is needed! Just set your properties:
+
+```java
+@SpringBootApplication
+public class Application {
+    public static void main(String[] args) {
+        SpringApplication.run(Application.class, args);
+    }
+}
+```
+
+> **Note:** The `@EnableFalkorDBRepositories` annotation is **optional** when using the Spring Boot Starter.
+> Repositories are automatically enabled by default. You can disable them by setting:
+> ```properties
+> spring.data.falkordb.repositories.enabled=false
+> ```
+
+#### Standalone Spring (Manual Configuration)
+
+For non-Boot applications, configure beans manually:
 
 ```java
 @Configuration
@@ -138,15 +202,25 @@ Configure the FalkorDB connection in your Spring application:
 public class FalkorDBConfig {
     
     @Bean
-    public FalkorDBClient falkorDBClient() {
-        Driver driver = FalkorDB.driver("localhost", 6379);
+    public Driver falkorDBDriver() {
+        return new DriverImpl("localhost", 6379);
+    }
+    
+    @Bean
+    public FalkorDBClient falkorDBClient(Driver driver) {
         return new DefaultFalkorDBClient(driver, "social");
     }
     
     @Bean
+    public FalkorDBMappingContext falkorDBMappingContext() {
+        return new DefaultFalkorDBMappingContext();
+    }
+    
+    @Bean
     public FalkorDBTemplate falkorDBTemplate(FalkorDBClient client,
-                                           FalkorDBMappingContext mappingContext,
-                                           FalkorDBEntityConverter converter) {
+                                           FalkorDBMappingContext mappingContext) {
+        DefaultFalkorDBEntityConverter converter = new DefaultFalkorDBEntityConverter(
+            mappingContext, new EntityInstantiators(), client);
         return new FalkorDBTemplate(client, mappingContext, converter);
     }
 }
@@ -741,6 +815,12 @@ To verify everything is working correctly:
 - ✅ Graph relationship creation via raw Cypher
 - ✅ Query result mapping and conversion
 - ✅ Complex analytics and traversal queries
+- ✅ **Spring Boot Starter** with auto-configuration
+  - ✅ Property-based configuration
+  - ✅ Auto-configured beans (Driver, Client, Template, MappingContext)
+  - ✅ Repository auto-enablement
+  - ✅ Health indicator integration
+  - ✅ Configuration metadata for IDE support
 
 ### 🚧 **In Progress**  
 - 🔄 `@Relationship` annotation automatic relationship persistence
@@ -748,7 +828,6 @@ To verify everything is working correctly:
 - 🔄 Full transaction support integration
 
 ### 📋 **Planned**
-- 🎯 Spring Boot auto-configuration starter
 - 🎯 Reactive programming support (WebFlux)
 - 🎯 Query by Example functionality
 - 🎯 Auditing support (`@CreatedDate`, `@LastModifiedDate`)
@@ -758,12 +837,21 @@ To verify everything is working correctly:
 
 ## 🔧 Advanced Configuration
 
+### Disabling Auto-Configuration
+
+To disable specific auto-configuration:
+
+```properties
+# Disable repository auto-configuration
+spring.data.falkordb.repositories.enabled=false
+```
+
 ### Connection Pool Settings
 
 ```java
 @Bean
 public FalkorDBClient falkorDBClient() {
-    Driver driver = FalkorDB.driver("localhost", 6379);
+    Driver driver = new DriverImpl("localhost", 6379);
     // Configure connection pool if needed
     return new DefaultFalkorDBClient(driver, "myapp");
 }
