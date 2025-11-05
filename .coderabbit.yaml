@@ -38,21 +38,17 @@ reviews:
   poem: false
   in_progress_fortune: false
   
-  # File filtering - include only relevant files
+  # File filtering - review all files except build artifacts
   path_filters:
-    - "src/**/*.java"
-    - "src/**/*.xml"
-    - "src/**/*.properties"
-    - "src/**/*.yaml"
-    - "src/**/*.yml"
-    - "pom.xml"
-    - "*.md"
+    - "**/*"
     - "!target/**"
     - "!**/.mvn/**"
     - "!**/mvnw*"
     - "!**/*.class"
     - "!**/*.jar"
     - "!**/*.war"
+    - "!**/*.log"
+    - "!**/node_modules/**"
   
   # Path-specific instructions for Spring Data FalkorDB
   path_instructions:
@@ -66,6 +62,12 @@ reviews:
       instructions: "Validate test coverage, integration tests with FalkorDB, and proper mocking"
     - path: "pom.xml"
       instructions: "Check dependency versions, Spring Data compatibility, and Maven configuration"
+    - path: ".github/workflows/**"
+      instructions: "Review CI/CD pipeline configurations, GitHub Actions workflows, and build automation"
+    - path: ".sdkmanrc"
+      instructions: "Verify Java/SDK versions are compatible with project requirements"
+    - path: "**/*.md"
+      instructions: "Check documentation clarity, accuracy, and completeness"
   
   # Label suggestions for the project
   labeling_instructions:
