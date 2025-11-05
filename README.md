@@ -1,7 +1,7 @@
 # Spring Data FalkorDB
 
 [![Build & Test](https://github.com/FalkorDB/spring-data-falkordb/actions/workflows/build.yml/badge.svg)](https://github.com/FalkorDB/spring-data-falkordb/actions/workflows/build.yml)
-[![Maven Central](https://img.shields.io/maven-central/v/org.springframework.data/spring-data-falkordb.svg)](https://search.maven.org/artifact/org.springframework.data/spring-data-falkordb)
+[![Maven Central](https://img.shields.io/maven-central/v/com.falkordb/spring-data-falkordb.svg)](https://central.sonatype.com/artifact/com.falkordb/spring-data-falkordb)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 [![Java Version](https://img.shields.io/badge/Java-17+-brightgreen.svg)](https://openjdk.java.net/projects/jdk/17/)
 [![FalkorDB](https://img.shields.io/badge/FalkorDB-Compatible-red.svg)](https://falkordb.com)
@@ -30,9 +30,9 @@ Add the following dependencies to your `pom.xml`:
 
 ```xml
 <dependency>
-    <groupId>org.springframework.data</groupId>
+    <groupId>com.falkordb</groupId>
     <artifactId>spring-data-falkordb</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>8.0.0-RC3</version>
 </dependency>
 
 <dependency>
@@ -46,7 +46,7 @@ Add the following dependencies to your `pom.xml`:
 
 ```gradle
 dependencies {
-    implementation 'org.springframework.data:spring-data-falkordb:1.0.0-SNAPSHOT'
+    implementation 'com.falkordb:spring-data-falkordb:8.0.0-RC3'
     implementation 'com.falkordb:jfalkordb:0.5.1'
 }
 ```

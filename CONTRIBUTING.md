@@ -219,7 +219,7 @@ docker run -d --name falkordb -p 6379:6379 falkordb/falkordb:latest
 
 ## 📄 License
 
-By contributing to Spring Data FalkorDB, you agree that your contributions will be licensed under the Apache License 2.0.
+By contributing to Spring Data FalkorDB, you agree that your contributions will be licensed under the MIT License.
 
 ---
 
