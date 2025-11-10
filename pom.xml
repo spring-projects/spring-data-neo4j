@@ -77,7 +77,7 @@
 		<blockhound.version>1.0.8.RELEASE</blockhound.version>
 		<checkstyle.skip>${skipTests}</checkstyle.skip>
 		<checkstyle.version>10.20.1</checkstyle.version>
-		<cypher-dsl.version>2025.1.0</cypher-dsl.version>
+		<cypher-dsl.version>2025.2.0</cypher-dsl.version>
 		<dist.id>spring-data-neo4j</dist.id>
 		<dist.key>SDNEO4J</dist.key>
 		<flatten-maven-plugin.version>1.7.0</flatten-maven-plugin.version>
