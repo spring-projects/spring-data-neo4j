@@ -72,6 +72,6 @@ jobs:
         uses: dorny/test-reporter@v1
         with:
           name: Maven Tests
-          path: '**/target/surefire-reports/*.xml,**/target/failsafe-reports/*.xml'
+          path: '**/target/surefire-reports/*.xml'
           reporter: java-junit
           fail-on-error: true
