@@ -375,15 +375,23 @@ public class DefaultFalkorDBEntityConverter implements FalkorDBEntityConverter {
 		try {
 			String propertyName = property.getGraphPropertyName();
 
-			// Handle ID property specially - it comes from nodeId or
-			// internal id
+			// Handle ID property specially
 			if (property.isIdProperty()) {
-				// Try to get nodeId first (internal FalkorDB ID)
+				// 1) For user-defined IDs stored as node properties (e.g. @Id String id),
+				//    try to read the value from the node object first – same strategy as
+				//    for regular properties. This is the shape produced by repository
+				//    queries where the node is returned as "n" and the id lives inside it.
+				Object nodeIdValue = extractValueFromNodeObject(record, propertyName);
+				if (nodeIdValue != null) {
+					return nodeIdValue;
+				}
+
+				// 2) Fall back to explicit internal ID aliases when present. This keeps
+				//    support for projections that expose id(n) AS nodeId / id.
 				Object nodeId = record.get("nodeId");
 				if (nodeId != null) {
 					return nodeId;
 				}
-				// Fallback to id field
 				Object id = record.get("id");
 				if (id != null) {
 					return id;
