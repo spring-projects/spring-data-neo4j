@@ -18,12 +18,14 @@ package org.springframework.data.neo4j.integration.issues.gh2728;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 /**
  * @author Michael J. Simons
  */
 @Neo4jIntegrationTest
+@ContextConfiguration
 public class WrongConfigIT extends AbstractTestBase {
 
 	@Configuration
