@@ -490,6 +490,9 @@
 									<include>**</include>
 								</includes>
 								<excludes>
+									<exclude>**/ci/**</exclude>
+									<exclude>**/.mvn/**</exclude>
+									<exclude>**/.github/**</exclude>
 									<exclude>**/*.adoc</exclude>
 									<exclude>**/*.cypher</exclude>
 									<exclude>**/.flattened-pom.xml</exclude>
