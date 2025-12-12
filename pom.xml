@@ -25,7 +25,7 @@
 
 	<groupId>org.springframework.data</groupId>
 	<artifactId>spring-data-neo4j</artifactId>
-	<version>7.5.7</version>
+	<version>7.5.8-SNAPSHOT</version>
 
 	<name>Spring Data Neo4j</name>
 	<description>Next generation Object-Graph-Mapping for Spring Data.</description>
