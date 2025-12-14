@@ -24,9 +24,27 @@ public class Privilege {
 	private Action action;
 
 	/**
-	 * Resource key, e.g. fully qualified class name or class.property.
+	 * Legacy resource string, e.g. fully qualified class name or class.property.
+	 *
+	 * Prefer using {@link #resourceType}, {@link #resourceLabel} and {@link #resourceProperty}
+	 * for new code.
 	 */
 	private String resource;
+
+	/**
+	 * Typed resource type for parity with the Python RBAC model.
+	 */
+	private ResourceType resourceType;
+
+	/**
+	 * Resource label/type (for NODE/RELATIONSHIP) or entity key (for PROPERTY).
+	 */
+	private String resourceLabel;
+
+	/**
+	 * Property name for PROPERTY resources.
+	 */
+	private String resourceProperty;
 
 	/**
 	 * Whether this privilege grants (true) or denies (false) access.
@@ -57,6 +75,30 @@ public class Privilege {
 
 	public void setResource(String resource) {
 		this.resource = resource;
+	}
+
+	public ResourceType getResourceType() {
+		return this.resourceType;
+	}
+
+	public void setResourceType(ResourceType resourceType) {
+		this.resourceType = resourceType;
+	}
+
+	public String getResourceLabel() {
+		return this.resourceLabel;
+	}
+
+	public void setResourceLabel(String resourceLabel) {
+		this.resourceLabel = resourceLabel;
+	}
+
+	public String getResourceProperty() {
+		return this.resourceProperty;
+	}
+
+	public void setResourceProperty(String resourceProperty) {
+		this.resourceProperty = resourceProperty;
 	}
 
 	public boolean isGrant() {

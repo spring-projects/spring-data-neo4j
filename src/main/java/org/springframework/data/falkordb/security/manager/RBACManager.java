@@ -18,8 +18,11 @@ import org.springframework.data.falkordb.security.context.FalkorSecurityContext;
 import org.springframework.data.falkordb.security.context.FalkorSecurityContextHolder;
 import org.springframework.data.falkordb.security.model.Action;
 import org.springframework.data.falkordb.security.model.Privilege;
+import org.springframework.data.falkordb.security.model.PrivilegeResource;
+import org.springframework.data.falkordb.security.model.ResourceType;
 import org.springframework.data.falkordb.security.model.Role;
 import org.springframework.data.falkordb.security.model.User;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -225,7 +228,7 @@ public class RBACManager {
 	}
 
 	// -------------------------------------------------------------------------
-	// Privilege management (MVP)
+	// Privilege management (legacy + typed)
 	// -------------------------------------------------------------------------
 
 	public Privilege grantPrivilege(String roleName, String action, String resource) {
@@ -237,12 +240,7 @@ public class RBACManager {
 		p.setGrant(true);
 		Privilege saved = this.template.save(p);
 
-		Map<String, Object> params = new HashMap<>();
-		params.put("roleName", roleName);
-		params.put("pid", saved.getId());
-		String cypher = "MATCH (r:_Security_Role {name: $roleName}), (p:_Security_Privilege) "
-				+ "WHERE id(p) = $pid MERGE (p)-[:GRANTED_TO]->(r)";
-		this.template.query(cypher, params, FalkorDBClient.QueryResult::records);
+		linkPrivilegeToRole(roleName, saved.getId());
 		return saved;
 	}
 
@@ -255,12 +253,47 @@ public class RBACManager {
 		p.setGrant(false);
 		Privilege saved = this.template.save(p);
 
-		Map<String, Object> params = new HashMap<>();
-		params.put("roleName", roleName);
-		params.put("pid", saved.getId());
-		String cypher = "MATCH (r:_Security_Role {name: $roleName}), (p:_Security_Privilege) "
-				+ "WHERE id(p) = $pid MERGE (p)-[:GRANTED_TO]->(r)";
-		this.template.query(cypher, params, FalkorDBClient.QueryResult::records);
+		linkPrivilegeToRole(roleName, saved.getId());
+		return saved;
+	}
+
+	public Privilege grantPrivilege(String roleName, Action action, ResourceType resourceType, String resourceLabel,
+			@Nullable String resourceProperty) {
+		requireAdmin();
+		Assert.notNull(action, "action must not be null");
+		Assert.notNull(resourceType, "resourceType must not be null");
+		Assert.hasText(resourceLabel, "resourceLabel must not be empty");
+
+		Privilege p = new Privilege();
+		p.setAction(action);
+		p.setGrant(true);
+		p.setResourceType(resourceType);
+		p.setResourceLabel(resourceLabel);
+		p.setResourceProperty(resourceProperty);
+		p.setResource(PrivilegeResource.toResourceString(resourceType, resourceLabel, resourceProperty));
+
+		Privilege saved = this.template.save(p);
+		linkPrivilegeToRole(roleName, saved.getId());
+		return saved;
+	}
+
+	public Privilege denyPrivilege(String roleName, Action action, ResourceType resourceType, String resourceLabel,
+			@Nullable String resourceProperty) {
+		requireAdmin();
+		Assert.notNull(action, "action must not be null");
+		Assert.notNull(resourceType, "resourceType must not be null");
+		Assert.hasText(resourceLabel, "resourceLabel must not be empty");
+
+		Privilege p = new Privilege();
+		p.setAction(action);
+		p.setGrant(false);
+		p.setResourceType(resourceType);
+		p.setResourceLabel(resourceLabel);
+		p.setResourceProperty(resourceProperty);
+		p.setResource(PrivilegeResource.toResourceString(resourceType, resourceLabel, resourceProperty));
+
+		Privilege saved = this.template.save(p);
+		linkPrivilegeToRole(roleName, saved.getId());
 		return saved;
 	}
 
@@ -270,11 +303,33 @@ public class RBACManager {
 		this.template.query(cypher, Collections.singletonMap("pid", privilegeId), FalkorDBClient.QueryResult::records);
 	}
 
+	public void revokePrivilege(String roleName, Action action, ResourceType resourceType, String resourceLabel,
+			@Nullable String resourceProperty) {
+		requireAdmin();
+		String resource = PrivilegeResource.toResourceString(resourceType, resourceLabel, resourceProperty);
+		Map<String, Object> params = new HashMap<>();
+		params.put("roleName", roleName);
+		params.put("action", action.name());
+		params.put("resource", resource);
+		String cypher = "MATCH (r:_Security_Role {name: $roleName})<-[:GRANTED_TO]-(p:_Security_Privilege) "
+				+ "WHERE p.action = $action AND p.resource = $resource DETACH DELETE p";
+		this.template.query(cypher, params, FalkorDBClient.QueryResult::records);
+	}
+
 	public List<Privilege> listPrivileges(String roleName) {
 		requireAdmin();
 		String cypher = "MATCH (r:_Security_Role {name: $roleName})<-[:GRANTED_TO]-(p:_Security_Privilege) RETURN p";
 		return this.template.query(cypher,
 				Collections.singletonMap("roleName", roleName), Privilege.class);
+	}
+
+	private void linkPrivilegeToRole(String roleName, Long privilegeId) {
+		Map<String, Object> params = new HashMap<>();
+		params.put("roleName", roleName);
+		params.put("pid", privilegeId);
+		String cypher = "MATCH (r:_Security_Role {name: $roleName}), (p:_Security_Privilege) "
+				+ "WHERE id(p) = $pid MERGE (p)-[:GRANTED_TO]->(r)";
+		this.template.query(cypher, params, FalkorDBClient.QueryResult::records);
 	}
 
 }

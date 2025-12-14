@@ -84,7 +84,8 @@ public class FalkorSecurityContext {
 	public boolean can(Action action, String resource) {
 		boolean granted = false;
 		for (Privilege privilege : this.privileges) {
-			if (privilege.getAction() == action && resourceMatches(privilege.getResource(), resource)) {
+			String privResource = org.springframework.data.falkordb.security.model.PrivilegeResource.toResourceString(privilege);
+			if (privilege.getAction() == action && resourceMatches(privResource, resource)) {
 				if (privilege.isGrant()) {
 					granted = true;
 				}
