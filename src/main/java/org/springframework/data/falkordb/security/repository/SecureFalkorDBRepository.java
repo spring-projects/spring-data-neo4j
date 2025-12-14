@@ -17,6 +17,8 @@ import java.util.Set;
 import org.apiguardian.api.API;
 
 import org.springframework.data.domain.Example;
+import org.springframework.data.falkordb.security.rls.RowLevelSecurityExpression;
+import org.springframework.util.StringUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -74,9 +76,16 @@ public class SecureFalkorDBRepository<T, ID>
 
 	@Override
 	public Optional<T> findById(ID id) {
-		require(Action.READ);
+		require(Action.READ, id);
 		Optional<T> result = delegate.findById(id);
-		return result.map(this::applyReadPropertyMasking);
+		if (result.isEmpty()) {
+			return result;
+		}
+		T filtered = applyRowLevelFilter(result.get());
+		if (filtered == null) {
+			return Optional.empty();
+		}
+		return Optional.ofNullable(applyReadPropertyMasking(filtered));
 	}
 
 	@Override
@@ -103,27 +112,43 @@ public class SecureFalkorDBRepository<T, ID>
 	@Override
 	public Page<T> findAll(Pageable pageable) {
 		require(Action.READ);
-		Page<T> page = delegate.findAll(pageable);
-		List<T> masked = applyReadPropertyMasking(page.getContent());
-		return new SimplePageImpl<>(masked, pageable, page.getTotalElements());
+		// Delegate pagination currently loads all results anyway (SimpleFalkorDBRepository).
+		// Apply RLS first, then page in-memory to avoid leaking totals.
+		List<T> allSorted = delegate.findAll(pageable.getSort());
+		List<T> maskedAll = applyReadPropertyMasking(allSorted);
+
+		int start = (int) pageable.getOffset();
+		int end = Math.min(start + pageable.getPageSize(), maskedAll.size());
+		List<T> pageContent = start >= maskedAll.size() ? Collections.emptyList() : maskedAll.subList(start, end);
+
+		return new SimplePageImpl<>(pageContent, pageable, maskedAll.size());
 	}
 
 	@Override
 	public long count() {
 		require(Action.READ);
-		return delegate.count();
+		// Do not leak unfiltered counts for RLS protected entities.
+		List<T> all = delegate.findAll();
+		long count = 0;
+		for (T entity : all) {
+			if (applyRowLevelFilter(entity) != null) {
+				count++;
+			}
+		}
+		return count;
 	}
 
 	@Override
 	public boolean existsById(ID id) {
 		require(Action.READ);
-		return delegate.existsById(id);
+		// Do not leak existence of rows outside RLS scope.
+		return findById(id).isPresent();
 	}
 
 	@Override
 	public <S extends T> S save(S entity) {
 		Action action = isNewEntity(entity) ? Action.CREATE : Action.WRITE;
-		require(action);
+		require(action, this.entityInformation.getId(entity));
 		// Apply WRITE property deny rules to both CREATE and WRITE
 		validateWrite(entity);
 		return delegate.save(entity);
@@ -134,7 +159,7 @@ public class SecureFalkorDBRepository<T, ID>
 		List<S> list = new ArrayList<>();
 		for (S entity : entities) {
 			Action action = isNewEntity(entity) ? Action.CREATE : Action.WRITE;
-			require(action);
+			require(action, this.entityInformation.getId(entity));
 			// Apply WRITE property deny rules to both CREATE and WRITE
 			validateWrite(entity);
 			list.add(entity);
@@ -144,13 +169,13 @@ public class SecureFalkorDBRepository<T, ID>
 
 	@Override
 	public void deleteById(ID id) {
-		require(Action.DELETE);
+		require(Action.DELETE, id);
 		delegate.deleteById(id);
 	}
 
 	@Override
 	public void delete(T entity) {
-		require(Action.DELETE);
+		require(Action.DELETE, this.entityInformation.getId(entity));
 		delegate.delete(entity);
 	}
 
@@ -228,6 +253,10 @@ public class SecureFalkorDBRepository<T, ID>
 	}
 
 	private void require(Action action) {
+		require(action, null);
+	}
+
+	private void require(Action action, @org.springframework.lang.Nullable Object resourceId) {
 		FalkorSecurityContext ctx = FalkorSecurityContextHolder.getContext();
 		if (ctx == null) {
 			throw new IllegalStateException("No FalkorSecurityContext set for current thread");
@@ -236,10 +265,10 @@ public class SecureFalkorDBRepository<T, ID>
 		String resourceKey = resourceKey();
 		boolean granted = ctx.can(action, resourceKey);
 		if (!granted) {
-			logDecision(ctx, action, resourceKey, false, "permission check failed");
+			logDecision(ctx, action, resourceKey, resourceId, false, "permission check failed");
 			throw new SecurityException("Access denied for action " + action + " on resource " + resourceKey);
 		}
-		logDecision(ctx, action, resourceKey, true, null);
+		logDecision(ctx, action, resourceKey, resourceId, true, null);
 	}
 
 	private String resourceKey() {
@@ -265,7 +294,7 @@ public class SecureFalkorDBRepository<T, ID>
 			return null;
 		}
 		String filter = this.metadata.getRowFilterExpression();
-		if (filter == null || filter.isEmpty()) {
+		if (!StringUtils.hasText(filter)) {
 			return entity;
 		}
 		FalkorSecurityContext ctx = FalkorSecurityContextHolder.getContext();
@@ -273,18 +302,24 @@ public class SecureFalkorDBRepository<T, ID>
 			// No security context or user: treat as denied for RLS-protected entities
 			return null;
 		}
-		// MVP: support simple pattern "owner == principal.username"
-		if ("owner == principal.username".equals(filter)) {
-			Object ownerValue = getFieldValue(entity, "owner");
-			String username = ctx.getUser().getUsername();
-			if (ownerValue != null && ownerValue.toString().equals(username)) {
-				return entity;
-			}
-			// Not owned by current user
-			logDecision(ctx, Action.READ, resourceKey(), false, "row-level filter denied");
+
+		RowLevelSecurityExpression expression;
+		try {
+			expression = RowLevelSecurityExpression.parse(filter);
+		}
+		catch (IllegalArgumentException ex) {
+			// Fail closed for unknown/invalid RLS expressions.
+			logDecision(ctx, Action.READ, resourceKey(), this.entityInformation.getId(entity), false,
+					"row-level filter parse failed: " + ex.getMessage());
 			return null;
 		}
-		// Unknown filter expression: allow for now
+
+		boolean allowed = expression.matches(entity, ctx);
+		if (!allowed) {
+			logDecision(ctx, Action.READ, resourceKey(), this.entityInformation.getId(entity), false,
+					"row-level filter denied");
+			return null;
+		}
 		return entity;
 	}
 
@@ -396,12 +431,14 @@ public class SecureFalkorDBRepository<T, ID>
 	}
 
 	private void logDecision(FalkorSecurityContext ctx, Action action, String resourceKey,
-			boolean granted, String reason) {
+			@org.springframework.lang.Nullable Object resourceId, boolean granted, String reason) {
 		if (this.auditLogger == null) {
 			return;
 		}
+		Long userId = ctx.getUser() != null ? ctx.getUser().getId() : null;
 		String username = ctx.getUser() != null ? ctx.getUser().getUsername() : null;
-		this.auditLogger.log(username, action.name(), resourceKey, granted, reason);
+		Long rid = resourceId instanceof Number ? ((Number) resourceId).longValue() : null;
+		this.auditLogger.log(userId, username, action.name(), resourceKey, rid, granted, reason, null);
 	}
 
 	private Field findField(Class<?> type, String name) {

@@ -33,6 +33,9 @@ import java.util.stream.Collectors;
 import org.apiguardian.api.API;
 
 import org.springframework.data.domain.Sort;
+import org.springframework.data.falkordb.core.query.FalkorDBQueryRewriter;
+import org.springframework.data.falkordb.core.query.RewrittenQuery;
+import org.springframework.lang.Nullable;
 import org.springframework.data.falkordb.core.mapping.DefaultFalkorDBEntityConverter;
 import org.springframework.data.falkordb.core.mapping.DefaultFalkorDBPersistentEntity;
 import org.springframework.data.falkordb.core.mapping.FalkorDBEntityConverter;
@@ -56,14 +59,22 @@ public class FalkorDBTemplate implements FalkorDBOperations {
 
 	private final FalkorDBEntityConverter entityConverter;
 
+	private final @Nullable FalkorDBQueryRewriter queryRewriter;
+
 	public FalkorDBTemplate(FalkorDBClient falkorDBClient, FalkorDBMappingContext mappingContext,
 			FalkorDBEntityConverter entityConverter) {
+		this(falkorDBClient, mappingContext, entityConverter, null);
+	}
+
+	public FalkorDBTemplate(FalkorDBClient falkorDBClient, FalkorDBMappingContext mappingContext,
+			FalkorDBEntityConverter entityConverter, @Nullable FalkorDBQueryRewriter queryRewriter) {
 		Assert.notNull(falkorDBClient, "FalkorDBClient must not be null");
 		Assert.notNull(mappingContext, "FalkorDBMappingContext must not be null");
 		Assert.notNull(entityConverter, "FalkorDBEntityConverter must not be null");
 
 		this.falkorDBClient = falkorDBClient;
 		this.mappingContext = mappingContext;
+		this.queryRewriter = queryRewriter;
 
 		// If the entity converter is DefaultFalkorDBEntityConverter and doesn't have a
 		// client,
@@ -165,14 +176,9 @@ public class FalkorDBTemplate implements FalkorDBOperations {
 		String primaryLabel = getPrimaryLabel(persistentEntity);
 
 		String cypher = "MATCH (n:" + primaryLabel + ") WHERE id(n) = $id RETURN n";
-		Map<String, Object> parameters = Collections.singletonMap("id", id);
+		Map<String, Object> parameters = Collections.singletonMap("id", normalizeInternalId(id));
 
-		return this.falkorDBClient.query(cypher, parameters, result -> {
-			for (FalkorDBClient.Record record : result.records()) {
-				return Optional.of(this.entityConverter.read(clazz, record));
-			}
-			return Optional.empty();
-		});
+		return queryForObject(cypher, parameters, clazz);
 	}
 
 	@Override
@@ -191,15 +197,10 @@ public class FalkorDBTemplate implements FalkorDBOperations {
 		String primaryLabel = getPrimaryLabel(persistentEntity);
 
 		String cypher = "MATCH (n:" + primaryLabel + ") WHERE id(n) IN $ids RETURN n";
-		Map<String, Object> parameters = Collections.singletonMap("ids", idList);
+		Map<String, Object> parameters = Collections.singletonMap("ids",
+				idList.stream().map(this::normalizeInternalId).collect(Collectors.toList()));
 
-		return this.falkorDBClient.query(cypher, parameters, result -> {
-			List<T> entities = new ArrayList<>();
-			for (FalkorDBClient.Record record : result.records()) {
-				entities.add(this.entityConverter.read(clazz, record));
-			}
-			return entities;
-		});
+		return query(cypher, parameters, clazz);
 	}
 
 	@Override
@@ -211,13 +212,7 @@ public class FalkorDBTemplate implements FalkorDBOperations {
 
 		String cypher = "MATCH (n:" + primaryLabel + ") RETURN n";
 
-		return this.falkorDBClient.query(cypher, Collections.emptyMap(), result -> {
-			List<T> entities = new ArrayList<>();
-			for (FalkorDBClient.Record record : result.records()) {
-				entities.add(this.entityConverter.read(clazz, record));
-			}
-			return entities;
-		});
+		return query(cypher, Collections.emptyMap(), clazz);
 	}
 
 	@Override
@@ -238,13 +233,7 @@ public class FalkorDBTemplate implements FalkorDBOperations {
 			cypher.append(orderBy);
 		}
 
-		return this.falkorDBClient.query(cypher.toString(), Collections.emptyMap(), result -> {
-			List<T> entities = new ArrayList<>();
-			for (FalkorDBClient.Record record : result.records()) {
-				entities.add(this.entityConverter.read(clazz, record));
-			}
-			return entities;
-		});
+		return query(cypher.toString(), Collections.emptyMap(), clazz);
 	}
 
 	@Override
@@ -256,7 +245,9 @@ public class FalkorDBTemplate implements FalkorDBOperations {
 
 		String cypher = "MATCH (n:" + primaryLabel + ") RETURN count(n) as count";
 
-		return this.falkorDBClient.query(cypher, Collections.emptyMap(), result -> {
+		RewrittenQuery rq = maybeRewrite(cypher, Collections.emptyMap(), clazz);
+
+		return this.falkorDBClient.query(rq.getCypher(), rq.getParameters(), result -> {
 			for (FalkorDBClient.Record record : result.records()) {
 				Object count = record.get("count");
 				return (count instanceof Number) ? ((Number) count).longValue() : 0L;
@@ -274,9 +265,11 @@ public class FalkorDBTemplate implements FalkorDBOperations {
 		String primaryLabel = getPrimaryLabel(persistentEntity);
 
 		String cypher = "MATCH (n:" + primaryLabel + ") WHERE id(n) = $id RETURN count(n) > 0 as exists";
-		Map<String, Object> parameters = Collections.singletonMap("id", id);
+		Map<String, Object> parameters = Collections.singletonMap("id", normalizeInternalId(id));
 
-		return this.falkorDBClient.query(cypher, parameters, result -> {
+		RewrittenQuery rq = maybeRewrite(cypher, parameters, clazz);
+
+		return this.falkorDBClient.query(rq.getCypher(), rq.getParameters(), result -> {
 			for (FalkorDBClient.Record record : result.records()) {
 				Object exists = record.get("exists");
 				return (exists instanceof Boolean) ? (Boolean) exists : false;
@@ -294,7 +287,7 @@ public class FalkorDBTemplate implements FalkorDBOperations {
 		String primaryLabel = getPrimaryLabel(persistentEntity);
 
 		String cypher = "MATCH (n:" + primaryLabel + ") WHERE id(n) = $id DELETE n";
-		Map<String, Object> parameters = Collections.singletonMap("id", id);
+		Map<String, Object> parameters = Collections.singletonMap("id", normalizeInternalId(id));
 
 		this.falkorDBClient.query(cypher, parameters);
 	}
@@ -315,7 +308,8 @@ public class FalkorDBTemplate implements FalkorDBOperations {
 		String primaryLabel = getPrimaryLabel(persistentEntity);
 
 		String cypher = "MATCH (n:" + primaryLabel + ") WHERE id(n) IN $ids DELETE n";
-		Map<String, Object> parameters = Collections.singletonMap("ids", idList);
+		Map<String, Object> parameters = Collections.singletonMap("ids",
+				idList.stream().map(this::normalizeInternalId).collect(Collectors.toList()));
 
 		this.falkorDBClient.query(cypher, parameters);
 	}
@@ -338,7 +332,9 @@ public class FalkorDBTemplate implements FalkorDBOperations {
 		Assert.notNull(parameters, "Parameters must not be null");
 		Assert.notNull(clazz, "Class must not be null");
 
-		return this.falkorDBClient.query(cypher, parameters, result -> {
+		RewrittenQuery rq = maybeRewrite(cypher, parameters, clazz);
+
+		return this.falkorDBClient.query(rq.getCypher(), rq.getParameters(), result -> {
 			List<T> entities = new ArrayList<>();
 			for (FalkorDBClient.Record record : result.records()) {
 				entities.add(this.entityConverter.read(clazz, record));
@@ -353,7 +349,9 @@ public class FalkorDBTemplate implements FalkorDBOperations {
 		Assert.notNull(parameters, "Parameters must not be null");
 		Assert.notNull(clazz, "Class must not be null");
 
-		return this.falkorDBClient.query(cypher, parameters, result -> {
+		RewrittenQuery rq = maybeRewrite(cypher, parameters, clazz);
+
+		return this.falkorDBClient.query(rq.getCypher(), rq.getParameters(), result -> {
 			for (FalkorDBClient.Record record : result.records()) {
 				return Optional.of(this.entityConverter.read(clazz, record));
 			}
@@ -368,7 +366,15 @@ public class FalkorDBTemplate implements FalkorDBOperations {
 		Assert.notNull(parameters, "Parameters must not be null");
 		Assert.notNull(resultMapper, "Result mapper must not be null");
 
-		return this.falkorDBClient.query(cypher, parameters, resultMapper);
+		RewrittenQuery rq = maybeRewrite(cypher, parameters, null);
+		return this.falkorDBClient.query(rq.getCypher(), rq.getParameters(), resultMapper);
+	}
+
+	private RewrittenQuery maybeRewrite(String cypher, Map<String, Object> parameters, @Nullable Class<?> domainType) {
+		if (this.queryRewriter == null) {
+			return RewrittenQuery.of(cypher, parameters);
+		}
+		return this.queryRewriter.rewrite(cypher, parameters, domainType);
 	}
 
 	/**
@@ -389,6 +395,16 @@ public class FalkorDBTemplate implements FalkorDBOperations {
 		return this.mappingContext;
 	}
 
+	private Object normalizeInternalId(Object id) {
+		if (id instanceof Long) {
+			Long l = (Long) id;
+			if (l >= Integer.MIN_VALUE && l <= Integer.MAX_VALUE) {
+				return l.intValue();
+			}
+		}
+		return id;
+	}
+
 	private String getPrimaryLabel(DefaultFalkorDBPersistentEntity<?> persistentEntity) {
 		// Get the primary label from the @Node annotation
 		Node nodeAnnotation = persistentEntity.getType().getAnnotation(Node.class);
@@ -396,7 +412,12 @@ public class FalkorDBTemplate implements FalkorDBOperations {
 			if (!nodeAnnotation.primaryLabel().isEmpty()) {
 				return nodeAnnotation.primaryLabel();
 			}
-			else if (nodeAnnotation.labels().length > 0) {
+			// Note: @AliasFor is not applied when reading the annotation via plain reflection.
+			// We therefore need to check both value() and labels().
+			if (nodeAnnotation.value().length > 0) {
+				return nodeAnnotation.value()[0];
+			}
+			if (nodeAnnotation.labels().length > 0) {
 				return nodeAnnotation.labels()[0];
 			}
 		}

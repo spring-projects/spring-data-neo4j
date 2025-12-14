@@ -31,6 +31,14 @@ public class FalkorDBSecurityProperties {
 	private boolean auditEnabled = true;
 
 	/**
+	 * Whether the core template should attempt query-time row-level security enforcement by
+	 * rewriting generated Cypher queries.
+	 *
+	 * Disabled by default (opt-in).
+	 */
+	private boolean queryRewriteEnabled = false;
+
+	/**
 	 * Time-to-live for cached privileges per user.
 	 */
 	private Duration privilegeCacheTtl = Duration.ofMinutes(1);
@@ -74,6 +82,14 @@ public class FalkorDBSecurityProperties {
 
 	public void setAuditEnabled(boolean auditEnabled) {
 		this.auditEnabled = auditEnabled;
+	}
+
+	public boolean isQueryRewriteEnabled() {
+		return this.queryRewriteEnabled;
+	}
+
+	public void setQueryRewriteEnabled(boolean queryRewriteEnabled) {
+		this.queryRewriteEnabled = queryRewriteEnabled;
 	}
 
 	public Duration getPrivilegeCacheTtl() {

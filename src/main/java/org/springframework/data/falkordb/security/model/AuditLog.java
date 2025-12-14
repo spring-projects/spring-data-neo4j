@@ -23,15 +23,21 @@ public class AuditLog {
 
 	private Instant timestamp = Instant.now();
 
+	private Long userId;
+
 	private String username;
 
 	private String action;
 
 	private String resource;
 
+	private Long resourceId;
+
 	private boolean granted;
 
 	private String reason;
+
+	private String ipAddress;
 
 	public Long getId() {
 		return this.id;
@@ -47,6 +53,14 @@ public class AuditLog {
 
 	public void setTimestamp(Instant timestamp) {
 		this.timestamp = timestamp;
+	}
+
+	public Long getUserId() {
+		return this.userId;
+	}
+
+	public void setUserId(Long userId) {
+		this.userId = userId;
 	}
 
 	public String getUsername() {
@@ -73,6 +87,14 @@ public class AuditLog {
 		this.resource = resource;
 	}
 
+	public Long getResourceId() {
+		return this.resourceId;
+	}
+
+	public void setResourceId(Long resourceId) {
+		this.resourceId = resourceId;
+	}
+
 	public boolean isGranted() {
 		return this.granted;
 	}
@@ -87,6 +109,14 @@ public class AuditLog {
 
 	public void setReason(String reason) {
 		this.reason = reason;
+	}
+
+	public String getIpAddress() {
+		return this.ipAddress;
+	}
+
+	public void setIpAddress(String ipAddress) {
+		this.ipAddress = ipAddress;
 	}
 
 }

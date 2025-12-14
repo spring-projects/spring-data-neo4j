@@ -9,9 +9,11 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.data.falkordb.core.DefaultFalkorDBClient;
 import org.springframework.data.falkordb.core.FalkorDBClient;
 import org.springframework.data.falkordb.core.FalkorDBTemplate;
+import org.springframework.data.falkordb.core.query.FalkorDBQueryRewriter;
 import org.springframework.data.falkordb.core.mapping.DefaultFalkorDBEntityConverter;
 import org.springframework.data.falkordb.core.mapping.DefaultFalkorDBMappingContext;
 import org.springframework.data.falkordb.core.mapping.FalkorDBMappingContext;
@@ -96,9 +98,10 @@ public class FalkorDBAutoConfiguration {
 	@ConditionalOnMissingBean
 	@ConditionalOnBean(FalkorDBClient.class)
 	public FalkorDBTemplate falkorDBTemplate(FalkorDBClient client,
-			FalkorDBMappingContext mappingContext) {
+			FalkorDBMappingContext mappingContext,
+			ObjectProvider<FalkorDBQueryRewriter> queryRewriterProvider) {
 		DefaultFalkorDBEntityConverter converter = new DefaultFalkorDBEntityConverter(
 				mappingContext, new EntityInstantiators(), client);
-		return new FalkorDBTemplate(client, mappingContext, converter);
+		return new FalkorDBTemplate(client, mappingContext, converter, queryRewriterProvider.getIfAvailable());
 	}
 }

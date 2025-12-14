@@ -203,9 +203,11 @@ public class DefaultFalkorDBEntityConverter implements FalkorDBEntityConverter {
 	 */
 	private Object convertValueForFalkorDB(final Object value, final FalkorDBPersistentProperty property) {
 		if (value instanceof LocalDateTime) {
-			// Convert LocalDateTime to ISO string format that FalkorDB
-			// can handle. Using ISO_LOCAL_DATE_TIME format.
+			// Convert LocalDateTime to ISO string format that FalkorDB can handle.
 			return ((LocalDateTime) value).format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+		}
+		if (value instanceof java.time.Instant) {
+			return DateTimeFormatter.ISO_INSTANT.format((java.time.Instant) value);
 		}
 		
 		// Apply intern() function for low-cardinality string properties
@@ -352,7 +354,14 @@ public class DefaultFalkorDBEntityConverter implements FalkorDBEntityConverter {
 					return LocalDateTime.parse(strValue, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
 				}
 				catch (Exception ex) {
-					// If parsing fails, return null
+					return null;
+				}
+			}
+			if (targetType == java.time.Instant.class) {
+				try {
+					return java.time.Instant.parse(strValue);
+				}
+				catch (Exception ex) {
 					return null;
 				}
 			}
@@ -661,6 +670,11 @@ public class DefaultFalkorDBEntityConverter implements FalkorDBEntityConverter {
 		org.springframework.data.falkordb.core.schema.Node nodeAnn = persistentEntity.getType()
 				.getAnnotation(org.springframework.data.falkordb.core.schema.Node.class);
 		if (nodeAnn != null) {
+			for (String label : nodeAnn.value()) {
+				if (label != null && !label.isEmpty() && !label.equals(primaryLabel)) {
+					labels.add(label);
+				}
+			}
 			for (String label : nodeAnn.labels()) {
 				if (label != null && !label.isEmpty() && !label.equals(primaryLabel)) {
 					labels.add(label);
@@ -780,7 +794,10 @@ public class DefaultFalkorDBEntityConverter implements FalkorDBEntityConverter {
 			if (!nodeAnnotation.primaryLabel().isEmpty()) {
 				return nodeAnnotation.primaryLabel();
 			}
-			else if (nodeAnnotation.labels().length > 0) {
+			if (nodeAnnotation.value().length > 0) {
+				return nodeAnnotation.value()[0];
+			}
+			if (nodeAnnotation.labels().length > 0) {
 				return nodeAnnotation.labels()[0];
 			}
 		}

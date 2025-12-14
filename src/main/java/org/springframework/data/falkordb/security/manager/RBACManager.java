@@ -17,6 +17,7 @@ import org.springframework.data.falkordb.core.FalkorDBTemplate;
 import org.springframework.data.falkordb.security.context.FalkorSecurityContext;
 import org.springframework.data.falkordb.security.context.FalkorSecurityContextHolder;
 import org.springframework.data.falkordb.security.model.Action;
+import org.springframework.data.falkordb.security.model.AuditLog;
 import org.springframework.data.falkordb.security.model.Privilege;
 import org.springframework.data.falkordb.security.model.PrivilegeResource;
 import org.springframework.data.falkordb.security.model.ResourceType;
@@ -225,6 +226,50 @@ public class RBACManager {
 		for (String roleName : roles) {
 			assignRole(username, roleName);
 		}
+	}
+
+	// -------------------------------------------------------------------------
+	// Audit log administration
+	// -------------------------------------------------------------------------
+
+	public List<AuditLog> queryAuditLogs(@Nullable String username, @Nullable String action,
+			@Nullable java.time.Instant startDate, @Nullable java.time.Instant endDate,
+			@Nullable Boolean granted, int limit) {
+		requireAdmin();
+		String cypher = "MATCH (n:_Security_AuditLog) WHERE 1=1";
+		Map<String, Object> params = new HashMap<>();
+
+		if (username != null && !username.isBlank()) {
+			cypher += " AND n.username = $username";
+			params.put("username", username);
+		}
+		if (action != null && !action.isBlank()) {
+			cypher += " AND n.action = $action";
+			params.put("action", action);
+		}
+		if (startDate != null) {
+			cypher += " AND n.timestamp >= $startDate";
+			params.put("startDate", startDate.toString());
+		}
+		if (endDate != null) {
+			cypher += " AND n.timestamp <= $endDate";
+			params.put("endDate", endDate.toString());
+		}
+		if (granted != null) {
+			cypher += " AND n.granted = $granted";
+			params.put("granted", granted);
+		}
+
+		cypher += " RETURN n ORDER BY n.timestamp DESC LIMIT $limit";
+		params.put("limit", Math.max(1, limit));
+		return this.template.query(cypher, params, AuditLog.class);
+	}
+
+	public void deleteAuditLogsOlderThan(java.time.Instant cutoff) {
+		requireAdmin();
+		Assert.notNull(cutoff, "cutoff must not be null");
+		String cypher = "MATCH (n:_Security_AuditLog) WHERE n.timestamp < $cutoff DELETE n";
+		this.template.query(cypher, Collections.singletonMap("cutoff", cutoff.toString()), FalkorDBClient.QueryResult::records);
 	}
 
 	// -------------------------------------------------------------------------
