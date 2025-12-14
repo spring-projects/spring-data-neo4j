@@ -49,6 +49,8 @@ public class SecureFalkorDBRepository<T, ID>
 
 	private final AuditLogger auditLogger;
 
+	private final FalkorDBEntityInformation<T, ID> entityInformation;
+
 	private final org.springframework.data.falkordb.repository.FalkorDBRepository<T, ID> delegate;
 
 	public SecureFalkorDBRepository(FalkorDBOperations operations,
@@ -56,6 +58,7 @@ public class SecureFalkorDBRepository<T, ID>
 			@org.springframework.lang.Nullable AuditLogger auditLogger) {
 		this.domainType = entityInformation.getJavaType();
 		this.metadata = SecurityMetadataUtils.resolveMetadata(this.domainType);
+		this.entityInformation = entityInformation;
 		this.delegate = new DelegateRepository<>(operations, entityInformation);
 		this.auditLogger = auditLogger;
 	}
@@ -119,17 +122,20 @@ public class SecureFalkorDBRepository<T, ID>
 
 	@Override
 	public <S extends T> S save(S entity) {
-		// MVP: treat all save operations as WRITE
-		require(Action.WRITE);
+		Action action = isNewEntity(entity) ? Action.CREATE : Action.WRITE;
+		require(action);
+		// Apply WRITE property deny rules to both CREATE and WRITE
 		validateWrite(entity);
 		return delegate.save(entity);
 	}
 
 	@Override
 	public <S extends T> List<S> saveAll(Iterable<S> entities) {
-		require(Action.WRITE);
 		List<S> list = new ArrayList<>();
 		for (S entity : entities) {
+			Action action = isNewEntity(entity) ? Action.CREATE : Action.WRITE;
+			require(action);
+			// Apply WRITE property deny rules to both CREATE and WRITE
 			validateWrite(entity);
 			list.add(entity);
 		}
@@ -213,6 +219,13 @@ public class SecureFalkorDBRepository<T, ID>
 	}
 
 	// --- Internal helpers ---
+
+	private <S extends T> boolean isNewEntity(S entity) {
+		if (entity == null) {
+			return true;
+		}
+		return this.entityInformation.isNew(entity);
+	}
 
 	private void require(Action action) {
 		FalkorSecurityContext ctx = FalkorSecurityContextHolder.getContext();

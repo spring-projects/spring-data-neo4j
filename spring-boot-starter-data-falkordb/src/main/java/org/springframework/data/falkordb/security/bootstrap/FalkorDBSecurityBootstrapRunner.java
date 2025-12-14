@@ -34,8 +34,26 @@ public class FalkorDBSecurityBootstrapRunner implements ApplicationRunner {
 
 	@Override
 	public void run(ApplicationArguments args) {
+		ensureDefaultRole();
 		ensureAdminRole();
 		ensureAdminUser();
+	}
+
+	private void ensureDefaultRole() {
+		String role = this.properties.getDefaultRole();
+		if (!StringUtils.hasText(role)) {
+			return;
+		}
+		Map<String, Object> params = new HashMap<>();
+		params.put("name", role);
+		params.put("description", "Bootstrapped default role");
+		params.put("createdAt", Instant.now().toString());
+
+		String cypher = "MERGE (r:_Security_Role {name: $name}) "
+				+ "ON CREATE SET r.description = $description, r.immutable = true, r.createdAt = $createdAt "
+				+ "RETURN r";
+
+		this.template.query(cypher, params, FalkorDBClient.QueryResult::records);
 	}
 
 	private void ensureAdminRole() {

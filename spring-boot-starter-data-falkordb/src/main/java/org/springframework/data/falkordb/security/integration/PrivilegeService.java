@@ -45,7 +45,20 @@ public class PrivilegeService {
 	}
 
 	public Set<Privilege> loadPrivileges(String username, Set<Role> roles) {
-		if (username == null || roles == null || roles.isEmpty()) {
+		if (roles == null || roles.isEmpty()) {
+			return Collections.emptySet();
+		}
+		Set<String> roleNames = new HashSet<>();
+		for (Role role : roles) {
+			if (role != null && role.getName() != null) {
+				roleNames.add(role.getName());
+			}
+		}
+		return loadPrivileges(username, roleNames);
+	}
+
+	public Set<Privilege> loadPrivileges(String username, java.util.Collection<String> roleNames) {
+		if (username == null || roleNames == null || roleNames.isEmpty()) {
 			return Collections.emptySet();
 		}
 
@@ -54,7 +67,7 @@ public class PrivilegeService {
 			return entry.privileges;
 		}
 
-		Set<Privilege> loaded = loadPrivilegesFromGraph(roles);
+		Set<Privilege> loaded = loadPrivilegesFromGraph(roleNames);
 		this.cache.put(username, new CacheEntry(loaded, Instant.now().plus(this.ttl)));
 		return loaded;
 	}
@@ -75,14 +88,8 @@ public class PrivilegeService {
 		this.cache.clear();
 	}
 
-	private Set<Privilege> loadPrivilegesFromGraph(Set<Role> roles) {
-		Set<String> roleNames = new HashSet<>();
-		for (Role role : roles) {
-			if (role != null && role.getName() != null) {
-				roleNames.add(role.getName());
-			}
-		}
-		if (roleNames.isEmpty()) {
+	private Set<Privilege> loadPrivilegesFromGraph(java.util.Collection<String> roleNames) {
+		if (roleNames == null || roleNames.isEmpty()) {
 			return Collections.emptySet();
 		}
 

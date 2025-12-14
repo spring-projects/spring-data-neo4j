@@ -21,6 +21,11 @@ public class FalkorDBSecurityProperties {
 	private String adminRole = "admin";
 
 	/**
+	 * Default role included for all users (parity with Python RBAC 'PUBLIC' role).
+	 */
+	private String defaultRole = org.springframework.data.falkordb.security.context.FalkorSecurityContext.DEFAULT_DEFAULT_ROLE;
+
+	/**
 	 * Whether audit logging is enabled.
 	 */
 	private boolean auditEnabled = true;
@@ -53,6 +58,14 @@ public class FalkorDBSecurityProperties {
 
 	public void setAdminRole(String adminRole) {
 		this.adminRole = adminRole;
+	}
+
+	public String getDefaultRole() {
+		return this.defaultRole;
+	}
+
+	public void setDefaultRole(String defaultRole) {
+		this.defaultRole = defaultRole;
 	}
 
 	public boolean isAuditEnabled() {

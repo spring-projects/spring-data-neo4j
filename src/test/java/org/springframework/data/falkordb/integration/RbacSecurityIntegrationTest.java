@@ -85,6 +85,62 @@ class RbacSecurityIntegrationTest {
 	}
 
 	@Test
+	void shouldDenyCreateWhenOnlyWritePrivilegeIsGranted() {
+		Role role = new Role();
+		role.setName("ROLE_USER");
+
+		User user = new User();
+		user.setUsername("alice");
+		user.setRoles(Collections.singleton(role));
+
+		Privilege write = new Privilege();
+		write.setAction(Action.WRITE);
+		write.setResource(RbacDocument.class.getName());
+		write.setGrant(true);
+
+		FalkorSecurityContext ctx = new FalkorSecurityContext(user,
+				Collections.singleton(role), Collections.singleton(write));
+		FalkorSecurityContextHolder.setContext(ctx);
+
+		RbacDocument doc = new RbacDocument();
+		doc.setId(null); // new entity -> CREATE
+		doc.setTitle("Public");
+		doc.setSecret(null);
+
+		assertThatThrownBy(() -> repository.save(doc))
+				.isInstanceOf(SecurityException.class)
+				.hasMessageContaining("Access denied for action CREATE");
+	}
+
+	@Test
+	void shouldDenyWriteWhenOnlyCreatePrivilegeIsGranted() {
+		Role role = new Role();
+		role.setName("ROLE_USER");
+
+		User user = new User();
+		user.setUsername("alice");
+		user.setRoles(Collections.singleton(role));
+
+		Privilege create = new Privilege();
+		create.setAction(Action.CREATE);
+		create.setResource(RbacDocument.class.getName());
+		create.setGrant(true);
+
+		FalkorSecurityContext ctx = new FalkorSecurityContext(user,
+				Collections.singleton(role), Collections.singleton(create));
+		FalkorSecurityContextHolder.setContext(ctx);
+
+		RbacDocument doc = new RbacDocument();
+		doc.setId(1L); // existing entity -> WRITE
+		doc.setTitle("Public");
+		doc.setSecret(null);
+
+		assertThatThrownBy(() -> repository.save(doc))
+				.isInstanceOf(SecurityException.class)
+				.hasMessageContaining("Access denied for action WRITE");
+	}
+
+	@Test
 	void shouldDenyWriteToDeniedProperty() {
 		// given a user with ROLE_USER and WRITE on Document but denied for secret field
 		Role role = new Role();

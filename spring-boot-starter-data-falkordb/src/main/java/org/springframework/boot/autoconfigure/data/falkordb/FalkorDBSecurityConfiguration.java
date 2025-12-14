@@ -45,8 +45,8 @@ public class FalkorDBSecurityConfiguration {
 	@Bean
 	@ConditionalOnMissingBean
 	public AuthenticationFalkorSecurityContextAdapter falkorDBAuthenticationAdapter(FalkorDBTemplate template,
-			PrivilegeService privilegeService) {
-		return new AuthenticationFalkorSecurityContextAdapter(template, privilegeService);
+			PrivilegeService privilegeService, FalkorDBSecurityProperties properties) {
+		return new AuthenticationFalkorSecurityContextAdapter(template, privilegeService, properties.getDefaultRole());
 	}
 
 	@Bean

@@ -35,9 +35,13 @@ public class AuthenticationFalkorSecurityContextAdapter {
 
 	private final PrivilegeService privilegeService;
 
-	public AuthenticationFalkorSecurityContextAdapter(FalkorDBTemplate template, PrivilegeService privilegeService) {
+	private final String defaultRole;
+
+	public AuthenticationFalkorSecurityContextAdapter(FalkorDBTemplate template, PrivilegeService privilegeService,
+			String defaultRole) {
 		this.template = template;
 		this.privilegeService = privilegeService;
+		this.defaultRole = defaultRole;
 	}
 
 	public FalkorSecurityContext fromAuthentication(Authentication authentication) {
@@ -55,20 +59,20 @@ public class AuthenticationFalkorSecurityContextAdapter {
 			return null;
 		}
 
-		Set<Role> roles = new HashSet<>(user.getRoles());
-		// Optionally, intersect with Spring Security authorities
 		Set<String> springAuthorities = extractAuthorityNames(authentication);
-		roles.removeIf(role -> !springAuthorities.isEmpty() && !springAuthorities.contains(role.getName()));
+		Set<String> roleNames = extractRoleNames(user, springAuthorities);
 
-		Set<Privilege> privileges = this.privilegeService.loadPrivileges(username, roles);
+		// Expand role inheritance from graph if possible
+		roleNames.addAll(resolveInheritedRoleNames(roleNames));
 
-		return new FalkorSecurityContext(user, roles, privileges);
+		Set<Privilege> privileges = this.privilegeService.loadPrivileges(username, roleNames);
+
+		return new FalkorSecurityContext(user, roleNames, privileges, this.defaultRole);
 	}
 
 	private User loadUserByUsername(String username) {
 		String cypher = "MATCH (u:_Security_User {username: $username})-[:HAS_ROLE]->(r:_Security_Role) "
-				+ "OPTIONAL MATCH (r)<-[:GRANTED_TO]-(p:_Security_Privilege) "
-				+ "RETURN u, collect(DISTINCT r) as roles, collect(DISTINCT p) as privileges";
+				+ "RETURN u";
 		return this.template.query(cypher, Collections.singletonMap("username", username), result -> {
 			for (org.springframework.data.falkordb.core.FalkorDBClient.Record record : result.records()) {
 				User u = this.template.getConverter().read(User.class, record);
@@ -90,6 +94,52 @@ public class AuthenticationFalkorSecurityContextAdapter {
 			}
 		}
 		return names;
+	}
+
+	private Set<String> extractRoleNames(User user, Set<String> springAuthorities) {
+		Set<String> roleNames = new HashSet<>();
+		if (user != null && user.getRoles() != null && !user.getRoles().isEmpty()) {
+			for (Role role : user.getRoles()) {
+				if (role != null && role.getName() != null) {
+					roleNames.add(role.getName());
+				}
+			}
+		}
+		// If the user has no graph roles, fall back to Spring authorities as role names
+		if (roleNames.isEmpty() && springAuthorities != null && !springAuthorities.isEmpty()) {
+			roleNames.addAll(springAuthorities);
+		}
+		// Intersect with Spring authorities if present
+		if (springAuthorities != null && !springAuthorities.isEmpty()) {
+			roleNames.removeIf(rn -> !springAuthorities.contains(rn));
+		}
+		if (this.defaultRole != null && !this.defaultRole.isBlank()) {
+			roleNames.add(this.defaultRole);
+		}
+		return roleNames;
+	}
+
+	private Set<String> resolveInheritedRoleNames(Set<String> roleNames) {
+		if (roleNames == null || roleNames.isEmpty()) {
+			return Collections.emptySet();
+		}
+		try {
+			String cypher = "MATCH (r:_Security_Role) WHERE r.name IN $roleNames "
+					+ "OPTIONAL MATCH (r)-[:INHERITS_FROM*0..]->(p:_Security_Role) "
+					+ "RETURN DISTINCT p";
+			List<Role> roles = this.template.query(cypher,
+					Collections.singletonMap("roleNames", roleNames), Role.class);
+			Set<String> inherited = new HashSet<>();
+			for (Role r : roles) {
+				if (r != null && r.getName() != null) {
+					inherited.add(r.getName());
+				}
+			}
+			return inherited;
+		}
+		catch (Exception ignored) {
+			return Collections.emptySet();
+		}
 	}
 
 }
