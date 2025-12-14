@@ -94,7 +94,7 @@ public class PrivilegeService {
 		}
 
 		String cypher = "MATCH (r:_Security_Role)<-[:GRANTED_TO]-(p:_Security_Privilege) "
-				+ "WHERE r.name IN $roleNames RETURN p";
+				+ "WHERE r.name IN $roleNames RETURN p as n, id(p) as nodeId";
 		return new HashSet<>(this.template.query(cypher,
 				Collections.singletonMap("roleNames", roleNames), Privilege.class));
 	}

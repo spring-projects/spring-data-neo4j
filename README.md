@@ -21,6 +21,7 @@ Spring Data FalkorDB provides JPA-style object-graph mapping for [FalkorDB](http
 - **💳 Transaction Support**: Built on Spring's robust transaction management
 - **⚡ High Performance**: Leverages FalkorDB's speed with the official JFalkorDB Java client
 - **🌐 RESP Protocol**: Uses the reliable RESP protocol for communication
+- **🔐 RBAC (Experimental)**: Optional security-aware repositories with `@Secured` and row-level filtering
 
 ## 📦 Installation
 
@@ -93,6 +94,26 @@ dependencies {
     implementation 'com.falkordb:jfalkordb:0.5.1'
 }
 ```
+
+## 🔐 RBAC / Security (Experimental)
+
+Spring Data FalkorDB includes an experimental RBAC layer that can enforce action checks (`READ`, `WRITE`, `CREATE`, `DELETE`) and optional row-level security (`@RowLevelSecurity`).
+
+When using the Spring Boot starter, enable it via:
+
+```properties
+spring.data.falkordb.security.enabled=true
+```
+
+For non-web usage, you can set a thread-local context scope:
+
+```java
+try (var scope = FalkorSecurityContextHolder.withContext(ctx)) {
+    // repository calls here are authorized using ctx
+}
+```
+
+The starter also exposes a `FalkorDBSecuritySession` bean for loading contexts from the graph and admin-only impersonation.
 
 ## 🏃 Quick Start
 

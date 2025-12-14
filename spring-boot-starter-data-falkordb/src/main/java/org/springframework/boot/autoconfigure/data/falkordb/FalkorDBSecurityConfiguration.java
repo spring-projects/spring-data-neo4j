@@ -16,6 +16,7 @@ import org.springframework.data.falkordb.security.integration.PrivilegeService;
 import org.springframework.data.falkordb.security.manager.RBACManager;
 import org.springframework.data.falkordb.security.rls.RowLevelSecurityQueryRewriter;
 import org.springframework.data.falkordb.core.query.FalkorDBQueryRewriter;
+import org.springframework.data.falkordb.security.session.FalkorDBSecuritySession;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -61,6 +62,12 @@ public class FalkorDBSecurityConfiguration {
 	@ConditionalOnMissingBean
 	public RBACManager falkorDBRbacManager(FalkorDBTemplate template, FalkorDBSecurityProperties properties) {
 		return new RBACManager(template, properties.getAdminRole());
+	}
+
+	@Bean
+	@ConditionalOnMissingBean
+	public FalkorDBSecuritySession falkorDBSecuritySession(FalkorDBTemplate template, FalkorDBSecurityProperties properties) {
+		return new FalkorDBSecuritySession(template, properties.getAdminRole(), properties.getDefaultRole());
 	}
 
 	@Bean

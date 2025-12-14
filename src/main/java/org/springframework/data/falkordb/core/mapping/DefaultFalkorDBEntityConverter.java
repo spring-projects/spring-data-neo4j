@@ -209,6 +209,9 @@ public class DefaultFalkorDBEntityConverter implements FalkorDBEntityConverter {
 		if (value instanceof java.time.Instant) {
 			return DateTimeFormatter.ISO_INSTANT.format((java.time.Instant) value);
 		}
+		if (value instanceof Enum<?>) {
+			return ((Enum<?>) value).name();
+		}
 		
 		// Apply intern() function for low-cardinality string properties
 		if (property != null && property.isInterned() && value instanceof String) {
@@ -349,6 +352,16 @@ public class DefaultFalkorDBEntityConverter implements FalkorDBEntityConverter {
 		// Handle String conversions
 		if (value instanceof String) {
 			String strValue = (String) value;
+			if (targetType.isEnum()) {
+				try {
+					@SuppressWarnings({ "unchecked", "rawtypes" })
+					Object enumValue = Enum.valueOf((Class<? extends Enum>) targetType, strValue);
+					return enumValue;
+				}
+				catch (Exception ex) {
+					return null;
+				}
+			}
 			if (targetType == LocalDateTime.class) {
 				try {
 					return LocalDateTime.parse(strValue, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
@@ -1193,7 +1206,7 @@ public class DefaultFalkorDBEntityConverter implements FalkorDBEntityConverter {
 	 */
 	private Object extractValueFromNodeObject(FalkorDBClient.Record record, String propertyName) {
 		try {
-			Object nodeObj = record.get("n");
+			Object nodeObj = findNodeObject(record);
 			if (nodeObj == null) {
 				return null;
 			}
@@ -1209,6 +1222,60 @@ public class DefaultFalkorDBEntityConverter implements FalkorDBEntityConverter {
 		}
 		catch (Exception ex) {
 			return null;
+		}
+	}
+
+	private Object findNodeObject(FalkorDBClient.Record record) {
+		if (record == null) {
+			return null;
+		}
+		// Preferred alias used by repository queries
+		Object n = safeRecordGet(record, "n");
+		if (n != null) {
+			return n;
+		}
+		// Fall back to first node-like object in the record.
+		try {
+			for (String key : record.keys()) {
+				Object v = safeRecordGet(record, key);
+				if (isNodeLike(v)) {
+					return v;
+				}
+			}
+		}
+		catch (Exception ignored) {
+			return null;
+		}
+		return null;
+	}
+
+	private Object safeRecordGet(FalkorDBClient.Record record, String key) {
+		try {
+			return record.get(key);
+		}
+		catch (Exception ex) {
+			return null;
+		}
+	}
+
+	private boolean isNodeLike(Object value) {
+		if (value == null) {
+			return false;
+		}
+		Class<?> type = value.getClass();
+		try {
+			type.getMethod("getProperty", String.class);
+			return true;
+		}
+		catch (NoSuchMethodException ignored) {
+			// ignore
+		}
+		try {
+			type.getMethod("getProperties");
+			return true;
+		}
+		catch (NoSuchMethodException ignored) {
+			return false;
 		}
 	}
 

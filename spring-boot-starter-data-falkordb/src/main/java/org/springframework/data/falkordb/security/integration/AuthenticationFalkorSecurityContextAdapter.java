@@ -71,8 +71,7 @@ public class AuthenticationFalkorSecurityContextAdapter {
 	}
 
 	private User loadUserByUsername(String username) {
-		String cypher = "MATCH (u:_Security_User {username: $username})-[:HAS_ROLE]->(r:_Security_Role) "
-				+ "RETURN u";
+		String cypher = "MATCH (u:_Security_User {username: $username}) RETURN u as n, id(u) as nodeId";
 		return this.template.query(cypher, Collections.singletonMap("username", username), result -> {
 			for (org.springframework.data.falkordb.core.FalkorDBClient.Record record : result.records()) {
 				User u = this.template.getConverter().read(User.class, record);

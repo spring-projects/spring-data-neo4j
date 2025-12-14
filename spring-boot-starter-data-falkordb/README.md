@@ -103,6 +103,40 @@ public class PersonController {
 | `spring.data.falkordb.database` | Database/graph name **(required)** | - |
 | `spring.data.falkordb.repositories.enabled` | Enable/disable repository auto-configuration | `true` |
 
+## RBAC / Security (Optional)
+
+Enable security-aware repositories and RBAC integration:
+
+```properties
+spring.data.falkordb.security.enabled=true
+```
+
+When enabled, repositories are created using `SecureFalkorDBRepository` and will enforce `@Secured` / `@RowLevelSecurity` metadata.
+
+### Scoped context
+
+For non-web usage (tests, batch jobs), you can set the current `FalkorSecurityContext` using a try-with-resources scope:
+
+```java
+try (var scope = FalkorSecurityContextHolder.withContext(ctx)) {
+    // any repository calls here use ctx
+}
+```
+
+### Impersonation (admin-only)
+
+The starter exposes a `FalkorDBSecuritySession` bean that can load a user context from the graph and optionally impersonate:
+
+```java
+@Autowired FalkorDBSecuritySession session;
+
+try (var scope = session.impersonate("alice")) {
+    // runs as alice
+}
+```
+
+Impersonation requires the current thread context to contain the configured admin role (default: `admin`).
+
 > **Note:** The `@EnableFalkorDBRepositories` annotation is **optional**. Repositories are automatically
 > enabled by the starter. Use `spring.data.falkordb.repositories.enabled=false` to disable them.
 
