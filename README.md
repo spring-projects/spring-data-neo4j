@@ -13,7 +13,7 @@ Spring Data FalkorDB provides JPA-style object-graph mapping for [FalkorDB](http
 ## 🚀 Key Features
 
 - **🏷️ JPA-style Annotations**: Use familiar `@Node`, `@Relationship`, `@Id`, `@Property` annotations
-- **🔧 Repository Abstractions**: Implement `FalkorDBRepository<T, ID>` for automatic CRUD operations  
+- **🔧 Repository Abstractions**: Implement `FalkorDBRepository<T, ID>` for automatic CRUD operations
 - **🔍 Derived Query Methods**: Full support for Spring Data query methods like `findByName`, `findByAgeGreaterThan`, etc.
 - **📝 Custom Queries**: Write Cypher queries with `@Query` annotation and named parameters
 - **⚙️ Auto-Configuration**: Enable repositories with `@EnableFalkorDBRepositories`
@@ -97,15 +97,43 @@ dependencies {
 
 ## 🔐 RBAC / Security (Experimental)
 
-Spring Data FalkorDB includes an experimental RBAC layer that can enforce action checks (`READ`, `WRITE`, `CREATE`, `DELETE`) and optional row-level security (`@RowLevelSecurity`).
+Spring Data FalkorDB includes an *optional* RBAC layer intended for applications that want **repository-level authorization**.
 
-When using the Spring Boot starter, enable it via:
+It provides:
+- **Action checks** for CRUD operations (`READ`, `WRITE`, `CREATE`, `DELETE`) based on the current `FalkorSecurityContext`
+- **Entity-level metadata** via `@Secured` (role allowlists per action)
+- Optional **field masking / write protection** via `denyReadProperties` / `denyWriteProperties`
+- Optional **row-level security** via `@RowLevelSecurity(filter = ...)`
+
+### Enable (Spring Boot starter)
 
 ```properties
 spring.data.falkordb.security.enabled=true
 ```
 
-For non-web usage, you can set a thread-local context scope:
+When enabled in Spring Boot, repositories are created using `SecureFalkorDBRepository` and will enforce `@Secured` / `@RowLevelSecurity` metadata.
+
+### Example entity metadata
+
+```java
+@Node("Document")
+@Secured(
+    read = {"reader", "admin"},
+    write = {"editor", "admin"},
+    create = {"editor", "admin"},
+    delete = {"admin"},
+    denyReadProperties = {
+        @DenyProperty(property = "internalNotes", forRoles = {"reader"})
+    }
+)
+@RowLevelSecurity(filter = "owner == principal.username")
+public class Document {
+    private String owner;
+    private String internalNotes;
+}
+```
+
+### Scoped context (non-web usage)
 
 ```java
 try (var scope = FalkorSecurityContextHolder.withContext(ctx)) {
@@ -113,7 +141,26 @@ try (var scope = FalkorSecurityContextHolder.withContext(ctx)) {
 }
 ```
 
-The starter also exposes a `FalkorDBSecuritySession` bean for loading contexts from the graph and admin-only impersonation.
+### Loading a context from the graph + admin impersonation
+
+The starter exposes a `FalkorDBSecuritySession` bean for loading contexts from the RBAC graph and admin-only impersonation.
+
+### Query-time row-level security (opt-in)
+
+By default, row-level security is enforced conservatively in repositories (filtering returned entities and failing closed when the principal data is missing).
+
+For additional hardening (especially for `count(...)` / `exists(...)` style queries), you can opt into query rewriting:
+
+```properties
+spring.data.falkordb.security.query-rewrite-enabled=true
+```
+
+Notes / limitations (intentionally conservative):
+- Only applies when a **domain type** is known (e.g. `FalkorDBTemplate.query(..., Class<T>)`, `queryForObject(..., Class<T>)`, `count(Class<T>)`, `existsById(..., Class<T>)`).
+- It does **not** apply to `FalkorDBTemplate.query(..., resultMapper)` since no domain type is provided.
+- The rewriter only injects predicates into simple `MATCH ... RETURN ...` / `MATCH ... DELETE ...` queries that use the `n` alias.
+
+For more configuration details and examples, see `spring-boot-starter-data-falkordb/README.md`.
 
 ## 🏃 Quick Start
 
@@ -124,42 +171,42 @@ Define your graph entities using Spring Data annotations:
 ```java
 @Node(labels = {"Person", "Individual"})
 public class Person {
-    
+
     @Id
     @GeneratedValue
     private Long id;
-    
+
     @Property("full_name")  // Maps to "full_name" property in FalkorDB
     private String name;
-    
+
     private String email;
     private int age;
-    
+
     @Relationship(type = "KNOWS", direction = Relationship.Direction.OUTGOING)
     private List<Person> friends;
-    
+
     @Relationship(type = "WORKS_FOR", direction = Relationship.Direction.OUTGOING)
     private Company company;
-    
+
     // Constructors, getters, and setters...
 }
 
 @Node("Company")
 public class Company {
-    
+
     @Id
     @GeneratedValue
     private Long id;
-    
+
     private String name;
     private String industry;
-    
+
     @Property("employee_count")
     private int employeeCount;
-    
+
     @Relationship(type = "EMPLOYS", direction = Relationship.Direction.INCOMING)
     private List<Person> employees;
-    
+
     // Constructors, getters, and setters...
 }
 ```
@@ -170,7 +217,7 @@ Create repository interfaces extending `FalkorDBRepository`:
 
 ```java
 public interface PersonRepository extends FalkorDBRepository<Person, Long> {
-    
+
     // Derived query methods (automatically implemented)
     Optional<Person> findByName(String name);
     List<Person> findByAgeGreaterThan(int age);
@@ -178,15 +225,15 @@ public interface PersonRepository extends FalkorDBRepository<Person, Long> {
     List<Person> findByNameAndAgeGreaterThan(String name, int age);
     List<Person> findByNameOrEmail(String name, String email);
     Page<Person> findByAgeGreaterThan(int age, Pageable pageable);
-    
+
     // Count and existence queries
     long countByAge(int age);
     boolean existsByEmail(String email);
-    
+
     // Custom Cypher queries with named parameters
     @Query("MATCH (p:Person)-[:KNOWS]->(f:Person) WHERE p.name = $name RETURN f")
     List<Person> findFriends(@Param("name") String name);
-    
+
     @Query("MATCH (p:Person) WHERE p.age > $minAge AND p.age < $maxAge RETURN p")
     List<Person> findByAgeRange(@Param("minAge") int minAge, @Param("maxAge") int maxAge);
 }
@@ -221,22 +268,22 @@ For non-Boot applications, configure beans manually:
 @Configuration
 @EnableFalkorDBRepositories
 public class FalkorDBConfig {
-    
+
     @Bean
     public Driver falkorDBDriver() {
         return new DriverImpl("localhost", 6379);
     }
-    
+
     @Bean
     public FalkorDBClient falkorDBClient(Driver driver) {
         return new DefaultFalkorDBClient(driver, "social");
     }
-    
+
     @Bean
     public FalkorDBMappingContext falkorDBMappingContext() {
         return new DefaultFalkorDBMappingContext();
     }
-    
+
     @Bean
     public FalkorDBTemplate falkorDBTemplate(FalkorDBClient client,
                                            FalkorDBMappingContext mappingContext) {
@@ -255,26 +302,26 @@ Use repositories and templates in your service classes:
 @Service
 @Transactional
 public class PersonService {
-    
+
     @Autowired
     private PersonRepository personRepository;
-    
+
     @Autowired
     private FalkorDBTemplate falkorDBTemplate;
-    
+
     public Person createPerson(String name, String email) {
         Person person = new Person(name, email);
         return personRepository.save(person);
     }
-    
+
     public List<Person> findYoungAdults() {
         return personRepository.findByAgeBetween(18, 30);
     }
-    
+
     public List<Person> findConnectedPeople(int minAge) {
         String cypher = """
-            MATCH (p:Person)-[:KNOWS]-(friend:Person) 
-            WHERE p.age > $minAge 
+            MATCH (p:Person)-[:KNOWS]-(friend:Person)
+            WHERE p.age > $minAge
             RETURN p, friend
         """;
         Map<String, Object> params = Collections.singletonMap("minAge", minAge);
@@ -290,7 +337,7 @@ Marks a class as a graph node entity:
 
 ```java
 @Node("Person")                          // Single label
-@Node(labels = {"Person", "Individual"}) // Multiple labels  
+@Node(labels = {"Person", "Individual"}) // Multiple labels
 @Node(primaryLabel = "Person")           // Explicit primary label
 ```
 
@@ -301,12 +348,12 @@ Marks the entity identifier:
 @Id
 private String customId;  // Assigned ID
 
-@Id 
+@Id
 @GeneratedValue
 private Long id;  // FalkorDB internal ID
 
 @Id
-@GeneratedValue(UUIDStringGenerator.class)  
+@GeneratedValue(UUIDStringGenerator.class)
 private String uuid;  // Custom generator
 ```
 
@@ -353,7 +400,7 @@ private List<Person> friends;
 @Relationship(type = "WORKS_FOR", direction = Relationship.Direction.OUTGOING)
 private Company company;
 
-@Relationship(type = "EMPLOYS", direction = Relationship.Direction.INCOMING)  
+@Relationship(type = "EMPLOYS", direction = Relationship.Direction.INCOMING)
 private List<Person> employees;
 ```
 
@@ -368,7 +415,7 @@ Define methods following Spring Data naming conventions, and the implementation 
 #### Query Keywords
 
 - **`findBy...`**: Find entities matching criteria
-- **`countBy...`**: Count entities matching criteria  
+- **`countBy...`**: Count entities matching criteria
 - **`existsBy...`**: Check if entities exist matching criteria
 - **`deleteBy...`**: Delete entities matching criteria
 - **`findFirstBy...`** / **`findTopNBy...`**: Limit results
@@ -424,27 +471,27 @@ Write custom Cypher queries for complex operations:
 
 ```java
 public interface PersonRepository extends FalkorDBRepository<Person, Long> {
-    
+
     // Using named parameters
     @Query("MATCH (p:Person)-[:KNOWS]->(f:Person) "
          + "WHERE p.name = $name RETURN f")
     List<Person> findFriends(@Param("name") String name);
-    
+
     // Using indexed parameters
     @Query("MATCH (p:Person) WHERE p.age > $0 RETURN p")
     List<Person> findOlderThan(int age);
-    
+
     // Count query
     @Query(value = "MATCH (p:Person)-[:WORKS_FOR]->(c:Company) "
                  + "WHERE c.name = $company RETURN count(p)",
            count = true)
     long countEmployees(@Param("company") String company);
-    
+
     // Exists query
     @Query(value = "MATCH (p:Person {email: $email}) RETURN count(p) > 0",
            exists = true)
     boolean emailExists(@Param("email") String email);
-    
+
     // Write query (creates/updates data)
     @Query(value = "MATCH (p:Person {id: $id}) "
                  + "SET p.lastLogin = $time",
@@ -502,7 +549,7 @@ This library includes a comprehensive Twitter-like integration test that demonst
 #### Prerequisites
 
 1. **FalkorDB Server**: Ensure FalkorDB is running on `localhost:6379`
-2. **Java 17+**: Make sure Java 17 or later is installed  
+2. **Java 17+**: Make sure Java 17 or later is installed
 3. **Maven**: Required for building and running
 
 #### Start FalkorDB
@@ -547,7 +594,7 @@ Users with profiles, follower counts, verification status, and bio information:
 public class TwitterUser {
     @Id @GeneratedValue
     private Long id;
-    
+
     @Property("username") private String username;
     @Property("display_name") private String displayName;
     @Property("email") private String email;
@@ -558,7 +605,7 @@ public class TwitterUser {
     @Property("verified") private Boolean verified;
     @Property("created_at") private LocalDateTime createdAt;
     @Property("location") private String location;
-    
+
     // Relationships
     @Relationship(value = "FOLLOWS", direction = OUTGOING)
     private List<TwitterUser> following;
@@ -581,7 +628,7 @@ Complete tweet entities with content, metadata, engagement counts, and reply/ret
 public class Tweet {
     @Id @GeneratedValue
     private Long id;
-    
+
     @Property("text") private String text;
     @Property("created_at") private LocalDateTime createdAt;
     @Property("like_count") private Integer likeCount;
@@ -589,7 +636,7 @@ public class Tweet {
     @Property("reply_count") private Integer replyCount;
     @Property("is_retweet") private Boolean isRetweet;
     @Property("is_reply") private Boolean isReply;
-    
+
     // Relationships
     @Relationship(value = "POSTED", direction = INCOMING)
     private TwitterUser author;
@@ -618,10 +665,10 @@ Hashtag entities with usage tracking and tweet associations:
 public class Hashtag {
     @Id @GeneratedValue
     private Long id;
-    
+
     @Property("tag") private String tag;
     @Property("usage_count") private Integer usageCount;
-    
+
     // Relationships
     @Relationship(value = "HAS_HASHTAG", direction = INCOMING)
     private List<Tweet> tweets;
@@ -639,7 +686,7 @@ public interface TwitterUserRepository extends FalkorDBRepository<TwitterUser, L
     List<TwitterUser> findByVerified(Boolean verified);
     List<TwitterUser> findByFollowerCountGreaterThan(Integer followerCount);
     List<TwitterUser> findByLocationContaining(String location);
-    
+
     // Custom query methods can be added with @Query annotation
     // @Query("MATCH (u:User)-[:FOLLOWS]->(f:User) WHERE u.username = $username RETURN f")
     // List<TwitterUser> findFollowing(@Param("username") String username);
@@ -660,7 +707,7 @@ public interface TwitterUserRepository extends FalkorDBRepository<TwitterUser, L
 
 1. **`testConnectionAndBasicOperations()`**
    - Connect to FalkorDB instance
-   - Create and save TwitterUser entities  
+   - Create and save TwitterUser entities
    - Retrieve entities by ID
    - Verify basic CRUD operations
 
@@ -670,7 +717,7 @@ public interface TwitterUserRepository extends FalkorDBRepository<TwitterUser, L
    - Create tweets with hashtags via raw Cypher
    - Create follow relationships and test traversal queries
 
-3. **`testRelationshipTraversal()`**  
+3. **`testRelationshipTraversal()`**
    - Create test users (alice, bob, charlie)
    - Create FOLLOWS relationships via raw Cypher
    - Test relationship queries: who follows whom, mutual connections
@@ -692,10 +739,10 @@ $ mvn test -Dtest=FalkorDBTwitterIntegrationTests -Dcheckstyle.skip=true
 [INFO] -------------------------------------------------------
 [INFO] Running org.springframework.data.falkordb.integration.FalkorDBTwitterIntegrationTests
 [INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.339 s
-[INFO] 
+[INFO]
 [INFO] Results:
 [INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0
-[INFO] 
+[INFO]
 [INFO] BUILD SUCCESS
 [INFO] Total time: 5.066 s
 ```
@@ -707,7 +754,7 @@ After running the test, you can verify the created data:
 ```bash
 $ redis-cli -p 6379 GRAPH.QUERY TWITTER 'MATCH (u:User) RETURN u.username, u.display_name, u.follower_count'
 1) 1) "u.username"
-   2) "u.display_name" 
+   2) "u.display_name"
    3) "u.follower_count"
 2) 1) 1) "charlie"
       2) "Charlie Brown"
@@ -734,7 +781,7 @@ $ redis-cli -p 6379 GRAPH.QUERY TWITTER 'MATCH (u1:User)-[:FOLLOWS]->(u2:User) R
 
 ✅ **What Works:**
 - **FalkorDB Connection**: Successfully connects to FalkorDB instance
-- **Entity Persistence**: Saves and retrieves TwitterUser entities  
+- **Entity Persistence**: Saves and retrieves TwitterUser entities
 - **Basic Operations**: Create, read operations work correctly
 - **Relationship Creation**: FOLLOWS relationships created via raw Cypher
 - **Graph Queries**: Complex graph traversal queries execute successfully
@@ -765,7 +812,7 @@ GRAPH.QUERY TWITTER 'MATCH (n) RETURN n LIMIT 10'
 # View all users with details
 GRAPH.QUERY TWITTER 'MATCH (u:User) RETURN u.username, u.display_name, u.follower_count'
 
-# View follow relationships  
+# View follow relationships
 GRAPH.QUERY TWITTER 'MATCH (u1:User)-[:FOLLOWS]->(u2:User) RETURN u1.username, u2.username'
 
 # View tweets with authors
@@ -774,7 +821,7 @@ GRAPH.QUERY TWITTER 'MATCH (u:User)-[:POSTED]->(t:Tweet) RETURN u.username, t.te
 # Find verified users by follower count
 GRAPH.QUERY TWITTER 'MATCH (u:User) WHERE u.verified = true RETURN u.username, u.follower_count ORDER BY u.follower_count DESC'
 
-# Analytics: Count nodes by type  
+# Analytics: Count nodes by type
 GRAPH.QUERY TWITTER 'MATCH (u:User) RETURN "Users" as type, count(u) as count UNION MATCH (t:Tweet) RETURN "Tweets" as type, count(t) as count'
 
 # Clear the graph (if needed)
@@ -807,7 +854,7 @@ To verify everything is working correctly:
 ## 🚧 Implementation Status
 
 ### ✅ **Fully Implemented & Tested**
-- ✅ Core annotations (`@Node`, `@Id`, `@Property`, `@GeneratedValue`) 
+- ✅ Core annotations (`@Node`, `@Id`, `@Property`, `@GeneratedValue`)
 - ✅ `@EnableFalkorDBRepositories` for repository auto-configuration
 - ✅ `FalkorDBClient` integration with JFalkorDB driver
 - ✅ `FalkorDBTemplate` for custom Cypher queries
@@ -843,7 +890,7 @@ To verify everything is working correctly:
   - ✅ Health indicator integration
   - ✅ Configuration metadata for IDE support
 
-### 🚧 **In Progress**  
+### 🚧 **In Progress**
 - 🔄 `@Relationship` annotation automatic relationship persistence
 - 🔄 Entity converter with automatic relationship traversal
 - 🔄 Full transaction support integration
@@ -883,7 +930,7 @@ public FalkorDBClient falkorDBClient() {
 ```java
 @Configuration
 public class FalkorDBConfig {
-    
+
     @Bean
     public FalkorDBCustomConversions customConversions() {
         return new FalkorDBCustomConversions(Arrays.asList(
@@ -900,7 +947,7 @@ public class FalkorDBConfig {
 @Configuration
 @EnableTransactionManagement
 public class FalkorDBTransactionConfig {
-    
+
     @Bean
     public FalkorDBTransactionManager transactionManager(FalkorDBClient client) {
         return new FalkorDBTransactionManager(client);
@@ -945,10 +992,10 @@ export JAVA_HOME=/path/to/java17
 We welcome contributions! Here's how you can help:
 
 1. **🐛 Bug Reports**: Open issues with detailed reproduction steps
-2. **💡 Feature Requests**: Suggest new functionality 
+2. **💡 Feature Requests**: Suggest new functionality
 3. **🔧 Code Contributions**: Submit pull requests with:
    - Clear descriptions
-   - Unit tests  
+   - Unit tests
    - Documentation updates
 4. **📚 Documentation**: Improve docs and examples
 
@@ -969,7 +1016,7 @@ This project uses GitHub Actions for continuous integration and deployment:
   - Validates code with checkstyle
   - Runs full test suite with FalkorDB integration tests
   - Publishes test reports
-  
+
 - **Publish**: Automatically publishes SNAPSHOT artifacts to Maven repository on merges to main
 
 See [ci/README.md](ci/README.md) for detailed CI/CD documentation.
@@ -977,7 +1024,7 @@ See [ci/README.md](ci/README.md) for detailed CI/CD documentation.
 ### Areas Needing Help
 
 - [ ] Query method parsing and generation
-- [ ] Spring Boot auto-configuration  
+- [ ] Spring Boot auto-configuration
 - [ ] Reactive programming support
 - [ ] Performance benchmarking
 - [ ] Documentation and examples
@@ -987,7 +1034,7 @@ See [ci/README.md](ci/README.md) for detailed CI/CD documentation.
 FalkorDB is the world's fastest graph database, and Spring Data FalkorDB is designed to leverage this performance:
 
 - **Sub-millisecond** query response times
-- **High throughput** for concurrent operations  
+- **High throughput** for concurrent operations
 - **Memory efficient** object mapping
 - **Optimized** RESP protocol communication
 
@@ -1027,7 +1074,7 @@ SOFTWARE.
 ## 📞 Support
 
 - **📖 Documentation**: [FalkorDB Docs](https://www.falkordb.com/docs/)
-- **💬 Community**: [FalkorDB Discord](https://discord.gg/falkordb)  
+- **💬 Community**: [FalkorDB Discord](https://discord.gg/falkordb)
 - **🐛 Issues**: [GitHub Issues](https://github.com/falkordb/spring-data-falkordb/issues)
 - **✉️ Email**: [support@falkordb.com](mailto:support@falkordb.com)
 
