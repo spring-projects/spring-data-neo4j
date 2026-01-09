@@ -484,7 +484,7 @@
 							<licenseSet>
 								<header>${project.basedir}/etc/license.tpl</header>
 								<properties>
-									<year>2025</year>
+									<year>present</year>
 								</properties>
 								<includes>
 									<include>**</include>
