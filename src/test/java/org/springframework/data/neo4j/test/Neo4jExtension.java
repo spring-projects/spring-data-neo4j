@@ -67,6 +67,7 @@ public class Neo4jExtension implements BeforeAllCallback, BeforeEachCallback {
 
 	public final static String NEEDS_REACTIVE_SUPPORT = "reactive-test";
 	public final static String NEEDS_VERSION_SUPPORTING_ELEMENT_ID = "elementid-test";
+	public static final String NEEDS_VECTOR_INDEX = "vectorindex-test";
 	public final static String COMMUNITY_EDITION_ONLY = "community-edition";
 	public final static String COMMERCIAL_EDITION_ONLY = "commercial-edition";
 	/**
@@ -160,6 +161,13 @@ public class Neo4jExtension implements BeforeAllCallback, BeforeEachCallback {
 		if (tags.contains(COMMERCIAL_EDITION_ONLY)) {
 			assumeThat(neo4jConnectionSupport.isCommercialEdition())
 					.describedAs("This test should be run on the commercial edition only").isTrue();
+		}
+
+		if (tags.contains(NEEDS_VECTOR_INDEX)) {
+			assumeThat(
+					neo4jConnectionSupport.getServerVersion().greaterThanOrEqual(ServerVersion.version("Neo4j/5.13.0")))
+					.describedAs("This tests needs a Neo4j version supporting Vector indexes")
+					.isTrue();
 		}
 
 		tags.stream().filter(s -> s.startsWith(REQUIRES)).map(ServerVersion::version).forEach(v -> {

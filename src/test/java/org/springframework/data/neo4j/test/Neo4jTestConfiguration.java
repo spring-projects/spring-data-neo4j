@@ -27,9 +27,9 @@ public interface Neo4jTestConfiguration {
 
 	default Configuration getConfiguration() {
 		if (isCypher5Compatible()) {
-			return Configuration.newConfig().withDialect(Dialect.NEO4J_5).build();
+			return Configuration.newConfig().withDialect(Dialect.NEO4J_5_DEFAULT_CYPHER).build();
 		}
 
-		return Configuration.defaultConfig();
+		return Configuration.newConfig().withDialect(Dialect.NEO4J_4).build();
 	}
 }

@@ -23,7 +23,6 @@ import org.assertj.core.api.ThrowingConsumer;
 import org.assertj.core.data.Percentage;
 import org.junit.jupiter.api.BeforeEach;
 import org.neo4j.cypherdsl.core.Cypher;
-import org.neo4j.cypherdsl.core.LabelExpression;
 import org.neo4j.cypherdsl.core.Node;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.types.Relationship;
@@ -131,17 +130,16 @@ class ReactiveIssuesIT extends TestBase {
 
 	@BeforeEach
 	void setup(@Autowired BookmarkCapture bookmarkCapture) {
-		List<String> labelsToBeRemoved = List.of("BugFromV1", "BugFrom", "BugTargetV1", "BugTarget", "BugTargetBaseV1", "BugTargetBase", "BugTargetContainer");
-		var labelExpression = new LabelExpression(labelsToBeRemoved.get(0));
-		for (int i = 1; i < labelsToBeRemoved.size(); i++) {
-			labelExpression = labelExpression.or(new LabelExpression(labelsToBeRemoved.get(i)));
-		}
+		List<String> labelsToBeRemoved = List.of("BugFromV1", "BugFrom", "BugTargetV1", "BugTarget", "BugTargetBaseV1",
+				"BugTargetBase", "BugTargetContainer");
 		try (Session session = neo4jConnectionSupport.getDriver().session(bookmarkCapture.createSessionConfig())) {
 			try (Transaction transaction = session.beginTransaction()) {
 				setupGH2289(transaction);
-				Node nodes = Cypher.node(labelExpression);
-				String cypher = Cypher.match(nodes).detachDelete(nodes).build().getCypher();
-				transaction.run(cypher).consume();
+				for (var label : labelsToBeRemoved) {
+					Node nodes = Cypher.node(label);
+					String cypher = Cypher.match(nodes).detachDelete(nodes).build().getCypher();
+					transaction.run(cypher).consume();
+				}
 				transaction.commit();
 			}
 			bookmarkCapture.seedWith(session.lastBookmarks());

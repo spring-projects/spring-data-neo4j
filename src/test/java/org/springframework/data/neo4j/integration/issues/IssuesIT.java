@@ -47,10 +47,10 @@ import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
+import org.junit.jupiter.api.condition.EnabledIf;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.neo4j.cypherdsl.core.Condition;
 import org.neo4j.cypherdsl.core.Cypher;
-import org.neo4j.cypherdsl.core.LabelExpression;
 import org.neo4j.cypherdsl.core.Node;
 import org.neo4j.cypherdsl.core.Parameter;
 import org.neo4j.cypherdsl.core.Property;
@@ -276,15 +276,13 @@ class IssuesIT extends TestBase {
 	@AfterEach
 	void cleanup(@Autowired BookmarkCapture bookmarkCapture) {
 		List<String> labelsToBeRemoved = List.of("BugFromV1", "BugFrom", "BugTargetV1", "BugTarget", "BugTargetBaseV1", "BugTargetBase", "BugTargetContainer");
-		var labelExpression = new LabelExpression(labelsToBeRemoved.get(0));
-		for (int i = 1; i < labelsToBeRemoved.size(); i++) {
-			labelExpression = labelExpression.or(new LabelExpression(labelsToBeRemoved.get(i)));
-		}
 		try (Session session = neo4jConnectionSupport.getDriver().session(bookmarkCapture.createSessionConfig());
 			 Transaction transaction = session.beginTransaction()) {
-			Node nodes = Cypher.node(labelExpression);
-			String cypher = Cypher.match(nodes).detachDelete(nodes).build().getCypher();
-			transaction.run(cypher).consume();
+			for (var label : labelsToBeRemoved) {
+				Node nodes = Cypher.node(label);
+				String cypher = Cypher.match(nodes).detachDelete(nodes).build().getCypher();
+				transaction.run(cypher).consume();
+			}
 			transaction.commit();
 			bookmarkCapture.seedWith(session.lastBookmarks());
 		}
@@ -1227,8 +1225,13 @@ class IssuesIT extends TestBase {
 
 	}
 
+	boolean is5OrLater() {
+		return neo4jConnectionSupport.isCypher5SyntaxCompatible();
+	}
+
 	@Test
 	@Tag("GH-2858")
+	@EnabledIf("is5OrLater")
 	void hydrateProjectionReachableViaMultiplePaths(@Autowired GH2858Repository repository) {
 		GH2858 entity = new GH2858();
 		entity.name = "rootEntity";
@@ -1773,8 +1776,9 @@ class IssuesIT extends TestBase {
 		assertThat(relationshipsCFail.get(0)).isNotExactlyInstanceOf(BaseRelationship.class);
 	}
 
-	@Tag("GH-3036")
 	@Test
+	@Tag("GH-3036")
+	@EnabledIf("is5OrLater")
 	void asdf(@Autowired VehicleRepository repository) {
 		var vehicleWithoutDynamicLabels = new Vehicle();
 		var vehicleWithOneDynamicLabel = new Vehicle();
