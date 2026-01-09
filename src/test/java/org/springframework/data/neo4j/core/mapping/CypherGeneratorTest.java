@@ -27,6 +27,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -34,6 +35,7 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mockito;
 import org.neo4j.cypherdsl.core.Cypher;
+import org.neo4j.cypherdsl.core.FunctionInvocation;
 import org.neo4j.cypherdsl.core.Statement;
 import org.neo4j.cypherdsl.core.renderer.Configuration;
 import org.neo4j.cypherdsl.core.renderer.Dialect;
@@ -48,6 +50,12 @@ import org.springframework.data.neo4j.core.schema.Node;
  * @author Michael J. Simons
  */
 class CypherGeneratorTest {
+
+	@BeforeAll
+	static void fixTheAbusOfASingleton() {
+		CypherGenerator.INSTANCE
+			.setElementIdOrIdFunction(n -> FunctionInvocation.create(() -> "elementId", n.getRequiredSymbolicName()));
+	}
 
 	@Test
 	void shouldCreateRelationshipCreationQueryWithLabelIfPresent() {

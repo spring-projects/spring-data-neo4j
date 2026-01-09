@@ -21,7 +21,6 @@ import static org.neo4j.cypherdsl.core.Cypher.collect;
 import static org.neo4j.cypherdsl.core.Cypher.listBasedOn;
 import static org.neo4j.cypherdsl.core.Cypher.literalOf;
 import static org.neo4j.cypherdsl.core.Cypher.match;
-import static org.neo4j.cypherdsl.core.Cypher.node;
 import static org.neo4j.cypherdsl.core.Cypher.optionalMatch;
 import static org.neo4j.cypherdsl.core.Cypher.parameter;
 
@@ -93,6 +92,14 @@ public enum CypherGenerator {
 			throw new IllegalArgumentException("Unsupported CypherDSL type: " + named.getClass());
 		}
 	};
+
+	private static Node node(String primaryLabel, List<String> additionalLabels) {
+		var labels = Cypher.exactlyLabel(primaryLabel);
+		if (!additionalLabels.isEmpty()) {
+			labels = labels.conjunctionWith(Cypher.allLabels(Cypher.anonParameter(additionalLabels)));
+		}
+		return Cypher.node(labels);
+	}
 
 	/**
 	 * Set function to be used to query either elementId or id.

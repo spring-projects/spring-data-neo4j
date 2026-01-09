@@ -21,7 +21,7 @@ import static org.neo4j.cypherdsl.core.Cypher.listWith;
 import static org.neo4j.cypherdsl.core.Cypher.name;
 import static org.neo4j.cypherdsl.core.Cypher.node;
 import static org.neo4j.cypherdsl.core.Cypher.parameter;
-import static org.neo4j.cypherdsl.core.Cypher.shortestPath;
+import static org.neo4j.cypherdsl.core.Cypher.shortestK;
 
 // end::domain-results-impl[]
 import java.util.Collection;
@@ -82,7 +82,7 @@ class DomainResultsImpl implements DomainResults {
 
 		var p1 = node("Person").withProperties("name", parameter("person1"));
 		var p2 = node("Person").withProperties("name", parameter("person2"));
-		var shortestPath = shortestPath("p").definedBy(
+		var shortestPath = shortestK(1).named("p").definedBy(
 				p1.relationshipBetween(p2).unbounded()
 		);
 		var p = shortestPath.getRequiredSymbolicName();
