@@ -569,6 +569,15 @@ class DefaultNeo4jPersistentEntityTests {
 
 	}
 
+	@Node
+	static class VectorAsObject {
+		Object vectorObjectProperty;
+
+		@Id
+		@GeneratedValue
+		private Long id;
+	}
+
 	@Nested
 	class ReadOnlyProperties {
 
@@ -935,6 +944,13 @@ class DefaultNeo4jPersistentEntityTests {
 				// the order of properties might be not the same all the time
 				.withMessageContaining("vectorProperty1")
 				.withMessageContaining("vectorProperty2");
+		}
+
+		@Test
+		void objectShouldNotBeConsideredAVector() {
+			Neo4jPersistentEntity<?> entityWithObject = new Neo4jMappingContext().getPersistentEntity(VectorAsObject.class);
+			assertThat(entityWithObject.hasVectorProperty()).isFalse();
+			assertThat(entityWithObject.getVectorProperty()).isNull();
 		}
 
 	}
