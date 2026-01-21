@@ -69,7 +69,7 @@ public interface Neo4jPersistentProperty extends PersistentProperty<Neo4jPersist
 	}
 
 	default boolean isVectorProperty() {
-		return this.getType().isAssignableFrom(Vector.class);
+		return Vector.class.isAssignableFrom(this.getType());
 	}
 
 	@Nullable
