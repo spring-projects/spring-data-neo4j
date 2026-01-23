@@ -498,7 +498,6 @@
 									<exclude>**/.flattened-pom.xml</exclude>
 									<exclude>**/*.tpl</exclude>
 									<exclude>**/aot.factories</exclude>
-									<exclude>**/Jenkinsfile</exclude>
 									<exclude>**/license.txt</exclude>
 									<exclude>**/LICENSE.txt</exclude>
 									<exclude>**/notice.txt</exclude>
