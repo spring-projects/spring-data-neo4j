@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!--
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><!--
 
     Copyright 2011-present the original author or authors.
 
@@ -15,8 +14,7 @@
     See the License for the specific language governing permissions and
     limitations under the License.
 
--->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+--><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
@@ -97,7 +95,7 @@
 		<maven-install-plugin.version>3.1.4</maven-install-plugin.version>
 		<maven-site-plugin.version>3.7.1</maven-site-plugin.version>
 		<maven.compiler.release>${java.version}</maven.compiler.release>
-		<neo4j-java-driver.version>6.0.2</neo4j-java-driver.version>
+		<neo4j-java-driver.version>6.0.3</neo4j-java-driver.version>
 		<neo4j-migrations.version>2.17.3</neo4j-migrations.version>
 		<neo4j.version>5.26.13</neo4j.version>
 		<objenesis.version>3.0.1</objenesis.version>
