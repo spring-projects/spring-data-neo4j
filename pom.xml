@@ -503,6 +503,7 @@
 									<exclude>**/notice.txt</exclude>
 									<exclude>**/org.mockito.plugins.MockMaker</exclude>
 									<exclude>**/spring.tooling</exclude>
+									<exclude>.git-blame-ignore-revs</exclude>
 								</excludes>
 							</licenseSet>
 						</licenseSets>
