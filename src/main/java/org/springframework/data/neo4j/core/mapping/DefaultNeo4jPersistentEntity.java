@@ -136,7 +136,7 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 	/**
 	 * The primary label will get computed and returned by following rules:<br>
 	 * 1. If there is no {@link Node} annotation, use the class name.<br>
-	 * 2. If there is an annotation but it has no properties set, use the class name.<br>
+	 * 2. If there is an annotation, but it has no properties set, use the class name.<br>
 	 * 3. If only {@link Node#labels()} property is set, use the first one as the primary
 	 * label 4. If the {@link Node#primaryLabel()} property is set, use this as the
 	 * primary label
@@ -155,6 +155,14 @@ final class DefaultNeo4jPersistentEntity<T> extends BasicPersistentEntity<T, Neo
 		else {
 			return nodeAnnotation.labels()[0];
 		}
+	}
+
+	@Override
+	public void addAssociation(Association<Neo4jPersistentProperty> association) {
+		if (association.getInverse().isTransient()) {
+			return;
+		}
+		super.addAssociation(association);
 	}
 
 	/**

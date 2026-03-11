@@ -141,7 +141,7 @@ final class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProp
 				}
 				codePoint = Character.toUpperCase(codePoint);
 			}
-			else if (sb.length() > 0) {
+			else if (!sb.isEmpty()) {
 				sb.append("_");
 			}
 			sb.append(Character.toChars(codePoint));

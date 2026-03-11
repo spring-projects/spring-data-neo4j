@@ -259,14 +259,15 @@ class Neo4jMappingContextTests {
 	void shouldHonourTransientAnnotation() {
 
 		Neo4jMappingContext schema = new Neo4jMappingContext();
-		Neo4jPersistentEntity<?> userNodeEntity = schema.getPersistentEntity(UserNode.class);
+		Neo4jPersistentEntity<?> userNodeEntity = schema.getRequiredPersistentEntity(UserNode.class);
 
+		assertThat(userNodeEntity.getTransientProperty("someOtherTransientThings")).isNotNull();
+		assertThat(userNodeEntity.getTransientProperty("anAnnotatedTransientProperty")).isNotNull();
 		assertThat(userNodeEntity.getPersistentProperty("anAnnotatedTransientProperty")).isNull();
 
 		List<String> associations = new ArrayList<>();
-		userNodeEntity.doWithAssociations((Association<Neo4jPersistentProperty> a) -> {
-			associations.add(a.getInverse().getFieldName());
-		});
+		userNodeEntity.doWithAssociations(
+				(Association<Neo4jPersistentProperty> a) -> associations.add(a.getInverse().getFieldName()));
 
 		assertThat(associations).containsOnly("bikes", "theSuperBike");
 	}
@@ -806,7 +807,6 @@ class Neo4jMappingContextTests {
 
 	}
 
-	@Node
 	static class SomeOtherClass {
 
 	}
