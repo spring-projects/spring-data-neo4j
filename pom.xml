@@ -73,7 +73,7 @@
 	<properties>
 		<antora.playbook>${project.basedir}/src/main/antora/antora-playbook.yml</antora.playbook>
 		<apiguardian.version>1.1.1</apiguardian.version>
-		<archunit.version>0.23.1</archunit.version>
+		<archunit.version>1.4.1</archunit.version>
 		<blockhound.version>1.0.8.RELEASE</blockhound.version>
 		<checkstyle.skip>${skipTests}</checkstyle.skip>
 		<checkstyle.version>10.20.1</checkstyle.version>

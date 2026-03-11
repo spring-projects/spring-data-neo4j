@@ -42,7 +42,7 @@ public class ArchitectureTests {
 	private static final DescribedPredicate<JavaClass> INTERNAL_API_PREDICATE = new DescribedPredicate<>(
 			"Is internal API") {
 		@Override
-		public boolean apply(JavaClass input) {
+		public boolean test(JavaClass input) {
 			API.Status status = input.getAnnotationOfType(API.class).status();
 			return "INTERNAL".equals(status.name());
 		}
@@ -91,6 +91,7 @@ public class ArchitectureTests {
 	void mappingPackageDependencies() {
 
 		Architectures.layeredArchitecture()
+			.consideringAllDependencies()
 			.layer("mapping")
 			.definedBy("org.springframework.data.neo4j.core.mapping",
 					"org.springframework.data.neo4j.core.mapping.callback")
@@ -99,7 +100,7 @@ public class ArchitectureTests {
 			.layer("everything outside SDN")
 			.definedBy(new DescribedPredicate<>("classes outside SDN") {
 				@Override
-				public boolean apply(JavaClass input) {
+				public boolean test(JavaClass input) {
 					return !input.getPackageName().startsWith("org.springframework.data.neo4j");
 				}
 			})
