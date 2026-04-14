@@ -809,7 +809,9 @@ public final class Neo4jTemplate
 					() -> String.format("Deleting all nodes with primary label %s", entityMetaData.getPrimaryLabel()));
 
 			Statement statement = this.cypherGenerator.prepareDeleteOf(entityMetaData);
-			ResultSummary summary = this.neo4jClient.query(this.renderer.render(statement)).run();
+			ResultSummary summary = this.neo4jClient.query(this.renderer.render(statement))
+				.bindAll(statement.getCatalog().getParameters())
+				.run();
 
 			log.debug(() -> String.format("Deleted %d nodes and %d relationships.", summary.counters().nodesDeleted(),
 					summary.counters().relationshipsDeleted()));
