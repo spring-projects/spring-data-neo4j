@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -198,6 +199,9 @@ import org.springframework.data.neo4j.integration.issues.gh2973.RelationshipC;
 import org.springframework.data.neo4j.integration.issues.gh2973.RelationshipD;
 import org.springframework.data.neo4j.integration.issues.gh3036.Vehicle;
 import org.springframework.data.neo4j.integration.issues.gh3036.VehicleRepository;
+import org.springframework.data.neo4j.integration.issues.gh3092.DynamicLabelChild;
+import org.springframework.data.neo4j.integration.issues.gh3092.DynamicLabelChildRepository;
+import org.springframework.data.neo4j.integration.issues.gh3092.DynamicLabelRoot;
 import org.springframework.data.neo4j.integration.issues.qbe.A;
 import org.springframework.data.neo4j.integration.issues.qbe.ARepository;
 import org.springframework.data.neo4j.integration.issues.qbe.B;
@@ -1290,6 +1294,24 @@ class IssuesIT extends TestBase {
 
 		var fruits = repository.findAllFruits();
 		assertThat(fruits).allMatch(f -> f instanceof Apple || f instanceof Orange);
+	}
+
+	@Test
+	void dynamicLabelsDeleteAll(@Autowired DynamicLabelChildRepository repository, @Autowired Neo4jTemplate template) {
+
+		// some data for verification
+		var child = new DynamicLabelChild();
+		child.setUuid(UUID.randomUUID());
+		child.setLabels(Set.of("new", "labels"));
+		repository.save(child);
+
+		var root = new DynamicLabelRoot();
+		template.save(root);
+
+		repository.deleteAll();
+
+		assertThat(repository.findAll()).isEmpty();
+		assertThat(template.findAll(DynamicLabelRoot.class)).hasSize(1);
 	}
 
 	@Test
