@@ -468,8 +468,8 @@ public final class Neo4jTemplate
 		TemplateSupport.FilteredBinderFunction<T> binderFunction = TemplateSupport.createAndApplyPropertyFilter(
 				includedProperties, entityMetaData,
 				this.neo4jMappingContext.getRequiredBinderFunctionFor((Class<T>) entityToBeSaved.getClass()));
-		var statement = this.cypherGenerator.prepareSaveOf(entityMetaData, dynamicLabels,
-				TemplateSupport.rendererRendersElementId(this.renderer));
+		var canUseElementId = TemplateSupport.rendererRendersElementId(this.renderer);
+		var statement = this.cypherGenerator.prepareSaveOf(entityMetaData, dynamicLabels, canUseElementId);
 		Optional<Entity> newOrUpdatedNode = this.neo4jClient.query(() -> this.renderer.render(statement))
 			.bind(entityToBeSaved)
 			.with(binderFunction)
@@ -486,8 +486,7 @@ public final class Neo4jTemplate
 		}
 
 		Object elementId = newOrUpdatedNode.map(node -> {
-			if (!entityMetaData.isUsingDeprecatedInternalId()
-					&& TemplateSupport.rendererRendersElementId(this.renderer)) {
+			if (!entityMetaData.isUsingDeprecatedInternalId() && canUseElementId) {
 				return IdentitySupport.getElementId(node);
 			}
 			@SuppressWarnings("deprecation")
@@ -504,7 +503,8 @@ public final class Neo4jTemplate
 		}
 
 		stateMachine.markEntityAsProcessed(instance, elementId);
-		processRelations(entityMetaData, propertyAccessor, isEntityNew, stateMachine, binderFunction.filter);
+		processRelations(entityMetaData, propertyAccessor, isEntityNew, stateMachine, binderFunction.filter,
+				canUseElementId);
 
 		T bean = propertyAccessor.getBean();
 		stateMachine.markAsAliased(instance, bean);
@@ -648,7 +648,8 @@ public final class Neo4jTemplate
 					TemplateSupport.computeIncludePropertyPredicate(
 							((includedProperties != null && !includedProperties.isEmpty()) || includeProperty != null)
 									? pps : includedPropertiesByClass.get(t.modifiedInstance.getClass()),
-							entityMetaData));
+							entityMetaData),
+					TemplateSupport.rendererRendersElementId(this.renderer));
 		}).collect(Collectors.toList());
 	}
 
@@ -856,24 +857,26 @@ public final class Neo4jTemplate
 	 * @param stateMachine initial state of entity processing
 	 * @param includeProperty a predicate telling to include a relationship property or
 	 * not
+	 * @param canUseElementId flag if the Cypher DSL renderer supports elementId function
 	 * @param <T> the type of the object being initially processed
 	 * @return the owner of the relations being processed
 	 */
 	private <T> T processRelations(Neo4jPersistentEntity<?> neo4jPersistentEntity,
 			PersistentPropertyAccessor<?> parentPropertyAccessor, boolean isParentObjectNew,
-			NestedRelationshipProcessingStateMachine stateMachine, PropertyFilter includeProperty) {
+			NestedRelationshipProcessingStateMachine stateMachine, PropertyFilter includeProperty,
+			boolean canUseElementId) {
 
 		PropertyFilter.RelaxedPropertyPath startingPropertyPath = PropertyFilter.RelaxedPropertyPath
 			.withRootType(neo4jPersistentEntity.getUnderlyingClass());
 		return processNestedRelations(neo4jPersistentEntity, parentPropertyAccessor, isParentObjectNew, stateMachine,
-				includeProperty, startingPropertyPath);
+				includeProperty, canUseElementId, startingPropertyPath);
 	}
 
 	@SuppressWarnings("deprecation")
 	private <T> T processNestedRelations(Neo4jPersistentEntity<?> sourceEntity,
 			PersistentPropertyAccessor<?> propertyAccessor, boolean isParentObjectNew,
 			NestedRelationshipProcessingStateMachine stateMachine, PropertyFilter includeProperty,
-			PropertyFilter.RelaxedPropertyPath previousPath) {
+			boolean canUseElementId, PropertyFilter.RelaxedPropertyPath previousPath) {
 
 		Object fromId = propertyAccessor.getProperty(sourceEntity.getRequiredIdProperty());
 
@@ -921,7 +924,6 @@ public final class Neo4jTemplate
 			// has not been processed before.
 			// This avoids the usage of cache but might have significant impact on overall
 			// performance
-			boolean canUseElementId = TemplateSupport.rendererRendersElementId(this.renderer);
 			if (!isParentObjectNew && !stateMachine.hasProcessedRelationship(fromId, relationshipDescription)) {
 
 				List<Object> knownRelationshipsIds = new ArrayList<>();
@@ -1121,7 +1123,7 @@ public final class Neo4jTemplate
 
 				if (processState != ProcessState.PROCESSED_ALL_VALUES) {
 					processNestedRelations(targetEntity, targetPropertyAccessor, isNewEntity, stateMachine,
-							includeProperty, currentPropertyPath);
+							includeProperty, canUseElementId, currentPropertyPath);
 				}
 
 				Object potentiallyRecreatedNewRelatedObject = MappingSupport
