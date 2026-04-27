@@ -428,7 +428,7 @@ public final class TemplateSupport {
 
 	static boolean rendererRendersElementId(Renderer renderer) {
 		return renderer.render(Cypher.returning(Cypher.elementId(Cypher.anyNode("n"))).build())
-				.equals("RETURN elementId(n)");
+				.endsWith("RETURN elementId(n)");
 	}
 
 	public static String convertIdOrElementIdToString(Object value) {

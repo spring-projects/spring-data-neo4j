@@ -15,12 +15,20 @@
  */
 package org.springframework.data.neo4j.core;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.stream.Stream;
 
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.neo4j.cypherdsl.core.renderer.Configuration;
+import org.neo4j.cypherdsl.core.renderer.Dialect;
+import org.neo4j.cypherdsl.core.renderer.Renderer;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Michael J. Simons
@@ -133,5 +141,40 @@ class TemplateSupportTest {
 
 		type = TemplateSupport.findCommonElementType(Arrays.asList(new B(), new A(), new A()));
 		assertThat(type).isNull();
+	}
+
+	@Nested
+	class CypherRendering {
+
+		@ParameterizedTest
+		@MethodSource("createSupportedCypherRenderers")
+		void rendersElementId(Renderer renderer, boolean supportsElementId) {
+			assertThat(TemplateSupport.rendererRendersElementId(renderer)).isEqualTo(supportsElementId);
+		}
+
+		static Stream<Arguments> createSupportedCypherRenderers() {
+			return Stream.of(Arguments
+				.arguments(Renderer.getRenderer(Configuration.newConfig().withDialect(Dialect.NEO4J_4).build()), false),
+					Arguments.arguments(
+							Renderer.getRenderer(Configuration.newConfig().withDialect(Dialect.NEO4J_5).build()), true),
+					Arguments.arguments(
+							Renderer.getRenderer(Configuration.newConfig().withDialect(Dialect.NEO4J_5_23).build()),
+							true),
+					Arguments.arguments(
+							Renderer.getRenderer(Configuration.newConfig().withDialect(Dialect.NEO4J_5_26).build()),
+							true),
+					Arguments.arguments(
+							Renderer.getRenderer(
+									Configuration.newConfig().withDialect(Dialect.NEO4J_5_DEFAULT_CYPHER).build()),
+							true),
+					Arguments.arguments(Renderer
+						.getRenderer(Configuration.newConfig().withDialect(Dialect.NEO4J_5_CYPHER_5).build()), true),
+					Arguments.arguments(Renderer
+						.getRenderer(Configuration.newConfig().withDialect(Dialect.NEO4J_5_CYPHER_25).build()), true),
+					Arguments.arguments(
+							Renderer.getRenderer(Configuration.newConfig().withDialect(Dialect.NEO4J_2025).build()),
+							true));
+		}
+
 	}
 }
