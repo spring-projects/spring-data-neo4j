@@ -104,7 +104,7 @@
 		<org.osgi.core.version>6.0.0</org.osgi.core.version>
 		<project.build.docs>${project.build.directory}/docs</project.build.docs>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<r2dbc.releasetrain>Arabba-SR11</r2dbc.releasetrain>
+		<r2dbc.h2.version>1.1.0.RELEASE</r2dbc.h2.version>
 		<reactive-streams.version>1.2.1</reactive-streams.version>
 		<skipArchitectureTests>true</skipArchitectureTests>
 		<skipIntegrationTests>${skipTests}</skipIntegrationTests>
@@ -116,13 +116,6 @@
 
 	<dependencyManagement>
 		<dependencies>
-			<dependency>
-				<groupId>io.r2dbc</groupId>
-				<artifactId>r2dbc-bom</artifactId>
-				<version>${r2dbc.releasetrain}</version>
-				<type>pom</type>
-				<scope>import</scope>
-			</dependency>
 			<dependency>
 				<groupId>org.neo4j</groupId>
 				<artifactId>neo4j-cypher-dsl-bom</artifactId>
@@ -144,6 +137,11 @@
 				<groupId>io.projectreactor.tools</groupId>
 				<artifactId>blockhound</artifactId>
 				<version>${blockhound.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>io.r2dbc</groupId>
+				<artifactId>r2dbc-h2</artifactId>
+				<version>${r2dbc.h2.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>io.reactivex.rxjava2</groupId>
