@@ -499,6 +499,7 @@
 									<exclude>**/license.txt</exclude>
 									<exclude>**/LICENSE.txt</exclude>
 									<exclude>**/notice.txt</exclude>
+									<exclude>**/settings.xml</exclude>
 									<exclude>**/org.mockito.plugins.MockMaker</exclude>
 									<exclude>**/spring.tooling</exclude>
 									<exclude>.git-blame-ignore-revs</exclude>
