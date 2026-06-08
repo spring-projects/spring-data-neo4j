@@ -91,6 +91,9 @@ public interface PersonRepository extends Neo4jRepository<PersonWithAllConstruct
 	Optional<PersonWithAllConstructor> getOptionalPersonViaQueryWithSort(@Param("part1") String part1,
 			@Param("part2") String part2, Sort sort);
 
+	@Query("MATCH (n:PersonWithAllConstructor) WHERE n.name = ?#{#name} RETURN n")
+	Optional<PersonWithAllConstructor> findPersonBySpelName(@Param("name") String name);
+
 	Optional<PersonWithAllConstructor> getOptionalPersonViaNamedQuery(@Param("part1") String part1,
 			@Param("part2") String part2);
 

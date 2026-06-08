@@ -214,7 +214,7 @@ class CypherGeneratorTests {
 					"apoc.text.clean(department.name)   |true | ORDER BY apoc.text.clean(department.name) DESC",
 					"apoc.text.clean()                  |true | ORDER BY apoc.text.clean() DESC",
 					"date()                             |false| ORDER BY date() ASC",
-					"date({year:1984, month:10, day:11})|false| ORDER BY date({year:1984, month:10, day:11}) ASC",
+					"date({year:1984, month:10, day:11})|false| ORDER BY date({year: 1984, month: 10, day: 11}) ASC",
 					"round(3.141592, 3)                 |false| ORDER BY round(3.141592, 3) ASC" })
 	@ParameterizedTest // GH-2273
 	void functionCallsShouldWork(String input, boolean descending, String expected) {
@@ -225,6 +225,22 @@ class CypherGeneratorTests {
 		}
 		String orderByFragment = CypherGenerator.INSTANCE.createOrderByFragment(sort);
 		assertThat(orderByFragment).isEqualTo(expected);
+	}
+
+	@Test
+	void shouldOnlyParseUpToFirstCompleteExpression() {
+
+		var sort = Sort.by("rand()) RETURN u UNION MATCH (s:Secret) RETURN s ORDER BY rand()");
+		String orderByFragment = CypherGenerator.INSTANCE.createOrderByFragment(sort);
+		assertThat(orderByFragment).isEqualTo("ORDER BY rand() ASC");
+	}
+
+	@Test
+	void shouldNotAllowMoreThanAFunctionCall() {
+
+		var sort = Sort.by("RETURN u UNION MATCH (s:Secret) RETURN s ORDER BY rand()");
+		assertThatIllegalArgumentException().isThrownBy(() -> CypherGenerator.INSTANCE.createOrderByFragment(sort))
+			.withMessage("Name must be a valid identifier");
 	}
 
 	@Test
