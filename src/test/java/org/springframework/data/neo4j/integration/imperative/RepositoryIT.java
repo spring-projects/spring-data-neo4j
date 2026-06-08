@@ -588,6 +588,14 @@ class RepositoryIT {
 		}
 
 		@Test
+		void shouldUseSpelParameters(@Autowired PersonRepository repository) {
+
+			Optional<PersonWithAllConstructor> person = repository
+				.findPersonBySpelName(" or n.password='bobby nodes' //");
+			assertThat(person).isEmpty();
+		}
+
+		@Test
 		void loadAllPersonsWithNoConstructor(@Autowired PersonWithNoConstructorRepository repository) {
 
 			List<PersonWithNoConstructor> persons = repository.getAllPersonsWithNoConstructorViaQuery();
