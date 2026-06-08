@@ -52,6 +52,7 @@ import org.neo4j.cypherdsl.core.StatementBuilder.OngoingUpdate;
 import org.neo4j.cypherdsl.core.SymbolicName;
 import org.neo4j.cypherdsl.core.renderer.Configuration;
 import org.neo4j.cypherdsl.core.renderer.Renderer;
+import org.neo4j.cypherdsl.parser.CypherParser;
 
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mapping.MappingException;
@@ -775,8 +776,11 @@ public enum CypherGenerator {
 		Statement statement = match(anyNode()).returning("n").orderBy(sort.stream().map(order -> {
 			String property = order.getProperty().trim();
 			Expression expression;
-			if (LOOKS_LIKE_A_FUNCTION.matcher(property).matches()) {
-				expression = Cypher.raw(property);
+			if (LOOKS_LIKE_A_FUNCTION.matcher(property).matches()
+					// The parser will parse an expression and return the first one,
+					// dropping everything after
+					&& CypherParser.parseExpression(property) instanceof FunctionInvocation functionInvocation) {
+				expression = functionInvocation;
 			}
 			else if (property.contains(".")) {
 				int firstDot = property.indexOf('.');
