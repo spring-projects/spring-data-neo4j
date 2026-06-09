@@ -47,7 +47,7 @@ import org.neo4j.driver.reactivestreams.ReactiveTransaction;
 import org.springframework.data.neo4j.core.DatabaseSelection;
 import org.springframework.data.neo4j.core.UserSelection;
 import org.springframework.data.neo4j.core.support.BookmarkManagerReference;
-import org.springframework.data.r2dbc.connectionfactory.R2dbcTransactionManager;
+import org.springframework.r2dbc.connection.R2dbcTransactionManager;
 import org.springframework.transaction.reactive.TransactionSynchronizationManager;
 import org.springframework.transaction.reactive.TransactionalOperator;
 
