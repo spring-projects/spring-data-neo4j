@@ -21,6 +21,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.lang.reflect.TypeVariable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -79,6 +80,7 @@ import org.springframework.util.ReflectionUtils;
  *
  * @author Michael J. Simons
  * @author Gerrit Meier
+ * @author Francesco Chicchiriccò
  * @since 6.0
  */
 @API(status = API.Status.STABLE, since = "6.0")
@@ -444,6 +446,7 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 		}));
 	}
 
+	@SuppressWarnings("rawtypes")
 	@Nullable Neo4jPersistentPropertyConverter<?> getOptionalCustomConversionsFor(Neo4jPersistentProperty persistentProperty) {
 
 		// Is the annotation present at all?
@@ -468,21 +471,12 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 			else {
 				converterClass = customConverter.getClass();
 			}
-			Map<String, Type> typeVariableMap = (converterClass != null)
-					? GenericTypeResolver.getTypeVariableMap(converterClass)
-						.entrySet()
-						.stream()
-						.collect(Collectors.toMap(e -> e.getKey().getName(), Map.Entry::getValue))
-					: Map.of();
-			Type propertyType = null;
-			if (typeVariableMap.containsKey("T")) {
-				propertyType = typeVariableMap.get("T");
-			}
-			else if (typeVariableMap.containsKey("P")) {
-				propertyType = typeVariableMap.get("P");
-			}
-			forCollection = propertyType instanceof ParameterizedType
-					&& persistentProperty.getType().equals(((ParameterizedType) propertyType).getRawType());
+			Map<TypeVariable, Type> typeVariableMap = (converterClass != null)
+					? GenericTypeResolver.getTypeVariableMap(converterClass) : Map.of();
+			forCollection = typeVariableMap.values()
+				.stream()
+				.anyMatch(propertyType -> propertyType instanceof ParameterizedType
+						&& persistentProperty.getType().equals(((ParameterizedType) propertyType).getRawType()));
 		}
 
 		return new NullSafeNeo4jPersistentPropertyConverter<>(customConverter, persistentProperty.isComposite(),
