@@ -16,6 +16,7 @@
 package org.springframework.data.neo4j.core.mapping;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiFunction;
@@ -118,7 +119,10 @@ public interface Schema {
 
 		Neo4jEntityConverter entityConverter = getEntityConverter();
 		return t -> {
-			Map<String, Object> parameters = new HashMap<>();
+			// LinkedHashMap to preserve the order of bound parameters (in particular
+			// the properties map produced by Neo4jEntityConverter#write). See
+			// https://github.com/spring-projects/spring-data-neo4j/issues/2866
+			Map<String, Object> parameters = new LinkedHashMap<>();
 			entityConverter.write(t, parameters);
 			return parameters;
 		};
