@@ -37,7 +37,6 @@ import org.springframework.data.neo4j.core.mapping.callback.EventSupport;
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
-import org.springframework.data.neo4j.core.schema.Property;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -54,8 +53,11 @@ class DefaultNeo4jEntityConverterTests {
 		DefaultNeo4jConversionService conversionService = new DefaultNeo4jConversionService(new Neo4jConversions());
 		Neo4jMappingContext context = new Neo4jMappingContext();
 		context.addPersistentEntity(TypeInformation.of(EntityWithDefaultValues.class));
+		context.addPersistentEntity(TypeInformation.of(OrderedPropertiesEntity.class));
 		nodeDescriptionStore.put("User",
 				(DefaultNeo4jPersistentEntity<?>) context.getNodeDescription(EntityWithDefaultValues.class));
+		nodeDescriptionStore.put("OrderedPropertiesEntity",
+				(DefaultNeo4jPersistentEntity<?>) context.getNodeDescription(OrderedPropertiesEntity.class));
 		EventSupport eventSupport = EventSupport.useExistingCallbacks(context, EntityCallbacks.create());
 		TypeSystem typeSystem = InternalTypeSystem.TYPE_SYSTEM;
 		this.entityConverter = new DefaultNeo4jEntityConverter(entityInstantiators, nodeDescriptionStore,
@@ -88,6 +90,26 @@ class DefaultNeo4jEntityConverterTests {
 		assertThat(readNode.defaultValue).isEqualTo("valueFromDatabase2");
 	}
 
+	@Test // GH-2866
+	void writeShouldPreservePropertyDeclarationOrder() {
+
+		Map<String, Object> parameters = new HashMap<>();
+		OrderedPropertiesEntity instance = new OrderedPropertiesEntity();
+		instance.nodeId = "n";
+		instance.description = "d";
+		instance.stuff = "s";
+		instance.reference = "r";
+		instance.title = "t";
+		this.entityConverter.write(instance, parameters);
+
+		@SuppressWarnings("unchecked")
+		Map<String, Object> properties = (Map<String, Object>) parameters.get("__properties__");
+		List<String> writtenPropertyOrder = new ArrayList<>(properties.keySet());
+		// 'id' is filtered out by the converter (internal id property); the remaining
+		// keys must follow the declaration order of the source class.
+		assertThat(writtenPropertyOrder).containsExactly("nodeId", "description", "stuff", "reference", "title");
+	}
+
 	@Node
 	static class EntityWithDefaultValues {
 
@@ -99,37 +121,6 @@ class DefaultNeo4jEntityConverterTests {
 		@GeneratedValue
 		Long id;
 
-	}
-
-	@Test // GH-2866
-	void writeShouldPreservePropertyDeclarationOrder() {
-
-		Neo4jMappingContext context = new Neo4jMappingContext();
-		context.addPersistentEntity(TypeInformation.of(OrderedPropertiesEntity.class));
-		NodeDescriptionStore store = new NodeDescriptionStore();
-		store.put("OrderedPropertiesEntity",
-				(DefaultNeo4jPersistentEntity<?>) context.getNodeDescription(OrderedPropertiesEntity.class));
-		DefaultNeo4jEntityConverter localConverter = new DefaultNeo4jEntityConverter(
-				new EntityInstantiators(), store,
-				new DefaultNeo4jConversionService(new Neo4jConversions()),
-				EventSupport.useExistingCallbacks(context, EntityCallbacks.create()),
-				InternalTypeSystem.TYPE_SYSTEM);
-
-		Map<String, Object> parameters = new HashMap<>();
-		OrderedPropertiesEntity instance = new OrderedPropertiesEntity();
-		instance.nodeId = "n";
-		instance.description = "d";
-		instance.stuff = "s";
-		instance.reference = "r";
-		instance.title = "t";
-		localConverter.write(instance, parameters);
-
-		@SuppressWarnings("unchecked")
-		Map<String, Object> properties = (Map<String, Object>) parameters.get("props");
-		List<String> writtenPropertyOrder = new ArrayList<>(properties.keySet());
-		// 'id' is filtered out by the converter (internal id property); the remaining
-		// keys must follow the declaration order of the source class.
-		assertThat(writtenPropertyOrder).containsExactly("nodeId", "description", "stuff", "reference", "title");
 	}
 
 	@Node
@@ -148,6 +139,7 @@ class DefaultNeo4jEntityConverterTests {
 		@Id
 		@GeneratedValue
 		Long id;
+
 	}
 
 }

@@ -337,7 +337,8 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 		}
 
 		// LinkedHashMap to preserve the declaration order of properties when writing
-		// them to the database. See https://github.com/spring-projects/spring-data-neo4j/issues/2866
+		// them to the database. See
+		// https://github.com/spring-projects/spring-data-neo4j/issues/2866
 		Map<String, Object> properties = new LinkedHashMap<>();
 
 		if (nodeDescription.hasRelationshipPropertyPersistTypeInfoFlag()) {
