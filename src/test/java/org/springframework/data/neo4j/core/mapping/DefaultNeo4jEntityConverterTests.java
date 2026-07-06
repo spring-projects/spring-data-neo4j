@@ -15,8 +15,10 @@
  */
 package org.springframework.data.neo4j.core.mapping;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.junit.jupiter.api.Test;
@@ -51,8 +53,11 @@ class DefaultNeo4jEntityConverterTests {
 		DefaultNeo4jConversionService conversionService = new DefaultNeo4jConversionService(new Neo4jConversions());
 		Neo4jMappingContext context = new Neo4jMappingContext();
 		context.addPersistentEntity(TypeInformation.of(EntityWithDefaultValues.class));
+		context.addPersistentEntity(TypeInformation.of(OrderedPropertiesEntity.class));
 		nodeDescriptionStore.put("User",
 				(DefaultNeo4jPersistentEntity<?>) context.getNodeDescription(EntityWithDefaultValues.class));
+		nodeDescriptionStore.put("OrderedPropertiesEntity",
+				(DefaultNeo4jPersistentEntity<?>) context.getNodeDescription(OrderedPropertiesEntity.class));
 		EventSupport eventSupport = EventSupport.useExistingCallbacks(context, EntityCallbacks.create());
 		TypeSystem typeSystem = InternalTypeSystem.TYPE_SYSTEM;
 		this.entityConverter = new DefaultNeo4jEntityConverter(entityInstantiators, nodeDescriptionStore,
@@ -85,12 +90,51 @@ class DefaultNeo4jEntityConverterTests {
 		assertThat(readNode.defaultValue).isEqualTo("valueFromDatabase2");
 	}
 
+	@Test // GH-2866
+	void writeShouldPreservePropertyDeclarationOrder() {
+
+		Map<String, Object> parameters = new HashMap<>();
+		OrderedPropertiesEntity instance = new OrderedPropertiesEntity();
+		instance.nodeId = "n";
+		instance.description = "d";
+		instance.stuff = "s";
+		instance.reference = "r";
+		instance.title = "t";
+		this.entityConverter.write(instance, parameters);
+
+		@SuppressWarnings("unchecked")
+		Map<String, Object> properties = (Map<String, Object>) parameters.get("__properties__");
+		List<String> writtenPropertyOrder = new ArrayList<>(properties.keySet());
+		// 'id' is filtered out by the converter (internal id property); the remaining
+		// keys must follow the declaration order of the source class.
+		assertThat(writtenPropertyOrder).containsExactly("nodeId", "description", "stuff", "reference", "title");
+	}
+
 	@Node
 	static class EntityWithDefaultValues {
 
 		public String noDefaultValue;
 
 		public String defaultValue = "Test";
+
+		@Id
+		@GeneratedValue
+		Long id;
+
+	}
+
+	@Node
+	static class OrderedPropertiesEntity {
+
+		String nodeId;
+
+		String description;
+
+		String stuff;
+
+		String reference;
+
+		String title;
 
 		@Id
 		@GeneratedValue

@@ -20,6 +20,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -335,7 +336,10 @@ final class DefaultNeo4jEntityConverter implements Neo4jEntityConverter {
 			return;
 		}
 
-		Map<String, Object> properties = new HashMap<>();
+		// LinkedHashMap to preserve the declaration order of properties when writing
+		// them to the database. See
+		// https://github.com/spring-projects/spring-data-neo4j/issues/2866
+		Map<String, Object> properties = new LinkedHashMap<>();
 
 		if (nodeDescription.hasRelationshipPropertyPersistTypeInfoFlag()) {
 			// add type info when write to the database
