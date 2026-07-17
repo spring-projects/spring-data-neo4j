@@ -20,7 +20,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -79,6 +78,7 @@ import org.springframework.util.ReflectionUtils;
  *
  * @author Michael J. Simons
  * @author Gerrit Meier
+ * @author Francesco Chicchiriccò
  * @since 6.0
  */
 @API(status = API.Status.STABLE, since = "6.0")
@@ -444,6 +444,7 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 		}));
 	}
 
+	@SuppressWarnings("rawtypes")
 	@Nullable Neo4jPersistentPropertyConverter<?> getOptionalCustomConversionsFor(Neo4jPersistentProperty persistentProperty) {
 
 		// Is the annotation present at all?
@@ -468,21 +469,15 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 			else {
 				converterClass = customConverter.getClass();
 			}
-			Map<String, Type> typeVariableMap = (converterClass != null)
-					? GenericTypeResolver.getTypeVariableMap(converterClass)
-						.entrySet()
-						.stream()
-						.collect(Collectors.toMap(e -> e.getKey().getName(), Map.Entry::getValue))
-					: Map.of();
-			Type propertyType = null;
-			if (typeVariableMap.containsKey("T")) {
-				propertyType = typeVariableMap.get("T");
-			}
-			else if (typeVariableMap.containsKey("P")) {
-				propertyType = typeVariableMap.get("P");
-			}
-			forCollection = propertyType instanceof ParameterizedType
-					&& persistentProperty.getType().equals(((ParameterizedType) propertyType).getRawType());
+			var persistentPropertyType = persistentProperty.getType();
+			// Checks if we have a convert class and the corresponding type variable map
+			// has an entry for the
+			// property type on the entity.
+			forCollection = converterClass != null && GenericTypeResolver.getTypeVariableMap(converterClass)
+				.values()
+				.stream()
+				.anyMatch(v -> v instanceof ParameterizedType parameterizedType
+						&& persistentPropertyType.equals(parameterizedType.getRawType()));
 		}
 
 		return new NullSafeNeo4jPersistentPropertyConverter<>(customConverter, persistentProperty.isComposite(),
