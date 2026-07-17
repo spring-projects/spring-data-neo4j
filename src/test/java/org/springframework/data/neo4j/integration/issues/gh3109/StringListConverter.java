@@ -24,7 +24,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
  */
 public class StringListConverter extends SerializableListConverter<String> {
 
-	protected static final TypeReference<List<String>> TYPEREF = new TypeReference<List<String>>() {
+	protected static final TypeReference<List<String>> TYPEREF = new TypeReference<>() {
 	};
 
 	@Override

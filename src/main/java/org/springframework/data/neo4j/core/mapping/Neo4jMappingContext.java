@@ -20,8 +20,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.lang.reflect.TypeVariable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -471,12 +469,15 @@ public final class Neo4jMappingContext extends AbstractMappingContext<Neo4jPersi
 			else {
 				converterClass = customConverter.getClass();
 			}
-			Map<TypeVariable, Type> typeVariableMap = (converterClass != null)
-					? GenericTypeResolver.getTypeVariableMap(converterClass) : Map.of();
-			forCollection = typeVariableMap.values()
+			var persistentPropertyType = persistentProperty.getType();
+			// Checks if we have a convert class and the corresponding type variable map
+			// has an entry for the
+			// property type on the entity.
+			forCollection = converterClass != null && GenericTypeResolver.getTypeVariableMap(converterClass)
+				.values()
 				.stream()
-				.anyMatch(propertyType -> propertyType instanceof ParameterizedType
-						&& persistentProperty.getType().equals(((ParameterizedType) propertyType).getRawType()));
+				.anyMatch(v -> v instanceof ParameterizedType parameterizedType
+						&& persistentPropertyType.equals(parameterizedType.getRawType()));
 		}
 
 		return new NullSafeNeo4jPersistentPropertyConverter<>(customConverter, persistentProperty.isComposite(),

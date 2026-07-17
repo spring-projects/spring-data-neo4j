@@ -51,7 +51,7 @@ abstract class SerializableListConverter<T extends Serializable> implements Neo4
 		return result;
 	}
 
-	private static <O extends Object> O deserialize(final String serialized, final TypeReference<O> reference) {
+	private static <O> O deserialize(final String serialized, final TypeReference<O> reference) {
 		O result = null;
 
 		try {
