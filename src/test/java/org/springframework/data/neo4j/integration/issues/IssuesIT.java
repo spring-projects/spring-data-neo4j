@@ -205,6 +205,8 @@ import org.springframework.data.neo4j.integration.issues.gh3036.VehicleRepositor
 import org.springframework.data.neo4j.integration.issues.gh3092.DynamicLabelChild;
 import org.springframework.data.neo4j.integration.issues.gh3092.DynamicLabelChildRepository;
 import org.springframework.data.neo4j.integration.issues.gh3092.DynamicLabelRoot;
+import org.springframework.data.neo4j.integration.issues.gh3109.NodeWithValueList;
+import org.springframework.data.neo4j.integration.issues.gh3109.NodeWithValueListRepository;
 import org.springframework.data.neo4j.integration.issues.qbe.A;
 import org.springframework.data.neo4j.integration.issues.qbe.ARepository;
 import org.springframework.data.neo4j.integration.issues.qbe.B;
@@ -228,6 +230,7 @@ import static org.assertj.core.api.Assertions.tuple;
 
 /**
  * @author Michael J. Simons
+ * @author Francesco Chicchiriccò
  */
 @Neo4jIntegrationTest
 @DisplayNameGeneration(SimpleDisplayNameGeneratorWithTags.class)
@@ -1897,6 +1900,17 @@ class IssuesIT extends TestBase {
 		var vehicles = repository.findAllVehicles();
 		assertThat(vehicles).hasOnlyElementsOfType(Vehicle.class);
 
+	}
+
+	@Tag("GH-3109")
+	@Test
+	void customConverterForGenericCollection(@Autowired NodeWithValueListRepository repository) {
+		NodeWithValueList entity = new NodeWithValueList();
+		entity.getValueList().add("value1");
+		entity.getValueList().add("value2");
+
+		entity = repository.save(entity);
+		assertThat(entity.getValueList()).containsExactly("value1", "value2");
 	}
 
 	@Configuration
