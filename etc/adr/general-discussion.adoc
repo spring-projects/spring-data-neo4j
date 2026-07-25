@@ -146,7 +146,7 @@ We will however provide support to configure the drivers instance in Spring Boot
 The current SDN Spring Boot Starter only configures the Neo4j-OGM transport and not the "real" driver.
 Our plans for a future starter a have been <<starter,described separately>>.
 
-Closing the driver is not the the concern of Spring Data Neo4j.
+Closing the driver is not the concern of Spring Data Neo4j.
 The lifecycle of that bean should be managed by the application.
 Therefore, the starter need to take care of register the drivers instance with the application.
 
