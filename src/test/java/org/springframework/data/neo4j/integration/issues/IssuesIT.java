@@ -64,6 +64,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -207,6 +208,8 @@ import org.springframework.data.neo4j.integration.issues.gh3092.DynamicLabelChil
 import org.springframework.data.neo4j.integration.issues.gh3092.DynamicLabelRoot;
 import org.springframework.data.neo4j.integration.issues.gh3109.NodeWithValueList;
 import org.springframework.data.neo4j.integration.issues.gh3109.NodeWithValueListRepository;
+import org.springframework.data.neo4j.integration.issues.gh3116.PayoutProfileNode;
+import org.springframework.data.neo4j.integration.issues.gh3116.RestaurantNode;
 import org.springframework.data.neo4j.integration.issues.qbe.A;
 import org.springframework.data.neo4j.integration.issues.qbe.ARepository;
 import org.springframework.data.neo4j.integration.issues.qbe.B;
@@ -247,6 +250,10 @@ class IssuesIT extends TestBase {
 
 	private static final Long numberD = 4L;
 
+	private static final UUID gh3116Id = UUID.randomUUID();
+
+	private static final UUID gh3116IdNullVersion = UUID.randomUUID();
+
 	// GH-2323
 	protected static String personId;
 
@@ -272,6 +279,7 @@ class IssuesIT extends TestBase {
 				setupGH2572(transaction);
 				setupGH2583(transaction);
 				setupGH2908(transaction);
+				setupGH3116(transaction);
 
 				transaction.run(
 						"CREATE (:A {name: 'A name', id: randomUUID()}) -[:HAS] ->(:B {anotherName: 'Whatever', id: randomUUID()})");
@@ -280,6 +288,14 @@ class IssuesIT extends TestBase {
 			}
 			bookmarkCapture.seedWith(session.lastBookmarks());
 		}
+	}
+
+	private static void setupGH3116(QueryRunner queryRunner) {
+		queryRunner.run("CREATE (r:Restaurant {id: $id, version: 0})-[:HAS_PAYOUT_PROFILE]->(p:PayoutProfile)",
+				Map.of("id", gh3116Id.toString()));
+
+		queryRunner.run("CREATE (r:Restaurant {id: $id})-[:HAS_PAYOUT_PROFILE]->(p:PayoutProfile)",
+				Map.of("id", gh3116IdNullVersion.toString()));
 	}
 
 	// clean up known throw-away nodes / rels
@@ -1911,6 +1927,52 @@ class IssuesIT extends TestBase {
 
 		entity = repository.save(entity);
 		assertThat(entity.getValueList()).containsExactly("value1", "value2");
+	}
+
+	@Tag("GH-3116")
+	@Test
+	void shouldRead1To1Relationship(@Autowired Neo4jTemplate neo4jTemplate) {
+
+		var optionalRestaurantNode = neo4jTemplate.findById(gh3116Id, RestaurantNode.class);
+		assertThat(optionalRestaurantNode).isPresent();
+
+		var restaurant = optionalRestaurantNode.orElseThrow();
+		assertThat(restaurant.getPayoutProfile()).isNotNull();
+		assertThat(restaurant.getVersion()).isZero();
+
+		restaurant = neo4jTemplate.save(restaurant);
+		assertThat(restaurant.getVersion()).isOne();
+	}
+
+	@Tag("GH-3115")
+	@Test
+	void shouldHandleNulLVersion(@Autowired Neo4jTemplate neo4jTemplate) {
+
+		var optionalRestaurantNode = neo4jTemplate.findById(gh3116IdNullVersion, RestaurantNode.class);
+		assertThat(optionalRestaurantNode).isPresent();
+
+		var restaurant = optionalRestaurantNode.orElseThrow();
+		assertThat(restaurant.getPayoutProfile()).isNotNull();
+		assertThat(restaurant.getVersion()).isNull();
+
+		// This is expected, as the version must not be null… We actually should fail on
+		// read maybe?
+		assertThatExceptionOfType(OptimisticLockingFailureException.class)
+			.isThrownBy(() -> neo4jTemplate.save(restaurant))
+			.withMessage("An entity with the required version does not exist.");
+	}
+
+	@Tag("GH-3116")
+	@Test
+	void shouldUpdateNullVersionAnd1To1Relationship(@Autowired Neo4jTemplate neo4jTemplate) {
+
+		var payoutProfile = new PayoutProfileNode(UUID.randomUUID());
+		var restaurant = new RestaurantNode(UUID.randomUUID(), null, payoutProfile);
+		restaurant = neo4jTemplate.save(restaurant);
+
+		assertThat(restaurant.getVersion()).isZero();
+		restaurant = neo4jTemplate.findById(restaurant.getId(), RestaurantNode.class).orElseThrow();
+		assertThat(restaurant.getPayoutProfile().getId()).isEqualTo(payoutProfile.getId());
 	}
 
 	@Configuration
