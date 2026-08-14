@@ -1,5 +1,5 @@
-Spring Data Neo4j 8.1 GA (2026.0.0)
-Copyright 2011-2021 the original author or authors.
+Spring Data Neo4j 8.1.1 (2026.0.1)
+Copyright 2011-2026 the original author or authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
