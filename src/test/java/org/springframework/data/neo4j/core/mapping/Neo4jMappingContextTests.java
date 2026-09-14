@@ -306,6 +306,15 @@ class Neo4jMappingContextTests {
 		schema.getOptionalCustomConversionsFor(property);
 	}
 
+	@Test // gh-3035
+	void shouldAcceptCompositeConverterWithParameterizedPropertyType() {
+		Neo4jMappingContext schema = new Neo4jMappingContext();
+		Neo4jPersistentEntity<?> entity = schema.getPersistentEntity(WithParameterizedCompositeUsage.class);
+		Neo4jPersistentProperty property = entity.getRequiredPersistentProperty("name");
+
+		schema.getOptionalCustomConversionsFor(property);
+	}
+
 	@Test
 	void shouldPreventIllegalCompositeUsageOnCollections() {
 		Neo4jMappingContext schema = new Neo4jMappingContext();
@@ -1020,6 +1029,41 @@ class Neo4jMappingContextTests {
 		@GeneratedValue
 		@SuppressWarnings("unused")
 		private Long id;
+
+	}
+
+	@Node
+	static class WithParameterizedCompositeUsage {
+
+		@CompositeProperty(converter = ParameterizedValueToMapConverter.class)
+		@SuppressWarnings("unused")
+		ParameterizedValue<String> name;
+
+		@Id
+		@GeneratedValue
+		@SuppressWarnings("unused")
+		private Long id;
+
+	}
+
+	static class ParameterizedValue<T> {
+
+	}
+
+	static class ParameterizedValueToMapConverter
+			implements Neo4jPersistentPropertyToMapConverter<String, ParameterizedValue<String>> {
+
+		@Override
+		public java.util.Map<String, Value> decompose(ParameterizedValue<String> property,
+				Neo4jConversionService neo4jConversionService) {
+			return java.util.Collections.emptyMap();
+		}
+
+		@Override
+		public ParameterizedValue<String> compose(java.util.Map<String, Value> source,
+				Neo4jConversionService neo4jConversionService) {
+			return new ParameterizedValue<>();
+		}
 
 	}
 

@@ -27,6 +27,7 @@ import java.util.stream.Collectors;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.GenericTypeResolver;
+import org.springframework.core.ResolvableType;
 import org.springframework.data.core.TypeInformation;
 import org.springframework.data.neo4j.core.convert.Neo4jConversionService;
 import org.springframework.data.neo4j.core.convert.Neo4jPersistentPropertyConverter;
@@ -113,7 +114,13 @@ final class CompositePropertyConverterFactory implements Neo4jPersistentProperty
 				}
 			}
 
-			if (persistentProperty.getActualType() != type) {
+			TypeInformation<?> propertyTypeInformation = persistentProperty.getTypeInformation();
+			if (persistentProperty.isCollectionLike()) {
+				propertyTypeInformation = propertyTypeInformation.getRequiredComponentType();
+			}
+			TypeInformation<?> converterPropertyTypeInformation = TypeInformation.of(ResolvableType.forType(type));
+
+			if (!propertyTypeInformation.equals(converterPropertyTypeInformation)) {
 				var typeName = Optional.ofNullable(type).map(Type::getTypeName).orElse("n/a");
 				throw new IllegalArgumentException(
 						"The property type `" + typeName + "` created by `" + delegateClass.getName() + "` "
