@@ -32,14 +32,25 @@ import org.springframework.data.neo4j.test.Neo4jExtension;
 @Tag(Neo4jExtension.INCOMPATIBLE_WITH_CLUSTERS)
 class ReactiveRepositoryWithADifferentDatabaseIT extends ReactiveRepositoryIT {
 
-	private static final String TEST_DATABASE_NAME = "aTestDatabase";
+	private static final String TEST_DATABASE_NAME = "atestdatabase";
+
+	private static boolean needsNewDatabase = true;
 
 	@BeforeAll
 	static void createTestDatabase() {
 
-		try (Session session = neo4jConnectionSupport.getDriver().session(SessionConfig.forDatabase("system"))) {
+		try (Session session = neo4jConnectionSupport.getDriver().session()) {
+			var databases = session.run("SHOW DATABASES yield name return distinct(name) as database")
+				.list(record -> record.get("database").asString());
+			if (databases.contains(TEST_DATABASE_NAME)) {
+				needsNewDatabase = false;
+			}
+		}
+		if (needsNewDatabase) {
+			try (Session session = neo4jConnectionSupport.getDriver().session(SessionConfig.forDatabase("system"))) {
 
-			session.run("CREATE DATABASE " + TEST_DATABASE_NAME).consume();
+				session.run("CREATE DATABASE " + TEST_DATABASE_NAME).consume();
+			}
 		}
 
 		databaseSelection.set(DatabaseSelection.byName(TEST_DATABASE_NAME));
@@ -47,10 +58,11 @@ class ReactiveRepositoryWithADifferentDatabaseIT extends ReactiveRepositoryIT {
 
 	@AfterAll
 	static void dropTestDatabase() {
+		if (needsNewDatabase) {
+			try (Session session = neo4jConnectionSupport.getDriver().session(SessionConfig.forDatabase("system"))) {
 
-		try (Session session = neo4jConnectionSupport.getDriver().session(SessionConfig.forDatabase("system"))) {
-
-			session.run("DROP DATABASE " + TEST_DATABASE_NAME).consume();
+				session.run("DROP DATABASE " + TEST_DATABASE_NAME).consume();
+			}
 		}
 
 		databaseSelection.set(DatabaseSelection.undecided());

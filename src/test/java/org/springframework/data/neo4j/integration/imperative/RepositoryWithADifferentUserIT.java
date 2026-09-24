@@ -40,14 +40,23 @@ class RepositoryWithADifferentUserIT extends RepositoryIT {
 
 	private static final String TEST_DATABASE_NAME = "sdn62db";
 
+	private static boolean needsNewDatabase = true;
+
 	@BeforeAll
 	static void createTestDatabase() {
-
 		assumeThat(Neo4jTransactionUtils.driverSupportsImpersonation()).isTrue();
-
+		try (Session session = neo4jConnectionSupport.getDriver().session()) {
+			var databases = session.run("SHOW DATABASES yield name return distinct(name) as database")
+				.list(record -> record.get("database").asString());
+			if (databases.contains(TEST_DATABASE_NAME)) {
+				needsNewDatabase = false;
+			}
+		}
 		try (Session session = neo4jConnectionSupport.getDriver().session(SessionConfig.forDatabase("system"))) {
 
-			session.run("CREATE DATABASE $db", Values.parameters("db", TEST_DATABASE_NAME)).consume();
+			if (needsNewDatabase) {
+				session.run("CREATE DATABASE $db", Values.parameters("db", TEST_DATABASE_NAME)).consume();
+			}
 			session
 				.run("CREATE USER $user SET PASSWORD $password CHANGE NOT REQUIRED SET HOME DATABASE $database", Values
 					.parameters("user", TEST_USER, "password", TEST_USER + "_password", "database", TEST_DATABASE_NAME))
@@ -69,7 +78,9 @@ class RepositoryWithADifferentUserIT extends RepositoryIT {
 				.run("REVOKE IMPERSONATE ($targetUser) ON DBMS FROM admin", Values.parameters("targetUser", TEST_USER))
 				.consume();
 			session.run("DROP USER $user", Values.parameters("user", TEST_USER)).consume();
-			session.run("DROP DATABASE $db", Values.parameters("db", TEST_DATABASE_NAME)).consume();
+			if (needsNewDatabase) {
+				session.run("DROP DATABASE $db", Values.parameters("db", TEST_DATABASE_NAME)).consume();
+			}
 		}
 
 		userSelection.set(UserSelection.connectedUser());
