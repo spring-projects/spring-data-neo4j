@@ -68,6 +68,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 
 /**
  * @author Michael J. Simons
+ * @author Vinod Kumar
  */
 @ExtendWith(MockitoExtension.class)
 class Neo4jTransactionManagerTests {
