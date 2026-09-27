@@ -32,6 +32,7 @@ import org.neo4j.driver.Bookmark;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.SessionConfig;
 import org.neo4j.driver.TransactionConfig;
+import org.neo4j.driver.exceptions.ServiceUnavailableException;
 import org.neo4j.driver.reactivestreams.ReactiveSession;
 import org.neo4j.driver.reactivestreams.ReactiveTransaction;
 import reactor.core.publisher.Mono;
@@ -89,6 +90,56 @@ class ReactiveNeo4jTransactionManagerTests {
 			.retrieveReactiveTransaction(this.driver, this.databaseSelection, this.userSelection);
 
 		StepVerifier.create(transactionMono).verifyComplete();
+	}
+
+	@Test
+	void shouldCloseSessionWhenBeginTransactionFails() {
+
+		ServiceUnavailableException beginFailure = new ServiceUnavailableException("Database unavailable");
+		given(this.session.beginTransaction(any(TransactionConfig.class))).willReturn(Mono.error(beginFailure));
+
+		ReactiveNeo4jTransactionManager txManager = ReactiveNeo4jTransactionManager.with(this.driver).build();
+
+		TransactionalOperator.create(txManager)
+			.execute(transactionStatus -> Mono.just("never reached"))
+			.as(StepVerifier::create)
+			.verifyErrorSatisfies(ex -> assertThat(ex).isSameAs(beginFailure));
+
+		verify(this.session).close();
+		verify(this.transaction, never()).rollback();
+	}
+
+	@Test
+	void failureWhileClosingSessionShouldNotMaskBeginFailure() {
+
+		ServiceUnavailableException beginFailure = new ServiceUnavailableException("Database unavailable");
+		IllegalStateException closeFailure = new IllegalStateException("Connection already gone");
+		given(this.session.beginTransaction(any(TransactionConfig.class))).willReturn(Mono.error(beginFailure));
+		given(this.session.close()).willReturn(Mono.error(closeFailure));
+
+		ReactiveNeo4jTransactionManager txManager = ReactiveNeo4jTransactionManager.with(this.driver).build();
+
+		TransactionalOperator.create(txManager)
+			.execute(transactionStatus -> Mono.just("never reached"))
+			.as(StepVerifier::create)
+			.verifyErrorSatisfies(ex -> {
+				assertThat(ex).isSameAs(beginFailure);
+				assertThat(ex.getSuppressed()).containsExactly(closeFailure);
+			});
+	}
+
+	@Test
+	void shouldCloseSessionWhenBeginTransactionThrowsBeforeReturningPublisher() {
+		ServiceUnavailableException beginFailure = new ServiceUnavailableException("Database unavailable");
+		given(this.session.beginTransaction(any(TransactionConfig.class))).willThrow(beginFailure);
+
+		ReactiveNeo4jTransactionManager txManager = ReactiveNeo4jTransactionManager.with(this.driver).build();
+		TransactionalOperator.create(txManager)
+			.execute(transactionStatus -> Mono.just("never reached"))
+			.as(StepVerifier::create)
+			.verifyErrorSatisfies(ex -> assertThat(ex).isSameAs(beginFailure));
+
+		verify(this.session).close();
 	}
 
 	@Nested

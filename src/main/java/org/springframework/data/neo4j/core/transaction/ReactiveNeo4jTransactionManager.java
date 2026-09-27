@@ -255,8 +255,9 @@ public final class ReactiveNeo4jTransactionManager extends AbstractReactiveTrans
 								Neo4jTransactionUtils.sessionConfig(readOnly, context.getBookmarks(),
 										context.getDatabaseSelection(), context.getUserSelection()))))
 				.flatMap(contextAndSession -> Mono
-					.fromDirect(contextAndSession.getT2().beginTransaction(transactionConfig))
+					.defer(() -> Mono.fromDirect(contextAndSession.getT2().beginTransaction(transactionConfig)))
 					.single()
+					.onErrorResume(ex -> closeSessionAndPropagate(contextAndSession.getT2(), ex))
 					.map(nativeTransaction -> new ReactiveNeo4jTransactionHolder(contextAndSession.getT1(),
 							contextAndSession.getT2(), nativeTransaction)))
 				.doOnNext(transactionHolder -> {
@@ -266,6 +267,23 @@ public final class ReactiveNeo4jTransactionManager extends AbstractReactiveTrans
 				});
 
 		}).then();
+	}
+
+	/**
+	 * Closes a session whose transaction could not be started and re-emits the original
+	 * error. A failure while closing is attached to the original error as a suppressed
+	 * exception, so that the root cause is not masked.
+	 * @param session the session opened by
+	 * {@link #doBegin(TransactionSynchronizationManager, Object, TransactionDefinition)}
+	 * @param originalException the error that caused the begin to fail
+	 * @param <T> the type of the returned {@link Mono}
+	 * @return a {@link Mono} failing with {@code originalException}
+	 */
+	private static <T> Mono<T> closeSessionAndPropagate(ReactiveSession session, Throwable originalException) {
+		return Mono.defer(() -> Mono.fromDirect(session.close())).onErrorResume(closeException -> {
+			originalException.addSuppressed(closeException);
+			return Mono.empty();
+		}).then(Mono.error(originalException));
 	}
 
 	@Override

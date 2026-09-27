@@ -242,7 +242,19 @@ public final class Neo4jTransactionManager extends AbstractPlatformTransactionMa
 			// Configure and open session together with a native transaction
 			Session session = this.driver.session(Neo4jTransactionUtils.sessionConfig(readOnly, context.getBookmarks(),
 					context.getDatabaseSelection(), context.getUserSelection()));
-			Transaction nativeTransaction = session.beginTransaction(transactionConfig);
+			Transaction nativeTransaction;
+			try {
+				nativeTransaction = session.beginTransaction(transactionConfig);
+			}
+			catch (Exception ex) {
+				try {
+					session.close();
+				}
+				catch (Exception closeException) {
+					ex.addSuppressed(closeException);
+				}
+				throw ex;
+			}
 
 			// Synchronize on that
 			Neo4jTransactionHolder transactionHolder = new Neo4jTransactionHolder(context, session, nativeTransaction);
