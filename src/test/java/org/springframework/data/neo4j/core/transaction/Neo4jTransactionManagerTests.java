@@ -36,6 +36,7 @@ import org.neo4j.driver.Session;
 import org.neo4j.driver.SessionConfig;
 import org.neo4j.driver.Transaction;
 import org.neo4j.driver.TransactionConfig;
+import org.neo4j.driver.exceptions.ServiceUnavailableException;
 import org.neo4j.driver.summary.ResultSummary;
 import org.neo4j.driver.types.TypeSystem;
 
@@ -45,6 +46,7 @@ import org.springframework.data.neo4j.core.UserSelection;
 import org.springframework.data.neo4j.core.support.BookmarkManagerReference;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.TransactionSystemException;
 import org.springframework.transaction.jta.JtaTransactionManager;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 import org.springframework.transaction.support.DefaultTransactionStatus;
@@ -53,7 +55,9 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 import org.springframework.transaction.support.TransactionTemplate;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyMap;
 import static org.mockito.Mockito.anyString;
@@ -64,6 +68,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 
 /**
  * @author Michael J. Simons
+ * @author Vinod Kumar
  */
 @ExtendWith(MockitoExtension.class)
 class Neo4jTransactionManagerTests {
@@ -131,6 +136,41 @@ class Neo4jTransactionManagerTests {
 		verify(this.transaction).close();
 
 		verify(this.session).close();
+	}
+
+	@Test
+	void shouldCloseSessionWhenBeginTransactionFails() {
+
+		ServiceUnavailableException beginFailure = new ServiceUnavailableException("Database unavailable");
+		given(this.driver.session(any(SessionConfig.class))).willReturn(this.session);
+		given(this.session.beginTransaction(any(TransactionConfig.class))).willThrow(beginFailure);
+
+		Neo4jTransactionManager txManager = new Neo4jTransactionManager(this.driver);
+
+		assertThatExceptionOfType(TransactionSystemException.class)
+			.isThrownBy(() -> txManager.getTransaction(new DefaultTransactionDefinition()))
+			.withCause(beginFailure);
+
+		verify(this.session).close();
+		assertThat(TransactionSynchronizationManager.hasResource(this.driver)).isFalse();
+	}
+
+	@Test
+	void failureWhileClosingSessionShouldNotMaskBeginFailure() {
+
+		ServiceUnavailableException beginFailure = new ServiceUnavailableException("Database unavailable");
+		IllegalStateException closeFailure = new IllegalStateException("Connection already gone");
+		given(this.driver.session(any(SessionConfig.class))).willReturn(this.session);
+		given(this.session.beginTransaction(any(TransactionConfig.class))).willThrow(beginFailure);
+		willThrow(closeFailure).given(this.session).close();
+
+		Neo4jTransactionManager txManager = new Neo4jTransactionManager(this.driver);
+
+		assertThatExceptionOfType(TransactionSystemException.class)
+			.isThrownBy(() -> txManager.getTransaction(new DefaultTransactionDefinition()))
+			.withCause(beginFailure);
+
+		assertThat(beginFailure.getSuppressed()).containsExactly(closeFailure);
 	}
 
 	@Test
