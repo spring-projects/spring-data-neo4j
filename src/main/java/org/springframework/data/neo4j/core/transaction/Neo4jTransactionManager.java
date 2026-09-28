@@ -53,6 +53,7 @@ import org.springframework.util.Assert;
  * session/transaction with the transaction.
  *
  * @author Michael J. Simons
+ * @author Vinod Kumar
  * @since 6.0
  */
 @API(status = API.Status.STABLE, since = "6.0")
@@ -175,7 +176,7 @@ public final class Neo4jTransactionManager extends AbstractPlatformTransactionMa
 
 		// Otherwise we open a session and synchronize it.
 		Session session = driver.session(Neo4jTransactionUtils.defaultSessionConfig(targetDatabase, asUser));
-		Transaction transaction = session.beginTransaction(
+		Transaction transaction = newNativeTransaction(session,
 				Neo4jTransactionUtils.createTransactionConfigFrom(TransactionDefinition.withDefaults(), -1));
 		// Manually create a new synchronization
 		connectionHolder = new Neo4jTransactionHolder(new Neo4jTransactionContext(targetDatabase, asUser), session,
@@ -242,7 +243,7 @@ public final class Neo4jTransactionManager extends AbstractPlatformTransactionMa
 			// Configure and open session together with a native transaction
 			Session session = this.driver.session(Neo4jTransactionUtils.sessionConfig(readOnly, context.getBookmarks(),
 					context.getDatabaseSelection(), context.getUserSelection()));
-			Transaction nativeTransaction = session.beginTransaction(transactionConfig);
+			Transaction nativeTransaction = newNativeTransaction(session, transactionConfig);
 
 			// Synchronize on that
 			Neo4jTransactionHolder transactionHolder = new Neo4jTransactionHolder(context, session, nativeTransaction);
@@ -254,6 +255,21 @@ public final class Neo4jTransactionManager extends AbstractPlatformTransactionMa
 		catch (Exception ex) {
 			throw new TransactionSystemException(
 					String.format("Could not open a new Neo4j session: %s", ex.getMessage()), ex);
+		}
+	}
+
+	private static Transaction newNativeTransaction(Session session, TransactionConfig transactionConfig) {
+		try {
+			return session.beginTransaction(transactionConfig);
+		}
+		catch (Exception ex) {
+			try {
+				session.close();
+			}
+			catch (Exception closeException) {
+				ex.addSuppressed(closeException);
+			}
+			throw ex;
 		}
 	}
 
