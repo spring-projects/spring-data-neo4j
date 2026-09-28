@@ -168,8 +168,12 @@ public final class ReactiveNeo4jTransactionManager extends AbstractReactiveTrans
 
 					ReactiveSession session = driver.session(ReactiveSession.class,
 							Neo4jTransactionUtils.defaultSessionConfig(targetDatabase, asUser));
-					return Mono.fromDirect(session.beginTransaction(Neo4jTransactionUtils
-						.createTransactionConfigFrom(TransactionDefinition.withDefaults(), -1))).map(tx -> {
+					return Mono
+						.fromDirect(session.beginTransaction(Neo4jTransactionUtils
+							.createTransactionConfigFrom(TransactionDefinition.withDefaults(), -1)))
+						.single()
+						.onErrorResume(ex -> closeSessionAndPropagate(session, ex))
+						.map(tx -> {
 
 							ReactiveNeo4jTransactionHolder newConnectionHolder = new ReactiveNeo4jTransactionHolder(
 									new Neo4jTransactionContext(targetDatabase, asUser), session, tx);
