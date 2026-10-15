@@ -115,6 +115,7 @@ import static org.neo4j.cypherdsl.core.Cypher.parameter;
  * @author Michael J. Simons
  * @author Gerrit Meier
  * @author Philipp Tölle
+ * @author chuuminggg
  * @since 6.0
  */
 @API(status = API.Status.STABLE, since = "6.0")
@@ -979,8 +980,7 @@ public final class ReactiveNeo4jTemplate
 				return Mono.empty();
 			}
 
-			return iterateNextLevel(newRelatedNodeIds, relationshipDescription, queryFragments, rootClass,
-					currentPathStep);
+			return iterateNextLevel(relatedIds, relationshipDescription, queryFragments, rootClass, currentPathStep);
 		});
 	}
 

@@ -1,0 +1,56 @@
+/*
+ * Copyright 2011-present the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.springframework.data.neo4j.integration.issues.gh2946;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.springframework.data.neo4j.core.schema.Id;
+import org.springframework.data.neo4j.core.schema.Node;
+import org.springframework.data.neo4j.core.schema.Relationship;
+
+/**
+ * Self-referencing node, so that loading it requires the cascading, level-by-level
+ * traversal.
+ *
+ * @author chuuminggg
+ */
+@Node
+public class GH2946Node {
+
+	@Id
+	private String name;
+
+	@Relationship(type = "NEXT", direction = Relationship.Direction.OUTGOING)
+	private List<GH2946Node> next = new ArrayList<>();
+
+	public GH2946Node(String name) {
+		this.name = name;
+	}
+
+	public String getName() {
+		return this.name;
+	}
+
+	public List<GH2946Node> getNext() {
+		return this.next;
+	}
+
+	public void setNext(List<GH2946Node> next) {
+		this.next = next;
+	}
+
+}
