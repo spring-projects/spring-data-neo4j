@@ -28,6 +28,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Michael J. Simons
+ * @author Minju Kim
  */
 class TemporalAmountAdapterTests {
 
@@ -55,6 +56,18 @@ class TemporalAmountAdapterTests {
 			.plusMinutes(120);
 
 		assertThat(this.underTest.apply(Values.value(duration).asIsoDuration())).isEqualTo(duration);
+	}
+
+	@Test // GH-3134
+	void durationsExceedingIntegerSecondsShouldStayDurations() {
+
+		Duration duration = Duration.ofDays(24_856).plusNanos(1);
+		IsoDuration isoDuration = Values.value(duration).asIsoDuration();
+		assertThat(isoDuration.seconds()).isGreaterThan(Integer.MAX_VALUE);
+
+		assertThat(this.underTest.apply(isoDuration)).isEqualTo(duration);
+		assertThat(this.underTest.apply(Values.value(duration.negated()).asIsoDuration()))
+			.isEqualTo(duration.negated());
 	}
 
 	@Test
