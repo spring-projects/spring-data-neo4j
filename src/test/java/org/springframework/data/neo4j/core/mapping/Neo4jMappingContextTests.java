@@ -28,6 +28,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import org.assertj.core.api.Assertions;
@@ -83,6 +84,7 @@ import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException
 
 /**
  * @author Michael J. Simons
+ * @author Minju Kim
  */
 class Neo4jMappingContextTests {
 
@@ -270,6 +272,22 @@ class Neo4jMappingContextTests {
 				(Association<Neo4jPersistentProperty> a) -> associations.add(a.getInverse().getFieldName()));
 
 		assertThat(associations).containsOnly("bikes", "theSuperBike");
+	}
+
+	@Test // GH-3131
+	void transientPropertiesOfNonSimpleTypesShouldNotBeConsideredAsAssociation() {
+
+		Neo4jMappingContext schema = new Neo4jMappingContext();
+		Neo4jPersistentEntity<?> entity = schema.getRequiredPersistentEntity(EntityWithTransientJdkType.class);
+
+		assertThat(entity.getTransientProperty("atomicReference")).isNotNull();
+		assertThat(entity.getPersistentProperty("atomicReference")).isNull();
+		assertThat(schema.hasPersistentEntityFor(AtomicReference.class)).isFalse();
+
+		List<String> associations = new ArrayList<>();
+		entity.doWithAssociations(
+				(Association<Neo4jPersistentProperty> a) -> associations.add(a.getInverse().getFieldName()));
+		assertThat(associations).isEmpty();
 	}
 
 	@Test
@@ -813,6 +831,20 @@ class Neo4jMappingContextTests {
 		@GeneratedValue
 		@SuppressWarnings("unused")
 		private long id;
+
+	}
+
+	@Node
+	static class EntityWithTransientJdkType {
+
+		@org.springframework.data.annotation.Id
+		@GeneratedValue
+		@SuppressWarnings("unused")
+		private Long id;
+
+		@Transient
+		@SuppressWarnings("unused")
+		private AtomicReference<Long> atomicReference;
 
 	}
 
