@@ -18,7 +18,7 @@ package org.springframework.data.neo4j.integration.issues.gh2946;
 import org.springframework.data.neo4j.repository.ReactiveNeo4jRepository;
 
 /**
- * @author chuuminggg
+ * @author Minju Kim
  */
 public interface ReactiveGH2946Repository extends ReactiveNeo4jRepository<GH2946Node, String> {
 

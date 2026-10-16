@@ -26,7 +26,7 @@ import org.springframework.data.neo4j.core.schema.Relationship;
  * Self-referencing node, so that loading it requires the cascading, level-by-level
  * traversal.
  *
- * @author chuuminggg
+ * @author Minju Kim
  */
 @Node
 public class GH2946Node {

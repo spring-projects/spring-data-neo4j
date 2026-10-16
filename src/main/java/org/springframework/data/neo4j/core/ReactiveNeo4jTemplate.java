@@ -115,7 +115,7 @@ import static org.neo4j.cypherdsl.core.Cypher.parameter;
  * @author Michael J. Simons
  * @author Gerrit Meier
  * @author Philipp Tölle
- * @author chuuminggg
+ * @author Minju Kim
  * @since 6.0
  */
 @API(status = API.Status.STABLE, since = "6.0")

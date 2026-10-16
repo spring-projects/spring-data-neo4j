@@ -46,7 +46,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * @author chuuminggg
+ * @author Minju Kim
  */
 @Neo4jIntegrationTest
 @ExtendWith(LogbackCapturingExtension.class)
