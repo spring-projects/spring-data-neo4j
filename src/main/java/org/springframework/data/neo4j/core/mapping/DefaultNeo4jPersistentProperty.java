@@ -48,6 +48,7 @@ import org.springframework.util.StringUtils;
  * Default implementation of the {@link Neo4jPersistentProperty}.
  *
  * @author Michael J. Simons
+ * @author Minju Kim
  * @since 6.0
  */
 final class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProperty<Neo4jPersistentProperty>
@@ -104,6 +105,13 @@ final class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProp
 		});
 
 		this.isAssociation = Lazy.of(() -> {
+
+			// Transient properties are neither persisted nor loaded, so they must not
+			// be treated as an association whose target type requires a persistent
+			// entity
+			if (isTransient()) {
+				return false;
+			}
 
 			// Bail out early, this is pretty much explicit
 			if (isAnnotationPresent(Relationship.class)) {
