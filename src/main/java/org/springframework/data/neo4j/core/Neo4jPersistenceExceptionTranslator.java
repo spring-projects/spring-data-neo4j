@@ -30,6 +30,7 @@ import org.neo4j.driver.exceptions.DatabaseException;
 import org.neo4j.driver.exceptions.DiscoveryException;
 import org.neo4j.driver.exceptions.FatalDiscoveryException;
 import org.neo4j.driver.exceptions.Neo4jException;
+import org.neo4j.driver.exceptions.NoSuchRecordException;
 import org.neo4j.driver.exceptions.ProtocolException;
 import org.neo4j.driver.exceptions.ResultConsumedException;
 import org.neo4j.driver.exceptions.ServiceUnavailableException;
@@ -41,6 +42,7 @@ import org.neo4j.driver.exceptions.value.ValueException;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.dao.NonTransientDataAccessResourceException;
@@ -53,6 +55,7 @@ import org.springframework.dao.support.PersistenceExceptionTranslator;
  * infrastructure.
  *
  * @author Michael J. Simons
+ * @author Minju Kim
  * @since 6.0.3
  */
 @API(status = API.Status.STABLE, since = "6.0.3")
@@ -239,6 +242,10 @@ public final class Neo4jPersistenceExceptionTranslator implements PersistenceExc
 		}
 		else if (ex instanceof ClientException) {
 			return translateImpl((Neo4jException) ex, InvalidDataAccessResourceUsageException::new);
+		}
+		else if (ex instanceof NoSuchRecordException) {
+			// Thrown by the driver when a single record is expected, but there are more
+			return new IncorrectResultSizeDataAccessException(ex.getMessage(), 1, ex);
 		}
 		else if (ex instanceof Neo4jClient.IllegalDatabaseNameException) {
 			return null;
