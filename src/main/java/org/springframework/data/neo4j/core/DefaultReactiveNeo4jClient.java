@@ -48,6 +48,7 @@ import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.converter.ConverterRegistry;
 import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.dao.DataAccessException;
+import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.data.neo4j.core.convert.Neo4jConversions;
 import org.springframework.data.neo4j.core.support.BookmarkManagerReference;
 import org.springframework.data.neo4j.core.transaction.Neo4jBookmarkManager;
@@ -61,6 +62,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Michael J. Simons
  * @author Gerrit Meier
+ * @author Minju Kim
  * @since 6.0
  */
 final class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient, ApplicationContextAware {
@@ -472,11 +474,13 @@ final class DefaultReactiveNeo4jClient implements ReactiveNeo4jClient, Applicati
 		@Override
 		public Mono<T> one() {
 
-			return doInQueryRunnerForMono(this.databaseSelection, this.userSelection,
-					(runner) -> prepareStatement().flatMapMany(t -> executeWith(t, runner))
-						.singleOrEmpty()
-						.onErrorMap(RuntimeException.class,
-								DefaultReactiveNeo4jClient.this::potentiallyConvertRuntimeException));
+			return doInQueryRunnerForMono(this.databaseSelection, this.userSelection, (runner) -> prepareStatement()
+				.flatMapMany(t -> executeWith(t, runner))
+				.singleOrEmpty()
+				.onErrorMap(IndexOutOfBoundsException.class,
+						e -> new IncorrectResultSizeDataAccessException(Objects.requireNonNull(e.getMessage()), 1, e))
+				.onErrorMap(RuntimeException.class,
+						DefaultReactiveNeo4jClient.this::potentiallyConvertRuntimeException));
 		}
 
 		@Override
