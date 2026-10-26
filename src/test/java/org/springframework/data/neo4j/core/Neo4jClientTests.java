@@ -48,13 +48,16 @@ import org.neo4j.driver.Result;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.SessionConfig;
 import org.neo4j.driver.Values;
+import org.neo4j.driver.exceptions.NoSuchRecordException;
 import org.neo4j.driver.summary.ResultSummary;
 import org.neo4j.driver.types.TypeSystem;
 
+import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.data.neo4j.core.transaction.Neo4jTransactionUtils;
 import org.springframework.util.ReflectionUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.assertj.core.api.Assumptions.assumeThat;
 import static org.mockito.BDDMockito.given;
@@ -67,6 +70,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 /**
  * @author Michael J. Simons
+ * @author Minju Kim
  */
 @ExtendWith(MockitoExtension.class)
 class Neo4jClientTests {
@@ -679,6 +683,31 @@ class Neo4jClientTests {
 			verify(Neo4jClientTests.this.result).consume();
 			verify(Neo4jClientTests.this.resultSummary).gqlStatusObjects();
 			verify(Neo4jClientTests.this.resultSummary).hasPlan();
+			verify(Neo4jClientTests.this.session).close();
+		}
+
+		@Test // GH-3136
+		void oneShouldTranslateMoreThanOneRecord() {
+
+			prepareMocks();
+
+			given(Neo4jClientTests.this.session.run(anyString(), anyMap())).willReturn(Neo4jClientTests.this.result);
+			given(Neo4jClientTests.this.result.hasNext()).willReturn(true);
+			given(Neo4jClientTests.this.result.single()).willThrow(new NoSuchRecordException(
+					"Expected a result with a single record, but this result contains at least one more."));
+
+			Neo4jClient client = Neo4jClient.create(Neo4jClientTests.this.driver);
+
+			String cypher = "MATCH (b:Bike) RETURN b.name";
+			assertThatExceptionOfType(IncorrectResultSizeDataAccessException.class)
+				.isThrownBy(() -> client.query(cypher).fetchAs(String.class).one())
+				.withCauseInstanceOf(NoSuchRecordException.class);
+
+			verifyDatabaseSelection(null);
+
+			verify(Neo4jClientTests.this.session).run(eq(cypher), anyMap());
+			verify(Neo4jClientTests.this.result).hasNext();
+			verify(Neo4jClientTests.this.result).single();
 			verify(Neo4jClientTests.this.session).close();
 		}
 

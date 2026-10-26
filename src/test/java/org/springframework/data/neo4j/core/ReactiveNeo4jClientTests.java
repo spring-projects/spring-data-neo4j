@@ -47,6 +47,7 @@ import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 import reactor.test.StepVerifier;
 
+import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.data.neo4j.core.transaction.Neo4jTransactionUtils;
 import org.springframework.util.ReflectionUtils;
 
@@ -63,6 +64,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 /**
  * @author Michael J. Simons
+ * @author Minju Kim
  */
 @ExtendWith(MockitoExtension.class)
 class ReactiveNeo4jClientTests {
@@ -610,6 +612,40 @@ class ReactiveNeo4jClientTests {
 			Mono<Long> numberOfBikes = client.query(cypher).fetchAs(Long.class).one();
 
 			StepVerifier.create(numberOfBikes).expectNext(23L).verifyComplete();
+
+			verifyDatabaseSelection(null);
+
+			verify(ReactiveNeo4jClientTests.this.result).consume();
+			verify(ReactiveNeo4jClientTests.this.resultSummary).gqlStatusObjects();
+			verify(ReactiveNeo4jClientTests.this.resultSummary).hasPlan();
+			verify(ReactiveNeo4jClientTests.this.session).run(eq(cypher), anyMap());
+			verify(ReactiveNeo4jClientTests.this.session).close();
+		}
+
+		@Test // GH-3136
+		void oneShouldTranslateMoreThanOneRecord() {
+
+			prepareMocks();
+
+			given(ReactiveNeo4jClientTests.this.session.run(anyString(), anyMap()))
+				.willReturn(Mono.just(ReactiveNeo4jClientTests.this.result));
+			given(ReactiveNeo4jClientTests.this.result.records())
+				.willReturn(Flux.just(ReactiveNeo4jClientTests.this.record1, ReactiveNeo4jClientTests.this.record2));
+			given(ReactiveNeo4jClientTests.this.result.consume())
+				.willReturn(Mono.just(ReactiveNeo4jClientTests.this.resultSummary));
+			given(ReactiveNeo4jClientTests.this.record1.size()).willReturn(1);
+			given(ReactiveNeo4jClientTests.this.record1.get(0)).willReturn(Values.value("a"));
+			given(ReactiveNeo4jClientTests.this.record2.size()).willReturn(1);
+			given(ReactiveNeo4jClientTests.this.record2.get(0)).willReturn(Values.value("b"));
+
+			ReactiveNeo4jClient client = ReactiveNeo4jClient.create(ReactiveNeo4jClientTests.this.driver);
+
+			String cypher = "MATCH (b:Bike) RETURN b.name";
+			client.query(cypher)
+				.fetchAs(String.class)
+				.one()
+				.as(StepVerifier::create)
+				.verifyError(IncorrectResultSizeDataAccessException.class);
 
 			verifyDatabaseSelection(null);
 
