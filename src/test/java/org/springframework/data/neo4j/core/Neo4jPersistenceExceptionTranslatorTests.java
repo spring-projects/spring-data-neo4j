@@ -17,9 +17,11 @@ package org.springframework.data.neo4j.core;
 
 import org.junit.jupiter.api.Test;
 import org.neo4j.driver.exceptions.ClientException;
+import org.neo4j.driver.exceptions.NoSuchRecordException;
 import org.neo4j.driver.exceptions.value.LossyCoercion;
 
 import org.springframework.dao.DataAccessException;
+import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
 
@@ -27,6 +29,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Michael J. Simons
+ * @author Minju Kim
  */
 class Neo4jPersistenceExceptionTranslatorTests {
 
@@ -50,6 +53,18 @@ class Neo4jPersistenceExceptionTranslatorTests {
 		assertThat(dataAccessException).isNotNull().isInstanceOf(InvalidDataAccessResourceUsageException.class);
 		assertThat(dataAccessException.getMessage())
 			.startsWith("Something went wrong.; Error code 'Neo.ClientError.Statement.EntityNotFound'");
+	}
+
+	@Test // GH-3136
+	void shouldTranslateNoSuchRecordException() {
+
+		Neo4jPersistenceExceptionTranslator translator = new Neo4jPersistenceExceptionTranslator();
+		NoSuchRecordException noSuchRecordException = new NoSuchRecordException(
+				"Expected a result with a single record, but this result contains at least one more.");
+		DataAccessException dataAccessException = translator.translateExceptionIfPossible(noSuchRecordException);
+		assertThat(dataAccessException).isInstanceOfSatisfying(IncorrectResultSizeDataAccessException.class,
+				e -> assertThat(e.getExpectedSize()).isOne());
+		assertThat(dataAccessException).hasCause(noSuchRecordException);
 	}
 
 }
