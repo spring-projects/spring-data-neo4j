@@ -41,6 +41,7 @@ import java.util.function.Function;
  * represents the same amount after normalization.
  *
  * @author Michael J. Simons
+ * @author Minju Kim
  */
 final class TemporalAmountAdapter implements Function<TemporalAmount, TemporalAmount> {
 
@@ -61,11 +62,11 @@ final class TemporalAmountAdapter implements Function<TemporalAmount, TemporalAm
 
 	private static final short FIELD_NANOS = 4;
 
-	private static final BiFunction<TemporalAmount, TemporalUnit, Integer> TEMPORAL_UNIT_EXTRACTOR = (d, u) -> {
+	private static final BiFunction<TemporalAmount, TemporalUnit, Long> TEMPORAL_UNIT_EXTRACTOR = (d, u) -> {
 		if (!d.getUnits().contains(u)) {
-			return 0;
+			return 0L;
 		}
-		return Math.toIntExact(d.get(u));
+		return d.get(u);
 	};
 
 	private static boolean couldBePeriod(int type) {
@@ -79,7 +80,7 @@ final class TemporalAmountAdapter implements Function<TemporalAmount, TemporalAm
 	@Override
 	public TemporalAmount apply(TemporalAmount internalTemporalAmountRepresentation) {
 
-		int[] values = new int[SUPPORTED_UNITS.length];
+		long[] values = new long[SUPPORTED_UNITS.length];
 		int type = 0;
 		for (int i = 0; i < SUPPORTED_UNITS.length; ++i) {
 			values[i] = TEMPORAL_UNIT_EXTRACTOR.apply(internalTemporalAmountRepresentation, SUPPORTED_UNITS[i]);
@@ -90,10 +91,13 @@ final class TemporalAmountAdapter implements Function<TemporalAmount, TemporalAm
 		boolean couldBeDuration = couldBeDuration(type);
 
 		if (couldBePeriod && !couldBeDuration) {
-			return Period.of(values[FIELD_YEAR], values[FIELD_MONTH], values[FIELD_DAY]).normalized();
+			return Period
+				.of(Math.toIntExact(values[FIELD_YEAR]), Math.toIntExact(values[FIELD_MONTH]),
+						Math.toIntExact(values[FIELD_DAY]))
+				.normalized();
 		}
 		else if (couldBeDuration && !couldBePeriod) {
-			return Duration.ofSeconds(values[FIELD_SECONDS]).plusNanos(values[FIELD_NANOS]);
+			return Duration.ofSeconds(values[FIELD_SECONDS], values[FIELD_NANOS]);
 		}
 		else {
 			return internalTemporalAmountRepresentation;
