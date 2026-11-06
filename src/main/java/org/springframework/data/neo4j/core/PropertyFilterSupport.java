@@ -68,7 +68,8 @@ public final class PropertyFilterSupport {
 		Collection<PropertyFilter.ProjectedPath> filteredProperties = new HashSet<>();
 
 		boolean isProjecting = returnedType.isProjecting();
-		boolean isClosedProjection = factory.getProjectionInformation(potentiallyProjectedType).isClosed();
+		boolean isClosedProjection = isProjecting
+				&& factory.getProjectionInformation(potentiallyProjectedType).isClosed();
 		if (!isProjecting && containsAggregateBoundary(domainType, mappingContext)) {
 			Collection<PropertyFilter.ProjectedPath> listForAggregate = createListForAggregate(domainType,
 					mappingContext);
