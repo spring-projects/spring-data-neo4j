@@ -19,7 +19,7 @@ import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
 
 /**
- * A hierachical model with and without intermediate abstract classes.
+ * A hierarchical model with and without intermediate abstract classes.
  *
  * @author Michael J. Simons
  */
