@@ -18,7 +18,7 @@
 [abstract]
 --
 Spring Data Neo4j - or in short _SDN_ - is an ongoing effort to create the next generation of Spring Data Neo4j, with full reactive support and lightweight mapping.
-SDN will work with immutable entities, regardless whether written in Java or Kotlin.
+SDN will work with immutable entities, regardless of whether they are written in Java or Kotlin.
 --
 
 The primary goal of the https://projects.spring.io/spring-data[Spring Data] project is to make it easier to build Spring-powered applications that use new data access technologies such as non-relational databases, map-reduce frameworks, and cloud based data services.
