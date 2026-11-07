@@ -23,6 +23,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
@@ -93,6 +94,9 @@ import org.springframework.data.neo4j.integration.issues.gh2906.ReactiveToReposi
 import org.springframework.data.neo4j.integration.issues.gh2908.LocatedNode;
 import org.springframework.data.neo4j.integration.issues.gh2908.Place;
 import org.springframework.data.neo4j.integration.issues.gh2908.ReactiveLocatedNodeRepository;
+import org.springframework.data.neo4j.integration.issues.gh3092.DynamicLabelChild;
+import org.springframework.data.neo4j.integration.issues.gh3092.DynamicLabelRoot;
+import org.springframework.data.neo4j.integration.issues.gh3092.ReactiveDynamicLabelChildRepository;
 import org.springframework.data.neo4j.repository.config.EnableReactiveNeo4jRepositories;
 import org.springframework.data.neo4j.test.BookmarkCapture;
 import org.springframework.data.neo4j.test.Neo4jIntegrationTest;
@@ -105,6 +109,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Michael J. Simons
+ * @author Minju Kim
  */
 @Neo4jIntegrationTest
 @DisplayNameGeneration(SimpleDisplayNameGeneratorWithTags.class)
@@ -791,6 +796,25 @@ class ReactiveIssuesIT extends TestBase {
 			assertThat(d.getMetric()).isEqualTo(Metrics.KILOMETERS);
 			assertThat(gr.getContent().getName()).isEqualTo("SFO");
 		});
+	}
+
+	@Test
+	@Tag("GH-3143")
+	void dynamicLabelsDeleteAll(@Autowired ReactiveDynamicLabelChildRepository repository,
+			@Autowired ReactiveNeo4jTemplate template) {
+
+		var child = new DynamicLabelChild();
+		child.setUuid(UUID.randomUUID());
+		child.setLabels(Set.of("new", "labels"));
+
+		repository.save(child)
+			.then(template.save(new DynamicLabelRoot()))
+			.then(repository.deleteAll())
+			.as(StepVerifier::create)
+			.verifyComplete();
+
+		repository.count().as(StepVerifier::create).expectNext(0L).verifyComplete();
+		template.count(DynamicLabelRoot.class).as(StepVerifier::create).expectNext(1L).verifyComplete();
 	}
 
 	private Mono<EntitiesAndProjections.GH2533Entity> createData(ReactiveGH2533Repository repository) {
