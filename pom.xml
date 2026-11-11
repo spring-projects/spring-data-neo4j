@@ -722,7 +722,6 @@
 					<archive>
 						<manifest>
 							<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
-							<addBuildEnvironmentEntries>true</addBuildEnvironmentEntries>
 						</manifest>
 						<manifestEntries>
 							<Automatic-Module-Name>${java-module-name}</Automatic-Module-Name>
