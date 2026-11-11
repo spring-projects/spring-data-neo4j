@@ -22,6 +22,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
@@ -769,6 +770,19 @@ public enum CypherGenerator {
 	 * {@literal null} or unsorted
 	 */
 	@Nullable public String createOrderByFragment(@Nullable Sort sort) {
+		return createOrderByFragment(sort, Set.of());
+	}
+
+	/**
+	 * Creates an order by fragment, assuming the node to match is named `n`.
+	 * @param sort the {@link Sort sort} that should be turned into a valid Cypher
+	 * {@code ORDER}-clause
+	 * @param allowedFunctions set of allowed functions that should be allowed within a
+	 * sort by statement
+	 * @return an optional order clause. Will be {@literal null} on sorts that are
+	 * {@literal null} or unsorted
+	 */
+	@Nullable public String createOrderByFragment(@Nullable Sort sort, Set<String> allowedFunctions) {
 
 		if (sort == null || sort.isUnsorted()) {
 			return null;
@@ -779,7 +793,10 @@ public enum CypherGenerator {
 			if (LOOKS_LIKE_A_FUNCTION.matcher(property).matches()
 					// The parser will parse an expression and return the first one,
 					// dropping everything after
-					&& CypherParser.parseExpression(property) instanceof FunctionInvocation functionInvocation) {
+					&& CypherParser.parseExpression(property) instanceof FunctionInvocation functionInvocation
+			// Even if the CypherParser or the underlying Neo4j parser decides this is a
+			// function, it might still not be intended to allow everything
+					&& allowedFunctions.contains(functionInvocation.getFunctionName().replaceAll("\\(\\)", ""))) {
 				expression = functionInvocation;
 			}
 			else if (property.contains(".")) {

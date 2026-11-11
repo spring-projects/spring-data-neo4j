@@ -16,6 +16,7 @@
 package org.springframework.data.neo4j.core.mapping;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Pattern;
@@ -38,6 +39,7 @@ import org.neo4j.cypherdsl.core.renderer.Renderer;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
+import org.springframework.data.neo4j.repository.query.Neo4jSort;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
@@ -223,7 +225,10 @@ class CypherGeneratorTests {
 		if (descending) {
 			sort = sort.descending();
 		}
-		String orderByFragment = CypherGenerator.INSTANCE.createOrderByFragment(sort);
+		var allowedFunctions = new HashSet<String>();
+		allowedFunctions.addAll(Neo4jSort.DEFAULT_ALLOWED_FUNCTIONS);
+		allowedFunctions.add("apoc.text.clean");
+		String orderByFragment = CypherGenerator.INSTANCE.createOrderByFragment(sort, allowedFunctions);
 		assertThat(orderByFragment).isEqualTo(expected);
 	}
 
@@ -231,7 +236,8 @@ class CypherGeneratorTests {
 	void shouldOnlyParseUpToFirstCompleteExpression() {
 
 		var sort = Sort.by("rand()) RETURN u UNION MATCH (s:Secret) RETURN s ORDER BY rand()");
-		String orderByFragment = CypherGenerator.INSTANCE.createOrderByFragment(sort);
+		String orderByFragment = CypherGenerator.INSTANCE.createOrderByFragment(sort,
+				Neo4jSort.DEFAULT_ALLOWED_FUNCTIONS);
 		assertThat(orderByFragment).isEqualTo("ORDER BY rand() ASC");
 	}
 

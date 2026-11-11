@@ -68,6 +68,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.convert.ConverterNotFoundException;
+import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.data.domain.ExampleMatcher.StringMatcher;
@@ -152,6 +153,7 @@ import org.springframework.data.neo4j.integration.shared.common.WorksInClubRelat
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.data.neo4j.repository.query.BoundingBox;
+import org.springframework.data.neo4j.repository.query.Neo4jSort;
 import org.springframework.data.neo4j.repository.query.Query;
 import org.springframework.data.neo4j.test.BookmarkCapture;
 import org.springframework.data.neo4j.test.Neo4jExtension;
@@ -174,6 +176,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.tuple;
 
@@ -940,6 +943,48 @@ class RepositoryIT {
 				.orderBySpel(PageRequest.of(0, 10, Sort.by(Sort.Order.asc("n.name").ignoreCase())));
 			assertThat(persons).extracting(PersonWithAllConstructor::getName)
 				.containsExactly("aa", "Ab", "Test", "Test2");
+		}
+
+		@Test
+		void shouldFailForNonPropertyInSpel(@Autowired PersonRepository repository) {
+			doWithSession(session -> session.executeWrite(tx -> {
+				tx.run("CREATE (n:PersonWithAllConstructor {name: 'Ab', firstName: 'n/a'})");
+				tx.run("CREATE (n:PersonWithAllConstructor {name: 'aa', firstName: 'n/a'})");
+				return null;
+			}));
+			// Non-allowed function call gets escaped as a potential property name
+			assertThatExceptionOfType(InvalidDataAccessResourceUsageException.class)
+				.isThrownBy(() -> repository.orderBySpel(PageRequest.of(0, 10, Sort
+					.by("\\u00601 UNION MATCH (u:PersonWithAllConstructor) RETURN {name: u.name} AS n ORDER BY toString\\u0060(id(u))"))))
+				.withMessageContaining("Variable")
+				.withMessageContaining("not defined")
+				.withMessageContaining("SyntaxError");
+		}
+
+		@Test
+		void shouldNotFailForAllowedFunctionCallInSpel(@Autowired PersonRepository repository) {
+			doWithSession(session -> session.executeWrite(tx -> {
+				tx.run("CREATE (n:PersonWithAllConstructor {name: 'Ab', firstName: 'n/a'})");
+				tx.run("CREATE (n:PersonWithAllConstructor {name: 'aa', firstName: 'n/a'})");
+				return null;
+			}));
+			// unknown function tells us that the invocation got passed on as a function
+			assertThatExceptionOfType(InvalidDataAccessResourceUsageException.class)
+				.isThrownBy(() -> repository.orderBySpel(PageRequest.of(0, 10,
+						Neo4jSort.of(Sort.by(Sort.Order.asc("apoc.text.clean(n.name)")), "apoc.text.clean"))))
+				.withMessageContaining("SyntaxError")
+				.withMessageContaining("Unknown function");
+		}
+
+		@Test
+		void shouldNotFailForBuiltInAllowedFunctionCallInSpel(@Autowired PersonRepository repository) {
+			doWithSession(session -> session.executeWrite(tx -> {
+				tx.run("CREATE (n:PersonWithAllConstructor {name: 'Ab', firstName: 'n/a'})");
+				tx.run("CREATE (n:PersonWithAllConstructor {name: 'aa', firstName: 'n/a'})");
+				return null;
+			}));
+			assertThatNoException().isThrownBy(
+					() -> repository.orderBySpel(PageRequest.of(0, 10, Sort.by(Sort.Order.asc("toLower(n.name)")))));
 		}
 
 		@Test
