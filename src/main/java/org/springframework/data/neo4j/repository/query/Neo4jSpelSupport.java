@@ -98,7 +98,7 @@ public final class Neo4jSpelSupport {
 	 * @param arg the {@link Sort sort object} to order the result set of the final query.
 	 * @return a literal replacement for a SpEL placeholder
 	 */
-	public static LiteralReplacement orderBy(Object arg) {
+	public static LiteralReplacement orderBy(@Nullable Object arg) {
 
 		Sort sort = null;
 		if (arg instanceof Pageable v) {
@@ -110,8 +110,14 @@ public final class Neo4jSpelSupport {
 		else if (arg != null) {
 			throw new IllegalArgumentException(arg.getClass() + " is not a valid order criteria");
 		}
+
+		var allowedFunctionCalls = Neo4jSort.DEFAULT_ALLOWED_FUNCTIONS;
+		if (sort instanceof Neo4jSort neo4jSort) {
+			sort = neo4jSort.unwrap();
+			allowedFunctionCalls = neo4jSort.getAllowedFunctions();
+		}
 		return StringBasedLiteralReplacement.withTargetAndValue(LiteralReplacement.Target.SORT,
-				CypherGenerator.INSTANCE.createOrderByFragment(sort));
+				CypherGenerator.INSTANCE.createOrderByFragment(sort, allowedFunctionCalls));
 	}
 
 	/**
