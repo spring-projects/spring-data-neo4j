@@ -40,7 +40,7 @@ asciidoc:
     artifactId: ${project.artifactId}
     groupIdStarter: org.springframework.boot
     artifactIdStarter: spring-boot-starter-data-neo4j
-    docs-neo4j-docker-version: 5
+    docs-neo4j-docker-version: 2026
     spring-boot-version: 3.2.0
     docs-neo4j-4-version: 4.4.25
     docs-neo4j-3-version: 3.5.33

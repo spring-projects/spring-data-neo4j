@@ -35,6 +35,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor;
 import org.springframework.data.neo4j.core.Neo4jClient;
 import org.springframework.data.neo4j.core.Neo4jPersistenceExceptionTranslator;
+import org.springframework.data.neo4j.integration.shared.common.ConstraintViolationMessages;
 import org.springframework.data.neo4j.integration.shared.common.SimplePerson;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
@@ -95,8 +96,7 @@ class ExceptionTranslationIT {
 
 		assertThatExceptionOfType(DataIntegrityViolationException.class)
 			.isThrownBy(() -> neo4jClient.query("CREATE (:SimplePerson {name: 'Tom'})").run())
-			.withMessageMatching(
-					"Node\\(\\d+\\) already exists with label `SimplePerson` and property `name` = '[\\w\\s]+'; Error code 'Neo.ClientError.Schema.ConstraintValidationFailed';.*");
+			.withMessageMatching(ConstraintViolationMessages.simplePersonNameNotUnique("Tom"));
 	}
 
 	@Test
@@ -105,8 +105,7 @@ class ExceptionTranslationIT {
 
 		assertThatExceptionOfType(DataIntegrityViolationException.class)
 			.isThrownBy(() -> repository.save(new SimplePerson("Jerry")))
-			.withMessageMatching(
-					"Node\\(\\d+\\) already exists with label `SimplePerson` and property `name` = '[\\w\\s]+'; Error code 'Neo.ClientError.Schema.ConstraintValidationFailed';.*");
+			.withMessageMatching(ConstraintViolationMessages.simplePersonNameNotUnique("Jerry"));
 	}
 
 	/*
@@ -119,8 +118,7 @@ class ExceptionTranslationIT {
 		assertThat(summary.counters().nodesCreated()).isEqualTo(1L);
 
 		assertThatExceptionOfType(DataIntegrityViolationException.class).isThrownBy(() -> customDAO.createPerson())
-			.withMessageMatching(
-					"Node\\(\\d+\\) already exists with label `SimplePerson` and property `name` = '[\\w\\s]+'; Error code 'Neo.ClientError.Schema.ConstraintValidationFailed';.*");
+			.withMessageMatching(ConstraintViolationMessages.simplePersonNameNotUnique("Tom"));
 	}
 
 	interface SimplePersonRepository extends Neo4jRepository<SimplePerson, Long> {

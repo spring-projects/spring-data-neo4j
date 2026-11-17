@@ -38,6 +38,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.neo4j.core.Neo4jPersistenceExceptionTranslator;
 import org.springframework.data.neo4j.core.ReactiveNeo4jClient;
+import org.springframework.data.neo4j.integration.shared.common.ConstraintViolationMessages;
 import org.springframework.data.neo4j.integration.shared.common.SimplePerson;
 import org.springframework.data.neo4j.repository.ReactiveNeo4jRepository;
 import org.springframework.data.neo4j.repository.config.EnableReactiveNeo4jRepositories;
@@ -67,18 +68,9 @@ class ReactiveExceptionTranslationIT {
 
 	protected static Neo4jExtension.Neo4jConnectionSupport neo4jConnectionSupport;
 
-	// @formatter:off
-	private final Predicate<Throwable> aTranslatedException = ex -> ex instanceof DataIntegrityViolationException && (
-			ex.getMessage().matches(
-					"Node\\(\\d+\\) already exists with label `SimplePerson` and property `name` = '[\\w\\s]+'; Error code 'Neo\\.ClientError\\.Schema\\.ConstraintValidationFailed'.*") ||
-			ex.getMessage().matches(
-					"New data does not satisfy Constraint\\( id=\\d+, name='simple_person__unique_name', type='UNIQUENESS', schema=\\(:SimplePerson \\{name}\\), ownedIndex=\\d+ \\): Both node \\d+ and node -?\\d+ share the property value \\( String\\(\"Tom\"\\) \\); Error code 'Neo\\.ClientError\\.Schema\\.ConstraintValidationFailed'") ||
-			ex.getMessage().matches(
-					"New data does not satisfy Constraint\\( id=\\d+, name='simple_person__unique_name', type='UNIQUENESS', schema=\\(:SimplePerson \\{name}\\), ownedIndex=\\d+ \\): Node\\(\\d+\\) already exists with label `Label\\[\\d+]` and property `PropertyKey\\[\\d+]` = 'Tom'; Error code 'Neo\\.ClientError\\.Schema\\.ConstraintValidationFailed'") ||
-			ex.getMessage().matches(
-					"New data does not satisfy Constraint\\( id=\\d+, name='simple_person__unique_name', type='NODE PROPERTY UNIQUENESS', schema=\\(:SimplePerson \\{name}\\), ownedIndex=\\d+ \\): Node\\(\\d+\\) already exists with label `Label\\[\\d+]` and property `PropertyKey\\[\\d+]` = 'Tom'; Error code 'Neo\\.ClientError\\.Schema\\.ConstraintValidationFailed'")
-	);
-	// @formatter:on
+	private final Predicate<Throwable> aTranslatedException = ex -> ex instanceof DataIntegrityViolationException
+			&& ex.getMessage() != null
+			&& ex.getMessage().matches(ConstraintViolationMessages.simplePersonNameNotUnique("Tom"));
 
 	@BeforeAll
 	static void createConstraints(@Autowired Driver driver, @Autowired Migrations migrations) {

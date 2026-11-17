@@ -104,6 +104,12 @@ public class Neo4jExtension implements BeforeAllCallback, BeforeEachCallback {
 
 	private static final String SYS_PROPERTY_FORCE_CONTAINER_REUSE = "SDN_FORCE_REUSE_OF_CONTAINERS";
 
+	/**
+	 * Name of the JVM system property containing the default Neo4j image version, set by
+	 * Surefire and Failsafe from {@code neo4j.version} in the {@code pom.xml}.
+	 */
+	private static final String SYS_PROPERTY_DEFAULT_NEO4J_VERSION = "sdn.default-neo4j-version";
+
 	private static final Log log = org.apache.commons.logging.LogFactory.getLog(Neo4jExtension.class);
 
 	private static final Set<String> COMMUNITY_EDITION_INDICATOR = Set.of("community");
@@ -112,6 +118,36 @@ public class Neo4jExtension implements BeforeAllCallback, BeforeEachCallback {
 
 	private static final EventLoopGroup EVENT_LOOP_GROUP = new NioEventLoopGroup(
 			new DefaultThreadFactory(Neo4jExtension.class, true));
+
+	/**
+	 * Resolves the Neo4j image to use for tests that run against a container. The
+	 * repository and version can be overridden through {@code SDN_NEO4J_REPOSITORY} and
+	 * {@code SDN_NEO4J_VERSION}; the version defaults to {@code neo4j.version} from the
+	 * {@code pom.xml}.
+	 * @return the full name of the Neo4j image, including its tag
+	 * @throws IllegalStateException if neither {@code SDN_NEO4J_VERSION} nor the default
+	 * version provided by the build is set
+	 */
+	public static String neo4jImageName() {
+		String repository = Optional.ofNullable(System.getenv(SYS_PROPERTY_NEO4J_REPOSITORY)).orElse("neo4j");
+		String version = Optional.ofNullable(System.getenv(SYS_PROPERTY_NEO4J_VERSION))
+			.or(() -> Optional.ofNullable(System.getProperty(SYS_PROPERTY_DEFAULT_NEO4J_VERSION)))
+			.orElseThrow(() -> new IllegalStateException("No Neo4j image version configured: Either run the tests "
+					+ "through Maven, which sets the system property " + SYS_PROPERTY_DEFAULT_NEO4J_VERSION
+					+ ", or set the environment variable " + SYS_PROPERTY_NEO4J_VERSION));
+		return repository + ":" + version;
+	}
+
+	/**
+	 * Creates a new, not yet started container based on {@link #neo4jImageName()}, with
+	 * the license agreement configured through
+	 * {@code SDN_NEO4J_ACCEPT_COMMERCIAL_EDITION}.
+	 * @return a new Neo4j container
+	 */
+	public static Neo4jContainer newNeo4jContainer() {
+		return new Neo4jContainer(neo4jImageName()).withEnv("NEO4J_ACCEPT_LICENSE_AGREEMENT",
+				Optional.ofNullable(System.getenv(SYS_PROPERTY_NEO4J_ACCEPT_COMMERCIAL_EDITION)).orElse("no"));
+	}
 
 	@Override
 	public void beforeAll(ExtensionContext context) throws Exception {
@@ -370,22 +406,13 @@ public class Neo4jExtension implements BeforeAllCallback, BeforeEachCallback {
 
 	static class ContainerAdapter implements AutoCloseable {
 
-		private static final String repository = Optional.ofNullable(System.getenv(SYS_PROPERTY_NEO4J_REPOSITORY))
-			.orElse("neo4j");
-
-		private static final String imageVersion = Optional.ofNullable(System.getenv(SYS_PROPERTY_NEO4J_VERSION))
-			.orElse("5");
-
 		private static final boolean containerReuseSupported = TestcontainersConfiguration.getInstance()
 			.environmentSupportsReuse();
 
 		private static final boolean forceReuse = Boolean
 			.parseBoolean(System.getenv(SYS_PROPERTY_FORCE_CONTAINER_REUSE));
 
-		private static final Neo4jContainer neo4jContainer = new Neo4jContainer(repository + ":" + imageVersion)
-			.withoutAuthentication()
-			.withEnv("NEO4J_ACCEPT_LICENSE_AGREEMENT",
-					Optional.ofNullable(System.getenv(SYS_PROPERTY_NEO4J_ACCEPT_COMMERCIAL_EDITION)).orElse("no"))
+		private static final Neo4jContainer neo4jContainer = newNeo4jContainer().withoutAuthentication()
 			.withTmpFs(Map.of("/log", "rw", "/data", "rw"))
 			.withReuse(containerReuseSupported);
 
