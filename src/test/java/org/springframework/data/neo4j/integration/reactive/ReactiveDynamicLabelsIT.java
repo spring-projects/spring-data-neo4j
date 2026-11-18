@@ -25,12 +25,15 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.junit.jupiter.params.Parameter;
 import org.junit.jupiter.params.ParameterizedClass;
 import org.junit.jupiter.params.provider.EnumSource;
@@ -207,11 +210,39 @@ public final class ReactiveDynamicLabelsIT {
 	}
 
 	@Nested
+	@Execution(ExecutionMode.SAME_THREAD)
 	class DynamicLabelsAndOrderOfClassesBeingLoaded extends SpringTestBase {
+
+		// Marker to isolate this test from anything else that might use the same
+		// database (for example a shared Aura instance)
+		private final String runId = java.util.UUID.randomUUID().toString();
+
+		@Override
+		@BeforeEach
+		void setupData() {
+			// Don't wipe the whole database, only touch what belongs to this test
+			try (Session session = this.driver.session();) {
+				this.existingEntityId = session.executeWrite(this::createTestEntity);
+				this.bookmarkCapture.seedWith(session.lastBookmarks());
+			}
+		}
+
+		@AfterEach
+		void removeTestEntity() {
+			try (Session session = this.driver.session();) {
+				session.executeWrite(
+						tx -> tx
+							.run("MATCH (m:Metric {runId: $runId}) DETACH DELETE m",
+									Collections.singletonMap("runId", this.runId))
+							.consume());
+			}
+		}
 
 		@Override
 		Long createTestEntity(TransactionContext t) {
-			return t.run("CREATE (m:Metric:Counter:A:B:C:D {timestamp: datetime()}) RETURN id(m)")
+			return t
+				.run("CREATE (m:Metric:Counter:A:B:C:D {timestamp: datetime(), runId: $runId}) RETURN id(m)",
+						Collections.singletonMap("runId", this.runId))
 				.single()
 				.get(0)
 				.asLong();
@@ -231,9 +262,10 @@ public final class ReactiveDynamicLabelsIT {
 
 			Map<String, Object> args = new HashMap<>();
 			args.put("agentIdLabel", "B");
-			template
-				.findAll("MATCH (m:Metric) WHERE $agentIdLabel in labels(m) RETURN m ORDER BY m.timestamp DESC", args,
-						Metric.class)
+			args.put("runId", this.runId);
+			template.findAll(
+					"MATCH (m:Metric) WHERE $agentIdLabel in labels(m) AND m.runId = $runId RETURN m ORDER BY m.timestamp DESC",
+					args, Metric.class)
 				.as(StepVerifier::create)
 				.assertNext(cm -> {
 					assertThat(cm).isInstanceOf(CounterMetric.class);
