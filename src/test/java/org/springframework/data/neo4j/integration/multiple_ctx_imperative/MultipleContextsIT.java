@@ -54,10 +54,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class MultipleContextsIT {
 
 	@Container
-	private static Neo4jContainer container1 = new Neo4jContainer("neo4j:5").withAdminPassword("verysecret1");
+	private static Neo4jContainer container1 = Neo4jExtension.newNeo4jContainer().withAdminPassword("verysecret1");
 
 	@Container
-	private static Neo4jContainer container2 = new Neo4jContainer("neo4j:5").withAdminPassword("verysecret2");
+	private static Neo4jContainer container2 = Neo4jExtension.newNeo4jContainer().withAdminPassword("verysecret2");
 
 	@DynamicPropertySource
 	static void neo4jSettings(DynamicPropertyRegistry registry) {

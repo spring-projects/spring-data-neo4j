@@ -29,6 +29,7 @@ import org.springframework.data.neo4j.core.ReactiveNeo4jTemplate;
 import org.springframework.data.neo4j.documentation.domain.MovieEntity;
 import org.springframework.data.neo4j.documentation.domain.PersonEntity;
 import org.springframework.data.neo4j.documentation.domain.Roles;
+import org.springframework.data.neo4j.test.Neo4jExtension;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 
@@ -40,7 +41,7 @@ import org.springframework.test.context.DynamicPropertySource;
 class ReactiveTemplateExampleIT {
 
 	@Container
-	private static Neo4jContainer neo4jContainer = new Neo4jContainer("neo4j:5");
+	private static Neo4jContainer neo4jContainer = Neo4jExtension.newNeo4jContainer();
 
 	@DynamicPropertySource
 	static void neo4jProperties(DynamicPropertyRegistry registry) {

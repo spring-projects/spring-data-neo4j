@@ -261,7 +261,7 @@ class MovieRepositoryTCTest {
 	@BeforeAll
 	static void initializeNeo4j() {
 
-		neo4jContainer = new Neo4jContainer()
+		neo4jContainer = new Neo4jContainer("neo4j:2026")
 			.withAdminPassword("somePassword");
 		neo4jContainer.start();
 	}
@@ -327,7 +327,7 @@ class PriorToBoot226Test {
     @BeforeAll
     static void initializeNeo4j() {
 
-        neo4jContainer = new Neo4jContainer()
+        neo4jContainer = new Neo4jContainer("neo4j:2026")
             .withAdminPassword("somePassword");
         neo4jContainer.start();
     }

@@ -98,8 +98,8 @@
 		<maven-site-plugin.version>3.7.1</maven-site-plugin.version>
 		<maven.compiler.release>${java.version}</maven.compiler.release>
 		<neo4j-java-driver.version>6.3.0</neo4j-java-driver.version>
-		<neo4j-migrations.version>2.17.3</neo4j-migrations.version>
-		<neo4j.version>5.26.21</neo4j.version>
+		<neo4j-migrations.version>4.2.2</neo4j-migrations.version>
+		<neo4j.version>2026.10.2</neo4j.version>
 		<objenesis.version>3.0.1</objenesis.version>
 		<org.osgi.core.version>6.0.0</org.osgi.core.version>
 		<project.build.docs>${project.build.directory}/docs</project.build.docs>
@@ -116,6 +116,13 @@
 
 	<dependencyManagement>
 		<dependencies>
+			<dependency>
+				<groupId>eu.michael-simons.neo4j</groupId>
+				<artifactId>neo4j-migrations-bom</artifactId>
+				<version>${neo4j-migrations.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
 			<dependency>
 				<groupId>org.neo4j</groupId>
 				<artifactId>neo4j-cypher-dsl-bom</artifactId>
@@ -174,19 +181,9 @@
 				<version>${junit-pioneer.version}</version>
 			</dependency>
 			<dependency>
-				<groupId>org.neo4j</groupId>
-				<artifactId>neo4j</artifactId>
-				<version>${neo4j.version}</version>
-			</dependency>
-			<dependency>
 				<groupId>org.neo4j.driver</groupId>
 				<artifactId>neo4j-java-driver</artifactId>
 				<version>${neo4j-java-driver.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.neo4j.test</groupId>
-				<artifactId>neo4j-harness</artifactId>
-				<version>${neo4j.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>org.objenesis</groupId>
@@ -356,7 +353,6 @@
 		<dependency>
 			<groupId>eu.michael-simons.neo4j</groupId>
 			<artifactId>neo4j-migrations</artifactId>
-			<version>${neo4j-migrations.version}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -675,6 +671,9 @@
 						<include>**/*Tests.java</include>
 					</includes>
 					<skipTests>${skipUnitTests}</skipTests>
+					<systemPropertyVariables>
+						<sdn.default-neo4j-version>${neo4j.version}</sdn.default-neo4j-version>
+					</systemPropertyVariables>
 				</configuration>
 			</plugin>
 			<plugin>
@@ -682,6 +681,9 @@
 				<artifactId>maven-failsafe-plugin</artifactId>
 				<configuration>
 					<skipTests>${skipIntegrationTests}</skipTests>
+					<systemPropertyVariables>
+						<sdn.default-neo4j-version>${neo4j.version}</sdn.default-neo4j-version>
+					</systemPropertyVariables>
 				</configuration>
 				<executions>
 					<execution>

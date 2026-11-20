@@ -84,10 +84,10 @@ The image version to use can be configured through an environmental variable lik
 [[build-other-image]]
 .Build using a different Neo4j Docker image
 ----
-$ SDN_NEO4J_VERSION=5.3.0-enterprise SDN_NEO4J_ACCEPT_COMMERCIAL_EDITION=yes ./mvnw clean verify
+$ SDN_NEO4J_VERSION=2026-enterprise SDN_NEO4J_ACCEPT_COMMERCIAL_EDITION=yes ./mvnw clean verify
 ----
 
-Here we are using 5.3.0 enterprise and also accept the license agreement.
+Here we are using 2026 latest enterprise and also accept the license agreement.
 
 Consult your operating system or shell manual on how to define environment variables if specifying them inline does not work for you.
 
@@ -121,7 +121,7 @@ $ SDN_NEO4J_URL=bolt://localhost:7687 SDN_NEO4J_PASSWORD=verysecret ./mvnw clean
 |Name|Default value|Meaning
 
 |`SDN_NEO4J_VERSION`
-|5.3.0
+|2026 latest
 |Version of the Neo4j docker image to use, see https://hub.docker.com/_/neo4j[Neo4j Docker Official Images]
 
 |`SDN_NEO4J_ACCEPT_COMMERCIAL_EDITION`
