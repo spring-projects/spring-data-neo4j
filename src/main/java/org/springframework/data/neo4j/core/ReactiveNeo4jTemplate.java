@@ -790,7 +790,10 @@ public final class ReactiveNeo4jTemplate
 
 		Neo4jPersistentEntity<?> entityMetaData = this.neo4jMappingContext.getRequiredPersistentEntity(domainType);
 		Statement statement = this.cypherGenerator.prepareDeleteOf(entityMetaData);
-		return execute(Mono.defer(() -> this.neo4jClient.query(() -> this.renderer.render(statement)).run().then()));
+		return execute(Mono.defer(() -> this.neo4jClient.query(() -> this.renderer.render(statement))
+			.bindAll(statement.getCatalog().getParameters())
+			.run()
+			.then()));
 	}
 
 	private <T> Mono<ExecutableQuery<T>> createExecutableQuery(Class<T> domainType, Statement statement) {
