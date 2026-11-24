@@ -2,10 +2,8 @@
 
 ## Reporting a Vulnerability
 
-Please [open a draft security advisory](https://github.com/spring-projects/spring-data-neo4j/security/advisories/new) if you need to disclose and discuss a security issue in private with the Spring Data team.
-Note that we only accept reports against [supported versions](https://spring.io/projects/spring-data#support).
-
-For more details, check out our [security policy](https://spring.io/security-policy).
+Report suspected vulnerabilities privately by following [Neo4j’s responsible disclosure policy](https://neo4j.com/responsible-disclosure/) as Spring Data Neo4j is maintained by Neo4j. 
+Note that we only accept reports against [supported versions](https://spring.io/projects/spring-data-neo4j#learn).
 
 ## JAR signing
 
